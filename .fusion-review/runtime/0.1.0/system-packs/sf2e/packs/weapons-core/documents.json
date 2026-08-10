@@ -1,0 +1,1600 @@
+[
+  {
+    "_id": "b6eu9Oghd9S6I6Ai",
+    "name": "Arc Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "battery",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "arc-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Instead of traditional ammunition, this bulky pistol contains a capacitor that generates arcs of electricity. Its stock is crafted from polycarbon or other synthetic insulators, often tinted bright yellow and inscribed with the universal bolt symbol for high voltage.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "shock",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 25
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "arc",
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "shock"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "M0PsUbGLkBk878YZ",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "conduit-transmission-red.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "DSuMJpr3FSnR9E96",
+    "name": "Arc Rifle",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "battery",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "arc-rifle",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This rifle's oversized body contains a larger version of an arc pistol capacitor, with a short barrel and polycarbon stock designed to insulate the wielder from high voltage. The arc rifle's larger capacitor allows it to produce a charge with enough power to subdue a rampaging renkroda.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "shock",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 50
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 50,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "arc",
+          "tech"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "shock"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TAgaAiDMPGnF87Vv",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "rifle-fluted.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4QzOM5DJ0CfLDkfD",
+    "name": "Autotarget Rifle",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "projectile-ammo",
+        "builtIn": false,
+        "capacity": 20
+      },
+      "baseItem": "autotarget-rifle",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This short, bulky assault rifle incorporates a piston system that allows the user to switch to auto-fire and unload a magazine with one trigger squeeze.</p>",
+      "expend": 1,
+      "grade": "commercial",
+      "group": "projectile",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 45
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "2",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog",
+          "automatic"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "projectile"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dxkmvJZOblZ8oImW",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "heavy-gun.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "DJ0i71kuxwIrASDA",
+    "name": "Baton",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "baton",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This reinforced rod is commonly made from metal alloys and designed to strike and parry incoming blows.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "club",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 2
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog",
+          "finesse",
+          "nonlethal",
+          "parry"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "club"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "D4KuxPi9gqFkvZ3h",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ivory-baton.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "JewzErqmlzCyzPZx",
+    "name": "Coil Rifle",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "projectile-ammo",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "coil-rifle",
+      "bonus": 0,
+      "bulk": 1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>The barrel of this rifle is surrounded by a coil that accelerates ammunition with power and accuracy using carefully aligned magnetic fields.</p>",
+      "expend": 1,
+      "grade": "commercial",
+      "group": "sniper",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 100
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 120,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "boost-1d10",
+          "kickback",
+          "tech",
+          "unwieldy",
+          "volley-30"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "sniper",
+      "bonusDamage": 0
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "V7epvZwIrMLMYI97",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "yellow-laser-gun.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SCkpSClKa7hpGRo6",
+    "name": "Crossbolter",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "projectile-ammo",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "crossbolter",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This high-tech crossbow uses a series of pistons to propel bolts along its barrel. These quiet-firing semiautomatic weapons are popular in high-density settlements where gunfire might cause a panic.</p>",
+      "expend": 1,
+      "grade": "commercial",
+      "group": "crossbow",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 25
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 100,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "crossbow"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "gwVhd31nGDXo5HAa",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "crossbow-heavy-black.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Gjz2wDtWtqhOhMJa",
+    "name": "Dueling Sword",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "dueling-sword",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Coming in a variety of styles, these traditional and time-tested weapons have been honed with advanced smithing techniques and modern materials.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "sword",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 10
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog",
+          "versatile-p"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "sword"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "a2e5svVQ20WrzRTK",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sword-guard.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "VVgBiOUyGBdlfO7r",
+    "name": "Flamethrower",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "chem-tank",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "flamethrower",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d10"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This bulky, rifle-shaped weapon spews flames using a tank of highly combustible, pressurized chemicals housed in its stock.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "flame",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 75
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 15,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "area-cone",
+          "tech",
+          "unwieldy"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "flame"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3yWQhmBrAXnBhYaF",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-red.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ypdzE5rtmvV5hhEe",
+    "name": "Hammer",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "hammer",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Valued as both a crafting tool and an effective weapon, this hammer uses specially weighted heads and handles to deliver maximum force with each strike.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "hammer",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 15
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog",
+          "professional-crafting",
+          "shove"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "hammer"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8nvXQmFxd5eCkD9v",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "shorthammer-double-steel-embossed.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "6ApzdPHVoik1rPQd",
+    "name": "Knife",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "knife",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Invaluable as both a weapon and a tool, knives come in a variety of shapes, styles, and materials ranging from starmetals to ceramics.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "knife",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 2
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "agile",
+          "analog",
+          "finesse",
+          "thrown-10",
+          "versatile-s"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "knife"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "V0LgOSOvkNvs2i0x",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "knife.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "W8e8FT0YQWZq6sbj",
+    "name": "Laser Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "battery",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "laser-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This compact pistol is the most popular sidearm in the Pact Worlds thanks to its reliability, durability, and affordability. Most common laser pistols have a lightweight polycarbon body ending in a long, slim barrel.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "laser",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 40,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "laser"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qIgcUV22LaDCzmb2",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "pistol.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "y4sSHQ1MVyeh8C4m",
+    "name": "Laser Rifle",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "battery",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "laser-rifle",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>These dependable, mass-produced rifles shoot concentrated beams of energy out of square-shaped barrels. The universal standard Pact Worlds model is highly modifiable and designed to function with a variety of accessories and upgrades, with wielders adapting the laser rifle to their preferences and even kit-bashing it into a nearly unrecognizable weapon.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "laser",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 45
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 100,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "tech"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "laser"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0TSUahGsoVnDZ6kv",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "teal-sci-fi-gun.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mPRwsk5rhQj1o5xQ",
+    "name": "Machine Gun",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "projectile-ammo",
+        "builtIn": false,
+        "capacity": 20
+      },
+      "baseItem": "machine-gun",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>These proven and reliable automatic weapons are capable of firing in short bursts or completely emptying their magazines to clear a battlefield.</p>",
+      "expend": 1,
+      "grade": "commercial",
+      "group": "projectile",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 80
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 40,
+      "reload": "2",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog",
+          "automatic"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "projectile"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "EnufuFPBa1U2pPDn",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "heavy-gun-long.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "fBGtyKUBGpY3WvJq",
+    "name": "Plasma Sword",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "plasma-sword",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This sword generates a focused beam of plasma around a localized force field powered by a generator in the sword's hilt. The beam only blazes to life when the sword is powered.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "sword",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 15
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "critical-plasma",
+          "powered",
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "sword"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jLiackiAHgru9OY0",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "strike-weapon-polearm-ice-blue.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zv6jV0o22qJk7xi9",
+    "name": "Pulsecaster Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "battery",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "pulsecaster-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This imposing pistol fires a jolt of paralyzing electricity from its barrel. Its remaining charges are visible as glowing lines of energy radiating down its body. Pulsecaster pistols are often used by bounty hunters and law enforcement who need to keep their targets alive.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "shock",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "nonlethal",
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "shock"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vpjJYIgYZab0UZFa",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "metal-sci-fi-gun.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "kCiqlrRtW70MwWKt",
+    "name": "Semi-Auto Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "projectile-ammo",
+        "builtIn": false,
+        "capacity": 10
+      },
+      "baseItem": "semi-auto-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This pistol automatically ejects used cartridges and loads new ammunition after every shot fired.</p>",
+      "expend": 1,
+      "grade": "commercial",
+      "group": "projectile",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 60,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "analog"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "projectile"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "K0xFwEC6Zv7ghVFa",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "pictol-wrapped.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YHejERFBFVlD2DYZ",
+    "name": "Shock Pad",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "shock-pad",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This flexible nanocarbon circuit can be installed as an upgrade into gloves, kneepads, or similar appendage protectors to emit a powerful electric shock when forcefully applied to a target.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "shock",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 10
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "agile",
+          "free-hand",
+          "powered",
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "shock"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "sTe6qQmJ1lC1xDfC",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gauntlet-armored-leather-steel-blue.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "UrLQiyYjRUgB76PB",
+    "name": "Shock Truncheon",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "shock-truncheon",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Popular among security forces, this retractable baton discharges electricity with each Strike. A whirring device inside the grip generates voltage, creating a sound like a swarm of buzzing insects when it's fully charged.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "club",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 16
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "config": {
+          "modular": [
+            {
+              "damageType": "electricity",
+              "traits": [
+                "arc"
+              ]
+            },
+            {
+              "damageType": "electricity",
+              "traits": [
+                "nonlethal"
+              ]
+            }
+          ]
+        },
+        "rarity": "common",
+        "value": [
+          "disarm",
+          "modular",
+          "powered",
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "club"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ST6R4rRFf50vzSdJ",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "mace-studded-steel.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1De0vVcNU1EZQFm0",
+    "name": "Shooting Starknife",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": null,
+      "baseItem": "shooting-starknife",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This traditional star-shaped blade design of lost Golarion is often forged from reinforced carbon steel and treated with chemicals that create an iridescent sheen. When properly balanced and honed, a shooting starknife sings as it slices through the air.</p>",
+      "expend": null,
+      "grade": "commercial",
+      "group": "knife",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 17
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": null,
+      "reload": "-",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "agile",
+          "analog",
+          "deadly-d6",
+          "finesse",
+          "thrown-20",
+          "versatile-s"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "knife"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wbKiBgYY120RyoGg",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "starknife.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "K9FXxy2PkUOMrIo8",
+    "name": "Zero Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": {
+        "baseType": "chem-tank",
+        "builtIn": false,
+        "capacity": 1
+      },
+      "baseItem": "zero-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "cold",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Zero pistols use transparent canisters of supercooled liquid as ammunition.</p>",
+      "expend": 2,
+      "grade": "commercial",
+      "group": "cryo",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "tech"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "cryo"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "O3QRrXVfhNpF0XyY",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blue-aura-charged-gun.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  }
+]

@@ -290,10 +290,12 @@ export const TokenDocumentSchema = z.object({
   disposition: DispositionSchema.default(0),
 
   /**
-   * Primary attribute bar (e.g. HP).
+   * Primary attribute bar. Defaults to HP so a freshly placed token already
+   * shows a truthful bar (REQ-CNV-090) — `displayBars` still decides who sees
+   * it. A system that stores HP elsewhere overrides per token via the config.
    * Spec 02 §TokenData.bar1.
    */
-  bar1: TokenBarConfigSchema.default({ attribute: null }),
+  bar1: TokenBarConfigSchema.default({ attribute: "attributes.hp" }),
 
   /**
    * Secondary attribute bar.

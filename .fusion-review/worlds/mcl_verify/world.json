@@ -1,0 +1,15 @@
+{
+  "id": "mcl_verify",
+  "title": "Verificação multiclasse",
+  "system": "pf2e",
+  "systemVersion": "0.0.0",
+  "fusionVersion": "0.1.0",
+  "schemaVersion": 1,
+  "description": "",
+  "createdAt": "2026-08-02T12:42:35.891Z",
+  "lastOpenedAt": "2026-08-02T12:42:45.336Z",
+  "playTime": 0,
+  "compatibility": {
+    "minimumFusion": "0.1.0"
+  }
+}

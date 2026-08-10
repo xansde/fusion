@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.class-features-core",
+  "generatedAt": "2026-07-06T23:33:27.304Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "entries": {
+    "2K4xQnGRqtCwjRoU": {
+      "sourceHash": "f4e3c245f6bc031e3b514a118042d73b8f06ffbb",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 9
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "5iAgApzCdVQlJd7p": {
+      "sourceHash": "21579cf0eb5d71ad18ad9c57b4dac2452f000ce5",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Spinning Staff",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Spinning Staff",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "8WLs2Ful9QpO9lun": {
+      "sourceHash": "79c91d951a8a96ac1921a432504f94dac971e73f",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Dimensional Assault",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Dimensional Assault",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "9X7WoX3myV1ob9wi": {
+      "sourceHash": "dd1d353586f325960b7895b95467c7d8c4166ed7",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Turbulent Tide",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Turbulent Tide",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "9qxi3y111QjyQ7oE": {
+      "sourceHash": "920f451a4c33eed32beb055a51e2ee081defafe9",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Shielding Strike",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Shielding Strike",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "RD63JAZ4zd2UvGQ4": {
+      "sourceHash": "12e5565d5b89fa7de5ab386c706f81cd5b6a3a7f",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Shooting Star",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Shooting Star",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "RqBETppduK38w0zx": {
+      "sourceHash": "d169e9b38f4095119a8f214825f90c1c7654d926",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 17
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "W2TtTf4vbOLuac4K": {
+      "sourceHash": "62fd54c8c26bc9c2563b7c56cbcee1224e41f2bd",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Sky Laughs at Waves",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Sky Laughs at Waves",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "h6aJkvglqVbjB2oK": {
+      "sourceHash": "88e2e0ec26e4ce29d5bb4856d23a2d0945dca31e",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 13
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "hYxkutfYKZfTlJb5": {
+      "sourceHash": "5b9a3770a834a272aa13f3c9b854541fb040ef53",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 5
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "o6Oc3e0GSFurrogA": {
+      "sourceHash": "63ae3e0735a81651aeb9367c6a0be77af8c4ab37",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Thunderous Strike",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Thunderous Strike",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "qrFYGMgRpplhKmpU": {
+      "sourceHash": "6da67029632230b18db2fe2c9c2b9002b6ce1cc6",
+      "grants": [
+        {
+          "kind": "fixed-item",
+          "vendor": "spells-srd",
+          "name": "Home Among Mulberry Leaves",
+          "uuid": "Compendium.pf2e.spells-srd.Item.Home Among Mulberry Leaves",
+          "source": "curated",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "teste_mario",
+  "title": "Teste PRs do Mario",
+  "system": "pf2e",
+  "systemVersion": "0.0.0",
+  "fusionVersion": "0.1.0",
+  "schemaVersion": 1,
+  "description": "",
+  "createdAt": "2026-07-03T20:49:20.583Z",
+  "lastOpenedAt": "2026-08-07T23:16:27.966Z",
+  "playTime": 0,
+  "compatibility": {
+    "minimumFusion": "0.1.0"
+  }
+}

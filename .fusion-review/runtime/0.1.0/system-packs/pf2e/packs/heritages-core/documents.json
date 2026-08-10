@@ -1,0 +1,549 @@
+[
+  {
+    "_id": "azDELWXz1ds3XeL0",
+    "name": "Deep Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>Your ancestors lived deeper underground than other ratfolk, granting you the ability to see in the dark. You gain darkvision.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7p9HtLzWBHc18JDW",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "deep-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BPDF1w5U8k1HrUvZ",
+    "name": "Desert Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>You are native to arid plains and likely grew up traveling the roads. If you have both hands free, you can increase your Speed to 30 feet as you run on all fours. In addition, environmental heat effects are one step less extreme for you, and you can go 10 times longer than normal before you are affected by starvation or thirst. However, unless you wear protective gear or take shelter, environmental cold effects are one step more extreme for you.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "land-speed",
+          "value": 5,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": [
+            "hands-free:2"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "hands-free:2"
+            ],
+            "selector": "land-speed",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "twayjFuXbsvyHUwy",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "desert-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Rd2aNjE56aR5fN0d",
+    "name": "Longsnout Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>Your long snout gives you a keener sense of smell than most ratfolk. You gain imprecise scent with a range of 30 feet. This means you can use your sense of smell to determine a creature's location. The GM will usually double the range if you're downwind from the creature or halve the range if you're upwind.</p>\n<p>In addition, you gain a +2 circumstance bonus to Perception checks to @UUID[Compendium.pf2e.actionspf2e.Item.Seek] a creature or object within the range of your scent.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": 30,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": 30,
+            "selector": "scent"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "perception",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "action:seek",
+            {
+              "lte": [
+                "target:distance",
+                30
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "action:seek",
+              {
+                "lte": [
+                  "target:distance",
+                  30
+                ]
+              }
+            ],
+            "selector": "perception",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fROPRHGyUn4PgcER",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "longsnout-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "STr5kDJYUrafYtZy",
+    "name": "Sewer Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>You come from a long line of ratfolk with a community based in the sewers beneath a large settlement. You are immune to the disease putrid plague. You gain a +1 circumstance bonus to saving throws against diseases and poisons. If you roll a success on a saving throw against a disease or poison, you get a critical success instead. If you have a different ability that would improve the save in this way (such as the @UUID[Compendium.pf2e.classfeatures.Item.Battle Hardened] fighter class feature), if you roll a critical failure on the save you get a failure instead.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "item:trait:disease",
+                "item:trait:poison"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:disease",
+                  "item:trait:poison"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "eFsD7W6hnK33jlDQ",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:disease",
+                  "item:trait:poison"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sewer-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "GIbhAzqqCZsfVZ4Z",
+    "name": "Shadow Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>Your ancestors lived in dark spaces underground, granting you dark fur and a vaguely unnatural mien. You gain the trained proficiency rank in Intimidation and can use Intimidation to @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] animals. When you @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] an animal, you don't take a penalty for not sharing a language with it. If you would automatically become trained in Intimidation (from your background or class, for example), you become trained in another skill of your choice.</p>\n<p>Animals' attitudes toward you begin one degree worse than normal, usually starting at unfriendly instead of indifferent for domesticated animals, and hostile instead of unfriendly for wild animals.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.intimidation.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.intimidation.rank",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tarfuEXmi0E0Enfy",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "shadow-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "6B5uk7Fe6I4NrWjn",
+    "name": "Snow Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>You have a thicker coat and bulkier frame to defend against the cold, granting you cold resistance equal to half your level (minimum 1). You treat environmental cold effects as if they were one step less extreme (incredible cold becomes extreme, extreme cold becomes severe, and so on).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "cold",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "cold",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7lFPhRMAFXQsXUP2",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "weather-clouds-snow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pVqpKjLfoDY2XzA3",
+    "name": "Tunnel Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "<p>You can easily compress your body and squeeze through gaps. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Quick Squeeze] feat as a bonus feat, even if you aren't trained in Acrobatics. Tight spaces not tight enough to require the @UUID[Compendium.pf2e.actionspf2e.Item.Squeeze] action aren't difficult terrain for you.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Quick Squeeze",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Quick Squeeze"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "U882U2NUUGL6u3rL",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "mine-exterior-entrance.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "uMYunHHMgAR6hgvz",
+    "name": "Sylph",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": null,
+      "description": "<p>You are descended from air elementals or were born under the element's influence. You gain the sylph trait, in addition to the traits from your ancestry. You also gain low-light vision or darkvision if your ancestry already has low-light vision. You can choose from sylph feats and feats from your ancestry whenever you gain an ancestry feat.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "low-light-vision"
+          }
+        },
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": [
+            "self:low-light-vision:from-ancestry"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "predicate": [
+              "self:low-light-vision:from-ancestry"
+            ],
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "G8jfMayPv4vZvAVr",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sylph.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "id": "mesa",
+  "title": "mesa",
+  "system": "pf2e",
+  "systemVersion": "0.0.0",
+  "fusionVersion": "0.1.0",
+  "schemaVersion": 1,
+  "description": "",
+  "createdAt": "2026-07-03T14:32:35.487Z",
+  "lastOpenedAt": "2026-08-02T12:41:57.863Z",
+  "playTime": 0,
+  "compatibility": {
+    "minimumFusion": "0.1.0"
+  }
+}

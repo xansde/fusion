@@ -1,0 +1,284 @@
+[
+  {
+    "_id": "q0NhHdWCZIdUUZnB",
+    "name": "Glitching",
+    "type": "effect",
+    "img": "icons/placeholder/effect.svg",
+    "system": {
+      "badge": {
+        "type": "counter",
+        "value": 1
+      },
+      "description": "<p>A glitching creature, hazard, or object with the tech trait experiences a combination of debilitating effects and moments of seizing up. The glitching condition always includes a value. If you have glitching equipment and take any action involving that equipment, you must attempt a flat check to see what occurs. If you have the glitching condition, you must attempt this @Check[flat|dc:resolve(5 + @item.badge.value)|showDC:all] at the beginning of each of your turns. The DC of the flat check equals 5 plus your condition value or the item's condition value.</p><hr /><p><strong>Critical Success</strong> Reduce your glitching value by 1.</p>\n<p><strong>Success</strong> You act as normal or use your equipment as normal.</p>\n<p><strong>Failure</strong> You take an item penalty to all your checks and DCs equal to your glitching value or the glitching value of the item you're attempting to use, including saving throws, attack modifiers, and the DCs of abilities, effects, and spells you use.</p>\n<p><strong>Critical Failure</strong> A glitching object you tried to use doesn't function, and you lose the actions you took to attempt to use it. A glitching creature uses the same effect as a failure and is also @UUID[Compendium.sf2e.conditions.Item.Stunned]{Stunned 1}. A glitching hazard uses the same effect as a failure.</p>",
+      "duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "fromSpell": false,
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "all",
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "item",
+          "predicate": [
+            "glitching-failure"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "glitching-failure"
+            ],
+            "selector": "all",
+            "type": "item",
+            "value": "-@item.badge.value"
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "self:condition:glitching",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "self:condition:glitching"
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "self:condition:glitching:{item|badge.value}",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "self:condition:glitching:{item|badge.value}"
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "glitching-failure",
+          "label": null,
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "glitching-failure",
+            "toggleable": true
+          }
+        }
+      ],
+      "start": {
+        "initiative": null,
+        "value": 0
+      },
+      "tokenIcon": {
+        "show": true
+      },
+      "traits": {
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6A2QDy8wRGCVQsSd",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blue-mechanical-arm.webp",
+            "placeholder": "icons/placeholder/effect.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "B3YY1PvvYny0tgDs",
+    "name": "Suppressed",
+    "type": "effect",
+    "img": "icons/placeholder/effect.svg",
+    "system": {
+      "description": "<p>You've been affected by a high volume of incoming fire or a particularly dangerous attack that forces you to act less efficiently for your own safety. You take a –1 circumstance penalty to attack rolls and a –10-foot status penalty to all your Speeds.</p>",
+      "duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "fromSpell": false,
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "suppressed-attack",
+          "label": null,
+          "selector": "attack",
+          "value": -1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "attack",
+            "slug": "suppressed-attack",
+            "type": "circumstance",
+            "value": -1
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": "suppressed-speed",
+          "label": null,
+          "selector": "all-speeds",
+          "value": -10,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "all-speeds",
+            "slug": "suppressed-speed",
+            "type": "status",
+            "value": -10
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "self:condition:suppressed",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "self:condition:suppressed"
+          }
+        }
+      ],
+      "start": {
+        "initiative": null,
+        "value": 0
+      },
+      "tokenIcon": {
+        "show": true
+      },
+      "traits": {
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "enA7BxAjBb7ns1iF",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "figure-running-gray.webp",
+            "placeholder": "icons/placeholder/effect.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xgF0Yky2xOMPvATM",
+    "name": "Untethered",
+    "type": "effect",
+    "img": "icons/placeholder/effect.svg",
+    "system": {
+      "description": "<p>You're in a zero gravity (or similar) environment without a means of movement and float without support. You can't take move actions unless they specify they can be used in your current environment. At the end of your turn, you move 5 feet in the last direction you moved. You can take the Push Off action to change directions and the distance moved. Once you gain a means of moving in your environment, you lose this condition. Typically, a creature with the untethered condition in zero-gravity also gains the @UUID[Compendium.sf2e.conditions.Item.Clumsy]{Clumsy 1} and @UUID[Compendium.sf2e.conditions.Item.Off-Guard] conditions while untethered.</p>",
+      "duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "fromSpell": false,
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.sf2e.actions.Item.Push Off",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.sf2e.actions.Item.Push Off"
+          }
+        }
+      ],
+      "start": {
+        "initiative": null,
+        "value": 0
+      },
+      "tokenIcon": {
+        "show": true
+      },
+      "traits": {
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "z1ucw4CLwLqHoAp3",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blue-arrow-up.webp",
+            "placeholder": "icons/placeholder/effect.svg"
+          }
+        ]
+      }
+    }
+  }
+]

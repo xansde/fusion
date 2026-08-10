@@ -1,0 +1,5019 @@
+[
+  {
+    "_id": "X9sJnNpTtf1p2nbI",
+    "name": "Alertness",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Experience has made you increasingly aware of threats around you, and you react more quickly to danger. Your proficiency rank for Perception increases to expert.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Core Rulebook"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "perception": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "D8CSi8c9XiRpVc5M",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "human-single-blue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "W2TtTf4vbOLuac4K",
+    "name": "Aloof Firmament",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>You're a philosopher of the sword who codifies your study of qinggong along principles arcane and martial. Your blade teaches morality and immortality, and you illustrate its lessons with an academician's rigor. Through your training, you've learned to move about with grace and create opportunity to strike foes.</p>\n<p>You gain the @UUID[Compendium.pf2e.feats-srd.Item.Cat Fall] general feat, though you benefit from it only as long as you aren't using a shield and are wearing light or no armor.</p>\n<p>While in @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade] stance, your steps become even lighter, giving you the benefits of the @UUID[Compendium.pf2e.feats-srd.Item.Quick Jump] general feat. When you Fly, @UUID[Compendium.pf2e.actionspf2e.Item.Leap], @UUID[Compendium.pf2e.actionspf2e.Item.High Jump], or @UUID[Compendium.pf2e.actionspf2e.Item.Long Jump] while in that stance, your movement doesn't trigger reactions. If you take one of these actions, the next Strike you make before the end of your turn with a one-handed weapon in the sword group has greater damage from Arcane Cascade. Increase the extra damage to 4; increase it to 6 if you have weapon specialization, or to 8 if you have greater weapon specialization. You must have your other hand completely free; the extra damage doesn't apply if you have a free-hand weapon or other item in that hand, even if you would normally be able to use the hand for other things.</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Sky Laughs at Waves]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Cat Fall",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Cat Fall"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "arcane-cascade-extra-damage",
+          "label": null,
+          "selector": "strike-damage",
+          "value": 4,
+          "mode": "add",
+          "predicate": [
+            "aloof-flew-or-jumped",
+            {
+              "gte": [
+                "hands-free:but-really",
+                1
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "aloof-flew-or-jumped",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 4
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "arcane-cascade-extra-damage",
+          "label": null,
+          "selector": "strike-damage",
+          "value": 6,
+          "mode": "add",
+          "predicate": [
+            "feature:weapon-specialization",
+            "aloof-flew-or-jumped",
+            {
+              "gte": [
+                "hands-free:but-really",
+                1
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:weapon-specialization",
+              "aloof-flew-or-jumped",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 6
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "arcane-cascade-extra-damage",
+          "label": null,
+          "selector": "strike-damage",
+          "value": 8,
+          "mode": "add",
+          "predicate": [
+            "feature:greater-weapon-specialization",
+            "aloof-flew-or-jumped",
+            {
+              "gte": [
+                "hands-free:but-really",
+                1
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:greater-weapon-specialization",
+              "aloof-flew-or-jumped",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 8
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "aloof-flew-or-jumped",
+          "label": "PF2E.SpecificRule.Magus.ArcaneCascade.IncreaseDamage",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": [
+            "self:effect:arcane-cascade"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.SpecificRule.Magus.ArcaneCascade.IncreaseDamage",
+            "option": "aloof-flew-or-jumped",
+            "predicate": [
+              "self:effect:arcane-cascade"
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "uncommon",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9CC5Ek0Mq768Lhgx",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "aloof-flew-or-jumped",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 4,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:weapon-specialization",
+              "aloof-flew-or-jumped",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 6,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:greater-weapon-specialization",
+              "aloof-flew-or-jumped",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 8,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "weather-clouds.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pf6KyAB13Qf5GQ9Q",
+    "name": "Arcane Cascade",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>After you wield magic, you can enter a special stance to make your attacks more effective.</p>\n<p>@UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Arcane Cascade",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Arcane Cascade"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.arcaneCascade.damageType",
+          "value": "untyped",
+          "mode": "override",
+          "predicate": null,
+          "priority": -100,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.arcaneCascade.damageType",
+            "priority": -100,
+            "value": "untyped"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "09iL38CZZEa0q0Mt",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "arcane-cascade.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xvC1jNDkNdNtZQiF",
+    "name": "Arcane Spellcasting (Magus)",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You study spells so you can combine them with your attacks or solve problems that strength of arms alone can't handle. You can cast arcane spells using the @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell] activity, and you can supply material, somatic, and verbal components when casting spells.</p>\n<p>Because you're a magus, you can draw replacement sigils with the tip of your weapon or your free hand for spells requiring material components, replacing them with somatic components instead of needing a material component pouch.</p>\n<p>At 1st level, you can prepare one 1st-rank spell and five cantrips each morning from the spells in your spellbook. Prepared spells remain available to you until you cast them or until you prepare your spells again. The number of spells you can prepare is called your spell slots.</p>\n<p>As you increase in level as a magus, your number of spell slots and the highest rank of spells you can cast from spell slots increase. Because you split your focus between physical training and magical scholarship, you have no more than two spell slots of your highest rank and, if you can cast 2nd-rank spells or higher, two spell slots of 1 rank lower than your highest spell rank. For anything that requires the ability to cast spells of a certain rank that's lower than the highest slots you have, you still qualify even if you no longer have spell slots at those ranks.</p>\n<p>Some of your spells require you to attempt a spell attack roll to see how effective they are, or have your enemies roll against your spell DC (typically by attempting a saving throw). Your spell attack rolls and spell DCs use your Intelligence modifier.</p><h3>Heightening Spells</h3><p>When you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. Many spells have specific improvements when they're heightened to certain ranks.</p><h3>Cantrips</h3><p>A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is always automatically heightened to half your level rounded up—this is usually equal to the highest rank of spell you can cast as a magus. For example, as a 1st-level magus, your cantrips are 1st-rank spells, and as a 5th-level magus, your cantrips are 3rd-rank spells.</p><h3>Spellbook</h3><p>Every arcane spell has a written version, usually recorded in a spellbook. You start with a spellbook worth 10 sp or less, which you receive for free and must study to prepare your spells each day. The spellbook contains your choice of eight arcane cantrips and four 1st-rank arcane spells. You choose these from the common spells on the arcane spell list or from other arcane spells you gain access to. Your spellbook's form and name are up to you. It might be anything from a sturdy book with a secure latch entitled Theses on the Stratagems of Supernatural Warfare to a tattered collection of training pamphlets with your name scrawled on the cover.</p>\n<p>Each time you gain a level, you add two more arcane spells to your spellbook, of any rank of spell you can cast. You can also use the Arcana skill to add other spells that you find in your adventures. Though you lose some lower spell slots as you increase in level, you keep the spells in your spellbook and can prepare them in your higher-rank slots as normal.</p>\n<p>If you have a spellbook from multiple sources (such as being a magus with the Wizard Dedication feat), you can use the same spellbook for all your spells.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "selected": {},
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wXaz41gwqNtTn6tf",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-eye-purple.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4TibtVUC1A4nu3lj",
+    "name": "Conflux Spells",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You learn a conflux spell from your hybrid study, and you can cast additional conflux spells by selecting certain feats. Conflux spells are magus-specific spells created for combat and are a type of focus spell. It costs 1 Focus Point to cast a focus spell, and you start with a focus pool of 1 Focus Point. You refill your focus pool during your daily preparations, and you can regain 1 Focus Point by spending 10 minutes using the Refocus activity to both study your spellbook and perform a physical regimen.</p>\n<p>Focus spells are automatically heightened to half your level rounded up. Focus spells don't require spell slots, nor can you cast them using spell slots. Taking feats can give you more focus spells and increase the size of your focus pool, though your focus pool can never hold more than 3 points. The full rules can be found on page 300 of the Core Rulebook.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FkbFgmoVz5lHhSMo",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "conflux-spells.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pHKmK2P504QxLvsL",
+    "name": "Double Reflow",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your kinetic gate becomes even more adaptable. When you use reflow elements, you can replace two impulse feats instead of one.</p>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "DvuPpIaM4BkHLX4y",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "projectiles-ice-explosion.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "d1DLOebEvisqe0VP",
+    "name": "Double Spellstrike",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You can extend the magic of spells you store with Spellstrike. After you make a Spellstrike with a spell cast from a spell slot, you retain an echo of the spell, stored in your body. The next time you Spellstrike, you can cast the same spell again without expending a spell slot.</p>\n<p>If you choose to cast a different spell with Spellstrike, or you go 1 minute without using the stored spell, the stored spell dissipates harmlessly.</p>",
+      "level": 19,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VmPIJomEdmgGrCMS",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blade-tips-double-blue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "HBkLN3XV5QAcSEaH",
+    "name": "Expert Spellcaster",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p><strong>Animist</strong> The magic of the spirits flows freely through you. Your proficiency ranks for spell attack modifier and spell DC increase to expert.</p>\n<p><strong>Bard</strong> Your magical techniques grow stronger. Your proficiency ranks for spell attack modifiers and spell DCs increase to expert.</p>\n<p><strong>Druid</strong> Your command of primal forces has deepened, empowering your spells. Your proficiency ranks for spell attack modifier and spell DC increase to expert.</p>\n<p><strong>Magus</strong> Your fundamental understanding of magic improves, making your spells harder to resist. Your proficiency ranks for arcane spell attack rolls and spell DCs increase to expert.</p>\n<p><strong>Oracle</strong> The intricacy of your divine power has grown clearer over time. Your proficiency ranks for divine spell attack rolls and spell DCs increase to expert.</p>\n<p><strong>Psychic</strong> Self-reflection has brought you greater knowledge of yourself and, with it, psychic power. Your proficiency ranks for spell attack modifier and spell DC increase to expert.</p>\n<p><strong>Sorcerer</strong> Your inherent magic responds easily and powerfully to your command. Your proficiency ranks for spell attack modifier and spell DC for spells of your bloodline's tradition increase to expert.</p>\n<p><strong>Summoner</strong> As your connection to your eidolon deepens, the power of your spells increases. Your proficiency ranks for spell attack modifier and spell DC for spells of your eidolon's tradition increase to expert.</p>\n<p><strong>Witch</strong> You've learned to better control the power your patron has granted you. Your proficiency ranks for spell attack modifier and spell DC increase to expert.</p>\n<p><strong>Wizard</strong> Extended practice of the arcane has improved your capabilities. Your proficiency ranks for spell attack modifier and spell DC increase to expert.</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "{actor|class.slug}",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}"
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "spellcasting": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "animist",
+          "bard",
+          "druid",
+          "magus",
+          "oracle",
+          "psychic",
+          "sorcerer",
+          "summoner",
+          "witch",
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cD3nSupdCvONuHiE",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          },
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-backed-silver-gold.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "H2LJjggIreLQ66Oy",
+    "name": "Extract Element",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Creatures with a strong tie to your element might be troublesome for you to deal with, at least until you've learned to turn their elemental nature to your advantage. You gain the @UUID[Compendium.pf2e.actionspf2e.Item.Extract Element] action.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Extract Element",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Extract Element"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jyCEC3eC4B6YaGoy",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "disapperance.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "phFV9ukpsGR9yCFY",
+    "name": "Final Gate",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your kinetic gate reaches a perfect form, its power constantly fighting to be released. If your kinetic aura is inactive, you automatically use the first action of your turn to @UUID[Compendium.pf2e.actionspf2e.Item.Channel Elements] as a free action. You can deliberately suppress the effect. If you're unable to act, final gate still functions, but you don't get to use the @UUID[Compendium.pf2e.actionspf2e.Item.Elemental Blast] or stance impulse you normally do from using Channel Elements</p>",
+      "level": 19,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "DPxpBIxPidJfn0Xv",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "target-glowing-yellow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "RqBETppduK38w0zx",
+    "name": "Fourth Gate's Threshold",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You reach a new milestone in your odyssey to become in tune with your kinetic gate and must decide how to expand the gate's power. At 5th level and every 4 levels thereafter, you choose to either expand the portal or fork the path.</p>\n<ul>\n<li><strong>Expand the Portal</strong>: Your gate attunes more precisely to one of your elements. Gain an impulse feat of your level or lower for one of your kinetic elements; if you have more than one element, you can choose a composite impulse. You also gain a gate junction for one of your kinetic elements. If you have no valid options for the feat-typically because you have one kinetic element and devoted your class feats to gaining that element's impulses-you can instead select any kineticist class feat of your level or lower for which you meet the prerequisites.</li>\n<li><strong>Fork the Path</strong>: Your gate reaches to another elemental plane. Add a new element of your choice to your kinetic elements. Gain an impulse feat of your level or lower with the trait of that element. You can't select a composite impulse feat with this feat selection. </li>\n</ul>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
+          "inMemoryOnly": false,
+          "predicate": [
+            "kinetic-gate:fourth-threshold:expand"
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              "kinetic-gate:fourth-threshold:expand"
+            ],
+            "preselectChoices": {
+              "element": "{item|flags.system.rulesSelections.element}"
+            },
+            "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.elementFork}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.elementFork}"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.impulseExpand}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.impulseExpand}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "o8QHrhc9MsWIoKUv",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Label",
+                "value": "expand"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Label",
+                "value": "fork"
+              }
+            ],
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Threshold",
+            "rollOption": "kinetic-gate:fourth-threshold",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Rename",
+            "choices": "flags.system.kineticist.elements",
+            "flag": "element",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:fourth-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
+            "choices": {
+              "filter": [
+                "item:tag:kineticist-kinetic-gate"
+              ]
+            },
+            "flag": "elementFork",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:fourth-threshold:fork"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:rarity:common",
+                "item:trait:impulse",
+                {
+                  "lte": [
+                    "item:level",
+                    17
+                  ]
+                },
+                {
+                  "or": [
+                    {
+                      "and": [
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        },
+                        {
+                          "not": "item:trait:composite"
+                        }
+                      ]
+                    },
+                    {
+                      "and": [
+                        {
+                          "not": {
+                            "xor": [
+                              "item:trait:{actor|flags.system.kineticist.gate.one}",
+                              "item:trait:{actor|flags.system.kineticist.gate.two}",
+                              "item:trait:{actor|flags.system.kineticist.gate.three}",
+                              "item:trait:{actor|flags.system.kineticist.gate.four}",
+                              "item:trait:{actor|flags.system.kineticist.gate.five}",
+                              "item:trait:{actor|flags.system.kineticist.gate.six}"
+                            ]
+                          }
+                        },
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "impulseExpand",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:fourth-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "elements-air-earth-fire-water.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hYxkutfYKZfTlJb5",
+    "name": "Gate's Threshold",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You reach a new milestone in your odyssey to become in tune with your kinetic gate and must decide how to expand the gate's power. At 5th level and every 4 levels thereafter, you choose to either expand the portal or fork the path.</p>\n<ul>\n<li><strong>Expand the Portal</strong>: Your gate attunes more precisely to one of your elements. Gain an impulse feat of your level or lower for one of your kinetic elements; if you have more than one element, you can choose a composite impulse. You also gain a gate junction for one of your kinetic elements. If you have no valid options for the feat-typically because you have one kinetic element and devoted your class feats to gaining that element's impulses-you can instead select any kineticist class feat of your level or lower for which you meet the prerequisites.</li>\n<li><strong>Fork the Path</strong>: Your gate reaches to another elemental plane. Add a new element of your choice to your kinetic elements. Gain an impulse feat of your level or lower with the trait of that element. You can't select a composite impulse feat with this feat selection. </li>\n</ul>",
+      "level": 5,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
+          "inMemoryOnly": false,
+          "predicate": [
+            "kinetic-gate:first-threshold:expand"
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              "kinetic-gate:first-threshold:expand"
+            ],
+            "preselectChoices": {
+              "element": "{item|flags.system.rulesSelections.element}"
+            },
+            "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.elementFork}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.elementFork}"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.impulseExpand}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.impulseExpand}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vEiENk0IzuzRQesp",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Label",
+                "value": "expand"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Label",
+                "value": "fork"
+              }
+            ],
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Threshold",
+            "rollOption": "kinetic-gate:first-threshold",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Rename",
+            "choices": "flags.system.kineticist.elements",
+            "flag": "element",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:first-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
+            "choices": {
+              "filter": [
+                "item:tag:kineticist-kinetic-gate"
+              ]
+            },
+            "flag": "elementFork",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:first-threshold:fork"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:rarity:common",
+                "item:trait:impulse",
+                {
+                  "lte": [
+                    "item:level",
+                    5
+                  ]
+                },
+                {
+                  "or": [
+                    {
+                      "and": [
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        },
+                        {
+                          "not": "item:trait:composite"
+                        }
+                      ]
+                    },
+                    {
+                      "and": [
+                        {
+                          "not": {
+                            "xor": [
+                              "item:trait:{actor|flags.system.kineticist.gate.one}",
+                              "item:trait:{actor|flags.system.kineticist.gate.two}",
+                              "item:trait:{actor|flags.system.kineticist.gate.three}",
+                              "item:trait:{actor|flags.system.kineticist.gate.four}",
+                              "item:trait:{actor|flags.system.kineticist.gate.five}",
+                              "item:trait:{actor|flags.system.kineticist.gate.six}"
+                            ]
+                          }
+                        },
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "impulseExpand",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:first-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "elements-air-earth-fire-water.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YFDgTLc4gyZOGzK0",
+    "name": "Greater Kinetic Durability",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your gate protects you even more. Your proficiency rank for Fortitude saves increases to legendary. When you roll a critical failure on a Fortitude save, you get a failure instead. When you fail a Fortitude save against an effect that deals damage, you halve the damage you take.</p>",
+      "level": 15,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "fortitude",
+          "outcome": [
+            "failure"
+          ],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            "damaging-effect"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "failure"
+            ],
+            "predicate": [
+              "damaging-effect"
+            ],
+            "selector": "fortitude",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "fortitude": {
+            "rank": 4
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "i3qjbhL7uukg9I80",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "criticalFailure": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "selector": "fortitude",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cross-explosion-burst-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "08FZP49WC5QReus0",
+    "name": "Greater Weapon Specialization",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your damage from weapon specialization increases to 4 with weapons and unarmed attacks in which you're an expert, 6 if you're a master, and 8 if you're legendary.</p>",
+      "level": 15,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "weapon-specialization",
+          "label": null,
+          "selector": null,
+          "value": 2,
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "multiply",
+            "relabel": "PF2E.GreaterWeaponSpecialization",
+            "selectors": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "champion",
+          "commander",
+          "fighter",
+          "gunslinger",
+          "inventor",
+          "investigator",
+          "magus",
+          "monk",
+          "ranger",
+          "rogue",
+          "swashbuckler",
+          "thaumaturge"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Z7HX6TeFsaup7Dx9",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "AdjustModifier",
+            "mode": "multiply",
+            "relabel": "PF2E.GreaterWeaponSpecialization",
+            "selectors": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 2,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hand-grip-sword-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YQVqWitPCozoffq5",
+    "name": "Hybrid Study",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your extensive physical training and carefully chosen magic combine to form a unique and dangerous fighting style that's more than the sum of its parts. You choose one field of hybrid study to represent your particular combination of skills. Your hybrid study gives you a special ability, usually tied to @UUID[Compendium.pf2e.classfeatures.Item.Spellstrike] or @UUID[Compendium.pf2e.classfeatures.Item.Arcane Cascade], and it determines your initial conflux spell. The hybrid studies presented in this book are as follows.</p><ul><li>@UUID[Compendium.pf2e.classfeatures.Item.Aloof Firmament]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Inexorable Iron]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Laughing Shadow]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Sparkling Targe]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Starlit Span]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Twisting Tree]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Unfurling Brocade]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Resurgent Maelstrom]</li></ul>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.hybridStudy}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.hybridStudy}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FTeIs1Z1Qeli4BIF",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:tag:magus-hybrid-study"
+              ]
+            },
+            "flag": "hybridStudy",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Magus.HybridStudy.Prompt",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "question-stone-yellow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "HOwyGH93xrAKXT3Q",
+    "name": "Impulses",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>An impulse is a special type of magical action available to kineticists, allowing them to wield or shape their element into diverse and powerful forms. To wield an element, you must have your kinetic aura active and have a free hand, as described in the impulse trait. You automatically gain the Elemental Blast and Base Kinesis impulses, and your kinetic gate selection gives you additional impulse feats. You can select more impulse feats with kineticist class feats, and at higher levels, you'll automatically get more with the gate's threshold class feature. You can select an impulse feat only if it matches one of your kinetic elements.</p>\n<p>Impulses are magical, and though they aren't spells, some things that affect spells also affect impulses. Abilities that restrict you from casting spells (such as being polymorphed into a battle form) or protect against spells (such as a spell that protects against other spells or a creature's bonus to saves against spells) also apply to impulses.</p>\n<h3><strong>Impulse Levels</strong></h3>\n<p>Any impulse you use is the same level you are. For instance, if you're 5th level, your Elemental Blast would be 5th level (and its counteract rank would be 3rd rank), even though you gained the action at 1st level.</p>\n<p>Similar to spells, many impulses get more powerful as you increase in level. In these cases, the impulse ends with one or more \"Level\" entries. This either lists the levels at which the impulse gets an upgrade or has an entry with a plus sign that describes a benefit that increases on a regular basis. For instance, a 1st-level impulse with a \"Level (+4)\" entry would get stronger at 5th, 9th, 13th, and 17th levels.</p>\n<h3><strong>Impulse Attacks and DCs</strong></h3>\n<p>An impulse that requires a saving throw uses your kineticist class DC. Some of your impulses require you to attempt an <strong>impulse attack roll</strong> to see how effective they are. Your impulse attack roll uses the same proficiency and attribute modifier as your kineticist class DC. Like a spell attack modifier, your impulse attack modifier uses the following formula: d20 roll + attribute modifier + proficiency bonus + other bonuses + penalties. This means your impulse attack roll is typically 10 lower than your class DC. The @UUID[Compendium.pf2e.conditionitems.Item.Drained] condition can reduce your impulse attack rolls and class DCs. You can acquire a <em>gate attenuator</em> to gain a bonus to your impulse attack modifier.</p>\n<h3><strong>Elemental Blast</strong></h3>\n<p>The @UUID[Compendium.pf2e.actionspf2e.Item.Elemental Blast] impulse is a simple expression of your power, allowing you to attack with the pure matter of your kinetic element. Though each element has its own strengths and weaknesses, the basic principles to using them are the same. You can customize the appearance of your Elemental Blast and can even choose a different form each time you use the impulse.</p>\n<h3><strong>Base Kinesis</strong></h3>\n<p>The @UUID[Compendium.pf2e.actionspf2e.Item.Base Kinesis] impulse lets you perform simple alterations to an element.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Elemental Blast",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Elemental Blast"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Base Kinesis",
+          "inMemoryOnly": false,
+          "predicate": [
+            "class:kineticist"
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              "class:kineticist"
+            ],
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Base Kinesis"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xhCYkt3acfFd0hr2",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "extends": "kineticist",
+            "key": "SpecialStatistic",
+            "label": "PF2E.TraitImpulse",
+            "slug": "impulse",
+            "type": "attack-roll",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "awaken-portal.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "o6Oc3e0GSFurrogA",
+    "name": "Inexorable Iron",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>Once you begin along a path, nothing can stop you from reaching its end. You transform the mass of an enormous weapon into an unstoppable force to augment your own striking power or keep you standing on the battlefield.</p>\n<p>When you enter Arcane Cascade stance and at the start of each of your turns while you're in that stance, if you're wielding a melee weapon in two hands, you gain temporary Hit Points equal to half your level (minimum 1 temporary HP).</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Thunderous Strike]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZslXrvYRxHBXc1Ds",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "scales-white.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pdx0rwjDYMVqctIw",
+    "name": "Juggernaut",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p><strong>Barbarian</strong> Your body is accustomed to physical hardship and resistant to ailments. Your proficiency rank for Fortitude saves increases to master. When you roll a success on a Fortitude save, you get a critical success instead.</p>\n<p><strong>Magus</strong> Your body is accustomed to physical hardship and resistant to a wide range of ailments. Your proficiency rank for Fortitude saves increases to master. When you roll a success on a Fortitude save, you get a critical success instead.</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "{actor|class.slug}",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}"
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "fortitude": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "barbarian",
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "OMZs5y16jZRW9KQK",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "selector": "fortitude",
+            "_conversionState": "unsupported"
+          },
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          },
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bull-horned-blue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cYO6tM48V3dPIOrt",
+    "name": "Kinetic Aura",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Through your kinetic gate, elements flow from an elemental plane to orbit your person. The form and appearance of this kinetic aura are unique to you. Examples include a chaotic wind orbiting the body, fragments of floating gravel, colorful wicks of flame stars of raw metal always changing shape, floatin snowflakes or splinters dancing in the air. If you can channel more than one element, pieces of all your kinetic elements appear in the aura.</p>\n<p>You have the @UUID[Compendium.pf2e.actionspf2e.Item.Channel Elements] action, which lets you activate your kinetic aura.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Channel Elements",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Channel Elements"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:trait:overflow"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:trait:overflow"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": "",
+                "title": "PF2E.SpecificRule.Kineticist.Overflow.Title"
+              }
+            ]
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "f0BF2210l9k66cso",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:trait:overflow"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": "",
+                "title": "PF2E.SpecificRule.Kineticist.Overflow.Title"
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "orb-swirling-teal.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xrRej8tD2r8mCDfJ",
+    "name": "Kinetic Durability",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>The sustenance of your inner gate counters harm that would come to your body. Your proficiency rank for Fortitude saves increases to master. When you roll a success on a Fortitude save, you get a critical success instead.</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "fortitude": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "eTHq1Cwf1pOvsx2R",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "selector": "fortitude",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "magical-fortitude.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4tESQc8fAic5Ha9F",
+    "name": "Kinetic Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your kinetic gate grows stronger, making your elements harder to resist. The power flowing from you is even harder to resist. Your proficiency rank for your kineticist class DC increases to expert.</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "kineticist": {
+            "attribute": null,
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dGiMAdZEQoXQWJbn",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wave-water-teal.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MJMyOpvG6rbLdvUk",
+    "name": "Kinetic Gate",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>As a kineticist, you've awakened or opened a kinetic gate, a supernatural conduit within your body that can channel elemental forces straight from the elemental planes. You can choose either a single gate (one element) or dual gate (two elements) at 1st level.</p>\n<p>When selecting an element for your kinetic gate, you can pick from six elements - air, earth, fire metal, water, and wood. Elements you can channel are referred to as your kinetic elements. Your kinetic elements function even in environments where they normally wouldn't. For example, you could use fire actions underwater even though that's normally not possible, and you could create air in a vacuum.</p>\n<p>Your kinetic gate gives you impulse feats, magical actions that let you shape and control your elements in awesome ways. You can select more impulse feats using your kineticist class feats, as described under Impulses. At higher levels, the gate's threshold class feature gives you more impulse feats and lets you choose whether to improve with one element or access new kinetic elements.</p>\n<h3><strong>Single Gate</strong></h3>\n<p>Your kinetic gate links to a single elemental plane, starting you with a single element but giving you greater power with it. Choose one element to be your kinetic element, and select two 1st-level impulse feats that have that element's trait.</p>\n<p>In addition, you gain an impulse junction, a benefit that occurs when you use an impulse of the chosen element that takes 2 actions or more. This happens before the other effects of the impulse, unless noted otherwise. You can gain only one impulse junction per round; they are described in full below.</p>\n<p><strong>Air</strong> Before or after the other effects of the impulse, you can either Stride up to half your Speed or Step. If you have a fly Speed, you can Fly up to half your fly Speed instead.</p>\n<p><strong>Earth</strong> Fragments of stone float around you, granting you a +1 circumstance bonus to AC until the start of your next turn.</p>\n<p><strong>Fire</strong> Increase the damage die size of fire damage dealt by the impulse by one step.</p>\n<p><strong>Metal</strong> Choose acid, electricity, or piercing. Until the start of your next turn, each time a creature touches you or damages you with an unarmed melee attack or nonreach melee weapon, it takes damage of the chosen type equal to half your level (minimum 1 damage).</p>\n<p><strong>Water</strong> After the impulse's other effects, you can move one creature targeted by the impulse or in its area 5 feet in any direction, or 10 feet if it's in a body of water. This can't move the creature into the air. You can choose only a creature that's willing to be moved, that failed its save against the impulse, or that you succeeded at an impulse attack roll against.</p>\n<p><strong>Wood</strong> You gain temporary Hit Points equal to your level that last until the start of your next turn.</p>\n<h3><strong>Dual Gate</strong></h3>\n<p>Your kinetic gate is a harmonious conduit between two planes, allowing you to combine their elements to give you a versatile set of abilities. Select two elements to be your kinetic elements. Then, select two 1st-level impulse feats, one with the trait of the first element and one with the trait of the other.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.elementOne}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.elementOne}"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.elementTwo}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.elementTwo}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "IDBB44egwiQ4qZNh",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.kineticist.elements",
+            "priority": 19,
+            "value": [],
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.kineticist.gate",
+            "priority": 49,
+            "value": {
+              "five": null,
+              "four": null,
+              "one": null,
+              "six": null,
+              "three": null,
+              "two": null
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.DualGate.Label",
+                "value": "dual-gate"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.SingleGate",
+                "value": "single-gate"
+              }
+            ],
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Gate",
+            "rollOption": "kinetic-gate:initial",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:tag:kineticist-kinetic-gate"
+              ]
+            },
+            "flag": "elementOne",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
+            "rollOption": "kinetic-gate:first-element",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:tag:kineticist-kinetic-gate"
+              ]
+            },
+            "flag": "elementTwo",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:initial:dual-gate"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
+            "rollOption": "kinetic-gate:second-element",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "abundant-step.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Mim1iWGtOZhuBsTH",
+    "name": "Kinetic Legend",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your elements become almost impossible to resist. Your proficiency rank for your kineticist class DC increases to legendary.</p>",
+      "level": 19,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "kineticist": {
+            "attribute": null,
+            "rank": 4
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8ZAc21SvRO2rfPez",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "explosion-star-glow-silhouette.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BdnE00rTSkwOe3Or",
+    "name": "Kinetic Mastery",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>The power flowing from you grows even difficult to resist. Your proficiency rank for your kineticist class DC increases to master.</p>",
+      "level": 15,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "kineticist": {
+            "attribute": null,
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "a6fIKxCViZwwHZLJ",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "flame-burning-fist-strike.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zIp1kwKnaqtq9qB5",
+    "name": "Kinetic Quickness",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your body flows with the elegance of a flame a wave, a breeze. Your proficiency rank for Reflex saves increases to master. When you roll a success on a Reflex save, you get a critical success instead.</p>",
+      "level": 11,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "reflex": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9BUk7zy1aE092XCS",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "selector": "reflex",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "symbol-lightning-bolt.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8WLs2Ful9QpO9lun",
+    "name": "Laughing Shadow",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>Magic is freeing, a means to your ends, and you can use it to go where you want, do as you please, and avoid the consequences. You are a laughing shadow of spell and blade, always one step ahead of your foes, always with a trick up your sleeve.</p>\n<p>While in Arcane Cascade stance, you gain a +5-foot status bonus to your Speeds, or a +10-foot bonus if you're unarmored. If you have a free hand while in the stance and are attacking an @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] creature, you increase the extra damage to 3, to 5 if you have weapon specialization, or to 7 if you have greater weapon specialization. You must have your other hand completely free; the extra damage doesn't apply if you have a free-hand weapon or other item in that hand, even if you would normally be able to use the hand for other things.</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dimensional Assault]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "laughing-shadow-armored-movement",
+          "label": null,
+          "selector": "speed",
+          "value": 5,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            "self:armored",
+            "self:effect:arcane-cascade"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "self:armored",
+              "self:effect:arcane-cascade"
+            ],
+            "selector": "speed",
+            "slug": "laughing-shadow-armored-movement",
+            "type": "status",
+            "value": 5
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": "laughing-shadow-unarmored-movement",
+          "label": null,
+          "selector": "speed",
+          "value": 10,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            "self:effect:arcane-cascade",
+            {
+              "not": "self:armored"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "self:effect:arcane-cascade",
+              {
+                "not": "self:armored"
+              }
+            ],
+            "selector": "speed",
+            "slug": "laughing-shadow-unarmored-movement",
+            "type": "status",
+            "value": 10
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "arcane-cascade-extra-damage",
+          "label": null,
+          "selector": "strike-damage",
+          "value": 3,
+          "mode": "add",
+          "predicate": [
+            "target:condition:off-guard",
+            {
+              "gte": [
+                "hands-free:but-really",
+                1
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "target:condition:off-guard",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 3
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "arcane-cascade-extra-damage",
+          "label": null,
+          "selector": "strike-damage",
+          "value": 5,
+          "mode": "add",
+          "predicate": [
+            "feature:weapon-specialization",
+            "target:condition:off-guard",
+            {
+              "gte": [
+                "hands-free:but-really",
+                1
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:weapon-specialization",
+              "target:condition:off-guard",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 5
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "arcane-cascade-extra-damage",
+          "label": null,
+          "selector": "strike-damage",
+          "value": 7,
+          "mode": "add",
+          "predicate": [
+            "feature:greater-weapon-specialization",
+            "target:condition:off-guard",
+            {
+              "gte": [
+                "hands-free:but-really",
+                1
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:greater-weapon-specialization",
+              "target:condition:off-guard",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 7
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "target:condition:off-guard",
+          "label": "PF2E.SpecificRule.TOTMToggle.OffGuard",
+          "toggleable": "totm",
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.SpecificRule.TOTMToggle.OffGuard",
+            "option": "target:condition:off-guard",
+            "toggleable": "totm"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3gVDqDPSz4fB5T9G",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "target:condition:off-guard",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 3,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:weapon-specialization",
+              "target:condition:off-guard",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 5,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "feature:greater-weapon-specialization",
+              "target:condition:off-guard",
+              {
+                "gte": [
+                  "hands-free:but-really",
+                  1
+                ]
+              }
+            ],
+            "selector": "strike-damage",
+            "slug": "arcane-cascade-extra-damage",
+            "value": 7,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "spirit-fear-energy-pink.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "AVh4glubbzygKbI8",
+    "name": "Light Armor Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You've learned how to dodge while wearing light or no armor. Your proficiency ranks for light armor and unarmored defense increase to expert.</p>",
+      "level": 13,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "light": {
+            "rank": 2
+          },
+          "unarmored": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "bard",
+          "investigator",
+          "kineticist",
+          "oracle",
+          "rogue",
+          "swashbuckler"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pZYkb12t5DSwtts7",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "mantle-collared-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "5RREuzrz80kpHqFf",
+    "name": "Light Armor Mastery",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your skill with light armor improves, increasing your ability to dodge blows. Your proficiency ranks for light armor and unarmored defense increase to master.</p>",
+      "level": 19,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "light": {
+            "rank": 3
+          },
+          "unarmored": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "investigator",
+          "kineticist",
+          "rogue",
+          "swashbuckler"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "SHpjmM4A3Sw4GgDz",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-rivited-red.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qm5rjGcbeMbHRQ79",
+    "name": "Master Spellcaster",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p><strong>Animist</strong> Your affinity with the apparitions you bond to has further enhanced the potency of your magic. Your proficiency ranks for spell attack modifier and spell DC increase to master.</p>\n<p><strong>Bard</strong> You pluck the threads of magic like the strings of a harp. Your proficiency ranks for spell attack modifiers and spell DCs increase to master.</p>\n<p><strong>Druid</strong> Primal magic answers your command. Your proficiency ranks for spell attack modifier and spell DC increase to master.</p>\n<p><strong>Magus</strong> You fortify your spells with masterful prowess. Your proficiency ranks for arcane spell attack rolls and spell DCs increase to master.</p>\n<p><strong>Oracle</strong> You truly understand the deep and complex divine power within your mystery. Your proficiency ranks for divine spell attack rolls and spell DCs increase to master.</p>\n<p><strong>Psychic</strong> You've gained access to the deepest corners of your own mind. Your proficiency ranks for spell attack modifier and spell DC increase to master.</p>\n<p><strong>Sorcerer</strong> You have achieved mastery over the magic in your blood. Your proficiency ranks for spell attack modifier and spell DC for spells of your bloodline's tradition increase to master.</p>\n<p><strong>Summoner</strong> Your connection to your eidolon is strong enough to grant you mastery over associated spells. Your proficiency ranks for spell attack modifier and spell DC for spells of your eidolon's tradition increase to master.</p>\n<p><strong>Witch</strong> You've achieved mastery over your patron's magic. Your proficiency ranks for spell attack modifier and spell DC increase to master.</p>\n<p><strong>Wizard</strong> You command superlative spellcasting ability. Your proficiency ranks for spell attack modifier and spell DC increase to master.</p>",
+      "level": 15,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "{actor|class.slug}",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}"
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "spellcasting": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "animist",
+          "bard",
+          "druid",
+          "magus",
+          "oracle",
+          "psychic",
+          "sorcerer",
+          "summoner",
+          "witch",
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "l1InYvhnQSz6Ucxc",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          },
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "academics-book-study-purple.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "j125sa25OAnogfDh",
+    "name": "Medium Armor Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You've learned to defend yourself better against attacks. Your proficiency ranks for light armor, medium armor, and unarmored defense increase to expert.</p>",
+      "level": 11,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "light": {
+            "rank": 2
+          },
+          "medium": {
+            "rank": 2
+          },
+          "unarmored": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "alchemist",
+          "barbarian",
+          "druid",
+          "gunslinger",
+          "magus",
+          "ranger",
+          "thaumaturge"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FCEp9jjxxgRJDJV3",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-quilted-brown.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ZI7nywEZnJF0CMiw",
+    "name": "Medium Armor Mastery",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your skill with light and medium armor improves, increasing your ability to avoid blows. Your proficiency ranks for light and medium armor, as well as for unarmored defense, increase to master.</p>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "light": {
+            "rank": 3
+          },
+          "medium": {
+            "rank": 3
+          },
+          "unarmored": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "alchemist",
+          "gunslinger",
+          "inventor",
+          "magus",
+          "ranger",
+          "thaumaturge"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cGMSYAErbUG5E8X2",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-collared-steel.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "lq2hF5SquDtGyQjd",
+    "name": "Perception Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You remain alert to threats around you. Your proficiency rank for Perception increases to expert.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "perception": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "alchemist",
+          "animist",
+          "champion",
+          "cleric",
+          "druid",
+          "exemplar",
+          "kineticist",
+          "monk",
+          "sorcerer",
+          "witch",
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "JCqACxgrm5ixX0Jy",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "human-single-blue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BIuU56P6JTTJz7oI",
+    "name": "Reflex Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You've developed a knack for dodging danger. Your proficiency rank for Reflex saves increases to expert.</p>\n<p><strong>Guardian</strong> Even in the heaviest of armors, you can brace yourself against widespread effects. Your proficiency rank for Reflex saves increases to expert.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "reflex": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "barbarian",
+          "bard",
+          "champion",
+          "cleric",
+          "druid",
+          "guardian",
+          "sorcerer",
+          "thaumaturge",
+          "witch",
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TUOeATt52P43r5W0",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "symbol-lightning-bolt.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9qVi6PwcqCTSlbQh",
+    "name": "Reflow Elements",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You twist one of the impulses you've learned into a different but still similar magic. When you make your daily preparations, you can replace one of your impulse feats with a different impulse feat that has the same elemental trait. You can reflow only impulse feats that have exactly one elemental trait, not composite impulse feats or feats that vary by element. This follows the same rules as retraining; you can replace impulse feats gained through your class feats or through class features that grant you impulse feats.</p>",
+      "level": 11,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "SIkSIln5G1J73PrM",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "explosion-flame-blue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "GFaalT8iDyFLANvS",
+    "name": "Resolve",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You've steeled your mind with resolve. Your proficiency rank for Will saves increases to master. When you roll a success on a Will save, you get a critical success instead.</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Core Rulebook"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "will": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "JQAujUXjczVnYDEI",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "selector": "will",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bull-horns-eyes-glowin-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9X7WoX3myV1ob9wi",
+    "name": "Resurgent Maelstrom",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>While fate may conspire to strip you of your armaments, you're never helpless. For you, anything can be a dangerous weapon, bolstered by the might of towering waves and crushing tides. You know these tools are transient, and so you think nothing of shattering and reforming them with your magic.</p>\n<p>Your attacks with improvised weapons do not take the normal –2 item penalty. While you wield an improvised weapon, streams of water flow from your limbs to surround the weapon, granting it the water trait. These improvised weapons have a minimum damage die of 1d6, or 1d4 if the improvised weapon is agile.</p>\n<p>Effects that apply runes to your unarmed attacks, like @UUID[Compendium.pf2e.spells-srd.Item.Runic Body] and @UUID[Compendium.pf2e.equipment-srd.Item.Handwraps of Mighty Blows]{Handwraps of Might Blows}, also apply those runes to your non-magical improvised weapons. The improvised weapon also gains an additional trait, depending on how many hands it takes to wield. A one-handed improvised weapon gains the backstabber trait; if it would already have the backstabber trait, double the amount of additional precision damage. A two-handed improvised weapon gains the forceful trait; if it would already have the forceful trait, treat the number of weapon damage dice the weapon has as 1 higher for the purpose of calculating the additional damage.</p>\n<p>While you're in Arcane Cascade stance , you can manipulate the water around your improvised weapon, making it cut like a knife or bash with the force of falling rocks. The weapon gains the versatile traits for the types of damage that it doesn't normally deal. For instance, an improvised weapon that normally deals bludgeoning damage gains the versatile P and versatile S traits.</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Turbulent Tide]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Rival Academies"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "uncommon",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "X3nPGnqh6rkRJ75i",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "projectiles-ice-explosion.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "2K4xQnGRqtCwjRoU",
+    "name": "Second Gate's Threshold",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You reach a new milestone in your odyssey to become in tune with your kinetic gate and must decide how to expand the gate's power. At 5th level and every 4 levels thereafter, you choose to either expand the portal or fork the path.</p>\n<ul>\n<li><strong>Expand the Portal</strong>: Your gate attunes more precisely to one of your elements. Gain an impulse feat of your level or lower for one of your kinetic elements; if you have more than one element, you can choose a composite impulse. You also gain a gate junction for one of your kinetic elements. If you have no valid options for the feat-typically because you have one kinetic element and devoted your class feats to gaining that element's impulses-you can instead select any kineticist class feat of your level or lower for which you meet the prerequisites.</li>\n<li><strong>Fork the Path</strong>: Your gate reaches to another elemental plane. Add a new element of your choice to your kinetic elements. Gain an impulse feat of your level or lower with the trait of that element. You can't select a composite impulse feat with this feat selection. </li>\n</ul>",
+      "level": 9,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
+          "inMemoryOnly": false,
+          "predicate": [
+            "kinetic-gate:second-threshold:expand"
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              "kinetic-gate:second-threshold:expand"
+            ],
+            "preselectChoices": {
+              "element": "{item|flags.system.rulesSelections.element}"
+            },
+            "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.elementFork}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.elementFork}"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.impulseExpand}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.impulseExpand}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "N5Gnf73TvuO6Reoj",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Label",
+                "value": "expand"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Label",
+                "value": "fork"
+              }
+            ],
+            "flag": "threshold",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Threshold",
+            "rollOption": "kinetic-gate:second-threshold",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Rename",
+            "choices": "flags.system.kineticist.elements",
+            "flag": "element",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:second-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
+            "choices": {
+              "filter": [
+                "item:tag:kineticist-kinetic-gate"
+              ]
+            },
+            "flag": "elementFork",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:second-threshold:fork"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:rarity:common",
+                "item:trait:impulse",
+                {
+                  "lte": [
+                    "item:level",
+                    9
+                  ]
+                },
+                {
+                  "or": [
+                    {
+                      "and": [
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        },
+                        {
+                          "not": "item:trait:composite"
+                        }
+                      ]
+                    },
+                    {
+                      "and": [
+                        {
+                          "not": {
+                            "xor": [
+                              "item:trait:{actor|flags.system.kineticist.gate.one}",
+                              "item:trait:{actor|flags.system.kineticist.gate.two}",
+                              "item:trait:{actor|flags.system.kineticist.gate.three}",
+                              "item:trait:{actor|flags.system.kineticist.gate.four}",
+                              "item:trait:{actor|flags.system.kineticist.gate.five}",
+                              "item:trait:{actor|flags.system.kineticist.gate.six}"
+                            ]
+                          }
+                        },
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "impulseExpand",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:second-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "elements-air-earth-fire-water.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9qxi3y111QjyQ7oE",
+    "name": "Sparkling Targe",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>You've studied the applications of magic, training yourself to perform not just offensive maneuvers but defensive tactics as well. When magic flows through you, your shield can block impossible things, even a dragon's breath or a magic missile.</p>\n<p>You gain the @UUID[Compendium.pf2e.feats-srd.Item.Shield Block] general feat.</p>\n<p>When you're in Arcane Cascade stance with your shield raised, your circumstance bonus to AC from your shield also applies to your saves against spells and other magical effects. In addition, damage you take as a result of a spell or magical effect while you're in Arcane Cascade can trigger your Shield Block reaction, even if the damage isn't physical. When blocking damage in this way, increase your shield's Hardness by an amount equal to the extra damage from Arcane Cascade (typically 1, but 2 if you have weapon specialization, or 3 if you have greater weapon specialization). These benefits apply whether you're using an actual shield, the shield spell, or something else that works like a shield (such as a raised tome if you have the Raise a Tome feat).</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Shielding Strike]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "defend-against-magic",
+          "label": "PF2E.SpecificRule.Magus.SparklingTarge.DefendingLabel",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": [
+            "self:effect:arcane-cascade"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.SpecificRule.Magus.SparklingTarge.DefendingLabel",
+            "option": "defend-against-magic",
+            "predicate": [
+              "self:effect:arcane-cascade"
+            ],
+            "toggleable": true
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "hardness",
+          "value": 1,
+          "mode": "add",
+          "predicate": [
+            "item:equipped",
+            {
+              "or": [
+                "item:magical",
+                "defend-against-magic"
+              ]
+            },
+            "self:effect:arcane-cascade",
+            "self:effect:raise-a-shield",
+            {
+              "not": "feature:weapon-specialization"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "shield",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:equipped",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              },
+              "self:effect:arcane-cascade",
+              "self:effect:raise-a-shield",
+              {
+                "not": "feature:weapon-specialization"
+              }
+            ],
+            "property": "hardness",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "hardness",
+          "value": 2,
+          "mode": "add",
+          "predicate": [
+            "item:equipped",
+            {
+              "or": [
+                "item:magical",
+                "defend-against-magic"
+              ]
+            },
+            "self:effect:arcane-cascade",
+            "self:effect:raise-a-shield",
+            "feature:weapon-specialization",
+            {
+              "not": "feature:greater-weapon-specialization"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "shield",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:equipped",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              },
+              "self:effect:arcane-cascade",
+              "self:effect:raise-a-shield",
+              "feature:weapon-specialization",
+              {
+                "not": "feature:greater-weapon-specialization"
+              }
+            ],
+            "property": "hardness",
+            "value": 2
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "hardness",
+          "value": 3,
+          "mode": "add",
+          "predicate": [
+            "item:equipped",
+            {
+              "or": [
+                "item:magical",
+                "defend-against-magic"
+              ]
+            },
+            "self:effect:arcane-cascade",
+            "self:effect:raise-a-shield",
+            "feature:greater-weapon-specialization"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "shield",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:equipped",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              },
+              "self:effect:arcane-cascade",
+              "self:effect:raise-a-shield",
+              "feature:greater-weapon-specialization"
+            ],
+            "property": "hardness",
+            "value": 3
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": "@actor.system.attributes.shield.ac",
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "self:shield:raised",
+            "self:effect:arcane-cascade",
+            {
+              "or": [
+                "item:magical",
+                "defend-against-magic"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "self:shield:raised",
+              "self:effect:arcane-cascade",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": "@actor.system.attributes.shield.ac"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Shield Block"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "maGzhKLmgubAdUlN",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "itemType": "shield",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:equipped",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              },
+              "self:effect:arcane-cascade",
+              "self:effect:raise-a-shield",
+              {
+                "not": "feature:weapon-specialization"
+              }
+            ],
+            "property": "hardness",
+            "value": 1,
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "shield",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:equipped",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              },
+              "self:effect:arcane-cascade",
+              "self:effect:raise-a-shield",
+              "feature:weapon-specialization",
+              {
+                "not": "feature:greater-weapon-specialization"
+              }
+            ],
+            "property": "hardness",
+            "value": 2,
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "shield",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:equipped",
+              {
+                "or": [
+                  "item:magical",
+                  "defend-against-magic"
+                ]
+              },
+              "self:effect:arcane-cascade",
+              "self:effect:raise-a-shield",
+              "feature:greater-weapon-specialization"
+            ],
+            "property": "hardness",
+            "value": 3,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "heater-crystal-blue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "sy7rtPbt8x4XsYkp",
+    "name": "Spellstrike",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You've learned the fundamental magus technique that lets you combine magical and physical attacks together. You gain the @UUID[Compendium.pf2e.actionspf2e.Item.Spellstrike] activity.</p><h3>Spellstrike Specifics</h3><p>Though the base Spellstrike rules cover most spells, various modifications apply to more complicated spells when loaded into your fist, blade, or other attack.</p>\n<p><strong>One Target</strong> The spell targets only the target of your Strike, even if it normally allows more targets. This includes area spells, which only the target attempts a saving throw against. Any ongoing effects of the area, such as the difficult terrain from scatter scree, affect only the target's space. Some feats let you affect more creatures.</p>\n<p><strong>Reach:</strong> The coupled spell affects the target using the reach of the weapon or unarmed attack you make your Spellstrike with. For instance, gouging claw would affect a creature beyond the reach of your hand if you used a weapon with reach, and frostbite would affect only a creature in your weapon's reach, even though the spell's range is longer.</p>\n<p><strong>Ancillary Effects</strong> Your spell still has any non-targeted effects that might affect creatures other than the target, as well as any ongoing effects starting from the moment you hit with the Strike. For example, scatter scree would still create difficult terrain in the target's space (as mentioned above) and tangle vine's circumstance penalty would last for its normal duration. The spell takes effect after the Strike deals damage; if the Strike has other special effects, the GM determines whether they happen before or after the spell.</p>\n<p><strong>Multiple Defenses</strong> Any additional rolls after the initial spell attack still happen normally, such as the Fortitude save attempted by the target of a disintegrate spell. Similarly, a spell that allows you to attack with it again on subsequent rounds would only combine a Strike with its initial attack roll, not with any later ones. Invalid or Immune Target: If the target you hit wouldn't be a valid target for the spell, the spell is still expended but doesn't affect the target. If the target is immune to your attack but not the spell, it can still be affected by the spell.</p>\n<p><strong>Variable Actions</strong> Some spells have different effects based on the number of actions you spend to cast them. You choose whether to use the effects of the 1- or 2-action version of the spell when you use Spellstrike. A spell has to take exactly 1 or 2 actions; you can't use Spellstrike with a spell that takes a free action, reaction, or 3 or more actions.</p>\n<p><strong>Spellshape</strong> You typically can't use spellshape with Spellstrike because spellshape actions require the next action you take to be Cast a Spell, and Spellstrike is a combined activity that doesn't qualify.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Spellstrike",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Spellstrike"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "KVj5ofUwu3VJSrVw",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "spellstrike.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "RD63JAZ4zd2UvGQ4",
+    "name": "Starlit Span",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>With magic, the sky's the limit, and you can't be bound by the confines of physical proximity. Your power reaches as far as your senses can perceive, transcending the space between you and your target even with spells that normally require direct physical contact.</p>\n<p>When you use Spellstrike, you can make a ranged weapon or ranged unarmed Strike, as long as the target is within the first range increment of your ranged weapon or ranged unarmed attack. You can deliver the spell even if its range is shorter than the range increment of your ranged attack.</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Shooting Star]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Pew7duAozEeAemif",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "arrows-flying-salvo-blue-light.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "RhQckzSWHQESDGTs",
+    "name": "Studious Spells",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your hybrid study grants you additional spells that can enhance your power in combat. You gain two special 2nd-rank studious spell slots, which can be used to prepare @UUID[Compendium.pf2e.spells-srd.Item.Gecko Grip], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike], @UUID[Compendium.pf2e.spells-srd.Item.Water Breathing], and an additional spell depending on your hybrid study. You add any spells from this class feature to your spellbook. At 11th level, the extra slots increase to 3rd-rank and you add @UUID[Compendium.pf2e.spells-srd.Item.Haste] and an additional spell depending on your hybrid study. At 13th level, the extra slots increase to 4th-rank and you add @UUID[Compendium.pf2e.spells-srd.Item.Fly] and an additional spell depending on your hybrid study.</p>\n<p><strong>Aloof Firmament</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Water Walk]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Wall of Wind]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Variable Gravity]</p>\n<p><strong>Inexorable Iron</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Enlarge]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Earthbind]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Planar Tether]</p>\n<p><strong>Laughing Shadow</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Blur]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Time Jump]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Translocate]</p>\n<p><strong>Sparkling Targe</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Resist Energy]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Warding Aggression]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Mountain Resilience]</p>\n<p><strong>Starlit Span</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Darkvision]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Wall of Wind]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Unfettered Movement]</p>\n<p><strong>Twisting Tree</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Embed Message]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Slow]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Flicker]</p>\n<p><strong>Unfurling Brocade</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Web]; 11th: @UUID[Compendium.pf2e.spells-srd.Item.Whirling Scarves]; 13th: @UUID[Compendium.pf2e.spells-srd.Item.Planar Tether]</p>\n<p><strong>Resurgent Maelstrom</strong> 7th: @UUID[Compendium.pf2e.spells-srd.Item.Water Walk], 11th: @UUID[Compendium.pf2e.spells-srd.Item.Aqueous Orb], 13th: @UUID[Compendium.pf2e.spells-srd.Item.Unfettered Movement]</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6HCI2iHyBZAr7a4P",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "document-torn-diagram-tan.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "h6aJkvglqVbjB2oK",
+    "name": "Third Gate's Threshold",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You reach a new milestone in your odyssey to become in tune with your kinetic gate and must decide how to expand the gate's power. At 5th level and every 4 levels thereafter, you choose to either expand the portal or fork the path.</p>\n<ul>\n<li><strong>Expand the Portal</strong>: Your gate attunes more precisely to one of your elements. Gain an impulse feat of your level or lower for one of your kinetic elements; if you have more than one element, you can choose a composite impulse. You also gain a gate junction for one of your kinetic elements. If you have no valid options for the feat-typically because you have one kinetic element and devoted your class feats to gaining that element's impulses-you can instead select any kineticist class feat of your level or lower for which you meet the prerequisites.</li>\n<li><strong>Fork the Path</strong>: Your gate reaches to another elemental plane. Add a new element of your choice to your kinetic elements. Gain an impulse feat of your level or lower with the trait of that element. You can't select a composite impulse feat with this feat selection. </li>\n</ul>",
+      "level": 13,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
+          "inMemoryOnly": false,
+          "predicate": [
+            "kinetic-gate:third-threshold:expand"
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              "kinetic-gate:third-threshold:expand"
+            ],
+            "preselectChoices": {
+              "element": "{item|flags.system.rulesSelections.element}"
+            },
+            "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.elementFork}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.elementFork}"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.impulseExpand}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.impulseExpand}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "GfQ5MngIn74OYhQL",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Label",
+                "value": "expand"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Label",
+                "value": "fork"
+              }
+            ],
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Threshold",
+            "rollOption": "kinetic-gate:third-threshold",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ExpandThePortal.Rename",
+            "choices": "flags.system.kineticist.elements",
+            "flag": "element",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:third-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
+            "choices": {
+              "filter": [
+                "item:tag:kineticist-kinetic-gate"
+              ]
+            },
+            "flag": "elementFork",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:third-threshold:fork"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:rarity:common",
+                "item:trait:impulse",
+                {
+                  "lte": [
+                    "item:level",
+                    13
+                  ]
+                },
+                {
+                  "or": [
+                    {
+                      "and": [
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        },
+                        {
+                          "not": "item:trait:composite"
+                        }
+                      ]
+                    },
+                    {
+                      "and": [
+                        {
+                          "not": {
+                            "xor": [
+                              "item:trait:{actor|flags.system.kineticist.gate.one}",
+                              "item:trait:{actor|flags.system.kineticist.gate.two}",
+                              "item:trait:{actor|flags.system.kineticist.gate.three}",
+                              "item:trait:{actor|flags.system.kineticist.gate.four}",
+                              "item:trait:{actor|flags.system.kineticist.gate.five}",
+                              "item:trait:{actor|flags.system.kineticist.gate.six}"
+                            ]
+                          }
+                        },
+                        {
+                          "or": [
+                            "item:trait:{actor|flags.system.kineticist.gate.one}",
+                            "item:trait:{actor|flags.system.kineticist.gate.two}",
+                            "item:trait:{actor|flags.system.kineticist.gate.three}",
+                            "item:trait:{actor|flags.system.kineticist.gate.four}",
+                            "item:trait:{actor|flags.system.kineticist.gate.five}",
+                            "item:trait:{actor|flags.system.kineticist.gate.six}"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "impulseExpand",
+            "key": "ChoiceSet",
+            "predicate": [
+              "kinetic-gate:third-threshold:expand"
+            ],
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "elements-air-earth-fire-water.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "5iAgApzCdVQlJd7p",
+    "name": "Twisting Tree",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>The staff is perhaps one of the simplest of weapons, but this simplicity belies its elegance and versatility. To you, a staff is casting implement and martial weapon alike-the foundation of a fighting style.</p>\n<p>While you wield a staff in one hand, the staff adjusts in shape and weight, gaining the agile trait and increasing its damage die size to 1d6. While you wield a staff in both hands, it lengthens, twists, and reshapes, gaining the parry, reach, and trip traits. While you're in Arcane Cascade stance, you can Interact or Release to change your grip on the weapon as a free action when you Strike with your staff, including Strikes made in a Spellstrike. This happens before you roll your attack roll. You can also Interact to change your grip on the staff as a free action triggered at the end of your turn.</p>\n<p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Spinning Staff]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "damage-dice",
+          "slug": null,
+          "label": null,
+          "selector": "strike-damage",
+          "diceNumber": 1,
+          "dieSize": "d6",
+          "damageType": null,
+          "category": null,
+          "predicate": [
+            "item:base:staff",
+            "item:damage:die:faces:4",
+            "item:hands-held:1"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "DamageDice",
+            "override": {
+              "upgrade": true
+            },
+            "predicate": [
+              "item:base:staff",
+              "item:damage:die:faces:4",
+              "item:hands-held:1"
+            ],
+            "selector": "strike-damage"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "agile",
+          "mode": "add",
+          "predicate": [
+            "item:base:staff",
+            "item:hands-held:1"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:1"
+            ],
+            "property": "traits",
+            "value": "agile"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "parry",
+          "mode": "add",
+          "predicate": [
+            "item:base:staff",
+            "item:hands-held:2"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:2"
+            ],
+            "property": "traits",
+            "value": "parry"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "reach",
+          "mode": "add",
+          "predicate": [
+            "item:base:staff",
+            "item:hands-held:2"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:2"
+            ],
+            "property": "traits",
+            "value": "reach"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "trip",
+          "mode": "add",
+          "predicate": [
+            "item:base:staff",
+            "item:hands-held:2"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:2"
+            ],
+            "property": "traits",
+            "value": "trip"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "common",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6YJ8KFl7THkVy6Gm",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:1"
+            ],
+            "property": "traits",
+            "value": "agile",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:2"
+            ],
+            "property": "traits",
+            "value": "parry",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:2"
+            ],
+            "property": "traits",
+            "value": "reach",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:staff",
+              "item:hands-held:2"
+            ],
+            "property": "traits",
+            "value": "trip",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "staff-simple-gold.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qrFYGMgRpplhKmpU",
+    "name": "Unfurling Brocade",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "hybridStudy",
+      "description": "<p>You disdain others' reliance on crude contrivances of iron, instead favoring the elegance of fabric, with thread and brocade your panoply. Your mastery of qinggong allows qi-infused fabric to tear flesh, bind blades, and pierce steel.</p>\n<p>You can create a special weapon, qi-infused fabric, by Interacting to grip a length of cloth of 1 Bulk or less and filling it with your qi. If you Interact to draw the object, you can do this as part of that action. For most unfurling brocade magi, this item is a scarf, sash, ribbon, or a similarly voluminous article of worn clothing, such as long sleeves. You can use the fabric as a @UUID[Compendium.pf2e.equipment-srd.Item.Bladed Scarf]. Unlike a normal bladed scarf, you have the option to wield the fabric in one hand instead of two. Its damage die is d4 if held in one hand. If you're wearing @UUID[Compendium.pf2e.equipment-srd.Item.Handwraps of Mighty Blows], you can apply any of its runes to the fabric, provided those runes could be added to a bladed scarf. This begins when you wield the fabric and ends when you cease doing so.</p>\n<p>While in @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade] stance, the magical energy flowing through your fabric partially animates it to accomplish an even greater range of tricks.</p><ul><li>If you critically succeed at an Athletics check to @UUID[Compendium.pf2e.actionspf2e.Item.Disarm], you can spend a single action immediately afterward to flick your fabric, causing the disarmed object to fall to the ground in your space rather than in your opponent's.</li><li>Your fabric gains the grapple trait. If you succeed at an Athletics check to @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] using your fabric, you can spend a single action immediately afterward to pull the creature 5 feet toward you.</li><li>When you attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Trip] a foe using your fabric, the target can be two sizes larger than you instead of one.</li></ul><p><strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Home Among Mulberry Leaves]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "qi-infused-fabric",
+          "label": "PF2E.SpecificRule.Magus.UnfurlingBrocade.QiInfusedFabric.Label",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.SpecificRule.Magus.UnfurlingBrocade.QiInfusedFabric.Label",
+            "option": "qi-infused-fabric",
+            "toggleable": true
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "grapple",
+          "mode": "add",
+          "predicate": [
+            "item:base:bladed-scarf",
+            "self:effect:arcane-cascade",
+            "qi-infused-fabric"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:bladed-scarf",
+              "self:effect:arcane-cascade",
+              "qi-infused-fabric"
+            ],
+            "property": "traits",
+            "value": "grapple"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "magus-hybrid-study"
+        ],
+        "rarity": "uncommon",
+        "value": [
+          "magus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "y0WQzzshwGIymZsr",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:base:bladed-scarf",
+              "self:effect:arcane-cascade",
+              "qi-infused-fabric"
+            ],
+            "property": "traits",
+            "value": "grapple",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cloth-patterned-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "LVADu3YwnAamOx70",
+    "name": "Weapon Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p><strong>Champion, Exemplar, Investigator, Magus</strong> You've dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to expert.</p>\n<p><strong>Druid, Kineticist</strong> You've improved your combat skill. Your proficiency rank for simple weapons and unarmed attacks increases to expert.</p>\n<p><strong>Guardian</strong> Sometimes, the best defense is a good offense. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to expert.</p>\n<p><strong>Oracle</strong> You've dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons and unarmed attacks increase to expert.</p>\n<p><strong>Psychic</strong> Training has improved your weapon technique, possibly enhanced by your occult magic. Your proficiency rank for simple weapons and unarmed attacks increases to expert.</p>\n<p><strong>Sorcerer</strong> You've improved your combat skill. Your proficiency ranks for simple weapons and unarmed attacks increase to expert.</p>\n<p><strong>Swashbuckler</strong> You've dedicated yourself to learning the intricacies of your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to expert. You gain access to the critical specialization effects of all weapons for which you have expert proficiency.</p>\n<p><strong>Thaumaturge</strong> You've learned the secret ways your weapons work most effectively. Your proficiency ranks for unarmed attacks, simple weapons, and martial weapons increase to expert.</p>\n<p><strong>Witch, Wizard</strong> Through sheer experience, you've improved your technique with your weapons. Your proficiency ranks for simple weapons and unarmed attacks increase to expert.</p>",
+      "level": 5,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.martial.rank",
+          "value": 2,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "or": [
+                "class:champion",
+                "class:exemplar",
+                "class:guardian",
+                "class:investigator",
+                "class:magus",
+                "class:swashbuckler",
+                "class:thaumaturge"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.martial.rank",
+            "predicate": [
+              {
+                "or": [
+                  "class:champion",
+                  "class:exemplar",
+                  "class:guardian",
+                  "class:investigator",
+                  "class:magus",
+                  "class:swashbuckler",
+                  "class:thaumaturge"
+                ]
+              }
+            ],
+            "value": 2
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "{actor|class.slug}",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "simple": {
+            "rank": 2
+          },
+          "unarmed": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "champion",
+          "druid",
+          "exemplar",
+          "guardian",
+          "investigator",
+          "kineticist",
+          "magus",
+          "oracle",
+          "psychic",
+          "sorcerer",
+          "swashbuckler",
+          "thaumaturge",
+          "witch",
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9XLUh9iMepZesdmc",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "CriticalSpecialization",
+            "predicate": [
+              {
+                "gte": [
+                  "item:proficiency:rank",
+                  2
+                ]
+              },
+              "class:swashbuckler",
+              {
+                "not": "item:category:unarmed"
+              }
+            ],
+            "_conversionState": "unsupported"
+          },
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "traits",
+            "value": "{actor|class.slug}",
+            "_conversionState": "partial"
+          },
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hand-grip-sword-red.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "UXAihglkf3UssC8V",
+    "name": "Weapon Mastery",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p><strong>Barbarian</strong> Your rage makes you even more effective with the weapons you wield. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to master.</p>\n<p><strong>Commander</strong> You've drilled extensively in your weapons. Your proficiency ranks for unarmed attacks, simple weapons, and martial weapons increase to master.</p>\n<p><strong>Guardian</strong> Your hours of battlefield experience grant you greater prowess. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to master.</p>\n<p><strong>Magus, Thaumaturge</strong> You fully understand your weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to master.</p>",
+      "level": 13,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "martial": {
+            "rank": 3
+          },
+          "simple": {
+            "rank": 3
+          },
+          "unarmed": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "barbarian",
+          "commander",
+          "guardian",
+          "magus",
+          "thaumaturge"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ejP4jVQkS48uKRFz",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blade-tip-chipped-blood-red.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "J9FT6XRcaEhYUHnV",
+    "name": "Weapon Specialization",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You've learned how to inflict greater injuries with the weapons you know best. You deal an additional 2 damage with weapons and unarmed attacks in which you are an expert. This damage increases to 3 if you're a master, and 4 if you're legendary.</p>",
+      "level": 7,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "weapon-specialization",
+          "label": "PF2E.WeaponSpecialization",
+          "selector": [
+            "unarmed-damage",
+            "weapon-damage"
+          ],
+          "value": 2,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": [
+            {
+              "gte": [
+                "item:proficiency:rank",
+                2
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "hideIfDisabled": true,
+            "key": "FlatModifier",
+            "label": "PF2E.WeaponSpecialization",
+            "predicate": [
+              {
+                "gte": [
+                  "item:proficiency:rank",
+                  2
+                ]
+              }
+            ],
+            "selector": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 2
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "weapon-specialization",
+          "label": null,
+          "selector": null,
+          "value": 3,
+          "mode": "add",
+          "predicate": [
+            "item:proficiency:rank:3"
+          ],
+          "priority": 0,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "item:proficiency:rank:3"
+            ],
+            "priority": 0,
+            "selectors": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 3
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "weapon-specialization",
+          "label": null,
+          "selector": null,
+          "value": 4,
+          "mode": "add",
+          "predicate": [
+            "item:proficiency:rank:4"
+          ],
+          "priority": 0,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "item:proficiency:rank:4"
+            ],
+            "priority": 0,
+            "selectors": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 4
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "alchemist",
+          "animist",
+          "bard",
+          "champion",
+          "cleric",
+          "commander",
+          "druid",
+          "fighter",
+          "gunslinger",
+          "inventor",
+          "investigator",
+          "kineticist",
+          "ranger",
+          "rogue",
+          "sorcerer",
+          "summoner",
+          "swashbuckler",
+          "witch",
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9EqIasqfI8YIM3Pt",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "item:proficiency:rank:3"
+            ],
+            "priority": 0,
+            "selectors": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 3,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              "item:proficiency:rank:4"
+            ],
+            "priority": 0,
+            "selectors": [
+              "unarmed-damage",
+              "weapon-damage"
+            ],
+            "slug": "weapon-specialization",
+            "value": 4,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "weapon-specialization.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "m9zzP0MZI5sIP1ia",
+    "name": "Will Expertise",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your mental defenses grow stronger. Your proficiency rank for Will saves increases to expert.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "will": {
+            "rank": 2
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "alchemist",
+          "kineticist",
+          "ranger"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "NhcF2CbXA8R1UCg4",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "walls-of-will.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

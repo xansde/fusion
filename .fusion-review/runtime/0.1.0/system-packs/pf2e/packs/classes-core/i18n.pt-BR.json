@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.classes-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-06T23:33:27.291Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "ZuJDBnRwp0YQ9IoP": {
+      "name": "Cineticista",
+      "sourceHash": "6fca0d1b385612be45c1bfd620767ceea2c00b33",
+      "description": "<p><em>O poder dos elementos flui de dentro de você. Fogo rugidor, água pura, ar fugaz, terra firme, madeira retorcida, metal cortante. Um portão cinético inextricavelmente ligado ao seu corpo canaliza poder diretamente dos planos elementais, fazendo os elementos saltarem para a sua mão, girarem ao redor do seu corpo e explodirem contra os inimigos ao seu bel-prazer. Conforme a sua conexão com os planos cresce, você atinge verdadeira maestria sobre os elementos escolhidos.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lNWQPwgT4vhYCOT7]{Kineticist}</em></p>"
+    },
+    "fk29yXFinPhreKL0": {
+      "name": "Magus",
+      "sourceHash": "80de4387ce349d748efb5a1910169bd5562368b5",
+      "description": "<p><em>Combinando a fisicalidade e a técnica de um guerreiro com a capacidade de conjurar magia arcana, você busca aperfeiçoar a arte de fundir feitiço e golpe. Enquanto o tratado pesado que você carrega reflete horas de pesquisa arcana, seus inimigos não precisam de recordação de seu treinamento. Reconhecem-no conforme você os derrota.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>"
+    }
+  }
+}

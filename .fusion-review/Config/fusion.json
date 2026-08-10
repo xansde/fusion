@@ -1,0 +1,8 @@
+{
+  "dataVersion": 1,
+  "serverVersion": "0.1.0",
+  "port": 33000,
+  "adminPasswordHash": "$argon2id$v=19$m=65536,t=3,p=4$423pfeCcqIwZ7rn3g9uueg$wm46swCRYzoN/cNoA4GCmJ1WmknAfyq8l7lD7agGKOg",
+  "jwtHmacSecret": "c364fbee1d1c420be2a12e41e2218a5b1c2f2a18fe844cde8b9e002c0fec0279",
+  "setupCompleted": true
+}

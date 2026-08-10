@@ -1,0 +1,185 @@
+[
+  {
+    "_id": "mIPhGOdhzDGvbu5m",
+    "name": "Fleshwarp",
+    "type": "ancestry",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "additionalLanguages": {
+        "count": 0,
+        "custom": "",
+        "value": [
+          "aklo",
+          "draconic",
+          "dwarven",
+          "elven",
+          "goblin",
+          "sakvroth"
+        ]
+      },
+      "boosts": [
+        "con",
+        "free",
+        "free"
+      ],
+      "description": "<p><em>Fleshwarps are people whose forms were created or radically transformed by magic, alchemy, or unnatural energies. Their unorthodox appearance can make it difficult for them to find a place for themselves in the world.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.vTB1bTYVE4onyyy1]{Fleshwarp}</em></p>",
+      "flaws": [
+        "free"
+      ],
+      "hands": 2,
+      "hp": 10,
+      "items": {
+        "31xm9": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Unusual Anatomy",
+          "uuid": "Compendium.pf2e.ancestryfeatures.Item.Unusual Anatomy"
+        }
+      },
+      "languages": {
+        "value": [
+          "common"
+        ]
+      },
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "reach": 5,
+      "rules": [],
+      "size": "med",
+      "speed": 25,
+      "traits": {
+        "rarity": "rare",
+        "value": [
+          "aberration",
+          "humanoid"
+        ]
+      },
+      "vision": "low-light-vision"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FXlXmNBFiiz9oasi",
+        "packName": "ancestries",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "label": "PF2E.ActorSizeSmall",
+                "value": "sm"
+              },
+              {
+                "label": "PF2E.ActorSizeMedium",
+                "value": "med"
+              }
+            ],
+            "flag": "fleshwarpSize",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.CreatureSize",
+            "_conversionState": "unsupported"
+          },
+          {
+            "key": "CreatureSize",
+            "value": "{item|flags.system.rulesSelections.fleshwarpSize}",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fleshwarp.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "3FBntMsNiVE09eEx",
+    "name": "Ratfolk",
+    "type": "ancestry",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "additionalLanguages": {
+        "count": 0,
+        "custom": "",
+        "value": [
+          "aklo",
+          "draconic",
+          "dwarven",
+          "gnomish",
+          "goblin",
+          "halfling",
+          "kholo",
+          "orcish",
+          "sakvroth"
+        ]
+      },
+      "boosts": [
+        "dex",
+        "int",
+        "free"
+      ],
+      "description": "<p><em>Ysoki are beings that most surface-dwelling humanoids refer to as \"ratfolk.\" They are a communal people who prefer cramped conditions, with up to 100 individuals living in a given home. If they can't find homes in town, ratfolk may instead live in caves and cavern complexes, as these provide great storage for the many and varied goods they bring back from trading expeditions.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.zoSkNev57C8OEDYL]{Ratfolk}</p>",
+      "flaws": [
+        "str"
+      ],
+      "hands": 2,
+      "hp": 6,
+      "items": {
+        "jkllM": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Sharp Teeth",
+          "uuid": "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth"
+        }
+      },
+      "languages": {
+        "value": [
+          "common",
+          "ysoki"
+        ]
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "reach": 5,
+      "rules": [],
+      "size": "sm",
+      "speed": 25,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "humanoid",
+          "ratfolk"
+        ]
+      },
+      "vision": "low-light-vision"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "P6PcVnCkh4XMdefw",
+        "packName": "ancestries",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ratfolk.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "id": "teste_xande",
+  "title": "teste_xande",
+  "system": "pf2e",
+  "systemVersion": "0.0.0",
+  "fusionVersion": "0.1.0",
+  "schemaVersion": 1,
+  "description": "",
+  "createdAt": "2026-07-03T15:14:50.511Z",
+  "lastOpenedAt": "2026-08-08T01:40:35.549Z",
+  "playTime": 0,
+  "compatibility": {
+    "minimumFusion": "0.1.0"
+  }
+}

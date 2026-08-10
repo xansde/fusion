@@ -1,0 +1,5430 @@
+[
+  {
+    "_id": "mSl3wozhFe30XWTf",
+    "name": "Absorb Familiar",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can transform into a mark you carry on your flesh, typically seeming like a birthmark, tattoo, or gem that vaguely resembles its normal form. When transformed, the familiar can't act except to turn back into a familiar. It isn't affected by area effects and must be targeted separately to affect it, which requires knowledge that it's a creature.</p>\n<p>This means you and your allies can heal or assist the familiar while most enemies stay unaware of its true nature. Creatures must attempt a @Check[perception|dc:20] check to @UUID[Compendium.pf2e.actionspf2e.Item.Seek] to realize a it is actually a familiar. Your familiar can still communicate its feelings empathically. Transforming the familiar between forms is a 1-minute activity that has the concentrate trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "iBZzOaRNodGtfMVJ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "TU3F0mIX0ZORRYz3",
+    "name": "Accompanist",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar helps you perform. Whenever you attempt a Performance check, if your familiar is nearby and can act, it accompanies you with chirps, claps, or its own miniature instrument. This grants you a +1 circumstance bonus, or +2 if you're a master in Performance.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "92lgSEPFIDLvKOCF",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "FA9qg2XRSAYWqX9i",
+    "name": "Alchemical Gut",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can act as a @UUID[Compendium.pf2e.equipment-srd.Item.Bomb Coagulant Alembic] by swallowing the bomb to be affected, which takes two Interact actions from it and one from you. Your familiar regurgitates the concentrated item 1 minute later. If your familiar tries to distill a bomb that's level is higher than your own –1, it instead takes damage as though it were successfully struck with the bomb.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Treasure Vault (Remastered)"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Rv1KTRioaZOWyQI6",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "KHIMK38Bdj7RahBU",
+    "name": "Ambassador",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar knows how to act cute or focused on cue, helping you make a good impression.</p>\n<p>Despite being a minion, your familiar gains 1 reaction at the start of its turns, which it can use only to @UUID[Compendium.pf2e.actionspf2e.Item.Aid] you on a Diplomacy check to @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] (it still has to prepare to help you as normal for the Aid reaction, which requires it to participate throughout the activity).</p>\n<p>It automatically succeeds at its check to Aid you with those skills or automatically critically succeeds if you're a master of the skill in question.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7ZxPS0UU7pf7wjp0",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "fhmF7rt2dw79PLaC",
+    "name": "Amphibious",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It gains the amphibious trait, allowing it to breathe in both air and water, and has both a land Speed and a swim Speed, each equal to its highest land Speed or swim Speed.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "land",
+          "value": 25,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "land",
+            "value": 25
+          }
+        },
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "swim",
+          "value": 25,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "swim",
+            "value": 25
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "A0C86V3MUECpX5jd",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "amphibious"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "b1Q8pBaLjHfC5JEs",
+    "name": "Animated",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>With a bit of magic from your patron, your object familiar can move about on its own. It gains a Speed of 25 feet. You can select this ability only for object familiars.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "land",
+          "value": 25,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "land",
+            "value": 25
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wcFeaZ0TmoaLtpIQ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "U2NB6WjqPTc1GIlg",
+    "name": "Augury",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can glimpse the strands of fate to give you a cryptic clue regarding your future. Your familiar can cast @UUID[Compendium.pf2e.spells-srd.Item.Augury] once per day using your magical tradition and spell DC. You must be at least 8th level to select this ability.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Book of the Dead"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mKmBgQmPmiLOlEvw",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0CxrgGWP4ze7gmqS",
+    "name": "Burrower",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It gains a burrow Speed of 5 feet, allowing it to dig Tiny holes.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "burrow",
+          "value": 5,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "burrow",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uy15sDBuYNK48N3v",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "S85TvUo1gh8Cx56I",
+    "name": "Cantrip Connection",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>You can prepare an additional cantrip, or if you have a repertoire, designate a cantrip to add to your repertoire every time you select this ability; you can retrain it but can't otherwise change it. You must be able to prepare cantrips or add them to your repertoire to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "rs4Awf4k1e0Mj797",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xoeZFCtoLi4lWccD",
+    "name": "Climber",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It gains a climb Speed of 25 feet.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "climb",
+          "value": 25,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "climb",
+            "value": 25
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dWTfO5WbLkD5mw2H",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bMS3QZt9XvHjivQL",
+    "name": "Construct",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has the construct trait instead of the animal trait. The familiar is immune to death effects, disease, doomed, drained, fatigued, healing, nonlethal attacks, paralyzed, poison, sickened, spirit, unconscious, vitality, and void. Your familiar must have the @UUID[Compendium.pf2e.familiar-abilities.Item.Tough] pet ability to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "5eqcXtPsYunphMOZ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "construct"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1eEOaDTYJGPYY3GG",
+    "name": "Damage Avoidance",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Choose one type of save. Your familiar takes no damage when it rolls a success on that type of save; this doesn't prevent effects other than damage.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "{item|flags.system.rulesSelections.save}",
+          "outcome": [
+            "success",
+            "criticalSuccess"
+          ],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "success",
+              "criticalSuccess"
+            ],
+            "selector": "{item|flags.system.rulesSelections.save}",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mK3mAUWiRLZZYNdz",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.SavesFortitude",
+                "value": "fortitude"
+              },
+              {
+                "label": "PF2E.SavesReflex",
+                "value": "reflex"
+              },
+              {
+                "label": "PF2E.SavesWill",
+                "value": "will"
+              }
+            ],
+            "flag": "save",
+            "key": "ChoiceSet",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "br9L7lsai3hWFgrM",
+    "name": "Darkeater",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar naturally recovers in the shadows. After spending 10 consecutive minutes in an area of dim light or darkness, your familiar recovers a number of Hit Points equal to half your level.</p>\n<p>This ability is for a shadow familiar. A shadowcaster, however, can select this ability for any kind of familiar.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dpjf1CyMEILpJWyp",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "89aUqrpHB1ieNbqH",
+    "name": "Darkvision",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It gains darkvision.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0Xrkk46IM43iI1Fv",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cNoeGaimD2fIhGRv",
+    "name": "Dragon",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has the dragon trait instead of the animal trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "embGS7NjgydDw8KO",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "dragon"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Krr9cnhwjUvVr5B4",
+    "name": "Echolocation",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It can use hearing as a precise sense within 20 feet.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": 20,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "precise",
+            "key": "Sense",
+            "range": 20,
+            "selector": "echolocation"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jfCmKk6pXcINVROk",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "y3iNiVr1HQap9F7s",
+    "name": "Elemental Familiar (Air)",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains the air elemental trait.</p>\n<p>If your familiar stays completely still for 1 round, it becomes @UUID[Compendium.pf2e.conditionitems.Item.Invisible] until it next takes an action. Any motion, even being moved or carried by another creature, ends this effect.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "air"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RIx6b1GvTEBh4ExW",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "air"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "v3GUwT2eXoiKlO20",
+    "name": "Elemental Familiar (Earth)",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains the earth elemental trait.</p>\n<p>Your familiar gains resistance to physical damage (except adamantine) equal to half your level.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "physical",
+          "value": null,
+          "exceptions": [
+            "adamantine"
+          ],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "exceptions": [
+              "adamantine"
+            ],
+            "key": "Resistance",
+            "type": "physical",
+            "value": "floor(@actor.level/2)"
+          }
+        }
+      ],
+      "traits": {
+        "value": [
+          "earth"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZV4J5YTZGrqh6cvY",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "earth"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "lMP8HJ9q5IHiH1Cd",
+    "name": "Elemental Familiar (Fire)",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains the fire elemental trait.</p>\n<p>Your familiar sheds bright light in a 20-foot radius (and dim light for the next 20 feet) and emits warmth. Creatures who remain within a @Template[emanation|distance:15] don't take damage from severe environmental cold.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "fire"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "5019hvUZcNe9dLEO",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "key": "TokenLight",
+            "value": {
+              "animation": {
+                "intensity": 4,
+                "speed": 1,
+                "type": "torch"
+              },
+              "bright": 20,
+              "color": "#9b7337",
+              "dim": 40,
+              "shadows": 0.2
+            },
+            "_conversionState": "unsupported"
+          },
+          {
+            "add": [
+              "fire"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "3XNSq2wC8zZXNkPM",
+    "name": "Elemental Familiar (Metal)",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains the metal elemental trait.</p>\n<p>Your familiar gains resistance to physical damage from metal weapons equal to half your level.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "metal"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZJdMyCjRvUTtg90u",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "metal"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "fvKITwhMU8qqE243",
+    "name": "Elemental Familiar (Water)",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains the water elemental trait.</p>\n<p>Your familiar can move through a gap at least 2 inches wide without Squeezing and can Squeeze through a gap at least 1 inch wide.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "water"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mIl4YjbssQ5AERWS",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "water"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "IJQO3gp60NOBCcUM",
+    "name": "Elemental Familiar (Wood)",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains the wood elemental trait.</p>\n<p>If your familiar remains in bright light for 1 round, it gains fast healing equal to half your level. Once it is out of bright light, this effect ends.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "wood"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "XYb2udoNGaE0M11Y",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "wood"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "OtF52sOyIXje1DSk",
+    "name": "Elemental",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has the elemental trait instead of the animal trait. Choose air, earth, fire, metal, water, or wood. Your familiar gains that trait. The familiar is immune to bleed, @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed], poison, sleep, and the element matching its trait. Your familiar must have the resistance familiar ability to select this.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "immunity",
+          "slug": null,
+          "label": null,
+          "damageType": [
+            "bleed",
+            "paralyzed",
+            "poison",
+            "sleep",
+            "{item|flags.system.rulesSelections.element}"
+          ],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Immunity",
+            "type": [
+              "bleed",
+              "paralyzed",
+              "poison",
+              "sleep",
+              "{item|flags.system.rulesSelections.element}"
+            ]
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ch6nFcRJO1fm8B4D",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.TraitAir",
+                "value": "air"
+              },
+              {
+                "label": "PF2E.TraitEarth",
+                "value": "earth"
+              },
+              {
+                "label": "PF2E.TraitFire",
+                "value": "fire"
+              },
+              {
+                "label": "PF2E.TraitMetal",
+                "value": "metal"
+              },
+              {
+                "label": "PF2E.TraitWater",
+                "value": "water"
+              },
+              {
+                "label": "PF2E.TraitWood",
+                "value": "wood"
+              }
+            ],
+            "flag": "element",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.Element",
+            "_conversionState": "unsupported"
+          },
+          {
+            "add": [
+              "elemental",
+              "{item|flags.system.rulesSelections.element}"
+            ],
+            "key": "ActorTraits",
+            "remove": [
+              "animal"
+            ],
+            "_conversionState": "unsupported"
+          },
+          {
+            "key": "Immunity",
+            "type": [
+              "bleed",
+              "paralyzed",
+              "poison",
+              "sleep",
+              "{item|flags.system.rulesSelections.element}"
+            ],
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "j3wMU8RYJVlnwFBs",
+    "name": "Erudite",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has incredible religious knowledge. Despite being a minion, your familiar gains 1 reaction at the start of its turns, which it can use only to @UUID[Compendium.pf2e.actionspf2e.Item.Aid] you on a Religion check (it still has to prepare to help you as normal for the Aid reaction). It automatically succeeds its check to Aid you with Religion checks or automatically critically succeeds if you're a master in Religion.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Knights of Lastwall"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cy7bdQqVANipyljS",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "G3YD8TPB6qfMvnma",
+    "name": "Extra Alchemy",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar helps you brew items at the start of the day. You can create one additional item with @UUID[Compendium.pf2e.feats-srd.Item.Advanced Alchemy] during your daily preparations. You must have the Advanced Alchemy ability to select this ability.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Extra Alchemy]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ModT5b0jvnaitzJH",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YOAPcGI7g8pT62IX",
+    "name": "Extra Vial",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar accretes alchemical liquids in its body. Once per day, you can Interact when your familiar is adjacent to you to gain a versatile vial. You must have the @UUID[Compendium.pf2e.classfeatures.Item.Versatile Vials] ability to select this ability.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZtKb89o1PPhwJ3Lx",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "60ozUKqXYBOqzZbc",
+    "name": "Familiar Focus",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "familiar",
+      "description": "<p>Once per day, your familiar can use 2 actions with the concentrate trait to restore 1 Focus Point to your focus pool, up to your usual maximum. You must have a focus pool to select this.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "day"
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jdlefpPcSCIe27vO",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QwVHnXsw9de10Ava",
+    "name": "Familiar of Balanced Luck",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has a spot on its body that looks like a good luck charm or a bad omen, depending on the angle. When you Cast or Sustain a hex, one creature within 15 feet of your familiar gets your choice of either a +1 status bonus to its AC or a –1 status penalty to its AC until the start of your next turn.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Balanced Luck]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6ZmgkMHUGGb1mDhr",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "v3twjFfrfigOOgJe",
+    "name": "Familiar of Bolstering Aid",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "familiar",
+      "description": "<p>Your familiar knows all manner of tricks that can help! When you Cast or Sustain a hex, and your familiar is adjacent to an ally, that ally gains a +2 status bonus to the next non-attack skill check that ally attempts before the start of your next turn.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Bolstering Aid]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "HNoR0D2sKQaDNh5Z",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bxkhRbxGFblPtAgT",
+    "name": "Familiar of Enticing Negotiation",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar constantly whispers distracting offers of power, wealth, and other temptations to your enemies, even if your familiar normally doesn't have the means of speaking. When you Cast or Sustain a hex and your familiar is within 10 feet of an enemy, the enemy becomes @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] until the start of your next turn. Your familiar can only distract a single enemy per round in this way.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xXMPZXcwQgKRAu38",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "VLld4niOwsL7QnsZ",
+    "name": "Familiar of Flowing Script",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is covered in a pattern that looks similar to letters in an unknown language, one that seems to draw attention even as it eludes understanding. When you Cast or Sustain a hex, the letters begin to rapidly change, causing a distraction. Until the start of your next turn, your familiar can provide flanking for you and your allies as though it were able to attack and had a reach of 5 feet; this is a visual effect.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9ypX5ZMor6RMiFKv",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pStedsfBWO6bxmGO",
+    "name": "Familiar of Freezing Rime",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is cold to the touch, its breath always visible. When you Cast or Sustain a hex, you can cause ice to form in a @Template[burst|distance:5] centered on a square of your familiar's space. Those squares are difficult terrain until the start of your next turn.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9xTjRt8LkZPB42Vi",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "UH4Sht4xyM7ccVSx",
+    "name": "Familiar of Insightful Observation",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar boasts a third eye upon their head or body, resembling the one set in Cobyslarni's forehead. When you Cast or Sustain a hex, your familiar can attempt a check to Recall Knowledge as a free action with any skill in which you are trained or better, using your bonus, and psychically transmit the information to you.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Rival Academies"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "YptMhsztTS9dYGAY",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "PG506p215XGBQy96",
+    "name": "Familiar of Keen Senses",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has glinting eyes, twitching ears, or some other sign of a beast's powerful senses. When you Cast or Sustain a hex, your familiar gains your choice of an imprecise scent, tremorsense, or wavesense, with a range of 60 feet until the start of your next turn, and it can immediately @UUID[Compendium.pf2e.actionspf2e.Item.Point Out] as a free action.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Keen Senses]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "onye3PN84lmca11D",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "JR9angJOlt85BmrF",
+    "name": "Familiar of Nimble Flight",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Even if your familiar doesn't have wings, it can sometimes move as if carried aloft by the wind. When you Cast or Sustain a hex, your familiar can Fly up to 15 feet; this movement doesn't trigger reactions.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uFsWy6Ii1WxA0u0w",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "n0HkWO1zqu3gAFjn",
+    "name": "Familiar of Obscuring Snowfall",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is always covered in a thin layer of snow, which it sheds as needed. When you Cast or Sustain a hex, you can cause clinging snow to fall in a @Template[type:burst|distance:5] centered on a square of your familiar's space. This snowfall remains until the start of your next turn, and enemies that enter these squares during that period are @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] until the start of your next turn.</p><hr /><p><em>PFS Note:</em> For this ability, choose a corner of the familiar's square for the center of the burst.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Fouq5RMNS8P1CDzx",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "t3hVIt8BUjG5u5mN",
+    "name": "Familiar of Ongoing Misery",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar seems hostile to all creatures other than you, hissing at them if they get too near. When you Cast or Sustain a hex, your familiar can curse a creature within 15 feet of it, prolonging one negative condition of your choice affecting the creature by 1 round. This extension can be applied only once to a given case of a condition. This is a curse effect. This prolongs only conditions with a timed duration (such as \"1 round\" or \"until the end of your next turn\") and doesn't prevent conditions from being removed by other means.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mu9OL8v4rmr9311e",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "VGiQTyMHsMrl9Ikr",
+    "name": "Familiar of Overwhelming Tides",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar constantly drips with ocean water. When you Cast or Sustain a hex, you can cause a small wave to surge forth from your familiar. One creature within 10 feet of your familiar is pushed 5 feet away from your familiar.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xH7lvZkYYAAuxR62",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7TYVJCZPzrcP4q7F",
+    "name": "Familiar of Paired Perplexity",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has twice as many of a small feature than a normal creature would have, such a second tail or an extra pair of whiskers. When you Cast or Sustain a hex, your familiar seems to double and be in two places at once. One creature you choose within 20 feet of it is @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Stupefied 1} until the start of your next turn; this is a visual effect.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "bhpa7DVdMsaNfodz",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "H4W96QeEd7mJXwE9",
+    "name": "Familiar of Parasitic Might",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar appears gaunt and malnourished or otherwise on the brink of death, even though it's quite healthy. When you Cast or Sustain a hex, your familiar can draw on the waning strength of another to sustain itself. One creature within 15 feet of your familiar with less than half of its maximum Hit Points becomes @UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Sickened 1} unless it succeeds at a @Check[fortitude] saving throw against your spell DC.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "J5Wyh1EPmk848ivR",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Hce3UfL2Rt18OYW0",
+    "name": "Familiar of Restored Spirit",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is pleasantly warm and soft, seeming to wash away worries with its mere presence. When you Cast or Sustain a hex, one willing creature within 15 feet of your familiar gains temporary Hit Points equal to 2 + half your level, which last until the start of your next turn.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Restored Spirit]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZCze1FY3Rmnvd6Dx",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "U12JEhDS3sw6wv5q",
+    "name": "Familiar of Stalking Night",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is dark of fur or feather, and light seems to disappear into it. When you Cast or Sustain a hex, and your familiar is adjacent to an enemy to which it's @UUID[Compendium.pf2e.conditionitems.Item.Concealed], @UUID[Compendium.pf2e.conditionitems.Item.Hidden], or undetected, the enemy becomes @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 1}.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FeEts6s2ABVEi0H6",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ab3EhgOVhOgW83dJ",
+    "name": "Familiar of Swarm's Heart",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is surrounded by a cloud of harmless insects. When you Cast or Sustain a hex, the insects swarm to protect you and your allies. Until the start of your next turn, your familiar grants @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Concealment} to you or any ally while sharing the same space.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "t6nzeTpsTJDwAUFZ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xHWGBUS3YLKfPT0T",
+    "name": "Fast Movement",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Increase one of your familiar's Speeds from 25 to 40 feet.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "{item|flags.system.rulesSelections.speed}",
+          "value": 40,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "{item|flags.system.rulesSelections.speed}",
+            "value": 40
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "BXssJhTJjKrfojwG",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.Actor.Speed.Type.Climb",
+                "predicate": [
+                  "speed:climb"
+                ],
+                "value": "climb"
+              },
+              {
+                "label": "PF2E.Actor.Speed.Type.Fly",
+                "predicate": [
+                  "speed:fly"
+                ],
+                "value": "fly"
+              },
+              {
+                "label": "PF2E.Actor.Speed.Type.Land",
+                "predicate": [
+                  "speed:land"
+                ],
+                "value": "land"
+              },
+              {
+                "label": "PF2E.Actor.Speed.Type.Swim",
+                "predicate": [
+                  "speed:swim"
+                ],
+                "value": "swim"
+              }
+            ],
+            "flag": "speed",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.MovementType",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7EhB6bFhN6eOX4D2",
+    "name": "Flier",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It gains a fly Speed of 25 feet.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "fly",
+          "value": 25,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "fly",
+            "value": 25
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZHSzNt3NxkXbj1mI",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "U52LC31wdHW65Ly0",
+    "name": "Focused Rejuvenation",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>When you Refocus, you generate magical energy that heals your familiar. Your familiar regains 1 Hit Point per level whenever you Refocus.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "O5TIjqXAuta8iVSz",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8HTuoWA84fi5KVYT",
+    "name": "Fungus",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has the fungus trait instead of the animal trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jew52aXGdNyR4N5B",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "fungus"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xw5BfRLeaDxt0Zr9",
+    "name": "Gills",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar grows a set of gills, allowing it to breathe water in addition to air.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "lpyJAl5B4j2DC7mc",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Xgb8zapWFd1D1J8N",
+    "name": "Grasping Tendrils",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p><strong>Prerequisites</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar Secrets]</p>\n<p>Your familiar can extend vines or similar tendrils, increasing its reach to 15 feet.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "LUBS9csNNgRTui4p",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Iwz057HPIsVsjkn0",
+    "name": "Greater Resistance",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar increases the resistance it gains from its resistance familiar ability to 3 + half your level. Your familiar must have the @UUID[Compendium.pf2e.familiar-abilities.Item.Resistance] ability to select this.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "{actor|flags.system.resistance.resistanceOne}",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "{actor|flags.system.resistance.resistanceOne}",
+            "value": "3 + floor(@actor.level/2)"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "{actor|flags.system.resistance.resistanceTwo}",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "{actor|flags.system.resistance.resistanceTwo}",
+            "value": "3 + floor(@actor.level/2)"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zKTL9y9et0oTHEYS",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YEB0cxNohDEbNv3G",
+    "name": "Independent",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>In an encounter, if you don't Command your familiar, it still gains 1 action each round. Typically, you still decide how it spends that action, but, the GM might determine that your familiar chooses its own tactics rather than performing your preferred action. This doesn't work with @UUID[Compendium.pf2e.familiar-abilities.Item.Valet] or similar abilities that require a command, if you're capable of riding your familiar, or similar situations.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2fiQzoEKu6YUnrU9",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0CR08c8CtUCLFcz4",
+    "name": "Innate Surge",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Once per day, you can draw upon your familiar's innate magic to replenish your own. You can cast one innate spell gained from an ancestry feat that you have already cast today. You must still Cast the Spell and meet the spell's other requirements.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "D0ltNUJnN7UjJpA1",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bOBKHZD0kgDpNydc",
+    "name": "Item Delivery",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>If your familiar is adjacent to you, you can Command it to deliver an item. Instead of its normal 2 actions, your familiar Interacts to take an item you're holding of light Bulk or less, then takes one move action, then finally Interacts to pass off the item to another willing creature.</p>\n<p>It can instead administer the item to the creature if it can do so with 1 action and has an appropriate type of item (such as alchemical elixir). If your familiar doesn't reach the target this turn, it holds the item until commanded otherwise. Your familiar must have the manual dexterity ability to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Ms8EVO2mNbr4Zp1i",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "r0OEyMtu3gai4QMs",
+    "name": "Jet",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can use bursts of elemental energy or magic to @UUID[Compendium.pf2e.actionspf2e.Item.Leap] up to 30 feet in any direction, even if that would exceed its normal maximum distance for leaping. The Leap must begin and end on a solid surface capable of supporting the familiar.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fhyQ6uTSvfErTzyE",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9UnPqv4m3yRsKzL1",
+    "name": "Kindling",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>You can immolate your familiar's body for a surge of power. Once per day as a free action, when you Cast a Spell that has the fire trait, deals damage, and doesn't have a duration, you can sacrifice your familiar to empower the spell. Your familiar is immediately slain, and you gain a status bonus to that spell's damage equal to twice the spell rank.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Kindling]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "gVPtUSEPZYGRIRyQ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "RTktSQReefdtAo5d",
+    "name": "Kinspeech",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It can understand and speak with animals of the same species. To select this, your familiar must be an animal, it must have the speech ability, and you must be at least 6th level.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qTxH8mSOvc4PMzrP",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Q2rx3txernux3Rnn",
+    "name": "Lab Assistant",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It can use your @UUID[Compendium.pf2e.actionspf2e.Item.Quick Alchemy] action. You must have Quick Alchemy, and your familiar must be in your space. This has the same cost and requirement as if you used it. It must have the @UUID[Compendium.pf2e.familiar-abilities.Item.Manual Dexterity] ability to select this.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Core Rulebook"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7QosmRHlyLLhU1hX",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7pLHLZmY6uCwgIf6",
+    "name": "Levitator",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Using magnetism, magic, or other forces, your familiar can float up to 3 feet above solid and liquid surfaces while moving at a Speed of 25 feet. This allows it to ignore difficult terrain and damaging effects related to coming into direct contact with the surface. It typically allows the familiar to also avoid triggering the reactions of hazards that require you to step on them or an attached pressure plate.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "q9IXWngAOCpsXxsO",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "action.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MYoRTw6zLYatPw0F",
+    "name": "Lifelink",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>If your familiar would be reduced to 0 HP by damage, as a reaction with the concentrate trait, you can take all the damage, and your familiar takes none. However, special effects that would occur due to that damage (such as snake venom) still apply.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "deC1yIM2S5szGdzT",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gNhwCrbxwHOhEIA8",
+    "name": "Lightning Armillary",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "familiar",
+      "description": "<p><strong>Effect</strong> Your familiar flies around and around an adjacent ally's weapon or hand, dissolving into multiple rings of lightning. Until the beginning of your next turn, the affected weapon or unarmed attack deals an additional 1d6 electricity damage, or 1d8 electricity damage if you Cast a Spell with the air or electricity trait this turn. Your familiar remains in lightning ring form, preventing it from being targeted or taking any actions.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Lightning Armillary]</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "electricity"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zwWgHjcU0iZ6gUDY",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "OneAction.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wsBPhyNcl0uyd1XM",
+    "name": "Lightning Needles",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "familiar",
+      "description": "<p><strong>Requirements</strong> You Cast a Spell that had the air or electricity traits this turn;</p><hr /><p><strong>Effect</strong> Your familiar absorbs excess electrical charge and unleashes a @Template[type:emanation|distance:5] of static electricity that flows into creatures' meridians. Creatures in the emanation that fail a @Check[fortitude|options:area-effect,damaging-effect] save against your spell DC become @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1} until the end of their next turn. If a creature is soaked or standing over or in water inside the emanation, it also takes @Damage[1d4[persistent,electricity]|options:area-damage] damage on a failed save.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "electricity"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0R18Nd0CotPo9KD7",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "OneAction.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MLIwn1wvNsaycG2o",
+    "name": "Luminous",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar glows with a comforting light. It sheds bright light in a 30-foot radius and dim light for the next 30 feet. It can suppress or resume this light by using an action, which has the concentrate trait.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Knights of Lastwall"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "luminous",
+          "label": null,
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "luminous",
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ou91pzf9TlOnIjYn",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "key": "TokenLight",
+            "predicate": [
+              "luminous"
+            ],
+            "value": {
+              "animation": {
+                "intensity": 4,
+                "speed": 1,
+                "type": "emanation"
+              },
+              "bright": 30,
+              "color-intensity": 0.2,
+              "dim": 60
+            },
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QrQlit5M605SujWL",
+    "name": "Major Resistance",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar increases the resistance it gains from its @UUID[Compendium.pf2e.familiar-abilities.Item.Resistance] familiar ability to a value equal to your level. To select this you must be at least 8th level.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "{actor|flags.system.resistance.resistanceOne}",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "{actor|flags.system.resistance.resistanceOne}",
+            "value": "@actor.level"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "{actor|flags.system.resistance.resistanceTwo}",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "{actor|flags.system.resistance.resistanceTwo}",
+            "value": "@actor.level"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hMrxiUPHXKpKu1Ha",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mUlufJuZ0qDD2a7Z",
+    "name": "Manual Dexterity",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It can use up to two of its limbs as if they were hands to perform manipulate actions.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cT5octWchU4gjrhP",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SDW5wEUNpsA31OiQ",
+    "name": "Mask Freeze",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>When in mask form, your familiar can hide its obvious supernatural qualities to pass as a simple, unassuming mask. It doesn't need to Impersonate to fool a passing glance, and it gains a +4 circumstance bonus to its Deception DC against an active observer Seeking or otherwise studying it.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "C16JgmeJJG249WXz",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "K7Mxi3e3j9xgpfOw",
+    "name": "Master's Form",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can change shape as a single action, transforming into a humanoid of your ancestry with the same age, gender, and build of its true form, though it always maintains a clearly unnatural remnant of its nature, such as a cat's eyes or a serpent's tongue. This form is always the same each time it uses this ability. This otherwise uses the effects of @UUID[Compendium.pf2e.spells-srd.Item.Humanoid Form], except the change is purely cosmetic. It only appears humanoid and gains no new capabilities. Your familiar must have the manual dexterity and speech abilities to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "JRP2bdkdCdj2JDrq",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "baMLF5VxBE1F5StW",
+    "name": "Medic",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can draw upon the power of your deity to @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell] once per day. The familiar can cast the 1-action version of @UUID[Compendium.pf2e.spells-srd.Item.Heal] at a level 2 levels lower than your highest-rank spell slot, which it can cast only on you. You must be able to cast 3rd-rank spells from spell slots to select this ability.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Knights of Lastwall"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.spells-srd.Item.Heal",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "reevaluateOnUpdate": true,
+            "uuid": "Compendium.pf2e.spells-srd.Item.Heal"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ReIgBsaM95BTvHpN",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "J96XZHSGFRxctpiq",
+    "name": "Partner in Crime",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is your criminal associate. Despite being a minion, your familiar gains 1 reaction at the start of its turns, which it can use only to Aid you on a Deception or Thievery skill check (it still has to prepare to help you as normal for the Aid reaction). It automatically succeeds at its check to Aid you with those skills or automatically critically succeeds if you're a master of the skill in question.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "v7zE3tKQb9G6PaYU",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MgPmtWh5PI9MEkyP",
+    "name": "Path of the Tempest",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "familiar",
+      "description": "<p><strong>Frequency</strong> once per 10 minutes;</p><hr /><p><strong>Effect</strong> Your familiar summons winds that speed up and protect you. You gain a +10-foot status bonus to your Speed until the end of your turn. When you Stride this turn, you don't trigger reactions. In addition, you don't need to Stride before a @UUID[Compendium.pf2e.actionspf2e.Item.Long Jump] this turn.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Path of the Tempest]</p>",
+      "frequency": {
+        "max": 1,
+        "per": "minute"
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "air"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "O0XJIvMGK36yg9TJ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "TwoActions.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ksBKSlhcrY2THT7A",
+    "name": "Plant Form",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your plant familiar can change shape as a single action, transforming into a Tiny plant of a type roughly similar to the familiar's nature. This otherwise uses the effects of @UUID[Compendium.pf2e.spells-srd.Item.One with Plants]. You must have a familiar with the plant trait to select this ability.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "57b8u8s3fV0UCrgJ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qbUG7kbwXcGP0Xtz",
+    "name": "Plant",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has the plant trait instead of the animal trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "lLWkoGiNLNIEm5Sp",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "add": [
+              "plant"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "kOSEF3Umxzr5Wnea",
+    "name": "Play Dead",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar pretends to be inanimate, hiding its supernatural capabilities. It can Hide without any cover or concealment from creatures that don't realize it's alive, so long as it's in a location where it wouldn't seem out of place. If the familiar succeeds, onlookers still see it, but they mistake it for an inanimate object. After being fooled once, they realize your familiar is alive, and it can't Hide from them in that way again.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pX73zPGaazVJ0lKO",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mIJizOf4OKHsiSGf",
+    "name": "Poison Reservoir",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar has a reservoir for poison, allowing it to apply an injury poison to an adjacent ally's exposed weapon with a single Interact action. You must supply the poison and instill it into this reservoir using two consecutive Interact actions. You must have a homunculus familiar to select this ability</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8Z1UkLEWkFWIjOF8",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "sLGDRMZayjcvlwsv",
+    "name": "Purify Air",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p><strong>Prerequisites</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar Secrets]</p>\n<p>Your familiar recycles air, providing enough oxygen for a Medium creature in areas with stale air, such as a sealed chamber or extradimensional space. If the leshy is within the area of an inhaled poison effect or an effect that relies on smell, creatures within a @Template[emanation|distance:15] from the leshy gain a +2 circumstance bonus to their saving throws against the effect.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "43xB5UnexISlfRa5",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "NaVjX6k3E68ueI46",
+    "name": "Radiant",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is filled with a divine radiance that makes it resistant to the forces of evil. Your familiar gains resistance to evil and void damage equal to half your level.</p>\n<p><em>Note: As effects placed on one actor cannot reference data from another actor, the resistance of half the PC level is not automatable. Please update the familiars resistances accordingly.</em></p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Knights of Lastwall"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3y6GGXQgyJ4Hq4Yt",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qsGWTo8sdNryLn3W",
+    "name": "Recall Familiar",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Once per day, you can use a 3-action activity, which has the concentrate trait, to teleport your familiar to your space. Your familiar must be within 1 mile or the attempt to summon it fails. This is a teleportation effect.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "REJfFezELjc5Gzsy",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "EE8dSSjmlcN8oEuk",
+    "name": "Resistance",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Choose two of the following: acid, cold, electricity, fire, poison, or sonic. Your familiar gains resistance equal to half your level (minimum resistance 1) against the chosen damage types.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "{item|flags.system.rulesSelections.resistanceOne}",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "{item|flags.system.rulesSelections.resistanceOne}",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "{item|flags.system.rulesSelections.resistanceTwo}",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "{item|flags.system.rulesSelections.resistanceTwo}",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.resistance.resistanceOne",
+          "value": "{item|flags.system.rulesSelections.resistanceOne}",
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.resistance.resistanceOne",
+            "value": "{item|flags.system.rulesSelections.resistanceOne}"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.resistance.resistanceTwo",
+          "value": "{item|flags.system.rulesSelections.resistanceTwo}",
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.resistance.resistanceTwo",
+            "value": "{item|flags.system.rulesSelections.resistanceTwo}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FcQQLMAJMgOLjnSv",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.TraitAcid",
+                "value": "acid"
+              },
+              {
+                "label": "PF2E.TraitCold",
+                "value": "cold"
+              },
+              {
+                "label": "PF2E.TraitElectricity",
+                "value": "electricity"
+              },
+              {
+                "label": "PF2E.TraitFire",
+                "value": "fire"
+              },
+              {
+                "label": "PF2E.TraitPoison",
+                "value": "poison"
+              },
+              {
+                "label": "PF2E.TraitSonic",
+                "value": "sonic"
+              }
+            ],
+            "flag": "resistanceOne",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.Resistance",
+            "rollOption": "resistance",
+            "_conversionState": "unsupported"
+          },
+          {
+            "choices": [
+              {
+                "label": "PF2E.TraitAcid",
+                "predicate": [
+                  {
+                    "not": "resistance:acid"
+                  }
+                ],
+                "value": "acid"
+              },
+              {
+                "label": "PF2E.TraitCold",
+                "predicate": [
+                  {
+                    "not": "resistance:cold"
+                  }
+                ],
+                "value": "cold"
+              },
+              {
+                "label": "PF2E.TraitElectricity",
+                "predicate": [
+                  {
+                    "not": "resistance:electricity"
+                  }
+                ],
+                "value": "electricity"
+              },
+              {
+                "label": "PF2E.TraitFire",
+                "predicate": [
+                  {
+                    "not": "resistance:fire"
+                  }
+                ],
+                "value": "fire"
+              },
+              {
+                "label": "PF2E.TraitPoison",
+                "predicate": [
+                  {
+                    "not": "resistance:poison"
+                  }
+                ],
+                "value": "poison"
+              },
+              {
+                "label": "PF2E.TraitSonic",
+                "predicate": [
+                  {
+                    "not": "resistance:sonic"
+                  }
+                ],
+                "value": "sonic"
+              }
+            ],
+            "flag": "resistanceTwo",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.Resistance",
+            "rollOption": "resistance",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "U6og2YhRIyos6YOv",
+    "name": "Restorative Familiar",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Once per day, your familiar can use 2 actions with the concentrate trait to give up some of its energy and heal you. It must be in your space to do so. You restore a number of Hit Points equal to @Damage[(max(floor(@actor.level/2),1))d8[healing]]{1d8 times half your level} (minimum 1d8).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Q42nrq9LwDdbeZM5",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "oTGZX6jVVIwU6EXn",
+    "name": "Scent",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It can use scent as an imprecise sense within 30 feet.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": 30,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": 30,
+            "selector": "scent"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FlRUb8U13Crj3NaA",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ft12z1nnm5avpbNk",
+    "name": "Second Opinion",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is your academic confidant. Despite being a minion, your familiar gains 1 reaction at the start of its turns, which it can use only to @UUID[Compendium.pf2e.actionspf2e.Item.Aid] you on a Recall Knowledge skill check for a skill in which it has the @UUID[Compendium.pf2e.familiar-abilities.Item.Skilled] familiar ability (it still has to prepare to help you as normal for the Aid reaction).</p>\n<p>It automatically succeeds at its check to Aid you with those skills or automatically critically succeeds if you're a master of the skill in question. Your familiar must have the skilled ability to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "j9vOSbF9kLibhSIf",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "94YOLt3dvV6Z3txJ",
+    "name": "Shadow Step",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>This ability is for a Shadow Familiar. A @UUID[Compendium.pf2e.feats-srd.Item.Shadowcaster Dedication]{Shadowcaster}, however, can select this ability for any kind of familiar. Your familiar gains the @UUID[Compendium.pf2e.actionspf2e.Item.Shadow Step] action.</p>\n<p>You must be at least 7th level to select this familiar ability for your familiar.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "j1qZiH50Bl2SJ8vT",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "WiSuMXdooDcBICYh",
+    "name": "Share Senses",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Once every 10 minutes, you can use a single action with the concentrate trait to project your senses into your familiar. When you do, you lose all sensory information from your own body, but can sense through your familiar's body for up to 1 minute. You can Dismiss this effect.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "minute"
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "gPceRQqO847lvSnb",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "OSmJwZyUXHYEI186",
+    "name": "Skilled",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Choose a skill other than Acrobatics or Stealth. Your familiar's modifier for that skill is equal to your level plus your spellcasting attribute modifier, rather than just your level. You can select this ability repeatedly, choosing a different skill each time.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "{item|flags.system.rulesSelections.skill}",
+          "value": "@actor.masterAttributeModifier",
+          "mode": "add",
+          "type": "untyped",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "{item|flags.system.rulesSelections.skill}",
+            "value": "@actor.masterAttributeModifier"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jevzf9JbJJibpqaI",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.Skill.Arcana",
+                "value": "arcana"
+              },
+              {
+                "label": "PF2E.Skill.Athletics",
+                "value": "athletics"
+              },
+              {
+                "label": "PF2E.Skill.Crafting",
+                "value": "crafting"
+              },
+              {
+                "label": "PF2E.Skill.Deception",
+                "value": "deception"
+              },
+              {
+                "label": "PF2E.Skill.Diplomacy",
+                "value": "diplomacy"
+              },
+              {
+                "label": "PF2E.Skill.Intimidation",
+                "value": "intimidation"
+              },
+              {
+                "label": "PF2E.Skill.Medicine",
+                "value": "medicine"
+              },
+              {
+                "label": "PF2E.Skill.Nature",
+                "value": "nature"
+              },
+              {
+                "label": "PF2E.Skill.Occultism",
+                "value": "occultism"
+              },
+              {
+                "label": "PF2E.Skill.Performance",
+                "value": "performance"
+              },
+              {
+                "label": "PF2E.Skill.Religion",
+                "value": "religion"
+              },
+              {
+                "label": "PF2E.Skill.Society",
+                "value": "society"
+              },
+              {
+                "label": "PF2E.Skill.Survival",
+                "value": "survival"
+              },
+              {
+                "label": "PF2E.Skill.Thievery",
+                "value": "thievery"
+              }
+            ],
+            "flag": "skill",
+            "key": "ChoiceSet",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gHCySOOQ3wGevtDl",
+    "name": "Snoop",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar keeps its eyes and ears open, ready to relay every snippet of gossip it catches, helping you gather information.</p>\n<p>Despite being a minion, your familiar gains 1 reaction at the start of its turns, which it can use only to @UUID[Compendium.pf2e.actionspf2e.Item.Aid] you on a Diplomacy check to @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] (it still has to prepare to help you as normal for the Aid reaction, which requires it to participate throughout the activity).</p>\n<p>It automatically succeeds at its check to Aid you with those skills or automatically critically succeeds if you're a master of the skill in question.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fmsVItn94FeY5Q3X",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cX8gK3e9YR8Let4i",
+    "name": "Soul Sight",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar gains @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Lifesense] with a range of 30 feet.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Book of the Dead"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": 30,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "range": 30,
+            "selector": "lifesense"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "o0fxDDUu2ZSWYDTr",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0gPQ9lp8WQtwt3Bz",
+    "name": "Dazzling Show",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "familiar",
+      "description": "<p><strong>Frequency</strong> once per minute</p><hr /><p><strong>Effect</strong> Your kinnara flashes his brilliant feathers. Each creature within a @Template[type:emanation|distance:30] must attempt a @Check[will|against:class-spell] save against your class DC or spell DC, whichever is higher, or be @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] for 2 rounds.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "move",
+          "visual"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "m8wjlYnTAAfddWyA",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "TwoActions.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BZBXv31QyOUMdsqX",
+    "name": "Flatten",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can flatten itself to the width of a sheet of paper, easily fitting through the smallest of cracks and gaps. So long as a door or other obstacle has a gap that can fit a sheet of paper, your familiar can move through it without needing to Squeeze.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6cwswBPHm1GWdx5j",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "l7olkLviLEwzHVxq",
+    "name": "Kick Up Dust",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "familiar",
+      "description": "<p><strong>Frequency</strong> once per hour</p><hr /><p><strong>Effect</strong> Your dust bunny shakes and kicks to stir up dust in a @Template[type:emanation|distance:5]. Each creature in the area must attempt a Fortitude save against the higher of your class DC or spell DC. A creature that fails its save begins sneezing uncontrollably and is @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 1} and cannot take reactions for 1 round; on a critical failure they are @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 2}.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "hour"
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Paizo Blog: Foolish Housekeeping and Other Articles"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "manipulate"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "PFH7Y57hbdBvebvp",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "TwoActions.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ohAMRQna9PPQ9UMW",
+    "name": "Mass-Produced",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>If your shikigami dies, you can rebind its spirit to another paper doll during your next daily preparations.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "1fRkeUkPJFiBJ5u6",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ifmESaIH7u6wtsi0",
+    "name": "Pot of Tea",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your tapir sage is trained in the art of herbal medication and can prepare a pot of healing tea. Once per day, your familiar can spend 10 minutes to brew fine tea leaves and herbs. The tapir sage must focus on the tea during this time—if it performs any other action, the tea is ruined, though the tapir sage can start over again. Once the pot of tea is brewed, the tapir sage can serve two cups of tea with each of the below actions; each time, it gives 1 cup to an adjacent ally, and it drinks 1 cup itself. The three infusions must be poured and offered in order (for example, the tapir sage can't serve the second infusion until it has served the first). The tea remains good for 1 hour after brewing; if not drunk by this point, the pot goes cold, and any remaining tea loses its power.</p><ul><li><strong>First Infusion</strong> <span class=\"action-glyph\">2</span> The infusion restores a number of Hit Points equal to 1d8 times half your level (minimum 1d8) and grants a +4 circumstance bonus to the next saving throw against disease or poison attempted within 24 hours.</li><li><strong>Second Infusion</strong> <span class=\"action-glyph\">2</span> The infusion restores a number of Hit Points equal to 1d4 times half your level (minimum 1d4) and grants a +2 circumstance bonus to the next saving throw against disease or poison attempted within 24 hours.</li><li><p><strong>Third Infusion</strong> <span class=\"action-glyph\">2</span> The infusion grants temporary Hit Points equal to your level for 1 hour.</p></li></ul>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "healing"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "u4Sp4K4WOi461xo1",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "EYspOTggNWLDYise",
+    "name": "Seal-Bearer",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>During your daily preparations, you can inscribe a symbol or seal upon your shikigami that corresponds to the air, earth, fire, metal, water, or wood element. If you use the shikigami's kindling ability that day, it applies to a spell that deals damage with the relevant trait to the chosen element, instead of only the fire trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2GMAPffXVayRFsLM",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "EjhFRdsqE8sFqYiv",
+    "name": "Shadow Projection",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "familiar",
+      "description": "<p>Your makhluk wayang projects its shadow into a larger silhouette of itself, allowing it to grasp things outside of its obvious reach. It increases its reach to 10 feet for the purposes of taking non-hostile Interact actions until the end of your turn.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "shadow"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yiIE9iWx6OLd61Qs",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "OneAction.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8ScFUQTO8q4lCnZJ",
+    "name": "Soul Bond",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your kinnars' spirits are intrinsically linked. While they're two beings, they're still considered a single creature, act as a single creature, use normal familiar statistics, and are subject to all of the normal effects that come with being a single creature. Their linked spirits allow them to stave off attacks against their mind. If your kinnars are subjected to a mental effect that allows a saving throw, they roll twice and take the higher result; this is a fortune effect.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MGcVYSWZvaoEAISV",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bylMx4TiJ3Vd4S4M",
+    "name": "Stunning Flare",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "familiar",
+      "description": "<p><strong>Frequency</strong> once per 10 minutes;</p><hr /><p><strong>Effect</strong> Your lantern wisp unleashes a large burst of flame, casting an unnaturally bright light. Each creature within a @Template[type:emanation|distance:15] must attempt a @Check[fortitude|against:class-spell] save against your class DC or spell DC, whichever is higher, or be @UUID[Compendium.pf2e.conditionitems.Item.Blinded] for 1 round and then @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] for 2 rounds after.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "minute"
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "fire",
+          "light",
+          "magical"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "oOpppkBhLcfaKZN4",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "OneAction.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wv7RnNGbHANPh1n8",
+    "name": "Vina Song",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "familiar",
+      "description": "<p><strong>Frequency</strong> once per hour, see below</p><hr /><p><strong>Effect</strong> Your kinnari elegantly plays her instrument. Each creature within a @Template[type:emanation|distance:30] must attempt a Will save against your class DC or spell DC, whichever is higher, or be @UUID[Compendium.pf2e.conditionitems.Item.Fascinated] for 1 round. A kinnar can use this ability again on the next round to continue the song and force affected creatures to attempt another Will save; on a failure, a creature is fascinated for an additional round. Once the kinnar stops playing, they can't use this ability again for 1 hour. A creature that succeeds at any save or has its fascination broken is temporarily immune to that kinnar's Vina Song for 24 hours. Kinnars are immune to this ability.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "hour"
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": [
+          "auditory",
+          "concentrate",
+          "divine",
+          "incapacitation",
+          "mental"
+        ]
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nLrXleY20sESisoW",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "TwoActions.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "WZJFGS0wX21SRohY",
+    "name": "Speech",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>It understands and speaks a language you know.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zyMRLQnFCQVpltiR",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "LJS0qCGiJk21BORa",
+    "name": "Spell Battery",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>You gain one additional spell slot at least 3 ranks lower than your highest-rank spell slot; you must be able to cast 4th-rank spells using spell slots to select this master ability.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Xanjwv4YU0CBnsMw",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "TSd95Agn6sl2SRvW",
+    "name": "Spell Delivery",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>If your familiar is in your space, you can cast a spell with a range of touch, transfer its power to your familiar, and command the familiar to deliver the spell. If you do, the familiar uses its 2 actions for the round to move to a target of your choice and touch that target. If it doesn't reach the target to touch it this turn, the spell has no effect.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wOgvBymJOVQDSm1Q",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "X7iOOT4dKLaz8f9S",
+    "name": "Spellcasting",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Choose a spell in your repertoire or that you prepared today at least 5 ranks lower than your highest-rank spell slot. Your familiar can Cast that Spell once per day using your magical tradition, spell attack modifier, and spell DC. If the spell has a drawback that affects the caster, both you and your familiar are affected. You must be able to cast 6th-rank spells using spell slots to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "asOhEdyF8CWFbR96",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "d7ViN3uHuuACVq1m",
+    "name": "Spirit Touch",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can touch incorporeal creatures. If you have the spell delivery master ability from your familiar, any spell the familiar delivers with it gains the benefits of the <em>@UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch]</em> property rune.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Book of the Dead"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nrPl3Dz7fbnmas7T",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "72MWyd8Zr8NsZKiE",
+    "name": "Synchronize Spirit",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "familiar",
+      "description": "<p>You can synchronize your spiritual energy with that of your familiar to temporarily become part spirit yourself. Once per round, you can Sustain to synchronize your spirit with that of your familiar. You remain synchronized with your spirit until the beginning of your next turn. While synchronized, whenever you Strike or Cast a Spell without a duration that deals damage, you deal spirit damage instead of your normal damage.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jPvjeX1CsUZQSszu",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ydFvK9kNlZQ5WINe",
+    "name": "Tattoo Transformation",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can transform into a tattoo you carry on your flesh. When transformed into a tattoo, the familiar looks like a colorful and stylized version of itself and can't act except to turn back into a familiar. It isn't affected by area effects and must be targeted separately to affect it, which requires knowledge that it's a creature. This means you and your allies can heal or assist the familiar while most enemies stay unaware of its true nature. Creatures must attempt a @Check[perception|dc:20|showDC:all] check to Seek to realize a tattoo is actually a familiar (which few foes will try). Your familiar can still communicate its feelings empathically. Transforming into a tattoo or back to familiar form is a 1-minute activity that has the concentrate trait.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tEWAHPPZULvPgHnT",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MxqIobI3vIP9CLGE",
+    "name": "Threat Display",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar helps you convey wordless threats through body language.</p>\n<p>Whenever you attempt an Intimidation check to @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] a creature, if your familiar is within 30 feet of your target and can act, it accompanies you with snarls, hisses, or raising its hackles.</p>\n<p>If it can do so, you don't take the normal -4 penalty on the Intimidation check if your target doesn't understand the language you're speaking.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "aEKA3YWekLhEhuV8",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Or9TnU1OdKXLFi0S",
+    "name": "Toolbearer",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can carry a toolkit of up to light Bulk. So long as your familiar is adjacent to you, you can draw and replace the tools as part of the action that uses them as if you were wearing them. Your familiar must have the manual dexterity ability to select this.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uUrsZ4WvhjKjFjnt",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "phS6jA9srZpKyxAY",
+    "name": "Touch Telepathy",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can telepathically communicate with you via touch. If it also has the speech ability, it can telepathically communicate via touch with any creature if they share a language.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "XCqYnlVbLGqEGPeX",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dV6DgwvgABGTs07a",
+    "name": "Tough",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar's max HP increase by 2 per level.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "hp",
+          "value": "2 * @actor.level",
+          "mode": "add",
+          "type": "untyped",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "hp",
+            "type": "untyped",
+            "value": "2 * @actor.level"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Le8UWr5BU8rV3iBf",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Wvxbr1lCxnlYah5D",
+    "name": "Tremorsense",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar is keenly aware of any vibrations traveling through a surface. It gains imprecise tremorsense with a range of 30 feet.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": "30",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": "30",
+            "selector": "tremorsense"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "LrDnat1DsGJoAiKv",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pnSw4D2rlHCqVUzB",
+    "name": "Valet",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>You can command your familiar to deliver you items more efficiently. Your familiar doesn't use its 2 actions immediately upon your command. Instead, up to twice before the end of your turn, you can have your familiar Interact to retrieve an item of light or negligible Bulk you are wearing and place it into one of your free hands. The familiar can't use this ability to retrieve stowed items. If the familiar has a different number of actions, it can retrieve one item for each action it has when commanded this way.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9PsptrEoCC4QdM23",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YR9NJxwQDTuTSzvA",
+    "name": "Verdant Burst",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p><strong>Prerequisites</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar Secrets]</p>\n<p>When your familiar dies, it releases its primal energy to cast the 3-action version of @UUID[Compendium.pf2e.spells-srd.Item.Heal], heightened to a rank 1 lower than your highest-rank spell slot. The <em>heal</em> spell gains a status bonus equal to twice the spell's rank to the Hit Points it restores to plants. You must be able to cast 2nd-rank spells using spell slots to select this familiar ability.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "SKIS1xexaOvrecdV",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Ff06CLMhU8BRqTto",
+    "name": "Versatile Form",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>The crafted body of your familiar allows you to make adjustments to it when required. Once per day, you can spend 10 minutes to change one familiar or master ability your familiar possesses. To select this ability, your familiar must be a construct, and you must be at least trained in Crafting.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Tian Xia Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0rq3ufpxB9iHlIkd",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "t0M64Qel3bogTdAu",
+    "name": "Wavesense",
+    "type": "action",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "familiar",
+      "description": "<p>Your familiar can sense vibrations in the water. It gains imprecise wavesense with a range of 30 feet.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens The Grand Bazaar"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": "30",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": "30",
+            "selector": "wavesense"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "level": 1,
+      "prerequisites": []
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Amzezp93MZckBYRZ",
+        "packName": "familiar-abilities",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "Passive.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

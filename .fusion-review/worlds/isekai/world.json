@@ -1,0 +1,15 @@
+{
+  "id": "isekai",
+  "title": "Isekai",
+  "system": "pf2e",
+  "systemVersion": "0.0.0",
+  "fusionVersion": "0.1.0",
+  "schemaVersion": 1,
+  "description": "",
+  "createdAt": "2026-08-08T18:09:31.490Z",
+  "lastOpenedAt": "2026-08-10T13:59:31.896Z",
+  "playTime": 0,
+  "compatibility": {
+    "minimumFusion": "0.1.0"
+  }
+}

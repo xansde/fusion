@@ -1,0 +1,15 @@
+{
+  "id": "teste_token",
+  "title": "Teste Tokens",
+  "system": "pf2e",
+  "systemVersion": "0.0.0",
+  "fusionVersion": "0.1.0",
+  "schemaVersion": 1,
+  "description": "",
+  "createdAt": "2026-08-08T04:04:53.687Z",
+  "lastOpenedAt": "2026-08-10T22:49:52.798Z",
+  "playTime": 0,
+  "compatibility": {
+    "minimumFusion": "0.1.0"
+  }
+}

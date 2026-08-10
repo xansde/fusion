@@ -1,0 +1,156 @@
+[
+  {
+    "_id": "GZ4JGT2NPa7fjIDU",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.GZ4JGT2NPa7fjIDU",
+    "name": "Akata",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": 1,
+      "system.traits.value": [
+        "aberration"
+      ],
+      "system.attributes.hp.max": 15
+    }
+  },
+  {
+    "_id": "LGltSLV8oWA56qcz",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.LGltSLV8oWA56qcz",
+    "name": "Botnib",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "fey",
+        "gremlin",
+        "tech"
+      ],
+      "system.attributes.hp.max": 8
+    }
+  },
+  {
+    "_id": "QghHPoajb9JXQw9Z",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.QghHPoajb9JXQw9Z",
+    "name": "Cyanoscum",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": 0,
+      "system.traits.value": [
+        "elemental",
+        "plant",
+        "wood"
+      ],
+      "system.attributes.hp.max": 12
+    }
+  },
+  {
+    "_id": "EYd2Dphp3zIuUY7q",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.EYd2Dphp3zIuUY7q",
+    "name": "Cybernetic Zombie",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "mindless",
+        "tech",
+        "undead",
+        "zombie"
+      ],
+      "system.attributes.hp.max": 40
+    }
+  },
+  {
+    "_id": "0q6vE216IgNw66bb",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.0q6vE216IgNw66bb",
+    "name": "Ordinance-Class Civil Robot",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": 0,
+      "system.traits.value": [
+        "construct",
+        "robot",
+        "tech"
+      ],
+      "system.attributes.hp.max": 18
+    }
+  },
+  {
+    "_id": "pYsJrPeFGrRhBDqM",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.pYsJrPeFGrRhBDqM",
+    "name": "Repair-Class Security Robot",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "construct",
+        "robot",
+        "tech"
+      ],
+      "system.attributes.hp.max": 8
+    }
+  },
+  {
+    "_id": "q6pkME1wF8yzRuiA",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.q6pkME1wF8yzRuiA",
+    "name": "Clangit",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "fey",
+        "gremlin",
+        "tech"
+      ],
+      "system.attributes.hp.max": 8
+    }
+  },
+  {
+    "_id": "35ktsKozMmgQG2pW",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.35ktsKozMmgQG2pW",
+    "name": "Diatha",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "animal",
+        "mindless"
+      ],
+      "system.attributes.hp.max": 10
+    }
+  },
+  {
+    "_id": "J550bHBI26e2MS25",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.J550bHBI26e2MS25",
+    "name": "Empathnid",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "animal"
+      ],
+      "system.attributes.hp.max": 6
+    }
+  },
+  {
+    "_id": "mClELucuSa0L8bAW",
+    "uuid": "Compendium.sf2e.bestiary-core.Actor.mClELucuSa0L8bAW",
+    "name": "Khefak",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": [
+        "animal"
+      ],
+      "system.attributes.hp.max": 7
+    }
+  }
+]

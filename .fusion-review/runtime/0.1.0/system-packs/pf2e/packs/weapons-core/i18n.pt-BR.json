@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.weapons-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-05T22:09:13.552Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "0DVfmP59PKldTNdZ": {
+      "name": "Chicote",
+      "sourceHash": "4b62745ff51b4339602d29d4661baae5c3161833",
+      "description": "<p>Esta longa fita de couro espesso, frequentemente trançada, causa um corte doloroso mas não mortal à distância, geralmente acompanhado por um som de estalo característico.</p>"
+    },
+    "34nTLSjgq8d2Vmtz": {
+      "name": "Adaga",
+      "sourceHash": "aa8f4942505d6873f53a2563c1a4c7b4fb8ba233",
+      "description": "<p>Esta pequena arma de lâmina é empunhada com uma mão e usada para apunhalar uma criatura em combate aproximado. Também pode ser arremessada.</p>"
+    },
+    "423eTVfFyu1RWvBJ": {
+      "name": "Clava",
+      "sourceHash": "784939e95d79a0f8bf07c67d9af4e297e23ee664",
+      "description": "<p>Uma peça de madeira robusta moldada ou repropositada para trucidar um inimigo. Clavas podem ser peças intricadamente esculpidas de arte marcial ou tão simples quanto um galho de árvore ou pedaço de madeira.</p>"
+    },
+    "5Jt0XIrsb3JbD2Rq": {
+      "name": "Maço Grande",
+      "sourceHash": "f3a40a113a7da9992ecfdf92c8fe5fad8477789d",
+      "description": "<p>Maços grandes são martelos de guerra massivos que devem ser balançados com duas mãos.</p>"
+    },
+    "5OR48i6MduU45DTI": {
+      "name": "Machado de Mão",
+      "sourceHash": "553aaf406f5c1916662603d5b95df7079dfccf9c",
+      "description": "<p>Este pequeno machado pode ser usado em combate aproximado ou arremessado.</p>"
+    },
+    "5UtaQdctjvknsGNg": {
+      "name": "Martelo de Guerra",
+      "sourceHash": "f8bd0cc961df27ccc35b6448718a6e90aea0fbab",
+      "description": "<p>Esta arma possui um eixo de madeira terminando em uma cabeça de metal grande e pesada. A cabeça do martelo pode ter um lado ou dois lados, mas é sempre capaz de desferir golpes poderosos de concussão.</p>"
+    },
+    "8dPUHqUHPQOeHlaL": {
+      "name": "Mangual",
+      "sourceHash": "844851a3cf5bec8e136844d83ac9c0cc61b444c2",
+      "description": "<p>Esta arma consiste em um cabo de madeira preso a uma bola com espinhos ou cilindro por uma corrente, corda ou tira de couro.</p>"
+    },
+    "CvSLXnuw98gXuMpo": {
+      "name": "Espada Grande",
+      "sourceHash": "cf8cfae6b5e70b9609385b81d5fe736da1d4cf2c",
+      "description": "<p>Esta imensa espada de duas mãos é quase tão alta quanto seu empunhador. Sua lâmina inferior frequentemente é um pouco embotada para permitir que seja empunhada por alavancagem extra em combates corpo-a-corpo.</p>"
+    },
+    "FBizX9S27O643Sfi": {
+      "name": "Lança",
+      "sourceHash": "81f5a74508e4bd92a3e553298c1e105036587dfc",
+      "description": "<p>Um eixo de metal longo terminado com uma ponta de metal, uma lança pode ser usada com uma mão como arma corpo a corpo e pode ser arremessada.</p>"
+    },
+    "KXkuKWffHk5b80Rs": {
+      "name": "Azagaia",
+      "sourceHash": "1838e89ee829e435b847be002e78b23b33df7985",
+      "description": "<p>Esta lança fina é bem equilibrada para arremesso mas não é projetada para uso em combate corpo-a-corpo.</p>"
+    },
+    "MkMFwelxRUIHXXWr": {
+      "name": "Rapiera",
+      "sourceHash": "7d130ba34b36f648622376b951ed292271a1cc5f",
+      "description": "<p>A rapiera é uma lâmina longa e fina de perfuração com um cesto de proteção. É apreciada por muitos como uma arma de duelo.</p>"
+    },
+    "PfSf6oPNWQHpFfaI": {
+      "name": "Besta de Mão",
+      "sourceHash": "fbd0fd6a9c5c1eb1bc281b91ca2ac8fdab0c99b5",
+      "description": "<p>Às vezes referida como arco de beco por malandros e valentões, esta pequena besta dispara pequenos virotes que às vezes são usados para entregar veneno ao alvo. É pequena o suficiente para ser disparada com uma mão, mas ainda requer duas mãos para ser carregada.</p>"
+    },
+    "QXm54OQROkZZzxbC": {
+      "name": "Estrela da Manhã",
+      "sourceHash": "658a4ab0929d508813d38156c6a630a435789cc8",
+      "description": "<p>Esta arma possui um eixo curto terminando em uma bola de metal pontiaguda com espinhos.</p>"
+    },
+    "QqNXoDFpzt1XPFpj": {
+      "name": "Funda",
+      "sourceHash": "a3eaed7a9c8ea9f8ccb3bf30b5a38073159e328e",
+      "description": "<p>Nada mais que um copo de couro preso a um par de correia, uma funda pode ser usada para lançar pedras lisas ou projéteis de funda a uma distância.</p>"
+    },
+    "R1jA4r0oDFQ6K3kX": {
+      "name": "Tridente",
+      "sourceHash": "f96f3814b9caac3c065599937cb0be07db431ef7",
+      "description": "<p>Esta arma de três pontas semelhante a uma lança normalmente tem um eixo de 4 pés. Como uma lança, pode ser empunhada com uma mão ou arremessada.</p>"
+    },
+    "WLQmXb9poN7qyXCu": {
+      "name": "Mangual Cintilante de Gnomo",
+      "sourceHash": "4ff6fffc81f475da5fe061a2485c1478e58cfb92",
+      "description": "<p>Mais um mangual que um mangual de mão, esta arma possui um cabo curto preso a um comprimento de corrente com uma bola na extremidade. A bola é propelida ao seu alcance com um movimento de pulso, cujo momento traz a bola de volta para o empunhador após o golpe.</p>"
+    },
+    "ZC0yCuIHZvc8ap7H": {
+      "name": "Espada Longa",
+      "sourceHash": "5c493cefad136e7f4a1654ef68495efc813c31d6",
+      "description": "<p>Espadas longas, também conhecidas como espadas de arme, podem ser de um gume ou dois gumes. Suas lâminas são pesadas e medem entre 3 e 4 pés de comprimento.</p>"
+    },
+    "djKWYRzmFInUo5To": {
+      "name": "Arco Curto",
+      "sourceHash": "e8d28ffadbff5a8af81d255dd9d0b6446d294ffc",
+      "description": "<p>Este arco menor é feito de uma única peça de madeira e é favorecido por escaramuçadores e cavalaria.</p>"
+    },
+    "fXIVQcDApWV2gf6S": {
+      "name": "Dardo",
+      "sourceHash": "ae9e8a0f84f19f2298d765c45576f4dde7e2b948",
+      "description": "<p>Esta arma arremessada é maior que uma seta mas mais curta que um azagaia. Normalmente possui um eixo curto de madeira terminando em uma ponta de metal e às vezes é estabilizada por penas ou pelagem.</p>"
+    },
+    "gBD1NMBRRIvwXWUF": {
+      "name": "Arco Longo Composto",
+      "sourceHash": "aa0e751870d1c556202093ea1ab16be679db997e",
+      "description": "<p>Esta arma de projétil é feita de chifre, madeira e tendão laminados juntos para aumentar a potência de seu puxão e a força de seu projétil. Como todos os arcos longos, seu grande tamanho também aumenta o alcance e a potência do arco. Você deve usar duas mãos para disparar e não pode ser usado enquanto montado. Qualquer vez que uma habilidade seja especificamente restrita a um arco longo, como a arma favorita de Erastil, também se aplica a arcos longos compostos, a menos que seja dito de outra forma.</p>"
+    },
+    "gZmrIPdIMYhG0DCS": {
+      "name": "Arco Curto Composto",
+      "sourceHash": "ced1a42b3fd57b5521687e1489274c62d38b4ee2",
+      "description": "<p>Este arco curto é feito de chifre, madeira e tendão laminados juntos para aumentar a potência de seu puxão e a força de seu projétil. Seu tamanho compacto e potência o tornam favorito de arqueiros montados. Qualquer vez que uma habilidade seja especificamente restrita a um arco curto, também se aplica a arcos curtos compostos, a menos que seja dito de outra forma.</p>"
+    },
+    "htGlEW9fhtmNCmoP": {
+      "name": "Espada Curta",
+      "sourceHash": "84441735c0a198691ff12b224860fd8f6a53e502",
+      "description": "<p>Estas lâminas vêm em uma variedade de formas e estilos, mas normalmente têm 2 pés de comprimento.</p>"
+    },
+    "jE23tNZbp7v7MIfx": {
+      "name": "Besta",
+      "sourceHash": "f50e120a09c82e38109153dd0ca53b6b001674b5",
+      "description": "<p>Esta arma de alcance possui um conjunto semelhante a arco montado em um cabo estruturado chamado de coronha. A coronha possui um mecanismo para trancar a corda do arco no lugar, acoplado a um mecanismo de disparo que libera a tensão e lança um virote.</p>"
+    },
+    "mVsBrsRMH94Gvy8O": {
+      "name": "Machado de Batalha",
+      "sourceHash": "9cb002675990a728c24bd734273137915ea23344",
+      "description": "<p>Esses machados são projetados explicitamente como armas, e não como ferramentas. Normalmente pesam menos, com um cabo reforçado com fitas ou parafusos de metal, e possuem uma lâmina mais afiada, tornando-os ideais para cortar membros em vez de madeira.</p>"
+    },
+    "n6JFYoW2KALKOVq5": {
+      "name": "Bastão",
+      "sourceHash": "2cb8dc6d15c94641ee030c16446ce9bbb460c720",
+      "description": "<p>Este longo pedaço de madeira pode auxiliar na caminhada e desferir um golpe poderoso.</p>"
+    },
+    "sRYCmq4N5vSkGU6K": {
+      "name": "Arco Longo",
+      "sourceHash": "59e0b7abc5fc68abb3748c638450cb7301018e65",
+      "description": "<p>Este arco de 5 pés de altura, normalmente feito de uma única peça de freixo, nogueira ou teixo, possui um puxão poderoso e é excelente em propelir setas com grande força e a uma distância extrema. Você deve usar duas mãos para disparar um arco longo, e não pode ser usado enquanto montado.</p>"
+    },
+    "ueMXQ7zQ6SybUy1i": {
+      "name": "Kukri",
+      "sourceHash": "5fc297792227ba85cc63d977f22b4d5ee9d1c801",
+      "description": "<p>A lâmina desta faca de um pé de comprimento é curvada para dentro e carece de protetor de mão (quillom) na guarda.</p>"
+    },
+    "wVXpiOdvD8kdIYO0": {
+      "name": "Espada Bastarda",
+      "sourceHash": "f482d378dd47f6b781b51a1861f8b45604940286",
+      "description": "<p>Esta espada de lâmina larga, às vezes chamada de espada de mão-e-meia, tem um cabo mais comprido para poder ser empunhada com uma mão ou usada com duas mãos para fornecer extra potência de corte.</p>"
+    },
+    "yWbGFsdqElPvOupp": {
+      "name": "Machado Grande",
+      "sourceHash": "2723adaf4498fb255f6872706bf1ce0e6fdb7c16",
+      "description": "<p>Este grande machado de batalha é pesado demais para ser empunhado com apenas uma mão. Muitos machados grandes incorporam duas lâminas, e frequentemente são \"barbados\", tendo um gancho na base para aumentar a potência de seu corte.</p>"
+    },
+    "zfxeVhDAoCKL5cbn": {
+      "name": "Bastão Bo",
+      "sourceHash": "a5ceca7bb0e359b7b643c0c17afb906614ddd0b4",
+      "description": "<p>Este bastão forte mas esbelto é afilado nas pontas e bem equilibrado. Foi projetado para ser uma arma ofensiva e defensiva.</p>"
+    }
+  }
+}

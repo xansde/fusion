@@ -1,0 +1,565 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.familiar-abilities-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-06T14:52:24.964Z",
+  "generator": "tools/translate-packs/gen-familiar-abilities-i18n.mjs",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "mSl3wozhFe30XWTf": {
+      "name": "Absorver Familiar",
+      "sourceHash": "a8bb63506c1a5ce077ca85ca6bde5a00a79ca33a",
+      "description": "<p>Seu familiar pode se transformar em uma marca que você carrega na pele, geralmente parecendo uma mancha de nascença, tatuagem ou gema que vagamente lembra sua forma normal. Quando transformado, o familiar não pode agir exceto para voltar a ser um familiar. Ele não é afetado por efeitos de área e deve ser alvejado separadamente para ser afetado, o que exige saber que ele é uma criatura.</p> <p>Isso significa que você e seus aliados podem curar ou ajudar o familiar enquanto a maioria dos inimigos permanece sem saber de sua verdadeira natureza. Criaturas devem tentar um teste de @Check[perception|dc:20] para @UUID[Compendium.pf2e.actionspf2e.Item.Seek] para perceber que ele é de fato um familiar. Seu familiar ainda pode comunicar seus sentimentos empaticamente. Transformar o familiar entre as formas é uma atividade de 1 minuto com o traço concentração.</p>"
+    },
+    "TU3F0mIX0ZORRYz3": {
+      "name": "Acompanhante",
+      "sourceHash": "d31f6e71d9e008545a6e89d276b82c89000e6eaa",
+      "description": "<p>Seu familiar ajuda você a se apresentar. Sempre que você tentar um teste de Atuação, se seu familiar estiver por perto e puder agir, ele o acompanha com chilreios, palmas ou seu próprio instrumento em miniatura. Isso concede a você um bônus de circunstância +1, ou +2 se você for mestre em Atuação.</p>"
+    },
+    "FA9qg2XRSAYWqX9i": {
+      "name": "Estômago Alquímico",
+      "sourceHash": "313a335314800047c1d28b9722c8a3450f8b4a40",
+      "description": "<p>Seu familiar pode agir como um @UUID[Compendium.pf2e.equipment-srd.Item.Bomb Coagulant Alembic] engolindo a bomba a ser afetada, o que exige duas ações Interagir dele e uma sua. Seu familiar regurgita o item concentrado 1 minuto depois. Se seu familiar tentar destilar uma bomba de nível maior que o seu próprio –1, ele em vez disso sofre dano como se tivesse sido atingido com sucesso pela bomba.</p>"
+    },
+    "KHIMK38Bdj7RahBU": {
+      "name": "Embaixador",
+      "sourceHash": "1bfa3ad6e75c674393b9649679de6c88e3ab169a",
+      "description": "<p>Seu familiar sabe agir de forma fofa ou concentrada sob comando, ajudando você a causar uma boa impressão.</p> <p>Apesar de ser um lacaio, seu familiar ganha 1 reação no início de seus turnos, que ele pode usar apenas para @UUID[Compendium.pf2e.actionspf2e.Item.Aid] você num teste de Diplomacia para @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] (ele ainda precisa se preparar para ajudar você normalmente como na reação Ajudar, o que exige que ele participe ao longo da atividade).</p> <p>Ele tem sucesso automático em seu teste para Ajudar você com essas perícias, ou sucesso crítico automático se você for mestre na perícia em questão.</p>"
+    },
+    "fhmF7rt2dw79PLaC": {
+      "name": "Anfíbio",
+      "sourceHash": "a249f3ddb9076d44809dc9944f4add9c40328ca5",
+      "description": "<p>Ele ganha o traço anfíbio, permitindo respirar tanto no ar quanto na água, e tem tanto um Deslocamento terrestre quanto um Deslocamento de natação, cada um igual ao seu maior Deslocamento terrestre ou de natação.</p>"
+    },
+    "b1Q8pBaLjHfC5JEs": {
+      "name": "Animado",
+      "sourceHash": "3fbcff6f9aadfe6b6e33d82c13b1b24f7d2031b0",
+      "description": "<p>Com um pouco de magia do seu patrono, seu familiar-objeto pode se mover por conta própria. Ele ganha um Deslocamento de 25 pés. Você só pode selecionar esta habilidade para familiares-objeto.</p>"
+    },
+    "U2NB6WjqPTc1GIlg": {
+      "name": "Augúrio",
+      "sourceHash": "b86e79d207e93d5a41c26f1f14a12626801590d6",
+      "description": "<p>Seu familiar consegue vislumbrar os fios do destino para lhe dar uma pista enigmática sobre seu futuro. Seu familiar pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Augury] uma vez por dia usando sua tradição mágica e CD de magia. Você deve ter pelo menos 8º nível para selecionar esta habilidade.</p>"
+    },
+    "0CxrgGWP4ze7gmqS": {
+      "name": "Escavador",
+      "sourceHash": "375131d69f51d92b6326f800d176951e1c9aa947",
+      "description": "<p>Ele ganha um Deslocamento de escavação de 5 pés, permitindo cavar buracos Minúsculos.</p>"
+    },
+    "S85TvUo1gh8Cx56I": {
+      "name": "Conexão de Truque",
+      "sourceHash": "5b1abb3d6ed426169d748787417535ffa5a1255b",
+      "description": "<p>Você pode preparar um truque adicional, ou, se você tem um repertório, designar um truque para adicionar ao seu repertório cada vez que selecionar esta habilidade; você pode retreiná-lo, mas não pode alterá-lo de outra forma. Você deve ser capaz de preparar truques ou adicioná-los ao seu repertório para selecionar isto.</p>"
+    },
+    "xoeZFCtoLi4lWccD": {
+      "name": "Escalador",
+      "sourceHash": "4699f4317dd9675c55908faf78faede6dfef97dc",
+      "description": "<p>Ele ganha um Deslocamento de escalada de 25 pés.</p>"
+    },
+    "bMS3QZt9XvHjivQL": {
+      "name": "Constructo",
+      "sourceHash": "02a25d613f84f77896cccdbfef3a25a6451e82ef",
+      "description": "<p>Seu familiar tem o traço constructo em vez do traço animal. O familiar é imune a efeitos de morte, doença, condenado, drenado, fatigado, cura, ataques não letais, paralisado, veneno, enjoado, espírito, inconsciente, vitalidade e vazio. Seu familiar deve ter a habilidade de mascote @UUID[Compendium.pf2e.familiar-abilities.Item.Tough] para selecionar isto.</p>"
+    },
+    "1eEOaDTYJGPYY3GG": {
+      "name": "Esquiva de Dano",
+      "sourceHash": "259f2a2ed03b491c7c945d9f54c934dc441e638c",
+      "description": "<p>Escolha um tipo de salvaguarda. Seu familiar não sofre dano quando obtém um sucesso naquele tipo de salvaguarda; isso não previne efeitos além do dano.</p>"
+    },
+    "br9L7lsai3hWFgrM": {
+      "name": "Comedor da Escuridão",
+      "sourceHash": "84e615a1b7a6b433ebeaf37c2c8ce448c55b5994",
+      "description": "<p>Seu familiar se recupera naturalmente nas sombras. Após passar 10 minutos consecutivos numa área de luz difusa ou escuridão, seu familiar recupera um número de Pontos de Vida igual à metade do seu nível.</p> <p>Esta habilidade é para um familiar sombra. Um conjurador de sombras, no entanto, pode selecionar esta habilidade para qualquer tipo de familiar.</p>"
+    },
+    "89aUqrpHB1ieNbqH": {
+      "name": "Visão no Escuro",
+      "sourceHash": "835d764a0e0d57dc3df4b16960f3cfe322495800",
+      "description": "<p>Ele ganha visão no escuro.</p>"
+    },
+    "cNoeGaimD2fIhGRv": {
+      "name": "Dragão",
+      "sourceHash": "c1012112e57fa16302b7b89c6d0c20db351c91e4",
+      "description": "<p>Seu familiar tem o traço dragão em vez do traço animal.</p>"
+    },
+    "Krr9cnhwjUvVr5B4": {
+      "name": "Ecolocalização",
+      "sourceHash": "826c4bab5e1c6a43cf4f39658f01e521e79e483b",
+      "description": "<p>Ele pode usar a audição como um sentido preciso dentro de 20 pés.</p>"
+    },
+    "y3iNiVr1HQap9F7s": {
+      "name": "Familiar Elemental (Ar)",
+      "sourceHash": "43f660521d722b304fa016eee8b941c9d6afcab0",
+      "description": "<p>Seu familiar ganha o traço elemental do ar.</p> <p>Se seu familiar ficar completamente imóvel por 1 rodada, ele fica @UUID[Compendium.pf2e.conditionitems.Item.Invisible] até realizar sua próxima ação. Qualquer movimento, mesmo ser movido ou carregado por outra criatura, encerra este efeito.</p>"
+    },
+    "v3GUwT2eXoiKlO20": {
+      "name": "Familiar Elemental (Terra)",
+      "sourceHash": "e06347376f1cdddad66c640b627c7e121c37586d",
+      "description": "<p>Seu familiar ganha o traço elemental da terra.</p> <p>Seu familiar ganha resistência a dano físico (exceto adamante) igual à metade do seu nível.</p>"
+    },
+    "lMP8HJ9q5IHiH1Cd": {
+      "name": "Familiar Elemental (Fogo)",
+      "sourceHash": "ca2d35c1c846cc39123ddb3867720dea2bb21726",
+      "description": "<p>Seu familiar ganha o traço elemental do fogo.</p> <p>Seu familiar emite luz plena num raio de 20 pés (e luz difusa pelos 20 pés seguintes) e emite calor. Criaturas que permaneçam dentro de uma @Template[emanation|distance:15] não sofrem dano de frio ambiental severo.</p>"
+    },
+    "3XNSq2wC8zZXNkPM": {
+      "name": "Familiar Elemental (Metal)",
+      "sourceHash": "3a70989acb240f7880c8e0585e29960929c59946",
+      "description": "<p>Seu familiar ganha o traço elemental do metal.</p> <p>Seu familiar ganha resistência a dano físico de armas de metal igual à metade do seu nível.</p>"
+    },
+    "fvKITwhMU8qqE243": {
+      "name": "Familiar Elemental (Água)",
+      "sourceHash": "5ef72190052793e450aaaab7d26afb63fae06c44",
+      "description": "<p>Seu familiar ganha o traço elemental da água.</p> <p>Seu familiar pode se mover por uma fresta de pelo menos 5 cm de largura sem Espremer-se e pode Espremer-se por uma fresta de pelo menos 2,5 cm de largura.</p>"
+    },
+    "IJQO3gp60NOBCcUM": {
+      "name": "Familiar Elemental (Madeira)",
+      "sourceHash": "88595a2bcf0426860fad30ec3b95c3ca867ff654",
+      "description": "<p>Seu familiar ganha o traço elemental da madeira.</p> <p>Se seu familiar permanecer sob luz plena por 1 rodada, ele ganha cura rápida igual à metade do seu nível. Assim que sai da luz plena, este efeito termina.</p>"
+    },
+    "OtF52sOyIXje1DSk": {
+      "name": "Elemental",
+      "sourceHash": "89ee8fa513bff934ef989139dafd2ddeda11a748",
+      "description": "<p>Seu familiar tem o traço elemental em vez do traço animal. Escolha ar, terra, fogo, metal, água ou madeira. Seu familiar ganha aquele traço. O familiar é imune a sangramento, @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed], veneno, sono e o elemento correspondente ao seu traço. Seu familiar deve ter a habilidade de familiar resistência para selecionar isto.</p>"
+    },
+    "j3wMU8RYJVlnwFBs": {
+      "name": "Erudito",
+      "sourceHash": "caca4b7a08f547dfad132705369a6e9a16d35fe6",
+      "description": "<p>Seu familiar tem um conhecimento religioso incrível. Apesar de ser um lacaio, seu familiar ganha 1 reação no início de seus turnos, que ele pode usar apenas para @UUID[Compendium.pf2e.actionspf2e.Item.Aid] você num teste de Religião (ele ainda precisa se preparar para ajudar você normalmente como na reação Ajudar). Ele tem sucesso automático em seu teste para Ajudar você com testes de Religião, ou sucesso crítico automático se você for mestre em Religião.</p>"
+    },
+    "G3YD8TPB6qfMvnma": {
+      "name": "Alquimia Extra",
+      "sourceHash": "d28ec1234c1116a60d005310e6dd5130b54e518c",
+      "description": "<p>Seu familiar ajuda você a preparar itens no início do dia. Você pode criar um item adicional com @UUID[Compendium.pf2e.feats-srd.Item.Advanced Alchemy] durante suas preparações diárias. Você deve ter a habilidade Alquimia Avançada para selecionar esta habilidade.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Extra Alchemy]</p>"
+    },
+    "YOAPcGI7g8pT62IX": {
+      "name": "Frasco Extra",
+      "sourceHash": "da2a1b0da0a774ac3b8d03695c9dbb3ed0212670",
+      "description": "<p>Seu familiar acumula líquidos alquímicos em seu corpo. Uma vez por dia, você pode Interagir quando seu familiar estiver adjacente a você para ganhar um frasco versátil. Você deve ter a habilidade @UUID[Compendium.pf2e.classfeatures.Item.Versatile Vials] para selecionar esta habilidade.</p>"
+    },
+    "60ozUKqXYBOqzZbc": {
+      "name": "Foco do Familiar",
+      "sourceHash": "e09f373449a123599899f3110737dc40b3c9f47f",
+      "description": "<p>Uma vez por dia, seu familiar pode usar 2 ações com o traço concentração para restaurar 1 Ponto de Foco à sua reserva de foco, até seu máximo usual. Você deve ter uma reserva de foco para selecionar isto.</p>"
+    },
+    "QwVHnXsw9de10Ava": {
+      "name": "Familiar da Sorte Equilibrada",
+      "sourceHash": "5ec08cb8b579f000d1ef9d7c6fd954eeb7496f11",
+      "description": "<p>Seu familiar tem um ponto no corpo que parece um amuleto de boa sorte ou um mau agouro, dependendo do ângulo. Quando você Conjura ou Sustenta um feitiço, uma criatura dentro de 15 pés do seu familiar recebe, à sua escolha, um bônus de status +1 na CA dela ou uma penalidade de status –1 na CA dela até o início do seu próximo turno.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Balanced Luck]</p>"
+    },
+    "v3twjFfrfigOOgJe": {
+      "name": "Familiar do Auxílio Fortalecedor",
+      "sourceHash": "a5f637d5fc30f1f0e42e8eab7fa2d2e3ccb03944",
+      "description": "<p>Seu familiar conhece todo tipo de truque que pode ajudar! Quando você Conjura ou Sustenta um feitiço, e seu familiar está adjacente a um aliado, aquele aliado ganha um bônus de status +2 no próximo teste de perícia que não seja de ataque que ele tentar antes do início do seu próximo turno.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Bolstering Aid]</p>"
+    },
+    "bxkhRbxGFblPtAgT": {
+      "name": "Familiar da Negociação Sedutora",
+      "sourceHash": "52705e9b4bc0b30ec341e197a802afe03d9aa850",
+      "description": "<p>Seu familiar constantemente sussurra ofertas distrativas de poder, riqueza e outras tentações aos seus inimigos, mesmo que seu familiar normalmente não tenha meios de falar. Quando você Conjura ou Sustenta um feitiço e seu familiar está dentro de 10 pés de um inimigo, o inimigo fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] até o início do seu próximo turno. Seu familiar só pode distrair um único inimigo por rodada dessa forma.</p>"
+    },
+    "VLld4niOwsL7QnsZ": {
+      "name": "Familiar da Escrita Fluida",
+      "sourceHash": "86c0a1b675b0dad900c86d18e20219f18f263c27",
+      "description": "<p>Seu familiar é coberto por um padrão que parece letras de uma língua desconhecida, uma que parece atrair atenção mesmo enquanto ilude a compreensão. Quando você Conjura ou Sustenta um feitiço, as letras começam a mudar rapidamente, causando distração. Até o início do seu próximo turno, seu familiar pode fornecer flanqueamento para você e seus aliados como se ele fosse capaz de atacar e tivesse um alcance de 5 pés; isto é um efeito visual.</p>"
+    },
+    "pStedsfBWO6bxmGO": {
+      "name": "Familiar da Geada Congelante",
+      "sourceHash": "56de5f0ef17a8023bed7b2a22b80ddf2c02680f4",
+      "description": "<p>Seu familiar é frio ao toque, com o hálito sempre visível. Quando você Conjura ou Sustenta um feitiço, você pode fazer com que gelo se forme numa @Template[burst|distance:5] centrada num quadrado do espaço do seu familiar. Aqueles quadrados são terreno difícil até o início do seu próximo turno.</p>"
+    },
+    "UH4Sht4xyM7ccVSx": {
+      "name": "Familiar da Observação Perspicaz",
+      "sourceHash": "5d1c9cde271415741deaba15ac831220b5d93355",
+      "description": "<p>Seu familiar ostenta um terceiro olho na cabeça ou no corpo, semelhante àquele cravado na testa de Cobyslarni. Quando você Conjura ou Sustenta um feitiço, seu familiar pode tentar um teste para Relembrar Conhecimento como uma ação livre com qualquer perícia na qual você seja treinado ou melhor, usando seu bônus, e transmitir psiquicamente a informação a você.</p>"
+    },
+    "PG506p215XGBQy96": {
+      "name": "Familiar dos Sentidos Aguçados",
+      "sourceHash": "7173a195ace6afad55715f91563a86416f279bd6",
+      "description": "<p>Seu familiar tem olhos brilhantes, orelhas que se contorcem ou algum outro sinal dos sentidos poderosos de uma fera. Quando você Conjura ou Sustenta um feitiço, seu familiar ganha, à sua escolha, um faro impreciso, tremorsentido ou sentido de ondas, com alcance de 60 pés até o início do seu próximo turno, e ele pode imediatamente @UUID[Compendium.pf2e.actionspf2e.Item.Point Out] como uma ação livre.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Keen Senses]</p>"
+    },
+    "JR9angJOlt85BmrF": {
+      "name": "Familiar do Voo Ágil",
+      "sourceHash": "1b30c6d0b7dbd036b1c79511048d22e370fa0766",
+      "description": "<p>Mesmo que seu familiar não tenha asas, ele às vezes pode se mover como se levado pelo vento. Quando você Conjura ou Sustenta um feitiço, seu familiar pode Voar até 15 pés; este movimento não desencadeia reações.</p>"
+    },
+    "n0HkWO1zqu3gAFjn": {
+      "name": "Familiar da Nevasca Obscurecedora",
+      "sourceHash": "26d80a56f2634a59db31c64bb3d22292e184ad9e",
+      "description": "<p>Seu familiar está sempre coberto por uma fina camada de neve, que ele solta conforme necessário. Quando você Conjura ou Sustenta um feitiço, você pode fazer com que neve aderente caia numa @Template[type:burst|distance:5] centrada num quadrado do espaço do seu familiar. Essa nevasca permanece até o início do seu próximo turno, e inimigos que entrarem nesses quadrados durante esse período ficam @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] até o início do seu próximo turno.</p><hr /><p><em>Nota PFS:</em> Para esta habilidade, escolha um canto do quadrado do familiar para o centro da explosão.</p>"
+    },
+    "t3hVIt8BUjG5u5mN": {
+      "name": "Familiar da Miséria Contínua",
+      "sourceHash": "81dd84a00dbb0e9b23657ce7c40105cc03eb2dbc",
+      "description": "<p>Seu familiar parece hostil a todas as criaturas exceto você, sibilando para elas se chegam perto demais. Quando você Conjura ou Sustenta um feitiço, seu familiar pode amaldiçoar uma criatura dentro de 15 pés dele, prolongando uma condição negativa à sua escolha que afeta a criatura por 1 rodada. Esta extensão pode ser aplicada apenas uma vez a um dado caso de uma condição. Isto é um efeito de maldição. Isto prolonga apenas condições com duração cronometrada (como \"1 rodada\" ou \"até o fim do seu próximo turno\") e não impede que condições sejam removidas por outros meios.</p>"
+    },
+    "VGiQTyMHsMrl9Ikr": {
+      "name": "Familiar das Marés Avassaladoras",
+      "sourceHash": "f4670cf6da10328959061244bd12448b03824041",
+      "description": "<p>Seu familiar constantemente pinga água do oceano. Quando você Conjura ou Sustenta um feitiço, você pode fazer com que uma pequena onda surja do seu familiar. Uma criatura dentro de 10 pés do seu familiar é empurrada 5 pés para longe dele.</p>"
+    },
+    "7TYVJCZPzrcP4q7F": {
+      "name": "Familiar da Perplexidade Pareada",
+      "sourceHash": "75693a532ff3b5c48219e1bf5c07cba974696ea5",
+      "description": "<p>Seu familiar tem o dobro de uma pequena característica que uma criatura normal teria, como uma segunda cauda ou um par extra de bigodes. Quando você Conjura ou Sustenta um feitiço, seu familiar parece se duplicar e estar em dois lugares ao mesmo tempo. Uma criatura à sua escolha dentro de 20 pés dele fica @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 1} até o início do seu próximo turno; isto é um efeito visual.</p>"
+    },
+    "H4W96QeEd7mJXwE9": {
+      "name": "Familiar do Poder Parasita",
+      "sourceHash": "be9c1ee1ec090fb64396aeaa075eefc03a625563",
+      "description": "<p>Seu familiar parece esquálido e desnutrido ou de outra forma à beira da morte, embora esteja bastante saudável. Quando você Conjura ou Sustenta um feitiço, seu familiar pode drenar a força minguante de outrem para se sustentar. Uma criatura dentro de 15 pés do seu familiar com menos da metade dos seus Pontos de Vida máximos fica @UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Enjoado 1} a menos que tenha sucesso numa salvaguarda de @Check[fortitude] contra sua CD de magia.</p>"
+    },
+    "Hce3UfL2Rt18OYW0": {
+      "name": "Familiar do Espírito Restaurado",
+      "sourceHash": "01a6cb26b0ed401bb9ae6e4d159063f05f1ad137",
+      "description": "<p>Seu familiar é agradavelmente quente e macio, parecendo dissipar preocupações com sua mera presença. Quando você Conjura ou Sustenta um feitiço, uma criatura disposta dentro de 15 pés do seu familiar ganha Pontos de Vida temporários iguais a 2 + metade do seu nível, que duram até o início do seu próximo turno.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Familiar of Restored Spirit]</p>"
+    },
+    "U12JEhDS3sw6wv5q": {
+      "name": "Familiar da Noite Espreitante",
+      "sourceHash": "8a9a37c8094eb3e9b4872979dbf361bf63f243be",
+      "description": "<p>Seu familiar é escuro de pelo ou pena, e a luz parece desaparecer dentro dele. Quando você Conjura ou Sustenta um feitiço, e seu familiar está adjacente a um inimigo do qual ele está @UUID[Compendium.pf2e.conditionitems.Item.Concealed], @UUID[Compendium.pf2e.conditionitems.Item.Hidden] ou não detectado, o inimigo fica @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 1}.</p>"
+    },
+    "ab3EhgOVhOgW83dJ": {
+      "name": "Familiar do Coração do Enxame",
+      "sourceHash": "6deaec972c280eee470657e3b587623f82e62963",
+      "description": "<p>Seu familiar é cercado por uma nuvem de insetos inofensivos. Quando você Conjura ou Sustenta um feitiço, os insetos formam enxame para proteger você e seus aliados. Até o início do seu próximo turno, seu familiar concede @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Ocultação} a você ou qualquer aliado enquanto compartilha o mesmo espaço.</p>"
+    },
+    "xHWGBUS3YLKfPT0T": {
+      "name": "Movimento Veloz",
+      "sourceHash": "ff5c77401853ac7377a48c644388d479d7f11dea",
+      "description": "<p>Aumente um dos Deslocamentos do seu familiar de 25 para 40 pés.</p>"
+    },
+    "7EhB6bFhN6eOX4D2": {
+      "name": "Voador",
+      "sourceHash": "1d9b1210f9b8f183ef78e98359a318fba86b9d29",
+      "description": "<p>Ele ganha um Deslocamento de voo de 25 pés.</p>"
+    },
+    "U52LC31wdHW65Ly0": {
+      "name": "Rejuvenescimento Focado",
+      "sourceHash": "d0fda363402e82f43be32aa5db4151c63a0de447",
+      "description": "<p>Quando você Reconcentra, você gera energia mágica que cura seu familiar. Seu familiar recupera 1 Ponto de Vida por nível sempre que você Reconcentra.</p>"
+    },
+    "8HTuoWA84fi5KVYT": {
+      "name": "Fungo",
+      "sourceHash": "08c89b7c3eacea24fb1cb74dfff9a200b1c54862",
+      "description": "<p>Seu familiar tem o traço fungo em vez do traço animal.</p>"
+    },
+    "xw5BfRLeaDxt0Zr9": {
+      "name": "Guelras",
+      "sourceHash": "496a3cce5c532a791f50a517513a54a681b33a78",
+      "description": "<p>Seu familiar desenvolve um conjunto de guelras, permitindo respirar água além de ar.</p>"
+    },
+    "Xgb8zapWFd1D1J8N": {
+      "name": "Tentáculos Agarradores",
+      "sourceHash": "ef8f5b48a813c9c40d3e2552ce87d9a246a7b118",
+      "description": "<p><strong>Pré-requisitos</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar Secrets]</p> <p>Seu familiar pode estender cipós ou tentáculos similares, aumentando seu alcance para 15 pés.</p>"
+    },
+    "Iwz057HPIsVsjkn0": {
+      "name": "Resistência Maior",
+      "sourceHash": "dde23fa8093b823eb18fa034ef028127f1f54816",
+      "description": "<p>Seu familiar aumenta a resistência que ganha de sua habilidade de familiar resistência para 3 + metade do seu nível. Seu familiar deve ter a habilidade @UUID[Compendium.pf2e.familiar-abilities.Item.Resistance] para selecionar isto.</p>"
+    },
+    "YEB0cxNohDEbNv3G": {
+      "name": "Independente",
+      "sourceHash": "584ef230edcccdf88279475038fb843069d53564",
+      "description": "<p>Num encontro, se você não Comandar seu familiar, ele ainda ganha 1 ação por rodada. Normalmente, você ainda decide como ele gasta essa ação, mas o Mestre pode determinar que seu familiar escolha suas próprias táticas em vez de realizar sua ação preferida. Isto não funciona com @UUID[Compendium.pf2e.familiar-abilities.Item.Valet] ou habilidades similares que exigem um comando, se você for capaz de cavalgar seu familiar, ou situações similares.</p>"
+    },
+    "0CR08c8CtUCLFcz4": {
+      "name": "Surto Inato",
+      "sourceHash": "bf0961f1e45426507e0e144b73d2e01d8de401b1",
+      "description": "<p>Uma vez por dia, você pode se valer da magia inata do seu familiar para reabastecer a sua. Você pode conjurar uma magia inata obtida de um talento de ancestralidade que você já tenha conjurado hoje. Você ainda deve Conjurar a Magia e cumprir os outros requisitos da magia.</p>"
+    },
+    "bOBKHZD0kgDpNydc": {
+      "name": "Entrega de Item",
+      "sourceHash": "fd25531e46443c62555d0be57df455adbc1bb8de",
+      "description": "<p>Se seu familiar está adjacente a você, você pode Comandá-lo para entregar um item. Em vez de suas 2 ações normais, seu familiar Interage para pegar um item que você está segurando de Carga leve ou menos, então realiza uma ação de movimento, e finalmente Interage para passar o item a outra criatura disposta.</p> <p>Ele pode em vez disso administrar o item à criatura se puder fazê-lo com 1 ação e tiver um tipo de item apropriado (como elixir alquímico). Se seu familiar não alcançar o alvo neste turno, ele segura o item até ser comandado de outra forma. Seu familiar deve ter a habilidade destreza manual para selecionar esta habilidade.</p>"
+    },
+    "r0OEyMtu3gai4QMs": {
+      "name": "Jato",
+      "sourceHash": "d915357dd976f11790454fb08c97292d472e62b1",
+      "description": "<p>Seu familiar pode usar rajadas de energia elemental ou magia para @UUID[Compendium.pf2e.actionspf2e.Item.Leap] até 30 pés em qualquer direção, mesmo que isso exceda sua distância máxima normal de salto. O Salto deve começar e terminar numa superfície sólida capaz de suportar o familiar.</p>"
+    },
+    "9UnPqv4m3yRsKzL1": {
+      "name": "Combustível",
+      "sourceHash": "d602c6edb30d722788dba35550026776a029a3ad",
+      "description": "<p>Você pode imolar o corpo do seu familiar para uma onda de poder. Uma vez por dia, como uma ação livre, quando você Conjura uma Magia que tem o traço fogo, causa dano e não tem duração, você pode sacrificar seu familiar para potencializar a magia. Seu familiar é imediatamente morto, e você ganha um bônus de status ao dano daquela magia igual ao dobro da graduação da magia.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Kindling]</p>"
+    },
+    "RTktSQReefdtAo5d": {
+      "name": "Fala de Parentesco",
+      "sourceHash": "d94833facfe7ef3dd8cad4f6f850030a72889921",
+      "description": "<p>Ele pode entender e falar com animais da mesma espécie. Para selecionar isto, seu familiar deve ser um animal, deve ter a habilidade fala, e você deve ter pelo menos 6º nível.</p>"
+    },
+    "Q2rx3txernux3Rnn": {
+      "name": "Assistente de Laboratório",
+      "sourceHash": "6cd95f0d55474840ac795568e33b1debbcf5337c",
+      "description": "<p>Ele pode usar sua ação @UUID[Compendium.pf2e.actionspf2e.Item.Quick Alchemy]. Você deve ter Alquimia Rápida, e seu familiar deve estar no seu espaço. Isto tem o mesmo custo e requisito de quando você mesmo a usa. Ele deve ter a habilidade @UUID[Compendium.pf2e.familiar-abilities.Item.Manual Dexterity] para selecionar isto.</p>"
+    },
+    "7pLHLZmY6uCwgIf6": {
+      "name": "Levitador",
+      "sourceHash": "57dc7f2b5020753ff04f17396d138d62f7126c6d",
+      "description": "<p>Usando magnetismo, magia ou outras forças, seu familiar pode flutuar até 3 pés acima de superfícies sólidas e líquidas enquanto se move num Deslocamento de 25 pés. Isso permite que ele ignore terreno difícil e efeitos danosos relacionados ao contato direto com a superfície. Normalmente permite que o familiar também evite acionar as reações de perigos que exigem que você pise neles ou numa placa de pressão acoplada.</p>"
+    },
+    "MYoRTw6zLYatPw0F": {
+      "name": "Elo de Vida",
+      "sourceHash": "00b5c2cfb6ab450a790c81b470940ec7fc37269b",
+      "description": "<p>Se seu familiar seria reduzido a 0 PV por dano, como uma reação com o traço concentração, você pode sofrer todo o dano, e seu familiar não sofre nenhum. No entanto, efeitos especiais que ocorreriam devido àquele dano (como veneno de cobra) ainda se aplicam.</p>"
+    },
+    "gNhwCrbxwHOhEIA8": {
+      "name": "Armilar Relâmpago",
+      "sourceHash": "ffbc08a5be586d8ba11bd8e0692fe8f9c51ec0eb",
+      "description": "<p><strong>Efeito</strong> Seu familiar voa em círculos ao redor da arma ou mão de um aliado adjacente, dissolvendo-se em múltiplos anéis de relâmpago. Até o início do seu próximo turno, a arma ou ataque desarmado afetado causa 1d6 de dano de eletricidade adicional, ou 1d8 de dano de eletricidade se você Conjurar uma Magia com o traço ar ou eletricidade neste turno. Seu familiar permanece na forma de anel de relâmpago, impedindo-o de ser alvejado ou realizar quaisquer ações.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Lightning Armillary]</p>"
+    },
+    "wsBPhyNcl0uyd1XM": {
+      "name": "Agulhas de Relâmpago",
+      "sourceHash": "68e59014e24b96da1967a0451c1e019b2feaad5d",
+      "description": "<p><strong>Requisitos</strong> Você Conjurou uma Magia que teve os traços ar ou eletricidade neste turno;</p><hr /><p><strong>Efeito</strong> Seu familiar absorve a carga elétrica excedente e libera uma @Template[type:emanation|distance:5] de eletricidade estática que flui pelos meridianos das criaturas. Criaturas na emanação que falham numa salvaguarda de @Check[fortitude|options:area-effect,damaging-effect] contra sua CD de magia ficam @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado 1} até o fim de seu próximo turno. Se uma criatura estiver encharcada ou sobre ou dentro de água dentro da emanação, ela também sofre @Damage[1d4[persistent,electricity]|options:area-damage] de dano numa salvaguarda falha.</p>"
+    },
+    "MLIwn1wvNsaycG2o": {
+      "name": "Luminoso",
+      "sourceHash": "7b87c7570753659f626320620889f7f8fd994283",
+      "description": "<p>Seu familiar brilha com uma luz reconfortante. Ele emite luz plena num raio de 30 pés e luz difusa pelos 30 pés seguintes. Ele pode suprimir ou retomar esta luz usando uma ação, que tem o traço concentração.</p>"
+    },
+    "QrQlit5M605SujWL": {
+      "name": "Resistência Principal",
+      "sourceHash": "b630d2e937ee502040c922086d9cf4d6339cc33b",
+      "description": "<p>Seu familiar aumenta a resistência que ganha de sua habilidade de familiar @UUID[Compendium.pf2e.familiar-abilities.Item.Resistance] para um valor igual ao seu nível. Para selecionar isto você deve ter pelo menos 8º nível.</p>"
+    },
+    "mUlufJuZ0qDD2a7Z": {
+      "name": "Destreza Manual",
+      "sourceHash": "64c11fabfa5cf3f7bb8a03fd0060144834f260b2",
+      "description": "<p>Ele pode usar até dois de seus membros como se fossem mãos para realizar ações de manipulação.</p>"
+    },
+    "SDW5wEUNpsA31OiQ": {
+      "name": "Congelar Máscara",
+      "sourceHash": "9c829d35a95a3d55968571fb54f8e3162e077504",
+      "description": "<p>Quando na forma de máscara, seu familiar pode ocultar suas qualidades sobrenaturais óbvias para passar por uma máscara simples e despretensiosa. Ele não precisa Personificar para enganar um olhar de passagem, e ganha um bônus de circunstância +4 à sua CD de Enganação contra um observador ativo Procurando ou de outra forma estudando-o.</p>"
+    },
+    "K7Mxi3e3j9xgpfOw": {
+      "name": "Forma do Mestre",
+      "sourceHash": "f00c31c9158e7ff58ae586e6f01d7d8d5feed57f",
+      "description": "<p>Seu familiar pode mudar de forma como uma ação única, transformando-se num humanoide da sua ancestralidade com a mesma idade, gênero e compleição de sua forma verdadeira, embora ele sempre mantenha um resquício claramente antinatural de sua natureza, como olhos de gato ou língua de serpente. Esta forma é sempre a mesma cada vez que ele usa esta habilidade. Isto de outra forma usa os efeitos de @UUID[Compendium.pf2e.spells-srd.Item.Humanoid Form], exceto que a mudança é puramente cosmética. Ele apenas parece humanoide e não ganha novas capacidades. Seu familiar deve ter as habilidades destreza manual e fala para selecionar isto.</p>"
+    },
+    "baMLF5VxBE1F5StW": {
+      "name": "Médico",
+      "sourceHash": "e8ba70668f786664ece2ac33d995c4859b9c627b",
+      "description": "<p>Seu familiar pode se valer do poder da sua divindade para @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell] uma vez por dia. O familiar pode conjurar a versão de 1 ação de @UUID[Compendium.pf2e.spells-srd.Item.Heal] num nível 2 níveis abaixo do seu espaço de magia de maior graduação, que ele só pode conjurar em você. Você deve ser capaz de conjurar magias de 3ª graduação de espaços de magia para selecionar esta habilidade.</p>"
+    },
+    "J96XZHSGFRxctpiq": {
+      "name": "Parceiro do Crime",
+      "sourceHash": "f04e480a967c263145531ce455c69e68f1f68223",
+      "description": "<p>Seu familiar é seu associado criminoso. Apesar de ser um lacaio, seu familiar ganha 1 reação no início de seus turnos, que ele pode usar apenas para Ajudar você num teste de perícia de Enganação ou Ladinagem (ele ainda precisa se preparar para ajudar você normalmente como na reação Ajudar). Ele tem sucesso automático em seu teste para Ajudar você com essas perícias, ou sucesso crítico automático se você for mestre na perícia em questão.</p>"
+    },
+    "MgPmtWh5PI9MEkyP": {
+      "name": "Caminho da Tempestade",
+      "sourceHash": "89aa41e4ad030c95a87122e4f0c94097243acc2f",
+      "description": "<p><strong>Frequência</strong> uma vez por 10 minutos;</p><hr /><p><strong>Efeito</strong> Seu familiar invoca ventos que aceleram e protegem você. Você ganha um bônus de status de +10 pés ao seu Deslocamento até o fim do seu turno. Quando você Desloca-se neste turno, você não desencadeia reações. Além disso, você não precisa Deslocar-se antes de um @UUID[Compendium.pf2e.actionspf2e.Item.Long Jump] neste turno.</p> <p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Path of the Tempest]</p>"
+    },
+    "ksBKSlhcrY2THT7A": {
+      "name": "Forma de Planta",
+      "sourceHash": "06b0f7ad1975322127cb9a3b6a697cae29119d65",
+      "description": "<p>Seu familiar-planta pode mudar de forma como uma ação única, transformando-se numa planta Minúscula de um tipo mais ou menos similar à natureza do familiar. Isto de outra forma usa os efeitos de @UUID[Compendium.pf2e.spells-srd.Item.One with Plants]. Você deve ter um familiar com o traço planta para selecionar esta habilidade.</p>"
+    },
+    "qbUG7kbwXcGP0Xtz": {
+      "name": "Planta",
+      "sourceHash": "2c1425519f7e53224ed924034807a85a5649189a",
+      "description": "<p>Seu familiar tem o traço planta em vez do traço animal.</p>"
+    },
+    "kOSEF3Umxzr5Wnea": {
+      "name": "Fingir-se de Morto",
+      "sourceHash": "9fad73c66c7a069e67606536b2033e669f87f954",
+      "description": "<p>Seu familiar finge estar inanimado, escondendo suas capacidades sobrenaturais. Ele pode Esconder-se sem qualquer cobertura ou ocultação de criaturas que não percebem que ele está vivo, desde que esteja num local onde ele não pareceria fora de lugar. Se o familiar tem sucesso, os observadores ainda o veem, mas o confundem com um objeto inanimado. Depois de serem enganados uma vez, eles percebem que seu familiar está vivo, e ele não pode mais se Esconder deles dessa forma.</p>"
+    },
+    "mIJizOf4OKHsiSGf": {
+      "name": "Reservatório de Veneno",
+      "sourceHash": "f358176c0ad77d465076f1ecffc1f607824d0e61",
+      "description": "<p>Seu familiar tem um reservatório para veneno, permitindo aplicar um veneno de contusão na arma exposta de um aliado adjacente com uma única ação Interagir. Você deve fornecer o veneno e infundi-lo neste reservatório usando duas ações Interagir consecutivas. Você deve ter um familiar homúnculo para selecionar esta habilidade.</p>"
+    },
+    "sLGDRMZayjcvlwsv": {
+      "name": "Purificar Ar",
+      "sourceHash": "4cbed0c90b96b5d10a2304a82c75951337273955",
+      "description": "<p><strong>Pré-requisitos</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar Secrets]</p> <p>Seu familiar recicla o ar, fornecendo oxigênio suficiente para uma criatura Média em áreas com ar viciado, como uma câmara selada ou espaço extradimensional. Se o leshy estiver dentro da área de um efeito de veneno inalado ou um efeito que depende do olfato, criaturas dentro de uma @Template[emanation|distance:15] do leshy ganham um bônus de circunstância +2 às suas salvaguardas contra o efeito.</p>"
+    },
+    "NaVjX6k3E68ueI46": {
+      "name": "Radiante",
+      "sourceHash": "d56d1be2287d9a9950673b3675402293e8887eec",
+      "description": "<p>Seu familiar é preenchido com uma radiância divina que o torna resistente às forças do mal. Seu familiar ganha resistência a dano do mal e do vazio igual à metade do seu nível.</p> <p><em>Nota: Como efeitos colocados num ator não podem referenciar dados de outro ator, a resistência de metade do nível do PC não é automatizável. Atualize as resistências do familiar de acordo.</em></p>"
+    },
+    "qsGWTo8sdNryLn3W": {
+      "name": "Reconvocar Familiar",
+      "sourceHash": "fccaca08fdf4246f94f5199b69e9192c944b3744",
+      "description": "<p>Uma vez por dia, você pode usar uma atividade de 3 ações, que tem o traço concentração, para teleportar seu familiar ao seu espaço. Seu familiar deve estar dentro de 1 milha ou a tentativa de convocá-lo falha. Isto é um efeito de teleporte.</p>"
+    },
+    "EE8dSSjmlcN8oEuk": {
+      "name": "Resistência",
+      "sourceHash": "e7957d5ddec9b6b05ce6017698e9f7cd6092551e",
+      "description": "<p>Escolha dois dos seguintes: ácido, frio, eletricidade, fogo, veneno ou sônico. Seu familiar ganha resistência igual à metade do seu nível (resistência mínima 1) contra os tipos de dano escolhidos.</p>"
+    },
+    "U6og2YhRIyos6YOv": {
+      "name": "Familiar Restaurador",
+      "sourceHash": "e78b52fba9e89c14826fa923ac17125b86a8f101",
+      "description": "<p>Uma vez por dia, seu familiar pode usar 2 ações com o traço concentração para ceder parte de sua energia e curar você. Ele deve estar no seu espaço para fazê-lo. Você restaura um número de Pontos de Vida igual a @Damage[(max(floor(@actor.level/2),1))d8[healing]]{1d8 vezes metade do seu nível} (mínimo 1d8).</p>"
+    },
+    "oTGZX6jVVIwU6EXn": {
+      "name": "Faro",
+      "sourceHash": "9d75be1239066f34d50712f3d1d7182aaec672d6",
+      "description": "<p>Ele pode usar o faro como um sentido impreciso dentro de 30 pés.</p>"
+    },
+    "ft12z1nnm5avpbNk": {
+      "name": "Segunda Opinião",
+      "sourceHash": "44a7b48c21e22070977d1db9fc136f5f4919e9f1",
+      "description": "<p>Seu familiar é seu confidente acadêmico. Apesar de ser um lacaio, seu familiar ganha 1 reação no início de seus turnos, que ele pode usar apenas para @UUID[Compendium.pf2e.actionspf2e.Item.Aid] você num teste de perícia para Relembrar Conhecimento com uma perícia na qual ele tem a habilidade de familiar @UUID[Compendium.pf2e.familiar-abilities.Item.Skilled] (ele ainda precisa se preparar para ajudar você normalmente como na reação Ajudar).</p> <p>Ele tem sucesso automático em seu teste para Ajudar você com essas perícias, ou sucesso crítico automático se você for mestre na perícia em questão. Seu familiar deve ter a habilidade habilidoso para selecionar isto.</p>"
+    },
+    "94YOLt3dvV6Z3txJ": {
+      "name": "Passo Sombrio",
+      "sourceHash": "2372c0ca89eea87e26d823a43cb7e5cc0373d344",
+      "description": "<p>Esta habilidade é para um Familiar Sombra. Um @UUID[Compendium.pf2e.feats-srd.Item.Shadowcaster Dedication]{Conjurador de Sombras}, no entanto, pode selecionar esta habilidade para qualquer tipo de familiar. Seu familiar ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Shadow Step].</p> <p>Você deve ter pelo menos 7º nível para selecionar esta habilidade de familiar para seu familiar.</p>"
+    },
+    "WiSuMXdooDcBICYh": {
+      "name": "Compartilhar Sentidos",
+      "sourceHash": "1724ae78c4c736329c59ad4a2c87fdf63d61e1ac",
+      "description": "<p>Uma vez a cada 10 minutos, você pode usar uma ação única com o traço concentração para projetar seus sentidos em seu familiar. Quando você faz isso, você perde toda a informação sensorial do seu próprio corpo, mas pode sentir através do corpo do seu familiar por até 1 minuto. Você pode Dispensar este efeito.</p>"
+    },
+    "OSmJwZyUXHYEI186": {
+      "name": "Habilidoso",
+      "sourceHash": "14ff8c466e974769b93db959d154c18e06e6c992",
+      "description": "<p>Escolha uma perícia que não seja Acrobacia ou Furtividade. O modificador do seu familiar para aquela perícia é igual ao seu nível mais o modificador do seu atributo de conjuração, em vez de apenas o seu nível. Você pode selecionar esta habilidade repetidamente, escolhendo uma perícia diferente cada vez.</p>"
+    },
+    "gHCySOOQ3wGevtDl": {
+      "name": "Bisbilhoteiro",
+      "sourceHash": "c2d0750dc191de0693d0bb8d9a3c86bfe7fc2beb",
+      "description": "<p>Seu familiar mantém os olhos e ouvidos abertos, pronto para relatar cada fragmento de fofoca que capta, ajudando você a reunir informações.</p> <p>Apesar de ser um lacaio, seu familiar ganha 1 reação no início de seus turnos, que ele pode usar apenas para @UUID[Compendium.pf2e.actionspf2e.Item.Aid] você num teste de Diplomacia para @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] (ele ainda precisa se preparar para ajudar você normalmente como na reação Ajudar, o que exige que ele participe ao longo da atividade).</p> <p>Ele tem sucesso automático em seu teste para Ajudar você com essas perícias, ou sucesso crítico automático se você for mestre na perícia em questão.</p>"
+    },
+    "cX8gK3e9YR8Let4i": {
+      "name": "Visão da Alma",
+      "sourceHash": "58a8cce006f8b5e89f33583dbb9a67c2b1d15601",
+      "description": "<p>Seu familiar ganha @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Lifesense] com alcance de 30 pés.</p>"
+    },
+    "0gPQ9lp8WQtwt3Bz": {
+      "name": "Exibição Deslumbrante",
+      "sourceHash": "c9d5887899d10bb4aa35ccc8f6abe7f1c6808f7c",
+      "description": "<p><strong>Frequência</strong> uma vez por minuto</p><hr /><p><strong>Efeito</strong> Seu kinnara exibe suas penas brilhantes. Cada criatura dentro de uma @Template[type:emanation|distance:30] deve tentar uma salvaguarda de @Check[will|against:class-spell] contra sua CD de classe ou CD de magia, a que for maior, ou ficar @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] por 2 rodadas.</p>"
+    },
+    "BZBXv31QyOUMdsqX": {
+      "name": "Achatar",
+      "sourceHash": "8c938e2e82a75156733ee3e2503d99f69fdc30cc",
+      "description": "<p>Seu familiar pode se achatar à largura de uma folha de papel, passando facilmente pelas menores frestas e brechas. Desde que uma porta ou outro obstáculo tenha uma fresta que caiba uma folha de papel, seu familiar pode passar por ela sem precisar Espremer-se.</p>"
+    },
+    "l7olkLviLEwzHVxq": {
+      "name": "Levantar Poeira",
+      "sourceHash": "1f1ebb54dbc71a98ad6c36f6706f0cfebc546d41",
+      "description": "<p><strong>Frequência</strong> uma vez por hora</p><hr /><p><strong>Efeito</strong> Seu coelho de poeira se sacode e chuta para levantar poeira numa @Template[type:emanation|distance:5]. Cada criatura na área deve tentar uma salvaguarda de Fortitude contra a maior entre sua CD de classe ou CD de magia. Uma criatura que falha em sua salvaguarda começa a espirrar descontroladamente e fica @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Lento 1} e não pode realizar reações por 1 rodada; numa falha crítica ela fica @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Lento 2}.</p>"
+    },
+    "ohAMRQna9PPQ9UMW": {
+      "name": "Produzido em Massa",
+      "sourceHash": "7152c71aa3c66b1539cd66c46c96d7b3ace8ae12",
+      "description": "<p>Se seu shikigami morrer, você pode religar seu espírito a outra boneca de papel durante suas próximas preparações diárias.</p>"
+    },
+    "ifmESaIH7u6wtsi0": {
+      "name": "Bule de Chá",
+      "sourceHash": "12761e7091be39f05f1f8218b52ff3bc167371ba",
+      "description": "<p>Seu sábio tapir é treinado na arte da medicina herbal e pode preparar um bule de chá curativo. Uma vez por dia, seu familiar pode gastar 10 minutos para preparar folhas de chá finas e ervas. O sábio tapir deve se concentrar no chá durante esse tempo — se ele realizar qualquer outra ação, o chá fica estragado, embora o sábio tapir possa começar de novo. Uma vez que o bule de chá esteja pronto, o sábio tapir pode servir duas xícaras de chá com cada uma das ações abaixo; cada vez, ele dá 1 xícara a um aliado adjacente e bebe 1 xícara ele mesmo. As três infusões devem ser servidas e oferecidas em ordem (por exemplo, o sábio tapir não pode servir a segunda infusão até ter servido a primeira). O chá permanece bom por 1 hora após o preparo; se não for bebido até então, o bule esfria, e qualquer chá restante perde seu poder.</p><ul><li><strong>Primeira Infusão</strong> <span class=\"action-glyph\">2</span> A infusão restaura um número de Pontos de Vida igual a 1d8 vezes metade do seu nível (mínimo 1d8) e concede um bônus de circunstância +4 à próxima salvaguarda contra doença ou veneno tentada dentro de 24 horas.</li><li><strong>Segunda Infusão</strong> <span class=\"action-glyph\">2</span> A infusão restaura um número de Pontos de Vida igual a 1d4 vezes metade do seu nível (mínimo 1d4) e concede um bônus de circunstância +2 à próxima salvaguarda contra doença ou veneno tentada dentro de 24 horas.</li><li><p><strong>Terceira Infusão</strong> <span class=\"action-glyph\">2</span> A infusão concede Pontos de Vida temporários iguais ao seu nível por 1 hora.</p></li></ul>"
+    },
+    "EYspOTggNWLDYise": {
+      "name": "Portador do Selo",
+      "sourceHash": "2b97b57e492fb8264c2499619ebb5c59f5c0ac94",
+      "description": "<p>Durante suas preparações diárias, você pode inscrever um símbolo ou selo em seu shikigami que corresponda ao elemento ar, terra, fogo, metal, água ou madeira. Se você usar a habilidade combustível do shikigami naquele dia, ela se aplica a uma magia que cause dano com o traço relevante ao elemento escolhido, em vez de apenas ao traço fogo.</p>"
+    },
+    "EjhFRdsqE8sFqYiv": {
+      "name": "Projeção de Sombra",
+      "sourceHash": "d97711dc105d8f4fdb40e99710dca572866a670f",
+      "description": "<p>Seu makhluk wayang projeta sua sombra numa silhueta maior de si mesmo, permitindo-lhe agarrar coisas fora de seu alcance óbvio. Ele aumenta seu alcance para 10 pés para fins de realizar ações Interagir não hostis até o fim do seu turno.</p>"
+    },
+    "8ScFUQTO8q4lCnZJ": {
+      "name": "Vínculo de Alma",
+      "sourceHash": "12a32fb462e9b79a2c38ca26ffe6da3230446e8d",
+      "description": "<p>Os espíritos dos seus kinnars são intrinsecamente ligados. Embora sejam dois seres, ainda são considerados uma única criatura, agem como uma única criatura, usam estatísticas normais de familiar e estão sujeitos a todos os efeitos normais que vêm com ser uma única criatura. Seus espíritos ligados permitem que evitem ataques contra sua mente. Se seus kinnars forem submetidos a um efeito mental que permite uma salvaguarda, eles rolam duas vezes e ficam com o resultado mais alto; isto é um efeito de fortuna.</p>"
+    },
+    "bylMx4TiJ3Vd4S4M": {
+      "name": "Clarão Atordoante",
+      "sourceHash": "6ef080207d2710799aec93fb2651ba1da49f3f68",
+      "description": "<p><strong>Frequência</strong> uma vez por 10 minutos;</p><hr /><p><strong>Efeito</strong> Seu fogo-fátuo de lanterna libera uma grande explosão de chamas, lançando uma luz anormalmente brilhante. Cada criatura dentro de uma @Template[type:emanation|distance:15] deve tentar uma salvaguarda de @Check[fortitude|against:class-spell] contra sua CD de classe ou CD de magia, a que for maior, ou ficar @UUID[Compendium.pf2e.conditionitems.Item.Blinded] por 1 rodada e então @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] por 2 rodadas depois.</p>"
+    },
+    "wv7RnNGbHANPh1n8": {
+      "name": "Canção de Vina",
+      "sourceHash": "d64b7d0a54c0e46b4efbc66e419263d39718fc14",
+      "description": "<p><strong>Frequência</strong> uma vez por hora, veja abaixo</p><hr /><p><strong>Efeito</strong> Sua kinnari toca elegantemente seu instrumento. Cada criatura dentro de uma @Template[type:emanation|distance:30] deve tentar uma salvaguarda de Vontade contra sua CD de classe ou CD de magia, a que for maior, ou ficar @UUID[Compendium.pf2e.conditionitems.Item.Fascinated] por 1 rodada. Uma kinnar pode usar esta habilidade novamente na rodada seguinte para continuar a canção e forçar as criaturas afetadas a tentar outra salvaguarda de Vontade; numa falha, a criatura fica fascinada por uma rodada adicional. Uma vez que a kinnar pare de tocar, ela não pode usar esta habilidade novamente por 1 hora. Uma criatura que tem sucesso em qualquer salvaguarda ou tem sua fascinação quebrada fica temporariamente imune à Canção de Vina daquela kinnar por 24 horas. Kinnars são imunes a esta habilidade.</p>"
+    },
+    "WZJFGS0wX21SRohY": {
+      "name": "Fala",
+      "sourceHash": "19fa30864bc298afcb132b8ce0f95f9a8a81d23c",
+      "description": "<p>Ele entende e fala um idioma que você conhece.</p>"
+    },
+    "LJS0qCGiJk21BORa": {
+      "name": "Bateria de Magia",
+      "sourceHash": "e4a7603deb81be3429b45e8f155b34f6498c2af9",
+      "description": "<p>Você ganha um espaço de magia adicional pelo menos 3 graduações abaixo do seu espaço de magia de maior graduação; você deve ser capaz de conjurar magias de 4ª graduação usando espaços de magia para selecionar esta habilidade de mestre.</p>"
+    },
+    "TSd95Agn6sl2SRvW": {
+      "name": "Entrega de Magia",
+      "sourceHash": "93c53ce4bca1cffbc931cd5632a85de1e8435a66",
+      "description": "<p>Se seu familiar está no seu espaço, você pode conjurar uma magia com alcance de toque, transferir seu poder ao familiar e comandar o familiar para entregar a magia. Se você fizer isso, o familiar usa suas 2 ações da rodada para se mover até um alvo à sua escolha e tocar aquele alvo. Se ele não alcançar o alvo para tocá-lo neste turno, a magia não tem efeito.</p>"
+    },
+    "X7iOOT4dKLaz8f9S": {
+      "name": "Conjuração",
+      "sourceHash": "e83e02854ab253553b573f53f8fc8c4d1dc4e4c4",
+      "description": "<p>Escolha uma magia em seu repertório ou que você preparou hoje pelo menos 5 graduações abaixo do seu espaço de magia de maior graduação. Seu familiar pode Conjurar aquela Magia uma vez por dia usando sua tradição mágica, modificador de ataque de magia e CD de magia. Se a magia tem uma desvantagem que afeta o conjurador, tanto você quanto seu familiar são afetados. Você deve ser capaz de conjurar magias de 6ª graduação usando espaços de magia para selecionar isto.</p>"
+    },
+    "d7ViN3uHuuACVq1m": {
+      "name": "Toque Espiritual",
+      "sourceHash": "d3af42d7bfa0338c1706d571b29658020cf4ac73",
+      "description": "<p>Seu familiar pode tocar criaturas incorpóreas. Se você tem a habilidade de mestre entrega de magia do seu familiar, qualquer magia que o familiar entregue com ela ganha os benefícios da runa de propriedade <em>@UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch]</em>.</p>"
+    },
+    "72MWyd8Zr8NsZKiE": {
+      "name": "Sincronizar Espírito",
+      "sourceHash": "ede96abf6740a0e6a2bdcdeacde13ba434f9bf6c",
+      "description": "<p>Você pode sincronizar sua energia espiritual com a do seu familiar para temporariamente se tornar parte espírito você mesmo. Uma vez por rodada, você pode Sustentar para sincronizar seu espírito com o do seu familiar. Você permanece sincronizado com seu espírito até o início do seu próximo turno. Enquanto sincronizado, sempre que você Golpear ou Conjurar uma Magia sem duração que cause dano, você causa dano de espírito em vez do seu dano normal.</p>"
+    },
+    "ydFvK9kNlZQ5WINe": {
+      "name": "Transformação em Tatuagem",
+      "sourceHash": "85746a165456fa24e71dd3235f0227aa21597682",
+      "description": "<p>Seu familiar pode se transformar numa tatuagem que você carrega na pele. Quando transformado em tatuagem, o familiar parece uma versão colorida e estilizada de si mesmo e não pode agir exceto para voltar a ser um familiar. Ele não é afetado por efeitos de área e deve ser alvejado separadamente para ser afetado, o que exige saber que ele é uma criatura. Isso significa que você e seus aliados podem curar ou ajudar o familiar enquanto a maioria dos inimigos permanece sem saber de sua verdadeira natureza. Criaturas devem tentar um teste de @Check[perception|dc:20|showDC:all] para Procurar para perceber que uma tatuagem é de fato um familiar (o que poucos inimigos tentarão). Seu familiar ainda pode comunicar seus sentimentos empaticamente. Transformar-se em tatuagem ou voltar à forma de familiar é uma atividade de 1 minuto com o traço concentração.</p>"
+    },
+    "MxqIobI3vIP9CLGE": {
+      "name": "Exibição de Ameaça",
+      "sourceHash": "7c7bea9e6b7ce4615376660511baf9de7e9c1857",
+      "description": "<p>Seu familiar ajuda você a transmitir ameaças sem palavras através de linguagem corporal.</p> <p>Sempre que você tentar um teste de Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] uma criatura, se seu familiar estiver dentro de 30 pés do seu alvo e puder agir, ele o acompanha com rosnados, sibilos ou eriçando os pelos.</p> <p>Se ele puder fazê-lo, você não sofre a penalidade normal de -4 no teste de Intimidação caso seu alvo não entenda o idioma que você está falando.</p>"
+    },
+    "Or9TnU1OdKXLFi0S": {
+      "name": "Porta-Ferramentas",
+      "sourceHash": "9dd8f2ac6021ead4f13e26735093c360a829d1a5",
+      "description": "<p>Seu familiar pode carregar um kit de ferramentas de até Carga leve. Desde que seu familiar esteja adjacente a você, você pode sacar e guardar as ferramentas como parte da ação que as usa, como se você as estivesse vestindo. Seu familiar deve ter a habilidade destreza manual para selecionar isto.</p>"
+    },
+    "phS6jA9srZpKyxAY": {
+      "name": "Telepatia por Toque",
+      "sourceHash": "018d767f26af37f3aa0bc9cb099e2d0b16e3472a",
+      "description": "<p>Seu familiar pode se comunicar telepaticamente com você via toque. Se ele também tem a habilidade fala, ele pode se comunicar telepaticamente via toque com qualquer criatura se elas compartilharem um idioma.</p>"
+    },
+    "dV6DgwvgABGTs07a": {
+      "name": "Resistente",
+      "sourceHash": "154c614ba00e67a542eb72d8edb73703e34a2797",
+      "description": "<p>Os PV máximos do seu familiar aumentam em 2 por nível.</p>"
+    },
+    "Wvxbr1lCxnlYah5D": {
+      "name": "Tremorsentido",
+      "sourceHash": "8ca958449445953cb00c98908433934a8fa5a4b2",
+      "description": "<p>Seu familiar percebe agudamente quaisquer vibrações que trafegam por uma superfície. Ele ganha tremorsentido impreciso com alcance de 30 pés.</p>"
+    },
+    "pnSw4D2rlHCqVUzB": {
+      "name": "Assistente Pessoal",
+      "sourceHash": "61ba7db6b59f090e4e2e884c789ae8262c6e5cf9",
+      "description": "<p>Você pode comandar seu familiar para lhe entregar itens de forma mais eficiente. Seu familiar não usa suas 2 ações imediatamente ao seu comando. Em vez disso, até duas vezes antes do fim do seu turno, você pode fazer seu familiar Interagir para pegar um item de Carga leve ou desprezível que você está vestindo e colocá-lo em uma de suas mãos livres. O familiar não pode usar esta habilidade para pegar itens guardados. Se o familiar tem um número diferente de ações, ele pode pegar um item para cada ação que tem quando comandado dessa forma.</p>"
+    },
+    "YR9NJxwQDTuTSzvA": {
+      "name": "Explosão Verdejante",
+      "sourceHash": "10f97f0297005ed3c5b104050ea788e022ed8c85",
+      "description": "<p><strong>Pré-requisitos</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar Secrets]</p> <p>Quando seu familiar morre, ele libera sua energia primal para conjurar a versão de 3 ações de @UUID[Compendium.pf2e.spells-srd.Item.Heal], intensificada para uma graduação 1 abaixo do seu espaço de magia de maior graduação. A magia <em>curar</em> ganha um bônus de status igual ao dobro da graduação da magia aos Pontos de Vida que ela restaura a plantas. Você deve ser capaz de conjurar magias de 2ª graduação usando espaços de magia para selecionar esta habilidade de familiar.</p>"
+    },
+    "Ff06CLMhU8BRqTto": {
+      "name": "Forma Versátil",
+      "sourceHash": "d1a7c0531854e69dc71e95819db3fb7affe65428",
+      "description": "<p>O corpo fabricado do seu familiar permite que você faça ajustes nele quando necessário. Uma vez por dia, você pode gastar 10 minutos para trocar uma habilidade de familiar ou de mestre que seu familiar possui. Para selecionar esta habilidade, seu familiar deve ser um constructo, e você deve ser pelo menos treinado em Ofício.</p>"
+    },
+    "t0M64Qel3bogTdAu": {
+      "name": "Sentido de Ondas",
+      "sourceHash": "4903d6c90f940259ced560d9fa1993e6c4fe9cbe",
+      "description": "<p>Seu familiar pode sentir vibrações na água. Ele ganha sentido de ondas impreciso com alcance de 30 pés.</p>"
+    }
+  }
+}
