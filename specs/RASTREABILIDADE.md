@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1340 requisitos [MVP]** definidos nas 34 specs. Os [V2] ficam de fora
+Escopo: os **1373 requisitos [MVP]** definidos nas 35 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 237 | 18% |
+| Citados por algum teste | 243 | 18% |
 | Citados só por código de produção | 326 | 24% |
-| Sem nenhuma citação | 777 | 58% |
-| **Total [MVP]** | **1340** | |
+| Sem nenhuma citação | 804 | 59% |
+| **Total [MVP]** | **1373** | |
 
 ## Por spec
 
@@ -46,13 +46,14 @@ porque ainda não foram prometidos para nenhum marco.
 | [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
 | [20](20-assets-e-midia.md) | 50 | 7 | 11 | 32 | 14% |
 | [21](21-seguranca.md) | 44 | 6 | 13 | 25 | 14% |
-| [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
+| [22](22-instalacao-e-distribuicao.md) | 41 | 19 | 8 | 14 | 46% |
 | [23](23-acessibilidade-e-dispositivos.md) | 45 | 0 | 0 | 45 | 0% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
-| [28](28-hub-do-jogador.md) | 48 | 0 | 0 | 48 | 0% |
+| [28](28-hub-do-jogador.md) | 48 | 4 | 1 | 43 | 8% |
 | [29](29-pets-companions-familiars.md) | 16 | 3 | 6 | 7 | 19% |
 | [32](32-minimapa-tatico.md) | 14 | 7 | 2 | 5 | 50% |
 | [34](34-mapa-de-regiao.md) | 16 | 0 | 0 | 16 | 0% |
+| [35](35-avatar-do-personagem.md) | 33 | 1 | 0 | 32 | 3% |

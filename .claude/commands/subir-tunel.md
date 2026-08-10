@@ -25,6 +25,7 @@ projeto (seção Convenções).
    - Confirmar que o mundo existe: `node dist/cli/index.js world list` (a partir de `packages/server`) e checar o slug na coluna `SLUG`.
 
 2. **Checar se a porta já está ocupada**
+
    ```bash
    netstat -ano | grep ":<PORTA>" | grep LISTENING
    ```
@@ -40,6 +41,7 @@ projeto (seção Convenções).
      - Se for **outro mundo** ou processo não identificado como Fusion: **parar e perguntar ao usuário** antes de derrubar — pode ser sessão de jogo de outra mesa.
 
 3. **Subir o servidor com `--tunnel`** (a partir de `packages/server`, em background, log num arquivo do scratchpad da sessão)
+
    ```bash
    SCRATCH="<scratchpad da sessão>"
    LOG="$SCRATCH/fusion-server-tunnel.log"
@@ -48,6 +50,7 @@ projeto (seção Convenções).
    nohup node dist/cli/index.js serve --port <PORTA> --world <MUNDO> --tunnel --no-open > "$LOG" 2>&1 &
    disown
    ```
+
    Use `<PORTA>` = `33001` por padrão (ver "por que 33001" acima), não `33000`.
    - Se o `dist/` estiver desatualizado em relação ao código-fonte (checar `git status`/data de build vs. últimos commits em `packages/server/src`), rodar antes:
      ```bash
@@ -55,6 +58,7 @@ projeto (seção Convenções).
      ```
 
 4. **Esperar a URL pública aparecer no log** (poll simples, timeout ~30s)
+
    ```bash
    for i in $(seq 1 15); do
      grep -q "Cloudflare quick tunnel is up" "$LOG" && break
@@ -66,10 +70,12 @@ projeto (seção Convenções).
    - Se não aparecer em ~30s: ler o log inteiro — normalmente é `cloudflared.exe` não encontrado/baixado ainda (primeira vez baixa sob demanda, pode levar mais) ou porta já ocupada.
 
 5. **Checagem de saúde (local + público)**
+
    ```bash
    curl -s -o /dev/null -m 8 -w "local:%{http_code}\n" http://localhost:<PORTA>/health
    curl -s -o /dev/null -m 8 -w "publico:%{http_code}\n" "<TUNNEL_URL>/health"
    ```
+
    Ambos devem responder `200`.
 
 6. **Reportar ao usuário**

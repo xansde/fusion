@@ -55,8 +55,8 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 30  | [Multiclasse por Níveis](30-multiclasse-por-niveis.md)               | Regra variante: níveis de classe divididos     |
 | 31  | [Base Canônica de Conteúdo](31-base-canonica-de-conteudo.md)         | Segunda fonte, eixos de sub-escolha, portões   |
 | 32  | [Minimapa Tático](32-minimapa-tatico.md)                             | Overview da cena ativa, navegação de câmera    |
-| 33  | [Avatar do Personagem](33-avatar-do-personagem.md)                   | Boneco LPC montável, canto da mesa, acervo pin |
 | 34  | [Mapa de Região](34-mapa-de-regiao.md)                               | Exploração em km, POIs reveláveis, overlays    |
+| 35  | [Avatar do Personagem](35-avatar-do-personagem.md)                   | Boneco LPC montável, canto da mesa, acervo pin |
 
 ## Níveis
 
@@ -112,6 +112,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-BC-`   | [31](31-base-canonica-de-conteudo.md)     | Base canônica de conteúdo        |
 | `REQ-MMT-`  | [32](32-minimapa-tatico.md)               | Minimapa tático                  |
 | `REQ-MREG-` | [34](34-mapa-de-regiao.md)                | Mapa de região                   |
+| `REQ-AVT-`  | [35](35-avatar-do-personagem.md)          | Avatar do personagem             |
 
 <!-- prefixos:end -->
 
