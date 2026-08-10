@@ -840,6 +840,21 @@
       tokenBinding: binding,
     });
   }
+
+  /**
+   * The EFFECTIVE actor's `system` for a token (base + delta, REQ-CNV-091) —
+   * what the token config dialog discovers its bar dropdown options from.
+   * `undefined` when the token has no actor: the dialog degrades to
+   * "no bar" plus whatever path the token already had saved.
+   */
+  function effectiveActorSystemOf(token: TokenDocument): unknown {
+    const sceneId = activeSceneState.scene?._id;
+    if (!sceneId) return undefined;
+    const binding = tokenActorBindingFor(sceneId, token);
+    if (!binding) return undefined;
+    const doc = readEffectiveActorDoc(worldMirror, binding.actorId, binding);
+    return doc?.["system"];
+  }
 </script>
 
 <!-- ========================================================================
@@ -1015,6 +1030,7 @@
       sceneId={activeSceneState.scene._id}
       token={configuringToken}
       socket={getSocket()!}
+      actorSystem={effectiveActorSystemOf(configuringToken)}
       onOpenSheet={abrirFichaDoToken}
       onClose={() => { configuringToken = null; }}
       onSuccess={() => { configuringToken = null; }}

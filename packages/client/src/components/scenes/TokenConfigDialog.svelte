@@ -34,6 +34,7 @@
     TOKEN_DISPLAY_MODES,
     tokenDisplayBars,
   } from "../../lib/canvas/tokens/token-bars.js";
+  import { barAttributeOptions } from "../../lib/scenes/barAttributeOptions.js";
   import { t } from "../../lib/i18n/i18n.js";
   import FilePicker from "../assets/FilePicker.svelte";
   import ActorPortrait from "../common/ActorPortrait.svelte";
@@ -48,6 +49,7 @@
     onSuccess,
     socket,
     onOpenSheet,
+    actorSystem,
   }: {
     sceneId: string;
     token: TokenDocument;
@@ -60,6 +62,13 @@
      * button (a dialog that cannot open a sheet is still a usable dialog).
      */
     onOpenSheet?: (token: TokenDocument) => void;
+    /**
+     * The EFFECTIVE actor's `system` blob (base + delta, REQ-CNV-091), used
+     * only to discover which resources the bar dropdowns can offer. Absent —
+     * no actor, no binding — the dropdowns still work: "no bar" plus whatever
+     * the token already had saved.
+     */
+    actorSystem?: unknown;
   } = $props();
 
   // ---- State ----
@@ -101,11 +110,14 @@
     (token as any).light?.intensity ?? 1,
   );
 
-  // Resource bars (REQ-CNV-089 / REQ-CNV-090). The attribute is a free dotted
-  // path over the actor's `system` — an unresolvable one simply draws no bar.
+  // Resource bars (REQ-CNV-089 / REQ-CNV-090). The attribute is a dotted path
+  // over the actor's `system`, but the GM picks it from resources DISCOVERED
+  // on the effective actor, under legible names — never types the path.
   let bar1Attribute = $state<string>(token.bar1?.attribute ?? "");
   let bar2Attribute = $state<string>(token.bar2?.attribute ?? "");
   let displayBars = $state<TokenDisplayMode>(tokenDisplayBars(token));
+  const bar1Options = $derived(barAttributeOptions(actorSystem, bar1Attribute, t));
+  const bar2Options = $derived(barAttributeOptions(actorSystem, bar2Attribute, t));
 
   // Actor link (REQ-DOC-031). Read defensively for the same reason
   // `tokenDisplayBars` is: tokens persisted before this field existed carry
@@ -284,25 +296,19 @@
       <div class="field-row">
         <div class="field">
           <label class="field__label" for="tok-bar1">{t("FUSION.Token.Config.Bar1Attribute")}</label>
-          <input
-            id="tok-bar1"
-            class="field__input"
-            type="text"
-            bind:value={bar1Attribute}
-            placeholder="attributes.hp"
-            disabled={submitting}
-          />
+          <select id="tok-bar1" class="field__select" bind:value={bar1Attribute} disabled={submitting}>
+            {#each bar1Options as option (option.value)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
         </div>
         <div class="field">
           <label class="field__label" for="tok-bar2">{t("FUSION.Token.Config.Bar2Attribute")}</label>
-          <input
-            id="tok-bar2"
-            class="field__input"
-            type="text"
-            bind:value={bar2Attribute}
-            placeholder="resources.focus"
-            disabled={submitting}
-          />
+          <select id="tok-bar2" class="field__select" bind:value={bar2Attribute} disabled={submitting}>
+            {#each bar2Options as option (option.value)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
         </div>
       </div>
 

@@ -232,7 +232,9 @@ describe("TokenDocumentSchema", () => {
       expect(d.elevation).toBe(0);
       expect(d.hidden).toBe(false);
       expect(d.disposition).toBe(0);
-      expect(d.bar1.attribute).toBeNull();
+      // REQ-CNV-090: bar 1 tracks HP out of the box — the table sees life
+      // totals without the GM configuring every token by hand.
+      expect(d.bar1.attribute).toBe("attributes.hp");
       expect(d.bar2.attribute).toBeNull();
       // REQ-CNV-089: a token whose bars nobody configured still declares who
       // may see them, and the answer defaults to "whoever observes the actor".
