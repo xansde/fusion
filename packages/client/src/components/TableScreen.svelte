@@ -71,6 +71,11 @@
   import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
   import { makeSendOpFn, sendOp } from "../lib/docs/sendOp.js";
+  import {
+    makeTokenActorSendOpFn,
+    readEffectiveActorDoc,
+    tokenActorBindingFor,
+  } from "../lib/scenes/tokenActor.js";
   import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
@@ -793,6 +798,48 @@
       sendOpFn: makeSendOpFn(() => getSocket()),
     });
   }
+
+  /**
+   * Open the sheet of the actor a TOKEN plays with (REQ-DOC-032/033).
+   *
+   * Two things differ from `abrirFichaDoAvatar`, and both matter for an
+   * UNLINKED token — six skeletons out of one "Esqueleto" Actor:
+   *
+   *   - the document shown is the reconstructed TokenActor (base + that
+   *     token's `actorDelta`), so skeleton 3 shows skeleton 3's hit points;
+   *   - the write path is wrapped so an edit becomes `token:updateActor` and
+   *     lands on that token's delta. Without the wrapper, editing one
+   *     skeleton's HP would edit the Actor, i.e. all six.
+   *
+   * Ownership still comes from the BASE Actor: a delta says what a token
+   * holds, never who may look at it.
+   */
+  function abrirFichaDoToken(token: TokenDocument): void {
+    const sceneId = activeSceneState.scene?._id;
+    if (!sceneId) return;
+
+    const binding = tokenActorBindingFor(sceneId, token);
+    if (!binding) return;
+
+    const base = worldMirror.getDoc<Record<string, unknown>>("Actor", binding.actorId);
+    if (!base) return;
+
+    const doc = readEffectiveActorDoc(worldMirror, binding.actorId, binding);
+    if (!doc) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = base["ownership"] as Record<string, number> | undefined;
+
+    openActorSheet(binding.actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeTokenActorSendOpFn(makeSendOpFn(() => getSocket()), binding),
+      tokenBinding: binding,
+    });
+  }
 </script>
 
 <!-- ========================================================================
@@ -968,6 +1015,7 @@
       sceneId={activeSceneState.scene._id}
       token={configuringToken}
       socket={getSocket()!}
+      onOpenSheet={abrirFichaDoToken}
       onClose={() => { configuringToken = null; }}
       onSuccess={() => { configuringToken = null; }}
     />

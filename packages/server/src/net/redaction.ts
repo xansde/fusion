@@ -30,6 +30,7 @@
 
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../documents/ownership.js";
 import type { Envelope, Ownership } from "@fusion/shared";
+import { isActorDeltaEmpty } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Ownership-gated emission (REQ-NET-024, REQ-NET-096, DEC-CNV-15)
@@ -376,6 +377,55 @@ export function stripHiddenTiles(scene: Record<string, unknown>): Record<string,
 }
 
 /** Return true when a Scene-shaped doc carries at least one hidden tile. */
+/**
+ * Empty every token's `actorDelta` in a Scene bound for a non-privileged
+ * socket — REQ-DOC-062, protecting the invariant REQ-NET-096 states.
+ *
+ * Why this exists at all: REQ-NET-096 keeps an `Actor` away from anyone below
+ * LIMITED on it, because the Actor is what carries `system.attributes.hp`.
+ * An unlinked token's hit points do NOT live on that Actor — they live in
+ * `Token.actorDelta`, inside a Scene, and Scenes are shared world state that
+ * every player receives. Shipping the delta as authored would hand every
+ * player the current hit points of every monster on the map, which is exactly
+ * the leak the Actor gate was built to close, re-opened one document over.
+ *
+ * The cut is by ROLE, not by ownership of the base Actor, and that is a
+ * deliberate MVP simplification with a known cost: a player who owns an
+ * unlinked token's Actor (a familiar the GM placed unlinked) receives no delta
+ * either and reads the base Actor's numbers. Resolving it per viewer needs the
+ * base Actor's ownership map, which means threading an Actor lookup through
+ * all five Scene emitters; the fail-closed version ships first because the
+ * failure mode of the other order is a leak, not a stale number.
+ *
+ * Returns the SAME reference when no token carried a delta, so the callers'
+ * "nothing to redact" fast path keeps working.
+ */
+export function stripTokenActorDeltas(scene: Record<string, unknown>): Record<string, unknown> {
+  const rawTokens = scene["tokens"];
+  if (!Array.isArray(rawTokens)) return scene;
+
+  const tokens = rawTokens as Record<string, unknown>[];
+  if (!tokens.some((t) => !isActorDeltaEmpty(t["actorDelta"]))) return scene;
+
+  return {
+    ...scene,
+    tokens: tokens.map((t) => (isActorDeltaEmpty(t["actorDelta"]) ? t : { ...t, actorDelta: {} })),
+  };
+}
+
+/** Does this Scene-shaped document carry at least one non-empty `actorDelta`? */
+export function sceneHasTokenActorDeltas(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const tokens = (doc as Record<string, unknown>)["tokens"];
+  if (!Array.isArray(tokens)) return false;
+  return (tokens as Record<string, unknown>[]).some((t) => !isActorDeltaEmpty(t["actorDelta"]));
+}
+
+/** Does any Scene in this broadcast payload carry a non-empty `actorDelta`? */
+export function scenePayloadHasTokenActorDeltas(documents: Record<string, unknown>[]): boolean {
+  return documents.some((doc) => sceneHasTokenActorDeltas(doc));
+}
+
 export function sceneHasHiddenTiles(doc: unknown): boolean {
   if (!doc || typeof doc !== "object") return false;
   const tiles = (doc as Record<string, unknown>)["tiles"];
@@ -511,17 +561,23 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasHiddenTiles(d));
   const parentNeedsHiddenTileRedaction = sceneHasHiddenTiles(parent);
 
+  const documentsNeedActorDeltaRedaction =
+    Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasTokenActorDeltas(d));
+  const parentNeedsActorDeltaRedaction = sceneHasTokenActorDeltas(parent);
+
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
   const documentsNeedsRedaction =
     documentsNeedHiddenTokenRedaction ||
     documentsNeedSecretDoorRedaction ||
-    documentsNeedHiddenTileRedaction;
+    documentsNeedHiddenTileRedaction ||
+    documentsNeedActorDeltaRedaction;
   const parentNeedsRedaction =
     parentNeedsHiddenTokenRedaction ||
     parentNeedsSecretDoorRedaction ||
-    parentNeedsHiddenTileRedaction;
+    parentNeedsHiddenTileRedaction ||
+    parentNeedsActorDeltaRedaction;
 
   if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
     // Nothing to redact — return the original ack untouched.
@@ -535,6 +591,7 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
       let redacted = d;
       if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+      if (Array.isArray(redacted["tokens"])) redacted = stripTokenActorDeltas(redacted);
       if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
       if (Array.isArray(redacted["tiles"])) redacted = stripHiddenTiles(redacted);
       return redacted;
@@ -544,6 +601,7 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
+    if (parentNeedsActorDeltaRedaction) redactedParent = stripTokenActorDeltas(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
     if (parentNeedsHiddenTileRedaction) redactedParent = stripHiddenTiles(redactedParent);
     newBody["parent"] = redactedParent;

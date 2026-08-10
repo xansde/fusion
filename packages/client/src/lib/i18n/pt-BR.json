@@ -207,6 +207,12 @@
   "FUSION.Token.Config.DisplayBars.hoverObserver": "Quem observa, ao passar o cursor",
   "FUSION.Token.Config.DisplayBars.hoverAll": "Todos, ao passar o cursor",
   "FUSION.Token.Config.DisplayBars.always": "Todos, sempre",
+  "FUSION.Token.Config.ActorLink": "Vínculo com a ficha",
+  "FUSION.Token.Config.ActorLink.linked": "Vincular à ficha do ator (todos os tokens compartilham a mesma ficha)",
+  "FUSION.Token.Config.ActorLink.unlinked": "Usar ficha própria para este token (vida e condições só deste token)",
+  "FUSION.Token.Config.ActorLink.hint": "Com ficha própria, este token guarda as diferenças dele em relação ao ator base. É o que permite seis esqueletos do mesmo ator com pontos de vida separados.",
+  "FUSION.Token.Config.ActorLink.noActor": "Este token não aponta para nenhum ator, então não há ficha para vincular.",
+  "FUSION.Token.Config.OpenSheet": "Abrir ficha deste token",
 
   "FUSION.Window.Close": "Fechar",
   "FUSION.Window.Minimize": "Minimizar",

@@ -15,6 +15,8 @@
   import { NpcSheetVM } from "$lib/sheets/pf2e/npcSheetVM.js";
   import type { DocUpdatePayload, RollCheckPayload } from "$lib/sheets/pf2e/npcSheetVM.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
+  import { subscribeEffectiveActorDoc } from "$lib/scenes/tokenActor.js";
+  import type { TokenActorBinding } from "$lib/scenes/tokenActor.js";
   import { t } from "$lib/i18n/i18n.js";
   import ActorPortrait from "../../common/ActorPortrait.svelte";
 
@@ -29,6 +31,13 @@
     isGm: boolean;
     worldId?: string;
     sendOpFn?: (op: RollCheckPayload | DocUpdatePayload) => void;
+    /**
+     * Set when this sheet was opened FROM a token (REQ-DOC-033). The actor it
+     * shows is then the TokenActor — base Actor plus that token's own
+     * `actorDelta` — and its edits are routed to the token by the caller's
+     * `sendOpFn` (see `makeTokenActorSendOpFn`).
+     */
+    tokenBinding?: TokenActorBinding | null;
   }
 
   let {
@@ -38,6 +47,7 @@
     isGm,
     worldId = "",
     sendOpFn = () => {},
+    tokenBinding = null,
   }: Props = $props();
 
   // ---------------------------------------------------------------------------
@@ -46,17 +56,21 @@
   // without this the sheet renders a frozen snapshot and never reacts to
   // doc:update broadcasts. liveDoc is refreshed from worldMirror on every
   // Actor batch change; vm is re-derived from liveDoc.
+  //
+  // REQ-DOC-033: when a token is bound, "the current document" is the
+  // reconstructed TokenActor, and it changes on SCENE ops as well as on Actor
+  // ops — an unlinked token's hit points live inside the Scene and emit no
+  // Actor op at all. `subscribeEffectiveActorDoc` owns both subscriptions so
+  // this component holds no second copy of the reconstruction.
   // ---------------------------------------------------------------------------
 
   let liveDoc = $state(doc);
 
-  $effect(() => {
-    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
-      const fresh = docs.find((d) => (d as { _id?: unknown })._id === actorId);
-      if (fresh) liveDoc = fresh;
-    });
-    return unsub;
-  });
+  $effect(() =>
+    subscribeEffectiveActorDoc(worldMirror, actorId, tokenBinding, (fresh) => {
+      liveDoc = fresh;
+    }),
+  );
 
   // ---------------------------------------------------------------------------
   // View-model

@@ -20,6 +20,7 @@ import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
 import {
   stripHiddenTokens,
+  stripTokenActorDeltas,
   redactSecretDoors,
   stripHiddenTiles,
   stripHiddenCombatantsFromCombat,
@@ -189,6 +190,7 @@ function filterOpsForRole(ops: Envelope[], userId: string | null, role: number):
     // Apply hidden-token, secret-door and hidden-tile redaction.
     const stripped = (documents as Record<string, unknown>[]).map((doc) => {
       let redacted = stripHiddenTokens(doc);
+      redacted = stripTokenActorDeltas(redacted);
       redacted = redactSecretDoors(redacted);
       redacted = stripHiddenTiles(redacted);
       return redacted;
@@ -309,6 +311,10 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         // multi-image scene).
         visible = all.map((scene) => {
           let redacted = stripHiddenTokens(scene);
+          // An unlinked token's hit points live in `actorDelta`, inside the
+          // Scene every player receives — the Actor gate (REQ-NET-096) does
+          // not cover them (REQ-DOC-062). See stripTokenActorDeltas.
+          redacted = stripTokenActorDeltas(redacted);
           redacted = redactSecretDoors(redacted);
           redacted = stripHiddenTiles(redacted);
           return redacted;

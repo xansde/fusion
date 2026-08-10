@@ -275,6 +275,34 @@ graciosamente.
   citam).
 - **Racional:** robustez a dados parciais (importação, deleção) e simplicidade.
 
+### DEC-DOC-12 — Default de `actorLink` é por momento: leitura conservadora, criação por subtipo
+
+`actorLink` responde a **duas** perguntas diferentes e elas têm respostas
+opostas. Na **leitura**, o default do schema é `true`: todo token já persistido
+foi salvo sem o campo, e qualquer outro default reinterpretaria mundos inteiros
+de uma vez — seis tokens que sempre compartilharam uma ficha passariam a ter
+seis pools de pontos de vida sem ninguém ter pedido. Na **criação**, o default é
+`false` para atores `npc` (REQ-DOC-061): é o caso dos seis esqueletos, e exigir
+que o GM marque uma caixa por token é como uma mesa descobre, no meio do
+combate, que matar um matou os seis.
+
+- **Rejeitado: um único default para os dois momentos.** Conservador na criação
+  (`true` sempre) transforma a feature em opt-in invisível; agressivo na leitura
+  (`false` sempre) muda o significado de dados já gravados.
+- **Consequência de redação (REQ-DOC-062):** o corte de `Actor` por ownership
+  (REQ-NET-096) protege os pontos de vida porque eles vivem no `Actor`. Os de um
+  token unlinked **não vivem lá** — vivem no `actorDelta`, dentro da `Scene`,
+  que é estado de mundo compartilhado. O `actorDelta` é portanto redigido para
+  usuários não privilegiados. O corte é **por papel**, não por ownership do
+  `Actor` base: resolver por espectador exigiria consultar o `Actor` em todos os
+  emissores de `Scene`, e a versão fail-closed entra primeiro porque o modo de
+  falha da ordem inversa é vazamento, não número desatualizado. O custo
+  conhecido é que o dono de um ator `npc` (um familiar posicionado unlinked) lê
+  os números do ator base, não os do token — refinar isso é trabalho de V2.
+- **Racional:** o campo é uma decisão do GM sobre a mesa; o schema não pode
+  tomá-la retroativamente, e o servidor deve tomá-la bem no momento em que o
+  token nasce.
+
 ## Requisitos funcionais
 
 > Tags: **[MVP]** alinhado à definição de MVP global; **[V2]** pós-MVP.
@@ -450,10 +478,34 @@ embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
   `effects` quando presentes no delta).
 - **REQ-DOC-034** [MVP] Mutações no TokenActor de um token unlinked DEVEM ser
   traduzidas pelo servidor em updates do `Token.actorDelta` (e disparar o CRUD do
-  `Token`), nunca do `Actor` base.
+  `Token`), nunca do `Actor` base. Essa operação é a **única rota de autoria** do
+  `actorDelta` para usuário não privilegiado: o servidor DEVE recusar um
+  `doc:update` que escreva `actorDelta` diretamente no `Token` vindo de quem não é
+  GM/Assistant. Sem isso a rota dedicada pode ser contornada, e com ela as três
+  coisas que só ela faz — recusar o que o merge patch não representa
+  (`06-canvas-e-renderizacao.md`, REQ-CNV-094), barrar `ownership` (REQ-USR-015) e
+  recomputar `system.derived` no servidor. A recusa DEVE valer no **servidor**, não
+  só no cliente: o cliente recusa cedo para dar sinal ao GM, mas quem decide é a
+  autoridade, e o mesmo predicado DEVE ser compartilhado pelos dois lados em vez de
+  duplicado.
 - **REQ-DOC-035** [V2] O `actorDelta` PODE evoluir para diff item-granular
   (herança parcial de itens não modificados do `Actor` base), preservando
   compatibilidade do formato armazenado.
+- **REQ-DOC-061** [MVP] Ao **criar** um `Token` sem `actorLink` explícito, o
+  servidor DEVE decidir o valor pelo subtipo do `Actor` base: `npc` nasce
+  `actorLink: false` (unlinked), qualquer outro subtipo — e token sem ator, ou
+  com ator não resolvível — nasce `actorLink: true`. Um `actorLink` explícito no
+  payload sempre prevalece. Isto é a regra de **criação**; o default do schema
+  (`true`) governa a **leitura** de tokens já persistidos, que não têm o campo, e
+  não pode mudar sem reinterpretar todo mundo já salvo (ver DEC-DOC-12).
+- **REQ-DOC-062** [MVP] O `actorDelta` DEVE ser redigido do payload de `Scene`
+  enviado a usuários não privilegiados, no mesmo módulo único de redação usado
+  por hidden tokens e secret doors, cobrindo os quatro caminhos de emissão
+  (snapshot, broadcast, replay de delta e eco do ack) e também os broadcasts de
+  `Scene` originados fora do CRUD (paredes, luzes, portas). Sem isso, o corte de
+  `Actor` por ownership (REQ-NET-096) é contornável: os pontos de vida de um
+  token unlinked não estão no `Actor`, estão dentro da `Scene` que todo jogador
+  recebe.
 
 ### Ciclo CRUD, diffs, eventos e hooks
 

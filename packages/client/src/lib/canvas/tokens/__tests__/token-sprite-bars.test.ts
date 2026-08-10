@@ -47,8 +47,8 @@ function contextFor(
 ): TokenBarContext {
   return {
     privileged,
-    resolve: (actorId) => {
-      if (!actorId) return null;
+    resolve: (token) => {
+      if (!token.actorId) return null;
       return { system: hp ? { attributes: { hp } } : {}, level };
     },
   };
@@ -239,8 +239,8 @@ describe("TokenSprite bars — repaint (the overlay must not freeze)", () => {
   it("repaints when the token is reassigned to another actor via update()", () => {
     const ctx: TokenBarContext = {
       privileged: true,
-      resolve: (actorId) =>
-        actorId === "act0000000000001"
+      resolve: (token) =>
+        token.actorId === "act0000000000001"
           ? { system: { attributes: { hp: { value: 40, max: 40 } } }, level: OwnershipLevel.OWNER }
           : { system: { attributes: { hp: { value: 10, max: 40 } } }, level: OwnershipLevel.OWNER },
     };

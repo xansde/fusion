@@ -62,6 +62,7 @@ import {
 import {
   resolveTokenBarValue,
   shouldShowTokenBars,
+  tokenActorFingerprint,
   tokenDisplayBars,
   type TokenBarContext,
   type TokenActorView,
@@ -386,7 +387,11 @@ export class TokenSprite {
       newDoc.bar1.attribute !== oldDoc.bar1.attribute ||
       newDoc.bar2.attribute !== oldDoc.bar2.attribute ||
       tokenDisplayBars(newDoc) !== tokenDisplayBars(oldDoc) ||
-      newDoc.actorId !== oldDoc.actorId;
+      newDoc.actorId !== oldDoc.actorId ||
+      // REQ-CNV-092 / REQ-DOC-033: an unlinked token's hit points live in its
+      // OWN document, so damage to it arrives here and nowhere else — no Actor
+      // op is emitted and the Actor subscription in TokenLayer never fires.
+      tokenActorFingerprint(newDoc) !== tokenActorFingerprint(oldDoc);
 
     if (visualChanged || xChanged) {
       this._drawRing(pixelW, pixelH);
@@ -634,7 +639,7 @@ export class TokenSprite {
    * viewer is not allowed to read them at this moment.
    */
   private _drawBars(doc: TokenDocument, pixelW: number, pixelH: number): void {
-    const actor = this._barContext?.resolve(doc.actorId) ?? null;
+    const actor = this._barContext?.resolve(doc) ?? null;
     const allowed = shouldShowTokenBars({
       mode: tokenDisplayBars(doc),
       level: actor?.level ?? 0,
