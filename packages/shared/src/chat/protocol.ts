@@ -139,6 +139,28 @@ export const ChatCardActionPayloadSchema = z.object({
 export type ChatCardActionPayload = z.infer<typeof ChatCardActionPayloadSchema>;
 
 // ---------------------------------------------------------------------------
+// chat:reveal — client (GM) → server
+// ---------------------------------------------------------------------------
+
+/**
+ * Ask the server to make an already-sent private message public.
+ * REQ-CHT-045 / DEC-CHT-10.
+ *
+ * The client sends only WHICH message: the server owns the decision (privileged
+ * role required, REQ-CHT-048) and the mutation (`whisper=[]`, `blind=false`,
+ * plus the audit stamp). Nothing about the roll travels back up — revealing
+ * never re-rolls and never exposes the seed (REQ-CHT-049).
+ */
+export const ChatRevealPayloadSchema = z.object({
+  /** World the message belongs to; validated against the socket's world. */
+  worldId: z.string(),
+  /** `_id` of the ChatMessage to reveal. */
+  messageId: z.string().min(1).max(120),
+});
+
+export type ChatRevealPayload = z.infer<typeof ChatRevealPayloadSchema>;
+
+// ---------------------------------------------------------------------------
 // Error codes specific to chat
 // ---------------------------------------------------------------------------
 

@@ -221,6 +221,19 @@ export const PlaylistSchema = BaseDocumentSchema.extend({
 
 /**
  * ChatMessage — typed (subtype selects system schema).
+ *
+ * WARNING — this is a SECOND, DIVERGENT copy of the shared `ChatMessageSchema`
+ * (`@fusion/shared`, packages/shared/src/chat/types.ts). It carries fields the
+ * shared one does not (`author`, `style`, `flavor`, `system`) and lacks fields
+ * the shared one requires (`worldId`, a typed `speaker`). Because `.extend()`
+ * is used WITHOUT `.passthrough()`, any field missing here is silently dropped
+ * on every write that goes through the DocumentStore.
+ *
+ * That is why the chat subsystem does NOT use the DocumentStore for messages:
+ * chat-handler.ts and etmos/conjuracao-handlers.ts write `chat_messages` with
+ * raw SQL against the shared shape. Fields added to the shared schema are
+ * mirrored here anyway, so a future DocumentStore write cannot quietly erase
+ * them (see CLAUDE.md — this is exactly how `grid` disappeared from scenes).
  */
 export const ChatMessageSchema = BaseDocumentSchema.extend({
   type: z.string().default("base"),
@@ -233,6 +246,10 @@ export const ChatMessageSchema = BaseDocumentSchema.extend({
   rolls: z.array(z.unknown()).default(() => []),
   whisper: z.array(z.string()).default(() => []),
   blind: z.boolean().default(false),
+  /** GM reveal audit stamp — REQ-CHT-047. Absent = never revealed. */
+  revealedAt: z.number().int().nonnegative().optional(),
+  /** GM reveal audit stamp — REQ-CHT-047. Absent = never revealed. */
+  revealedBy: z.string().optional(),
   sound: z.string().nullable().optional(),
   system: z.record(z.string(), z.unknown()).default(() => ({})),
 });
