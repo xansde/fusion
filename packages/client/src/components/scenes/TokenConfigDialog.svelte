@@ -3,18 +3,29 @@
    * TokenConfigDialog.svelte — modal dialog for configuring token vision and light.
    *
    * Spec: 07-visao-iluminacao-fog.md REQ-VIS-060..062, REQ-VIS-040/041
+   *       06-canvas-e-renderizacao.md REQ-CNV-089/090, DEC-CNV-15 (resource bars)
    *
    * Fields:
    *   Vision section: enabled, range (grid units), angle, visionMode
    *   Light section: enabled, bright (grid units), dim (grid units), color, intensity
+   *   Bars section: bar1/bar2 attribute paths, displayBars level
    *
-   * Sends a doc:update op to update the token's vision/light subdocuments in the scene.
+   * Saving goes through `tokenController.updateToken`, i.e. the EMBEDDED
+   * `doc:update` form the server actually accepts. The earlier shape — a Scene
+   * `doc:update` carrying `tokens.<id>.<field>` dot-paths — was rejected with
+   * `VALIDATION_FAILED: tokens: Expected array, received object`, so this
+   * dialog's Save button never persisted anything at all.
+   * This dialog is the ONLY way to point a bar at an attribute or to change who
+   * sees it — an indicator with no way to configure it is not shipped.
    */
 
   import type { Socket } from "socket.io-client";
-  import type { TokenDocument } from "@fusion/shared";
-  import { sendOp } from "../../lib/docs/sendOp.js";
-  import { tokenDiffPath } from "@fusion/shared";
+  import type { TokenDocument, TokenDisplayMode } from "@fusion/shared";
+  import { updateToken } from "../../lib/scenes/tokenController.js";
+  import {
+    TOKEN_DISPLAY_MODES,
+    tokenDisplayBars,
+  } from "../../lib/canvas/tokens/token-bars.js";
   import { t } from "../../lib/i18n/i18n.js";
   import FilePicker from "../assets/FilePicker.svelte";
   import ActorPortrait from "../common/ActorPortrait.svelte";
@@ -39,7 +50,7 @@
   // ---- State ----
 
   // Appearance (name + texture). Persisted through the same submit as
-  // vision/light, via tokenDiffPath — no separate save action.
+  // vision/light — no separate save action.
   let tokenName = $state<string>(token.name);
   let tokenTexture = $state<string | null>(token.texture);
   let showFilePicker = $state(false);
@@ -75,8 +86,19 @@
     (token as any).light?.intensity ?? 1,
   );
 
+  // Resource bars (REQ-CNV-089 / REQ-CNV-090). The attribute is a free dotted
+  // path over the actor's `system` — an unresolvable one simply draws no bar.
+  let bar1Attribute = $state<string>(token.bar1?.attribute ?? "");
+  let bar2Attribute = $state<string>(token.bar2?.attribute ?? "");
+  let displayBars = $state<TokenDisplayMode>(tokenDisplayBars(token));
+
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
+
+  function blankToNull(value: string): string | null {
+    const trimmed = value.trim();
+    return trimmed === "" ? null : trimmed;
+  }
 
   // ---- Handlers ----
 
@@ -94,33 +116,25 @@
       const brightVal = Number(lightBright);
       const dimVal = Number(lightDim);
 
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: sceneId,
-              diff: {
-                [tokenDiffPath(token._id, "name")]: tokenName,
-                [tokenDiffPath(token._id, "texture")]: tokenTexture,
-                [tokenDiffPath(token._id, "vision" as any)]: {
-                  enabled: visionEnabled,
-                  range: isNaN(rangeVal as number) ? null : rangeVal,
-                  angle: visionAngle,
-                  visionMode,
-                },
-                [tokenDiffPath(token._id, "light" as any)]: {
-                  enabled: lightEnabled,
-                  bright: isNaN(brightVal) ? 0 : brightVal,
-                  dim: isNaN(dimVal) ? 0 : dimVal,
-                  color: lightColor,
-                  intensity: lightIntensity,
-                },
-              },
-            },
-          ],
+      await updateToken(socket, sceneId, token._id, {
+        name: tokenName,
+        texture: tokenTexture,
+        vision: {
+          enabled: visionEnabled,
+          range: isNaN(rangeVal as number) ? null : rangeVal,
+          angle: visionAngle,
+          visionMode,
         },
+        light: {
+          enabled: lightEnabled,
+          bright: isNaN(brightVal) ? 0 : brightVal,
+          dim: isNaN(dimVal) ? 0 : dimVal,
+          color: lightColor,
+          intensity: lightIntensity,
+        },
+        bar1: { attribute: blankToNull(bar1Attribute) },
+        bar2: { attribute: blankToNull(bar2Attribute) },
+        displayBars,
       });
       onSuccess();
     } catch (err) {
@@ -196,6 +210,54 @@
             </button>
           {/if}
         </div>
+      </div>
+    </fieldset>
+
+    <!-- ====== Resource Bars Section (REQ-CNV-089 / REQ-CNV-090) ====== -->
+    <fieldset class="section">
+      <legend class="section__title">{t("FUSION.Token.Config.Bars")}</legend>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="tok-bar1">{t("FUSION.Token.Config.Bar1Attribute")}</label>
+          <input
+            id="tok-bar1"
+            class="field__input"
+            type="text"
+            bind:value={bar1Attribute}
+            placeholder="attributes.hp"
+            disabled={submitting}
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="tok-bar2">{t("FUSION.Token.Config.Bar2Attribute")}</label>
+          <input
+            id="tok-bar2"
+            class="field__input"
+            type="text"
+            bind:value={bar2Attribute}
+            placeholder="resources.focus"
+            disabled={submitting}
+          />
+        </div>
+      </div>
+
+      <p class="field__hint">{t("FUSION.Token.Config.BarAttributeHint")}</p>
+
+      <div class="field">
+        <label class="field__label" for="tok-display-bars">
+          {t("FUSION.Token.Config.DisplayBars")}
+        </label>
+        <select
+          id="tok-display-bars"
+          class="field__select"
+          bind:value={displayBars}
+          disabled={submitting}
+        >
+          {#each TOKEN_DISPLAY_MODES as mode (mode)}
+            <option value={mode}>{t(`FUSION.Token.Config.DisplayBars.${mode}`)}</option>
+          {/each}
+        </select>
       </div>
     </fieldset>
 
@@ -444,6 +506,12 @@
     color: var(--fusion-text-muted);
     font-size: 0.8125rem;
     font-weight: 500;
+  }
+
+  .field__hint {
+    color: var(--fusion-text-muted);
+    font-size: 0.75rem;
+    margin: -0.35rem 0 0;
   }
 
   .field__input {

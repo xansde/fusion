@@ -196,6 +196,41 @@ O canvas faz **culling manual**: antes de renderizar/atualizar, verifica se o bo
 
 O requisito "sobrepor mapas e alternar o que os jogadores veem sem cerimônia, na mesma cena" (variante política do mapa, rotas de comércio, territórios de facção, andares) poderia ser atendido com Tiles em tamanho de cena. Overlays são um embedded próprio (`OverlayData`, ver `02-modelo-de-dados.md`) por três razões: (1) **semântica** — tile carrega oclusão, underfoot/overhead e interação de canvas; overlay é pura imagem alinhada ao mapa com um booleano de exibição; (2) **UX** — o painel de camadas lista overlays por nome com um toggle de um clique; misturar com tiles obrigaria filtros e convenções de nomenclatura; (3) **segurança** — overlay oculto é redigido do payload do jogador (REQ-DOC-060), enquanto tiles são dados da cena sempre enviados. Alternativa rejeitada: variante de mapa por troca de `background` ou por cenas duplicadas — exige N cópias da cena e re-sincronização de tokens/walls a cada alternância, exatamente a cerimônia que o requisito veta.
 
+---
+
+### DEC-CNV-15 — Visibilidade de resource bar ancorada no ownership do Actor
+
+O token **não tem ownership própria**: é embedded na cena e herda quem o controla do Actor
+referido por `actorId` (`02-modelo-de-dados.md`, REQ-DOC-025). Logo, "quem vê a barra de um
+token" não é uma pergunta sobre o token — é a pergunta "qual o nível efetivo deste usuário
+sobre aquele Actor". O corte canônico é **OBSERVER (2) ou mais**, e papel privilegiado
+(GM/Assistente, `isRolePrivileged`) satisfaz o corte sempre, independente do mapa de
+ownership — o que o GM não vê é apenas o que o nível `never` desliga para todos.
+
+A decisão fixa também **onde** o corte acontece: **no servidor**. O nível `observer` de
+`displayBars` (REQ-CNV-089) descreve o que o cliente desenha, mas o dado que sustenta a barra
+— o Actor com `system.attributes.hp` — só chega a quem pode vê-lo. Isso é o mesmo contrato
+que a spec `28` já exige do painel de Comitiva em REQ-HUB-045 ("o recorte vem do ownership do
+Actor, redigido no servidor — o painel NÃO DEVE decidir visibilidade na tela"), e é o que
+`04-rede-e-sincronizacao.md` REQ-NET-024 e REQ-NET-096 impõem aos quatro caminhos de emissão.
+
+- **Alternativas rejeitadas:**
+  - _Esconder a barra apenas no cliente_: o Actor inteiro continuaria trafegando para todo
+    jogador conectado, e "não desenhar" é uma escolha do front — o HP do NPC fica a um painel
+    de devtools de distância. É exatamente o vazamento que esta decisão fecha; herdá-lo seria
+    entregar um indicador de HP que só parece privado.
+  - _Usar OWNER (3) como corte_: OWNER é o direito de **editar** a ficha. Ler o HP do
+    companheiro de mesa não exige poder alterá-lo, e um corte em OWNER esvaziaria o painel de
+    Comitiva (REQ-HUB-043/044) e a barra de HP de todo aliado. OBSERVER é o nível que a matriz
+    de `05-usuarios-e-permissoes.md` reserva para "vê o documento inteiro sem poder mudá-lo".
+  - _Ownership própria no TokenDocument_: duplicaria a fonte de verdade e faria token e ficha
+    divergirem no primeiro `doc:update` que tocasse só um dos dois.
+- **Racional:** o corte é uma única pergunta, feita num único lugar (`resolveOwnership` sobre
+  o Actor), e vale igualmente para a barra no canvas, para o painel de Comitiva e para
+  qualquer outra superfície que mostre HP. O piso de emissão do servidor é LIMITED (o
+  documento pode existir para o usuário); OBSERVER é o piso de **exibição da barra**, mais
+  estrito e verificado no cliente sobre um dado que ele legitimamente possui.
+
 ## Requisitos funcionais
 
 > Tags: **[MVP]** = necessário para a definição de MVP global (sessão de PF2e com mapa+grid, tokens com movimento, visão/iluminação/fog básicos, fichas, rolagens básicas, chat, combat tracker). **[V2]** = pós-MVP.
@@ -241,9 +276,14 @@ O requisito "sobrepor mapas e alternar o que os jogadores veem sem cerimônia, n
 - **REQ-CNV-028** [MVP] Um token DEVE poder exibir até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, com a barra refletindo valor atual/máximo.
 - **REQ-CNV-029** [MVP] Um token DEVE poder exibir **ícones de status** (definidos pelo sistema de jogo) agrupados em um canto; um status PODE ser exibido como overlay grande (no máximo um por token).
 - **REQ-CNV-030** [MVP] Um token DEVE exibir um **nameplate** (rótulo) com fonte/cor do tema.
-- **REQ-CNV-031** [MVP] A visibilidade de nameplate, resource bars e status icons DEVE ser configurável por nível: nunca / dono / hover-dono / hover-todos / sempre, respeitando ownership (`05-usuarios-e-permissoes.md`).
+- **REQ-CNV-031** [MVP] A visibilidade de nameplate, resource bars e status icons DEVE ser configurável por nível, com exatamente estes cinco valores canônicos: `never`, `observer`, `hoverObserver`, `hoverAll`, `always`. O nível `observer` significa **OBSERVER (2) ou mais** sobre o Actor do token (DEC-CNV-15) — no Fusion não existe um nível "dono" separado para leitura, e OWNER (3) é o direito de editar, não de ver; `hoverObserver` aplica o mesmo corte apenas enquanto o ponteiro está sobre o token, e `hoverAll`/`always` dispensam o corte de ownership. Papel privilegiado (`isRolePrivileged`) vê em qualquer nível exceto `never` (`05-usuarios-e-permissoes.md`).
 - **REQ-CNV-032** [MVP] Um token com `elevation` ≠ 0 DEVE exibir um indicador de elevação legível (valor + unidade).
 - **REQ-CNV-033** [V2] O **token ring dinâmico** completo (camadas subject/ring/background com shaders dirigidos por estado de jogo, como turno de combate ou saúde) DEVE ser suportado; o MVP entrega apenas a borda colorida por disposição (DEC-CNV-07).
+
+### Tokens — indicador de recursos (HP)
+
+- **REQ-CNV-089** [MVP] O `TokenDocument` DEVE carregar um campo `displayBars` com exatamente um dos cinco níveis canônicos de REQ-CNV-031 — `never`, `observer`, `hoverObserver`, `hoverAll`, `always` — e o default DEVE ser `observer`. O campo DEVE sobreviver ao round-trip de persistência (create e update) sem ser descartado pela validação do servidor (`02-modelo-de-dados.md`, REQ-DOC-018).
+- **REQ-CNV-090** [MVP] A resource bar DEVE refletir o **valor real** do atributo apontado por `bar1.attribute` / `bar2.attribute` no ator efetivo do token (`actorId`), resolvido como caminho pontuado sobre `system` do Actor e lido como `{ value, max }`. A fração desenhada DEVE ser limitada a [0,1], e a barra DEVE ser **ausente** (não desenhada) quando o caminho não resolve, quando o token não tem ator, ou quando `max <= 0` — nunca desenhada cheia como placeholder.
 
 ### Tokens — movimento, seleção e targeting
 

@@ -133,6 +133,8 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     disposition: 0,
     bar1: { attribute: null },
     bar2: { attribute: null },
+    // REQ-CNV-089: every token declares who may see its bars.
+    displayBars: "observer",
     flags: {},
     vision: {
       enabled: false,

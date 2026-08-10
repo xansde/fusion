@@ -87,7 +87,7 @@ import {
   registerReacaoResetOnTurnStart,
   buildProgressaoConfirmarHandler,
 } from "../etmos/index.js";
-import { redactAckResultForNonPrivileged } from "./redaction.js";
+import { redactAckResultForNonPrivileged, redactAckOwnedDocumentsForViewer } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
@@ -769,9 +769,18 @@ export class SocketManager {
           // (GM / ASSISTANT) receive the unredacted result.  redactAckResult*
           // clones before stripping and never mutates the shared object that
           // the live-broadcast / op-buffer paths also reference.
+          //
+          // REQ-NET-096: the ack is the fourth emission path, and the only one
+          // that knows WHO asked. redactAckOwnedDocumentsForViewer needs that
+          // identity (ownership is per-user, not per-role), which is why it is
+          // a second call and not folded into the pure role-based one above.
           const acked = isRolePrivileged(data.role)
             ? result
-            : redactAckResultForNonPrivileged(result);
+            : redactAckOwnedDocumentsForViewer(
+                redactAckResultForNonPrivileged(result),
+                data.userId,
+                data.role,
+              );
 
           // REQ-NET-011: echo requestId back in ack (M0-C pendência)
           if (

@@ -79,6 +79,7 @@ import {
   OwnershipLevel,
 } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
+import { emitDocumentOp } from "../net/redaction.js";
 import { RollService, RollError } from "../chat/roll-service.js";
 import type { RollServiceOptions } from "../chat/roll-service.js";
 import type { SystemModule } from "@fusion/system-api";
@@ -871,7 +872,11 @@ function broadcastActorUpdate(deps: ConjuracaoHandlerDeps, actor: Record<string,
   // Estresse/Fadiga patch even if it reconnects between this push and the
   // subsequent card-state broadcast.
   deps.opBuffer.push(envelope);
-  deps.ns.emit("op", envelope);
+  // REQ-NET-096: an Actor is ownership-gated on emission, so this goes out per
+  // socket — never `ns.emit`, which would hand the whole sheet (`system`, and
+  // with it `attributes.hp`) to every connected player. The buffer push above
+  // is unaffected: the delta replay applies the same cut, per viewer.
+  emitDocumentOp(deps.ns, envelope);
 }
 
 // ---------------------------------------------------------------------------
