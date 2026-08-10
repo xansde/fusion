@@ -203,6 +203,8 @@
   "FUSION.Token.Config.BarAttributeHint": "Resources found on this token's sheet. \"No bar\" hides it.",
   "FUSION.Token.Config.BarAttr.none": "No bar",
   "FUSION.Token.Config.BarAttr.attributes.hp": "HP",
+  "FUSION.Token.Config.BarAttr.resources.heroPoints": "Hero points",
+  "FUSION.Token.Config.BarAttr.resources.focusPoints": "Focus points",
   "FUSION.Token.Config.BarAttr.resources.focus": "Focus points",
   "FUSION.Token.Config.BarAttr.unresolved": "(not found on the sheet)",
   "FUSION.Token.Config.DisplayBars": "Who sees the bars",

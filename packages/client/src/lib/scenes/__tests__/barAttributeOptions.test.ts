@@ -1,30 +1,59 @@
 /**
  * barAttributeOptions — the dropdown the token config offers instead of a
- * free-text dotted path (REQ-CNV-090). The list is DISCOVERED from the
- * effective actor's `system`: every `{ value, max }` pair is a candidate,
- * labelled legibly ("HP", not "attributes.hp").
+ * free-text dotted path (REQ-CNV-090).
+ *
+ * The canonical table resources — HP, hero points, focus points — are ALWAYS
+ * offered: the 2e systems store them with rule-supplied maxima (hero points
+ * cap at 3, the focus pool at the derived cap), so requiring a stored
+ * `{ value, max }` pair would hide exactly the resources the sheet itself
+ * shows. Extra pools genuinely stored as `{ value, max }` are discovered on
+ * top, with `derived.X` canonicalized to `attributes.X` (the bar's alias).
  */
 import { describe, expect, it } from "vitest";
 import { barAttributeOptions, collectResourcePaths } from "../barAttributeOptions.js";
 
-const PF2E_SYSTEM = {
-  attributes: {
+const PF2E_CHARACTER_SYSTEM = {
+  attributes: { speed: { value: 25 } },
+  derived: {
     hp: { value: 17, max: 20, temp: 0 },
-    speed: { value: 25 },
-    ac: 16,
+    speed: { value: 25, base: 25 },
   },
   resources: {
-    focus: { value: 1, max: 2 },
+    focusPoints: { value: 2 },
+    heroPoints: { value: 3 },
   },
   details: { level: { value: 1 } },
 };
 
+const T = (key: string): string =>
+  (
+    ({
+      "FUSION.Token.Config.BarAttr.none": "Sem barra",
+      "FUSION.Token.Config.BarAttr.attributes.hp": "HP",
+      "FUSION.Token.Config.BarAttr.resources.heroPoints": "Pontos de heroísmo",
+      "FUSION.Token.Config.BarAttr.resources.focusPoints": "Pontos de foco",
+      "FUSION.Token.Config.BarAttr.unresolved": "(não encontrado)",
+    }) as Record<string, string>
+  )[key] ?? key;
+
 describe("collectResourcePaths", () => {
-  it("finds every { value, max } pair, in stable depth-first order", () => {
-    expect(collectResourcePaths(PF2E_SYSTEM)).toEqual(["attributes.hp", "resources.focus"]);
+  it("finds every stored { value, max } pair, in stable depth-first order", () => {
+    const system = {
+      attributes: { hp: { value: 5, max: 9 }, speed: { value: 25 } },
+      resources: { stamina: { value: 3, max: 5 } },
+    };
+    expect(collectResourcePaths(system)).toEqual(["attributes.hp", "resources.stamina"]);
   });
 
-  it("ignores leaves without a numeric max (speed, ac, level)", () => {
+  it("canonicalizes derived.X to attributes.X, without duplicating a real twin", () => {
+    const system = {
+      attributes: { hp: { value: 5, max: 9 } },
+      derived: { hp: { value: 12, max: 20 } },
+    };
+    expect(collectResourcePaths(system)).toEqual(["attributes.hp"]);
+  });
+
+  it("ignores leaves without a numeric max (speed, level, scalars)", () => {
     expect(collectResourcePaths({ attributes: { speed: { value: 25 }, ac: 16 } })).toEqual([]);
   });
 
@@ -45,49 +74,55 @@ describe("collectResourcePaths", () => {
 });
 
 describe("barAttributeOptions", () => {
-  const t = (key: string): string =>
-    (
-      ({
-        "FUSION.Token.Config.BarAttr.none": "Sem barra",
-        "FUSION.Token.Config.BarAttr.attributes.hp": "HP",
-        "FUSION.Token.Config.BarAttr.resources.focus": "Foco",
-        "FUSION.Token.Config.BarAttr.unresolved": "(não encontrado)",
-      }) as Record<string, string>
-    )[key] ?? key;
-
-  it("offers 'no bar' first, then each discovered resource with a legible label", () => {
-    expect(barAttributeOptions(PF2E_SYSTEM, "", t)).toEqual([
+  it("always offers the canonical table resources, legibly labelled", () => {
+    expect(barAttributeOptions(PF2E_CHARACTER_SYSTEM, "", T)).toEqual([
       { value: "", label: "Sem barra" },
       { value: "attributes.hp", label: "HP" },
-      { value: "resources.focus", label: "Foco" },
+      { value: "resources.heroPoints", label: "Pontos de heroísmo" },
+      { value: "resources.focusPoints", label: "Pontos de foco" },
     ]);
   });
 
-  it("labels an unknown discovered path by its last segment, capitalized", () => {
-    const system = { attributes: { stamina: { value: 3, max: 5 } } };
-    expect(barAttributeOptions(system, "", t)).toContainEqual({
-      value: "attributes.stamina",
+  it("offers the canonical resources even with no actor at all", () => {
+    expect(barAttributeOptions(null, "", T).map((o) => o.value)).toEqual([
+      "",
+      "attributes.hp",
+      "resources.heroPoints",
+      "resources.focusPoints",
+    ]);
+  });
+
+  it("appends discovered extra pools after the canonical ones", () => {
+    const system = { resources: { stamina: { value: 3, max: 5 } } };
+    const values = barAttributeOptions(system, "", T).map((o) => o.value);
+    expect(values).toEqual([
+      "",
+      "attributes.hp",
+      "resources.heroPoints",
+      "resources.focusPoints",
+      "resources.stamina",
+    ]);
+  });
+
+  it("labels an unknown discovered pool by its last segment, capitalized", () => {
+    const system = { resources: { stamina: { value: 3, max: 5 } } };
+    expect(barAttributeOptions(system, "", T)).toContainEqual({
+      value: "resources.stamina",
       label: "Stamina",
     });
   });
 
-  it("keeps the currently saved path even when it no longer resolves", () => {
-    const options = barAttributeOptions(PF2E_SYSTEM, "attributes.old", t);
+  it("does not duplicate a discovered pool that is already canonical", () => {
+    const system = { derived: { hp: { value: 12, max: 20 } } };
+    const options = barAttributeOptions(system, "attributes.hp", T);
+    expect(options.filter((o) => o.value === "attributes.hp")).toHaveLength(1);
+  });
+
+  it("keeps a saved path that resolves nowhere, marked as unresolved", () => {
+    const options = barAttributeOptions(PF2E_CHARACTER_SYSTEM, "attributes.old", T);
     expect(options).toContainEqual({
       value: "attributes.old",
       label: "attributes.old (não encontrado)",
     });
-  });
-
-  it("does not duplicate the current path when it is already discovered", () => {
-    const options = barAttributeOptions(PF2E_SYSTEM, "attributes.hp", t);
-    expect(options.filter((o) => o.value === "attributes.hp")).toHaveLength(1);
-  });
-
-  it("still offers 'no bar' plus the saved path when there is no actor at all", () => {
-    expect(barAttributeOptions(null, "attributes.hp", t)).toEqual([
-      { value: "", label: "Sem barra" },
-      { value: "attributes.hp", label: "attributes.hp (não encontrado)" },
-    ]);
   });
 });
