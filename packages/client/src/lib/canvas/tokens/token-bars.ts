@@ -129,8 +129,8 @@ function readRuleCappedResource(
 
   const leaf =
     typeof cursor === "object" && cursor !== null ? (cursor as Record<string, unknown>) : null;
-  const value = typeof leaf?.["value"] === "number" ? (leaf["value"]) : 0;
-  const max = typeof leaf?.["max"] === "number" ? (leaf["max"]) : ruleMax;
+  const value = typeof leaf?.["value"] === "number" ? leaf["value"] : 0;
+  const max = typeof leaf?.["max"] === "number" ? leaf["max"] : ruleMax;
   return { value, max };
 }
 
