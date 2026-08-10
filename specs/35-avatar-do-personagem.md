@@ -1,4 +1,4 @@
-# 33 — Avatar do Personagem
+# 35 — Avatar do Personagem
 
 - **Título:** Avatar do personagem — boneco montável do acervo Waybuilder, no canto da mesa
 - **Status:** implementado v0.1 (rodada de 2026-08-08)
