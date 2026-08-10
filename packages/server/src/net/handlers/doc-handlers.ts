@@ -78,6 +78,7 @@ import {
   stripHiddenTiles,
   scenePayloadHasHiddenTiles,
   scenePayloadHasSecretDoors,
+  emitOwnershipGatedOp,
 } from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
@@ -1459,12 +1460,26 @@ function socketIsPrivileged(socket: Socket): boolean {
  *       • hidden tokens stripped
  *       • secret doors redacted as plain walls
  *
+ * Ownership-gated types (today: Actor — see OWNERSHIP_GATED_BROADCAST_TYPES)
+ * are ALSO emitted per socket, but the unit of redaction is the whole document,
+ * not a field inside it: a viewer below LIMITED on an Actor gets the envelope
+ * with an EMPTY `documents` array, never a trimmed Actor and never a missing
+ * op (seq contiguity — see redaction.ts). Before REQ-NET-096 this branch did
+ * not exist and every Actor update — `system.attributes.hp`, `system.derived`
+ * — went to every connected socket via the namespace-wide emit below, which
+ * the join snapshot had been filtering all along.
+ *
  * For all other document types or Scene updates without sensitive data,
  * we use the cheap namespace-wide emit (no per-socket iteration cost).
  *
  * doc:delete envelopes are always namespace-wide: deletes carry only IDs.
  */
 function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: string): void {
+  // REQ-NET-096: ownership-gated documents are emitted per socket, emptied for
+  // viewers below LIMITED. The predicate and the loop live in redaction.ts
+  // because this is not the only producer of Actor envelopes.
+  if (emitOwnershipGatedOp(ns, envelope)) return;
+
   // Only Scene doc:create / doc:update need redaction filtering.
   if (
     documentType === "Scene" &&

@@ -133,6 +133,39 @@ export const TokenBarConfigSchema = z.object({
 export type TokenBarConfig = z.infer<typeof TokenBarConfigSchema>;
 
 // ---------------------------------------------------------------------------
+// TokenDisplayMode — who sees the token's resource bars
+// REQ-CNV-089 / REQ-CNV-031, decided in DEC-CNV-15 (spec 06)
+// ---------------------------------------------------------------------------
+
+/**
+ * The five canonical visibility levels for a token overlay (resource bars
+ * today; nameplate and status icons follow the same ladder — REQ-CNV-031).
+ *
+ * `observer` is the ownership-gated level and it means OBSERVER (2) **or more**
+ * on the token's Actor, never OWNER: reading a companion's HP does not require
+ * the right to edit their sheet. There is deliberately no "owner" level — the
+ * spec prose used to say "dono", which named nothing in this codebase.
+ *
+ * The cut itself is enforced on the SERVER (the Actor never reaches a user who
+ * may not see it — REQ-NET-096); this field only says what the client draws
+ * with data it legitimately holds.
+ */
+export const TokenDisplayModeSchema = z.enum([
+  /** Nobody sees the bars, GM included. */
+  "never",
+  /** OBSERVER+ on the token's Actor (or a privileged role) sees them. */
+  "observer",
+  /** Same cut as `observer`, but only while the pointer hovers the token. */
+  "hoverObserver",
+  /** Anyone sees them while hovering, regardless of ownership. */
+  "hoverAll",
+  /** Anyone sees them at all times, regardless of ownership. */
+  "always",
+]);
+
+export type TokenDisplayMode = z.infer<typeof TokenDisplayModeSchema>;
+
+// ---------------------------------------------------------------------------
 // TokenDocument — embedded in Scene
 // Spec 02 §TokenData, Spec 06 §Tokens
 // REQ-DOC-019: Token is embedded; ownership inherits from actor (REQ-DOC-025)
@@ -226,6 +259,17 @@ export const TokenDocumentSchema = z.object({
    * Spec 02 §TokenData.bar2.
    */
   bar2: TokenBarConfigSchema.default({ attribute: null }),
+
+  /**
+   * Who may see this token's resource bars (REQ-CNV-089, DEC-CNV-15).
+   *
+   * Defaults to `observer`: the party sees each other's HP without the GM
+   * configuring anything, while a monster the players do not observe keeps its
+   * bar to itself. The server is what makes that true — it does not emit the
+   * Actor to a user below LIMITED at all (REQ-NET-096) — so this field is the
+   * display policy, not the security boundary.
+   */
+  displayBars: TokenDisplayModeSchema.default("observer"),
 
   /**
    * Namespaced arbitrary data per namespace.

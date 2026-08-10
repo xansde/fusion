@@ -234,8 +234,28 @@ describe("TokenDocumentSchema", () => {
       expect(d.disposition).toBe(0);
       expect(d.bar1.attribute).toBeNull();
       expect(d.bar2.attribute).toBeNull();
+      // REQ-CNV-089: a token whose bars nobody configured still declares who
+      // may see them, and the answer defaults to "whoever observes the actor".
+      expect(d.displayBars).toBe("observer");
       expect(d.flags).toEqual({});
     }
+  });
+
+  // REQ-CNV-089 / DEC-CNV-15: the five canonical levels, and nothing else.
+  it.each(["never", "observer", "hoverObserver", "hoverAll", "always"] as const)(
+    "accepts displayBars level %s",
+    (level) => {
+      const r = TokenDocumentSchema.safeParse({ _id: validId(), displayBars: level });
+      expect(r.success).toBe(true);
+      if (r.success) expect(r.data.displayBars).toBe(level);
+    },
+  );
+
+  it("rejects a displayBars level outside the five canonical values (REQ-CNV-089)", () => {
+    // "owner" is the name the old spec prose used; it is NOT a level — reading
+    // the bar is OBSERVER+, not OWNER (DEC-CNV-15).
+    const r = TokenDocumentSchema.safeParse({ _id: validId(), displayBars: "owner" });
+    expect(r.success).toBe(false);
   });
 
   it("accepts a fully populated token", () => {

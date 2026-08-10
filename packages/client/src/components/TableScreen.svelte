@@ -526,6 +526,10 @@
       scene._id,
       gridSize,
       currentIsGm,
+      // Who is looking: the resource bar's cut is the viewer's level over the
+      // token's ACTOR (DEC-CNV-15), so the layer needs the identity, not just
+      // the GM flag — an Assistant is privileged too (REQ-USR-006).
+      { userId, role: session.user?.role ?? 0 },
     );
     activeTokenLayer = tokenLayer;
 
