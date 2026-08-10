@@ -97,6 +97,44 @@ function derivedAliasFor(path: string): string | null {
 }
 
 /**
+ * Resources whose maximum is a RULE, not a stored field. Hero points cap at 3
+ * in PF2e Remaster no matter what the document carries — `characterSheetVM`
+ * already defaults exactly this way — so a `{ value: 2 }` block (or none at
+ * all) is a 2/3 (or 0/3) bar, not an absent one. The focus pool is the
+ * counter-example and is deliberately NOT here: its max is derived per
+ * character and 0 means "no pool", so inventing one would draw a wrong bar.
+ */
+const RULE_SUPPLIED_MAX: ReadonlyMap<string, number> = new Map([["resources.heroPoints", 3]]);
+
+/**
+ * Read a rule-capped resource: stored numbers win, the rule fills the gaps.
+ * Returns `null` for paths that have no rule-supplied max.
+ */
+function readRuleCappedResource(
+  system: unknown,
+  path: string,
+): { value: number; max: number } | null {
+  const ruleMax = RULE_SUPPLIED_MAX.get(path);
+  if (ruleMax === undefined) return null;
+
+  let cursor: unknown = system;
+  for (const segment of path.split(".")) {
+    if (typeof cursor !== "object" || cursor === null) {
+      cursor = undefined;
+      break;
+    }
+    const record = cursor as Record<string, unknown>;
+    cursor = Object.hasOwn(record, segment) ? record[segment] : undefined;
+  }
+
+  const leaf =
+    typeof cursor === "object" && cursor !== null ? (cursor as Record<string, unknown>) : null;
+  const value = typeof leaf?.["value"] === "number" ? (leaf["value"]) : 0;
+  const max = typeof leaf?.["max"] === "number" ? (leaf["max"]) : ruleMax;
+  return { value, max };
+}
+
+/**
  * Resolve what a bar should show for a token, given the `system` blob of its
  * effective actor and the configured attribute path.
  *
@@ -113,7 +151,9 @@ export function resolveTokenBarValue(
 
   const alias = derivedAliasFor(path);
   const pair =
-    (alias === null ? null : readResourceAt(system, alias)) ?? readResourceAt(system, path);
+    (alias === null ? null : readResourceAt(system, alias)) ??
+    readResourceAt(system, path) ??
+    readRuleCappedResource(system, path);
   if (!pair) return null;
   if (pair.max <= 0) return null;
 

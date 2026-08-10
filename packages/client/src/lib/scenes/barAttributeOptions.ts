@@ -4,13 +4,22 @@
  * Spec: `06-canvas-e-renderizacao.md` REQ-CNV-090 — the bar reads a dotted
  * path over the actor's `system`. The path used to be free text, which put
  * the system's internal layout ("attributes.hp") in front of the GM. The
- * dropdown inverts that: the candidates are DISCOVERED from the effective
- * actor — every `{ value, max }` pair `readResourceAt` could resolve — and
- * shown under legible names ("HP"), so what you pick is what the bar draws.
+ * dropdown inverts that: legible names ("HP", "Pontos de heroísmo") for the
+ * resources the table actually plays with.
  *
- * Discovery mirrors `actorResource.readResourceAt`: own properties only, a
- * leaf is a numeric `value` + numeric `max`. Anything else — scalars, lists,
- * blobs deeper than {@link MAX_DEPTH} — is not a resource a bar can track.
+ * Two sources feed the list:
+ *
+ * 1. The CANONICAL table resources — HP, hero points, focus points — are
+ *    always offered. The 2e systems store them with rule-supplied maxima
+ *    (hero points cap at 3; the focus pool max is derived), so demanding a
+ *    stored `{ value, max }` pair would hide exactly the resources the sheet
+ *    itself shows. Whether a pick draws a bar stays `resolveTokenBarValue`'s
+ *    decision (a non-caster's focus pool is 0 → bar absent, truthfully).
+ *
+ * 2. Extra pools DISCOVERED on the effective actor: every `{ value, max }`
+ *    pair in `system`, with `derived.X` canonicalized to `attributes.X` —
+ *    the alias `resolveTokenBarValue` already prefers — so one resource never
+ *    shows up twice under two spellings.
  */
 
 export interface BarAttributeOption {
@@ -24,11 +33,17 @@ export interface BarAttributeOption {
  */
 const MAX_DEPTH = 3;
 
-/** Paths with an agreed table name; anything else gets a prettified segment. */
-const KNOWN_LABEL_KEYS: ReadonlyMap<string, string> = new Map([
-  ["attributes.hp", "FUSION.Token.Config.BarAttr.attributes.hp"],
-  ["resources.focus", "FUSION.Token.Config.BarAttr.resources.focus"],
-]);
+/**
+ * Always offered, in this order. Keys double as the i18n suffix — the label
+ * for `attributes.hp` is `FUSION.Token.Config.BarAttr.attributes.hp`.
+ */
+const CANONICAL_PATHS: readonly string[] = [
+  "attributes.hp",
+  "resources.heroPoints",
+  "resources.focusPoints",
+];
+
+const CANONICAL_SET: ReadonlySet<string> = new Set(CANONICAL_PATHS);
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -44,11 +59,21 @@ function isResourcePair(value: unknown): boolean {
 }
 
 /**
- * Every dotted path in `system` whose leaf is a `{ value, max }` pair, in
- * stable depth-first key order — so the dropdown is deterministic for a
- * given actor, not dependent on discovery timing.
+ * The derivation pipeline mirrors `attributes.X` at `derived.X` and the bar
+ * reads the derived twin first — so a pool found under `derived.` is OFFERED
+ * under its `attributes.` name, keeping one resource one option.
+ */
+function canonicalize(path: string): string {
+  return path.startsWith("derived.") ? "attributes." + path.slice("derived.".length) : path;
+}
+
+/**
+ * Every dotted path in `system` whose leaf is a stored `{ value, max }` pair,
+ * canonicalized and deduplicated, in stable depth-first key order — so the
+ * dropdown is deterministic for a given actor.
  */
 export function collectResourcePaths(system: unknown): string[] {
+  const seen = new Set<string>();
   const paths: string[] = [];
 
   function walk(node: Record<string, unknown>, prefix: string, depth: number): void {
@@ -56,7 +81,11 @@ export function collectResourcePaths(system: unknown): string[] {
       const child = node[key];
       const path = prefix === "" ? key : `${prefix}.${key}`;
       if (isResourcePair(child)) {
-        paths.push(path);
+        const canonical = canonicalize(path);
+        if (!seen.has(canonical)) {
+          seen.add(canonical);
+          paths.push(canonical);
+        }
       } else if (depth < MAX_DEPTH) {
         const record = asRecord(child);
         if (record) walk(record, path, depth + 1);
@@ -70,29 +99,31 @@ export function collectResourcePaths(system: unknown): string[] {
 }
 
 function labelFor(path: string, t: (key: string) => string): string {
-  const known = KNOWN_LABEL_KEYS.get(path);
-  if (known) return t(known);
+  const key = `FUSION.Token.Config.BarAttr.${path}`;
+  const translated = t(key);
+  if (translated !== key) return translated;
   const segment = path.split(".").at(-1) ?? path;
   return segment.charAt(0).toUpperCase() + segment.slice(1);
 }
 
 /**
- * The options for one bar's `<select>`: "no bar" first, then each discovered
- * resource. A saved path that no longer resolves is kept — labelled as
- * unresolved — because silently dropping it from the list would rewrite the
- * token on the next save without the GM ever choosing to.
+ * The options for one bar's `<select>`: "no bar", the canonical resources,
+ * then discovered extras. A saved path that resolves nowhere is kept —
+ * labelled as unresolved — because silently dropping it from the list would
+ * rewrite the token on the next save without the GM ever choosing to.
  */
 export function barAttributeOptions(
   system: unknown,
   current: string,
   t: (key: string) => string,
 ): BarAttributeOption[] {
-  const discovered = collectResourcePaths(system);
+  const extras = collectResourcePaths(system).filter((path) => !CANONICAL_SET.has(path));
+  const offered = [...CANONICAL_PATHS, ...extras];
   const options: BarAttributeOption[] = [
     { value: "", label: t("FUSION.Token.Config.BarAttr.none") },
-    ...discovered.map((path) => ({ value: path, label: labelFor(path, t) })),
+    ...offered.map((path) => ({ value: path, label: labelFor(path, t) })),
   ];
-  if (current !== "" && !discovered.includes(current)) {
+  if (current !== "" && !offered.includes(current)) {
     options.push({
       value: current,
       label: `${current} ${t("FUSION.Token.Config.BarAttr.unresolved")}`,

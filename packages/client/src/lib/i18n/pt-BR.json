@@ -203,6 +203,8 @@
   "FUSION.Token.Config.BarAttributeHint": "Recursos encontrados na ficha deste token. \"Sem barra\" esconde a barra.",
   "FUSION.Token.Config.BarAttr.none": "Sem barra",
   "FUSION.Token.Config.BarAttr.attributes.hp": "HP",
+  "FUSION.Token.Config.BarAttr.resources.heroPoints": "Pontos de heroísmo",
+  "FUSION.Token.Config.BarAttr.resources.focusPoints": "Pontos de foco",
   "FUSION.Token.Config.BarAttr.resources.focus": "Pontos de foco",
   "FUSION.Token.Config.BarAttr.unresolved": "(não encontrado na ficha)",
   "FUSION.Token.Config.DisplayBars": "Quem vê as barras",
