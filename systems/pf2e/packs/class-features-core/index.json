@@ -83,6 +83,22 @@
     }
   },
   {
+    "_id": "dCH1B3UBF3fLEyMU",
+    "uuid": "Compendium.pf2e.class-features-core.Item.dCH1B3UBF3fLEyMU",
+    "name": "Anathema (Druid)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Anathema (Druid)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "nfBn8QB6HVdzpTFV"
+    }
+  },
+  {
     "_id": "oqbnOYq8BmDDXWid",
     "uuid": "Compendium.pf2e.class-features-core.Item.oqbnOYq8BmDDXWid",
     "name": "Animal Instinct",
@@ -99,6 +115,25 @@
         "barbarian-instinct"
       ],
       "flags.fusion.sourceId": "0FtzFbUrN56KA67z"
+    }
+  },
+  {
+    "_id": "5zCp9NdkHHjafwsN",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5zCp9NdkHHjafwsN",
+    "name": "Animal Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Animal Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "POBvoXifa9HaejAg"
     }
   },
   {
@@ -1034,6 +1069,25 @@
     }
   },
   {
+    "_id": "L86Ezh38tCiSKmFT",
+    "uuid": "Compendium.pf2e.class-features-core.Item.L86Ezh38tCiSKmFT",
+    "name": "Cultivation Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Cultivation Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "IiYUhFGqq2Nw0b5Y"
+    }
+  },
+  {
     "_id": "mGyRcs5k6sRE1fVm",
     "uuid": "Compendium.pf2e.class-features-core.Item.mGyRcs5k6sRE1fVm",
     "name": "Debilitating Strike",
@@ -1332,6 +1386,38 @@
         "barbarian-instinct"
       ],
       "flags.fusion.sourceId": "VDot7CDcXElxmkkz"
+    }
+  },
+  {
+    "_id": "k7CZ8dTLpyWNoX6r",
+    "uuid": "Compendium.pf2e.class-features-core.Item.k7CZ8dTLpyWNoX6r",
+    "name": "Druid Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Druid Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "b8pnRxGuNzG0buuh"
+    }
+  },
+  {
+    "_id": "gS7kLg7fRgMku6gd",
+    "uuid": "Compendium.pf2e.class-features-core.Item.gS7kLg7fRgMku6gd",
+    "name": "Druidic Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Druidic Order",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "8STJEFVJISujgpMR"
     }
   },
   {
@@ -1724,6 +1810,25 @@
         "cleric"
       ],
       "flags.fusion.sourceId": "Qejo7FUWQtPTpgWH"
+    }
+  },
+  {
+    "_id": "Nt0RtM2fMav4e60N",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Nt0RtM2fMav4e60N",
+    "name": "Flame Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Flame Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "NdeFvIXdHwKYLiUj"
     }
   },
   {
@@ -2626,6 +2731,25 @@
     }
   },
   {
+    "_id": "AIUxiE3NEsg4x06y",
+    "uuid": "Compendium.pf2e.class-features-core.Item.AIUxiE3NEsg4x06y",
+    "name": "Leaf Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Leaf Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "u4nlOzPj2WHkIj9l"
+    }
+  },
+  {
     "_id": "1tBpApILCv58X3Qo",
     "uuid": "Compendium.pf2e.class-features-core.Item.1tBpApILCv58X3Qo",
     "name": "Legendary Armor",
@@ -3430,6 +3554,22 @@
         "psychic"
       ],
       "flags.fusion.sourceId": "Ftz5jVa9X6aXybkC"
+    }
+  },
+  {
+    "_id": "QEbVB0nhQ7sTqvML",
+    "uuid": "Compendium.pf2e.class-features-core.Item.QEbVB0nhQ7sTqvML",
+    "name": "Primal Hierophant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Primal Hierophant",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "nzgb43mQmLgaqDoQ"
     }
   },
   {
@@ -4436,6 +4576,25 @@
     }
   },
   {
+    "_id": "aztwW7yAkCF3mRR1",
+    "uuid": "Compendium.pf2e.class-features-core.Item.aztwW7yAkCF3mRR1",
+    "name": "Spore Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spore Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "X0k3njLOLX0322Po"
+    }
+  },
+  {
     "_id": "fs8vce7CnfjA7OU4",
     "uuid": "Compendium.pf2e.class-features-core.Item.fs8vce7CnfjA7OU4",
     "name": "Staff Nexus",
@@ -4471,6 +4630,44 @@
         "magus-hybrid-study"
       ],
       "flags.fusion.sourceId": "Pew7duAozEeAemif"
+    }
+  },
+  {
+    "_id": "ocwBXAQOBMFajygM",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ocwBXAQOBMFajygM",
+    "name": "Stone Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Stone Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "fKTewWlYgFuhl4KA"
+    }
+  },
+  {
+    "_id": "kITNUEVRGskHjuNW",
+    "uuid": "Compendium.pf2e.class-features-core.Item.kITNUEVRGskHjuNW",
+    "name": "Storm Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Storm Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "acqqlYmti8D9QJi0"
     }
   },
   {
@@ -4888,6 +5085,25 @@
     }
   },
   {
+    "_id": "2IqeSNTsg56tqZXf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2IqeSNTsg56tqZXf",
+    "name": "Untamed Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Untamed Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "v0EjtiwdeMj8ykI0"
+    }
+  },
+  {
     "_id": "j2TPXfKvF7IhZYtc",
     "uuid": "Compendium.pf2e.class-features-core.Item.j2TPXfKvF7IhZYtc",
     "name": "Versatile Legend",
@@ -4921,6 +5137,22 @@
         "ranger-hunters-edge"
       ],
       "flags.fusion.sourceId": "QOOwC3S41CKGkxlN"
+    }
+  },
+  {
+    "_id": "y6y7uCuBpLav1NsV",
+    "uuid": "Compendium.pf2e.class-features-core.Item.y6y7uCuBpLav1NsV",
+    "name": "Voice of Nature",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Voice of Nature",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "d5BFFHXFJYKs5LXr"
     }
   },
   {
@@ -5010,6 +5242,25 @@
         "bard-muse"
       ],
       "flags.fusion.sourceId": "N03BtRvjX9TeHRa4"
+    }
+  },
+  {
+    "_id": "7in2nuThLRPWqnzG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.7in2nuThLRPWqnzG",
+    "name": "Wave Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wave Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "FuUXyv2yBs7zRgqT"
     }
   },
   {
@@ -5240,6 +5491,38 @@
         "rogue"
       ],
       "flags.fusion.sourceId": "v8UNEJR5IDKi8yqa"
+    }
+  },
+  {
+    "_id": "1QwFMzHP0i86xktm",
+    "uuid": "Compendium.pf2e.class-features-core.Item.1QwFMzHP0i86xktm",
+    "name": "Wild Willpower",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wild Willpower",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "yqaRnXFjRnFWsWvY"
+    }
+  },
+  {
+    "_id": "rpBHCE3ES0jHb7jE",
+    "uuid": "Compendium.pf2e.class-features-core.Item.rpBHCE3ES0jHb7jE",
+    "name": "Wildsong",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wildsong",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "RiAGlnnp4S21BAG3"
     }
   },
   {

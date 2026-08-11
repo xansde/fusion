@@ -119,6 +119,15 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // check-derivation.mjs), matching the class-integration policy.
   "class-features-core/Doctrine/doctrine": "eixo",
   "class-features-core/Dragon Instinct/dragon": "pendente",
+  // r28 — Druidic Order é o novo eixo "order" (Druid, nível 1, 9 opções
+  // `druid-order` no pack). Ao contrário dos eixos de Psychic e Gunslinger
+  // (que ficaram "pendente" porque o pack tinha as opções mas o builder não
+  // abria o slot), este entrou COMPLETO: "Druidic Order" está em
+  // CLASS_CHOICE_SLOTS e "order" em CLASS_CHOICE_SLOT_OPTIONS, então o slot
+  // de nível 1 é oferecido e filtrado pela otherTag. O que continua pendente
+  // é o EFEITO da opção escolhida (a perícia treinada da ordem e o vínculo
+  // ordem → magia de foco inicial) — declarado em curation/classes/druid.json.
+  "class-features-core/Druidic Order/druidicOrder": "eixo",
   "class-features-core/Eldritch Trickster/eldritchTrickster": "pendente",
   "class-features-core/Elemental Instinct/elementalInstinctDamage": "pendente",
   "class-features-core/Elemental Instinct/elementalInstinctElement": "pendente",
@@ -201,6 +210,12 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Third Gate's Threshold/elementFork": "pendente",
   "class-features-core/Third Gate's Threshold/impulseExpand": "pendente",
   "class-features-core/Third Path to Perfection/pathToPerfection": "pendente",
+  // r28 — Voice of Nature (Druid, nível 1) concede UM talento escolhido entre
+  // dois itens LITERAIS (Animal Empathy / Plant Empathy). GRANTED_FEAT_FILTERS
+  // no planVM.ts só sabe filtro por predicado declarativo (categoria/trait/
+  // nível), não lista literal de uuids, então este caso não é expressável lá
+  // hoje. Os dois talentos-alvo ESTÃO em feats-core — falta só o consumidor.
+  "class-features-core/Voice of Nature/feat": "pendente",
   "class-features-core/Vindicator/-": "pendente",
   "class-features-core/Vindicator/deity": "pendente",
   "class-features-core/Weapon Legend/weaponLegend": "pendente",
@@ -268,6 +283,18 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Parallel Breakthrough/spell": "pendente",
   "feats-core/Psi Development/dedicationCantrip": "pendente",
   "feats-core/Psychic Dedication/consciousMind": "pendente",
+  // --- r28: as 3 escolhas que os 100 class feats do Druid trouxeram. ---
+  // "Heart of the Kaiju" (L20) parametriza o tipo de dano do sopro da forma
+  // colossal; "Verdant Weapon" (L1) escolhe QUAL arma vira a arma verdejante
+  // (3 flags: a escolha em si + os dois ramos "já tenho uma"/"ganho uma"); e
+  // "Order Explorer" (L2) escolhe uma SEGUNDA ordem druídica — mesma forma do
+  // "Multifarious Muse" do Bardo logo acima (o eixo existe e é oferecido no
+  // nível 1, mas a re-escolha por talento não é).
+  "feats-core/Heart of the Kaiju/damageType": "pendente",
+  "feats-core/Order Explorer/order": "pendente",
+  "feats-core/Verdant Weapon/-": "pendente",
+  "feats-core/Verdant Weapon/existingVerdantWeapon": "pendente",
+  "feats-core/Verdant Weapon/grantedVerdantWeapon": "pendente",
   "feats-core/Rogue Dedication/rogueDedication": "pendente",
   "feats-core/Rogue Dedication/skillFeat": "pendente",
   // r22 — Cleric's "Second Blessing" feat (Blessed One-style) picks a

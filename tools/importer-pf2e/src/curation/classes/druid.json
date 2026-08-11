@@ -1,0 +1,274 @@
+{
+  "class": "druid",
+  "displayName": "Druid",
+  "vendorClassFile": "classes/druid.json",
+  "keyAbilityOptions": ["wis"],
+  "hp": 8,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "druid-order",
+      "featureNameInItemsMap": "Druidic Order",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 9,
+      "slotType": "order"
+    }
+  ],
+  "classFeats": {
+    "trait": "druid",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": [
+      "Cunning Trickster Mask",
+      "Emancipator's Mask",
+      "Grand Medic's Mask",
+      "Protective Spirit Mask",
+      "Sky Master Mask",
+      "Stalking Feline Mask",
+      "Storyteller's Mask",
+      "Thick Hide Mask",
+      "Tireless Guide's Mask",
+      "Vigilant Mask"
+    ]
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Shield Block",
+      "Perception Expertise",
+      "Fortitude Expertise",
+      "Reflex Expertise",
+      "Expert Spellcaster",
+      "Weapon Expertise",
+      "Medium Armor Expertise",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "alreadyInPacks": [
+      "Shield Block",
+      "Perception Expertise",
+      "Fortitude Expertise",
+      "Reflex Expertise",
+      "Expert Spellcaster",
+      "Weapon Expertise",
+      "Medium Armor Expertise",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "missingFromPacks": [
+      "Anathema (Druid)",
+      "Druid Spellcasting",
+      "Druidic Order",
+      "Wildsong",
+      "Voice of Nature",
+      "Wild Willpower",
+      "Primal Hierophant"
+    ]
+  },
+  "spellcasting": {
+    "tradition": "primal",
+    "type": "prepared",
+    "ability": "wis",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, entry kzxu2dI7tFxv6Ix6, página 8ElntNAGahQka70r (\"Druid\"), tabela \"Druid Spells per Day\" — transcrita célula a célula (12 colunas x 20 linhas, parse do HTML, não a olho). CONFERIDA contra duas fontes independentes: (a) as fichas pregen oficiais da icônica Lini (packs/iconics/lini/lini-level-{1,3,5}.json), que batem célula a célula nos níveis 1/3/5 (L1 slot0.max=5 slot1.max=2; L3 slot0=5 slot1=3 slot2=2; L5 slot0=5 slot1=3 slot2=3 slot3=2) e confirmam tradition=primal, prepared=prepared, ability=wis; (b) o registro wb:class/druid do waybuilder do Igor, que NÃO declara conjuração nenhuma (grants sem `spellcasting`/`key_ability` — é a issue #3 dele, \"grants vazios\"), então para esta tabela ele não serve de terceira fonte. Nenhuma divergência entre journal e pregens.",
+    "table": [
+      { "level": 1, "cantrips": 5, "slots": { "1": 2 } },
+      { "level": 2, "cantrips": 5, "slots": { "1": 3 } },
+      { "level": 3, "cantrips": 5, "slots": { "1": 3, "2": 2 } },
+      { "level": 4, "cantrips": 5, "slots": { "1": 3, "2": 3 } },
+      { "level": 5, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 2 } },
+      { "level": 6, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3 } },
+      { "level": 7, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 2 } },
+      { "level": 8, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3 } },
+      { "level": 9, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 2 } },
+      { "level": 10, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3 } },
+      { "level": 11, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 2 } },
+      { "level": 12, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3 } },
+      {
+        "level": 13,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 2 }
+      },
+      {
+        "level": 14,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3 }
+      },
+      {
+        "level": 15,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 2 }
+      },
+      {
+        "level": 16,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3 }
+      },
+      {
+        "level": 17,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 2 }
+      },
+      {
+        "level": 18,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3 }
+      },
+      {
+        "level": 19,
+        "cantrips": 5,
+        "slots": {
+          "1": 3,
+          "2": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3,
+          "10": 1
+        }
+      },
+      {
+        "level": 20,
+        "cantrips": 5,
+        "slots": {
+          "1": 3,
+          "2": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3,
+          "10": 1
+        }
+      }
+    ]
+  },
+  "focusSpells": {
+    "names": [
+      "Apex Companion",
+      "Cornucopia",
+      "Fungal Exhalation",
+      "Heal Animal",
+      "Hedge Prison",
+      "Impaling Briars",
+      "Mushroom Patch",
+      "Primal Summons",
+      "Storm Lord",
+      "Stormwind Flight",
+      "Tempest Surge",
+      "Untamed Form",
+      "Untamed Shift"
+    ],
+    "alreadyInPacks": [
+      "Apex Companion",
+      "Cornucopia",
+      "Fungal Exhalation",
+      "Heal Animal",
+      "Hedge Prison",
+      "Impaling Briars",
+      "Mushroom Patch",
+      "Primal Summons",
+      "Storm Lord",
+      "Stormwind Flight",
+      "Tempest Surge",
+      "Untamed Form",
+      "Untamed Shift"
+    ]
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Anthropomorphic Shape", "Untamed Form"],
+      ["Form Control", "Untamed Form"],
+      ["Insect Shape", "Untamed Form"],
+      ["Ferocious Shape", "Untamed Form"],
+      ["Soaring Shape", "Untamed Form"],
+      ["Elemental Shape", "Untamed Form"],
+      ["Bizarre Transformation", "Untamed Form"],
+      ["Monstrosity Shape", "Untamed Form"],
+      ["Too Much to Swallow", "Untamed Form"],
+      ["Reactive Transformation", "Untamed Form"],
+      ["Dragon Shape", "Soaring Shape"],
+      ["Invoke Disaster", "Wind Caller"],
+      ["Heart of the Kaiju", "Monstrosity Shape"],
+      ["True Shapeshifter", "Dragon Shape"],
+      ["True Shapeshifter", "Untamed Form"],
+      ["Perfect Form Control", "Form Control"],
+      ["Cleansing Transformation", "Healing Transformation"],
+      ["Green Tongue", "Green Empathy"],
+      ["Primal Summons", "Call of the Wild"],
+      ["Pristine Weapon", "Verdant Weapon"],
+      ["Order Magic", "Order Explorer"],
+      ["Mature Animal Companion (Druid)", "Animal Companion"],
+      ["Side by Side (Druid)", "Animal Companion"],
+      ["Apex Companion", "Animal Companion"],
+      ["Instinctive Support", "Animal Companion"]
+    ],
+    "referencesOutsideSelection": [
+      "TRÊS FAMÍLIAS de pré-requisito textual que nenhum documento resolve por nome inteiro. (1) NOME DE ORDEM em minúsculas — 22 talentos apontam para a opção do eixo `druid-order` pelo texto 'animal order', 'leaf order', 'storm order', 'flame order', 'stone order', 'wave order', 'spore order', 'cultivation order', 'untamed order'. É EXATAMENTE o mesmo formato de 'dragon instinct' do Barbarian (texto == nome da opção em minúsculas), e não a armadilha do Psychic (que carrega sufixo). Os 9 docs de ordem entram em class-features-core nesta rodada, então o casamento por nome case-insensitive resolve — não foi mecanizado aqui porque nada hoje lê pré-requisito de opção de eixo; fica declarado. Casos: Animal Companion, Fire Lung, Leshy Familiar, Shore Step, Steadying Stone, Storm Born, Untamed Form (L1); Fire Resistance, Forest Passage, Leshy Familiar Secrets, Natural Swimmer, Sheltering Cave, Snowdrift Spell (L4); Fungal Exhalation, Green Empathy, Grown of Oak, Hedge Prison, Storm Retribution (L6); Fiery Retort, Floral Restoration, Wind Caller (L8); Harden Flesh, Thunderclap Spell (L10); Garland Spell, Purifying Spell, Uplifting Winds (L12); Verdant Metamorphosis (L14); Impaling Briars (L16).",
+      "(2) DISJUNÇÃO em UMA entrada: 'Advanced Elemental Spell' (L6) -> 'flame stone storm or wave order' (o vendor escreve as quatro ordens numa string só, SEM vírgulas — texto do próprio vendor, não corrupção do pipeline); 'Plant Shape' (L10) -> 'leaf order or Untamed Form'; 'Reactive Transformation' (L14) -> segunda entrada 'Dragon Shape, Elemental Shape, Plant Shape, or Soaring Shape'; 'Brutal Crush'/'Creature Comforts'/'Rip and Tear' (L4, compartilhados com Barbarian) -> 'animal instinct or untamed order'. Nenhum é kind 'merge' (a disjunção JÁ está numa entrada só; o defeito da issue #30 era o oposto — duas entradas lidas como AND).",
+      "(3) ATRIBUTO DO NÓ (proficiência/posse), não referência a documento: 'Wandering Oasis' (L12) -> 'master in Survival'; 'Deimatic Display' (L8) -> 'trained in Intimidation'; 'Perfect Form Control' (L18) -> 'Strength +4' (segunda entrada, além de Form Control); 'Enhanced Familiar' (L2, compartilhado) -> 'a familiar'; 'Storm Retribution' (L6) -> segunda entrada 'tempest surge order spell' (aponta para a MAGIA DE FOCO Tempest Surge, que já está em spells-core, não para um feat).",
+      "'Incredible Companion (Druid)' -> 'Mature Animal Companion' e 'Primal Howl'/'Specialized Companion (Druid)' -> 'Incredible Companion': o vendor escreve o nome SEM o sufixo '(Druid)', mas os documentos do Druid são 'Mature Animal Companion (Druid)' e 'Incredible Companion (Druid)' (o sufixo é do próprio vendor, para distinguir dos homônimos de Ranger). Candidato natural a prerequisiteFixes kind 'rename' — NÃO aplicado nesta rodada porque mudaria a prosa exibida em pt-BR de 3 talentos sem que nada na ficha-alvo nem em catraca dependa disso; mesma decisão registrada em psychic.json para os 4 pré-requisitos de mente subconsciente.",
+      "Os 10 talentos '* Mask' (L20, prereq 'Druid Dedication or Wizard Dedication') NÃO entram — ver excludeNames e dedupe."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "Reach Spell",
+      "Widen Spell",
+      "Enhanced Familiar",
+      "Poison Resistance",
+      "Brutal Crush",
+      "Creature Comforts",
+      "Rip and Tear",
+      "Intensified Element Stance",
+      "Steady Spellcasting",
+      "Can't You See?",
+      "Eerie Environs",
+      "Eerie Traces",
+      "Eerie Proclamation",
+      "Overwhelming Energy",
+      "Necromantic Deflection",
+      "Towering Transformation",
+      "Effortless Concentration"
+    ],
+    "collisionsDetected": [
+      "trait-duplo: 17 dos 100 class feats selecionados carregam trait de 2+ classes (Reach Spell = bard/cleric/druid/oracle/sorcerer/witch/wizard; Brutal Crush/Creature Comforts/Rip and Tear = barbarian+druid; Eerie* = 3 classes; etc.) e TODOS os 17 já estão em feats-core, reusados de Wizard/Cleric/Barbarian/Bard. O gate class_level derivado por trait fica AMBÍGUO nesses 17 — o predicado correto é 'any' sobre as classes do trait, nunca uma escolha arbitrária (mesmo padrão já registrado em wizard.json, cleric.json, barbarian.json e psychic.json). Medido: 16 apareciam por nome no pack antes desta rodada; 'Poison Resistance' (L2, druid+alchemist) é o 17º e entra agora — não estava.",
+      "10 talentos '* Mask' EXCLUÍDOS (excludeNames): Cunning Trickster Mask, Emancipator's Mask, Grand Medic's Mask, Protective Spirit Mask, Sky Master Mask, Stalking Feline Mask, Storyteller's Mask, Thick Hide Mask, Tireless Guide's Mask, Vigilant Mask. Todos L20, carregam simultaneamente os traits 'druid' E 'wizard' E 'archetype', e o pré-requisito é 'Druid Dedication or Wizard Dedication' — são talentos do arquétipo Spellmaster/Mask, não talentos de classe do Druid. wizard.json já os excluiu pelo MESMO critério ('archetype vence trait de classe') na r22; excluí-los aqui mantém a decisão consistente. Se ficassem, um Druid puro veria 10 talentos de nível 20 que ele não pode pegar sem uma dedicação.",
+      "'Untamed Form' é NOME DUPLO em packs distintos: existe o class feat 'Untamed Form' (feats/class/druid/untamed-form.json, L1, trait druid) e a magia de foco 'Untamed Form' (spells/focus/, já em spells-core). São dois documentos diferentes com o mesmo nome em packs diferentes — identidade é por flags.fusion.sourceId, nunca por nome. Nenhum consumidor casa feat com spell por nome, então não há colisão real; registrado porque um casamento por nome futuro (ex.: resolver pré-requisito) confundiria os dois.",
+      "'Mature Animal Companion (Druid)', 'Incredible Companion (Druid)', 'Side by Side (Druid)', 'Specialized Companion (Druid)': homônimos-com-sufixo dos talentos de Ranger de mesmo radical. O sufixo é do vendor. Os de Ranger já estão em feats-core desde a r21 (trait ranger); os do Druid entram agora. Dois documentos distintos, não duplicata — mesmo par já documentado em sorcerer.json para 'Counterspell'.",
+      "attacks.other vazio: classes/druid.json tem system.attacks.other = {name: \"\", rank: 0} (medido). Diferente de Cleric (arma favorita da divindade, rank 1) e Gunslinger (firearms, rank 2), aqui o campo está ZERADO — transform.mjs descarta a chave 'other' e não perde nada. O Druid NÃO produz divergência 'classSystem.attacks.other' em pregen-parity (a #50 não o alcança).",
+      "keyAbility: o vendor declara ['wis'] (medido), diferente do buraco do Psychic (array vazio). Nada a corrigir."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "POR QUE O DRUID ENTRA (r28): é a classe PILOTO do 'processo-fábrica' — a 15ª classe, curada depois que as 14 primeiras (r21/r22/r25) fecharam o contrato. A pergunta que este arquivo responde não é 'o Druid dá pra jogar', é 'adicionar uma classe nova custa só um arquivo de curadoria + fiação de eixo?'. Resposta medida nesta rodada: quase — custa o JSON de curadoria (este arquivo), 4 linhas de fiação do eixo em planVM.ts (PlanSlotType, SLOT_TYPE_LABELS, CLASS_CHOICE_SLOTS, CLASS_CHOICE_SLOT_OPTIONS) e 2 entradas em choiceSetInventory.ts. Nenhuma linha em transform.mjs nem em build-mvp-subset.mjs — que era a promessa da r21 e é a primeira vez que ela é testada por uma classe que não estava lá quando o contrato foi escrito.",
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE (plano §4.3).",
+    "PROFICIÊNCIAS INICIAIS medidas em classes/druid.json: perception=1, savingThrows fort=1/reflex=1/will=2 (will já EXPERT no nível 1, mesmo padrão de Cleric/Wizard/Sorcerer/Psychic), attacks simple=1 e unarmed=1 (martial=0, advanced=0 — o Druid remaster NÃO tem lista de armas druídicas: perdeu a restrição e ganhou apenas simples), defenses light=1, medium=1, unarmored=1 (heavy=0 — é a única classe conjuradora plena curada com armadura MÉDIA treinada), spellcasting=1, trainedSkills {value:['nature'], additional:2}, classDC ausente no vendor (transform aplica o default 1, mesmo caminho de Cleric/Magus/Wizard/Sorcerer/Psychic). featLevels: ancestry [1,5,9,13,17], class [2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19] — idênticos a Cleric/Wizard.",
+    "PERÍCIA DA ORDEM não é modelada: o journal diz 'Trained in one skill determined by your druidic order' ALÉM de Nature e das 2+Int livres, e cada doc de ordem carrega o ActiveEffectLike que a concede (Animal->Athletics, Cultivation->Crafting, Flame->Acrobatics, Leaf->Diplomacy, Spore->Intimidation, Stone->Crafting, Storm->Acrobatics, Untamed->Intimidation, Wave->Medicine — medidos um a um). `trainedSkills.additional` continua 2 no doc de classe (é o número do vendor, e está certo: a perícia da ordem NÃO é uma escolha livre, é fixa por ordem). Quem tem de aplicá-la é o consumidor da opção de eixo escolhida — hoje nenhum aplica. Dívida declarada, mesma família do 'proficiência por opção de eixo' que cleric.json já pediu para Cloistered/Warpriest.",
+    "CLASS FEATURES (items{} do vendor): 17 entradas, nome canônico da uuid == entry.name em 17/17 (sem a armadilha do Magus/Cleric, onde entry.name divergia da uuid). 10 das 17 JÁ estão em class-features-core com o MESMO doc reusado de outras classes (Shield Block, Perception Expertise, Fortitude Expertise, Reflex Expertise, Expert Spellcaster, Weapon Expertise, Medium Armor Expertise, Weapon Specialization, Master Spellcaster, Legendary Spellcaster). As 7 restantes são exclusivas do Druid e faltavam: Anathema (Druid), Druid Spellcasting, Druidic Order, Wildsong, Voice of Nature, Wild Willpower, Primal Hierophant. Mais as 9 opções de ordem, que entram pelo ramo de eixo (não estão no items{}). Total novo em class-features-core: 16 documentos.",
+    "EIXO — 1 só, nível 1: `druid-order` (categoria derivada 'order', 9 opções CONTADAS por varredura da otherTag em class-features/: Animal, Cultivation, Flame, Leaf, Spore, Stone, Storm, Untamed, Wave). NENHUMA das 9 carrega 'class-archetype' (varredura completa) — ao contrário de 'Battle Creed' no eixo cleric-doctrine, aqui não há opção de arquétipo reusando a otherTag, então optionCount=9 vale para todo caminho.",
+    "CADA ORDEM CONCEDE UM TALENTO DE NÍVEL 1 por GrantItem, e os 7 alvos entram em feats-core nesta rodada pelo próprio laço de classes curadas (trait druid, L1): Animal->Animal Companion, Cultivation->Leshy Familiar, Flame->Fire Lung, Leaf->Leshy Familiar, Spore->Leshy Familiar, Stone->Steadying Stone, Storm->Storm Born, Untamed->Untamed Form, Wave->Shore Step. Não foi preciso nenhuma entrada em GRANT_TARGET_DEDICATION_NAMES nem em GRANT_TARGET_CLASS_FEATURE_NAMES — os alvos carregam o trait da classe, que é o caso feliz que o contrato já cobre. (Leshy Familiar é o alvo de TRÊS ordens; é um doc só.)",
+    "'Voice of Nature' (L1) tem um ChoiceSet de DOIS itens explícitos (Animal Empathy / Plant Empathy) + GrantItem do escolhido. É a mesma forma da escolha aninhada de REQ-BC-024, mas com lista literal em vez de filtro declarativo — GRANTED_FEAT_FILTERS do planVM.ts só sabe filtro por predicado, então esta não é expressável lá hoje. Classificada 'pendente' em choiceSetInventory.ts. Os dois talentos-alvo (Animal Empathy, Plant Empathy, ambos trait druid L1) ENTRAM em feats-core, então quando o consumidor existir o alvo já está no pack. Confirmado na ficha da Lini: ela tem 'Animal Empathy' como talento de classe além de 'Animal Companion'.",
+    "proficiencyUpgrades DERIVÁVEIS de subfeatures.proficiencies — 12 linhas, com missing=[] e ignoredRules=[] (medidas rodando deriveProficiencyUpgrades sobre out/class-features/normalized.json): Perception Expertise perception rank2 @L3; Fortitude Expertise fortitude rank2 @L3; Reflex Expertise reflex rank2 @L5; Expert Spellcaster spellcasting rank2 @L7; Weapon Expertise weapons.simple + weapons.unarmed rank2 @L11 (DUAS linhas); Wild Willpower will rank3 @L11; Medium Armor Expertise armor.light + armor.medium + armor.unarmored rank2 @L13 (TRÊS linhas); Master Spellcaster spellcasting rank3 @L15; Legendary Spellcaster spellcasting rank4 @L19. Nenhum proficiencyUpgradeExtras foi necessário — a derivação genérica cobre a classe inteira, o que NÃO aconteceu com Cleric (doutrina) nem com Gunslinger (armas nomeadas). 'Weapon Specialization' (L13) e 'Primal Hierophant' (L19) não produzem linha: a primeira é bônus de dano (subfeatures vazio, mesma observação de Wizard/Sorcerer), a segunda é o slot especial de rank 10 (mesmo padrão do Archwizard's Spellcraft e do Miraculous Spell).",
+    "O DRUID NÃO SOBE classDC nem perception acima de expert, e nunca chega a legendary em Will (para em master@11 via Wild Willpower) nem em armadura (para em expert@13). Conferido contra a progressão do PF2e remaster fora do pack: é o perfil de conjurador pleno com armadura média, e é o que a derivação produziu sozinha.",
+    "TABELA DE CONJURAÇÃO: conjurador PLENO, 5 truques do nível 1 ao 20 e 3 slots por rank (nunca 2, ao contrário do Psychic). Idêntica célula a célula à do Cleric — o que é o esperado (as duas são conjuradoras plenas preparadas do remaster) e serve de conferência cruzada extra. Rank 10 nos níveis 19-20 vem da class feature Primal Hierophant (1 slot, marcado com * no journal, 'works a bit differently'), não da progressão normal — mesmo padrão do Miraculous Spell do Cleric e do Archwizard's Spellcraft do Wizard; só o slot base 10:1 está na tabela. Níveis 1 a 3, explícitos: L1 = 5 truques + 2 slots de rank 1; L2 = 5 truques + 3 slots de rank 1; L3 = 5 truques + 3 de rank 1 + 2 de rank 2.",
+    "MAGIAS DE FOCO — as 13 com trait 'druid' JÁ ESTÃO 100% em spells-core desde a r12 (o predicado isSpellsCoreDoc seleciona por trait 'focus', que é class-agnóstico): Apex Companion, Cornucopia, Fungal Exhalation, Heal Animal, Hedge Prison, Impaling Briars, Mushroom Patch, Primal Summons, Storm Lord, Stormwind Flight, Tempest Surge, Untamed Form, Untamed Shift. Esta rodada NÃO toca spells-core (é do workstream A3 da mesma noite) e não precisa tocar: o documento existe. O que FALTA é o VÍNCULO ordem -> magia de foco inicial (Animal->Heal Animal, Leaf->Cornucopia, Storm->Tempest Surge, Untamed->Untamed Shift, ...), que não existe como dado em nenhum pack — mesma lacuna que cleric.json registrou para domínio->magia de domínio. Dívida declarada.",
+    "COMPANHEIRO ANIMAL — dívida declarada, não modelada. A Ordem Animal concede o talento 'Animal Companion' (que ENTRA em feats-core), mas o companheiro em si é um ATOR separado (vendor packs/pets/, fora dos packs do Fusion hoje) com sua própria progressão (young/mature/nimble-savage/specialized). O talento entra como documento; o bicho não nasce. Afeta também 'Mature Animal Companion (Druid)', 'Incredible Companion (Druid)', 'Specialized Companion (Druid)', 'Side by Side (Druid)', 'Apex Companion', 'Instinctive Support' e 'Primal Howl' — 7 talentos cujo efeito só se realiza quando houver pack de companheiros. Existe petsVM.ts no client (familiares), então a fronteira é onde parar, não se dá para começar.",
+    "CONFERÊNCIA COM O WAYBUILDER (wb:class/druid, base local em ~/pessoal/Wayfinder/pipeline/base/index.json): bate em hp_per_level=8, nas quatro linhas de proficiência inicial (perception trained; fort/reflex trained + will EXPERT; simple+unarmed trained, martial/advanced untrained; light+medium+unarmored trained, heavy untrained), em skill_training {auto:['nature'], free:2}, e nos quatro feat_slot + skill_increase, todos idênticos aos nossos. DUAS divergências, as duas a favor do vendor: (1) a `progressao` dele lista DUPLICADO 'weapon-expertise' + 'druid-weapon-expertise' no nível 11 — o sufixado é o doc LEGADO (pré-remaster) substituído pelo genérico, e o items{} do doc de classe remasterizado aponta só para o genérico; é a issue #10 dele ('eixos tortos em 11 de 27 classes') na prática, exatamente o mesmo achado que psychic.json registrou para 'spell-repertoire-psychic'. (2) o registro dele NÃO tem grant de conjuração nem key_ability — é a issue #3 ('56% das class-features com grants vazios'); a tabela de magias veio inteira do journal + pregens da Lini. Conclusão: o Waybuilder confirmou o chassi, não substituiu a leitura do vendor — que é o que as duas issues previam.",
+    "GATE QUE ESTA CURADORIA ACIONA: pregen-parity.test.ts monta PREGENS filtrando os ícones pelas classes que estão em classes-core. A icônica do Druid (Lini) tem ficha oficial nos níveis 1/3/5, então publicar a classe traz Lini para dentro do gate #48 — verificação externa de graça, e é ela que prova esta curadoria (ver `source` de spellcasting). O it.each de teto de aumento de perícia (issue #49, que atinge TODA classe) produz a divergência 'Druid/skillIncreaseCeiling', adicionada a KNOWN_DIVERGENCES no mesmo commit — é a entrada gêmea das que Gunslinger e Psychic já têm, não um defeito novo do Druid.",
+    "REBUILD: as 9 opções do eixo entram em class-features-core APENAS pelo ramo `axisCategories.has(doc.system.category)` de isClassFeaturesCoreDoc — elas não estão no items{} da classe. E `system.category` só vira 'order' quando transform.mjs roda com esta curadoria no disco (axisCategoryByOtherTag). Logo NÃO basta rodar build-mvp-subset.mjs sobre um out/ antigo: é obrigatório reprocessar o transform com classes E class-features no MESMO --packs. Se alguém rodar só o pack, o eixo sai com 0 opções e transform.test.mjs reprova em 'eixo sem nenhuma opção no pack'.",
+    "MULTICLASSE (plano r21 §4.1): o gate derivado dos 100 class feats é class_level:druid, sem ambiguidade em 83 deles; para os 17 com trait de 2+ classes o predicado correto é 'any' sobre as classes do trait. 'Druid Dedication' NÃO entra nesta rodada: carrega traits [archetype, dedication, multiclass] sem o trait 'druid', então nenhum predicado a alcança — e, ao contrário do Psychic (onde a herança Ancient Elf da ficha-alvo exigia a dedicação), aqui nada na catraca depende dela. Fechar exigiria uma entrada em classFeats.extraNames; deliberadamente não feita, para o piloto medir o custo da classe PURA."
+  ]
+}

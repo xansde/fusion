@@ -603,6 +603,53 @@
     }
   },
   {
+    "_id": "dCH1B3UBF3fLEyMU",
+    "name": "Anathema (Druid)",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>As stewards of the natural order, druids find affronts to nature anathema. If you repeatedly perform these acts, you lose your magical abilities from the druid class, including your druid spellcasting and the benefits of your order. These abilities can be regained only if you demonstrate your repentance with an @UUID[Compendium.pf2e.spells-srd.Item.Atone] ritual. The following acts are anathema to all druids.</p>\n<p><strong>Anathema</strong> despoil natural places, consume more natural resources than you require to live comfortably, teach the Wildsong to non-druids.</p>\n<p>Your choice of druidic order adds further anathema, as detailed in the order's entry.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nfBn8QB6HVdzpTFV",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "leaf-hastate-glowing-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "oqbnOYq8BmDDXWid",
     "name": "Animal Instinct",
     "type": "classFeature",
@@ -1971,6 +2018,111 @@
           {
             "field": "img",
             "original": "cougar-pounce-stalk-black.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "5zCp9NdkHHjafwsN",
+    "name": "Animal Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>You have a strong connection to beasts, always feeling like you understood them (and they you) better than your own people. You stand for the animals of nature, a powerful animal companion at your side.</p>\n<p><strong>Order Skill</strong> Athletics</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Animal Companion]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Heal Animal]</p>\n<p><strong>Anathema</strong> Commit wanton cruelty to animals or kill animals unnecessarily. (This doesn't prevent you from defending yourself against animals or killing them cleanly for food).</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.athletics.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:animal-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.athletics.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:animal-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Animal Companion",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:animal-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:animal-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Animal Companion"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "POBvoXifa9HaejAg",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bear-roar-bite-brown-green.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -17479,6 +17631,111 @@
     }
   },
   {
+    "_id": "L86Ezh38tCiSKmFT",
+    "name": "Cultivation Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>You believe that nature is best tended, pruned, and maintained. Nature is inherently random and chaotic out of necessity of survival—the flower spreads its seeds far and wide, hoping that some might sprout, but you believe that plants truly thrive in orderly environments. Thus, you lend a hand, decluttering that which is stagnant, planting in ideal locations, replanting that which grows in suboptimal locations, mulching the soil, and performing other maintenance. While many druids might consider your approach \"meddling\" or \"unnatural,\" you know that the work you do is vital for the overall health of the environment you tend.</p>\n<p>You're trained in Crafting. You also gain the Leshy Familiar druid feat. You gain the cornucopia order spell. Committing wanton cruelty to plants or fungi or neglecting to nurture plants in need of tending is anathema to your order. This doesn't prevent you from killing plants or fungi and it doesn't prevent you from defending yourself against plants or fungi.</p>\n<hr />\n<p><strong>Order Skill</strong> Crafting</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Cornucopia]</p>\n<p><strong>Anathema</strong> Commit wanton cruelty to plants or fungi or kill them unnecessarily. (This doesn't prevent you from defending yourself or harvesting them for survival.)</p>\n<hr />\n<p><strong>Special</strong>: The cultivation order is a variant of the leaf order. If you have the cultivation order, you count as a member of the leaf order, and you qualify for leaf order feats.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #202: Severed at the Root"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.crafting.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:leaf-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.crafting.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:leaf-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Leshy Familiar",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:leaf-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:leaf-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Leshy Familiar"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "IiYUhFGqq2Nw0b5Y",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cornucopia-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "mGyRcs5k6sRE1fVm",
     "name": "Debilitating Strike",
     "type": "classFeature",
@@ -20844,6 +21101,128 @@
     }
   },
   {
+    "_id": "k7CZ8dTLpyWNoX6r",
+    "name": "Druid Spellcasting",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>The power of the wild world flows through you. You are a spellcaster and can cast spells of the primal tradition using the @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell] activity. As a druid, your spellcasting incantations might be pleas to the environment around you or the invocation of ancient vows; your hands might sway like willows or curl into clawlike shapes as your gestures direct your magic. At 1st level, you can prepare two 1st-rank spells and five cantrips each morning from the common spells on the primal spell list, or from other primal spells to which you gain access and learn via Learn a Spell. Prepared spells remain available to you until you cast them or until you prepare your spells again. The number of spells you can prepare each day is called your spell slots.</p>\n<p>As you increase in level as a druid, the number of spells you can prepare each day increases, as does the highest rank of spell you can cast, as shown in the Druid Spells per Day table.</p>\n<p>Some of your spells require you to attempt a spell attack to see how effective they are, or have your enemies roll against your spell DC (typically by attempting a saving throw). Since your key attribute is Wisdom, your spell attack modifier and spell DC use your Wisdom modifier.</p>\n<h2>Heightening Spells</h2>\n<p>When you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. Many spells have specific improvements when they are heightened to certain ranks.</p>\n<h2>Cantrips</h2>\n<p>Some of your spells are cantrips. A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is always automatically heightened to half your level rounded up—this is usually equal to the highest rank of druid spell slot you have. For example, as a 1st-level druid, your cantrips are 1st-rank spells, and a 5th-level druid's are 3rd rank.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "b8pnRxGuNzG0buuh",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "elements-air-earth-fire-water.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gS7kLg7fRgMku6gd",
+    "name": "Druidic Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Upon becoming a druid, you align yourself with a druidic order, which grants you a class feat, an order spell (see below), and an additional trained skill tied to your order While you'll always be a member of your initial order, it's not unheard of for a druid to request to study with other orders in search of greater understanding of the natural world, and PC druids are among the most likely to blend the powers of different orders.</p>\n<p>Order spells are a type of focus spell. It costs 1 Focus Point to cast a focus spell, and you start with a focus pool of 1 Focus Point. You refill your focus pool during your daily preparations, and you can regain 1 Focus Point by spending 10 minutes using the Refocus activity to commune with local nature spirits or otherwise tend to the wilderness in a way befitting your order.</p>\n<p>Focus spells are automatically heightened to half your level rounded up, much like cantrips. Focus spells don't require spell slots, and you can't cast them using spell slots. Certain feats give you more focus spells. The maximum Focus Points your focus pool can hold is equal to the number of focus spells you have, but can never be more than 3 points.</p>\n<p><strong>Order Skill</strong> You become trained in the listed skill. If you're already trained in that skill, you become trained in a different skill of your choice.</p>\n<p><strong>Druid Feat</strong> You gain this 1st-level druid feat.</p>\n<p><strong>Order Spell</strong> You automatically gain the listed order spell at 1st level.</p>\n<p><strong>Anathema</strong> Add this anathema to those for all druids.</p><hr /><p>@UUID[Compendium.pf2e.classfeatures.Item.Animal Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Flame Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Leaf Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Stone Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Storm Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Untamed Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Wave Order]</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.druidicOrder}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.druidicOrder}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8STJEFVJISujgpMR",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:tag:druid-order"
+              ]
+            },
+            "flag": "druidicOrder",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Druid.DruidicOrder.Prompt",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "question-stone-yellow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "IWh85cirQmPjmrDr",
     "name": "Eldritch Trickster",
     "type": "classFeature",
@@ -23295,6 +23674,111 @@
           {
             "field": "img",
             "original": "question-stone-yellow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Nt0RtM2fMav4e60N",
+    "name": "Flame Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>You feel a kinship with flames and can use them for succor and destruction.</p>\n<p><strong>Order Skill</strong> Acrobatics</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Fire Lung]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Wildfire]</p>\n<p><strong>Anathema</strong> Allowing unnatural fires to spread or preventing natural fires from occurring in a way that harms the environment. (this doesn't prevent you from using fire destructively or force you to combat a controlled or natural fire).</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.acrobatics.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:flame-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.acrobatics.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:flame-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Fire Lung",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:flame-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:flame-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Fire Lung"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "NdeFvIXdHwKYLiUj",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "flame-burning-building.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -28817,6 +29301,111 @@
     }
   },
   {
+    "_id": "AIUxiE3NEsg4x06y",
+    "name": "Leaf Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>You revere the bounty of nature, acting as both a gardener and warden for the wilderness. With your leshy familiar at your side, you help areas regrow after disasters or negligent expansion and turn flora against those who would abuse them.</p>\n<p><strong>Order Skill</strong> Diplomacy</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Cornucopia]</p>\n<p><strong>Anathema</strong> Commit wanton cruelty to plants or fungi or kill them unnecessarily. (This doesn't prevent you from defending yourself or harvesting them for survival.)</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.diplomacy.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:leaf-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.diplomacy.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:leaf-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Leshy Familiar",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:leaf-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:leaf-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Leshy Familiar"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "u4nlOzPj2WHkIj9l",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "leaf-elm-sparkle-glow-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "1tBpApILCv58X3Qo",
     "name": "Legendary Armor",
     "type": "classFeature",
@@ -33288,6 +33877,53 @@
           {
             "field": "img",
             "original": "symbol-lightning-bolt.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QEbVB0nhQ7sTqvML",
+    "name": "Primal Hierophant",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You command the most potent forces of primal magic and can cast a spell of truly incredible power. You gain a single 10th-rank spell slot and can prepare a spell in that slot using druid spellcasting. Unlike with other spell slots, you can't use 10-rank slots with abilities that give you more spell slots or that let you cast spells without expending spell slots. You don't gain more 10th-rank spells as you level up, but you can take the @UUID[Compendium.pf2e.feats-srd.Item.Hierophant's Power] feat to gain a second slot.</p>",
+      "level": 19,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nzgb43mQmLgaqDoQ",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wand-crook-yellow.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -38941,6 +39577,111 @@
     }
   },
   {
+    "_id": "aztwW7yAkCF3mRR1",
+    "name": "Spore Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>You're fascinated by molds and fungi, and you understand the important role they play in the continued health of ecosystems. This interest often puts you at odds with local communities, who view molds and fungi as something to be eradicated, rather than nurtured.</p>\n<p>You're trained in Intimidation. You also gain the Leshy Familiar druid feat, but you must create a fungus leshy. You gain the <em>mushroom patch</em> order spell. Committing wanton cruelty to molds or fungi, killing molds or fungi unnecessarily, or interfering with the natural processes of decay, is anathema to your order. This doesn't prevent you from defending yourself against fungi or molds or from harvesting fungi or molds for sustenance.</p>\n<hr />\n<p><strong>Order Skill</strong> Intimidation</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mushroom Patch]</p>\n<p><strong>Anathema</strong> Committing wanton cruelty to molds or fungi, killing molds or fungi unnecessarily, or interfering with the natural processes of decay, is anathema to your order. This doesn't prevent you from defending yourself against fungi or molds or from harvesting fungi or molds for sustenance.</p>\n<hr />\n<p><strong>Special</strong>: The spore order is a variant of the leaf order. If you have the spore order, you count as a member of the leaf order, and you qualify for leaf order feats.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #202: Severed at the Root"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.intimidation.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:leaf-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.intimidation.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:leaf-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Leshy Familiar",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:leaf-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:leaf-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Leshy Familiar"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "X0k3njLOLX0322Po",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "plant-undersea-seaweed-glow-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "fs8vce7CnfjA7OU4",
     "name": "Staff Nexus",
     "type": "classFeature",
@@ -39034,6 +39775,217 @@
           {
             "field": "img",
             "original": "arrows-flying-salvo-blue-light.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ocwBXAQOBMFajygM",
+    "name": "Stone Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>You're as enduring as stone, and you take comfort in its steadfast presence, both natural and worked.</p>\n<p><strong>Order Skill</strong> Crafting</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Steadying Stone]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Crushing Ground]</p>\n<p><strong>Anathema</strong> Poisoning or polluting the land and heedlessly carving the earth to plunder its natural resources. (this doesn't prevent you from responsibly digging or mining).</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.crafting.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:stone-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.crafting.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:stone-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Steadying Stone",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:stone-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:stone-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Steadying Stone"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fKTewWlYgFuhl4KA",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "stone-white-quartz-ball.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "kITNUEVRGskHjuNW",
+    "name": "Storm Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>Whether you were born under a tempest or survived a bolt of lightning from a clear blue sky, you now carry the fury of the storm in your heart, channeling thunder to terrifying destructive effect and riding the winds through the air.</p>\n<p><strong>Order Skill</strong> Acrobatics</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Storm Born]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Tempest Surge]</p>\n<p><strong>Anathema</strong> Pollute the air, allow those who cause major air pollution or climate shifts to go unpunished. (This doesn't force you to take action against merely potential environmental harm or to sacrifice yourself against an obviously superior foe.)</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.acrobatics.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:storm-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.acrobatics.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:storm-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Storm Born",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:storm-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:storm-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Storm Born"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "acqqlYmti8D9QJi0",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bolt-strike-clouds-blue.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -45152,6 +46104,111 @@
     }
   },
   {
+    "_id": "2IqeSNTsg56tqZXf",
+    "name": "Untamed Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>The uncontrollable call of the natural world courses through your body. You might have been raised by a wild animal, or you might have come to reject the artifices of cities after growing up in one. Now, primal magic grants you the ability to wear the form of an untamed creature.</p>\n<p><strong>Order Skill</strong> Intimidation</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Untamed Form]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Untamed Shift]</p>\n<p><strong>Anathema</strong> Become fully domesticated by the temptations of civilization. (This doesn't prevent you from buying and using processed goods or staying in a city for an adventure, but you can never come to rely on these conveniences or truly call such a place your permanent home.)</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.intimidation.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:untamed-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.intimidation.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:untamed-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Untamed Form",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:untamed-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:untamed-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Untamed Form"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "v0EjtiwdeMj8ykI0",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "stealth-hide-beast-eyes-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "j2TPXfKvF7IhZYtc",
     "name": "Versatile Legend",
     "type": "classFeature",
@@ -45729,6 +46786,84 @@
     }
   },
   {
+    "_id": "y6y7uCuBpLav1NsV",
+    "name": "Voice of Nature",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You gain your choice of the @UUID[Compendium.pf2e.feats-srd.Item.Animal Empathy] or @UUID[Compendium.pf2e.feats-srd.Item.Plant Empathy] druid feat.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.feat}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.feat}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "d5BFFHXFJYKs5LXr",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "value": "Compendium.pf2e.feats-srd.Item.Animal Empathy"
+              },
+              {
+                "value": "Compendium.pf2e.feats-srd.Item.Plant Empathy"
+              }
+            ],
+            "flag": "feat",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.LevelOneClassFeat",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "treefrog-leaf-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "cPDTYe9ZkmFFMmIA",
     "name": "Walls of Will",
     "type": "classFeature",
@@ -46049,6 +47184,111 @@
           {
             "field": "img",
             "original": "helm-spangen-horned-worn.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7in2nuThLRPWqnzG",
+    "name": "Wave Order",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "order",
+      "description": "<p>Water is the source of life, and you've learned to shape how it flows.</p>\n<p><strong>Order Skill</strong> Medicine</p>\n<p><strong>Druid Feat</strong> @UUID[Compendium.pf2e.feats-srd.Item.Shore Step]</p>\n<p><strong>Order Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Rising Surf]</p>\n<p><strong>Anathema</strong> Polluting water or allowing those who pollute water sources to go unpunished. (this doesn't force you to take action against potential water pollution or to sacrifice yourself against an obviously superior foe).</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.medicine.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feat:order-explorer:wave-order"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.medicine.rank",
+            "predicate": [
+              {
+                "not": "feat:order-explorer:wave-order"
+              }
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Shore Step",
+          "inMemoryOnly": false,
+          "predicate": [
+            {
+              "or": [
+                "class:druid",
+                "feat:order-explorer:wave-order"
+              ]
+            }
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "predicate": [
+              {
+                "or": [
+                  "class:druid",
+                  "feat:order-explorer:wave-order"
+                ]
+              }
+            ],
+            "uuid": "Compendium.pf2e.feats-srd.Item.Shore Step"
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "druid-order"
+        ],
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FuUXyv2yBs7zRgqT",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wave-water-blue.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -47538,6 +48778,123 @@
           {
             "field": "img",
             "original": "weapon-tricks.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1QwFMzHP0i86xktm",
+    "name": "Wild Willpower",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your primal will, like that of the greatest beast, can't be tamed. Your proficiency rank for Will saves increases to master. When you roll a success at a Will save, you get a critical success instead.</p>",
+      "level": 11,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {
+          "will": {
+            "rank": 3
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yqaRnXFjRnFWsWvY",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "selector": "will",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bull-horns-eyes-glowin-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "rpBHCE3ES0jHb7jE",
+    "name": "Wildsong",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>You know the Wildsong, a secret language known only within druid orders, in addition to any languages you know through your ancestry. The Wildsong is a melodic and tonal language sounding more like animal calls than a spoken tongue, and its alphabet involves fractals and spirals, like the arrangement of a seashell's chambers, a snowflake's crystals, or a fern's fronds. Teaching the Wildsong to non-druids is anathema.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "subfeatures": {
+        "languages": {
+          "granted": [
+            "wildsong"
+          ]
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RiAGlnnp4S21BAG3",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "runes-carved-stone-green.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
