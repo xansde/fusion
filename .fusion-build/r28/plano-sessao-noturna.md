@@ -10,10 +10,16 @@
 1. **Worktree própria** a partir de `origin/build/app` (fetch antes), com
    `pnpm install` (NUNCA em paralelo com outra worktree instalando — corrompe o
    store) e `pnpm build` antes de qualquer teste.
-2. **Pipeline fresco**: antes de regenerar pack, rodar
-   `node src/extract.mjs --all && node src/transform.mjs --all` no
-   `tools/importer-pf2e` da PRÓPRIA worktree. O `out/` é gitignorado — um `out/`
-   velho REVERTE enrichment em silêncio (foi o defeito latente do WIP da r27).
+2. **Pipeline fresco** (errata da noite): a ordem real é
+   `node src/extract.mjs --all && node src/normalize.mjs --all && node src/transform.mjs --all`
+   (o plano original omitia o `normalize.mjs` — o transform falha sem ele). O
+   `out/` é gitignorado — um `out/` velho REVERTE enrichment em silêncio (foi o
+   defeito latente do WIP da r27). **Errata 2 (incidente de disco 100% cheio na
+   Onda 1)**: como as 4 branches partem do MESMO commit, o `out/` fresco foi
+   gerado UMA vez no repo principal e compartilhado por junction somente-leitura
+   em cada worktree. Agente que precisar ALTERAR extract/normalize/transform
+   deve PARAR e reportar ao orquestrador em vez de rodar a pipeline no `out/`
+   compartilhado.
 3. **`build-mvp-subset.mjs` regenera os 14 packs**: depois do build, commitar
    SOMENTE os packs que o workstream possui (lista em cada task) e reverter o
    resto com `git restore` — senão todo PR conflita com todo PR nos `pack.json`.

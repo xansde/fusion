@@ -71809,6 +71809,5908 @@
     }
   },
   {
+    "_id": "gPoej13XKqpwnXCf",
+    "name": "Animal Companion",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You gain the service of a young animal companion that travels with you on your adventures and obeys any simple commands you give it to the best of its abilities.</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "animal order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "f2Pl5dWEL9ZvEyI1",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CAWH3XtWB22K6ozR",
+    "name": "Animal Empathy",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have a connection to the creatures of the natural world that allows you to communicate with them on a rudimentary level. You can ask questions of, receive answers from, and use the Diplomacy skill with animals. In most cases, wild animals will give you time to make your case.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cg816q76S5otM7yD",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "OgPswd7GqnUZ3C1b",
+    "name": "Fire Lung",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>A lifetime of proximity to flames has inured your lungs and eyes to smoke. You can breathe normally in areas of ash and smoke without risk of suffocation, and you ignore the @UUID[Compendium.pf2e.conditionitems.Item.Concealed] condition from smoke.</p>\n<p>You need only a successful DC 10 flat check to recover from persistent fire damage, rather than DC 15 (and the DC when receiving particularly effective assistance is @Check[flat|dc:5] instead of 10).</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "flame order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "pd-recovery-dc",
+          "value": 10,
+          "mode": "downgrade",
+          "predicate": [
+            "item:damage:type:fire"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "condition",
+            "key": "ItemAlteration",
+            "mode": "downgrade",
+            "predicate": [
+              "item:damage:type:fire"
+            ],
+            "property": "pd-recovery-dc",
+            "value": 10
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yOloZIGkulrrPYG4",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "condition",
+            "key": "ItemAlteration",
+            "mode": "downgrade",
+            "predicate": [
+              "item:damage:type:fire"
+            ],
+            "property": "pd-recovery-dc",
+            "value": 10,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "lmHllntEY5Bq6aHL",
+    "name": "Leshy Familiar",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You call a minor spirit of nature into a plant body, creating a leshy companion to aid you in your spellcasting. You gain a familiar, which has your choice of either the plant or fungus familiar ability; this doesn't count against your usual limit of familiar abilities (typically 2). The spirit you call has a more tenuous connection to its plant body than fully independent leshies, so it is Tiny in size like other familiars.</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Pet",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Pet"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7y1BCJLrdk9mKXlc",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CHVJArXIdvnda1XP",
+    "name": "Plant Empathy",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have a connection to flora that allows you to communicate with them on a rudimentary level. You can ask questions of, receive answers from, and use the Diplomacy skill with plants and fungus.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ahyQpMVDIqhvXkQ4",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "2cSxUVJZ5ViTJWC7",
+    "name": "Shore Step",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>The shallows and tide pools have always called to you and let you pass unhindered. You ignore difficult terrain resulting from shallow water.</p>\n<p>In addition, if you roll a success on an Acrobatics check to @UUID[Compendium.pf2e.actionspf2e.Item.Balance] on a slippery or wet surface, or on an Athletics check to @UUID[Compendium.pf2e.actionspf2e.Item.Swim], you get a critical success instead.</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "wave order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "kS4wxSKrZxcOvSNK",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "VzwAY4BQCFby19yO",
+    "name": "Steadying Stone",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>The earth has taught you how to remain unyielding and firm. If you roll a success on an Acrobatics check made to @UUID[Compendium.pf2e.actionspf2e.Item.Balance] on uneven ground composed of earth or rock, you get a critical success instead.</p>\n<p>As long as you remain on the ground, you gain a +2 circumstance bonus to your Fortitude or Reflex DC against attempts to Shove or Trip you. This bonus also applies to saving throws against spells or effects that would attempt to knock you prone. If you're a rock dwarf, this bonus increases to +3.</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "stone order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "QEOe9AhQzdqIx1ei",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "UY1o5CVHhX7T5Pu0",
+    "name": "Storm Born",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You are at home out in the elements, reveling in the power of nature unleashed. You do not take circumstance penalties to ranged spell attacks or Perception checks caused by weather, and your targeted spells don't require a flat check to succeed against a target @UUID[Compendium.pf2e.conditionitems.Item.Concealed] by weather (such as fog).</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "storm order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "UpEjRfQkCJCruAfb",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1ANi8PU0FRMlBNBY",
+    "name": "Untamed Form",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You are one with the wild, always changing and adapting to meet any challenge. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] order spell, which lets you transform into a variety of shapes that you can expand with druid feats.</p>",
+      "level": 1,
+      "prerequisites": [
+        {
+          "value": "untamed order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VaIHQzOE5ibmbtqU",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.wildShapeForms",
+            "priority": 10,
+            "value": [
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Pest Form"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              {
+                "gte": [
+                  "self:level",
+                  3
+                ]
+              }
+            ],
+            "priority": 11,
+            "value": [
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Pest Form"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Ape)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Bear)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Bull)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Canine)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Cat)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Crab)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Crocodile)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Deer)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Frog)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Orca)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Seal)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Shark)"
+              },
+              {
+                "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Animal Form (Snake)"
+              }
+            ],
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Xl02yDHsCttuiywq",
+    "name": "Verdant Weapon",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You cultivate a seed that can sprout into a wooden staff, vine whip, or another weapon. You spend 10 minutes focusing primal energy into a seed, imprinting it with the potential of a single level 0 weapon you are trained with and that has no mechanical parts or metal components. When holding the imprinted seed, you can use an Interact action to cause it to immediately grow into that weapon; a second Interact action returns it to seed form. The verdant weapon can be etched with runes or affixed with talismans as normal, which are suppressed when the weapon is in seed form.</p>\n<p>You can have only one verdant seed at a time. If you prepare a second, your first verdant seed immediately becomes a mundane seed; any runes on the previous seed transfer to the new seed at no cost, but inapplicable runes are suppressed.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.grantedVerdantWeapon}",
+          "inMemoryOnly": false,
+          "predicate": [
+            "verdant-weapon-origin:granted"
+          ],
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "adjustName": false,
+            "flag": "grantedVerdantWeapon",
+            "key": "GrantItem",
+            "predicate": [
+              "verdant-weapon-origin:granted"
+            ],
+            "track": true,
+            "uuid": "{item|flags.system.rulesSelections.grantedVerdantWeapon}"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "verdant-weapon",
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                {
+                  "and": [
+                    "verdant-weapon-origin:existing",
+                    "item:id:{item|flags.system.rulesSelections.existingVerdantWeapon}"
+                  ]
+                },
+                {
+                  "and": [
+                    "verdant-weapon-origin:granted",
+                    "item:granter:slug:verdant-weapon"
+                  ]
+                }
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  {
+                    "and": [
+                      "verdant-weapon-origin:existing",
+                      "item:id:{item|flags.system.rulesSelections.existingVerdantWeapon}"
+                    ]
+                  },
+                  {
+                    "and": [
+                      "verdant-weapon-origin:granted",
+                      "item:granter:slug:verdant-weapon"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "property": "other-tags",
+            "value": "verdant-weapon"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:tag:verdant-weapon"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:tag:verdant-weapon"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "exploration"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qPFWEyihvbWsCcUv",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "label": "PF2E.UI.RuleElements.GrantItem.GrantNew",
+                "value": "granted"
+              },
+              {
+                "label": "PF2E.UI.RuleElements.GrantItem.ExistingItem",
+                "value": "existing"
+              }
+            ],
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Exemplar.Ikon.Physical.Prompt",
+            "rollOption": "verdant-weapon-origin",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:level:0",
+                {
+                  "nor": [
+                    "item:magical",
+                    "item:trait:consumable",
+                    "item:group:firearm"
+                  ]
+                }
+              ],
+              "itemType": "weapon"
+            },
+            "flag": "grantedVerdantWeapon",
+            "key": "ChoiceSet",
+            "predicate": [
+              "verdant-weapon-origin:granted"
+            ],
+            "prompt": "PF2E.SpecificRule.Prompt.Weapon",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "ownedItems": true,
+              "predicate": [
+                {
+                  "not": "item:trait:consumable"
+                }
+              ],
+              "types": [
+                "weapon"
+              ]
+            },
+            "flag": "existingVerdantWeapon",
+            "key": "ChoiceSet",
+            "predicate": [
+              "verdant-weapon-origin:existing"
+            ],
+            "prompt": "PF2E.SpecificRule.Prompt.Weapon",
+            "_conversionState": "unsupported"
+          },
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  {
+                    "and": [
+                      "verdant-weapon-origin:existing",
+                      "item:id:{item|flags.system.rulesSelections.existingVerdantWeapon}"
+                    ]
+                  },
+                  {
+                    "and": [
+                      "verdant-weapon-origin:granted",
+                      "item:granter:slug:verdant-weapon"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "property": "other-tags",
+            "value": "verdant-weapon",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:tag:verdant-weapon"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "R5n9dLRSwZ0rX2tE",
+    "name": "Elemental Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You understand the fundamental elements of nature such that you can imbue them into your body and manifest as a living embodiment of those elements. Add the shapes in @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list. Whenever you're polymorphed into another shape using <em>untamed form</em>, you gain resistance 5 to fire.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "fire",
+          "value": 5,
+          "exceptions": [],
+          "predicate": [
+            "self:effect:untamed-form",
+            {
+              "not": "self:effect:elemental-form"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "predicate": [
+              "self:effect:untamed-form",
+              {
+                "not": "self:effect:elemental-form"
+              }
+            ],
+            "type": "fire",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "F0MYBfiyOD8YHq5t",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Elemental Form"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Lz8i0ill1BA2T3je",
+    "name": "Harden Flesh",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p><strong>Requirements</strong> You're standing on earthen or stone ground.</p>\n<hr />\n<p>You fortify your skin with minerals drawn from earth and stone. You gain resistance 3 to physical damage, except adamantine, until the beginning of your next turn. At 12th level, and every 4 levels thereafter, the resistance increases by 1, to a maximum of resistance 6 at 20th level.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "stone order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "selfEffect": {
+        "name": "Effect: Harden Flesh",
+        "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Harden Flesh"
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "earth"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "REgTwIVgI3j1FQiJ",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gAXM2uFRUZIBIi2c",
+    "name": "Healing Transformation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>You can take advantage of shapechanging magic to close wounds and patch injuries. If your next action is to cast a non-cantrip polymorph spell that targets only one creature, your polymorph spell also restores 1d6 Hit Points per spell rank to that creature. This is a healing effect.</p>",
+      "level": 10,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:healing-transformation",
+            "item:trait:polymorph",
+            {
+              "not": "item:trait:cantrip"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:healing-transformation",
+              "item:trait:polymorph",
+              {
+                "not": "item:trait:cantrip"
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "healing-transformation"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "85V3vdew0gykEtmu",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:healing-transformation",
+              "item:trait:polymorph",
+              {
+                "not": "item:trait:cantrip"
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8UT22XNdCsEWxoxl",
+    "name": "Plant Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can take the shape of a plant creature. If you don't have untamed form, you can cast @UUID[Compendium.pf2e.spells-srd.Item.Plant Form] once per day, heightened to the same rank as your highest-rank druid spell slot.</p>\n<p>If you do have @UUID[Compendium.pf2e.feats-srd.Item.Untamed Form], add the shapes listed in @UUID[Compendium.pf2e.spells-srd.Item.Plant Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list, and whenever you're polymorphed into another shape using untamed form, you gain resistance 5 to poison.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "leaf order or Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "poison",
+          "value": 5,
+          "exceptions": [],
+          "predicate": [
+            "self:effect:untamed-form",
+            {
+              "not": "self:effect:plant-form"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "predicate": [
+              "self:effect:untamed-form",
+              {
+                "not": "self:effect:plant-form"
+              }
+            ],
+            "type": "poison",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "I9rSWQyueWHQyNxe",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Plant Form (Arboreal)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Plant Form (Flytrap)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Plant Form (Shambler)"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7fXVrin1AkJCh32P",
+    "name": "Primal Howl",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your companion can let out a howl laced with your primal magic. It gains the @UUID[Compendium.pf2e.actionspf2e.Item.Primal Howl] advanced maneuver, in addition to any advanced maneuvers it already knows.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "Incredible Companion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Cp7UttoCxTyO1pDg",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cd5qERwf8n54TnGe",
+    "name": "Pristine Weapon",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your verdant weapon can cut through the resistances of magical creatures. The weapon is treated as cold iron and silver. If you critically hit a creature that has a weakness to cold iron or silver, the target takes @Damage[1d6[bleed]] damage as the primal energies within your weapon slow its natural healing.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "Verdant Weapon"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:tag:verdant-weapon"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:tag:verdant-weapon"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "strike-damage",
+          "outcome": [
+            "criticalSuccess"
+          ],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            "item:tag:verdant-weapon"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "criticalSuccess"
+            ],
+            "predicate": [
+              "item:tag:verdant-weapon"
+            ],
+            "selector": "strike-damage",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nWxNV9pFeBHV671W",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "weapon",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:tag:verdant-weapon"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          },
+          {
+            "definition": [
+              "item:tag:verdant-weapon"
+            ],
+            "key": "AdjustStrike",
+            "mode": "add",
+            "property": "materials",
+            "value": "cold-iron",
+            "_conversionState": "unsupported"
+          },
+          {
+            "definition": [
+              "item:tag:verdant-weapon"
+            ],
+            "key": "AdjustStrike",
+            "mode": "add",
+            "property": "materials",
+            "value": "silver",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bcZYY9IzLlTgIHIR",
+    "name": "Side by Side (Druid)",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You and your animal companion fight in tandem, distracting your foes and keeping them off balance. Whenever you and your animal companion are adjacent to the same foe, you are both flanking that foe with each other, regardless of your actual positions.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "Animal Companion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.attributes.flanking.canGangUp",
+          "value": "animal-companion",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "system.attributes.flanking.canGangUp",
+            "value": "animal-companion"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "j5Xjr8vZuBhCixIr",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "WdHXH56BrtULKUkM",
+    "name": "Defensive Dismissal",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> A creature you're aware of critically succeeds on a Strike against you.</p>\n<p><strong>Requirements</strong> You're under a polymorph effect that you can Dismiss.</p>\n<hr />\n<p>You change your form as a means of evading a potentially fatal blow. You Dismiss the polymorph effect you're under, and the result of the triggering Strike becomes a success instead of a critical success. If you would no longer fit in your space as a result of returning to your normal form, this action fails and you don't Dismiss the polymorph effect.</p>",
+      "level": 12,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "aJyNVKbTdpWFoM5z",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YCN8U52EkIZTv91B",
+    "name": "Dragon Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can take on the shape of some of the world's most fearsome creatures. Add the shapes listed in @UUID[Compendium.pf2e.spells-srd.Item.Dragon Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list. Whenever you're polymorphed into another form using <em>untamed form</em>, you gain resistance 5 to your choice of bludgeoning or poison.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Soaring Shape"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "p0jZhb8PSswUsZaz",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dragon Form"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "K1WMRpnAlSThZMi0",
+    "name": "Explosive Metamorphosis",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>You use additional primal energy to transform, creating a burst of elemental energy to complement your transformation. If your next action is to cast a non-cantrip morph or polymorph spell, select acid, cold, electricity, or fire. Your transformation creates a @Template[emanation|distance:5] around your new form that deals 1d6 damage of that type per rank of the spell. Each creature in that area attempts a basic Reflex save against your spell DC.</p>\n<p>If your polymorph action had a trait corresponding to an energy type, you must select that one if possible. This action gains the trait corresponding to the energy type selected.</p>",
+      "level": 12,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "IK6xmiKfmotl8Hm9",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4IWXE17qtkZnh1Dv",
+    "name": "Garland Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>If your next action is to Cast a Spell with the fungus or plant trait, a garland of plants grows in a @Template[burst|distance:10] in the spell's range. The plants are difficult terrain and hazardous terrain, covered in your choice of thorns or poisonous vines. Any creature that moves into one of these squares or ends its turn in one takes 2d6 damage (@Damage[(ternary(gte(@actor.level,20),4,ternary(gte(@actor.level,16),3,2)))d6[piercing]|options:area-damage] damage for thorns or @Damage[(ternary(gte(@actor.level,20),4,ternary(gte(@actor.level,16),3,2)))d6[poison]|options:area-damage] for vines). A creature can take this damage only once per turn. You and your familiar are immune to this damage.</p>\n<p>The plants last for 1 minute or until you cast another Garland Spell, whichever comes first.</p>\n<p>The damage increases to 3d6 at 16th level and 4d6 at 20th level.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:garland-spell",
+            {
+              "or": [
+                "item:trait:fungus",
+                "item:trait:plant"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:garland-spell",
+              {
+                "or": [
+                  "item:trait:fungus",
+                  "item:trait:plant"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "garland-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "manipulate",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qUoAthRX9cNVHT9s",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:garland-spell",
+              {
+                "or": [
+                  "item:trait:fungus",
+                  "item:trait:plant"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "WRtuR3MebNrin46M",
+    "name": "Green Tongue",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You share a special kinship with all things green and living. You (and your leshy familiar, if you have one) are constantly under the effects of @UUID[Compendium.pf2e.spells-srd.Item.Speak with Plants]. Most non-creature plants recognize you as a druid of the leaf order and are friendly to you.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Green Empathy"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Core Rulebook"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vwBD55BRDOatp4ZV",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "emgbb3zo3hmHZ4eU",
+    "name": "Pesh Skin",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p><strong>Requirements</strong> You are transformed into a plant by a polymorph spell.</p>\n<hr />\n<p>Your plant form sprouts hundreds of spines, and your blood causes mild hallucinations in creatures exposed to it. Each time a creature touches you, hits you with an unarmed attack, or hits you with a melee weapon attack while adjacent to you, that creature takes 1d6 piercing damage. Increase the damage to 2d6 if the polymorph spell is 8th level or higher, or to 3d6 if it's 10th level.</p>\n<p>When an adjacent creature damages you with piercing or slashing damage, it must succeed at a Fortitude save against your class DC or become stupefied 1 (or stupefied 2 on a critical failure) until the end of its next turn.</p>\n<p>These benefits last until you're no longer polymorphed into a plant.</p>",
+      "level": 12,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #149: Against the Scarlet Triad"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "druid",
+          "morph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hPanopG3TbXKr52O",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "EqHsem3descByZ6K",
+    "name": "Primal Focus",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your connection to nature is particularly strong, and the spirits of nature flock around you, helping you replenish your focus. Whenever you Refocus, completely refill your focus pool.</p>",
+      "level": 12,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RSUmrIiFBEchdM8B",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cJJz2DT4JNk0A9xN",
+    "name": "Primal Summons",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Whenever you summon an ally, you can empower it with the elemental power of air, earth, fire, or water. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Primal Summons] order spell.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Call of the Wild"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "I00uuseTfPypVgLQ",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "OUCI7WG9F8Zbk4QU",
+    "name": "Purifying Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>You purify the water within a creature's body to cleanse them of illness. If the next action you use is to cast @UUID[Compendium.pf2e.spells-srd.Item.Heal] targeting a single living creature, you can attempt to counteract a disease or poison affecting the target, in addition to the other benefits of <em>heal</em>. If you do, <em>heal</em> gains the water trait.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "wave order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:slug:heal",
+            "spellshape:purifying-spell",
+            {
+              "lte": [
+                "item:cast:actions",
+                2
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:heal",
+              "spellshape:purifying-spell",
+              {
+                "lte": [
+                  "item:cast:actions",
+                  2
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "purifying-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "traits",
+          "value": "water",
+          "mode": "add",
+          "predicate": [
+            "item:slug:heal",
+            "spellshape:purifying-spell",
+            {
+              "lte": [
+                "item:cast:actions",
+                2
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:heal",
+              "spellshape:purifying-spell",
+              {
+                "lte": [
+                  "item:cast:actions",
+                  2
+                ]
+              }
+            ],
+            "property": "traits",
+            "value": "water"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "concentrate",
+          "druid",
+          "spellshape",
+          "water"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VzQtyHSjq12E4Dzh",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:heal",
+              "spellshape:purifying-spell",
+              {
+                "lte": [
+                  "item:cast:actions",
+                  2
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:heal",
+              "spellshape:purifying-spell",
+              {
+                "lte": [
+                  "item:cast:actions",
+                  2
+                ]
+              }
+            ],
+            "property": "traits",
+            "value": "water",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hWDDTp4gAjNIVKHA",
+    "name": "Uplifting Winds",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>The winds are eager to keep you aloft. When you are flying and Cast a Spell that has the air or electricity traits, you gain a +10 status bonus to your fly Speed, and you can immediately Fly up to half your Speed.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "storm order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "item:trait:air",
+                "item:trait:electricity"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:air",
+                  "item:trait:electricity"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZaEK0IGhxqd1yH6Q",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:air",
+                  "item:trait:electricity"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "jwcTxepKo7AxII98",
+    "name": "Wandering Oasis",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You're surrounded by soothing energy. You and allies within 60 feet of you are protected from severe environmental heat and cold. If you're legendary in Survival, you and those allies are also protected from extreme environmental heat and cold.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "master in Survival"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "BlfgmJHjDyTVGdPs",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QDxmf3zN4MFpmGg8",
+    "name": "Bizarre Transformation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>The forms you take on defy belief—chimerical sights of twisted antlers or acidic drool. If your next action is to cast @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form], you can change the damage type of a single unarmed attack granted by <em>untamed form</em> to one of the following: acid, bludgeoning, cold, electricity, fire, poison, piercing, or slashing. The chosen attack gains the appropriate trait.</p>",
+      "level": 14,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Dark Archive (Remastered)"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:bizarre-transformation",
+            "item:untamed-form"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:bizarre-transformation",
+              "item:untamed-form"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "bizarre-transformation"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "manipulate",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "AV6KZvUed7GdhHzc",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:bizarre-transformation",
+              "item:untamed-form"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "lA0jtzMWa69hck3m",
+    "name": "Cleansing Transformation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You learn to cleanse bodily toxins alongside the transformations of your shape-changing magic. When you use Healing Transformation, your polymorph spell can also attempt to counteract one disease or poison afflicting the target. If you don't successfully counteract it, you can't use Cleansing Transformation against that specific affliction for 24 hours.</p>",
+      "level": 14,
+      "prerequisites": [
+        {
+          "value": "Healing Transformation"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wS9a03TKVu8FQ8wC",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "GgsorKWx5yFSubku",
+    "name": "Reactive Transformation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> varies</p><hr /><p>You transform reflexively when in danger. You cast @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] to transform into one shape granted by one of the prerequisite feats you have, depending on the trigger. Your shape's resistances and weaknesses apply against the triggering damage.</p><hr /><p><strong>Trigger</strong> You fall 10 feet or more</p>\n<p><strong>Effect</strong> Choose a shape from @UUID[Compendium.pf2e.spells-srd.Item.Aerial Form].</p><hr /><p><strong>Trigger</strong> You take bludgeoning or poison damage</p>\n<p><strong>Effect</strong> Choose a primal dragon shape from @UUID[Compendium.pf2e.spells-srd.Item.Dragon Form] that resists the triggering damage.</p><hr /><p><strong>Trigger</strong> You take fire damage</p>\n<p><strong>Effect</strong> Choose a fire elemental shape from @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form].</p><hr /><p><strong>Trigger</strong> You take poison damage</p>\n<p><strong>Effect</strong> Choose a shape from @UUID[Compendium.pf2e.spells-srd.Item.Plant Form].</p>",
+      "level": 14,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        },
+        {
+          "value": "Dragon Shape, Elemental Shape, Plant Shape, or Soaring Shape"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "4Q9Q41KLPYJMdV4b",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Je5Gu66RkobViJ8m",
+    "name": "Sow Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>You fold your spell into a seed. If your next action is to Cast a Spell using 1 action or 2 actions, the spell instead plants itself in an adjacent square. You must make all decisions regarding the spell at the time you cast it. Within the next 10 minutes, you can direct your sown spell to sprout and produce the spell's effects as a reaction, which is triggered when a creature enters the sown spell's space or a square adjacent to it. You can have only one sown spell at a time, and if you don't trigger the spell within 10 minutes, it dissipates and the spell is lost. A creature can notice the sown spell with a successful @Check[perception|against:spell] check against your spell DC.</p>",
+      "level": 14,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:sow-spell",
+            "spellshape:courageous-advance"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:sow-spell",
+              "spellshape:courageous-advance"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "sow-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "concentrate",
+          "druid",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TyWFsX9DliAdAVs8",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:sow-spell",
+              "spellshape:courageous-advance"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "983W2bGIo7g3O3Mc",
+    "name": "Specialized Companion (Druid)",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your animal companion continues to grow in power and ability. It gains one specialization of your choice</p>\n<hr />\n<p><strong>Special</strong> You can select this feat up to three times. Each time, add a different specialization to your companion.</p>",
+      "level": 14,
+      "maxTakable": 3,
+      "prerequisites": [
+        {
+          "value": "Incredible Companion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3r5rg0BCqSh5RBNS",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QWsClGmMf25UkIRg",
+    "name": "Timeless Nature",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>With primal magic sustaining you, you cease aging. The overflowing primal energy gives you a +2 status bonus to saves against diseases and primal magic.</p>",
+      "level": 14,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 2,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            {
+              "or": [
+                "disease",
+                "primal"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "disease",
+                  "primal"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "type": "status",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TpWS2b9ISHnXVfZg",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "RnHMcHJhPU2PaunR",
+    "name": "Verdant Metamorphosis",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have turned into a plant version of yourself, gaining the plant trait and losing traits inappropriate for your new form (typically humanoid). You also gain the @UUID[Compendium.pf2e.actionspf2e.Item.Verdant Rest] action.</p>",
+      "level": 14,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Verdant Rest",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Verdant Rest"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "orjVLLoziFTmf1mz",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "add": [
+              "plant"
+            ],
+            "key": "ActorTraits",
+            "remove": [
+              "animal",
+              "beast",
+              "humanoid",
+              "construct"
+            ],
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "32w7vqmMShQrDqAv",
+    "name": "Impaling Briars",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can fill an area with devastating briars. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Impaling Briars] order spell.</p>",
+      "level": 16,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "urYHB6VHhqvPMSy7",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Hp3NpyciXxmdXh3f",
+    "name": "Monstrosity Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can transform into a powerful magical creature. Add the cave worm and sea serpent shapes listed in @UUID[Compendium.pf2e.spells-srd.Item.Monstrosity Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list. If you have @UUID[Compendium.pf2e.feats-srd.Item.Soaring Shape], also add the phoenix shape to your <em>untamed form</em> list.</p>",
+      "level": 16,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "54JzsYCx3uoj7Wlz",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Monstrosity Form"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "KR3mLf23PPml0fav",
+    "name": "Too Much to Swallow",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> You're subject to an effect you could attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape].</p>\n<hr />\n<p>While you might be small enough to grab normally, you can change that at a moment's notice. You cast @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. If you took on a new form that's too large for the effect, you automatically escape. Otherwise, you attempt to Escape. If this ends an effect where you entered the creature's space, such as @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Swallow Whole], exit that creature to an adjacent area where your new form could fit.</p>",
+      "level": 16,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MXCIjS0cnmy3CLvP",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bgD4olfkRGX1Bf8D",
+    "name": "Invoke Disaster",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can invoke nature's fury upon your foes. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Storm Lord] order spell.</p>",
+      "level": 18,
+      "prerequisites": [
+        {
+          "value": "Wind Caller"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2RaDe6Fi4t7S2IDF",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Abg5mYlCU12ab1HW",
+    "name": "Perfect Form Control",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Thanks to magic and muscle memory, you can stay in your alternate shapes indefinitely. When you use @UUID[Compendium.pf2e.feats-srd.Item.Form Control], instead of lasting 1 hour, @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] duration is unlimited (you can still Dismiss it).</p>",
+      "level": 18,
+      "prerequisites": [
+        {
+          "value": "Form Control"
+        },
+        {
+          "value": "Strength +4"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xAIUuSw5A85XEStY",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "yX3MtOS4xskHqo0n",
+    "name": "Primal Aegis",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You surround yourself with a thick field of protective primal energy. You and allies within 30 feet of you gain resistance equal to your Wisdom modifier to acid, cold, electricity, fire, vitality, and void damage.</p>",
+      "level": 18,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "AbjVJIBdNjbQbVnV",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "effects": [
+              {
+                "affects": "allies",
+                "events": [
+                  "enter"
+                ],
+                "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Primal Aegis"
+              }
+            ],
+            "key": "Aura",
+            "radius": 30,
+            "slug": "primal-aegis",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "rCa3JdEo6ifNRGzU",
+    "name": "Call of the Wild",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You call upon the creatures of nature to come to your aid. You can spend 10 minutes in concert with nature to replace a spell you've prepared in one of your druid spell slots with a @UUID[Compendium.pf2e.spells-srd.Item.Summon Animal] or @UUID[Compendium.pf2e.spells-srd.Item.Summon Plant or Fungus] spell of the same rank.</p>",
+      "level": 2,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZvPgibovxwiN8Wse",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wix9uNk6gUEPplUy",
+    "name": "Order Explorer",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have learned the secrets of another druidic order, passing whatever rites of initiation that order requires and gaining access to its secrets. Choose an order other than your own. You gain a 1st-level feat that lists that order as a prerequisite, and you are now a member of that order for the purpose of meeting feat prerequisites. If you commit acts anathema to your new order, you lose all feats and abilities requiring that order but retain your other druid feats and abilities. You don't gain any of the other benefits of the order you chose.</p>\n<hr />\n<p><strong>Special</strong> You can take this feat multiple times. Each time you do, you must choose a different order other than your own.</p>",
+      "level": 2,
+      "maxTakable": null,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.order}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.order}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9onf3uGvZRnNLPR6",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:tag:druid-order",
+                {
+                  "not": "item:tag:class-archetype"
+                }
+              ]
+            },
+            "flag": "order",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Druid.DruidicOrder.Prompt",
+            "rollOption": "feat:order-explorer",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "C5X0lIFM1jkTFsSy",
+    "name": "Apex Companion",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can call upon the essence of every individual animal of a particular species to temporarily transform your animal into an exemplar of its kind. You learn the @UUID[Compendium.pf2e.spells-srd.Item.Apex Companion] order spell. Increase the number of Focus Points in your focus pool by 1.</p>",
+      "level": 20,
+      "prerequisites": [
+        {
+          "value": "Animal Companion"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #150: Broken Promises"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "p353WH847errsNvh",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "eEs1kveSvRNKicZP",
+    "name": "Heart of the Kaiju",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Witnessing the might of the kaiju King Mogaru, Alru, and Toraloa up close awoke a new ferocity within you. When you transform using @UUID[Compendium.pf2e.feats-srd.Item.Monstrosity Shape], you can take on a kaiju form. When you take this feat, choose acid, cold, electricity, fire, or sonic damage; this is the damage your breath weapon deals. You can't change this later. The battle form is Gargantuan size with the following specific abilities; the damage values already include the extra die from being a 9th-rank spell.</p>\n<p><strong>Kaiju</strong> Speed 40 feet; physical resistance 5;</p>\n<p><strong>Melee</strong> <span class=\"action-glyph\">1</span> jaws (reach 20 feet), <strong>Damage</strong> 3d12+20 piercing;</p>\n<p><strong>Melee</strong> <span class=\"action-glyph\">1</span> claws (agile, reach 20 feet), <strong>Damage</strong> 3d8+20 slashing;</p>\n<p><strong>Breath Weapon</strong> <span class=\"action-glyph\">2</span> (evocation, primal) Each creature in a @Template[cone|distance:60] takes @Damage[15d6[@item.flags.system.rulesSelections.damageType]|options:area-damage] damage (of your chosen damage type), with a @Check[reflex|against:spell|basic|options:area-effect] save against your spell DC. Once activated, your breath weapon can't be used again for [[/r 1d4 #Recharge Breath Weapon]]{1d4 rounds}.</p>",
+      "level": 20,
+      "prerequisites": [
+        {
+          "value": "Monstrosity Shape"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #168: King of the Mountain"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "1ul2dasQBdlaMEC5",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.TraitAcid",
+                "value": "acid"
+              },
+              {
+                "label": "PF2E.TraitCold",
+                "value": "cold"
+              },
+              {
+                "label": "PF2E.TraitElectricity",
+                "value": "electricity"
+              },
+              {
+                "label": "PF2E.TraitFire",
+                "value": "fire"
+              },
+              {
+                "label": "PF2E.TraitSonic",
+                "value": "sonic"
+              }
+            ],
+            "flag": "damageType",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.EnergyType",
+            "_conversionState": "unsupported"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Monstrosity Form (Kaiju)"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "h7QuEakR6L2YwzIA",
+    "name": "Hierophant's Power",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have entwined yourself with the natural world, and its full power flows through you. You gain an additional 10th-rank spell slot.</p>",
+      "level": 20,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Chu6s3xVnpOB64GH",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Ro3ylony41jDl8Sb",
+    "name": "Ley Line Conduit",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p><strong>Frequency</strong> once per minute</p>\n<hr />\n<p>You can draw magic from the ley lines of the world. If your next action is to Cast a Spell of 5th rank or lower that has no duration, you don't expend the prepared spell as you cast it.</p>",
+      "level": 20,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:ley-line-conduit",
+            "item:duration:0",
+            {
+              "lte": [
+                "item:rank",
+                5
+              ]
+            },
+            {
+              "not": "cantrip"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:ley-line-conduit",
+              "item:duration:0",
+              {
+                "lte": [
+                  "item:rank",
+                  5
+                ]
+              },
+              {
+                "not": "cantrip"
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "ley-line-conduit"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "concentrate",
+          "druid",
+          "manipulate",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "BQkk7qSSRTFc5jNG",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:ley-line-conduit",
+              "item:duration:0",
+              {
+                "lte": [
+                  "item:rank",
+                  5
+                ]
+              },
+              {
+                "not": "cantrip"
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4eyb9EEnUj1kBk6t",
+    "name": "True Shapeshifter",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>You transcend the limitations of form. Once per day you can cast @UUID[Compendium.pf2e.spells-srd.Item.Nature Incarnate], even if you don't have it prepared, to transform into a kaiju. If you have @UUID[Compendium.pf2e.feats-srd.Item.Plant Shape], you can choose to transform into a green man instead. You also gain the @UUID[Compendium.pf2e.actionspf2e.Item.True Shapeshift] activity.</p>",
+      "level": 20,
+      "prerequisites": [
+        {
+          "value": "Dragon Shape"
+        },
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.True Shapeshift",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.True Shapeshift"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "concentrate",
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mGzPR7M9H733j2wN",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gSqbGwjZwXC5Sfy0",
+    "name": "Verdant Presence",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Frequency</strong> once per hour</p>\n<p><strong>Trigger</strong> You take damage or cast a primal spell.</p>\n<hr />\n<p>The life-giving properties of the <em>aeon orbs</em> flourish within you. Small plants or fungi magically appear on all surfaces in a @Template[emanation|distance:60] around you. This life withers after 1 day unless the environment can support it. You can choose one of the following options each time you use this feat.</p>\n<ul>\n<li>You can cause any number of 5-foot squares in the area to be light undergrowth, which is difficult terrain and provides lesser cover.</li>\n<li>You can cause a tree or giant mushroom to appear in any unoccupied location in the area; it occupies an entire 5-foot square and provides standard cover. The tree or mushroom has 5 Hardness and 50 Hit Points.</li>\n</ul>",
+      "frequency": {
+        "max": 1,
+        "per": "hour"
+      },
+      "level": 20,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #156: The Apocalypse Prophet"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "selected": {
+          "druid": "Druid"
+        },
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Lbpm0OrQb4u2LVtj",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MEs9Tmn2WcS6i7in",
+    "name": "Anthropomorphic Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Humanoids' supposed place apart from animals is folly—taking on their forms just requires some extra practice. You add the shapes listed in @UUID[Compendium.pf2e.spells-srd.Item.Humanoid Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cxwDj2gZ7kJdP4hs",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "DySDoNVh8cB3erqq",
+    "name": "Cryptic Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p><strong>Requirements</strong> You're in natural terrain.</p><hr /><p>You hide your magic in the croak of a frog, in the sway of the trees, in the howl of the wind, and the flicker of the will-o'-wisp. If the next action you take is to Cast a Spell, the spell gains the subtle trait, masking the spell's manifestations in the natural sights and sounds of the environment.</p>\n<p>The trait hides only the spell's spellcasting actions and manifestations, not its effects, so an observer might still see you transform into a giant bear.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Dark Archive (Remastered)"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:cryptic-spell"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:cryptic-spell"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "cryptic-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "concentrate",
+          "druid",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6oObLoUn3MjmwbaW",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:cryptic-spell"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zdGAUfuI0AbQnBXi",
+    "name": "Elemental Summons",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can call the elements to you. You can spend 10 minutes in concert with nature to replace a spell you've prepared in one of your druid spell slots with a @UUID[Compendium.pf2e.spells-srd.Item.Summon Elemental] spell of the same rank.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "011wnYpjIwCEzFtl",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pYrv95w8xEh5YrgD",
+    "name": "Fire Resistance",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your connection to heat and flame means that fire is reluctant to bring its full force to bear against you. You gain fire resistance equal to half your level, and you gain a +1 circumstance bonus to saving throws against fire effects.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "flame order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "fire"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "fire"
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": 1
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "fire",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "fire",
+            "value": "floor(@actor.level/2)"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qbH9ns3HMYBxIvEQ",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "20dCzR5orzRprlzd",
+    "name": "Forest Passage",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can always find a path, almost as if foliage parted before you. You ignore any difficult terrain caused by plants and fungi, such as bushes, vines, and undergrowth.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "lKgpe2JKaeLjgnYF",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YmJEbbbrnerd3XJj",
+    "name": "Form Control",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>With additional care and effort, you can take on an alternate shape for a longer period of time. If your next action is to cast untamed form, the spell's rank is 2 lower than normal (minimum 1st rank), but you can remain transformed for up to 1 hour or the listed duration (whichever is longer). You can still Dismiss untamed form as normal.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:form-control",
+            "item:slug:untamed-form"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:form-control",
+              "item:slug:untamed-form"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "form-control"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "manipulate",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RsluSLtSWq1vN8Hc",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:form-control",
+              "item:slug:untamed-form"
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Vu4m7ifWTwN2EPgo",
+    "name": "Leshy Familiar Secrets",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>The leaf order's secrets allow your familiar to take advantage of its leshy form. You can select one additional familiar ability each day, which must be one of the following leshy familiar abilities. You can't select more than one ability from this feat at a time.</p>\n<ul>\n<li><strong>@UUID[Compendium.pf2e.familiar-abilities.Item.Grasping Tendrils]</strong> Your familiar can extend vines or similar tendrils, increasing its reach to 15 feet.</li>\n<li><strong>@UUID[Compendium.pf2e.familiar-abilities.Item.Purify Air]</strong> Your familiar recycles air, providing enough oxygen for a Medium creature in areas with stale air, such as a sealed chamber or extradimensional space. Creatures within a @Template[emanation|distance:15] of the leshy gain a +2 circumstance bonus to their saving throws against inhaled poison effects, olfactory effects, or other effects that rely on breathing (such as toxic cloud), at the GM's discretion.</li>\n<li><strong>@UUID[Compendium.pf2e.familiar-abilities.Item.Verdant Burst]</strong> When your familiar dies, it releases its primal energy to cast the 3-action version of @UUID[Compendium.pf2e.spells-srd.Item.Heal], heightened to a rank 1 lower than your highest-rank spell slot. The <em>heal</em> spell gains a status bonus equal to twice the spell's rank to the Hit Points it restores to plants. You must be able to cast 2nd-rank spells using spell slots to select this familiar ability.</li>\n</ul>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.attributes.familiarAbilities.value",
+          "value": 1,
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "system.attributes.familiarAbilities.value",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "baz18CdB13DVMHV9",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ODB5SXVjaycfsu5e",
+    "name": "Mature Animal Companion (Druid)",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your animal companion has grown up over the course of your adventures, becoming a mature animal companion and gaining additional capabilities.</p>\n<p>Your animal companion has greater independence. During an encounter, even if you don't use the Command an Animal action, your animal companion can still use 1 action that round on your turn to Strike or Stride (or Burrow, Climb, Fly, or Swim if it has that Speed). It can do this at any point during your turn, as long as you aren't currently taking an action. If it does, that's all the actions it gets that round—you can't Command it later.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Animal Companion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yozSCfdLFHVBbTxj",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pvYoKCNEOHaxEWMk",
+    "name": "Natural Swimmer",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Water flows around you, letting you cut through the waves as if born to it. You gain a swim Speed of 15 feet. If you already have a permanent swim Speed, swimming up or down isn't difficult terrain.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "wave order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "swim",
+          "value": 15,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "swim",
+            "value": 15
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "epBOnfEDOd4V9mQ0",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Naww9chMLUFbwJAm",
+    "name": "Order Magic",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have delved deeper into the teaching of a new order, gaining access to a coveted order spell. Choose an order you have selected with @UUID[Compendium.pf2e.feats-srd.Item.Order Explorer]. You gain the initial order spell from that order.</p>\n<hr />\n<p><strong>Special</strong> You can take this feat multiple times. Each time you do, you must choose a different order you have selected with Order Explorer.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Order Explorer"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "oHdUwzUUblg3neCT",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bKcP9CiHmBf4gdeA",
+    "name": "Sheltering Cave",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Requirements</strong> You're standing on ground composed of earth, stone, or a similar material.</p>\n<hr />\n<p>You spend 10 minutes communing with spirits of earth and stone, requesting shelter. At the end of this time, the earth rises and opens, forming a small cave or earthen mound 20 feet in diameter and 10 feet high. This cave has the structure trait and the same restrictions as structures created by magic items. The cave has a single entrance and provides shelter from the elements.</p>\n<p>The cave remains for 12 hours or until you spend 10 minutes coaxing the earth to close.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "stone order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "earth",
+          "exploration",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RzElsoBGTjKWjPgY",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "5xVtfFRsRU8wUvHU",
+    "name": "Snowdrift Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>The howling wind and precipitation of your magic turn to thick snow. If your next action is to Cast a Spell that has the air, water, or cold trait, and that does not have the fire trait, select one creature affected by the spell on the ground. Each square on the ground under or adjacent to the creature fills with ankle-deep snow. Those squares are difficult terrain until the beginning of your next turn. A creature can Interact to clear a square of snow, and the snow in a square melts if that square is exposed to a fire effect.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "storm order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:slug:snowdrift-spell",
+            {
+              "or": [
+                {
+                  "or": [
+                    "item:trait:air",
+                    "item:trait:water",
+                    "item:trait:cold"
+                  ]
+                },
+                {
+                  "not": "item:trait:fire"
+                }
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:snowdrift-spell",
+              {
+                "or": [
+                  {
+                    "or": [
+                      "item:trait:air",
+                      "item:trait:water",
+                      "item:trait:cold"
+                    ]
+                  },
+                  {
+                    "not": "item:trait:fire"
+                  }
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "snowdrift-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "cold",
+          "druid",
+          "manipulate",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ds9dNclMMiDBKRtm",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:snowdrift-spell",
+              {
+                "or": [
+                  {
+                    "or": [
+                      "item:trait:air",
+                      "item:trait:water",
+                      "item:trait:cold"
+                    ]
+                  },
+                  {
+                    "not": "item:trait:fire"
+                  }
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "voZJpob17kJXpy4x",
+    "name": "Advanced Elemental Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your connection to one of the great elemental aspects of nature deepens, allowing you further control over its powers.</p>\n<p>You gain an advanced order spell associated with your order:</p><ul><li>if you're a member of the flame order, you gain @UUID[Compendium.pf2e.spells-srd.Item.Combustion];</li><li>if you're a member of the stone order, you gain @UUID[Compendium.pf2e.spells-srd.Item.Stone Lance];</li><li>if you're a member of the storm order, you gain @UUID[Compendium.pf2e.spells-srd.Item.Powerful Inhalation];</li><li>if you're a member of the wave order, you gain @UUID[Compendium.pf2e.spells-srd.Item.Pulverizing Cascade].</li></ul><p>Increase the number of Focus Points in your focus pool by 1.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "flame stone storm or wave order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "DPk7a0cdFOjDOdn5",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8ziPc06TfzMGNgkL",
+    "name": "Current Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>As you use your magic to manipulate air or water, you spin off some of its currents to form a barrier around you. If your next action is to @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell] with the air or water trait, until the start of your next turn, you gain a +1 circumstance bonus to AC or a +2 circumstance bonus against ranged attacks. This effect has the air or water trait, or both, depending on the traits of the spell you cast. You also gain a +1 circumstance bonus to all saves against effects with the air trait, water trait, or both until the start of your next turn, depending on the spell's traits.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Current Spell]</p>",
+      "level": 6,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "item:slug:current-spell",
+            {
+              "or": [
+                "item:trait:air",
+                "item:trait:water"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:current-spell",
+              {
+                "or": [
+                  "item:trait:air",
+                  "item:trait:water"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "current-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "concentrate",
+          "druid",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ajesR7y0jWzqjAgc",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:current-spell",
+              {
+                "or": [
+                  "item:trait:air",
+                  "item:trait:water"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mCEsx8cXA7dV0NLT",
+    "name": "Fungal Exhalation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can conjure toxic spores to infect enemies. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Fungal Exhalation] order spell.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "spore order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #202: Severed at the Root"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "druid",
+          "focus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6y2rSSlCXUpk8DMY",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Yguge6sOntzbhKK3",
+    "name": "Green Empathy",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can communicate with plants and fungi on a basic level and use Diplomacy to Make an Impression on them and to make very simple Requests of them. Non-creature plants and fungi typically can't fulfill most requests you might ask of them unless you have access to other magic such as @UUID[Compendium.pf2e.spells-srd.Item.Speak with Plants].</p>\n<p>Because of your affiliation with the leaf order, plants and fungi have a sense that you support them, so you gain a +2 circumstance bonus on your check to Make a Request of a plant or fungus using Green Empathy.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Core Rulebook"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "diplomacy",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "action:request",
+            "target:trait:plant"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "action:request",
+              "target:trait:plant"
+            ],
+            "selector": "diplomacy",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3vjOXL9ZD4ibaJL6",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zwG2ts88AgJsU07c",
+    "name": "Grown of Oak",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You can make your skin take on the woody endurance of an ancient tree and have your familiar follow suit. You can cast @UUID[Compendium.pf2e.spells-srd.Item.Oaken Resilience] at will as an innate primal spell with a spell rank one lower than the highest rank of spells you can cast. This spell targets you, as well as your leshy familiar if it's within 30 feet of you.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "GmSY4YVyzgAZ4I78",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Ar2Zy7uMD94EQ2bU",
+    "name": "Hedge Prison",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You cultivate plants to entrap your foes. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Hedge Prison] order spell.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "cultivation order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #202: Severed at the Root"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "druid",
+          "focus"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Uuvu1TojhHcDm7EV",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QUyFwtmXsn9INJhg",
+    "name": "Insect Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your understanding of life expands, allowing you to mimic a wider range of creatures. Add the shapes in @UUID[Compendium.pf2e.spells-srd.Item.Insect Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list. Whenever you use <em>untamed form</em> to polymorph into the non-flying insect shapes listed in pest form, the duration is 24 hours instead of 10 minutes.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "OWedlrKGsVZVkSnT",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Insect Form"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MsT97BDFjaS7il17",
+    "name": "Instinctive Support",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "free",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> You Cast a non-cantrip spell that targets only your animal companion.</p>\n<hr />\n<p>When you support your animal companion, your companion supports you in turn. After your spell takes place, your companion gains its actions for the turn, as if you Commanded it, and one of the actions must be Support. If the companion has used any other actions already, it can't Support you, as normal.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "Animal Companion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "buRSqam06r9jFAbB",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bddz8ONC56z8WacC",
+    "name": "Misty Transformation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Frequency</strong> once per minute</p>\n<p><strong>Trigger</strong> You transform due to a polymorph effect. Wild mists cover your form.</p>\n<hr />\n<p>You create a hazy cloud in a @Template[burst|distance:5] centered on one corner of your space. If your new form is Large or larger, the cloud covers your entire space instead. All creatures within the area are @UUID[Compendium.pf2e.conditionitems.Item.Concealed], and all others are concealed to them. The cloud lasts until the beginning of your next turn but is immediately dispersed by a strong wind.</p>",
+      "level": 6,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "EOYxsteDMSSZovfV",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7agZIAxMrsZh51hN",
+    "name": "Storm Retribution",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> An opponent adjacent to you critically hits you with a melee weapon or melee unarmed attack.</p>\n<p><strong>Requirements</strong> You have at least 1 available Focus Point.</p>\n<hr />\n<p>You lash out, directing a burst of storming fury toward a creature that has harmed you. You cast @UUID[Compendium.pf2e.spells-srd.Item.Tempest Surge] on the triggering opponent and push that creature, moving it 5 feet away from you if it fails its Reflex save, or 10 feet if it critically fails. This movement is forced movement.</p>",
+      "level": 6,
+      "prerequisites": [
+        {
+          "value": "storm order"
+        },
+        {
+          "value": "tempest surge order spell"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "F1DVDJRARfdb1Kjz",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "WCKxf7Iv5tL6L70M",
+    "name": "Toppling Transformation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> Your size increases due to a polymorph effect.</p>\n<hr />\n<p>You use your body's expansion as leverage to displace a nearby creature. You attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Shove] or @UUID[Compendium.pf2e.actionspf2e.Item.Trip] an adjacent creature. For the purposes of determining what size creature you can affect, use your final size after the triggering effect.</p>",
+      "level": 6,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Howl of the Wild"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2hwNGs7WQnO6yv0Q",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "XxpOLHCjzJNBmD4y",
+    "name": "Deimatic Display",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>Imitating animal threat displays, you make yourself appear larger and more imposing. Attempt an Intimidation check to @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] each enemy within 30 feet. This attempt has the visual trait, loses the auditory trait, and you don't take a penalty if the creature doesn't understand your language. Roll your check only once and compare it to the Will DC of each target. You gain a +2 circumstance bonus to the check against animal, fungus, and plant creatures and take a –2 circumstance penalty against other creatures. Each target is then temporarily immune for 1 minute.</p>",
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "trained in Intimidation"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "UFVw57jWNC4UCfyN",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Z4CwOckufJdxRGsd",
+    "name": "Ferocious Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You've mastered the shape of dinosaurs. Add the shapes listed in @UUID[Compendium.pf2e.spells-srd.Item.Dinosaur Form] to your untamed form list. Whenever you use @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] to take a shape that grants you a specific Athletics modifier, you gain a +1 status bonus to your Athletics checks.</p>",
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "athletics",
+          "value": 1,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            "self:effect:untamed-form",
+            "battle-form:athletics"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "self:effect:untamed-form",
+              "battle-form:athletics"
+            ],
+            "selector": "athletics",
+            "type": "status",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Le30algCdKIsxmeK",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dinosaur Form (Ankylosaurus)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dinosaur Form (Brontosaurus)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dinosaur Form (Deinonychus)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dinosaur Form (Stegosaurus)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dinosaur Form (Triceratops)"
+            },
+            "_conversionState": "partial"
+          },
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Dinosaur Form (Tyrannosaurus)"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "bVsWPcI3wNLsGIFU",
+    "name": "Fey Caller",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You have learned some of the tricks the fey use to bend primal magic toward illusions and trickery. Add @UUID[Compendium.pf2e.spells-srd.Item.Illusory Disguise], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Object], and @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene] to your spell list, which you cast as primal spells.</p>",
+      "level": 8,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8rE5zLEVe4putosB",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MuksUWSkTC3mGpCi",
+    "name": "Fiery Retort",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> An opponent adjacent to you hits you with a melee weapon or a melee unarmed attack.</p>\n<p><strong>Frequency</strong> once per minute</p>\n<hr />\n<p>Ignoring your pain, you sear your attacker with a wave of flame. The triggering opponent takes @Damage[(@actor.level)[fire]]{fire damage} equal to your level.</p>",
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "flame order"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Secrets of Magic"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "fire"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6biVVoaqqUdQmQ37",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CmpbgzKHBdoqnduR",
+    "name": "Floral Restoration",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p><strong>Frequency</strong> once per day</p><hr /><p>You request that nearby plants share their vitality with you to replenish your body and magic. You regain 1 Focus Point and @Damage[ceil(@item.level/2)d8[healing]] Hit Points.</p>\n<p>You must be in a location of at least 15 feet by 15 feet of healthy plant life, though this can be grass, lichen, seaweed, or any other form of naturally occurring flora. Using Floral Restoration on a given section of nature does not harm it, but it prevents that section of nature from giving its vitality to another use of Floral Restoration for 24 hours.</p>\n<p>At 9th level, and every 2 levels thereafter, increase the healing by 1d8.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "day"
+      },
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "leaf order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "healing",
+          "vitality"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ffLzfZIq7LoNXqWO",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "yj9Y6rGw3isw5IdR",
+    "name": "Forgotten Presence",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>The world conspires to keep you forgotten and unnoticed—memories cloud, ink stains out your name in ledgers, and portraits of you crack and warp over your face. Characters attempting to @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] about you take a –2 circumstance penalty. Add @UUID[Compendium.pf2e.spells-srd.Item.Rewrite Memory] to your spell list as a primal spell.</p>",
+      "level": 8,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Dark Archive (Remastered)"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ASAXLrckAyTBYi8E",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dpZyshVHHqMdskWX",
+    "name": "Incredible Companion (Druid)",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Your animal companion continues to grow and develop. It becomes either a nimble or savage animal companion, gaining additional capabilities determined by the type.</p>",
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "Mature Animal Companion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qgW8uHJXJGl3DKBS",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "s02wB7xvjQBROwMW",
+    "name": "Raise Menhir",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p><strong>Frequency</strong> once per hour</p>\n<hr />\n<p>You raise a druidic monument, such as a standing stone or warding tree, from the ground, creating a powerful primal ward that blocks other types of magic. The monument appears in an unoccupied square on the ground within 30 feet, making that square difficult terrain. Choose arcane, divine, or occult; all creatures within @Template[emanation|distance:15]{15 feet} of the monument gain a +2 status bonus to their saving throws against effects with that trait. The monument lasts for 1 round before crumbling back into the earth or wilting away into nothingness, but you can Sustain the monument for up to 1 minute.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Raise Menhir]</p>",
+      "frequency": {
+        "max": 1,
+        "per": "hour"
+      },
+      "level": 8,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "BuVIM4cV7qhVZ2WF",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "AsRoBuLorUavtr8E",
+    "name": "Soaring Shape",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>Wings free you from the shackles of the ground below. Add the bat and bird shapes in @UUID[Compendium.pf2e.spells-srd.Item.Aerial Form] to your @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] list. If you have @UUID[Compendium.pf2e.feats-srd.Item.Insect Shape], you also add the wasp shape to your <em>untamed form</em> list. If you have @UUID[Compendium.pf2e.feats-srd.Item.Ferocious Shape], you also add the pterosaur shape to your <em>untamed form</em> list. Whenever you use <em>untamed form</em> to take a shape that grants you a specific Acrobatics modifier, you gain a +1 status bonus to Acrobatics checks.</p>",
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "Untamed Form"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "acrobatics",
+          "value": 1,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            "battle-form:acrobatics"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "battle-form:acrobatics"
+            ],
+            "selector": "acrobatics",
+            "type": "status",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wNHUryoRzlfDCFAd",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "flags.system.wildShapeForms",
+            "predicate": [
+              "feat:untamed-form"
+            ],
+            "value": {
+              "value": "Compendium.pf2e.spell-effects.Item.Spell Effect: Aerial Form"
+            },
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cfla8SGPEXeuOdNz",
+    "name": "Thunderclap Spell",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>Your lightning splits the air, generating a booming shock wave. If your next action is to Cast a Spell that has the electricity trait or deals electricity damage, has no duration, and requires creatures to attempt a saving throw, the force of the spell's lightning creates a thunderclap, in addition to its other effects. Each creature that failed its Reflex save against the spell is @UUID[Compendium.pf2e.conditionitems.Item.Deafened] for 1 round, and those who critically failed are also knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "storm order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "spellshape:thunderclap-spell",
+            {
+              "or": [
+                "item:damage:type:electricity",
+                "item:trait:electricity",
+                "item:duration:0"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:thunderclap-spell",
+              {
+                "or": [
+                  "item:damage:type:electricity",
+                  "item:trait:electricity",
+                  "item:duration:0"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-option",
+          "slug": "spellshape",
+          "label": "PF2E.TraitSpellshape",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.TraitSpellshape",
+            "mergeable": true,
+            "option": "spellshape",
+            "placement": "spellcasting",
+            "suboptions": [
+              {
+                "label": "{item|name}",
+                "value": "thunderclap-spell"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid",
+          "sonic",
+          "spellshape"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vYfRgneZnHYBzUy5",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "spellshape:thunderclap-spell",
+              {
+                "or": [
+                  "item:damage:type:electricity",
+                  "item:trait:electricity",
+                  "item:duration:0"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dZkFIOKYCcavNaBe",
+    "name": "Wind Caller",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You bid the winds to aid you, carrying you through the air and allowing you passage through the strongest headwinds. You gain the @UUID[Compendium.pf2e.spells-srd.Item.Stormwind Flight] order spell.</p>",
+      "level": 8,
+      "prerequisites": [
+        {
+          "value": "storm order"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Jj6sVfIX81tgvSY4",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "aRfIff3LxNOv7hcr",
     "name": "Double Slice",
     "type": "feat",
@@ -117661,6 +123563,89 @@
             "textStripped": true
           }
         ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "TI2BEC5LfEcOR4y4",
+    "name": "Poison Resistance",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Alchemist</strong> Repeated exposure to toxic reagents has fortified your body against poisons of all kinds.</p>\n<p><strong>Druid</strong> Your affinity for the natural world grants you protection against some of its dangers.</p>\n<hr />\n<p>You gain poison resistance equal to half your level, and you gain a +1 status bonus to saving throws against poisons.</p>",
+      "level": 2,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 1,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            "poison"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "poison"
+            ],
+            "selector": "saving-throw",
+            "type": "status",
+            "value": 1
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "poison",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "poison",
+            "value": "floor(@actor.level/2)"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "alchemist",
+          "druid"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0lieFKdwgNVXep7u",
+        "packName": "feats",
+        "unconvertedRules": [],
         "assetSubstitutions": [
           {
             "field": "img",

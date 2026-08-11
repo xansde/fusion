@@ -435,6 +435,8 @@ export type PlanSlotType =
   | "muse"
   | "cause"
   | "doctrine"
+  /** Druidic Order (r28) — the Druid's level-1 axis, 9 options. */
+  | "order"
   | "blessing"
   | "skillTraining"
   | "skillIncrease"
@@ -573,6 +575,7 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   muse: "Muse",
   cause: "Cause",
   doctrine: "Doctrine",
+  order: "Druidic Order",
   blessing: "Blessing of the Devoted",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
@@ -816,6 +819,9 @@ export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
   Muses: "muse",
   Cause: "cause",
   Doctrine: "doctrine",
+  // r28: the Druid's axis feature is named "Druidic Order" in the vendor's
+  // items{} map (the 9 options are "<Name> Order", tagged `druid-order`).
+  "Druidic Order": "order",
   "Blessing of the Devoted": "blessing",
 };
 
@@ -2024,6 +2030,7 @@ export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
   muse: { packSlug: "class-features-core", category: "bard-muse" },
   cause: { packSlug: "class-features-core", category: "champion-cause" },
   doctrine: { packSlug: "class-features-core", category: "cleric-doctrine" },
+  order: { packSlug: "class-features-core", category: "druid-order" },
   blessing: {
     packSlug: "class-features-core",
     category: "blessing-of-the-devoted",

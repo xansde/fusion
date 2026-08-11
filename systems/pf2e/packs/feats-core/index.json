@@ -16593,6 +16593,1374 @@
     }
   },
   {
+    "_id": "gPoej13XKqpwnXCf",
+    "uuid": "Compendium.pf2e.feats-core.Item.gPoej13XKqpwnXCf",
+    "name": "Animal Companion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Companion",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "f2Pl5dWEL9ZvEyI1"
+    }
+  },
+  {
+    "_id": "CAWH3XtWB22K6ozR",
+    "uuid": "Compendium.pf2e.feats-core.Item.CAWH3XtWB22K6ozR",
+    "name": "Animal Empathy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Empathy",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "cg816q76S5otM7yD"
+    }
+  },
+  {
+    "_id": "OgPswd7GqnUZ3C1b",
+    "uuid": "Compendium.pf2e.feats-core.Item.OgPswd7GqnUZ3C1b",
+    "name": "Fire Lung",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fire Lung",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "yOloZIGkulrrPYG4"
+    }
+  },
+  {
+    "_id": "lmHllntEY5Bq6aHL",
+    "uuid": "Compendium.pf2e.feats-core.Item.lmHllntEY5Bq6aHL",
+    "name": "Leshy Familiar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Leshy Familiar",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "7y1BCJLrdk9mKXlc"
+    }
+  },
+  {
+    "_id": "CHVJArXIdvnda1XP",
+    "uuid": "Compendium.pf2e.feats-core.Item.CHVJArXIdvnda1XP",
+    "name": "Plant Empathy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Plant Empathy",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "ahyQpMVDIqhvXkQ4"
+    }
+  },
+  {
+    "_id": "2cSxUVJZ5ViTJWC7",
+    "uuid": "Compendium.pf2e.feats-core.Item.2cSxUVJZ5ViTJWC7",
+    "name": "Shore Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shore Step",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "kS4wxSKrZxcOvSNK"
+    }
+  },
+  {
+    "_id": "VzwAY4BQCFby19yO",
+    "uuid": "Compendium.pf2e.feats-core.Item.VzwAY4BQCFby19yO",
+    "name": "Steadying Stone",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Steadying Stone",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "QEOe9AhQzdqIx1ei"
+    }
+  },
+  {
+    "_id": "UY1o5CVHhX7T5Pu0",
+    "uuid": "Compendium.pf2e.feats-core.Item.UY1o5CVHhX7T5Pu0",
+    "name": "Storm Born",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Storm Born",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "UpEjRfQkCJCruAfb"
+    }
+  },
+  {
+    "_id": "1ANi8PU0FRMlBNBY",
+    "uuid": "Compendium.pf2e.feats-core.Item.1ANi8PU0FRMlBNBY",
+    "name": "Untamed Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Untamed Form",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "VaIHQzOE5ibmbtqU"
+    }
+  },
+  {
+    "_id": "Xl02yDHsCttuiywq",
+    "uuid": "Compendium.pf2e.feats-core.Item.Xl02yDHsCttuiywq",
+    "name": "Verdant Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Verdant Weapon",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "exploration"
+      ],
+      "flags.fusion.sourceId": "qPFWEyihvbWsCcUv"
+    }
+  },
+  {
+    "_id": "R5n9dLRSwZ0rX2tE",
+    "uuid": "Compendium.pf2e.feats-core.Item.R5n9dLRSwZ0rX2tE",
+    "name": "Elemental Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Shape",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "F0MYBfiyOD8YHq5t"
+    }
+  },
+  {
+    "_id": "Lz8i0ill1BA2T3je",
+    "uuid": "Compendium.pf2e.feats-core.Item.Lz8i0ill1BA2T3je",
+    "name": "Harden Flesh",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Harden Flesh",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "earth"
+      ],
+      "flags.fusion.sourceId": "REgTwIVgI3j1FQiJ"
+    }
+  },
+  {
+    "_id": "gAXM2uFRUZIBIi2c",
+    "uuid": "Compendium.pf2e.feats-core.Item.gAXM2uFRUZIBIi2c",
+    "name": "Healing Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Healing Transformation",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "85V3vdew0gykEtmu"
+    }
+  },
+  {
+    "_id": "8UT22XNdCsEWxoxl",
+    "uuid": "Compendium.pf2e.feats-core.Item.8UT22XNdCsEWxoxl",
+    "name": "Plant Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Plant Shape",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "I9rSWQyueWHQyNxe"
+    }
+  },
+  {
+    "_id": "7fXVrin1AkJCh32P",
+    "uuid": "Compendium.pf2e.feats-core.Item.7fXVrin1AkJCh32P",
+    "name": "Primal Howl",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Primal Howl",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "Cp7UttoCxTyO1pDg"
+    }
+  },
+  {
+    "_id": "cd5qERwf8n54TnGe",
+    "uuid": "Compendium.pf2e.feats-core.Item.cd5qERwf8n54TnGe",
+    "name": "Pristine Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pristine Weapon",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "nWxNV9pFeBHV671W"
+    }
+  },
+  {
+    "_id": "bcZYY9IzLlTgIHIR",
+    "uuid": "Compendium.pf2e.feats-core.Item.bcZYY9IzLlTgIHIR",
+    "name": "Side by Side (Druid)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Side by Side (Druid)",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "j5Xjr8vZuBhCixIr"
+    }
+  },
+  {
+    "_id": "WdHXH56BrtULKUkM",
+    "uuid": "Compendium.pf2e.feats-core.Item.WdHXH56BrtULKUkM",
+    "name": "Defensive Dismissal",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Defensive Dismissal",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "aJyNVKbTdpWFoM5z"
+    }
+  },
+  {
+    "_id": "YCN8U52EkIZTv91B",
+    "uuid": "Compendium.pf2e.feats-core.Item.YCN8U52EkIZTv91B",
+    "name": "Dragon Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragon Shape",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "p0jZhb8PSswUsZaz"
+    }
+  },
+  {
+    "_id": "K1WMRpnAlSThZMi0",
+    "uuid": "Compendium.pf2e.feats-core.Item.K1WMRpnAlSThZMi0",
+    "name": "Explosive Metamorphosis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Explosive Metamorphosis",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "IK6xmiKfmotl8Hm9"
+    }
+  },
+  {
+    "_id": "4IWXE17qtkZnh1Dv",
+    "uuid": "Compendium.pf2e.feats-core.Item.4IWXE17qtkZnh1Dv",
+    "name": "Garland Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Garland Spell",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "manipulate",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "qUoAthRX9cNVHT9s"
+    }
+  },
+  {
+    "_id": "WRtuR3MebNrin46M",
+    "uuid": "Compendium.pf2e.feats-core.Item.WRtuR3MebNrin46M",
+    "name": "Green Tongue",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Green Tongue",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "vwBD55BRDOatp4ZV"
+    }
+  },
+  {
+    "_id": "emgbb3zo3hmHZ4eU",
+    "uuid": "Compendium.pf2e.feats-core.Item.emgbb3zo3hmHZ4eU",
+    "name": "Pesh Skin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pesh Skin",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "morph"
+      ],
+      "flags.fusion.sourceId": "hPanopG3TbXKr52O"
+    }
+  },
+  {
+    "_id": "EqHsem3descByZ6K",
+    "uuid": "Compendium.pf2e.feats-core.Item.EqHsem3descByZ6K",
+    "name": "Primal Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Primal Focus",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "RSUmrIiFBEchdM8B"
+    }
+  },
+  {
+    "_id": "cJJz2DT4JNk0A9xN",
+    "uuid": "Compendium.pf2e.feats-core.Item.cJJz2DT4JNk0A9xN",
+    "name": "Primal Summons",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Primal Summons",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "I00uuseTfPypVgLQ"
+    }
+  },
+  {
+    "_id": "OUCI7WG9F8Zbk4QU",
+    "uuid": "Compendium.pf2e.feats-core.Item.OUCI7WG9F8Zbk4QU",
+    "name": "Purifying Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Purifying Spell",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "druid",
+        "spellshape",
+        "water"
+      ],
+      "flags.fusion.sourceId": "VzQtyHSjq12E4Dzh"
+    }
+  },
+  {
+    "_id": "hWDDTp4gAjNIVKHA",
+    "uuid": "Compendium.pf2e.feats-core.Item.hWDDTp4gAjNIVKHA",
+    "name": "Uplifting Winds",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Uplifting Winds",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "ZaEK0IGhxqd1yH6Q"
+    }
+  },
+  {
+    "_id": "jwcTxepKo7AxII98",
+    "uuid": "Compendium.pf2e.feats-core.Item.jwcTxepKo7AxII98",
+    "name": "Wandering Oasis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wandering Oasis",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "BlfgmJHjDyTVGdPs"
+    }
+  },
+  {
+    "_id": "QDxmf3zN4MFpmGg8",
+    "uuid": "Compendium.pf2e.feats-core.Item.QDxmf3zN4MFpmGg8",
+    "name": "Bizarre Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bizarre Transformation",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "manipulate",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "AV6KZvUed7GdhHzc"
+    }
+  },
+  {
+    "_id": "lA0jtzMWa69hck3m",
+    "uuid": "Compendium.pf2e.feats-core.Item.lA0jtzMWa69hck3m",
+    "name": "Cleansing Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cleansing Transformation",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "wS9a03TKVu8FQ8wC"
+    }
+  },
+  {
+    "_id": "GgsorKWx5yFSubku",
+    "uuid": "Compendium.pf2e.feats-core.Item.GgsorKWx5yFSubku",
+    "name": "Reactive Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reactive Transformation",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "4Q9Q41KLPYJMdV4b"
+    }
+  },
+  {
+    "_id": "Je5Gu66RkobViJ8m",
+    "uuid": "Compendium.pf2e.feats-core.Item.Je5Gu66RkobViJ8m",
+    "name": "Sow Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sow Spell",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "druid",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "TyWFsX9DliAdAVs8"
+    }
+  },
+  {
+    "_id": "983W2bGIo7g3O3Mc",
+    "uuid": "Compendium.pf2e.feats-core.Item.983W2bGIo7g3O3Mc",
+    "name": "Specialized Companion (Druid)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Specialized Companion (Druid)",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.maxTakable": 3,
+      "flags.fusion.sourceId": "3r5rg0BCqSh5RBNS"
+    }
+  },
+  {
+    "_id": "QWsClGmMf25UkIRg",
+    "uuid": "Compendium.pf2e.feats-core.Item.QWsClGmMf25UkIRg",
+    "name": "Timeless Nature",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Timeless Nature",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "TpWS2b9ISHnXVfZg"
+    }
+  },
+  {
+    "_id": "RnHMcHJhPU2PaunR",
+    "uuid": "Compendium.pf2e.feats-core.Item.RnHMcHJhPU2PaunR",
+    "name": "Verdant Metamorphosis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Verdant Metamorphosis",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "orjVLLoziFTmf1mz"
+    }
+  },
+  {
+    "_id": "32w7vqmMShQrDqAv",
+    "uuid": "Compendium.pf2e.feats-core.Item.32w7vqmMShQrDqAv",
+    "name": "Impaling Briars",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impaling Briars",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "urYHB6VHhqvPMSy7"
+    }
+  },
+  {
+    "_id": "Hp3NpyciXxmdXh3f",
+    "uuid": "Compendium.pf2e.feats-core.Item.Hp3NpyciXxmdXh3f",
+    "name": "Monstrosity Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Monstrosity Shape",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "54JzsYCx3uoj7Wlz"
+    }
+  },
+  {
+    "_id": "KR3mLf23PPml0fav",
+    "uuid": "Compendium.pf2e.feats-core.Item.KR3mLf23PPml0fav",
+    "name": "Too Much to Swallow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Too Much to Swallow",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "MXCIjS0cnmy3CLvP"
+    }
+  },
+  {
+    "_id": "bgD4olfkRGX1Bf8D",
+    "uuid": "Compendium.pf2e.feats-core.Item.bgD4olfkRGX1Bf8D",
+    "name": "Invoke Disaster",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Invoke Disaster",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "2RaDe6Fi4t7S2IDF"
+    }
+  },
+  {
+    "_id": "Abg5mYlCU12ab1HW",
+    "uuid": "Compendium.pf2e.feats-core.Item.Abg5mYlCU12ab1HW",
+    "name": "Perfect Form Control",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Perfect Form Control",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "xAIUuSw5A85XEStY"
+    }
+  },
+  {
+    "_id": "yX3MtOS4xskHqo0n",
+    "uuid": "Compendium.pf2e.feats-core.Item.yX3MtOS4xskHqo0n",
+    "name": "Primal Aegis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Primal Aegis",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "AbjVJIBdNjbQbVnV"
+    }
+  },
+  {
+    "_id": "rCa3JdEo6ifNRGzU",
+    "uuid": "Compendium.pf2e.feats-core.Item.rCa3JdEo6ifNRGzU",
+    "name": "Call of the Wild",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Call of the Wild",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "ZvPgibovxwiN8Wse"
+    }
+  },
+  {
+    "_id": "wix9uNk6gUEPplUy",
+    "uuid": "Compendium.pf2e.feats-core.Item.wix9uNk6gUEPplUy",
+    "name": "Order Explorer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Order Explorer",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.maxTakable": null,
+      "flags.fusion.sourceId": "9onf3uGvZRnNLPR6"
+    }
+  },
+  {
+    "_id": "C5X0lIFM1jkTFsSy",
+    "uuid": "Compendium.pf2e.feats-core.Item.C5X0lIFM1jkTFsSy",
+    "name": "Apex Companion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Apex Companion",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "p353WH847errsNvh"
+    }
+  },
+  {
+    "_id": "eEs1kveSvRNKicZP",
+    "uuid": "Compendium.pf2e.feats-core.Item.eEs1kveSvRNKicZP",
+    "name": "Heart of the Kaiju",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Heart of the Kaiju",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "1ul2dasQBdlaMEC5"
+    }
+  },
+  {
+    "_id": "h7QuEakR6L2YwzIA",
+    "uuid": "Compendium.pf2e.feats-core.Item.h7QuEakR6L2YwzIA",
+    "name": "Hierophant's Power",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hierophant's Power",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "Chu6s3xVnpOB64GH"
+    }
+  },
+  {
+    "_id": "Ro3ylony41jDl8Sb",
+    "uuid": "Compendium.pf2e.feats-core.Item.Ro3ylony41jDl8Sb",
+    "name": "Ley Line Conduit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ley Line Conduit",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "druid",
+        "manipulate",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "BQkk7qSSRTFc5jNG"
+    }
+  },
+  {
+    "_id": "4eyb9EEnUj1kBk6t",
+    "uuid": "Compendium.pf2e.feats-core.Item.4eyb9EEnUj1kBk6t",
+    "name": "True Shapeshifter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "True Shapeshifter",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "druid"
+      ],
+      "flags.fusion.sourceId": "mGzPR7M9H733j2wN"
+    }
+  },
+  {
+    "_id": "gSqbGwjZwXC5Sfy0",
+    "uuid": "Compendium.pf2e.feats-core.Item.gSqbGwjZwXC5Sfy0",
+    "name": "Verdant Presence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Verdant Presence",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "Lbpm0OrQb4u2LVtj"
+    }
+  },
+  {
+    "_id": "MEs9Tmn2WcS6i7in",
+    "uuid": "Compendium.pf2e.feats-core.Item.MEs9Tmn2WcS6i7in",
+    "name": "Anthropomorphic Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Anthropomorphic Shape",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "cxwDj2gZ7kJdP4hs"
+    }
+  },
+  {
+    "_id": "DySDoNVh8cB3erqq",
+    "uuid": "Compendium.pf2e.feats-core.Item.DySDoNVh8cB3erqq",
+    "name": "Cryptic Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cryptic Spell",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "druid",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "6oObLoUn3MjmwbaW"
+    }
+  },
+  {
+    "_id": "zdGAUfuI0AbQnBXi",
+    "uuid": "Compendium.pf2e.feats-core.Item.zdGAUfuI0AbQnBXi",
+    "name": "Elemental Summons",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Summons",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "011wnYpjIwCEzFtl"
+    }
+  },
+  {
+    "_id": "pYrv95w8xEh5YrgD",
+    "uuid": "Compendium.pf2e.feats-core.Item.pYrv95w8xEh5YrgD",
+    "name": "Fire Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fire Resistance",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "qbH9ns3HMYBxIvEQ"
+    }
+  },
+  {
+    "_id": "20dCzR5orzRprlzd",
+    "uuid": "Compendium.pf2e.feats-core.Item.20dCzR5orzRprlzd",
+    "name": "Forest Passage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Forest Passage",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "lKgpe2JKaeLjgnYF"
+    }
+  },
+  {
+    "_id": "YmJEbbbrnerd3XJj",
+    "uuid": "Compendium.pf2e.feats-core.Item.YmJEbbbrnerd3XJj",
+    "name": "Form Control",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Form Control",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "manipulate",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "RsluSLtSWq1vN8Hc"
+    }
+  },
+  {
+    "_id": "Vu4m7ifWTwN2EPgo",
+    "uuid": "Compendium.pf2e.feats-core.Item.Vu4m7ifWTwN2EPgo",
+    "name": "Leshy Familiar Secrets",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Leshy Familiar Secrets",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "baz18CdB13DVMHV9"
+    }
+  },
+  {
+    "_id": "ODB5SXVjaycfsu5e",
+    "uuid": "Compendium.pf2e.feats-core.Item.ODB5SXVjaycfsu5e",
+    "name": "Mature Animal Companion (Druid)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mature Animal Companion (Druid)",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "yozSCfdLFHVBbTxj"
+    }
+  },
+  {
+    "_id": "pvYoKCNEOHaxEWMk",
+    "uuid": "Compendium.pf2e.feats-core.Item.pvYoKCNEOHaxEWMk",
+    "name": "Natural Swimmer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Natural Swimmer",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "epBOnfEDOd4V9mQ0"
+    }
+  },
+  {
+    "_id": "Naww9chMLUFbwJAm",
+    "uuid": "Compendium.pf2e.feats-core.Item.Naww9chMLUFbwJAm",
+    "name": "Order Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Order Magic",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "oHdUwzUUblg3neCT"
+    }
+  },
+  {
+    "_id": "bKcP9CiHmBf4gdeA",
+    "uuid": "Compendium.pf2e.feats-core.Item.bKcP9CiHmBf4gdeA",
+    "name": "Sheltering Cave",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sheltering Cave",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "earth",
+        "exploration",
+        "primal"
+      ],
+      "flags.fusion.sourceId": "RzElsoBGTjKWjPgY"
+    }
+  },
+  {
+    "_id": "5xVtfFRsRU8wUvHU",
+    "uuid": "Compendium.pf2e.feats-core.Item.5xVtfFRsRU8wUvHU",
+    "name": "Snowdrift Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snowdrift Spell",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "cold",
+        "druid",
+        "manipulate",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "ds9dNclMMiDBKRtm"
+    }
+  },
+  {
+    "_id": "voZJpob17kJXpy4x",
+    "uuid": "Compendium.pf2e.feats-core.Item.voZJpob17kJXpy4x",
+    "name": "Advanced Elemental Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Advanced Elemental Spell",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "DPk7a0cdFOjDOdn5"
+    }
+  },
+  {
+    "_id": "8ziPc06TfzMGNgkL",
+    "uuid": "Compendium.pf2e.feats-core.Item.8ziPc06TfzMGNgkL",
+    "name": "Current Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Current Spell",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "druid",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "ajesR7y0jWzqjAgc"
+    }
+  },
+  {
+    "_id": "mCEsx8cXA7dV0NLT",
+    "uuid": "Compendium.pf2e.feats-core.Item.mCEsx8cXA7dV0NLT",
+    "name": "Fungal Exhalation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fungal Exhalation",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "focus"
+      ],
+      "flags.fusion.sourceId": "6y2rSSlCXUpk8DMY"
+    }
+  },
+  {
+    "_id": "Yguge6sOntzbhKK3",
+    "uuid": "Compendium.pf2e.feats-core.Item.Yguge6sOntzbhKK3",
+    "name": "Green Empathy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Green Empathy",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "3vjOXL9ZD4ibaJL6"
+    }
+  },
+  {
+    "_id": "zwG2ts88AgJsU07c",
+    "uuid": "Compendium.pf2e.feats-core.Item.zwG2ts88AgJsU07c",
+    "name": "Grown of Oak",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Grown of Oak",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "GmSY4YVyzgAZ4I78"
+    }
+  },
+  {
+    "_id": "Ar2Zy7uMD94EQ2bU",
+    "uuid": "Compendium.pf2e.feats-core.Item.Ar2Zy7uMD94EQ2bU",
+    "name": "Hedge Prison",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hedge Prison",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "focus"
+      ],
+      "flags.fusion.sourceId": "Uuvu1TojhHcDm7EV"
+    }
+  },
+  {
+    "_id": "QUyFwtmXsn9INJhg",
+    "uuid": "Compendium.pf2e.feats-core.Item.QUyFwtmXsn9INJhg",
+    "name": "Insect Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Insect Shape",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "OWedlrKGsVZVkSnT"
+    }
+  },
+  {
+    "_id": "MsT97BDFjaS7il17",
+    "uuid": "Compendium.pf2e.feats-core.Item.MsT97BDFjaS7il17",
+    "name": "Instinctive Support",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Instinctive Support",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "buRSqam06r9jFAbB"
+    }
+  },
+  {
+    "_id": "bddz8ONC56z8WacC",
+    "uuid": "Compendium.pf2e.feats-core.Item.bddz8ONC56z8WacC",
+    "name": "Misty Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Misty Transformation",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "primal"
+      ],
+      "flags.fusion.sourceId": "EOYxsteDMSSZovfV"
+    }
+  },
+  {
+    "_id": "7agZIAxMrsZh51hN",
+    "uuid": "Compendium.pf2e.feats-core.Item.7agZIAxMrsZh51hN",
+    "name": "Storm Retribution",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Storm Retribution",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "F1DVDJRARfdb1Kjz"
+    }
+  },
+  {
+    "_id": "WCKxf7Iv5tL6L70M",
+    "uuid": "Compendium.pf2e.feats-core.Item.WCKxf7Iv5tL6L70M",
+    "name": "Toppling Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Toppling Transformation",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "2hwNGs7WQnO6yv0Q"
+    }
+  },
+  {
+    "_id": "XxpOLHCjzJNBmD4y",
+    "uuid": "Compendium.pf2e.feats-core.Item.XxpOLHCjzJNBmD4y",
+    "name": "Deimatic Display",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deimatic Display",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "UFVw57jWNC4UCfyN"
+    }
+  },
+  {
+    "_id": "Z4CwOckufJdxRGsd",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z4CwOckufJdxRGsd",
+    "name": "Ferocious Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ferocious Shape",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "Le30algCdKIsxmeK"
+    }
+  },
+  {
+    "_id": "bVsWPcI3wNLsGIFU",
+    "uuid": "Compendium.pf2e.feats-core.Item.bVsWPcI3wNLsGIFU",
+    "name": "Fey Caller",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fey Caller",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "8rE5zLEVe4putosB"
+    }
+  },
+  {
+    "_id": "MuksUWSkTC3mGpCi",
+    "uuid": "Compendium.pf2e.feats-core.Item.MuksUWSkTC3mGpCi",
+    "name": "Fiery Retort",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fiery Retort",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "fire"
+      ],
+      "flags.fusion.sourceId": "6biVVoaqqUdQmQ37"
+    }
+  },
+  {
+    "_id": "CmpbgzKHBdoqnduR",
+    "uuid": "Compendium.pf2e.feats-core.Item.CmpbgzKHBdoqnduR",
+    "name": "Floral Restoration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Floral Restoration",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "healing",
+        "vitality"
+      ],
+      "flags.fusion.sourceId": "ffLzfZIq7LoNXqWO"
+    }
+  },
+  {
+    "_id": "yj9Y6rGw3isw5IdR",
+    "uuid": "Compendium.pf2e.feats-core.Item.yj9Y6rGw3isw5IdR",
+    "name": "Forgotten Presence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Forgotten Presence",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "ASAXLrckAyTBYi8E"
+    }
+  },
+  {
+    "_id": "dpZyshVHHqMdskWX",
+    "uuid": "Compendium.pf2e.feats-core.Item.dpZyshVHHqMdskWX",
+    "name": "Incredible Companion (Druid)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Incredible Companion (Druid)",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "qgW8uHJXJGl3DKBS"
+    }
+  },
+  {
+    "_id": "s02wB7xvjQBROwMW",
+    "uuid": "Compendium.pf2e.feats-core.Item.s02wB7xvjQBROwMW",
+    "name": "Raise Menhir",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Raise Menhir",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "BuVIM4cV7qhVZ2WF"
+    }
+  },
+  {
+    "_id": "AsRoBuLorUavtr8E",
+    "uuid": "Compendium.pf2e.feats-core.Item.AsRoBuLorUavtr8E",
+    "name": "Soaring Shape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Soaring Shape",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "wNHUryoRzlfDCFAd"
+    }
+  },
+  {
+    "_id": "cfla8SGPEXeuOdNz",
+    "uuid": "Compendium.pf2e.feats-core.Item.cfla8SGPEXeuOdNz",
+    "name": "Thunderclap Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Thunderclap Spell",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "sonic",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "vYfRgneZnHYBzUy5"
+    }
+  },
+  {
+    "_id": "dZkFIOKYCcavNaBe",
+    "uuid": "Compendium.pf2e.feats-core.Item.dZkFIOKYCcavNaBe",
+    "name": "Wind Caller",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wind Caller",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "Jj6sVfIX81tgvSY4"
+    }
+  },
+  {
     "_id": "aRfIff3LxNOv7hcr",
     "uuid": "Compendium.pf2e.feats-core.Item.aRfIff3LxNOv7hcr",
     "name": "Double Slice",
@@ -28929,6 +30297,23 @@
         "flourish"
       ],
       "flags.fusion.sourceId": "657SMUB2N9VZOgYp"
+    }
+  },
+  {
+    "_id": "TI2BEC5LfEcOR4y4",
+    "uuid": "Compendium.pf2e.feats-core.Item.TI2BEC5LfEcOR4y4",
+    "name": "Poison Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Poison Resistance",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "alchemist",
+        "druid"
+      ],
+      "flags.fusion.sourceId": "0lieFKdwgNVXep7u"
     }
   },
   {

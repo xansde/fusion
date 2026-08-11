@@ -61,6 +61,21 @@
     }
   },
   {
+    "_id": "wCKgeaPqB6b8gGes",
+    "uuid": "Compendium.pf2e.classes-core.Item.wCKgeaPqB6b8gGes",
+    "name": "Druid",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Druid",
+      "system.keyAbility": [
+        "wis"
+      ],
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "7s57JDCaiYYCAdFx"
+    }
+  },
+  {
     "_id": "1VFFHH43BOrf82SB",
     "uuid": "Compendium.pf2e.classes-core.Item.1VFFHH43BOrf82SB",
     "name": "Fighter",
