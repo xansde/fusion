@@ -1284,10 +1284,7 @@
     showTraitFilter={abcPicker === "heritage"}
     filterFn={
       abcPicker === "heritage" && ctx.ancestrySlug
-        ? (e) => {
-            const slug = e.index["system.ancestry.slug"];
-            return typeof slug === "string" && slug === ctx.ancestrySlug;
-          }
+        ? (e) => heritageMatchesAncestry(e.index["system.ancestry.slug"], ctx.ancestrySlug!)
         : undefined
     }
     currentSourceId={abcCurrentSourceId(abcPicker)}
