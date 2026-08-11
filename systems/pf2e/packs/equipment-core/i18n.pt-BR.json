@@ -2,49 +2,654 @@
   "schemaVersion": 1,
   "packId": "pf2e.equipment-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-07-07T00:00:03.434Z",
+  "generatedAt": "2026-08-11T05:02:25.742Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
+    "09atRyfg45YCp5oW": {
+      "name": "Arreios",
+      "sourceHash": "e51fc6141f3d81cdca22a39dcbda20f6df34710f",
+      "noDescription": true
+    },
+    "0Ks4ZNbY4s6EMJr0": {
+      "name": "Barraca (Pequena)",
+      "sourceHash": "8a19e3dd20046ad73d08f08e97a9a7c097b32c36",
+      "noDescription": true
+    },
+    "0fJpzap1XXJTEgl9": {
+      "name": "Kit de Ladrão (Infiltrador)",
+      "sourceHash": "82946fabd2c7441139b6b92bdcefd3ecd843d589",
+      "noDescription": true
+    },
+    "0fQOlRdX6qsz661f": {
+      "name": "Elixir da Vida (Menor)",
+      "sourceHash": "e46bd80d0cbc6067eda91bc3669e7033b3a6cb3b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Elixires da vida aceleram os processos naturais de cura e o sistema imunológico de uma criatura viva. Ao beber este elixir, você recupera @Damage[(3d6+6)[healing]] Pontos de Vida e ganha um bônus de item de +1 em testes de resistência contra doenças e venenos por 10 minutos.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Elixir of Life]{Efeito: Elixir da Vida}</p>"
+    },
+    "16GutEbvDVFhgk0k": {
+      "name": "Lanterna (Encapuzada)",
+      "sourceHash": "06a04cf6abe1420a91c697c5f80a372879c68ab4",
+      "noDescription": true
+    },
+    "1NnRUupSB8cvrYNF": {
+      "name": "Pino do Macaco",
+      "sourceHash": "fbd08e2c537c259c45401d60b32b4db770360a89",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p><hr /><p>Este pequeno pino de latão tem o formato de um macaco escalando uma árvore. Ao ativar este talismã, use uma ação de @UUID[Compendium.pf2e.actionspf2e.Item.Climb]{Escalar} com um bônus de item de +1 ao teste. Nesse teste e até o fim do seu turno, se você tiver sucesso em um teste de Atletismo para Escalar, você se move pelo seu Deslocamento total durante a Escalada. Se você rolar uma falha crítica, obtém uma falha em vez disso.</p>"
+    },
+    "1hzFGMOSnDZFYzG1": {
+      "name": "Poção de Cura (Moderada)",
+      "sourceHash": "3696ae64ca4311b98119112249cb513a30252c91",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Uma <em>poção de cura</em> é um frasco de líquido vermelho-rubi que transmite uma sensação de formigamento enquanto as feridas de quem a bebe se curam rapidamente. Ao beber uma <em>poção de cura</em>, você recupera @Damage[(3d8+10)[healing]] Pontos de Vida.</p>"
+    },
+    "1pQYuo38VfALggpg": {
+      "name": "Poção de Retaliação Elétrica (Moderada)",
+      "sourceHash": "550deacc9ce6d692fb1f3c82a1f7726dc85cb8f1",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação elétrica, você brilha com uma aura tênue de energia elétrica, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) ou que esteja adjacente a você e acertá-lo com um Golpe de arma corpo a corpo sofre dano de eletricidade.</p>\n<p>A aura causa @Damage[2d4[electricity]] de dano.</p>"
+    },
+    "209YYck7E2g48cHh": {
+      "name": "Poção de Retaliação Flamejante (Menor)",
+      "sourceHash": "4995fef86a12fbabae9c16a1855ed73c291329e8",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação flamejante, você brilha com uma aura tênue de energia flamejante, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano de fogo.</p>\n<p>A aura causa @Damage[1d4[fire]] de dano.</p>"
+    },
+    "2I3RH7r9Dp6j8Tm9": {
+      "name": "Lanterna (Facho Direcionado)",
+      "sourceHash": "3f53f5d957f15fb451fc1eddb68db7bcc863f5bd",
+      "noDescription": true
+    },
+    "2b2fWoOp1FFPetB8": {
+      "name": "Escama de Tartaruga-Dragão (Maior)",
+      "sourceHash": "9bc85b523bc95ee60080d44aa3cf28f55e7027df",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p>\n<p><strong>Requisitos</strong> Você é treinado em Atletismo</p><hr /><p>Esta escama verde-cintilante costuma estar presa a um fecho ou corrente dourada.</p>\n<p>Ao ativar a escama, por 1 minuto você ganha um Deslocamento de natação igual ao seu Deslocamento terrestre.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Dragon Turtle Scale]{Efeito: Escama de Tartaruga-Dragão}</p>"
+    },
+    "30bEUihEil2CE1Kh": {
+      "name": "Pé de Cabra",
+      "sourceHash": "beb23ac9ef6d5408ab6ec0d6ef3ca7fe2bef3a26",
+      "noDescription": true
+    },
+    "3SVXn8ohWWlUcoTf": {
+      "name": "Poção de Resistência (Menor)",
+      "sourceHash": "e9b017fc5074ac443fe0bcd917f2a5cb6077c3a3",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Beber esta poção espessa e fortificante concede 5 de resistência contra um único tipo de dano por 1 hora. Cada <em>poção de resistência</em> é criada para defender contra dano de ácido, frio, eletricidade, fogo ou som (e é chamada de <em>poção menor de resistência a fogo</em> ou similar).</p>"
+    },
+    "3Uy9txdLpu4W0H1p": {
+      "name": "Símbolo Religioso (Prata)",
+      "sourceHash": "3077656efe5a51d75305ba944d10ce4af5872c0d",
+      "noDescription": true
+    },
+    "3eX9xDRa0813qfOc": {
+      "name": "Menuki do Tigre",
+      "sourceHash": "7950894d8b17e4d641d31b0b45f7fb5e3ed18621",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você usa um Golpe com a arma afixada</p><hr /><p>Este tigre feito de peltre rosna ferozmente a partir do punho de sua arma. Ao ativar o tigre, a arma ganha os traços contundente e ceifador no Golpe que acionou o efeito e em todos os outros Golpes por 1 minuto.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Tiger Menuki]{Efeito: Menuki do Tigre}</p>"
+    },
+    "44gPVFvzzcRPuy8u": {
+      "name": "Cristal de Potência",
+      "sourceHash": "bcd1ae51f84db0d9f88c6fd70a2e4abc3546a06f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você faz um ataque com a arma afixada, mas ainda não rolou</p>\n<hr />\n<p>Este cristal de fluorita brilha com uma fosforescência estranha. Ao ativar o cristal, a arma se torna uma <em>arma +1 perfurante</em> no Golpe e até o fim deste turno, ganhando um bônus de item de +1 na rolagem de ataque e aumentando o dano para dois dados de dano da arma.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potency Crystal]{Efeito: Cristal de Potência}</p>"
+    },
+    "4GzvjpIijHBHPFYP": {
+      "name": "Poção de Sopro Energético (Ácido, Menor)",
+      "sourceHash": "a41dbd3b2f0d291e1ecd2b79937afb93cf21af2a",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Destilada da energia de magias perigosas, a poção de sopro energético concede a você a ação Sopro Energético por 1 hora após consumir a mistura.</p>\n<p><strong>Sopro Energético</strong> <span class=\"action-glyph\">1</span> Você cria uma @Template[line|distance:30] de ácido que causa @Damage[4d6[acid]|options:area-damage] de dano. Todas as criaturas na área devem tentar um teste de resistência de @Check[reflex|dc:23|basic|options:area-effect].</p>\n<p>Depois de usar Sopro Energético, você não pode fazê-lo novamente por [[/gmr 1d4 #Recharge Energy Breath]]{1d4 rodadas}.</p>"
+    },
+    "4P3qZM44kci9VS42": {
+      "name": "Poção de Respiração Aquática",
+      "sourceHash": "4ee011aa5ff47965b108806918a35a809de32293",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Esta poção turva e acinzentada tem cheiro de lixeira de peixe velha e um gosto ainda pior. Depois de beber esta poção, você ganha os efeitos de uma magia de @UUID[Compendium.pf2e.spells-srd.Item.Water Breathing]{Respiração Aquática} de 2º grau por 1 hora.</p>"
+    },
+    "4usFWJfP5LohO58t": {
+      "name": "Poção de Sopro Energético (Eletricidade, Menor)",
+      "sourceHash": "aa5705d71523d7263558fa890f1ce44e76b155b2",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Destilada da energia de magias perigosas, a poção de sopro energético concede a você a ação Sopro Energético por 1 hora após consumir a mistura.</p>\n<p><strong>Sopro Energético</strong> <span class=\"action-glyph\">1</span> Você cria uma @Template[line|distance:30] de eletricidade que causa @Damage[4d6[electricity]|options:area-damage] de dano. Todas as criaturas na área devem tentar um teste de resistência de @Check[reflex|dc:23|basic|options:area-effect].</p>\n<p>Depois de usar Sopro Energético, você não pode fazê-lo novamente por [[/gmr 1d4 #Recharge Energy Breath]]{1d4 rodadas}.</p>"
+    },
+    "59g3osmJ6RgRPC7s": {
+      "name": "Fechadura (Mediana)",
+      "sourceHash": "d7e9de63a5a2c0208a9d613d5b325bb8fd62c924",
+      "noDescription": true
+    },
+    "5KMPnNq4c4zQDsdu": {
+      "name": "Livro Básico de Artesão",
+      "sourceHash": "7ecb439400098a472ccfa11a291621af5b25d51c",
+      "noDescription": true
+    },
+    "5dZWjCCWeTC2xaJ9": {
+      "name": "Instrumento Musical (Portátil)",
+      "sourceHash": "12dbd8f8192b3b1d09e9466f7197cd2f1c1f372c",
+      "noDescription": true
+    },
+    "5oB4TcIiQs09QRLH": {
+      "name": "Poção de Encolhimento (Maior)",
+      "sourceHash": "c77689e03bcdae3dbc95051234911ce58414625f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Esta poção com sabor de fungo transmite os efeitos da magia @UUID[Compendium.pf2e.spells-srd.Item.Shrink]{Encolher} para diminuir você e todo o seu equipamento. Esta poção não tem início retardado, dura 1 hora e concede os efeitos de uma magia <em>encolher</em> de 4º grau. Além disso, você ganha um bônus de item de +2 em testes de Furtividade enquanto encolhido.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Shrinking Potion (Greater)]{Efeito: Poção de Encolhimento (Maior)}</p>"
+    },
+    "5qksatepfUIvCru3": {
+      "name": "Pomada Cerra-Pele",
+      "sourceHash": "d567ece8ff2151f9f76611fd144bdc7a29360310",
+      "description": "<p>Esta pomada pegajosa mantém teimosamente os ferimentos fechados e estimula a cura natural rápida. Você pode ativar a pomada de qualquer uma das seguintes formas.</p>\n<p><strong>Ativar—Aplicar Cerradura</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p><strong>Efeito</strong> Você usa @UUID[Compendium.pf2e.actionspf2e.Item.Administer First Aid]{Prestar Primeiros Socorros} sem precisar de um @UUID[Compendium.pf2e.equipment-srd.Item.Healer's Toolkit]{Kit de Curandeiro}. Você ganha um bônus de item de +2 ao teste de Medicina, ou pode usar o modificador de Medicina da pomada cerra-pele, [[/r 1d20+13]], em vez do seu próprio.</p>\n<p><strong>Ativar—Cerrar Ferimentos</strong> <span class=\"action-glyph\">f</span> (manipular)</p><hr /><p><strong>Gatilho</strong> Você usa @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds]{Tratar Ferimentos} ou usa @UUID[Compendium.pf2e.feats-srd.Item.Battle Medicine]{Medicina de Batalha}</p>\n<p><strong>Efeito</strong> Você ganha um bônus de item de +2 ao teste de Medicina que acionou este efeito. Se você rolar um sucesso no teste de Medicina, obtém um sucesso crítico em vez disso.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Skinstitch Salve]{Efeito: Pomada Cerra-Pele}</p>"
+    },
     "5wzdXtfXwsdaxbIc": {
       "name": "Cota Élfica (Grau Padrão)",
       "sourceHash": "e3023f462da58159ebb6940949754b9e18794778",
       "description": "<p>A cota élfica é uma @UUID[Compendium.pf2e.equipment-srd.Item.Chain Shirt] feita de prata-do-crepúsculo que brilha até na luz mais fraca. Por ser construída com anéis pequenos e flexíveis, não possui penalidade de teste.</p>\n<p>Criada por artesãos élficos empregando técnicas ancestrais, a cota élfica é excepcionalmente silenciosa. Diferente de outras cotas de malha — mesmo outras cotas de prata-do-crepúsculo — a cota élfica não possui o traço barulhenta. Esta armadura pode ser gravada com runas como qualquer outra cota de prata-do-crepúsculo.</p>\n<p><strong>Requisitos de Fabricação</strong> Os materiais brutos iniciais devem incluir prata-do-crepúsculo no valor de pelo menos 3.125 pp.</p>"
+    },
+    "66iFcX4Axn8xlh4s": {
+      "name": "Algemas (Fracas)",
+      "sourceHash": "462b671b2aa0572bdc61474c22086f596cf99b71",
+      "noDescription": true
+    },
+    "6FfvocLOWxZvGzHz": {
+      "name": "Poção de Resistência a Fogo (Menor)",
+      "sourceHash": "bf87645e06fd120e70135847fb99ec3062e2fa35",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Beber esta poção espessa e fortificante concede resistência 5 contra dano de fogo por 1 hora.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Fire Resistance]{Efeito: Poção de Resistência a Fogo}</p>"
+    },
+    "6MBXRdsEmh3SHlMm": {
+      "name": "Ampulheta",
+      "sourceHash": "08cb0a3ffd681b9f98155558f9de4e32f6c6fb55",
+      "noDescription": true
+    },
+    "6W6mBHECWUh3aghJ": {
+      "name": "Alforjes",
+      "sourceHash": "1bee8aa91e09a589d29cecd155805f93114f2664",
+      "noDescription": true
+    },
+    "6YKElnCT28irervJ": {
+      "name": "Poção de Resistência a Som (Menor)",
+      "sourceHash": "c5552818fb75a5fbc9c78136c4642694e7aa6ebf",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Beber esta poção espessa e fortificante concede resistência 5 contra dano de som por 1 hora.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Sonic Resistance]{Efeito: Poção de Resistência a Som}</p>"
+    },
+    "6b8x64HeiCfpBJm8": {
+      "name": "Aparelho Auditivo",
+      "sourceHash": "48e44cf60923be6d124b62434f6674483820d834",
+      "noDescription": true
+    },
+    "6fQ9wSyijb7bcyhr": {
+      "name": "Amuleto de Dente de Tubarão",
+      "sourceHash": "1a5ae84900e08dad80ee289df6bf552129b4ced5",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (concentração)</p><hr /><p>Esta pulseira de alga seca é enfeitada com amuletos em forma de pequenos dentes de tubarão. Ao ativar a pulseira, tente @UUID[Compendium.pf2e.actionspf2e.Item.Escape]{Escapar} usando Acrobacia com um bônus de item de +1 ao teste. Se você rolar um sucesso, obtém um sucesso crítico em vez disso (se rolar uma falha crítica, obtém uma falha em vez disso). Se você falhar no teste de Acrobacia contra uma criatura que o agarra, a criatura deve soltá-lo como ação livre ou sofrer @Damage[2d8[piercing]] de dano quando dentes de tubarão surgem momentaneamente da sua pele.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Shark Tooth Charm]{Efeito: Amuleto de Dente de Tubarão}</p>"
     },
     "6lBj55XeT3rAC3Ge": {
       "name": "Osso Rítmico",
       "sourceHash": "42cc48cb7da7965f9de2cd1db0025d460ca5fcb6",
       "description": "<p>Este osso pequeno e encantado (na maioria das vezes uma mandíbula) costuma ter as pontas revestidas de metal. É ativado ao ser batido contra uma superfície dura.</p>\n<hr />\n<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Interagir</p>\n<p><strong>Efeito</strong> O osso começa a gravar o próximo 1 minuto de sons ambientes (incluindo fala) que exigem um teste de Percepção de CD 15 ou menor para serem ouvidos. A gravação do osso não copia efeitos auditivos mágicos, como os de uma conjuração de magia, o canto de uma harpia ou o lamento de uma banshee. Uma vez que o osso rítmico tenha sido ativado desta forma, ele retém o som gravado pelo resto de sua existência e não pode ser ativado desta forma novamente.</p>\n<hr />\n<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Interagir</p>\n<p><strong>Efeito</strong> O osso reproduz seus sons gravados.</p>\n<hr />\n<p><strong>Requisitos de Fabricação</strong> Forneça uma conjuração de @UUID[Compendium.pf2e.spells-srd.Item.Ghost Sound].</p>"
     },
+    "6zwCmqP4Q5bzyXuu": {
+      "name": "Bugiganga de Jade",
+      "sourceHash": "ef40b8c4ca4abfc51e2996a603ab7eb0f20b8e49",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p><hr /><p>Este pedaço de jade costuma ser esculpido em forma de duelista, ou às vezes de uma criatura com vários braços. Ao ativar a bugiganga, ela atrai magicamente a atenção dos inimigos. Até o início do seu próximo turno, os inimigos ao alcance da arma à qual o talismã está afixado ficam @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenidos}.</p>"
+    },
+    "7GLqe8a7hxmlT1gJ": {
+      "name": "Fermentado do Bravo (Menor)",
+      "sourceHash": "1c79a48d124c44165e4b5127fdee2002676f3448",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Este frasco de cerveja espumante concede coragem. Pela próxima hora após beber este elixir, você ganha um bônus de item de +1 em testes de resistência de Vontade, ou +2 ao tentar testes de Vontade contra medo.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Bravo's Brew]{Efeito: Fermentado do Bravo}</p>"
+    },
     "7Ons6DIeurQjfDOk": {
       "name": "Soro de Troca de Sexo",
       "sourceHash": "bb6b771a964ef2d0543240dd5159a914dc94888e",
       "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Ao beber esta poção, sua biologia se transforma instantaneamente para assumir um conjunto de características sexuais à sua escolha, alterando sua aparência e fisiologia de acordo. Você tem controle limitado sobre os detalhes desta mudança, mas mantém uma forte \"semelhança familiar\" com sua aparência anterior.</p>\n<p>A magia funciona instantaneamente e não pode ser anulada. Sua nova anatomia é tão saudável e funcional quanto a do seu corpo anterior, potencialmente permitindo que você procrie (dependendo da biologia da sua ancestralidade). Beber um <em>soro de troca de sexo</em> subsequente permite que você reverta para sua forma original ou adote outras características sexuais, como preferir. O elixir não tem efeito se você estiver grávida ou for de uma ancestralidade sem diferenciação sexual. A maioria das ancestralidades tem um amplo espectro de diferenciação sexual, algumas comuns, outras mais raras.</p>"
+    },
+    "7Ylgh30PAtOhzldy": {
+      "name": "Pingente do Anjo Chorão",
+      "sourceHash": "99eac9f7ca839ca0353892b3eaebb841f950f19d",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">2</span> (concentração)</p><hr /><p>Ao ativar este pingente de alabastro, tente @UUID[Compendium.pf2e.actionspf2e.Item.Administer First Aid]{Prestar Primeiros Socorros} usando Medicina com um bônus de item de +1 ao teste. Se você tiver sucesso, e estava tentando estabilizar, o alvo recupera 1 Ponto de Vida, perdendo a condição morrendo e ficando consciente normalmente. Se você tiver sucesso, e estava tentando estancar o sangramento, o sangramento cessa.</p>"
+    },
+    "7ZkMkqcHLy4sASr4": {
+      "name": "Kit de Ferramentas de Alquimista",
+      "sourceHash": "8dc12dfbb7f3237481337c86430b91d12fd3aef7",
+      "noDescription": true
+    },
+    "7uNvaJ8jV9LZ9dBY": {
+      "name": "Gato de Jade",
+      "sourceHash": "9016857da93b39255c794639c9d2c7adffae32aa",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você cai ou tenta um teste de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Balance]{Equilibrar-se}</p>\n<p><strong>Requisitos</strong> Você é treinado em Acrobacia</p><hr /><p>Um felino do tamanho de um polegar, esculpido em pedra rara, o <em>gato de jade</em> costuma ser usado como pingente sobre uma armadura. Por 1 minuto após ativar o gato, você trata todas as quedas como 20 pés mais curtas, não fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenido} ao Equilibrar-se, e superfícies estreitas e terreno irregular não são terreno difícil para você.</p>"
+    },
+    "8I2PnfqmasaQPa4i": {
+      "name": "Cadeira de Rodas",
+      "sourceHash": "82038e267f100c56ee92d473fccaaf546b27e3a9",
+      "noDescription": true
+    },
+    "8PMZUJ33ztGG8T5h": {
+      "name": "Kit de Disfarce (Reposição de Cosméticos)",
+      "sourceHash": "d080425d886a641e15f5e20fbe5025acfa74d093",
+      "noDescription": true
+    },
+    "8xSE4lRBd4VWYkKo": {
+      "name": "Solvente Absoluto (Menor)",
+      "sourceHash": "027417944712e7e6e173f29ab474e52eda65dc8b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Originalmente formulado para dissolver @UUID[Compendium.pf2e.equipment-srd.Item.Everlasting Adhesive]{Adesivo Eterno}, este solvente poderoso consegue romper a aderência de quase qualquer adesivo. Por ser especialmente eficaz contra o adesivo eterno, ele o dissolve automaticamente. Tenta anular quaisquer outros adesivos, como @UUID[Compendium.pf2e.equipment-srd.Item.Glue Bomb (Lesser)]{Bombas de Cola}, no 3º grau, com um modificador de anulação de [[/r 1d20+9 #Counteract]]{+9}.</p>"
+    },
+    "9pHQLCzpk4yztMO1": {
+      "name": "Poção de Sopro Energético (Som, Menor)",
+      "sourceHash": "0373db773d26e3fb28edfd81d432e683a54b6733",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Destilada da energia de magias perigosas, a poção de sopro energético concede a você a ação Sopro Energético por 1 hora após consumir a mistura.</p>\n<p><strong>Sopro Energético</strong> <span class=\"action-glyph\">1</span> Você cria um @Template[cone|distance:15] de som que causa @Damage[4d6[sonic]|options:area-damage] de dano. Todas as criaturas na área devem tentar um teste de resistência de @Check[fortitude|dc:23|basic|options:area-effect].</p>\n<p>Depois de usar Sopro Energético, você não pode fazê-lo novamente por [[/gmr 1d4 #Recharge Energy Breath]]{1d4 rodadas}.</p>"
+    },
+    "AEEOyxGNIzZE1CT1": {
+      "name": "Pedaço de Prata",
+      "sourceHash": "c6045911ca1ac9e5040903e586b64ba9a4b582b5",
+      "noDescription": true
+    },
+    "AOIzhQghOxDeTYax": {
+      "name": "Elixir da Forma Nebulosa (Moderado)",
+      "sourceHash": "45593ea37e1fff9f318db43670d335312a56cdd3",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Uma névoa tênue emana da sua pele, deixando você @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Encoberto} por 1 minuto.</p>\n<p>Como de costume ao ficar encoberto quando sua posição ainda é óbvia, você não pode usar este encobrimento para @UUID[Compendium.pf2e.actionspf2e.Item.Hide]{Esconder-se} ou @UUID[Compendium.pf2e.actionspf2e.Item.Sneak]{Furtar-se}.</p>"
+    },
+    "AkRLPVk3w3m0fDH9": {
+      "name": "Elixir de Visão no Escuro (Maior)",
+      "sourceHash": "77ab4d5409a49bc501fc9c64ae8890d04ae0dae3",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Depois de beber este elixir, sua visão se torna mais aguçada na escuridão. Você ganha visão no escuro por 24 horas.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Darkvision Elixir (Greater)]{Efeito: Elixir de Visão no Escuro (Maior)}</p>"
+    },
+    "B90KIQ32U6h9mmwN": {
+      "name": "Lingote de Prata-do-Amanhecer",
+      "sourceHash": "24e9e6a897f5c144391a24b51387d6e15d9a5c1f",
+      "noDescription": true
+    },
+    "BRg3nSCdIW2gBD47": {
+      "name": "Sabão",
+      "sourceHash": "1f1511373f2b0ca320f873ad03d8e30295f47278",
+      "noDescription": true
+    },
+    "BTVRn1tHmOhrwx11": {
+      "name": "Símbolo Reluzente",
+      "sourceHash": "fbc3f89d6740e2fdbf5ba7b4ce16c9d870280d5a",
+      "noDescription": true
+    },
+    "BYYXZlxHEJ3lakoN": {
+      "name": "Ampola Efervescente",
+      "sourceHash": "04d9c6def6027bbc08ddd719e39ce781e6d0c54f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<p><strong>Requisitos</strong> Você é treinado em Acrobacia</p>\n<hr />\n<p>Água leve de nascente borbulha e espumeja dentro deste pequeno globo de vidro, derramando-se sobre a armadura afixada quando ativada.</p>\n<p>Até o fim do seu turno, você pode se mover sobre água e outros líquidos como se fossem terreno sólido. Seu movimento não aciona nenhum dispositivo ou perigo que dependa de uma placa de pressão sensível a peso ou dispositivo similar.</p>\n<p>Quando o efeito da ampola termina, você afunda, cai, atravessa terreno frágil ou pousa sobre placas de pressão normalmente, conforme sua localização atual.</p>"
+    },
+    "BhyviZ77v9Yb2yna": {
+      "name": "Elixir da Compreensão (Maior)",
+      "sourceHash": "a22c697d5b0c95f301b90fc45e5468a4460cd3e4",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Esta bebida amarga abre sua mente ao potencial da palavra escrita. Pela duração listada após beber este elixir, você consegue entender quaisquer palavras que ler, desde que estejam escritas em um idioma comum. Este elixir não permite automaticamente que você entenda códigos ou trechos extremamente esotéricos — você ainda precisa tentar um teste de perícia para Decifrar Escrita. A duração é de 10 minutos.</p>"
+    },
+    "CICfYN2cavZ5CWpL": {
+      "name": "Bengala",
+      "sourceHash": "629679da7d57ae3274890f919ae26ea5f0b7a1ed",
+      "noDescription": true
+    },
+    "CODuWFWSaKLIgQTb": {
+      "name": "Kit de Disfarce (Cosméticos de Elite)",
+      "sourceHash": "f6a2dfba7a14f173778941257ff7e04693d4056e",
+      "noDescription": true
+    },
+    "CS594XGz8h9cOQ9m": {
+      "name": "Lembrança da Sorte",
+      "sourceHash": "9002286bb78e5082d4bc89ed951f25f2dd94eda9",
+      "description": "<p>Obtido a partir de @UUID[Compendium.pf2e.feats-srd.Item.Lucky Keepsake]{Lembrança da Sorte}</p>"
+    },
+    "CgZiIZyh1vYZyKH7": {
+      "name": "Kit de Ferramentas de Artesão (Prata de Lei)",
+      "sourceHash": "b46a3ffaf9dfc5097071149651f00e59a5497d80",
+      "noDescription": true
+    },
+    "CwaRYUYpG9b2cXQi": {
+      "name": "Catarse Engarrafada (Menor)",
+      "sourceHash": "76aaba74b7411440b1936819dd3effbbc4c971a9",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Esta bebida libera uma onda de emoções que ajuda a reequilibrar seu estado mental. Ao beber este elixir, ele tenta anular no 2º grau, com um modificador de anulação de [[/r 1d20+8 #Counteract]]{+8}, cada efeito sobre você que tenha o traço emoção ou que esteja infligindo a condição @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado} em você, usando o grau e o modificador de anulação listados.</p>"
+    },
+    "D5gxJC1S5H3bFDqk": {
+      "name": "Dente da Forca",
+      "sourceHash": "64a8386ebc6bee4032120321acb3d078ba9154fc",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Este molar macabro pende de um cordão passado por um furo logo acima de sua raiz seca e exposta. Ao ativar este talismã, faça um Golpe corpo a corpo contra uma criatura adjacente. Essa criatura fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenida} contra o Golpe e até o fim do seu turno.</p>"
+    },
+    "DEqGN16EwX3D6QpP": {
+      "name": "Máscara de Guerra Orc",
+      "sourceHash": "c45665add9aff633f0ce6ea92eb17f72c25d77a2",
+      "description": "<p>Concedida por @UUID[Compendium.pf2e.feats-srd.Item.Orc Warmask]{Máscara de Guerra Orc}</p>\n<p>Você pinta o rosto para criar uma <em>máscara de guerra</em>, um item mágico investido de Volume desprezível com nível de item igual ao seu nível e uso vestível (máscara). Ela tem o traço adivinhação e um traço de tradição mágica dependendo do seu tipo. Vestir ou remover sua <em>máscara de guerra</em> exige 1 minuto de trabalho, embora você não precise Investir a máscara toda vez. A <em>máscara de guerra</em> é exclusiva sua e pode simbolizar seu clã, suas conquistas ou sua fé. Ao criar sua máscara, você deve escolher a fonte do poder da sua <em>máscara de guerra</em> entre as opções abaixo. Essa fonte determina a perícia associada da máscara, bem como a tradição mágica. Depois de escolher essa fonte, ela não pode ser alterada. Você se torna treinado na perícia associada e ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Dubious Knowledge]{Conhecimento Duvidoso} como talento bônus. Você pode gastar 1 hora realizando uma cerimônia que custa 50 po para se sintonizar mais profundamente com sua <em>máscara de guerra</em>. Se fizer isso, ganha um bônus de item de +1 na perícia associada sempre que estiver usando a <em>máscara de guerra</em>.</p>\n<hr />\n<ul>\n<li><strong>Os Deuses</strong> Religião, tradição divina</li>\n<li><strong>A Terra</strong> Natureza, tradição primordial</li>\n<li><strong>A Magia</strong> Arcanismo, tradição arcana</li>\n<li><strong>O Desconhecido</strong> Ocultismo, tradição ocultista</li>\n</ul>"
+    },
+    "DHCk4VV1T9RPK6oR": {
+      "name": "Balança de Mercador",
+      "sourceHash": "b8f6662145bd76c1c251753e897116fe929b1085",
+      "noDescription": true
+    },
+    "Dc2bdtk6YyhVghTe": {
+      "name": "Roupas (Finas)",
+      "sourceHash": "718e049d4f115bf5d54d1337b83659d8d30e2eba",
+      "noDescription": true
+    },
+    "DgTQ8HssCO7KJv2D": {
+      "name": "Poção de Retaliação Ácida (Ínfima)",
+      "sourceHash": "1f8eeb0ee00db0d3de0d02be6d95b38d214f611c",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação ácida, você brilha com uma aura tênue de energia ácida, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano ácido.</p>\n<p>A aura causa @Damage[1[acid]] de dano.</p>"
+    },
+    "DpFjoythZSl5XUN2": {
+      "name": "Elixir do Toque do Mar (Menor)",
+      "sourceHash": "7a6993bafab793fe46cf4ff6ebd410961e3b6341",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Esta mistura salgada altera a pele de suas mãos e pés. Os espaços entre seus dedos das mãos e dos pés ficam palmados, concedendo a você um Deslocamento de natação de 20 pés por 10 minutos.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Sea Touch Elixir (Lesser)]{Efeito: Elixir do Toque do Mar (Menor)}</p>"
+    },
+    "EHqDLGjTrr1quBMO": {
+      "name": "Garra do Predador",
+      "sourceHash": "1d1f9b97ba82448f2ca0b6075f0876ce86a99d9f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você tem sucesso crítico em uma rolagem de ataque com a arma afixada</p><hr /><p>Esta garra presa em um fecho de ferro e corrente costuma ser de um grande predador. Ao ativar a garra, o ataque que a acionou ganha o efeito de especialização crítica da arma.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Predator's Claw]{Efeito: Garra do Predador}</p>"
+    },
+    "EaXYw2YU1rUr16g2": {
+      "name": "Poção de Encolhimento",
+      "sourceHash": "3acdea08cd27f5cb76d57342684ce85a20716841",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Esta poção com sabor de fungo transmite os efeitos da magia @UUID[Compendium.pf2e.spells-srd.Item.Shrink]{Encolher} para diminuir você e todo o seu equipamento. Após o início do efeito, você permanece pequeno por 10 minutos.</p>\n<p><strong>Início</strong> 1 minuto</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Shrinking Potion]{Efeito: Poção de Encolhimento}</p>"
+    },
+    "EsBRo8WhFQwXFQ2j": {
+      "name": "Pedaço de Prata-do-Amanhecer",
+      "sourceHash": "8c2f7fcec5c584e7764c7d9078152ec97f4071cf",
+      "noDescription": true
+    },
+    "FOY9LrJt6XSIFFuM": {
+      "name": "Poção de Resistência a Frio (Menor)",
+      "sourceHash": "7bfcc9b417b555acc85ed47b654a282f3077ba54",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Beber esta poção espessa e fortificante concede resistência 5 contra dano de frio por 1 hora.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Cold Resistance]{Efeito: Poção de Resistência a Frio}</p>"
+    },
+    "FwaaEnAvSH6eYFIc": {
+      "name": "Periscópio",
+      "sourceHash": "f6a4482bb5a81b85533640996b62c1f179ead045",
+      "noDescription": true
+    },
+    "GHoBtXbQsBSIQZjj": {
+      "name": "Opala Hipnotizante",
+      "sourceHash": "7b7a1e8773d08cd92ae869b4f01ec221e91ce24e",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p>\n<hr />\n<p>Este pingente de opala com engaste de prata reluz com iridescência. Ao ativá-lo, tente um teste de Enganação para @UUID[Compendium.pf2e.actionspf2e.Item.Feint]{Fintar}. Se o resultado for um sucesso, você obtém um sucesso crítico em vez disso. Se o resultado for uma falha crítica, você obtém uma falha em vez disso.</p>"
+    },
+    "Gc8OYVau0MhHRO7A": {
+      "name": "Kit de Disfarce (Elite)",
+      "sourceHash": "1f9b2aa6da01ac35b887c7c0189840a670a04451",
+      "noDescription": true
+    },
+    "Gsvvf1pWxh5NkQFo": {
+      "name": "Elixir do Olho do Bombardeiro (Menor)",
+      "sourceHash": "ea68adbb7ea98c4ac3684d33d8254939a81f4c0e",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Esta tintura permite que você localize seus inimigos com precisão. Pelos próximos 5 minutos, seus Golpes de bomba alquímica reduzem em 1 o bônus de circunstância à CA que seus alvos ganham por cobertura.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Bomber's Eye Elixir]{Efeito: Elixir do Olho do Bombardeiro}</p>"
     },
     "GtGoIc0oY8hQGjzj": {
       "name": "Bolsa Espaçosa (Tipo I)",
       "sourceHash": "4a2600ade18a0183b41fff4e23bee6d2ac057d80",
       "description": "<p>Embora pareça uma bolsa de pano decorada com painéis de seda em cores ricas ou bordados estilosos, uma <em>bolsa espaçosa</em> se abre para um espaço mágico maior que suas dimensões externas. O Volume guardado dentro da bolsa não altera o Volume da própria <em>bolsa espaçosa</em>. A quantidade de Volume que o espaço extradimensional da bolsa pode conter depende do seu tipo.</p>\n<p>Você pode Interagir com a <em>bolsa espaçosa</em> para guardar itens nela ou removê-los como faria com um saco comum. Embora a bolsa possa conter uma grande quantidade de material, um objeto ainda precisa caber pela abertura do saco para ser guardado dentro dela.</p>\n<p>Se a bolsa for sobrecarregada ou quebrada, ela se rompe e é destruída, fazendo com que os itens dentro dela sejam perdidos para sempre. Se for virada do avesso, os itens dentro dela caem ilesos, mas a bolsa deve ser recolocada no lugar antes de poder ser usada novamente. Uma criatura viva colocada dentro da bolsa tem ar suficiente por 10 minutos antes de começar a sufocar, e pode tentar Escapar contra uma CD de 13. Um item dentro da bolsa não fornece nenhum benefício a menos que seja retirado primeiro. Um item na bolsa não pode ser detectado por magia que detecta apenas coisas no mesmo plano.</p>\n<hr />\n<p><strong>Capacidade</strong> 25 de Volume</p>"
     },
+    "HZBm5G8XhuhgDFMG": {
+      "name": "Laboratório de Alquimista (Expandido)",
+      "sourceHash": "7088a2e9af146a10e5bee593a34b099ff6fd8a93",
+      "noDescription": true
+    },
     "HZc3f7EqvKrdIIRF": {
       "name": "Atenuador de Portal",
       "sourceHash": "865068b478393e3dca95ddfb4dc16f71fda1376c",
       "description": "<p><em>Atenuadores de portal</em> costumam ser usados perto do centro do corpo e têm o formato de portais ou passagens, tornando literais os portais elementais que os cineticistas possuem dentro de si. A aparência pode variar de um simples disco com um furo no meio a um desenho que corresponde ao portão de uma cidade específica. Se você é um cineticista, o atenuador concede a você um bônus de item de +1 no seu modificador de ataque de impulso (mas não na sua CD de impulso). Ao investir um <em>atenuador de portal</em>, sintonize-o com um elemento à sua escolha. Os desenhos na superfície do atenuador se transformam para corresponder àquele elemento, e o atenuador ganha o traço do elemento até que deixe de ser investido ou seja sintonizado com um elemento diferente.</p>\n<hr />\n<p><strong>Ativar - Magia Elemental</strong> <span class=\"action-glyph\">2</span> (concentrar)</p>\n<p><strong>Frequência</strong> uma vez por dia</p>\n<p><strong>Efeito</strong> O <em>atenuador de portal</em> conjura uma magia de 1º grau, com um modificador de ataque de magia de +7 e CD de magia de 17. Se você é um cineticista e o elemento da magia corresponde a um dos seus elementos cinéticos, você pode usar seu modificador de ataque de impulso no lugar do modificador de ataque de magia ou sua CD de impulso no lugar da CD de magia. A magia corresponde ao elemento ao qual o item está sintonizado, e ganha o traço daquele elemento caso ainda não o tenha:</p>\n<p><strong>ar</strong> @UUID[Compendium.pf2e.spells-srd.Item.Gust of Wind]</p>\n<p><strong>terra</strong> @UUID[Compendium.pf2e.spells-srd.Item.Pummeling Rubble]</p>\n<p><strong>fogo</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dehydrate]</p>\n<p><strong>metal</strong> @UUID[Compendium.pf2e.spells-srd.Item.Thunderstrike]</p>\n<p><strong>água</strong> @UUID[Compendium.pf2e.spells-srd.Item.Snowball]</p>\n<p><strong>madeira</strong> @UUID[Compendium.pf2e.spells-srd.Item.Flourishing Flora]</p>"
+    },
+    "Hdet3hBDRqDtr9J3": {
+      "name": "Poção de Disfarce (Moderada)",
+      "sourceHash": "ff0cde56e9d4ebbf2629efcc4cf4b6c84896a0c5",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Ao ingerir esta poção, você assume a aparência de um tipo específico de criatura por [[/br 2d12 #hours]]{2d12 horas}. O tipo de criatura é determinado quando a poção é criada. Por exemplo, você pode ter uma <em>poção de disfarce de elfo</em> ou <em>poção de disfarce de sapo</em>. Beber a poção não concede o conhecimento de quanto tempo o efeito dura; o Mestre rola a duração em segredo.</p>\n<p>O disfarce não altera seus traços ou estatísticas, nem concede nenhuma das habilidades especiais da criatura que você está imitando. Ele pode afetar quais itens você consegue segurar ou vestir (por exemplo, sua nova forma pode não ter polegares opositores). A poção reduz você a no mínimo tamanho Minúsculo, ou aumenta seu tamanho se a criatura for maior que você, até no máximo Grande. Isso não altera nenhuma de suas estatísticas, exceto por reduzir seu alcance natural a 0 como criatura Minúscula. A criatura precisa ser de um tipo específico, como \"leopardo\" ou \"leão\" em vez de apenas \"gato\", ou \"gigante de fogo\" ou \"ogro\" em vez de apenas \"gigante\", mas a poção não pode fazer você imitar uma criatura individual específica.</p>\n<p>Os efeitos desta poção seguem as mesmas regras da atividade de Enganação @UUID[Compendium.pf2e.actionspf2e.Item.Impersonate]{Personificar}. Observadores sempre presumem que você é o tipo de criatura escolhido, a menos que estejam ativamente Buscando. Você ganha um bônus de condição de +4 à sua CD de Enganação contra tais testes de Percepção e soma seu nível mesmo se destreinado.</p><hr /><p><strong>Requisitos de Fabricação</strong> Os materiais brutos iniciais devem incluir um pouco de sangue, pelo ou carne da criatura que a poção permitirá que quem a beber imite.</p>"
+    },
+    "Hj5H0oe8whQPzILy": {
+      "name": "Prótese",
+      "sourceHash": "54d9c02311ee4c593ab3e67ed5c7f25c30f60dbb",
+      "noDescription": true
+    },
+    "HpGnmffNvNNQtm9x": {
+      "name": "Pedaço de Ferro Frio",
+      "sourceHash": "983f0caa9864cddedf4cc9d3818be28c91fedee9",
+      "noDescription": true
+    },
+    "HtXHyoV9KknhphVY": {
+      "name": "Poção de Presteza",
+      "sourceHash": "f1adc814c510d679d506b0c35853de2993b70371",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Beber esta poção prateada concede a você os efeitos de @UUID[Compendium.pf2e.spells-srd.Item.Haste]{Presteza} por 1 minuto.</p>"
+    },
+    "Hw7C7TUm17DRHIBn": {
+      "name": "Kit de Detetive",
+      "sourceHash": "7282dc385b8f1fdee100f29c352d925a1dadff6e",
+      "noDescription": true
+    },
+    "I5RXyt0n0E5SHiVB": {
+      "name": "Poção de Disfarce (Menor)",
+      "sourceHash": "7b5dfb09f2acb504b2941f6c07579afb6ba195ea",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Ao ingerir esta poção, você assume a aparência de um tipo específico de criatura por [[/br 2d12 #hours]]{2d12 horas}. O tipo de criatura é determinado quando a poção é criada. Por exemplo, você pode ter uma <em>poção de disfarce de elfo</em> ou <em>poção de disfarce de sapo</em>. Beber a poção não concede o conhecimento de quanto tempo o efeito dura; o Mestre rola a duração em segredo.</p>\n<p>O disfarce não altera seus traços ou estatísticas, nem concede nenhuma das habilidades especiais da criatura que você está imitando. Ele pode afetar quais itens você consegue segurar ou vestir (por exemplo, sua nova forma pode não ter polegares opositores). A poção reduz você a no mínimo tamanho Pequeno, ou mantém seu tamanho se a criatura for do seu tamanho ou maior. Por exemplo, se você é Médio e bebe uma <em>poção de disfarce de gigante de fogo</em>, você assume a aparência de um gigante de fogo, mas continua Médio. A criatura precisa ser de um tipo específico, como \"leopardo\" ou \"leão\" em vez de apenas \"gato\", ou \"gigante de fogo\" ou \"ogro\" em vez de apenas \"gigante\", mas a poção não pode fazer você imitar uma criatura individual específica.</p>\n<p>Os efeitos desta poção seguem as mesmas regras da atividade de Enganação @UUID[Compendium.pf2e.actionspf2e.Item.Impersonate]{Personificar}. Observadores sempre presumem que você é o tipo de criatura escolhido, a menos que estejam ativamente Buscando. Você ganha um bônus de condição de +4 à sua CD de Enganação contra tais testes de Percepção e soma seu nível mesmo se destreinado.</p><hr /><p><strong>Requisitos de Fabricação</strong> Os materiais brutos iniciais devem incluir um pouco de sangue, pelo ou carne da criatura que a poção permitirá que quem a beber imite.</p>"
+    },
+    "IL9o2k0Z63VqGN1z": {
+      "name": "Instrumento Musical (Virtuoso Portátil)",
+      "sourceHash": "a8e501f5f2c54c6597cf4ad423310e8688015375",
+      "noDescription": true
+    },
+    "ILpCgAhlQ5ROOCfr": {
+      "name": "Tábuas de Madeira-do-Crepúsculo",
+      "sourceHash": "f499185f623b679dacf633de72b4324b9933573c",
+      "noDescription": true
+    },
+    "IbkgBr7IxSZdUMJy": {
+      "name": "Elixir de Visão no Escuro (Menor)",
+      "sourceHash": "86d5ba4c54fac53bf3650bb9cbf4eabbb41cd624",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Depois de beber este elixir, sua visão se torna mais aguçada na escuridão. Você ganha visão no escuro por 10 minutos.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Darkvision Elixir (Lesser)]{Efeito: Elixir de Visão no Escuro (Menor)}</p>"
+    },
+    "JCpECBjyvTo1ISWy": {
+      "name": "Elixir de Transformação de Gênero (Moderado)",
+      "sourceHash": "fac2cf133540a24833ae2cd367f50f6b24c726ec",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este líquido transparente e amargo pode ser ingerido para alterar certas características sexuais secundárias. Formulações diferentes criam mudanças diferentes — por exemplo, uma variedade pode engrossar a voz e promover o crescimento de pelos corporais e faciais, enquanto outra pode causar redistribuição de gordura ao redor dos quadris e crescimento dos seios. Essas mudanças costumam vir acompanhadas de alterações na distribuição de gordura no rosto, às vezes de forma dramática, às vezes alterando a aparência do usuário de modo mais sutil.</p>\n<p>O elixir precisa ser tomado uma vez por mês, e as mudanças ocorrem ao longo de um ano.</p>"
+    },
+    "JEzkzEBYHKClLg8e": {
+      "name": "Baú",
+      "sourceHash": "24ad3bd31c181c184415b589475672de948e6193",
+      "noDescription": true
+    },
+    "JHQQnfr5v3HIRQfB": {
+      "name": "Nó do Assassino",
+      "sourceHash": "fbe0a3e2e22b0c1e8e31c6379a65e9487f3409b9",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você causa dano a uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenida} com um Golpe usando a arma afixada</p><hr /><p>Este cordão preto de couro é amarrado para parecer um nó de paz quando a arma está sendo usada, mas isso não atrapalha ao sacá-la. Ao ativar o nó, a criatura que você feriu sofre @Damage[1d6[bleed]] de dano e fica desprevenida até o sangramento cessar.</p>\n<p>Se você tiver o talento @UUID[Compendium.pf2e.feats-srd.Item.Twist the Knife]{Torcer a Faca}, o talismã causa, em vez disso, dano de sangramento persistente igual ao seu dano de ataque furtivo.</p>"
     },
     "JdLG5ZTQO3VGjAVL": {
       "name": "Saco de Dormir",
       "sourceHash": "af2497fecdd1f10fed19936c4dcd9f49d20b39fb",
       "description": "<p>Uma cama enrolada.</p>"
     },
+    "JitICOqkuqBhMfVt": {
+      "name": "Bússola",
+      "sourceHash": "0bf192b94f431cd29399623622d9ae6a131c0ef1",
+      "noDescription": true
+    },
+    "JowrmDFa7JLMteeb": {
+      "name": "Ruína do Caçador",
+      "sourceHash": "6f160d9b56bbaad95c9819fdf1f97b436762a90e",
+      "description": "<p><strong>Uso</strong> afixado a uma armadura</p>\n<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Um inimigo @UUID[Compendium.pf2e.conditionitems.Item.Hidden]{Oculto} ou @UUID[Compendium.pf2e.conditionitems.Item.Undetected]{Indetectado} acerta você com um ataque</p>\n<p><strong>Requisitos</strong> Você é treinado em Sobrevivência</p><hr /><p>Este talismã é um anel feito de tiras de palha seca e entrelaçada. Ao ativar a <em>ruína do caçador</em>, você sente a localização exata do atacante. Ele passa a ficar @UUID[Compendium.pf2e.conditionitems.Item.Observed]{Observado} por você, se estava oculto de você, ou passa a ficar oculto de você, se estava indetectado. Se o atacante estiver atrás de chumbo, a <em>ruína do caçador</em> não tem efeito.</p>"
+    },
+    "JuoxsQZBxnQl84n9": {
+      "name": "Pé de Cabra (Alavancado)",
+      "sourceHash": "b8d1bdead34343c69215c012df4ad66d914ff239",
+      "noDescription": true
+    },
+    "KLKswYp9jEVorRHx": {
+      "name": "Lingote de Prata",
+      "sourceHash": "eecdc62f0507bf7170c885872f22ac9478c185d1",
+      "noDescription": true
+    },
+    "KMHlprWASfcmdIqF": {
+      "name": "Tônico de Ração",
+      "sourceHash": "bc7c78ec67cb997dcbd833598f1ba08e1ddbf978",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este frasco esguio parece conter água limpa e cristalina, com um leve aroma frutado. Beber um <em>tônico de ração</em> nutre você magicamente com o equivalente a um dia de comida e água. O tônico tem um sabor sutil e agradável, cujas particularidades são escolhidas quando a poção é fabricada.</p>"
+    },
+    "KXvn41Yu7tcwFPcs": {
+      "name": "Apito de Sinalização",
+      "sourceHash": "1372ab40712f64a760ebd042b256e48b67004b8e",
+      "noDescription": true
+    },
+    "Kd4LgLAPExzrsM75": {
+      "name": "Lingote de Adamantina",
+      "sourceHash": "e5a1c0ee3c2304064de5f960bc030f2dc32d04b2",
+      "noDescription": true
+    },
+    "KpzEckp5RzqiXULt": {
+      "name": "Gancho de Escalada",
+      "sourceHash": "d1214090e043faa69b79d0ec7f419e976aac59a7",
+      "noDescription": true
+    },
+    "LozZOTtjsILuARtR": {
+      "name": "Roupas (Comuns)",
+      "sourceHash": "b665abd8d7d6877e568ee69c411825f0c105d75d",
+      "noDescription": true
+    },
+    "MPjyoZC0yBOTB6V6": {
+      "name": "Símbolo do Peregrino",
+      "sourceHash": "27e6a182f050b687d57dfc3aa5a690e62d72ed41",
+      "description": "<p>Este símbolo religioso de madeira é uma pequena ficha de proteção vinda de um local sagrado à sua fé. Enquanto este símbolo religioso estiver em sua posse, quando você empatar em uma rolagem de iniciativa com um adversário, você age primeiro.</p>\n<p>Se você perder este símbolo religioso, precisa comprar ou Fabricar um substituto e sintonizá-lo. Uma ficha como essa costuma custar pelo menos 1 pp, e a sintonização leva 10 minutos de oração. Você também pode sintonizar um símbolo religioso diferente com o mesmo tempo, mas perde o benefício do símbolo religioso anterior.</p>"
+    },
+    "Mdo0sL1KYJrqsZnT": {
+      "name": "Barraca (Pavilhão)",
+      "sourceHash": "d0f40c515250ad662adab3b82c7b1d010c30fd5d",
+      "noDescription": true
+    },
+    "MjGMS3Nba47CE88F": {
+      "name": "Pingente do Touro de Bronze",
+      "sourceHash": "791a57964662943c9c1d46990ca719662c0bf0a2",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (concentração)</p>\n<hr />\n<p>Este pingente é forjado em aço granulado e retrata o rosto bufante de um touro. O pingente deve estar preso na região do peito ou em uma ombreira. Ao ativar o pingente, tente um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Shove]{Empurrar} com um bônus de item de +1 ao teste. Aumente a distância que você Empurra seu alvo para 10 pés em caso de sucesso, ou 20 pés em caso de sucesso crítico.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Bronze Bull Pendant]{Efeito: Pingente do Touro de Bronze}</p>"
+    },
+    "MjNc7HlkibJ5ghbZ": {
+      "name": "Símbolo do Conflito",
+      "sourceHash": "b6166c152c270cf5914b6d025862869c96886178",
+      "noDescription": true
+    },
+    "Oi7bkA4CXwnrERu5": {
+      "name": "Kit de Ladrão",
+      "sourceHash": "a280c2fef61c0d02dbf5426bd82b4dc50faa238c",
+      "noDescription": true
+    },
+    "OpJEWb7KIpUNxcwp": {
+      "name": "Algemas (Medianas)",
+      "sourceHash": "ca1adebe493f2d017f80d003066db8598d7609e4",
+      "noDescription": true
+    },
+    "PFLqxqhKWQyX4cYG": {
+      "name": "Tônico de Ração (Maior)",
+      "sourceHash": "d52ce4b6d2f52db97b45951cf1b61a4215d36339",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este frasco esguio parece conter água limpa e cristalina, com um leve aroma frutado. Beber um tônico de ração nutre você magicamente com o equivalente a uma semana de comida e água, distribuindo a nutrição em um fluxo constante e saudável ao longo da semana. O tônico tem um sabor sutil e agradável, cujas particularidades são escolhidas quando a poção é fabricada.</p>"
+    },
+    "PGDTFomX5iR7zlLw": {
+      "name": "Elixir da Chita (Menor)",
+      "sourceHash": "921cf0f0020149b88f9efe3249a3e3094d0c1fcc",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Compostos enzimáticos neste elixir fortalecem e estimulam os músculos de suas pernas. Você ganha um bônus de condição de +5 pés ao seu Deslocamento por 1 minuto.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Cheetah's Elixir (Lesser)]{Efeito: Elixir da Chita (Menor)}</p>"
+    },
+    "PQGTHuHSPdU8IUQZ": {
+      "name": "Botas Arbóreas",
+      "sourceHash": "4a1fd8656815f62e3d11e6fdda18497bbe2c8e08",
+      "noDescription": true
+    },
     "PebhZCo647KRbAdd": {
       "name": "Poção de Cura (Menor)",
       "sourceHash": "56d86ee1757e1fb98e71c6ba1b790ee60f9eed76",
       "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Uma <em>poção de cura</em> é um frasco de líquido vermelho-rubi que causa uma sensação de formigamento enquanto os ferimentos de quem a bebe se curam rapidamente. Quando você bebe uma <em>poção de cura</em>, recupera @Damage[(2d8+5)[healing]] Pontos de Vida.</p>"
     },
+    "Q6pcRZXD1vJy08Xf": {
+      "name": "Símbolo Religioso (Madeira)",
+      "sourceHash": "149bb93fed0608982dd530b049877fa6f3bb34f8",
+      "noDescription": true
+    },
+    "RXIFskzTHKQi0Y8E": {
+      "name": "Saco",
+      "sourceHash": "cca9b62f36b6da3ce3708f4e3496b742611f69fa",
+      "noDescription": true
+    },
+    "RaZqVq9PZyN8o0O6": {
+      "name": "Poção de Invisibilidade",
+      "sourceHash": "ce58c3ea016aacd099224cae2faa3f1912b7bbd4",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Uma poção de <em>invisibilidade</em> é incolor e estranhamente leve. Ao bebê-la, você ganha os efeitos de uma magia de @UUID[Compendium.pf2e.spells-srd.Item.Invisibility]{Invisibilidade} de 2º grau.</p>"
+    },
+    "Re4p6qoXUnBdRHbC": {
+      "name": "Instrumento Musical (Pesado)",
+      "sourceHash": "b39288a639487e8c6813b4282bb82bff57ace68e",
+      "noDescription": true
+    },
+    "RsfzpE494fNdmTDz": {
+      "name": "Ferramenta (Longa)",
+      "sourceHash": "4d953cfb3a399ca0f18894af25df98ac3783ae11",
+      "noDescription": true
+    },
+    "S3f0YCMQV3FpQlpT": {
+      "name": "Poção de Memórias Compartilhadas",
+      "sourceHash": "88118a2f88737bcdbcc705bf667869c90e150058",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Uma poção de <em>memórias compartilhadas</em> consegue transferir lembranças de uma criatura para outra. Para colocar uma memória na poção, você precisa segurar o frasco e se concentrar em uma lembrança específica por 1 minuto. Essa lembrança precisa ser de um único evento, local, pessoa, ou de outra forma abranger um período de cerca de 1 minuto. O líquido transparente adquire um tom cintilante que lembra a memória armazenada e ganha um sabor levemente adocicado.</p>\n<p>Ao consumir a poção, quem bebe se recorda vividamente da memória e, a partir daí, pode se lembrar dela com a mesma facilidade de uma memória que realmente vivenciou. Quem bebe contra a própria vontade pode recusar-se a absorver a memória.</p>"
+    },
+    "SItevgm6edRWbzrT": {
+      "name": "Elixir da Compreensão (Menor)",
+      "sourceHash": "b993f9c5c22267b013a57df6f6c1daed5e39c959",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Esta bebida amarga abre sua mente ao potencial da palavra escrita. Pela duração listada após beber este elixir, você consegue entender quaisquer palavras que ler, desde que estejam escritas em um idioma comum. Este elixir não permite automaticamente que você entenda códigos ou trechos extremamente esotéricos — você ainda precisa tentar um teste de perícia para Decifrar Escrita. A duração é de 1 minuto.</p>"
+    },
+    "SXklBMlyaAhnI5zA": {
+      "name": "Turíbulo de Revelação (Menor)",
+      "sourceHash": "3b9c03a015e7373bb5990a399478d9924421a1dc",
+      "noDescription": true
+    },
+    "SZfHKk959EbOf76M": {
+      "name": "Apetrechos de Pesca (Profissionais)",
+      "sourceHash": "a6ce6c0d864b8f4ad5a72729e9cacb4936880132",
+      "noDescription": true
+    },
+    "Se8eH7ftdHisVOK3": {
+      "name": "Kit de Escalada",
+      "sourceHash": "b4f656c125301fb8a628eee3da768bd01587eeb1",
+      "noDescription": true
+    },
+    "Shsukhy7NEWACqk2": {
+      "name": "Pedaço de Adamantina",
+      "sourceHash": "5c4f929d5286586882dd53a31b1417d2a3c67819",
+      "noDescription": true
+    },
+    "SijErYABYsoPJpBf": {
+      "name": "Poção de Retaliação Ácida (Moderada)",
+      "sourceHash": "af2a03a4891da721a8de17ee546fe2326dc69aee",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação ácida, você brilha com uma aura tênue de energia ácida, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) ou que esteja adjacente a você e acertá-lo com um Golpe de arma corpo a corpo sofre dano ácido.</p>\n<p>A aura causa @Damage[2d4[acid]] de dano.</p>"
+    },
+    "Sp4H3PP3cxDV6NXQ": {
+      "name": "Luneta",
+      "sourceHash": "1de6c197c7e4d9e251d9ec7efa4ee7685876e3cc",
+      "noDescription": true
+    },
+    "Swm2csiouPnwxmaQ": {
+      "name": "Grimório (Em Branco)",
+      "sourceHash": "03149dfa0a30bb9250ab72527f5b95c47c33c3ea",
+      "noDescription": true
+    },
+    "TRZqVli0RoTOF0bo": {
+      "name": "Lupa",
+      "sourceHash": "066a8faefc252c052f98ab6fa2a11294d3020290",
+      "noDescription": true
+    },
+    "Tsh1rXKmefBxTqfs": {
+      "name": "Poção de Retaliação Flamejante (Ínfima)",
+      "sourceHash": "dd7bfdedbd5b932a20078b4000272d78eeaaabce",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação flamejante, você brilha com uma aura tênue de energia flamejante, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano de fogo.</p>\n<p>A aura causa @Damage[1[fire]] de dano.</p>"
+    },
+    "TuSzk5FD9A3f5l0W": {
+      "name": "Poção de Voo (Padrão)",
+      "sourceHash": "96dca2c63da4b23cce0b9992087c3237e14d71da",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Ao beber esta mistura efervescente, você ganha um Deslocamento de voo de 40 pés por 1 minuto.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Flying (Standard)]{Efeito: Poção de Voo (Padrão)}</p>"
+    },
+    "U64mZr2rowexKU8h": {
+      "name": "Fechadura (Simples)",
+      "sourceHash": "9eeee7fa74d4d661b6f81e3f69efa305d2a51829",
+      "noDescription": true
+    },
+    "UGEivfbnwHDOYICF": {
+      "name": "Caneca",
+      "sourceHash": "08aa784753aa6f50497750248ea1eaa2a8dd51ea",
+      "noDescription": true
+    },
+    "Ud5DUCBsfKmeEtpf": {
+      "name": "Poção de Lagartixa",
+      "sourceHash": "25ee860273691804b96b8596a6bc5df22b9bb421",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Uma <em>poção de lagartixa</em> é um líquido pegajoso, marrom-amarelado, com fragmentos de areia em suspensão. Por 5 minutos após beber esta poção, a ponta de seus dedos brota milhares de pelos microscópicos e eriçados que se agarram a objetos, concedendo a você um bônus de item de +1 em testes de @UUID[Compendium.pf2e.actionspf2e.Item.Climb]{Escalar} e de @UUID[Compendium.pf2e.actionspf2e.Item.Palm an Object]{Escamotear um Objeto}, além de à sua CD de Reflexos contra tentativas de @UUID[Compendium.pf2e.actionspf2e.Item.Disarm]{Desarmar}.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Gecko Potion]{Efeito: Poção de Lagartixa}</p>"
+    },
+    "V167ISGSjqiqm5ZA": {
+      "name": "Poção de Salto",
+      "sourceHash": "88973ed6c398ff1ede74028068c0b240baae998d",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Por 1 minuto após beber esta poção gaseificada, sempre que você Saltar, ganha o efeito da magia @UUID[Compendium.pf2e.spells-srd.Item.Jump]{Salto} de 1º grau.</p>"
+    },
+    "VDEqD6IKn5vircYL": {
+      "name": "Escada (10 pés)",
+      "sourceHash": "b3b2d1e2867db6b4a11019b47b816766b70d9ce1",
+      "noDescription": true
+    },
     "VUff0oTLrwPZPR6Q": {
       "name": "Odre de Água",
       "sourceHash": "2ec2d4fb6787ea7266661bd1bf7c2df686f0be74",
       "description": "<p>Quando cheio, um odre de água contém aproximadamente o suficiente para 1 dia de uma criatura Pequena ou Média.</p>"
+    },
+    "W4BYcbAiFosauAP7": {
+      "name": "Antipraga (Menor)",
+      "sourceHash": "85a0cafcae1bb4cb1a015d1e25b13ee4071dd33b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>O antipraga fortalece as defesas do corpo contra doenças. Ao beber um antipraga, você ganha um bônus de item de +2 em testes de resistência de Fortitude contra doenças por 24 horas; isso se aplica ao seu teste diário contra a progressão de uma doença.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Antiplague]{Efeito: Antipraga}</p>"
     },
     "W4dClGQV1PEpaJ4B": {
       "name": "Baralho de Truques (Pacote Completo)",
@@ -56,20 +661,275 @@
       "sourceHash": "4871be827542aaf1d681aa851b34f4dbe93903a7",
       "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">f</span> comando</p>\n<p><strong>Gatilho</strong> Você tenta um teste de resistência contra uma doença ou veneno.</p>\n<hr />\n<p>Este pino inclui um pedaço de gaze envolto em um cataplasma de ervas secas. Quando você ativa o pino higienizador, o cataplasma se dissolve e reforça a defesa do seu corpo contra veneno ou doença. Você ganha um bônus de condição de +2 no seu teste de resistência de Fortitude contra a exposição inicial à aflição. Se você tirar uma falha crítica na tentativa que ativou o gatilho, você obtém uma falha ao invés.</p>"
     },
+    "WpfjrH1nMzLbAFPU": {
+      "name": "Poção da Verdade",
+      "sourceHash": "94aa75cfdad451d8ede39716d07a8c0f2558b8ce",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Por 10 minutos após beber esta poção adstringente, você não consegue mentir intencionalmente e pode ser compelido a dizer a verdade. Ao beber a poção, tente um teste de resistência de @Check[will|dc:19] de Vontade. Você pode voluntariamente falhar ou falhar criticamente.</p>\n<p><strong>Sucesso</strong> A poção não o afeta.</p>\n<p><strong>Falha</strong> Ao falar, você precisa dizer a verdade.</p>\n<p><strong>Falha Crítica</strong> Como na falha, e quando alguém lhe faz uma pergunta, você precisa tentar outro teste de resistência de @Check[will|dc:19] de Vontade. Se falhar nesse teste, precisa responder à pergunta com sinceridade, se for capaz de fazê-lo; se tiver sucesso, fica temporariamente imune a novas tentativas de fazer a mesma pergunta dentro da duração da poção.</p>"
+    },
+    "XDxt8GHvhs96yQoq": {
+      "name": "Ferramenta (Curta)",
+      "sourceHash": "40e55040318d4091ea0eaf73f9e29482afc3f23a",
+      "noDescription": true
+    },
+    "XKeXI5mZhsO25F5R": {
+      "name": "Mapa de Levantamento",
+      "sourceHash": "7708c61f9b69cdc0683d8b1f78b5451c68248856",
+      "noDescription": true
+    },
+    "XY9X9UkJ4gUkXf7P": {
+      "name": "Ferraduras da Presteza",
+      "sourceHash": "48d62f11d01fbd7b4dc900faacf98003d0c6a114",
+      "noDescription": true
+    },
+    "XpCgvPXe7uIPRJ7U": {
+      "name": "Braçadeiras com Garras",
+      "sourceHash": "d864bfc62e434c1cfc03a88c0e629761dc5ac701",
+      "noDescription": true
+    },
+    "YBKewBU8l3WV0bna": {
+      "name": "Mochila",
+      "sourceHash": "5e7f5c9616cb8d278553b89320f5d4735544c35e",
+      "noDescription": true
+    },
+    "YGXdVGbSJ1cYXrXz": {
+      "name": "Troféu Macabro",
+      "sourceHash": "a6e275c64fa12bae5d14af13e0bf24ec4acaa623",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p><hr /><p>Este talismã aparece de várias formas, mais comumente um pedaço decepado de uma criatura humanoide exibido de maneira macabra. Ao ativar o troféu, faça um teste de Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize]{Desmoralizar} até dois alvos, comparando o resultado do seu teste de Intimidação com as CDs de ambos.</p>"
+    },
+    "YQK0ftgQSr9KDhi0": {
+      "name": "Orelha de Latão",
+      "sourceHash": "7d1a7ed36a9eb82509fcd7554144bc5b126d6db4",
+      "noDescription": true
+    },
+    "YbeuSiW1pABlqJrw": {
+      "name": "Elixir do Punho de Pedra",
+      "sourceHash": "14a87dc3684675f9c2b41efe156a2e70bde4c591",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Seus punhos ficam duros como pedra. Por 1 hora, seus punhos causam 1d6 de dano de concussão e perdem o traço não letal.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Stone Fist Elixir]{Efeito: Elixir do Punho de Pedra}</p>"
+    },
+    "YuaT6QL5gxGVmt2d": {
+      "name": "Galho de Madeira-do-Crepúsculo",
+      "sourceHash": "c2ec344382342d9df2ee634810e83bb8cb9d4ac8",
+      "noDescription": true
+    },
+    "Z4h0BrEVAsBGnfqo": {
+      "name": "Pedra do Passo de Pena",
+      "sourceHash": "5d8097ddb92e84e3606ad39d2461b89a2a34e495",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você usa Avançar ou Passo</p>\n<p><strong>Requisitos</strong> Você é treinado em Acrobacia</p>\n<hr />\n<p>Esta pedra, geralmente lapidada em cabochão, é um pequeno pedaço de âmbar com um fragmento de pena ou um inseto voador preso em seu interior. Ao ativar a pedra, você ignora os efeitos de qualquer terreno difícil e terreno muito difícil que atravessar até o fim do seu turno.</p>"
+    },
+    "ZcNSIqzhH2oQsMR3": {
+      "name": "Capa de Duelo",
+      "sourceHash": "0af3f0673d2fcd9c449866d02e1755602db84b43",
+      "noDescription": true
+    },
+    "ZdBYbMxkjHje59B4": {
+      "name": "Laboratório de Alquimista",
+      "sourceHash": "436aa2647cf5ba539abb5ece2a390d68cc45f109",
+      "noDescription": true
+    },
+    "a6oxknIHFSSaybUb": {
+      "name": "Lentes Corretivas",
+      "sourceHash": "47329aaaf6e8e2885df11c7a403ebb8b8e966045",
+      "noDescription": true
+    },
+    "acbtf2VEDYZ3r9vc": {
+      "name": "Chave Sorrateira",
+      "sourceHash": "3e8a5ab4421e5522afb37e2d1110f771d148ab07",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<p><strong>Requisitos</strong> Você é treinado em Roubo</p>\n<hr />\n<p>Esta pequena chave-mestra de prata pode ser presa a uma armadura ou manga. Ao girar a chave para ativá-la, você ganha um bônus de condição de +1 em testes de Roubo para @UUID[Compendium.pf2e.actionspf2e.Item.Pick a Lock]{Arrombar uma Fechadura} por 1 minuto. Na primeira vez que obtiver um sucesso ou sucesso crítico em uma tentativa de Arrombar uma Fechadura, você alcança um sucesso adicional rumo à abertura de uma fechadura complexa.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Sneaky Key]{Efeito: Chave Sorrateira}</p>"
+    },
+    "amiHZzRF7y1ZDBTy": {
+      "name": "Pedaço de Orichalcum",
+      "sourceHash": "700a127cd7a97409eb8e4cee5cc4881d626bfa29",
+      "noDescription": true
+    },
+    "b2uGFgC4gncCvTwB": {
+      "name": "Instrumento Musical (Virtuoso Pesado)",
+      "sourceHash": "eeeb32ea25c2a6b9855a8c0eb6a8894b7ade2f0f",
+      "noDescription": true
+    },
+    "bToaGX3FbmyyLDPM": {
+      "name": "Barraca (Quatro Pessoas)",
+      "sourceHash": "8d095d03c45312195e1be8fbaa49edb51531956e",
+      "noDescription": true
+    },
+    "c6xToBykSRAPYSn4": {
+      "name": "Coleira da Discrição",
+      "sourceHash": "8449b74c5f28ca91dfae0b9ba9014e2463af683c",
+      "noDescription": true
+    },
     "cAbDdzcaSqJ0MNYG": {
       "name": "Corda",
       "sourceHash": "f4bad44dbc4160aae3b5755dba6a0aa8aa574cc2",
       "description": "<p>50 pés de corda.</p>"
+    },
+    "cOCvvhctYTHuhHJf": {
+      "name": "Kit de Reparo (Soberbo)",
+      "sourceHash": "9ad7e55fab19bdbc3f6553d2d1a1704110dc5ed0",
+      "noDescription": true
+    },
+    "cbvAxczQ39YFwjpQ": {
+      "name": "Elixir Refrescante (Menor)",
+      "sourceHash": "e7195623ba9c65cb985ed4fd2e0c1fdd10324d4d",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este elixir é feito com escamas de salamandra para resistir ao fogo. Por 24 horas, você fica protegido contra os efeitos de calor severo.</p>"
+    },
+    "ccYkpueEGK2MRNj1": {
+      "name": "Manto de Ilusões",
+      "sourceHash": "0fb343533bd3cf35cf9a8a6f08657a8afde3f712",
+      "noDescription": true
+    },
+    "cdcMaCOCSTO0wgXJ": {
+      "name": "Fechadura (Fraca)",
+      "sourceHash": "57b269d3538d7d422f984434d5b199722eee8e2a",
+      "noDescription": true
+    },
+    "coMqnfMO2Pj5MA42": {
+      "name": "Poção de Retaliação Elétrica (Ínfima)",
+      "sourceHash": "7edf347eaa7ed667a5b32706551300ad46dc20c6",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação elétrica, você brilha com uma aura tênue de energia elétrica, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano de eletricidade.</p>\n<p>A aura causa @Damage[1[electricity]] de dano.</p>"
+    },
+    "dLbpQVeS2e3mSYQm": {
+      "name": "Apetrechos de Pesca",
+      "sourceHash": "b1fc84373f1ac7be26556f9d6261e57211a4ee11",
+      "noDescription": true
+    },
+    "djRoqvGym8E0xzsf": {
+      "name": "Espeto Salvador",
+      "sourceHash": "9f623fe5f7543f11e0aa02171d14176838cc7d94",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você tenta @UUID[Compendium.pf2e.actionspf2e.Item.Grab an Edge]{Agarrar uma Borda}, mas ainda não rolou</p><hr /><p>Este espeto em forma de pirâmide é preso à peça de peitoral de uma armadura. Ao ativar o espeto, ele dispara um filamento de força para ajudá-lo a se firmar, concedendo um bônus de item de +1 ao teste. Se você rolar um sucesso na tentativa que acionou, obtém um sucesso crítico em vez disso. Se rolar uma falha crítica, obtém uma falha em vez disso.</p>"
     },
     "dkABCIPaVAox3OWl": {
       "name": "Botas do Salto",
       "sourceHash": "b0fe7c10f558d3273698a89190e2bc576e573ea9",
       "description": "<p>As solas flexíveis destas botas de couro resistentes amortecem seus pés e tornam cada passo mais leve. Estas botas concedem a você um bônus de item de +5 pés no seu Deslocamento e um bônus de item de +2 em testes de Atletismo para Salto em Altura e Salto em Distância.</p>\n<p>Além disso, quando você usa a ação Saltar, pode se mover 5 pés a mais se estiver saltando horizontalmente ou 3 pés a mais se estiver saltando verticalmente.</p>"
     },
+    "e2Any3u55RWlN8Gk": {
+      "name": "Gema do Medo",
+      "sourceHash": "d43bb83fc54500c39e177174d2aeb7081edaf43d",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">2</span> (concentração)</p><hr /><p>Uma fumaça escura parece se contorcer dentro desta gema de obsidiana. Ao ativar a gema, faça um Golpe corpo a corpo. Se você acertar e causar dano, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 1}, ou @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 2} em um acerto crítico.</p>\n<p>Se você tiver o talento @UUID[Compendium.pf2e.feats-srd.Item.Intimidating Strike]{Golpe Intimidador}, aumente o valor da condição amedrontado causada pelo Golpe para @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 2}, ou @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 3} em um acerto crítico.</p>"
+    },
+    "e43pSkRZIpcLGsL7": {
+      "name": "Poção de Sopro Energético (Fogo, Menor)",
+      "sourceHash": "7f1afdb12a1714ca3b0b04cbea179715f993305e",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Destilada da energia de magias perigosas, a poção de sopro energético concede a você a ação Sopro Energético por 1 hora após consumir a mistura.</p>\n<p><strong>Sopro Energético</strong> <span class=\"action-glyph\">1</span> Você cria um @Template[cone|distance:15] de fogo que causa @Damage[4d6[fire]|options:area-damage] de dano. Todas as criaturas na área devem tentar um teste de resistência de @Check[reflex|dc:23|basic|options:area-effect].</p>\n<p>Depois de usar Sopro Energético, você não pode fazê-lo novamente por [[/gmr 1d4 #Recharge Energy Breath]]{1d4 rodadas}.</p>"
+    },
+    "eBnuxuEMTng4c1pe": {
+      "name": "Luneta (Fina)",
+      "sourceHash": "d329f052668a152b121b90f2ee846712bbe305e6",
+      "noDescription": true
+    },
+    "eZd4jUBeszGYJ8wQ": {
+      "name": "Elixir de Visão no Escuro (Moderado)",
+      "sourceHash": "ea4d5f48ce34ffdf12c45c04dd0f58b8e7821bc8",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Depois de beber este elixir, sua visão se torna mais aguçada na escuridão. Você ganha visão no escuro por 1 hora.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Darkvision Elixir (Moderate)]{Efeito: Elixir de Visão no Escuro (Moderado)}</p>"
+    },
+    "fCnJ2OGCighLxXLS": {
+      "name": "Gema Cranial",
+      "sourceHash": "3e9916bb964f6f1502af96601bc694782b72745c",
+      "description": "<p>Sobre sua testa há uma gema que abriga sua alma. Ao conjurar qualquer magia ou ritual para trazê-lo de volta à vida, sua gema cranial intacta pode ser usada no lugar do seu corpo. Embora você possa remover livremente sua gema cranial, normalmente é impossível outra criatura removê-la ou destruí-la à força, a menos que você seja morto ou incapacitado permanentemente antes; a critério do Mestre, magias ou habilidades poderosas podem contornar essa restrição. Se sua gema cranial for removida ou destruída, ela pode ser recultivada por meio de um ritual que dura um dia inteiro. Quando isso ocorre, quaisquer restos da gema anterior imediatamente se desfazem em pó.</p>"
+    },
+    "fTM4peBud6VhlJ7R": {
+      "name": "Rede",
+      "sourceHash": "d524fc944a20c8b682ea4d4ed5345a2bc742f34f",
+      "noDescription": true
+    },
+    "feOji3qwm0kkTrdL": {
+      "name": "Antídoto (Menor)",
+      "sourceHash": "bf3d3218e6fe174dfefb4288e9e533fc2876750f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Um antídoto protege você contra toxinas. Ao beber um antídoto, você ganha um bônus de item de +2 em testes de resistência de Fortitude contra venenos por 6 horas.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Antidote]{Efeito: Antídoto}</p>"
+    },
     "feTezAwAv03uzsH0": {
       "name": "Poção Antiveneno",
       "sourceHash": "fca0ffdc512dabfb2c13869ce8e67d88366ca8ac",
       "description": "<p>Este líquido turvo e branco ajuda a proteger contra venenos. Quando você bebe uma poção antiveneno, pode tentar imediatamente um @Check[flat|dc:10] para encerrar qualquer dano persistente por veneno que esteja sofrendo. Além disso, por 1 minuto após beber a poção, você ganha um bônus de +1 em testes de resistência de Fortitude para evitar sofrer dano persistente por veneno.</p>"
+    },
+    "fg4hEVQmULPTvMdz": {
+      "name": "Bico Caça-Sangue (Maior)",
+      "sourceHash": "5a023f761482f4692dfd2c63b49b04d4cb28bee3",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você acerta uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenida} com a arma afixada</p><hr /><p>Esta probóscide longa e oca é extraída da famosa besta caça-sangue e ainda pinga um fio de sangue.</p>\n<p>Ao ativar o bico, você causa 2d4 de dano de precisão extra na sua rolagem de dano. Se você causar dano de ataque furtivo à criatura, também causa @Damage[2d4[bleed]].</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Bloodseeker Beak]{Efeito: Bico Caça-Sangue}</p>"
+    },
+    "fh23aALzcIEb7vUe": {
+      "name": "Compêndio de Diário Acadêmico",
+      "sourceHash": "3b95f42f6d1c1ab722e196a83a6716af2e122dd5",
+      "noDescription": true
+    },
+    "g2H0rAiXM2rp12CF": {
+      "name": "Diário Acadêmico",
+      "sourceHash": "af0696078e88b16a5ff97cd9c77c755c0e933f94",
+      "noDescription": true
+    },
+    "gXYZSaJVpqci8iqi": {
+      "name": "Catarse Engarrafada (Moderada)",
+      "sourceHash": "3c6454ef1342277018dd8d402277b5de1ea93d12",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Esta bebida libera uma onda de emoções que ajuda a reequilibrar seu estado mental. Ao beber este elixir, ele tenta anular no 4º grau, com um modificador de anulação de [[/r 1d20+14 #Counteract]]{+14}, cada efeito sobre você que tenha o traço emoção ou que esteja infligindo a condição @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado} em você, usando o grau e o modificador de anulação listados.</p>"
+    },
+    "gqqVK3CKAjkfZRx3": {
+      "name": "Vara de 10 Pés",
+      "sourceHash": "75bc6498a4605f1e827b1fd8233d10c35027d288",
+      "noDescription": true
+    },
+    "h71dllQUFEuzwWa1": {
+      "name": "Kit de Escrita (Tinta e Papel Extras)",
+      "sourceHash": "18bc225fc7a52114ed0ce78148b067d7bdbec2a8",
+      "noDescription": true
+    },
+    "hC86GvKWEkS4vZM8": {
+      "name": "Lingote de Ferro Frio",
+      "sourceHash": "b49c05c3eee0ceab0ae4830f41750b045a201cd3",
+      "noDescription": true
+    },
+    "hD6BRBjXpLN4JzpV": {
+      "name": "Poção de Natação",
+      "sourceHash": "02d68f6c96666896cd8a3496b792b2161c88290e",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Esta poção tem gosto de água salgada, e um resíduo arenoso se deposita no fundo de seu frasco. Ao bebê-la, você ganha um Deslocamento de natação igual ao seu Deslocamento terrestre por 10 minutos.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Swimming]{Efeito: Poção de Natação}</p>"
+    },
+    "hFeuXu87k3jt5bsX": {
+      "name": "Elixir do Olho de Águia (Moderado)",
+      "sourceHash": "af9a1ea30c5238e9b1cc2f21b7c3849cead1892f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Depois de beber este elixir, você percebe detalhes visuais sutis. Pela próxima hora, você ganha um bônus de item de +2 em testes de Percepção, ou +3 ao tentar encontrar portas secretas e armadilhas.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Eagle Eye Elixir]{Efeito: Elixir do Olho de Águia}</p>"
+    },
+    "hoDn4HeVLG2k2Rdh": {
+      "name": "Soro Revigorante (Menor)",
+      "sourceHash": "dded4e4190a88f7a7e6fbfce92c4bbda1d8c195f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Espasmos e ondas involuntárias de energia percorrem o corpo de quem bebe, enquanto ele restaura o controle muscular normal. Ao beber este elixir, ele tenta anular cada efeito que esteja infligindo a condição @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado} ou @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfraquecido} em você, usando anulação de 2º grau e um modificador de anulação de [[/r 1d20+8 #Counteract]]{+8}.</p>"
+    },
+    "i5O90jaQrS5q3nUI": {
+      "name": "Poção de Retaliação Gélida (Menor)",
+      "sourceHash": "27a806a5c0324e2907cdb1973cfb3a5d0e009b8b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação gélida, você brilha com uma aura tênue de energia gélida, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano de frio.</p>\n<p>A aura causa @Damage[1d4[cold]] de dano.</p>"
+    },
+    "iI2Qzm5S7OkNNnId": {
+      "name": "Cubo de Ferro",
+      "sourceHash": "6f9c097879ea6b4adc2a8e3b76f4ec69b9437e4f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">2</span> (concentração)</p><hr /><p>Este cubo de ferro enegrecido é preso a uma arma por uma corrente de ferro. Ao ativar o cubo, faça um Golpe corpo a corpo. Se acertar e causar dano, você pode tentar um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Trip]{Derrubar} a criatura que acertou. Se isso deixar o alvo @UUID[Compendium.pf2e.conditionitems.Item.Prone]{Caído}, o alvo sofre @Damage[2d6[bludgeoning]] de dano pelo impacto. Se estiver empunhando uma arma corpo a corpo de duas mãos, você pode ignorar o requisito de Derrubar de ter uma mão livre. Ambos os ataques contam para sua penalidade por ataque múltiplo, mas a penalidade só aumenta depois que você tiver feito os dois.</p>\n<p>Se você tiver o talento @UUID[Compendium.pf2e.feats-srd.Item.Slam Down]{Arremessar ao Chão}, ignore as restrições normais de tamanho para a derrubada e aumente os dados de dano ao derrubar o alvo caído para o dado de dano da sua arma, se for maior que d6.</p>"
+    },
+    "ilm0QgAPRAfuoqmC": {
+      "name": "Poção de Retaliação Flamejante (Moderada)",
+      "sourceHash": "b1b320a39d3b2919f3c5a9ff47eba1d7f92eff3f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação flamejante, você brilha com uma aura tênue de energia flamejante, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) ou que esteja adjacente a você e acertá-lo com um Golpe de arma corpo a corpo sofre dano de fogo.</p>\n<p>A aura causa @Damage[2d4[fire]] de dano.</p>"
+    },
+    "jUs6nLCXjvAvZAJ2": {
+      "name": "Bússola (Lenticular)",
+      "sourceHash": "9eb629782427005410d70a1f881fe5f5ce8fea82",
+      "noDescription": true
+    },
+    "jaEQFTL6Z4457USg": {
+      "name": "Roupas (Clima Frio)",
+      "sourceHash": "1a3adc1417f7e063073d5bd42cedc9a0566ce7d3",
+      "noDescription": true
+    },
+    "jtiSGtxQ9ki63kG4": {
+      "name": "Elixir de Transformação de Gênero (Maior)",
+      "sourceHash": "83b5f0f677337469e977bb56ee38a910e7331f44",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este líquido transparente e amargo pode ser ingerido para alterar certas características sexuais secundárias. Formulações diferentes criam mudanças diferentes — por exemplo, uma variedade pode engrossar a voz e promover o crescimento de pelos corporais e faciais, enquanto outra pode causar redistribuição de gordura ao redor dos quadris e crescimento dos seios. Essas mudanças costumam vir acompanhadas de alterações na distribuição de gordura no rosto, às vezes de forma dramática, às vezes alterando a aparência do usuário de modo mais sutil.</p>\n<p>O elixir precisa ser tomado uma única vez, e as mudanças ocorrem ao longo de 6 meses.</p>"
+    },
+    "kB7MnV3JtadRArNI": {
+      "name": "Kit de Ladrão (Gazuas de Reposição)",
+      "sourceHash": "5798637982be20b5ee96721059c94f248d5ecc47",
+      "noDescription": true
+    },
+    "kC9QCdMocE9ynsNR": {
+      "name": "Anel de Selos",
+      "sourceHash": "03af0da2e190feb928b48f74ecc9efc86a5c3e08",
+      "noDescription": true
     },
     "kEtCYnK8bLNETMPx": {
       "name": "Cristal Luzperene",
@@ -81,19 +941,314 @@
       "sourceHash": "2f31e0676b77f319beb77d59d0e1557faa65ca93",
       "description": "<p>Uma frase de sorte é entalhada no cabo desta colher de chá de madeira. Embora exista uma variedade de outros talheres com propriedades semelhantes, uma colher costuma ser a opção mais conveniente e discreta para carregar.</p>\n<hr />\n<p><strong>Ativar - Purificar</strong> <span class=\"action-glyph\">2</span> (manipular)</p>\n<p><strong>Frequência</strong> uma vez por dia</p>\n<p><strong>Efeito</strong> Você mexe a colher em comida ou bebida, conjurando @UUID[Compendium.pf2e.spells-srd.Item.Cleanse Cuisine] sobre a substância enquanto mexe. Esta pequena colher pode purificar até 1 galão de comida ou bebida.</p>"
     },
+    "kWYu7Xt4BLHcYoTX": {
+      "name": "Poção de Resistência a Ácido (Menor)",
+      "sourceHash": "323ba012fd1735a66748386ed5024e50f00cdd41",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Beber esta poção espessa e fortificante concede resistência 5 contra dano de ácido por 1 hora.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Acid Resistance]{Efeito: Poção de Resistência a Ácido}</p>"
+    },
     "kbNb52BE0VDHDJQL": {
       "name": "Rações",
       "sourceHash": "aa2defb47c96619cfede132c8caf3b1032885a96"
+    },
+    "kbuEV7uZVIekMI5F": {
+      "name": "Gafanhoto de Esmeralda",
+      "sourceHash": "2de99b49bbcbddca2c6e3210ac44e52626efc80a",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p>\n<p><strong>Requisitos</strong> Você é treinado em Atletismo</p>\n<hr />\n<p>Este gafanhoto de metal cravejado de esmeraldas costuma estar preso às pernas de uma armadura.</p>\n<p>Ao ativá-lo, faça um @UUID[Compendium.pf2e.actionspf2e.Item.Leap]{Salto}, percorrendo até 40 pés na horizontal e até 10 pés na vertical.</p>\n<p>Se você não terminar seu salto em solo firme, flutua no ar até o fim do seu turno, depois cai sem se machucar a uma velocidade de 60 pés por rodada até alcançar o solo.</p>"
+    },
+    "ktQMWUUWFBGss1oh": {
+      "name": "Utensílios de Cozinha",
+      "sourceHash": "61fcc6472e755c839e1e50668d37fce3ab804233",
+      "noDescription": true
+    },
+    "lBbNoh34tWFH754R": {
+      "name": "Elixir da Bruxa-Warg (Menor)",
+      "sourceHash": "1cfb53958a4e9cc6dc7ef5c82de8b23d963845a5",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este elixir aquece seu núcleo e melhora sua circulação. Por 24 horas, você fica protegido contra os efeitos de frio severo.</p>"
+    },
+    "lYeo6RJnx2wB1bn2": {
+      "name": "Chapéu de Mago",
+      "sourceHash": "7cc1454f6fc5b7ce539bed7337ce74def720d124",
+      "noDescription": true
+    },
+    "la2xh3zVp9j7yijZ": {
+      "name": "Espelho",
+      "sourceHash": "e3c800a54090fa120ab41733cb11733e6564e5fa",
+      "noDescription": true
+    },
+    "m6ErQzGl33sBJLGQ": {
+      "name": "Kit de Disfarce",
+      "sourceHash": "4b07acbcbd2fd68e72133be1b1e484c1c8703005",
+      "noDescription": true
+    },
+    "mDMo9FTFev0JAv4w": {
+      "name": "Anel de Selos (Maior)",
+      "sourceHash": "0cc67d97a5cb882c61bd88d6dc28797ade999cd2",
+      "noDescription": true
+    },
+    "n1l5zADTVSR5FRzt": {
+      "name": "Martelo",
+      "sourceHash": "12072d2cd289a3310ec80195970b054164e82fbe",
+      "noDescription": true
+    },
+    "nGMSCgsKAFr22gGW": {
+      "name": "Antídoto (Moderado)",
+      "sourceHash": "9cb786b5445284d961dc9de4b3c806909ad07413",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Um antídoto protege você contra toxinas. Ao beber um antídoto, você ganha um bônus de item de +3 em testes de resistência de Fortitude contra venenos por 6 horas.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Antidote]{Efeito: Antídoto}</p>"
+    },
+    "nSFmiwVHWref1EhP": {
+      "name": "Adesivo Eterno",
+      "sourceHash": "db746479090933319a4e1150685726bce73cf4c8",
+      "description": "<p><strong>Ativar</strong> 1 minuto (manipular)</p><hr /><p>Este adesivo âmbar peculiar une duas superfícies quase de forma inseparável. Um único frasco cobre uma área de até 1 pé quadrado e deve ser usado de uma só vez para formar uma única união entre duas superfícies. Se a ativação for interrompida, a união falha e o adesivo é desperdiçado.</p>\n<p>Depois que duas superfícies são unidas com adesivo eterno, uma criatura só consegue separá-las com um teste de @Check[athletics|dc:50] bem-sucedido. Os objetos colados tendem a quebrar antes do adesivo, a menos que sejam particularmente duráveis, embora uma criatura determinada a separá-los possa arrancar as partes conectadas pelo adesivo eterno e depois Reparar os objetos.</p>\n<p>O adesivo só afeta criaturas se elas estiverem dispostas, e sua união pode ser rompida esfoliando a camada mais externa da pele.</p>"
+    },
+    "nrF8XAy7UZupDRdU": {
+      "name": "Antipraga (Moderado)",
+      "sourceHash": "a5fbc29c6680b1b07556ebb121d08aedf80f1f95",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>O antipraga fortalece as defesas do corpo contra doenças. Ao beber um antipraga, você ganha um bônus de item de +3 em testes de resistência de Fortitude contra doenças por 24 horas; isso se aplica ao seu teste diário contra a progressão de uma doença.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Antiplague]{Efeito: Antipraga}</p>"
+    },
+    "nsSpRA2pGExSzSEA": {
+      "name": "Lingote de Orichalcum",
+      "sourceHash": "610bac18247ed34d5082864288859a92aa919b12",
+      "noDescription": true
+    },
+    "nvHq2SNJESOlNRVV": {
+      "name": "Poção de Retaliação Ácida (Menor)",
+      "sourceHash": "a681b02666795516e2687b479e9b2abeb242f531",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação ácida, você brilha com uma aura tênue de energia ácida, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano ácido.</p>\n<p>A aura causa @Damage[1d4[acid]] de dano.</p>"
+    },
+    "nzxThhhTAeDx2pUJ": {
+      "name": "Pingente do Oculto",
+      "sourceHash": "db7c50d606fcf7ccbafefeb741ddd43f794996bd",
+      "noDescription": true
+    },
+    "o3ug0rBwe3Wggr53": {
+      "name": "Poção de Resistência a Eletricidade (Menor)",
+      "sourceHash": "e282eed7844257b9f9da7ff122a254892a82a7b2",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Beber esta poção espessa e fortificante concede resistência 5 contra dano de eletricidade por 1 hora.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Electricity Resistance]{Efeito: Poção de Resistência a Eletricidade}</p>"
+    },
+    "oPI3jcKfPDO3gekQ": {
+      "name": "Escama de Tartaruga-Dragão",
+      "sourceHash": "fe5262dc70296af8906843aee02c3555eed2e570",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (concentração)</p>\n<p><strong>Requisitos</strong> Você é treinado em Atletismo</p>\n<hr />\n<p>Esta escama verde-cintilante costuma estar presa a um fecho ou corrente dourada.</p>\n<p>Ao ativar a escama, por 1 minuto você ganha um Deslocamento de natação igual à metade do seu Deslocamento terrestre.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Dragon Turtle Scale]{Efeito: Escama de Tartaruga-Dragão}</p>"
     },
     "os59XTocWsMvVpMJ": {
       "name": "Pederneira e Aço",
       "sourceHash": "1b0fed267d8b16009f095473019638559fa3ecd1",
       "description": "<p>Pederneira e aço são úteis para criar fogo se você tiver tempo de captar uma fagulha, embora usá-los seja tipicamente demorado demais para ser prático durante um combate. Mesmo em condições ideais, usar pederneira e aço para acender uma chama requer ao menos 3 ações, e frequentemente muito mais tempo.</p>"
     },
+    "pFHwREy2XmIZwHnj": {
+      "name": "Miguelitos",
+      "sourceHash": "5f63adcfbed2113d5d5c78e57ca8598bce5caca8",
+      "noDescription": true
+    },
+    "pdP7yifEgO69QcBX": {
+      "name": "Poção de Sopro Energético (Frio, Menor)",
+      "sourceHash": "caae9d4f754632488b8ac209b6d39d0151ae95b1",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p>\n<hr />\n<p>Destilada da energia de magias perigosas, a poção de sopro energético concede a você a ação Sopro Energético por 1 hora após consumir a mistura.</p>\n<p><strong>Sopro Energético</strong> <span class=\"action-glyph\">1</span> Você cria um @Template[cone|distance:15] de frio que causa @Damage[4d6[cold]|options:area-damage] de dano. Todas as criaturas na área devem tentar um teste de resistência de @Check[reflex|dc:23|basic|options:area-effect].</p>\n<p>Depois de usar Sopro Energético, você não pode fazê-lo novamente por [[/gmr 1d4 #Recharge Energy Breath]]{1d4 rodadas}.</p>"
+    },
+    "pkdi90CPo8KHYXaH": {
+      "name": "Soro Revigorante (Moderado)",
+      "sourceHash": "6c90c378e489e6adf1988051a83f03bf6dab95a5",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Espasmos e ondas involuntárias de energia percorrem o corpo de quem bebe, enquanto ele restaura o controle muscular normal. Ao beber este elixir, ele tenta anular cada efeito que esteja infligindo a condição @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado} ou @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfraquecido} em você, usando anulação de 4º grau e um modificador de anulação de [[/r 1d20+14 #Counteract]]{+14}.</p>"
+    },
+    "qTHvRpJTknLMxQQm": {
+      "name": "Cadeira de Armazenamento",
+      "sourceHash": "a7ec98aabb8bb0560391191ff4dd38de484832d1",
+      "noDescription": true
+    },
+    "qwXkEzMchr22293g": {
+      "name": "Elixir de Transformação de Gênero (Menor)",
+      "sourceHash": "a9fee733d7c2c6ff7c79b122f95787151ad22b5b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Este líquido transparente e amargo pode ser ingerido para alterar certas características sexuais secundárias. Formulações diferentes criam mudanças diferentes — por exemplo, uma variedade pode engrossar a voz e promover o crescimento de pelos corporais e faciais, enquanto outra pode causar redistribuição de gordura ao redor dos quadris e crescimento dos seios. Essas mudanças costumam vir acompanhadas de alterações na distribuição de gordura no rosto, às vezes de forma dramática, às vezes alterando a aparência do usuário de modo mais sutil.</p>\n<p>O elixir precisa ser tomado toda semana, e as mudanças ocorrem ao longo de um ano ou mais.</p>"
+    },
+    "s8XqFSaOGwWkn3MF": {
+      "name": "Elixir da Vida (Ínfimo)",
+      "sourceHash": "bd972643b886f7013c343240221b149527be80e2",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Elixires da vida aceleram os processos naturais de cura e o sistema imunológico de uma criatura viva. Ao beber este elixir, você recupera @Damage[1d6[healing]] Pontos de Vida e ganha um bônus de item de +1 em testes de resistência contra doenças e venenos por 10 minutos.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Elixir of Life]{Efeito: Elixir da Vida}</p>"
+    },
+    "sCirxnTVEmIy28Dl": {
+      "name": "Elixir da Forma Nebulosa (Menor)",
+      "sourceHash": "882227ed1bf1b4cc63b30d398d8ffe19744ee656",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Uma névoa tênue emana da sua pele, deixando você @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Encoberto} por 3 rodadas.</p>\n<p>Como de costume ao ficar encoberto quando sua posição ainda é óbvia, você não pode usar este encobrimento para @UUID[Compendium.pf2e.actionspf2e.Item.Hide]{Esconder-se} ou @UUID[Compendium.pf2e.actionspf2e.Item.Sneak]{Furtar-se}.</p>"
+    },
+    "sOvJzBl5Nr7eQONP": {
+      "name": "Sais Atemporais",
+      "sourceHash": "303afbc8d3fda32f65ea42c851aa81e3e27b8cff",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Você espalha estes sais sobre um único objeto de até 10 pés cúbicos de volume e no máximo 40 de Volume para preservá-lo por 1 semana. O objeto não se deteriora, e efeitos que exigem que o objeto esteja fresco não contam a passagem do tempo durante essa duração como tendo decorrido. Quando espalhados sobre um cadáver, isso estende o período em que uma criatura pode ser revivida por magia, bem como o tempo de espera exigido antes que um cadáver possa voltar a ser alvo de @UUID[Compendium.pf2e.spells-srd.Item.Talking Corpse]{Cadáver Falante}. Os sais impedem que pragas comuns consumam o alvo (como larvas em um cadáver ou traças em uma peça de roupa). Qualquer criatura pode usar uma ação de Interagir para dispersar os sais de um objeto desacompanhado e encerrar este efeito.</p>"
+    },
+    "sZjioJgzicYecrvG": {
+      "name": "Bainha de Aparar",
+      "sourceHash": "23ceb3431ba58c3de35a18157831be36f2fd5546",
+      "noDescription": true
+    },
+    "sszJiDFPElszhuVq": {
+      "name": "Kit de Escrita",
+      "sourceHash": "2de2a237dfa957bd22f49ad25f3a49164f6959c5",
+      "noDescription": true
+    },
+    "t0hdAgAaVLvXrOCJ": {
+      "name": "Poção de Retaliação Gélida (Moderada)",
+      "sourceHash": "7a9cfff76023726546e2ab54ae10815e56039ea4",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação gélida, você brilha com uma aura tênue de energia gélida, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) ou que esteja adjacente a você e acertá-lo com um Golpe de arma corpo a corpo sofre dano de frio.</p>\n<p>A aura causa @Damage[2d4[cold]] de dano.</p>"
+    },
+    "tKlMdWwy9Eme2aBP": {
+      "name": "Poção de Fuga de Emergência",
+      "sourceHash": "aec9405bf696fcc77985121e15ecaeb01217fbae",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>A tampa de uma <em>poção de fuga de emergência</em> é feita para se abrir facilmente em circunstâncias extremas. Ao beber esta poção, por 1 minuto você fica @UUID[Compendium.pf2e.conditionitems.Item.Fleeing]{Fugindo} de todas as criaturas hostis das quais tem ciência. Você ganha um bônus de condição de +40 pés a todos os seus Deslocamentos enquanto essa condição de fuga durar. Você Avança imediatamente.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Potion of Emergency Escape]{Efeito: Poção de Fuga de Emergência}</p>"
+    },
+    "trkHQlgL1dUoSyLw": {
+      "name": "Muleta",
+      "sourceHash": "d813f0f569cd824029aab2974a760348ebe4e686",
+      "noDescription": true
+    },
+    "tuSjnZmyCksuq0Ir": {
+      "name": "Presa de Lobo",
+      "sourceHash": "4acc36f877c386b1eab59a5c3d73f4cb511766f7",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você @UUID[Compendium.pf2e.actionspf2e.Item.Trip]{Derruba} com sucesso um inimigo</p>\n<hr />\n<p>Este canino de lobo é preso por uma tira de couro amarrada a uma fivela ou correia de uma armadura.</p>\n<p>Ao ativar a presa, você causa @Damage[(@actor.abilities.str.mod)[bludgeoning]]{concussão} de dano igual ao seu modificador de Força ao alvo do seu Derrubar.</p>"
+    },
+    "u2aC3Te7xH78lCVc": {
+      "name": "Mapa de Levantamento (Atlas)",
+      "sourceHash": "3c6b741ea1015613bb2200d814b84d06f8216a97",
+      "noDescription": true
+    },
+    "uaidNlqnVRPrx3TO": {
+      "name": "Corrente (10 pés)",
+      "sourceHash": "d80f969c010e30fc26ee1c7421780365c7114754",
+      "noDescription": true
+    },
+    "urLzZgyWrzlXN1Wn": {
+      "name": "Algemas (Simples)",
+      "sourceHash": "532370e312a39c25f7de83d511a123b8e4e1dfcd",
+      "noDescription": true
+    },
+    "uwF2miwE0nqhfqGo": {
+      "name": "Bainha Oculta",
+      "sourceHash": "eb598799e99826e6de3129ece10096e8862fd538",
+      "noDescription": true
+    },
+    "vMLvm8q6MxcATfOr": {
+      "name": "Kit de Ferramentas de Artesão",
+      "sourceHash": "3c52b2bae45ee1c07f1c06848cb294a090c5df1a",
+      "noDescription": true
+    },
+    "vUpeN3SmiZM17O0y": {
+      "name": "Elixir do Olho de Gato",
+      "sourceHash": "d1e6e10d3107e1b8e68b396ddb34d898743eb789",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Depois de consumir este elixir, sua visão se aguça e você se torna sensível até aos movimentos mais sutis.</p>\n<p>No próximo minuto, você reduz o teste simples para mirar em criaturas @UUID[Compendium.pf2e.conditionitems.Item.Hidden]{Ocultas} para @Check[flat|showDC:all|dc:5], e não precisa tentar um teste simples para mirar em criaturas @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Encobertas}. Esses benefícios se aplicam apenas contra criaturas a até 30 pés de você.</p>"
+    },
+    "w5Euj1CeYSvOz36X": {
+      "name": "Poção de Cura (Ínfima)",
+      "sourceHash": "4338bb61df242ace4bc804f4325342eb2b6dde38",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Uma <em>poção de cura</em> é um frasco de líquido vermelho-rubi que transmite uma sensação de formigamento enquanto as feridas de quem a bebe se curam rapidamente. Ao beber uma <em>poção de cura</em>, você recupera @Damage[1d8[healing]] Pontos de Vida.</p>"
+    },
+    "w5ay1BE2V48goizB": {
+      "name": "Elixir do Olho de Águia (Menor)",
+      "sourceHash": "7d86aacc63c349d3c0da547b140c3abe4a944765",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p><hr /><p>Depois de beber este elixir, você percebe detalhes visuais sutis. Pela próxima hora, você ganha um bônus de item de +1 em testes de Percepção, ou +2 ao tentar encontrar portas secretas e armadilhas.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Eagle Eye Elixir]{Efeito: Elixir do Olho de Águia}</p>"
+    },
+    "wCMoGeD30sCJx8TO": {
+      "name": "Cadeira de Viajante",
+      "sourceHash": "5b19077f49315a42090a47500e2620ed06e0804e",
+      "noDescription": true
+    },
+    "wDZKNw4aF8ySv72t": {
+      "name": "Elixir da Chita (Moderado)",
+      "sourceHash": "7741ceb558fadc093a39ee57a70ff4ff682bd112",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Compostos enzimáticos neste elixir fortalecem e estimulam os músculos de suas pernas. Você ganha um bônus de condição de +10 pés ao seu Deslocamento por 10 minutos.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Cheetah's Elixir (Moderate)]{Efeito: Elixir da Chita (Moderado)}</p>"
+    },
+    "wEEYOGQTxmwMSozo": {
+      "name": "Cabochão do Bloqueio Veloz",
+      "sourceHash": "768d9a66e202bc2aa626ab873507ee3eae1db5f6",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">R</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você sofreria dano de um ataque físico enquanto empunha o escudo afixado</p><hr /><p>Este cabochão de quartzo transparente se prende ao centro do seu escudo. Ao ativar o cabochão, use a reação @UUID[Compendium.pf2e.feats-srd.Item.Shield Block]{Bloqueio com Escudo} mesmo que não esteja com o escudo erguido e mesmo que normalmente não tenha essa reação. Aumente a Dureza do escudo em 5 contra o ataque que acionou o efeito. O escudo permanece erguido após o bloqueio.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Swift Block Cabochon]{Efeito: Cabochão do Bloqueio Veloz}</p>"
+    },
+    "wOWFea97E1o7Heug": {
+      "name": "Pistola de Clã",
+      "sourceHash": "0c0e19cdd7c760fa28cd35c9b88014f1b6062856",
+      "description": "<p>A tradição dos anões de exibir sua afiliação de clã com adagas de clã especiais remonta a milênios, mas muitos dos clãs anões de Dongun Hold têm sua própria versão dessa tradição, com jovens armeiros promissores declarando sua maioridade ao forjar uma arma de fogo pessoal usando as técnicas de ferraria exclusivas do clã. Perder ou ser forçado a entregar a pistola de clã é uma vergonha terrível para os anões que a carregam.</p>"
+    },
+    "wTv0j60RJ7pHvc4g": {
+      "name": "Kit de Reparo",
+      "sourceHash": "c464eeaf9dea4dbb9aea29e0c2d62c31e4f124ae",
+      "noDescription": true
+    },
+    "wZG0Pzda1lJs9YGj": {
+      "name": "Kit de Curandeiro",
+      "sourceHash": "6badee01d5b97c4a6e2b5a16a26907ade216c810",
+      "noDescription": true
+    },
+    "wu3RamE8z6saqS6d": {
+      "name": "Poção de Retaliação Gélida (Ínfima)",
+      "sourceHash": "e7fe7b0103550c49459b5314db1c89b95839663b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação gélida, você brilha com uma aura tênue de energia gélida, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano de frio.</p>\n<p>A aura causa @Damage[1[cold]] de dano.</p>"
+    },
+    "xDqAPOz2upK30tVt": {
+      "name": "Livro de Fórmulas (Em Branco)",
+      "sourceHash": "6687dd34295af43681bb63175fc6f191778e8031",
+      "noDescription": true
+    },
     "xHtscw4I2ztIg0r5": {
       "name": "Tocha",
       "sourceHash": "14850db0b608f920a818eee15dd579559b3305ba",
       "description": "<p>Uma tocha emite luz brilhante em um raio de 20 pés (e luz fraca pelos 20 pés seguintes) por 1 hora. Pode ser usada como arma improvisada que causa 1d4 de dano de concussão mais 1 de dano de fogo.</p>"
+    },
+    "xIsYyQNbqZsLMHth": {
+      "name": "Kit de Curandeiro (Expandido)",
+      "sourceHash": "14a28e88457864446dcb8f416cba87cb4e71b973",
+      "noDescription": true
+    },
+    "xJInxVIC38GEdBNh": {
+      "name": "Poção do Carvalho",
+      "sourceHash": "02f97447aa2c5a036bf2eeeb142d411d727a8740",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Depois de beber esta bebida amarga, sua pele endurece como casca de árvore. Você ganha os efeitos de uma @UUID[Compendium.pf2e.spells-srd.Item.Oaken Resilience]{Resiliência Carvalhenta} de 2º grau por 10 minutos.</p>"
+    },
+    "xL8cnzCKy1TxxVDL": {
+      "name": "Kit de Ladrão (Gazuas de Infiltrador)",
+      "sourceHash": "c89138e23e3ee727ee9455135d7ab14161368ea0",
+      "noDescription": true
+    },
+    "xSI7ZOwVcjIgfGf2": {
+      "name": "Símbolo Primordial",
+      "sourceHash": "6ba8ef4bec9782ba787c76cd20fcd33957dad9b8",
+      "noDescription": true
+    },
+    "xizyzx8FcN0ehJnQ": {
+      "name": "Grampo de Escalada",
+      "sourceHash": "119dc24fdfabc0964c00be0a9cb2bcbe1cd1b4e5",
+      "noDescription": true
+    },
+    "xtMrmYqCVUoT5G1k": {
+      "name": "Texto Religioso",
+      "sourceHash": "101f842871a270e04a5a0daef0ead51bbdd90e20",
+      "noDescription": true
+    },
+    "yaNnQy4RPbBXwNgJ": {
+      "name": "Bico Caça-Sangue",
+      "sourceHash": "0f2b078e11d2347b7986fdaa778f2cfc58156808",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">F</span> (concentração)</p>\n<p><strong>Gatilho</strong> Você acerta uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenida} com a arma afixada</p><hr /><p>Esta probóscide longa e oca é extraída da famosa besta caça-sangue e ainda pinga um fio de sangue.</p>\n<p>Ao ativar o bico, você causa 1d4 de dano de precisão extra na sua rolagem de dano. Se você causar dano de ataque furtivo à criatura, também causa @Damage[1d4[bleed]].</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Bloodseeker Beak]{Efeito: Bico Caça-Sangue}</p>"
+    },
+    "yixiGETIvCfEk0ZL": {
+      "name": "Kit de Escalada (Extremo)",
+      "sourceHash": "dad5a0d2b02644427040f9db67bbe5a6e2f494bc",
+      "noDescription": true
+    },
+    "yzPP1t42ut8wA51i": {
+      "name": "Roupas (Alta Moda Fina)",
+      "sourceHash": "01b36e57a2715ddc7f3be11a77de0dd96cc76baf",
+      "noDescription": true
+    },
+    "zDy2r5N0tPNxjvo0": {
+      "name": "Pantera de Ônix",
+      "sourceHash": "5d0ed656814fe10da1c60624bf961e001ee48c60",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (concentração)</p>\n<hr />\n<p>Este belo seixo negro é esculpido em uma forma estilizada de pantera. Ao ativá-lo, use uma ação de @UUID[Compendium.pf2e.actionspf2e.Item.Sneak]{Furtar-se} com um bônus de item de +1 ao teste. Você pode se mover pelo seu Deslocamento total (em vez de metade) nessa ação de Furtar-se e em quaisquer outras que realizar neste turno.</p>"
+    },
+    "zd0wRv22Jo2g34ul": {
+      "name": "Poção de Retaliação Elétrica (Menor)",
+      "sourceHash": "8a870669afad5fc5d5485766e7729e042286ccef",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> (manipular)</p><hr /><p>Por 1 minuto após beber uma poção de retaliação elétrica, você brilha com uma aura tênue de energia elétrica, e uma criatura que tocar em você (como ao fazer um ataque desarmado ou usar uma magia com alcance de toque contra você) sofre dano de eletricidade.</p>\n<p>A aura causa @Damage[1d4[electricity]] de dano.</p>"
+    },
+    "zgTM5bEzidWo1uhd": {
+      "name": "Leque de Penas Tengu",
+      "sourceHash": "2e0881ff6b5d3421be707ed1d157aca93d381303",
+      "description": "<p><strong>Ativar—Agitar Leque</strong> (manipular)</p>\n<p><strong>Frequência</strong> uma vez por dia</p><hr /><p><strong>Efeito</strong> Você conjura, à sua escolha, uma das magias contidas em seu <em>leque de penas tengu</em>. Você pode, em vez disso, conjurar um truque que tenha obtido de uma herança ou de um talento de ancestralidade; isso não consome uma das ativações diárias do leque. Esta ativação usa o número normal de ações da magia.</p>\n<p>A CD da magia é sua CD de classe ou CD de magia, o que for maior.</p>"
     }
   }
 }

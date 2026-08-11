@@ -220,6 +220,11 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Vindicator/deity": "pendente",
   "class-features-core/Weapon Legend/weaponLegend": "pendente",
   "classes-core/Fighter/fighterSkill": "pendente",
+  // r28-A5: Orc Warmask (equipment-core, granted by the Orc Warmask feat) is an
+  // item-level ChoiceSet — the wearer picks the mask's power source (Gods/Land/
+  // Magic/Unknown), same shape as "ancestry-features-core/Clan Dagger/clanWeapon"
+  // above. Not wired into the builder yet — declared debt, not silent.
+  "equipment-core/Orc Warmask/tradition": "pendente",
   "familiar-abilities-core/Damage Avoidance/save": "fora-do-builder",
   "familiar-abilities-core/Elemental/element": "fora-do-builder",
   "familiar-abilities-core/Fast Movement/speed": "fora-do-builder",

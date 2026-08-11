@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (340 traits).
+ * Trait slug → pt-BR chip label (343 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -75,6 +75,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   "cold-iron": "ferro-frio",
   comfort: "confortavel",
   commander: "comandante",
+  companion: "companheiro",
   composite: "composto",
   composition: "composição",
   concealable: "ocultável",
@@ -126,6 +127,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   electricity: "eletricidade",
   elemental: "elemental",
   elf: "elfo",
+  elixir: "elixir",
   emotion: "emoção",
   esoterica: "esotérica",
   ethereal: "etereo",
@@ -240,6 +242,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   poppet: "marionete",
   possession: "possessao",
   potion: "poção",
+  precious: "precioso",
   prediction: "previsão",
   press: "pressão",
   primal: "primal",

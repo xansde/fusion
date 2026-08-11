@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 340 glossary traits with a non-empty accented value", () => {
+  it("covers all 343 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1093,10 +1093,12 @@ describe("trait/rarity display names (r15-A1)", () => {
     // 42→132) + 2 na r28/A1 (bulwark/comfort de armor-core) — 340 é a UNIÃO
     // dos três workstreams da r28 após o merge (83 dos 95 do A2 eram inéditos
     // na união). Count exato de propósito: trait novo no
-    // glossário exige regenerar via tools/translate-packs/gen-client-maps.mjs
+    // + 3 na r28/A5 (equipment-core 18→249: alchemical/elixir/precious e afins
+    // que só apareciam em consumíveis). Trait novo exige regenerar via
+    // tools/translate-packs/gen-client-maps.mjs
     // e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(340);
+    expect(keys.length).toBe(343);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
