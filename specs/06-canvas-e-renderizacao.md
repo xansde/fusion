@@ -231,6 +231,44 @@ Actor, redigido no servidor — o painel NÃO DEVE decidir visibilidade na tela"
   documento pode existir para o usuário); OBSERVER é o piso de **exibição da barra**, mais
   estrito e verificado no cliente sobre um dado que ele legitimamente possui.
 
+---
+
+### DEC-CNV-16 — Ficha aberta pelo token é a ficha DAQUELE token, com escopo declarado
+
+Um token unlinked (`02-modelo-de-dados.md`, REQ-DOC-033) não tem `Actor` próprio para a
+ficha endereçar: o ator dele é reconstruído em memória. Abrir a ficha pelo token, então,
+exige três coisas que a ficha aberta pela sidebar não exige — o documento exibido é o
+TokenActor, a janela é identificada pelo token, e a escrita é roteada por
+`token:updateActor` (REQ-DOC-034). A decisão é fazer as três **para o caminho de valores**
+(`system`, `name`, `img`, `flags`) e **recusar explicitamente** o que o merge patch não
+sabe representar, em vez de entregar as quatro superfícies pela metade.
+
+- **Alternativas rejeitadas:**
+  - _Deixar a ficha escrever no `Actor` como sempre_: seis esqueletos compartilham um
+    `Actor`; editar um editaria os seis, e o único sinal na mesa seria o dano aparecendo
+    em monstros que ninguém atacou. É o defeito que a feature inteira existe para evitar.
+  - _Rotear também `items.+` / `items.-<id>` para o delta_: essas chaves são instruções a
+    um **array**, e o caminho do delta expande chave pontuada em objeto plano antes do
+    merge (onde array **substitui**). `items.-x` viraria `{ items: { "-x": true } }` e
+    trocaria a lista inteira de itens do ator por esse objeto. Recusar é a única resposta
+    honesta enquanto REQ-DOC-035 (delta item-granular) for [V2].
+  - _Bloquear a ficha inteira para token unlinked_: tiraria da mesa o caso que a feature
+    serve (ajustar o HP de um monstro específico) para proteger um caso raro.
+- **Consequências conhecidas, registradas em vez de escondidas:**
+  - **Rolagens** disparadas da ficha de um token unlinked ainda resolvem contra o `Actor`
+    base no servidor: `roll:check` endereça `actorId`, e o TokenActor não tem um. Enquanto
+    o delta só carrega HP isso não muda resultado nenhum; passará a mudar no dia em que um
+    delta alterar um modificador, e aí a rolagem também precisa aceitar o par
+    cena+token.
+  - **Condições e itens** de um token unlinked continuam sendo do `Actor` base (mesma
+    causa, REQ-DOC-035).
+  - A `CharacterSheet` recebe o mesmo vínculo da `NpcSheet`. `character` nasce **linked**
+    por REQ-DOC-061, mas o controle de REQ-CNV-093 deixa o GM desvincular **qualquer**
+    token — e uma ficha que lê o `Actor` base enquanto suas escritas caem no delta mostra
+    números que não são os que estão sendo editados. Cobrir as duas fichas custa a mesma
+    linha, porque o helper de leitura e o de roteamento são compartilhados; deixar uma de
+    fora seria apostar que ninguém clica no rádio.
+
 ## Requisitos funcionais
 
 > Tags: **[MVP]** = necessário para a definição de MVP global (sessão de PF2e com mapa+grid, tokens com movimento, visão/iluminação/fog básicos, fichas, rolagens básicas, chat, combat tracker). **[V2]** = pós-MVP.
@@ -284,6 +322,10 @@ Actor, redigido no servidor — o painel NÃO DEVE decidir visibilidade na tela"
 
 - **REQ-CNV-089** [MVP] O `TokenDocument` DEVE carregar um campo `displayBars` com exatamente um dos cinco níveis canônicos de REQ-CNV-031 — `never`, `observer`, `hoverObserver`, `hoverAll`, `always` — e o default DEVE ser `observer`. O campo DEVE sobreviver ao round-trip de persistência (create e update) sem ser descartado pela validação do servidor (`02-modelo-de-dados.md`, REQ-DOC-018).
 - **REQ-CNV-090** [MVP] A resource bar DEVE refletir o **valor real** do atributo apontado por `bar1.attribute` / `bar2.attribute` no ator efetivo do token (`actorId`), resolvido como caminho pontuado sobre `system` do Actor e lido como `{ value, max }`. A fração desenhada DEVE ser limitada a [0,1], e a barra DEVE ser **ausente** (não desenhada) quando o caminho não resolve, quando o token não tem ator, ou quando `max <= 0` — nunca desenhada cheia como placeholder.
+- **REQ-CNV-091** [MVP] O "ator efetivo" de REQ-CNV-090 é o do modelo de dados, não o `Actor` mundial: para um token com `actorLink: false` a barra DEVE ler o **TokenActor** reconstruído (base + `actorDelta`, `02-modelo-de-dados.md` REQ-DOC-033), usando a **mesma função de reconstrução** que o servidor usa para rotear mutações — nunca uma segunda implementação no cliente. Dois tokens do mesmo `Actor` com deltas diferentes DEVEM desenhar barras diferentes. O corte de visibilidade (DEC-CNV-15) continua sendo lido do **Actor base**: um delta descreve o que o token tem, nunca quem pode olhar.
+- **REQ-CNV-092** [MVP] O cliente DEVE repintar a barra quando `actorLink` ou `actorDelta` do token mudarem. Sem isso a barra de um token unlinked congela no valor de nascimento: o dano dele chega dentro do próprio `TokenDocument` (embedded na `Scene`) e **não emite nenhuma op de `Actor`**, que é o único gatilho de repintura que REQ-CNV-090 exigia.
+- **REQ-CNV-093** [MVP] O diálogo de configuração do token DEVE expor um controle para o **vínculo com a ficha** (`actorLink`), rotulado em linguagem de mesa ("usar ficha própria para este token" / "vincular à ficha do ator"), e o valor DEVE viajar no mesmo Save embedded dos demais campos. Salvar o vínculo NÃO DEVE limpar o `actorDelta`: religar é reversível, e apagar o delta na passagem tornaria a decisão irreversível em silêncio. Sem esse controle, o modelo de token unlinked existe mas é inalcançável da mesa — só o default de criação (REQ-DOC-061) teria opinião.
+- **REQ-CNV-094** [MVP] Abrir a ficha **a partir de um token** DEVE mostrar o ator efetivo daquele token e DEVE rotear as edições por `token:updateActor` (REQ-DOC-034), de modo que editar um esqueleto não altere os outros cinco. A janela DEVE ser identificada pelo **token** quando ele é unlinked — chavear pelo `Actor` colapsaria as seis fichas em uma. Edições que o merge patch não sabe representar (coleções `items`/`effects`, `ownership`) DEVEM ser **recusadas** enquanto REQ-DOC-035 não entregar delta item-granular, nunca escritas no `Actor` base como se fossem daquele token.
 
 ### Tokens — movimento, seleção e targeting
 

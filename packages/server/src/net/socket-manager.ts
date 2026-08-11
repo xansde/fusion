@@ -28,6 +28,7 @@ import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
   buildDocDeleteHandler,
+  buildTokenUpdateActorHandler,
 } from "./handlers/doc-handlers.js";
 import {
   buildWallCreateHandler,
@@ -294,6 +295,11 @@ export class SocketManager {
     registry.register("doc:create", buildDocCreateHandler(syncDeps));
     registry.register("doc:update", buildDocUpdateHandler(syncDeps));
     registry.register("doc:delete", buildDocDeleteHandler(syncDeps));
+
+    // REQ-DOC-034: "mutate the actor of THIS token". Routes to the world Actor
+    // for a linked token and to Token.actorDelta for an unlinked one — both by
+    // delegating to the doc:update handler registered just above.
+    registry.register("token:updateActor", buildTokenUpdateActorHandler(syncDeps));
 
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));

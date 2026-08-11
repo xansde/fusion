@@ -214,3 +214,45 @@ describe("tokenDisplayBars", () => {
     ]);
   });
 });
+
+describe("resolveTokenBarValue — rule-supplied maxima (REQ-CNV-090)", () => {
+  it("hero points draw against the PF2e cap of 3 when no max is stored", () => {
+    const sys = { resources: { heroPoints: { value: 2 } } };
+    expect(resolveTokenBarValue(sys, "resources.heroPoints")).toEqual({
+      value: 2,
+      max: 3,
+      fraction: 2 / 3,
+    });
+  });
+
+  it("hero points default to 0/3 when the block is absent entirely", () => {
+    expect(resolveTokenBarValue({}, "resources.heroPoints")).toEqual({
+      value: 0,
+      max: 3,
+      fraction: 0,
+    });
+  });
+
+  it("a stored hero-point max still wins over the fallback", () => {
+    const sys = { resources: { heroPoints: { value: 1, max: 5 } } };
+    expect(resolveTokenBarValue(sys, "resources.heroPoints")).toEqual({
+      value: 1,
+      max: 5,
+      fraction: 1 / 5,
+    });
+  });
+
+  it("focus points without a stored max mean no pool — bar absent, not invented", () => {
+    const sys = { resources: { focusPoints: { value: 2 } } };
+    expect(resolveTokenBarValue(sys, "resources.focusPoints")).toBeNull();
+  });
+
+  it("focus points with a real pool draw normally", () => {
+    const sys = { resources: { focusPoints: { value: 1, max: 2 } } };
+    expect(resolveTokenBarValue(sys, "resources.focusPoints")).toEqual({
+      value: 1,
+      max: 2,
+      fraction: 1 / 2,
+    });
+  });
+});

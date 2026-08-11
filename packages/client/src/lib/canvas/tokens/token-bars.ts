@@ -8,6 +8,9 @@
  *     points at; the fraction is clamped to [0,1]; the bar is ABSENT when the
  *     path does not resolve, when the token has no actor, or when `max <= 0` —
  *     never drawn full as a placeholder.
+ *   - REQ-CNV-091: "the token's actor" is the EFFECTIVE one — base Actor plus
+ *     `Token.actorDelta` for an unlinked token (REQ-DOC-033), rebuilt with the
+ *     shared function the server also routes through, never a second copy.
  *   - DEC-CNV-15: the `observer` cut is OBSERVER(2)+ over the token's Actor
  *     (a token has no ownership of its own); a privileged role satisfies it
  *     always; only `never` hides the bar from the GM too.
@@ -23,8 +26,8 @@
  * missing or shown to a teammate, not a leak.
  */
 
-import { OwnershipLevel } from "@fusion/shared";
-import type { TokenDisplayMode, TokenDocument } from "@fusion/shared";
+import { OwnershipLevel, effectiveTokenActor } from "@fusion/shared";
+import type { ActorDelta, TokenDisplayMode, TokenDocument } from "@fusion/shared";
 import { readResourceAt } from "../../actors/actorResource.js";
 import { barFraction } from "./token-visuals.js";
 
@@ -94,6 +97,44 @@ function derivedAliasFor(path: string): string | null {
 }
 
 /**
+ * Resources whose maximum is a RULE, not a stored field. Hero points cap at 3
+ * in PF2e Remaster no matter what the document carries — `characterSheetVM`
+ * already defaults exactly this way — so a `{ value: 2 }` block (or none at
+ * all) is a 2/3 (or 0/3) bar, not an absent one. The focus pool is the
+ * counter-example and is deliberately NOT here: its max is derived per
+ * character and 0 means "no pool", so inventing one would draw a wrong bar.
+ */
+const RULE_SUPPLIED_MAX: ReadonlyMap<string, number> = new Map([["resources.heroPoints", 3]]);
+
+/**
+ * Read a rule-capped resource: stored numbers win, the rule fills the gaps.
+ * Returns `null` for paths that have no rule-supplied max.
+ */
+function readRuleCappedResource(
+  system: unknown,
+  path: string,
+): { value: number; max: number } | null {
+  const ruleMax = RULE_SUPPLIED_MAX.get(path);
+  if (ruleMax === undefined) return null;
+
+  let cursor: unknown = system;
+  for (const segment of path.split(".")) {
+    if (typeof cursor !== "object" || cursor === null) {
+      cursor = undefined;
+      break;
+    }
+    const record = cursor as Record<string, unknown>;
+    cursor = Object.hasOwn(record, segment) ? record[segment] : undefined;
+  }
+
+  const leaf =
+    typeof cursor === "object" && cursor !== null ? (cursor as Record<string, unknown>) : null;
+  const value = typeof leaf?.["value"] === "number" ? leaf["value"] : 0;
+  const max = typeof leaf?.["max"] === "number" ? leaf["max"] : ruleMax;
+  return { value, max };
+}
+
+/**
  * Resolve what a bar should show for a token, given the `system` blob of its
  * effective actor and the configured attribute path.
  *
@@ -110,7 +151,9 @@ export function resolveTokenBarValue(
 
   const alias = derivedAliasFor(path);
   const pair =
-    (alias === null ? null : readResourceAt(system, alias)) ?? readResourceAt(system, path);
+    (alias === null ? null : readResourceAt(system, alias)) ??
+    readResourceAt(system, path) ??
+    readRuleCappedResource(system, path);
   if (!pair) return null;
   if (pair.max <= 0) return null;
 
@@ -158,18 +201,75 @@ export interface TokenActorView {
 }
 
 /**
+ * The token fields that decide WHICH actor a token plays with — REQ-DOC-031.
+ *
+ * Structural (not `TokenDocument`) so a caller holding a raw mirror record can
+ * pass it, and declared with the two link fields OPTIONAL because a scene
+ * persisted before this feature carries neither at runtime: the TS type says
+ * Zod filled the defaults, the wire says otherwise. Absent `actorLink` reads as
+ * linked, which is the only value that leaves those tokens behaving as before.
+ */
+export interface TokenActorRef {
+  readonly actorId: string | null;
+  readonly actorLink?: boolean | undefined;
+  readonly actorDelta?: ActorDelta | null | undefined;
+}
+
+/**
  * The sprite's window onto actor data. Injected instead of imported so that
  * `TokenSprite` stays free of the DocumentMirror (and testable in Node):
  * `TokenLayer` builds the real one over the mirror, tests hand in a literal.
  *
- * `resolve` returns `null` when the token has no actor, or when the viewer has
- * no such Actor in their mirror at all — which, per REQ-NET-096, is exactly
- * what the server produces for a user who may not see it.
+ * `resolve` takes the TOKEN, not its `actorId`, because for an unlinked token
+ * (REQ-DOC-033) the actor is not a document anyone can look up — it is the base
+ * Actor with that token's own `actorDelta` merged over it. Six skeletons of one
+ * Actor share one `actorId` and differ only in the delta, so an `actorId` is no
+ * longer enough to answer "what does THIS token hold".
+ *
+ * Returns `null` when the token has no actor, or when the viewer has no such
+ * Actor in their mirror at all — which, per REQ-NET-096, is exactly what the
+ * server produces for a user who may not see it.
  */
 export interface TokenBarContext {
   /** Whether the viewer holds a privileged role (GM / Assistant). */
   readonly privileged: boolean;
-  resolve(actorId: string | null): TokenActorView | null;
+  resolve(token: TokenActorRef): TokenActorView | null;
+}
+
+/**
+ * The `system` blob the bars must read for this token — base Actor for a linked
+ * token, the reconstructed TokenActor for an unlinked one (REQ-DOC-032/033).
+ *
+ * A one-line wrapper on purpose: the merge itself is `effectiveTokenActor` in
+ * `@fusion/shared`, the SAME function the server routes mutations through. A
+ * second implementation here would be two different actors on one token, which
+ * is the failure this codebase has already paid for with `grid`.
+ */
+export function effectiveActorSystem(
+  token: TokenActorRef,
+  baseActor: Record<string, unknown> | null | undefined,
+): unknown {
+  return effectiveTokenActor(token, baseActor)?.["system"];
+}
+
+/**
+ * A comparable fingerprint of "which actor is this token playing with".
+ *
+ * `TokenSprite.update()` decides whether to repaint from a closed list of
+ * fields, and an unlinked token's hit points arrive INSIDE that token document
+ * — no Actor op is emitted at all. Without the delta in that list the bar of a
+ * damaged skeleton renders once and then freezes, with nothing to point at it.
+ *
+ * Serialising is acceptable here and reference equality is not: the mirror
+ * hands out a fresh object on every scene op, so `!==` would repaint every bar
+ * on every token move. Key ORDER is not normalised — two orderings of the same
+ * delta produce different strings and one redundant repaint, which costs two
+ * rectangles. The error that must never happen is the opposite one (a changed
+ * delta reading as unchanged), and stringification cannot produce it.
+ */
+export function tokenActorFingerprint(token: TokenActorRef): string {
+  if (token.actorLink !== false) return `linked:${token.actorId ?? ""}`;
+  return `unlinked:${token.actorId ?? ""}:${JSON.stringify(token.actorDelta ?? {})}`;
 }
 
 /** Decide whether this viewer sees this token's bars right now. */

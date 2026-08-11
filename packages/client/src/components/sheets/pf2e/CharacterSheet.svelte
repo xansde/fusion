@@ -32,6 +32,8 @@
   import { getSocket, session } from "$lib/session.svelte.js";
   import { sendChatOpForId } from "$lib/docs/sendOp.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
+  import { subscribeEffectiveActorDoc } from "$lib/scenes/tokenActor.js";
+  import type { TokenActorBinding } from "$lib/scenes/tokenActor.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ActionsTab from "./ActionsTab.svelte";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
@@ -60,6 +62,14 @@
     isGm: boolean;
     worldId?: string;
     sendOpFn?: (op: ChatRollPayload | DocOpPayload) => void;
+    /**
+     * Set when this sheet was opened FROM a token (REQ-DOC-033). A `character`
+     * is born linked (REQ-DOC-061), but the token config dialog lets a GM
+     * unlink ANY token (REQ-CNV-093) — and an unlinked one whose sheet reads
+     * the base Actor while its writes land on the delta shows numbers that are
+     * not the ones being edited.
+     */
+    tokenBinding?: TokenActorBinding | null;
   }
 
   let {
@@ -70,6 +80,7 @@
     isGm,
     worldId = "",
     sendOpFn = () => {},
+    tokenBinding = null,
   }: Props = $props();
 
   // ---------------------------------------------------------------------------
@@ -80,15 +91,18 @@
   // whenever an Actor document batch changes; vm is re-derived from liveDoc.
   // ---------------------------------------------------------------------------
 
+  // REQ-DOC-033: with a token bound, "the current document" is the
+  // reconstructed TokenActor, and it changes on SCENE ops as well as on Actor
+  // ops. `subscribeEffectiveActorDoc` owns both subscriptions and degrades to
+  // the plain Actor watch when nothing is bound — which is every sheet opened
+  // from the sidebar, i.e. the overwhelming majority.
   let liveDoc = $state(doc);
 
-  $effect(() => {
-    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
-      const fresh = docs.find((d) => (d as { _id?: unknown })._id === actorId);
-      if (fresh) liveDoc = fresh;
-    });
-    return unsub;
-  });
+  $effect(() =>
+    subscribeEffectiveActorDoc(worldMirror, actorId, tokenBinding, (fresh) => {
+      liveDoc = fresh;
+    }),
+  );
 
   // ---------------------------------------------------------------------------
   // View-model — recreated whenever the live document changes

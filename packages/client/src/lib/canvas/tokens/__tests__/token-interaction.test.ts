@@ -51,6 +51,9 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     _id: "AAAA0000000001",
     name: "Goblin",
     actorId: "actor001",
+    // REQ-DOC-031: a token declares whether it shares the world Actor.
+    actorLink: true,
+    actorDelta: {},
     texture: null,
     x: 100,
     y: 100,

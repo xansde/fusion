@@ -48,7 +48,8 @@ import type { Container } from "pixi.js";
 import type { TokenDocument, SceneDocument, Ownership } from "@fusion/shared";
 import { getUserLevel, OwnershipLevel } from "@fusion/shared";
 import { TokenSprite } from "./TokenSprite.js";
-import type { TokenBarContext, TokenActorView } from "./token-bars.js";
+import type { TokenBarContext, TokenActorView, TokenActorRef } from "./token-bars.js";
+import { effectiveActorSystem } from "./token-bars.js";
 import { ROLE_ASSISTANT } from "./token-interaction.js";
 import type { VisionPolygonResult } from "../vision/vision-state.js";
 
@@ -126,6 +127,13 @@ function pointInAnyPolygon(px: number, py: number, polygons: VisionPolygonResult
  * matching `resolveOwnedActorIds`. This is a DISPLAY decision, not a gate: the
  * server never emits an Actor to a user who may not see it (REQ-NET-096), so an
  * actorId that resolves to nothing here is the normal shape of a hidden NPC.
+ *
+ * The VALUES come from the token's EFFECTIVE actor (REQ-DOC-032/033): an
+ * unlinked token owns a private `actorDelta` over the base Actor, so six
+ * skeletons sharing one `actorId` each report their own hit points. The
+ * ownership LEVEL still comes from the base Actor and nothing else — a delta
+ * describes what a token holds, never who may look at it, and reading the cut
+ * off the reconstructed actor would let a delta grant itself an audience.
  */
 function _buildBarContext(
   mirror: TokenLayerMirror,
@@ -137,7 +145,8 @@ function _buildBarContext(
 
   return {
     privileged,
-    resolve(actorId: string | null): TokenActorView | null {
+    resolve(token: TokenActorRef): TokenActorView | null {
+      const actorId = token.actorId;
       if (!actorId) return null;
       const actor = mirror.getDoc<BarActorDoc>("Actor", actorId);
       if (!actor) return null;
@@ -146,7 +155,10 @@ function _buildBarContext(
         : actor.ownership
           ? getUserLevel(actor.ownership, userId)
           : OwnershipLevel.NONE;
-      return { system: actor.system, level };
+      return {
+        system: effectiveActorSystem(token, actor as unknown as Record<string, unknown>),
+        level,
+      };
     },
   };
 }
