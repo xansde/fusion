@@ -1,6 +1,6 @@
 # 05 — Compatibilidade de _ids PF2E ↔ Fusion
 
-> Gerado em: 2026-08-02
+> Gerado em: 2026-08-11
 > Script: `src/extract.mjs --system pf2e`
 > Formato Fusion esperado: `^[A-Za-z0-9]{16}$` (16 caracteres alfanuméricos case-sensitive)
 
@@ -10,21 +10,11 @@
 
 | Pack | Total docs | _ids válidos | _ids inválidos | % válidos |
 |---|---|---|---|---|
-| **equipment** | 5645 | 5645 | 0 | 100.0% |
-| **spells** | 1796 | 1796 | 0 | 100.0% |
-| **conditions** | 43 | 43 | 0 | 100.0% |
-| **pathfinder-monster-core** | 492 | 492 | 0 | 100.0% |
 | **classes** | 27 | 27 | 0 | 100.0% |
-| **class-features** | 841 | 841 | 0 | 100.0% |
-| **feats** | 5987 | 5987 | 0 | 100.0% |
-| **ancestries** | 50 | 50 | 0 | 100.0% |
-| **heritages** | 322 | 322 | 0 | 100.0% |
-| **backgrounds** | 495 | 495 | 0 | 100.0% |
-| **actions** | 559 | 559 | 0 | 100.0% |
 
 **Subtotal packs alvo:**
-- Total documentos: **16257**
-- _ids válidos (Fusion): **16257** (100.00%)
+- Total documentos: **27**
+- _ids válidos (Fusion): **27** (100.00%)
 - _ids inválidos: **0**
 
 ---
@@ -33,10 +23,10 @@
 
 | Métrica | Valor |
 |---|---|
-| Total documentos escaneados | **28498** |
-| _ids válidos (Fusion `^[A-Za-z0-9]{16}$`) | **28498** (100.00%) |
+| Total documentos escaneados | **27** |
+| _ids válidos (Fusion `^[A-Za-z0-9]{16}$`) | **27** (100.00%) |
 | _ids inválidos | **0** |
-| Comprimentos de _id encontrados | 16 chars: 28498 docs |
+| Comprimentos de _id encontrados | 16 chars: 27 docs |
 
 ---
 
@@ -60,7 +50,7 @@ definido no Fusion para document IDs.
 
 > **COMPATÍVEL — 100% dos _ids pf2e já satisfazem o formato Fusion.**
 
-Todos os **28498** documentos escaneados em todos os packs
+Todos os **27** documentos escaneados em todos os packs
 possuem `_id` de exatamente 16 caracteres alfanuméricos, satisfazendo
 diretamente o padrão `^[A-Za-z0-9]{16}$` do Fusion. Nenhum remapeamento
 de formato é necessário.
@@ -104,76 +94,8 @@ ocorre no estágio TRANSFORM (M3-D), que também constrói o mapa de UUIDs.
 
 ## 6. Tipos de documento por pack (packs alvo)
 
-### equipment
-
-| Tipo | Quantidade |
-|---|---|
-| equipment | 2281 |
-| consumable | 1666 |
-| weapon | 975 |
-| ammo | 203 |
-| armor | 201 |
-| treasure | 153 |
-| shield | 118 |
-| backpack | 46 |
-| kit | 2 |
-
-### spells
-
-| Tipo | Quantidade |
-|---|---|
-| spell | 1796 |
-
-### conditions
-
-| Tipo | Quantidade |
-|---|---|
-| condition | 43 |
-
-### pathfinder-monster-core
-
-| Tipo | Quantidade |
-|---|---|
-| npc | 492 |
-
 ### classes
 
 | Tipo | Quantidade |
 |---|---|
 | class | 27 |
-
-### class-features
-
-| Tipo | Quantidade |
-|---|---|
-| feat | 841 |
-
-### feats
-
-| Tipo | Quantidade |
-|---|---|
-| feat | 5987 |
-
-### ancestries
-
-| Tipo | Quantidade |
-|---|---|
-| ancestry | 50 |
-
-### heritages
-
-| Tipo | Quantidade |
-|---|---|
-| heritage | 322 |
-
-### backgrounds
-
-| Tipo | Quantidade |
-|---|---|
-| background | 495 |
-
-### actions
-
-| Tipo | Quantidade |
-|---|---|
-| action | 559 |
