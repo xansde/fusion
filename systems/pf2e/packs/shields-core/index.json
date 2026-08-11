@@ -1,0 +1,54 @@
+[
+  {
+    "_id": "RMwFuNTxtRQyBjmG",
+    "uuid": "Compendium.pf2e.shields-core.Item.RMwFuNTxtRQyBjmG",
+    "name": "Buckler",
+    "img": "icons/placeholder/armor.svg",
+    "type": "shield",
+    "index": {
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.acBonus": 1,
+      "flags.fusion.sourceId": "1k3AsSW7lpU0kEpY"
+    }
+  },
+  {
+    "_id": "rUySi0Zb9hwhLbcW",
+    "uuid": "Compendium.pf2e.shields-core.Item.rUySi0Zb9hwhLbcW",
+    "name": "Steel Shield",
+    "img": "icons/placeholder/armor.svg",
+    "type": "shield",
+    "index": {
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.acBonus": 2,
+      "flags.fusion.sourceId": "Yr9yCuJiAlFh3QEB"
+    }
+  },
+  {
+    "_id": "i0v2cUkWI9ZBUQb1",
+    "uuid": "Compendium.pf2e.shields-core.Item.i0v2cUkWI9ZBUQb1",
+    "name": "Tower Shield",
+    "img": "icons/placeholder/armor.svg",
+    "type": "shield",
+    "index": {
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.acBonus": 2,
+      "flags.fusion.sourceId": "ltundBNFAnP7bgPr"
+    }
+  },
+  {
+    "_id": "0bZpX0krDt2cBMeB",
+    "uuid": "Compendium.pf2e.shields-core.Item.0bZpX0krDt2cBMeB",
+    "name": "Wooden Shield",
+    "img": "icons/placeholder/armor.svg",
+    "type": "shield",
+    "index": {
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.acBonus": 2,
+      "flags.fusion.sourceId": "ezVp13Uw8cWW08Da"
+    }
+  }
+]

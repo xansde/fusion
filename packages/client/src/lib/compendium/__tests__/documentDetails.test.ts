@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 255 glossary traits with a non-empty accented value", () => {
+  it("covers all 257 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1088,11 +1088,12 @@ describe("trait/rarity display names (r15-A1)", () => {
     // simples/marciais/avançadas de PC1+PC2 — as ~79 armas novas trouxeram
     // alchemical, bomb, splash, ranged-trip, razing, hampering, versatile-b,
     // grapple, deadly-d6, tethered, free-hand, two-hand-d10, backswing,
-    // jousting-d6, twin, attached-to-shield, infused). Count exato de
-    // propósito: trait novo no glossário exige regenerar via
+    // jousting-d6, twin, attached-to-shield, infused) + 2 na r28/A1 (bulwark
+    // e comfort, os traços de armadura que armor-core publicou). Count exato
+    // de propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(255);
+    expect(keys.length).toBe(257);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
