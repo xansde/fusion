@@ -1057,6 +1057,89 @@ const MVP_EQUIPMENT_PF2E_IDS = new Set([
   "UlIxxLm71UdRgCFE", // Flint and Steel — equipment
 ]);
 
+/**
+ * r28-A5 — equipment-core expansion (18 → ~300): adventuring gear, tools, and
+ * low-level consumables (potions/elixirs/talismans) from the three "core"
+ * remaster books (Player Core, Player Core 2, GM Core). Curated by
+ * DECLARATIVE PREDICATE (publication + type + category + level + "magical"
+ * trait) — same philosophy as the classes-core predicates below (isFeatsCoreDoc
+ * etc.): a fixed list of hundreds of ids is unmaintainable, and the predicate
+ * is a stable, legible fact about "what a table needs before it can shop".
+ * Measured against out/equipment/transformed.json on 2026-08-11:
+ *   - consumable, category potion/elixir/talisman, level<=8, PC1+PC2+GMCore: 107
+ *   - equipment/container, non-magical, level<=8, PC1+PC2+GMCore: 122 + 5
+ * Explicitly OUT of this leva (declared in the r28-A5 PR, not silently
+ * dropped):
+ *   - every magic item / fundamental or property rune (trait "magical") —
+ *     Treasure Vault territory, a future leva;
+ *   - the ~1,285 consumables outside potion/elixir/talisman (poison, snare,
+ *     drug, oil, mutagen, wand, scroll, gadget, catalyst, fulu) — future leva;
+ *   - anything above level 8 — a level-1-8 table doesn't need it yet;
+ *   - anything from an adventure-path or setting book (Treasure Vault, Guns &
+ *     Gears, Grand Bazaar, Lost Omens ...) EXCEPT the 7 grant-target items
+ *     below, pulled in regardless of book/level because a feat already
+ *     curated into feats-core/ancestry-features-core GRANTS them by name
+ *     (grantMaterializer.test.ts issue #16's "equipment-grant" gap).
+ */
+const EQUIPMENT_CORE_ALLOWED_PUBLICATIONS = new Set([
+  "Pathfinder Player Core",
+  "Pathfinder Player Core 2",
+  "Pathfinder GM Core",
+]);
+
+/** consumable `system.category` values that count as "potion/elixir/talisman". */
+const EQUIPMENT_CORE_CONSUMABLE_CATEGORIES = new Set(["potion", "elixir", "talisman"]);
+
+/** Level cap for the predicate-curated slice (fixed-id lists below are exempt). */
+const EQUIPMENT_CORE_LEVEL_CAP = 8;
+
+/**
+ * r28-A5 — the 7 equipment items that close the grantMaterializer.test.ts
+ * issue #16 "equipment-grant" gap (Clan Dagger, Clan Pistol, Head Gem,
+ * Lucky Keepsake, Orc Warmask, Pilgrim's Token, Tengu Feather Fan): each is
+ * the GrantItem TARGET of an ancestry/general feat already curated into
+ * feats-core/ancestry-features-core, but two are outside the predicate's
+ * reach entirely — Clan Dagger and Clan Pistol are vendor type "weapon", not
+ * "equipment" — and five ship in books outside the PC1/PC2/GMCore allowlist
+ * above (Lost Omens Ancestry Guide, Lost Omens Tian Xia Character Guide, Lost
+ * Omens Character Guide — Lucky Keepsake is also level 9, over the cap — and
+ * Guns & Gears). Pulled in unconditionally so the grants resolve; the
+ * grantMaterializer.test.ts "regression guard" test's gap list shrinks by
+ * these exact 7 names in the same PR.
+ */
+const EQUIPMENT_CORE_GRANT_TARGET_IDS = new Set([
+  "KekfZ6eRzoZVRemw", // Tengu Feather Fan — equipment, Player Core 2 (also reachable via predicate)
+  "ZEDDVQDtUZ2qOB5q", // Orc Warmask — equipment, Lost Omens Ancestry Guide
+  // "kJJvKm80KwWXPukV" Clan Dagger — REMOVIDO no merge da r28: o predicado
+  // isWeaponsCoreDoc (#102) já publica a adaga em weapons-core; mantê-la aqui
+  // duplicava o doc (pego pelo portão de duplicata do build).
+  "BtncTx8EfxTsHqQI", // Clan Pistol — weapon, Guns & Gears
+  "FA1mAc7rEyC9vzZa", // Head Gem — equipment, Lost Omens Tian Xia Character Guide
+  "nza9skYTNtJe2Wd3", // Lucky Keepsake — equipment, Lost Omens Character Guide, level 9
+  "gwP3Uums2ApH6o9K", // Pilgrim's Token — equipment, Player Core 2 (also reachable via predicate)
+]);
+
+/**
+ * True when a transformed `equipment` vendor-pack doc belongs in the r28-A5
+ * predicate-curated slice: a mundane (non-magical) piece of adventuring
+ * gear/tooling/container, or a potion/elixir/talisman consumable, level <= 8,
+ * published in Player Core, Player Core 2, or GM Core. `hasTrait` is defined
+ * further below in this file (function declarations hoist).
+ */
+function isEquipmentCoreCuratedDoc(doc) {
+  const pub = doc.system?.publication?.title;
+  if (!EQUIPMENT_CORE_ALLOWED_PUBLICATIONS.has(pub)) return false;
+  const level = doc.system?.level ?? 0;
+  if (level > EQUIPMENT_CORE_LEVEL_CAP) return false;
+
+  if (doc.type === "consumable") {
+    return EQUIPMENT_CORE_CONSUMABLE_CATEGORIES.has(doc.system?.category);
+  }
+  if (doc.type === "equipment" || doc.type === "container") {
+    return !hasTrait(doc, "magical");
+  }
+  return false;
+}
 // r28/A2: a lista fixa de 10 ids (MVP_MONSTER_PF2E_IDS) foi removida — o pack
 // bestiary-core agora publica o pathfinder-monster-core inteiro (492 docs,
 // filtro só por type "npc", sem curadoria por id). Histórico dos 10 ids
@@ -2091,13 +2174,33 @@ async function buildPf2eSubset() {
     });
   }
 
-  // --- 13. Equipment core (r18-N2d — Finn's physical gear) ---
-  // Fixed source-id list (same pattern as weapons-core); see
-  // MVP_EQUIPMENT_PF2E_IDS docstring for the full item-by-item breakdown.
+  // --- 13. Equipment core (r18-N2d Finn's gear + r28-A5 predicate expansion) ---
+  // Union of three sources, deduped by sourceId (a doc can legitimately match
+  // more than one — e.g. Tengu Feather Fan is both a grant target AND caught
+  // by the predicate):
+  //   1. MVP_EQUIPMENT_PF2E_IDS — Finn's fixed dossier list (r18-N2d), mostly
+  //      Treasure Vault items outside the r28-A5 predicate's book allowlist.
+  //   2. EQUIPMENT_CORE_GRANT_TARGET_IDS — the 7 items that close the
+  //      grantMaterializer.test.ts issue #16 equipment-grant gap.
+  //   3. isEquipmentCoreCuratedDoc — the r28-A5 predicate-curated slice
+  //      (adventuring gear/tools/containers + potions/elixirs/talismans,
+  //      level<=8, PC1+PC2+GMCore).
   {
     console.log("[build-mvp] === Pack: equipment-core ===");
     const all = loadTransformed("equipment");
-    const docs = filterToMvpSubset(all, MVP_EQUIPMENT_PF2E_IDS);
+    const finnDocs = filterToMvpSubset(all, MVP_EQUIPMENT_PF2E_IDS);
+    const grantTargetDocs = filterToMvpSubset(all, EQUIPMENT_CORE_GRANT_TARGET_IDS);
+    const curatedDocs = all.filter(isEquipmentCoreCuratedDoc);
+
+    const bySourceId = new Map();
+    for (const doc of [...finnDocs, ...grantTargetDocs, ...curatedDocs]) {
+      bySourceId.set(doc.flags?.fusion?.sourceId, doc);
+    }
+    const docs = [...bySourceId.values()];
+    // Vendor selection isn't sorted (three different filters concatenated) —
+    // sort by name so documents.json diffs stay readable when the pack grows.
+    docs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
     // Finn owns 2 Gate Attenuators (same item, not a higher tier) — the
     // curated doc's system.quantity is bumped to reflect that.
     for (const doc of docs) {
@@ -2105,8 +2208,18 @@ async function buildPf2eSubset() {
         doc.system.quantity = 2;
       }
     }
+
+    const missingGrantTargets = [...EQUIPMENT_CORE_GRANT_TARGET_IDS].filter(
+      (id) => !bySourceId.has(id),
+    );
+    if (missingGrantTargets.length > 0) {
+      throw new Error(
+        `[build-mvp] equipment-core: grant-target sourceId(s) not found in out/equipment/transformed.json: ${missingGrantTargets.join(", ")}`,
+      );
+    }
+
     console.log(
-      `[build-mvp] equipment-core: ${docs.length} itens selecionados de ${MVP_EQUIPMENT_PF2E_IDS.size} ids curados (${all.length} totais no pack equipment)`,
+      `[build-mvp] equipment-core: ${docs.length} itens (${finnDocs.length} dossiê Finn + ${grantTargetDocs.length} alvos de grant + ${curatedDocs.length} predicado r28-A5, deduplicados) de ${all.length} totais no pack equipment`,
     );
 
     const manifest = PACK_MANIFESTS["equipment-core"];

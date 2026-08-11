@@ -38,7 +38,7 @@
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 318
+      "documentCount": 309
     },
     {
       "packId": "pf2e.feats-core",
@@ -73,7 +73,7 @@
     {
       "packId": "pf2e.equipment-core",
       "slug": "equipment-core",
-      "documentCount": 18
+      "documentCount": 249
     },
     {
       "packId": "pf2e.ancestry-features-core",
@@ -81,7 +81,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-11T12:41:06.361Z",
+  "generatedAt": "2026-08-11T12:51:08.815Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }
