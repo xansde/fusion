@@ -2,10 +2,110 @@
   "schemaVersion": 1,
   "packId": "pf2e.bestiary-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:04.881Z",
+  "generatedAt": "2026-08-11T02:53:41.721Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
+    "065tyCyooN6yZS7o": {
+      "name": "Faydhaan",
+      "sourceHash": "61055b6ec2730addf3dcc6e58387e13636ca47f4"
+    },
+    "08edWLVKZjUDSaSo": {
+      "name": "Besouro-Cervo Gigante",
+      "sourceHash": "6cc0950fb6213681cd8e7567aa25ebec65b52154"
+    },
+    "0AdoyfOwkM9fnaGM": {
+      "name": "Tritão Guerreiro",
+      "sourceHash": "308efc4a48dfb78b5a513b6bc9d5ce35ba81c519"
+    },
+    "0FGbxu5PoNeGjEYP": {
+      "name": "Pônei de Montaria",
+      "sourceHash": "aaf6790def3d470b7e02d56374e6d430e057b433"
+    },
+    "0MG9dIpoEXeN0QUT": {
+      "name": "Bruxa Doce",
+      "sourceHash": "83dd4614b2d86e7487411a0c7b53ae587893cc69"
+    },
+    "0N0Sm9liwRXrJSIj": {
+      "name": "Barghest",
+      "sourceHash": "e4076198fb19229ef16d038f4c1101bdbb85da9a"
+    },
+    "0TbAoKRU1Tof47vz": {
+      "name": "Giylea",
+      "sourceHash": "fedc64aee6ab0f3a2539b9d481c9409d17c27650"
+    },
+    "0dCbcSgNuLkiwgzq": {
+      "name": "Capeta da Terra",
+      "sourceHash": "925b800c41bfc9602d40f57ba972929f89323e0d"
+    },
+    "10PzbQc6P1OfLfnl": {
+      "name": "Nessari",
+      "sourceHash": "3d9cff6e79f440e66027383b9d5857a8ae278d3a"
+    },
+    "10YRLX8mGRM8b3Dy": {
+      "name": "Espreitador Xulgath",
+      "sourceHash": "3be462fe72dfeb8d58cba34c653504605b470925"
+    },
+    "15luEmCW7xshC2p8": {
+      "name": "Dragão do Presságio (Jovem)",
+      "sourceHash": "0fc8e85cceb0cb641acb09dce418003038fc0f80"
+    },
+    "1Dx1adtMJZ8lifnR": {
+      "name": "Sprigjack",
+      "sourceHash": "5193bbb8ccacdf8a808a818180bb24798087cee0"
+    },
+    "1Gj510yymfsyosSq": {
+      "name": "Minotauro Caçador",
+      "sourceHash": "df86f3d37ce935ef706776077dd0c9015046ce9a"
+    },
+    "1R6nCxcgrRqlQIui": {
+      "name": "Esqueleto Gigante",
+      "sourceHash": "1660682171d1010dd61c88513a1ef58e628dec41"
+    },
+    "1Tuk5ogf4uB0ZPoC": {
+      "name": "Cocatriz",
+      "sourceHash": "d66aba6300ce57b648d7ecea99053505b21aaf7e"
+    },
+    "1Vrnav8p5Pgwcnwm": {
+      "name": "Lodo de Esgoto",
+      "sourceHash": "b0270c01dc668d1c40c238866abb87b552bae304"
+    },
+    "1YikfQr9hQor0x3o": {
+      "name": "Armadura Animada",
+      "sourceHash": "2b1af1774e351fe7f8e184d09fa23c022c38ed33"
+    },
+    "1ZMotXvHwRhwd9Dh": {
+      "name": "Fantasma Mago",
+      "sourceHash": "970cff53da60f4659c66f49e62b4010542f7d10b"
+    },
+    "1cNwIUsXz1t1GCv9": {
+      "name": "Guardião de Ferro",
+      "sourceHash": "72e89113ca7e7ccc9deb6aad788e7142b3f62bdc"
+    },
+    "25SOJ7kzd6I8F5V0": {
+      "name": "Mão Rastejante Gigante",
+      "sourceHash": "6ee06c7d1f06673bbed14e361ce9dd33d0c8f81c"
+    },
+    "2UQfQN8USOoUpcpz": {
+      "name": "Guthallath",
+      "sourceHash": "8612abb0cb5894449c0fac5370d404f805de2c81"
+    },
+    "2bMMNpUsf22AT14Q": {
+      "name": "Caçador Athamaru",
+      "sourceHash": "92f578b011abb712b8215afafc043e8cb9a54d4f"
+    },
+    "2dHs4Lui5zih8shb": {
+      "name": "Seraptis",
+      "sourceHash": "4d61ce5599ad784190ede70e17756d6af6dbf388"
+    },
+    "2dYG7aP7I5yhxYn3": {
+      "name": "Grande Ciclope",
+      "sourceHash": "91038d0e247966fc8d814151ef1eeec5bc8f44d1"
+    },
+    "2s4bNBkpjvlCEhUP": {
+      "name": "Gigantopiteco",
+      "sourceHash": "31e23a2a4a1a9971688f347cc56f4130618b6ebf"
+    },
     "2yTK19idZHdPmNUQ": {
       "name": "Guerreiro Goblin",
       "sourceHash": "a1b123e039f537c9780a4e357ff261224535cf4c",
@@ -16,45 +116,1873 @@
       "sourceHash": "61509f75e019cfe98f3f1dbc01c58ec251b4b55f",
       "description": ""
     },
+    "3lT91Y3rxIqsGXAP": {
+      "name": "Criança Radiante",
+      "sourceHash": "b3662e3203e31de0e6f16addef5ce6ba468559de"
+    },
     "3ogCwy1TUABrjjw9": {
       "name": "Cambaleante Zumbi",
       "sourceHash": "3a06b5d15dce54c6e22bef7f401ea4ad490e0c4a",
       "description": ""
+    },
+    "3y0RsrZ7g1oziy8S": {
+      "name": "Kholo Guardião de Ossos",
+      "sourceHash": "c04bdf9bcefae1a650b23180caa0c10ee1693bfe"
+    },
+    "3zE7urqCe8VtDfV1": {
+      "name": "Dragão do Presságio (Jovem, Conjurador)",
+      "sourceHash": "3e0326f934988823b1d56901a563cce1177a914f"
+    },
+    "44e1bcZBxWjeJOJp": {
+      "name": "Deinossuco",
+      "sourceHash": "ec0ebeb8156305fe088fee759bf51bbce3dda278"
+    },
+    "49884YR8cTSQMAdk": {
+      "name": "Tigre",
+      "sourceHash": "d1e08d16b8d4d498f0f9a0669b04b7d058607754"
+    },
+    "4Vd8ZVXExDaJncSx": {
+      "name": "Limo Filamentoso",
+      "sourceHash": "2c41d0f52314cfd5fc9dabe092090cf67a62dd52"
+    },
+    "4njt6GSC98JCh8SK": {
+      "name": "Dybbuk",
+      "sourceHash": "ad35f1da9369ca09834831e4e95c8a165a2b929c"
+    },
+    "4sXkUzqRsc6hNx1c": {
+      "name": "Sedacthy Batedor",
+      "sourceHash": "02507353081112c52baf3d3da673c086845f7fac"
+    },
+    "4w4j9AGJSPEQf7cb": {
+      "name": "Gigante do Pântano",
+      "sourceHash": "4ad8d0b9a87f08803b244cfb49136266e0220ee9"
+    },
+    "5DK3UDfttL02Xm4Z": {
+      "name": "Coarti",
+      "sourceHash": "08ebba650dbbe91125e6a352a98ebd04ab3c4ed7"
+    },
+    "5UlPVDCfnbq1MoYY": {
+      "name": "Gigante do Gelo",
+      "sourceHash": "098a32bbbcc346b332a170ce821c97b7b7c12187"
+    },
+    "5ijeRiSPxHDxMYrT": {
+      "name": "Draco de Gelo",
+      "sourceHash": "d8e6ac4960da964c271c1413a2e674308bf8d863"
+    },
+    "5oQr6YDImrQBFuIX": {
+      "name": "Vampiro Servo",
+      "sourceHash": "f0ec3e16e67c4ad984bf088de10662ab4b4a876f"
+    },
+    "5zY1s5lcnONL8kDt": {
+      "name": "Enxame Vescavor",
+      "sourceHash": "ea17b2dc3a18ea925c98d193024f41b41b1c5123"
+    },
+    "6AVgXHuUMkeWvgbK": {
+      "name": "Furacão Elemental",
+      "sourceHash": "a825ccd2951c738c8f6e9eb7307f7d06d433ab74"
+    },
+    "6IrbiUqOGXb4s6x4": {
+      "name": "Nilith",
+      "sourceHash": "69f542780e8da52a6f1ad5ab6b76ff81050fe0db"
+    },
+    "6Nj0MKyfR9XFqfbw": {
+      "name": "Pugwampi",
+      "sourceHash": "db703510ba6b80cfe22ee6d3a249126a1fc9464a"
+    },
+    "6QTSLKIyEa23x6G9": {
+      "name": "Boneca Vinculada à Alma (Gentil)",
+      "sourceHash": "e1f8cca315769bf107f5a940774179ba9bfc98fa"
     },
     "6QYBnYNDxuDRwg4N": {
       "name": "Rato Gigante",
       "sourceHash": "d40d83dd16ee71c6f7b9ad2003d66c28745af186",
       "description": ""
     },
+    "6aIYoDyi3cwszrVN": {
+      "name": "Gigante das Sombras",
+      "sourceHash": "3217b428fcb815ec7b02c62b28d1b3fd1c291999"
+    },
+    "6iDpg7jX7WbM3rhG": {
+      "name": "Dragão Chifrudo (Adulto)",
+      "sourceHash": "7e8da00b16d73f7bbca65044766a7631524c6b4f"
+    },
+    "6y4WFvGZhrKyGFpe": {
+      "name": "Astradaemon",
+      "sourceHash": "02a610b193af2380612843fb79d41022e9fb08de"
+    },
+    "788GDVYqml2ZJvMx": {
+      "name": "Pukwudgie",
+      "sourceHash": "c4bbd2ccdccbf10b3a5e965920b84fcbc2e34d13"
+    },
+    "7FBPzgp6Wt7bteIj": {
+      "name": "Cão de Turfa",
+      "sourceHash": "0763f7cff7fd013dbd3e4760bf3c5fc614cee124"
+    },
+    "7mGUbnM7fuGUHcLk": {
+      "name": "Wight",
+      "sourceHash": "eb6886913a6a6f2fe9d2aa6f611b01344227aaff"
+    },
+    "7pWaHIQdGo9bQxJy": {
+      "name": "Ifrit",
+      "sourceHash": "1ca487d5783f24442b240a819f5e8aaa370d4a70"
+    },
+    "83CEBVV80GwVlwtE": {
+      "name": "Dragão Conspirador (Ancião, Conjurador)",
+      "sourceHash": "0faad101cc92eb40545a1960a44b582a4819effd"
+    },
+    "8PhBMi9t95ezXvUI": {
+      "name": "Caçador Caligni",
+      "sourceHash": "d7fbf1078352fe98111159a9081fc9f88fbfbea5"
+    },
+    "8QJ9vEhd4wgXScUs": {
+      "name": "Goblin Comando",
+      "sourceHash": "25739d394e98199dbfc436d35ffde24ce7b04188"
+    },
+    "8UnRv3zWWEpcNAxl": {
+      "name": "Prole da Cobiça",
+      "sourceHash": "b4eaea0097acaec193e012a2760c93b37b7fe30e"
+    },
+    "8XT94dahbFr5eY8H": {
+      "name": "Raja-Krodha",
+      "sourceHash": "9a409cc4664993fa619fcb04e94bc109dfd14f32"
+    },
+    "8hPvy1jxJ7tSsBf9": {
+      "name": "Prole da Preguiça",
+      "sourceHash": "eef241f49c2a07e9394d0cce19b770bfba849978"
+    },
+    "8kyXH8vLOadRzSIx": {
+      "name": "Akhana",
+      "sourceHash": "55e1714b1d04e1bc6fa150bcb577a00dac650cce"
+    },
+    "8nEZZjeRNhdiuopy": {
+      "name": "Homem-Rato",
+      "sourceHash": "05a93c4c6379601aae08027c4ff0c45c5401bbd4"
+    },
+    "8nL4I6Qhf5XCwaCa": {
+      "name": "Medusa",
+      "sourceHash": "4e2f074accb0bf1ddd2e12a4acf38fcd586284e9"
+    },
+    "8pTM9b2kXyYBFlc6": {
+      "name": "Javali",
+      "sourceHash": "9c357abaa91213239c221659d31e696c828c9bc0"
+    },
+    "8qfrMlyRr07zX8yF": {
+      "name": "Norna",
+      "sourceHash": "212b9a392e5448629d3458d040bfc8b2a1d6de49"
+    },
+    "8t9ZUtW8B1ABTNdr": {
+      "name": "Warg",
+      "sourceHash": "1c84c532bfdb1191b01bf1c86781f10ef98d7fd2"
+    },
+    "9CeLqrhPb4NJfzwe": {
+      "name": "Aapoph Povo-Serpente",
+      "sourceHash": "b2c540f0b2e09da9e975afa9b2a9cbbbc0656e39"
+    },
+    "9WHdKutsxYZhSaTj": {
+      "name": "Boneca Vinculada à Alma (Impulsiva)",
+      "sourceHash": "aba83c6d461538f12a261050a1e6430be4ef090b"
+    },
+    "9gGAI2049qowz1iw": {
+      "name": "Boneca Vinculada à Alma (Atrevida)",
+      "sourceHash": "5c1e1cc02c77b6e827a75fe3b61f724515d13afb"
+    },
+    "A47l2hhEqTpm7Bfn": {
+      "name": "Gorila",
+      "sourceHash": "13981a8f61f46e264f998372b6fa53fab9b42b39"
+    },
+    "A6l60mJ6karViimy": {
+      "name": "Wyvern",
+      "sourceHash": "0335a3592750eae779c090ce848747c34a5d6672"
+    },
+    "ABDYsCKabREcNZYW": {
+      "name": "Rinoceronte-Lanoso",
+      "sourceHash": "4ba503053a36cf60ef29130575c9b07ce06c38b3"
+    },
+    "ABMvSGrY1tEb1zBB": {
+      "name": "Roca",
+      "sourceHash": "effe9ba93702aec2059ab5a9852b0ac3c3c40656"
+    },
     "AQzRfYd0pjZDb4hX": {
       "name": "Atirador de Precisão Hryngar",
       "sourceHash": "f84320173e2cf7a04ee552b8f225a1f6bf0c5883",
       "description": ""
+    },
+    "Ac5rBLVURopqUIvj": {
+      "name": "Dragão Adamantino (Ancião, Conjurador)",
+      "sourceHash": "c6c86c04b3af954f38a89c793cfd90380c7fde11"
+    },
+    "Anaq5TsiVhb7oHlG": {
+      "name": "Banshee",
+      "sourceHash": "7007c24f322c9587019d990e8bfe44fba6da8678"
+    },
+    "AslxIBzEsMaj58o7": {
+      "name": "Mão Rastejante",
+      "sourceHash": "a56263181dd7a74c8570a5307c457ac134d8ea38"
+    },
+    "Au5PCMKWsdXjcFdF": {
+      "name": "Esmagador de Pedra",
+      "sourceHash": "843ea58a306fd6d24338a5f54085e51627e4f01b"
+    },
+    "B4xdbVGf0j4vLMt7": {
+      "name": "Homem-Lagarto Contemplador de Estrelas",
+      "sourceHash": "30869f167eb32e6e298cd93e408027de8315e7cb"
+    },
+    "B5Z4m5ze2UlRL59z": {
+      "name": "Regente Arbóreo",
+      "sourceHash": "2da1b7d4415287fcfe62072fe6e82e5698bed085"
+    },
+    "BKfhNzPWvxC1k9fB": {
+      "name": "Redcap",
+      "sourceHash": "6572788d6d479f1ee7b325093f62314dc5db3a0e"
+    },
+    "BL7mCB1MT6o06b8C": {
+      "name": "Besouro Relâmpago",
+      "sourceHash": "3bf359ff324237d08edfacb6309f499bb578bc75"
+    },
+    "BaxBTyr0oO6UflnD": {
+      "name": "Diabrete",
+      "sourceHash": "874f408f48029647884107bc135066d7dc089adb"
+    },
+    "Bb5Fqr70627bHzB2": {
+      "name": "Azuretzi",
+      "sourceHash": "f88e38eda6b19723723cf74727ba027ef3e29c6c"
+    },
+    "BegQiYgbgeewUgud": {
+      "name": "Rondador Bugbear",
+      "sourceHash": "828465a9a1d729079c1da50b327996821356be55"
+    },
+    "BiRi2BJawDx6hcKy": {
+      "name": "Oni da Neve",
+      "sourceHash": "9d27ae22c353612010e3ce182a0be12968529748"
+    },
+    "BlOGr61G9cB2gAZ4": {
+      "name": "Sarglagon",
+      "sourceHash": "8e62c89d62206aa32774fe738a73d48cba9c4da2"
+    },
+    "Bx2zoUAjfdEYqEE6": {
+      "name": "Qarna",
+      "sourceHash": "006e4967193a84b650dc158d4973f55b0625156f"
+    },
+    "C70z6NKGDuWuSdgL": {
+      "name": "Elefante",
+      "sourceHash": "30f97585217946533f825b394b0a8a22c3f24420"
+    },
+    "CFf5PKeC2LaZEBOR": {
+      "name": "Furtivo Caligni",
+      "sourceHash": "1c77facc0162e1dabeedfdf2431ba3b9c06eea9e"
+    },
+    "CGGyoY3qrRuhPWYn": {
+      "name": "Pusk",
+      "sourceHash": "6134f7a7defadd43e6ee05d34155ee4f7f6bc080"
+    },
+    "CHHWnHz4GMRpfA6r": {
+      "name": "Tritão Convocador de Ondas",
+      "sourceHash": "57c88341cc90ae975eee0906d09a2af149ede254"
+    },
+    "CKe9wCcLmSZF5g3X": {
+      "name": "Draco da Selva",
+      "sourceHash": "513fdc4326dfdfbe2fd75772d16fd0facd41b3cb"
+    },
+    "CRYKOz5q9Xvh80Zu": {
+      "name": "Fogo-Fátuo",
+      "sourceHash": "f3171fa1fec2f5d39a5a290c59bea1cb41e3233e"
+    },
+    "CW3qi1h9BvQWgHnB": {
+      "name": "Elf Patrulheiro",
+      "sourceHash": "05415374504b21e12752b69a0239664221cd6e04"
+    },
+    "CWAJ1hdKEtE3fPIJ": {
+      "name": "Halfling Vigia de Rua",
+      "sourceHash": "9be9e977e21ad22d4b213aef9a2e10acd2e90801"
+    },
+    "CYSgPS5wJTYIw2yL": {
+      "name": "Gárgula",
+      "sourceHash": "37003981ef7b73a4f94582733ebcb2ec9a1072c6"
+    },
+    "Cgb8sLz9Cj5SkM9i": {
+      "name": "Trapaceiro das Águas",
+      "sourceHash": "3a664d0b878820d5d84a26c65842fe37e4edcef9"
+    },
+    "ChnjDMDHzcUUYHUp": {
+      "name": "Linnorm da Lagoa",
+      "sourceHash": "f1f32e9882267761b24d854ff1fb5a2b09f4edd7"
+    },
+    "DCt3LlDKvKhtxXyJ": {
+      "name": "Grande Tubarão Branco",
+      "sourceHash": "bebc2b5951b9fe57b5bd770e3ebf37af361b9a1b"
+    },
+    "DT0flxdejC8ONOGh": {
+      "name": "Hobgoblin Arqueiro",
+      "sourceHash": "50f6a92dd507f699a1e8e6a62cb047053a60ab06"
+    },
+    "DdTIN12w28jrAnjF": {
+      "name": "Dezullon",
+      "sourceHash": "585367bde86e09f200c270ae04adcb4b95871600"
+    },
+    "Dj0lNStsGCiGfLle": {
+      "name": "Gnomo Umbrio Guerreiro",
+      "sourceHash": "f201e218d67ae69552071440cb0346ba47eed00e"
+    },
+    "DxxsSyMDfYVi5Ivb": {
+      "name": "Orca",
+      "sourceHash": "27f87430cddcf16b332a11ff396f313ef693d74d"
+    },
+    "E0GF6O0yec9NSvQR": {
+      "name": "Náiade",
+      "sourceHash": "5ac0c79f50a1d9c2e250f703f200a09ebad01767"
+    },
+    "E0eJToa2X4YJFX1E": {
+      "name": "Gnomo Bardo",
+      "sourceHash": "3623d38884301d851c90b3afb2f9415678f24f42"
+    },
+    "EB52Pzx6IUqlEbza": {
+      "name": "Mago Dhampir",
+      "sourceHash": "1d8d7f0fb81ea10fe38b25ec24f3e33512b57651"
+    },
+    "ED5IZ1AbMZJfVOQ9": {
+      "name": "Pônei de Guerra",
+      "sourceHash": "e7ad86e6ee6652c8efc0984aa34f4ed21c526083"
+    },
+    "EFJqSSQkJvfAJawI": {
+      "name": "Zumbi Colosso",
+      "sourceHash": "21445bddbba42b7bd2b77834a129f79cd96e9808"
+    },
+    "EUxESow6csPBgIBZ": {
+      "name": "Dragão da Miragem (Jovem)",
+      "sourceHash": "b821db2b6f9b4e8b6dcf64f7b9351f260e21e8ec"
+    },
+    "EYWhqLhPt74uIoZP": {
+      "name": "Tabellia",
+      "sourceHash": "0db6487a8424dbdae50b9f66ee00856c12263890"
+    },
+    "EkzLs53LswCnX8cp": {
+      "name": "Exilado Cambiante",
+      "sourceHash": "a2467d2d86e7fab521b8ff1c8c3df96f3d07ce63"
+    },
+    "ExjLVDktb0TmMaZ9": {
+      "name": "Gnomo Umbrio Batedor",
+      "sourceHash": "d2e27a46120a1b2ac03c20a487a57e25873a92b7"
+    },
+    "F5lyIs2vAR6RGgqi": {
+      "name": "Ogro Glutão",
+      "sourceHash": "19442730bc8a93370049dc32bd637bd9884fbb43"
+    },
+    "FPDY2RHLkrQEuFZ8": {
+      "name": "Dragão Chifrudo (Jovem, Conjurador)",
+      "sourceHash": "1ba226a4f8a09669a02b2fbd1dda0ebdb9126f32"
+    },
+    "Fr0kl35WOmvOsGnV": {
+      "name": "Zumbi da Peste",
+      "sourceHash": "894296ea64b39ed28df102059cb36e281d63d5af"
+    },
+    "FrzTl28lvG5qkLrD": {
+      "name": "Dragão do Presságio (Adulto)",
+      "sourceHash": "8e39542ee7375b50857899e2445c485f140ab197"
+    },
+    "FwPg9yxMw2xQQHWe": {
+      "name": "Homúnculo Vinculado à Alma",
+      "sourceHash": "f9f037583ad4d9e889112832affb3428b20c5e05"
+    },
+    "FzSTR17TGawDn5Su": {
+      "name": "Dragão Diabólico (Adulto, Conjurador)",
+      "sourceHash": "bec2e45249c480cf5ad1364decaeabc88832ed9b"
     },
     "G1IeHREXFKc7efep": {
       "name": "Águia",
       "sourceHash": "35c67ec8f3e994c9994af9a177c5c393d40bce5e",
       "description": ""
     },
+    "G2lLUDS8l3EFyRze": {
+      "name": "Tubarão da Salmoura",
+      "sourceHash": "ca284086a0b8eed4a9bda8e46dc7db37e7ee5210"
+    },
+    "GQwfyLYXPmAS64ZU": {
+      "name": "Verme das Cavernas",
+      "sourceHash": "e4e1173cba50cc61f290cef4a3880a7e5d133b9e"
+    },
+    "GTgC8fC8vS5ae4Xg": {
+      "name": "Cavalo de Montaria",
+      "sourceHash": "2621cb7ff4853105301f5056de0931bf4775a091"
+    },
+    "Gc3Ek0wL3pqkPlce": {
+      "name": "Bandersnatch",
+      "sourceHash": "b31f12b1b8921a879b5198db44fb821eee913c2b"
+    },
+    "GlPSUieOV1clPZNn": {
+      "name": "Pixie",
+      "sourceHash": "ac846d1a5bc931f185259c7aba1f6cc5631ef1b8"
+    },
+    "GqX2b978zto80T19": {
+      "name": "Espião-Serpente",
+      "sourceHash": "6a8503871c4debc2a840484ae2daeb461534d82a"
+    },
+    "GrPUWUjQV8UQpEJ6": {
+      "name": "Zumbi Brutamontes",
+      "sourceHash": "f91d3b1f77b1e5fa380ed2677dfa12ebb2347f7d"
+    },
+    "GtsJUtAByYcrafxW": {
+      "name": "Vassoura Animada",
+      "sourceHash": "28bc71b3ae13cbb9ce9a6b3acf95a8cb314a521f"
+    },
+    "GwmbSJeEvbXkdoKz": {
+      "name": "Anão Guerreiro",
+      "sourceHash": "8ec5597b945aeb0ce33840740ce24473dc64604b"
+    },
+    "H34jou282y91R1Yo": {
+      "name": "Boneca Vinculada à Alma (Cruel)",
+      "sourceHash": "d646e12727ff60b77b250f5fe7119f7a72f08777"
+    },
+    "HAJSU2Lj9wfueaU0": {
+      "name": "Nascido do Abismo Adepto",
+      "sourceHash": "f6dba3755523c240eba9ef7e2ea2901cca9e9110"
+    },
+    "HIoUmWuFVpd0im3m": {
+      "name": "Gigante do Fogo",
+      "sourceHash": "f7b0ddb47e00958d947dcc19598e194fe2ead4a5"
+    },
+    "HROW9foyt5SKuelC": {
+      "name": "Dragão Conspirador (Ancião)",
+      "sourceHash": "a61fbbd944f7241f298d88cb93807d0d72aaec30"
+    },
+    "HWOU3FLhtUBmhLzd": {
+      "name": "Agulheiro Nocivo",
+      "sourceHash": "820f7d3e369a06a31e776680af5305c77f777bae"
+    },
+    "HZJtbskTGWrma85p": {
+      "name": "Megaprimatus",
+      "sourceHash": "a42ff31accf047a3e5536e624cdc5f53f1203a05"
+    },
+    "HaAKHWdUfGHpK2Ru": {
+      "name": "Grothlut",
+      "sourceHash": "98e4ff376f949fc48ba277e9b8b9f7b9f34a53bb"
+    },
+    "HdAo0sNGyAHfI9Qf": {
+      "name": "Sacerdote de Guerra Portador da Lei",
+      "sourceHash": "6bea6a77fd02583c32c17f98807a92ba17de3ef8"
+    },
+    "HmMVYM5EBSbtZAfd": {
+      "name": "Estátua Animada",
+      "sourceHash": "ba1650c3714fcb481926e4ef469ad4c86ef1eaab"
+    },
+    "HyHZYQOLT0pEfSRy": {
+      "name": "Pégaso",
+      "sourceHash": "e7f4a654e46cebdcaf9ec925862a9d05c9f1726c"
+    },
+    "Hzy8kgMvhnAZoPB1": {
+      "name": "Chupacabra",
+      "sourceHash": "f553eaade5d6ffb1cd6dd58f5e7e4c1c89ffa5eb"
+    },
+    "I3T7aT1uHgl1yutf": {
+      "name": "Paquicefalossauro",
+      "sourceHash": "5474ca4ac2d0efe89fb89f791762c07a39373bca"
+    },
+    "IIJcjdDvmjUkjMau": {
+      "name": "Lâmia Matriarca",
+      "sourceHash": "f1cbabf070c343cf8c8b1c8a54c3e7a2d2a43d05"
+    },
+    "IU5RtM3Ya0GSFhPu": {
+      "name": "Vanth",
+      "sourceHash": "71c34c3c861ddb62569e6a600e4bc2e5f0233562"
+    },
+    "IfsJ0Rp4bS6sLvMp": {
+      "name": "Hienodonte",
+      "sourceHash": "2c8503047847841272c07634087eb4a986dc4555"
+    },
+    "IpPwgpE1xkGLOUDI": {
+      "name": "Linorm das Rochas",
+      "sourceHash": "55c98b85ce4b0dc8e3478c36b96eb1a61d41440d"
+    },
+    "J1l4ozNM4bgPCBId": {
+      "name": "Quelaunt",
+      "sourceHash": "460c4cb81ba3f1bf2bba23e8146ef026d839c069"
+    },
+    "J526sCkengnoOqX8": {
+      "name": "Dragão da Miragem (Adulto)",
+      "sourceHash": "c8b225bfd3ec52c03dda6d229e7d13e9ef8787c1"
+    },
+    "J7MCMuJmuZgvXdCp": {
+      "name": "Garra de Recife",
+      "sourceHash": "0664fcf3309347952801ced002da09dc9501cf3b"
+    },
+    "JFocVf2UP0gsN0dV": {
+      "name": "Homem-Lagarto Defensor",
+      "sourceHash": "b00ec841407941db617a0cb35403573cf6370e40"
+    },
+    "JQco848Rdf6KaizH": {
+      "name": "Dragão do Presságio (Adulto, Conjurador)",
+      "sourceHash": "20d5c1e930056cf2dd2ee61276ea0021fa06e11c"
+    },
+    "JQrxr0PYJ7EJ0Bbe": {
+      "name": "Urso das Cavernas",
+      "sourceHash": "d8dd4f498a9b7fce936b417935cb26fbefe98b23"
+    },
+    "JXekn1iOsD7rM7FP": {
+      "name": "Aapoph Escama-de-Granito",
+      "sourceHash": "8627975ec7b710471c0db72f2d53b0df52a31979"
+    },
+    "JjD4fy2BbbK5E18R": {
+      "name": "Esqueleto Colossal",
+      "sourceHash": "d9a8f12e9f991c4e2fedc9b0365d649cdaa4c868"
+    },
+    "JmpjhoNs3mdJIzMZ": {
+      "name": "Caçador de Fantasmas Duskwalker",
+      "sourceHash": "ebcc81cdb05c46bbf69014b2f957e3c92f7eb7c9"
+    },
+    "JpQm4Hf2d67Tt5Bh": {
+      "name": "Dragão Adamantino (Jovem, Conjurador)",
+      "sourceHash": "89a0dcf51d9f2cd63e97c72797ab6a4c7a5d5787"
+    },
+    "K6vnkF66mad3L2vr": {
+      "name": "Revenante",
+      "sourceHash": "b1cae220ed7d77be28ed18ebc0be48c70a6519cd"
+    },
+    "K9gItV6N7FKmOw9p": {
+      "name": "Troll Líder de Guerra",
+      "sourceHash": "fd3e0dbcbc50732d4c7acace90b5c516e112a5c2"
+    },
+    "KCcFqFwm61gSP3m9": {
+      "name": "Kholo Caçador",
+      "sourceHash": "bdc6e32434b352c9178611ab1cd2c822b0254c06"
+    },
+    "KJPmexGqiNAolY4M": {
+      "name": "Boneca Vinculada à Alma (Cuidadosa)",
+      "sourceHash": "3feb848410dbf7f0fd0ae1788f86eeadd2af4271"
+    },
+    "KWL97RACraxwtrDs": {
+      "name": "Guerreiro Boggard",
+      "sourceHash": "5870486ccdb8fe04766b3a69660c698586d2f392"
+    },
+    "KYO26N2IyDaEjNIg": {
+      "name": "Bruxa do Mar",
+      "sourceHash": "f23debcf9554affb184926d178a936f07b8d6c98"
+    },
+    "KbF0mRg2Tujwzs48": {
+      "name": "Dragão Adamantino (Ancião)",
+      "sourceHash": "8b1ed993e16820d4afc58e9d6c61a9ca3f433fa9"
+    },
+    "KfKv9J0u06rrekSU": {
+      "name": "Dragão da Fortuna (Ancião, Conjurador)",
+      "sourceHash": "0890b3ffbe2b07c1f47df5fbf5e4c5f6f4b6a5fe"
+    },
+    "KovP8wP6Wr5xeMIj": {
+      "name": "Choral",
+      "sourceHash": "c6706cfdb87afcff23223843d1af2cef539f3a94"
+    },
+    "L7gotU5RROcV9iIT": {
+      "name": "Vespa Gigante",
+      "sourceHash": "ba82bd2c302e821907b48d5200cf877adfc35956"
+    },
+    "LBg5e5z42ZBkwGLr": {
+      "name": "Oni das Ilhas",
+      "sourceHash": "6c3e4e99f70332f5df3830316064c232cdaecfbd"
+    },
+    "LBllpFSdWlmIsKSj": {
+      "name": "Dragão Chifrudo (Ancião, Conjurador)",
+      "sourceHash": "a4e7a6ea23ca15b631f551ebf3b9c4074f90aa74"
+    },
+    "LM4VwG5PHJWWV6Kx": {
+      "name": "Esqueleto Campeão",
+      "sourceHash": "077d9327a3fece9bb597955442932f515a87b4dc"
+    },
+    "LQlidijCABhEQueD": {
+      "name": "Dragão da Miragem (Jovem, Conjurador)",
+      "sourceHash": "c878e85be9189ebd9d1cd73c03b27a6f079df17f"
+    },
+    "LZCeEvd58uQibMos": {
+      "name": "Keketar",
+      "sourceHash": "7aa00a4611102b411ecbea37098c1be95e0e2c63"
+    },
+    "LbsRcxxEgpQqHcuI": {
+      "name": "Lâmia",
+      "sourceHash": "7ca140c392d11e32e4c369e7152600a2b7a969af"
+    },
+    "Lc0EXihP1GFGaROx": {
+      "name": "Fantasma Plebeu",
+      "sourceHash": "71e95d354a8d1905c69bba6fb513fa6b1a3bb5bb"
+    },
+    "LoWrYg79wvyNGxWE": {
+      "name": "Leshy de Abóbora",
+      "sourceHash": "0764c06d6813c9b8a5c90b72b49f676b70e6ea7f"
+    },
+    "M01pYlFgAXGn2v4q": {
+      "name": "Aiuvarin Elementalista",
+      "sourceHash": "fa512d75817cf455a70f83acbdbee471b91b4c0b"
+    },
+    "M2CQZc1RDx41cgie": {
+      "name": "Troll da Floresta",
+      "sourceHash": "dd7287b0afde6e99c16414840c76c4058a8d6645"
+    },
+    "M9znDZwMk5X5DnQ9": {
+      "name": "Sombra",
+      "sourceHash": "c68a68ace27594d3b5692f1d80c2a6ca5a3bd8f5"
+    },
+    "MBsNcwmzZMg1J0uY": {
+      "name": "Águia Gigante",
+      "sourceHash": "81dcb230e8dbaba8ea6c8f51a68fe3088db0c970"
+    },
     "MJpN3BV80ft4kyBa": {
       "name": "Cão de Guarda",
       "sourceHash": "86b59d96aaa0768110432d870b811480d2856a1d",
       "description": ""
+    },
+    "MKIjTdr61TRrU0W9": {
+      "name": "Gnomo Umbrio Guardião das Rochas",
+      "sourceHash": "204f9d8f6c419c704a794e8e6bac336626930914"
+    },
+    "MMYksFqClEmHv3jJ": {
+      "name": "Kobold Mago das Cavernas",
+      "sourceHash": "021d90fce1873c08364844f1e4a5b8d6d386f4c5"
+    },
+    "MVknsCQ14Cn4aRAj": {
+      "name": "Ceifeiro Sombrio",
+      "sourceHash": "d21acce5e4bcb43328a03797c4d2011b729b186c"
+    },
+    "Mcag1ETkTtX85jGy": {
+      "name": "Smaranava",
+      "sourceHash": "c4d2e8e60bf09a83ff33730605cdc9dc6b36e9db"
+    },
+    "Mh8NBlWsiMAnciTN": {
+      "name": "Leão",
+      "sourceHash": "9675b120a06e3f1154a7a1feb8f95cb6a9520d0d"
+    },
+    "Mkk9FbO0JdvV2AOw": {
+      "name": "Mantícora (Cauda de Escorpião)",
+      "sourceHash": "226ba06fcb0e63c732dda1ccb2b3ea5f4b8b0b27"
+    },
+    "MkqrK81BihEy5qmu": {
+      "name": "Cavalo de Guerra",
+      "sourceHash": "6c3c4e0182e4e72d7bc7b3115ec17dd1fa4a2822"
+    },
+    "MvxTuSOrMVUeGdvL": {
+      "name": "Redemoinho Vivo",
+      "sourceHash": "6381781cde2e2d0acf1c055cea398f7448804540"
+    },
+    "N4vKq4mbG1uPntkb": {
+      "name": "Atormentador Bugbear",
+      "sourceHash": "17ee1d4ca8c3460079dbda6c91fad3404415be4d"
+    },
+    "N7VFdspxv0zppUkA": {
+      "name": "Hiena",
+      "sourceHash": "6dca3785ef6b4043fff9a2e196da49607857f423"
+    },
+    "NDgBVetYUnvXh0BS": {
+      "name": "Gancanagh",
+      "sourceHash": "32d9aecf05bf3fe91d265a29f5f06c4def254169"
+    },
+    "NMLzt2lKgTUAtdDD": {
+      "name": "Sedacthy Saqueador",
+      "sourceHash": "569268b8274ee5db287f3182a193448bf1a2a2c0"
+    },
+    "NXzFIbD6DqoomLKt": {
+      "name": "Lyrakien",
+      "sourceHash": "94b440083ff4232c19fc0e402fe61f86d7dfdc4c"
+    },
+    "NYgSvGNvDaAUDXAq": {
+      "name": "Líder Xulgath",
+      "sourceHash": "588bee85f111e70176c44febf44254a54126f51d"
+    },
+    "NbEIcaDfUHs9EcUf": {
+      "name": "Capeta do Ar",
+      "sourceHash": "347761e7e662f6220e499236705a7920d63351bc"
+    },
+    "Nf2ubltzZDIc44Ai": {
+      "name": "Tricerátopo",
+      "sourceHash": "e8e4f7c4832229d01fbfece400544706614dceec"
+    },
+    "NuWKWqa80POwtEK9": {
+      "name": "Espectro",
+      "sourceHash": "9b32648375eddf3323e7bb3845e0f207133a1fd3"
+    },
+    "NufGRhWUxXM6eU1t": {
+      "name": "Inferno Elemental",
+      "sourceHash": "78950e331d5d6594f43a0dbc945d15cffacf5209"
+    },
+    "Nxo9WIPf27H1KMtp": {
+      "name": "Linnorm do Penhasco",
+      "sourceHash": "725c696a4ac16e87fc9f45042e405afbc2a96184"
+    },
+    "OH7aVRtlRld2SizF": {
+      "name": "Ratfolk Granadeiro",
+      "sourceHash": "fc1877fe8a6a0dc902737370479f0ec84a8b290f"
+    },
+    "OOaUcjoiY1NGOe3N": {
+      "name": "Sedacthy Orador",
+      "sourceHash": "773c65e1da2a4dc53254b80df4365624acb5f477"
+    },
+    "OVFoDDXBzl4eHMUv": {
+      "name": "Gimmerling",
+      "sourceHash": "c33e121060ae5c1a8d8c519d40612f92247c9c18"
+    },
+    "P0wFm2cCOgOgEhqp": {
+      "name": "Prole da Luxúria",
+      "sourceHash": "fd4ca4a8c3d256f7223617ee5165136471c72ce2"
+    },
+    "PHnpkhclzPmKkiJ5": {
+      "name": "Lobo",
+      "sourceHash": "bfb4e431725bad3ae1a8cbfd8e3d5ced8f142d7e"
+    },
+    "PQ1Yl2ml8sZR0Ked": {
+      "name": "Yeti",
+      "sourceHash": "20968f13b32e64206dad480905820d883c41311a"
+    },
+    "PSCTI0lrHKFUs9mX": {
+      "name": "Draco de Chamas",
+      "sourceHash": "d9ac855ef4dbd90f898b9231ac80ad8e260c53bf"
+    },
+    "PTteE43HSn9RCEl2": {
+      "name": "Golfinho-nariz-de-garrafa",
+      "sourceHash": "8935831997831912dbe1e59abd98fd7c8a23d819"
+    },
+    "Pofc7cAI0yWoxBBn": {
+      "name": "Terotricus",
+      "sourceHash": "23a244f5143baa743dee800c6ef7147574086bba"
+    },
+    "PpOgM1vb2kKOjwp8": {
+      "name": "Shuln",
+      "sourceHash": "dc092d6f0fa87c1b0825cd20e9fd2ad8c0ad2098"
+    },
+    "Q19xFV9W37TTJNi2": {
+      "name": "Verme Bêntico",
+      "sourceHash": "a5dd66078faf06057d822a392164e4208d7e60c4"
+    },
+    "QErS2VVE7rz0Udt5": {
+      "name": "Zecui",
+      "sourceHash": "8c743d38d698ecd45234a69fb239b3d6a6b18af8"
+    },
+    "QG6jl9Ckxf9W9d08": {
+      "name": "Dragão Chifrudo (Ancião)",
+      "sourceHash": "1633182a532e92c35de9a492ddd9ed2309cdfff4"
+    },
+    "QO0iS1vjjYtX5NqU": {
+      "name": "Cavaleiro Fantasma",
+      "sourceHash": "b1b9edb6df227f0394827ddae6e674f0f7cb91d7"
+    },
+    "QWHf7lobpKIoxlP3": {
+      "name": "Tengu Furtivo",
+      "sourceHash": "96671d8119141d4860c73557dd45c249607964ce"
+    },
+    "QY1n4nSHVuaMYa2x": {
+      "name": "Cassisian",
+      "sourceHash": "6a1205973efee4d88bd67c42a5541b102eb4b3e9"
+    },
+    "QbW0gI4tey2ZhMxi": {
+      "name": "Espantalho",
+      "sourceHash": "068deee2c4ce1d5cdee297242447020f69fe41ef"
+    },
+    "QcQ9u8JD9ohAiTnH": {
+      "name": "Prole da Inveja",
+      "sourceHash": "0aaf563813505569b695fadbe36f676c98e9d059"
+    },
+    "QlxF9nImuruFEBAH": {
+      "name": "Verme de Magma",
+      "sourceHash": "fadb9d577bffefdaa3ebd135dafa42258b4aa5a2"
+    },
+    "QsUERucEILjYqpdM": {
+      "name": "Elananx",
+      "sourceHash": "72de299f495e4d9c7221c78969ac0b27c638c5f4"
+    },
+    "QvgKQzV0Kn1IWR0J": {
+      "name": "Poltergeist",
+      "sourceHash": "5a0dcc3aae56f6a41b4dbc2185c6b70203506abc"
+    },
+    "R3aifY9N8YTHwKSN": {
+      "name": "Dragão Conspirador (Adulto, Conjurador)",
+      "sourceHash": "2669d9f353a7ed118e74f0bb2e91187a14115a8c"
+    },
+    "R6GiEnmYnec0giPZ": {
+      "name": "Shemhazian",
+      "sourceHash": "24b7db8659278fb9ead6bd8dbe9f0e8ea6879a55"
+    },
+    "RCjsQhoGORfPfxGb": {
+      "name": "Dullahan",
+      "sourceHash": "c7280bb5269644fb60356bfa38999e9efbd7f217"
+    },
+    "RIqt5b64FpkLoFHq": {
+      "name": "Criação Carniceira",
+      "sourceHash": "dd97ad67faf0ade76118d315e73d48eef86c4611"
+    },
+    "RVIdNoOuFreti5gT": {
+      "name": "Dríade",
+      "sourceHash": "697b165a8ac80acca3ab5c4724cd310745279589"
+    },
+    "RZWnU0facIy5IqUR": {
+      "name": "Lagarto-de-Colar Gigante",
+      "sourceHash": "8cfdec3a5b54c92c5f7a60af32609841e50d63ba"
+    },
+    "Rk5FsrgjbMQj2qmm": {
+      "name": "Jabali",
+      "sourceHash": "805cb164c209c494f638d271d1733d9b7c1dfa7f"
+    },
+    "Rt5NjMYQzCvDCETR": {
+      "name": "Prole do Orgulho",
+      "sourceHash": "d827a1ef7fc634fdc05c2d6e2c36edcf6a448af2"
+    },
+    "S68TtZYgNmGaJa5s": {
+      "name": "Carniçal Soldado",
+      "sourceHash": "29891aad4108c9740dab9451c7eddea1feb96a75"
+    },
+    "S6ZitDK7eRiUI30b": {
+      "name": "Morcego Gigante",
+      "sourceHash": "9edb2eadb81fb2956f2f4e03dddc0053a2e1c24a"
+    },
+    "SCeBjOUOCHV52f4J": {
+      "name": "Lobo Terrível",
+      "sourceHash": "279cac08b114965f125d9f530ff3cdf935223465"
+    },
+    "SHyncQhsRuXunFl3": {
+      "name": "Pesadelo Maior",
+      "sourceHash": "5c3fc63a75d53b94fac6c310f9a4d1f9446c8304"
+    },
+    "SRBAzygTHlVfbAKL": {
+      "name": "Leshy Fungo",
+      "sourceHash": "d716b5702dff41e58c63e24fd384a5f663dc9452"
+    },
+    "STEbhkkVJ9EpOaIT": {
+      "name": "Mamute",
+      "sourceHash": "0ce643e935bd6d70d8a6f4463c97195d95479e54"
+    },
+    "SanRwAQWbz0U0SlH": {
+      "name": "Leopardo",
+      "sourceHash": "8a58756937d77a073a5473091db2db5921945548"
+    },
+    "SmbIHBryZN1umnJc": {
+      "name": "Ort",
+      "sourceHash": "a058dbf8e7a1e31725b63c153b04db0b93e531a0"
+    },
+    "Sx1QcdisSXrqrpnV": {
+      "name": "Kanya",
+      "sourceHash": "44400de05b483fb996b3269a2a413db17973086e"
+    },
+    "T2bRUO0P3LOocqa3": {
+      "name": "Mukradi",
+      "sourceHash": "05f21743887db3e45e47559b47961ff3292ffa84"
+    },
+    "T65O7eZW3Bw93DnU": {
+      "name": "Serpente-de-Fogo",
+      "sourceHash": "56f5680838cd079328fa79a699c99b46eaf548a8"
+    },
+    "T6qifTC1QgFiNf7V": {
+      "name": "Baluarte de Pedra",
+      "sourceHash": "f12672840a35f39fa26d12474fac9f0fc8c8ab9b"
+    },
+    "TRvpBUe0aZjcmLhS": {
+      "name": "Pipefox",
+      "sourceHash": "887b21958af6b9f375ffe56cb0bfe6baef874795"
+    },
+    "TSWM6GerXSsKR2op": {
+      "name": "Louva-a-deus Mortal",
+      "sourceHash": "2340121f80df84680d81f04d15f0f8dd8e9e4583"
+    },
+    "TT9whiI7tmmBvaSZ": {
+      "name": "Quatoide",
+      "sourceHash": "fec514fa4f32194a03fa67cea2953b323ac76f03"
+    },
+    "Ta2XHEdLvdDulrWK": {
+      "name": "Esfinge",
+      "sourceHash": "1a887bce745b7f3235b5644deaeaca56f965e776"
+    },
+    "TiKlgSCLaF10u4Ed": {
+      "name": "Hryngar Capataz",
+      "sourceHash": "d717572dbfd82ce100833a184322717b7cb87e4d"
+    },
+    "TwUeUkXZUQ7Mvsb9": {
+      "name": "Sprite",
+      "sourceHash": "73a35c24fe9f0b63c51f82b9a28f3226d13c009c"
+    },
+    "U9jdOvQ214F0ceNj": {
+      "name": "Verme do Vazio",
+      "sourceHash": "f92801e4f87506637e24bdeab003b15c9c688ff1"
+    },
+    "UABno08OejgP5tsV": {
+      "name": "Montanhês Dromaar",
+      "sourceHash": "cbad5033c8c1baef24ffec9c20dad8c1e61d8b9f"
+    },
+    "UChSEVIvHums2AU9": {
+      "name": "Lich",
+      "sourceHash": "68ca5a038becb0d64606e25355a0c6958ea0edde"
+    },
+    "UU0tMQWg0QkhxA4V": {
+      "name": "Enxame de Escorpiões",
+      "sourceHash": "ca93e4fa2f957439b2bb94c2937eb4f46b1f320e"
+    },
+    "UlXBlc4tIUOdSnUR": {
+      "name": "Escorpião Gigante",
+      "sourceHash": "78e91d8064427cc2f27b753f623e15fb9594b883"
+    },
+    "Ume19cxoap9OTg6q": {
+      "name": "Dragão da Fortuna (Jovem, Conjurador)",
+      "sourceHash": "ba70509a2d49ebd267837f49bba75ff7569ab21c"
+    },
+    "UuQLIG8YKFdePUGL": {
+      "name": "Tartaruga-dragão",
+      "sourceHash": "5559ef59c2d6d48006ee59d1bb878f288d5b46a8"
+    },
+    "VAb9VXP8fbdXUQWR": {
+      "name": "Nosoi",
+      "sourceHash": "a85db03c4bdafe128c1462a8287f7fa1f10ff71e"
+    },
+    "VBnUdZJw1WJ8Gw2M": {
+      "name": "Domador de Marés Azarketi",
+      "sourceHash": "945dac3c29fa129ae5e882aadc10bed00b868838"
+    },
+    "VKrlskWEKiVKaouU": {
+      "name": "Bogwid",
+      "sourceHash": "e36dac8d139d090220d69be6876325c611e1cff4"
+    },
+    "VNRL5BuCKIflTf4e": {
+      "name": "Gongorinan",
+      "sourceHash": "5711faed55be95da315f9102baf127127a6f15f4"
+    },
+    "VPyuPsP1dmkwNbNk": {
+      "name": "Enxame de Vespas",
+      "sourceHash": "728244eeaa432d287734bf4b7403b37a00700e38"
+    },
+    "Vgu3zI05u2QwQ6wK": {
+      "name": "Enxame de Formigas-de-Correição",
+      "sourceHash": "7e3a621078a258c7f82b335ab5c560e60117071c"
+    },
+    "VgzAxMyGmOnZ83At": {
+      "name": "Gigante Rúnico",
+      "sourceHash": "4d714d0a655fa19585c07278f8d37e01137b501a"
+    },
+    "Vlty5j6ZLaSD0RUV": {
+      "name": "Crocodilo",
+      "sourceHash": "29380a3c0c648cf920b16484d75ea3334e3b8f5c"
+    },
+    "W7fKfIodveUAyirM": {
+      "name": "Bruxa Cuco",
+      "sourceHash": "340542ab4a0201461655f04a14de283c9520290b"
+    },
+    "WE5ocpowFV2NDFoJ": {
+      "name": "Estegossauro",
+      "sourceHash": "1c5c99e6536c73ec566722be7a8e72d21fb1b4a4"
+    },
+    "WNuOOxZ1JfK7E1YW": {
+      "name": "Goblin Entoador de Guerra",
+      "sourceHash": "66e1aac2006a5e06b15b0bb6b364e64682aaecc2"
+    },
+    "WqFXEepZlzrwNhsi": {
+      "name": "Prole da Gula",
+      "sourceHash": "98070afc107c6f968824e05c4b627e99f7961f70"
+    },
+    "X68PX6gx9lMD0ASV": {
+      "name": "Diabrete do Fogo",
+      "sourceHash": "fdf61b500f6a0a23e098454928148b33bc4a467d"
+    },
+    "XK98wjNTvntwfAHO": {
+      "name": "Dragão Diabólico (Adulto)",
+      "sourceHash": "51770a488209bf53ccdaeb179836781edb773929"
+    },
+    "XWlPQgsP3XKhxymx": {
+      "name": "Hryngar Bombardeiro",
+      "sourceHash": "88c249a01d9793767a76d2d25e5304b314dc0bf7"
+    },
+    "Xd6pqxGXCOeEjiNn": {
+      "name": "Enxame de Centopeias",
+      "sourceHash": "a41ab9c61af071de0cdf2771b126efdcffa8d960"
+    },
+    "Xfq1w7iVPapW6DKV": {
+      "name": "Geleia da Tumba",
+      "sourceHash": "bf09effc7b5020fc3dcbb1482a21f7ff7fb1259e"
+    },
+    "Y6XIzPnshnrqKAfk": {
+      "name": "Pesadelo",
+      "sourceHash": "a2bb73aea2ca626c4b5c4b651a80f87e82d12bd8"
+    },
+    "Y75Uxk4ArHR8vMAw": {
+      "name": "Ogro Chefe",
+      "sourceHash": "ce64756ba5d49257d20a3ff2fbfaf6c76dad05ab"
+    },
+    "YmTdDwYcjRTqs3or": {
+      "name": "Múmia Guardiã",
+      "sourceHash": "5469bf3a30ade4048625850b492aaf0e260009fd"
+    },
+    "YuzE4BaKUcr6MAId": {
+      "name": "Unicórnio",
+      "sourceHash": "0be51d8154fbab74c111510a16dd2c0c46eb57e3"
+    },
+    "YzAx286wy7o3E4DA": {
+      "name": "Orc Veterano",
+      "sourceHash": "e6320ed55db897ea7cac42c2176ac8e5dcfe25b5"
+    },
+    "Z1EyhhTG7kVly6Eh": {
+      "name": "Efígie de Barro",
+      "sourceHash": "996869404962af5af27f002a59a571dd61b44c12"
+    },
+    "Z6Js5yyFoysxDPVU": {
+      "name": "Vidente-do-Pântano Boggard",
+      "sourceHash": "5fc77a4eb67248b78620eb28bd7345f603d0860b"
+    },
+    "Z9eqp80uBRhMA8cM": {
+      "name": "Náiade Rainha",
+      "sourceHash": "138684071cf7986b64e5ce2c23b61ca3873713b1"
+    },
+    "ZO2isJ3L2ogfU90H": {
+      "name": "Vrolikai",
+      "sourceHash": "305cd52a9fdc0e8daee8d420425be796c6c16a96"
+    },
+    "ZPIuKEnOP3oXS1QR": {
+      "name": "Urso Pardo",
+      "sourceHash": "e1ceb6e9c83aa10c57880d9336074d68917b405c"
+    },
+    "ZPwcQUv7zGr9HzMZ": {
+      "name": "Goblin Piromaníaco",
+      "sourceHash": "622d56212df27a362baa942e24bdc6237082eb40"
+    },
+    "ZSKcbBPT3UwBiBV8": {
+      "name": "Hipogrifo",
+      "sourceHash": "442be8d1e8c264ed90c1d3bfa81631a5ceeeec9b"
+    },
+    "ZbbFoBwWvAwbseLh": {
+      "name": "Dragão Empíreo (Jovem, Conjurador)",
+      "sourceHash": "2671fa57f10ea03c9acbe091ccce198975b83d3e"
+    },
+    "ZekUdmc2vEyC6Dgp": {
+      "name": "Dragão Empíreo (Jovem)",
+      "sourceHash": "39655e1714e4afa2d3e48d838a54cd8cb60aa523"
+    },
+    "ZfwFvgvyAR4J96ZS": {
+      "name": "Dragão Adamantino (Adulto)",
+      "sourceHash": "48a7bf55312b4c49f1efc9a71febd27a47dd98b0"
+    },
+    "ZkmiUXSYQr02Ei34": {
+      "name": "Dragão Empíreo (Adulto)",
+      "sourceHash": "69dd4473a3ee9ffebbb27bec04355c0ae20298b8"
+    },
+    "Zs6GORWcQUQvs5vL": {
+      "name": "Dragão Conspirador (Jovem, Conjurador)",
+      "sourceHash": "a0a5e9ce4acd05ede315a2f8e61933b53e88ae24"
     },
     "ZuTlfaOY8izOIlge": {
       "name": "Leshy da Folha",
       "sourceHash": "8af6c58675592a8e110a057d4a88a2b92a3c5300",
       "description": ""
     },
+    "ZxN7B4INfEwOzrNE": {
+      "name": "Quimera",
+      "sourceHash": "3067234fe15a2f55e516d2220bfb923d6d282d74"
+    },
+    "ZyF3JdZWI8loW79l": {
+      "name": "Ofalth",
+      "sourceHash": "52f7f4c52054c3949ddb901b92384f3bd34e33ce"
+    },
+    "a62FqWGjUpsm8ijy": {
+      "name": "Dragão Adamantino (Jovem)",
+      "sourceHash": "7da1ad68a11a61cabdca7aee86dc756f2b07cecb"
+    },
+    "aGEdWottn8Fs79x6": {
+      "name": "Lagartixa Gigante",
+      "sourceHash": "e70399dae5af6390818ca0fdaee8a12b5a3b19d3"
+    },
+    "aKaetJVdjYtnMUEk": {
+      "name": "Aolaz",
+      "sourceHash": "fb2a2d357a78b020c028a932a741b7993915838c"
+    },
+    "aMqvz6oPlwXsx15D": {
+      "name": "Enxame de Fadas do Dente",
+      "sourceHash": "62c3c861036016ac4340ab74ba24788d59822ac0"
+    },
+    "ai3Eg7ApDmmlI16T": {
+      "name": "Xoariano",
+      "sourceHash": "5b7735b6b5bd512633de888098b7ea686d6f586f"
+    },
+    "avPnlMFHQ1scSRGT": {
+      "name": "Múmia Faraó",
+      "sourceHash": "547d8b9ed5243d6f799f319586fbfe25aaf2fa98"
+    },
+    "axF6ik21YUzeFwlv": {
+      "name": "Píton",
+      "sourceHash": "27d0d9e33033d8d20ac8ba80bfe1c211aaaf4d1c"
+    },
+    "b85SpWCUaLJFlBCC": {
+      "name": "Dragão Chifrudo (Adulto, Conjurador)",
+      "sourceHash": "cbc796f68555a48c8e70831a0840918f97b9496b"
+    },
+    "bKeu6iluHyT6eRHQ": {
+      "name": "Perseguidor Dero",
+      "sourceHash": "0dc4cf113a5d4e65e479ed28cc42c8f1928ab691"
+    },
+    "bM4Ey57e8YIgVcxl": {
+      "name": "Hipocampo Gigante",
+      "sourceHash": "54f849642d0c465bc2bcb10db0a62357b5075bca"
+    },
+    "bcJwiSEEgJxQrGJZ": {
+      "name": "Rhu-Chalik",
+      "sourceHash": "09fe642978c0b1f450d91aaf46def1ecc8477dc6"
+    },
+    "bidZvazrQBjCUCL2": {
+      "name": "Mitflit",
+      "sourceHash": "54b0546e7213c50c790daa84c0d26b0133caec25"
+    },
+    "bm7sjm1cbVPfwgmn": {
+      "name": "Dragão Empíreo (Adulto, Conjurador)",
+      "sourceHash": "eb16273d004129ec022c963521e76b07268615a5"
+    },
+    "bz8ZnWPSvFTGQVhY": {
+      "name": "Paleohemoth",
+      "sourceHash": "af65ec313ca2e0d033588aadabdfc7cab5c3efad"
+    },
+    "cVtM6fSsPGiC6aE7": {
+      "name": "Dragão Diabólico (Jovem, Conjurador)",
+      "sourceHash": "00bbf9315d6962710c1c2e3f9670ae72ff8c4886"
+    },
+    "cXSFB9GpBPn258D8": {
+      "name": "Cythnigot",
+      "sourceHash": "3d371e26635ba9980e1d79af4ab3d9eb3326642e"
+    },
+    "caO0vwZaHBBLiryS": {
+      "name": "Enxame de Aranhas",
+      "sourceHash": "002bfbe2a42c0b18038d3a62f028be8de71828b2"
+    },
+    "clI5W8IeiZiviqCT": {
+      "name": "Gogiteth",
+      "sourceHash": "b2145686756b988fb4d63d8a87349e91ad2d690e"
+    },
+    "d8NtHAhamY0JcHyZ": {
+      "name": "Súcubo",
+      "sourceHash": "49599f768ceeba421d84ebd8c76501c170cc7176"
+    },
+    "dIx165J4tOozRVos": {
+      "name": "Sombra Maior",
+      "sourceHash": "75b102c91bcf69f417fcba540281eb605f0b6533"
+    },
+    "dKNHIAhwHSvLMgI8": {
+      "name": "Centopeia Gigante",
+      "sourceHash": "a5053595f840698a2e2acb7bb09d09f282154927"
+    },
+    "dRuhNqEJFMzOcbuO": {
+      "name": "Mestre Dero",
+      "sourceHash": "891d2b914e118be0f03278e6706d738745a34fd3"
+    },
+    "dZ9R8sR1Ug1YGnzZ": {
+      "name": "Dragão Empíreo (Ancião)",
+      "sourceHash": "fc0a85a9c2da1b61b1acf991e5a98ba4c3fecd98"
+    },
+    "daJU55ulADzIjViq": {
+      "name": "Kholo Sargento",
+      "sourceHash": "7f724e8e5ff190a87effcbcd2274904efc54eb05"
+    },
+    "dkq2MJXDXChtkhVH": {
+      "name": "Cria da Ira",
+      "sourceHash": "358859d6aecd7f818b21859150f40272334e50fc"
+    },
+    "dlzvwvqfiljjcdEl": {
+      "name": "Jurado de Guerra",
+      "sourceHash": "8df4f25f83686ce5f6b78a5fb34b2a5d5b07b86e"
+    },
+    "dsSJGe4uVmWomu6U": {
+      "name": "Sucuri Gigante",
+      "sourceHash": "e4c277fd4bdb2528c38f3501025bfed8998ea595"
+    },
+    "dun355IOg3gztUP3": {
+      "name": "Dragão da Miragem (Adulto, Conjurador)",
+      "sourceHash": "562e7e3c97294498a7805311e647cfbc8e9e0835"
+    },
+    "e6xdf9wC4Kpr76aE": {
+      "name": "Brontossauro",
+      "sourceHash": "cd07a464c7653f9a94f338404ccc5e2266700a3c"
+    },
+    "e6zQIvKJAXdQ48u2": {
+      "name": "Deinonico",
+      "sourceHash": "a8b2937dcc8765acd14deb24cd0b7a660740b96a"
+    },
+    "eCilN4QDOZemMT8d": {
+      "name": "Sátiro",
+      "sourceHash": "927918e31a20df79e7898f1e81408710f783a76c"
+    },
+    "eKLE2v6arCxY3OyD": {
+      "name": "Jann",
+      "sourceHash": "927c99c2f22d8e72c72bfd3e5bf60f420d90d0da"
+    },
+    "eTPXza6T8VWIer6V": {
+      "name": "Grifo",
+      "sourceHash": "94d1e442804538b298f3da369863ff76d18a8821"
+    },
+    "ehRXTzcimXo7sn6I": {
+      "name": "Cão do Inferno",
+      "sourceHash": "89c9bb64d448110d57819a881efa7ec7c68f7cf6"
+    },
+    "ehRwRKrq2Hk1cOmk": {
+      "name": "Dançarino Caligni",
+      "sourceHash": "3056cd0610c6cb4c17c43da1d3a4bc825982be73"
+    },
+    "eiyVBkjMIXKJrL1q": {
+      "name": "Vidileth",
+      "sourceHash": "f218ffaec22113533b81e4cc73012500a4aea2b7"
+    },
+    "f1kVdSP6MzOFwj0Z": {
+      "name": "Aranha Caçadora",
+      "sourceHash": "30d4792f8351a8a4fe6472e02e7e05aae09af55f"
+    },
+    "fAvZdBf7UCQULwPW": {
+      "name": "Harpia",
+      "sourceHash": "d7a24ceb0c39d5fb71997cd7988aa3a080f91bb6"
+    },
+    "fB5LDjuiG5xn4vsx": {
+      "name": "Warg Bruxo",
+      "sourceHash": "5d225a250477c4df837f6540c04158da858e21de"
+    },
+    "fFZIIscaVgfr0sBW": {
+      "name": "Phistophilus",
+      "sourceHash": "57d0699e8814029b2eee41663ae0f37a5bd059b6"
+    },
+    "fJGC9cnSMrWzDW2f": {
+      "name": "Kraken",
+      "sourceHash": "7dd625adf199baab0acd1b1cf7bbadcd0d170ab2"
+    },
+    "fLLfgbtpf7UqZNWs": {
+      "name": "Estrangulador Dero",
+      "sourceHash": "15a4fb9f414c59132b5b5bc425357626cd79b2d2"
+    },
+    "fLsEx9a8FRLURyur": {
+      "name": "Velocirraptor",
+      "sourceHash": "6478d7b5ff7443d389b664d1a3a73a71f249f72f"
+    },
+    "fTLjyCn6rNaF3dds": {
+      "name": "Guardião Arbóreo",
+      "sourceHash": "9b57bc62cfc384e1534bf80ea46d2a3f9901dd1f"
+    },
+    "fepumyELplgolynH": {
+      "name": "Yamaraj",
+      "sourceHash": "bf39dfdd2f48e9572b0d6cb150a1a7eefc0b41f4"
+    },
+    "frszc1ysqEJGTWaZ": {
+      "name": "Aeolaeka",
+      "sourceHash": "e3031fe05e2674fa4e3b4bead56d794526436062"
+    },
+    "fsMIvkRwAuNsVuOd": {
+      "name": "Oni da Montanha",
+      "sourceHash": "ae0d3dd22b3269775b0c65612cc0a34fe38eeef2"
+    },
+    "fwlRd3KASgPOaWMt": {
+      "name": "Rekhep",
+      "sourceHash": "609dadc0a893e0d2ed6bac6309fc29eb24878649"
+    },
+    "fzgDA3ZhApnL2hGE": {
+      "name": "Draxie",
+      "sourceHash": "37435baaa9bfc4d74c7ee54478a58529d140fc97"
+    },
+    "g2z4smToOR9UhGJ3": {
+      "name": "Boneca Vinculada à Alma (Tímida)",
+      "sourceHash": "7b5f3c3a163421a9c7844a6c2f514433829fede9"
+    },
+    "g7ln15hYtvYqVKA5": {
+      "name": "Augnagar",
+      "sourceHash": "b275812af9e201b53d29edc0b3f46efb335283eb"
+    },
+    "g9GZIPFXPQZQylgU": {
+      "name": "Gigante de Pedra",
+      "sourceHash": "802462a56190d1654f8e225fcef6c719c0f9ae92"
+    },
+    "g9zwp4B7YwZKXrFi": {
+      "name": "Lagarto-Monitor Gigante",
+      "sourceHash": "320cb575ed8553e7d8c0200f78e2527f79f720cf"
+    },
+    "gPflFveYd5zqe6Oh": {
+      "name": "Formiga Gigante",
+      "sourceHash": "642ea67bb520f49a0e49982a17ddc3755a313db1"
+    },
+    "gUc9iz8WUOLgoeeh": {
+      "name": "Twigjack",
+      "sourceHash": "2e9d09e1d53cf029036a2a8be561447b59cb0cce"
+    },
+    "gYUPhyjeeibi82D1": {
+      "name": "Dragão Chifrudo (Jovem)",
+      "sourceHash": "32eaea74c1bf7c8618482576638e0351ef77b1af"
+    },
+    "gZmNG1cqm1RIm2Uc": {
+      "name": "Árbitro",
+      "sourceHash": "aa0f4756208b65e7d2fee862f5cf7d3d6bbffe1c"
+    },
+    "h3a0BEyUPPYdoHzh": {
+      "name": "Carniçal Perseguidor",
+      "sourceHash": "59af0eb37b638bc9bf0bfeb2a2ab1096b2c85a8d"
+    },
+    "hEZNfJrDyCqUYw13": {
+      "name": "Dragonete Feérico",
+      "sourceHash": "99f697c54a5c25952c222a03fcd44598b72379b9"
+    },
+    "hG2VTOotSAmrm3wS": {
+      "name": "Hobgoblin General",
+      "sourceHash": "c142d63e70a703d515e33cf8797e6587abeb6284"
+    },
     "hHqIWsM1A0BUFhwn": {
       "name": "Guerreiro Kobold",
       "sourceHash": "7fee4bab4a757850ddf0da73e3a39ec4af066bde",
       "description": ""
     },
+    "hHvruymAlclLL0Sj": {
+      "name": "Dragão da Fortuna (Adulto, Conjurador)",
+      "sourceHash": "70521fb7fcd8e79ff94b4be8bb7fe1345cc861de"
+    },
+    "hKIIj9MvvXsjNQkk": {
+      "name": "Víbora",
+      "sourceHash": "cbbdfba29170c31356a452b7d4e295f1304b6174"
+    },
+    "hM8UIrpKuXwjLaxO": {
+      "name": "Vicharamuni",
+      "sourceHash": "bc3c3f43c111d43d7f138f28ca69f8f3ef03ab6c"
+    },
+    "hUz0wiV74FvwLnJu": {
+      "name": "Gigante das Nuvens",
+      "sourceHash": "02abce01efbaadc6fc1e985df9ffe47fceaa16ac"
+    },
+    "hlkXx72x9Ixunfhg": {
+      "name": "Hadrossauro",
+      "sourceHash": "190cc2c76b56618af9d0178e0756e72f3d71d39a"
+    },
+    "hrtLgir9UDlVpAbN": {
+      "name": "Dragão do Presságio (Ancião)",
+      "sourceHash": "ac9c9a05e0f93f870ee50d3b19c931c359b82ab7"
+    },
+    "htnldiRfPxuBFZZI": {
+      "name": "Globster",
+      "sourceHash": "400e1565e2ae742982709a6ae80410d4243502aa"
+    },
+    "i2B8wmtVEUeB2fYX": {
+      "name": "Ciclope",
+      "sourceHash": "9c1b215b78e10bdd2c25d8e2991a5fd00e4eabef"
+    },
+    "i2WydXJpYAO8D4nj": {
+      "name": "Cão de Montaria",
+      "sourceHash": "ea5513d953aeaebbcb072666dc0e274ba659305f"
+    },
+    "iA2gtK4bZKPNk7g6": {
+      "name": "Ankhrav",
+      "sourceHash": "67cb163e54e890c1d17ec3cb407c40a9faf424fc"
+    },
+    "iBqIZnTXeQo8WJIS": {
+      "name": "Venedaemon",
+      "sourceHash": "23f56e420c8b4f2a8ded4dff1a089c4b1c60f379"
+    },
+    "iazcjlvjgx7Npf7b": {
+      "name": "Draconete de Rio",
+      "sourceHash": "5b713fda655a3cc1ade5c96fc3337d0b8fa2a08c"
+    },
+    "ir3IRADN6OHYhtEH": {
+      "name": "Alcatrão Vivo",
+      "sourceHash": "1da16b4ae29618960b976fd1169daf95db860c03"
+    },
+    "j4CpQ9QB82SdAVsw": {
+      "name": "Raktavarna",
+      "sourceHash": "4bc0a085ce35d239df44132b7a2b077aa330234b"
+    },
+    "j9d2m48o4KIcCWH2": {
+      "name": "Ogro Guerreiro",
+      "sourceHash": "594d1f178ff130b5057bc2376e8c988cecc32e3d"
+    },
+    "jE1m0EGuDoFMigz4": {
+      "name": "Aranha Golias",
+      "sourceHash": "7e1d9a6c2a66c590573e82d40889a91fe452e800"
+    },
+    "jO0SXXGyuflJr1Rz": {
+      "name": "Pescador de Caranguejos Azarketi",
+      "sourceHash": "94be89593141418a9ef2ef59ae33291c0ba4fc77"
+    },
+    "jVnKsDcWbJ6Oq39O": {
+      "name": "Herexen",
+      "sourceHash": "affccfc943960f1b298b0f86c34596b6c0e43dd6"
+    },
+    "jbBIsCuYTvUqZ12A": {
+      "name": "Rainha Dríade",
+      "sourceHash": "eaaad25a8423f7a766fcf58b07fe94e352645720"
+    },
+    "jvVc3puR5ZHcUO9y": {
+      "name": "Leucodemônio",
+      "sourceHash": "e9fced7663ade72d576bcfdf83055d45314bc41c"
+    },
+    "k3uI6SUcvhlW3zRI": {
+      "name": "Quetz Coatl",
+      "sourceHash": "4e2b0c8c4af371eab9b2276613cf1b4ed425e5a6"
+    },
+    "kF8Wp85n48OEJ6f1": {
+      "name": "Saltador Catfolk",
+      "sourceHash": "238001455fbeb309c68b953cdf8057c65b15f5fd"
+    },
+    "kFKLCheATlNt9jwB": {
+      "name": "Halfling Encrenqueiro",
+      "sourceHash": "6b7d9fd64007de30597f79bf61f9db8d49cbd01d"
+    },
+    "kGP4US3CjfbTRX4U": {
+      "name": "Aesra",
+      "sourceHash": "a1bfc2710f8f87618afb6e1d09bcd7e34d37dcf9"
+    },
+    "kNcL35kDpgUONLzl": {
+      "name": "Smilodonte",
+      "sourceHash": "adcd1b2c14fcccd74be7bc7baa2d0e1184915293"
+    },
+    "kk2DUudQ1bqPI2fw": {
+      "name": "Dragão do Presságio (Ancião, Conjurador)",
+      "sourceHash": "82b4d00800db7a978b2e9d50f052bbcc6ea6451a"
+    },
+    "kwEMtPuJo87OhAGH": {
+      "name": "Dragão Conspirador (Adulto)",
+      "sourceHash": "3b2e181d056f37bc8edd7ba26bb5564c5f2fefa6"
+    },
+    "l4oBAMUasXaBJDBs": {
+      "name": "Pteranodonte",
+      "sourceHash": "4a3190585a7b76351368e604f644ff2b954b6e4f"
+    },
+    "l5BXynpgjCJ1ag70": {
+      "name": "Herexen Maior",
+      "sourceHash": "166a8ffb0fcc2527ebc3f549f2f7a88ecb8a3cae"
+    },
+    "l8b5eVU0S1ektgtt": {
+      "name": "Boneca Vinculada à Alma (Bondosa)",
+      "sourceHash": "9f40e458339915ed756e988832bc8014027a249f"
+    },
+    "lG6wdZ8hKHuGcbnU": {
+      "name": "Enxame de Ratos",
+      "sourceHash": "17812ee8103387ac18710224c00f02bd58ae8c7c"
+    },
+    "lII3EkRrAEUhdB4P": {
+      "name": "Thulgant",
+      "sourceHash": "833b84d9281443e58ee3b13ff727c4509156faee"
+    },
     "lLo4YnL8wrlyvFGM": {
       "name": "Desmanchador Orc",
       "sourceHash": "689779c7370ea4e47eb5fe18465c69e7af284818",
       "description": ""
+    },
+    "lUc6jJKk6BQun6aK": {
+      "name": "Morrigna",
+      "sourceHash": "a13903b6cec96841ca10b713df298c3dfb4b3975"
+    },
+    "lgtchnchQHmOiP91": {
+      "name": "Zoaem",
+      "sourceHash": "64883b03a939279ea9e0fd5041a3503ba620a3e8"
+    },
+    "ljBlCQwesL1z6YCt": {
+      "name": "Dragão da Miragem (Ancião, Conjurador)",
+      "sourceHash": "d94a1a9ab5e264902b66c4288cd4ded3d43b0887"
+    },
+    "m5prVXwVCcBLsJK8": {
+      "name": "Enguia Elétrica",
+      "sourceHash": "fccaacfb5d5820cf39179a851695cfcabbd2e398"
+    },
+    "mFtDsrcpvVoO9RsJ": {
+      "name": "Monte da Calmaria",
+      "sourceHash": "6e9ed04c4e873e48f49ccc7e13b3933d6234731e"
+    },
+    "mHPU5DTOvwo4UQu8": {
+      "name": "Tarântula Gigante",
+      "sourceHash": "a53aebe5f5aa24d7783036ccccdc836ceb701608"
+    },
+    "mI2jJ9sdpzM78sbE": {
+      "name": "Cria das Sombras",
+      "sourceHash": "f4ba02f3946ecd2ce0b01811c0a6a735fc02648a"
+    },
+    "mIRrs60HNUDAVV2e": {
+      "name": "Dragão Diabólico (Ancião)",
+      "sourceHash": "62081d4879c0fd4460999728871fd181c912e943"
+    },
+    "mM4snruuhMjkW7NM": {
+      "name": "Kobold Batedor",
+      "sourceHash": "6e3db7271d9e57621cd89ca4a140885ce1303f71"
+    },
+    "mSo9GrLUkaFLKyqt": {
+      "name": "Cavaleiro da Tumba",
+      "sourceHash": "e812c60fb61e06903db4e953f5c7b6708fe3426d"
+    },
+    "mVZgHSScISIs3qSv": {
+      "name": "Boneca Vinculada à Alma (Calma)",
+      "sourceHash": "e07ca0d6da437dca9626539d5c8265db8df5ac22"
+    },
+    "mX2A6MqqEI0nSXBI": {
+      "name": "Vampiro Estrategista",
+      "sourceHash": "cb0b6133ce653aa19af9edb27d10599444c89234"
+    },
+    "mdrlNEhWguOYkmT5": {
+      "name": "Ofalth Larval",
+      "sourceHash": "c3ba37067e7646cc8d3721520e7a34b3aca2c6bc"
+    },
+    "mf5he5t7S193pVTb": {
+      "name": "Conde Vampiro",
+      "sourceHash": "46dc533d59972047d4d0719bd6f151eaaf5aa7a1"
+    },
+    "mfIoQZO0Pdaa1Vzr": {
+      "name": "Moreia Gigante",
+      "sourceHash": "acd9025b7eeb9fd0551c2922a05ff7b094b3117c"
+    },
+    "msvqBqvwK6pnEJ4e": {
+      "name": "Polvo Gigante",
+      "sourceHash": "4eb4f53c5ce011d70eb465941b08bbb9c2927c08"
+    },
+    "muFaLM2cPdoCIGiL": {
+      "name": "Cauthooj",
+      "sourceHash": "a1a5192e1e771dce2bd7b23e44fb26f03f2054a6"
+    },
+    "myzKkvFKZzlXZiRm": {
+      "name": "Boneca Vinculada à Alma (Corajosa)",
+      "sourceHash": "04f9a4cf774423afcd6a86df54aaa240897b2158"
+    },
+    "n27j69tm8hq3lw8V": {
+      "name": "Basilisco",
+      "sourceHash": "a072a1394d96f5a48ee11f8ee60d5c055198202f"
+    },
+    "n6ycXVTqFQ8JbDh6": {
+      "name": "Devastador de Árvores",
+      "sourceHash": "6041a0448e4e4e2a020bc752395c50dbf28fa2b7"
+    },
+    "nNdbMzGdn4d2uHVt": {
+      "name": "Homem-Urso",
+      "sourceHash": "d5dd4be060fca424c0eff3b22a80ad10898fd4e7"
+    },
+    "nWwFG3ws8riLt8e6": {
+      "name": "Axiomita",
+      "sourceHash": "fa05ce5a1388d4d5ed6b373fb1f94503175b9f04"
+    },
+    "nd7s1j9KBaALVX4j": {
+      "name": "Árvore Desperta",
+      "sourceHash": "6290dcd2b420ccdc5ea8269cae92fdf710185fa3"
+    },
+    "niccVQ6MBLy3nJ0q": {
+      "name": "Grikkitog",
+      "sourceHash": "d32b7d6755953079bf4bb90d8cde97cda3f77edd"
+    },
+    "oBDL9ytXme9BvGJE": {
+      "name": "Poracha",
+      "sourceHash": "672eabdf60d9b0d44a9902e3d088a2bf06f36251"
+    },
+    "oD0jxjfYBZrLh28y": {
+      "name": "Bruxa de Ferro",
+      "sourceHash": "438525e3216c55ba814287d69ebe75aca9ec2fc1"
+    },
+    "oGeUTItsKVegGguy": {
+      "name": "Serpente Marinha",
+      "sourceHash": "b8776290c6218272679929271b967487aaf1ea6a"
+    },
+    "oNJpRaND5Ekk7ePn": {
+      "name": "Megalodonte",
+      "sourceHash": "dcb73257639b17f21df903f4ebc7ea646541ae7a"
+    },
+    "oVsZ6NiHlk7dE7nT": {
+      "name": "Irnakurse",
+      "sourceHash": "4afa2ccb173cb4397761a0606e3d8a374980d67f"
+    },
+    "oWFUhBYWNwpKqoQg": {
+      "name": "Tsunami Elemental",
+      "sourceHash": "016e95bb98e6b6ac83ea6dca7ecf07c82c2be665"
+    },
+    "oqxjGIqv245GTF6z": {
+      "name": "Phade",
+      "sourceHash": "96ca4de8643cb83c62320631ba4a6a94c989949e"
+    },
+    "ordvYbBiJcF216B6": {
+      "name": "Linorme de Gelo",
+      "sourceHash": "417ee9521661a18e8ff93583a4bcd36d96658b60"
+    },
+    "pDCWZXnQhHyyp83Q": {
+      "name": "Orc Comandante",
+      "sourceHash": "5316613e83680030f5bc4aa748421d71530e0027"
+    },
+    "pIJZxwWlDXGMZZvf": {
+      "name": "Amontoado de Sargaço",
+      "sourceHash": "99922a93dd272dd4ffcc3cb26def648e48227773"
+    },
+    "pRh5Y8YwMKSTapLb": {
+      "name": "Papa-Moscas Gigante",
+      "sourceHash": "827ea2646c1a49c2ae357f7b34dc967ddeb30353"
+    },
+    "pS5TvutEltgTohxZ": {
+      "name": "Homem-Tigre",
+      "sourceHash": "706814ff7ad7d226939a15dfeeb1ec27a060ac99"
+    },
+    "pWijaVb8B3g3zN8j": {
+      "name": "Vordine",
+      "sourceHash": "256699108db642551e34232a14b4a63fedc6f698"
+    },
+    "pdLz5MD2mn3vgWSH": {
+      "name": "Oni da Caldeira",
+      "sourceHash": "32b97ac346e3db091520dcb369392267f1da745b"
+    },
+    "phzWvs8rtLKq39Px": {
+      "name": "Falcão Zéfiro",
+      "sourceHash": "21432a5591c33e8cc187f9a40deead9785420629"
+    },
+    "pnZ4EpfRkQhilwtd": {
+      "name": "Dragão da Fortuna (Jovem)",
+      "sourceHash": "bef31edf9ee4d4d50a9fff240e06105e044e087c"
+    },
+    "po5Xh8bomXTXjbXz": {
+      "name": "Víbora Gigante",
+      "sourceHash": "f0f87e4ba7f25c851bc6b10596b81f933a036635"
+    },
+    "q0j24P1HAWLGjrSK": {
+      "name": "Drake do Deserto",
+      "sourceHash": "1c17fa7097f9223a4f6f0a53fdf0bf539369599c"
+    },
+    "q2FK9Z7tBijfHASR": {
+      "name": "Papa-moscas Estalante",
+      "sourceHash": "00ba2e313a4862d9ddad85dfbeafb10daccae6df"
+    },
+    "qIT6l0w1LpBaDFjc": {
+      "name": "Anão Conjurador-de-Pedra",
+      "sourceHash": "468e1d34853a5b3a6f12181d49b12eafe2c76135"
+    },
+    "qLU1fU4Bqe70N1zM": {
+      "name": "Ugothol",
+      "sourceHash": "814441febb48a9d26e9d724832b5b57f885ff665"
+    },
+    "qOPmXjvTmz3ra7jI": {
+      "name": "Gylou",
+      "sourceHash": "75de0b12e201c7e766df8fb6c574f5be8c2d4b7e"
+    },
+    "qQHP22akoXcOdQu3": {
+      "name": "Dragão Diabólico (Jovem)",
+      "sourceHash": "8592bd678ed87b95e50dd9b92bc7c16d6be9c7be"
+    },
+    "qUTxWcmDMqudOTQL": {
+      "name": "Cacodaemon",
+      "sourceHash": "a57aaaae8038113ede1c0ece019e35548ff8e593"
+    },
+    "qh5z2EbOmpD3HgyJ": {
+      "name": "Dragão da Fortuna (Adulto)",
+      "sourceHash": "71e825ad31a8a3af18ef35c2c7411bc5a53bde7f"
+    },
+    "r3gA4t3q1o1mlfQG": {
+      "name": "Avalanche Elemental",
+      "sourceHash": "4e81f16ee4de7bebdec83a470df3bc9f7a622040"
+    },
+    "r3wjYXcdPvb7D9Gh": {
+      "name": "Fênix",
+      "sourceHash": "843001428939037501005ebb88fd566e3f229e9c"
+    },
+    "rDw6tTn6ZQxRAHKq": {
+      "name": "Brimorak",
+      "sourceHash": "ec18d79ba09fde72849600fe421e932aea816a3b"
+    },
+    "rO5JP9rOJde61C5r": {
+      "name": "Profeta de Ossos",
+      "sourceHash": "220d35eef923d07f5df04255a42f421c113ba736"
+    },
+    "rTuqcvg0c85YpWwJ": {
+      "name": "Mãe da Colmeia Ankhrav",
+      "sourceHash": "cd962f144fd9b236394c08d3c7558644d161163b"
+    },
+    "rXievj39CwpzxTOL": {
+      "name": "Krooth",
+      "sourceHash": "e41652dde0a1b48e86f709d5d866e4efcd371413"
+    },
+    "rgFHFbrdH4i8T4MS": {
+      "name": "Boneca Vinculada à Alma (Travessa)",
+      "sourceHash": "1aa01b1d43740f4234dc1916a8c0c1835aa7ea0a"
+    },
+    "rur2mwD4cgMq0UpB": {
+      "name": "Compsognato",
+      "sourceHash": "adbc3fe86601db8ada6e35595ba6430ad0ba24cb"
+    },
+    "s7V1fjmnOUQjybQL": {
+      "name": "Batedor Boggard",
+      "sourceHash": "9fc08d89ddfdb3b0e1ced80fee99622f2e11ca19"
+    },
+    "s9ocZWjqs3qhleIK": {
+      "name": "Guerreiro Xulgath",
+      "sourceHash": "b1a2ca07477571b2142d4aec97b6ae92599e3730"
+    },
+    "sDnB4h5Jbclzp1UY": {
+      "name": "Slurk",
+      "sourceHash": "8a65b8d4f11e4cf28d58dd571833b85525963bf5"
+    },
+    "sKjcHOd37VOCnLxp": {
+      "name": "Dragão da Fortuna (Ancião)",
+      "sourceHash": "430bfbf45f4e5dde09080f0a06ac9c6e237b08e2"
+    },
+    "sOcq85yx6SGUkkdA": {
+      "name": "Dragão Empíreo (Ancião, Conjurador)",
+      "sourceHash": "9395cff943a84e12da13785849e42ac2ad7dd55b"
+    },
+    "sZv0l6ZyUkaHj6g2": {
+      "name": "Fada do Dente",
+      "sourceHash": "f0cba4a1ed16d12358a28ee06ae14b61f89339fe"
+    },
+    "sgNJBKTGAoKa5pSR": {
+      "name": "Nuckelavee",
+      "sourceHash": "3530b4416f9843b2915d0649de025c3751db6307"
+    },
+    "sn1uqf6DwjEsOIfU": {
+      "name": "Jaathoom",
+      "sourceHash": "69da890f7fec65bba6989208e1574f064f6a5633"
+    },
+    "sqaGrcVyEXgnCBcr": {
+      "name": "Balisse",
+      "sourceHash": "9fbece6a8b20e18bb7ec692e7178baeb37744aa0"
+    },
+    "t5xTzrlm7GSptQeM": {
+      "name": "Con Rit",
+      "sourceHash": "fc5c985f237a6f4eaef3e4c09b6cf2ee59f0af47"
+    },
+    "t83NOa4CwrwauggY": {
+      "name": "Jinkin",
+      "sourceHash": "945352286db82af028c987fd09cc5fefdc42e3a1"
+    },
+    "tMWJTGp2fVVlvr5D": {
+      "name": "Rainha Vescavor",
+      "sourceHash": "b606f6f12c55c95d2f073970690ea12713f68e9e"
+    },
+    "tjEbwnyZda5lNsbq": {
+      "name": "Quai Dau To",
+      "sourceHash": "33630a3ab0aa3b020d4bd81d11b9af1a634d54ec"
+    },
+    "tukflcVtKK11w8xB": {
+      "name": "Rato de Cinzas",
+      "sourceHash": "ba3e39ee1f0d63f32c3e6cee096442fc3838cb9f"
+    },
+    "twshfuXsGCzbt7Bo": {
+      "name": "Boneca Vinculada à Alma (Alegre)",
+      "sourceHash": "cf4a483b855087f1fe67f49f823e7152e07764cd"
+    },
+    "uBbQgYYFm3F5ivKf": {
+      "name": "Vilderavn",
+      "sourceHash": "5da5464748e63d470174cfa49c2f37e5f5adb952"
+    },
+    "uFsZaWjvGZyFpojd": {
+      "name": "Hipocampo",
+      "sourceHash": "b91f339709fdd45ccfc0ac6508913917681a5db0"
+    },
+    "uJdKstNq0qmdaPhi": {
+      "name": "Rinoceronte",
+      "sourceHash": "ba0a5ff83238417d10526af61f92c22674074d86"
+    },
+    "uTkryKDXcykZTlGw": {
+      "name": "Hidra",
+      "sourceHash": "34ab6ce9f6786798e24de3ff384b6ed1d3f80993"
+    },
+    "ubZ71F22mnYHZ5Kv": {
+      "name": "Ceifador de Crânios",
+      "sourceHash": "4a5594385a8b6030b0b0f153d88f1e72ed25831a"
+    },
+    "uc2pGQXKzslRjuW9": {
+      "name": "Estátua Animada Gigante",
+      "sourceHash": "ce0931bd8802f90dac47ad4d027f17252f169b14"
+    },
+    "uxDTKkguj1Rch5nN": {
+      "name": "Gosreg",
+      "sourceHash": "9107e0bf0b6764502eafb9e49b5c5599d44576bb"
+    },
+    "v4KeifJYjew0eRlF": {
+      "name": "Fera Fantasma",
+      "sourceHash": "f61a1d261568300fbcd890ca8592c428b637de0e"
+    },
+    "vJZv0kx7jYCwE34N": {
+      "name": "Cavalo Esquelético",
+      "sourceHash": "e81900a67836e7e06e07ed8dad14444e91addf53"
+    },
+    "vLznKcfQxQe7bjeK": {
+      "name": "Deslizamento Vivo",
+      "sourceHash": "88b862a66e18d051757534b3a69deafb3d6a3517"
+    },
+    "vM38KDKj7bUs8vrM": {
+      "name": "Homem-Lagarto Batedor",
+      "sourceHash": "d1a912dda6a82e91d4ff94731cd7b55b04055729"
+    },
+    "vjpMK4tUeJkWx4Mm": {
+      "name": "Dragão Diabólico (Ancião, Conjurador)",
+      "sourceHash": "abbe72b8d7ce3d1fccad20377e48c745d4cfc87c"
+    },
+    "vplWHX0HUBJFzUyP": {
+      "name": "Herbalista Centauro",
+      "sourceHash": "cce29383296fb9843a42564b76d5f663a6e8075d"
+    },
+    "vqzcx2NReg1PYLZ5": {
+      "name": "Dragão Adamantino (Adulto, Conjurador)",
+      "sourceHash": "424d031efea32628e4aedbd857b6eadd834003e8"
+    },
+    "wFq7D9oT3v2KVpis": {
+      "name": "Hobgoblin Soldado",
+      "sourceHash": "b0eab735ccd639228ff344873cafafbc87c54edb"
+    },
+    "wGFtQLaCJfd045Bl": {
+      "name": "Daeodon",
+      "sourceHash": "cc55c3cb057460629444755b53adb8fa9bb205cd"
+    },
+    "wNYAvvilJWIZplgU": {
+      "name": "Tiranossauro",
+      "sourceHash": "c41bb5e101185f3a12c89226ef13e4e9d6465672"
+    },
+    "wRJ21qxYm9JghxqY": {
+      "name": "Dragão Conspirador (Jovem)",
+      "sourceHash": "1b38147c6306f1d510cb630e1f7ad79e45fc79c8"
+    },
+    "wWSVgATxMUwm7NuR": {
+      "name": "Mantícora (Cauda de Espinhos)",
+      "sourceHash": "8523c28fcfa8d8ee33d237b56ee5b05abb880dc4"
+    },
+    "wYsNBte6LrP6Ism3": {
+      "name": "Serpentino Zyss",
+      "sourceHash": "69311c8f95c78d8ba4bd29208143cca70bb9e67a"
+    },
+    "wZndc0TEtyEAeHCO": {
+      "name": "Cachoeira Viva",
+      "sourceHash": "c753c1fb8341bd8699ffdbf06523200b1ed3e3a6"
+    },
+    "whlCKEwSCol2zAzG": {
+      "name": "Lobisomem",
+      "sourceHash": "5386f6d281c0037fff8460257ef02fd71afee49b"
+    },
+    "wt0ZcgkthniorDkv": {
+      "name": "Jah-Tohl",
+      "sourceHash": "a763bafdae682d7c534dc5f44723ced34e66eeb1"
+    },
+    "x2m9bGrWoPCjWwMq": {
+      "name": "Fogo Selvagem Vivo",
+      "sourceHash": "61a70bce30b9251c67aeb9f76b5542164b7f2413"
+    },
+    "x5BOngIDLBxwiGu6": {
+      "name": "Quetzalcoatlus",
+      "sourceHash": "19fa043e4aa0dc1c0720b6888cfbd09032b06471"
+    },
+    "x68XhyNPHhDRE1nM": {
+      "name": "Homúnculo",
+      "sourceHash": "249ae86ba98d1bd2ba7e2030f6fd738f93d9c1ea"
+    },
+    "xJd1duqTjZCVewNn": {
+      "name": "Dragão da Miragem (Ancião)",
+      "sourceHash": "41f6aa91037e47b0984bd03ecf4cf3ae0d8fe7d1"
+    },
+    "xP6Wu3G0id5dw5Y1": {
+      "name": "Chupacabra Alado",
+      "sourceHash": "b5f2c67b3e3496ff031ab9ce3a83b10c4914896e"
+    },
+    "xU8I8HwaRrCDy5TC": {
+      "name": "Morte Menor",
+      "sourceHash": "1c7e8c92fbaf84141c09a679e343263e725d1d51"
+    },
+    "xcIxh1zQN8srBRXE": {
+      "name": "Louva-a-Deus Gigante",
+      "sourceHash": "2b8e3b39ffb6c6a2b3d6e974b11dbe2cbadbd0b4"
+    },
+    "xs0phOv3Q0vGKFxH": {
+      "name": "Grindylow",
+      "sourceHash": "9cb4663f629cf0d3994ee4a460bd48310a146c44"
+    },
+    "y0T9tmxp5cVidMl1": {
+      "name": "Enxame de Morcegos Vampiro",
+      "sourceHash": "402ee9c9d295466cf2e3ac1506224a771aae364a"
+    },
+    "yx35Tsuqwat8PKNZ": {
+      "name": "Pleroma",
+      "sourceHash": "69d32ee2608da57cff664e3ea7cc17d663b05ebf"
+    },
+    "yxCDVWhvfMbgcpq3": {
+      "name": "Anquilossauro",
+      "sourceHash": "f035474b4aecec53288575386f95b231f7b2e481"
+    },
+    "zLy4I3SrINcoFltM": {
+      "name": "Cão do Inferno Maior",
+      "sourceHash": "0469cca3cd802cc72bcb44a717e44660672b967a"
+    },
+    "zRG2FAOUF9dBWbut": {
+      "name": "Omox",
+      "sourceHash": "7b531ff3e14a8184a7c3be9f6fadd536664e40f6"
+    },
+    "zcBbTXn8CJApk5nY": {
+      "name": "Alce",
+      "sourceHash": "97fc47ae69cfb6eda1a80ae2415f6a2cacd38f5f"
+    },
+    "zhCk01iyg3CYBf50": {
+      "name": "Cão-Goblin",
+      "sourceHash": "ba9869f5ba758c3ac217965d6ffb3c567bd4d162"
     }
   }
 }

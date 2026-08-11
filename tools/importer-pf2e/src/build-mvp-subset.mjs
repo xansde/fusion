@@ -1057,23 +1057,15 @@ const MVP_EQUIPMENT_PF2E_IDS = new Set([
   "UlIxxLm71UdRgCFE", // Flint and Steel — equipment
 ]);
 
-/** pf2eSourceIds dos monstros selecionados para o MVP. */
-const MVP_MONSTER_PF2E_IDS = new Set([
-  // Level -1 (starter encounters)
-  "trchDxbDR2TiPMxT", // Skeleton Guard
-  "fLLKuOXwPq1Iq0U4", // Goblin Warrior
-  "KHTYbQgR5hnFZdGL", // Guard Dog
-  "BIZfjoz8DZt75EDn", // Kobold Warrior
-  "iIJPJcDT8wlJ8z5M", // Giant Rat
-  "Xo4IGzw28hivgMmM", // Zombie Shambler
-  "WBPEvEqIGvxeQKlp", // Eagle
-  // Level 0
-  "YReM6QbqwUz3UTP7", // Orc Scrapper
-  "v1UK3IwCB8wCbL3L", // Leaf Leshy
-  "Ytp0kRaG8iexmPfN", // Hryngar Sharpshooter
-  // Level 1+
-  // (add a few more interesting ones from L1-3)
-]);
+// r28/A2: a lista fixa de 10 ids (MVP_MONSTER_PF2E_IDS) foi removida — o pack
+// bestiary-core agora publica o pathfinder-monster-core inteiro (492 docs,
+// filtro só por type "npc", sem curadoria por id). Histórico dos 10 ids
+// originais: trchDxbDR2TiPMxT (Skeleton Guard), fLLKuOXwPq1Iq0U4 (Goblin
+// Warrior), KHTYbQgR5hnFZdGL (Guard Dog), BIZfjoz8DZt75EDn (Kobold Warrior),
+// iIJPJcDT8wlJ8z5M (Giant Rat), Xo4IGzw28hivgMmM (Zombie Shambler),
+// WBPEvEqIGvxeQKlp (Eagle), YReM6QbqwUz3UTP7 (Orc Scrapper), v1UK3IwCB8wCbL3L
+// (Leaf Leshy), Ytp0kRaG8iexmPfN (Hryngar Sharpshooter) — todos incluídos no
+// pack completo, nenhum perdido.
 
 // ---------------------------------------------------------------------------
 // R10-B (DEC-R10-06) — Magus builder MVP subset selection.
@@ -1826,25 +1818,14 @@ async function buildPf2eSubset() {
   // --- 3. Core Bestiary (~10 monstros) ---
   {
     console.log("[build-mvp] === Pack: bestiary-core ===");
+    // r28/A2: TODO o pathfinder-monster-core entra no pack (492 docs, licença
+    // ORC), sem curadoria por id — o pack "core" completo do livro, no mesmo
+    // espírito de familiar-abilities-core/ancestry-features-core (pack
+    // inteiro, sem lista fixa). Antes desta rodada eram só 10 hand-picked
+    // (ver histórico logo acima de MVP_WEAPON_PF2E_IDS/MVP_SPELL_PF2E_IDS —
+    // a lista removida documentava os 10 ids, todos incluídos aqui também).
     const all = loadTransformed("pathfinder-monster-core");
-    const monsters = all.filter((d) => d.type === "npc");
-    const curated = filterToMvpSubset(monsters, MVP_MONSTER_PF2E_IDS);
-
-    // Supplement with additional L1-3 ORC monsters to reach ~10 total
-    const alreadySelected = new Set(curated.map((d) => d._id));
-    const supplemental = monsters
-      .filter((m) => !alreadySelected.has(m._id))
-      .filter((m) => {
-        const level = m.system?.details?.level?.value ?? 0;
-        const pub = m.system?.details?.publication?.license;
-        return pub === "ORC" && level >= 1 && level <= 3;
-      })
-      .sort(
-        (a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0),
-      )
-      .slice(0, Math.max(0, 10 - curated.length));
-
-    const docs = [...curated, ...supplemental];
+    const docs = all.filter((d) => d.type === "npc");
     console.log(`[build-mvp] bestiary-core: ${docs.length} monstros selecionados`);
 
     const manifest = PACK_MANIFESTS["bestiary-core"];
