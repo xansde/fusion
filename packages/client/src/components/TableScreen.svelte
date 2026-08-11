@@ -56,6 +56,14 @@
   import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
   import SceneImagesPanel from "./scenes/SceneImagesPanel.svelte";
   import { TileLayer } from "../lib/canvas/TileLayer.js";
+  import { NoteLayer } from "../lib/canvas/NoteLayer.js";
+  import {
+    isMapDemoRequested,
+    createDemoRegion,
+    revealAllPins,
+    listNonGmUserIds,
+    type RevealState,
+  } from "../lib/canvas/mapDemo.js";
   import { resolveAssetUrl } from "../lib/assets/assetApi.js";
   import { fusionApi } from "../lib/api.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
@@ -203,6 +211,76 @@
 
   /** True when the logged-in user is the GM (role 4). */
   const isGm = $derived(() => (session.user?.role ?? 0) === 4);
+
+  // ---- SCAFFOLDING: region-map demo (see lib/canvas/mapDemo.ts) ----
+
+  const mapDemoOn = isMapDemoRequested(window.location.search);
+  let mapDemoBusy = $state(false);
+  let demoSceneId = $state<string | null>(null);
+  /** Cycles none → rumour → known → none, one click at a time. */
+  let demoReveal = $state<RevealState>("none");
+
+  const REVEAL_CYCLE: Record<RevealState, RevealState> = {
+    none: "rumour",
+    rumour: "known",
+    known: "none",
+  };
+  const REVEAL_LABEL: Record<RevealState, string> = {
+    none: "oculto",
+    rumour: "boato",
+    known: "conhecido",
+  };
+
+  const demoSceneIsActive = $derived(
+    demoSceneId !== null && activeSceneState.scene?._id === demoSceneId,
+  );
+  const demoRevealLabel = $derived(REVEAL_LABEL[REVEAL_CYCLE[demoReveal]]);
+
+  async function handleDemoRegion(): Promise<void> {
+    const sock = getSocket();
+    if (!sock) return;
+    mapDemoBusy = true;
+    try {
+      demoSceneId = await createDemoRegion(sock);
+      demoReveal = "none";
+      console.info("[mapDemo] região criada:", demoSceneId, "— ative-a na aba Cenas");
+    } catch (err) {
+      console.error("[mapDemo] falhou ao criar a região:", err);
+    } finally {
+      mapDemoBusy = false;
+    }
+  }
+
+  /**
+   * Move every player one step along the reveal ladder, on every pin.
+   *
+   * The GM's own client will not change — they always saw the authored pins.
+   * The point is the OTHER window: a player watching the same scene sees the
+   * pins appear as "?", then gain their names, then vanish again.
+   */
+  async function handleDemoReveal(): Promise<void> {
+    const sock = getSocket();
+    const scene = activeSceneState.scene;
+    if (!sock || !scene || demoSceneId === null) return;
+    const noteIds = (scene.notes ?? []).map((note) => note._id);
+    const players = listNonGmUserIds(worldMirror);
+    if (players.length === 0) {
+      console.warn("[mapDemo] nenhum jogador conectado para revelar");
+      return;
+    }
+    const next = REVEAL_CYCLE[demoReveal];
+    mapDemoBusy = true;
+    try {
+      for (const userId of players) {
+        await revealAllPins(sock, demoSceneId, noteIds, userId, next);
+      }
+      demoReveal = next;
+    } catch (err) {
+      console.error("[mapDemo] falhou ao revelar:", err);
+    } finally {
+      mapDemoBusy = false;
+    }
+  }
 
   // ---- Tactical minimap wiring (spec 32) ----
 
@@ -718,6 +796,16 @@
       return resolveAssetUrl(path, accessToken, tileUserId);
     });
 
+    // --- Notes (the pins of a region map) ---
+    // Drawn in the InterfaceGroup's `controls` layer: a pin is interface, not
+    // scenery, and DEC-MREG-04 wants it at a fixed screen size under any zoom.
+    // Players never receive a pin they are `none` on, and a rumour arrives
+    // already stripped — this layer draws what it is handed.
+    const noteLayer = new NoteLayer(canvas.getLayer("controls"), {
+      userId,
+      role: session.user?.role ?? 0,
+    });
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -728,6 +816,7 @@
       fogState,
       combatController,
       tileLayer,
+      noteLayer,
     });
   }
 
@@ -961,6 +1050,21 @@
       >
         {t("FUSION.Scene.Calibrate.Open")}
       </button>
+    {/if}
+
+    <!-- SCAFFOLDING — remove with mapDemo.ts, when the region-map tools land
+         (REQ-MREG-001/006/007: new-region preset, click-to-place, reveal menu).
+         Until they exist this is the only gesture that puts a pin on screen,
+         and a layer nobody can look at is a layer nobody reviews. -->
+    {#if isGm() && mapDemoOn}
+      <button class="btn btn--ghost btn--sm" onclick={handleDemoRegion} disabled={mapDemoBusy}>
+        {mapDemoBusy ? "criando…" : "◇ região demo"}
+      </button>
+      {#if demoSceneIsActive}
+        <button class="btn btn--ghost btn--sm" onclick={handleDemoReveal} disabled={mapDemoBusy}>
+          ◈ revelar: {demoRevealLabel}
+        </button>
+      {/if}
     {/if}
 
     <!-- Logout -->
