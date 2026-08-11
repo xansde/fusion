@@ -1196,19 +1196,20 @@ describe("findAdoptableItem vs a paid build slot (issue #15)", () => {
 // feats-srd:Vindicator Dedication) and the Barbarian's "Bloodrager" instinct
 // (-> feats-srd:Bloodrager Dedication) — see issue #16.
 //
-// Two other groups of `target-not-found` are DELIBERATELY left unresolved
-// (out of this issue's scope, per the issue text): the Cleric's "Battle
-// Creed" chain (8 targets, "the already known hole") and 6 equipment items
-// granted by ancestry/general feats (Clan Dagger, Clan Pistol, Head Gem,
-// Pilgrim's Token, plus Lucky Keepsake and Orc Warmask — newly surfaced by
-// this census because issue #1 added the Leshy/Orc ancestries and their
-// feats after issue #16 was filed) that the vendor files under a pack
-// Fusion doesn't curate equipment from at that granularity — a candidate
-// for its own follow-up issue, not fixed here. "Scare to Death" —
-// originally a 7th equipment-adjacent gap — resolves as a side effect of
-// issue #24 (it's a level-15 skill feat) and is asserted explicitly below.
-// The regression guard pins the exact remaining set so a future fix (or an
-// accidental regression) is caught either way.
+// One other group of `target-not-found` is DELIBERATELY left unresolved (out
+// of this issue's scope, per the issue text): the Cleric's "Battle Creed"
+// chain (8 targets, "the already known hole"). "Scare to Death" — originally
+// a 7th equipment-adjacent gap — resolves as a side effect of issue #24 (it's
+// a level-15 skill feat) and is asserted explicitly below.
+//
+// r28-A5 (equipment-core expansion, 18 -> 250 docs) closed the OTHER group
+// this comment used to describe: the 7 equipment items granted by
+// ancestry/general feats (Clan Dagger, Clan Pistol, Head Gem, Lucky Keepsake,
+// Orc Warmask, Pilgrim's Token, Tengu Feather Fan) — the vendor pack Fusion
+// didn't curate equipment from at that granularity now does, via
+// EQUIPMENT_CORE_GRANT_TARGET_IDS in tools/importer-pf2e/src/build-mvp-subset.mjs.
+// The regression guard below pins the exact remaining set so a future fix (or
+// an accidental regression) is caught either way.
 // ---------------------------------------------------------------------------
 
 describe("issue #16: every declared grant across the 14 real packs resolves (or is a documented pre-existing gap)", () => {
@@ -1342,18 +1343,9 @@ describe("issue #16: every declared grant across the 14 real packs resolves (or 
       "True Creed",
       "Final Creed",
       "Battle Harbinger Dedication",
-      // Equipment items granted by ancestry/general feats — out of scope here (no equipment
-      // pack curates these vendor items at this granularity). Lucky Keepsake (Leshy) and Orc
-      // Warmask (Orc) are newly surfaced by this census (issue #1 landed after #16 was filed).
-      "Clan Dagger",
-      "Clan Pistol",
-      "Head Gem",
-      "Lucky Keepsake",
-      "Orc Warmask",
-      "Pilgrim's Token",
-      // r27: same equipment-grant shape, surfaced by the Player Core 2 ancestry
-      // feat census (a Tengu feat grants this vendor equipment item).
-      "Tengu Feather Fan",
+      // r28-A5 closed the equipment-grant gap that used to be listed here
+      // (Clan Dagger, Clan Pistol, Head Gem, Lucky Keepsake, Orc Warmask,
+      // Pilgrim's Token, Tengu Feather Fan) — all 7 are now in equipment-core.
     ].sort();
     expect(notFound.map((f) => f.name).sort()).toEqual(expectedRemainingGap);
   });

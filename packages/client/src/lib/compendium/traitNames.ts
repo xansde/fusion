@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (238 traits).
+ * Trait slug → pt-BR chip label (243 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -22,6 +22,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   agile: "ágil",
   air: "ar",
   aiuvarin: "aiuvarin",
+  alchemical: "alquimico",
   alchemist: "alquimista",
   amp: "amplificação",
   anadi: "anadi",
@@ -53,6 +54,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   cleric: "clérigo",
   cold: "frio",
   commander: "comandante",
+  companion: "companheiro",
   composite: "composto",
   composition: "composição",
   concealable: "ocultável",
@@ -87,6 +89,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   eidolon: "eidolon",
   electricity: "eletricidade",
   elf: "elfo",
+  elixir: "elixir",
   emotion: "emoção",
   esoterica: "esotérica",
   evil: "maligno",
@@ -174,6 +177,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   polymorph: "transmutação",
   poppet: "marionete",
   potion: "poção",
+  precious: "precioso",
   prediction: "previsão",
   press: "pressão",
   primal: "primal",
@@ -244,6 +248,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   undine: "ondina",
   unholy: "profano",
   unstable: "instável",
+  "versatile-b": "versatil-b",
   "versatile-p": "versátil-p",
   "versatile-s": "versátil-c",
   visual: "visual",

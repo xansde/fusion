@@ -63,7 +63,7 @@
     {
       "packId": "pf2e.equipment-core",
       "slug": "equipment-core",
-      "documentCount": 18
+      "documentCount": 250
     },
     {
       "packId": "pf2e.ancestry-features-core",
@@ -71,7 +71,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-11T00:53:10.248Z",
+  "generatedAt": "2026-08-11T04:49:26.639Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

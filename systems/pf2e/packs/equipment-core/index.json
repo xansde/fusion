@@ -1,5 +1,195 @@
 [
   {
+    "_id": "8xSE4lRBd4VWYkKo",
+    "uuid": "Compendium.pf2e.equipment-core.Item.8xSE4lRBd4VWYkKo",
+    "name": "Absolute Solvent (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Absolute Solvent (Lesser)",
+      "system.level": 5,
+      "system.traits.value": [
+        "alchemical",
+        "consumable"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "QSVIv5obLhKkmy67"
+    }
+  },
+  {
+    "_id": "Shsukhy7NEWACqk2",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Shsukhy7NEWACqk2",
+    "name": "Adamantine Chunk",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Adamantine Chunk",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Zo5MZWVBKssVPEcv"
+    }
+  },
+  {
+    "_id": "Kd4LgLAPExzrsM75",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Kd4LgLAPExzrsM75",
+    "name": "Adamantine Ingot",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Adamantine Ingot",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "8WH6ub3FVFYtcXCT"
+    }
+  },
+  {
+    "_id": "XY9X9UkJ4gUkXf7P",
+    "uuid": "Compendium.pf2e.equipment-core.Item.XY9X9UkJ4gUkXf7P",
+    "name": "Alacritous Horseshoes",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Alacritous Horseshoes",
+      "system.level": 7,
+      "system.traits.value": [
+        "companion",
+        "invested",
+        "primal"
+      ],
+      "system.usage": "wornhorseshoes",
+      "flags.fusion.sourceId": "peoheZMxdPHUNo93"
+    }
+  },
+  {
+    "_id": "ZdBYbMxkjHje59B4",
+    "uuid": "Compendium.pf2e.equipment-core.Item.ZdBYbMxkjHje59B4",
+    "name": "Alchemist's Lab",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Alchemist's Lab",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "k6xZkDUpF7E1Totd"
+    }
+  },
+  {
+    "_id": "HZBm5G8XhuhgDFMG",
+    "uuid": "Compendium.pf2e.equipment-core.Item.HZBm5G8XhuhgDFMG",
+    "name": "Alchemist's Lab (Expanded)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Alchemist's Lab (Expanded)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "uhka9LHEP3wDKytG"
+    }
+  },
+  {
+    "_id": "7ZkMkqcHLy4sASr4",
+    "uuid": "Compendium.pf2e.equipment-core.Item.7ZkMkqcHLy4sASr4",
+    "name": "Alchemist's Toolkit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Alchemist's Toolkit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "4ftXXUCBHcf4b0MH"
+    }
+  },
+  {
+    "_id": "feOji3qwm0kkTrdL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.feOji3qwm0kkTrdL",
+    "name": "Antidote (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Antidote (Lesser)",
+      "system.level": 1,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "ktjFOp3U0wQD9t0Z"
+    }
+  },
+  {
+    "_id": "nGMSCgsKAFr22gGW",
+    "uuid": "Compendium.pf2e.equipment-core.Item.nGMSCgsKAFr22gGW",
+    "name": "Antidote (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Antidote (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "AJ1dC7EtTIfBey0M"
+    }
+  },
+  {
+    "_id": "W4BYcbAiFosauAP7",
+    "uuid": "Compendium.pf2e.equipment-core.Item.W4BYcbAiFosauAP7",
+    "name": "Antiplague (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Antiplague (Lesser)",
+      "system.level": 1,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "UqinuuCWePTYGhVO"
+    }
+  },
+  {
+    "_id": "nrF8XAy7UZupDRdU",
+    "uuid": "Compendium.pf2e.equipment-core.Item.nrF8XAy7UZupDRdU",
+    "name": "Antiplague (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Antiplague (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "biRbqKo2C97XLfQ0"
+    }
+  },
+  {
     "_id": "feTezAwAv03uzsH0",
     "uuid": "Compendium.pf2e.equipment-core.Item.feTezAwAv03uzsH0",
     "name": "Antivenom Potion",
@@ -19,6 +209,79 @@
     }
   },
   {
+    "_id": "PQGTHuHSPdU8IUQZ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.PQGTHuHSPdU8IUQZ",
+    "name": "Arboreal Boots",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Arboreal Boots",
+      "system.level": 5,
+      "system.traits.value": [
+        "invested",
+        "primal"
+      ],
+      "system.usage": "wornshoes",
+      "flags.fusion.sourceId": "amJW9azNUSJLmWGP"
+    }
+  },
+  {
+    "_id": "vMLvm8q6MxcATfOr",
+    "uuid": "Compendium.pf2e.equipment-core.Item.vMLvm8q6MxcATfOr",
+    "name": "Artisan's Toolkit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Artisan's Toolkit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "y34yjumCFakrbtdw"
+    }
+  },
+  {
+    "_id": "CgZiIZyh1vYZyKH7",
+    "uuid": "Compendium.pf2e.equipment-core.Item.CgZiIZyh1vYZyKH7",
+    "name": "Artisan's Toolkit (Sterling)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Artisan's Toolkit (Sterling)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "0QgniSjpzksm5riV"
+    }
+  },
+  {
+    "_id": "YBKewBU8l3WV0bna",
+    "uuid": "Compendium.pf2e.equipment-core.Item.YBKewBU8l3WV0bna",
+    "name": "Backpack",
+    "img": "icons/placeholder/item.svg",
+    "type": "container",
+    "index": {
+      "name": "Backpack",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "wornbackpack",
+      "flags.fusion.sourceId": "3lgwjrFEsQVKzhh7"
+    }
+  },
+  {
+    "_id": "5KMPnNq4c4zQDsdu",
+    "uuid": "Compendium.pf2e.equipment-core.Item.5KMPnNq4c4zQDsdu",
+    "name": "Basic Crafter's Book",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Basic Crafter's Book",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "w4Hd6nunVVqw3GWj"
+    }
+  },
+  {
     "_id": "JdLG5ZTQO3VGjAVL",
     "uuid": "Compendium.pf2e.equipment-core.Item.JdLG5ZTQO3VGjAVL",
     "name": "Bedroll",
@@ -30,6 +293,63 @@
       "system.traits.value": [],
       "system.usage": "other",
       "flags.fusion.sourceId": "fagzYdmfYyMQ6J77"
+    }
+  },
+  {
+    "_id": "yaNnQy4RPbBXwNgJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.yaNnQy4RPbBXwNgJ",
+    "name": "Bloodseeker Beak",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bloodseeker Beak",
+      "system.level": 4,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "k6D64EAjcKMf8NZB"
+    }
+  },
+  {
+    "_id": "fg4hEVQmULPTvMdz",
+    "uuid": "Compendium.pf2e.equipment-core.Item.fg4hEVQmULPTvMdz",
+    "name": "Bloodseeker Beak (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bloodseeker Beak (Greater)",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "oTRUHPASPD4USU4o"
+    }
+  },
+  {
+    "_id": "Gsvvf1pWxh5NkQFo",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Gsvvf1pWxh5NkQFo",
+    "name": "Bomber's Eye Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bomber's Eye Elixir (Lesser)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "T4ouD4mVFHA3EHs6"
     }
   },
   {
@@ -50,6 +370,127 @@
     }
   },
   {
+    "_id": "CwaRYUYpG9b2cXQi",
+    "uuid": "Compendium.pf2e.equipment-core.Item.CwaRYUYpG9b2cXQi",
+    "name": "Bottled Catharsis (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bottled Catharsis (Lesser)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "8KbayiwrUJtvif0a"
+    }
+  },
+  {
+    "_id": "gXYZSaJVpqci8iqi",
+    "uuid": "Compendium.pf2e.equipment-core.Item.gXYZSaJVpqci8iqi",
+    "name": "Bottled Catharsis (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bottled Catharsis (Moderate)",
+      "system.level": 8,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "XfcSVHwMA60JxUXJ"
+    }
+  },
+  {
+    "_id": "YQK0ftgQSr9KDhi0",
+    "uuid": "Compendium.pf2e.equipment-core.Item.YQK0ftgQSr9KDhi0",
+    "name": "Brass Ear",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Brass Ear",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "M91ye9B7IdxDIDsS"
+    }
+  },
+  {
+    "_id": "7GLqe8a7hxmlT1gJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.7GLqe8a7hxmlT1gJ",
+    "name": "Bravo's Brew (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bravo's Brew (Lesser)",
+      "system.level": 2,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "mental"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "zM9VX3QwM81DzDUA"
+    }
+  },
+  {
+    "_id": "MjGMS3Nba47CE88F",
+    "uuid": "Compendium.pf2e.equipment-core.Item.MjGMS3Nba47CE88F",
+    "name": "Bronze Bull Pendant",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Bronze Bull Pendant",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "nXStoLxPrrP2b6WB"
+    }
+  },
+  {
+    "_id": "pFHwREy2XmIZwHnj",
+    "uuid": "Compendium.pf2e.equipment-core.Item.pFHwREy2XmIZwHnj",
+    "name": "Caltrops",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Caltrops",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "7fSnvJ2xoSfa6JXD"
+    }
+  },
+  {
+    "_id": "CICfYN2cavZ5CWpL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.CICfYN2cavZ5CWpL",
+    "name": "Cane",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Cane",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "3ZHl40YXlI47uIrT"
+    }
+  },
+  {
     "_id": "W4dClGQV1PEpaJ4B",
     "uuid": "Compendium.pf2e.equipment-core.Item.W4dClGQV1PEpaJ4B",
     "name": "Cantrip Deck (Full Pack)",
@@ -67,6 +508,899 @@
     }
   },
   {
+    "_id": "vUpeN3SmiZM17O0y",
+    "uuid": "Compendium.pf2e.equipment-core.Item.vUpeN3SmiZM17O0y",
+    "name": "Cat's Eye Elixir",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Cat's Eye Elixir",
+      "system.level": 2,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "bQPRKEpnLakJBAAh"
+    }
+  },
+  {
+    "_id": "uaidNlqnVRPrx3TO",
+    "uuid": "Compendium.pf2e.equipment-core.Item.uaidNlqnVRPrx3TO",
+    "name": "Chain (10 feet)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Chain (10 feet)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "V78itAtTHI4ugy0P"
+    }
+  },
+  {
+    "_id": "qTHvRpJTknLMxQQm",
+    "uuid": "Compendium.pf2e.equipment-core.Item.qTHvRpJTknLMxQQm",
+    "name": "Chair Storage",
+    "img": "icons/placeholder/item.svg",
+    "type": "container",
+    "index": {
+      "name": "Chair Storage",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "HgS4FYX0itxQvwub"
+    }
+  },
+  {
+    "_id": "PGDTFomX5iR7zlLw",
+    "uuid": "Compendium.pf2e.equipment-core.Item.PGDTFomX5iR7zlLw",
+    "name": "Cheetah's Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Cheetah's Elixir (Lesser)",
+      "system.level": 1,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "tyt6rFtv32MZ4DT9"
+    }
+  },
+  {
+    "_id": "wDZKNw4aF8ySv72t",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wDZKNw4aF8ySv72t",
+    "name": "Cheetah's Elixir (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Cheetah's Elixir (Moderate)",
+      "system.level": 5,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "AqLxu3ir4UGzdOaz"
+    }
+  },
+  {
+    "_id": "JEzkzEBYHKClLg8e",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JEzkzEBYHKClLg8e",
+    "name": "Chest",
+    "img": "icons/placeholder/item.svg",
+    "type": "container",
+    "index": {
+      "name": "Chest",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "OdVDPN9vIpu3Zud3"
+    }
+  },
+  {
+    "_id": "4Ptof3qPxh5Uzpmp",
+    "uuid": "Compendium.pf2e.equipment-core.Item.4Ptof3qPxh5Uzpmp",
+    "name": "Clan Dagger",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "name": "Clan Dagger",
+      "system.level": 0,
+      "system.traits.value": [
+        "agile",
+        "dwarf",
+        "parry",
+        "versatile-b"
+      ],
+      "system.category": "simple",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "kJJvKm80KwWXPukV"
+    }
+  },
+  {
+    "_id": "wOWFea97E1o7Heug",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wOWFea97E1o7Heug",
+    "name": "Clan Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "name": "Clan Pistol",
+      "system.level": 0,
+      "system.traits.value": [
+        "concussive",
+        "dwarf",
+        "fatal-d10"
+      ],
+      "system.category": "martial",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "BtncTx8EfxTsHqQI"
+    }
+  },
+  {
+    "_id": "XpCgvPXe7uIPRJ7U",
+    "uuid": "Compendium.pf2e.equipment-core.Item.XpCgvPXe7uIPRJ7U",
+    "name": "Clawed Bracers",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Clawed Bracers",
+      "system.level": 7,
+      "system.traits.value": [
+        "invested",
+        "primal"
+      ],
+      "system.usage": "wornbracers",
+      "flags.fusion.sourceId": "fVOObByW6XHADQ2J"
+    }
+  },
+  {
+    "_id": "Se8eH7ftdHisVOK3",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Se8eH7ftdHisVOK3",
+    "name": "Climbing Kit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Climbing Kit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "9UJbMaglf35GVzaZ"
+    }
+  },
+  {
+    "_id": "yixiGETIvCfEk0ZL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.yixiGETIvCfEk0ZL",
+    "name": "Climbing Kit (Extreme)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Climbing Kit (Extreme)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "TWv2EeDJaCjtmGUN"
+    }
+  },
+  {
+    "_id": "ccYkpueEGK2MRNj1",
+    "uuid": "Compendium.pf2e.equipment-core.Item.ccYkpueEGK2MRNj1",
+    "name": "Cloak of Illusions",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Cloak of Illusions",
+      "system.level": 7,
+      "system.traits.value": [
+        "invested",
+        "occult"
+      ],
+      "system.usage": "worncloak",
+      "flags.fusion.sourceId": "0HvjITehMdaFYUkb"
+    }
+  },
+  {
+    "_id": "jaEQFTL6Z4457USg",
+    "uuid": "Compendium.pf2e.equipment-core.Item.jaEQFTL6Z4457USg",
+    "name": "Clothing (Cold-Weather)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Clothing (Cold-Weather)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "SLQgdLk5K9JV4ACF"
+    }
+  },
+  {
+    "_id": "Dc2bdtk6YyhVghTe",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Dc2bdtk6YyhVghTe",
+    "name": "Clothing (Fine)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Clothing (Fine)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "jJZbdMHMdh8UL2j8"
+    }
+  },
+  {
+    "_id": "yzPP1t42ut8wA51i",
+    "uuid": "Compendium.pf2e.equipment-core.Item.yzPP1t42ut8wA51i",
+    "name": "Clothing (High-Fashion Fine)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Clothing (High-Fashion Fine)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "rXZxM7SbqEnvXyal"
+    }
+  },
+  {
+    "_id": "LozZOTtjsILuARtR",
+    "uuid": "Compendium.pf2e.equipment-core.Item.LozZOTtjsILuARtR",
+    "name": "Clothing (Ordinary)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Clothing (Ordinary)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "ilbLQNy6TbBPW7sQ"
+    }
+  },
+  {
+    "_id": "HpGnmffNvNNQtm9x",
+    "uuid": "Compendium.pf2e.equipment-core.Item.HpGnmffNvNNQtm9x",
+    "name": "Cold Iron Chunk",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Cold Iron Chunk",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "rEz9WYhlx2Pm0gKk"
+    }
+  },
+  {
+    "_id": "hC86GvKWEkS4vZM8",
+    "uuid": "Compendium.pf2e.equipment-core.Item.hC86GvKWEkS4vZM8",
+    "name": "Cold Iron Ingot",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Cold Iron Ingot",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "eQjibJl41aQpQ47d"
+    }
+  },
+  {
+    "_id": "c6xToBykSRAPYSn4",
+    "uuid": "Compendium.pf2e.equipment-core.Item.c6xToBykSRAPYSn4",
+    "name": "Collar of Inconspicuousness",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Collar of Inconspicuousness",
+      "system.level": 8,
+      "system.traits.value": [
+        "companion",
+        "invested",
+        "primal"
+      ],
+      "system.usage": "worncollar",
+      "flags.fusion.sourceId": "Rsoh0Y3RQD8x8ito"
+    }
+  },
+  {
+    "_id": "JitICOqkuqBhMfVt",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JitICOqkuqBhMfVt",
+    "name": "Compass",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Compass",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "wob6DB1FFdWs0mbp"
+    }
+  },
+  {
+    "_id": "jUs6nLCXjvAvZAJ2",
+    "uuid": "Compendium.pf2e.equipment-core.Item.jUs6nLCXjvAvZAJ2",
+    "name": "Compass (Lensatic)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Compass (Lensatic)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "xVhd8NF9KQ6VWfMu"
+    }
+  },
+  {
+    "_id": "BhyviZ77v9Yb2yna",
+    "uuid": "Compendium.pf2e.equipment-core.Item.BhyviZ77v9Yb2yna",
+    "name": "Comprehension Elixir (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Comprehension Elixir (Greater)",
+      "system.level": 7,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "mental"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "OcBPjVplvy2GbQ8P"
+    }
+  },
+  {
+    "_id": "SItevgm6edRWbzrT",
+    "uuid": "Compendium.pf2e.equipment-core.Item.SItevgm6edRWbzrT",
+    "name": "Comprehension Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Comprehension Elixir (Lesser)",
+      "system.level": 2,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "mental"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "3Klm2gPmzOw6ntVb"
+    }
+  },
+  {
+    "_id": "uwF2miwE0nqhfqGo",
+    "uuid": "Compendium.pf2e.equipment-core.Item.uwF2miwE0nqhfqGo",
+    "name": "Concealed Sheath",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Concealed Sheath",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "laU7xnX42wXch2Dv"
+    }
+  },
+  {
+    "_id": "ktQMWUUWFBGss1oh",
+    "uuid": "Compendium.pf2e.equipment-core.Item.ktQMWUUWFBGss1oh",
+    "name": "Cookware",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Cookware",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "Yf7maiRDmmHAyF82"
+    }
+  },
+  {
+    "_id": "cbvAxczQ39YFwjpQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.cbvAxczQ39YFwjpQ",
+    "name": "Cooling Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Cooling Elixir (Lesser)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Ekk7o1gPu8RotixD"
+    }
+  },
+  {
+    "_id": "a6oxknIHFSSaybUb",
+    "uuid": "Compendium.pf2e.equipment-core.Item.a6oxknIHFSSaybUb",
+    "name": "Corrective Lenses",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Corrective Lenses",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "QFzn6s5w9tzhcoM6"
+    }
+  },
+  {
+    "_id": "30bEUihEil2CE1Kh",
+    "uuid": "Compendium.pf2e.equipment-core.Item.30bEUihEil2CE1Kh",
+    "name": "Crowbar",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Crowbar",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "44F1mfJei4GY8f2X"
+    }
+  },
+  {
+    "_id": "JuoxsQZBxnQl84n9",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JuoxsQZBxnQl84n9",
+    "name": "Crowbar (Levered)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Crowbar (Levered)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "4kz3vhkKPUuXBpxk"
+    }
+  },
+  {
+    "_id": "trkHQlgL1dUoSyLw",
+    "uuid": "Compendium.pf2e.equipment-core.Item.trkHQlgL1dUoSyLw",
+    "name": "Crutch",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Crutch",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "h4fhKJmmx232FGd2"
+    }
+  },
+  {
+    "_id": "7Ylgh30PAtOhzldy",
+    "uuid": "Compendium.pf2e.equipment-core.Item.7Ylgh30PAtOhzldy",
+    "name": "Crying Angel Pendant",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Crying Angel Pendant",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "divine",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "HHELOoN5GVonUiIa"
+    }
+  },
+  {
+    "_id": "AkRLPVk3w3m0fDH9",
+    "uuid": "Compendium.pf2e.equipment-core.Item.AkRLPVk3w3m0fDH9",
+    "name": "Darkvision Elixir (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Darkvision Elixir (Greater)",
+      "system.level": 8,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "bz8Y8bVUe7QfBk9g"
+    }
+  },
+  {
+    "_id": "IbkgBr7IxSZdUMJy",
+    "uuid": "Compendium.pf2e.equipment-core.Item.IbkgBr7IxSZdUMJy",
+    "name": "Darkvision Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Darkvision Elixir (Lesser)",
+      "system.level": 2,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "88pGCHV0uKMskTVO"
+    }
+  },
+  {
+    "_id": "eZd4jUBeszGYJ8wQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.eZd4jUBeszGYJ8wQ",
+    "name": "Darkvision Elixir (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Darkvision Elixir (Moderate)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Y8115p3cmQJBqk5d"
+    }
+  },
+  {
+    "_id": "EsBRo8WhFQwXFQ2j",
+    "uuid": "Compendium.pf2e.equipment-core.Item.EsBRo8WhFQwXFQ2j",
+    "name": "Dawnsilver Chunk",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Dawnsilver Chunk",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "B0gbs7xKQc2J7AiV"
+    }
+  },
+  {
+    "_id": "B90KIQ32U6h9mmwN",
+    "uuid": "Compendium.pf2e.equipment-core.Item.B90KIQ32U6h9mmwN",
+    "name": "Dawnsilver Ingot",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Dawnsilver Ingot",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "QpP7Mo7ad5lMOTpv"
+    }
+  },
+  {
+    "_id": "Hw7C7TUm17DRHIBn",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Hw7C7TUm17DRHIBn",
+    "name": "Detective's Kit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Detective's Kit",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "ItLZL9Bd6xwgfeB8"
+    }
+  },
+  {
+    "_id": "m6ErQzGl33sBJLGQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.m6ErQzGl33sBJLGQ",
+    "name": "Disguise Kit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Disguise Kit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "Jvp0x2Sc82WVpExT"
+    }
+  },
+  {
+    "_id": "CODuWFWSaKLIgQTb",
+    "uuid": "Compendium.pf2e.equipment-core.Item.CODuWFWSaKLIgQTb",
+    "name": "Disguise Kit (Elite Cosmetics)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Disguise Kit (Elite Cosmetics)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "IRqbsE8MgGLTfHLz"
+    }
+  },
+  {
+    "_id": "Gc8OYVau0MhHRO7A",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Gc8OYVau0MhHRO7A",
+    "name": "Disguise Kit (Elite)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Disguise Kit (Elite)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "YhkomhtKBK3i9C7Q"
+    }
+  },
+  {
+    "_id": "8PMZUJ33ztGG8T5h",
+    "uuid": "Compendium.pf2e.equipment-core.Item.8PMZUJ33ztGG8T5h",
+    "name": "Disguise Kit (Replacement Cosmetics)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Disguise Kit (Replacement Cosmetics)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "FWMGkUotwUJuht7i"
+    }
+  },
+  {
+    "_id": "oPI3jcKfPDO3gekQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.oPI3jcKfPDO3gekQ",
+    "name": "Dragon Turtle Scale",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Dragon Turtle Scale",
+      "system.level": 4,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "GnXKCkgZQG0UmuHz"
+    }
+  },
+  {
+    "_id": "2b2fWoOp1FFPetB8",
+    "uuid": "Compendium.pf2e.equipment-core.Item.2b2fWoOp1FFPetB8",
+    "name": "Dragon Turtle Scale (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Dragon Turtle Scale (Greater)",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "4MfrhRlz4VeYtYVn"
+    }
+  },
+  {
+    "_id": "ZcNSIqzhH2oQsMR3",
+    "uuid": "Compendium.pf2e.equipment-core.Item.ZcNSIqzhH2oQsMR3",
+    "name": "Dueling Cape",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Dueling Cape",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worncloak",
+      "flags.fusion.sourceId": "DA3HgyEBGEbtRNOo"
+    }
+  },
+  {
+    "_id": "YuaT6QL5gxGVmt2d",
+    "uuid": "Compendium.pf2e.equipment-core.Item.YuaT6QL5gxGVmt2d",
+    "name": "Duskwood Branch",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Duskwood Branch",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "5NHciGwLcVJwEjQu"
+    }
+  },
+  {
+    "_id": "ILpCgAhlQ5ROOCfr",
+    "uuid": "Compendium.pf2e.equipment-core.Item.ILpCgAhlQ5ROOCfr",
+    "name": "Duskwood Lumber",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Duskwood Lumber",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "r9lPNhrvG69Ae88d"
+    }
+  },
+  {
+    "_id": "w5ay1BE2V48goizB",
+    "uuid": "Compendium.pf2e.equipment-core.Item.w5ay1BE2V48goizB",
+    "name": "Eagle Eye Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Eagle Eye Elixir (Lesser)",
+      "system.level": 1,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "7Y2yOr4ltpP2tyuL"
+    }
+  },
+  {
+    "_id": "hFeuXu87k3jt5bsX",
+    "uuid": "Compendium.pf2e.equipment-core.Item.hFeuXu87k3jt5bsX",
+    "name": "Eagle Eye Elixir (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Eagle Eye Elixir (Moderate)",
+      "system.level": 5,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "lPcnDlBGz5QwCMYw"
+    }
+  },
+  {
+    "_id": "BYYXZlxHEJ3lakoN",
+    "uuid": "Compendium.pf2e.equipment-core.Item.BYYXZlxHEJ3lakoN",
+    "name": "Effervescent Ampoule",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Effervescent Ampoule",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "VPvyyQXjn2HBjnTS"
+    }
+  },
+  {
+    "_id": "jtiSGtxQ9ki63kG4",
+    "uuid": "Compendium.pf2e.equipment-core.Item.jtiSGtxQ9ki63kG4",
+    "name": "Elixir of Gender Transformation (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Elixir of Gender Transformation (Greater)",
+      "system.level": 6,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "rDM6rxWVzKtFQOKg"
+    }
+  },
+  {
+    "_id": "qwXkEzMchr22293g",
+    "uuid": "Compendium.pf2e.equipment-core.Item.qwXkEzMchr22293g",
+    "name": "Elixir of Gender Transformation (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Elixir of Gender Transformation (Lesser)",
+      "system.level": 1,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "GfegrEtbEs9L6NOg"
+    }
+  },
+  {
+    "_id": "JCpECBjyvTo1ISWy",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JCpECBjyvTo1ISWy",
+    "name": "Elixir of Gender Transformation (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Elixir of Gender Transformation (Moderate)",
+      "system.level": 3,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "0KXqdhz2MYV0LBm2"
+    }
+  },
+  {
+    "_id": "0fQOlRdX6qsz661f",
+    "uuid": "Compendium.pf2e.equipment-core.Item.0fQOlRdX6qsz661f",
+    "name": "Elixir of Life (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Elixir of Life (Lesser)",
+      "system.level": 5,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "TZUskLT7yvP7N2co"
+    }
+  },
+  {
+    "_id": "s8XqFSaOGwWkn3MF",
+    "uuid": "Compendium.pf2e.equipment-core.Item.s8XqFSaOGwWkn3MF",
+    "name": "Elixir of Life (Minor)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Elixir of Life (Minor)",
+      "system.level": 1,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "hDLbR56Id2OtU318"
+    }
+  },
+  {
     "_id": "5wzdXtfXwsdaxbIc",
     "uuid": "Compendium.pf2e.equipment-core.Item.5wzdXtfXwsdaxbIc",
     "name": "Elven Chain (Standard-Grade)",
@@ -80,6 +1414,143 @@
       ],
       "system.category": "light",
       "flags.fusion.sourceId": "peAvz7u35GEfTXxp"
+    }
+  },
+  {
+    "_id": "kbuEV7uZVIekMI5F",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kbuEV7uZVIekMI5F",
+    "name": "Emerald Grasshopper",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Emerald Grasshopper",
+      "system.level": 5,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "3uhaf2YL9hmix3pe"
+    }
+  },
+  {
+    "_id": "4GzvjpIijHBHPFYP",
+    "uuid": "Compendium.pf2e.equipment-core.Item.4GzvjpIijHBHPFYP",
+    "name": "Energy Breath Potion (Acid, Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Energy Breath Potion (Acid, Lesser)",
+      "system.level": 7,
+      "system.traits.value": [
+        "acid",
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "vPcDIowg3LAqZYAE"
+    }
+  },
+  {
+    "_id": "pdP7yifEgO69QcBX",
+    "uuid": "Compendium.pf2e.equipment-core.Item.pdP7yifEgO69QcBX",
+    "name": "Energy Breath Potion (Cold, Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Energy Breath Potion (Cold, Lesser)",
+      "system.level": 7,
+      "system.traits.value": [
+        "cold",
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "xRrMmFzpa0WU9uV4"
+    }
+  },
+  {
+    "_id": "4usFWJfP5LohO58t",
+    "uuid": "Compendium.pf2e.equipment-core.Item.4usFWJfP5LohO58t",
+    "name": "Energy Breath Potion (Electricity, Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Energy Breath Potion (Electricity, Lesser)",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "electricity",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "xpVHMxLcwgXzL39e"
+    }
+  },
+  {
+    "_id": "e43pSkRZIpcLGsL7",
+    "uuid": "Compendium.pf2e.equipment-core.Item.e43pSkRZIpcLGsL7",
+    "name": "Energy Breath Potion (Fire, Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Energy Breath Potion (Fire, Lesser)",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "fire",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "3fSc2e5xRjJ7w4g3"
+    }
+  },
+  {
+    "_id": "9pHQLCzpk4yztMO1",
+    "uuid": "Compendium.pf2e.equipment-core.Item.9pHQLCzpk4yztMO1",
+    "name": "Energy Breath Potion (Sonic, Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Energy Breath Potion (Sonic, Lesser)",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion",
+        "sonic"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "zAn1SNGYW93kmzdn"
+    }
+  },
+  {
+    "_id": "nSFmiwVHWref1EhP",
+    "uuid": "Compendium.pf2e.equipment-core.Item.nSFmiwVHWref1EhP",
+    "name": "Everlasting Adhesive",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Everlasting Adhesive",
+      "system.level": 7,
+      "system.traits.value": [
+        "alchemical",
+        "consumable"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "7IrQPyMm76nLVoXx"
     }
   },
   {
@@ -100,6 +1571,75 @@
     }
   },
   {
+    "_id": "e2Any3u55RWlN8Gk",
+    "uuid": "Compendium.pf2e.equipment-core.Item.e2Any3u55RWlN8Gk",
+    "name": "Fear Gem",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Fear Gem",
+      "system.level": 4,
+      "system.traits.value": [
+        "consumable",
+        "emotion",
+        "fear",
+        "magical",
+        "mental",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "ZAtwiAPkk1zwCf82"
+    }
+  },
+  {
+    "_id": "Z4h0BrEVAsBGnfqo",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Z4h0BrEVAsBGnfqo",
+    "name": "Feather Step Stone",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Feather Step Stone",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "0CNSvLpeSM4aIfPJ"
+    }
+  },
+  {
+    "_id": "dLbpQVeS2e3mSYQm",
+    "uuid": "Compendium.pf2e.equipment-core.Item.dLbpQVeS2e3mSYQm",
+    "name": "Fishing Tackle",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Fishing Tackle",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "3tOyV4VZEZhwnAMO"
+    }
+  },
+  {
+    "_id": "SZfHKk959EbOf76M",
+    "uuid": "Compendium.pf2e.equipment-core.Item.SZfHKk959EbOf76M",
+    "name": "Fishing Tackle (Professional)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Fishing Tackle (Professional)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "ksorBjuXO0Bvdmhl"
+    }
+  },
+  {
     "_id": "os59XTocWsMvVpMJ",
     "uuid": "Compendium.pf2e.equipment-core.Item.os59XTocWsMvVpMJ",
     "name": "Flint and Steel",
@@ -111,6 +1651,39 @@
       "system.traits.value": [],
       "system.usage": "held-in-two-hands",
       "flags.fusion.sourceId": "UlIxxLm71UdRgCFE"
+    }
+  },
+  {
+    "_id": "xDqAPOz2upK30tVt",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xDqAPOz2upK30tVt",
+    "name": "Formula Book (Blank)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Formula Book (Blank)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "qCEOZ6109Yo34tRx"
+    }
+  },
+  {
+    "_id": "D5gxJC1S5H3bFDqk",
+    "uuid": "Compendium.pf2e.equipment-core.Item.D5gxJC1S5H3bFDqk",
+    "name": "Gallows Tooth",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Gallows Tooth",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "u6g7AClRFEAj4lf4"
     }
   },
   {
@@ -128,6 +1701,114 @@
       ],
       "system.usage": "worn",
       "flags.fusion.sourceId": "ioiMUDqv85BI4shY"
+    }
+  },
+  {
+    "_id": "Ud5DUCBsfKmeEtpf",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Ud5DUCBsfKmeEtpf",
+    "name": "Gecko Potion",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Gecko Potion",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "hGw7Q1y2IEXRGAfv"
+    }
+  },
+  {
+    "_id": "KpzEckp5RzqiXULt",
+    "uuid": "Compendium.pf2e.equipment-core.Item.KpzEckp5RzqiXULt",
+    "name": "Grappling Hook",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Grappling Hook",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "6DCy7tEF1cxaIJMy"
+    }
+  },
+  {
+    "_id": "YGXdVGbSJ1cYXrXz",
+    "uuid": "Compendium.pf2e.equipment-core.Item.YGXdVGbSJ1cYXrXz",
+    "name": "Grim Trophy",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Grim Trophy",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "eEIWjTvZyKsKhYaz"
+    }
+  },
+  {
+    "_id": "n1l5zADTVSR5FRzt",
+    "uuid": "Compendium.pf2e.equipment-core.Item.n1l5zADTVSR5FRzt",
+    "name": "Hammer",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Hammer",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "ML0GR2cIEdMn2hoD"
+    }
+  },
+  {
+    "_id": "fCnJ2OGCighLxXLS",
+    "uuid": "Compendium.pf2e.equipment-core.Item.fCnJ2OGCighLxXLS",
+    "name": "Head Gem",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Head Gem",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "FA1mAc7rEyC9vzZa"
+    }
+  },
+  {
+    "_id": "wZG0Pzda1lJs9YGj",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wZG0Pzda1lJs9YGj",
+    "name": "Healer's Toolkit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Healer's Toolkit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "s1vB3HdXjMigYAnY"
+    }
+  },
+  {
+    "_id": "xIsYyQNbqZsLMHth",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xIsYyQNbqZsLMHth",
+    "name": "Healer's Toolkit (Expanded)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Healer's Toolkit (Expanded)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "SGkOHFyBbzWdBk8D"
     }
   },
   {
@@ -152,6 +1833,1302 @@
     }
   },
   {
+    "_id": "w5Euj1CeYSvOz36X",
+    "uuid": "Compendium.pf2e.equipment-core.Item.w5Euj1CeYSvOz36X",
+    "name": "Healing Potion (Minor)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Healing Potion (Minor)",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "healing",
+        "magical",
+        "potion",
+        "vitality"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "2RuepCemJhrpKKao"
+    }
+  },
+  {
+    "_id": "1hzFGMOSnDZFYzG1",
+    "uuid": "Compendium.pf2e.equipment-core.Item.1hzFGMOSnDZFYzG1",
+    "name": "Healing Potion (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Healing Potion (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "healing",
+        "magical",
+        "potion",
+        "vitality"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "G7haQ5gDt30ftJLC"
+    }
+  },
+  {
+    "_id": "6b8x64HeiCfpBJm8",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6b8x64HeiCfpBJm8",
+    "name": "Hearing Aid",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Hearing Aid",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "GVdbmKFLi5PlMr5R"
+    }
+  },
+  {
+    "_id": "6MBXRdsEmh3SHlMm",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6MBXRdsEmh3SHlMm",
+    "name": "Hourglass",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Hourglass",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "WAsQ6WuMYUB77Uh0"
+    }
+  },
+  {
+    "_id": "JowrmDFa7JLMteeb",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JowrmDFa7JLMteeb",
+    "name": "Hunter's Bane",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Hunter's Bane",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "detection",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "Yew9oddFsH0KeDLh"
+    }
+  },
+  {
+    "_id": "RaZqVq9PZyN8o0O6",
+    "uuid": "Compendium.pf2e.equipment-core.Item.RaZqVq9PZyN8o0O6",
+    "name": "Invisibility Potion",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Invisibility Potion",
+      "system.level": 4,
+      "system.traits.value": [
+        "consumable",
+        "illusion",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "bikFUFRLwfdvX2x2"
+    }
+  },
+  {
+    "_id": "iI2Qzm5S7OkNNnId",
+    "uuid": "Compendium.pf2e.equipment-core.Item.iI2Qzm5S7OkNNnId",
+    "name": "Iron Cube",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Iron Cube",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "StsE5POM7OSE36Ia"
+    }
+  },
+  {
+    "_id": "6zwCmqP4Q5bzyXuu",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6zwCmqP4Q5bzyXuu",
+    "name": "Jade Bauble",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Jade Bauble",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "mental",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-melee-weapon",
+      "flags.fusion.sourceId": "cKqZe5imzxqSnzwD"
+    }
+  },
+  {
+    "_id": "7uNvaJ8jV9LZ9dBY",
+    "uuid": "Compendium.pf2e.equipment-core.Item.7uNvaJ8jV9LZ9dBY",
+    "name": "Jade Cat",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Jade Cat",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "2MgFoNXTccL8Own9"
+    }
+  },
+  {
+    "_id": "VDEqD6IKn5vircYL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.VDEqD6IKn5vircYL",
+    "name": "Ladder (10-foot)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Ladder (10-foot)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "5j5KyZsGOfbrJNUZ"
+    }
+  },
+  {
+    "_id": "2I3RH7r9Dp6j8Tm9",
+    "uuid": "Compendium.pf2e.equipment-core.Item.2I3RH7r9Dp6j8Tm9",
+    "name": "Lantern (Bull's Eye)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Lantern (Bull's Eye)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "QrNvP9SgnK9DrerA"
+    }
+  },
+  {
+    "_id": "16GutEbvDVFhgk0k",
+    "uuid": "Compendium.pf2e.equipment-core.Item.16GutEbvDVFhgk0k",
+    "name": "Lantern (Hooded)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Lantern (Hooded)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "dIRZ0LL7G31fJNYz"
+    }
+  },
+  {
+    "_id": "59g3osmJ6RgRPC7s",
+    "uuid": "Compendium.pf2e.equipment-core.Item.59g3osmJ6RgRPC7s",
+    "name": "Lock (Average)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Lock (Average)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "q2TYVAMaK6UfenbV"
+    }
+  },
+  {
+    "_id": "cdcMaCOCSTO0wgXJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.cdcMaCOCSTO0wgXJ",
+    "name": "Lock (Poor)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Lock (Poor)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "PBlxTrEyr3qXFBqq"
+    }
+  },
+  {
+    "_id": "U64mZr2rowexKU8h",
+    "uuid": "Compendium.pf2e.equipment-core.Item.U64mZr2rowexKU8h",
+    "name": "Lock (Simple)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Lock (Simple)",
+      "system.level": 1,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "JZXCTwoIWoGKjMX6"
+    }
+  },
+  {
+    "_id": "CS594XGz8h9cOQ9m",
+    "uuid": "Compendium.pf2e.equipment-core.Item.CS594XGz8h9cOQ9m",
+    "name": "Lucky Keepsake",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Lucky Keepsake",
+      "system.level": 9,
+      "system.traits.value": [
+        "leshy"
+      ],
+      "system.usage": "carried",
+      "flags.fusion.sourceId": "nza9skYTNtJe2Wd3"
+    }
+  },
+  {
+    "_id": "lYeo6RJnx2wB1bn2",
+    "uuid": "Compendium.pf2e.equipment-core.Item.lYeo6RJnx2wB1bn2",
+    "name": "Mage's Hat",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Mage's Hat",
+      "system.level": 3,
+      "system.traits.value": [
+        "arcane",
+        "invested"
+      ],
+      "system.usage": "wornheadwear",
+      "flags.fusion.sourceId": "SswqJqeAWGtX3tTF"
+    }
+  },
+  {
+    "_id": "TRZqVli0RoTOF0bo",
+    "uuid": "Compendium.pf2e.equipment-core.Item.TRZqVli0RoTOF0bo",
+    "name": "Magnifying Glass",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Magnifying Glass",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "5GbC7RTgyAeaOcAI"
+    }
+  },
+  {
+    "_id": "OpJEWb7KIpUNxcwp",
+    "uuid": "Compendium.pf2e.equipment-core.Item.OpJEWb7KIpUNxcwp",
+    "name": "Manacles (Average)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Manacles (Average)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "lWeADBqMFwFlVIuV"
+    }
+  },
+  {
+    "_id": "66iFcX4Axn8xlh4s",
+    "uuid": "Compendium.pf2e.equipment-core.Item.66iFcX4Axn8xlh4s",
+    "name": "Manacles (Poor)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Manacles (Poor)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "ZPY2dOaMYciIJv1Q"
+    }
+  },
+  {
+    "_id": "urLzZgyWrzlXN1Wn",
+    "uuid": "Compendium.pf2e.equipment-core.Item.urLzZgyWrzlXN1Wn",
+    "name": "Manacles (Simple)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Manacles (Simple)",
+      "system.level": 1,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "ckGYDocGEaelHfXF"
+    }
+  },
+  {
+    "_id": "DHCk4VV1T9RPK6oR",
+    "uuid": "Compendium.pf2e.equipment-core.Item.DHCk4VV1T9RPK6oR",
+    "name": "Merchant's Scale",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Merchant's Scale",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "o0ccn5HQAudGgNdU"
+    }
+  },
+  {
+    "_id": "GHoBtXbQsBSIQZjj",
+    "uuid": "Compendium.pf2e.equipment-core.Item.GHoBtXbQsBSIQZjj",
+    "name": "Mesmerizing Opal",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Mesmerizing Opal",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "aKbrBW1SnFDxya5J"
+    }
+  },
+  {
+    "_id": "la2xh3zVp9j7yijZ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.la2xh3zVp9j7yijZ",
+    "name": "Mirror",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Mirror",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "6cyw0yK91cNsbvSK"
+    }
+  },
+  {
+    "_id": "sCirxnTVEmIy28Dl",
+    "uuid": "Compendium.pf2e.equipment-core.Item.sCirxnTVEmIy28Dl",
+    "name": "Mistform Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Mistform Elixir (Lesser)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "illusion",
+        "visual"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "GyO89RBVjAKFxsFm"
+    }
+  },
+  {
+    "_id": "AOIzhQghOxDeTYax",
+    "uuid": "Compendium.pf2e.equipment-core.Item.AOIzhQghOxDeTYax",
+    "name": "Mistform Elixir (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Mistform Elixir (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "illusion",
+        "visual"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Ax8XcBd0rRd1Z7hN"
+    }
+  },
+  {
+    "_id": "1NnRUupSB8cvrYNF",
+    "uuid": "Compendium.pf2e.equipment-core.Item.1NnRUupSB8cvrYNF",
+    "name": "Monkey Pin",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Monkey Pin",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "jdDDqv9LbEYX2wAE"
+    }
+  },
+  {
+    "_id": "UGEivfbnwHDOYICF",
+    "uuid": "Compendium.pf2e.equipment-core.Item.UGEivfbnwHDOYICF",
+    "name": "Mug",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Mug",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "wRSS5vP8ltrThsoC"
+    }
+  },
+  {
+    "_id": "JHQQnfr5v3HIRQfB",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JHQQnfr5v3HIRQfB",
+    "name": "Murderer's Knot",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Murderer's Knot",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "YGaO4HyH6jn3P731"
+    }
+  },
+  {
+    "_id": "5dZWjCCWeTC2xaJ9",
+    "uuid": "Compendium.pf2e.equipment-core.Item.5dZWjCCWeTC2xaJ9",
+    "name": "Musical Instrument (Handheld)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Musical Instrument (Handheld)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "MPv5Yx4w7scZGj2Y"
+    }
+  },
+  {
+    "_id": "Re4p6qoXUnBdRHbC",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Re4p6qoXUnBdRHbC",
+    "name": "Musical Instrument (Heavy)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Musical Instrument (Heavy)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "csfJtggwGCF28U2j"
+    }
+  },
+  {
+    "_id": "IL9o2k0Z63VqGN1z",
+    "uuid": "Compendium.pf2e.equipment-core.Item.IL9o2k0Z63VqGN1z",
+    "name": "Musical Instrument (Virtuoso handheld)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Musical Instrument (Virtuoso handheld)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "3ld14dsn2RLu9owg"
+    }
+  },
+  {
+    "_id": "b2uGFgC4gncCvTwB",
+    "uuid": "Compendium.pf2e.equipment-core.Item.b2uGFgC4gncCvTwB",
+    "name": "Musical Instrument (Virtuoso heavy)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Musical Instrument (Virtuoso heavy)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "yw1kPxsdCoDUzOaE"
+    }
+  },
+  {
+    "_id": "fTM4peBud6VhlJ7R",
+    "uuid": "Compendium.pf2e.equipment-core.Item.fTM4peBud6VhlJ7R",
+    "name": "Net",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Net",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "T8EopYZLT137CsdW"
+    }
+  },
+  {
+    "_id": "xJInxVIC38GEdBNh",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xJInxVIC38GEdBNh",
+    "name": "Oak Potion",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Oak Potion",
+      "system.level": 4,
+      "system.traits.value": [
+        "consumable",
+        "plant",
+        "potion",
+        "primal",
+        "wood"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "zC7LipQPHRYw2RXx"
+    }
+  },
+  {
+    "_id": "zDy2r5N0tPNxjvo0",
+    "uuid": "Compendium.pf2e.equipment-core.Item.zDy2r5N0tPNxjvo0",
+    "name": "Onyx Panther",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Onyx Panther",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "0aSdDSjJ5sMzBz1U"
+    }
+  },
+  {
+    "_id": "DEqGN16EwX3D6QpP",
+    "uuid": "Compendium.pf2e.equipment-core.Item.DEqGN16EwX3D6QpP",
+    "name": "Orc Warmask",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Orc Warmask",
+      "system.level": 0,
+      "system.traits.value": [
+        "invested",
+        "magical"
+      ],
+      "system.usage": "wornmask",
+      "flags.fusion.sourceId": "ZEDDVQDtUZ2qOB5q"
+    }
+  },
+  {
+    "_id": "amiHZzRF7y1ZDBTy",
+    "uuid": "Compendium.pf2e.equipment-core.Item.amiHZzRF7y1ZDBTy",
+    "name": "Orichalcum Chunk",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Orichalcum Chunk",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "YOgUBjv2YHzPFKUb"
+    }
+  },
+  {
+    "_id": "nsSpRA2pGExSzSEA",
+    "uuid": "Compendium.pf2e.equipment-core.Item.nsSpRA2pGExSzSEA",
+    "name": "Orichalcum Ingot",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Orichalcum Ingot",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "4AnNkIA5Ux6ePy7r"
+    }
+  },
+  {
+    "_id": "sZjioJgzicYecrvG",
+    "uuid": "Compendium.pf2e.equipment-core.Item.sZjioJgzicYecrvG",
+    "name": "Parrying Scabbard",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Parrying Scabbard",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "o29fgVteF3yj8NKn"
+    }
+  },
+  {
+    "_id": "nzxThhhTAeDx2pUJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.nzxThhhTAeDx2pUJ",
+    "name": "Pendant of the Occult",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Pendant of the Occult",
+      "system.level": 3,
+      "system.traits.value": [
+        "invested",
+        "occult"
+      ],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "zPhqmCvWyHO8i9ws"
+    }
+  },
+  {
+    "_id": "FwaaEnAvSH6eYFIc",
+    "uuid": "Compendium.pf2e.equipment-core.Item.FwaaEnAvSH6eYFIc",
+    "name": "Periscope",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Periscope",
+      "system.level": 2,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "ZZnh7BkwApPyNyqc"
+    }
+  },
+  {
+    "_id": "MPjyoZC0yBOTB6V6",
+    "uuid": "Compendium.pf2e.equipment-core.Item.MPjyoZC0yBOTB6V6",
+    "name": "Pilgrim's Token",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Pilgrim's Token",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "gwP3Uums2ApH6o9K"
+    }
+  },
+  {
+    "_id": "xizyzx8FcN0ehJnQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xizyzx8FcN0ehJnQ",
+    "name": "Piton",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Piton",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "oX39xqMLVB8kNrY0"
+    }
+  },
+  {
+    "_id": "44gPVFvzzcRPuy8u",
+    "uuid": "Compendium.pf2e.equipment-core.Item.44gPVFvzzcRPuy8u",
+    "name": "Potency Crystal",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potency Crystal",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "ZCsksGf6NPUKz2Uw"
+    }
+  },
+  {
+    "_id": "kWYu7Xt4BLHcYoTX",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kWYu7Xt4BLHcYoTX",
+    "name": "Potion of Acid Resistance (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Acid Resistance (Lesser)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "u1gZaIZHnEfZDc1o"
+    }
+  },
+  {
+    "_id": "nvHq2SNJESOlNRVV",
+    "uuid": "Compendium.pf2e.equipment-core.Item.nvHq2SNJESOlNRVV",
+    "name": "Potion of Acid Retaliation (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Acid Retaliation (Lesser)",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "omRmCbkQoK5YmCGv"
+    }
+  },
+  {
+    "_id": "DgTQ8HssCO7KJv2D",
+    "uuid": "Compendium.pf2e.equipment-core.Item.DgTQ8HssCO7KJv2D",
+    "name": "Potion of Acid Retaliation (Minor)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Acid Retaliation (Minor)",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "apGQcVMSRprFEeKt"
+    }
+  },
+  {
+    "_id": "SijErYABYsoPJpBf",
+    "uuid": "Compendium.pf2e.equipment-core.Item.SijErYABYsoPJpBf",
+    "name": "Potion of Acid Retaliation (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Acid Retaliation (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "OWPOTwMsrYma9d0v"
+    }
+  },
+  {
+    "_id": "FOY9LrJt6XSIFFuM",
+    "uuid": "Compendium.pf2e.equipment-core.Item.FOY9LrJt6XSIFFuM",
+    "name": "Potion of Cold Resistance (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Cold Resistance (Lesser)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "mRs24OwmGPjoIDvO"
+    }
+  },
+  {
+    "_id": "i5O90jaQrS5q3nUI",
+    "uuid": "Compendium.pf2e.equipment-core.Item.i5O90jaQrS5q3nUI",
+    "name": "Potion of Cold Retaliation (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Cold Retaliation (Lesser)",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Uq3rnsAHbLKyW49E"
+    }
+  },
+  {
+    "_id": "wu3RamE8z6saqS6d",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wu3RamE8z6saqS6d",
+    "name": "Potion of Cold Retaliation (Minor)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Cold Retaliation (Minor)",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "zExWH2EsY9STTORq"
+    }
+  },
+  {
+    "_id": "t0hdAgAaVLvXrOCJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.t0hdAgAaVLvXrOCJ",
+    "name": "Potion of Cold Retaliation (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Cold Retaliation (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "M6pES1Nck1S6SWX9"
+    }
+  },
+  {
+    "_id": "I5RXyt0n0E5SHiVB",
+    "uuid": "Compendium.pf2e.equipment-core.Item.I5RXyt0n0E5SHiVB",
+    "name": "Potion of Disguise (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Disguise (Lesser)",
+      "system.level": 5,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "polymorph",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "QNub2kTE7LpdMPII"
+    }
+  },
+  {
+    "_id": "Hdet3hBDRqDtr9J3",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Hdet3hBDRqDtr9J3",
+    "name": "Potion of Disguise (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Disguise (Moderate)",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "polymorph",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "25Rr05SIfTj0GA31"
+    }
+  },
+  {
+    "_id": "o3ug0rBwe3Wggr53",
+    "uuid": "Compendium.pf2e.equipment-core.Item.o3ug0rBwe3Wggr53",
+    "name": "Potion of Electricity Resistance (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Electricity Resistance (Lesser)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "cAyxcRSSnfscGyMa"
+    }
+  },
+  {
+    "_id": "zd0wRv22Jo2g34ul",
+    "uuid": "Compendium.pf2e.equipment-core.Item.zd0wRv22Jo2g34ul",
+    "name": "Potion of Electricity Retaliation (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Electricity Retaliation (Lesser)",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "TG4SnQCGOsgQfrE1"
+    }
+  },
+  {
+    "_id": "coMqnfMO2Pj5MA42",
+    "uuid": "Compendium.pf2e.equipment-core.Item.coMqnfMO2Pj5MA42",
+    "name": "Potion of Electricity Retaliation (Minor)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Electricity Retaliation (Minor)",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "w0S1SIRsHgGdRh1d"
+    }
+  },
+  {
+    "_id": "1pQYuo38VfALggpg",
+    "uuid": "Compendium.pf2e.equipment-core.Item.1pQYuo38VfALggpg",
+    "name": "Potion of Electricity Retaliation (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Electricity Retaliation (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "oDfucsKeWpJmmWN1"
+    }
+  },
+  {
+    "_id": "tKlMdWwy9Eme2aBP",
+    "uuid": "Compendium.pf2e.equipment-core.Item.tKlMdWwy9Eme2aBP",
+    "name": "Potion of Emergency Escape",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Emergency Escape",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "jTfacZ4SRuQd7Avh"
+    }
+  },
+  {
+    "_id": "6FfvocLOWxZvGzHz",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6FfvocLOWxZvGzHz",
+    "name": "Potion of Fire Resistance (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Fire Resistance (Lesser)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "bDnk4TSzvD5BQmE5"
+    }
+  },
+  {
+    "_id": "209YYck7E2g48cHh",
+    "uuid": "Compendium.pf2e.equipment-core.Item.209YYck7E2g48cHh",
+    "name": "Potion of Fire Retaliation (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Fire Retaliation (Lesser)",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "67KiGZtoTMbl7nv2"
+    }
+  },
+  {
+    "_id": "Tsh1rXKmefBxTqfs",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Tsh1rXKmefBxTqfs",
+    "name": "Potion of Fire Retaliation (Minor)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Fire Retaliation (Minor)",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "ugIxgGIkJh2aXE2N"
+    }
+  },
+  {
+    "_id": "ilm0QgAPRAfuoqmC",
+    "uuid": "Compendium.pf2e.equipment-core.Item.ilm0QgAPRAfuoqmC",
+    "name": "Potion of Fire Retaliation (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Fire Retaliation (Moderate)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "AgBIZtwciSsCZeNN"
+    }
+  },
+  {
+    "_id": "TuSzk5FD9A3f5l0W",
+    "uuid": "Compendium.pf2e.equipment-core.Item.TuSzk5FD9A3f5l0W",
+    "name": "Potion of Flying (Standard)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Flying (Standard)",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "KlJSw919hpN6V9oK"
+    }
+  },
+  {
+    "_id": "V167ISGSjqiqm5ZA",
+    "uuid": "Compendium.pf2e.equipment-core.Item.V167ISGSjqiqm5ZA",
+    "name": "Potion of Leaping",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Leaping",
+      "system.level": 5,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "rzEQvcWfhR3T4FNd"
+    }
+  },
+  {
+    "_id": "HtXHyoV9KknhphVY",
+    "uuid": "Compendium.pf2e.equipment-core.Item.HtXHyoV9KknhphVY",
+    "name": "Potion of Quickness",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Quickness",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "kORpovlPYicysr2g"
+    }
+  },
+  {
+    "_id": "3SVXn8ohWWlUcoTf",
+    "uuid": "Compendium.pf2e.equipment-core.Item.3SVXn8ohWWlUcoTf",
+    "name": "Potion of Resistance (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Resistance (Lesser)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "V2TUEoiDwJ125qzN"
+    }
+  },
+  {
+    "_id": "S3f0YCMQV3FpQlpT",
+    "uuid": "Compendium.pf2e.equipment-core.Item.S3f0YCMQV3FpQlpT",
+    "name": "Potion of Shared Memories",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Shared Memories",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "mental",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "jlFx4JIBKJuaINpv"
+    }
+  },
+  {
+    "_id": "6YKElnCT28irervJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6YKElnCT28irervJ",
+    "name": "Potion of Sonic Resistance (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Sonic Resistance (Lesser)",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "eSHX07MqMT4SM1zY"
+    }
+  },
+  {
+    "_id": "hD6BRBjXpLN4JzpV",
+    "uuid": "Compendium.pf2e.equipment-core.Item.hD6BRBjXpLN4JzpV",
+    "name": "Potion of Swimming",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Swimming",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Eb4dEuV22QVlMumS"
+    }
+  },
+  {
+    "_id": "4P3qZM44kci9VS42",
+    "uuid": "Compendium.pf2e.equipment-core.Item.4P3qZM44kci9VS42",
+    "name": "Potion of Water Breathing",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Potion of Water Breathing",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "WQhnfj1LbrEzvh8z"
+    }
+  },
+  {
+    "_id": "EHqDLGjTrr1quBMO",
+    "uuid": "Compendium.pf2e.equipment-core.Item.EHqDLGjTrr1quBMO",
+    "name": "Predator's Claw",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Predator's Claw",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "qoM7Va5GqcLLBzgu"
+    }
+  },
+  {
+    "_id": "xSI7ZOwVcjIgfGf2",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xSI7ZOwVcjIgfGf2",
+    "name": "Primal Symbol",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Primal Symbol",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "QbOlqr4lSkeOEfty"
+    }
+  },
+  {
+    "_id": "Hj5H0oe8whQPzILy",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Hj5H0oe8whQPzILy",
+    "name": "Prosthesis",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Prosthesis",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "VBaxMSVNY2n6kLzT"
+    }
+  },
+  {
     "_id": "kOjq18mSS4SHRadj",
     "uuid": "Compendium.pf2e.equipment-core.Item.kOjq18mSS4SHRadj",
     "name": "Purifying Spoon (Teaspoon)",
@@ -169,6 +3146,44 @@
     }
   },
   {
+    "_id": "KMHlprWASfcmdIqF",
+    "uuid": "Compendium.pf2e.equipment-core.Item.KMHlprWASfcmdIqF",
+    "name": "Ration Tonic",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Ration Tonic",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "3Wb0N7iqmTn6e2Xc"
+    }
+  },
+  {
+    "_id": "PFLqxqhKWQyX4cYG",
+    "uuid": "Compendium.pf2e.equipment-core.Item.PFLqxqhKWQyX4cYG",
+    "name": "Ration Tonic (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Ration Tonic (Greater)",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "EkC2W5A5fohoIKSd"
+    }
+  },
+  {
     "_id": "kbNb52BE0VDHDJQL",
     "uuid": "Compendium.pf2e.equipment-core.Item.kbNb52BE0VDHDJQL",
     "name": "Rations",
@@ -181,6 +3196,76 @@
       "system.category": "other",
       "system.usage": "held-in-one-hand",
       "flags.fusion.sourceId": "L9ZV076913otGtiB"
+    }
+  },
+  {
+    "_id": "3Uy9txdLpu4W0H1p",
+    "uuid": "Compendium.pf2e.equipment-core.Item.3Uy9txdLpu4W0H1p",
+    "name": "Religious Symbol (Silver)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Religious Symbol (Silver)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "upzjwQ96cZG0Xlmx"
+    }
+  },
+  {
+    "_id": "Q6pcRZXD1vJy08Xf",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Q6pcRZXD1vJy08Xf",
+    "name": "Religious Symbol (Wooden)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Religious Symbol (Wooden)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "plplsXJsqrdqNQVI"
+    }
+  },
+  {
+    "_id": "xtMrmYqCVUoT5G1k",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xtMrmYqCVUoT5G1k",
+    "name": "Religious Text",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Religious Text",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "z1okOYtNVnpBNj9F"
+    }
+  },
+  {
+    "_id": "wTv0j60RJ7pHvc4g",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wTv0j60RJ7pHvc4g",
+    "name": "Repair Toolkit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Repair Toolkit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "vLGDUFrg4yGzpTQX"
+    }
+  },
+  {
+    "_id": "cOCvvhctYTHuhHJf",
+    "uuid": "Compendium.pf2e.equipment-core.Item.cOCvvhctYTHuhHJf",
+    "name": "Repair Toolkit (Superb)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Repair Toolkit (Superb)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "aDsdYMPpVc8hOnM5"
     }
   },
   {
@@ -201,6 +3286,40 @@
     }
   },
   {
+    "_id": "kC9QCdMocE9ynsNR",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kC9QCdMocE9ynsNR",
+    "name": "Ring of Sigils",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Ring of Sigils",
+      "system.level": 1,
+      "system.traits.value": [
+        "arcane",
+        "invested"
+      ],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "yzc8Sll1YMWq8PpR"
+    }
+  },
+  {
+    "_id": "mDMo9FTFev0JAv4w",
+    "uuid": "Compendium.pf2e.equipment-core.Item.mDMo9FTFev0JAv4w",
+    "name": "Ring of Sigils (Greater)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Ring of Sigils (Greater)",
+      "system.level": 6,
+      "system.traits.value": [
+        "arcane",
+        "invested"
+      ],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "Ld6K4snDzKbNXy2g"
+    }
+  },
+  {
     "_id": "cAbDdzcaSqJ0MNYG",
     "uuid": "Compendium.pf2e.equipment-core.Item.cAbDdzcaSqJ0MNYG",
     "name": "Rope",
@@ -212,6 +3331,34 @@
       "system.traits.value": [],
       "system.usage": "held-in-two-hands",
       "flags.fusion.sourceId": "fyYnQf1NAx9fWFaS"
+    }
+  },
+  {
+    "_id": "RXIFskzTHKQi0Y8E",
+    "uuid": "Compendium.pf2e.equipment-core.Item.RXIFskzTHKQi0Y8E",
+    "name": "Sack",
+    "img": "icons/placeholder/item.svg",
+    "type": "container",
+    "index": {
+      "name": "Sack",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "DujblC14ytJEZMaz"
+    }
+  },
+  {
+    "_id": "6W6mBHECWUh3aghJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6W6mBHECWUh3aghJ",
+    "name": "Saddlebags",
+    "img": "icons/placeholder/item.svg",
+    "type": "container",
+    "index": {
+      "name": "Saddlebags",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "mBziC8v2eOtTs0f5"
     }
   },
   {
@@ -234,6 +3381,74 @@
     }
   },
   {
+    "_id": "djRoqvGym8E0xzsf",
+    "uuid": "Compendium.pf2e.equipment-core.Item.djRoqvGym8E0xzsf",
+    "name": "Savior Spike",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Savior Spike",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "force",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "qeTWg0TWw9CwMKCO"
+    }
+  },
+  {
+    "_id": "g2H0rAiXM2rp12CF",
+    "uuid": "Compendium.pf2e.equipment-core.Item.g2H0rAiXM2rp12CF",
+    "name": "Scholarly Journal",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Scholarly Journal",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "hywANJCzT7hMgWna"
+    }
+  },
+  {
+    "_id": "fh23aALzcIEb7vUe",
+    "uuid": "Compendium.pf2e.equipment-core.Item.fh23aALzcIEb7vUe",
+    "name": "Scholarly Journal Compendium",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Scholarly Journal Compendium",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "5rkGXSbaqBbY4MiR"
+    }
+  },
+  {
+    "_id": "DpFjoythZSl5XUN2",
+    "uuid": "Compendium.pf2e.equipment-core.Item.DpFjoythZSl5XUN2",
+    "name": "Sea Touch Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Sea Touch Elixir (Lesser)",
+      "system.level": 5,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "polymorph"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "zcJgT5RS8p2MEbOB"
+    }
+  },
+  {
     "_id": "7Ons6DIeurQjfDOk",
     "uuid": "Compendium.pf2e.equipment-core.Item.7Ons6DIeurQjfDOk",
     "name": "Serum of Sex Shift",
@@ -250,6 +3465,179 @@
       "system.category": "potion",
       "system.usage": "held-in-one-hand",
       "flags.fusion.sourceId": "9ignmYCACjfzkxDQ"
+    }
+  },
+  {
+    "_id": "6fQ9wSyijb7bcyhr",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6fQ9wSyijb7bcyhr",
+    "name": "Shark Tooth Charm",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Shark Tooth Charm",
+      "system.level": 5,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "Tj4uaNw2lgevxGl7"
+    }
+  },
+  {
+    "_id": "BTVRn1tHmOhrwx11",
+    "uuid": "Compendium.pf2e.equipment-core.Item.BTVRn1tHmOhrwx11",
+    "name": "Shining Symbol",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Shining Symbol",
+      "system.level": 3,
+      "system.traits.value": [
+        "divine",
+        "invested",
+        "light"
+      ],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "YVtXlsEWb3NIkDyy"
+    }
+  },
+  {
+    "_id": "EaXYw2YU1rUr16g2",
+    "uuid": "Compendium.pf2e.equipment-core.Item.EaXYw2YU1rUr16g2",
+    "name": "Shrinking Potion",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Shrinking Potion",
+      "system.level": 4,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "FqbDpztscJfM4XMe"
+    }
+  },
+  {
+    "_id": "5oB4TcIiQs09QRLH",
+    "uuid": "Compendium.pf2e.equipment-core.Item.5oB4TcIiQs09QRLH",
+    "name": "Shrinking Potion (Greater)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Shrinking Potion (Greater)",
+      "system.level": 8,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "5xsfj30uXMKINxnk"
+    }
+  },
+  {
+    "_id": "KXvn41Yu7tcwFPcs",
+    "uuid": "Compendium.pf2e.equipment-core.Item.KXvn41Yu7tcwFPcs",
+    "name": "Signal Whistle",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Signal Whistle",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "USHK6XQRwmq17xKh"
+    }
+  },
+  {
+    "_id": "AEEOyxGNIzZE1CT1",
+    "uuid": "Compendium.pf2e.equipment-core.Item.AEEOyxGNIzZE1CT1",
+    "name": "Silver Chunk",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Silver Chunk",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Ld8duhvwTQ5lCQmF"
+    }
+  },
+  {
+    "_id": "KLKswYp9jEVorRHx",
+    "uuid": "Compendium.pf2e.equipment-core.Item.KLKswYp9jEVorRHx",
+    "name": "Silver Ingot",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Silver Ingot",
+      "system.level": 0,
+      "system.traits.value": [
+        "precious"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "jerA2fFiK5wb32r5"
+    }
+  },
+  {
+    "_id": "5qksatepfUIvCru3",
+    "uuid": "Compendium.pf2e.equipment-core.Item.5qksatepfUIvCru3",
+    "name": "Skinstitch Salve",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Skinstitch Salve",
+      "system.level": 7,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "healing"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "FgAPV0iLE6R1QMJ5"
+    }
+  },
+  {
+    "_id": "acbtf2VEDYZ3r9vc",
+    "uuid": "Compendium.pf2e.equipment-core.Item.acbtf2VEDYZ3r9vc",
+    "name": "Sneaky Key",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Sneaky Key",
+      "system.level": 5,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "1v1OK06JxdXn6MP4"
+    }
+  },
+  {
+    "_id": "BRg3nSCdIW2gBD47",
+    "uuid": "Compendium.pf2e.equipment-core.Item.BRg3nSCdIW2gBD47",
+    "name": "Soap",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Soap",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "81aHsD27HFGnq1Nt"
     }
   },
   {
@@ -270,6 +3658,395 @@
     }
   },
   {
+    "_id": "Swm2csiouPnwxmaQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Swm2csiouPnwxmaQ",
+    "name": "Spellbook (Blank)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Spellbook (Blank)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "FOWF5f0tCaApv9RE"
+    }
+  },
+  {
+    "_id": "Sp4H3PP3cxDV6NXQ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Sp4H3PP3cxDV6NXQ",
+    "name": "Spyglass",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Spyglass",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "UtRH6jt3iNFCgLLG"
+    }
+  },
+  {
+    "_id": "eBnuxuEMTng4c1pe",
+    "uuid": "Compendium.pf2e.equipment-core.Item.eBnuxuEMTng4c1pe",
+    "name": "Spyglass (Fine)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Spyglass (Fine)",
+      "system.level": 4,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "rV7MTDCseZmEZKDw"
+    }
+  },
+  {
+    "_id": "YbeuSiW1pABlqJrw",
+    "uuid": "Compendium.pf2e.equipment-core.Item.YbeuSiW1pABlqJrw",
+    "name": "Stone Fist Elixir",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Stone Fist Elixir",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "morph"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "YcvSw7Zn3oyqlJaw"
+    }
+  },
+  {
+    "_id": "hoDn4HeVLG2k2Rdh",
+    "uuid": "Compendium.pf2e.equipment-core.Item.hoDn4HeVLG2k2Rdh",
+    "name": "Surging Serum (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Surging Serum (Lesser)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "1TWHN8RbimPVXM0U"
+    }
+  },
+  {
+    "_id": "pkdi90CPo8KHYXaH",
+    "uuid": "Compendium.pf2e.equipment-core.Item.pkdi90CPo8KHYXaH",
+    "name": "Surging Serum (Moderate)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Surging Serum (Moderate)",
+      "system.level": 8,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir",
+        "healing"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "tslVf3qtQE7V1YvG"
+    }
+  },
+  {
+    "_id": "XKeXI5mZhsO25F5R",
+    "uuid": "Compendium.pf2e.equipment-core.Item.XKeXI5mZhsO25F5R",
+    "name": "Survey Map",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Survey Map",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "UhcRWtnjU2WLSClx"
+    }
+  },
+  {
+    "_id": "u2aC3Te7xH78lCVc",
+    "uuid": "Compendium.pf2e.equipment-core.Item.u2aC3Te7xH78lCVc",
+    "name": "Survey Map (Atlas)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Survey Map (Atlas)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "1M4SSDuTv2SwBltC"
+    }
+  },
+  {
+    "_id": "wEEYOGQTxmwMSozo",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wEEYOGQTxmwMSozo",
+    "name": "Swift Block Cabochon",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Swift Block Cabochon",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-a-shield",
+      "flags.fusion.sourceId": "4tnPWyApPZP1P1yO"
+    }
+  },
+  {
+    "_id": "MjNc7HlkibJ5ghbZ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.MjNc7HlkibJ5ghbZ",
+    "name": "Symbol of Conflict",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Symbol of Conflict",
+      "system.level": 4,
+      "system.traits.value": [
+        "divine",
+        "invested"
+      ],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "BHjJpNILf85M2LJE"
+    }
+  },
+  {
+    "_id": "09atRyfg45YCp5oW",
+    "uuid": "Compendium.pf2e.equipment-core.Item.09atRyfg45YCp5oW",
+    "name": "Tack",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tack",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "Bu2xT8NfB6xaeTJa"
+    }
+  },
+  {
+    "_id": "gqqVK3CKAjkfZRx3",
+    "uuid": "Compendium.pf2e.equipment-core.Item.gqqVK3CKAjkfZRx3",
+    "name": "Ten-Foot Pole",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Ten-Foot Pole",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "ccsgob2TZ7WqTrp7"
+    }
+  },
+  {
+    "_id": "zgTM5bEzidWo1uhd",
+    "uuid": "Compendium.pf2e.equipment-core.Item.zgTM5bEzidWo1uhd",
+    "name": "Tengu Feather Fan",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tengu Feather Fan",
+      "system.level": 5,
+      "system.traits.value": [
+        "primal"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "KekfZ6eRzoZVRemw"
+    }
+  },
+  {
+    "_id": "bToaGX3FbmyyLDPM",
+    "uuid": "Compendium.pf2e.equipment-core.Item.bToaGX3FbmyyLDPM",
+    "name": "Tent (Four-Person)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tent (Four-Person)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "JlClrm1WfJ45oWcS"
+    }
+  },
+  {
+    "_id": "Mdo0sL1KYJrqsZnT",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Mdo0sL1KYJrqsZnT",
+    "name": "Tent (Pavilion)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tent (Pavilion)",
+      "system.level": 2,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "xyzmQa3nhU8HxfUL"
+    }
+  },
+  {
+    "_id": "0Ks4ZNbY4s6EMJr0",
+    "uuid": "Compendium.pf2e.equipment-core.Item.0Ks4ZNbY4s6EMJr0",
+    "name": "Tent (Pup)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tent (Pup)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "Wc9og4mTKZDH3xmz"
+    }
+  },
+  {
+    "_id": "Oi7bkA4CXwnrERu5",
+    "uuid": "Compendium.pf2e.equipment-core.Item.Oi7bkA4CXwnrERu5",
+    "name": "Thieves' Toolkit",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Thieves' Toolkit",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "zvLyCVD8g2PdHJAc"
+    }
+  },
+  {
+    "_id": "xL8cnzCKy1TxxVDL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xL8cnzCKy1TxxVDL",
+    "name": "Thieves' Toolkit (Infiltrator Picks)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Thieves' Toolkit (Infiltrator Picks)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "BznmPaRjI4Orb0IH"
+    }
+  },
+  {
+    "_id": "0fJpzap1XXJTEgl9",
+    "uuid": "Compendium.pf2e.equipment-core.Item.0fJpzap1XXJTEgl9",
+    "name": "Thieves' Toolkit (Infiltrator)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Thieves' Toolkit (Infiltrator)",
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "6nrCxNQFycUVFOV2"
+    }
+  },
+  {
+    "_id": "kB7MnV3JtadRArNI",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kB7MnV3JtadRArNI",
+    "name": "Thieves' Toolkit (Replacement Picks)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Thieves' Toolkit (Replacement Picks)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "Sw7MBLASN3xK4Y44"
+    }
+  },
+  {
+    "_id": "SXklBMlyaAhnI5zA",
+    "uuid": "Compendium.pf2e.equipment-core.Item.SXklBMlyaAhnI5zA",
+    "name": "Thurible of Revelation (Lesser)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Thurible of Revelation (Lesser)",
+      "system.level": 3,
+      "system.traits.value": [
+        "divine"
+      ],
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "xaWuuQoBJiMLzggR"
+    }
+  },
+  {
+    "_id": "3eX9xDRa0813qfOc",
+    "uuid": "Compendium.pf2e.equipment-core.Item.3eX9xDRa0813qfOc",
+    "name": "Tiger Menuki",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Tiger Menuki",
+      "system.level": 5,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-weapon",
+      "flags.fusion.sourceId": "zrZ1FaaqW6VIajj7"
+    }
+  },
+  {
+    "_id": "sOvJzBl5Nr7eQONP",
+    "uuid": "Compendium.pf2e.equipment-core.Item.sOvJzBl5Nr7eQONP",
+    "name": "Timeless Salts",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Timeless Salts",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "Ha6n30Tj3TNru9Dj"
+    }
+  },
+  {
+    "_id": "RsfzpE494fNdmTDz",
+    "uuid": "Compendium.pf2e.equipment-core.Item.RsfzpE494fNdmTDz",
+    "name": "Tool (Long)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tool (Long)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "wrpI5z7iWB8XvflQ"
+    }
+  },
+  {
+    "_id": "XDxt8GHvhs96yQoq",
+    "uuid": "Compendium.pf2e.equipment-core.Item.XDxt8GHvhs96yQoq",
+    "name": "Tool (Short)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Tool (Short)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "Zr4PwTEuBLE30kkn"
+    }
+  },
+  {
     "_id": "xHtscw4I2ztIg0r5",
     "uuid": "Compendium.pf2e.equipment-core.Item.xHtscw4I2ztIg0r5",
     "name": "Torch",
@@ -284,6 +4061,40 @@
     }
   },
   {
+    "_id": "wCMoGeD30sCJx8TO",
+    "uuid": "Compendium.pf2e.equipment-core.Item.wCMoGeD30sCJx8TO",
+    "name": "Traveler's Chair",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Traveler's Chair",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "JFd6QBDtSNC43dy0"
+    }
+  },
+  {
+    "_id": "WpfjrH1nMzLbAFPU",
+    "uuid": "Compendium.pf2e.equipment-core.Item.WpfjrH1nMzLbAFPU",
+    "name": "Truth Potion",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Truth Potion",
+      "system.level": 6,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "mental",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "HAEz4sSa6OH6C7Cs"
+    }
+  },
+  {
     "_id": "VUff0oTLrwPZPR6Q",
     "uuid": "Compendium.pf2e.equipment-core.Item.VUff0oTLrwPZPR6Q",
     "name": "Waterskin",
@@ -295,6 +4106,86 @@
       "system.traits.value": [],
       "system.usage": "held-in-one-hand",
       "flags.fusion.sourceId": "VnPh324pKwd2ZB66"
+    }
+  },
+  {
+    "_id": "8I2PnfqmasaQPa4i",
+    "uuid": "Compendium.pf2e.equipment-core.Item.8I2PnfqmasaQPa4i",
+    "name": "Wheelchair",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Wheelchair",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "RYi2tVST7PVN56mU"
+    }
+  },
+  {
+    "_id": "lBbNoh34tWFH754R",
+    "uuid": "Compendium.pf2e.equipment-core.Item.lBbNoh34tWFH754R",
+    "name": "Witchwarg Elixir (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Witchwarg Elixir (Lesser)",
+      "system.level": 4,
+      "system.traits.value": [
+        "alchemical",
+        "consumable",
+        "elixir"
+      ],
+      "system.category": "elixir",
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "n9VrmK9Us0viv20P"
+    }
+  },
+  {
+    "_id": "tuSjnZmyCksuq0Ir",
+    "uuid": "Compendium.pf2e.equipment-core.Item.tuSjnZmyCksuq0Ir",
+    "name": "Wolf Fang",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Wolf Fang",
+      "system.level": 1,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "clyXfh0aVXgij2Hb"
+    }
+  },
+  {
+    "_id": "sszJiDFPElszhuVq",
+    "uuid": "Compendium.pf2e.equipment-core.Item.sszJiDFPElszhuVq",
+    "name": "Writing Set",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Writing Set",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "QJb8S927Yj81EgHH"
+    }
+  },
+  {
+    "_id": "h71dllQUFEuzwWa1",
+    "uuid": "Compendium.pf2e.equipment-core.Item.h71dllQUFEuzwWa1",
+    "name": "Writing Set (Extra Ink and Paper)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Writing Set (Extra Ink and Paper)",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other",
+      "flags.fusion.sourceId": "3yLu12TCwN8utY0u"
     }
   }
 ]
