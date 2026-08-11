@@ -121,6 +121,29 @@ um `Overlay` da mesma cena, alternado pelo GM em um clique (REQ-CNV-085), sem
 duplicar cenas nem trocar background. Overlay oculto não chega ao jogador
 (REQ-DOC-060).
 
+### DEC-MREG-07 — O mapa viaja como pacote {JSON + imagem}, e a revelação não viaja junto
+
+Uma região preparada em um mundo DEVE poder ser levada para outro mundo — outra
+aventura, outro servidor, a mesa de outro GM. O transporte é um **pacote de
+mapa**: um arquivo JSON com a cena e seus pins ao lado do arquivo de imagem do
+terreno. O JSON referencia a imagem por **nome de arquivo**, não por caminho
+absoluto nem por id de asset do mundo de origem.
+
+O que **não** viaja: `ownership`. Todo pin importado nasce oculto
+(REQ-DOC-056), exatamente como um pin recém-criado.
+
+- **Racional (formato leve, e não pack):** um pack (`16`) é `pack.db` SQLite +
+  manifesto + licença, feito para conteúdo publicado e versionado. Um mapa de
+  campanha é conteúdo do GM que ele quer copiar, editar num editor de texto e
+  mandar por mensagem. O custo do pack não se paga aqui — e o pacote leve não
+  impede que uma região vire pack depois.
+- **Racional (a revelação ficar para trás):** `ownership` é um mapa de `userId`,
+  e userId não é portável entre servidores — o "tobias" de lá não é o "tobias"
+  de cá. Importar o mapa de revelação ou daria visibilidade a quem não devia,
+  ou (na melhor hipótese) apontaria para ninguém. Além disso, o que a comitiva
+  descobriu é história daquela mesa; a mesa nova recomeça a descoberta. Custo
+  aceito: um GM que rode a mesma aventura duas vezes revela de novo.
+
 ## 5. Requisitos funcionais
 
 ### 5.1 Cena de região
@@ -188,6 +211,26 @@ duplicar cenas nem trocar background. Overlay oculto não chega ao jogador
 - **REQ-MREG-017** [MVP] O zoom por roda do mouse DEVE ancorar no cursor — o
   ponto do mundo sob o ponteiro permanece sob o ponteiro. Zoom que ancora no
   centro obriga o GM a alternar zoom e pan para chegar num POI de canto.
+
+### 5.5 Pacote de mapa portátil
+
+- **REQ-MREG-018** [MVP] O GM DEVE poder **exportar** uma cena de região como
+  pacote de mapa: um JSON com nome, dimensões, escala (`gridDistance`/
+  `gridUnits`), `flags.fusion.mapScale`, o **nome do arquivo** da imagem de
+  terreno e a lista de pins (posição, ícone, rótulo, texto, flags — incluindo
+  `flags.fusion.portal`).
+- **REQ-MREG-019** [MVP] O pacote exportado NÃO DEVE conter `ownership` de pin
+  algum, nem qualquer outro registro de quem viu o quê (DEC-MREG-07).
+- **REQ-MREG-022** [MVP] O GM DEVE poder **importar** um pacote de mapa,
+  escolhendo a imagem de terreno que o acompanha; a importação DEVE criar uma
+  cena com o preset de região aplicado (REQ-MREG-001) e um Note por pin, todos
+  nascendo ocultos (`ownership.default = none`).
+- **REQ-MREG-023** [MVP] O pacote DEVE carregar um número de versão de formato;
+  a importação DEVE recusar, com mensagem clara, versão que não conhece — nunca
+  adivinhar campos.
+- **REQ-MREG-024** [MVP] A importação DEVE preservar a identidade de origem de
+  cada pin em `flags.fusion.sourceId` quando ela existir, para que reimportar o
+  mesmo pacote seja reconhecível como o mesmo mapa e não uma segunda cópia.
 
 ## 6. Requisitos não-funcionais
 
