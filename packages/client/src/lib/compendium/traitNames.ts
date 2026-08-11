@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (238 traits).
+ * Trait slug → pt-BR chip label (240 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -41,6 +41,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   bard: "bardo",
   brandish: "brandir",
   bravado: "bravata",
+  bulwark: "baluarte",
   cantrip: "truque",
   "capacity-3": "capacidade-3",
   "capacity-5": "capacidade-5",
@@ -52,6 +53,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   class: "classe",
   cleric: "clérigo",
   cold: "frio",
+  comfort: "confortavel",
   commander: "comandante",
   composite: "composto",
   composition: "composição",

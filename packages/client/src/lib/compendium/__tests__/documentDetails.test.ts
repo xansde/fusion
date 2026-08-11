@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 238 glossary traits with a non-empty accented value", () => {
+  it("covers all 240 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1082,11 +1082,12 @@ describe("trait/rarity display names (r15-A1)", () => {
     // repeating, modular, double-barrel, concealable — mais `amp` e
     // `mindshift`, que vêm com a Psychic) + 7 nesta rodada (as ancestrias
     // hobgoblin/aiuvarin/changeling/dhampir/dragonblood/dromaar/duskwalker
-    // que o Player Core 2 trouxe via ancestries/heritages-core). Count exato
+    // que o Player Core 2 trouxe via ancestries/heritages-core) + 2 na r28/A1
+    // (bulwark e comfort, os traços de armadura que armor-core publicou). Count exato
     // de propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(238);
+    expect(keys.length).toBe(240);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
