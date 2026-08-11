@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packId": "pf2e.feats-core",
-  "generatedAt": "2026-08-03T01:40:05.238Z",
+  "generatedAt": "2026-08-11T01:05:45.948Z",
   "generator": "tools/translate-packs@0.1.0",
   "entries": {
     "Doi6p9WhOes6OrFS": {
@@ -22,6 +22,25 @@
       ],
       "unlocks": []
     },
+    "SnP0yhZlExDVAok8": {
+      "sourceHash": "dfb46ee3303b5c006b8ea4cb06aef5281fa2b52e",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "class",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "bard"
+            ],
+            "levelExpr": "item:level:1"
+          },
+          "source": "rule-element",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
     "UfknkTVC2ks7AnzY": {
       "sourceHash": "e8e8c63b03863f35df3ed7f19e466179ae466999",
       "grants": [
@@ -34,6 +53,25 @@
           },
           "source": "llm",
           "confidence": 0.7
+        }
+      ],
+      "unlocks": []
+    },
+    "XDcIE9aVqyOZG6Hi": {
+      "sourceHash": "78365fb505675f36f67263753e2348ac28cef10c",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "general"
+            ],
+            "maxLevel": 7
+          },
+          "source": "rule-element",
+          "confidence": 1
         }
       ],
       "unlocks": []
@@ -74,6 +112,42 @@
       ],
       "unlocks": []
     },
+    "mRrHI4oiLOtkHwGl": {
+      "sourceHash": "903eaa5cfdd6edc9f2186c7af308984518a6e6e4",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "class",
+          "count": 1,
+          "filters": {
+            "levelExpr": "item:level:1"
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "ng8ft5idHgI21hoa": {
+      "sourceHash": "3f7aedb67ca71ccd05b42d9aa51a157b21ef173f",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "class",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "dedication",
+              "multiclass"
+            ],
+            "levelExpr": "item:level:2"
+          },
+          "source": "rule-element",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
     "pP1ESEvFaPyF2OFM": {
       "sourceHash": "1f4f738aeb372947722c790b1b60f62374e43a6d",
       "grants": [],
@@ -101,6 +175,25 @@
               "rogue"
             ],
             "maxLevel": 2
+          },
+          "source": "rule-element",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "xfeNwa2xovdcBxox": {
+      "sourceHash": "960787c1b249e7d18b2c6809c2881794f225da92",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "general"
+            ],
+            "levelExpr": "item:level:1"
           },
           "source": "rule-element",
           "confidence": 1

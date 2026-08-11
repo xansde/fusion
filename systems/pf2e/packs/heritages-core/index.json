@@ -1,5 +1,96 @@
 [
   {
+    "_id": "uXoHdsBp2ewzrbAk",
+    "uuid": "Compendium.pf2e.heritages-core.Item.uXoHdsBp2ewzrbAk",
+    "name": "Clawed Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Clawed Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "bLhIBwqdjTiVJ5qm"
+    }
+  },
+  {
+    "_id": "I4tx13WaL8HeYoxq",
+    "uuid": "Compendium.pf2e.heritages-core.Item.I4tx13WaL8HeYoxq",
+    "name": "Hunting Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Hunting Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "1lv7RMp7t5iqeUFT"
+    }
+  },
+  {
+    "_id": "H09zZq3SrCyM4kLX",
+    "uuid": "Compendium.pf2e.heritages-core.Item.H09zZq3SrCyM4kLX",
+    "name": "Jungle Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Jungle Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "HpqQ5VQ0w4HqYgVC"
+    }
+  },
+  {
+    "_id": "8tfGSTrp4F8Ji1EW",
+    "uuid": "Compendium.pf2e.heritages-core.Item.8tfGSTrp4F8Ji1EW",
+    "name": "Liminal Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Liminal Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3F5ffk7cmnrBhPcT"
+    }
+  },
+  {
+    "_id": "qW11UFTg0kGk9jc7",
+    "uuid": "Compendium.pf2e.heritages-core.Item.qW11UFTg0kGk9jc7",
+    "name": "Nine Lives Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Nine Lives Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "hOPOyyt7qZXYYCOU"
+    }
+  },
+  {
+    "_id": "Cpes1OTxDiaRvi4g",
+    "uuid": "Compendium.pf2e.heritages-core.Item.Cpes1OTxDiaRvi4g",
+    "name": "Sharp-Eared Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Sharp-Eared Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "NWsZ0cIeghyzk9bU"
+    }
+  },
+  {
+    "_id": "fI3Ozq4TxyEh7SoF",
+    "uuid": "Compendium.pf2e.heritages-core.Item.fI3Ozq4TxyEh7SoF",
+    "name": "Winter Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Winter Catfolk",
+      "system.ancestry.slug": "catfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "6dMd4JG0ndrObEUj"
+    }
+  },
+  {
     "_id": "yAJKJ43MtxkqhD1m",
     "uuid": "Compendium.pf2e.heritages-core.Item.yAJKJ43MtxkqhD1m",
     "name": "Ancient-Blooded Dwarf",
@@ -351,6 +442,84 @@
     }
   },
   {
+    "_id": "ttAkk638Tm1jBoDE",
+    "uuid": "Compendium.pf2e.heritages-core.Item.ttAkk638Tm1jBoDE",
+    "name": "Elfbane Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Elfbane Hobgoblin",
+      "system.ancestry.slug": "hobgoblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ikNJZRxUjcRLisO6"
+    }
+  },
+  {
+    "_id": "CPbZ7cENyyOf94Ir",
+    "uuid": "Compendium.pf2e.heritages-core.Item.CPbZ7cENyyOf94Ir",
+    "name": "Runtboss Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Runtboss Hobgoblin",
+      "system.ancestry.slug": "hobgoblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "CzOHITB2ihLGqMuJ"
+    }
+  },
+  {
+    "_id": "lQJSga4RDO79Qu83",
+    "uuid": "Compendium.pf2e.heritages-core.Item.lQJSga4RDO79Qu83",
+    "name": "Shortshanks Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Shortshanks Hobgoblin",
+      "system.ancestry.slug": "hobgoblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "rQJBtQ9uKUzK9ktK"
+    }
+  },
+  {
+    "_id": "6x1o6yc6R21dtdrA",
+    "uuid": "Compendium.pf2e.heritages-core.Item.6x1o6yc6R21dtdrA",
+    "name": "Smokeworker Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Smokeworker Hobgoblin",
+      "system.ancestry.slug": "hobgoblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "n2eJEjA8pnOMiuCm"
+    }
+  },
+  {
+    "_id": "o3CfsgZcR2emMIlP",
+    "uuid": "Compendium.pf2e.heritages-core.Item.o3CfsgZcR2emMIlP",
+    "name": "Warmarch Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Warmarch Hobgoblin",
+      "system.ancestry.slug": "hobgoblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "K124fCpU03SJvmeP"
+    }
+  },
+  {
+    "_id": "JGA4JmOoAfvmxnvL",
+    "uuid": "Compendium.pf2e.heritages-core.Item.JGA4JmOoAfvmxnvL",
+    "name": "Warrenbred Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Warrenbred Hobgoblin",
+      "system.ancestry.slug": "hobgoblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "0vaeOoECfVD5EGbq"
+    }
+  },
+  {
     "_id": "LEnqH6OXD9A2TjKy",
     "uuid": "Compendium.pf2e.heritages-core.Item.LEnqH6OXD9A2TjKy",
     "name": "Skilled Human",
@@ -374,6 +543,188 @@
       "system.ancestry.slug": "human",
       "system.traits.value": [],
       "flags.fusion.sourceId": "hFBwsVcSnNCJoimo"
+    }
+  },
+  {
+    "_id": "ca8GxQCTqBgDIiEN",
+    "uuid": "Compendium.pf2e.heritages-core.Item.ca8GxQCTqBgDIiEN",
+    "name": "Ant Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Ant Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "udMXXjFirjARYr4p"
+    }
+  },
+  {
+    "_id": "64n2EFGi3L3ubmsQ",
+    "uuid": "Compendium.pf2e.heritages-core.Item.64n2EFGi3L3ubmsQ",
+    "name": "Cave Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Cave Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "JW45oQRHaqthjmIx"
+    }
+  },
+  {
+    "_id": "6c0DDzJOkARmEGCy",
+    "uuid": "Compendium.pf2e.heritages-core.Item.6c0DDzJOkARmEGCy",
+    "name": "Dog Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Dog Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "0B0M6CUnVDkeznRv"
+    }
+  },
+  {
+    "_id": "3QDFgTweWK35tmNM",
+    "uuid": "Compendium.pf2e.heritages-core.Item.3QDFgTweWK35tmNM",
+    "name": "Great Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Great Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "SqEcb1c3yeoJMxm0"
+    }
+  },
+  {
+    "_id": "URYizNQUmzYxUdZY",
+    "uuid": "Compendium.pf2e.heritages-core.Item.URYizNQUmzYxUdZY",
+    "name": "Sweetbreath Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Sweetbreath Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "B89BCo6LtI3SJq54"
+    }
+  },
+  {
+    "_id": "osIeS4GtStfzdd1h",
+    "uuid": "Compendium.pf2e.heritages-core.Item.osIeS4GtStfzdd1h",
+    "name": "Winter Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Winter Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "hwRWx3hWx8ahBdz0"
+    }
+  },
+  {
+    "_id": "BBniKsQV0UgbQHWI",
+    "uuid": "Compendium.pf2e.heritages-core.Item.BBniKsQV0UgbQHWI",
+    "name": "Witch Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Witch Kholo",
+      "system.ancestry.slug": "kholo",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "kXp8qRh5AgtD4Izi"
+    }
+  },
+  {
+    "_id": "3trQyvZzmEiHdhtU",
+    "uuid": "Compendium.pf2e.heritages-core.Item.3trQyvZzmEiHdhtU",
+    "name": "Cavernstalker Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Cavernstalker Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "35k2aujXYvqUCSS1"
+    }
+  },
+  {
+    "_id": "jpMCywVDWn9eWGcs",
+    "uuid": "Compendium.pf2e.heritages-core.Item.jpMCywVDWn9eWGcs",
+    "name": "Dragonscaled Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Dragonscaled Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "P8BP1un5BTrwXoBy"
+    }
+  },
+  {
+    "_id": "yt5c3VSKvNHrU8d8",
+    "uuid": "Compendium.pf2e.heritages-core.Item.yt5c3VSKvNHrU8d8",
+    "name": "Elementheart Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Elementheart Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dbj1cbkYeAAdkDSM"
+    }
+  },
+  {
+    "_id": "ke8BWBtAAK84vdyF",
+    "uuid": "Compendium.pf2e.heritages-core.Item.ke8BWBtAAK84vdyF",
+    "name": "Spellhorn Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Spellhorn Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VRyX00OuPGsJSurM"
+    }
+  },
+  {
+    "_id": "md4aigcY7sULKUVj",
+    "uuid": "Compendium.pf2e.heritages-core.Item.md4aigcY7sULKUVj",
+    "name": "Strongjaw Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Strongjaw Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "WaCn0mcivFv1omNK"
+    }
+  },
+  {
+    "_id": "9nLXFfcCx9ExXgLt",
+    "uuid": "Compendium.pf2e.heritages-core.Item.9nLXFfcCx9ExXgLt",
+    "name": "Tunnelflood Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Tunnelflood Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ZW8GX14n3ZGievK1"
+    }
+  },
+  {
+    "_id": "TmVZTRuKSNcS2VsI",
+    "uuid": "Compendium.pf2e.heritages-core.Item.TmVZTRuKSNcS2VsI",
+    "name": "Venomtail Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Venomtail Kobold",
+      "system.ancestry.slug": "kobold",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "m9rrlchS10xHFA2G"
     }
   },
   {
@@ -491,6 +842,97 @@
       "system.ancestry.slug": "leshy",
       "system.traits.value": [],
       "flags.fusion.sourceId": "evXJISqyhl3fHE9u"
+    }
+  },
+  {
+    "_id": "zvua3ioLdzbK4P9i",
+    "uuid": "Compendium.pf2e.heritages-core.Item.zvua3ioLdzbK4P9i",
+    "name": "Cliffscale Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Cliffscale Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "OoUqJJB77VfWbWRM"
+    }
+  },
+  {
+    "_id": "eUknKUmCXuElXgCW",
+    "uuid": "Compendium.pf2e.heritages-core.Item.eUknKUmCXuElXgCW",
+    "name": "Cloudleaper Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Cloudleaper Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "sEnMG5zbnXdJvVPz"
+    }
+  },
+  {
+    "_id": "kin6ZHC2wqQOtl85",
+    "uuid": "Compendium.pf2e.heritages-core.Item.kin6ZHC2wqQOtl85",
+    "name": "Frilled Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Frilled Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "6rIIsZg3tOyIU3g3"
+    }
+  },
+  {
+    "_id": "o5MeYOQJR2zgjxgh",
+    "uuid": "Compendium.pf2e.heritages-core.Item.o5MeYOQJR2zgjxgh",
+    "name": "Sandstrider Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Sandstrider Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "6xxXtgj3fcCi53lt"
+    }
+  },
+  {
+    "_id": "LoQcj744WCjvZu4f",
+    "uuid": "Compendium.pf2e.heritages-core.Item.LoQcj744WCjvZu4f",
+    "name": "Unseen Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Unseen Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VYfpTUuXJM3iBOz0"
+    }
+  },
+  {
+    "_id": "qrEP6ljlqBSbvzXn",
+    "uuid": "Compendium.pf2e.heritages-core.Item.qrEP6ljlqBSbvzXn",
+    "name": "Wetlander Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Wetlander Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dJeiekfqGQ8dkwsO"
+    }
+  },
+  {
+    "_id": "qbcpW8HPMk0rfzp9",
+    "uuid": "Compendium.pf2e.heritages-core.Item.qbcpW8HPMk0rfzp9",
+    "name": "Woodstalker Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Woodstalker Lizardfolk",
+      "system.ancestry.slug": "lizardfolk",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "TQFE10VFvh9wb8zb"
     }
   },
   {
@@ -673,6 +1115,273 @@
       "system.ancestry.slug": "ratfolk",
       "system.traits.value": [],
       "flags.fusion.sourceId": "U882U2NUUGL6u3rL"
+    }
+  },
+  {
+    "_id": "rLYj6obdz6MyJJCx",
+    "uuid": "Compendium.pf2e.heritages-core.Item.rLYj6obdz6MyJJCx",
+    "name": "Dogtooth Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Dogtooth Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2hLDilS6qbjHxgVS"
+    }
+  },
+  {
+    "_id": "CYRjuIMd0QluiVxU",
+    "uuid": "Compendium.pf2e.heritages-core.Item.CYRjuIMd0QluiVxU",
+    "name": "Jinxed Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Jinxed Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "g4FRxyuHndZu4KTo"
+    }
+  },
+  {
+    "_id": "9vMHY2wcPpYY0ogX",
+    "uuid": "Compendium.pf2e.heritages-core.Item.9vMHY2wcPpYY0ogX",
+    "name": "Mountainkeeper Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Mountainkeeper Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ptpK6H1rM4Bu3ry4"
+    }
+  },
+  {
+    "_id": "8MRVbtTA2xIGm2Gt",
+    "uuid": "Compendium.pf2e.heritages-core.Item.8MRVbtTA2xIGm2Gt",
+    "name": "Skyborn Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Skyborn Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "rKV11HWREwjjMIum"
+    }
+  },
+  {
+    "_id": "CAcizMezfgno7TNZ",
+    "uuid": "Compendium.pf2e.heritages-core.Item.CAcizMezfgno7TNZ",
+    "name": "Stormtossed Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Stormtossed Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "7vHLPleFpSqKAjWG"
+    }
+  },
+  {
+    "_id": "LzcpKDP0GsxK6KjW",
+    "uuid": "Compendium.pf2e.heritages-core.Item.LzcpKDP0GsxK6KjW",
+    "name": "Taloned Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Taloned Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "qM566kCXljkOpocA"
+    }
+  },
+  {
+    "_id": "1l4ANyfhwNTIPDbB",
+    "uuid": "Compendium.pf2e.heritages-core.Item.1l4ANyfhwNTIPDbB",
+    "name": "Wavediver Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Wavediver Tengu",
+      "system.ancestry.slug": "tengu",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "WEzgrxBRFBGdj8Hx"
+    }
+  },
+  {
+    "_id": "SP4gKM37bzNssJEs",
+    "uuid": "Compendium.pf2e.heritages-core.Item.SP4gKM37bzNssJEs",
+    "name": "Poisonhide Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Poisonhide Tripkee",
+      "system.ancestry.slug": "tripkee",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "bmA9JK06rnOKpNLr"
+    }
+  },
+  {
+    "_id": "GdFk5jT9MjYvb93E",
+    "uuid": "Compendium.pf2e.heritages-core.Item.GdFk5jT9MjYvb93E",
+    "name": "Riverside Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Riverside Tripkee",
+      "system.ancestry.slug": "tripkee",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "87Eej7uEvTxXeli7"
+    }
+  },
+  {
+    "_id": "RJ0NuBAaVWtqrFHI",
+    "uuid": "Compendium.pf2e.heritages-core.Item.RJ0NuBAaVWtqrFHI",
+    "name": "Snaptongue Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Snaptongue Tripkee",
+      "system.ancestry.slug": "tripkee",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2kSzKDtwbcILZTIe"
+    }
+  },
+  {
+    "_id": "jaLA0pGS156DX2T8",
+    "uuid": "Compendium.pf2e.heritages-core.Item.jaLA0pGS156DX2T8",
+    "name": "Stickytoe Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Stickytoe Tripkee",
+      "system.ancestry.slug": "tripkee",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "rFdVYKtHsZzRCsSd"
+    }
+  },
+  {
+    "_id": "2JpxIECfSt4wptii",
+    "uuid": "Compendium.pf2e.heritages-core.Item.2JpxIECfSt4wptii",
+    "name": "Thickskin Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Thickskin Tripkee",
+      "system.ancestry.slug": "tripkee",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2QLKvmCimT9ai0Bi"
+    }
+  },
+  {
+    "_id": "dY5g9ZdSk4mTofrc",
+    "uuid": "Compendium.pf2e.heritages-core.Item.dY5g9ZdSk4mTofrc",
+    "name": "Windweb Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Windweb Tripkee",
+      "system.ancestry.slug": "tripkee",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "xaTTN5anLEBzWCzv"
+    }
+  },
+  {
+    "_id": "Umo1s0yeiOclka8B",
+    "uuid": "Compendium.pf2e.heritages-core.Item.Umo1s0yeiOclka8B",
+    "name": "Aiuvarin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Aiuvarin",
+      "system.traits.value": [
+        "aiuvarin"
+      ],
+      "flags.fusion.sourceId": "N36ZR4lh9eCazDaN"
+    }
+  },
+  {
+    "_id": "MB7ntE4NAnnxfDW8",
+    "uuid": "Compendium.pf2e.heritages-core.Item.MB7ntE4NAnnxfDW8",
+    "name": "Changeling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Changeling",
+      "system.traits.value": [
+        "changeling"
+      ],
+      "flags.fusion.sourceId": "EKY9v7SF1hVsUdbH"
+    }
+  },
+  {
+    "_id": "FtJNGSiLbbBfcCUd",
+    "uuid": "Compendium.pf2e.heritages-core.Item.FtJNGSiLbbBfcCUd",
+    "name": "Dhampir",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Dhampir",
+      "system.traits.value": [
+        "dhampir"
+      ],
+      "flags.fusion.sourceId": "UaD5VDoFlILEmbyz"
+    }
+  },
+  {
+    "_id": "iKAPrVPPllPf7v4L",
+    "uuid": "Compendium.pf2e.heritages-core.Item.iKAPrVPPllPf7v4L",
+    "name": "Dragonblood",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Dragonblood",
+      "system.traits.value": [
+        "dragonblood"
+      ],
+      "flags.fusion.sourceId": "cbbXIV4QBred4lM5"
+    }
+  },
+  {
+    "_id": "uFakcF21UbWFzPxm",
+    "uuid": "Compendium.pf2e.heritages-core.Item.uFakcF21UbWFzPxm",
+    "name": "Dromaar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Dromaar",
+      "system.traits.value": [
+        "dromaar"
+      ],
+      "flags.fusion.sourceId": "tLd8Qg82AwEbbmgX"
+    }
+  },
+  {
+    "_id": "hkKdlwC5DfUnAd1t",
+    "uuid": "Compendium.pf2e.heritages-core.Item.hkKdlwC5DfUnAd1t",
+    "name": "Duskwalker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Duskwalker",
+      "system.traits.value": [
+        "duskwalker"
+      ],
+      "flags.fusion.sourceId": "ZZKZkeSP5TuT62IA"
+    }
+  },
+  {
+    "_id": "E05Pyaovk219ofDB",
+    "uuid": "Compendium.pf2e.heritages-core.Item.E05Pyaovk219ofDB",
+    "name": "Nephilim",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Nephilim",
+      "system.traits.value": [
+        "nephilim"
+      ],
+      "flags.fusion.sourceId": "1oLMOmLpurfWTTff"
     }
   },
   {

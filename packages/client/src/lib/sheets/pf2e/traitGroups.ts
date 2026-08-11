@@ -241,6 +241,9 @@ export const TRAIT_GROUPS: ReadonlyArray<readonly [string, TraitGroupDef]> = [
         // ancestries-core/feats-core, plus "ghoran" — a Leshy ancestry feat
         // (Solar Rejuvenation) carries BOTH traits (usable by either
         // ancestry), so it rides in as a side effect of curating "leshy".
+        // r27: the 7 Player Core 2 ancestries curated together with their
+        // ancestry feats (catfolk..tripkee) ride in the same group.
+        "catfolk",
         "dwarf",
         "eidolon",
         "elf",
@@ -250,8 +253,12 @@ export const TRAIT_GROUPS: ReadonlyArray<readonly [string, TraitGroupDef]> = [
         "gnome",
         "goblin",
         "halfling",
+        "hobgoblin",
         "human",
+        "kholo",
+        "kobold",
         "leshy",
+        "lizardfolk",
         "naari",
         "nephilim",
         "orc",
@@ -260,6 +267,8 @@ export const TRAIT_GROUPS: ReadonlyArray<readonly [string, TraitGroupDef]> = [
         "suli",
         "sylph",
         "talos",
+        "tengu",
+        "tripkee",
         "undine",
       ],
     },

@@ -96,6 +96,7 @@
     type MaterializeContext,
   } from "../../../../lib/sheets/pf2e/grantMaterializer.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
+  import { heritageMatchesAncestry } from "../../../../lib/sheets/pf2e/heritageFilter.js";
   import ABCCard from "./ABCCard.svelte";
   import type { AbcChipDisplay } from "./ABCCard.svelte";
   import LevelCard from "./LevelCard.svelte";
@@ -1284,10 +1285,7 @@
     showTraitFilter={abcPicker === "heritage"}
     filterFn={
       abcPicker === "heritage" && ctx.ancestrySlug
-        ? (e) => {
-            const slug = e.index["system.ancestry.slug"];
-            return typeof slug === "string" && slug === ctx.ancestrySlug;
-          }
+        ? (e) => heritageMatchesAncestry(e.index["system.ancestry.slug"], ctx.ancestrySlug!)
         : undefined
     }
     currentSourceId={abcCurrentSourceId(abcPicker)}

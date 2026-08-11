@@ -1,6 +1,6 @@
 # 08 — Relatório de Transformação PF2E → Fusion
 
-> Gerado em: 2026-08-08
+> Gerado em: 2026-08-11
 > Script: `src/transform.mjs --system pf2e` v0.1.0
 > Fonte: vendor/pf2e packs/pf2e branch v14-dev
 
