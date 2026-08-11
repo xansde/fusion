@@ -219,6 +219,8 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 
 **REQ-ROL-033** [MVP] No modo `gmroll`, tanto o jogador originador quanto todos os GMs DEVEM receber o `RollResult` completo. Outros jogadores veem apenas que o usuário realizou uma rolagem privada.
 
+> **Revelação posterior.** Um roll mode privado não é irreversível: o GM pode tornar pública, depois do fato, uma rolagem feita em `gmroll`, `blindroll` ou `selfroll`. A mecânica pertence à spec `09-chat-e-mensagens.md` (REQ-CHT-045 a REQ-CHT-049, DEC-CHT-10), porque revelar é mutação de visibilidade do `ChatMessage`, não uma nova rolagem. Nada aqui muda: a rolagem NÃO é reexecutada, o `RollResult` reemitido é o mesmo já persistido, e o `seed` continua fora do socket por REQ-ROL-049. A única consequência para este motor é que o placeholder de REQ-ROL-032 vale enquanto a mensagem for cega — revelada, o autor passa a ver o resultado real.
+
 ### Rerolls
 
 **REQ-ROL-034** [MVP] O servidor DEVE suportar uma operação `roll:reroll` que aceita `{ originalRollId: string, keepOriginal?: boolean }` e cria um novo `RollResult` com campo `rerollOf: originalRollId`. O `ChatMessage` original DEVE ser atualizado para linkar ao reroll.

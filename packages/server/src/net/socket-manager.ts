@@ -75,6 +75,7 @@ import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-h
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
+  buildChatRevealHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
 import {
@@ -327,6 +328,8 @@ export class SocketManager {
     const chatDeps = { db, ns, seqStore, worldId };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
+    // REQ-CHT-045: GM turns an already-sent private message public.
+    registry.register("chat:reveal", buildChatRevealHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
     const visionDeps = { store, seqStore, opBuffer, ns };

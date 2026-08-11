@@ -250,3 +250,86 @@ describe("attachChatOpListener — simulating tab switch does not lose messages"
     expect(socket.listenerCount).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Reveal rebroadcast (REQ-CHT-045..047 / DEC-CHT-10)
+//
+// Revealing re-emits the SAME message through the SAME envelope the original
+// broadcast used (`doc:create` + `{ documentType, documents: [msg] }` — see
+// broadcastChatMessage in chat-handler.ts). There is no second wire shape to
+// teach the client: what changes is the CONTENT of the document, which is
+// precisely why the store had to learn to upsert instead of dedupe-and-return.
+// ---------------------------------------------------------------------------
+
+/** The same `_id` as a live roll, re-emitted after the GM revealed it. */
+function makeRevealedRollMessage(): ChatMessage {
+  return makeRollMessage({
+    _id: "roll-1",
+    whisper: [],
+    blind: false,
+    revealedAt: 9000,
+    revealedBy: "gm-1",
+  });
+}
+
+describe("reveal rebroadcast — envelope extraction", () => {
+  it("extracts the revealed message from the reveal rebroadcast envelope", () => {
+    const revealed = makeRevealedRollMessage();
+    const extracted = extractChatMessagesFromEnvelope(makeDocCreateEnvelope(revealed));
+
+    expect(extracted).toHaveLength(1);
+    expect(extracted[0]?._id).toBe("roll-1");
+    expect(extracted[0]?.revealedBy).toBe("gm-1");
+    expect(extracted[0]?.whisper).toEqual([]);
+  });
+
+  it("feeds the revealed message to the store under the SAME _id as the private one", () => {
+    const handleIncomingMessage = vi.fn();
+    const getRollAnimator = vi.fn(() => null);
+    const handler = createChatOpHandler({ handleIncomingMessage, getRollAnimator });
+
+    const priv = makeRollMessage({ _id: "roll-1", whisper: ["gm-1"], blind: true, rolls: [] });
+    handler(makeDocCreateEnvelope(priv));
+    handler(makeDocCreateEnvelope(makeRevealedRollMessage()));
+
+    expect(handleIncomingMessage).toHaveBeenCalledTimes(2);
+    const [first, second] = handleIncomingMessage.mock.calls.map((c) => c[0] as ChatMessage);
+    expect(first?._id).toBe(second?._id);
+    expect(second?.revealedAt).toBe(9000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 3D dice gate on reveal — DECISION (see chatMessageSync.ts isPubliclyVisibleRoll)
+//
+// A reveal makes an OLD roll public. Animating the 3D dice again would show the
+// whole table a physics animation for dice that stopped rolling minutes ago,
+// and a GM revealing a batch of secret rolls would flood the canvas. The audit
+// stamp is exactly what distinguishes "a roll just happened" from "an old roll
+// became visible", so the gate reads it.
+// ---------------------------------------------------------------------------
+
+describe("isPubliclyVisibleRoll — revealed rolls never re-animate the 3D dice", () => {
+  it("false for a revealed roll even though it is now public and non-blind", () => {
+    const revealed = makeRevealedRollMessage();
+    expect(revealed.whisper).toEqual([]);
+    expect(revealed.blind).toBe(false);
+    expect(isPubliclyVisibleRoll(revealed)).toBe(false);
+  });
+
+  it("still true for a fresh public roll (the gate did not become a blanket off-switch)", () => {
+    expect(isPubliclyVisibleRoll(makeRollMessage())).toBe(true);
+  });
+
+  it("does not call the animator when a reveal rebroadcast arrives", () => {
+    const handleIncomingMessage = vi.fn();
+    const animator = vi.fn();
+    const getRollAnimator = vi.fn(() => animator);
+    const handler = createChatOpHandler({ handleIncomingMessage, getRollAnimator });
+
+    handler(makeDocCreateEnvelope(makeRevealedRollMessage()));
+
+    expect(handleIncomingMessage).toHaveBeenCalledTimes(1);
+    expect(animator).not.toHaveBeenCalled();
+  });
+});

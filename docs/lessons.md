@@ -570,3 +570,40 @@ resolve em um minuto: desabilitar `navigator.gpu` no browser e recarregar; se
 a cena aparece, é o WebGPU. O `preference` está fixo em `"webgl"` desde então,
 com o porquê registrado no próprio `FusionCanvas.init()`. E o mais geral: um
 `200 OK` na aba Network prova que o byte chegou, não que ele foi desenhado.
+
+## Um documento que muda tem dois caminhos de escrita no store — e três de leitura no servidor
+
+**Quando:** verificação adversarial da revelação de rolagem secreta
+(`chat:reveal`, spec 09 / DEC-CHT-10), 2026-08-09.
+
+**O que aconteceu:** o chat sempre tratou `ChatMessage` como append-only. A
+revelação foi a primeira operação a **mudar** uma mensagem já entregue, e cada
+lugar que assumia "mensagem nova" virou um defeito silencioso:
+
+- **No cliente**, `insertMessage` deduplicava por `_id` e retornava. O servidor
+  persistia a revelação, reemitia o documento certo, e a tela não mudava. Bug
+  invisível em qualquer teste de servidor.
+- **Ainda no cliente**, o store tem **dois** caminhos de escrita:
+  `insertMessage` (broadcast ao vivo) e `prependMessages` (`chat:history`, o
+  F5). Consertar só o primeiro deixa o reload mostrando a versão que o store
+  pegou primeiro. E o segundo escondia um bug anterior: ele ordenava a página
+  em ordem crescente e fazia `unshift` de cada item, o que **inverte** a página
+  — a lista é documentada (e consumida por `chatGrouping`, que não reordena)
+  como mais antiga primeiro. Passou a delegar para `insertMessage`.
+- **No servidor**, a visibilidade era decidida por três cópias quase idênticas
+  do mesmo predicado (broadcast, `chat:history`, snapshot de entrada) mais o eco
+  do ack. Elas só concordam sobre uma mensagem revelada se concordarem em geral;
+  viraram uma função só.
+
+**Por que engana:** a feature parece pronta na demonstração — o GM clica, a
+mesa vê. O que quebra é o F5, o cliente que entra depois e o restart, que
+ninguém confere durante a demo. E o defeito do store fica **fora** do alcance de
+qualquer teste de servidor: o servidor está certo o tempo todo.
+
+**O que fazer:** ao introduzir a primeira mutação de um documento que já foi
+entregue, listar **todos** os caminhos de leitura antes de codar e escrever um
+teste por caminho — ao vivo, histórico, snapshot de entrada e reabertura do
+arquivo do banco. E, quando a visibilidade for reescrita no próprio documento
+(aqui: `whisper` volta a `[]`, `blind` a `false`), preferir isso a um terceiro
+campo de visibilidade: um predicado novo teria que ser replicado nos mesmos
+caminhos que já divergiam.

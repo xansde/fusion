@@ -1,7 +1,9 @@
 /**
- * Chat handlers — chat:send and chat:history.
+ * Chat handlers — chat:send, chat:history and chat:reveal.
  *
  * REQ-CHT-001..004: parse, execute rolls on server, persist, broadcast.
+ * REQ-CHT-045..049: a GM turns an already-sent private message public by
+ *   rewriting `whisper`/`blind` on the persisted document (DEC-CHT-10).
  * REQ-CHT-013..015: command dispatch via parseChatCommand().
  * REQ-CHT-019: inline [[formula]] evaluated on the server.
  * REQ-CHT-033..034: cursor-based pagination, respects visibility.
@@ -29,6 +31,7 @@ import {
   extractInlineRolls,
   ChatSendPayloadSchema,
   ChatHistoryRequestSchema,
+  ChatRevealPayloadSchema,
   CHAT_BROADCAST_EVENT,
   CHAT_DOCUMENT_TYPE,
   CHAT_ERROR_CODES,
@@ -208,72 +211,123 @@ function persistChatMessage(db: Db, msg: ChatMessage): void {
   ).run(msg._id, data, msg.timestamp, msg.speaker.userId, now, now);
 }
 
+/** Read a persisted ChatMessage by id, or null when it does not exist. */
+function loadChatMessage(db: Db, id: string): ChatMessage | null {
+  const row = db.prepare(`SELECT data FROM chat_messages WHERE id = ?`).get(id) as
+    | { data: string }
+    | undefined;
+  if (!row) return null;
+  try {
+    return JSON.parse(row.data) as ChatMessage;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rewrite an existing ChatMessage in place (same `_id`, new JSON blob).
+ *
+ * Deliberately a raw UPDATE and NOT `DocumentStore.update`: the server's
+ * `ChatMessageSchema` (documents/types.ts) is a second, divergent copy built
+ * with `.extend()` and no `.passthrough()`, so a write through the store would
+ * silently drop `worldId`, the typed `speaker` and every flag namespace. Same
+ * reason the etmos conjuração card mutates chat rows by hand.
+ */
+function updateChatMessage(db: Db, msg: ChatMessage): void {
+  db.prepare(`UPDATE chat_messages SET data = ?, updated_at = ? WHERE id = ?`).run(
+    JSON.stringify(msg),
+    Date.now(),
+    msg._id,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Chat broadcast — per-socket visibility
 // ---------------------------------------------------------------------------
 
 /**
- * Determine whether a socket should receive this message at all.
- * Returns null if the socket should not receive it; returns the (possibly
- * redacted) payload to send.
+ * THE visibility predicate for chat — single source of truth.
+ *
+ * Returns null when this viewer must not see the message at all; otherwise the
+ * (possibly redacted) document to hand over. Every reading path goes through
+ * here: the live broadcast (via {@link buildPayloadForSocket}), `chat:history`,
+ * the join snapshot ({@link getRecentChatForUser}) and the author's ack
+ * ({@link redactForAuthor}).
+ *
+ * It used to be three near-identical copies, which is exactly the kind of drift
+ * `chat:reveal` cannot survive: revealing works by flipping `whisper`/`blind`
+ * back to the public state (DEC-CHT-10), so the four paths only agree about a
+ * revealed message if they agree about visibility in general. They now agree by
+ * construction rather than by coincidence.
+ *
+ * The rules (REQ-CHT-004, DEC-CHT-02, REQ-ROL-031..033):
+ *   - `whisper: []` → public, everyone sees it;
+ *   - otherwise recipients see it, the author sees their own, and GMs see it
+ *     too — spec-09 glossary: "Whisper — visible to explicit recipients + ALL
+ *     GMs" — EXCEPT for `selfroll`, which is the author's alone;
+ *   - `blind: true` → the roll payload is stripped for anyone not privileged,
+ *     the author included (REQ-ROL-032).
+ *
+ * NOTE: chat does NOT use `net/redaction.ts`. That module redacts scene-level
+ * documents (tokens/tiles/doors) by ownership; chat visibility is a different
+ * predicate over `whisper`/`blind` and shares only `isRolePrivileged`, which is
+ * imported from `documents/ownership.ts` as the CLAUDE.md rule requires. Merging
+ * the two would mean one function with two unrelated rule sets behind a flag.
  */
-function buildPayloadForSocket(
-  socket: Socket,
+function redactChatMessageFor(
   msg: ChatMessage,
-  authorId: string,
+  viewerId: string,
+  privileged: boolean,
 ): ChatMessage | null {
-  const socketData = socket.data as { userId?: string; role?: number } | undefined;
-  const socketUserId = socketData?.userId ?? "";
-  const socketRole = socketData?.role ?? 0;
-  const socketIsPrivileged = isRolePrivileged(socketRole);
-
   const whisper = msg.whisper;
   const isPublic = whisper.length === 0;
 
   if (isPublic) {
-    // public message — everyone gets it
-    if (msg.blind) {
-      // blindroll: strip rolls from non-GMs (and from the author)
-      if (!socketIsPrivileged) {
-        return { ...msg, rolls: undefined };
-      }
+    // Public message — everyone gets it; a blind roll still hides its payload
+    // from non-GMs (including the author) until it is revealed.
+    if (msg.blind && !privileged) {
+      return { ...msg, rolls: undefined };
     }
     return msg;
   }
 
-  // Targeted message (whisper / gmroll / selfroll)
-  const isRecipient = whisper.includes(socketUserId);
-  const isAuthor = socketUserId === authorId;
+  // Targeted message (whisper / gmroll / blindroll / selfroll).
+  const isRecipient = whisper.includes(viewerId);
+  const isAuthor = msg.speaker.userId === viewerId;
 
-  // Visibility rules for targeted messages (whisper / roll modes):
-  //
-  // spec-09 glossary line 66: "Whisper — visible to explicit recipients + ALL GMs".
-  // GMs ALWAYS see whispers (including player-to-player /w commands).
-  //
-  // For selfroll: only the author sees it (spec-09 line 225: "Roll visible
-  // only to the author"). selfroll has type='roll' and whisper=[authorId],
-  // so GMs must be excluded via isSelfroll check.
-  //
-  // For gmroll / blindroll: GMs are already listed in whisper[] by
-  // buildRollMessage, so they are caught by isRecipient.
+  // selfroll has type='roll' and whisper=[authorId]: the GM override must NOT
+  // apply to it. gmroll / blindroll already list the GMs in whisper[].
   const isSelfroll =
     msg.type === "roll" &&
     Array.isArray(msg.rolls) &&
     msg.rolls.length > 0 &&
     msg.rolls[0]?.rollMode === "selfroll";
 
-  const gmOverride = socketIsPrivileged && !isSelfroll;
+  const gmOverride = privileged && !isSelfroll;
 
   if (!isRecipient && !isAuthor && !gmOverride) {
     return null;
   }
 
-  // For blindroll: author sees a stripped version, GM sees full
-  if (msg.blind && !socketIsPrivileged) {
+  if (msg.blind && !privileged) {
     return { ...msg, rolls: undefined };
   }
 
   return msg;
+}
+
+/**
+ * Live-broadcast adapter over {@link redactChatMessageFor}: reads the viewer's
+ * identity off the socket. Returns null when this socket must not receive the
+ * message.
+ */
+function buildPayloadForSocket(socket: Socket, msg: ChatMessage): ChatMessage | null {
+  const socketData = socket.data as { userId?: string; role?: number } | undefined;
+  return redactChatMessageFor(
+    msg,
+    socketData?.userId ?? "",
+    isRolePrivileged(socketData?.role ?? 0),
+  );
 }
 
 /**
@@ -311,7 +365,7 @@ function broadcastChatMessage(
       // Author of blindroll — send stripped confirmation
       payload = blindAuthorMsg;
     } else {
-      payload = buildPayloadForSocket(socket, msg, authorId);
+      payload = buildPayloadForSocket(socket, msg);
     }
 
     if (payload === null) continue;
@@ -498,7 +552,11 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       persistChatMessage(deps.db, msg);
       const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
 
-      return { ok: true, seq, result: { message: redactForAuthor(msg, ctx.userId) } };
+      return {
+        ok: true,
+        seq,
+        result: { message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role)) },
+      };
     }
 
     if (command.kind === "whisper") {
@@ -686,7 +744,7 @@ export function buildChatHistoryHandler(deps: ChatHandlerDeps): HandlerFn {
         continue;
       }
 
-      const redacted = redactForViewer(msg, ctx.userId, privileged);
+      const redacted = redactChatMessageFor(msg, ctx.userId, privileged);
       if (redacted !== null) {
         visible.push(redacted);
       }
@@ -704,6 +762,102 @@ export function buildChatHistoryHandler(deps: ChatHandlerDeps): HandlerFn {
         hasMore,
       },
     };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// chat:reveal handler — REQ-CHT-045..049 / DEC-CHT-10
+// ---------------------------------------------------------------------------
+
+/**
+ * Turn an already-sent private message public.
+ *
+ * Modelled on `buildCombatSetHiddenHandler` (combat/combat-handlers.ts): guard
+ * with `isRolePrivileged`, persist, then broadcast PER SOCKET — never a room
+ * emit — because the sensitivity of the payload is exactly what changed.
+ *
+ * The whole mechanism is the mutation itself (DEC-CHT-10): `whisper` back to
+ * `[]` and `blind` back to `false` is the public state the rest of the chat
+ * already knows how to read, so the live broadcast, `chat:history` and the join
+ * snapshot all start agreeing without a single new predicate. `revealedBy` /
+ * `revealedAt` are an audit stamp for the UI — they never take part in the
+ * visibility decision (REQ-CHT-047).
+ *
+ * The roll is NOT re-executed and the audit log is NOT re-read (REQ-CHT-049):
+ * the persisted `RollResultData` is re-emitted verbatim, so the seed — which
+ * only ever lived in `roll_audit_log` — cannot travel with it.
+ */
+export function buildChatRevealHandler(deps: ChatHandlerDeps): HandlerFn {
+  return (rawPayload, ctx) => {
+    // REQ-CHT-048: only GM / Assistant GM. Same predicate as everywhere else.
+    if (!isRolePrivileged(ctx.role)) {
+      return {
+        ok: false,
+        code: "PERMISSION_DENIED" as const,
+        message: "Only GM/Assistant can reveal a private message",
+      };
+    }
+
+    const parsed = ChatRevealPayloadSchema.safeParse(rawPayload);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED" as const,
+        message: parsed.error.message,
+      };
+    }
+    const { worldId, messageId } = parsed.data;
+
+    if (worldId !== deps.worldId) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED" as const,
+        message: "World ID mismatch",
+      };
+    }
+
+    const msg = loadChatMessage(deps.db, messageId);
+    // The world check is not redundant with the handler binding: the table is
+    // per-world today, but a message carrying another world's id must never be
+    // revealed into this one.
+    if (!msg || msg.worldId !== deps.worldId) {
+      return {
+        ok: false,
+        code: "NOT_FOUND" as const,
+        message: `Chat message not found: ${messageId}`,
+      };
+    }
+
+    // REQ-CHT-048: revealing an already-public message is a no-op — no write,
+    // no broadcast, no audit stamp (it was never hidden by anyone).
+    if (msg.whisper.length === 0 && !msg.blind) {
+      return { ok: true, seq: deps.seqStore.peek(), result: { message: msg } };
+    }
+
+    const now = Date.now();
+    const revealed: ChatMessage = {
+      ...msg,
+      whisper: [],
+      blind: false,
+      revealedAt: now,
+      revealedBy: ctx.userId,
+      _stats: {
+        ...msg._stats,
+        modifiedTime: now,
+        lastModifiedBy: ctx.userId,
+      },
+    };
+
+    // REQ-CHT-046: persist BEFORE emitting, so history and the join snapshot
+    // can never disagree with what the table just saw.
+    updateChatMessage(deps.db, revealed);
+
+    // Per-socket rebroadcast. The author of a revealed blindroll stops getting
+    // the substitute confirmation here, because `blind` is now false and
+    // broadcastChatMessage's placeholder branch no longer applies.
+    const seq = broadcastChatMessage(deps.ns, deps.seqStore, revealed, revealed.speaker.userId);
+
+    return { ok: true, seq, result: { message: revealed } };
   };
 }
 
@@ -740,7 +894,7 @@ export function getRecentChatForUser(
     } catch {
       continue;
     }
-    const redacted = redactForViewer(msg, userId, privileged);
+    const redacted = redactChatMessageFor(msg, userId, privileged);
     if (redacted !== null) {
       visible.push(redacted);
     }
@@ -754,65 +908,15 @@ export function getRecentChatForUser(
 // ---------------------------------------------------------------------------
 
 /**
- * Redact a ChatMessage for a specific viewer.
- * Returns null if the viewer should not see this message at all.
+ * Redact for the message author (used in the `chat:send` ack).
+ *
+ * Delegates to {@link redactChatMessageFor} so the ack cannot disagree with the
+ * broadcast the author receives a moment later. The author always passes the
+ * visibility gate for their own message, so the null branch is unreachable; it
+ * falls back to the message itself rather than throwing.
  */
-function redactForViewer(
-  msg: ChatMessage,
-  viewerId: string,
-  privileged: boolean,
-): ChatMessage | null {
-  const whisper = msg.whisper;
-  const isPublic = whisper.length === 0;
-
-  if (isPublic) {
-    // Everyone sees public messages; GMs see full; non-GMs get rolls stripped for blind
-    if (msg.blind && !privileged) {
-      return { ...msg, rolls: undefined };
-    }
-    return msg;
-  }
-
-  // Whispered message
-  const isRecipient = whisper.includes(viewerId);
-  const isAuthor = msg.speaker.userId === viewerId;
-
-  // Visibility rules for targeted messages (whisper / roll modes):
-  //
-  // spec-09 glossary line 66: "Whisper — visible to explicit recipients + ALL GMs".
-  // GMs always see whispers (including player-to-player /w).
-  //
-  // For selfroll: only the author sees it (spec-09 line 225: "Roll visible
-  // only to the author"). GMs must NOT see selfroll messages that are not
-  // addressed to them.
-  //
-  // For gmroll / blindroll: GMs are already in whisper[] via buildRollMessage.
-  const isSelfroll =
-    msg.type === "roll" &&
-    Array.isArray(msg.rolls) &&
-    msg.rolls.length > 0 &&
-    msg.rolls[0]?.rollMode === "selfroll";
-
-  const gmOverride = privileged && !isSelfroll;
-
-  if (!isRecipient && !isAuthor && !gmOverride) {
-    return null; // not visible to this viewer
-  }
-
-  // Blind roll — author sees stripped version
-  if (msg.blind && isAuthor && !privileged) {
-    return { ...msg, rolls: undefined };
-  }
-
-  return msg;
-}
-
-/** Redact for the message author (used in ack response). */
-function redactForAuthor(msg: ChatMessage, authorId: string): ChatMessage {
-  if (msg.blind && msg.speaker.userId === authorId) {
-    return { ...msg, rolls: undefined };
-  }
-  return msg;
+function redactForAuthor(msg: ChatMessage, authorId: string, privileged: boolean): ChatMessage {
+  return redactChatMessageFor(msg, authorId, privileged) ?? msg;
 }
 
 // ---------------------------------------------------------------------------

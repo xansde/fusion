@@ -68,10 +68,27 @@ export const chatStore: {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-/** Insert a message into the ordered array (by timestamp, then _id). */
+/**
+ * Insert a message into the ordered array (by timestamp, then _id), OR replace
+ * the existing entry in place when one with the same `_id` is already there.
+ *
+ * UPSERT, not insert-or-drop (REQ-CHT-046 / DEC-CHT-10). Revealing a private
+ * message rewrites the persisted document and re-emits it under the SAME `_id`,
+ * so the old "dedupe by _id and return" made the feature invisible: the server
+ * was right, the message stayed private on screen, and only an F5 fixed it.
+ * Any future op that mutates an existing chat message (the Etmos conjuração
+ * card is the other one) depends on this same path.
+ *
+ * The replacement is in place, never a remove-then-insert: a revealed roll that
+ * jumped to the bottom of the log would read as a brand-new roll instead of an
+ * old one becoming visible.
+ */
 function insertMessage(msg: ChatMessage): void {
-  // Deduplicate by _id
-  if (chatStore.messages.some((m) => m._id === msg._id)) return;
+  const existing = chatStore.messages.findIndex((m) => m._id === msg._id);
+  if (existing !== -1) {
+    chatStore.messages[existing] = msg;
+    return;
+  }
 
   const ts = msg.timestamp;
   // Find insertion point (binary-ish: just scan from end since most new messages append)
@@ -82,13 +99,24 @@ function insertMessage(msg: ChatMessage): void {
   chatStore.messages.splice(i, 0, msg);
 }
 
-/** Prepend older messages (from history load) — they arrive newest-first, we reverse. */
+/**
+ * Merge a page of history (`chat:history`) into the store.
+ *
+ * Delegates every message to {@link insertMessage} so history and the live
+ * broadcast obey ONE ordering rule and ONE upsert rule (REQ-CHT-046: the two
+ * reading paths have to agree, including about a message that was private when
+ * the store first saw it and is public now).
+ *
+ * BUG FIX: this used to sort the page ascending and `unshift()` each entry onto
+ * the front, which reversed it — the array is documented (and consumed by
+ * chatGrouping, which explicitly does not re-sort) as oldest-first, so a loaded
+ * page rendered newest-at-top. Ordered insertion cannot get that wrong, and it
+ * also stops assuming every message in the page is older than everything in the
+ * store, which stops being true as soon as a live message lands mid-request.
+ */
 function prependMessages(msgs: ChatMessage[]): void {
-  const sorted = [...msgs].sort((a, b) => a.timestamp - b.timestamp || a._id.localeCompare(b._id));
-  for (const msg of sorted) {
-    if (!chatStore.messages.some((m) => m._id === msg._id)) {
-      chatStore.messages.unshift(msg);
-    }
+  for (const msg of msgs) {
+    insertMessage(msg);
   }
 }
 
@@ -184,9 +212,9 @@ export async function loadMoreHistory(socket: Socket, worldId: string): Promise<
  * `{ result: { message } }` — see chat-handler.ts), the provisional entry is
  * replaced in place (same array index, so no visual jump/reorder) by its
  * server `_id`. The later `doc:create` broadcast for that same canonical
- * `_id` is then a no-op — insertMessage() already dedupes by `_id`, and by
- * the time the broadcast arrives the provisional has already been swapped
- * for the canonical entry.
+ * `_id` then lands on the entry that is already there — insertMessage()
+ * upserts by `_id`, so it overwrites that row with an identical document
+ * instead of appending a second one.
  *
  * On ack failure the provisional entry is removed (not left stuck as
  * "pending" forever) and the error is surfaced via chatStore.error, matching

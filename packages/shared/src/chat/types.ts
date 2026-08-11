@@ -450,6 +450,23 @@ export const ChatMessageSchema = BaseDocumentSchema.extend({
    * REQ-CHT-004 / D-CHT-02 / REQ-ROL-031.
    */
   blind: z.boolean().default(false),
+  /**
+   * Unix ms at which a GM revealed this (previously private) message.
+   * REQ-CHT-047 / DEC-CHT-10.
+   *
+   * OPTIONAL, NOT nullable-with-default, on purpose: messages persisted before
+   * this field existed have NO key at all, so a `null` default would give the
+   * same state ("never revealed") two spellings — `null` for new messages and
+   * `undefined` for old ones — and any client testing `!== null` would badge
+   * every legacy message as revealed. Absent means never revealed; present
+   * means revealed. One spelling, no migration.
+   *
+   * DISPLAY ONLY: visibility is derived from `whisper`/`blind`, never from
+   * this pair (DEC-CHT-10).
+   */
+  revealedAt: z.number().int().nonnegative().optional(),
+  /** User ID of the GM who revealed this message. REQ-CHT-047. See `revealedAt`. */
+  revealedBy: z.string().optional(),
   /** Roll results for type === 'roll'. REQ-CHT-018. */
   rolls: z.array(RollResultDataSchema).optional(),
   /** Declarative card for type === 'system'. REQ-CHT-024. */

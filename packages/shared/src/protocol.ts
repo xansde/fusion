@@ -61,6 +61,8 @@ export const EnvelopeTypeSchema = z.union([
   // M1-D chat handlers
   z.literal("chat:send"),
   z.literal("chat:history"),
+  // Reveal an already-sent private message to the whole table (REQ-CHT-045).
+  z.literal("chat:reveal"),
   // M2-A: vision — walls, lights, door state
   z.literal("wall:create"),
   z.literal("wall:update"),

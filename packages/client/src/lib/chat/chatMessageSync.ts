@@ -82,14 +82,31 @@ export function extractChatMessageFromEnvelope(envelope: Envelope): ChatMessage 
   return extractChatMessagesFromEnvelope(envelope)[0] ?? null;
 }
 
-/** True when a roll on this message should trigger the 3D dice animation. */
+/**
+ * True when a roll on this message should trigger the 3D dice animation.
+ *
+ * A REVEALED roll is deliberately excluded (REQ-CHT-047 / DEC-CHT-10). Revealing
+ * makes an OLD roll public: it rewrites `whisper`/`blind` to the public state and
+ * re-emits the message, so without this guard every reveal would throw physical
+ * dice across the whole table's canvas for a roll that stopped rolling minutes
+ * ago — and a GM revealing a batch of secret rolls would flood it. The audit
+ * stamp is exactly what tells "a roll just happened" apart from "an old roll
+ * became visible", which is why it is read here and nowhere near the visibility
+ * decision itself.
+ *
+ * The roll's own `rollMode` (checked by the caller) happens to block today's
+ * gmroll/blindroll reveals as well, but only by coincidence of how those modes
+ * are persisted — this guard states the intent so a future public-but-hidden
+ * roll does not quietly start re-animating.
+ */
 export function isPubliclyVisibleRoll(msg: ChatMessage): boolean {
   return (
     msg.type === "roll" &&
     !!msg.rolls &&
     msg.rolls.length > 0 &&
     !msg.blind &&
-    msg.whisper.length === 0
+    msg.whisper.length === 0 &&
+    msg.revealedAt === undefined
   );
 }
 
