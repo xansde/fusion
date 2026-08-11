@@ -39,3 +39,7 @@ Thumbs.db
 # Claude session-local launch config (absolute local paths)
 .claude/launch.json
 .playwright-cli/
+
+# Local Fusion data dirs used by test servers in worktrees (never commit world data)
+.fusion-review/
+.fusion-x*/
