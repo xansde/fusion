@@ -23,6 +23,7 @@ export * from "./grid/SquareGrid.js";
 export * from "./grid/factory.js";
 export * from "./grid/calibration.js";
 export * from "./scene.js";
+export * from "./region-map.js";
 export * from "./map-package.js";
 export * from "./chat/index.js";
 export * from "./vision/index.js";

@@ -89,6 +89,7 @@ import {
   scenePayloadHasTokenActorDeltas,
   emitOwnershipGatedOp,
   redactNotesForViewer,
+  emitRegionMapOp,
   scenePayloadHasNotes,
   socketViewer,
 } from "../redaction.js";
@@ -125,6 +126,7 @@ const TYPE_TO_TABLE: Record<string, string> = {
   Actor: "actors",
   Item: "items",
   Scene: "scenes",
+  RegionMap: "region_maps",
   JournalEntry: "journal_entries",
   Macro: "macros",
   RollTable: "roll_tables",
@@ -145,6 +147,9 @@ const TYPE_TO_TABLE: Record<string, string> = {
  */
 const GM_ONLY_CREATE_DELETE = new Set([
   "Scene",
+  // Creating and deleting the map is the GM's; dropping a pin on it is not
+  // (that path is regionMap:createPin, which any player may call).
+  "RegionMap",
   "Actor",
   "Item",
   "Macro",
@@ -1775,6 +1780,11 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
   // viewers below LIMITED. The predicate and the loop live in redaction.ts
   // because this is not the only producer of Actor envelopes.
   if (emitOwnershipGatedOp(ns, envelope)) return;
+
+  // DEC-MREG-08: a region map's pins are per-USER, exactly like a scene's
+  // notes, so it takes the per-socket path for the same reason — one broadcast
+  // means a different thing to each player.
+  if (emitRegionMapOp(ns, envelope)) return;
 
   // Only Scene doc:create / doc:update need redaction filtering.
   if (

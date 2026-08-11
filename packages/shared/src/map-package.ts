@@ -1,5 +1,5 @@
 /**
- * Portable map package — a region that can travel between worlds.
+ * Portable map package — a region map that can travel between worlds.
  *
  * Spec 34 §5.5 (REQ-MREG-018/019/022/023/024) and DEC-MREG-07.
  *
@@ -10,14 +10,17 @@
  * 16): a pack is `pack.db` + manifest + licence, built for published,
  * versioned content, and that cost buys nothing for a GM copying their own map.
  *
- * Two rules make it safe to hand around, both from DEC-MREG-07:
+ * Three rules make it safe to hand around:
  *
- *  1. **`ownership` never travels.** It is a map of userIds, and the "tobias"
- *     of the origin server is not the "tobias" of the destination — importing
- *     it would either grant sight to the wrong person or point at nobody. What
- *     the party discovered is also that table's history; a new table starts
- *     discovering again.
- *  2. **The image travels by FILENAME.** `/assets/maps/godford.webp` is a path
+ *  1. **`ownership` never travels** (DEC-MREG-07). It is a map of userIds, and
+ *     the "tobias" of the origin server is not the "tobias" of the destination
+ *     — importing it would either grant sight to the wrong person or point at
+ *     nobody. What the party discovered is also that table's history; a new
+ *     table starts discovering again.
+ *  2. **Comments never travel.** They are that table's conversation, stamped
+ *     with that table's players. Carrying them into another campaign would
+ *     paste strangers' voices onto a fresh map.
+ *  3. **The image travels by FILENAME.** `/assets/maps/godford.webp` is a path
  *     in the world that exported it. The importer picks the image on the way
  *     in and the package only says which file it expects.
  */
@@ -26,60 +29,59 @@ import { z } from "zod";
 import { createDocumentId } from "./id.js";
 import { FlagsSchema } from "./document.js";
 import {
-  NoteDocumentSchema,
-  SceneDocumentSchema,
-  defaultNoteDocument,
-  defaultSceneDocument,
-  type NoteDocument,
-  type SceneDocument,
-} from "./scene.js";
+  RegionMapDocumentSchema,
+  defaultRegionMapDocument,
+  createGmPin,
+  type MapPin,
+  type RegionMapDocument,
+} from "./region-map.js";
 
 /**
  * Format version of the package. Bumped when the shape changes in a way an
  * older importer could not read correctly — the importer REFUSES what it does
  * not know rather than guessing at missing fields (REQ-MREG-023).
+ *
+ * v2: the region map became a document of its own (DEC-MREG-08). Pin
+ * coordinates are normalised (0..1) instead of scene pixels, and the package
+ * no longer carries grid configuration, which a map without a scene has no use
+ * for.
  */
-export const FUSION_MAP_FORMAT = 1;
+export const FUSION_MAP_FORMAT = 2;
 
 /** One pin inside a package: what it IS, never who has seen it. */
 export const FusionMapPinSchema = z.object({
-  /** Position in scene pixel coordinates. */
-  x: z.number(),
-  y: z.number(),
-  /** Label / tooltip. */
-  text: z.string().nullable().default(null),
-  /** Icon path, or null for the engine's neutral pin. */
-  icon: z.string().nullable().default(null),
-  iconSize: z.number().positive().default(40),
-  elevation: z.number().default(0),
+  /** Normalised position on the image: 0 = left/top, 1 = right/bottom. */
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  /** Label. */
+  text: z.string().default(""),
+  /** Longer description shown when the pin is opened. */
+  description: z.string().default(""),
+  /** Emoji/glyph drawn inside the marker. */
+  icon: z.string().default(""),
   /**
    * Stable identity of this place across imports (REQ-MREG-024). Lifted out of
    * `flags.fusion.sourceId` so it reads at the top level of the file a human
    * is editing.
    */
   sourceId: z.string().nullable().default(null),
-  /**
-   * Remaining namespaced flags — `flags.fusion.portal` above all, which is how
-   * a region links to the scene it leads into (DEC-MREG-05).
-   */
+  /** Remaining namespaced flags. */
   flags: FlagsSchema.default(() => ({})),
 });
 
 export type FusionMapPin = z.infer<typeof FusionMapPinSchema>;
 
-/** A whole region, as it travels. */
+/** A whole region map, as it travels. */
 export const FusionMapPackageSchema = z.object({
   format: z.number().int().positive(),
   name: z.string().min(1),
   /** Terrain image FILENAME (not a path) — see DEC-MREG-07. */
   image: z.string().nullable().default(null),
-  width: z.number().int().positive(),
-  height: z.number().int().positive(),
-  /** How much ground one grid unit covers, and in what unit (km for regions). */
-  gridDistance: z.number().positive().default(4),
-  gridUnits: z.string().default("km"),
-  /** `flags.fusion.mapScale` of the scene: "region", "continent", "world". */
-  mapScale: z.string().default("region"),
+  imageWidth: z.number().int().positive().default(1000),
+  imageHeight: z.number().int().positive().default(1000),
+  /** Real-world width of the whole image, for the scale bar. 0 = no scale. */
+  scaleValue: z.number().min(0).default(0),
+  scaleUnits: z.string().default("km"),
   pins: z.array(FusionMapPinSchema).default(() => []),
 });
 
@@ -115,24 +117,23 @@ function basename(path: string | null): string | null {
 }
 
 /**
- * Export a region scene as a portable package.
+ * Export a region map as a portable package.
  *
- * `ownership` is not read at any point in this function — not filtered out
- * afterwards, never gathered in the first place. That is the shape the rule
- * deserves: a field that is never collected cannot leak through a later
- * refactor that forgets to strip it.
+ * `ownership` and `comments` are not read at any point in this function — not
+ * filtered out afterwards, never gathered in the first place. That is the
+ * shape the rule deserves: a field that is never collected cannot leak through
+ * a later refactor that forgets to strip it.
  */
-export function sceneToMapPackage(scene: SceneDocument): FusionMapPackage {
-  const pins: FusionMapPin[] = scene.notes.map((note) => {
-    const flags = note.flags as Record<string, unknown>;
+export function regionMapToPackage(map: RegionMapDocument): FusionMapPackage {
+  const pins: FusionMapPin[] = map.pins.map((pin) => {
+    const flags = pin.flags as Record<string, unknown>;
     const sourceId = fusionFlag(flags, "sourceId");
     return FusionMapPinSchema.parse({
-      x: note.x,
-      y: note.y,
-      text: note.text,
-      icon: note.icon,
-      iconSize: note.iconSize,
-      elevation: note.elevation,
+      x: pin.x,
+      y: pin.y,
+      text: pin.text,
+      description: pin.description,
+      icon: pin.icon,
       sourceId: typeof sourceId === "string" ? sourceId : null,
       flags: flagsWithoutSourceId(flags),
     });
@@ -140,13 +141,12 @@ export function sceneToMapPackage(scene: SceneDocument): FusionMapPackage {
 
   return FusionMapPackageSchema.parse({
     format: FUSION_MAP_FORMAT,
-    name: scene.name,
-    image: basename(scene.background),
-    width: scene.width,
-    height: scene.height,
-    gridDistance: scene.grid.distance,
-    gridUnits: scene.grid.units,
-    mapScale: (fusionFlag(scene.flags, "mapScale") as string | undefined) ?? "region",
+    name: map.name,
+    image: basename(map.image),
+    imageWidth: map.imageWidth,
+    imageHeight: map.imageHeight,
+    scaleValue: map.scaleValue,
+    scaleUnits: map.scaleUnits,
     pins,
   });
 }
@@ -154,19 +154,19 @@ export function sceneToMapPackage(scene: SceneDocument): FusionMapPackage {
 /** Where the importer found the terrain image in THIS world. */
 export interface MapImportOptions {
   /** Asset path/URL of the terrain image chosen on the way in. */
-  background: string | null;
-  /** Scene id to use; a fresh one is generated when absent. */
-  sceneId?: string;
+  image: string | null;
+  /** Document id to use; a fresh one is generated when absent. */
+  mapId?: string;
 }
 
 /**
- * Turn a package into a scene with the region preset applied (REQ-MREG-001)
- * and one hidden pin per entry.
+ * Turn a package into a region map with one hidden pin per entry.
  *
- * Every pin is born `{ default: NONE }` — the same state a pin gets when the
- * GM drops it by hand. Revealing is always an act taken at THIS table.
+ * Every pin arrives as a GM pin at `{ default: NONE }` — the same state a pin
+ * gets when the GM drops it by hand. Revealing is always an act taken at THIS
+ * table, and a player pin from another campaign has no author here.
  */
-export function mapPackageToScene(pkg: unknown, opts: MapImportOptions): SceneDocument {
+export function mapPackageToRegionMap(pkg: unknown, opts: MapImportOptions): RegionMapDocument {
   const parsed = FusionMapPackageSchema.parse(pkg);
 
   if (parsed.format !== FUSION_MAP_FORMAT) {
@@ -176,42 +176,32 @@ export function mapPackageToScene(pkg: unknown, opts: MapImportOptions): SceneDo
     );
   }
 
-  const notes: NoteDocument[] = parsed.pins.map((pin) => {
+  const pins: MapPin[] = parsed.pins.map((pin) => {
     const flags = { ...(pin.flags as Record<string, unknown>) };
     if (pin.sourceId) {
       const fusion = { ...((flags["fusion"] as Record<string, unknown> | undefined) ?? {}) };
       fusion["sourceId"] = pin.sourceId;
       flags["fusion"] = fusion;
     }
-    return NoteDocumentSchema.parse({
-      ...defaultNoteDocument(createDocumentId()),
+    return createGmPin(createDocumentId(), {
       x: pin.x,
       y: pin.y,
       text: pin.text,
+      description: pin.description,
       icon: pin.icon,
-      iconSize: pin.iconSize,
-      elevation: pin.elevation,
-      flags,
+      flags: flags as Record<string, Record<string, unknown>>,
     });
   });
 
-  const sceneId = opts.sceneId ?? createDocumentId();
+  const mapId = opts.mapId ?? createDocumentId();
 
-  return SceneDocumentSchema.parse({
-    ...defaultSceneDocument(sceneId, parsed.name),
-    width: parsed.width,
-    height: parsed.height,
-    background: opts.background,
-    // The region preset of DEC-MREG-01, applied in one place so an imported
-    // map and a hand-made one are configured identically.
-    grid: {
-      type: "gridless",
-      size: 100,
-      distance: parsed.gridDistance,
-      units: parsed.gridUnits,
-    },
-    tokenVision: false,
-    flags: { fusion: { mapScale: parsed.mapScale } },
-    notes,
+  return RegionMapDocumentSchema.parse({
+    ...defaultRegionMapDocument(mapId, parsed.name),
+    image: opts.image,
+    imageWidth: parsed.imageWidth,
+    imageHeight: parsed.imageHeight,
+    scaleValue: parsed.scaleValue,
+    scaleUnits: parsed.scaleUnits,
+    pins,
   });
 }
