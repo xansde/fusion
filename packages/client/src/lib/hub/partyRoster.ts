@@ -15,8 +15,13 @@
  *
  * HP reads server-derived data first (`system.derived.hp`, written by the
  * derivation pipeline) and falls back to the raw `system.attributes.hp` blob,
- * the same derived-first posture as `characterSheetVM`.
+ * the same derived-first posture as `characterSheetVM`. The dotted-path read
+ * itself lives in `lib/actors/actorResource.ts` — the token resource bar
+ * (REQ-CNV-090) asks the same question of the same blob, and two copies of that
+ * reader would eventually give two different answers on the same screen.
  */
+
+import { readResourceAt } from "../actors/actorResource.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -89,17 +94,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 function readHp(system: Record<string, unknown> | null): PartyHp | null {
-  const derivedHp = asRecord(asRecord(system?.["derived"])?.["hp"]);
-  const rawHp = asRecord(asRecord(system?.["attributes"])?.["hp"]);
-  const source = derivedHp ?? rawHp;
-  if (!source) return null;
-
-  const value = source["value"];
-  const max = source["max"];
-  if (typeof value !== "number" || typeof max !== "number") return null;
-
-  const temp = source["temp"];
-  return { value, max, temp: typeof temp === "number" ? temp : 0 };
+  return readResourceAt(system, "derived.hp") ?? readResourceAt(system, "attributes.hp");
 }
 
 function readConditions(items: PartyActorDoc["items"]): PartyCondition[] {

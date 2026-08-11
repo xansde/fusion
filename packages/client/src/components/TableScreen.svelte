@@ -71,6 +71,11 @@
   import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
   import { makeSendOpFn, sendOp } from "../lib/docs/sendOp.js";
+  import {
+    makeTokenActorSendOpFn,
+    readEffectiveActorDoc,
+    tokenActorBindingFor,
+  } from "../lib/scenes/tokenActor.js";
   import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
@@ -526,6 +531,10 @@
       scene._id,
       gridSize,
       currentIsGm,
+      // Who is looking: the resource bar's cut is the viewer's level over the
+      // token's ACTOR (DEC-CNV-15), so the layer needs the identity, not just
+      // the GM flag — an Assistant is privileged too (REQ-USR-006).
+      { userId, role: session.user?.role ?? 0 },
     );
     activeTokenLayer = tokenLayer;
 
@@ -789,6 +798,63 @@
       sendOpFn: makeSendOpFn(() => getSocket()),
     });
   }
+
+  /**
+   * Open the sheet of the actor a TOKEN plays with (REQ-DOC-032/033).
+   *
+   * Two things differ from `abrirFichaDoAvatar`, and both matter for an
+   * UNLINKED token — six skeletons out of one "Esqueleto" Actor:
+   *
+   *   - the document shown is the reconstructed TokenActor (base + that
+   *     token's `actorDelta`), so skeleton 3 shows skeleton 3's hit points;
+   *   - the write path is wrapped so an edit becomes `token:updateActor` and
+   *     lands on that token's delta. Without the wrapper, editing one
+   *     skeleton's HP would edit the Actor, i.e. all six.
+   *
+   * Ownership still comes from the BASE Actor: a delta says what a token
+   * holds, never who may look at it.
+   */
+  function abrirFichaDoToken(token: TokenDocument): void {
+    const sceneId = activeSceneState.scene?._id;
+    if (!sceneId) return;
+
+    const binding = tokenActorBindingFor(sceneId, token);
+    if (!binding) return;
+
+    const base = worldMirror.getDoc<Record<string, unknown>>("Actor", binding.actorId);
+    if (!base) return;
+
+    const doc = readEffectiveActorDoc(worldMirror, binding.actorId, binding);
+    if (!doc) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = base["ownership"] as Record<string, number> | undefined;
+
+    openActorSheet(binding.actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeTokenActorSendOpFn(makeSendOpFn(() => getSocket()), binding),
+      tokenBinding: binding,
+    });
+  }
+
+  /**
+   * The EFFECTIVE actor's `system` for a token (base + delta, REQ-CNV-091) —
+   * what the token config dialog discovers its bar dropdown options from.
+   * `undefined` when the token has no actor: the dialog degrades to
+   * "no bar" plus whatever path the token already had saved.
+   */
+  function effectiveActorSystemOf(token: TokenDocument): unknown {
+    const sceneId = activeSceneState.scene?._id;
+    if (!sceneId) return undefined;
+    const binding = tokenActorBindingFor(sceneId, token);
+    if (!binding) return undefined;
+    const doc = readEffectiveActorDoc(worldMirror, binding.actorId, binding);
+    return doc?.["system"];
+  }
 </script>
 
 <!-- ========================================================================
@@ -964,6 +1030,8 @@
       sceneId={activeSceneState.scene._id}
       token={configuringToken}
       socket={getSocket()!}
+      actorSystem={effectiveActorSystemOf(configuringToken)}
+      onOpenSheet={abrirFichaDoToken}
       onClose={() => { configuringToken = null; }}
       onSuccess={() => { configuringToken = null; }}
     />

@@ -15,6 +15,7 @@ export * from "./version.js";
 export * from "./protocol.js";
 export * from "./result.js";
 export * from "./document.js";
+export * from "./actor-delta.js";
 export * from "./avatar.js";
 export * from "./grid/types.js";
 export * from "./grid/math.js";

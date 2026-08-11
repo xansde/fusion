@@ -3,18 +3,38 @@
    * TokenConfigDialog.svelte — modal dialog for configuring token vision and light.
    *
    * Spec: 07-visao-iluminacao-fog.md REQ-VIS-060..062, REQ-VIS-040/041
+   *       06-canvas-e-renderizacao.md REQ-CNV-089/090, DEC-CNV-15 (resource bars)
    *
    * Fields:
    *   Vision section: enabled, range (grid units), angle, visionMode
    *   Light section: enabled, bright (grid units), dim (grid units), color, intensity
+   *   Bars section: bar1/bar2 attribute paths, displayBars level
+   *   Sheet section: actorLink (REQ-DOC-031/032/033) + a way into the sheet
    *
-   * Sends a doc:update op to update the token's vision/light subdocuments in the scene.
+   * The link control is the ONLY place a GM can say "this skeleton keeps its
+   * own hit points". Without it the whole unlinked-token model — schema,
+   * server router, redaction — is unreachable from the table, and the server
+   * default (REQ-DOC-061) is the only opinion anyone ever gets to have.
+   *
+   * Saving goes through `tokenController.updateToken`, i.e. the EMBEDDED
+   * `doc:update` form the server actually accepts. The earlier shape — a Scene
+   * `doc:update` carrying `tokens.<id>.<field>` dot-paths — was rejected with
+   * `VALIDATION_FAILED: tokens: Expected array, received object`, so this
+   * dialog's Save button never persisted anything at all.
+   * This dialog is the ONLY way to point a bar at an attribute or to change who
+   * sees it — an indicator with no way to configure it is not shipped.
    */
 
   import type { Socket } from "socket.io-client";
-  import type { TokenDocument } from "@fusion/shared";
-  import { sendOp } from "../../lib/docs/sendOp.js";
-  import { tokenDiffPath } from "@fusion/shared";
+  import type { TokenDocument, TokenDisplayMode } from "@fusion/shared";
+  import { updateToken } from "../../lib/scenes/tokenController.js";
+  import { tokenActorLink } from "../../lib/scenes/tokenActor.js";
+  import { buildTokenConfigPatch } from "../../lib/scenes/tokenConfigForm.js";
+  import {
+    TOKEN_DISPLAY_MODES,
+    tokenDisplayBars,
+  } from "../../lib/canvas/tokens/token-bars.js";
+  import { barAttributeOptions } from "../../lib/scenes/barAttributeOptions.js";
   import { t } from "../../lib/i18n/i18n.js";
   import FilePicker from "../assets/FilePicker.svelte";
   import ActorPortrait from "../common/ActorPortrait.svelte";
@@ -28,18 +48,33 @@
     onClose,
     onSuccess,
     socket,
+    onOpenSheet,
+    actorSystem,
   }: {
     sceneId: string;
     token: TokenDocument;
     onClose: () => void;
     onSuccess: () => void;
     socket: Socket;
+    /**
+     * Open this token's sheet. Supplied by TableScreen, which owns the session,
+     * the mirror and the window manager; leaving it unset simply hides the
+     * button (a dialog that cannot open a sheet is still a usable dialog).
+     */
+    onOpenSheet?: (token: TokenDocument) => void;
+    /**
+     * The EFFECTIVE actor's `system` blob (base + delta, REQ-CNV-091), used
+     * only to discover which resources the bar dropdowns can offer. Absent —
+     * no actor, no binding — the dropdowns still work: "no bar" plus whatever
+     * the token already had saved.
+     */
+    actorSystem?: unknown;
   } = $props();
 
   // ---- State ----
 
   // Appearance (name + texture). Persisted through the same submit as
-  // vision/light, via tokenDiffPath — no separate save action.
+  // vision/light — no separate save action.
   let tokenName = $state<string>(token.name);
   let tokenTexture = $state<string | null>(token.texture);
   let showFilePicker = $state(false);
@@ -75,6 +110,21 @@
     (token as any).light?.intensity ?? 1,
   );
 
+  // Resource bars (REQ-CNV-089 / REQ-CNV-090). The attribute is a dotted path
+  // over the actor's `system`, but the GM picks it from resources DISCOVERED
+  // on the effective actor, under legible names — never types the path.
+  let bar1Attribute = $state<string>(token.bar1?.attribute ?? "");
+  let bar2Attribute = $state<string>(token.bar2?.attribute ?? "");
+  let displayBars = $state<TokenDisplayMode>(tokenDisplayBars(token));
+  const bar1Options = $derived(barAttributeOptions(actorSystem, bar1Attribute, t));
+  const bar2Options = $derived(barAttributeOptions(actorSystem, bar2Attribute, t));
+
+  // Actor link (REQ-DOC-031). Read defensively for the same reason
+  // `tokenDisplayBars` is: tokens persisted before this field existed carry
+  // neither key at runtime, and absent means LINKED — the value that leaves
+  // them behaving exactly as they always did.
+  let actorLink = $state<boolean>(tokenActorLink(token));
+
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
 
@@ -90,38 +140,32 @@
     serverError = null;
 
     try {
-      const rangeVal = visionRange.trim() === "" ? null : Number(visionRange);
-      const brightVal = Number(lightBright);
-      const dimVal = Number(lightDim);
-
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: sceneId,
-              diff: {
-                [tokenDiffPath(token._id, "name")]: tokenName,
-                [tokenDiffPath(token._id, "texture")]: tokenTexture,
-                [tokenDiffPath(token._id, "vision" as any)]: {
-                  enabled: visionEnabled,
-                  range: isNaN(rangeVal as number) ? null : rangeVal,
-                  angle: visionAngle,
-                  visionMode,
-                },
-                [tokenDiffPath(token._id, "light" as any)]: {
-                  enabled: lightEnabled,
-                  bright: isNaN(brightVal) ? 0 : brightVal,
-                  dim: isNaN(dimVal) ? 0 : dimVal,
-                  color: lightColor,
-                  intensity: lightIntensity,
-                },
-              },
-            },
-          ],
-        },
-      });
+      // The patch is built in `tokenConfigForm.ts`, not here: this component
+      // cannot be mounted in a test (no jsdom), and "does Save carry this
+      // field" is exactly the question that went unanswered while the whole
+      // dialog was persisting nothing at all.
+      await updateToken(
+        socket,
+        sceneId,
+        token._id,
+        buildTokenConfigPatch({
+          name: tokenName,
+          texture: tokenTexture,
+          actorLink,
+          visionEnabled,
+          visionRange,
+          visionAngle,
+          visionMode,
+          lightEnabled,
+          lightBright,
+          lightDim,
+          lightColor,
+          lightIntensity,
+          bar1Attribute,
+          bar2Attribute,
+          displayBars,
+        }),
+      );
       onSuccess();
     } catch (err) {
       serverError = err instanceof Error ? err.message : "An error occurred.";
@@ -196,6 +240,94 @@
             </button>
           {/if}
         </div>
+      </div>
+    </fieldset>
+
+    <!-- ====== Actor link (REQ-DOC-031/032/033) ====== -->
+    <fieldset class="section">
+      <legend class="section__title">{t("FUSION.Token.Config.ActorLink")}</legend>
+
+      {#if token.actorId}
+        <label class="checkbox-row">
+          <input
+            type="radio"
+            name="tok-actor-link"
+            value={true}
+            bind:group={actorLink}
+            disabled={submitting}
+          />
+          <span>{t("FUSION.Token.Config.ActorLink.linked")}</span>
+        </label>
+
+        <label class="checkbox-row">
+          <input
+            type="radio"
+            name="tok-actor-link"
+            value={false}
+            bind:group={actorLink}
+            disabled={submitting}
+          />
+          <span>{t("FUSION.Token.Config.ActorLink.unlinked")}</span>
+        </label>
+
+        <p class="field__hint">{t("FUSION.Token.Config.ActorLink.hint")}</p>
+
+        {#if onOpenSheet}
+          <div class="appearance-actions">
+            <button
+              type="button"
+              class="btn btn--ghost btn--sm"
+              onclick={() => onOpenSheet?.(token)}
+              disabled={submitting}
+            >
+              {t("FUSION.Token.Config.OpenSheet")}
+            </button>
+          </div>
+        {/if}
+      {:else}
+        <p class="field__hint">{t("FUSION.Token.Config.ActorLink.noActor")}</p>
+      {/if}
+    </fieldset>
+
+    <!-- ====== Resource Bars Section (REQ-CNV-089 / REQ-CNV-090) ====== -->
+    <fieldset class="section">
+      <legend class="section__title">{t("FUSION.Token.Config.Bars")}</legend>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="tok-bar1">{t("FUSION.Token.Config.Bar1Attribute")}</label>
+          <select id="tok-bar1" class="field__select" bind:value={bar1Attribute} disabled={submitting}>
+            {#each bar1Options as option (option.value)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="tok-bar2">{t("FUSION.Token.Config.Bar2Attribute")}</label>
+          <select id="tok-bar2" class="field__select" bind:value={bar2Attribute} disabled={submitting}>
+            {#each bar2Options as option (option.value)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
+        </div>
+      </div>
+
+      <p class="field__hint">{t("FUSION.Token.Config.BarAttributeHint")}</p>
+
+      <div class="field">
+        <label class="field__label" for="tok-display-bars">
+          {t("FUSION.Token.Config.DisplayBars")}
+        </label>
+        <select
+          id="tok-display-bars"
+          class="field__select"
+          bind:value={displayBars}
+          disabled={submitting}
+        >
+          {#each TOKEN_DISPLAY_MODES as mode (mode)}
+            <option value={mode}>{t(`FUSION.Token.Config.DisplayBars.${mode}`)}</option>
+          {/each}
+        </select>
       </div>
     </fieldset>
 
@@ -444,6 +576,12 @@
     color: var(--fusion-text-muted);
     font-size: 0.8125rem;
     font-weight: 500;
+  }
+
+  .field__hint {
+    color: var(--fusion-text-muted);
+    font-size: 0.75rem;
+    margin: -0.35rem 0 0;
   }
 
   .field__input {

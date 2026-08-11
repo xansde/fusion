@@ -8,6 +8,10 @@
  *
  * Responsibilities:
  *   - Subscribe to DocumentMirror "Token" (embedded in active SceneDocument).
+ *   - Subscribe to DocumentMirror "Actor" and repaint the resource bars
+ *     (REQ-CNV-090). Bars read HP off the ACTOR, and taking damage emits no
+ *     scene op at all — without this second subscription the bar renders once
+ *     and then sits frozen, with no error anywhere to point at it.
  *   - For each TokenDocument in the active scene: create, update, or destroy
  *     a TokenSprite.
  *   - Hidden tokens: visible (semi-transparent) to GM; invisible to players
@@ -41,10 +45,44 @@
  */
 
 import type { Container } from "pixi.js";
-import type { TokenDocument, SceneDocument } from "@fusion/shared";
-import type { DocumentMirror } from "../../docs/DocumentMirror.js";
+import type { TokenDocument, SceneDocument, Ownership } from "@fusion/shared";
+import { getUserLevel, OwnershipLevel } from "@fusion/shared";
 import { TokenSprite } from "./TokenSprite.js";
+import type { TokenBarContext, TokenActorView, TokenActorRef } from "./token-bars.js";
+import { effectiveActorSystem } from "./token-bars.js";
+import { ROLE_ASSISTANT } from "./token-interaction.js";
 import type { VisionPolygonResult } from "../vision/vision-state.js";
+
+// ---------------------------------------------------------------------------
+// Collaborators
+// ---------------------------------------------------------------------------
+
+/**
+ * The slice of DocumentMirror this layer uses. Declaring it structurally (as
+ * `ownedActors.ts` does) keeps the unit test free of the real mirror and of the
+ * socket machinery behind it. The real `DocumentMirror` satisfies it.
+ */
+export interface TokenLayerMirror {
+  // The type parameters exist to mirror DocumentMirror's own signatures (which
+  // carry the same eslint exemption) so the real mirror satisfies this shape.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  subscribe<T>(type: string, cb: (docs: T[]) => void): () => void;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  getDoc<T>(type: string, id: string): T | undefined;
+}
+
+/** Who is looking at this canvas — needed for the bar's ownership cut. */
+export interface TokenLayerViewer {
+  readonly userId?: string | null;
+  /** Numeric role: 1=PLAYER, 2=TRUSTED, 3=ASSISTANT, 4=GAMEMASTER. */
+  readonly role?: number;
+}
+
+/** The shape the bar cut needs off an Actor document. */
+interface BarActorDoc {
+  ownership?: Ownership;
+  system?: unknown;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -77,6 +115,54 @@ function pointInAnyPolygon(px: number, py: number, polygons: VisionPolygonResult
   return false;
 }
 
+/**
+ * Build the sprite's window onto Actor data (DEC-CNV-15).
+ *
+ * A TokenDocument has no ownership map of its own — it inherits who controls it
+ * from the Actor named by `actorId`. So "may this viewer read this token's HP"
+ * is really "what is this viewer's effective level on that Actor", answered
+ * here, once, with the same `getUserLevel` the rest of the client uses.
+ *
+ * A privileged role reports OWNER without consulting the map (REQ-USR-006),
+ * matching `resolveOwnedActorIds`. This is a DISPLAY decision, not a gate: the
+ * server never emits an Actor to a user who may not see it (REQ-NET-096), so an
+ * actorId that resolves to nothing here is the normal shape of a hidden NPC.
+ *
+ * The VALUES come from the token's EFFECTIVE actor (REQ-DOC-032/033): an
+ * unlinked token owns a private `actorDelta` over the base Actor, so six
+ * skeletons sharing one `actorId` each report their own hit points. The
+ * ownership LEVEL still comes from the base Actor and nothing else — a delta
+ * describes what a token holds, never who may look at it, and reading the cut
+ * off the reconstructed actor would let a delta grant itself an audience.
+ */
+function _buildBarContext(
+  mirror: TokenLayerMirror,
+  isGm: boolean,
+  viewer: TokenLayerViewer,
+): TokenBarContext {
+  const privileged = isGm || (viewer.role ?? 0) >= ROLE_ASSISTANT;
+  const userId = viewer.userId ?? null;
+
+  return {
+    privileged,
+    resolve(token: TokenActorRef): TokenActorView | null {
+      const actorId = token.actorId;
+      if (!actorId) return null;
+      const actor = mirror.getDoc<BarActorDoc>("Actor", actorId);
+      if (!actor) return null;
+      const level = privileged
+        ? OwnershipLevel.OWNER
+        : actor.ownership
+          ? getUserLevel(actor.ownership, userId)
+          : OwnershipLevel.NONE;
+      return {
+        system: effectiveActorSystem(token, actor as unknown as Record<string, unknown>),
+        level,
+      };
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // TokenLayer
 // ---------------------------------------------------------------------------
@@ -85,8 +171,14 @@ export class TokenLayer {
   /** The PIXI container this layer manages. Pass the "tokens" layer. */
   private _container: Container;
 
-  /** Mirror subscription unsubscribe fn. */
+  /** Scene subscription unsubscribe fn. */
   private _unsubscribe: (() => void) | null = null;
+
+  /** Actor subscription unsubscribe fn (resource bars — REQ-CNV-090). */
+  private _unsubscribeActors: (() => void) | null = null;
+
+  /** The window TokenSprite uses to read actor data and the ownership cut. */
+  private _barContext: TokenBarContext;
 
   /** Active sprites, keyed by token _id. */
   private _sprites: Map<string, TokenSprite> = new Map();
@@ -118,16 +210,18 @@ export class TokenLayer {
 
   constructor(
     container: Container,
-    mirror: DocumentMirror,
+    mirror: TokenLayerMirror,
     sceneId: string,
     gridSize: number,
     isGm: boolean,
+    viewer: TokenLayerViewer = {},
   ) {
     this._container = container;
     this._sceneId = sceneId;
     this._gridSize = gridSize;
     this._isGm = isGm;
     this._fogActive = !isGm;
+    this._barContext = _buildBarContext(mirror, isGm, viewer);
 
     // Subscribe to Scene collection changes; tokens are embedded in Scene.
     this._unsubscribe = mirror.subscribe<SceneDocument>("Scene", (scenes) => {
@@ -137,6 +231,16 @@ export class TokenLayer {
       } else {
         // Scene was deleted or no longer active — clear everything
         this._clearAll();
+      }
+    });
+
+    // Subscribe to Actor changes — the resource bars live on the Actor, and a
+    // hit point lost produces no Scene op whatsoever (REQ-CNV-090). The mirror
+    // hands us the whole collection; which actor changed does not matter,
+    // since repainting a bar is clearing and re-issuing two rectangles.
+    this._unsubscribeActors = mirror.subscribe<unknown>("Actor", () => {
+      for (const sprite of this._sprites.values()) {
+        sprite.refreshBars();
       }
     });
 
@@ -292,6 +396,8 @@ export class TokenLayer {
   destroy(): void {
     this._unsubscribe?.();
     this._unsubscribe = null;
+    this._unsubscribeActors?.();
+    this._unsubscribeActors = null;
     this._clearAll();
   }
 
@@ -323,7 +429,7 @@ export class TokenLayer {
         existing.update(token, this._gridSize);
       } else {
         // Create new sprite
-        const sprite = new TokenSprite(token, this._gridSize, this._isGm);
+        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._barContext);
         sprite.updateLod(this._lastZoom);
         this._sprites.set(token._id, sprite);
         this._container.addChild(sprite.container);

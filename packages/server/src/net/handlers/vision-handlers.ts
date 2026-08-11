@@ -50,7 +50,12 @@ import {
   wallsBlockingMovement,
   moveBlocked,
 } from "@fusion/shared";
-import { redactSecretDoors, sceneHasSecretDoors } from "../redaction.js";
+import {
+  redactSecretDoors,
+  sceneHasSecretDoors,
+  stripTokenActorDeltas,
+  sceneHasTokenActorDeltas,
+} from "../redaction.js";
 
 // ---------------------------------------------------------------------------
 // Handler context shape (same deps pattern as doc-handlers.ts)
@@ -570,7 +575,11 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
       seq,
     );
     deps.opBuffer.push(envelope);
-    deps.ns.emit("op", envelope);
+    // A move broadcasts the WHOLE scene, so it carries every other token's
+    // `actorDelta` with it. A bare `ns.emit` here would hand every player the
+    // hit points of every unlinked token on the map on every single drag —
+    // REQ-DOC-062 has to hold on this path too, not only on the CRUD ones.
+    broadcastSceneWithSecretDoorRedaction(deps.ns, envelope);
 
     return ackOk({ sceneId, tokenId, x, y }, seq);
   };
@@ -594,14 +603,23 @@ function broadcastSceneWithSecretDoorRedaction(ns: Namespace, envelope: Envelope
   };
 
   const hasSecretDoors = payload.documents.some((d) => sceneHasSecretDoors(d));
+  // Wall and light ops broadcast the WHOLE scene, tokens included — so an
+  // unlinked token's `actorDelta` (its private hit points) rides along and has
+  // to be cut here too (REQ-DOC-062), or opening a door leaks what the Scene emitters in
+  // doc-handlers/sync-handlers are careful not to.
+  const hasActorDeltas = payload.documents.some((d) => sceneHasTokenActorDeltas(d));
 
-  if (!hasSecretDoors) {
+  if (!hasSecretDoors && !hasActorDeltas) {
     ns.emit("op", envelope);
     return;
   }
 
-  // Build player-visible payload with secret doors redacted
-  const redactedDocs = payload.documents.map(redactSecretDoors);
+  // Build player-visible payload with secret doors and actor deltas redacted
+  const redactedDocs = payload.documents.map((d) => {
+    let redacted = hasSecretDoors ? redactSecretDoors(d) : d;
+    if (hasActorDeltas) redacted = stripTokenActorDeltas(redacted);
+    return redacted;
+  });
   const playerEnvelope: Envelope = {
     ...envelope,
     payload: { ...payload, documents: redactedDocs },
