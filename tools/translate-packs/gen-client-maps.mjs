@@ -136,6 +136,14 @@ const ACCENT_FIXES = {
   "versatile-p": "versátil-p",
   "versatile-s": "versátil-c",
   water: "água",
+  // r28/A4 — 17 novos traços das ~79 armas mundanas acrescentadas a
+  // weapons-core (Player Core 1+2, categoria simples/marcial/avançada, sem
+  // magia/runas — ver isWeaponsCoreDoc em build-mvp-subset.mjs).
+  alchemical: "alquímico",
+  "free-hand": "mão-livre",
+  "two-hand-d10": "duas-mãos-d10",
+  twin: "gêmeo",
+  "versatile-b": "versátil-b",
   // damage types
   bludgeoning: "concussão",
   piercing: "perfuração",
