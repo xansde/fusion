@@ -1,0 +1,793 @@
+[
+  {
+    "_id": "vuZZSqmAurrrg4TU",
+    "name": "Breastplate",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 4,
+      "baseItem": "breastplate",
+      "bulk": 2,
+      "category": "medium",
+      "checkPenalty": -2,
+      "containerId": null,
+      "description": "<p>Though referred to as a breastplate, this type of armor consists of several pieces of plate or @UUID[Compendium.pf2e.equipment-srd.Item.Half Plate] armor that protect the torso, chest, neck, and sometimes the hips and lower legs. It strategically grants some of the protection of plate while allowing greater flexibility and speed.</p>",
+      "dexCap": 1,
+      "grade": null,
+      "group": "plate",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 8
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "strength": 3,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "r0ifJfoz8aqf0mwk",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-collared-steel.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "A5eYb1dnTyxRnNPt",
+    "name": "Chain Mail",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 4,
+      "baseItem": "chain-mail",
+      "bulk": 2,
+      "category": "medium",
+      "checkPenalty": -2,
+      "containerId": null,
+      "description": "<p>A suit of chain mail consists of several pieces of armor composed of small metal rings linked together in a protective mesh. It typically includes a chain shirt, leggings, a pair of arms, and a coif, collectively protecting most of the body.</p>",
+      "dexCap": 1,
+      "grade": null,
+      "group": "chain",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 6
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "strength": 3,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "flexible",
+          "noisy"
+        ]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Kf4eJEXnFPuAsseP",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "chainmail.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ocKCjhULNZLWGwwt",
+    "name": "Chain Shirt",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "chain-shirt",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "<p>Sometimes called a hauberk, this is a long shirt constructed of the same metal rings as chain mail. However, it is much lighter than chain mail and protects only the torso, upper arms, and upper legs of its wearer.</p>",
+      "dexCap": 3,
+      "grade": null,
+      "group": "chain",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 5
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 1,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "flexible",
+          "noisy"
+        ]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MPcM4Wt6KmWE2kGL",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "chainshirt.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dZzuMMY2WJ1BtTF7",
+    "name": "Explorer's Clothing",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 0,
+      "baseItem": "explorers-clothing",
+      "bulk": 0.1,
+      "category": "unarmored",
+      "checkPenalty": 0,
+      "containerId": null,
+      "description": "<p>Adventurers who don't wear armor travel in durable clothing. Though it's not armor and uses your unarmored defense proficiency, it still has a Dex Cap and can grant an item bonus to AC if etched with potency runes.</p>",
+      "dexCap": 5,
+      "grade": null,
+      "group": "cloth",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 1
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "comfort"
+        ]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dDIPA1WE9ESF67EB",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "shirt-collared-pink.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "TahCfgvj5qrcvCvp",
+    "name": "Full Plate",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 6,
+      "baseItem": "full-plate",
+      "bulk": 4,
+      "category": "heavy",
+      "checkPenalty": -3,
+      "containerId": null,
+      "description": "<p>Plate mail consists of interlocking plates that encase nearly the entire body in a carapace of steel. It is costly and heavy, and the wearer often requires help to don it correctly, but it provides some of the best defense armor can supply. A suit of this armor comes with an undercoat of @UUID[Compendium.pf2e.equipment-srd.Item.Padded Armor] and a pair of @UUID[Compendium.pf2e.equipment-srd.Item.Gauntlet]{gauntlets}.</p>",
+      "dexCap": 0,
+      "grade": null,
+      "group": "plate",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 2,
+      "material": {},
+      "price": {
+        "gp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -10,
+      "strength": 4,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "bulwark"
+        ]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Gq1cZWSKOtJhKd2p",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-layered-steel-green.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "48zK9DBYvgZPJyOX",
+    "name": "Half Plate",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 5,
+      "baseItem": "half-plate",
+      "bulk": 3,
+      "category": "heavy",
+      "checkPenalty": -3,
+      "containerId": null,
+      "description": "<p>Half plate consists of most of the upper body plates used in full plate, with lighter or sparser steel plate protection for the arms and legs. This provides some of the protection of full plate with greater flexibility and speed. A suit of this armor comes with an undercoat of @UUID[Compendium.pf2e.equipment-srd.Item.Padded Armor] and a pair of @UUID[Compendium.pf2e.equipment-srd.Item.Gauntlet]{gauntlets}.</p>",
+      "dexCap": 1,
+      "grade": null,
+      "group": "plate",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 1,
+      "material": {},
+      "price": {
+        "gp": 18
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -10,
+      "strength": 3,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pRoikbRo5HFW6YUB",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-gorget-steel-white.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Cn6BK2LdsQVKzwIA",
+    "name": "Hide Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 3,
+      "baseItem": "hide-armor",
+      "bulk": 2,
+      "category": "medium",
+      "checkPenalty": -2,
+      "containerId": null,
+      "description": "<p>A mix of furs, sturdy hide, and sometimes molded boiled leather, this armor provides protection due to its layers of leather, though its bulkiness slows the wearer down and decreases mobility.</p>",
+      "dexCap": 2,
+      "grade": null,
+      "group": "leather",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 2
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "strength": 2,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "AnwzlOs0njF9Jqnr",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "vest-leather-tattered-white.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "txqFN5kKkIPHzES0",
+    "name": "Leather Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 1,
+      "baseItem": "leather-armor",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "<p>A mix of flexible and molded boiled leather, a suit of this type of armor provides some protection with maximum flexibility.</p>",
+      "dexCap": 4,
+      "grade": null,
+      "group": "leather",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 2
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 0,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "4tIVTg9wj56RrveA",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-banded-simple-leather-brown.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "rKZxBQQ4UEDNVI20",
+    "name": "Padded Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 1,
+      "baseItem": "padded-armor",
+      "bulk": 0.1,
+      "category": "light",
+      "checkPenalty": 0,
+      "containerId": null,
+      "description": "<p>This armor is simply a layer of heavy, quilted cloth, but it is sometimes used because it's so inexpensive. Padded armor is easier to damage and destroy than other types of armor. Heavy armor comes with a padded armor undercoat included in its Price, though it loses the comfort trait when worn under heavy armor. You can wear just that padded armor undercoat to sleep in, if your heavy armor is destroyed, or when otherwise not wearing the full heavy armor. This allows you to keep magic armor invested and benefit from the power of any runes on the associated heavy armor, but no one else can wear your heavy armor without the padded undercoat.</p>",
+      "dexCap": 3,
+      "grade": null,
+      "group": "cloth",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "sp": 2
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 0,
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "comfort"
+        ]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zBYEU9E7034ENCmh",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-banded-leather-brown.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "JkFokVRCFb0xBClx",
+    "name": "Scale Mail",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 3,
+      "baseItem": "scale-mail",
+      "bulk": 2,
+      "category": "medium",
+      "checkPenalty": -2,
+      "containerId": null,
+      "description": "<p>Scale mail consists of many metal scales sewn onto a reinforced leather backing, often in the form of a long shirt that protects the torso, arms, and legs.</p>",
+      "dexCap": 2,
+      "grade": null,
+      "group": "composite",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 4
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "strength": 2,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "YMQr577asquZIP65",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-metal-scaled-grey.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YBc2Be8TQpCrDEpg",
+    "name": "Splint Mail",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 5,
+      "baseItem": "splint-mail",
+      "bulk": 3,
+      "category": "heavy",
+      "checkPenalty": -3,
+      "containerId": null,
+      "description": "<p>This type of armor is chain mail reinforced with flexible, interlocking metal plates, typically located on the wearer's torso, upper arms, and legs. A suit of this armor comes with an undercoat of @UUID[Compendium.pf2e.equipment-srd.Item.Padded Armor] and a pair of @UUID[Compendium.pf2e.equipment-srd.Item.Gauntlet]{gauntlets}.</p>",
+      "dexCap": 1,
+      "grade": null,
+      "group": "composite",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 1,
+      "material": {},
+      "price": {
+        "gp": 13
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -10,
+      "strength": 3,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6AhDKX1dwRwFpQsU",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-layered-leather-studded-black.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7DxLtZgcLIerFQGh",
+    "name": "Studded Leather Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "studded-leather-armor",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "<p>This leather armor is reinforced with metal studs and sometimes small metal plates, providing most of the flexibility of leather armor with more robust protection.</p>",
+      "dexCap": 3,
+      "grade": null,
+      "group": "leather",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 3
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 1,
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ewQZ0VeL38v3qFnN",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-layered-leather-studded-brown.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  }
+]

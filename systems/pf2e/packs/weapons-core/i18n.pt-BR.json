@@ -2,10 +2,15 @@
   "schemaVersion": 1,
   "packId": "pf2e.weapons-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-08T21:39:02.506Z",
+  "generatedAt": "2026-08-11T03:41:38.894Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
+    "03aHpa92cMQL6EMt": {
+      "name": "Enxó",
+      "sourceHash": "a5c66ba290d1d66687c9bd5fe30fcea523f893e1",
+      "description": "<p>Uma ferramenta de corte comum, a enxó se parece com um machado — mas o fio de corte é horizontal, em vez de vertical. O formato da enxó a torna popular entre marceneiros, e construtores tripkee costumam usá-la para erguer suas casas nas copas das árvores. A ferramenta também serve como arma eficaz, em parte devido à força imensa necessária para manejá-la.</p>"
+    },
     "0DVfmP59PKldTNdZ": {
       "name": "Chicote",
       "sourceHash": "4b62745ff51b4339602d29d4661baae5c3161833",
@@ -16,10 +21,35 @@
       "sourceHash": "aa8f4942505d6873f53a2563c1a4c7b4fb8ba233",
       "description": "<p>Esta pequena arma de lâmina é empunhada com uma mão e usada para apunhalar uma criatura em combate aproximado. Também pode ser arremessada.</p>"
     },
+    "3RMO0R1PPjggMqUO": {
+      "name": "Picareta Grande",
+      "sourceHash": "005be4eb6679e854031b348ab471cab505a8a551",
+      "description": "<p>Esta picareta tem um cabo mais longo e uma cabeça mais larga que uma picareta comum. É pesada demais para ser empunhada com uma só mão.</p>"
+    },
+    "3bg0fOkM8o4IWA5i": {
+      "name": "Kama",
+      "sourceHash": "3d69a3f591cc93ad022a21f5caa8cd98a3a8e6d4",
+      "description": "<p>Semelhante a uma foice e usada em algumas regiões para colher grãos, a kama tem uma lâmina curta e levemente curva e um cabo de madeira.</p>"
+    },
+    "3k6aFmjXChGfi6K5": {
+      "name": "Frasco Versátil",
+      "sourceHash": "283c099ee4f400cd1cc0559ef39860e2f1a551e0",
+      "description": "<p>Este minúsculo frasco de vidro contém produtos químicos voláteis que podem ser usados ofensivamente em caso de necessidade. A bomba causa dano ácido e dano de respingo ácido.</p>"
+    },
+    "3oN8iPmZ4hxmbobI": {
+      "name": "Espada de Templo",
+      "sourceHash": "8d1a09b421afe6e90229b35fb0f792ae3c025e66",
+      "description": "<p>Esta lâmina pesada é preferida por guardiões de locais religiosos. Tem uma lâmina distintiva em forma de crescente, que parece uma mistura de foice e espada. Costuma ter furos na lâmina ou no pomo para que sinos ou outros enfeites sagrados possam ser fixados à arma.</p>"
+    },
     "423eTVfFyu1RWvBJ": {
       "name": "Clava",
       "sourceHash": "784939e95d79a0f8bf07c67d9af4e297e23ee664",
       "description": "<p>Uma peça de madeira robusta moldada ou repropositada para trucidar um inimigo. Clavas podem ser peças intricadamente esculpidas de arte marcial ou tão simples quanto um galho de árvore ou pedaço de madeira.</p>"
+    },
+    "4Ptof3qPxh5Uzpmp": {
+      "name": "Adaga de Clã",
+      "sourceHash": "da47d616fb96ce14fbdf9a364d9b21c4081f7470",
+      "description": "<p>Esta adaga larga é carregada por anões como arma, ferramenta e distintivo de clã. Perder ou ter que entregar uma adaga de clã é considerado motivo de vergonha para a maioria dos anões.</p>"
     },
     "5Jt0XIrsb3JbD2Rq": {
       "name": "Maço Grande",
@@ -36,15 +66,100 @@
       "sourceHash": "f8bd0cc961df27ccc35b6448718a6e90aea0fbab",
       "description": "<p>Esta arma possui um eixo de madeira terminando em uma cabeça de metal grande e pesada. A cabeça do martelo pode ter um lado ou dois lados, mas é sempre capaz de desferir golpes poderosos de concussão.</p>"
     },
+    "5pD13YQyMM9L5Aa4": {
+      "name": "Carga Fantasma (Grande)",
+      "sourceHash": "9ba60f43b63531eeb49250badefe2f5d2b6b3f97",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p>\n<hr />\n<p>Esses cilindros de metal acionados por mola contêm uma mistura de produtos químicos e sais que drenam e desintegram mortos-vivos próximos.</p>\n<p>Uma <em>carga fantasma</em> concede um bônus de item de +3 nas rolagens de ataque, causa 4d8 de dano de vitalidade e 4 de dano de respingo de vitalidade, embora, como de costume para dano de vitalidade, esse dano prejudique apenas mortos-vivos e criaturas com cura por vazio. Um alvo primário que sofre dano de uma <em>carga fantasma</em> fica @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Debilitado 2} até o início do seu próximo turno.</p>\n<p><em>Cargas fantasma</em> são projetadas para explodir mesmo em contato com uma substância espiritual, tornando-as ideais para danificar mortos-vivos incorpóreos.</p>"
+    },
+    "6ShS6qq6Zp9InMt8": {
+      "name": "Martelo Ganchoso Gnômico",
+      "sourceHash": "b81b4942b2d80d17c559cd4b079bae7f939c2cf0",
+      "description": "<p>Esta ferramenta e arma gnômica tem um martelo em uma ponta e uma picareta curva na outra. É uma arma tão estranha e desajeitada que os outros acham que os gnomos são um pouco excêntricos por usá-la.</p>"
+    },
+    "6g1G4k8IPYCMEXmz": {
+      "name": "Bomba de Definhamento (Menor)",
+      "sourceHash": "99bf9176414d1db0c1a6b94ff813bcd5fa353e8e",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Bombas de definhamento contêm produtos químicos tóxicos e voláteis que apodrecem a carne. Uma bomba de definhamento causa 1d4 de dano de veneno, 1d4 de dano de veneno persistente e 1 de dano de respingo de veneno.</p>"
+    },
+    "6lGzAsBhLLJFC2W7": {
+      "name": "Katar",
+      "sourceHash": "0804a0d2d3040a3d935d25c30585dae75e0824f4",
+      "description": "<p>Também conhecidas como adagas de soco, as katars são caracterizadas por sua empunhadura em forma de H, que permite que a lâmina se projete a partir dos nós dos dedos.</p>"
+    },
+    "74LFqhlcYPjOhpq6": {
+      "name": "Garra Voadora",
+      "sourceHash": "bedf653352d7cd2834d720455440000e274d1714",
+      "description": "<p>Esta arma consiste em um gancho farpado de três pontas preso a um comprimento de corrente. Pode ser usada corpo a corpo para golpear inimigos ou arremessada à distância. Alguns kobolds são particularmente afeiçoados à garra voadora, sobretudo como uma espécie de símbolo de autoridade sobre aqueles que os servem.</p>"
+    },
+    "7BGsQgqdmidNwMyI": {
+      "name": "Mambele",
+      "sourceHash": "b74ba7652426c0a7322277791b31d95ffea3882a",
+      "description": "<p>Também conhecida como hunga munga ou danisco, este híbrido de faca e machado consiste em um punho e uma lâmina que se curva para trás, em direção ao usuário. A curva da lâmina é tal que, depois que uma vítima é golpeada por uma mambele, mais dano é causado ao se extrair a arma do corpo da vítima.</p>"
+    },
+    "7peIlFet6iMGwezA": {
+      "name": "Maça Leve",
+      "sourceHash": "4802eb03e9d1bfb7f3113f9309a88c600dbb7e42",
+      "description": "<p>Uma maça leve tem um cabo curto de madeira ou metal terminando em uma cabeça densa de metal. Usada de forma semelhante a um porrete, ela desfere golpes contundentes pesados, mas com força extra derivada das cristas ou espinhos de metal da cabeça.</p>"
+    },
+    "7vq8YTRkMMxdNIEV": {
+      "name": "Bomba de Definhamento (Grande)",
+      "sourceHash": "e37066010949b1c70060df3474817a6fc8659cc2",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Bombas de definhamento contêm produtos químicos tóxicos e voláteis que apodrecem a carne. Uma bomba de definhamento causa 4d4 de dano de veneno, 4d4 de dano de veneno persistente e 4 de dano de respingo de veneno. Você ganha um bônus de item de +3 nas rolagens de ataque.</p>"
+    },
     "8dPUHqUHPQOeHlaL": {
       "name": "Mangual",
       "sourceHash": "844851a3cf5bec8e136844d83ac9c0cc61b444c2",
       "description": "<p>Esta arma consiste em um cabo de madeira preso a uma bola com espinhos ou cilindro por uma corrente, corda ou tira de couro.</p>"
     },
+    "9frP3wFnijEWYU3f": {
+      "name": "Bengala-Espada",
+      "sourceHash": "9fa5413d7e6d01ff87429372d0b9d000409752c5",
+      "description": "<p>Esta espada esguia, semelhante a uma rapieira, fica oculta dentro de uma bengala de madeira ou metal que serve de bainha, tornando-a uma arma discreta, fácil de passar despercebida em inspeções ou em eventos da alta sociedade. Uma bengala-espada mede tipicamente 4 pés de comprimento quando embainhada, e seu punho costuma ser encimado por um ornamento de madeira ou metal.</p>"
+    },
+    "9rc8LUN8HT1Ziu9p": {
+      "name": "Shuriken",
+      "sourceHash": "d5ccd820464e211db31c8de6f1d7cd8e6a402003",
+      "description": "<p>Esta \"estrela de arremesso\" é um pequeno pedaço de metal chato com bordas afiadas, projetado para ser lançado com um movimento do pulso.</p>"
+    },
+    "AelxbLF8nDoNCeH6": {
+      "name": "Pedra Explosiva (Menor)",
+      "sourceHash": "e6ef4680db887d97754c545862abaef850965c39",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Quando este seixo atinge uma criatura ou uma superfície dura, ele explode com um estrondo ensurdecedor. Uma pedra explosiva causa 1d4 de dano sônico e 1 de dano de respingo sônico, e cada criatura a até 10 pés do espaço em que a pedra explodiu deve ser bem-sucedida em um teste de resistência de @Check[fortitude|dc:17|name:Lesser Blasting Stone|showDC:all] com o CD indicado ou fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] até o final do seu próximo turno.</p>"
+    },
+    "BIT3QYIubtqH1MA3": {
+      "name": "Mangual de Guerra",
+      "sourceHash": "ef206f1386bc4319fe93b1b9d2216fb6f593ab7b",
+      "description": "<p>Este grande mangual tem uma haste longa conectada a uma peça mais curta de madeira ou metal resistente, às vezes incrustada com espinhos.</p>"
+    },
+    "BLzx7eb1ZemTP9d8": {
+      "name": "Katana",
+      "sourceHash": "c74eb73e1325d04f112fbfce49db564cf4caf0f2",
+      "description": "<p>A katana é uma espada curva e de um só fio, conhecida por sua lâmina perversamente afiada.</p>"
+    },
     "BSTNNs7HFL9KbFX1": {
       "name": "Espingarda de Anão",
       "sourceHash": "4448c8a36cc413b3b5a942a91043f6eb0a6479dd",
       "description": "<p>Arma predileta dos batedores anões de Dongun Hold, a espingarda de anão é uma arma poderosa projetada para aproveitar a estrutura robusta de um anão. Uma espingarda de anão dispara um grande cartucho de papel recheado de pólvora negra e pedaços de metal do tamanho de nós dos dedos, criando uma rajada devastadora tão destrutiva que um anão imprudente pode acabar recebendo ricochetes dolorosos ao atirar em um alvo próximo demais. Algumas espingardas são fabricadas com uma bandeja de disparo mecânica que consegue separar e carregar pólvora negra e chumbo rapidamente sem precisar de um cartucho pré-montado, embora isso seja em grande parte um detalhe estético, sem benefício mecânico real.</p>"
+    },
+    "BwTrSPVjvkSc4YWt": {
+      "name": "Fatia-Cão",
+      "sourceHash": "ec721593353f007b20e305d44ca012c5baed79fe",
+      "description": "<p>Esta lâmina improvisada, curta, curva e rústica costuma ter furos para reduzir seu peso. É uma arma preferida dos goblins.</p>"
+    },
+    "C8foZWoH0ADrK0y1": {
+      "name": "Frasco de Gelo (Menor)",
+      "sourceHash": "31d78efb18815957078bee5309daa88a88a49f96",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Os reagentes líquidos azul-brilhante deste frasco absorvem calor rapidamente quando expostos ao ar. Um frasco de gelo causa 1d6 de dano de frio e 1 de dano de respingo de frio. Ao acertar, o alvo sofre uma penalidade de status de –5 pés em suas Velocidades até o final do seu próximo turno.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Frost Vial]</p>"
+    },
+    "CCzcFKvSFwtQu1tb": {
+      "name": "Fragmentos de Cristal (Maior)",
+      "sourceHash": "e6e4ec93fee200cdad978b1fa78ef045b59a0fe9",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Este frasco contém um gás pressurizado marrom-avermelhado, salpicado de fragmentos de cristal sublimado. Você ganha um bônus de item de +2 nas rolagens de ataque. Quando a bomba explode, ela causa @Damage[3d4[piercing]] de dano e @Damage[(5[splash])[piercing]]{5 de dano de respingo perfurante}, já que a mistura repentinamente se transforma em cristais sólidos voando em alta velocidade.</p>\n<p>Ao acertar, o alvo sofre @Damage[1[persistent,bleed]] de dano dos cristais incrustados em sua carne. Enquanto o dano de sangramento persistir, o alvo também sofre uma penalidade de –5 pés em sua velocidade. O alvo pode gastar uma ação Interagir para remover os cristais, reduzindo o CD para estancar o sangramento.</p>"
+    },
+    "CFbvb5BuqiSQ1jLR": {
+      "name": "Adaga de Soqueira Orc",
+      "sourceHash": "051e328db84a238c49be59a359b38270a03557ac",
+      "description": "<p>Esta lâmina de metal robusta, de fabricação orc, tem um punho horizontal em forma de cesto com lâminas projetando-se de cada extremidade, ou às vezes uma única lâmina, como a de uma katar.</p>"
     },
     "CocSCZ6gUPbAKzmz": {
       "name": "Lança de Fogo",
@@ -56,6 +171,11 @@
       "sourceHash": "cf8cfae6b5e70b9609385b81d5fe736da1d4cf2c",
       "description": "<p>Esta imensa espada de duas mãos é quase tão alta quanto seu empunhador. Sua lâmina inferior frequentemente é um pouco embotada para permitir que seja empunhada por alavancagem extra em combates corpo-a-corpo.</p>"
     },
+    "ExIfyn8rvmwKkVRl": {
+      "name": "Machado de Guerra Anão",
+      "sourceHash": "19777f6629cd350199901b543cca82325467b08c",
+      "description": "<p>Esta arma preferida dos anões tem uma cabeça grande e ornamentada montada em um cabo grosso. Este machado poderoso pode ser empunhado com uma ou duas mãos.</p>"
+    },
     "FBizX9S27O643Sfi": {
       "name": "Lança",
       "sourceHash": "81f5a74508e4bd92a3e553298c1e105036587dfc",
@@ -66,10 +186,70 @@
       "sourceHash": "9dbf698aea805b0347f4616522e8cf3d86d44cf9",
       "description": "<p>A mais facilmente encontrada das armas de fogo em Alkenstar, o mosquete de pederneira tem um mecanismo de disparo externo e uma estrutura eficiente e relativamente compacta. Embora lhe faltem o alcance e o poder de fogo do arcabuz preferido pelos militares de Alkenstar e de Dongun Hold, o mosquete de pederneira é popular entre os civis por sua facilidade de uso.</p>"
     },
+    "FgErK80k7iD7TTH3": {
+      "name": "Maça",
+      "sourceHash": "1e7b3306d9f903ca4b74141cd6c2a79ff942909f",
+      "description": "<p>Com um cabo robusto e uma cabeça pesada de metal, a maça é resistente e permite que seu usuário desfira golpes poderosos e amasse armaduras.</p>"
+    },
+    "FqzbPshyFNZljdwo": {
+      "name": "Espetão de Captura",
+      "sourceHash": "56310a625c64fa6d603ffd7a2cc6a23985e73cfb",
+      "description": "<p>Hobgoblins usam essas armas de haste tanto como equipamento padrão para unidades militares agressivas quanto individualmente para caçar fugitivos.</p>"
+    },
+    "GBViqHOtzBhrXOWc": {
+      "name": "Espinhos de Escudo",
+      "sourceHash": "54394cd355ea80a6bb6a60fd49c262974422a434",
+      "description": "<p>Esses espinhos de metal são posicionados estrategicamente no lado defensivo do escudo para causar dano perfurante com um golpe de escudo.</p>"
+    },
+    "GDKg9SsF5bNlEyU6": {
+      "name": "Frasco de Gelo (Grande)",
+      "sourceHash": "ba224bc6bcb2b6a7331ca9d63dbb3852b7276ac5",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Os reagentes líquidos azul-brilhante deste frasco absorvem calor rapidamente quando expostos ao ar. Um frasco de gelo causa 4d6 de dano de frio e 4 de dano de respingo de frio. Ao acertar, o alvo sofre uma penalidade de status de –15 pés em suas Velocidades até o final do seu próximo turno. Você ganha um bônus de item de +3 nas rolagens de ataque.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Frost Vial]</p>"
+    },
+    "GkgidCedE39e81NH": {
+      "name": "Khakkhara",
+      "sourceHash": "14596e485d7418e01d4e268613ff098a506fd6dd",
+      "description": "<p>Este bastão é encimado por um círculo de metal pontiagudo do qual pendem vários anéis menores que tilintam e chocalham ruidosamente conforme o bastão se move, permitindo que você anuncie sua presença e afugente animais selvagens enquanto caminha.</p>"
+    },
+    "H5HnfT0MoWZWQddi": {
+      "name": "Carga Fantasma (Menor)",
+      "sourceHash": "4fc2ecaa41f23d0a5d41d9a5ee456fc837f14407",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p>\n<hr />\n<p>Esses cilindros de metal acionados por mola contêm uma mistura de produtos químicos e sais que drenam e desintegram mortos-vivos próximos.</p>\n<p>Uma <em>carga fantasma</em> causa 1d8 de dano de vitalidade e 1 de dano de respingo de vitalidade, embora, como de costume para dano de vitalidade, esse dano prejudique apenas mortos-vivos e criaturas com cura por vazio. Um alvo primário que sofre dano de uma <em>carga fantasma</em> fica @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Debilitado 1} até o início do seu próximo turno.</p>\n<p><em>Cargas fantasma</em> são projetadas para explodir mesmo em contato com uma substância espiritual, tornando-as ideais para danificar mortos-vivos incorpóreos.</p>"
+    },
+    "Hi0YNVHlHUhXt2Iy": {
+      "name": "Martelo Leve",
+      "sourceHash": "592abc08f9a55af1cf03f4113970d9c2f210a0d0",
+      "description": "<p>Esta versão menor do martelo de guerra tem um cabo de madeira ou metal terminando em uma cabeça de metal. Ao contrário de seu parente mais pesado, é leve o suficiente para ser arremessado.</p>"
+    },
+    "IDqyWdbdJI7JskO0": {
+      "name": "Gadanha",
+      "sourceHash": "5ff144090884dbcccd5ef69f0318d36adebc4d62",
+      "description": "<p>Derivada de uma ferramenta agrícola usada para ceifar grãos e cereais, esta arma tem uma longa haste de madeira com punhos salientes, encimada por uma lâmina curva posicionada em ângulo reto.</p>"
+    },
+    "IWyyZT7afwDG8aOC": {
+      "name": "Corta-Cavalo",
+      "sourceHash": "1546e25375cb4638c921f5490a97c92ba2121fb3",
+      "description": "<p>Criada por goblins para combater cavalos, esta arma é essencialmente uma longa haste terminando em uma lâmina com um grande gancho.</p>"
+    },
+    "IXwEUkGcIyrGWaU0": {
+      "name": "Pedra Explosiva (Grande)",
+      "sourceHash": "11cd6db88dbe7184d42fc99ca1dcb216b34fe460",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Quando este seixo atinge uma criatura ou uma superfície dura, ele explode com um estrondo ensurdecedor. Uma pedra explosiva causa 4d4 de dano sônico e 4 de dano de respingo sônico, e cada criatura a até 10 pés do espaço em que a pedra explodiu deve ser bem-sucedida em um teste de resistência de @Check[fortitude|dc:36|name:Major Blasting Stone|showDC:all] com o CD indicado ou fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] até o final do seu próximo turno. Você ganha um bônus de item de +3 nas rolagens de ataque.</p>"
+    },
+    "K0jm6A4Nc5j5sMTk": {
+      "name": "Bomba de Definhamento (Moderada)",
+      "sourceHash": "357f7433c9a9e19cbb3c81fc0fd833c5900b75a1",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Bombas de definhamento contêm produtos químicos tóxicos e voláteis que apodrecem a carne. Uma bomba de definhamento causa 2d4 de dano de veneno, 2d4 de dano de veneno persistente e 2 de dano de respingo de veneno. Você ganha um bônus de item de +1 nas rolagens de ataque.</p>"
+    },
     "KXkuKWffHk5b80Rs": {
       "name": "Azagaia",
       "sourceHash": "1838e89ee829e435b847be002e78b23b33df7985",
       "description": "<p>Esta lança fina é bem equilibrada para arremesso mas não é projetada para uso em combate corpo-a-corpo.</p>"
+    },
+    "Kis2HGqPcVkFP3XU": {
+      "name": "Alabarda",
+      "sourceHash": "2cbcf31563939139cf1d65dcd8bfbaa7319cf571",
+      "description": "<p>Esta arma de haste tem um cabo relativamente curto, de 5 pés. A extremidade útil é um longo espigão com uma lâmina de machado acoplada.</p>"
     },
     "LiSC3YqSUlFSyNky": {
       "name": "Bacamarte",
@@ -91,10 +271,20 @@
       "sourceHash": "17ca169f6a888dea515a6bbc7f91ae1bd6450360",
       "description": "<p>Esta é uma arma longa que oferece mais alcance que a arma de fogo média, embora o cano comprido e o coice feroz tornem a arma particularmente instável, a menos que se use um tripé ou outro suporte para estabilizá-la. O arcabuz é uma das armas longas mais usadas entre os soldados de Dongun Hold e Alkenstar.</p>"
     },
+    "PaZHscVwHcbSYmMZ": {
+      "name": "Lança Longa",
+      "sourceHash": "a490071ac479e7eb1a46c15d48fe493d98e3d869",
+      "description": "<p>Esta lança muito longa, às vezes chamada de pique, serve exclusivamente para estocadas e não para arremesso. Usada por muitos soldados e guardas urbanos para controle de multidões e defesa contra inimigos em investida, deve ser empunhada com as duas mãos.</p>"
+    },
     "PfSf6oPNWQHpFfaI": {
       "name": "Besta de Mão",
       "sourceHash": "fbd0fd6a9c5c1eb1bc281b91ca2ac8fdab0c99b5",
       "description": "<p>Às vezes referida como arco de beco por malandros e valentões, esta pequena besta dispara pequenos virotes que às vezes são usados para entregar veneno ao alvo. É pequena o suficiente para ser disparada com uma mão, mas ainda requer duas mãos para ser carregada.</p>"
+    },
+    "QLu3jyHlR15hvCeu": {
+      "name": "Carga Fantasma (Maior)",
+      "sourceHash": "6708750fc30c58f26a0d437c295a2d56739d76d8",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p>\n<hr />\n<p>Esses cilindros de metal acionados por mola contêm uma mistura de produtos químicos e sais que drenam e desintegram mortos-vivos próximos.</p>\n<p>Uma <em>carga fantasma</em> concede um bônus de item de +2 nas rolagens de ataque, causa 3d8 de dano de vitalidade e 3 de dano de respingo de vitalidade, embora, como de costume para dano de vitalidade, esse dano prejudique apenas mortos-vivos e criaturas com cura por vazio. Um alvo primário que sofre dano de uma <em>carga fantasma</em> fica @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Debilitado 2} até o início do seu próximo turno.</p>\n<p><em>Cargas fantasma</em> são projetadas para explodir mesmo em contato com uma substância espiritual, tornando-as ideais para danificar mortos-vivos incorpóreos.</p>"
     },
     "QXm54OQROkZZzxbC": {
       "name": "Estrela da Manhã",
@@ -111,6 +301,51 @@
       "sourceHash": "f96f3814b9caac3c065599937cb0be07db431ef7",
       "description": "<p>Esta arma de três pontas semelhante a uma lança normalmente tem um eixo de 4 pés. Como uma lança, pode ser empunhada com uma mão ou arremessada.</p>"
     },
+    "R3EvPQTkFysirZ1k": {
+      "name": "Fende-Pescoço Orc",
+      "sourceHash": "60173a357b659fe02a393870ce2090f02a47110f",
+      "description": "<p>Este machado barbado de lâmina única tem uma lâmina serrilhada perfeita para separar osso de tendão e cartilagem.</p>"
+    },
+    "RQORtiaaZ0R9kmU4": {
+      "name": "Raio Engarrafado (Menor)",
+      "sourceHash": "c6792dc4104e07e82571e1fd6a73bdeb4fb8a383",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>O raio engarrafado é carregado com reagentes voláteis que criam uma explosão de eletricidade quando expostos ao ar. O raio engarrafado causa 1d6 de dano elétrico e 1 de dano de respingo elétrico. Ao acertar, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] até o início do seu próximo turno.</p>"
+    },
+    "SrNYSWboOSZNaLVx": {
+      "name": "Lança de Justa",
+      "sourceHash": "9f8ff890797eacfb486ad052af4b9fc02d325ade",
+      "description": "<p>Esta arma semelhante a uma lança é usada por uma criatura montada para causar uma grande quantidade de dano.</p>"
+    },
+    "TNia8v9o3aCltHfB": {
+      "name": "Picareta Leve",
+      "sourceHash": "325cbec11fe2091e9069065599059dbf0fdf461b",
+      "description": "<p>Uma picareta leve é um implemento de mineração modificado com um cabo de madeira terminando em uma cabeça de picareta feita mais para perfurar armaduras e carne do que para lascar pedras.</p>"
+    },
+    "TvkBeVODetPMDlPj": {
+      "name": "Ranseur",
+      "sourceHash": "6ff16a702cdfdc78e686d646ee3ae982d01108ec",
+      "description": "<p>Esta arma de haste é um longo tridente cuja ponta central é mais longa que as outras duas.</p>"
+    },
+    "UCql2W2E60Y5FAlG": {
+      "name": "Raio Engarrafado (Grande)",
+      "sourceHash": "de8374de00cd38c5042d2ee0b816c57f78489ec6",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>O raio engarrafado é carregado com reagentes voláteis que criam uma explosão de eletricidade quando expostos ao ar. O raio engarrafado causa 4d6 de dano elétrico e 4 de dano de respingo elétrico. Ao acertar, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] até o início do seu próximo turno. Você ganha um bônus de item de +3 nas rolagens de ataque.</p>"
+    },
+    "UWDG1BW8VjtCwvNK": {
+      "name": "Main-Gauche",
+      "sourceHash": "03db596f76118f34675154e0160165eb00c7a67a",
+      "description": "<p>Esta adaga de defesa apresenta uma guarda robusta para proteger a mão do usuário.</p>"
+    },
+    "VWi8PxG8gFkHRuOC": {
+      "name": "Manopla",
+      "sourceHash": "459a286e3d54eda7d03a29bf8a85be16f3235db6",
+      "description": "<p>Um par dessas luvas de metal acompanha armaduras de placas completas, meias-placas e lamelar; também podem ser compradas separadamente e usadas com outros tipos de armadura. Elas não só protegem suas mãos, como também as transformam em armas letais.</p>"
+    },
+    "VoZEjHBlwXOyyHue": {
+      "name": "Daikyu",
+      "sourceHash": "8b6cb16300a498181293e788613d48f4aba0b035",
+      "description": "<p>Este arco assimétrico, feito de bambu laminado, madeira e couro, mede 6 pés ou mais de altura. É usado com mais frequência montado a cavalo.</p>"
+    },
     "WLQmXb9poN7qyXCu": {
       "name": "Mangual Cintilante de Gnomo",
       "sourceHash": "4ff6fffc81f475da5fe061a2485c1478e58cfb92",
@@ -126,30 +361,100 @@
       "sourceHash": "5c493cefad136e7f4a1654ef68495efc813c31d6",
       "description": "<p>Espadas longas, também conhecidas como espadas de arme, podem ser de um gume ou dois gumes. Suas lâminas são pesadas e medem entre 3 e 4 pés de comprimento.</p>"
     },
+    "a1fzIZXbXiD3M0jZ": {
+      "name": "Frasco de Gelo (Maior)",
+      "sourceHash": "b11613104b13f6cbf2a74594220fbbe1b94d5815",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Os reagentes líquidos azul-brilhante deste frasco absorvem calor rapidamente quando expostos ao ar. Um frasco de gelo causa 3d6 de dano de frio e 3 de dano de respingo de frio. Ao acertar, o alvo sofre uma penalidade de status de –10 pés em suas Velocidades até o final do seu próximo turno. Você ganha um bônus de item de +2 nas rolagens de ataque.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Frost Vial]</p>"
+    },
+    "a3Bq09PWjagqluSl": {
+      "name": "Enxó de Mão",
+      "sourceHash": "0d694fa468d8985dba14bdfe860c11921263fe47",
+      "description": "<p>A versão menor da enxó é útil para trabalhos delicados em madeira em espaços apertados. Tripkees usam a enxó de mão para artesanato e como arma de combate corpo a corpo.</p>"
+    },
+    "aRENQakyvFqKIr2r": {
+      "name": "Zarabatana",
+      "sourceHash": "0b12c926b3f4c8d823f896a7ed77409fe60b413f",
+      "description": "<p>Este tubo longo e estreito é usado para disparar dardos de zarabatana, usando apenas a força de uma respiração exalada com vigor.</p>"
+    },
+    "ajQjmqMyFyU1F2Xj": {
+      "name": "Besta Pesada",
+      "sourceHash": "5b3daf3609267e7e5374d334b03b54afb70eb614",
+      "description": "<p>Esta besta grande é mais difícil de carregar e mais robusta que uma besta comum, mas causa um impacto muito maior.</p>"
+    },
+    "axamkQCBUrmxyTT1": {
+      "name": "Bastão de Funda Halfling",
+      "sourceHash": "7faca244ae13237c69130f2a010f4aa845504b9f",
+      "description": "<p>Este bastão termina em uma bifurcação em forma de Y que sustenta uma funda. O comprimento do bastão fornece excelente alavancagem quando usado com as duas mãos para arremessar pedras ou balas com a funda.</p>"
+    },
+    "bRfvDoHhVPUOexlg": {
+      "name": "Cruuk",
+      "sourceHash": "9b0a462f57f84ccb60490fd9801b10323f64d669",
+      "description": "<p>Este porrete especializado é projetado para arremesso e é útil tanto em combate quanto na caça. Tripkees o usam para abater criaturas escondidas no alto das copas das árvores.</p>"
+    },
+    "cKLGBnzAXEv7YO9P": {
+      "name": "Fio-Presa",
+      "sourceHash": "994bd8da75288ed8c519ece82b359b9d84316744",
+      "description": "<p>Este fio kobold é fino e difícil de ver, tornando-o perfeito para emboscadas. O usuário lança um dos punhos em torno de um ponto vulnerável, para que sirva de apoio ao fio, e então puxa o outro punho de volta, esticando o fio e infligindo lacerações dolorosas. Sua função e nome vêm de uma armadilha de fio chamada \"presa lenta\".</p>"
+    },
+    "d4Tu1l0pPstYbBkp": {
+      "name": "Guisarme",
+      "sourceHash": "a686e4e55494b2af3f2c9ac91621b99ddcf4f076",
+      "description": "<p>Esta arma de haste tem uma lâmina longa e curva, geralmente de um só fio, com um gancho saliente no lado cego da lâmina, que permite ao usuário derrubar oponentes à distância. Sua haste costuma medir 8 pés de comprimento.</p>"
+    },
     "djKWYRzmFInUo5To": {
       "name": "Arco Curto",
       "sourceHash": "e8d28ffadbff5a8af81d255dd9d0b6446d294ffc",
       "description": "<p>Este arco menor é feito de uma única peça de madeira e é favorecido por escaramuçadores e cavalaria.</p>"
+    },
+    "e3kCEAlho5iXxjmB": {
+      "name": "Arbalesta",
+      "sourceHash": "dff438c0c9a98a9f498cb284d5e2b77160abccd8",
+      "description": "<p>Esta besta grande e bem construída exige algum treinamento para ser usada com eficácia, mas é montada com um mecanismo de disparo de ponta que maximiza sua velocidade, potência e precisão.</p>"
     },
     "e9lIuOi9OGJzVw3X": {
       "name": "Pistola Deslizante",
       "sourceHash": "155f7e5ca4a76c2c276cb7bab8b03d770e494377",
       "description": "<p>Também conhecida como arma-gaita, esta arma é essencialmente uma coronha, um gatilho e um mecanismo de disparo acoplados a um conjunto deslizante de canos, cada um capaz de conter um cartucho de munição.</p>"
     },
+    "eGo64I2hdTP3p3Sf": {
+      "name": "Lâmina-Garra",
+      "sourceHash": "93dc67db2d59485fb800ea45d2a8a70335b82034",
+      "description": "<p>As três lâminas paralelas desta arma de mão se estendem entre os dedos, lembrando as garras naturais dos amurruns que a criaram, permitindo que catfolk sem garras naturais adequadas compartilhem os costumes de combate de seus semelhantes.</p>"
+    },
+    "eVVEa0ut1LKwDwSU": {
+      "name": "Lâmina do Vendaval Tengu",
+      "sourceHash": "dbabfdbff5329013f36b6f2f1c3ac9961fa298dc",
+      "description": "<p>Esta espada em forma de leque, projetada por ferreiros tengu, tem cinco lâminas largas que se unem no punho. Marinheiros tengu a usam como cata-vento improvisado, já que a espada gira na direção do vento quando segurada frouxamente no alto.</p>"
+    },
     "fXIVQcDApWV2gf6S": {
       "name": "Dardo",
       "sourceHash": "ae9e8a0f84f19f2298d765c45576f4dde7e2b948",
       "description": "<p>Esta arma arremessada é maior que uma seta mas mais curta que um azagaia. Normalmente possui um eixo curto de madeira terminando em uma ponta de metal e às vezes é estabilizada por penas ou pelagem.</p>"
+    },
+    "ffcUI2MXWtuOZsBz": {
+      "name": "Fragmentos de Cristal (Moderado)",
+      "sourceHash": "e743d36f6e504f57a438da2cc9d1985775b9557c",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Este frasco contém um gás pressurizado marrom-avermelhado, salpicado de fragmentos de cristal sublimado. Você ganha um bônus de item de +1 nas rolagens de ataque. Quando a bomba explode, ela causa @Damage[2d4[piercing]] de dano e @Damage[(4[splash])[piercing]]{4 de dano de respingo perfurante}, já que a mistura repentinamente se transforma em cristais sólidos voando em alta velocidade.</p>\n<p>Ao acertar, o alvo sofre @Damage[1[persistent,bleed]] de dano dos cristais incrustados em sua carne. Enquanto o dano de sangramento persistir, o alvo também sofre uma penalidade de –5 pés em sua velocidade. O alvo pode gastar uma ação Interagir para remover os cristais, reduzindo o CD para estancar o sangramento.</p>"
     },
     "gBD1NMBRRIvwXWUF": {
       "name": "Arco Longo Composto",
       "sourceHash": "aa0e751870d1c556202093ea1ab16be679db997e",
       "description": "<p>Esta arma de projétil é feita de chifre, madeira e tendão laminados juntos para aumentar a potência de seu puxão e a força de seu projétil. Como todos os arcos longos, seu grande tamanho também aumenta o alcance e a potência do arco. Você deve usar duas mãos para disparar e não pode ser usado enquanto montado. Qualquer vez que uma habilidade seja especificamente restrita a um arco longo, como a arma favorita de Erastil, também se aplica a arcos longos compostos, a menos que seja dito de outra forma.</p>"
     },
+    "gNdAjbeQVwbH8WEn": {
+      "name": "Wakizashi",
+      "sourceHash": "c1dc3469929d29ed714daa3084af6e1292ccd44e",
+      "description": "<p>Esta espada de lâmina curta e um só fio costuma ser carregada como parte de um par, junto com uma @UUID[Compendium.pf2e.equipment-srd.Item.Katana].</p>"
+    },
     "gZmrIPdIMYhG0DCS": {
       "name": "Arco Curto Composto",
       "sourceHash": "ced1a42b3fd57b5521687e1489274c62d38b4ee2",
       "description": "<p>Este arco curto é feito de chifre, madeira e tendão laminados juntos para aumentar a potência de seu puxão e a força de seu projétil. Seu tamanho compacto e potência o tornam favorito de arqueiros montados. Qualquer vez que uma habilidade seja especificamente restrita a um arco curto, também se aplica a arcos curtos compostos, a menos que seja dito de outra forma.</p>"
+    },
+    "hSeMSKrackfjsnKk": {
+      "name": "Debulhador de Espíritos",
+      "sourceHash": "7721447b66ed2d418ebe9ed01ad088f348d80c7d",
+      "description": "<p>Ossos, alguns inteiros e outros estilhaçados, são presos a correntes de metal na ponta de um bastão longo, formando um poderoso mangual. Muitos guerreiros kholo insistem que o estalo violento que a arma produz ao golpear solta fragmentos da alma, como cascas separadas dos grãos.</p>"
     },
     "hXrH1AzbLUU02FB1": {
       "name": "Repetidor de Ar",
@@ -161,6 +466,11 @@
       "sourceHash": "84441735c0a198691ff12b224860fd8f6a53e502",
       "description": "<p>Estas lâminas vêm em uma variedade de formas e estilos, mas normalmente têm 2 pés de comprimento.</p>"
     },
+    "iST0dEoWFmlgZpig": {
+      "name": "Pedra Explosiva (Maior)",
+      "sourceHash": "7449a470879b0c06232a700d542ac7c28c93ac07",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Quando este seixo atinge uma criatura ou uma superfície dura, ele explode com um estrondo ensurdecedor. Uma pedra explosiva causa 3d4 de dano sônico e 3 de dano de respingo sônico, e cada criatura a até 10 pés do espaço em que a pedra explodiu deve ser bem-sucedida em um teste de resistência de @Check[fortitude|dc:28|name:Greater Blasting Stone|showDC:all] com o CD indicado ou fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] até o final do seu próximo turno. Você ganha um bônus de item de +2 nas rolagens de ataque.</p>"
+    },
     "iwSQS7fuWt4Zd1St": {
       "name": "Pistola de Cano Duplo",
       "sourceHash": "41095a409069b8489df934b23c62bbc50b6f15a3",
@@ -170,6 +480,31 @@
       "name": "Besta",
       "sourceHash": "f50e120a09c82e38109153dd0ca53b6b001674b5",
       "description": "<p>Esta arma de alcance possui um conjunto semelhante a arco montado em um cabo estruturado chamado de coronha. A coronha possui um mecanismo para trancar a corda do arco no lugar, acoplado a um mecanismo de disparo que libera a tensão e lança um virote.</p>"
+    },
+    "k9Au8rV9QpgU2Khb": {
+      "name": "Pedra Explosiva (Moderada)",
+      "sourceHash": "1b17b43fe6604080f5f31207dcf5c1d0193da92f",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Quando este seixo atinge uma criatura ou uma superfície dura, ele explode com um estrondo ensurdecedor. Uma pedra explosiva causa 2d4 de dano sônico e 2 de dano de respingo sônico, e cada criatura a até 10 pés do espaço em que a pedra explodiu deve ser bem-sucedida em um teste de resistência de @Check[fortitude|dc:20|name:Moderate Blasting Stone|showDC:all] com o CD indicado ou fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] até o final do seu próximo turno. Você ganha um bônus de item de +1 nas rolagens de ataque.</p>"
+    },
+    "kfEIrftqPd8Dv87m": {
+      "name": "Faca Estelar",
+      "sourceHash": "2f20882ed0810cc78d8aeac4863738aa2b805ecc",
+      "description": "<p>A partir de um anel de metal central, quatro lâminas afiladas de metal se estendem como pontos de uma rosa dos ventos. Ao segurar uma faca estelar pelo centro, o usuário pode usá-la como arma corpo a corpo. Também pode ser arremessada a curtas distâncias.</p>"
+    },
+    "kvzahDlRaS5E48WZ": {
+      "name": "Bomba de Definhamento (Maior)",
+      "sourceHash": "e0bddfa3ad944343816791d8b39042947a087f5b",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Bombas de definhamento contêm produtos químicos tóxicos e voláteis que apodrecem a carne. Uma bomba de definhamento causa 3d4 de dano de veneno, 3d4 de dano de veneno persistente e 3 de dano de respingo de veneno. Você ganha um bônus de item de +2 nas rolagens de ataque.</p>"
+    },
+    "lEzuZf1TMup3WM93": {
+      "name": "Cassetete",
+      "sourceHash": "8fdbd21971b7c45ddc291c54d1a240fad3eb3051",
+      "description": "<p>Um cassetete tem um revestimento macio em torno de um núcleo denso, geralmente uma bainha de couro em torno de uma barra de chumbo. Sua cabeça é mais larga que sua empunhadura para dispersar a força de um golpe, já que o propósito da arma é nocautear a vítima, e não derramar sangue.</p>"
+    },
+    "m28cAmIQ7ghL0v1t": {
+      "name": "Nunchaku",
+      "sourceHash": "939acaa921d84144a296c17727023e1e64b7dadd",
+      "description": "<p>O nunchaku é construído com duas barras de madeira ou metal conectadas por um curto trecho de corda ou corrente.</p>"
     },
     "mVsBrsRMH94Gvy8O": {
       "name": "Machado de Batalha",
@@ -181,25 +516,135 @@
       "sourceHash": "2cb8dc6d15c94641ee030c16446ce9bbb460c720",
       "description": "<p>Este longo pedaço de madeira pode auxiliar na caminhada e desferir um golpe poderoso.</p>"
     },
+    "nWcSkQV0P1kzUOOJ": {
+      "name": "Picareta Traiçoeira",
+      "sourceHash": "151980f2438794f57ffb59e78745e67818fea57b",
+      "description": "<p>Esta engenhosa picareta kobold oculta várias armadilhas escondidas que o usuário pode ativar para enganar e confundir inimigos com uma variedade de lâminas cortantes e superfícies contundentes.</p>"
+    },
+    "nvTArbJJDBFFXNn0": {
+      "name": "Lâmina Curva Élfica",
+      "sourceHash": "2a2a24c8d8d972e005e00fbbf2b3d781f54b83ac",
+      "description": "<p>Essencialmente uma versão mais longa da cimitarra, esta arma tradicional élfica tem uma lâmina mais fina que sua parente.</p>"
+    },
+    "o3r4J6dqZy9ufKDf": {
+      "name": "Fragmentos de Cristal (Grande)",
+      "sourceHash": "13c267027ed8fe7c2dd64df0a82cbf076bb46017",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>Este frasco contém um gás pressurizado marrom-avermelhado, salpicado de fragmentos de cristal sublimado. Você ganha um bônus de item de +3 nas rolagens de ataque. Quando a bomba explode, ela causa @Damage[4d4[piercing]] de dano e @Damage[(6[splash])[piercing]]{6 de dano de respingo perfurante}, já que a mistura repentinamente se transforma em cristais sólidos voando em alta velocidade.</p>\n<p>Ao acertar, o alvo sofre @Damage[1[persistent,bleed]] de dano dos cristais incrustados em sua carne. Enquanto o dano de sangramento persistir, o alvo também sofre uma penalidade de –5 pés em sua velocidade. O alvo pode gastar uma ação Interagir para remover os cristais, reduzindo o CD para estancar o sangramento.</p>"
+    },
+    "oHMH3lN7u4eZn85w": {
+      "name": "Khopesh",
+      "sourceHash": "75a91adffdef5c5159ed38b2872f7eed017dc364",
+      "description": "<p>Esta espada-foice curva tem uma ponta afiada, permitindo que seja golpeada em amplos arcos ou estocada verticalmente contornando as defesas inimigas. A ponta de uma khopesh é curva e pode ser usada para derrubar um oponente.</p>"
+    },
+    "pvbfptNjgclyoKrB": {
+      "name": "Pique de Arrombamento",
+      "sourceHash": "ea56e6d1bf09d86254ec86a4c366acb822c83073",
+      "description": "<p>Forjada com uma pesada cunha de metal como ponta de lança, a pique de arrombamento é frequentemente usada pela infantaria hobgoblin junto com um escudo torre. A pique de arrombamento é particularmente eficaz para danificar escudos inimigos, deixando grandes furos triangulares para trás.</p>"
+    },
+    "qyxGgUYNih9tsl6r": {
+      "name": "Carga Fantasma (Moderada)",
+      "sourceHash": "e1c1ef038a5ed3ec090234dcb0ab731c0eae3018",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p>\n<hr />\n<p>Esses cilindros de metal acionados por mola contêm uma mistura de produtos químicos e sais que drenam e desintegram mortos-vivos próximos.</p>\n<p>Uma <em>carga fantasma</em> concede um bônus de item de +1 nas rolagens de ataque, causa 2d8 de dano de vitalidade e 2 de dano de respingo de vitalidade, embora, como de costume para dano de vitalidade, esse dano prejudique apenas mortos-vivos e criaturas com cura por vazio. Um alvo primário que sofre dano de uma <em>carga fantasma</em> fica @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Debilitado 1} até o início do seu próximo turno.</p>\n<p><em>Cargas fantasma</em> são projetadas para explodir mesmo em contato com uma substância espiritual, tornando-as ideais para danificar mortos-vivos incorpóreos.</p>"
+    },
+    "run4g2D6Eihk6Oji": {
+      "name": "Funda-Trovão",
+      "sourceHash": "9f25449ca72aa8f01286f10369c3800640ce6057",
+      "description": "<p>Tengu usam essas fundas especializadas para disparar dardos mais longe e com mais força do que se arremessados à mão. Uma funda-trovão usa dardos como munição. Também pode arremessar dardos de zarabatana como munição, mas causa @Damage[(1d4)[piercing]] de dano em vez de 1d6 quando usada dessa forma.</p>"
+    },
+    "sGZBfT6aQcvI4qDK": {
+      "name": "Picareta",
+      "sourceHash": "8790ed0f0283ef834244ab659d9f0f7eb91a5b3a",
+      "description": "<p>Uma picareta projetada exclusivamente para combate tem um cabo de madeira resistente e uma cabeça pesada e pontiaguda para desferir golpes devastadores.</p>"
+    },
     "sRYCmq4N5vSkGU6K": {
       "name": "Arco Longo",
       "sourceHash": "59e0b7abc5fc68abb3748c638450cb7301018e65",
       "description": "<p>Este arco de 5 pés de altura, normalmente feito de uma única peça de freixo, nogueira ou teixo, possui um puxão poderoso e é excelente em propelir setas com grande força e a uma distância extrema. Você deve usar duas mãos para disparar um arco longo, e não pode ser usado enquanto montado.</p>"
+    },
+    "tzqSVrP8gOIUFxH6": {
+      "name": "Corrente com Espinhos",
+      "sourceHash": "e0f4211e66c63e44c21d21ffdfdbe4cba1118d57",
+      "description": "<p>Este trecho de corrente de 4 pés de comprimento é coberto de farpas e tem espinhos em uma ou ambas as extremidades. Alguns modelos têm anéis de metal usados como empunhaduras.</p>"
+    },
+    "u9BghzcMnBXu2a4A": {
+      "name": "Frasco de Gelo (Moderado)",
+      "sourceHash": "6d84394d07cf659032d1b9ea3a2cb36465a767eb",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">1</span> Golpe</p><hr /><p>Os reagentes líquidos azul-brilhante deste frasco absorvem calor rapidamente quando expostos ao ar. Um frasco de gelo causa 2d6 de dano de frio e 2 de dano de respingo de frio. Ao acertar, o alvo sofre uma penalidade de status de –10 pés em suas Velocidades até o final do seu próximo turno. Você ganha um bônus de item de +1 nas rolagens de ataque.</p>\n<p>@UUID[Compendium.pf2e.equipment-effects.Item.Effect: Frost Vial]</p>"
+    },
+    "uQPzERWci7vfNBSJ": {
+      "name": "Raio Engarrafado (Moderado)",
+      "sourceHash": "de0bf593cdb89963ef88c43ffb6a7a19d3e27951",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>O raio engarrafado é carregado com reagentes voláteis que criam uma explosão de eletricidade quando expostos ao ar. O raio engarrafado causa 2d6 de dano elétrico e 2 de dano de respingo elétrico. Ao acertar, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] até o início do seu próximo turno. Você ganha um bônus de item de +1 nas rolagens de ataque.</p>"
     },
     "ueMXQ7zQ6SybUy1i": {
       "name": "Kukri",
       "sourceHash": "5fc297792227ba85cc63d977f22b4d5ee9d1c801",
       "description": "<p>A lâmina desta faca de um pé de comprimento é curvada para dentro e carece de protetor de mão (quillom) na guarda.</p>"
     },
+    "vanUYe3L56o2bcfE": {
+      "name": "Umbo de Escudo",
+      "sourceHash": "7bf58851617d87600f1b29faa9bc7385012a62be",
+      "description": "<p>Geralmente uma peça redonda, convexa ou cônica de metal espesso presa ao centro de um escudo, o umbo de escudo aumenta o dano contundente de um golpe de escudo.</p>"
+    },
     "vsNpLjRVRAq0B59N": {
       "name": "Pistola de Pederneira",
       "sourceHash": "3b3a9887e122749c90c4f8b83c286b05928618f1",
       "description": "<p>Embora menos precisa e potente que um mosquete de pederneira, a pistola de pederneira é a arma preferida dos corsários graças ao seu tamanho mais compacto e ao preço acessível. Capitães piratas costumam portar um conjunto dessas pistolas em uma bandoleira, para poder saquear e atirar sem parar para recarregar.</p>"
     },
+    "vzKVu6J0CsBEkLM0": {
+      "name": "Foice",
+      "sourceHash": "a7bac41dc4f1403c91aa52c6ed5c6e79de4044a3",
+      "description": "<p>Originalmente uma ferramenta agrícola usada para colher grãos, esta arma de uma mão tem um cabo curto de madeira terminando em uma lâmina curva, às vezes afiada dos dois lados.</p>"
+    },
+    "w1qwvhxqYi4IID90": {
+      "name": "Cimitarra",
+      "sourceHash": "916cb3d8d6913da5d124f8c8af55134a8e4a4473",
+      "description": "<p>Esta lâmina curva de uma mão é afiada em apenas um dos lados.</p>"
+    },
+    "wEbm29gT7vYndkHs": {
+      "name": "Bola",
+      "sourceHash": "c9809945757c042aabb4edd1a28198f0c4d68338",
+      "description": "<p>Esta arma de arremesso consiste em pesos amarrados à ponta de cordas longas, que podem ser usadas para enredar inimigos.</p>"
+    },
     "wVXpiOdvD8kdIYO0": {
       "name": "Espada Bastarda",
       "sourceHash": "f482d378dd47f6b781b51a1861f8b45604940286",
       "description": "<p>Esta espada de lâmina larga, às vezes chamada de espada de mão-e-meia, tem um cabo mais comprido para poder ser empunhada com uma mão ou usada com duas mãos para fornecer extra potência de corte.</p>"
+    },
+    "x4KQGWCY6m3ADAwJ": {
+      "name": "Garfo do Larápio",
+      "sourceHash": "321bb313ed801f44e72c77e11ef8fd47de9316f3",
+      "description": "<p>Esta arma halfling se parece com um longo garfo de dois dentes e é usada tanto como arma quanto como utensílio de cozinha.</p>"
+    },
+    "xJ4d0iv5dxfC7Y8o": {
+      "name": "Porretão",
+      "sourceHash": "74650d290387bf1380a6f537569ff22e3b40e0d1",
+      "description": "<p>Embora muitos porretões sejam entalhados de forma elaborada, outros são pouco mais que um galho de árvore resistente. Esses porretes enormes são pesados demais para serem empunhados com apenas uma mão.</p>"
+    },
+    "xrKsoAkCLKEjuXrO": {
+      "name": "Facalhão",
+      "sourceHash": "50429bc9ca77c9c36adda4b809644eb0ce6b2f02",
+      "description": "<p>Esta arma é uma versão mais pesada e de duas mãos da cimitarra de lâmina curva. Seu peso é concentrado na ponta da lâmina, tornando-a uma poderosa arma de corte.</p>"
+    },
+    "xrZCW2pgkZ8RDKJO": {
+      "name": "Sabre Serrilhado",
+      "sourceHash": "4f863595fc13313b8e6423550f8a1d7747fab8a6",
+      "description": "<p>Arma característica dos assassinos Louva-a-Deus Vermelho, esta lâmina curva é serrilhada como uma serra, daí o nome.</p>"
+    },
+    "xyYmW5QUz7E5RjZb": {
+      "name": "Raio Engarrafado (Maior)",
+      "sourceHash": "945c840bee56de10c41cbfbfa05176466c10c3c8",
+      "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> Golpe</p><hr /><p>O raio engarrafado é carregado com reagentes voláteis que criam uma explosão de eletricidade quando expostos ao ar. O raio engarrafado causa 3d6 de dano elétrico e 3 de dano de respingo elétrico. Ao acertar, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] até o início do seu próximo turno. Você ganha um bônus de item de +2 nas rolagens de ataque.</p>"
+    },
+    "xzjL2JhEKpwDGJQi": {
+      "name": "Garra-Chicote",
+      "sourceHash": "fa90884a2df44b1715d47f93edecf20cc86234f0",
+      "description": "<p>A garra-chicote é uma longa amarra presa a adagas em forma de garra, permitindo que o usuário as arremesse e recolha com precisão letal. Os catfolk desenvolveram essa arma originalmente para obter alcance estendido ao caçar animais perigosos, e a empunham com destreza incomparável.</p>"
+    },
+    "y4i64c38bm3jkabu": {
+      "name": "Manopla com Espinhos",
+      "sourceHash": "0ec8da6f13c2980694f1d0bfb5748f570c964a70",
+      "description": "<p>Oferecendo a mesma função defensiva de uma manopla padrão, esta versão tem um conjunto de espinhos projetando-se dos nós dos dedos.</p>"
     },
     "yWbGFsdqElPvOupp": {
       "name": "Machado Grande",
@@ -211,10 +656,20 @@
       "sourceHash": "b7757fca1028a3f4d20e5791a63ee4f9f1661d65",
       "description": "<p>Esta pistola pequena é facilmente oculta dentro de um casaco ou de outra peça de roupa. Raramente mantidas como arma principal, as pistolas de casaco são igualmente prediletas de assassinos astutos e de aristocratas viajantes de Alkenstar.</p>"
     },
+    "ynDqAToSO6ZcRU6e": {
+      "name": "Glaive",
+      "sourceHash": "8411a7963530dbf5c6e331b0aaae81fa87517cac",
+      "description": "<p>Esta arma de haste consiste em uma lâmina longa de um só fio na ponta de uma haste de 7 pés. É extremamente eficaz para desferir cortes letais à distância.</p>"
+    },
     "zfxeVhDAoCKL5cbn": {
       "name": "Bastão Bo",
       "sourceHash": "a5ceca7bb0e359b7b643c0c17afb906614ddd0b4",
       "description": "<p>Este bastão forte mas esbelto é afilado nas pontas e bem equilibrado. Foi projetado para ser uma arma ofensiva e defensiva.</p>"
+    },
+    "zqS3xEaX5RnBenLf": {
+      "name": "Sai",
+      "sourceHash": "d13af55eaf91ecfe820c61106789b0f0fd49b160",
+      "description": "<p>Esta adaga perfurante é um espigão de metal flanqueado por um par de pontas que podem ser usadas para prender a arma de um inimigo.</p>"
     }
   }
 }

@@ -1345,7 +1345,11 @@ describe("issue #16: every declared grant across the 14 real packs resolves (or 
       // Equipment items granted by ancestry/general feats — out of scope here (no equipment
       // pack curates these vendor items at this granularity). Lucky Keepsake (Leshy) and Orc
       // Warmask (Orc) are newly surfaced by this census (issue #1 landed after #16 was filed).
-      "Clan Dagger",
+      // "Clan Dagger" REMOVED here (r28/A4): weapons-core's curation switched from a fixed
+      // ~42-id list to the `isWeaponsCoreDoc` predicate (every mundane simple/martial/advanced
+      // weapon of Player Core 1+2), which now includes Clan Dagger — the dwarf-heritage grant
+      // resolves against weapons-core on its own, closing this gap without touching
+      // grantMaterializer. The test tightens itself; do not re-add the entry.
       "Clan Pistol",
       "Head Gem",
       "Lucky Keepsake",

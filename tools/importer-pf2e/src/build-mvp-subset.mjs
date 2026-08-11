@@ -6,7 +6,11 @@
  * subconjunto curado para o MVP da primeira sessão jogável de cada sistema.
  *
  * Subconjunto pf2e (default):
- *   - pf2e.weapons-core:    ~42 armas básicas (30 + 12 armas de fogo, r25)
+ *   - pf2e.weapons-core:    132 armas (121 mundanas de Player Core 1+2, todas
+ *     simples/marciais/avançadas não-mágicas, via predicado `isWeaponsCoreDoc`
+ *     + 12 armas de fogo legadas de "Guns & Gears" da r25, fora de PC1/PC2
+ *     mas mantidas por sourceId, − 1 gap declarado (Blowgun — ver
+ *     `WEAPONS_CORE_KNOWN_GAP_IDS`) — substituiu a lista fixa de ~42 ids)
  *   - pf2e.conditions:      todas as 43 condições
  *   - pf2e.bestiary-core:   10 monstros de nível -1 a 3 (ORC)
  *   - pf2e.spells-core:     15 magias comuns level 1-3 (ORC)
@@ -100,6 +104,59 @@ const PACK_MANIFESTS = {
       "system.damage",
       "flags.fusion.sourceId",
     ],
+    license: {
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  "armor-core": {
+    id: "pf2e.armor-core",
+    label: "PF2e Core Armor",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.acBonus",
+      "flags.fusion.sourceId",
+    ],
+    license: {
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  "shields-core": {
+    id: "pf2e.shields-core",
+    label: "PF2e Core Shields",
+    documentType: "Item",
+    // Vendor/Fusion doc `type` is "shield" (transform.mjs routes it through
+    // normalizeArmorSystem — same schema family as armor, category defaults
+    // to "unarmored" for shields since they carry no category of their own).
+    systemId: "pf2e",
+    indexFields: ["system.level", "system.traits.value", "system.acBonus", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -432,7 +489,7 @@ const PACK_MANIFESTS = {
   // -------------------------------------------------------------------------
   // r18-N2d — pf2e.equipment-core. Physical gear for Finn (Kineticist 3):
   // his named magic items/consumables plus a lean adventurer's-gear subset.
-  // Fixed source-id list (same pattern as MVP_WEAPON_PF2E_IDS above), curated
+  // Fixed source-id list (same pattern as MVP_EQUIPMENT_PF2E_IDS below), curated
   // from out/equipment/transformed.json. Mixed document types (armor,
   // equipment, consumable, container) — every type has a Zod schema in
   // systems/pf2e/src/schemas/item-armor.ts / item-equipment.ts.
@@ -775,46 +832,91 @@ function isActionsCoreDoc(doc) {
 // pf2eIds da análise 05-id-compat.md / dados da normalização.
 // ---------------------------------------------------------------------------
 
-/** pf2eSourceIds das armas selecionadas para o MVP (curadas da análise). */
-const MVP_WEAPON_PF2E_IDS = new Set([
-  // Simple weapons — melee
-  "rQWaJhI5Bko5x14Z", // Dagger
-  "c58wczIzH2gzeXQL", // Club
-  "tOhoGvmCMw4JpWcS", // Spear
-  "5fu6dCtqhdBnHNqh", // Morningstar
-  "LGgvev6AV0So8tP9", // Hatchet
-  "JNt7GmLCCVz5BiEI", // Javelin
-  "Tt4Qw64fwrxhr5gT", // Dart
-  "UCH4myuFnokGv0vF", // Sling
-  "FVjTuBCIefAgloUU", // Staff
-  // Martial weapons — melee
-  "LJdbVTOZog39EEbi", // Longsword
-  "7tKkkF8eZ4iCLJtp", // Shortsword
-  "tH5GirEy7YB3ZgCk", // Rapier
-  "t5FbyZtRL4qV0V7k", // Flail
-  "rXt4629QSg7KDTgJ", // Warhammer
-  "mlrmkpOlwpnGkw4I", // Maul
-  "8COlYvHe6hKCXY8x", // Greataxe
-  "UX71GkWBL9g41VwM", // Greatsword
-  "War0uyLBx1jA0Ge7", // Battle Axe
-  "FJrsDoaIXksVjld9", // Trident
-  "hMYdSFmMWzidzHih", // Bo Staff
-  "TDrO7Xdyn7juFy3c", // Kukri
-  "f1gwoTkf3Nn0v3PN", // Whip
-  "6KWYmeRMxsQfWhhJ", // Bastard Sword
-  // Ranged
-  "hIgqLgH3YcLZBeoT", // Shortbow
-  "MVAWttmT0QDa7LsV", // Longbow
-  "62nnVQvGhoVLLl2K", // Crossbow
-  "e4NwsnPnpQKbDZ9F", // Composite Shortbow
-  "dUC8Fsa6FZtVikS3", // Composite Longbow
-  "XyA6PKV46aNlLXOd", // Hand Crossbow
-  // Firearms — 12 curadas (r25, bloco 4). Todas nível 0–1, uncommon (NÃO existe
-  // arma de fogo comum no PF2e: o acesso é regional, então filtrar por `common`
-  // devolve conjunto vazio), sem runas, sem magia, item-base. Escolhidas por
-  // cobertura: as 3 categorias de proficiência, reload 0/1/2, alcance de 10 a
-  // 150 pés e os traços próprios do grupo (capacity/scatter/kickback/repeating/
-  // modular/double-barrel/concealable/fatal).
+/**
+ * weapons-core (A4, r28): curadoria por PREDICADO, não mais lista fixa de
+ * source-ids. Substitui a lista de ~42 armas curadas manualmente (r25/r18) —
+ * medido em `out/equipment/transformed.json`: das 975 armas do vendor, 138
+ * são de Player Core 1+2 (`isRemasterCoreDoc`); dessas, 17 são itens mágicos
+ * ou específicos nomeados (bastões/lâminas/adagas com regra própria — ex.
+ * "Staff of Providence", "Spellguard Blade", "Four-Ways Dogslicer") que
+ * carregam `traits.value` com `"magical"` OU runas não-zero
+ * (`potency`/`striking`/`property`) mesmo publicados em PC1/PC2. As 121
+ * restantes são as armas MUNDANAS simples/marciais/avançadas — o conjunto
+ * "TODAS as armas não-mágicas de PC1+PC2" pedido no plano r28/A4. `level` NÃO
+ * é filtro válido aqui: armas avançadas mundanas (ex. Composite Longbow) têm
+ * `system.level === 1` sem serem mágicas — só `magical`/`runes` distinguem
+ * item mágico de item mundano nesta pack.
+ */
+/**
+ * weapons-core (r28/A4): one vendor weapon ("Blowgun") is excluded even
+ * though it passes `isWeaponsCoreDoc` — measured in `out/equipment/
+ * transformed.json`, `system.damage.die` is `""` (empty string) because the
+ * blowgun deals no die-rolled damage of its own in RAW (only its ammunition,
+ * "Blowgun Dart", carries a damage die) — `WeaponDamageSchema.die` requires
+ * `/^d\d+$/`, which an ammo-dependent weapon structurally cannot satisfy.
+ * Fixing this needs schema support for ammo-derived damage (a separate
+ * issue, out of scope for A4's curation pass) — declared as a gap, not
+ * silently dropped.
+ */
+const WEAPONS_CORE_KNOWN_GAP_IDS = new Set([
+  "FPwsiGqMCNPLHmjX", // Blowgun — damage.die: "" (ammo-derived damage, no schema support yet)
+]);
+
+/**
+ * weapons-core (r28/A4): 7 alchemical bombs (Blight Bomb x4, Crystal Shards
+ * x3) carry `system.damage.persistent` in the SHAPE transform.mjs emits for
+ * the equipment pack (`{ faces, number, type }`) rather than the shape
+ * `WeaponDamageSchema.persistent` expects (`{ formula, damageType }`) — a
+ * pre-existing transform↔schema mismatch that no prior curated pack ever
+ * surfaced (nothing with persistent damage was hand-picked before). Reshaped
+ * here, at curation time, rather than in transform.mjs itself: transform.mjs
+ * writes into the SHARED `out/` junction (read-only per the r28 disk-space
+ * errata — an agent that needs to alter extract/normalize/transform must
+ * stop and report instead of re-running the pipeline), so the fix is scoped
+ * to the doc actually entering THIS pack, exactly like the equipment-core
+ * `system.quantity` override a few lines below.
+ */
+function fixWeaponPersistentDamageShape(doc) {
+  const persistent = doc.system?.damage?.persistent;
+  if (!persistent || typeof persistent !== "object") return;
+  if ("formula" in persistent && "damageType" in persistent) return; // already correct shape
+  const { faces, number, type } = persistent;
+  doc.system.damage.persistent = {
+    formula: faces ? `${number}d${faces}` : `${number}`,
+    damageType: type,
+  };
+}
+
+function isWeaponsCoreDoc(doc) {
+  if (doc.type !== "weapon") return false;
+  if (isRemasterCoreDoc(doc)) {
+    const traits = doc.system?.traits?.value ?? [];
+    if (traits.includes("magical")) return false;
+    const runes = doc.system?.runes ?? {};
+    if ((runes.potency ?? 0) > 0) return false;
+    if ((runes.striking ?? 0) > 0) return false;
+    if ((runes.property ?? []).length > 0) return false;
+    return true;
+  }
+  // (b) legacy: the 12 firearms curated in r25 (block 4) — PF2e firearms are
+  // published in "Pathfinder Guns & Gears", NOT Player Core 1/2, so
+  // isRemasterCoreDoc alone drops them. Kept by fixed sourceId (same pattern
+  // as LEGACY_CURATED_ANCESTRY_NAMES below) so the ficha-alvo Fofurinha
+  // fixture (packages/client pathbuilder-fofurinha.test.ts, "Slide Pistol")
+  // and r25's category/reload/trait coverage rationale survive the r28/A4
+  // switch to predicate-based curation.
+  return LEGACY_CURATED_WEAPON_IDS.has(doc.flags?.fusion?.sourceId);
+}
+
+/**
+ * pf2eSourceIds das 12 armas de fogo curadas na r25 (bloco 4) — todas nível
+ * 0–1, uncommon, sem runas/magia, item-base, publicadas em "Pathfinder Guns &
+ * Gears" (fora de PC1/PC2, por isso não capturadas por `isRemasterCoreDoc`).
+ * Escolhidas por cobertura: as 3 categorias de proficiência, reload 0/1/2,
+ * alcance de 10 a 150 pés e os traços próprios do grupo (capacity/scatter/
+ * kickback/repeating/modular/double-barrel/concealable/fatal).
+ */
+const LEGACY_CURATED_WEAPON_IDS = new Set([
   "gO5dOlPBk57bg2x5", // Slide Pistol (a arma da ficha-alvo — capacity-5)
   "N3nNqO5Nw2DIFhrv", // Flintlock Pistol
   "hqMtsTwmOShdAdQW", // Flintlock Musket
@@ -827,9 +929,48 @@ const MVP_WEAPON_PF2E_IDS = new Set([
   "MvzR9nTnvKTeNjvQ", // Double-Barreled Pistol (double-barrel)
   "4LJEpZ2HkCu9BvHI", // Hand Cannon (modular)
   "jcIabnkJgjwzK6Og", // Dwarven Scattergun (advanced, scatter-10)
-  // Unarmed / natural
-  // (include one advanced to round out)
-  "oSQET5hKn9q4xlrl", // Gnome Flickmace (advanced)
+]);
+
+/**
+ * pf2eSourceIds das armaduras selecionadas para o MVP (A1, r28).
+ * Curadoria: Player Core ∪ Player Core 2 (via isRemasterCoreDoc), restrita a
+ * `system.category` unarmored/light/medium/heavy (plano r28/A1 — companion
+ * barding fica FORA desta leva: `light-barding`/`heavy-barding` não existem
+ * em ArmorCategorySchema hoje, e adicioná-los é decisão de escopo separada),
+ * EXCLUINDO armaduras mágicas/específicas (traits `magical`/`invested` —
+ * Dragonplate, Ghoul Hide, Holy Chain, Mariner's Splint, Onslaught Hide,
+ * Unholy Plate, Warleader's Bulwark(+Greater)). Resultado: as 12 armaduras
+ * mundanas do núcleo remaster, cobrindo as 4 categorias jogáveis.
+ * Medido em out/equipment/transformed.json (type "armor").
+ */
+const MVP_ARMOR_PF2E_IDS = new Set([
+  "dDIPA1WE9ESF67EB", // Explorer's Clothing (unarmored)
+  "MPcM4Wt6KmWE2kGL", // Chain Shirt (light)
+  "4tIVTg9wj56RrveA", // Leather Armor (light)
+  "zBYEU9E7034ENCmh", // Padded Armor (light)
+  "ewQZ0VeL38v3qFnN", // Studded Leather Armor (light)
+  "r0ifJfoz8aqf0mwk", // Breastplate (medium)
+  "Kf4eJEXnFPuAsseP", // Chain Mail (medium)
+  "AnwzlOs0njF9Jqnr", // Hide Armor (medium)
+  "YMQr577asquZIP65", // Scale Mail (medium)
+  "Gq1cZWSKOtJhKd2p", // Full Plate (heavy)
+  "pRoikbRo5HFW6YUB", // Half Plate (heavy)
+  "6AhDKX1dwRwFpQsU", // Splint Mail (heavy)
+]);
+
+/**
+ * pf2eSourceIds dos escudos selecionados para o MVP (A1, r28).
+ * Mesma curadoria de MVP_ARMOR_PF2E_IDS (Player Core ∪ Player Core 2, sem
+ * traits `magical`/`invested` — exclui Exploding Shield, Glamorous Buckler,
+ * Medusa's Scream(+Greater), Spined Shield). Resultado: os 4 escudos
+ * mundanos básicos do núcleo remaster.
+ * Medido em out/equipment/transformed.json (type "shield").
+ */
+const MVP_SHIELD_PF2E_IDS = new Set([
+  "1k3AsSW7lpU0kEpY", // Buckler
+  "ezVp13Uw8cWW08Da", // Wooden Shield
+  "Yr9yCuJiAlFh3QEB", // Steel Shield
+  "ltundBNFAnP7bgPr", // Tower Shield
 ]);
 
 /** pf2eSourceIds das magias selecionadas para o MVP. */
@@ -1151,12 +1292,24 @@ function isFeatsCoreDoc(doc) {
  * "spell"`) carry neither `arcane` tradition nor the `focus` trait, so they
  * stay excluded — the "sem rituals (V2)" requirement holds without an extra
  * filter.
+ *
+ * issue #1 (Player Core 2 completo): 48 of the 170 Player Core 2 spells are
+ * divine/primal/occult non-focus spells (e.g. Astral Projection, Clone,
+ * Teleportation Circle) — they carry no `arcane` tradition and no `focus`/
+ * `composition` trait, so none of the branches above ever selected them,
+ * measured directly in `out/spells/transformed.json`. UNION every
+ * `isPlayerCore2Doc` spell explicitly, same pattern
+ * ancestries-core/heritages-core already use for the ancestry/heritage packs
+ * — deliberately `isPlayerCore2Doc` alone (not `isRemasterCoreDoc`): Player
+ * Core 1 has 489 spells and widening this branch to PC1 would balloon
+ * spells-core by ~122 more docs nobody asked for.
  */
 function isSpellsCoreDoc(doc, existingSourceIds) {
   const sourceId = doc.flags?.fusion?.sourceId;
   if (sourceId && existingSourceIds.has(sourceId)) return true;
   if (hasTradition(doc, "arcane")) return true;
   if (hasTrait(doc, "focus")) return true;
+  if (isPlayerCore2Doc(doc)) return true;
   // r22 (Bard integration): the 10 "composition cantrips" (Allegro,
   // Courageous Anthem, ...) are cast from the Bard's focus pool exactly like
   // the other 10 compositions, but carry trait "cantrip" instead of "focus"
@@ -1368,16 +1521,20 @@ function isHeritagesCoreDoc(doc) {
 
 /**
  * backgrounds-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 40
- * Player Core backgrounds (`isPlayerCoreDoc`) UNION Fireworks Performer +
- * Aeronaut, curated before this issue (R10-B/r18-N2a) for Magus/Finn and kept
- * for backward compatibility (Aeronaut also gets a curated free-feat grant
- * injected further down — see AERONAUT_CURATED_ITEMS).
+ * Player Core backgrounds UNION the 23 Player Core 2 backgrounds (both
+ * measured in `out/backgrounds/transformed.json` by `isRemasterCoreDoc` — same
+ * pattern ancestries-core/heritages-core already use) UNION Fireworks
+ * Performer + Aeronaut, curated before this issue (R10-B/r18-N2a) for
+ * Magus/Finn and kept for backward compatibility (Aeronaut also gets a
+ * curated free-feat grant injected further down — see
+ * AERONAUT_CURATED_ITEMS). Total: 40 + 23 + 2 legacy + Smuggler (authored,
+ * injected below) = 66.
  */
 const LEGACY_CURATED_BACKGROUND_NAMES = ["Fireworks Performer", "Aeronaut"];
 
 function isBackgroundsCoreDoc(doc) {
   if (doc.type !== "background") return false;
-  if (isPlayerCoreDoc(doc)) return true;
+  if (isRemasterCoreDoc(doc)) return true;
   return LEGACY_CURATED_BACKGROUND_NAMES.includes(doc.name);
 }
 
@@ -1414,6 +1571,30 @@ function filterToMvpSubset(docs, selectedPf2eIds) {
     const sourceId = doc.flags?.fusion?.sourceId;
     return sourceId && selectedPf2eIds.has(sourceId);
   });
+}
+
+/**
+ * A1/r28 finding: transform.mjs's `normalizeArmorSystem` writes an explicit
+ * `strength: null` whenever the vendor doc has no Strength requirement
+ * (shields never carry one; some light armors like Explorer's Clothing
+ * don't either) — same bug CLASS already fixed for `material`/`baseItem` in
+ * that function (explicit vendor `null` must become `undefined`, because
+ * ArmorSystemSchema's `strength: z.number().int().min(0).optional()` accepts
+ * a number or `undefined` but rejects a literal `null`). armor-core/
+ * shields-core are the FIRST packs to ever select `type: "armor"|"shield"`
+ * docs at scale, so this was latent until now.
+ *
+ * Deliberately NOT fixed in transform.mjs/out/ itself: out/ is a shared,
+ * already-generated snapshot read by sibling A3/A4 workstreams in this same
+ * build session (r28 plano, regra 2/3) — re-running the pipeline to pick up
+ * a transform.mjs edit would regenerate everyone's input out from under
+ * them. This is a doc-level patch scoped to ONLY the two packs this
+ * workstream owns, applied after loading the already-transformed JSON.
+ */
+function fixArmorStrengthNull(doc) {
+  if (doc.system?.strength !== null) return doc;
+  const { strength: _strength, ...restSystem } = doc.system;
+  return { ...doc, system: restSystem };
 }
 
 /**
@@ -1569,7 +1750,10 @@ async function buildPf2eSubset() {
     console.log("[build-mvp] === Pack: weapons-core ===");
     const all = loadTransformed("equipment");
     const weapons = all.filter((d) => d.type === "weapon");
-    const docs = filterToMvpSubset(weapons, MVP_WEAPON_PF2E_IDS);
+    const docs = weapons
+      .filter(isWeaponsCoreDoc)
+      .filter((d) => !WEAPONS_CORE_KNOWN_GAP_IDS.has(d.flags?.fusion?.sourceId));
+    for (const doc of docs) fixWeaponPersistentDamageShape(doc);
     console.log(`[build-mvp] weapons-core: ${docs.length} selecionadas de ${weapons.length} armas`);
 
     const manifest = PACK_MANIFESTS["weapons-core"];
@@ -1583,6 +1767,52 @@ async function buildPf2eSubset() {
     );
 
     report.packs.push({ packId: manifest.id, slug: "weapons-core", documentCount: docs.length });
+  }
+
+  // --- 2b. Armor core (A1/r28 — 12 armaduras mundanas Player Core ∪ PC2) ---
+  {
+    console.log("[build-mvp] === Pack: armor-core ===");
+    const all = loadTransformed("equipment");
+    const armors = all.filter((d) => d.type === "armor");
+    const docs = filterToMvpSubset(armors, MVP_ARMOR_PF2E_IDS).map(fixArmorStrengthNull);
+    console.log(
+      `[build-mvp] armor-core: ${docs.length} selecionadas de ${armors.length} armaduras`,
+    );
+
+    const manifest = PACK_MANIFESTS["armor-core"];
+    writePack("armor-core", docs, manifest);
+
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(PACKS_OUT_DIR, "armor-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+
+    report.packs.push({ packId: manifest.id, slug: "armor-core", documentCount: docs.length });
+  }
+
+  // --- 2c. Shields core (A1/r28 — 4 escudos mundanos Player Core ∪ PC2) ---
+  {
+    console.log("[build-mvp] === Pack: shields-core ===");
+    const all = loadTransformed("equipment");
+    const shields = all.filter((d) => d.type === "shield");
+    const docs = filterToMvpSubset(shields, MVP_SHIELD_PF2E_IDS).map(fixArmorStrengthNull);
+    console.log(
+      `[build-mvp] shields-core: ${docs.length} selecionados de ${shields.length} escudos`,
+    );
+
+    const manifest = PACK_MANIFESTS["shields-core"];
+    writePack("shields-core", docs, manifest);
+
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(PACKS_OUT_DIR, "shields-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+
+    report.packs.push({ packId: manifest.id, slug: "shields-core", documentCount: docs.length });
   }
 
   // --- 3. Core Bestiary (~10 monstros) ---
@@ -1624,8 +1854,9 @@ async function buildPf2eSubset() {
     const focusCount = docs.filter(
       (d) => Array.isArray(d.system?.traits?.value) && d.system.traits.value.includes("focus"),
     ).length;
+    const pc2Count = docs.filter(isPlayerCore2Doc).length;
     console.log(
-      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus) de ${all.length} totais`,
+      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus + ${pc2Count} Player Core 2) de ${all.length} totais`,
     );
 
     const manifest = PACK_MANIFESTS["spells-core"];

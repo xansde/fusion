@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 333 glossary traits with a non-empty accented value", () => {
+  it("covers all 340 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1089,11 +1089,14 @@ describe("trait/rarity display names (r15-A1)", () => {
     // oni/rakshasa/qlippoth etc. — e 38 traits de arma dos ataques
     // encaixados nas criaturas — reach-N adicionais, deadly-dN adicionais,
     // brutal, bulwark, adamantine, cold-iron... — que nunca apareciam em
-    // nenhum pack curado antes). Count exato de propósito: trait novo no
+    // nenhum pack curado antes) + 17 na r28/A4 (armas mundanas de weapons-core
+    // 42→132) + 2 na r28/A1 (bulwark/comfort de armor-core) — 340 é a UNIÃO
+    // dos três workstreams da r28 após o merge (83 dos 95 do A2 eram inéditos
+    // na união). Count exato de propósito: trait novo no
     // glossário exige regenerar via tools/translate-packs/gen-client-maps.mjs
     // e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(333);
+    expect(keys.length).toBe(340);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
