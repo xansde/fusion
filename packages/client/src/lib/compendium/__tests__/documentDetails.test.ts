@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 257 glossary traits with a non-empty accented value", () => {
+  it("covers all 340 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1082,18 +1082,21 @@ describe("trait/rarity display names (r15-A1)", () => {
     // repeating, modular, double-barrel, concealable — mais `amp` e
     // `mindshift`, que vêm com a Psychic) + 7 na r27 (as ancestrias
     // hobgoblin/aiuvarin/changeling/dhampir/dragonblood/dromaar/duskwalker
-    // que o Player Core 2 trouxe via ancestries/heritages-core) + 17 na r28/A4
-    // (weapons-core 42→121: substituída a lista fixa de source-ids pelo
-    // predicado `isWeaponsCoreDoc`, que inclui TODAS as armas mundanas
-    // simples/marciais/avançadas de PC1+PC2 — as ~79 armas novas trouxeram
-    // alchemical, bomb, splash, ranged-trip, razing, hampering, versatile-b,
-    // grapple, deadly-d6, tethered, free-hand, two-hand-d10, backswing,
-    // jousting-d6, twin, attached-to-shield, infused) + 2 na r28/A1 (bulwark
-    // e comfort, os traços de armadura que armor-core publicou). Count exato
-    // de propósito: trait novo no glossário exige regenerar via
-    // tools/translate-packs/gen-client-maps.mjs e revisar.
+    // que o Player Core 2 trouxe via ancestries/heritages-core) + 95 na r28/A2
+    // (bestiary-core expandido de 10 para os 492 monstros do
+    // pathfinder-monster-core: 57 traits de tipo de criatura — dragon, fiend,
+    // undead subtypes como ghost/wraith/wight, ancestrias de monstro como
+    // oni/rakshasa/qlippoth etc. — e 38 traits de arma dos ataques
+    // encaixados nas criaturas — reach-N adicionais, deadly-dN adicionais,
+    // brutal, bulwark, adamantine, cold-iron... — que nunca apareciam em
+    // nenhum pack curado antes) + 17 na r28/A4 (armas mundanas de weapons-core
+    // 42→132) + 2 na r28/A1 (bulwark/comfort de armor-core) — 340 é a UNIÃO
+    // dos três workstreams da r28 após o merge (83 dos 95 do A2 eram inéditos
+    // na união). Count exato de propósito: trait novo no
+    // glossário exige regenerar via tools/translate-packs/gen-client-maps.mjs
+    // e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(257);
+    expect(keys.length).toBe(340);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
