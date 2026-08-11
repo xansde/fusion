@@ -1386,10 +1386,23 @@ function normalizeConditionSystem(system, src, docName) {
 
 function normalizeActorSystem(system, src, type) {
   if (type === "npc") {
+    const attributes = src.attributes ?? system.attributes ?? {};
     return {
       ...system,
       abilities: src.abilities ?? system.abilities ?? {},
-      attributes: src.attributes ?? system.attributes ?? {},
+      attributes:
+        attributes.speed && attributes.speed.value === null
+          ? // r28/A2: same bug class as normalizeEffectSystem's badge.max fix —
+            // the vendor stores an explicit `null` land speed for creatures
+            // that only fly/swim (e.g. Banshee: otherSpeeds=[fly 60],
+            // value=null). NpcSystemSchema (packages/shared) requires a
+            // number here; PF2e's own convention for "no land speed" is 0,
+            // not null (every other no-land-speed creature in the vendor
+            // already stores 0 — Banshee is the one exception in the whole
+            // pathfinder-monster-core, confirmed by scanning all 492 raw
+            // docs). Coerce null -> 0 rather than loosen the shared schema.
+            { ...attributes, speed: { ...attributes.speed, value: 0 } }
+          : attributes,
       details: {
         ...(src.details ?? system.details ?? {}),
         // Strip lore/flavor text — Reserved Material under ORC (REQ-LEG-010, spec 26 §D4).
