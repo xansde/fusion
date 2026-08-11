@@ -322,7 +322,7 @@ dados do usuário autenticado.
   (client-side) e a spec 23 (server-side) sem duplicar donos do mesmo dado.
   `ClientUIPreferences` cobre apenas geometria e estado de layout local;
   keybindings e qualidade gráfica pertencem ao modelo de usuário de `05`/`23`.
-  Reconcilia DEC-UIF-10 com DECISÃO-A11-07 e REQ-A11-021 de
+  Reconcilia DEC-UIF-10 com DEC-A11-07 e REQ-A11-021 de
   `ver 23-acessibilidade-e-dispositivos.md`.
 
 ---
@@ -969,7 +969,7 @@ relevantes à UI.
   (localStorage vs. IndexedDB). A escolha concreta fica em
   `ver 23-acessibilidade-e-dispositivos.md`. Preferências portáveis
   (keybindings, tema, locale, qualidade gráfica) são persistidas server-side
-  por `userId` conforme DECISÃO-A11-07 e REQ-A11-021 de `23` — não há dois
+  por `userId` conforme DEC-A11-07 e REQ-A11-021 de `23` — não há dois
   donos: `ClientUIPreferences` cobre apenas dados de dispositivo local.
 
 ---

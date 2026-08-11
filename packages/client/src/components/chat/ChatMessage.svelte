@@ -9,6 +9,8 @@
    *
    * REQ-CHT-007..015: message types and their visual treatment.
    * REQ-CHT-024..028: chat cards, buttons, no arbitrary HTML.
+   * REQ-CHT-045/047: the narrator's "Revelar" trigger on a private message,
+   *   and the badge marking a message the narrator has revealed.
    */
 
   import type { Socket } from "socket.io-client";
@@ -16,6 +18,14 @@
   import { ConjuracaoCardSchema } from "@fusion/system-etmos";
   import { SpellCastCardSchema, AbilityCardSchema, adaptSpellCastToAbilityCard } from "@fusion/shared";
   import { t } from "$lib/i18n/i18n.js";
+  import { sendOp } from "$lib/docs/sendOp.js";
+  import { session } from "$lib/session.svelte.js";
+  import {
+    canRevealMessage,
+    canViewerReveal,
+    isRevealedMessage,
+    buildRevealOp,
+  } from "../../lib/chat/chatReveal.js";
   import {
     getMessageDisplayMeta,
     formatRoll,
@@ -132,6 +142,43 @@
   function toggleRollExpanded(idx: number): void {
     expandedRolls[idx] = !expandedRolls[idx];
   }
+
+  // ---- Reveal (REQ-CHT-045..048) -----------------------------------------
+  // The decision of WHETHER to offer the button is a pure function in
+  // chatReveal.ts (tested there — the client's vitest project has no jsdom, so
+  // nothing inside this template can be asserted). Here we only wire it up.
+  //
+  // A missing socket also hides the button: a trigger that cannot emit is worse
+  // than no trigger — it looks like the reveal failed silently.
+  //
+  // The role comes from the session, NOT from the `isGm` prop: `isGm` is
+  // `role === 4` (TableScreen), while the server gates on `isRolePrivileged`,
+  // which also accepts an Assistant GM (REQ-CHT-045). Using the prop would give
+  // the Assistant the permission and no way to use it.
+  const canReveal = $derived(
+    !!socket && canRevealMessage({ privileged: canViewerReveal(session.user?.role ?? 0), message }),
+  );
+  const wasRevealed = $derived(isRevealedMessage(message));
+
+  let revealing = $state(false);
+  let revealError = $state<string | null>(null);
+
+  async function handleReveal(): Promise<void> {
+    if (!socket || revealing) return;
+    revealing = true;
+    revealError = null;
+    try {
+      // No local state to update: the server persists the mutation and
+      // rebroadcasts the SAME _id, which chatStore upserts over this row
+      // (DEC-CHT-10). Rendering the reveal optimistically would mean the client
+      // deciding visibility — exactly what the server owns.
+      await sendOp(socket, buildRevealOp(worldId, message._id));
+    } catch (err) {
+      revealError = err instanceof Error ? err.message : t("FUSION.Chat.RevealFailed");
+    } finally {
+      revealing = false;
+    }
+  }
 </script>
 
 <div class="msg {meta.typeClass}" role="listitem">
@@ -146,7 +193,31 @@
     {#if meta.isBlind}
       <span class="msg__badge msg__badge--blind">blind</span>
     {/if}
+    <!-- REQ-CHT-047: a revealed message says so, to everyone — the table needs
+         to know this result was secret and the narrator chose to publish it. -->
+    {#if wasRevealed}
+      <span class="msg__badge msg__badge--revealed" title={t("FUSION.Chat.RevealedByGm")}>
+        {t("FUSION.Chat.Revealed")}
+      </span>
+    {/if}
+    <!-- REQ-CHT-045: the narrator's trigger, only on a still-private message. -->
+    {#if canReveal}
+      <button
+        type="button"
+        class="msg__reveal-btn"
+        onclick={() => void handleReveal()}
+        disabled={revealing}
+        title={t("FUSION.Chat.RevealMessage")}
+        aria-label={t("FUSION.Chat.RevealMessage")}
+      >
+        {t("FUSION.Chat.RevealMessageShort")}
+      </button>
+    {/if}
   </div>
+
+  {#if revealError}
+    <p class="msg__reveal-error" role="alert">{t("FUSION.Chat.RevealFailed")} {revealError}</p>
+  {/if}
 
   <!-- ---- Body ---- -->
   {#if message.type === "emote"}
@@ -380,6 +451,45 @@
   .msg__badge--blind {
     background: rgba(255, 200, 87, 0.15);
     color: var(--fusion-warning);
+  }
+
+  /* Revealed by the narrator (REQ-CHT-047) — success-tinted, distinct from the
+     whisper/blind badges that mark a message as still private. */
+  .msg__badge--revealed {
+    background: rgba(61, 220, 132, 0.14);
+    color: var(--fusion-success);
+  }
+
+  /* ---- Reveal trigger (REQ-CHT-045) ---- */
+  .msg__reveal-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 0 0.35rem;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .msg__reveal-btn:hover:not(:disabled) {
+    color: var(--fusion-accent);
+    border-color: var(--fusion-accent-dim);
+  }
+
+  .msg__reveal-btn:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+
+  .msg__reveal-error {
+    font-size: 0.7rem;
+    color: var(--fusion-danger);
+    margin: 0 0 0.15rem;
   }
 
   /* ---- Content ---- */

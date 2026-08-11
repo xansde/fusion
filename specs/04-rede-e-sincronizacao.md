@@ -59,7 +59,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 
 ## Decisões
 
-### D1 — Transporte: socket.io v4 (não WebSocket nativo)
+### DEC-NET-01 — Transporte: socket.io v4 (não WebSocket nativo)
 
 **Decisão:** usar **socket.io v4** como camada de transporte de tempo real, sobre HTTP servido pelo Fastify.
 
@@ -67,10 +67,10 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 
 **Alternativas rejeitadas:**
 
-- **WebSocket nativo (`ws`):** é o caminho para onde o Foundry migrou (v12+, ver `01-foundry-arquitetura-stack.md` §7.1), eliminando o overhead do socket.io. Rejeitado para o MVP do Fusion porque exigiria reimplementar ACK, rooms, reconexão e heartbeat manualmente — esforço que não agrega valor no MVP. Migração para `ws` nativo é candidata a [V2] caso o overhead se mostre relevante em profiling. A camada de `Envelope` (D2) é projetada para ser transporte-agnóstica, facilitando essa troca futura.
+- **WebSocket nativo (`ws`):** é o caminho para onde o Foundry migrou (v12+, ver `01-foundry-arquitetura-stack.md` §7.1), eliminando o overhead do socket.io. Rejeitado para o MVP do Fusion porque exigiria reimplementar ACK, rooms, reconexão e heartbeat manualmente — esforço que não agrega valor no MVP. Migração para `ws` nativo é candidata a [V2] caso o overhead se mostre relevante em profiling. A camada de `Envelope` (DEC-NET-02) é projetada para ser transporte-agnóstica, facilitando essa troca futura.
 - **WebTransport/HTTP3:** imaturo em 2026 para o público-alvo (navegadores LAN/residenciais variados); rejeitado.
 
-### D2 — Envelope unificado e transporte-agnóstico
+### DEC-NET-02 — Envelope unificado e transporte-agnóstico
 
 **Decisão:** todas as mensagens trafegam dentro de um `Envelope` único com campos de roteamento (`type`), correlação (`requestId`), ordenação (`seq`, apenas em mensagens canônicas vindas do servidor), timestamp (`ts`) e `payload` tipado por `type`. O `type` segue convenção `domain:action` (ex.: `doc:update`, `token:move`, `presence:cursor`).
 
@@ -80,7 +80,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 
 - **Um evento socket.io distinto por tipo de operação** (estilo `socket.on("updateActor", ...)`): dispersa a lógica transversal (rate limit, auth, logging) por dezenas de handlers e dificulta versionamento. Rejeitado. Usamos **poucos** eventos socket.io de baixo nível (`op`, `query`, `ephemeral`, `system`) e discriminamos a ação pelo campo `type` do envelope.
 
-### D3 — Autoridade total no servidor
+### DEC-NET-03 — Autoridade total no servidor
 
 **Decisão:** o servidor é o único que valida permissão + schema, persiste e faz broadcast. Nenhuma mutação de cliente é canônica até o servidor confirmá-la. Rolagens de dados executam no servidor (RNG autoritativo) — ver `08-motor-de-rolagens.md`.
 
@@ -90,7 +90,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 
 - **Autoridade no cliente do GM** (estilo `socketlib.executeAsGM` do Foundry, §4 do research): o cliente do GM executaria operações privilegiadas a pedido de jogadores. Rejeitado: nosso servidor é o próprio processo do GM e já é autoritativo; não precisamos delegar a um cliente-GM. Mantemos toda validação no servidor, eliminando a classe de bugs onde "o GM precisa estar online para o jogador descontar HP".
 
-### D4 — Concorrência: otimista para movimento de token, pessimista para o resto
+### DEC-NET-04 — Concorrência: otimista para movimento de token, pessimista para o resto
 
 **Decisão:** movimento de token usa **update otimista com rollback** (o cliente move o token na hora, envia `token:move`, e reverte para a posição autoritativa se o servidor rejeitar ou corrigir). Todas as outras mutações são **pessimistas**: a UI só reflete a mudança após o broadcast/ack do servidor.
 
@@ -101,7 +101,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 - **Tudo otimista (estilo CRDT/local-first):** complexidade de reconciliação alta, conflitos difíceis em dados de regra (HP, condições). Rejeitado para o MVP.
 - **Tudo pessimista (incluindo movimento):** simples, mas movimento de token com lag de rede é UX inaceitável. Rejeitado.
 
-### D5 — Concorrência de escrita: last-writer-wins com guarda de versão opcional
+### DEC-NET-05 — Concorrência de escrita: last-writer-wins com guarda de versão opcional
 
 **Decisão:** o servidor serializa ops por ordem de chegada (FIFO no namespace do mundo). Conflitos de campo resolvem por **last-writer-wins**. Para documentos sensíveis, o cliente PODE enviar `expectedVersion` (o `seq`/versão que ele acredita ser o atual); se divergir, o servidor rejeita com `STALE_WRITE` e o cliente refaz sobre o estado fresco.
 
@@ -112,7 +112,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 - **Locking pessimista de documento:** trava UX (jogador "segura" a ficha). Rejeitado.
 - **Merge automático 3-way de diffs concorrentes:** complexidade desproporcional para o MVP. Rejeitado.
 
-### D6 — Resync: delta por `seq` quando possível, snapshot completo como fallback
+### DEC-NET-06 — Resync: delta por `seq` quando possível, snapshot completo como fallback
 
 **Decisão:** o servidor mantém um **buffer circular de ops recentes** por mundo (as últimas N ops canônicas, com seus `seq`). Ao reconectar, o cliente informa o último `seq` aplicado; se ainda estiver no buffer, recebe apenas o delta; caso contrário, recebe um snapshot completo do estado relevante.
 
@@ -123,13 +123,13 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 - **Sempre snapshot completo:** simples mas caro (recarrega todo o mundo a cada blip de rede). Rejeitado como padrão; mantido só como fallback.
 - **Event sourcing persistente completo:** guardar todo o histórico no banco para resync arbitrário. Overkill para o MVP; o buffer circular em memória basta. [V2] pode persistir um log de ops para auditoria (ver `24-operacao-backups-telemetria.md`).
 
-### D7 — Eventos efêmeros fora do pipeline de persistência
+### DEC-NET-07 — Eventos efêmeros fora do pipeline de persistência
 
 **Decisão:** cursor, ping, typing, preview de movimento e force pan trafegam por um caminho separado (`ephemeral`), sem `seq`, sem persistência, sem entrar no buffer de resync. São broadcast direto às rooms relevantes com validação mínima (rate limit + permissão).
 
 **Racional:** são dados de alta frequência e baixa importância individual (perder um frame de cursor é irrelevante). Misturá-los com ops canônicas poluiria o buffer de resync e o `seq`.
 
-### D8 — Canal namespaced para sistemas, sem broadcast irrestrito
+### DEC-NET-08 — Canal namespaced para sistemas, sem broadcast irrestrito
 
 **Decisão:** sistemas de jogo (PF2e, SF2e, Etmos) emitem mensagens custom pelo evento `system` com `payload.systemId` e `payload.channel`. O servidor valida que o emissor tem permissão e re-emite apenas para destinatários elegíveis. Não há `emit` arbitrário cliente→cliente sem passar pelo servidor.
 
@@ -161,6 +161,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 - **REQ-NET-022** [MVP] Para cada op recebida, o servidor DEVE, nesta ordem: (1) validar o envelope e tamanho; (2) verificar permissão do usuário sobre o documento (ver `05-usuarios-e-permissoes.md`); (3) validar o resultado contra o schema do documento (ver `02-modelo-de-dados.md`); (4) persistir (ver `03-persistencia-e-mundos.md`); (5) atribuir `seq`; (6) fazer broadcast às rooms elegíveis; (7) responder o ack ao originador.
 - **REQ-NET-023** [MVP] Falha em qualquer etapa de validação DEVE abortar a op inteira (atomicidade por op — lote falha por completo se qualquer item falhar) e retornar um ack de erro com código (`PERMISSION_DENIED`, `VALIDATION_FAILED`, `NOT_FOUND`, `STALE_WRITE`, `RATE_LIMITED`, `TOO_LARGE`).
 - **REQ-NET-024** [MVP] O broadcast de uma mutação DEVE respeitar a visibilidade do documento: o servidor NÃO DEVE enviar a destinatários sem ao menos ownership `LIMITED`/`OBSERVER` o conteúdo completo; pode enviar uma forma redigida ou suprimir o evento (ver `05-usuarios-e-permissoes.md` e `21-seguranca.md`).
+- **REQ-NET-096** [MVP] REQ-NET-024 vale nos **quatro** caminhos pelos quais um documento sai do servidor, não só no broadcast ao vivo: (1) snapshot de join, (2) broadcast ao vivo, (3) replay de delta no resync, (4) eco do ack ao originador. Em particular, o servidor NÃO DEVE emitir um documento `Actor` a um usuário cujo nível efetivo sobre ele seja menor que `LIMITED` por **nenhum** deles — o Actor carrega `system.attributes.hp` e `system.derived`, e um caminho que escape torna a redação dos outros três decorativa. O predicado do corte DEVE ser único e compartilhado pelos quatro caminhos (`packages/server/src/net/redaction.ts` + `resolveOwnership`), nunca reescrito por handler (ver DEC-CNV-15 de `06-canvas-e-renderizacao.md` e REQ-HUB-045 de `28-hub-do-jogador.md`). A supressão DEVE preservar a **contiguidade de `seq` por socket**: o documento suprimido sai do envelope (`documents` vazio), mas o envelope e seu `seq` DEVEM ser emitidos mesmo assim, tanto no broadcast ao vivo quanto no replay do delta — o cliente só aplica uma op quando `seq` é exatamente `atual + 1` e trata qualquer salto como gap (REQ-NET-063), de modo que uma op ausente trava aquele espectador naquele `seq` e o resync seguinte repete o mesmo buraco.
 - **REQ-NET-025** [MVP] Documentos embutidos (ex.: itens dentro de um ator) DEVEM ser endereçáveis nas ops por par `{ parentType, parentId, embeddedType, embeddedId }`, e o broadcast resultante DEVE refletir a mutação do pai conforme o modelo de dados.
 - **REQ-NET-026** [MVP] `doc:update` PODE incluir `expectedVersion`; se presente e divergente do `seq`/versão atual do documento, o servidor DEVE rejeitar com `STALE_WRITE` sem aplicar a mudança.
 
@@ -288,7 +289,7 @@ export interface DocUpdatePayload {
   updates: Array<{
     _id: string;
     diff: DocumentDiff;
-    expectedVersion?: number; // compare-and-swap opcional (D5)
+    expectedVersion?: number; // compare-and-swap opcional (DEC-NET-05)
     /** Endereçamento de documento embutido, quando aplicável. */
     embedded?: { type: string; id: string };
   }>;
@@ -306,7 +307,7 @@ export interface DocDeletePayload {
   parent?: { type: string; id: string };
 }
 
-/** Movimento de token (concorrência otimista, D4). */
+/** Movimento de token (concorrência otimista, DEC-NET-04). */
 export interface TokenMovePayload {
   sceneId: string;
   tokenId: string;
@@ -371,7 +372,7 @@ export interface ResyncDeltaPayload {
   ops: Envelope[]; // ops canônicas faltantes, em ordem de seq
 }
 
-/** Mensagem custom de sistema (canal namespaced, D8). */
+/** Mensagem custom de sistema (canal namespaced, DEC-NET-08). */
 export interface SystemMessagePayload {
   systemId: string;
   channel: string;

@@ -8,7 +8,7 @@
  *
  * Coordinate system: scene pixels, Y-axis pointing down (standard screen coords).
  *
- * Spec: 07-visao-iluminacao-fog.md §D3 (angular sweep), §D11 (pixel coords)
+ * Spec: 07-visao-iluminacao-fog.md §DEC-VIS-03 (angular sweep), §DEC-VIS-11 (pixel coords)
  * REQ-VIS-103: deterministic — same walls + origin ⇒ same polygon on any client.
  * REQ-VIS-030: robust to degenerate cases (zero-length walls, coincident vertices, etc.)
  */

@@ -20,7 +20,7 @@
 > regra.
 
 > **Nota normativa de escopo de fase:** O sistema Etmos é classificado como
-> **[V2] no escopo global** do Fusion (REQ-VIS-011 em `00-visao-e-escopo.md`).
+> **[V2] no escopo global** do Fusion (REQ-ESC-011 em `00-visao-e-escopo.md`).
 > Todo o pacote `systems/etmos` é desenvolvido após o MVP global (sessão de PF2e
 > jogável) estar entregue. As tags **[MVP]** e **[V2]** ao longo desta spec
 > referem-se ao **escopo interno do Etmos** — ou seja, ao que é necessário para
@@ -139,7 +139,7 @@ para o Etmos.
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Pacote compilado, fonte de regra em compendiums criados à mão
+### DEC-ETM-01 — Pacote compilado, fonte de regra em compendiums criados à mão
 
 `systems/etmos` é um pacote TypeScript/Svelte compilado junto ao app (sem
 carregamento dinâmico de plugins — isso é [V2]). As Partículas, Habilidades,
@@ -155,7 +155,7 @@ nenhum repositório externo.
   de dados-como-Document.
 - **Racional:** o catálogo de regra é dado, não código.
 
-### D2 — Atributos com mínimo 1; Corpo 0 do pré-gerado normalizado para 1
+### DEC-ETM-02 — Atributos com mínimo 1; Corpo 0 do pré-gerado normalizado para 1
 
 O SRD especifica Atributos **1–6**. O Quickstart traz a personagem Marcela com
 Corpo 0 (provável erro de impressão). O Fusion adota **mínimo 1** e o importador
@@ -165,7 +165,7 @@ do pré-gerado normaliza 0→1.
   (`4 + floor(0/2)` ainda funciona, mas a regra textual proíbe 0).
 - **Racional:** fidelidade ao SRD (fonte prioritária) sobre o Quickstart.
 
-### D3 — Função "Mat" (Matar) excluída do catálogo canônico
+### DEC-ETM-03 — Função "Mat" (Matar) excluída do catálogo canônico
 
 A pesquisa confirma que "Mat" aparece apenas em uma ficha de Quickstart, **não**
 consta no SRD nem na ficha oficial, e é provável erro/restrição não canônica.
@@ -176,7 +176,7 @@ consta no SRD nem na ficha oficial, e é provável erro/restrição não canôni
   "Mat"; ver Questão Q1.)
 - **Racional:** SRD/ficha oficial são fonte prioritária.
 
-### D4 — Estresse, Fadiga, Ferimentos e custo de Complexidade automatizados; Complexidade _arbitrada_ manualmente
+### DEC-ETM-04 — Estresse, Fadiga, Ferimentos e custo de Complexidade automatizados; Complexidade _arbitrada_ manualmente
 
 O Fusion automatiza tudo que tem regra determinística no SRD: cálculo de limites,
 transição de estados de Fadiga (faixas 1–5 / 6–8 / 9+), penalidades de Fadiga,
@@ -193,7 +193,7 @@ arbitrada pelo Narrador no Compositor.
 - **Racional:** automatizar o determinístico, delegar o subjetivo ao GM — exatamente
   a diretriz do usuário para lacunas.
 
-### D5 — Compositor de Magias como fluxo de estados sobre ChatMessage
+### DEC-ETM-05 — Compositor de Magias como fluxo de estados sobre ChatMessage
 
 A negociação da Frase Mágica é um workflow social GM↔jogador. Modelamo-lo como
 uma máquina de estados (`proposta → arbitrada → rolada → resolvida`, com ramo
@@ -209,7 +209,7 @@ uma máquina de estados (`proposta → arbitrada → rolada → resolvida`, com 
 - **Racional:** o card persistente no chat documenta a magia e sobrevive a
   reconexões; a rolagem executa no servidor (anti-cheat, `ver 08-...md`).
 
-### D6 — Conjunto binário de graus (`success`/`failure`) próprio, com margens
+### DEC-ETM-06 — Conjunto binário de graus (`success`/`failure`) próprio, com margens
 
 O SRD usa faixas de dificuldade (Simples <6, Fácil 6, Mediano 7–10, Árduo 11–14,
 Difícil 15+), mas a resolução é binária (≥ dificuldade = sucesso) com magnitude
@@ -231,7 +231,7 @@ calculado por `classeDificuldade(total)`, não um grau de sucesso.
   margem expressa fielmente o SRD sem inventar crítico e sem depender do helper de 4 graus
   da engine-2e.
 
-### D7 — Símbolos rúnicos como placeholder tipográfico no MVP
+### DEC-ETM-07 — Símbolos rúnicos como placeholder tipográfico no MVP
 
 Os glifos rúnicos das Partículas são arte vetorial proprietária da editora,
 pendentes (Questão D12 da pesquisa). No MVP, cada Partícula é representada por um
@@ -242,7 +242,7 @@ vetoriais forem fornecidos sob licença.
 - **Racional:** não bloquear o MVP em assets indisponíveis; não redistribuir arte
   proprietária (`ver 26-licencas-e-legal.md`).
 
-### D8 — Lacunas de regra → controles manuais, nunca invenção
+### DEC-ETM-08 — Lacunas de regra → controles manuais, nunca invenção
 
 Diretriz transversal: campos sem regra determinística no SRD (ex.: Pontos de
 Importância, efeito mecânico de Origens custom, Complexidade final, Grau de
@@ -330,7 +330,7 @@ Alma`).
   opcional** e, quando informada, classificar o resultado em sucesso/falha (resultado
   ≥ dificuldade) via `computeDegreeOfSuccess(total, dc, context)` (REQ-ROL-038),
   retornando `"success"` ou `"failure"` do conjunto binário próprio do Etmos
-  (REQ-ROL-039, D6). A faixa narrativa (Simples <6 / Fácil 6
+  (REQ-ROL-039, DEC-ETM-06). A faixa narrativa (Simples <6 / Fácil 6
   / Mediano 7–10 / Árduo 11–14 / Difícil 15+) DEVE ser calculada separadamente por
   `classeDificuldade(total)` e exibida como rótulo/cor no chat, sem alterar o grau
   de sucesso.
@@ -461,7 +461,7 @@ Corpo+4` a magia falha (Estresse ainda acumula); Esgotado → se `> Corpo+3` o
   (Práticas e Teóricas) e **Antagonistas** (Fichas Base + exemplos).
 - **REQ-ETM-047** [MVP] No MVP, cada Partícula DEVE renderizar com **placeholder
   tipográfico** (palavra Etmos + cor por categoria); o slot `icone_runico` DEVE
-  existir para assets vetoriais futuros (D7).
+  existir para assets vetoriais futuros (DEC-ETM-07).
 - **REQ-ETM-048** [V2] O sistema DEVE suportar um **modo "baralho de Grimório"**
   que renderize as Partículas como cartas arrastáveis, espelhando o suporte
   físico do jogo.
@@ -499,7 +499,7 @@ Corpo+4` a magia falha (Estresse ainda acumula); Esgotado → se `> Corpo+3` o
   ser empacotada sem autorização (`ver 26-licencas-e-legal.md`); o MVP usa apenas
   placeholders tipográficos.
 - **REQ-ETM-NFR-005** Lacunas de regra DEVEM degradar para **controle manual**
-  (campo editável / modificador livre), nunca para regra inventada (D8).
+  (campo editável / modificador livre), nunca para regra inventada (DEC-ETM-08).
 - **REQ-ETM-NFR-006** As fichas DEVEM ser usáveis em tablet (alvo mínimo de
   responsividade, `ver 23-acessibilidade-e-dispositivos.md`).
 
@@ -523,7 +523,7 @@ type SubtipoComplemento = "modificador" | "criador";
 type CategoriaMarco = "fisicos" | "mentais" | "emocionais";
 
 interface Atributo {
-  /** valor base 1..6 (mínimo 1 — D2) */
+  /** valor base 1..6 (mínimo 1 — DEC-ETM-02) */
   value: number;
   max: 6;
 }
@@ -623,7 +623,7 @@ interface ParticulaSystem {
   subtipo_complemento: SubtipoComplemento | null;
   significado: string; // ex.: "Controlar"
   descricao: string;
-  /** placeholder no MVP; path de asset vetorial quando disponível (D7) */
+  /** placeholder no MVP; path de asset vetorial quando disponível (DEC-ETM-07) */
   icone_runico: string | null;
 }
 ```
@@ -691,7 +691,7 @@ interface ItemEncantadoSystem {
 ### Card de Conjuração (estado do Compositor)
 
 Armazenado em `flags.etmos.conjuracao` de uma `ChatMessage` (`ver
-09-chat-e-mensagens.md`). É a máquina de estados do Compositor (D5).
+09-chat-e-mensagens.md`). É a máquina de estados do Compositor (DEC-ETM-05).
 
 ```ts
 type EstadoConjuracao =
@@ -742,7 +742,7 @@ interface ConjuracaoCard {
   (`ver 08-...md`).
 - **DegreeOfSuccess:** o sistema implementa `computeDegreeOfSuccess(total, dc, context)`
   (REQ-ROL-038) via `RollHook.postRoll`, retornando `"success"` ou `"failure"` do conjunto
-  binário próprio do Etmos, mais a margem (`total − dc`) como metadado (D6).
+  binário próprio do Etmos, mais a margem (`total − dc`) como metadado (DEC-ETM-06).
 - **Iniciativa:** `registrar.initiativeFormula({ id: "etmos-corpo", label: "Corpo",
 build(combatant, ctx): string, compare(a, b): number })` — `build` retorna a fórmula
   `"2d6 + @atributos.corpo.value"`; o desempate "jogadores vencem NPCs" é implementado em
@@ -875,7 +875,7 @@ function opcoesProgressao(nivelAtual: number): { fisica; mental; emocional }; //
 - **Q6 — Defesa Mágica como automação.** O SRD define Defesa Completa/Parcial/
   Ineficaz por Teste Contestado, mas a _aplicação_ (quanto reduz, o que dura) é
   arbitrada. Manter como controle manual no MVP ou tentar semiautomatizar a
-  redução de Ferimentos? (Inclinação: manual, conforme D8.)
+  redução de Ferimentos? (Inclinação: manual, conforme DEC-ETM-08.)
 - **Q7 — Expiração diária dos Dados de Empenho.** O SRD diz que expiram no início
   do dia fictício seguinte; o Fusion não tem relógio de tempo fictício no MVP.
   Resolver via botão manual de "novo dia" (reset) ou flag de cena. (Inclinação:

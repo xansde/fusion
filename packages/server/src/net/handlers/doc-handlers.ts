@@ -68,9 +68,16 @@ import {
   DocDeletePayloadSchema,
   TokenDocumentSchema,
   TileDocumentSchema,
+  TokenUpdateActorPayloadSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
-import { createDocumentId } from "@fusion/shared";
+import {
+  createDocumentId,
+  applyActorDelta,
+  mergeActorDelta,
+  isDeltaSafeDiff,
+} from "@fusion/shared";
+import type { ActorDelta } from "@fusion/shared";
 import {
   stripHiddenTokens,
   scenePayloadHasHiddenTokens,
@@ -78,6 +85,9 @@ import {
   stripHiddenTiles,
   scenePayloadHasHiddenTiles,
   scenePayloadHasSecretDoors,
+  stripTokenActorDeltas,
+  scenePayloadHasTokenActorDeltas,
+  emitOwnershipGatedOp,
 } from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
@@ -229,6 +239,70 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
 const COMPANION_ACTOR_TYPE = "familiar";
 
 /** Read `system.masterActorId` from a raw doc, or null when absent/blank. */
+/**
+ * The inherited token→actor permission gate (REQ-DOC-025).
+ *
+ * A Token carries no ownership map of its own: whoever OWNS the Actor the
+ * token points at may mutate the token, a token pointing at nothing is GM-only,
+ * and a token whose Actor has vanished is GM-only too (fail closed).
+ *
+ * Extracted so `token:updateActor` (REQ-DOC-034) reuses the SAME predicate the
+ * embedded Token update already enforced instead of growing a second one —
+ * two permission predicates over the same object is how one of them ends up
+ * being the lenient one.
+ *
+ * Returns `null` when the mutation is allowed, or the ack to hand back.
+ * Callers must have already established that the caller is not privileged, or
+ * pass through here anyway: privileged roles short-circuit to `null`.
+ */
+function denyTokenMutation(
+  deps: Pick<DocHandlerDeps, "store">,
+  ctx: HandlerContext,
+  token: Record<string, unknown>,
+  tokenId: string,
+): Ack<never> | null {
+  if (isPrivileged(ctx.role)) return null;
+
+  const actorId = token["actorId"] as string | null | undefined;
+  if (!actorId) {
+    return ackError("PERMISSION_DENIED", `Token ${tokenId} is GM-only (no actorId)`);
+  }
+
+  try {
+    const actor = deps.store.get("actors", actorId);
+    const ownership = getOwnershipFromDoc(actor);
+    const level = resolveOwnership(ownership, ctx.userId, ctx.role);
+    if (level < OwnershipLevel.OWNER) {
+      return ackError(
+        "PERMISSION_DENIED",
+        `No OWNER access to actor ${actorId} for token ${tokenId}`,
+      );
+    }
+  } catch {
+    // Actor not found — only GM may touch an orphaned token.
+    return ackError("PERMISSION_DENIED", `Token ${tokenId} has no actor and you are not GM`);
+  }
+
+  return null;
+}
+
+/**
+ * REQ-DOC-061 — should a token being CREATED for this actor be linked?
+ *
+ * `npc` → unlinked; everything else (and an actorless or unresolvable token)
+ * → linked, which is the conservative answer: a linked token behaves the way
+ * every token in the world behaved before this feature existed.
+ */
+function defaultActorLinkFor(deps: Pick<DocHandlerDeps, "store">, actorId: unknown): boolean {
+  if (typeof actorId !== "string" || actorId.length === 0) return true;
+  try {
+    const actor = deps.store.get("actors", actorId);
+    return actor["type"] !== "npc";
+  } catch {
+    return true;
+  }
+}
+
 function readMasterActorId(doc: Record<string, unknown>): string | null {
   const sys = doc["system"];
   if (!sys || typeof sys !== "object" || Array.isArray(sys)) return null;
@@ -870,6 +944,213 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
 }
 
 // ---------------------------------------------------------------------------
+// token:updateActor handler factory — REQ-DOC-034
+// ---------------------------------------------------------------------------
+
+/**
+ * Recompute the derived stats of the actor a token plays with, and park the
+ * result inside the token's own delta.
+ *
+ * An unlinked token that inherits the BASE actor's `system.derived` is an
+ * unlinked token whose sheet is wrong the moment its delta touches anything
+ * derivation reads. The TokenActor must therefore go through the same
+ * derivation pipeline the world Actor does — and the only place its result can
+ * live is the delta, because the synthetic actor is never persisted as an
+ * Actor row (REQ-DOC-034).
+ *
+ * `system.derived` is REPLACED, never merged: derivation rebuilds the whole
+ * subtree, and a merge would let a key the recompute stopped producing live
+ * forever (the same trap `prunedPatch` exists for on the Actor path).
+ *
+ * Isolation (WIRING-DERIVE): a delta is precisely the thing that can produce a
+ * malformed actor, and the recorded failure mode of letting a DeriveStep throw
+ * here is an emptied actor list for EVERY viewer. A failure logs and returns
+ * the delta underived; one broken token never becomes a broken world.
+ */
+function deriveTokenActorDelta(
+  deps: Pick<DocHandlerDeps, "systemModule" | "logger">,
+  baseActor: Record<string, unknown>,
+  delta: ActorDelta,
+  tokenId: string,
+): ActorDelta {
+  if (!deps.systemModule) return delta;
+
+  try {
+    const effective = applyActorDelta(baseActor, delta);
+    // Deep-clone `system` for the same reason recomputeDerivedIfNeeded does:
+    // several DeriveSteps write cache fields outside `derived`, and the merged
+    // actor still shares untouched sub-objects with the stored base Actor.
+    const sys = effective["system"];
+    effective["system"] =
+      sys && typeof sys === "object" && !Array.isArray(sys)
+        ? structuredClone(sys as Record<string, unknown>)
+        : {};
+
+    const derived = runActorDerivation(effective, deps.systemModule);
+    if (!derived) return delta;
+
+    const computed = (effective["system"] as Record<string, unknown>)["derived"];
+    if (computed === undefined) return delta;
+
+    const deltaSystem = delta["system"];
+    const nextSystem: Record<string, unknown> =
+      deltaSystem && typeof deltaSystem === "object" && !Array.isArray(deltaSystem)
+        ? { ...(deltaSystem as Record<string, unknown>) }
+        : {};
+    nextSystem["derived"] = computed;
+    return { ...delta, system: nextSystem };
+  } catch (err) {
+    deps.logger?.warn(
+      { err, tokenId },
+      "TokenActor derivation failed — storing the delta without derived",
+    );
+    return delta;
+  }
+}
+
+/**
+ * `token:updateActor` — "change the actor OF THIS TOKEN" (REQ-DOC-034).
+ *
+ * This is a ROUTER, not a fourth write path. It answers one question the
+ * client cannot answer safely — does this mutation belong to the world Actor
+ * or to this token's private delta? — and then hands the resulting operation
+ * to the `doc:update` handler that already exists:
+ *
+ *   linked   → `doc:update` on Actor/<actorId>            (REQ-DOC-032)
+ *   unlinked → embedded `doc:update` on Token/<tokenId>,  (REQ-DOC-033/034)
+ *              writing the folded `actorDelta`
+ *
+ * Everything downstream — the OWNER check on the Actor, the STALE_WRITE guard,
+ * `system.derived` stripping, the derivation recompute, the broadcast, the
+ * per-socket redaction, the ack — is therefore literally the same code that
+ * runs for a hand-written `doc:update`. The one thing this handler adds on top
+ * is the token→actor gate (`denyTokenMutation`), which the Actor branch does
+ * NOT get from `doc:update` alone: `doc:update` asks "do you own this Actor?",
+ * and a token whose Actor has vanished, or which points at no Actor at all,
+ * must be GM-only regardless.
+ */
+export function buildTokenUpdateActorHandler(deps: DocHandlerDeps): HandlerFn {
+  const docUpdate = buildDocUpdateHandler(deps);
+
+  return (rawPayload, ctx) => {
+    const parsed = TokenUpdateActorPayloadSchema.safeParse(rawPayload);
+    if (!parsed.success) {
+      return ackError("VALIDATION_FAILED", parsed.error.message);
+    }
+    const { sceneId, tokenId, diff } = parsed.data;
+
+    let scene: Record<string, unknown>;
+    try {
+      scene = deps.store.get("scenes", sceneId);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) {
+        return ackError("NOT_FOUND", `Scene not found: ${sceneId}`);
+      }
+      throw err;
+    }
+
+    const rawTokens = scene["tokens"];
+    const tokens = Array.isArray(rawTokens) ? (rawTokens as Record<string, unknown>[]) : [];
+    const token = tokens.find((t) => t["_id"] === tokenId);
+    if (!token) {
+      return ackError("NOT_FOUND", `Token not found: ${tokenId} in Scene/${sceneId}`);
+    }
+
+    const denied = denyTokenMutation(deps, ctx, token, tokenId);
+    if (denied) return denied;
+
+    const actorId = token["actorId"];
+    if (typeof actorId !== "string" || actorId.length === 0) {
+      return ackError("VALIDATION_FAILED", `Token ${tokenId} has no actor to mutate`);
+    }
+
+    // Expand dot-paths once, here, so the linked and the unlinked branch write
+    // the same shape, and drop the two fields a client may never author on an
+    // actor: `_id` (immutable identity) and `system.derived` (server-computed).
+    const { _id: _strippedId, ...authoredDiff } = applyDotPathDiff({}, diff);
+    void _strippedId;
+    const authored = stripSystemDerived(authoredDiff);
+
+    // REQ-USR-015 parity: `ownership` is privileged even for the Actor's owner.
+    // On the linked branch doc:update enforces this itself; the unlinked branch
+    // would otherwise let an owner write an ownership map into the delta, and
+    // the reconstructed TokenActor the clients render would claim a visibility
+    // the server never granted.
+    if (!isPrivileged(ctx.role) && "ownership" in authored) {
+      return ackError(
+        "PERMISSION_DENIED",
+        `Only GM/Assistant can change ownership on the actor of token ${tokenId}`,
+      );
+    }
+
+    if (token["actorLink"] !== false) {
+      // REQ-DOC-032 — linked: the world Actor IS the token's actor.
+      return docUpdate({ documentType: "Actor", updates: [{ _id: actorId, diff: authored }] }, ctx);
+    }
+
+    // REQ-CNV-094 / DEC-CNV-16 — the delta cannot hold an ARRAY instruction.
+    // `items.-<id>` expands to `{ items: { "-<id>": true } }` and the merge
+    // (arrays replace) then swaps the actor's whole item collection for that
+    // object: the GM opens the skeleton and its inventory is gone. The client
+    // already refuses this, but a guard only the client enforces is not a
+    // guard — the same predicate has to hold on the authority, and it is
+    // literally the same function (`isDeltaSafeDiff`, @fusion/shared).
+    //
+    // Checked against the ORIGINAL diff, not the expanded one: expansion is
+    // exactly what destroys the evidence (`items.+` becomes a plain key `+`).
+    if (!isDeltaSafeDiff(diff)) {
+      return ackError(
+        "VALIDATION_FAILED",
+        `This edit cannot be held by token ${tokenId}'s actorDelta ` +
+          `(collections and ownership are not delta-representable yet — REQ-DOC-035)`,
+      );
+    }
+
+    // REQ-DOC-033/034 — unlinked: the mutation lands on the token's delta and
+    // NEVER on the base Actor.
+    let baseActor: Record<string, unknown>;
+    try {
+      baseActor = deps.store.get("actors", actorId);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) {
+        return ackError("NOT_FOUND", `Actor not found: ${actorId} for token ${tokenId}`);
+      }
+      throw err;
+    }
+
+    const currentDelta = token["actorDelta"];
+    const folded = mergeActorDelta(
+      currentDelta && typeof currentDelta === "object" && !Array.isArray(currentDelta)
+        ? (currentDelta as ActorDelta)
+        : {},
+      authored,
+    );
+    const nextDelta = deriveTokenActorDelta(deps, baseActor, folded, tokenId);
+
+    return docUpdate(
+      {
+        documentType: "Token",
+        updates: [
+          {
+            _id: tokenId,
+            // The whole delta, not a patch of it: `applyDotPathDiff` in the
+            // embedded path assigns the value at `actorDelta`, so handing it a
+            // partial object would deep-merge on the client's behalf in a
+            // second place. The fold already happened above, once.
+            diff: { actorDelta: nextDelta },
+            embedded: { type: "Token", id: sceneId },
+          },
+        ],
+      },
+      // The one write allowed to author a delta on behalf of a non-privileged
+      // caller: it was derived and sanitised right above. Everything else that
+      // reaches the embedded update carrying `actorDelta` came from a client.
+      { ...ctx, deltaWriteRouted: true },
+    );
+  };
+}
+
+// ---------------------------------------------------------------------------
 // doc:delete handler factory
 // ---------------------------------------------------------------------------
 
@@ -1046,6 +1327,20 @@ function handleEmbeddedCreate(
 
     // Validate against Token schema if applicable
     if (embeddedType === "Token") {
+      // REQ-DOC-061: a token created for an `npc` Actor and no explicit opinion
+      // is born UNLINKED. Six skeletons out of one Actor is the normal case for
+      // a monster, and requiring the GM to tick a box for each of them is how a
+      // table discovers, mid-fight, that killing one killed all six. Actors of
+      // any other subtype (`character` above all) stay linked: one sheet, one
+      // pool of hit points, however many tokens.
+      //
+      // The schema default (`true`) is a DIFFERENT question and stays as it is:
+      // it governs tokens READ back without the field, i.e. every token already
+      // persisted, which must keep behaving exactly as before.
+      if (!("actorLink" in raw)) {
+        raw["actorLink"] = defaultActorLinkFor(deps, raw["actorId"]);
+      }
+
       const tokenResult = TokenDocumentSchema.safeParse(raw);
       if (!tokenResult.success) {
         return ackError("VALIDATION_FAILED", tokenResult.error.message);
@@ -1216,32 +1511,8 @@ function handleEmbeddedUpdate(
           return ackError("NOT_FOUND", `Embedded doc not found: ${embeddedType}/${tokenId}`);
         }
 
-        // Check if user owns the referenced actor (or the scene itself)
-        const actorId = token["actorId"] as string | null | undefined;
-        if (actorId) {
-          try {
-            const actor = deps.store.get("actors", actorId);
-            const ownership = getOwnershipFromDoc(actor);
-            const level = resolveOwnership(ownership, ctx.userId, ctx.role);
-            if (level < OwnershipLevel.OWNER) {
-              return ackError(
-                "PERMISSION_DENIED",
-                `No OWNER access to actor ${actorId} for token ${tokenId}`,
-              );
-            }
-          } catch {
-            // Actor not found — only GM can update orphaned tokens
-            if (!isPrivileged(ctx.role)) {
-              return ackError(
-                "PERMISSION_DENIED",
-                `Token ${tokenId} has no actor and you are not GM`,
-              );
-            }
-          }
-        } else {
-          // No actorId — GM-only token
-          return ackError("PERMISSION_DENIED", `Token ${tokenId} is GM-only (no actorId)`);
-        }
+        const denied = denyTokenMutation(deps, ctx, token, tokenId);
+        if (denied) return denied;
       }
 
       // --- Field allowlist / protection (FIX-5) ---
@@ -1258,6 +1529,24 @@ function handleEmbeddedUpdate(
         return ackError(
           "PERMISSION_DENIED",
           `Only GM/Assistant can change actorId on token ${tokenId}`,
+        );
+      }
+
+      // REQ-DOC-034: `actorDelta` has exactly ONE authoring route for a player
+      // — `token:updateActor`, which sanitises the patch (REQ-CNV-094), refuses
+      // what a merge patch cannot hold, and recomputes `system.derived` itself.
+      // Addressing the Token directly skips all three, so an owner could write
+      // an `ownership` map or forged derived stats straight into the actor the
+      // GM's screen reconstructs. The routed write marks itself on the context
+      // (never from the wire); a GM keeps the direct route, being the author of
+      // world state anyway.
+      const touchesActorDelta = Object.keys(sanitizedDiff).some(
+        (key) => key === "actorDelta" || key.startsWith("actorDelta."),
+      );
+      if (touchesActorDelta && !ctx.deltaWriteRouted && !isPrivileged(ctx.role)) {
+        return ackError(
+          "PERMISSION_DENIED",
+          `actorDelta on token ${tokenId} is written through token:updateActor, not doc:update`,
         );
       }
 
@@ -1459,12 +1748,26 @@ function socketIsPrivileged(socket: Socket): boolean {
  *       • hidden tokens stripped
  *       • secret doors redacted as plain walls
  *
+ * Ownership-gated types (today: Actor — see OWNERSHIP_GATED_BROADCAST_TYPES)
+ * are ALSO emitted per socket, but the unit of redaction is the whole document,
+ * not a field inside it: a viewer below LIMITED on an Actor gets the envelope
+ * with an EMPTY `documents` array, never a trimmed Actor and never a missing
+ * op (seq contiguity — see redaction.ts). Before REQ-NET-096 this branch did
+ * not exist and every Actor update — `system.attributes.hp`, `system.derived`
+ * — went to every connected socket via the namespace-wide emit below, which
+ * the join snapshot had been filtering all along.
+ *
  * For all other document types or Scene updates without sensitive data,
  * we use the cheap namespace-wide emit (no per-socket iteration cost).
  *
  * doc:delete envelopes are always namespace-wide: deletes carry only IDs.
  */
 function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: string): void {
+  // REQ-NET-096: ownership-gated documents are emitted per socket, emptied for
+  // viewers below LIMITED. The predicate and the loop live in redaction.ts
+  // because this is not the only producer of Actor envelopes.
+  if (emitOwnershipGatedOp(ns, envelope)) return;
+
   // Only Scene doc:create / doc:update need redaction filtering.
   if (
     documentType === "Scene" &&
@@ -1478,13 +1781,20 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
     const hasHiddenTokens = scenePayloadHasHiddenTokens(payload.documents);
     const hasSecretDoors = scenePayloadHasSecretDoors(payload.documents);
     const hasHiddenTiles = scenePayloadHasHiddenTiles(payload.documents);
+    // REQ-DOC-062: an unlinked token's private hit points ride inside the
+    // Scene, which every player receives — the Actor gate above does not
+    // reach them. See redaction.ts stripTokenActorDeltas.
+    const hasActorDeltas = scenePayloadHasTokenActorDeltas(payload.documents);
 
-    if (hasHiddenTokens || hasSecretDoors || hasHiddenTiles) {
+    if (hasHiddenTokens || hasSecretDoors || hasHiddenTiles || hasActorDeltas) {
       // Build the player-visible payload once (shared across all player sockets).
       const filteredDocs = payload.documents.map((d) => {
         let redacted = d;
         if (hasHiddenTokens && Array.isArray(d["tokens"])) {
           redacted = stripHiddenTokens(redacted);
+        }
+        if (hasActorDeltas && Array.isArray(redacted["tokens"])) {
+          redacted = stripTokenActorDeltas(redacted);
         }
         if (hasSecretDoors && Array.isArray(redacted["walls"])) {
           redacted = redactSecretDoors(redacted);

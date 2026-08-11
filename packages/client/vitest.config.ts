@@ -24,7 +24,10 @@ export default defineConfig({
   test: {
     name: "client",
     environment: "node",
-    include: ["src/**/__tests__/**/*.test.ts"],
+    // vite-plugins/ holds Node-only build glue (the avatar acervo publisher);
+    // its pure helpers — the path-traversal guard above all — are worth testing
+    // and must NOT live under src/, which is browser code.
+    include: ["src/**/__tests__/**/*.test.ts", "vite-plugins/__tests__/**/*.test.ts"],
     // FIX-7: socket.test.ts and worldSync.test.ts exercise real socket.io
     // round-trips that occasionally brush the default 5s ceiling on a loaded
     // machine, causing pre-existing flakiness. Raise the per-test ceiling to

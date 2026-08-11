@@ -3,7 +3,7 @@
  * and related pure helpers.
  *
  * No PIXI, no DOM. Safe under Vitest node environment.
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §D5
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §DEC-CNV-05
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050..052
  */
 
@@ -51,6 +51,9 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     _id: "AAAA0000000001",
     name: "Goblin",
     actorId: "actor001",
+    // REQ-DOC-031: a token declares whether it shares the world Actor.
+    actorLink: true,
+    actorDelta: {},
     texture: null,
     x: 100,
     y: 100,
@@ -62,6 +65,8 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     disposition: 0,
     bar1: { attribute: null },
     bar2: { attribute: null },
+    // REQ-CNV-089: every token declares who may see its bars.
+    displayBars: "observer",
     flags: {},
     vision: {
       enabled: false,

@@ -15,7 +15,7 @@
 
 Especificar o subsistema de percepção espacial do Fusion: o modelo de **paredes (walls)** que restringem visão, luz, som e movimento; o **algoritmo de visibilidade** (visibility polygon por angular sweep) que decide o que cada fonte de visão ou luz enxerga; o sistema de **iluminação dinâmica** (luzes de ambiente e de token, darkness, global illumination) e sua composição visual no canvas PIXI; os **modos de visão e detecção** por token (visão normal, darkvision, e modos [V2]); e o **fog of war** (não-explorado opaco, explorado-fora-de-visão translúcido, atualmente-visível claro), com persistência por usuário e reset.
 
-Esta spec define **como se calcula o que cada cliente pode ver e como o canvas representa luz e névoa**. A divisão de responsabilidade entre cliente e servidor (onde cada cálculo roda) é parte central da decisão de design (ver Decisões D2 e D9).
+Esta spec define **como se calcula o que cada cliente pode ver e como o canvas representa luz e névoa**. A divisão de responsabilidade entre cliente e servidor (onde cada cálculo roda) é parte central da decisão de design (ver Decisões DEC-VIS-02 e DEC-VIS-09).
 
 ## Escopo
 
@@ -69,25 +69,25 @@ Esta spec define **como se calcula o que cada cliente pode ver e como o canvas r
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Wall como segmento com quatro restrições independentes
+### DEC-VIS-01 — Wall como segmento com quatro restrições independentes
 
 Uma wall é um segmento `(a, b)` com restrições **independentes** por dimensão: `move`, `sight`, `light`, `sound`. Esta é a abstração mais importante do subsistema: um mesmo segmento pode bloquear visão sem bloquear movimento, bloquear luz sem bloquear som, etc.
 
 - **Alternativas rejeitadas:**
   - _Um booleano único "bloqueia tudo"_: insuficiente para vidro (bloqueia movimento e som, mas não visão/luz), barreiras etéreas (bloqueiam visão, permitem passagem), terrenos translúcidos. Rejeitado.
   - _Restrições só para sight e light_: deixaria movimento e som sem modelo, exigindo um segundo sistema de colisão paralelo. Unificar as quatro dimensões no mesmo Document de wall simplifica edição e cálculo.
-- **Racional:** Modela diretamente os casos do research (research 04 §1.1–1.3): a separação por dimensão é "o ponto arquitetural mais importante" das walls. Presets (D4) são apenas combinações pré-definidas dessas quatro restrições.
+- **Racional:** Modela diretamente os casos do research (research 04 §1.1–1.3): a separação por dimensão é "o ponto arquitetural mais importante" das walls. Presets (DEC-VIS-04) são apenas combinações pré-definidas dessas quatro restrições.
 
-### D2 — Visibilidade calculada no cliente; servidor valida colisão de movimento
+### DEC-VIS-02 — Visibilidade calculada no cliente; servidor valida colisão de movimento
 
 Os **vision polygons** e **light polygons** (e portanto a máscara de visão e o fog) são calculados **no cliente** que controla os tokens. O servidor é autoritativo sobre **posições e walls** (o que constitui a "verdade" geométrica) e valida **colisão de movimento** (se um `token:move` atravessa uma wall de `move` `normal`), mas NÃO recalcula a visão de cada cliente.
 
 - **Alternativas rejeitadas:**
-  - _Calcular visão no servidor e enviar o polígono pronto a cada cliente_: o servidor é single-thread (ver `01-arquitetura-geral.md` D1/D9); recalcular o polígono de N tokens por frame para M clientes no event loop principal congelaria a sincronização de todos. Além disso, geraria tráfego de polígonos por frame. Rejeitado para o caminho quente; o servidor só valida colisão (operação pontual e barata).
+  - _Calcular visão no servidor e enviar o polígono pronto a cada cliente_: o servidor é single-thread (ver `01-arquitetura-geral.md` DEC-ARQ-01/DEC-ARQ-09); recalcular o polígono de N tokens por frame para M clientes no event loop principal congelaria a sincronização de todos. Além disso, geraria tráfego de polígonos por frame. Rejeitado para o caminho quente; o servidor só valida colisão (operação pontual e barata).
   - _Confiar no cliente para "o que pode ver" sem nenhuma checagem servidor_: cliente é não-confiável. Mitigado porque (a) o servidor não envia ao cliente Documents que o usuário não pode possuir/ver (ver `04` REQ-NET-024 e `05`), reduzindo o que um cliente trapaceiro poderia revelar; (b) o fog é por-usuário e local — revelar o próprio fog não dá vantagem mecânica sobre outros jogadores. O risco residual (um jogador "ver" geometria de parede que poderia inferir) é aceitável no MVP e tratado em `21-seguranca.md`.
-- **Racional:** Alinha com o research 15 §6.4 ("visibility polygon calculado no servidor **ou** no cliente a cada movimento") e com a diretriz arquitetural de não bloquear o event loop (research 01-spec D9). O cálculo de visão é inerentemente per-viewer e gráfico — pertence ao cliente, junto do PIXI. O servidor mantém a autoridade onde importa para anti-cheat: posição final do token e colisão de movimento.
+- **Racional:** Alinha com o research 15 §6.4 ("visibility polygon calculado no servidor **ou** no cliente a cada movimento") e com a diretriz arquitetural de não bloquear o event loop (research 01-spec DEC-ARQ-09). O cálculo de visão é inerentemente per-viewer e gráfico — pertence ao cliente, junto do PIXI. O servidor mantém a autoridade onde importa para anti-cheat: posição final do token e colisão de movimento.
 
-### D3 — Algoritmo de visibilidade: visibility polygon por angular sweep, implementação própria
+### DEC-VIS-03 — Algoritmo de visibilidade: visibility polygon por angular sweep, implementação própria
 
 A visibilidade usa **visibility polygon por varredura angular** (angular sweep), implementação independente baseada nas fontes públicas Red Blob Games e Nicky Case. Complexidade alvo O(n log n) para n arestas relevantes.
 
@@ -97,7 +97,7 @@ A visibilidade usa **visibility polygon por varredura angular** (angular sweep),
   - _Biblioteca `visibility-polygon-js` direta_: arquivada/legada (research 15 §6.2); usada apenas como referência conceitual, não como dependência.
 - **Racional:** Angular sweep é o padrão para visibility polygon com geometria de segmentos arbitrários (research 04 §5.1–5.2, research 15 §6.1). Dispara raios para cada endpoint de wall (mais dois raios com offset ε para "dobrar a esquina"), ordena interseções por ângulo e conecta os pontos. É o mesmo padrão do `ClockwiseSweepPolygon` do Foundry, mas escrito do zero. Uma **quadtree** (ou bucket grid) de walls limita o conjunto de arestas testadas por origem.
 
-### D4 — Presets de wall como combinações nomeadas das quatro restrições
+### DEC-VIS-04 — Presets de wall como combinações nomeadas das quatro restrições
 
 A UI oferece **presets** (`normal`, `terrain`, `invisible`, `ethereal`, `door`, `window`) que apenas pré-preenchem as quatro restrições. O dado persistido é sempre as quatro restrições; o preset é conveniência de edição.
 
@@ -105,7 +105,7 @@ A UI oferece **presets** (`normal`, `terrain`, `invisible`, `ethereal`, `door`, 
   - _Persistir o tipo de preset e derivar restrições em runtime_: acopla a semântica ao enum de preset, dificultando walls "híbridas" customizadas e migrações quando um preset muda. Rejeitado — persistir o estado expandido é mais robusto.
 - **Racional:** Reproduz a ergonomia do research 04 §1.2 (presets) sem amarrar o modelo de dados. Um `window` é só `{sight: proximity, light: proximity, sound: proximity, move: normal}` com threshold default.
 
-### D5 — Modo `limited` (terrain) implementado por contagem no sweep
+### DEC-VIS-05 — Modo `limited` (terrain) implementado por contagem no sweep
 
 Walls com restrição `limited` (terrain) deixam a percepção passar por **uma** camada: o sweep conta quantas arestas `limited` o raio cruzou; 0 ou 1 → passa; 2+ → bloqueia. A contagem é por dimensão (sight/light têm contadores separados).
 
@@ -113,18 +113,18 @@ Walls com restrição `limited` (terrain) deixam a percepção passar por **uma*
   - _Tratar terrain como semitransparência sem contagem_: não modela o caso clássico de "ver a rocha mas não o que está atrás" (research 04 §1.7). Rejeitado.
 - **Racional:** É a semântica observada (research 04 §1.7). Atenção ao bug conhecido de vértices compartilhados em terrain walls complexas (research 04 §1.7, issue #5935): a contagem deve ser por aresta cruzada, com cuidado em vértices coincidentes — tratado como caso de teste e questão de robustez.
 
-### D6 — Fog de três estados, persistido por (usuário, cena) como textura comprimida + union clipper2
+### DEC-VIS-06 — Fog de três estados, persistido por (usuário, cena) como textura comprimida + union clipper2
 
 O fog tem três estados: **não-explorado** (opaco total), **explorado-fora-de-visão** (translúcido), **atualmente-visível** (claro). A exploração acumulada é persistida por par (usuário, cena) como **textura comprimida** (PNG/WebP) e, geometricamente, como **union de polígonos** mantido com `@countertype/clipper2-ts`. A máscara de "atualmente visível" é efêmera (recalculada por frame, nunca persistida).
 
 - **Alternativas rejeitadas:**
   - _Fog em dois estados (visível / não-visível, sem memória)_: perde o valor de "já explorei este corredor". O estado intermediário translúcido é esperado pelos jogadores (research 04 §4.1). Rejeitado.
-  - _Fog global compartilhado entre todos os jogadores_: a exploração é individual por design (research 04 §4.1: "cada jogador mantém seu próprio estado"). Rejeitado; o GM tem visão total separada (D8).
+  - _Fog global compartilhado entre todos os jogadores_: a exploração é individual por design (research 04 §4.1: "cada jogador mantém seu próprio estado"). Rejeitado; o GM tem visão total separada (DEC-VIS-08).
   - _Persistir só a textura, sem geometria_: a textura é boa para render e save, mas operações de "revelar" e o cálculo de "ponto X já explorado?" se beneficiam de geometria. Mantemos **ambos**: a textura é a representação serializável/renderizável; o union de polígonos (clipper2) é a representação geométrica para revelar incrementalmente e testar pontos (research 15 §6.3–6.4).
   - _Persistir como base64 dentro do `world.db`_: a textura de fog pode ser grande; guardá-la inline incha o banco. Decisão de **onde** salvar (blob no banco vs arquivo no diretório do world) fica para `03-persistencia-e-mundos.md`; esta spec só especifica o formato (imagem comprimida) e a chave (usuário+cena).
-- **Racional:** Combina o research 04 §4 (FogManager, textura WebP por usuário/cena, commit com threshold para evitar writes excessivos) com a estratégia recomendada no research 15 §6.4 (RenderTexture do PIXI + clipper2 para union progressivo). O `commit` é throttled (D7).
+- **Racional:** Combina o research 04 §4 (FogManager, textura WebP por usuário/cena, commit com threshold para evitar writes excessivos) com a estratégia recomendada no research 15 §6.4 (RenderTexture do PIXI + clipper2 para union progressivo). O `commit` é throttled (DEC-VIS-07).
 
-### D7 — Persistência de fog throttled e off-loop
+### DEC-VIS-07 — Persistência de fog throttled e off-loop
 
 O fog explorado é acumulado em GPU (RenderTexture) e em geometria (clipper2) continuamente, mas a **persistência** (serializar a textura e salvar) só ocorre periodicamente (após N atualizações ou T segundos de inatividade), nunca por frame. A serialização/compressão da textura roda fora do caminho quente de render.
 
@@ -132,7 +132,7 @@ O fog explorado é acumulado em GPU (RenderTexture) e em geometria (clipper2) co
   - _Salvar o fog a cada frame de movimento_: I/O e CPU excessivos; o research 04 §4.3 nota o `COMMIT_THRESHOLD = 70` justamente para evitar writes a cada refresh. Rejeitado.
 - **Racional:** Espelha o `COMMIT_THRESHOLD`/`commit()` do research 04 §4.3–4.4. O delta de fog para o servidor (para persistir o estado daquele usuário) é enviado de forma esparsa e tratado como op de baixa prioridade (ver `04-rede-e-sincronizacao.md`, que transporta o delta de fog).
 
-### D8 — GM vê tudo; jogador vê a união dos seus tokens
+### DEC-VIS-08 — GM vê tudo; jogador vê a união dos seus tokens
 
 O **GM** (e assistentes) enxerga a cena inteira sem fog ativo (vê todos os tokens e geometria). Um **jogador** vê a **união** dos vision polygons de todos os tokens que controla, mais a área iluminada que essas fontes de visão percebem, mais o fog já explorado por ele.
 
@@ -141,16 +141,16 @@ O **GM** (e assistentes) enxerga a cena inteira sem fog ativo (vê todos os toke
   - _Jogador vê apenas o token "ativo"_: jogadores frequentemente controlam familiares, invocações ou múltiplos personagens; a união é o comportamento esperado. Rejeitado.
 - **Racional:** Comportamento padrão de VTTs (research 04 §3, §4.1). Quem controla qual token vem de `05-usuarios-e-permissoes.md`; esta spec consome esse conjunto.
 
-### D9 — Cálculo pesado de visão pode migrar para Web Worker no cliente
+### DEC-VIS-09 — Cálculo pesado de visão pode migrar para Web Worker no cliente
 
 Quando o número de walls/fontes torna o sweep custoso o bastante para causar queda de frame, o cálculo do visibility polygon roda em um **Web Worker** no cliente (OffscreenCanvas/transferência de buffers), mantendo a thread de UI fluida. No MVP, começa na thread principal com orçamento de tempo; o worker é o caminho de escala.
 
 - **Alternativas rejeitadas:**
   - _Sempre na thread principal_: cenas grandes (muitas walls) travariam o pan/zoom e a animação de tokens. Rejeitado como única estratégia.
-  - _Cálculo no servidor_ (já rejeitado em D2).
-- **Racional:** Alinha com a diretriz de não bloquear (research 01-spec D9, que cita explicitamente "visibility polygon pesado" como candidato a worker). O limiar exato (nº de walls) é questão em aberto, a medir.
+  - _Cálculo no servidor_ (já rejeitado em DEC-VIS-02).
+- **Racional:** Alinha com a diretriz de não bloquear (research 01-spec DEC-ARQ-09, que cita explicitamente "visibility polygon pesado" como candidato a worker). O limiar exato (nº de walls) é questão em aberto, a medir.
 
-### D10 — Iluminação composta em RenderTextures e meshes/shaders PIXI
+### DEC-VIS-10 — Iluminação composta em RenderTextures e meshes/shaders PIXI
 
 A iluminação é composta no canvas via PIXI v8: cada fonte de luz renderiza seu light polygon em uma RenderTexture de iluminação (com gradiente bright→dim e cor); a darkness da cena é um tint/overlay; a máscara de visão recorta o que o jogador efetivamente vê. Animações de luz são shaders/parâmetros por frame.
 
@@ -159,7 +159,7 @@ A iluminação é composta no canvas via PIXI v8: cada fonte de luz renderiza se
   - _Canvas 2D_: performance inferior para iluminação dinâmica com muitos polígonos (research 15 §3.4). Rejeitado.
 - **Racional:** Espelha a arquitetura de render do research 04 §5.3, §7 (visibilidade como máscara sobre camadas de luz/fog; meshes background/coloration/illumination por fonte) com PIXI v8 (research 15 §3.1). O framework de camadas concreto vem de `06-canvas-e-renderizacao.md`.
 
-### D11 — Grid-agnóstico: visão opera em coordenadas de pixel, não em células
+### DEC-VIS-11 — Grid-agnóstico: visão opera em coordenadas de pixel, não em células
 
 O cálculo de visão, luz e walls opera em **coordenadas contínuas de pixel** da cena, independente do tipo de grid (square/hex/gridless). Range de visão e raios de luz são convertidos de unidades de grid para pixels via a métrica da cena.
 
@@ -196,7 +196,7 @@ O cálculo de visão, luz e walls opera em **coordenadas contínuas de pixel** d
 - **REQ-VIS-025** [MVP] Walls com restrição `limited` (terrain) na dimensão calculada DEVEM permitir que o raio passe por **uma** camada: o sweep conta arestas `limited` cruzadas; ao cruzar a segunda, o raio é bloqueado. Sight e light contam independentemente.
 - **REQ-VIS-026** [MVP] A direcionalidade (`dir`) da wall DEVE ser respeitada no sweep: uma wall que só restringe pelo lado `left` não bloqueia raios que a cruzam pelo lado `right`.
 - **REQ-VIS-027** [MVP] Os polígonos calculados DEVEM ser **cacheados** por fonte e invalidados quando: a origem move; o range/ângulo/modo da fonte muda; qualquer wall dentro do alcance da fonte é criada/movida/removida/alterada (inclui abrir/fechar porta); ou a cena recarrega. Fontes não afetadas por uma mudança NÃO DEVEM recalcular.
-- **REQ-VIS-028** [MVP] O recálculo de visibilidade NÃO DEVE bloquear a thread de UI por mais que o orçamento de frame; quando o custo exceder o orçamento, o cálculo DEVE poder ser feito em um Web Worker (D9), com o resultado aplicado de forma assíncrona.
+- **REQ-VIS-028** [MVP] O recálculo de visibilidade NÃO DEVE bloquear a thread de UI por mais que o orçamento de frame; quando o custo exceder o orçamento, o cálculo DEVE poder ser feito em um Web Worker (DEC-VIS-09), com o resultado aplicado de forma assíncrona.
 - **REQ-VIS-029** [MVP] O teste "o ponto P está em LOS da fonte F" DEVE ser respondível a partir do vision polygon de F (contenção ponto-em-polígono), para uso em detecção de tokens e visibilidade de placeables.
 - **REQ-VIS-030** [MVP] O cálculo DEVE ser robusto a casos degenerados: walls de comprimento zero, walls coincidentes, vértices compartilhados entre terrain walls (não contar duas vezes), e origem exatamente sobre uma wall ou endpoint.
 
@@ -233,7 +233,7 @@ O cálculo de visão, luz e walls opera em **coordenadas contínuas de pixel** d
 - **REQ-VIS-080** [MVP] O fog of war DEVE ter três estados visuais por pixel: **não-explorado** (opaco total, oculta o mapa), **explorado-fora-de-visão** (translúcido/escurecido, mostra o mapa atenuado sem tokens/atualizações ao vivo), **atualmente-visível** (claro, mostra tudo).
 - **REQ-VIS-081** [MVP] A área **atualmente-visível** DEVE ser a união dos vision/light polygons aplicáveis dos tokens do usuário, recalculada quando a visão muda (movimento, porta, luz). Essa máscara é **efêmera** e NÃO é persistida.
 - **REQ-VIS-082** [MVP] A área **explorada** DEVE acumular tudo que já esteve atualmente-visível para aquele usuário naquela cena, mantida como **union de polígonos** (clipper2) e materializada como **textura comprimida**. A exploração só cresce (exceto reset).
-- **REQ-VIS-083** [MVP] A exploração DEVE ser **persistida por par (usuário, cena)** como imagem comprimida (PNG/WebP), com `commit` **throttled** (após N atualizações ou T de inatividade), nunca por frame (D7). O destino físico do arquivo é definido por `03-persistencia-e-mundos.md`; o delta para o servidor trafega por `04-rede-e-sincronizacao.md`.
+- **REQ-VIS-083** [MVP] A exploração DEVE ser **persistida por par (usuário, cena)** como imagem comprimida (PNG/WebP), com `commit` **throttled** (após N atualizações ou T de inatividade), nunca por frame (DEC-VIS-07). O destino físico do arquivo é definido por `03-persistencia-e-mundos.md`; o delta para o servidor trafega por `04-rede-e-sincronizacao.md`.
 - **REQ-VIS-084** [MVP] Ao abrir uma cena, o cliente DEVE carregar a exploração persistida do usuário (se houver) e renderizá-la como estado inicial do fog antes do primeiro cálculo de visão.
 - **REQ-VIS-085** [MVP] Cada cena DEVE ter uma flag **fog habilitado** e uma política de **token vision habilitado**: com fog desabilitado, toda a cena é visível a todos (mapa de "teatro da mente" ou exterior aberto); com token vision habilitado, jogadores são limitados ao que seus tokens veem.
 - **REQ-VIS-086** [MVP] O **GM** DEVE poder **resetar** o fog of war de uma cena: para todos os usuários ou para um usuário específico. O reset DEVE limpar a exploração persistida e a textura, voltando a cena a totalmente não-explorada para o(s) usuário(s) alvo.
@@ -250,9 +250,9 @@ O cálculo de visão, luz e walls opera em **coordenadas contínuas de pixel** d
 
 ## Requisitos não-funcionais
 
-- **REQ-VIS-100** [MVP] O recálculo da máscara de visão completa de uma cena típica do MVP (≤ 500 walls, ≤ 8 tokens com visão, ≤ 20 luzes) ao mover um token DEVE caber no orçamento de um frame a 60 fps (≤ ~16 ms) em hardware baseline, ou ser feito off-thread sem travar a UI (D9).
+- **REQ-VIS-100** [MVP] O recálculo da máscara de visão completa de uma cena típica do MVP (≤ 500 walls, ≤ 8 tokens com visão, ≤ 20 luzes) ao mover um token DEVE caber no orçamento de um frame a 60 fps (≤ ~16 ms) em hardware baseline, ou ser feito off-thread sem travar a UI (DEC-VIS-09).
 - **REQ-VIS-101** [MVP] O algoritmo de visibilidade DEVE ter complexidade O(n log n) no número de walls relevantes por fonte (dominado pela ordenação angular), com poda espacial reduzindo n ao alcance da fonte.
-- **REQ-VIS-102** [MVP] A persistência de fog NÃO DEVE causar mais que um `commit` a cada N atualizações/T segundos (D7), e a serialização da textura NÃO DEVE bloquear a render thread.
+- **REQ-VIS-102** [MVP] A persistência de fog NÃO DEVE causar mais que um `commit` a cada N atualizações/T segundos (DEC-VIS-07), e a serialização da textura NÃO DEVE bloquear a render thread.
 - **REQ-VIS-103** [MVP] O cálculo de visão DEVE ser **determinístico** dado o mesmo conjunto de walls e a mesma origem (mesmo polígono em qualquer cliente), para que a noção de "o que é visível" seja consistente entre o cliente e a validação de colisão do servidor.
 - **REQ-VIS-104** [MVP] O cliente DEVE degradar com elegância em cenas grandes: se o orçamento de frame for excedido repetidamente, PODE reduzir a frequência de recálculo durante o arraste (recalcular no `drop`) sem travar.
 - **REQ-VIS-105** [MVP] A textura de fog persistida DEVE ser comprimida (formato com perdas/lossless adequado) para manter o tamanho por (usuário, cena) modesto; cenas muito grandes PODEM usar resolução de fog reduzida (downscale) sem artefatos perceptíveis.
@@ -487,7 +487,7 @@ para cada detectionMode do observador:
 
 ## Dependências (specs irmãs)
 
-- `01-arquitetura-geral.md` — princípio de não bloquear o event loop (D9: visibility polygon como candidato a worker); cliente PIXI v8 e degradação WebGPU→WebGL.
+- `01-arquitetura-geral.md` — princípio de não bloquear o event loop (DEC-ARQ-09: visibility polygon como candidato a worker); cliente PIXI v8 e degradação WebGPU→WebGL.
 - `02-modelo-de-dados.md` — schema persistido de `Scene`, `Wall`, `AmbientLight`, `Token` (visão/luz) refletindo as interfaces desta spec.
 - `03-persistencia-e-mundos.md` — destino físico da textura de fog (blob no `world.db` vs arquivo no diretório do world) e ciclo de save.
 - `04-rede-e-sincronizacao.md` — transporte dos updates de wall/luz/porta/token (ops de Document), do `FogUpdateDelta` e do `FogResetCommand`; validação de colisão no `token:move`.
@@ -525,7 +525,7 @@ para cada detectionMode do observador:
 
 ## Questões em aberto
 
-- **Q1 — Limiar para Web Worker.** A partir de quantas walls/fontes o cálculo de visibilidade deve migrar para Web Worker (D9)? Requer medição em hardware baseline; cruzar com `01-arquitetura-geral.md` Q5 e `25-testes-e-qualidade.md`.
+- **Q1 — Limiar para Web Worker.** A partir de quantas walls/fontes o cálculo de visibilidade deve migrar para Web Worker (DEC-VIS-09)? Requer medição em hardware baseline; cruzar com `01-arquitetura-geral.md` Q5 e `25-testes-e-qualidade.md`.
 - **Q2 — Onde persistir a textura de fog.** Blob no `world.db` (simples, mas incha o banco e o WAL) vs arquivo por (usuário, cena) no diretório do world (mais leve no banco, mais arquivos a gerenciar). Decidir com `03-persistencia-e-mundos.md`. Afeta também backup/portabilidade do world.
 - **Q3 — Resolução do fog.** Usar resolução 1:1 com a cena ou um downscale (ex.: 1/2, 1/4) para a textura de fog? Downscale economiza memória/tráfego mas pode causar bordas serrilhadas em cenas detalhadas. Medir qualidade vs custo.
 - **Q4 — Sincronização de fog entre clientes do mesmo usuário.** Se um usuário abre a cena em dois dispositivos, o fog deve sincronizar entre eles em tempo real (research 04 §4.3 cita `sync()` experimental)? Provavelmente [V2]; no MVP, o último commit vence.

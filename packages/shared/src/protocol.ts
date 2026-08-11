@@ -32,6 +32,11 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("doc:delete"),
   z.literal("token:move"),
   z.literal("token:preview"),
+  /**
+   * REQ-DOC-034 — "change the actor OF THIS TOKEN". The server decides whether
+   * that lands on the world Actor or on the token's own `actorDelta`.
+   */
+  z.literal("token:updateActor"),
   z.literal("query"),
   z.literal("presence:cursor"),
   z.literal("presence:ping"),
@@ -56,6 +61,8 @@ export const EnvelopeTypeSchema = z.union([
   // M1-D chat handlers
   z.literal("chat:send"),
   z.literal("chat:history"),
+  // Reveal an already-sent private message to the whole table (REQ-CHT-045).
+  z.literal("chat:reveal"),
   // M2-A: vision — walls, lights, door state
   z.literal("wall:create"),
   z.literal("wall:update"),
@@ -262,6 +269,37 @@ export const TokenMovePayloadSchema = z.object({
 });
 
 export type TokenMovePayload = z.infer<typeof TokenMovePayloadSchema>;
+
+/**
+ * token:updateActor — mutate the actor a token plays with (REQ-DOC-034).
+ *
+ * Why this is not just a `doc:update` on the Actor: an unlinked token's actor
+ * has NO `_id` of its own — it is rebuilt in memory from the base Actor plus
+ * `Token.actorDelta` and is never persisted as an Actor row. `doc:update`
+ * addresses documents by id, so there is nothing there to address. This op
+ * names the token instead, and the SERVER decides where the write lands:
+ *
+ *   actorLink === true   → `doc:update` on the world Actor (today's behaviour)
+ *   actorLink === false  → the diff is folded into `Token.actorDelta`, which
+ *                          travels as an embedded Token update on the Scene.
+ *
+ * Both branches are executed by the existing `doc:update` handler, so the
+ * permission gate, the derivation pass, the broadcast and the redaction stay
+ * single-sourced — this op adds a router, not a second write path.
+ */
+export const TokenUpdateActorPayloadSchema = z.object({
+  /** Scene holding the token. */
+  sceneId: z.string(),
+  /** Token whose actor is being mutated. */
+  tokenId: z.string(),
+  /**
+   * Patch over the actor, in the same dot-path-or-nested form `doc:update`
+   * accepts (e.g. `{ "system.attributes.hp.value": 7 }`).
+   */
+  diff: z.record(z.string(), z.unknown()),
+});
+
+export type TokenUpdateActorPayload = z.infer<typeof TokenUpdateActorPayloadSchema>;
 
 // ---------------------------------------------------------------------------
 // Door state payloads

@@ -80,6 +80,9 @@ importers:
       svelte:
         specifier: ^5.0.0
         version: 5.56.3(@typescript-eslint/types@8.61.0)
+      waybuilder-avatar:
+        specifier: github:igoresramos/waybuilder-avatar#b071c8fd10e79f5cc09af897cff9c9753f4dd790
+        version: https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
@@ -321,6 +324,12 @@ importers:
       socket.io-client:
         specifier: ^4.8.3
         version: 4.8.3
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  tools/spec-lint:
+    devDependencies:
       vitest:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
@@ -2766,6 +2775,10 @@ packages:
     resolution: {integrity: sha512-uG9qtQYoHqAsnT711nG5iZc/8M5inSmkGCOp7pFaytKG2aTfIca7p//CjiVzAE4P7hzaYuCozMjNNaLgmhbK5g==}
     engines: {node: ^18||>=20}
     hasBin: true
+
+  waybuilder-avatar@https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790:
+    resolution: {gitHosted: true, integrity: sha512-G/fjG4aHN7seDMar1Ut8CmkIJ0gc91YQm+vc2W2ObZjLLyVFL5qOE5QqDQlKAXtfX4Nzjw2QLwXNqBUqH9gAtg==, tarball: https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790}
+    version: 0.3.0
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -5224,6 +5237,8 @@ snapshots:
   w3c-keyname@2.2.8: {}
 
   watskeburt@4.2.3: {}
+
+  waybuilder-avatar@https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790: {}
 
   which@2.0.2:
     dependencies:

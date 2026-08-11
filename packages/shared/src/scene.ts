@@ -133,6 +133,39 @@ export const TokenBarConfigSchema = z.object({
 export type TokenBarConfig = z.infer<typeof TokenBarConfigSchema>;
 
 // ---------------------------------------------------------------------------
+// TokenDisplayMode — who sees the token's resource bars
+// REQ-CNV-089 / REQ-CNV-031, decided in DEC-CNV-15 (spec 06)
+// ---------------------------------------------------------------------------
+
+/**
+ * The five canonical visibility levels for a token overlay (resource bars
+ * today; nameplate and status icons follow the same ladder — REQ-CNV-031).
+ *
+ * `observer` is the ownership-gated level and it means OBSERVER (2) **or more**
+ * on the token's Actor, never OWNER: reading a companion's HP does not require
+ * the right to edit their sheet. There is deliberately no "owner" level — the
+ * spec prose used to say "dono", which named nothing in this codebase.
+ *
+ * The cut itself is enforced on the SERVER (the Actor never reaches a user who
+ * may not see it — REQ-NET-096); this field only says what the client draws
+ * with data it legitimately holds.
+ */
+export const TokenDisplayModeSchema = z.enum([
+  /** Nobody sees the bars, GM included. */
+  "never",
+  /** OBSERVER+ on the token's Actor (or a privileged role) sees them. */
+  "observer",
+  /** Same cut as `observer`, but only while the pointer hovers the token. */
+  "hoverObserver",
+  /** Anyone sees them while hovering, regardless of ownership. */
+  "hoverAll",
+  /** Anyone sees them at all times, regardless of ownership. */
+  "always",
+]);
+
+export type TokenDisplayMode = z.infer<typeof TokenDisplayModeSchema>;
+
+// ---------------------------------------------------------------------------
 // TokenDocument — embedded in Scene
 // Spec 02 §TokenData, Spec 06 §Tokens
 // REQ-DOC-019: Token is embedded; ownership inherits from actor (REQ-DOC-025)
@@ -164,6 +197,47 @@ export const TokenDocumentSchema = z.object({
    * REQ-DOC-031.
    */
   actorId: z.string().nullable().default(null),
+
+  /**
+   * Does this token SHARE the world Actor, or does it own its own copy of it?
+   * REQ-DOC-031 / REQ-DOC-032 / REQ-DOC-033.
+   *
+   * `true` (linked) — the token IS the Actor. Damage taken by the token is
+   * damage taken by the Actor, and every other linked token of that Actor
+   * shows it. This is what a player character wants: one sheet, one hit-point
+   * pool, however many tokens.
+   *
+   * `false` (unlinked) — the token carries an `actorDelta` and the actor it
+   * plays with is reconstructed from base + delta. This is what six skeletons
+   * out of one "Esqueleto" Actor want: killing the third leaves the other
+   * five untouched.
+   *
+   * The default is `true` because it is the only value that leaves every token
+   * ALREADY PERSISTED behaving exactly as before — those tokens have no such
+   * field, and Zod fills the default on every read. `false` as the default
+   * would silently re-interpret the whole existing world. The GM-facing
+   * default for NEWLY created tokens is a different question, answered at
+   * creation time by REQ-DOC-061.
+   */
+  actorLink: z.boolean().default(true),
+
+  /**
+   * This token's private difference from the base Actor — REQ-DOC-033.
+   *
+   * A merge patch over the Actor's fields (`name`, `img`, `system`, and an
+   * integral replacement of `items`/`effects` when present), never a mini
+   * Actor with its own embedded collections — DEC-DOC-08 rejects Foundry's
+   * `EmbeddedCollectionDelta` explicitly. Shapeless because `system` belongs
+   * to the game system, not to the engine.
+   *
+   * Meaningful only when `actorLink === false`; a linked token's delta is
+   * ignored by `effectiveTokenActor` rather than being an error, so flipping
+   * a token back to unlinked restores what it had.
+   *
+   * Reconstruction lives in `actor-delta.ts` (`applyActorDelta`) — one
+   * implementation for server and client, never two.
+   */
+  actorDelta: z.record(z.string(), z.unknown()).default(() => ({})),
 
   /**
    * Path or URL to the token artwork texture.
@@ -216,16 +290,29 @@ export const TokenDocumentSchema = z.object({
   disposition: DispositionSchema.default(0),
 
   /**
-   * Primary attribute bar (e.g. HP).
+   * Primary attribute bar. Defaults to HP so a freshly placed token already
+   * shows a truthful bar (REQ-CNV-090) — `displayBars` still decides who sees
+   * it. A system that stores HP elsewhere overrides per token via the config.
    * Spec 02 §TokenData.bar1.
    */
-  bar1: TokenBarConfigSchema.default({ attribute: null }),
+  bar1: TokenBarConfigSchema.default({ attribute: "attributes.hp" }),
 
   /**
    * Secondary attribute bar.
    * Spec 02 §TokenData.bar2.
    */
   bar2: TokenBarConfigSchema.default({ attribute: null }),
+
+  /**
+   * Who may see this token's resource bars (REQ-CNV-089, DEC-CNV-15).
+   *
+   * Defaults to `observer`: the party sees each other's HP without the GM
+   * configuring anything, while a monster the players do not observe keeps its
+   * bar to itself. The server is what makes that true — it does not emit the
+   * Actor to a user below LIMITED at all (REQ-NET-096) — so this field is the
+   * display policy, not the security boundary.
+   */
+  displayBars: TokenDisplayModeSchema.default("observer"),
 
   /**
    * Namespaced arbitrary data per namespace.

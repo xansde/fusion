@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.feats-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:05.213Z",
+  "generatedAt": "2026-08-08T21:39:03.121Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -121,6 +121,10 @@
       "sourceHash": "18042cce21f736b70aa8d49a294ec8dc898d76fa",
       "description": "<p><strong>Requisitos</strong> Você empunha uma arma corpo a corpo que causa dano de concussão.</p><hr /><p>Você golpeia a cabeça do seu inimigo com tanta força que seus ouvidos zunem. Faça um Golpe corpo a corpo. Se o Golpe acertar e causar dano, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] até o início do seu próximo turno (ou por 1 minuto em um acerto crítico).</p>"
     },
+    "0s1cjpqOWRBaFK8W": {
+      "name": "Bala Fatal",
+      "sourceHash": "6d830a708164027b29cfcfbf7523bad13bfe821a"
+    },
     "0tD1sxAw2oDjnPKV": {
       "name": "Barricada de Sucata",
       "sourceHash": "bf2b87cc19c71d936e744c3ebece32cee97a7c8d",
@@ -226,10 +230,18 @@
       "sourceHash": "b4842fe06da7ca7bc246a1b56e4fc62bb32fa2aa",
       "description": "<p><strong>Gatilho</strong> Você acerta criticamente um inimigo com um Golpe de arma corpo a corpo ou um ataque desarmado corpo a corpo.</p>\n<hr />\n<p>Com um grito triunfante, você inspira seus aliados. Você conjura um truque de composição que conhece e que normalmente exige uma ação para ser conjurado.</p>"
     },
+    "1SrCG49CEvZqDxxv": {
+      "name": "Tiro de Truque",
+      "sourceHash": "ba6ddb3803be408658e42c047c99702388fca4a1"
+    },
     "1adIXEg9Ywk4OZhL": {
       "name": "Ataque Bimanual",
       "sourceHash": "47f54302600db153896ee82922da7cad660b5875",
       "description": "<p><strong>Requisitos</strong> Você está empunhando uma arma corpo a corpo de uma mão e tem uma mão livre.</p>\n<hr />\n<p>Você move rapidamente sua mão livre para segurar sua arma só o suficiente para adicionar impulso e desferir um golpe mais poderoso contra seu oponente. Faça um Golpe com a arma exigida. Você troca rapidamente sua empunhadura durante o Golpe para realizar o ataque com as duas mãos. Se a arma normalmente não tiver o traço duas mãos, aumente o dado de dano da arma em um passo para esse ataque. Se a arma tiver o traço duas mãos, você ganha o benefício desse traço e um bônus de circunstância no dano igual ao número de dados de dano da arma. Ao concluir o Golpe, você volta a segurar a arma com apenas uma mão. Esta ação não encerra nenhuma postura ou efeito de talento de guerreiro que exija que você tenha uma mão livre.</p>"
+    },
+    "1amXOvHtJAlFnW9e": {
+      "name": "Conjuração Psíquica Mestre",
+      "sourceHash": "8f23bee520491ac049cfb591b3b6f152bcc7b444"
     },
     "1bVaKqJG9g3WPvqS": {
       "name": "Medicina de Combate",
@@ -276,6 +288,10 @@
       "sourceHash": "70365b8cb720ef8c07610d60f65717b7d9595c51",
       "description": "<p>Você adapta uma criatura para viver e se mover na água. Escolha como alvo uma criatura disposta a até 30 pés. Por 10 minutos, ela ganha os efeitos da magia @UUID[Compendium.pf2e.spells-srd.Item.Feet to Fins], consegue respirar água e obtém um bônus de condição +1 à CA e a testes de resistência contra qualquer criatura com o traço anfíbio, aquático ou água. Além disso, seus ataques ignoram os efeitos que a água normalmente tem sobre ataques de concussão e corte. Se você usar Retorno ao Mar novamente, qualquer um existente termina.</p>\n<hr />\n<p><strong>Nível (6º)</strong> Você pode escolher até 5 criaturas dispostas como alvo.</p>"
     },
+    "1vcDab9UwDvYXp4F": {
+      "name": "Presença da Persona Sombria",
+      "sourceHash": "a28012aca3b7ac746c15e628bbf599454a318ca0"
+    },
     "1vyVMmsWAgpqsxd7": {
       "name": "Proficiência em Armadura",
       "sourceHash": "f60c07e2a2cc799134638c3a90c0e80427929e4e",
@@ -296,6 +312,10 @@
       "sourceHash": "aedd82582a8ef65a99f82a1af4d0b29d9346cea5",
       "description": "<p><strong>Gatilho</strong> Seu turno começa, e você está em combate contra uma criatura que você passou pelo menos 10 minutos @UUID[Compendium.pf2e.actionspf2e.Item.Track]{Rastreando}.</p><hr /><p>O tempo que você passou rastreando seu alvo permite que você identifique rapidamente suas fraquezas e as transmita a seus aliados. Tente um teste de @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge]{Rememorar Conhecimento} contra a criatura que você estava Rastreando. Em caso de sucesso, você sempre sabe a maior fraqueza e a maior resistência ou imunidade da criatura, além de qualquer outra informação que o teste normalmente forneceria. Você imediatamente usa uma rápida sequência de gestos com as mãos para sinalizar essa informação a quaisquer aliados que possam te ver.</p>"
     },
+    "23T0U6Pktf6mtjQF": {
+      "name": "Foco de Amplificação",
+      "sourceHash": "21aefc07a1b72da20eea1cbea2b4eb756d9846ee"
+    },
     "26hfmcRpeKxFm9kB": {
       "name": "Exibição Vibrante",
       "sourceHash": "9b377d2c5ea5f680dd49c75f8c1df1f106b02be3",
@@ -315,6 +335,10 @@
       "name": "Aço Sustentador",
       "sourceHash": "b95ff1f38f3d818d07cd93ffcd45ac61e653bae7",
       "description": "<p><strong>Gatilho</strong> Você Conjura uma Magia usando um espaço de magia.</p>\n<p><strong>Requisitos</strong> Você está na postura Cascata Arcana.</p>\n<hr />\n<p>Você puxa magia para sua arma, usando sua substância para transformar a magia em energia restauradora. Você recupera Pontos de Vida iguais ao dobro do nível da magia e faz um teste para terminar qualquer @UUID[Compendium.pf2e.conditionitems.Item.Persistent Damage]{Dano Persistente de Vazio} que você tem.</p>\n<p>Se a magia era da escola de Necromância, qualquer dano persistente de vazio que você tenha termina automaticamente, e você pode mudar o tipo de dano de Cascata Arcana para vitalidade se desejar. (Dano de vitalidade normalmente danifica apenas mortos-vivos ou outras criaturas com @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Void Healing]{Cura de Vazio}.)</p>"
+    },
+    "2BZfrfzMPItlYi5X": {
+      "name": "Desencadeamento Violento",
+      "sourceHash": "85f448d3f163128e57a6344555c839bc6f90857e"
     },
     "2BhmpXX82Lv0kJaB": {
       "name": "Falador de Espíritos",
@@ -445,6 +469,15 @@
       "name": "Debilitações Metódicas",
       "sourceHash": "590b44ae43eb084719f9463fa99d3008ed06670b",
       "description": "<p>Você planeja estrategicamente suas debilitações para reduzir ou anular as vantagens táticas de um inimigo. Adicione as seguintes debilitações à lista que você pode escolher quando usa Golpe Debilitante.</p>\n<ul>\n<li><strong>Debilitação</strong> O alvo não pode flanquear nem contribuir para o flanqueio de aliados. @UUID[Compendium.pf2e.feat-effects.Item.Effect: Methodical Debilitations (Flanking)]</li>\n<li><strong>Debilitação</strong> O alvo não ganha bônus de circunstância na CA por @UUID[Compendium.pf2e.actionspf2e.Item.Raise a Shield]{Erguer um Escudo}, cobertura menor ou cobertura padrão; ganha um bônus de circunstância de +2 na CA apenas por cobertura maior ou @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover]{Buscar Cobertura}. @UUID[Compendium.pf2e.feat-effects.Item.Effect: Methodical Debilitations (Cover)]</li>\n</ul>"
+    },
+    "318COE0WBPK7alLM": {
+      "name": "Dedicação a Psíquico",
+      "sourceHash": "1016a8c15f217aac332e5c55020fc45acacfe34e",
+      "description": "<p>Você sente algo despertar dentro da sua mente. Você se torna treinado em Ocultismo; se já era treinado em Ocultismo, você se torna treinado em uma perícia de sua escolha.</p>\n<p>Você conjura magias como um psíquico e ganha a atividade Conjurar uma Magia; como você não tem a característica de classe mente subconsciente, suas formas de pensamento são intenções simples. Escolha uma mente consciente. Você ganha um repertório de magias com um truque psi padrão de sua escolha, vindo da sua mente consciente, que você conjura como um truque psi.</p>\n<p>Você ganha os benefícios normais desse truque psi, mas nenhum outro benefício da mente consciente. Você é treinado nas estatísticas de modificador de ataque de magia e de CD de magia. Seu atributo-chave de conjuração para magias do arquétipo psíquico é o atributo que você usou para se qualificar para o arquétipo, e elas são magias psíquicas occultas.</p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.vx5FGEG34AxI2dow.JournalEntryPage.ygzv72IJNmjh0SPB]{Psíquico}</p>"
+    },
+    "31jlSOlgcjrGvO6K": {
+      "name": "Estática Mental",
+      "sourceHash": "d05662d198b30a9f955392b0585ac9f2461903d9"
     },
     "35e3dkdQijuPTn7y": {
       "name": "Conexões Criminosas",
@@ -681,6 +714,10 @@
       "sourceHash": "9facdce613602425af3301b073bca8112e5f5582",
       "description": "<p>Você ganha a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Sneak Attack], exceto que ela causa 1d4 de dano, aumentando para 1d6 no 6º nível. Você não aumenta o número de dados conforme sobe de nível.</p>"
     },
+    "4iJTd896JKVBajxM": {
+      "name": "Tiro Ricocheteante",
+      "sourceHash": "abefc86322945a6e62322ad05448d80ac391c086"
+    },
     "4jrUtJuTOCPdGTrb": {
       "name": "Infâmia da Rua das Flores",
       "sourceHash": "1846c2a9f3a32fe296bdb5a0d214f745ef6b42d9",
@@ -835,6 +872,10 @@
       "name": "Compartilhar Fúria",
       "sourceHash": "08e220cbe2b87ae5c1114b6c2c21879e103fcbee",
       "description": "<p><strong>Requisitos</strong> Você não usou essa habilidade desde a última vez que Enfureceu.</p><hr /><p>Você atiça a fúria de um aliado. Enquanto você está enfurecido, uma criatura disposta a até 30 pés ganha os efeitos da ação Fúria, exceto que ela ainda pode usar ações de concentração. Ela não recebe nenhum benefício adicional do seu instinto, talentos ou similares.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Share Rage]</p>"
+    },
+    "5Zxb3HEju3hVRheE": {
+      "name": "Impulso de Pólvora Negra",
+      "sourceHash": "955667169f044db653ea5189259d8c8575a2d389"
     },
     "5jjrwn4zilMWfqOZ": {
       "name": "Ferocidade Orc",
@@ -1016,6 +1057,11 @@
       "sourceHash": "74fadf02dbff55be921dde4bc687ddbb679a6d08",
       "description": "<p>Quando você prepara um bastao, você pode erque-lo junto a uma arma para fundir os dois itens. Você pode mudar a forma do item fundido da arma para o bastao ou vice-versa como uma ação única, que tem o traco concentração. Quando o item esta em forma de bastao, você pode Conjurar as Magias do bastao e se beneficia de qualquer outra capacidade que o bastao concede. O bastao e a arma compartilham suas runas fundamentais, usando qualquer que seja a runa de <em>potência da arma</em> e qualquer que seja a runa de <em>golpe</em> de nível mais alto. Eles não compartilham nenhuma outra runa ou capacidades específicas.</p>\n<p>Você pode Conjurar Magias do bastao como parte de um Golpe Mágico mesmo quando o bastao esta em forma de arma. Caso contrario, você não pode conjurar as magias do bastao enquanto ele esta em forma de arma.</p>\n<p>A fusão dura até suas proximas preparações diarias, embora você possa gastar 10 minutos para separar os dois itens e fundir o bastao em uma arma diferente. A fusão funciona apenas para você. Um portador diferente pode usar o bastao em sua forma atual mas não pode transforma-lo, obter o beneficio das runas compartilhadas, ou usar suas magias para um Golpe Mágico se estiver em forma de arma.</p>"
     },
+    "6rF1ff41CMeEFPMY": {
+      "name": "Artesão de Munições",
+      "sourceHash": "62bb449dbe0994708566a4f9ebe8e43314853d5d",
+      "description": "<p>Balas e bombas podem ser escassas em algumas regiões, então você aprendeu a fabricar as suas. Você se torna treinado em Ofício e ganha os benefícios de alquimia avançada. Você pode usar os benefícios de alquimia avançada para criar um número de consumíveis diários igual a 4 + metade do seu nível (arredondado para cima); esses consumíveis devem ser bombas ou munição alquímica.</p>\n<p>Você ganha um livro de fórmulas que inclui a fórmula da pólvora negra e quatro tipos de 1º nível de munição alquímica ou bombas comuns ou incomuns de sua escolha.</p>\n<p>Ao fabricar munição alquímica, incluindo pólvora negra em doses ou cartuchos, usando alquimia avançada, você cria a munição em lotes de 4 (o que significa que, se você fosse de 4º nível e usasse todos os seus consumíveis de alquimia avançada para criar munição alquímica, poderia criar no máximo 24 cartuchos). Você não pode usar alquimia avançada para Fabricar chifres ou barris de pólvora negra.</p>"
+    },
     "6uH4flAmiLTtEOSX": {
       "name": "Melodia Obsessiva",
       "sourceHash": "68c4958f16d6e3cd36e28e21080a043c6fb29b63",
@@ -1065,6 +1111,10 @@
       "name": "Lâmina Solar",
       "sourceHash": "143c5444c29123564ce829109442d4a68c3de253",
       "description": "<p><strong>Acesso</strong> O talento de classe a seguir está disponível para os Knights of Lastwall.</p>\n<hr />\n<p>Você pode liberar luz solar ardente da sua espada ou lança.</p>\n<p>Você ganha a magia de devoção @UUID[Compendium.pf2e.spells-srd.Item.Sun Blade]. Aumente em 1 o número de Pontos de Foco na sua reserva de foco.</p>"
+    },
+    "7L14TwclEbQB0zUs": {
+      "name": "Tiro Alquímico",
+      "sourceHash": "74ad06e709e07d295bd1bb5a444a5ec25e6afc09"
     },
     "7LaDMFfMPn5jU5bG": {
       "name": "Giro de Cauda",
@@ -1135,6 +1185,10 @@
       "name": "Instrumento da Carnificina",
       "sourceHash": "406b78e8082995c5ecb1463c11779279740387c6",
       "description": "<p>Seu armamento abençoado sede pelo sangue de seus inimigos. Sempre que você acerta criticamente um inimigo com um Golpe que tenha o dano extra da sua reação de campeão, o alvo também sofre dano de sangramento persistente igual a dois dos dados de dano da arma.</p>"
+    },
+    "7eorrQSmKcy5R6r3": {
+      "name": "Estilhaçar o Espaço",
+      "sourceHash": "261181347b7b2f75bb535a1e26102ebbcc8d3023"
     },
     "7jQyOfzQtZPvwhfq": {
       "name": "Investida com Arremesso",
@@ -1271,6 +1325,10 @@
       "sourceHash": "e8002df2d04e3c0487e652432c66e3367e6d264c",
       "description": "<p>Você compreende os fundamentos comuns das quatro tradições de magia e das essências mágicas, o que lhe permite entendê-las todas por uma lente arcana. Sempre que você usa uma ação de perícia ou um talento de perícia que exige um teste de Natureza, Ocultismo ou Religião, dependendo da tradição da magia, você pode usar Arcanismo em vez disso. Se você normalmente sofreria uma penalidade ou teria uma CD mais alta ao usar Arcanismo em outra magia (como ao usar Identificar Magia), você deixa de sofrer isso.</p>"
     },
+    "8VzSEZT1krxsvkkj": {
+      "name": "Golpe de Efeito",
+      "sourceHash": "5edd1826b1e0751e05271e7bdeed1a9fce5f38a4"
+    },
     "8aQZ1Sd1rEvN8W9S": {
       "name": "Ecos na Pedra",
       "sourceHash": "6bfad47ce1c4dc7b0b0cfdbeaa40f4dc9d145958",
@@ -1316,6 +1374,10 @@
       "sourceHash": "1981f45713d548b215a426ad26bfa786a74a3827",
       "description": "<p>Os demônios de Tanglebriar assombram seus sonhos há muito tempo, assim como há muito ameaçam Kyonin. Você não apenas estudou bem esses inimigos demoníacos, como também treinou extensivamente para combater as hordas de demônios que servem a Treerazer, e é particularmente habilidoso em desferir golpes corpo a corpo desesperados contra eles.</p>\n<p>Ao fazer seus preparativos diários, escolha um tipo de demônio, como súcubo, omox, shemhazian ou Treerazer. Pelo restante do dia, na primeira vez que você acertar um desses demônios específicos em uma rodada com um Golpe corpo a corpo, você também causa 1d6 de dano de espírito adicional. No 13º nível, o dano adicional aumenta para 2d6 de dano de espírito adicional, e no 17º nível, o dano adicional aumenta para 3d6 de dano de espírito.</p>"
     },
+    "8sB20yen2WWqWpNw": {
+      "name": "Dreno Cerebral",
+      "sourceHash": "90c02502cafe166a6db4a1d111a9580bd600b75b"
+    },
     "8sLGmuKOpz65yWWf": {
       "name": "Mundos Diferentes",
       "sourceHash": "248f66229ced2b5341f09d156bd1dc3cb9c4f62c",
@@ -1360,6 +1422,10 @@
       "name": "Estratagema Inspirado",
       "sourceHash": "534f4a0046e4351111814922b7df4f9a3dd66e26",
       "description": "<p>Durante suas preparações diárias, você pode revisar estratagemas para as aventuras do dia com até cinco aliados. Mais tarde, você pode aconselhá-los rapidamente sobre seus planos usando a reação @UUID[Compendium.pf2e.actionspf2e.Item.Inspired Stratagem].</p>"
+    },
+    "9H5ofXDRM6aweztF": {
+      "name": "Tiro Final",
+      "sourceHash": "8743813a90320213a00f7517e02bd3709523be73"
     },
     "9NKnDTwT5WFu2U2r": {
       "name": "Improvisação Incrível",
@@ -1526,6 +1592,10 @@
       "sourceHash": "a0eb4821ea20f5178e2a88766cd7f4c006f81085",
       "description": "<p>Você inscreve um círculo de runas arcanas que enfraquecem a magia dos inimigos. Você cria um círculo mágico brilhante em uma @Template[burst|distance:5] dentro de 9 metros. Criaturas dentro do círculo ganham um bônus de condição de +1 aos testes de resistência contra magia. O círculo dura até o fim do seu próximo turno, e você pode Sustentá-lo, até uma duração máxima de 1 minuto.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Spell Protection Array]</p>"
     },
+    "AQdfvuzCXoX5GIbL": {
+      "name": "Mira do Franco-Atirador",
+      "sourceHash": "7b6cf3b017cd0f20f88df23120a310250b0a8e11"
+    },
     "AQmXg8S1Ig58MfYk": {
       "name": "Conhecimento Élfico",
       "sourceHash": "51e9645700b87a058d0c3f962b43925aec85e164",
@@ -1540,6 +1610,10 @@
       "name": "Para-Raios",
       "sourceHash": "f21d3000191ec73656c23d82cd66ccbdbc8acebd",
       "description": "<p>Você crava uma haste de metal no seu inimigo e invoca um raio até ela. Tente uma Explosão Elemental corpo a corpo ou à distância de 2 ações usando o elemento metal. Em um acerto, o alvo sofre @Damage[(floor((@actor.level -6)/6)+1)d12[electricity]] de dano adicional e fica espetado com uma haste de metal, que lhe dá uma penalidade de circunstância –1 à CA e a testes de resistência contra eletricidade; a penalidade é –2 se a criatura também tiver o traço metal, for feita de metal ou estiver vestindo armadura de metal. A criatura pode tentar arrancar a haste usando uma ação de Interagir, mas precisa ter sucesso em um teste de @Check[athletics|dc:10].</p>\n<hr />\n<p><strong>Nível (+6)</strong> O dano de eletricidade aumenta em 1d12.</p>"
+    },
+    "AUB3HT3qhObcjRdE": {
+      "name": "Conjuração de Formapensamento",
+      "sourceHash": "273f02bb1c6b24cdde0c5a8ce40904771fecfdd2"
     },
     "AVTnYqWdhxPpKDst": {
       "name": "Familiaridade com Armas Gnômicas",
@@ -1791,6 +1865,10 @@
       "sourceHash": "2ddfadf2640dae1ad3435702b21287499114a11b",
       "description": "<p>Até as armaduras mais pesadas servem apenas para intensificar sua fúria desenfreada. Você é treinado em armadura pesada. Sempre que você ganhar uma característica de classe de bárbaro que conceda proficiência de perito ou superior em armadura média, você também ganha essa proficiência em armadura pesada. Se você tiver a ação @UUID[Compendium.pf2e.actionspf2e.Item.Quick-Tempered], você pode usá-la enquanto veste armadura pesada.</p>"
     },
+    "BqwuI9oXmcthXXi0": {
+      "name": "Raízes Profundas",
+      "sourceHash": "216a0bdaf6ad1a97ff4376f5519ff5cb7c6a6ff5"
+    },
     "BrZtVdxagnSECeHk": {
       "name": "Hino de Cura",
       "sourceHash": "d99dab94d05897c971b2a476d1a7f313d9454ec0",
@@ -1851,6 +1929,10 @@
       "sourceHash": "9b9b5c74ed9e67d66599d180f08452437c61d60f",
       "description": "<p><strong>Requisitos</strong> Você está na Postura da Ave Aquática e empunha uma arma de monge do grupo espada.</p><hr /><p>Ganhil desenvolveu essa técnica observando os mergulhões de bico afiado pescando nas águas de Prada Hanam, buscando igualar a velocidade e a flexibilidade deles ao clarão elemental de sua lâmina. Faça um Golpe corpo a corpo com a arma exigida contra cada inimigo em uma @Template[type:line|distance:15] enquanto sombras afiadas como navalhas brotam de sua lâmina. Cada ataque conta para sua penalidade por ataque múltiplo, mas você não aumenta sua penalidade até ter feito todos os seus ataques.</p>"
     },
+    "CESIAKTLT9i8qXlp": {
+      "name": "Forçar a Mente",
+      "sourceHash": "1e5f653cb21ce56c6e58ee8870a58e86c68adceb"
+    },
     "CJs0NmWLAQvXuWig": {
       "name": "Bloqueio Agressivo",
       "sourceHash": "d9283933e3e0b34f376097cc835251dd3163a3b5",
@@ -1905,6 +1987,10 @@
       "name": "Assalto Compartilhado",
       "sourceHash": "2296fbbe2a02ac2c24f177e0cd75cab3021d2674",
       "description": "<p>No triunfo da batalha, você pode compartilhar a glória com outro aliado. Quando o aliado que você escolheu para @UUID[Compendium.pf2e.feats-srd.Item.Courageous Assault] obtém sucesso crítico no Golpe concedido por aquela ação, outro aliado afetado pela sua magia de composição @UUID[Compendium.pf2e.spells-srd.Item.Courageous Anthem] pode imediatamente usar uma reação para fazer um Golpe corpo a corpo. Esse efeito não continua para um terceiro aliado, mesmo que o segundo aliado também obtenha sucesso crítico.</p>"
+    },
+    "CkPvnfNOURocUbFj": {
+      "name": "Golpes Psi",
+      "sourceHash": "c096c03ae0acadb1f88769f88a16f007169b89a0"
     },
     "CmimBIE6xfJeBIfM": {
       "name": "Ofício Assinado",
@@ -1981,6 +2067,10 @@
       "sourceHash": "59079ceabcd02aa80668278aa78b1a912d93f096",
       "description": "<p><strong>Gatilho</strong> Uma criatura conjura uma magia que você tem em seu repertório.</p>\n<p><strong>Requisitos</strong> Você tem um espaço de magia não utilizado que poderia usar para conjurar a magia desencadeadora.</p>\n<hr />\n<p>Quando um inimigo Conjura uma Magia que você conhece e você pode ver suas manifestações, você pode usar sua própria magia para contrapô-la. Você gasta um dos seus espaços de magia para contrapor a conjuração da magia desencadeadora do inimigo, magia essa que você tem em seu repertório. Você perde seu espaço de magia como se tivesse conjurado a magia desencadeadora. Em seguida, você tenta anular a magia desencadeadora.</p>\n<p><strong>Especial</strong> Este talento tem o traço correspondente à tradição das magias que você conjura (arcana, divina, natural ou oculta).</p>"
     },
+    "DFWqDLw2SoJSfwED": {
+      "name": "Tiro na Cabeça",
+      "sourceHash": "523ac4a954565369a8b6d17ffc2ab6eea37019a9"
+    },
     "DNDKSTHUtmEXLkbj": {
       "name": "Laje Protetora",
       "sourceHash": "60bbbc5a2673d2855a4e0e0211227ad8b080df8c",
@@ -1991,10 +2081,18 @@
       "sourceHash": "fab5bc1b1a29ec02a8a56eea4b3fdb322254326a",
       "description": "<p>Você pode minimizar as consequências ou a extravagância de seus pedidos usando pura audácia e encanto. Quando você Pede algo, você reduz qualquer aumento de CD por fazer um pedido extravagante em 2, e se você falhar criticamente em seu teste de Pedido, você obtém uma falha em vez disso. Enquanto isso significa que você nunca pode fazer seu alvo reduzir sua atitude em relação a você ao fazer um Pedido, eles eventualmente se cansam de pedidos, mesmo que ainda tenham uma atitude positiva em relação a você.</p>"
     },
+    "DQdpFh4xK4HniKDV": {
+      "name": "Catástrofe Psi",
+      "sourceHash": "a189452b09314454d5664ae4012fb8c36a80c8ab"
+    },
     "DUQw0iv3nVa1bJjH": {
       "name": "Queime Isso!",
       "sourceHash": "b8b67eb3a8ebfc9d1b26b0dc97fea5ff201d87b0",
       "description": "<p>O fogo o fascina. Suas magias e itens alquímicos que causam dano de fogo ganham um bônus de condição no dano igual à metade do grau da magia ou um quarto do nível do item (bônus mínimo +1). Você também ganha um bônus de condição de +1 em qualquer dano de fogo persistente que causar.</p>"
+    },
+    "DUzT6GkmWlwc1A4p": {
+      "name": "Tiro de Advertência",
+      "sourceHash": "df33e7c01d997c0332fb99346a396fd52f9485cd"
     },
     "DVhnsSrtgER7QpLe": {
       "name": "Teimosia Arrogante",
@@ -2005,6 +2103,10 @@
       "name": "Avaliação de Batalha",
       "sourceHash": "024a1a6f5d3c5a1bec35110dbef560bdf4851212",
       "description": "<p>Com observação cuidadosa durante a batalha, você identifica os pontos fortes e fracos de um inimigo. O Mestre faz um teste secreto de Percepção para você contra a CD de Enganação ou Furtividade (a maior das duas) de um inimigo à sua escolha que não esteja ocultado, escondido ou não detectado por você, e que esteja engajado em combate. O Mestre pode aplicar uma penalidade pela distância entre você e o inimigo. O inimigo então fica temporariamente imune à sua Avaliação de Batalha por 1 dia.</p>\n<hr />\n<p><strong>Sucesso crítico</strong> O Mestre escolhe duas das seguintes informações sobre o inimigo para lhe contar: qual das vulnerabilidades do inimigo é a maior, qual dos testes de resistência do inimigo tem o menor modificador, uma imunidade que o inimigo tem, ou qual das resistências do inimigo é a maior. Em caso de empate, o Mestre deve escolher uma aleatoriamente.</p>\n<p><strong>Sucesso</strong> O Mestre escolhe uma informação da lista acima para lhe contar sobre o inimigo.</p>\n<p><strong>Falha crítica</strong> O Mestre lhe dá uma informação falsa (o Mestre inventa a informação).</p>"
+    },
+    "DYDMuoD0ByqnBw43": {
+      "name": "Prontidão Perfeita",
+      "sourceHash": "9db4146edec4ec95b895755f0dd8535f0e691547"
     },
     "DeomZTssCayyny42": {
       "name": "Máscara da Dor",
@@ -2076,6 +2178,10 @@
       "sourceHash": "c834fa0c62a4e6eb4adfd8c3a565a48eebace27a",
       "description": "<p>Você aprende o truque de composição @UUID[Compendium.pf2e.spells-srd.Item.Rallying Anthem], que protege você e seus aliados.</p>"
     },
+    "E18rcnAOII94wgYt": {
+      "name": "Tornar-se Pensamento",
+      "sourceHash": "1087a708d9bae3e3b33722c2abec34967990259b"
+    },
     "E6VPNuYDRgxoBJ4S": {
       "name": "Floração Nobre",
       "sourceHash": "9b26eb73c9e7cc929088a1207138993d5b913052",
@@ -2085,6 +2191,10 @@
       "name": "Conhecimento é Poder (Mago)",
       "sourceHash": "cc461fb4ce97a2ee51d99ddf3efd49fd743f43e1",
       "description": "<p>Seu conhecimento acadêmico sobre uma criatura permite que você altere sutilmente sua magia para derrotá-la. Quando você tem sucesso crítico em um teste de @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge]{Rememorar Conhecimento} sobre uma criatura, você pode invocar seu conhecimento para fazer a criatura sofrer uma penalidade de circunstância de –1 à CA e aos testes de resistência contra o próximo ataque que você fizer contra ela, ou à próxima magia que você conjurar contra a qual ela precise se defender. A criatura sofre a mesma penalidade ao seu ataque ou CD na próxima vez que atacar você ou fizer você tentar um teste de resistência contra um de seus efeitos.</p>\n<p>Se você compartilhar essa informação com seus aliados, eles também ganham os benefícios. Se não for usada, as bonificações terminam após 1 minuto.</p>"
+    },
+    "ECJ4AEBbk7AjazFn": {
+      "name": "Retorno Instantâneo",
+      "sourceHash": "d996ab9ed151530e7eb868ab6e899e590ba2444e"
     },
     "EDTsVYtOwgI42AL0": {
       "name": "Postura da Pétala Retorcida",
@@ -2126,6 +2236,10 @@
       "sourceHash": "c352d053a38f9cac8064256e139da44c269e2190",
       "description": "<p>Você aprimora sua reação exaltada com o benefício listado para sua causa.</p>\n<p><strong>Profanação</strong> Enquanto você tiver o benefício, também ganha um bônus de condição de +2 aos testes de resistência contra efeitos criados por inimigos dentro da sua aura do campeão.</p>\n<p><strong>Grandeza</strong> Qualquer <em>luz reveladora</em> criada pelo seu @UUID[Compendium.pf2e.actionspf2e.Item.Flash of Grandeur] dura 1 minuto.</p>\n<p><strong>Iniquidade</strong> O dano causado a inimigos além das criaturas que acionaram o efeito aumenta em uma quantidade igual aos dados de dano de @UUID[Compendium.pf2e.actionspf2e.Item.Destructive Vengeance] (aplique isso depois de reduzir o dano pela metade).</p>\n<p><strong>Justiça</strong> A penalidade é de –2 em vez de –5.</p>\n<p><strong>Libertação</strong> Você e todos os aliados afetados podem tentar Romper Livre, não apenas o aliado que acionou o efeito.</p>\n<p><strong>Obediência</strong> O dano causado a criaturas além da criatura que acionou o efeito, que se recusam a abandonar @UUID[Compendium.pf2e.conditionitems.Item.Prone], aumenta para metade do dano que a criatura que acionou o efeito sofreria (role o dano apenas uma vez para todas as criaturas afetadas).</p>\n<p><strong>Redenção</strong> A resistência não é reduzida.</p>"
     },
+    "EPTs7OgxkSZ7LqHK": {
+      "name": "Fogo Penetrante",
+      "sourceHash": "601fb4a4683d8a01b15eb586a3409c2926c1477f"
+    },
     "EYbnXG5urqY29YkG": {
       "name": "Acuidade Precavida",
       "sourceHash": "aba93dc7ea9ff389c98be5674b0e775f1dab8d57",
@@ -2135,6 +2249,10 @@
       "name": "Ofício Cooperativo",
       "sourceHash": "dd299e212f0c4864d9405ec6583314cf00e9abc1",
       "description": "<p>Você aprendeu a aproveitar ao máximo trabalhar com outros em seus projetos de ofício, essencial ao trabalhar com as várias guildas de Highhelm. Se um aliado está tentando Auxiliá-lo com seu Ofício, você ignora a penalidade de circunstância –1 se ele rolar uma falha crítica. Se um aliado também possui o talento Ofício Cooperativo, você pode escolher juntar seus recursos e trabalhar no mesmo item juntos; você pode trabalhar com apenas 1 aliado desta forma. Ambos fazem uma verificação de Ofício no mesmo item; se ambos conseguem sucesso, reduza o tempo mínimo para criar o item em 1 dia. Ao determinar o nível do item que você e seu aliado podem criar, usa-se o nível mais alto entre você e seu aliado mais 1. Se tentar Criar um item que tem um nível mais alto que qualquer um de vocês e um de vocês falha, ambas as verificações se tornam falhas críticas em vez disso.</p>"
+    },
+    "EaFjSwxQv8qeFp5s": {
+      "name": "Lenda do Ricochete",
+      "sourceHash": "be0e112d072f5a0bfd2cccf1c6d106d72cd6f94d"
     },
     "EcLw5FwNCH7E81tM": {
       "name": "Cavaleiro Expresso",
@@ -2175,6 +2293,10 @@
       "name": "Fúria Animal",
       "sourceHash": "7000462bb879de033908f0e6db5a831e21071951",
       "description": "<p>Você se transforma em seu animal. Você ganha os efeitos da magia de 3º grau @UUID[Compendium.pf2e.spells-srd.Item.Animal Form], exceto que você usa seus próprios atributos, Pontos de Vida temporários e ataques desarmados em vez dos concedidos pela forma animal. Você também mantém as habilidades constantes do seu equipamento. Se seu animal for um sapo, o alcance da sua língua aumenta para 15 pés. Dispensar a transformação ganha o traço de fúria.</p>"
+    },
+    "Ezt6GhYfGvVsmZLw": {
+      "name": "Passos Sussurrantes",
+      "sourceHash": "8941f59fffd355eb0daafa2890a8933daeb4fa0f"
     },
     "F1gg6HXBFTHHTQ2o": {
       "name": "Companheiro Furtivo",
@@ -2271,6 +2393,10 @@
       "sourceHash": "f312993be4359ca9be583f4d3e20da269943d658",
       "description": "<p>Seu extenso serviço lhe garante certos privilégios divinos. Primeiro, qualquer criatura que você encontrar sabe instintivamente que você fala em nome da sua divindade. Segundo, se você realizar o ritual @UUID[Compendium.pf2e.spells-srd.Item.Commune] para contatar sua divindade, você não precisa pagar nenhum custo, e obtém automaticamente um sucesso crítico. Terceiro, uma vez por dia, você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Interplanar Teleport] como uma magia inata divina, mas apenas para viajar ao reino da sua divindade. Quando conjurada dessa forma, seu tempo de conjuração é de 1 minuto, seu símbolo religioso é uma chave planar suficiente para essa magia, e você aparece exatamente onde deseja estar. Se você estiver no reino da sua divindade por causa dessa magia, pode retornar ao ponto de onde partiu quando a conjurou gastando uma única ação, que tem os traços concentração e divino.</p>"
     },
+    "FgeZdgH6WjgtovLQ": {
+      "name": "Explosão Psi",
+      "sourceHash": "3b4c5b352b15b51611fc3e6fe565e8379b409ed4"
+    },
     "Fh0qCrC7fzOAHzkl": {
       "name": "Defesa Gêmea (Guerreiro)",
       "sourceHash": "111dee9e5e153bd65e2464dd721f2beb54bb344d",
@@ -2305,6 +2431,10 @@
       "name": "Sorte Halfling",
       "sourceHash": "651aeec25d31dacc5d436e4279cb661ca189a43a",
       "description": "<p><strong>Frequência</strong> uma vez por dia</p>\n<p><strong>Gatilho</strong> Você falha em um teste de perícia ou teste de resistência.</p>\n<hr />\n<p>Sua natureza despreocupada faz parecer que o azar te evita, e até certo ponto, isso pode até ser verdade. Você pode rolar novamente o teste que ativou o gatilho, mas precisa usar o novo resultado, mesmo que seja pior.</p>"
+    },
+    "G4GXVfgYj5G9yzek": {
+      "name": "Descoberta Paralela",
+      "sourceHash": "5e2247e1e2a22e9a6841321f770d24a588407434"
     },
     "G6m7o0snYw6SGjGk": {
       "name": "Santificar Armamento",
@@ -2456,6 +2586,10 @@
       "sourceHash": "e616e12e8bcee3c81a1991e892127cafd95a4b42",
       "description": "<p>Você presta muita atenção às pessoas ao seu redor, o que lhe permite perceber com mais facilidade quando elas agem fora do seu comportamento habitual. Você ganha um bônus de circunstância de +2 aos testes de Percepção ao usar a ação básica @UUID[Compendium.pf2e.actionspf2e.Item.Sense Motive] para perceber personagens enfeitiçados ou possuídos. Se você não estiver usando ativamente Avaliar Intenções em um personagem enfeitiçado ou possuído, o Mestre faz um teste secreto, sem seu bônus de circunstância usual, para que você possa, ainda assim, perceber o encantamento ou a possessão.</p>\n<p>Além de usá-la para testes de perícia, você pode usar a ação básica @UUID[Compendium.pf2e.actionspf2e.Item.Aid] para conceder um bônus ao teste de resistência ou outro teste de outra criatura para superar um encantamento ou possessão. Como de costume para Auxiliar, você precisa se preparar usando uma ação no seu turno para encorajar a criatura a lutar contra o efeito.</p>"
     },
+    "HMNSI1zu9djN8Mc4": {
+      "name": "Desenvolvimento Psi",
+      "sourceHash": "731480a6a277c091eecf1d6075f00d29939be67d"
+    },
     "HNf0D1D6quKYzUqn": {
       "name": "Golpe Derrubador",
       "sourceHash": "00869f4d96c0902b4885b6bd3f39ad8748909438",
@@ -2480,6 +2614,14 @@
       "name": "Investidura Incrível",
       "sourceHash": "0c868bdc19ce8a47d8ee558b6026be0f53702865",
       "description": "<p>Você tem uma habilidade incrível de investir mais itens mágicos. Aumente seu limite de itens investidos de 10 para 12.</p>"
+    },
+    "HUW2TmNn8UNV30nW": {
+      "name": "Especialização em Magia Consciente",
+      "sourceHash": "4902e80a3bb4dd2ba66cddb82c4a2dc279d1fd9b"
+    },
+    "HXYVpiZGb4POns2T": {
+      "name": "Dança do Trovão",
+      "sourceHash": "48ed1750d37485a7d537df47a85aaceb81e15959"
     },
     "HaqRFu5acNqOdCrB": {
       "name": "Reconhecimento Rápido",
@@ -2521,6 +2663,10 @@
       "sourceHash": "fa13e0a8c1a3a72e13577df51061b04fcf97a853",
       "description": "<p><strong>Requisitos</strong> Você identificou uma criatura com @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge].</p>\n<hr />\n<p>Seu conhecimento da fisiologia de uma criatura ajuda você a atacar com precisão cirúrgica. Você estuda cuidadosamente uma criatura que identificou para localizar pontos particularmente fracos em seu posicionamento ou forma física. Na próxima vez que causar dano de ataque furtivo à criatura escolhida com um Golpe antes do final do seu turno, adicione 2d6 de dano de precisão adicional.</p>\n<p>No 11º nível, o dano adicional se torna 3d6, e no 17º nível se torna 4d6.</p>"
     },
+    "HhSPGYgptQy4DD97": {
+      "name": "Fuzilaria com Duas Armas",
+      "sourceHash": "08ebe9c939fe54df3e3f098ff17fdd240ccf0ca5"
+    },
     "HhYY8WAw2Wnym9ik": {
       "name": "Veu de Cinzas",
       "sourceHash": "013536926d3774ef235367dfa17c8ffe8a89686b",
@@ -2561,6 +2707,10 @@
       "sourceHash": "fd9af4c2f2bd71b0464caec9e0c3018a9ba0edd2",
       "description": "<p>Você faz um ataque escancarado para aprender sobre seu inimigo. Faça um Golpe corpo a corpo. Em caso de acerto, você pode imediatamente tentar um teste para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] sobre o alvo. Em caso de acerto crítico, você ganha um bônus de circunstância de +2 ao teste de Rememorar Conhecimento. O alvo fica temporariamente imune a Avaliação de Combate por 1 dia.</p>"
     },
+    "Hx84ZKWsHnwIxIYg": {
+      "name": "Venha Para Mim!",
+      "sourceHash": "81e8545de963680cc0113951ccc748b8840c7618"
+    },
     "Hzty3wnRqO6GP6W8": {
       "name": "Mago Ancestral",
       "sourceHash": "9f6109191e5cdb61bf9d2f031db6db96cfccac21",
@@ -2580,6 +2730,10 @@
       "name": "Sintonia Geológica",
       "sourceHash": "1364667eb47ec02ac7d9e1519342197dfaeb93bb",
       "description": "<p>Você se sintoniza com a terra e a pedra ao seu redor, estendendo seus sentidos através delas em ondas concêntricas. Você ganha tremorsentido (impreciso) em sua aura cinética. Uma vez por rodada, você pode @UUID[Compendium.pf2e.actionspf2e.Item.Point Out] uma criatura que consiga perceber com tremorsentido como uma ação livre.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Stance: Geologic Attunement]</p>\n<hr />\n<p><strong>Nível (13º)</strong> O tremorsentido se torna preciso.</p>"
+    },
+    "IA84lfnUD97Z5NK4": {
+      "name": "Impor Ordem (Psíquico)",
+      "sourceHash": "132596a86dc2bcdb6f5557ade5966acfd3de93a8"
     },
     "IB7zZdiEKKQ0wsuA": {
       "name": "Compressão Sinistra",
@@ -2826,6 +2980,10 @@
       "sourceHash": "78cc0e0751e5a1c5df3cfd7f01f843746bf641f5",
       "description": "<p><strong>Frequência</strong> uma vez por dia Quando confrontado com o desconhecido, você pode receber conhecimento além de sua própria experiência via mensagens escritas entregues por sua mão. Você gasta 10 minutos sentado enquanto segura um instrumento de escrita, usando-o para fazer pequenos movimentos circulares enquanto você abre sua mente às forças ao seu redor. Você recebe informação como sua mão escreve por sua própria conta, guiada por espíritos. Ao final destes 10 minutos, @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] com qualquer pericia Conhecimento em que você não está treinado, usando seu modificador de Ocultismo em vez de seu modificador com aquela pericia. A tensão deste canalização de espírito o deixa @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 1} pelos próximos 10 minutos.</p>"
     },
+    "Jrc4zEfFyTiB1Bhu": {
+      "name": "Maquinista de Munições",
+      "sourceHash": "a2204fdba7eb572c392a9d21d12fc85cd60b22a7"
+    },
     "JsYougBg1DGW3O9u": {
       "name": "Rato de Laboratorio",
       "sourceHash": "de012a8a7ae69329793fa75001376d25a099b012",
@@ -2916,6 +3074,10 @@
       "sourceHash": "71ed65a1ee51e8979601864ea20ffd5b23fe5ea6",
       "description": "<p>Você está tão imerso nas escrituras divinas que encontra significado e orientação para qualquer situação em seus textos. Gaste 10 minutos @UUID[Compendium.pf2e.actionspf2e.Item.Decipher Writing]{Decifrando Escrita} nas escrituras religiosas da sua divindade ou filosofia enquanto pensa em um problema ou enigma específico que enfrenta, e então tente um teste de @Check[religion] (CD determinada pelo Mestre). Se tiver sucesso, você desenterra uma passagem, parábola ou aforismo relevante que pode ajudá-lo a seguir em frente ou mudar seu modo de pensar para ajudar a resolver seu enigma.</p>"
     },
+    "KSZ1ym7DL372SufW": {
+      "name": "Tiro Redirecionador",
+      "sourceHash": "5755fcbde1a0702fad1b5ab16408eb331b23f5b7"
+    },
     "KV6JzKucbGMYjST0": {
       "name": "Eu Sombrio",
       "sourceHash": "a0f34e69eab5d7c147eb80de009c316ae8dc3cf4",
@@ -2961,6 +3123,14 @@
       "sourceHash": "c51a128de0a59aa7a0d809c79fceb6d5036fc277",
       "description": "<p><strong>Gatilho</strong> Uma criatura dentro do seu alcance causa dano em você com um ataque corpo a corpo.</p><hr /><p>Ignorando sua dor, você estende a mão e agarra a criatura ou a arma que causou o dano. Tente um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] a criatura que acionou o gatilho ou para @UUID[Compendium.pf2e.actionspf2e.Item.Disarm] a criatura da arma com que ela o feriu.</p>"
     },
+    "Knqsk3XMQAhv3UuM": {
+      "name": "Aparência Onírica",
+      "sourceHash": "738b8ee366b05d353994e67ac1ad350e8cd27166"
+    },
+    "KrUayifTeQ0zBLiV": {
+      "name": "Esquiva do Andarilho",
+      "sourceHash": "c1001ccfefe3c0420b04b3ad4bcf5bb282c85805"
+    },
     "KsfQ2olSohS0NyR5": {
       "name": "Salto do Predador",
       "sourceHash": "654df9b062209597f146d9d65c50a5e509a9f865",
@@ -3000,6 +3170,10 @@
       "name": "Armadilhas Impossíveis",
       "sourceHash": "51d7e2e967785e007baa30533039f0447c89293b",
       "description": "<p>Você pode criar infindáveis armadilhas de vida mais curta, protegendo sua toca ou usando-as contra inimigos.</p>\n<p>Uma vez por minuto, você pode @UUID[Compendium.pf2e.actionspf2e.Item.Craft] uma das armadilhas que preparou para implantação rápida sem gastar a armadilha preparada. Uma vez implantada, essa armadilha dura 10 minutos antes de perder sua eficácia.</p>"
+    },
+    "L7G9e5hXtCnZ7Tgu": {
+      "name": "Sexto Sentido",
+      "sourceHash": "9b201f4f8ba2be652e9329fa4f3a93537a2850d8"
     },
     "LAIolKpbxc7QCd9k": {
       "name": "Truque Sujo",
@@ -3121,6 +3295,10 @@
       "sourceHash": "09e7fb6cb09897aa18a3bbabfc5b7f8df68ce0b9",
       "description": "<p>Você consegue realinhar seu portão cinético com um pensamento. Substitua um dos seus talentos de impulso usando o mesmo processo de Refluir Elementos. Você só pode substituir um, mesmo que tenha Refluxo Duplo.</p>"
     },
+    "M7nzRivbUm0Ara1r": {
+      "name": "Tiro Estilhaçador",
+      "sourceHash": "b3e37a8cc35fbf866ac938a3332f8ffdd671b680"
+    },
     "M8xeH0tnP75X0DFY": {
       "name": "Acupuntor",
       "sourceHash": "9d1b9a321686212d115c85c312bdbe77b9a617a5",
@@ -3201,6 +3379,10 @@
       "sourceHash": "4a6434d1b83a2ad1b713805e1e775a7307d10acf",
       "description": "<p>Anos de experiência entre comunidades ratkin o tornaram agil e você aprendeu a correr e se esconder quando inimigos o ameacam. Você ganha o grau de proficiência treinado em Acrobacia e Furtividade. Se você se tornaria automaticamente treinado em uma dessas pericias (de seu antecedente ou classe, por exemplo), você se torna treinado em uma pericia de sua escolha.</p>\n<p>Você também ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Additional Lore] para Conhecimento Ratkin.</p>"
     },
+    "MmxpcrABZo1pMSvt": {
+      "name": "Tiro Infalível",
+      "sourceHash": "bcd071e38920515d0450dc8eb8dfdf2957173347"
+    },
     "MsvQmiotl7xoz3XQ": {
       "name": "Pisada Quebra-Mundos",
       "sourceHash": "8dcdbd843fe7b0869e47fb4d8c0094d77ce7e3cd",
@@ -3230,6 +3412,10 @@
       "name": "Sacudida Colateral",
       "sourceHash": "071f3eae4744d74cdd2f8eff01dde20da9d17c07",
       "description": "<p>Você bate o inimigo que está sacudindo contra outra pessoa. Quando você usa Sacudida, escolha outro inimigo adjacente ao inimigo @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]. Esse inimigo também sofre seu dano de Sacudida, com um teste de resistência básico de @Check[reflex|against:barbarian|basic] contra sua CD de classe.</p>"
+    },
+    "N9NMFda2SlYZSy5a": {
+      "name": "Borrão Disruptivo",
+      "sourceHash": "e90003b616ae2a3cda70d3c29594304f899fb3b5"
     },
     "N9jPPVI1Eytg4w63": {
       "name": "Tatuagens Arcanas",
@@ -3341,6 +3527,10 @@
       "sourceHash": "ed7b22cbcd8728e6fdca6eec525c0800e99f4a28",
       "description": "<p>Você é hábil em dizer uma coisa enquanto quer dizer outra. Você disfarça seu verdadeiro significado por trás de outras palavras e frases, confiando em ênfase sutil e experiência compartilhada para transmitir um significado que apenas seus aliados entendem.</p>\n<p>Qualquer aliado que tenha viajado ao seu lado por pelo menos 1 semana completa discerne automaticamente seu significado. Outros observadores devem obter sucesso em um teste de Percepção contra sua CD de Enganação para perceber que você está passando uma mensagem secreta, e devem obter sucesso crítico para entender a mensagem em si.</p>"
     },
+    "NoVUvLxPiOeFpWhG": {
+      "name": "Estourar Fechadura",
+      "sourceHash": "09c09c71fc580c3336882754ee76085e3dc7fbb8"
+    },
     "NoxFHHg0acNle12D": {
       "name": "Passo do Guardião",
       "sourceHash": "f3ff8cb9044831c4af247ae4bed18f33091e92e6",
@@ -3365,6 +3555,10 @@
       "name": "Asas da Fúria do Dragão",
       "sourceHash": "0d3fd1fae6aa02b165593f930b66d46024269a94",
       "description": "<p>Suas costas brotam asas de dragão da mesma cor do seu dragão escolhido. Enquanto você está enfurecido, você ganha um Deslocamento de voo igual ao seu Deslocamento terrestre. Se você estiver voando quando sua fúria terminar, você começa a cair, mas sua transformação não reverte até o último instante, então você não sofre dano da queda e pousa em pé. Essa ação ganha o traço da tradição do seu instinto dracônico.</p>"
+    },
+    "NwaJcb4C9vdBDQHZ": {
+      "name": "Rodopio de Pistola",
+      "sourceHash": "7bb3a8f34ebc31b001871281141897a84ce10f44"
     },
     "NxcezTkOQXHG0f3J": {
       "name": "Desafio Até a Morte",
@@ -3411,6 +3605,10 @@
       "sourceHash": "5e2d9523606a0d54dd373be29741e4e01952b7cc",
       "description": "<p>Quando você faz um Golpe com uma arma de arremesso, o incremento de alcance da arma aumenta em 10 pés.</p>"
     },
+    "OGcoCPi6I2dqfVyu": {
+      "name": "Derrubada com Tiro Duplo",
+      "sourceHash": "3da4b0ed1dc3967ef8d4c48fbcd421a767badb11"
+    },
     "OITA5pT11Vy1PXaY": {
       "name": "Convocar o Furacão",
       "sourceHash": "9f636e0a637204baceb331f19139350626b42d0e",
@@ -3450,6 +3648,10 @@
       "name": "Gamtu Glorioso",
       "sourceHash": "7941f10452ac275a1f0e754f5e0e8488a0854d28",
       "description": "<p><strong>Frequência</strong> uma vez por dia</p><hr /><p>Você pode acessar o poder místico que os dokkaebi chamam de chapéu. Você conjura um @UUID[Compendium.pf2e.equipment-srd.Item.Gamtu Hat] mágico, que é um item mágico de Volume leve. O gamtu persiste por 1 hora, e você pode dar o gamtu para outra criatura vestir.</p>"
+    },
+    "OeE6ePnOrvuuS5IS": {
+      "name": "Desafio do Pistolero",
+      "sourceHash": "b917414c8cc09ec55d3a9954fe05d148763caea9"
     },
     "Ofm5SjhGl6d6N5hu": {
       "name": "Vigor Vitorioso",
@@ -3656,6 +3858,14 @@
       "sourceHash": "05e5e1cf925fd9b58e7ea0a9f4b511778f0421e3",
       "description": "<p>Você pode pronunciar e repetir palavras com precisão quase perfeita mesmo que não compreenda seu significado, e você pode escreve-las em um script fonetico que permite que você ou outra criatura com Treinamento Fonetico as leia depois. Mesmo que as palavras estejam em uma linguagem com sons que você não pode pronunciar, você pode transcreve-las fielmente. Memorizar longas sequências de palavras permanece tao difícil quanto normalmente.</p>"
     },
+    "PrkmknFhy68gdxEl": {
+      "name": "Falha Prevista",
+      "sourceHash": "6f6ddc3e1ec6472f0312cb80519d6c54e1f3005d"
+    },
+    "PrzihcCbqCtN8cpI": {
+      "name": "Mente Sobre a Matéria",
+      "sourceHash": "abea20403030553356439eb7ab320585c9c56be3"
+    },
     "Pud7G4OQCa8cQM5v": {
       "name": "Esquiva Compartilhada",
       "sourceHash": "1c6fbd4033a48655dfab84b44d6373dc8e01a4fe",
@@ -3710,6 +3920,10 @@
       "name": "Deslocamento Protegido",
       "sourceHash": "19215629ebc74558f373ccf416e8a97abbc38dca",
       "description": "<p>Quando seu escudo está erguido, os golpes dos seus inimigos não conseguem tocá-lo. Quando você tem seu escudo erguido, você pode Deslocar-se para se mover metade do seu Deslocamento sem provocar reações desencadeadas pelo seu movimento (como Golpes Reativos). Você pode usar Deslocamento Protegido enquanto Voa ou Nada em vez de Deslocar-se, se tiver o tipo de movimento correspondente.</p>"
+    },
+    "QJW7KmuoVYOlQJ6z": {
+      "name": "Firmeza Inabalável",
+      "sourceHash": "6e939c36a1edf36b53b338aee706c6817d9d285f"
     },
     "QKRCOzqv80csm0jn": {
       "name": "Ofício Mágico",
@@ -3851,6 +4065,10 @@
       "sourceHash": "51dc25952304e8be6ed764f7a27ba426ceecae42",
       "description": "<p>Você está tão sintonizado com a terra que consegue invocar um raio de energia do seu entorno. Ao obter este talento, escolha ácido, frio, eletricidade ou fogo. Você pode invocar a terra para conjurar o truque @UUID[Compendium.pf2e.spells-srd.Item.Acid Splash] como magia primal inata à vontade, exceto que a magia tem apenas componentes verbais e causa o tipo de dano que você escolheu em vez de dano de ácido; a magia ganha o traço apropriado ao seu dano em vez do traço ácido. Um truque é elevado a um grau de magia igual à metade do seu nível, arredondado para cima.</p>"
     },
+    "RJBSTnxdsx23Q2bO": {
+      "name": "Tiros Emparelhados",
+      "sourceHash": "b722528ba613c1cdda390faa88392e3ae4d43430"
+    },
     "RMWZqI42a2BHzLzQ": {
       "name": "Ampliar Companheiro",
       "sourceHash": "0398c1c35642448a46ad71d844aaeaa103f71c3e",
@@ -3885,6 +4103,10 @@
       "name": "Rastros Sinistros",
       "sourceHash": "039883c28c51f0afbf51aa5ccc29736722d9d80a",
       "description": "<p>As pegadas que você deixa para trás são estranhas, de alguma forma inquietantes e perturbadoras—elas podem seguir para trás, ou por lugares que ninguém pensaria em atravessar. Você transforma seus rastros em rastros sinistros, movendo-se até metade de sua velocidade de viagem enquanto o faz. Você não precisa tentar um teste de Sobrevivência para alterar seus rastros, mas quem estiver te rastreando deve tentar um teste de resistência de Vontade contra a maior entre sua CD de classe ou CD de magia.</p>\n<p><strong>Sucesso</strong> O rastreador não é afetado.</p>\n<p><strong>Falha</strong> O rastreador fica @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 1} enquanto seguir seus rastros. Essa condição não diminui até que o rastreador pare de te seguir, e retorna se o rastreador retomar o rastreamento de suas pegadas. Se o rastreador entrar em um combate com você após seguir seus rastros, ele começa o combate amedrontado 1.</p>\n<p><strong>Falha Crítica</strong> Como falha, mas seus rastros perturbadores fazem com que o rastreador fique @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 2} em vez disso.</p>"
+    },
+    "RWnPtGKuISZvcx59": {
+      "name": "Crítico Perfurante",
+      "sourceHash": "fba03a88ec5f1aa829353a3f4ef0f20ab7a9c0f8"
     },
     "RefCMhWLO3FXWKIe": {
       "name": "Vingança em Glória",
@@ -3955,6 +4177,10 @@
       "name": "Anotar Composição",
       "sourceHash": "1cc01cb2dd2b39d4f37213373476981b5744bb3b",
       "description": "<p>Ao colocar uma composição no papel, você pode criar uma fonte de palavras ou canções comoventes que outros possam ler e compreender. Você gasta 10 minutos e 1 Ponto de Foco para transcrever uma magia de composição em um pergaminho especial que você ou outra criatura pode ativar depois. Essa magia de composição precisa exigir uma ação para ser conjurada. Se a magia de composição escolhida exigir um teste de Atuação como parte da conjuração, o Mestre rola esse teste como um teste secreto quando você anota sua partitura.</p>\n<p>Se você tiver @UUID[Compendium.pf2e.spells-srd.Item.Fortissimo Composition] ou @UUID[Compendium.pf2e.spells-srd.Item.Lingering Composition], você também pode usar uma dessas magias para modificar a composição anotada, desde que a composição anotada possa se beneficiar da modificação. O Mestre rola o teste secreto de Atuação. Se você fizer isso, gasta um Ponto de Foco adicional, mesmo que o teste secreto falhe.</p>\n<p>Qualquer criatura que consiga ler o idioma que você usou ao anotar sua composição pode Ativar o Item gastando uma única ação, que tem o traço concentração. Isso produz os efeitos da composição como se a criatura que a ativou tivesse Conjurado a Magia.</p>\n<p>Uma composição que você cria dessa forma perde seu poder na próxima vez que você fizer seus preparativos diários. Enquanto a composição estiver em sua posse, você pode torná-la inerte usando uma única ação que tem o traço concentração. Você não pode recuperar os Pontos de Foco que gastou para criar a composição anotada até que ela seja ativada ou perca sua magia.</p>"
+    },
+    "S5dRf9n1AYrDfb2G": {
+      "name": "Psique Gêmea",
+      "sourceHash": "62a6619227a7a64146c882eb3e34556e43205eb3"
     },
     "SBgajJPgelDkyE57": {
       "name": "Inspeciona Vida Selvagem",
@@ -4121,6 +4347,10 @@
       "sourceHash": "4f3beaf4e7eb7565ec99b94993bb6654b6cea291",
       "description": "<p>Seu domínio tem uma conexão única com os dragões. Você ganha um bônus de circunstância de +2 quando tenta Causar Boa Impressão em uma criatura com o traço dragão. Você ganha acesso ao animal de companhia Riding Drake.</p>"
     },
+    "TAYXl0NtS0xxbN66": {
+      "name": "Recarga Ostentosa",
+      "sourceHash": "578ec3fe8ee1617ca8d8618db3cf08c7c1db92f7"
+    },
     "TAzXGDK5JuQK3yYb": {
       "name": "Foco Crescente",
       "sourceHash": "1491b6385ebe70f93dadbaa861480270af24487b",
@@ -4145,6 +4375,14 @@
       "name": "Visão Adaptativa",
       "sourceHash": "ce5f53f2847ad97c5bd1dc3e81d22d6398f6dbaa",
       "description": "<p><strong>Acesso</strong> Você é de Dongun Hold ou Alkenstar.</p><hr /><p>Depois de anos usando armas de pólvora negra em espaços mal iluminados, você se acostumou com clarões ofuscantes de luz e mudanças repentinas de iluminação. Você ganha um bônus de circunstância de +1 em testes de resistência contra efeitos visuais. Se você tira um sucesso em um teste de resistência contra um efeito visual, obtém um sucesso crítico em vez disso.</p>"
+    },
+    "TJQswSTaKwJx8jfB": {
+      "name": "Recarga com Duas Armas",
+      "sourceHash": "369c4c89438c8896a93bcf29b08292f45bf2fb62"
+    },
+    "TK4CAH3ZVQ1IkJw8": {
+      "name": "Bálsamo Mental",
+      "sourceHash": "83d7804c6917acae560852110fbb031c807899ca"
     },
     "TL7wvAflQmkk7ToZ": {
       "name": "Um Lar em Cada Porto",
@@ -4441,6 +4679,14 @@
       "sourceHash": "6d8b095dec0e71b6fce5bce5719e11cb77f0f6ea",
       "description": "<p>Você é tão em casa nas copas das árvores quanto você é sob seus ramos. Você ganha uma Velocidade de escalada de 15 pés quando se move através de árvores, videiras e outra folhagem. Sempre que você tem sucesso em um teste de Atletismo para Escalar uma árvore ou um teste de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Balance] em um ramo, você tem um sucesso crítico em vez disso. Você não está @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] enquanto Escalando ou Equilibrando em uma árvore.</p>"
     },
+    "V7ONt90qFvhRoLDD": {
+      "name": "Blitz da Lâmina-Gatilho",
+      "sourceHash": "b65fdf3512edce4bd62445167d7ba767192c1cf1"
+    },
+    "V7lGtJpErAKkhkZ3": {
+      "name": "Sangue no Ar",
+      "sourceHash": "ae1e8c83d207d0003adf6dfb62cb42b2a0f6fe60"
+    },
     "VAEBIkFsQ98DM2fG": {
       "name": "Alcance sem Esforço",
       "sourceHash": "c5aca06eb8a8959fcd4cc30c8e5edd82d5c36158",
@@ -4495,6 +4741,10 @@
       "name": "Furtividade na Floresta",
       "sourceHash": "40c9ad1bb9f5b175c005bd56b02ae71c0cf8f08a",
       "description": "<p><strong>Requisitos</strong> Você está em um ambiente de floresta ou selva perto de um elemento do ambiente que permitiria você Se Abrigar.</p>\n<hr />\n<p>Você é habilidoso em se esconder rapidamente atrás de vegetação rasteira ou folhagem. Você usa @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover] e então usa essa cobertura para @UUID[Compendium.pf2e.actionspf2e.Item.Hide].</p>"
+    },
+    "VSrWjSjFtYaOm9ak": {
+      "name": "Cauterizar",
+      "sourceHash": "77dc55076224798dd896e00274f72470b8a89977"
     },
     "VUNFLh0QFToOgVlt": {
       "name": "Salto de Vida",
@@ -4681,6 +4931,14 @@
       "sourceHash": "237bb4ef59de8f61c7e90ca88552b42c330f813b",
       "description": "<p>Você consegue preparar duas magias em um espaço, dando-lhe a liberdade de escolher a magia ao conjurá-la. Ao preparar suas magias para o dia, você pode escolher um espaço de magia pelo menos 1 grau menor que a magia de maior grau que consegue conjurar e preparar duas magias nesse espaço. Ao Conjurar uma Magia desse espaço, escolha qual magia conjurar. Uma vez escolhida, a magia não usada se dissipa como se você não a tivesse preparado—por exemplo, ela não fica disponível para uso com @UUID[Compendium.pf2e.actionspf2e.Item.Drain Bonded Item].</p>"
     },
+    "Wsxo8cQdOwRGic4Q": {
+      "name": "Conjuração Psíquica Básica",
+      "sourceHash": "6198da3838dc0b554525dd471fe27d3cab51644e"
+    },
+    "WtR2OK0gNc20Hw6A": {
+      "name": "Ferimento Superficial",
+      "sourceHash": "68e7d581e6f56ce4a1f478bb3a488fc527614aa4"
+    },
     "WuG7TBQ7qJPUSeJH": {
       "name": "Abertura Instantânea",
       "sourceHash": "6968498fe333e9c0d0b3588bf4546d5eba35433c",
@@ -4740,6 +4998,10 @@
       "name": "Vínculo de Quah",
       "sourceHash": "d972b6894fee211bc46ccee9c399fc2767134b2d",
       "description": "<p><strong>Acesso</strong> etnia shoanti</p>\n<hr />\n<p>Você cresceu entre as tribos shoanti, com os espíritos zelando por você, e eles oferecem sua orientação. Você ganha o grau de proficiência treinado na perícia listada para seu quah (ou outra perícia à sua escolha, se você já for treinado nessa perícia). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Assurance] nessa perícia, à medida que a ajuda dos espíritos guia suas ações.</p>\n<ul>\n<li>Lyrune-Quah: Religião</li>\n<li>Shadde-Quah: Atletismo</li>\n<li>Shriikirri-Quah: Natureza</li>\n<li>Shundar-Quah: Diplomacia</li>\n<li>Sklar-Quah: Intimidação</li>\n<li>Skoan-Quah: Medicina</li>\n<li>Tamiir-Quah: Acrobacia</li>\n</ul>"
+    },
+    "X9Ka14cYVfzJCAxa": {
+      "name": "Divisão de Bala",
+      "sourceHash": "d7965bf7d15ec4a89d3ccdc65695c5c9f595a262"
     },
     "XDJiA6uOOFdhtpvn": {
       "name": "Familiar Aprimorado",
@@ -4966,6 +5228,10 @@
       "sourceHash": "318be95cedfa9138a786a5537af6944b5ebe7e94",
       "description": "<p><strong>Gatilho</strong> Você tenta um teste de resistência contra uma magia, mas ainda não rolou.</p><hr /><p>Você invoca a graça de sua divindade, ganhando um bônus de circunstância de +2 ao teste de resistência.</p>"
     },
+    "YMtPwmKfxf3mF8fA": {
+      "name": "Reflexos do Pistoleiro",
+      "sourceHash": "c851b813c7cf17d85c3e782c2fa6a32802dc7385"
+    },
     "YNxh8IzFiezU9s38": {
       "name": "Tiro Abençoado pela Forja",
       "sourceHash": "a622007cc0af277cbabf70798ff6025ee948bed1",
@@ -4986,6 +5252,10 @@
       "sourceHash": "c1da4439e6d2552dbaf4fc751c1e4fbe4ef3b369",
       "description": "<p>Sempre que você ganha uma característica de classe que concede proficiência de perito ou superior em certas armas, você também ganha essa proficiência em @UUID[Compendium.pf2e.equipment-srd.Item.Falchion]{Falchions}, @UUID[Compendium.pf2e.equipment-srd.Item.Ranseur]{Ranseurs}, @UUID[Compendium.pf2e.equipment-srd.Item.Scimitar]{Scimitars}, @UUID[Compendium.pf2e.equipment-srd.Item.Trident]{Tridentes} e todas as armas de geniekin nas quais você é treinado.</p>"
     },
+    "YV0r9ixnZGL4oSvb": {
+      "name": "Salva da Lâmina-Gatilho",
+      "sourceHash": "6121faced7ade7af1c497b1284c8ac0178708ae3"
+    },
     "YVW5SCqOScF4neGK": {
       "name": "Escudo do Ajuste de Contas",
       "sourceHash": "47f8e1a8637e40a48a783b58311c63557a0aaf61",
@@ -5000,6 +5270,10 @@
       "name": "Inflamar Multidão",
       "sourceHash": "710283fcb75618dd09c2b7089f9e57ae49e7fa83",
       "description": "<p>Suas apresentações são um chamado à ação para as multidões que o ouvem. Por 1 hora após você obter sucesso em @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] usando Atuação, você pode fazer um Pedido de um membro da audiência afetada usando [[/act make-an-impression skill=performance]]{Atuação} em vez de Diplomacia.</p>"
+    },
+    "Yfp2VEF3KiXq3x1c": {
+      "name": "Quebrador de Falange",
+      "sourceHash": "f75ddf55d3409b030922706dcc501e4bddafdbdc"
     },
     "Yh4wWxS9pP5UFp9Q": {
       "name": "Extra Elástico",
@@ -5076,6 +5350,10 @@
       "sourceHash": "5f10dfa7886e37c2a283191731aac023974ff20d",
       "description": "<p>Sobreviver em terrenos hostis lhe deu um grande talento para mobilidade. Sempre que você rolar um sucesso em um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Climb] ou @UUID[Compendium.pf2e.actionspf2e.Item.Swim], você obtém um sucesso crítico em vez disso.</p>"
     },
+    "Z7qQb85Jc6HpQrXE": {
+      "name": "Tiro Certeiro de Besta",
+      "sourceHash": "cac231c1df9c7cf0c448697c4b3d150c55248add"
+    },
     "Z81pQUNCHWnfC6FA": {
       "name": "Salto Fantástico",
       "sourceHash": "b57fe74f335cf1919c72a26c5525b7830887e011",
@@ -5100,6 +5378,10 @@
       "name": "Espírito Sem Idade",
       "sourceHash": "5765abe73cdcfd179f6e2a90534689f9a72675ae",
       "description": "<p>Você se lembra mais de suas encarnações anteriores do que a maioria dos leshys. Durante suas preparações diárias, você pode meditar sobre memórias fragmentadas de suas vidas passadas para ganhar o grau de proficiência treinado em uma perícia à sua escolha. Essa proficiência dura até você se preparar novamente. Como essa proficiência é temporária, você não pode usá-la como pré-requisito para um aumento de perícia ou uma opção permanente de personagem, como um talento.</p>"
+    },
+    "ZEkMF4A8OICRUvmJ": {
+      "name": "Mente Ancestral",
+      "sourceHash": "55a40dcd6fd645f720c6f5666cf360fb0fffc012"
     },
     "ZEx4EhsZsdUku30Z": {
       "name": "Percepção Verdadeira",
@@ -5191,6 +5473,10 @@
       "sourceHash": "e52a4a7f55c018603e6d669c9675016e79c504ab",
       "description": "<p><strong>Acesso</strong> Origem de Tian Xia</p>\n<p><strong>Requisitos</strong> Você foi o recipiente de medicina elemental (veja @UUID[Compendium.pf2e.feats-srd.Item.Prepare Elemental Medicine]) durante suas últimas preparações diárias.</p><hr /><p>Você consome a medicina elemental em seu corpo para potencializar seus ataques, embora não possa consumir mais medicina elemental até o dia seguinte. Enquanto estiver na Postura de Elemento Intensificado, seus golpes e magias de dano causam 1d6 de dano adicional contra certas criaturas, dependendo do tipo de medicina elemental que você consumiu. Se a pessoa que preparou a medicina elemental consumida for lendária na pericia que usou, aumente esse dano para 2d6.</p><ul><li><strong>Terra</strong> dano ácido contra criaturas de água</li><li><strong>Fogo</strong> dano de fogo contra criaturas de metal e constructos que sejam primariamente metálicos</li><li><strong>Metal</strong> dano elétrico contra criaturas de madeira ou planta e constructos primariamente feitos de madeira ou matéria vegetal</li><li><strong>Água</strong> dano sônico contra criaturas de fogo</li><li><strong>Madeira</strong> dano de frio contra criaturas de terra e constructos que sejam primariamente feitos de rocha ou terra</li></ul>"
     },
+    "Zvg5htnNMux6fxui": {
+      "name": "Reserva Instantânea",
+      "sourceHash": "d66db63e0558a128e2702d87dcece407984474b1"
+    },
     "ZxMTOhkUAQnv2HlK": {
       "name": "Medite Nisso!",
       "sourceHash": "403f684a9a8e404392eec1e5a37ae4c340942700",
@@ -5206,10 +5492,18 @@
       "sourceHash": "5762bab86cd9b23c3e90df2b7dd0c81f885c095b",
       "description": "<p>Você esta confortavel e socialmente capaz em quase qualquer contexto cultural. Quando você usa a pericia de Sociedade para Subsistir, se você rola uma falha crítica, você tem uma falha em vez disso; se você rola um sucesso, você tem um sucesso crítico em vez disso; e se você rola um sucesso crítico, você pode prover para outra criatura adicional. Além disso, quando você tenta uma verificação de Sociedade para Rememorar Conhecimento sobre práticas culturais e rola uma falha crítica, você tem uma falha em vez disso.</p>"
     },
+    "a2CMddYoMBa0vwBK": {
+      "name": "Tudo na Sua Cabeça",
+      "sourceHash": "e4b56fddd6782e9ff62f9dbe24d1761bfac7afda"
+    },
     "a2CvgtCiwaN9SgV9": {
       "name": "Reabastecimento da Guerra",
       "sourceHash": "1132977ec1306a05ca441a62b1ffed92d30c9f36",
       "description": "<p>Atacar seus inimigos atrai o louvor e a proteção da sua divindade. Quando você causa dano a uma criatura com um Golpe usando a arma favorita da sua divindade, você ganha uma quantidade de Pontos de Vida temporários igual à metade do seu nível, ou igual ao seu nível se o Golpe foi um acerto crítico. Esses Pontos de Vida temporários duram até o início do seu próximo turno.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Replenishment of War]</p>"
+    },
+    "a4IBshFlrm1iJNAy": {
+      "name": "Alcançar as Estrelas",
+      "sourceHash": "ef04a5859238098db9015febb5c62b4649f18c6e"
     },
     "a4W53qvJnsae9ezk": {
       "name": "Chuva de Navalhas",
@@ -5266,10 +5560,18 @@
       "sourceHash": "ad02ee07106390042adad865de63a0495f761ff3",
       "description": "<p>Nuvens de tempestade escuras rodopiam em uma tormenta em miniatura, cruzadas por raios; um estrondo tremendo enche o ar. A tempestade surge em uma @Template[burst|distance:20] a até 60 pés. Cada criatura na área sofre @Damage[(floor((@actor.level -8)/3)+3)d12[electricity],1d10[sonic]|options:area-damage] de dano, com um teste de resistência básico de @Check[reflex|against:kineticist|basic|options:area-effect] contra sua CD de classe. Uma criatura que falha no teste fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] até o fim do seu próximo turno (ou por 1 minuto numa falha crítica). Uma criatura vestindo armadura de metal ou feita de metal sofre uma penalidade de circunstância de -1 no teste.</p>\n<hr />\n<p><strong>Nível (+3)</strong> O dano de eletricidade aumenta em 1d12.</p>"
     },
+    "aIvQkRJVhEIfhLCH": {
+      "name": "Detonação Cranial",
+      "sourceHash": "3c4cae1bd5b6c22a2440b3e9b90d31921e57a473"
+    },
     "aKBU1bnJVR2tq8SK": {
       "name": "Pedras de Passagem",
       "sourceHash": "ba9a2adeda3a0f4ead8eb8d9fcd358f18e251bfb",
       "description": "<p>Discos de rocha voam até pontos que você designa para formar um novo caminho. Você pode posicioná-los horizontalmente para criar um caminho sobre o solo ou sobre um líquido, ou ancorá-los em uma superfície vertical para criar degraus. O caminho pode ter até 20 pés (4 quadrados) de comprimento, e os degraus podem se estender até 10 pés pela lateral da superfície. Todos os quadrados devem ser contíguos e estar a até 60 pés de você. Mover-se pelo caminho permite que uma criatura ignore terreno difícil e terreno perigoso vindo do solo abaixo dele. Os discos duram até o final do seu próximo turno, mas você pode Sustentar o impulso.</p>\n<hr />\n<p><strong>Nível (+2)</strong> Aumente o comprimento do caminho em 10 pés ou a altura dos degraus em 5 pés, e aumente a distância máxima que um quadrado pode estar de você em 10 pés.</p>"
+    },
+    "aLI1rGKGBcFowl9o": {
+      "name": "Não!!!",
+      "sourceHash": "4cf489e0a9e1f7f9f8baf85a1ebc37e72c37937d"
     },
     "aN5m46Qgt49K2PeA": {
       "name": "Fonte Versátil",
@@ -5285,6 +5587,10 @@
       "name": "Corte Duplo",
       "sourceHash": "02db95a3248d85e131c4526ef8530c29c02a0ad7",
       "description": "<p><strong>Requisitos</strong> Você está empunhando duas armas corpo a corpo, cada uma em uma mão diferente.</p>\n<hr />\n<p>Você ataca seu inimigo com as duas armas. Faça dois Golpes, um com cada uma das suas duas armas corpo a corpo, cada um usando sua penalidade por ataque múltiplo atual. Ambos os Golpes devem ter o mesmo alvo. Se o segundo Golpe for feito com uma arma que não tenha o traço ágil, ele sofre uma penalidade de –2.</p>\n<p>Se ambos os ataques acertarem, combine seus danos e depois adicione quaisquer outros efeitos aplicáveis de ambas as armas. Você adiciona qualquer dano de precisão apenas uma vez, ao ataque de sua escolha. Combine o dano dos dois Golpes e aplique resistências e vulnerabilidades apenas uma vez. Isso conta como dois ataques para calcular sua penalidade por ataque múltiplo.</p>"
+    },
+    "aaQZsYH9LTheLj7T": {
+      "name": "Levitação Constante",
+      "sourceHash": "b2978d5dbfc195906d2a5ba0b23dbdeff4e97a3a"
     },
     "afJg8tRX7YXTvs9D": {
       "name": "Polímata Supremo",
@@ -5411,6 +5717,10 @@
       "sourceHash": "68f1546b4d145489d9543cafbfe9a2dc19445be9",
       "description": "<p>Stella Fane aperfeiçoou uma técnica de usar cartas de baralho como armas, que é parte destreza manual e parte magia.</p>\n<p>Ao entrar nessa postura, escolha se trata as cartas de baralho em sua posse como adagas ou dardos; você pode empunhar uma carta de baralho em todos os aspectos como a arma escolhida até o fim da postura. Enquanto a maioria do baralho permanecer em sua posse, quaisquer cartas perdidas ou arremessadas podem ser encontradas após 1 minuto. Caso contrário, as cartas restantes provavelmente estão perdidas ou destruídas.</p>\n<p>Um personagem que possui este talento pode encantar um único baralho de cartas como uma arma mágica, gravando runas fundamentais e de propriedade diretamente no baralho.</p>"
     },
+    "bXcGOKYOuYVgXqVM": {
+      "name": "Finta",
+      "sourceHash": "3e2e0df9ac6e46503f6c925543efc9c31548a859"
+    },
     "bXzaWLJMdjEdraC4": {
       "name": "Mestre do Terreno",
       "sourceHash": "120bb2f8e43d0a954a58701e02aafa283b9cdfd7",
@@ -5450,6 +5760,10 @@
       "name": "Surpresa do Vigarista",
       "sourceHash": "61943b73f4db69a4cc4bacd8dea896b10e2ea50e",
       "description": "<p>Você abandona seu disfarce no momento certo e surpreende seu alvo. Depois de @UUID[Compendium.pf2e.actionspf2e.Item.Impersonate] outra pessoa usando um kit de disfarce, você pode remover seu disfarce com um gesto dramático. Quaisquer criaturas que anteriormente não conseguiram ver através do seu disfarce ficam @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] contra o próximo ataque que você fizer antes do final do seu turno.</p>"
+    },
+    "bndyxzXRLblq1MkP": {
+      "name": "Atirador Avançado",
+      "sourceHash": "aef7eed5f525d0f65b1b6f3a896e35385fe12e53"
     },
     "bppljUoJYJzYlDaA": {
       "name": "Evolução Oculta",
@@ -5641,10 +5955,18 @@
       "sourceHash": "8c52148f13becc29dedd78bfc9f49fe88253bc2b",
       "description": "<p>Sua mente funciona em um ritmo incrível. Você usa instantaneamente até cinco ações de Rememorar Conhecimento. Se você tiver habilidades especiais ou ações livres que normalmente seriam ativadas quando usa @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge], você não pode usá-las para essas ações.</p>"
     },
+    "cuownBSFWO2Rmfa4": {
+      "name": "Gatilho Sensível",
+      "sourceHash": "bbb771005a0e48463be7f3b058cfba06e15e9e1b"
+    },
     "cvg7lHYAzRYHzFcg": {
       "name": "Esmagamento Brutal",
       "sourceHash": "1d5ec72109c8d28670a0c064051140ff7f88e0b5",
       "description": "<p><strong>Requisitos</strong> Sua última ação causou dano de concussão usando um Golpe desarmado concedido por um efeito de metamorfose ou transmutação.</p>\n<hr />\n<p>Você aprendeu a nublar a mente de seus inimigos com o impacto brutal de seus ataques repetidos. Faça um Golpe desarmado contra o mesmo alvo. Se o Golpe acertar e causar dano de concussão, o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 2} por 1 rodada (@UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 3} em um acerto crítico).</p>"
+    },
+    "cxy1j3V49XU73ALO": {
+      "name": "Dedicação de Tiro Mágico",
+      "sourceHash": "f2e81e86ce8bcf48a084f956eb447bbe7b43e0ce"
     },
     "czrafodwDK3z6LCH": {
       "name": "Familiar Ratkin",
@@ -5776,6 +6098,10 @@
       "sourceHash": "01e725cbeef8bfb4d02db2832da87fc42917ad43",
       "description": "<p>As transgressões dos seus inimigos o impulsionam a retaliar com velocidade divina. Quando um inimigo aciona sua reação de campeão, você fica @UUID[Compendium.pf2e.conditionitems.Item.Quickened] em seu próximo turno. Você pode usar a ação extra para se aproximar desse inimigo ou para Golpear esse inimigo.</p>"
     },
+    "e9cXFVSI68AtNC4k": {
+      "name": "Remover Presença",
+      "sourceHash": "fcce7004df84e27d5fda258ba85eb708ec34a3f9"
+    },
     "eEI1WnmIW5gx7yHR": {
       "name": "Envergonhar o Pecado",
       "sourceHash": "fe65f96d405184cba73a049908c88bed4c50cc3a",
@@ -5830,6 +6156,10 @@
       "name": "Inventor",
       "sourceHash": "49928cfe9fee0dd5b901d0b7818cba78e9976b75",
       "description": "<p>Você é um gênio em Ofício, capaz de determinar facilmente como as coisas são feitas e criar novas invenções. Você pode gastar tempo livre para inventar uma fórmula comum que não conhece. Isso funciona exatamente como a atividade Ofício: você gasta metade do Preço da fórmula adiantado, tenta uma rolagem de Ofício, e em um sucesso ou termina a fórmula pagando a diferença ou trabalha mais para diminuir o Preço. A diferença é que você gasta o tempo adicional em pesquisa, design e desenvolvimento, em vez de criar um item. Assim que estiver completo, você adiciona a nova fórmula que inventou ao seu livro de fórmulas.</p>\n<p>O mestre pode permitir que você invente fórmulas incomuns ou raras, tipicamente com uma CD aumentada. Você precisa do talento Ofício Alquímico para inventar fórmulas alquímicas e do talento Ofício Mágico para inventar fórmulas mágicas.</p>"
+    },
+    "eohmUWXRVU1BUYRM": {
+      "name": "Espada e Pistola",
+      "sourceHash": "f2b08e42309d43aad57da908accbae28d58e7dc8"
     },
     "epQo2wYvkcnH4Xew": {
       "name": "Exibição Ofuscante",
@@ -5891,6 +6221,10 @@
       "sourceHash": "514102b83286695a52129803f573a0299a86d64c",
       "description": "<p>Você combinou duas posturas em uma única postura só sua. Ao escolher este talento, selecione duas posturas que você conhece e combine-as em uma única postura fundida. Dê à sua nova postura fundida um nome exclusivo. Ao entrar na sua postura fundida, você ganha todos os efeitos de ambas as posturas, incluindo os requisitos e as restrições.</p>\n<p>Se ambas as posturas concederem ataques especiais, você ganha todos esses ataques. Se uma postura restringir você a um ataque específico (como a Postura da Garça), você precisa obedecer a essa restrição. Se as posturas fundidas tiverem restrições incompatíveis, o mestre determina quais se aplicam, ou determina que você não pode fundir essas posturas.</p>"
     },
+    "fDdpOaGJji9m8vl9": {
+      "name": "Coragem e Tenacidade",
+      "sourceHash": "7da3a677c805bf00a9ed23255c82abec66d16ce5"
+    },
     "fEfasFpwgFdNh62z": {
       "name": "Repercussões de Ferro",
       "sourceHash": "0b1fd42fcba791c44283f19b716b89d29370b244",
@@ -5900,6 +6234,10 @@
       "name": "Fim Brutal",
       "sourceHash": "50807e4b247b6a2d1fdb211d68083a8bcb20db97",
       "description": "<p><strong>Requisitos</strong> Você está empunhando uma arma corpo a corpo com as duas mãos.</p>\n<hr />\n<p>Seu golpe final pode causar impacto mesmo que ricocheteie nas defesas de um inimigo. Faça um Golpe com uma arma corpo a corpo que você esteja empunhando com as duas mãos. Após o Golpe, seu turno termina. O Golpe causa um dado extra de dano de arma, ou dois dados extras de dano de arma se você tiver pelo menos nível 18. O Golpe também ganha o seguinte efeito de falha.</p>\n<p><strong>Falha</strong> Você causa dano igual a um dado de dano da arma exigida. Aumente para dois dados se você tiver pelo menos nível 18.</p>"
+    },
+    "fI1Dro5NIyO6NF5c": {
+      "name": "Rajada Dispersante",
+      "sourceHash": "7e09e6512ef839f9161473a2311260d71b921fa6"
     },
     "fIuEchJr7iHYRCxG": {
       "name": "A Onda Arremete contra as Rochas",
@@ -6141,6 +6479,10 @@
       "sourceHash": "164781bbb2a55af22209381e645846b0b3e0dc99",
       "description": "<p><strong>Acesso</strong> herança gnomo kijimuna ou origem de Tian Xia</p><hr /><p>Sua conexão com a natureza — e com as árvores, em particular — tornou-se tão forte que você consegue convocar as plantas com as quais fez amizade nas florestas da sua juventude. Uma vez por dia, você pode assobiar o som distinto e alegre que é a marca registrada da comunidade gnomo kijimuna para conjurar @UUID[Compendium.pf2e.spells-srd.Item.Summon Plant or Fungus] como magia primal inata de 5º grau. A magia perde o traço manipulação, já que as fórmulas mágicas e gestos usados nela envolvem apenas assobiar. Gnomos kijimuna próximos reconhecem automaticamente esse trinado festivo e normalmente responderão ou se juntarão à música, se puderem.</p>"
     },
+    "giI3seXJqNbBWpGX": {
+      "name": "Amarra Astral",
+      "sourceHash": "3008d3ec5912251bbf25bc33b61b35cff6c29e4b"
+    },
     "glbIluF3jzDbxERe": {
       "name": "Mira do Caçador",
       "sourceHash": "01d479c95d43cc8df70439a1f8500beacd3f6624",
@@ -6236,10 +6578,18 @@
       "sourceHash": "816847630e9a71242f762ae8ebf8a6ee2530c9ce",
       "description": "<p>Os ensinamentos da enchente ensinam uma postura que distribui e circula um único fôlego pelo corpo e permite que seus socos contenham o poder concentrado de uma torrente de água. Enquanto estiver nessa postura, você prende a respiração por até 10 minutos e sai da postura se parar de prender a respiração. Você não perde ar adicional se atacar, sofrer um acerto crítico ou falhar criticamente em um teste de resistência. Você ainda perde todo o ar restante se falar, inclusive para Conjurar uma Magia. Os únicos Golpes que pode fazer são ataques desarmados de rio inundado. Esses causam 1d8 de dano de concussão; pertencem ao grupo briga; têm os traços não letal, derrubar, desarmado e água; e não sofrem a penalidade normal por serem usados debaixo d'água. Eles também ganham o traço vigoroso enquanto você está debaixo d'água.</p>"
     },
+    "h8laLEZTiyPltich": {
+      "name": "Armamentos Defensivos",
+      "sourceHash": "9597a6b4c5acbbc9b1f23abed45aa0b062950903"
+    },
     "h9EN0fpYhTfeNAC4": {
       "name": "Passo Fiel",
       "sourceHash": "6644975adc0b4b721aa51637695fd9a0b45c85ad",
       "description": "<p><strong>Requisitos</strong> Você está montado em sua montaria.</p><hr /><p>Confiante em sua fé, você usa Comandar um Animal para ordenar que sua montaria Desloque-se até duas vezes seu Deslocamento (ou até três vezes seu Deslocamento se você usou 3 ações para Deslocamento Fiel). Durante esse movimento, sua montaria pode se Deslocar sobre líquidos e outras superfícies que não suportariam seu peso. Se sua montaria terminar seu movimento sobre uma superfície que não a suporte, sua montaria (e você) afunda ou ela desaba normalmente.</p>"
+    },
+    "h9r7lfnOIN80nQGt": {
+      "name": "Potencial Ilimitado",
+      "sourceHash": "864d3a3695b9a88b89b08a94e91d98e899c82889"
     },
     "hAviJtQnPFgTqyek": {
       "name": "Purista Ilverani",
@@ -6400,6 +6750,10 @@
       "name": "Foco Vinculado",
       "sourceHash": "55f00da6ff9cb531d9acc8530fcc75da062c30bc",
       "description": "<p>Você vinculou seu item vinculado ao poço de energia que alimenta as magias de sua escola. Uma vez por dia, quando você @UUID[Compendium.pf2e.actionspf2e.Item.Drain Bonded Item]{Drena seu Item Vinculado} para conjurar uma das magias curriculares de sua escola arcana, você também recupera 1 Ponto de Foco.</p>"
+    },
+    "iQEVcFXKfQAqE9t5": {
+      "name": "Farol Rastreador",
+      "sourceHash": "14985b176b6b58e25073033ea6f77362d3e6a2c0"
     },
     "iTgtFoUPTOfpJOMp": {
       "name": "Magia Atravessante",
@@ -6651,6 +7005,10 @@
       "sourceHash": "accd8c73264c7bdc80f0a561abe1152052c59565",
       "description": "<p>Você mira cuidadosamente nos pontos de pressão de uma criatura para bloquear sua força vital interior. Faça um Golpe desarmado. Se causar dano a uma criatura viva, essa criatura sofre @Damage[(floor(@actor.level/6))d6[persistent,void]] de dano e fica @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfraquecido 1} até o dano persistente terminar. Se você for de 18º nível ou superior, o dano de vazio persistente aumenta para 3d6.</p>"
     },
+    "kILZhGPLDqSx1RhD": {
+      "name": "Sentido de Pensamento",
+      "sourceHash": "1b55f1a3e76061215dfcf3af664b27e73d6f90ff"
+    },
     "kRjfnPqDgcoBnKDy": {
       "name": "Aparar com Magia",
       "sourceHash": "4d28f796a1905b40930e42194a8edcfff9d64776",
@@ -6695,6 +7053,10 @@
       "name": "Granizo Invernal",
       "sourceHash": "9a8f1b33b69dea13ab5069bd483248c74070ac70",
       "description": "<p>Granizo turbilhonante e gélido até os ossos te envolve, cruel como o mais profundo inverno. As superfícies na sua aura cinética ficam cobertas por gelo escorregadio. Uma criatura que se move sobre o gelo cai imediatamente, a menos que tenha sucesso em um teste de @Check[acrobatics|against:kineticist|adjustment:-2|rollerRole:target] ou em um teste de resistência de @Check[reflex|against:kineticist|adjustment:-2] contra a sua CD de impulso – 2. Uma criatura que usa Passo ou Rasteja não precisa tentar um teste ou teste de resistência. Você é imune a esse efeito.</p>\n<p>Se uma criatura sobre o gelo sofrer um acerto crítico de um dos seus impulsos de água ou falhar criticamente em um teste de resistência contra um deles, essa criatura fica @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Lento 1} até o fim do seu próximo turno.</p>"
+    },
+    "kkv0lWnTFTvVllx5": {
+      "name": "Onda Emocional",
+      "sourceHash": "8fe7fc991e016d34a2d71e1a5e4337964427859b"
     },
     "klYinLLMXrguOj8G": {
       "name": "Convocar Ferramentas de Mago",
@@ -6846,6 +7208,10 @@
       "sourceHash": "8153fd0d36da32801bc221a1f13548ca0bab0cfc",
       "description": "<p>Você continuou a aprimorar seus poderes usando sua arma não convencional. Sempre que você ganhar uma característica de classe que lhe conceda proficiência de perito ou superior em certas armas, você também ganha essa proficiência na arma que escolheu para @UUID[Compendium.pf2e.feats-srd.Item.Unconventional Weaponry].</p>"
     },
+    "lvYawk0j2pFg6z4E": {
+      "name": "Expansão de Magias de Assinatura (Psíquico)",
+      "sourceHash": "7b2750d49833185751e349dfab19d18bb12b834b"
+    },
     "lvxfuBBa2ebIZa7n": {
       "name": "Perceber Pensamentos",
       "sourceHash": "35db207981bb5c65ee891a10a04df244e8a5c586",
@@ -6875,6 +7241,10 @@
       "name": "Coragem Reflexiva",
       "sourceHash": "c83c912d07e3a6c79b39968834130100b3d2ff05",
       "description": "<p><strong>Gatilho</strong> Uma criatura ao seu alcance natural usa um efeito auditivo, ação de manipulação ou ação de movimento; realiza um ataque à distância; ou deixa um quadrado durante sua ação de movimento.</p>\n<p><strong>Requisitos</strong> Você está afetado por @UUID[Compendium.pf2e.spells-srd.Item.Courageous Anthem].</p>\n<hr />\n<p>Você berra um chamado às armas ferocíssimo, inspirando-se a atacar um inimigo. Realize um Golpe corpo a corpo contra a criatura que ativou o gatilho. Se o ataque for um acerto crítico e o gatilho tiver sido uma ação de manipulação, a ação é interrompida.</p>"
+    },
+    "lyty8o5vT6L306lx": {
+      "name": "Tiro Anunciado",
+      "sourceHash": "d192eadf2ffe3eaa2a6f4eacd1dfe48398d2d371"
     },
     "lzh68dmqHNPPdlqk": {
       "name": "Clareza Compartilhada",
@@ -6906,6 +7276,10 @@
       "sourceHash": "ec4939a2e86d18980cff2efbdd2f2a89a8cf132e",
       "description": "<p><strong>Requisitos</strong> Você está em Postura da Floresta Emaranhada.</p><hr /><p>Você reposiciona inimigos com ataques em garra. Faça um Golpe de galho chicoteante. Se acertar e causar dano, você pode @UUID[Compendium.pf2e.actionspf2e.Item.Reposition] o alvo em até 10 pés. Você pode mover o alvo através do seu espaço durante esse movimento.</p>"
     },
+    "mFmBrklOm3JgyEh0": {
+      "name": "Alvo da Ira Psíquica",
+      "sourceHash": "757fa17f5bff63b896e8f00935aa3e8004762005"
+    },
     "mG5Rsnk2paliMd2J": {
       "name": "Tiro de Despedida",
       "sourceHash": "e8c7e631172cfa4a66ac1fe2ae003f8a251b2e8d",
@@ -6930,6 +7304,10 @@
       "name": "Desafio do Matador de Cadáveres",
       "sourceHash": "c3e5e4460143f0dc4b2efdef31427633f926f676",
       "description": "<p><strong>Gatilho</strong> Você destrói um inimigo morto-vivo.</p>\n<hr />\n<p>Você desafia Tar-Baphon a cada morto-vivo que destrói, usando sua vitória para reanimar o ânimo de seus aliados. Aliados que podem ver você ganham um bônus de condição de +1 às rolagens de ataque e dano contra mortos-vivos por 1 rodada, ou um bônus de condição de +2 às rolagens de ataque e dano contra mortos-vivos por 2 rodadas se o inimigo morto-vivo destruído fosse uma criatura do seu nível ou superior.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Corpse-Killer's Defiance (Lower Level)]</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Corpse-Killer's Defiance]</p>"
+    },
+    "mJS9AfZ583J0C8Sq": {
+      "name": "Salto e Tiro",
+      "sourceHash": "42513308c3792b9b887d783fae038387ffb739c1"
     },
     "mJzw4RaHNnvmGRau": {
       "name": "Curador de Árvores",
@@ -6975,6 +7353,10 @@
       "name": "Compartimento Extradimensional",
       "sourceHash": "ffcb142327d5464161af0ced569844d6e710c5eb",
       "description": "<p>Quando você realiza um passe de mãos, dobra o espaço para que objetos realmente desapareçam. Você cria um pequeno espaço extradimensional em algum lugar dentro de suas roupas que pode conter objetos com até 5 de Volume. O espaço funciona como uma bolsa de armazenamento, mas só comporta até 5 de Volume, não tem Volume próprio, e pode ser Interagido usando apenas uma mão.</p>\n<p>Além disso, quando você Esconde na Mão um Objeto, pode colocá-lo diretamente nesse espaço extradimensional, desde que haja espaço livre suficiente para guardá-lo.</p>\n<p>@UUID[Compendium.pf2e.equipment-srd.Item.Extradimensional Stash]</p>"
+    },
+    "mfAWI6ZK2GIUZoai": {
+      "name": "Pensamentos Errantes",
+      "sourceHash": "b82bdd001b88593a1f8686bcbe1d291b5e67d34f"
     },
     "miOgdv3O36wX2gwA": {
       "name": "Debilitação Duradoura",
@@ -7080,6 +7462,10 @@
       "name": "Visão Compartilhada",
       "sourceHash": "8835532b3624ff9739548be444632361dbf7bee5",
       "description": "<p>Você concede a visão mística que sua musa lhe deu aos seus aliados. Se sua próxima ação for conjurar uma magia que não seja um truque e que afete um ou mais de seus aliados, todos os aliados afetados ganham seu sentido espiritual por 1 minuto.</p>"
+    },
+    "nLlYJgfqbqbl9sgu": {
+      "name": "Olho de Águia",
+      "sourceHash": "18f38a275077ca8a1005af6ff248501d48882220"
     },
     "nMo0Ek8yJIS9m06Q": {
       "name": "Armamento Duradouro",
@@ -7261,6 +7647,10 @@
       "sourceHash": "69ed2143073f43fa54bc1d035b7265f8f52a7b5a",
       "description": "<p>Você é leve como uma folha rodopiando ao vento. Quando você usa @UUID[Compendium.pf2e.actionspf2e.Item.Leap] ou é bem-sucedido em um @UUID[Compendium.pf2e.actionspf2e.Item.High Jump] ou @UUID[Compendium.pf2e.actionspf2e.Item.Long Jump], aumente a distância que você salta em 5 pés. Ao calcular o dano que você sofre ao cair, não conte nenhuma distância percorrida na queda enquanto estiver adjacente a uma parede.</p>"
     },
+    "oMP2sYteOS3Fkf3N": {
+      "name": "Tiro Defletor",
+      "sourceHash": "2466f3173fdcea21f635b57eddae9c721d3a4988"
+    },
     "oMPSp7mWqxD2GAQh": {
       "name": "Onda de Adrenalina",
       "sourceHash": "1a8d2abfc3cf0c911bf3e9ee775df56f3e3d708e",
@@ -7296,6 +7686,10 @@
       "sourceHash": "6cd607af0aed292a7178fc956403e2b1adb3cf8e",
       "description": "<p><strong>Requisitos</strong> Sua última ação foi um Golpe bem-sucedido, e você tem uma mão livre ou seu Golpe usou uma arma de agarrão.</p>\n<hr />\n<p>Você agarra seu inimigo enquanto ele está distraído pelo seu ataque. O inimigo que você acertou fica @UUID[Compendium.pf2e.conditionitems.Item.Grabbed], como se você tivesse sido bem-sucedido em um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] o inimigo.</p>"
     },
+    "oWdJb6q0bE5bmCfg": {
+      "name": "Ao Chão!",
+      "sourceHash": "c4476abd89732943fe81bd3d528712caa24c2d9e"
+    },
     "oaCuRldm5yCoFamL": {
       "name": "Deixar uma Abertura",
       "sourceHash": "ca5cb98cd86f6959f2484b7f0f69054aec4cf49a",
@@ -7315,6 +7709,10 @@
       "name": "Golpe Restaurador",
       "sourceHash": "c71720eeda593af6efec8ca45bdb448f28f14a84",
       "description": "<p><strong>Requisitos</strong> Você tem uma magia @UUID[Compendium.pf2e.spells-srd.Item.Harm] ou @UUID[Compendium.pf2e.spells-srd.Item.Heal] que pode conjurar.</p>\n<hr />\n<p>Você equilibra os dois lados da balança, restaurando-se enquanto golpeia um inimigo. Conjure uma magia de <em>dano</em> ou <em>cura</em> de 1 ação para curar a si mesmo, gastando a magia normalmente. Ela perde o traço manipulação quando conjurada dessa forma. Em seguida, faça um Golpe corpo a corpo. Se você fizer esse Golpe com a arma favorita da sua divindade, ganha um bônus de condição de +1 à rolagem de ataque.</p>\n<p>Se o Golpe acertar, você pode escolher uma segunda criatura disposta para curar a mesma quantidade da magia. Essa criatura pode estar fora do alcance da magia, desde que esteja adjacente ao inimigo que você acertou.</p>"
+    },
+    "oge31XJ26YZqwtZc": {
+      "name": "Sintonia Psíquica",
+      "sourceHash": "e6fade79c4760be8ce9418d930b3132ffaf8dd57"
     },
     "oho1ScEzaC89KZqc": {
       "name": "Inoculação",
@@ -7406,6 +7804,10 @@
       "sourceHash": "7e736cd8bf44f230a2767bc6bfa20ec765448968",
       "description": "<p>Você toca uma criatura para implantar uma semente maligna em seu corpo. A criatura sofre @Damage[(floor((@actor.level -12)/4)+5)d10[piercing]] de dano e outros efeitos dependendo do seu teste de resistência de @Check[fortitude|against:kineticist] contra a sua CD de classe. A criatura fica então temporariamente imune por 24 horas. Criaturas com o traço fungo, planta ou madeira são imunes.</p>\n<hr />\n<p><strong>Sucesso Crítico</strong> A criatura não é afetada.</p>\n<p><strong>Sucesso</strong> A criatura sofre metade do dano e recebe uma penalidade de condição de –10 pés a todos os seus Deslocamentos até o fim do seu próximo turno.</p>\n<p><strong>Falha</strong> O alvo sofre o dano completo e fica @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado 2} e @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] até o fim do seu próximo turno.</p>\n<p><strong>Falha Crítica</strong> O alvo sofre o dano dobrado e fica desajeitado 2 e imobilizado. Ele tenta um novo teste de resistência no fim de cada um dos seus turnos, encerrando o efeito se tiver sucesso.</p>\n<hr />\n<p><strong>Nível (+4)</strong> O dano aumenta em 1d10.</p>"
     },
+    "p98HOOpiTbIxpTlY": {
+      "name": "Distorcer o Espaço",
+      "sourceHash": "5015799ff78f67e0d44af51904020f45f49f9b8c"
+    },
     "pBPk6Y2JuU5OjVKg": {
       "name": "Impulso Emocional",
       "sourceHash": "c0322e0d6576ef55ae5261f0f485ac0af1185ea9",
@@ -7416,6 +7818,14 @@
       "sourceHash": "f4293a886800adf2a59c2918ea352f7f9984b157",
       "description": "<p>Seu conhecimento se expandiu para abranger um novo campo. Escolha uma subcategoria de perícia Conhecimento. Você se torna treinado nela. No 3º, 7º e 15º níveis, você ganha um aumento de perícia adicional que pode aplicar apenas à subcategoria de Conhecimento escolhida.</p><hr /><p><strong>Especial</strong> Você pode selecionar este talento mais de uma vez. Cada vez você deve selecionar uma nova subcategoria de Conhecimento e você ganha os aumentos de perícia adicionais a essa subcategoria para os níveis listados.</p>"
     },
+    "pJxoXSooh9ZZOIi7": {
+      "name": "Assalto Ricocheteante",
+      "sourceHash": "d064f5e9481925ee23873ab2eaf60b56f7268af0"
+    },
+    "pMkmOjy5B0V54nZd": {
+      "name": "Recarga Saltitante da Onda Noturna",
+      "sourceHash": "99bc8f393bea6bfec83281771fdf80ab8e8bfa4d"
+    },
     "pP1ESEvFaPyF2OFM": {
       "name": "Ancestralidade Adotada",
       "sourceHash": "eb0c1323707161e0643020ef3b7b76a3e9c69bbd",
@@ -7425,6 +7835,10 @@
       "name": "Aura de Fé",
       "sourceHash": "d7ab41389e0e2b85ed3e6b52ed9ad6a7184d5676",
       "description": "<p>Você irradia uma aura de crença que imbui seus ataques e os de aliados próximos com poder divino. Cada aliado disposto na sua aura do campeão adiciona o traço sagrado aos seus Golpes se você for sagrado, ou adiciona o traço profano aos seus Golpes se você for profano.</p>"
+    },
+    "pSunjH1z5GFhMn6Y": {
+      "name": "Barreira Inercial",
+      "sourceHash": "13d8062834ea5e8cf30ed6cb4c2744a12c808945"
     },
     "pVsx6vPGbG4BuNy5": {
       "name": "Artista Lendário",
@@ -7691,6 +8105,10 @@
       "sourceHash": "92c0ceee92af2f442fc9aca4ae574f2f554d19c4",
       "description": "<p>Você aprendeu a manipular o poder inato da sua linhagem e adaptá-lo às suas necessidades. Ao fazer seus preparativos diários, você pode trocar uma única magia de 9º grau ou inferior por outra magia do mesmo grau. Você não pode trocar magias concedidas especificamente pela sua linhagem.</p>"
     },
+    "qwszpf8SJS0W7ZUL": {
+      "name": "Mestre do Ricochete",
+      "sourceHash": "ccf81956253d4d79ffb8857a57499955ad6ec77b"
+    },
     "r04vtdN2496y8CS1": {
       "name": "Educação de Dongun",
       "sourceHash": "45054e29a2ccb01fbbcee2a9b6a3bebad902d8cd",
@@ -7861,10 +8279,18 @@
       "sourceHash": "16f410b1c9882b641ea3c01c74a67e7abb8a0a32",
       "description": "<p>Você frequentemente confia na população local para provisões e abrigo. Uma vez por dia, você pode tentar uma verificação para [[/act request]] ou [[/act coerce]] contra uma CD fácil para seu nível ao falar com alguem que e um residente não-hostil e de longo prazo de seu local favorito. Com sucesso, escolha um dos seguintes para obter.</p><ul><li>Um item não-mágico de seu nível ou inferior</li><li>Um local seguro para se abrigar por 24 horas</li><li>Provisões para 3 dias para você e até 5 aliados</li></ul>"
     },
+    "sAj5RK6Nb2sO2yzF": {
+      "name": "Vasculhar a Biblioteca",
+      "sourceHash": "ff0f503ae82ebd93457eeaf1414d87394ac19b1d"
+    },
     "sCZqWwK9iJvt1kSJ": {
       "name": "Elogio Relutante",
       "sourceHash": "9fbb02ce60f0817981c329c05fc4f0b1d163720d",
       "description": "<p><strong>Gatilho</strong> Um inimigo a até 30 pés o danifica ou obtém sucesso em um teste de perícia.</p><hr /><p>Todo Marca de Fogo consegue reconhecer a perícia de outros, mas você a transformou em uma arte que pode manejar em combate. Você elogia a forma ou técnica de um inimigo, e seu elogio inesperado o distrai de seus arredores. Tente um teste de @Check[diplomacy|defense:will] contra a CD de Vontade daquele inimigo. Independentemente do resultado, ele é temporariamente imune aos seus Elogios Relutantes por 10 minutos.</p><hr /><p><strong>Sucesso Crítico</strong> O alvo se torna @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenido} por 1 rodada.</p>\n<p><strong>Sucesso</strong> O alvo fica desprevenido contra seus ataques por 1 rodada.</p>"
+    },
+    "sI5OjBYCt6y54kNK": {
+      "name": "Ação Psíquica Autônoma",
+      "sourceHash": "b0941d3f8efcafc6debfc95a4e78b8629df50b60"
     },
     "sLHGmnBNLuQGXblh": {
       "name": "Aparação Sobrenatural",
@@ -7910,6 +8336,10 @@
       "name": "Fios Vermelho-Sangue",
       "sourceHash": "9149d08b8bbca7dbd50816a3156ba01388a3b978",
       "description": "<p><strong>Gatilho</strong> Você usa @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade]{Cascata Arcana}.</p><hr /><p>Sua Cascata Arcana envia fios para as quatro direções, criando uma teia de cordas tingidas por sua habilidade e pelo sangue de seus inimigos. A teia preenche uma @Template[type:burst|distance:15] centrada em você e é terreno difícil. Você pode ignorar o terreno difícil, e as cordas podem sustentar seu peso, permitindo que você caminhe sobre elas como se estivesse se beneficiando de @UUID[Compendium.pf2e.spells-srd.Item.Fly]{Voo}.</p>\n<p>A teia dura por 1 minuto mas termina cedo se sua Cascata Arcana terminar ou você sair da teia.</p>\n<p>Se você Conjurar uma Magia a partir de um espaço de magia enquanto estiver na teia, as cordas brilham em vermelho até o início do seu próximo turno, causando dano igual ao nível da magia a qualquer criatura que não seja você que se mova pela teia. O dano ocorre ao final do movimento da criatura, com um @Check[reflex|against:spell|basic] contra sua CD de magia. Uma criatura só pode sofrer este dano uma vez a cada rodada.</p>"
+    },
+    "sXQzetTnsmk9AWLr": {
+      "name": "Munições Preciosas",
+      "sourceHash": "e567cea19ff6e1c11d86fc3fce6cf87d945ec23b"
     },
     "sXeMb6GVl8BYyuwW": {
       "name": "Golpes Estilhaçantes",
@@ -8061,6 +8491,10 @@
       "sourceHash": "c92229d3cec0552da1f927c8cdecf5c28eb4b69c",
       "description": "<p>Você dominou os maiores segredos da magia arcana. Você ganha um espaço de magia de 10º grau adicional.</p>"
     },
+    "tAXIEDm0937naGCn": {
+      "name": "Fogo de Cobertura",
+      "sourceHash": "0740dc9cb6b47e47bbbf832098151a47d8e016d1"
+    },
     "tDC7iLfQIYUA8Zhe": {
       "name": "Pavoneio do Pavão",
       "sourceHash": "3e29b22e0f187e1e0eb6e1ca03c018c12753f1d6",
@@ -8080,6 +8514,10 @@
       "name": "Rastro Flamejante",
       "sourceHash": "90b61b2a6be52a88653cb7da5ed6328784dfa196",
       "description": "<p><strong>Requisitos</strong> Você está em Postura da Chama Avivada.</p>\n<hr />\n<p>Desloque-se duas vezes, fazendo Golpes contra até quatro criaturas diferentes ao seu alcance a qualquer momento durante seu movimento. Golpes de faísca cintilante feitos durante Rastro Flamejante causam dano de fogo em vez de corte.</p>"
+    },
+    "tPa2qu7fgCw2LFHZ": {
+      "name": "Estocada e Tiro",
+      "sourceHash": "0d0f2161c93c2e3b73ef0e3646d31150877f1bf8"
     },
     "tTFPOMh4fiX4SF5f": {
       "name": "Esquiva Planar",
@@ -8155,6 +8593,10 @@
       "name": "Contramagia (Preparada)",
       "sourceHash": "e72898724d75a2193a95c458aa0ea43256b70899",
       "description": "<p><strong>Gatilho</strong> Uma criatura Conjura uma Magia que você tem preparada</p>\n<hr />\n<p>Quando um inimigo Conjura uma Magia e você pode ver suas manifestações, você pode usar sua magia para interrompê-la. Você gasta uma magia preparada para contrariar a conjuração da criatura desencadeadora daquela mesma magia. Você perde seu espaço de magia como se tivesse conjurado a magia desencadeadora. Em seguida, você tenta anular a magia desencadeadora.</p>\n<hr />\n<p><strong>Especial</strong> Este talento tem o traço correspondente à tradição de magias que você conjura (arcana, divina, primal ou oculta).</p>"
+    },
+    "uAeUOqbaHJunGdtx": {
+      "name": "Recarga Arriscada",
+      "sourceHash": "3c4abb3f92618e14b37fb76d7576f2749b475a8b"
     },
     "uCMkD7jH7Y0u3e0U": {
       "name": "Presença Heroica",
@@ -8325,6 +8767,10 @@
       "name": "Conhecimento Anão",
       "sourceHash": "383f64ef64d358540eff41c61fd70da5c714dcd9",
       "description": "<p>Você absorveu com entusiasmo as antigas histórias e tradições dos seus ancestrais, dos seus deuses e do seu povo, estudando temas e técnicas transmitidos geração após geração. Você ganha o grau de proficiência treinado em Ofício e Religião. Se você automaticamente se tornaria treinado em uma dessas perícias (pelo seu antecedente ou classe, por exemplo), você se torna treinado em uma perícia à sua escolha em vez disso.</p>\n<p>Você também ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Additional Lore] para Conhecimento Anão.</p>"
+    },
+    "vDzeSNa6B0QCGa6y": {
+      "name": "Contrapensamento",
+      "sourceHash": "993c4ec260a25a34480eceb614a824ffcc10b2b7"
     },
     "vGLUMJEa5jyU6OzI": {
       "name": "Furia Acuada",
@@ -8626,6 +9072,10 @@
       "sourceHash": "7a17dd7118bbac92e74cff74b97d588a6fdc6ee4",
       "description": "<p>Uma árvore esguia e simétrica viaja do Plano da Madeira. Você conjura uma árvore a até 30 pés, como uma magia @UUID[Compendium.pf2e.spells-srd.Item.Protector Tree] de grau igual à metade do seu nível, arredondado para cima. Se você usar este impulso novamente, qualquer um anterior termina, e uma árvore comum permanece.</p>"
     },
+    "x4J7eP8eJ2dG94G7": {
+      "name": "Camuflagem do Atirador",
+      "sourceHash": "36b049abbb749d83f586914dfd48ef9f4979972d"
+    },
     "x4f82xwDNnvguDlN": {
       "name": "Crescimento Imponente",
       "sourceHash": "d18624b183ba6fc578e0911057a0084d48b97512",
@@ -8715,6 +9165,10 @@
       "name": "Varredura Mágica",
       "sourceHash": "32b21ea85e2b843fb7478f227e5f4eb7b3d22c4d",
       "description": "<p><strong>Requisitos</strong> Seu Golpe Mágico esta carregado.</p>\n<hr />\n<p>Você ataca em um arco e executa sua magia contra todos que você acerta. Faça um Golpe Mágico, mas role Golpes separados para atacar duas criaturas, cada uma devendo estar dentro de seu alcance natural de combate e adjacente uma a outra. Se sua magia pudesse afetar dois ou mais alvos, sua magia afeta quaisquer inimigos que você acertou, não apenas o primeiro alvo; caso contrario, escolha um alvo para afetar com a magia. Uma Varredura Mágica conta como dois ataques para sua penalidade por ataque multiplo, mas a penalidade não aumenta até após você fazer ambos os ataques.</p>\n<p>Se você esta usando uma arma que tem o traco varredura, seu bonus de circunstância se aplica contra ambos os alvos. Você pode usar esta atividade apenas com Golpes de combate, mesmo se você tiver o estudo hibrido extensão estrelada ou capacidade similar.</p>\n<p>Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia de área, aplique a área conforme descrito em Golpe Mágico Expansivo, escolhendo uma das criaturas que você Golpeia para determinar a área e se a magia falha devido a um Golpe falhado criticamente. Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia alvo, a magia e perdida completamente apenas se ambos os Golpes são falhas criticas.</p>"
+    },
+    "xag4cG8SizhIfsuD": {
+      "name": "Amortecedor Mental",
+      "sourceHash": "5a0e5e250cb761c755f7c98903323b9a92f61f18"
     },
     "xfOpl6puGHGTuRRG": {
       "name": "Fúria Contagiosa",
@@ -8816,6 +9270,14 @@
       "sourceHash": "d146213b340ddb958473d2641b027cef1288cb53",
       "description": "<p>Você tenta guiar um aliado para uma postura mais defensiva contra um perigo particular. Tente um teste de @Check[warfare-lore]{Conhecimento de Guerra} contra a CD difícil para o nível de uma criatura ou perigo que você consegue ver. Um aliado de sua escolha a até 30 pés ganha um efeito baseado no resultado. Se você for lendário em Conhecimento de Guerra, quando você rolar uma falha ou falha crítica, você obtém um sucesso em seu lugar.</p><hr /><p><strong>Sucesso Crítico</strong> O aliado ganha um bônus de circunstância +2 na CA contra o próximo ataque da criatura alvo ou perigo.</p>\n<p><strong>Sucesso</strong> Como sucesso crítico, mas o bônus é +1.</p>\n<p><strong>Falha Crítica</strong> O aliado sofre uma penalidade de circunstância –1 na CA contra o próximo ataque da criatura alvo ou perigo.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Commitment to Protection]</p>"
     },
+    "yOtuFKzqCsa24X6E": {
+      "name": "Investida Explosiva",
+      "sourceHash": "2031c0cc203ef5215af7c3ca8a25dcc309b390e8"
+    },
+    "yT2K5eR9gTUq3qjD": {
+      "name": "Cortina de Fumaça",
+      "sourceHash": "742b4a1220b8ae4e3e63739de9110da9254f3b3b"
+    },
     "yUggZWdKsnmNKcyt": {
       "name": "Premonição de Clareza",
       "sourceHash": "0b7e2aff907ed6d06ca9b86653420876975c80ef",
@@ -8830,6 +9292,10 @@
       "name": "Deslocamento Inesperado",
       "sourceHash": "1f1a487a26063a1fcf1297a427ae70bce510e175",
       "description": "<p><strong>Gatilho</strong> Você sofreria dano de um ataque, magia ou outro efeito.</p>\n<hr />\n<p>Sua conexão sobrenatural às vezes faz você se desconectar da realidade quando ameaçado, desaparecendo por frações de segundo antes de reaparecer — frequentemente surpreendendo você tanto quanto seus inimigos. Role um @Check[flat|dc:16]. Em caso de sucesso, você ganha resistência a todo dano igual ao seu nível contra o efeito que ativou o gatilho, ganha um bônus de circunstância de +2 em testes de resistência contra esse efeito até o início do seu turno, e ganha a condição @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] por 1 rodada.</p>"
+    },
+    "yeZrr3S1wusVrGJn": {
+      "name": "Conjuração Psíquica Especialista",
+      "sourceHash": "18755544207b392e6cc1f3e90943d9e6c29ce815"
     },
     "yiGj0q6UhSYkq9vy": {
       "name": "Dança de Duelo (Guerreiro)",

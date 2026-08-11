@@ -74,7 +74,15 @@
  */
 
 import { createRequire } from "node:module";
-import { readdirSync, statSync, lstatSync, readFileSync, writeFileSync, mkdirSync, realpathSync } from "node:fs";
+import {
+  readdirSync,
+  statSync,
+  lstatSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  realpathSync,
+} from "node:fs";
 import { join, dirname, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -102,9 +110,13 @@ function resolvePackageDir(specifier, fromDir) {
  * `archiveRootDir` (which may differ from `sourceDir` when embedding the
  * platform package as a nested node_modules — see `--platform-package`).
  */
-function collectEntries(sourceDir, archiveRootDir, entries, chunks) {
+function collectEntries(sourceDir, archiveRootDir, entries, chunks, excludeTop = new Set()) {
   for (const name of readdirSync(sourceDir).sort()) {
     if (name === ".bin") continue; // never needed at runtime
+    // Top-level exclusions, applied only at the archive root: --dir mode uses
+    // this to keep the 22 MB avatar acervo out of the SEA blob (it ships as a
+    // sidecar directory instead — see packages/server/src/avatar/routes.ts).
+    if (archiveRootDir === "" && excludeTop.has(name)) continue;
     const full = join(sourceDir, name);
     const lst = lstatSync(full);
     const real = lst.isSymbolicLink() ? realpathSync(full) : full;
@@ -123,11 +135,11 @@ function collectEntries(sourceDir, archiveRootDir, entries, chunks) {
   }
 }
 
-function packToArchive(rootDirLabel, sourceDir, extraDirs) {
+function packToArchive(rootDirLabel, sourceDir, extraDirs, excludeTop = new Set()) {
   const entries = [];
   const chunks = [];
 
-  collectEntries(sourceDir, rootDirLabel, entries, chunks);
+  collectEntries(sourceDir, rootDirLabel, entries, chunks, excludeTop);
   for (const { archiveSubdir, dir } of extraDirs) {
     collectEntries(dir, archiveSubdir, entries, chunks);
   }
@@ -149,7 +161,9 @@ function main() {
   if (args[0] === "--multi-dir") {
     const outFile = args[1];
     if (outFile === undefined) {
-      process.stderr.write("Usage: node pack-native.mjs --multi-dir <outFile> --entry <subdir>=<dirPath>...\n");
+      process.stderr.write(
+        "Usage: node pack-native.mjs --multi-dir <outFile> --entry <subdir>=<dirPath>...\n",
+      );
       process.exit(1);
     }
 
@@ -196,13 +210,25 @@ function main() {
     const dirPath = args[1];
     const outFile = args[2];
     if (dirPath === undefined || outFile === undefined) {
-      process.stderr.write("Usage: node pack-native.mjs --dir <path> <outFile>\n");
+      process.stderr.write(
+        "Usage: node pack-native.mjs --dir <path> <outFile> [--exclude <name>...]\n",
+      );
       process.exit(1);
     }
-    const archive = packToArchive("", dirPath, []);
+    // --exclude <name> drops a TOP-LEVEL entry of <path> from the archive.
+    const excludeTop = new Set();
+    for (let i = 3; i < args.length; i++) {
+      if (args[i] === "--exclude" && args[i + 1] !== undefined) {
+        excludeTop.add(args[i + 1]);
+        i++;
+      }
+    }
+    const archive = packToArchive("", dirPath, [], excludeTop);
     mkdirSync(dirname(outFile), { recursive: true });
     writeFileSync(outFile, archive);
-    process.stdout.write(`[pack-native] packed dir ${dirPath} -> ${outFile} (${String(archive.length)} bytes)\n`);
+    process.stdout.write(
+      `[pack-native] packed dir ${dirPath} -> ${outFile} (${String(archive.length)} bytes)\n`,
+    );
     return;
   }
 
@@ -256,7 +282,13 @@ function main() {
     }
     const childDir = resolvePackageDir(childSpecifier, parentDir);
     extraDirs.push({
-      archiveSubdir: join(rootLabel, "node_modules", parentSpecifier, "node_modules", childSpecifier),
+      archiveSubdir: join(
+        rootLabel,
+        "node_modules",
+        parentSpecifier,
+        "node_modules",
+        childSpecifier,
+      ),
       dir: childDir,
     });
   }

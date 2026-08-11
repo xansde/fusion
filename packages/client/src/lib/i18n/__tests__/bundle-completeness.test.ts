@@ -319,6 +319,34 @@ describe("No raw HTML entities in bundle values", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 11 — Chat reveal keys coverage (REQ-CHT-045 / REQ-CHT-047)
+//
+// The "Revelar" trigger and the "revelada" badge are the only on-screen surface
+// of the reveal feature; a missing key would render the raw key string on the
+// message header, which is the sort of thing nobody notices in review.
+// ---------------------------------------------------------------------------
+
+describe("Chat reveal keys coverage", () => {
+  const revealKeys = [
+    "FUSION.Chat.RevealMessage",
+    "FUSION.Chat.RevealMessageShort",
+    "FUSION.Chat.Revealed",
+    "FUSION.Chat.RevealedByGm",
+    "FUSION.Chat.RevealFailed",
+  ];
+
+  it("all reveal keys exist in pt-BR", () => {
+    const missing = revealKeys.filter((k) => !(k in ptBRBundle));
+    expect(missing, `Missing reveal keys in pt-BR: ${missing.join(", ")}`).toHaveLength(0);
+  });
+
+  it("all reveal keys exist in en", () => {
+    const missing = revealKeys.filter((k) => !(k in enBundle));
+    expect(missing, `Missing reveal keys in en: ${missing.join(", ")}`).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 9 — Connection and role keys coverage
 // ---------------------------------------------------------------------------
 

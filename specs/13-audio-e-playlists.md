@@ -70,7 +70,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 
 ## Decisões
 
-### D1 — Howler.js como biblioteca de áudio cliente; sem Web Audio raw
+### DEC-AUD-01 — Howler.js como biblioteca de áudio cliente; sem Web Audio raw
 
 **Decisão:** usar Howler.js (MIT) como única abstração de áudio no cliente. Não usar Web Audio API diretamente para reprodução de faixas de playlist e ambient sounds.
 
@@ -82,7 +82,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **Tone.js:** mais voltado para síntese e music production; overhead desnecessário para VTT.
 - **Buzz.js:** biblioteca abandonada, não mantida.
 
-### D2 — Servidor como fonte de verdade do estado de playback; volume é sempre client-side
+### DEC-AUD-02 — Servidor como fonte de verdade do estado de playback; volume é sempre client-side
 
 **Decisão:** o servidor mantém um `PlaybackState` autoritativo para cada playlist ativa. Comandos de controle (play, pause, stop, skip, volume da faixa) são emitidos pelo GM via socket e o servidor propaga para todos os clientes. Volume master dos canais é armazenado exclusivamente no `localStorage` do browser de cada usuário e nunca é enviado ao servidor.
 
@@ -93,7 +93,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **Volume da faixa local:** causaria dessincronização de experiência e conflitos entre usuários.
 - **Estado de playback no cliente (peer-to-peer):** sem servidor autoritativo, o catch-up de jogadores que entram tarde seria não-determinístico e dependente de qual cliente está "na frente".
 
-### D3 — Posição temporal: aproximação, não sincronia perfeita
+### DEC-AUD-03 — Posição temporal: aproximação, não sincronia perfeita
 
 **Decisão:** o `PlaybackState.positionMs` é registrado no servidor no momento do comando `play` e estimado nos clientes como `positionMs + (Date.now() - updatedAt)`. Não há mecanismo de sincronização de sample-accurate. A tolerância aceitável é de ±2 segundos.
 
@@ -104,7 +104,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **NTP-like clock sync (ex.: Cristian's Algorithm):** complexidade alta; necessário apenas para apps de música compartilhada ao vivo (DJ software), não para VTT.
 - **Recomeçar a faixa no catch-up:** simples de implementar, mas ruim para UX — um jogador que reconecta não quer que a música reinicie do zero.
 
-### D4 — Loop seamless via Howler.js native loop com crossfade nos pontos de loop
+### DEC-AUD-04 — Loop seamless via Howler.js native loop com crossfade nos pontos de loop
 
 **Decisão:** faixas configuradas com `loop: true` usam o modo `loop` nativo do Howler.js (que usa Web Audio native looping, sem gap). Para faixas que ainda apresentem gap perceptível (especialmente em formato MP3 com cabeçalho LAME), aplicar crossfade interno configurável de 50–500ms entre o fim e o início da faixa.
 
@@ -115,7 +115,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **Dois `Howl` objects alternados (ping-pong):** funciona mas dobra o uso de memória por faixa; complexidade adicional de scheduling.
 - **Ignorar o gap:** experiência degradada notada pela maioria dos usuários em loops de ambient music.
 
-### D5 — Fade e crossfade implementados com Howler.js `fade()` method
+### DEC-AUD-05 — Fade e crossfade implementados com Howler.js `fade()` method
 
 **Decisão:** todos os fades (in/out por playlist, in/out por faixa, crossfade entre faixas, loop crossfade) são implementados com `Howl.fade(from, to, duration)` do Howler.js, que usa Web Audio `GainNode.linearRampToValueAtTime` internamente. Curva de fade: equal-power para crossfade entre faixas; linear para fade in/out isolado.
 
@@ -126,7 +126,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **CSS animations / Web Animations API:** não aplicável a áudio.
 - **`setInterval` manual com volume steps:** frágil, impreciso, desperdiça CPU.
 
-### D6 — Spatial audio de AmbientSounds via Howler.js `pos()` + `pannerAttr()`
+### DEC-AUD-06 — Spatial audio de AmbientSounds via Howler.js `pos()` + `pannerAttr()`
 
 **Decisão:** `AmbientSound` placeables usam Howler.js spatial audio (`pannerAttr: { panningModel: 'HRTF' }` com `pos(x, y, 0)` em coordenadas normalizadas). O volume do emissor é calculado no cliente como função da distância entre a posição do token do jogador (obtida via estado do canvas) e o ponto central do `AmbientSound`, aplicando a curva de falloff configurada (linear ou logarítmico).
 
@@ -137,7 +137,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **Panning com `StereoPannerNode` (apenas L/R):** som menos convincente, sem modelo de distância integrado.
 - **Cálculo de volume no servidor:** latência inaceitável para updates de posição contínuos; servidor não deve processar posição de câmera de cada cliente.
 
-### D7 — Formatos suportados: OGG como recomendado; MP3 como fallback universal; FLAC apenas para masters
+### DEC-AUD-07 — Formatos suportados: OGG como recomendado; MP3 como fallback universal; FLAC apenas para masters
 
 **Decisão:** suportar OGG (recomendado), MP3, WEBM, OPUS, FLAC e WAV para upload. O cliente usa Howler.js com array de sources em ordem de preferência: `['.ogg', '.webm', '.opus', '.mp3']`. FLAC e WAV são aceitos no upload mas o sistema sugere conversão. Safari não suporta OGG/WEBM — para esse browser o fallback automático do Howler.js resolve via MP3.
 
@@ -148,7 +148,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **Apenas MP3:** loop com gap perceptível; qualidade inferior por bitrate.
 - **Converter automaticamente no servidor:** FLAC→OGG no upload é desejável mas depende de `ffmpeg` instalado — tornar opcional, não obrigatório (ver `20-assets-e-midia.md`).
 
-### D8 — Streaming via HTTP range requests para arquivos > 5MB
+### DEC-AUD-08 — Streaming via HTTP range requests para arquivos > 5MB
 
 **Decisão:** o servidor Fastify serve assets de áudio com suporte nativo a `Range` headers (`Content-Range`, `Accept-Ranges: bytes`). O Howler.js usa `<audio>` element HTML5 (não XHR/fetch) para faixas acima de 5MB, que triggera automaticamente range requests progressivos no browser. Abaixo de 5MB, o `WebAudio` mode do Howler.js (que carrega o arquivo completo via XHR para melhor loop accuracy) é preferido.
 
@@ -159,7 +159,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 - **Sempre usar HTML5 audio:** loop gap em alguns formatos; sem controle fino via Web Audio API.
 - **Threshold fixo por formato:** complexidade desnecessária; o tamanho é melhor proxy que o formato.
 
-### D9 — Política de autoplay: bloqueio até primeira interação; UI de desbloqueio explícita
+### DEC-AUD-09 — Política de autoplay: bloqueio até primeira interação; UI de desbloqueio explícita
 
 **Decisão:** ao conectar, o cliente tenta `audioContext.resume()`. Se bloqueado (estado `suspended`), exibe um overlay/badge de "Clique para ativar áudio" que ao ser clicado chama `audioContext.resume()` e dispara o catch-up de estado. Após desbloqueio, o cliente recebe o `PlaybackState` atual do servidor e inicia a reprodução no ponto correto.
 

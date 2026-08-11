@@ -10,7 +10,7 @@
  *   - squareConeHighlight / squareLineHighlight: basic smoke + non-empty
  *   - cellsInPolygon / pointInPolygon: indirectly via highlight functions
  *
- * Spec: 06-canvas-e-renderizacao.md §D3, §D4
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-03, §DEC-CNV-04
  */
 
 import { describe, it, expect } from "vitest";

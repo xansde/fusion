@@ -41,6 +41,7 @@ import { resolveClassLevels, type EmbeddedClass } from "../variants/classLevels/
 import { stepCharSpeed } from "./speed.js";
 import { stepCharToughness } from "./hp.js";
 import { stepCharElementalBlasts } from "./elementalBlast.js";
+import { stepCharIsekaiFocus } from "./isekai.js";
 import {
   stepCharBuildAbilities,
   stepCharApplyClass,
@@ -1148,6 +1149,12 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharCollectEquipment,
   stepCharHp,
   stepCharToughness,
+  // Isekai variant: proposes a Focus pool for a character who has none, and
+  // publishes the ★ locks. Inert unless the variant is on AND an archetype is
+  // picked. Listed before the clamp because that is the order the topo-sort
+  // resolves (see the step's own comment) — the clamp always gets the last
+  // word on the 3-point cap.
+  stepCharIsekaiFocus,
   stepCharFocusClamp,
   stepCharDyingMax,
   stepCharAc,

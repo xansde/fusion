@@ -538,6 +538,61 @@ describe("M1-B — join snapshot", () => {
     gmSocket.disconnect();
     playerSocket.disconnect();
   });
+
+  it("player receives a GM-created Scene in the join snapshot (Scene is shared world state, not ownership-gated)", async () => {
+    // GM creates a Scene the normal way — no explicit ownership grant, so it
+    // persists with ownership.default = NONE (ownershipForCreator: "GM
+    // creates: no personal owner entry needed"). A player must still see it:
+    // Scene, like Combat, is shared world state (mirrors the doc:create/update
+    // broadcast path in doc-handlers.ts, which never ownership-filters Scene).
+    const gmSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.gmToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    gmSocket.connect();
+    await waitForConnect(gmSocket);
+    await new Promise((r) => setTimeout(r, 50));
+
+    const createAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Scene",
+      data: [{ name: "cemitério" }],
+    });
+    const createResult = createAck["result"] as Record<string, unknown>;
+    const createdId = (createResult["documents"] as Record<string, unknown>[])[0]?.["_id"] as
+      | string
+      | undefined;
+    expect(createdId).toBeTruthy();
+
+    const playerSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.playerToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+
+    const snapshotPromise = new Promise<Record<string, unknown>>((resolve) => {
+      playerSocket.on("op", (envelope: Record<string, unknown>) => {
+        if (envelope["type"] === "resync:full" || envelope["type"] === "resync:delta") {
+          resolve(envelope);
+        }
+      });
+    });
+
+    playerSocket.connect();
+    await waitForConnect(playerSocket);
+    const snapshotEnvelope = await snapshotPromise;
+
+    expect(snapshotEnvelope["type"]).toBe("resync:full");
+    const payload = snapshotEnvelope["payload"] as Record<string, unknown>;
+    const snapshot = payload["snapshot"] as Record<string, unknown>;
+    const scenes = (snapshot["documents"] as Record<string, unknown[]>)["Scene"] as Record<
+      string,
+      unknown
+    >[];
+
+    expect(scenes.map((s) => s["_id"])).toContain(createdId);
+
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+  });
 });
 
 // ---------------------------------------------------------------------------

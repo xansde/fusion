@@ -36,7 +36,15 @@
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import WindowHost from "./windows/WindowHost.svelte";
+  import {
+    collectMinimapTokens,
+    minimapSceneFrom,
+    type MinimapSource,
+  } from "../lib/hub/minimapSource.js";
   import HubLayer from "./hub/HubLayer.svelte";
+  import SystemHud from "./hub/SystemHud.svelte";
+  import SystemNoticeStack from "./hub/SystemNoticeStack.svelte";
+  import AvatarCorner from "./avatar/AvatarCorner.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
@@ -54,7 +62,7 @@
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
-  import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { openActorSheet, registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import type { ActorDragPayload } from "../lib/actors/actorDirectory.js";
   import { buildTokenDropPayload, canAcceptCanvasDrop } from "../lib/canvas/tokens/tokenDrop.js";
@@ -62,7 +70,12 @@
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
-  import { sendOp } from "../lib/docs/sendOp.js";
+  import { makeSendOpFn, sendOp } from "../lib/docs/sendOp.js";
+  import {
+    makeTokenActorSendOpFn,
+    readEffectiveActorDoc,
+    tokenActorBindingFor,
+  } from "../lib/scenes/tokenActor.js";
   import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
@@ -124,6 +137,12 @@
   // is not reactive state, so the template cannot depend on it directly.
   let calibrationCanvas: FusionCanvas | null = $state(null);
 
+  // The token layer of the active scene, kept here so the tactical minimap can
+  // ask it what it is currently drawing (spec 32, DEC-MMT-02). Assigned in
+  // _createOrchestrator, cleared in _teardownOrchestrator — the minimap must
+  // never hold a layer belonging to a scene that has been switched away.
+  let activeTokenLayer: TokenLayer | null = null;
+
   function openGridCalibration(): void {
     if (fusionCanvas && activeSceneState.scene) calibrationCanvas = fusionCanvas;
   }
@@ -184,6 +203,56 @@
 
   /** True when the logged-in user is the GM (role 4). */
   const isGm = $derived(() => (session.user?.role ?? 0) === 4);
+
+  // ---- Tactical minimap wiring (spec 32) ----
+
+  /**
+   * The live wiring the Mapa panel of the Hub reads.
+   *
+   * Built here because this is where the three pieces already are: the canvas
+   * (camera), the token layer (what is on screen) and the active scene. The
+   * widget itself never touches PIXI or the socket — it reads this snapshot and
+   * calls back to move the camera, nothing else (REQ-MMT-011).
+   *
+   * `null` until the canvas finished building its layers, so the panel can say
+   * so instead of drawing an empty box.
+   */
+  const minimapSource = $derived.by<MinimapSource | null>(() => {
+    if (!canvasReady) return null;
+    const canvas = fusionCanvas;
+    if (!canvas) return null;
+
+    return {
+      snapshot: () => {
+        const scene = activeSceneState.scene;
+        const layer = activeTokenLayer;
+        const container = canvasContainer;
+        // Role 1 (player) on purpose: resolveOwnedActorIds grants a GM every
+        // actor in the world (REQ-USR-006), and "every token is yours" is not a
+        // highlight. Asking as a player yields explicit ownership only — which
+        // is what "the token I control" means on a minimap.
+        const owned = resolveOwnedActorIds(worldMirror, session.user?.id ?? "", 1);
+        return {
+          scene: minimapSceneFrom(scene),
+          gridSize: scene?.grid?.size ?? 100,
+          tokens:
+            scene && layer
+              ? collectMinimapTokens(scene.tokens, layer.visibleTokenIds(), owned)
+              : [],
+          camera: canvas.camera,
+          viewportWidth: container?.clientWidth ?? 0,
+          viewportHeight: container?.clientHeight ?? 0,
+        };
+      },
+      centerOn: (worldX: number, worldY: number, animate = true) => {
+        if (animate) {
+          canvas.zoomTo({ x: worldX, y: worldY, scale: canvas.camera.scale }, 220);
+        } else {
+          canvas.panTo(worldX, worldY);
+        }
+      },
+    };
+  });
 
   // ---- Canvas lifecycle ----
 
@@ -462,7 +531,12 @@
       scene._id,
       gridSize,
       currentIsGm,
+      // Who is looking: the resource bar's cut is the viewer's level over the
+      // token's ACTOR (DEC-CNV-15), so the layer needs the identity, not just
+      // the GM flag — an Assistant is privileged too (REQ-USR-006).
+      { userId, role: session.user?.role ?? 0 },
     );
+    activeTokenLayer = tokenLayer;
 
     // Wire SceneOrchestrator tick into FusionCanvas ticker via the public API.
     // SceneOrchestrator.tick() already calls tokenLayer.tick() internally —
@@ -690,9 +764,96 @@
       sceneOrchestrator = null;
     }
 
+    // The orchestrator destroyed the layer above; a minimap reading it after
+    // this point would be querying dead sprites.
+    activeTokenLayer = null;
+
     // A scene switch invalidates any open TokenConfigDialog — its token no
     // longer belongs to the (about to be destroyed) interaction manager.
     configuringToken = null;
+  }
+
+  /**
+   * Open the sheet of the actor whose avatar sits in the corner.
+   *
+   * Same wiring as ActorDirectory.openSheet: real per-user ownership (never a
+   * hardcoded OWNER) and a LAZY socket accessor for sendOpFn, because a window's
+   * componentProps are captured once at open time and would otherwise hold a
+   * socket that a reconnect already replaced.
+   */
+  function abrirFichaDoAvatar(actorId: string): void {
+    const doc = worldMirror
+      .getByType<Record<string, unknown>>("Actor")
+      .find((a) => a["_id"] === actorId);
+    if (doc === undefined) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = doc["ownership"] as Record<string, number> | undefined;
+    openActorSheet(actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeSendOpFn(() => getSocket()),
+    });
+  }
+
+  /**
+   * Open the sheet of the actor a TOKEN plays with (REQ-DOC-032/033).
+   *
+   * Two things differ from `abrirFichaDoAvatar`, and both matter for an
+   * UNLINKED token — six skeletons out of one "Esqueleto" Actor:
+   *
+   *   - the document shown is the reconstructed TokenActor (base + that
+   *     token's `actorDelta`), so skeleton 3 shows skeleton 3's hit points;
+   *   - the write path is wrapped so an edit becomes `token:updateActor` and
+   *     lands on that token's delta. Without the wrapper, editing one
+   *     skeleton's HP would edit the Actor, i.e. all six.
+   *
+   * Ownership still comes from the BASE Actor: a delta says what a token
+   * holds, never who may look at it.
+   */
+  function abrirFichaDoToken(token: TokenDocument): void {
+    const sceneId = activeSceneState.scene?._id;
+    if (!sceneId) return;
+
+    const binding = tokenActorBindingFor(sceneId, token);
+    if (!binding) return;
+
+    const base = worldMirror.getDoc<Record<string, unknown>>("Actor", binding.actorId);
+    if (!base) return;
+
+    const doc = readEffectiveActorDoc(worldMirror, binding.actorId, binding);
+    if (!doc) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = base["ownership"] as Record<string, number> | undefined;
+
+    openActorSheet(binding.actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeTokenActorSendOpFn(makeSendOpFn(() => getSocket()), binding),
+      tokenBinding: binding,
+    });
+  }
+
+  /**
+   * The EFFECTIVE actor's `system` for a token (base + delta, REQ-CNV-091) —
+   * what the token config dialog discovers its bar dropdown options from.
+   * `undefined` when the token has no actor: the dialog degrades to
+   * "no bar" plus whatever path the token already had saved.
+   */
+  function effectiveActorSystemOf(token: TokenDocument): unknown {
+    const sceneId = activeSceneState.scene?._id;
+    if (!sceneId) return undefined;
+    const binding = tokenActorBindingFor(sceneId, token);
+    if (!binding) return undefined;
+    const doc = readEffectiveActorDoc(worldMirror, binding.actorId, binding);
+    return doc?.["system"];
   }
 </script>
 
@@ -828,6 +989,13 @@
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
+  <!-- Avatar corner — the viewer's own character, bottom-right.             -->
+  <!-- Before WindowHost and in the fixed-regions band, so a sheet or any    -->
+  <!-- floating window covers it: the avatar is decoration, windows are work.-->
+  <!-- -------------------------------------------------------------------- -->
+  <AvatarCorner onAbrirFicha={abrirFichaDoAvatar} />
+
+  <!-- -------------------------------------------------------------------- -->
   <!-- Window Host — floating windows and dialogs (M3-C)                    -->
   <!-- REQ-UIF-009..016: window manager registry mounted here once.          -->
   <!-- pointer-events: none on the host; individual windows restore them.    -->
@@ -841,7 +1009,17 @@
   <!-- `.hub-surface` descendants take input, so clicks on empty Hub space   -->
   <!-- fall through to the map.                                              -->
   <!-- -------------------------------------------------------------------- -->
-  <HubLayer />
+  <HubLayer>
+    <SystemHud {minimapSource} />
+  </HubLayer>
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- System notices — a SIBLING of the Hub, not a child. HubLayer is a     -->
+  <!-- fixed, z-indexed host, so it opens a stacking context that would trap -->
+  <!-- a notice in the Hub band; notices belong in `--fusion-z-notification`  -->
+  <!-- (REQ-UIF-008), visible even over a modal.                             -->
+  <!-- -------------------------------------------------------------------- -->
+  <SystemNoticeStack />
 
   <!-- -------------------------------------------------------------------- -->
   <!-- Token config dialog — opened by double-clicking a token on the       -->
@@ -852,6 +1030,8 @@
       sceneId={activeSceneState.scene._id}
       token={configuringToken}
       socket={getSocket()!}
+      actorSystem={effectiveActorSystemOf(configuringToken)}
+      onOpenSheet={abrirFichaDoToken}
       onClose={() => { configuringToken = null; }}
       onSuccess={() => { configuringToken = null; }}
     />

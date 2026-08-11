@@ -34,7 +34,10 @@
  *      packages/client/dist, AND every game system's systems/<id>/packs/
  *      directory (B3-FIXES MÉDIA B — REQ-CMP-006 in the packaged exe) into
  *      the custom archive format (pack-native.mjs / native-loader.ts's
- *      packDirectory).
+ *      packDirectory). The client dist is packed with `--exclude avatar`:
+ *      the avatar acervo is 22 MB and ships as a SIDECAR directory next to the
+ *      artifact instead (spec 33, REQ-AVT-041), because embedding it would blow
+ *      the 150 MB budget of step 7.
  *   6. Assemble the SEA: generate sea-config.json (make-sea-config.mjs),
  *      run `node --experimental-sea-config`, copy the CURRENT node.exe,
  *      inject the blob via postject, name the result
@@ -56,6 +59,7 @@ import {
   writeFileSync,
   readdirSync,
   copyFileSync,
+  cpSync,
   statSync,
   chmodSync,
   rmSync,
@@ -130,7 +134,8 @@ function platformArchLabel() {
   const platform = process.platform;
   const arch = process.arch;
 
-  const platformLabel = platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
+  const platformLabel =
+    platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
   if (arch !== "x64" && arch !== "arm64") {
     throw new Error(`Unsupported build arch: "${arch}". Expected x64 or arm64.`);
   }
@@ -178,10 +183,7 @@ function phaseVersionDrift() {
 }
 
 function readFusionVersion() {
-  const versionTs = readFileSync(
-    join(repoRoot, "packages", "shared", "src", "version.ts"),
-    "utf8",
-  );
+  const versionTs = readFileSync(join(repoRoot, "packages", "shared", "src", "version.ts"), "utf8");
   const match = /export const FUSION_VERSION = "([^"]+)";/.exec(versionTs);
   if (match === null) throw new Error("Could not read FUSION_VERSION from version.ts");
   return match[1];
@@ -192,7 +194,9 @@ function readFusionVersion() {
 // ---------------------------------------------------------------------------
 
 function phaseWorkspaceBuild() {
-  log("Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)");
+  log(
+    "Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)",
+  );
   run("pnpm", ["-r", "build"]);
 }
 
@@ -263,7 +267,14 @@ function phaseBundle() {
 // ---------------------------------------------------------------------------
 
 async function loadAssetKeyConstants() {
-  const nativeLoaderPath = join(repoRoot, "packages", "server", "dist", "runtime", "native-loader.js");
+  const nativeLoaderPath = join(
+    repoRoot,
+    "packages",
+    "server",
+    "dist",
+    "runtime",
+    "native-loader.js",
+  );
   const seaAssetsPath = join(repoRoot, "packages", "server", "dist", "runtime", "sea-assets.js");
   if (!existsSync(nativeLoaderPath) || !existsSync(seaAssetsPath)) {
     throw new Error(
@@ -272,7 +283,9 @@ async function loadAssetKeyConstants() {
     );
   }
   const { NATIVE_PACKAGES } = await import(pathToFileURL(nativeLoaderPath).href);
-  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(pathToFileURL(seaAssetsPath).href);
+  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(
+    pathToFileURL(seaAssetsPath).href
+  );
   return { NATIVE_PACKAGES, CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY };
 }
 
@@ -305,7 +318,12 @@ async function phasePackAssets(assetKeys) {
       );
     }
     const nestArgs = nestFlags.flatMap((n) => ["--nest", n]);
-    run(process.execPath, [join(__dirname, "pack-native.mjs"), pkg.specifier, archivePath, ...nestArgs]);
+    run(process.execPath, [
+      join(__dirname, "pack-native.mjs"),
+      pkg.specifier,
+      archivePath,
+      ...nestArgs,
+    ]);
     nativeAssetPaths[pkg.assetKey] = archivePath;
   }
 
@@ -323,7 +341,19 @@ async function phasePackAssets(assetKeys) {
   // format as the two native-addon packs above — guaranteeing this pipeline
   // can never write a client-dist archive in a format native-loader.ts's
   // extraction code (sea-assets.ts) does not understand.
-  run(process.execPath, [join(__dirname, "pack-native.mjs"), "--dir", clientDistDir, clientDistArchive]);
+  // `--exclude avatar` keeps the avatar acervo OUT of the SEA blob. It is 22 MB
+  // (spec 33): embedding it would push this artifact from ~134 MB to ~193 MB and
+  // blow the REQ-DST-046 150 MB budget. It ships as a sidecar directory next to
+  // the executable instead, emitted in phase 8 below and found at runtime by
+  // packages/server/src/avatar/routes.ts.
+  run(process.execPath, [
+    join(__dirname, "pack-native.mjs"),
+    "--dir",
+    clientDistDir,
+    clientDistArchive,
+    "--exclude",
+    "avatar",
+  ]);
 
   // B3-FIXES MÉDIA B: pack every game system's committed packs/ directory
   // into ONE archive, each nested under "<systemId>/packs/..." — the exact
@@ -407,7 +437,13 @@ function phaseAssembleSea(bundlePath, assets, version) {
   // these keys cannot drift from native-loader.ts/sea-assets.ts (BAIXA (b)).
   const assetArgs = Object.entries(assets).flatMap(([key, path]) => ["--asset", `${key}=${path}`]);
 
-  run(process.execPath, [join(__dirname, "make-sea-config.mjs"), bundlePath, seaConfigPath, seaBlobPath, ...assetArgs]);
+  run(process.execPath, [
+    join(__dirname, "make-sea-config.mjs"),
+    bundlePath,
+    seaConfigPath,
+    seaBlobPath,
+    ...assetArgs,
+  ]);
 
   run(process.execPath, ["--experimental-sea-config", seaConfigPath]);
   if (!existsSync(seaBlobPath)) {
@@ -453,6 +489,37 @@ function phaseAssembleSea(bundlePath, assets, version) {
   ]);
 
   return artifactPath;
+}
+
+// ---------------------------------------------------------------------------
+// Avatar acervo — sidecar, not embedded (spec 33, REQ-AVT-041)
+// ---------------------------------------------------------------------------
+
+/**
+ * Copy the avatar acervo next to the artifact, as `dist-release/avatar/`.
+ *
+ * It is NOT in the SEA blob on purpose: 22 MB of atlases against a 150 MB
+ * artifact budget that a 134 MB executable has already mostly spent
+ * (REQ-DST-046). The server finds it here at runtime — see
+ * packages/server/src/avatar/routes.ts for the full resolution order.
+ *
+ * Missing acervo is a warning, never a build failure: the avatar is cosmetic and
+ * a release without it still runs (the client degrades to "no avatar").
+ */
+function emitAvatarSidecar() {
+  const acervoDir = join(repoRoot, "packages", "client", "dist", "avatar");
+  if (!existsSync(acervoDir)) {
+    log(
+      "Avatar acervo not found in packages/client/dist/avatar — the release will ship WITHOUT it " +
+        "(avatars unavailable). Run `pnpm install` so waybuilder-avatar is present, then rebuild the client.",
+    );
+    return null;
+  }
+  const destino = join(distReleaseDir, "avatar");
+  rmSync(destino, { recursive: true, force: true });
+  cpSync(acervoDir, destino, { recursive: true });
+  log(`Avatar acervo copied alongside the artifact: ${destino}`);
+  return destino;
 }
 
 // ---------------------------------------------------------------------------
@@ -538,6 +605,7 @@ async function main() {
   const assetKeys = await loadAssetKeyConstants();
   const assets = await phasePackAssets(assetKeys);
   const artifactPath = phaseAssembleSea(bundlePath, assets, version);
+  emitAvatarSidecar();
   const sizeAndHash = phaseSizeAndHash(artifactPath);
   const manifestPath = phaseManifest(version, artifactPath, sizeAndHash, channel);
 

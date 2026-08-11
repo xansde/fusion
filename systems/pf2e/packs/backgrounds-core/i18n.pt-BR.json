@@ -215,6 +215,11 @@
       "name": "Moleque de Rua",
       "sourceHash": "c6d2b80e5a77a466faa44bb07c62b2c055da974a",
       "description": "<p>Você sobrevivia batendo carteiras nas ruas de uma grande cidade, sem nunca saber onde encontraria sua próxima refeição. Enquanto alguns aventuram-se em busca de glória, você faz isso para sobreviver.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Constituição</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Ladinagem e em uma perícia de Conhecimento relacionada à cidade em que você viveu como moleque de rua (como Conhecimento (Absalom) ou Conhecimento (Magnimar)). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Pickpocket].</p>"
+    },
+    "FusionSmuggler01": {
+      "name": "Contrabandista",
+      "sourceHash": "07c71498cc4c7a268538281433b5b7f3d268a336",
+      "description": "<p>Você sabe contrabandear pessoas para dentro e para fora de países.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Furtividade e na perícia Conhecimento (Submundo). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler].</p>"
     }
   }
 }

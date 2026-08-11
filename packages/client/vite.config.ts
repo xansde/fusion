@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "node:path";
+import { waybuilderAvatar } from "./vite-plugins/waybuilder-avatar.js";
 
 /**
  * Vite configuration for @fusion/client.
@@ -8,9 +9,11 @@ import { resolve } from "node:path";
  * - Build output goes to dist/
  * - Dev server proxies /api and /socket.io to the Fusion server on port 33000
  * - Workspace alias resolves @fusion/shared from source (no build step needed in dev)
+ * - waybuilderAvatar() publishes the avatar acervo under /avatar/* (dev, preview
+ *   and build — see vite-plugins/waybuilder-avatar.ts)
  */
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [svelte(), waybuilderAvatar()],
 
   resolve: {
     alias: {

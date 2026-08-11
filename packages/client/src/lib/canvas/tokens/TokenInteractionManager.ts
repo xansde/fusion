@@ -1,7 +1,7 @@
 /**
  * TokenInteractionManager.ts — PIXI shell for token interaction.
  *
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §D5
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §DEC-CNV-05
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050..052
  * Spec: 05-usuarios-e-permissoes.md (ownership / move permission)
  *

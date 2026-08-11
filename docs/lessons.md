@@ -472,3 +472,138 @@ com padding 0 — que é o que um fixture de teste tende a usar — o bug some.
 lição mais larga: quando dois subsistemas põem coisas no mesmo espaço, o
 segundo tem que **ler de onde o primeiro colocou**, não deduzir de onde
 deveria ser.
+
+## Nenhum gate deste repo alcança um arquivo `.svelte`
+
+**Quando:** porte da System Window para o client (2026-08-08).
+
+**O que aconteceu:** ao rodar os gates sobre componentes novos, os dois que
+cobririam estilo e erro de código simplesmente não olharam para eles:
+
+- `eslint.config.js` lista `**/*.svelte` entre os arquivos **ignorados**
+  (linha 19). Rodar `npx eslint <pasta com .svelte>` não reprova nada — pior,
+  quando a pasta só tem `.svelte`, o ESLint aborta com "all of the files
+  matching the glob pattern are ignored", que soa como erro de invocação.
+- `format:check` roda `prettier --check "**/*.{ts,tsx,json,md}"`. `.svelte` e
+  `.css` estão fora do glob, e o Prettier deste repo nem tem o plugin de
+  Svelte instalado: pedir `--check` num `.svelte` falha com "No parser could be
+  inferred for file".
+
+**Por que engana:** a suíte fica verde, o `format:check` diz "All matched files
+use Prettier code style!" e o gate parece ter passado sobre o componente. O
+"matched" da mensagem é a palavra que ninguém lê. O mesmo vale para `.css`:
+`base.css` **também** difere do Prettier hoje e nunca foi reprovado.
+
+**O que fazer:** o único gate que enxerga `.svelte` é o `svelte-check`
+(`pnpm --filter @fusion/client typecheck`) — e ele checa tipo e a11y, não
+estilo. Então: (a) rode `svelte-check` sempre que mexer em componente, e leia
+os WARNINGS, não só os ERRORS; (b) mantenha em `lib/*.ts` toda lógica que
+mereça teste, porque o client roda Vitest com `environment: "node"` e não monta
+componente — um `.svelte` gordo é código sem lint, sem format e sem teste; (c)
+ao afirmar "gates limpos", diga sobre quais arquivos, já que a resposta honesta
+hoje exclui todo `.svelte` e todo `.css`.
+
+## O servidor serve o `index.html` que leu no boot, não o que está no disco
+
+**Quando:** demonstração da System Window no mundo `isekai` (2026-08-08) —
+tela preta para o usuário.
+
+**O que aconteceu:** o servidor subiu, e depois o client foi reconstruído para
+incluir uma correção. O Vite esvazia `dist/` e regera os bundles com hash novo.
+O servidor continuou entregando o `index.html` do boot, que aponta para
+`assets-client/index-<hash-antigo>.js` — arquivo que não existe mais. Resultado:
+`GET /` responde **200**, o `<script>` seguinte responde **404**, nada monta e a
+página fica preta.
+
+**Por que engana:** o único sintoma é "tela preta". O `/health` responde,
+`GET /` responde 200, o log não tem nenhum erro — só um 404 solitário no meio de
+dezenas de 200, que passa batido. E `curl` na raiz parece confirmar que está
+tudo certo, porque o HTML volta íntegro; ele só aponta para o lugar errado.
+
+**Como diagnosticar em 10 segundos:** compare o que o servidor entrega com o
+que existe no disco.
+
+```
+curl -s http://<host>:33000/ | grep -o 'assets-client/index-[^"]*\.js'
+ls packages/client/dist/assets-client/ | grep -E '^index-.*\.js$'
+```
+
+Nomes diferentes = servidor obsoleto. Confirme pedindo o arquivo que o HTML
+cita e vendo o 404.
+
+**O que fazer:** rebuild do client com o servidor no ar **exige reiniciar o
+servidor**. E, ao reiniciar, matar o processo antigo de verdade: o mundo tem
+lock por PID, então o novo morre com `WorldLockedError: World "isekai" is
+already in use by process <pid>` se o anterior ainda estiver vivo. Vale também
+para o navegador do outro lado: `Ctrl+Shift+R`, porque o `index.html` antigo
+pode estar no cache dele.
+
+## O renderer que inicializa e não desenha
+
+**Quando:** "o narrador não consegue ver o mapa" — tela preta na mesa, com
+imagem de cena também sumindo (2026-08-08).
+
+**O que aconteceu:** duas falhas empilhadas, e a de cima escondia a de baixo.
+
+1. O CSP servido em `boot.ts` tinha `connect-src 'self'`. O PIXI v8 testa
+   suporte a worker rodando `fetch()` sobre um `data:image/png;base64,…`
+   inline (`checkImageBitmap`). `data:` estava liberado em `img-src`, mas
+   `fetch` responde a **`connect-src`** — bloqueado. Único sintoma: um erro de
+   CSP no console.
+2. Com o CSP corrigido, o asset passou a ser baixado (`200 OK`) e a tela
+   continuou preta. O `FusionCanvas` inicializava com `preference: "webgpu"`,
+   e o fallback do PIXI só dispara quando o WebGPU **falha ao inicializar**.
+   No Chromium/Edge em Windows ele inicializa com sucesso e depois não
+   desenha nada — background, grid e tokens, todos ausentes, sem uma única
+   exceção. Como nada falha, nada cai para o WebGL.
+
+**Por que engana:** o sintoma ("o GM não vê o mapa") aponta para permissão,
+fog ou visibilidade — foram três caminhos investigados antes (redação do
+snapshot, `isGm`, overlay de darkness) e todos estavam corretos. Um renderer
+que inicializa e devolve tela preta é invisível para o JS: não há erro para
+logar, não há teste unitário que pegue (o PIXI é mockado), e a request do
+asset aparece verde no DevTools.
+
+**O que fazer:** quando a tela está preta e **o grid também não aparece**, o
+problema não é o asset nem permissão — é o renderer ou a câmera. O corte que
+resolve em um minuto: desabilitar `navigator.gpu` no browser e recarregar; se
+a cena aparece, é o WebGPU. O `preference` está fixo em `"webgl"` desde então,
+com o porquê registrado no próprio `FusionCanvas.init()`. E o mais geral: um
+`200 OK` na aba Network prova que o byte chegou, não que ele foi desenhado.
+
+## Um documento que muda tem dois caminhos de escrita no store — e três de leitura no servidor
+
+**Quando:** verificação adversarial da revelação de rolagem secreta
+(`chat:reveal`, spec 09 / DEC-CHT-10), 2026-08-09.
+
+**O que aconteceu:** o chat sempre tratou `ChatMessage` como append-only. A
+revelação foi a primeira operação a **mudar** uma mensagem já entregue, e cada
+lugar que assumia "mensagem nova" virou um defeito silencioso:
+
+- **No cliente**, `insertMessage` deduplicava por `_id` e retornava. O servidor
+  persistia a revelação, reemitia o documento certo, e a tela não mudava. Bug
+  invisível em qualquer teste de servidor.
+- **Ainda no cliente**, o store tem **dois** caminhos de escrita:
+  `insertMessage` (broadcast ao vivo) e `prependMessages` (`chat:history`, o
+  F5). Consertar só o primeiro deixa o reload mostrando a versão que o store
+  pegou primeiro. E o segundo escondia um bug anterior: ele ordenava a página
+  em ordem crescente e fazia `unshift` de cada item, o que **inverte** a página
+  — a lista é documentada (e consumida por `chatGrouping`, que não reordena)
+  como mais antiga primeiro. Passou a delegar para `insertMessage`.
+- **No servidor**, a visibilidade era decidida por três cópias quase idênticas
+  do mesmo predicado (broadcast, `chat:history`, snapshot de entrada) mais o eco
+  do ack. Elas só concordam sobre uma mensagem revelada se concordarem em geral;
+  viraram uma função só.
+
+**Por que engana:** a feature parece pronta na demonstração — o GM clica, a
+mesa vê. O que quebra é o F5, o cliente que entra depois e o restart, que
+ninguém confere durante a demo. E o defeito do store fica **fora** do alcance de
+qualquer teste de servidor: o servidor está certo o tempo todo.
+
+**O que fazer:** ao introduzir a primeira mutação de um documento que já foi
+entregue, listar **todos** os caminhos de leitura antes de codar e escrever um
+teste por caminho — ao vivo, histórico, snapshot de entrada e reabertura do
+arquivo do banco. E, quando a visibilidade for reescrita no próprio documento
+(aqui: `whisper` volta a `[]`, `blind` a `false`), preferir isso a um terceiro
+campo de visibilidade: um predicado novo teria que ser replicado nos mesmos
+caminhos que já divergiam.

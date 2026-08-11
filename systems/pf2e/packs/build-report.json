@@ -8,7 +8,7 @@
     {
       "packId": "pf2e.weapons-core",
       "slug": "weapons-core",
-      "documentCount": 30
+      "documentCount": 42
     },
     {
       "packId": "pf2e.bestiary-core",
@@ -23,17 +23,17 @@
     {
       "packId": "pf2e.classes-core",
       "slug": "classes-core",
-      "documentCount": 12
+      "documentCount": 14
     },
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 259
+      "documentCount": 302
     },
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 1807
+      "documentCount": 1923
     },
     {
       "packId": "pf2e.ancestries-core",
@@ -48,7 +48,7 @@
     {
       "packId": "pf2e.backgrounds-core",
       "slug": "backgrounds-core",
-      "documentCount": 42
+      "documentCount": 43
     },
     {
       "packId": "pf2e.actions-core",
@@ -68,10 +68,10 @@
     {
       "packId": "pf2e.ancestry-features-core",
       "slug": "ancestry-features-core",
-      "documentCount": 55
+      "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-02T20:43:39.319Z",
+  "generatedAt": "2026-08-08T21:28:42.595Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

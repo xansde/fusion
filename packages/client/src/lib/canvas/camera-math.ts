@@ -1,7 +1,7 @@
 /**
  * camera-math.ts — pure camera math (no PIXI, no DOM).
  *
- * Spec: 06-canvas-e-renderizacao.md §D2, §REQ-CNV-006..009, §REQ-CNV-012
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-02, §REQ-CNV-006..009, §REQ-CNV-012
  *
  * All functions are stateless and testable in Vitest without a browser.
  * The PIXI shell (FusionCanvas) calls these to compute what to apply to the

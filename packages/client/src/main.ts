@@ -55,6 +55,10 @@
  */
 
 import "./styles/base.css";
+// After base.css: the System Window palette is additive (`--fusion-sw-*`) and
+// never redefines a shell token, but load order is still the contract a reader
+// expects — shell first, then the Hub's own register on top.
+import "./styles/system-window.css";
 import "./lib/i18n/index.js";
 import "pixi.js/unsafe-eval";
 import { mount } from "svelte";

@@ -1,0 +1,212 @@
+{
+  "class": "psychic",
+  "displayName": "Psychic",
+  "vendorClassFile": "classes/psychic.json",
+  "keyAbilityOptions": ["int", "cha"],
+  "hp": 6,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "psychic-conscious-mind",
+      "featureNameInItemsMap": "Conscious Mind",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 6,
+      "category": "consciousMind",
+      "slotType": "consciousMind"
+    },
+    {
+      "otherTag": "psychic-subconscious-mind",
+      "featureNameInItemsMap": "Subconscious Mind",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 4,
+      "category": "subconsciousMind",
+      "slotType": "subconsciousMind"
+    }
+  ],
+  "classFeats": {
+    "trait": "psychic",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [
+      "Psychic Dedication",
+      "Psi Development",
+      "Basic Psychic Spellcasting",
+      "Expert Psychic Spellcasting",
+      "Master Psychic Spellcasting"
+    ],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Spell Repertoire",
+      "Signature Spells",
+      "Expert Spellcaster",
+      "Fortitude Expertise",
+      "Weapon Expertise",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "alreadyInPacks": [
+      "Spell Repertoire",
+      "Signature Spells",
+      "Expert Spellcaster",
+      "Fortitude Expertise",
+      "Weapon Expertise",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "missingFromPacks": [
+      "Conscious Mind",
+      "Psi Cantrips and Amps",
+      "Psychic Spellcasting",
+      "Subconscious Mind",
+      "Unleash Psyche",
+      "Clarity of Focus",
+      "Precognitive Reflexes",
+      "Extrasensory Perception",
+      "Walls of Will",
+      "Personal Barrier",
+      "Psychic Weapon Specialization",
+      "Fortress of Will",
+      "Infinite Mind"
+    ]
+  },
+  "spellcasting": {
+    "tradition": "occult",
+    "type": "spontaneous",
+    "ability": "cha",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, entry kzxu2dI7tFxv6Ix6, page KVoEUJBAbAFUJTqw (\"Psychic\"), tabela \"Psychic Spells per Day\" — transcrita celula a celula (12 colunas x 20 linhas, parse do HTML, nao a olho). CONFERIDA contra duas fontes independentes: (a) as fichas pregen oficiais do iconico Thaleon (packs/iconics/thaleon/thaleon-level-{1,3,5}.json), que batem item a item nos niveis 1/3/5 (L1 slot1.max=1; L3 slot1=2 slot2=1; L5 slot1=2 slot2=2 slot3=1) e confirmam tradition=occult, prepared=spontaneous, ability=cha; (b) o registro wb:class/psychic do waybuilder do Igor (pipeline/base/index.json), que bate nos 20 niveis, truque a truque e slot a slot, com a tabela EXATAMENTE como esta declarada aqui (verificado por script). A unica celula em que esta tabela nao reproduz o journal e o rank 10 do nivel 20 (journal 2, aqui 1) — divergencia INTERNA ao journal, ver notes 'DIVERGENCIA DECIDIDA'.",
+    "table": [
+      { "level": 1, "cantrips": 3, "slots": { "1": 1 } },
+      { "level": 2, "cantrips": 3, "slots": { "1": 2 } },
+      { "level": 3, "cantrips": 3, "slots": { "1": 2, "2": 1 } },
+      { "level": 4, "cantrips": 3, "slots": { "1": 2, "2": 2 } },
+      { "level": 5, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 1 } },
+      { "level": 6, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2 } },
+      { "level": 7, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2, "4": 1 } },
+      { "level": 8, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2, "4": 2 } },
+      { "level": 9, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 1 } },
+      { "level": 10, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2 } },
+      { "level": 11, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 1 } },
+      { "level": 12, "cantrips": 3, "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2 } },
+      {
+        "level": 13,
+        "cantrips": 3,
+        "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 1 }
+      },
+      {
+        "level": 14,
+        "cantrips": 3,
+        "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 2 }
+      },
+      {
+        "level": 15,
+        "cantrips": 3,
+        "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 2, "8": 1 }
+      },
+      {
+        "level": 16,
+        "cantrips": 3,
+        "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 2, "8": 2 }
+      },
+      {
+        "level": 17,
+        "cantrips": 3,
+        "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 2, "8": 2, "9": 1 }
+      },
+      {
+        "level": 18,
+        "cantrips": 3,
+        "slots": { "1": 2, "2": 2, "3": 2, "4": 2, "5": 2, "6": 2, "7": 2, "8": 2, "9": 2 }
+      },
+      {
+        "level": 19,
+        "cantrips": 3,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2,
+          "10": 1
+        }
+      },
+      {
+        "level": 20,
+        "cantrips": 3,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2,
+          "10": 1
+        }
+      }
+    ]
+  },
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [],
+    "referencesOutsideSelection": [
+      "Dream Guise (L10) -> prereq textual 'wandering reverie subconscious mind'; Emotional Surge (L10) -> 'emotional acceptance subconscious mind'; Impose Order (Psychic) (L10) -> 'precise discipline subconscious mind'; Scour the Library (L10) -> 'gathered lore subconscious mind'. Os quatro apontam para uma OPCAO do eixo psychic-subconscious-mind, que existe como documento no pack (categoria subconsciousMind), mas o texto do vendor carrega o sufixo 'subconscious mind' depois do nome — entao casar por nome INTEIRO nao resolve (diferente de 'dragon instinct' no Barbarian, onde o texto e exatamente o nome da opcao em minusculas). Sao os 4 UNICOS pre-requisitos de todo o corpo de 46 class feats do Psychic; os outros 42 nao tem prerequisites. Candidato natural a prerequisiteFixes kind 'rename' (4 entradas, 'wandering reverie subconscious mind' -> 'Wandering Reverie' etc.) — NAO aplicado nesta rodada de proposito: mudaria a prosa exibida em pt-BR de 4 talentos sem issue que peca, e nada na ficha-alvo nem na catraca depende disso. Fica declarado aqui para a rodada que decidir mecanizar o eixo."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": ["Cantrip Expansion", "Steady Spellcasting"],
+    "collisionsDetected": [
+      "trait-duplo: dos 46 class feats com trait 'psychic', apenas 2 sao shared-class-feats (Cantrip Expansion L2 e Steady Spellcasting L6) e os 2 JA estao em feats-core, reusados de Wizard/Sorcerer/Bard. Os dois carregam trait de varias classes ao mesmo tempo, entao o gate class_level derivado por trait fica AMBIGUO e o predicado correto e 'any' sobre as classes do trait, nunca uma escolha arbitraria (mesmo padrao ja registrado em wizard.json, barbarian.json e sorcerer.json). Os outros 44 sao exclusivos de feats/class/psychic/ e NENHUM esta nos packs hoje (0/44) — todos entram nesta rodada.",
+      "homonimo-com-sufixo 'Impose Order': existem 2 talentos com esse radical — 'Impose Order' (traits fortune+nephilim, L13, talento de ANCESTRALIDADE nephilim; nao esta em feats-core porque nephilim nao esta em CURATED_ANCESTRY_TRAITS) e 'Impose Order (Psychic)' (traits fortune+psyche+psychic, L10, o class feat do Psychic que entra aqui). Identidade e por flags.fusion.sourceId, nunca por nome; o sufixo '(Psychic)' e do proprio vendor.",
+      "homonimo-com-sufixo 'Signature Spell Expansion': 'Signature Spell Expansion' (trait sorcerer, L10, sourceId UjYHf7rlWTFJ0v0A) JA esta em feats-core desde a r22, e 'Signature Spell Expansion (Psychic)' (trait psychic, L10) entra agora. Mesmo par de homonimos que sorcerer.json ja documentou para 'Counterspell'/'Soulsight' — dois documentos distintos, nao uma duplicata.",
+      "DEDICACAO NAO ENTRA POR CURADORIA (bloqueio real, ver notes): 'Psychic Dedication' carrega traits ['archetype','dedication','multiclass'] e NAO carrega o trait 'psychic'. O laco de classes curadas em isFeatsCoreDoc() seleciona por hasTrait(doc, cfg.classFeats.trait), e 'classFeats.extraNames' — que o contrato de curadoria VALIDA — nao e lido por esse consumidor. Consequencia: com esta curadoria o pack ganha os 44 class feats do Psychic mas NAO ganha 'Psychic Dedication', que e o item que a catraca da ficha-alvo exige em feats-core. Fechar isso exige UMA LINHA em build-mvp-subset.mjs (arquivo que esta agente nao pode editar) — ver notes 'ENTREGA PARCIAL'.",
+      "keyAbility vazio no vendor: classes/psychic.json tem system.keyAbility.value = [] (medido). O journal diz 'Key Attribute: INTELLIGENCE OR CHARISMA — as determined by your choice of subconscious mind' e o waybuilder declara key_ability ['int','cha']. O vendor esta INCOMPLETO, e transform.mjs le keyAbility do vendor (src.keyAbility?.value), nao da curadoria — 'keyAbilityOptions' aqui e documentacao. Logo o doc de classe sai com keyAbility [] e o client (classKeyAbilityOptions em planVM.ts) degrada para 'as seis habilidades', deixando um Psychic escolher Forca como atributo-chave. Nao ha campo de contrato para corrigir isso sem mexer em transform.mjs. A ficha pregen do Thaleon tem o MESMO vazio, entao o gate pregen-parity nao pega (compara [] com []).",
+      "atributo de conjuracao variavel: ClassSpellcastingSchema.ability e AbilitySlugSchema (um unico slug, nao nullable), mas o atributo do Psychic e int OU cha conforme a opcao do eixo psychic-subconscious-mind (Gathered Lore e Precise Discipline = Intelligence; Emotional Acceptance e Wandering Reverie = Charisma — medido na prosa 'Key Attribute' de cada um dos 4 docs). Declarado 'cha' aqui porque e o UNICO valor medido numa spellcastingEntry de Psychic no vendor (as 3 fichas do Thaleon, que tem Wandering Reverie). Mesma classe de problema que sorcerer.json resolveu com tradition=null + traditionByBloodline; a solucao simetrica seria 'abilityBySubconsciousMind', que NAO foi inventada aqui porque spellcastingFor() em transform.mjs so repassa traditionByBloodline — um campo novo seria descartado em silencio. Ver PENDENCIA DE CONTRATO 1."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "POR QUE A PSYCHIC ENTRA (r25): a ficha-alvo do Pathbuilder (Fofurinha) NAO e uma Psychic — ela e Gunslinger do Way of the Spellshot. A Psychic entra porque a heranca Ancient Elf concede uma dedicacao multiclasse no nivel 1, e a cadeia do arquetipo Psychic (Psychic Dedication -> Psi Development / Basic-Expert-Master Psychic Spellcasting) mais a mente consciente escolhida (The Oscillating Wave) precisam existir como DOCUMENTOS para a catraca packages/client/src/lib/sheets/pf2e/__tests__/pathbuilder-fofurinha.test.ts poder asserir qualquer coisa sobre elas.",
+    "DECISAO 1 — a classe E publicada, e nao havia escolha. Tentei primeiro curar SO a cadeia do arquetipo sem publicar o doc de classe (era o pedido explicito: 'se o contrato permitir declarar so o necessario, prefira isso'). O contrato NAO permite: transform.test.mjs assere `deepEqual(classes-core.map(name).sort(), [...curatedClassDisplayNames()].sort())` — igualdade de CONJUNTO — entao toda classe curada tem de aparecer em classes-core, e um displayName diferente de 'Psychic' derruba esse gate (que roda no CI, passo 'Test tools (node:test)'). Alem disso o mesmo arquivo assere, para TODA classe curada, `classItemsMap(vendor, slug)` inteiro presente em class-features-core (independente de fromItemsMap) e `daClasse.length > 0` em feats-core. Publicar a classe pela metade nao e uma opcao do contrato: e tudo ou nada.",
+    "DECISAO 2 — classFeats.trait e 'psychic', nao 'multiclass'. 'Psychic Dedication' so poderia entrar por curadoria via trait 'multiclass' (com levelMax 2, o recorte seria exatamente as 27 dedicacoes multiclasse do vendor, todas de nivel 2, 25 delas ausentes dos packs hoje). Mas com trait 'multiclass' a classe publicada ficaria SEM NENHUM class feat proprio no pack, e todo slot de talento de classe do Psychic (niveis 2,4,...,20) abriria vazio — a varredura headless (varredura-classes.test.ts, invariante 1) reprova exatamente isso. classFeats e UMA regra: nao da para pedir os 44 feats do Psychic E a dedicacao. Escolhida a correcao da classe; a dedicacao fica como entrega parcial abaixo.",
+    "ENTREGA PARCIAL — 1 linha pendente em build-mvp-subset.mjs para fechar a catraca. Adicionar 'Psychic Dedication' ao array GRANT_TARGET_DEDICATION_NAMES (hoje: Bloodrager/Avenger/Vindicator/Runelord Dedication). E EXATAMENTE o mecanismo que aquele array documenta — 'dedication feats that are the GRANTED TARGET of a granter already curated' — porque aqui o concedente e a heranca Ancient Elf, que JA esta em heritages-core e cujo ChoiceSet+GrantItem aponta para uma dedicacao multiclasse. Sem essa linha, `conteudo:feats-core/Psychic Dedication` continua vermelho na catraca por falta de consumidor, nao por falta de curadoria. Alternativa equivalente e mais geral: fazer isFeatsCoreDoc() ler `cfg.classFeats.extraNames` (o contrato JA valida esse campo, e ele esta preenchido aqui com os 5 talentos da cadeia) — hoje esse campo e validado e nunca lido, o que e um defeito latente do consumidor, nao da curadoria.",
+    "OUTRAS DUAS MUDANCAS DE CONSUMIDOR QUE ESTA CURADORIA EXIGE (nenhuma feita aqui — arquivos de outra lane): (a) planVM.ts, KNOWN_CLASS_TRAITS nao contem 'psychic'. Com os 44 class feats do Psychic no pack, isFeatEligible() no ramo 'classFeat' passa a OFERECER talentos de Psychic (Brain Drain, Psi Burst, ...) para Fighter/Gunslinger/qualquer classe, porque o guarda `looksClassTagged` so rejeita traits que estao naquele Set. E uma regressao MUDA: nenhum teste atual a pega. Correcao: adicionar 'psychic' ao Set (uma linha). (b) planVM.ts, CLASS_CHOICE_SLOTS nao tem 'Conscious Mind' nem 'Subconscious Mind', entao os dois eixos de nivel 1 nao viram slot pickavel — o personagem nunca escolhe mente consciente/subconsciente e, por consequencia, nunca resolve o atributo-chave. Correcao: duas entradas ('Conscious Mind' -> 'consciousMind', 'Subconscious Mind' -> 'subconsciousMind') + os slotTypes correspondentes.",
+    "GATE QUE ESTA CURADORIA VAI ACIONAR: pregen-parity.test.ts monta PREGENS filtrando os iconicos pelas classes que estao em classes-core. O iconico do Psychic (Thaleon) tem ficha oficial nos niveis 1/3/5, entao publicar a classe traz Thaleon para dentro do gate #48 — bom (verificacao externa de graca), mas o teste `it.each(CLASSES)` de teto de aumento de pericia (issue #49, que atinge TODA classe) vai produzir uma divergencia NOVA 'Psychic/skillIncreaseCeiling'. E preciso adicionar `\"Psychic/skillIncreaseCeiling\": \"#49\"` a KNOWN_DIVERGENCES no mesmo commit do rebuild, senao pregen-parity reprova. NAO editei esse arquivo aqui de proposito: o agente do Gunslinger precisa da entrada gemea 'Gunslinger/skillIncreaseCeiling' (o iconico nhalmika tambem tem pregen) e edicao concorrente no mesmo arquivo faz rollback silencioso, nao merge. Cabe ao integrador que roda o rebuild aplicar as duas de uma vez.",
+    "REBUILD: as 6 opcoes do eixo consciousMind (entre elas 'The Oscillating Wave', item da catraca) e as 4 do subconsciousMind entram em class-features-core APENAS pelo ramo `axisCategories.has(doc.system.category)` de isClassFeaturesCoreDoc — elas nao estao no items{} da classe. E `system.category` so vira 'consciousMind'/'subconsciousMind' quando transform.mjs roda com esta curadoria no disco (axisCategoryByOtherTag). Logo NAO basta rodar build-mvp-subset.mjs sobre o out/ antigo: e obrigatorio reprocessar o transform (node src/cli.mjs all, ou transform + pack) com classes E class-features no MESMO --packs. Se alguem rodar so o pack, o eixo sai com 0 opcoes e transform.test.mjs reprova em 'eixo sem nenhuma opcao no pack'.",
+    "TABELA DE CONJURACAO — o ponto de maior risco desta curadoria, e onde ela difere de todo conjurador full ja curado. O Psychic tem NO MAXIMO 2 slots por rank (nunca 3 ou 4, como Sorcerer/Wizard) e apenas 3 truques 'normais'. Niveis 1 a 3, explicitos: L1 = 3 truques + 1 slot de rank 1; L2 = 3 truques + 2 slots de rank 1; L3 = 3 truques + 2 de rank 1 + 1 de rank 2. Um novo rank aparece com 1 slot e sobe para 2 no nivel seguinte, do rank 1 (L1/L2) ao rank 9 (L17/L18).",
+    "TRUQUES = 3, e nao 6: o journal marca a coluna de truques como '3*' e a nota de rodape diz 'Your conscious mind gives you three additional cantrips with amps. One cantrip is unique to your conscious mind.' Esses 3 truques adicionais NAO sao escolha livre de repertorio — sao os PSI CANTRIPS concedidos pela mente consciente, lancados do pool de foco. Medido na ficha do Thaleon nivel 1: a spellcastingEntry 'Occult Spontaneous Spells' tem exatamente 3 truques (Phase Bolt, Prestidigitation, Warp Step) e uma entry SEPARADA 'Psychic Cantrips' (prepared=focus, isFocusPool) tem os 3 psi cantrips (Figment, Imaginary Weapon, Shield, da mente The Tangible Dream). Ou seja cantripsKnown=3 e o numero certo para o campo que existe no schema, e os 3 psi cantrips sao uma SEGUNDA entry de foco — nao modelada em ClassSpellcastingSchema. Diferente do Sorcerer, onde o journal ja embutia o +1 truque da bloodline no numero 5.",
+    "DIVERGENCIA DECIDIDA (rank 10 no nivel 20) — journal do vendor diz 2, e esta curadoria declara 1. A instrucao da rodada era 'onde as fontes divergirem, o journal ganha'; aqui a divergencia e DENTRO do journal, entao a premissa nao se aplica: a tabela 'Psychic Spells per Day' traz '2†' na celula (20, 10th) — parse celula a celula, nao leitura a olho — mas (a) a nota de rodape do proprio journal diz 'The infinite mind class feature gives you A 10th-rank spell slot' (singular), (b) a prosa da propria feature Infinite Mind (class-features/infinite-mind.json, L19) diz 'you gain a SINGLE 10th-rank spell slot... You don't gain more 10th-rank spells as you level up' e 'You can take the Mind Over Matter psychic feat to gain a SECOND slot' — ou seja o 2o slot vem de um TALENTO (Mind Over Matter, L20, trait psychic, que entra em feats-core nesta curadoria), nao do nivel 20, e (c) o waybuilder do Igor declara 10:1 nos dois niveis. Alem disso o Sorcerer, cuja Bloodline Paragon tem prosa literalmente identica, ja esta nos nossos packs com 10:1 em 19 E 20. Tres evidencias contra uma celula de tabela: declarado 1. Reverter e trocar um digito, se o dono preferir fidelidade cega a celula.",
+    "CONFERENCIA COM O WAYBUILDER (wb:class/psychic): bate item a item nos 20 niveis em truques (3, com cantrips_raw '3*') e em todos os slots de rank 1..9; bate tambem em tradition=occult, type=spontaneous, key_ability=['int','cha'], hp_per_level=6, proficiencias iniciais (perception trained, fort/reflex trained, will EXPERT, simple+unarmed trained, unarmored trained, occultism + 3 pericias livres), niveis de slot de talento e de aumento de pericia, e progressao de conjuracao trained@1/expert@7/master@15/legendary@19 (que a nossa derivacao produz sozinha a partir de subfeatures.proficiencies). Divergencias encontradas, todas a favor do vendor: (1) rank 10 no nivel 20 (acima); (2) a `progressao` do waybuilder lista DUPLICADO 'spell-repertoire' + 'spell-repertoire-psychic' no nivel 1 e 'weapon-expertise' + 'psychic-weapon-expertise' no nivel 11 — os dois sufixados sao docs LEGADO (publication OGL, remaster:false, 'Pathfinder Dark Archive') substituidos pelos genericos remasterizados, e o items{} do doc de classe remasterizado do vendor aponta so para os genericos; e a issue #10 do repo dele ('eixos tortos em 11 de 27 classes') na pratica. Nossa curadoria segue o items{}: 20 features, sem os dois legados; (3) o waybuilder tem 'The Oscillating Wave' duas vezes (kind class-feature e kind conscious-mind) — o eixo dele e um kind proprio, o nosso e a otherTag; sem efeito no dado.",
+    "INSUMO PARA O BLOCO 3 (conjuracao vinda de arquetipo) — o desenho que o waybuilder ja tem, em wb:feat/psychic-dedication, `mechanized: true`, `grants_completos: true`: os grants da dedicacao sao [proficiency occultism=trained] + [choice {flag:'consciousMind', filtro:['item:tag:psychic-conscious-mind', {not:'item:tag:class-archetype'}]}] + [grant_item {uuid:'{item|flags.system.rulesSelections.consciousMind}'}] + [grant_spellcasting {tradicao:'occult', tipo:'spontaneous', cadeia:'wb:archetype/psychic', degraus:{basic:'wb:feat/basic-psychic-spellcasting', expert:'wb:feat/expert-psychic-spellcasting', master:'wb:feat/master-psychic-spellcasting'}}]. Os tres primeiros sao transcricao literal do rules[] do vendor (confirmei arquivo por arquivo); o quarto e derivado da prosa (prov: 'derivado:prosa-spellcasting') e e a peca que o Fusion nao tem.",
+    "RESUMO DA SPEC DO IGOR (Wayfinder/specs/2026-07-29-spellcasting-de-arquetipo.md, WB-018, status implementada), em 5 linhas: (1) 21 dedicacoes prometem conjuracao na prosa e nenhuma entrega nada na ficha, e sob Free Archetype essa e a rota de conjuracao mais comum de um nao-conjurador; (2) o dado novo e um termo `grant_spellcasting` NA DEDICACAO com tradicao/tipo/cadeia/truques, onde `cadeia` NAO e sempre o proprio arquetipo (Spellshot Dedication conta como arquetipo do Wizard para Basic Wizard Spellcasting) e tradicao pode ser 'escolha' + 'de: <eixo>' quando depende de subclasse; (3) o teto de rank vem do FEAT que o personagem PEGOU (so dedicacao = 0, so truques; Basic = 3; Expert = 6; Master = 8) e nao do nivel dele, e dentro do teto o rank segue a tabela RAW por nivel de personagem, com 1 slot de cada rank; (4) a entrada de conjuracao de arquetipo entra na MESMA lista de conjuracao da ficha, nao numa estrutura paralela; (5) tres casos precisam de tratamento por nome (spellshot->cadeia do Wizard; red-mantis-assassin e gelid-shard tem cadeia sem trait 'dedication'; Master Summoner Spellcasting tem archetype:null), e magia inata fixa (captivator/ghost-hunter/soul-warden) fica fora de escopo.",
+    "CORRECAO AO BRIEFING (r25 §4, bloco 3): o handoff diz 'Idem o pool de foco do truque Ignition (Archetype)'. A Psychic Dedication NAO concede pool de foco nenhum — a prosa dela da 'a spell repertoire with one standard psi cantrip of your choice from your conscious mind' e 'the normal benefits for this psi cantrip, but not any other benefits from the conscious mind'. Quem concede o pool (1 ponto) e a habilidade de AMPLIFICAR e o talento Psi Development (feats/archetype/psychic/psi-development.json, L6, prereq Psychic Dedication): 'If you don't have one, you gain a focus pool of 1 Focus Point, which you can use to amp your psi cantrips'. Logo Fofurinha, nivel 1, tem o truque Ignition pela dedicacao e NAO tem ponto de foco nem amp — o que a ficha do Pathbuilder precisa reproduzir e um truque de arquetipo sem pool, nao um pool. (O pool de 2 pontos do Psi Cantrips and Amps e da CLASSE Psychic, nao do arquetipo.)",
+    "CADEIA COMPLETA DO ARQUETIPO PSYCHIC NO VENDOR (7 talentos, todos category 'class', diretorio feats/archetype/psychic/): Psychic Dedication (OW3W2vMARiojda7e, L2, traits archetype+dedication+multiclass, otherTag 'spellcasting-multiclass-archetype', prereq 'Intelligence +2 or Charisma +2'); Psi Development (HkbP5zbN2meRiP7w, L6, trait archetype, prereq Psychic Dedication); Basic Thoughtform; Advanced Thoughtform; Basic Psychic Spellcasting (ePKe13FzKWaQqLo6, L4, prereq Psychic Dedication); Expert Psychic Spellcasting (RJmnFuaGLXfhX3It, L12, prereq Basic + master em Occultism); Master Psychic Spellcasting (PzbfpOQXOjpUWKkL, L18, prereq Expert + legendary em Occultism). NENHUM carrega o trait 'psychic' — e por isso que nenhum entra pelo laco de classes curadas.",
+    "EIXOS DECLARADOS — 2, os dois no nivel 1, e por que os dois. `psychic-conscious-mind` (categoria consciousMind, 6 opcoes CONTADAS por varredura da otherTag em class-features/: The Distant Grasp, The Infinite Eye, The Oscillating Wave, The Silent Whisper, The Tangible Dream, The Unbound Step) e `psychic-subconscious-mind` (categoria subconsciousMind, 4 opcoes: Emotional Acceptance, Gathered Lore, Precise Discipline, Wandering Reverie). Cheguei a considerar declarar SO o eixo consciente — e ele que a cadeia do arquetipo usa, e a propria Psychic Dedication diz 'as you don't have a subconscious mind class feature' — mas com a classe publicada (DECISAO 1) o items{} do vendor concede 'Subconscious Mind' no nivel 1 e e ele que determina o atributo-chave; declarar so um eixo publicaria uma classe cuja escolha de nivel 1 nao tem nenhuma opcao no pack. Os dois entram.",
+    "ATRIBUTO-CHAVE POR MENTE SUBCONSCIENTE (medido na prosa 'Key Attribute' de cada doc): Gathered Lore -> Intelligence; Precise Discipline -> Intelligence; Emotional Acceptance -> Charisma; Wandering Reverie -> Charisma. A mente CONSCIENTE nao mexe no atributo — ela define os psi cantrips e o tema. Este mapa e o dado que falta para resolver keyAbility e spellcasting.ability (ver dedupe/PENDENCIA DE CONTRATO 1); esta registrado aqui porque nao ha campo no contrato para declara-lo.",
+    "PSI CANTRIPS POR MENTE CONSCIENTE — o vendor JA modela o caso da ficha-alvo. Cada uma das 6 opcoes de mente consciente carrega um ActiveEffectLike com `predicate: ['feat:psychic-dedication']` que escreve `flags.system.psychic.dedication.psiCantrips` com a lista de psi cantrips que um PERSONAGEM COM A DEDICACAO (nao um Psychic) pode escolher. Para The Oscillating Wave (5tSR0WzMPFn5s3Xs) essa lista e: 'ignition' e 'frostbite' (os dois padrao) mais 'thermal-stasis' condicionado a `feat:psi-development`. E exatamente de onde vem o 'Ignition (Archetype)' da Fofurinha: mente consciente The Oscillating Wave + Psychic Dedication. As outras 5: The Distant Grasp = telekinetic-hand/telekinetic-projectile (+telekinetic-rend); The Infinite Eye = detect-magic/guidance (+glimpse-weakness); The Silent Whisper = daze/message (+forbidden-thought); The Tangible Dream = figment/shield (+imaginary-weapon); The Unbound Step = phase-bolt/warp-step (+distortion-lens).",
+    "REPERTORIO != SLOTS no Psychic (diferente do Sorcerer). Medido nas 3 fichas do Thaleon, consistente em 6 de 6 pares (rank, nivel): o numero de magias CONHECIDAS por rank e sempre slots + 1. L1 rank1: 2 conhecidas / 1 slot; L3 rank1 3/2 e rank2 2/1; L5 rank1 3/2, rank2 3/2, rank3 2/1. O ClassSpellcastingSchema nao tem campo 'spellsKnown', e para o Sorcerer isso nao custava nada (lá conhecidas == slots, ver sorcerer.json PARTICULARIDADE 2); para o Psychic custa: usar 'slots' como numero de magias conhecidas subdimensiona o repertorio em 1 por rank. PENDENCIA DE CONTRATO 2 abaixo.",
+    "PROFICIENCIAS INICIAIS medidas em classes/psychic.json: perception=1, savingThrows fort=1/reflex=1/will=2 (will ja EXPERT no nivel 1, mesmo padrao de Wizard e Sorcerer), attacks simple=1 e unarmed=1 (martial=0, advanced=0), defenses unarmored=1 (light/medium/heavy=0), spellcasting=1, trainedSkills {value:['occultism'], additional:3}, classDC ausente no vendor (transform aplica o default 1, mesmo caminho de Magus/Wizard/Sorcerer). featLevels: ancestry [1,5,9,13,17], class [2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19] — identicos a Wizard e Sorcerer.",
+    "CLASS FEATURES (items{} do vendor): 20 entradas. Nome canonico da uuid == entry.name em 20/20 (sem a armadilha do Magus, onde entry.name dizia 'Lightning Reflexes' e a uuid apontava para 'Reflex Expertise'). 7 das 20 JA estao em class-features-core com o MESMO doc reusado de Bard/Sorcerer/Magus/Wizard/Champion/Kineticist (nao sao homonimos): Spell Repertoire, Signature Spells, Expert Spellcaster, Fortitude Expertise, Weapon Expertise, Master Spellcaster, Legendary Spellcaster. As 13 restantes sao exclusivas do Psychic e faltam.",
+    "2 das 20 features tem system.level generico divergente do nivel que o Psychic concede (o generico mente; usar sempre o nivel do items{} da classe): Fortitude Expertise (generico 3, classe 9) e Weapon Expertise (generico 5, classe 11). Mesmo padrao de divergencia ja visto em Wizard (5), Sorcerer (4) e Barbarian (4).",
+    "proficiencyUpgrades DERIVAVEIS de subfeatures.proficiencies (11 linhas — Weapon Expertise produz DUAS, weapons.simple e weapons.unarmed; medidas rodando deriveProficiencyUpgrades sobre out/class-features/normalized.json, com missing=[] e ignoredRules=[]): Precognitive Reflexes reflex rank2 @L5; Expert Spellcaster spellcasting rank2 @L7; Fortitude Expertise fortitude rank2 @L9; Extrasensory Perception perception rank2 @L11; Walls of Will will rank3 @L11; Weapon Expertise simple+unarmed rank2 @L11; Personal Barrier unarmored rank2 @L13; Master Spellcaster spellcasting rank3 @L15; Fortress of Will will rank4 @L17; Legendary Spellcaster spellcasting rank4 @L19. Nenhum proficiencyUpgradeExtras foi necessario. 'Psychic Weapon Specialization' (L13) NAO produz linha — subfeatures vazio, e bonus de dano, mesma observacao do Weapon Specialization do Wizard/Sorcerer. 'Infinite Mind' (L19) tambem nao — e um slot especial de rank 10, mesmo padrao do Archwizard's Spellcraft e do Bloodline Paragon.",
+    "44 class feats exclusivos (feats/class/psychic/, trait 'psychic' + opcionais concentrate/manipulate/spellshape/psyche/fortune/mental/occult/...), 0 deles nos packs antes desta rodada; nenhum carrega trait de outra classe e nenhum carrega trait 'archetype', entao classFeats.excludeNames fica vazio (diferente do Wizard, que precisou excluir os 10 talentos '* Mask'). Nivel maximo 20, entao levelMax 20 e o corte natural. Multiclasse (plano r21 §4.1): o gate derivado desses 44 e class_level:psychic, sem ambiguidade; para os 2 shared (Cantrip Expansion, Steady Spellcasting) o predicado correto e 'any' sobre as classes do trait.",
+    "POOL DE FOCO DA CLASSE: 'Psi Cantrips and Amps' (L1) tem um ActiveEffectLike `system.resources.focus.max += 2` (medido no doc) — confirmado nas 3 fichas do Thaleon, que tem system.resources.focus.value = 2. O waybuilder declara focus_pool {base: 2, cap: 3}; o cap 3 e derivacao de prosa dele, o vendor so codifica o +2. focusSpells.names fica VAZIO de proposito: o Psychic nao tem 'focus spells' proprias com trait focus — o que ele gasta foco para fazer e AMPLIFICAR psi cantrips (ItemAlteration 'focus-point-cost' = 1 sob a roll option 'amp-spell'), o que e mecanica de execucao, nao um documento de magia a importar.",
+    "PENDENCIA DE CONTRATO 1 (atributo por opcao de eixo): o schema atual assume atributo de conjuracao fixo por classe (ClassSpellcastingSchema.ability: AbilitySlugSchema, nao nullable) e keyAbility vindo do vendor. Para o Psychic os dois dependem da opcao do eixo psychic-subconscious-mind. Pedido explicito ao orquestrador central: formalizar o par simetrico ao que a r22 fez para o Sorcerer — 'ability' nullable + 'abilityBySubconsciousMind' (ou, generalizando de vez, 'abilityByAxisOption' com o slug do eixo), propagado por spellcastingFor() em transform.mjs, e um caminho para keyAbility vir da curadoria (keyAbilityOptions) quando o vendor manda vazio. Enquanto isso: ability='cha' e keyAbility=[] no pack, ambos registrados em dedupe.collisionsDetected.",
+    "PENDENCIA DE CONTRATO 2 (spellsKnown): nao ha campo para 'magias conhecidas por rank' distinto de 'slots'. Para o Psychic o valor medido e slots + 1 em todo rank e nivel (ver nota do repertorio). Pedido: adicionar 'spellsKnown' com a mesma forma de 'slots' — nao inventado aqui porque, ao contrario de traditionByBloodline, spellcastingFor() descarta campo desconhecido dentro do blob spellcasting, e o dado sairia em silencio.",
+    "PENDENCIA DE MODELAGEM (Unleash Psyche): a assinatura da classe — uma acao de 1 acao que 'desperta' o psique por 2 rodadas dando bonus de dano/velocidade e depois deixa o personagem atordoado — e mecanica executavel (acao + efeito temporario + condicao), nao curadoria estatica. Fica na mesma fronteira ja declarada por DEC-BC-02 da spec 31 para Signature Spells. O documento da feature entra no pack; o comportamento nao.",
+    "FILTRO 'class-archetype' NAS DUAS ChoiceSet: tanto conscious-mind.json (a feature da classe) quanto psychic-dedication.json filtram as opcoes por `item:tag:psychic-conscious-mind`, mas a dedicacao adiciona `{not: 'item:tag:class-archetype'}`. Varredura completa de class-features/: os 6 docs com a otherTag do eixo consciente NAO carregam 'class-archetype', entao hoje o filtro extra nao remove nada e optionCount=6 vale para os dois caminhos. E o mesmo padrao do 'Battle Creed' no eixo cleric-doctrine (documentado em cleric.json): se algum dia um arquetipo de classe reusar a otherTag, a dedicacao passa a ver 6 e a classe 7 — vale reconferir quando o vendor for atualizado."
+  ]
+}

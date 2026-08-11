@@ -20,9 +20,12 @@ import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
 import {
   stripHiddenTokens,
+  stripTokenActorDeltas,
   redactSecretDoors,
   stripHiddenTiles,
   stripHiddenCombatantsFromCombat,
+  redactOpForViewer,
+  OWNERSHIP_GATED_BROADCAST_TYPES,
 } from "../redaction.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
@@ -135,40 +138,75 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  * buffer itself).  We must never mutate it in place — when redaction removes a
  * token we emit a fresh cloned envelope and leave the buffered original intact.
  *
+ * Ops on ownership-gated types (Actor — REQ-NET-096) go through
+ * `redactOpForViewer`, which empties `documents` rather than removing the op:
+ * the array this returns is ALWAYS the same length as the input. The client's
+ * `DocumentMirror` applies an op only when `seq === current + 1` and treats a
+ * higher seq as a gap, so a missing op in the replay would stall that viewer at
+ * that seq — and the resync it then asks for would replay the same hole. The
+ * gate needs the viewer's identity because ownership is per-user; `role` alone
+ * (all this function used to receive) could not answer the question.
+ *
  * Returns a new array; each element is either the original op (nothing to
  * redact) or a redacted clone.
  */
-function filterOpsForRole(ops: Envelope[]): Envelope[] {
-  return ops.map((op) => {
+function filterOpsForRole(ops: Envelope[], userId: string | null, role: number): Envelope[] {
+  const out: Envelope[] = [];
+
+  for (const op of ops) {
     // M2-C: combat broadcasts may carry hidden combatants in their payload.
     // Strip them for non-GM delta replay (REQ-CBT-031).
     if (op.type === "combat:created" || op.type === "combat:updated") {
-      return filterCombatOpForRole(op);
+      out.push(filterCombatOpForRole(op));
+      continue;
     }
 
-    if (op.type !== "doc:create" && op.type !== "doc:update") return op;
+    if (op.type !== "doc:create" && op.type !== "doc:update") {
+      out.push(op);
+      continue;
+    }
 
     const payload = op.payload as Record<string, unknown> | null | undefined;
-    if (!payload || typeof payload !== "object") return op;
-    if (payload["documentType"] !== "Scene") return op;
+    if (!payload || typeof payload !== "object") {
+      out.push(op);
+      continue;
+    }
 
+    const documentType = payload["documentType"];
     const documents = payload["documents"];
-    if (!Array.isArray(documents)) return op;
+
+    // REQ-NET-096: ownership-gated documents (Actor) — same predicate, same
+    // clone-never-mutate rule the live broadcast uses.
+    if (typeof documentType === "string" && OWNERSHIP_GATED_BROADCAST_TYPES.has(documentType)) {
+      out.push(redactOpForViewer(op, userId, role));
+      continue;
+    }
+
+    if (documentType !== "Scene" || !Array.isArray(documents)) {
+      out.push(op);
+      continue;
+    }
 
     // Apply hidden-token, secret-door and hidden-tile redaction.
     const stripped = (documents as Record<string, unknown>[]).map((doc) => {
       let redacted = stripHiddenTokens(doc);
+      redacted = stripTokenActorDeltas(redacted);
       redacted = redactSecretDoors(redacted);
       redacted = stripHiddenTiles(redacted);
       return redacted;
     });
     // If nothing changed (all same references), return the original op.
     const changed = stripped.some((doc, i) => doc !== documents[i]);
-    if (!changed) return op;
+    if (!changed) {
+      out.push(op);
+      continue;
+    }
 
     // Clone — never mutate the shared buffered envelope.
-    return { ...op, payload: { ...payload, documents: stripped } };
-  });
+    out.push({ ...op, payload: { ...payload, documents: stripped } });
+  }
+
+  return out;
 }
 
 /**
@@ -259,24 +297,34 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         // every combat but strip hidden combatants for non-GM viewers
         // (REQ-CBT-031..033).
         visible = all.map((combat) => stripHiddenCombatantsFromCombat(combat));
+      } else if (docType === "Scene") {
+        // Scene is shared world state, not ownership-gated — same reasoning
+        // as Combat above. A GM-created scene (the normal path) always
+        // persists with ownership.default = NONE (ownershipForCreator: "GM
+        // creates: no personal owner entry needed"), so the LIMITED filter
+        // used for Actor/Item below would hide EVERY scene from EVERY
+        // player. This also matches the live doc:create/update broadcast in
+        // doc-handlers.ts's broadcastToWorld(), which already sends Scene
+        // changes to all sockets regardless of ownership. Strip hidden
+        // tokens/tiles and redact secret doors for non-GM viewers (M1-C
+        // hidden tokens, M2-A secret doors, hidden tiles for the
+        // multi-image scene).
+        visible = all.map((scene) => {
+          let redacted = stripHiddenTokens(scene);
+          // An unlinked token's hit points live in `actorDelta`, inside the
+          // Scene every player receives — the Actor gate (REQ-NET-096) does
+          // not cover them (REQ-DOC-062). See stripTokenActorDeltas.
+          redacted = stripTokenActorDeltas(redacted);
+          redacted = redactSecretDoors(redacted);
+          redacted = stripHiddenTiles(redacted);
+          return redacted;
+        });
       } else {
         visible = all.filter((doc) => {
           const ownership = getOwnershipFromDoc(doc);
           const level = resolveOwnership(ownership, userId, role);
           return level >= OwnershipLevel.LIMITED;
         });
-
-        // Strip hidden tokens and tiles and redact secret doors from Scene
-        // documents for non-GM players (M1-C hidden tokens, M2-A secret doors,
-        // hidden tiles for the multi-image scene).
-        if (docType === "Scene") {
-          visible = visible.map((scene) => {
-            let redacted = stripHiddenTokens(scene);
-            redacted = redactSecretDoors(redacted);
-            redacted = stripHiddenTiles(redacted);
-            return redacted;
-          });
-        }
       }
 
       // WIRING-DERIVE: compute-on-read for Actor documents joining the
@@ -394,7 +442,7 @@ export function sendJoinSnapshot(
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(role) ? rawDelta : filterOpsForRole(rawDelta);
+      const delta = isPrivileged(role) ? rawDelta : filterOpsForRole(rawDelta, userId, role);
       // Client can catch up with delta
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
@@ -459,7 +507,9 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(ctx.role) ? rawDelta : filterOpsForRole(rawDelta);
+      const delta = isPrivileged(ctx.role)
+        ? rawDelta
+        : filterOpsForRole(rawDelta, ctx.userId, ctx.role);
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
         toSeq: deps.seqStore.peek(),

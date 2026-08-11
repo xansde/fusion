@@ -28,6 +28,7 @@ import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
   buildDocDeleteHandler,
+  buildTokenUpdateActorHandler,
 } from "./handlers/doc-handlers.js";
 import {
   buildWallCreateHandler,
@@ -74,6 +75,7 @@ import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-h
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
+  buildChatRevealHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
 import {
@@ -87,7 +89,7 @@ import {
   registerReacaoResetOnTurnStart,
   buildProgressaoConfirmarHandler,
 } from "../etmos/index.js";
-import { redactAckResultForNonPrivileged } from "./redaction.js";
+import { redactAckResultForNonPrivileged, redactAckOwnedDocumentsForViewer } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
@@ -295,6 +297,11 @@ export class SocketManager {
     registry.register("doc:update", buildDocUpdateHandler(syncDeps));
     registry.register("doc:delete", buildDocDeleteHandler(syncDeps));
 
+    // REQ-DOC-034: "mutate the actor of THIS token". Routes to the world Actor
+    // for a linked token and to Token.actorDelta for an unlinked one — both by
+    // delegating to the doc:update handler registered just above.
+    registry.register("token:updateActor", buildTokenUpdateActorHandler(syncDeps));
+
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
@@ -321,6 +328,8 @@ export class SocketManager {
     const chatDeps = { db, ns, seqStore, worldId };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
+    // REQ-CHT-045: GM turns an already-sent private message public.
+    registry.register("chat:reveal", buildChatRevealHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
     const visionDeps = { store, seqStore, opBuffer, ns };
@@ -769,9 +778,18 @@ export class SocketManager {
           // (GM / ASSISTANT) receive the unredacted result.  redactAckResult*
           // clones before stripping and never mutates the shared object that
           // the live-broadcast / op-buffer paths also reference.
+          //
+          // REQ-NET-096: the ack is the fourth emission path, and the only one
+          // that knows WHO asked. redactAckOwnedDocumentsForViewer needs that
+          // identity (ownership is per-user, not per-role), which is why it is
+          // a second call and not folded into the pure role-based one above.
           const acked = isRolePrivileged(data.role)
             ? result
-            : redactAckResultForNonPrivileged(result);
+            : redactAckOwnedDocumentsForViewer(
+                redactAckResultForNonPrivileged(result),
+                data.userId,
+                data.role,
+              );
 
           // REQ-NET-011: echo requestId back in ack (M0-C pendência)
           if (

@@ -38,3 +38,6 @@ tools/importer-pf2e/samples/**
 tools/importer-pf2e/analysis/**
 .fusion-build/**
 .esteira/**
+
+# Gerado por `pnpm spec:report`; o teste de frescor compara byte a byte.
+specs/RASTREABILIDADE.md

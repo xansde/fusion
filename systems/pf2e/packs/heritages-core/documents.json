@@ -891,11 +891,45 @@
       },
       "rules": [
         {
+          "kind": "feat-choice",
+          "flag": "ancientElf",
+          "labelKey": null,
+          "count": 1,
+          "predicates": [
+            {
+              "kind": "category",
+              "value": "class"
+            },
+            {
+              "kind": "trait",
+              "value": "dedication"
+            },
+            {
+              "kind": "trait",
+              "value": "multiclass"
+            }
+          ],
+          "levelPredicateDeclared": false,
+          "raw": {
+            "choices": {
+              "filter": [
+                "item:category:class",
+                "item:trait:dedication",
+                "item:trait:multiclass"
+              ],
+              "itemType": "feat"
+            },
+            "flag": "ancientElf",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.AncientElf.Prompt"
+          }
+        },
+        {
           "kind": "grant-item",
           "slug": null,
           "label": null,
           "uuid": "{item|flags.system.rulesSelections.ancientElf}",
-          "inMemoryOnly": false,
+          "inMemoryOnly": true,
           "predicate": null,
           "alterations": [],
           "priority": null,
@@ -912,27 +946,12 @@
     },
     "flags": {
       "fusion": {
-        "conversion": "partial",
+        "conversion": "full",
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "Nd9hdX8rdYyRozw8",
         "packName": "heritages",
-        "unconvertedRules": [
-          {
-            "choices": {
-              "filter": [
-                "item:category:class",
-                "item:trait:dedication",
-                "item:trait:multiclass"
-              ],
-              "itemType": "feat"
-            },
-            "flag": "ancientElf",
-            "key": "ChoiceSet",
-            "prompt": "PF2E.SpecificRule.AncientElf.Prompt",
-            "_conversionState": "unsupported"
-          }
-        ],
+        "unconvertedRules": [],
         "assetSubstitutions": [
           {
             "field": "img",
