@@ -8,7 +8,7 @@
     {
       "packId": "pf2e.weapons-core",
       "slug": "weapons-core",
-      "documentCount": 42
+      "documentCount": 132
     },
     {
       "packId": "pf2e.bestiary-core",
@@ -71,7 +71,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-11T00:53:10.248Z",
+  "generatedAt": "2026-08-11T03:39:17.751Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }
