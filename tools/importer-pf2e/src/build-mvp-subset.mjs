@@ -1012,6 +1012,15 @@ const CURATED_ANCESTRY_TRAITS = [
   "human",
   "leshy",
   "orc",
+  // Player Core 2 (mesma régua da issue #1: ancestralidade no pack sem os
+  // feats dela abre o slot de nível 5 vazio — pego pela varredura headless).
+  "catfolk",
+  "hobgoblin",
+  "kholo",
+  "kobold",
+  "lizardfolk",
+  "tengu",
+  "tripkee",
 ];
 
 /**
@@ -1235,34 +1244,75 @@ function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
  */
 const PLAYER_CORE_PUBLICATION_TITLE = "Pathfinder Player Core";
 
-/** True when a Fusion doc's `system.publication.title` is the Player Core book. */
+/**
+ * Título de `system.publication.title` do segundo volume do núcleo remaster,
+ * Pathfinder Player Core 2 — medido nos dados transformados, exatamente com
+ * esse texto. As duas constantes são strings DISTINTAS: a igualdade estrita de
+ * `isPlayerCoreDoc` nunca casa Player Core 2, então o volume 2 precisa de
+ * predicado próprio (não é prefixo, não é "startsWith").
+ */
+const PLAYER_CORE_2_PUBLICATION_TITLE = "Pathfinder Player Core 2";
+
+/**
+ * True when a Fusion doc's `system.publication.title` is the Player Core book.
+ *
+ * ATENÇÃO: este predicado é o critério de curadoria de VÁRIOS packs
+ * (backgrounds-core, feats, ...). Ampliá-lo para incluir Player Core 2
+ * contaminaria TODOS eles de uma vez. Quem quiser o volume 2 usa
+ * `isRemasterCoreDoc` explicitamente, pack a pack — hoje só
+ * ancestries-core/heritages-core o fazem.
+ */
 function isPlayerCoreDoc(doc) {
   return doc.system?.publication?.title === PLAYER_CORE_PUBLICATION_TITLE;
+}
+
+/** True when a Fusion doc comes from Player Core 2. */
+function isPlayerCore2Doc(doc) {
+  return doc.system?.publication?.title === PLAYER_CORE_2_PUBLICATION_TITLE;
+}
+
+/**
+ * True for docs from EITHER remaster core volume (Player Core ∪ Player Core 2)
+ * — o critério de curadoria de ancestries-core/heritages-core. Deliberadamente
+ * separado de `isPlayerCoreDoc` para não alargar por acidente a curadoria dos
+ * outros packs que dependem do volume 1 sozinho.
+ */
+function isRemasterCoreDoc(doc) {
+  return isPlayerCoreDoc(doc) || isPlayerCore2Doc(doc);
 }
 
 /**
  * ancestries-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 8
  * Player Core ancestries (Anão/Dwarf, Elfo/Elf, Gnomo/Gnome, Goblin, Halfling,
- * Humano/Human, Leshy, Orc — measured in `out/ancestries/transformed.json` by
- * `isPlayerCoreDoc`) UNION Ratfolk + Fleshwarp, curated before this issue
- * (R10-B/r18-N2a) for the Magus and Finn characters and kept for backward
- * compatibility — removing them would break the RATFOLK fixture in
- * packages/client's classBuildHarness.ts and the Adopted-Ancestry routing
- * test in planVM.test.ts (both reference these two docs by name).
+ * Humano/Human, Leshy, Orc) UNION the 8 Player Core 2 ancestries (Catfolk,
+ * Hobgoblin, Kholo, Kobold, Lizardfolk, Ratfolk, Tengu, Tripkee) — both
+ * measured in `out/ancestries/transformed.json` by `isRemasterCoreDoc` —
+ * UNION Ratfolk + Fleshwarp, curated before this issue (R10-B/r18-N2a) for
+ * the Magus and Finn characters and kept for backward compatibility —
+ * removing them would break the RATFOLK fixture in packages/client's
+ * classBuildHarness.ts and the Adopted-Ancestry routing test in planVM.test.ts
+ * (both reference these two docs by name). Ratfolk IS a Player Core 2
+ * ancestry, so the legacy list only still matters for Fleshwarp (Lost Omens
+ * Ancestry Guide); it is kept whole so the legacy contract stays explicit.
+ * Total: 8 + 8 + Fleshwarp = 17.
  */
 const LEGACY_CURATED_ANCESTRY_NAMES = ["Ratfolk", "Fleshwarp"];
 
 function isAncestriesCoreDoc(doc) {
   if (doc.type !== "ancestry") return false;
-  if (isPlayerCoreDoc(doc)) return true;
+  if (isRemasterCoreDoc(doc)) return true;
   return LEGACY_CURATED_ANCESTRY_NAMES.includes(doc.name);
 }
 
 /**
- * Ancestry slugs of the 8 Player Core ancestries curated above — used to pull
- * in their corresponding heritages (issue #1).
+ * Ancestry slugs of the 16 remaster ancestries curated above — used to pull in
+ * their corresponding heritages (issue #1). Estes slugs são os valores REAIS
+ * de `system.ancestry.slug` medidos nas heranças de
+ * `out/heritages/transformed.json`: o doc de ancestralidade não carrega
+ * `system.slug` nenhum, quem carrega o vínculo é a herança.
  */
 const CORE_ANCESTRY_SLUGS = [
+  // Player Core
   "dwarf",
   "elf",
   "gnome",
@@ -1271,25 +1321,55 @@ const CORE_ANCESTRY_SLUGS = [
   "human",
   "leshy",
   "orc",
+  // Player Core 2
+  "catfolk",
+  "hobgoblin",
+  "kholo",
+  "kobold",
+  "lizardfolk",
+  "ratfolk",
+  "tengu",
+  "tripkee",
 ];
 
 /**
  * heritages-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): every
- * Player Core heritage (`isPlayerCoreDoc`) linked to one of the 8 core
- * ancestries above via `system.ancestry.slug` (the real vendor linkage field;
- * heritage names alone don't carry an ancestry trait) UNION the 7 Ratfolk
- * heritages + the Sylph versatile heritage, curated before this issue
+ * remaster-core heritage (`isRemasterCoreDoc`) that is EITHER
+ *
+ *   (a) linked to one of the 16 curated ancestries via `system.ancestry.slug`
+ *       (the real vendor linkage field; heritage names alone don't carry an
+ *       ancestry trait), OR
+ *   (b) VERSATILE — see below —
+ *
+ * UNION the Sylph versatile heritage, curated before this issue
  * (R10-B/r18-N2a) for Magus/Finn and kept for backward compatibility (same
- * fixtures as LEGACY_CURATED_ANCESTRY_NAMES above). Versatile heritages carry
- * NO ancestry linkage (`system.ancestry === null`), so Sylph stays selected
- * by explicit name.
+ * fixtures as LEGACY_CURATED_ANCESTRY_NAMES above). Sylph comes from Lost
+ * Omens Ancestry Guide, not from either core volume, so it stays selected by
+ * explicit name.
+ *
+ * POR QUE A VERSÁTIL PRECISA DE RAMO PRÓPRIO (ramo b): uma herança versátil
+ * pode ser escolhida por QUALQUER ancestralidade, e o vendor expressa isso
+ * deixando `system.ancestry === null` — ela não tem vínculo nenhum para o
+ * ramo (a) casar. Enquanto o predicado teve SÓ o ramo (a), as 4 versáteis do
+ * próprio Player Core 1 (Aiuvarin, Changeling, Dromaar, Nephilim) nunca
+ * entraram no pack, e ninguém percebeu porque Sylph — a única versátil
+ * presente — entrava pelo nome, por acidente da curadoria legada. NÃO
+ * substitua este ramo por uma lista de nomes nem o funda no ramo (a): a
+ * ausência de `system.ancestry` é o que define "versátil", e é por ela que o
+ * teste de contagem passa a cobrir versáteis novas de um bump do vendor.
+ *
+ * Total: 45 (PC1 por ancestralidade) + 4 (PC1 versáteis) + 54 (PC2 por
+ * ancestralidade) + 3 (PC2 versáteis: Dhampir, Dragonblood, Duskwalker)
+ * + Sylph = 107.
  */
 function isHeritagesCoreDoc(doc) {
   if (doc.type !== "heritage") return false;
-  if (isPlayerCoreDoc(doc) && CORE_ANCESTRY_SLUGS.includes(doc.system?.ancestry?.slug)) {
-    return true;
+  if (isRemasterCoreDoc(doc)) {
+    // (b) versatile heritage: belongs to no ancestry at all.
+    if (doc.system?.ancestry == null) return true;
+    // (a) heritage of a curated ancestry.
+    if (CORE_ANCESTRY_SLUGS.includes(doc.system.ancestry.slug)) return true;
   }
-  if (doc.system?.ancestry?.slug === "ratfolk") return true;
   if (doc.name === "Sylph") return true;
   return false;
 }

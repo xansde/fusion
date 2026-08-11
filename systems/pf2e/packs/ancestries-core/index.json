@@ -1,5 +1,21 @@
 [
   {
+    "_id": "8lSgvwv4NcflmUeT",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.8lSgvwv4NcflmUeT",
+    "name": "Catfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Catfolk",
+      "system.traits.value": [
+        "catfolk",
+        "humanoid"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "972EkpJOPv9KkQIW"
+    }
+  },
+  {
     "_id": "8jFlbN8AN8pG67uD",
     "uuid": "Compendium.pf2e.ancestries-core.Item.8jFlbN8AN8pG67uD",
     "name": "Dwarf",
@@ -96,6 +112,22 @@
     }
   },
   {
+    "_id": "uldX6sI0KqAxzSxO",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.uldX6sI0KqAxzSxO",
+    "name": "Hobgoblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Hobgoblin",
+      "system.traits.value": [
+        "hobgoblin",
+        "humanoid"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "piNLXUrm9iaGqD2i"
+    }
+  },
+  {
     "_id": "Oz4HMaSWxQ6y1DsQ",
     "uuid": "Compendium.pf2e.ancestries-core.Item.Oz4HMaSWxQ6y1DsQ",
     "name": "Human",
@@ -112,6 +144,38 @@
     }
   },
   {
+    "_id": "S3bjGcLNkgcdBoDW",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.S3bjGcLNkgcdBoDW",
+    "name": "Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Kholo",
+      "system.traits.value": [
+        "humanoid",
+        "kholo"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "vxbQ1Yw4qwgjTzqo"
+    }
+  },
+  {
+    "_id": "BaeUQzt3rVXuRuHT",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.BaeUQzt3rVXuRuHT",
+    "name": "Kobold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Kobold",
+      "system.traits.value": [
+        "humanoid",
+        "kobold"
+      ],
+      "system.size": "sm",
+      "flags.fusion.sourceId": "7oQxL6wgsokD3QXG"
+    }
+  },
+  {
     "_id": "4stlILYhlE3J761z",
     "uuid": "Compendium.pf2e.ancestries-core.Item.4stlILYhlE3J761z",
     "name": "Leshy",
@@ -125,6 +189,22 @@
       ],
       "system.size": "sm",
       "flags.fusion.sourceId": "cdhgByGG1WtuaK73"
+    }
+  },
+  {
+    "_id": "w5Ujwban1xw4VU6k",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.w5Ujwban1xw4VU6k",
+    "name": "Lizardfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Lizardfolk",
+      "system.traits.value": [
+        "humanoid",
+        "lizardfolk"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "HWEgF7Gmoq55VhTL"
     }
   },
   {
@@ -157,6 +237,38 @@
       ],
       "system.size": "sm",
       "flags.fusion.sourceId": "P6PcVnCkh4XMdefw"
+    }
+  },
+  {
+    "_id": "9h2v2QehcxKVxpNq",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.9h2v2QehcxKVxpNq",
+    "name": "Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Tengu",
+      "system.traits.value": [
+        "humanoid",
+        "tengu"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "18xDKYPDBLEv2myX"
+    }
+  },
+  {
+    "_id": "nK3A9yscBpRl94DU",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.nK3A9yscBpRl94DU",
+    "name": "Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Tripkee",
+      "system.traits.value": [
+        "humanoid",
+        "tripkee"
+      ],
+      "system.size": "sm",
+      "flags.fusion.sourceId": "hXM5jXezIki1cMI2"
     }
   }
 ]

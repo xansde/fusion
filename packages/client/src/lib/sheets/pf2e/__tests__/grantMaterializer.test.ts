@@ -1351,6 +1351,9 @@ describe("issue #16: every declared grant across the 14 real packs resolves (or 
       "Lucky Keepsake",
       "Orc Warmask",
       "Pilgrim's Token",
+      // r27: same equipment-grant shape, surfaced by the Player Core 2 ancestry
+      // feat census (a Tengu feat grants this vendor equipment item).
+      "Tengu Feather Fan",
     ].sort();
     expect(notFound.map((f) => f.name).sort()).toEqual(expectedRemainingGap);
   });

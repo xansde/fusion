@@ -216,6 +216,10 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Ancestral Paragon/ancestralParagon": "pendente",
   "feats-core/Armor Proficiency/-": "pendente",
   "feats-core/Assurance/assurance": "pendente",
+  // r27 — ancestry feats do Player Core 2 (curadoria das 7 ancestralidades
+  // novas): cada um parametriza o próprio feat com uma escolha que o builder
+  // ainda não oferece — mesma família dos "pendente" vizinhos.
+  "feats-core/Benefactor's Resistance/nonPhysicalResistance": "pendente",
   "feats-core/Basic Concoction/basicConcoction": "sub-slot",
   "feats-core/Basic Trickery/basicTrickery": "pendente",
   "feats-core/Canny Acumen/cannyAcumen": "pendente",
@@ -239,10 +243,14 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // same family as the class's own Deity/Divine Font gaps above.
   "feats-core/Deity's Domain/deitysDomain": "pendente",
   "feats-core/Domain Initiate/domainInitiate": "pendente",
+  // r27 — Dragonblood Paragon escolhe o dragão exemplar (mesma escolha da
+  // herança Dragonblood, reapresentada como feat).
+  "feats-core/Dragonblood Paragon/dragonbloodParagon": "pendente",
   "feats-core/Elemental Evolution/damage": "pendente",
   "feats-core/Elemental Lore/elementalLore": "pendente",
   // r22 — Monk's "Entwined Energy Ki" feat picks an energy type — not offered.
   "feats-core/Entwined Energy Ki/entwinedEnergyKi": "pendente",
+  "feats-core/Iruxi Armaments/iruxiArmaments": "pendente",
   "feats-core/Living Weapon/livingWeapon": "pendente",
   // r22 — Champion's "Mercy" feat parameterizes the condition it removes.
   "feats-core/Mercy/-": "pendente",
@@ -264,12 +272,14 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Rogue Dedication/skillFeat": "pendente",
   // r22 — Cleric's "Second Blessing" feat (Blessed One-style) picks a
   // blessing — same family as "Blessing of the Devoted" above.
+  "feats-core/Runtsage/-": "pendente",
   "feats-core/Second Blessing/blessing": "pendente",
   "feats-core/Skill Training/skill": "pendente",
   "feats-core/Specialty Crafting/specialtyCrafting": "pendente",
   "feats-core/Terrain Expertise/terrain": "pendente",
   "feats-core/Terrain Stalker/-": "pendente",
   "feats-core/Virtuosic Performer/performanceType": "pendente",
+  "feats-core/War Conditioning/warConditioning": "pendente",
   "feats-core/Wilderness Spotter/terrain": "pendente",
   // issue #1 — ancestry feats of the 8 newly curated Player Core ancestries
   // (Dwarf/Elf/Gnome/Goblin/Halfling/Human/Leshy/Orc) that themselves
@@ -310,6 +320,10 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // heritage — the heritage is an AbcCardModel with no slotId. Flip to
   // `sub-slot` when planVM grows that push.
   "heritages-core/Ancient Elf/ancientElf": "pendente",
+  // r27 — heranças do Player Core 2 com escolha própria: Dragonblood escolhe
+  // o dragão exemplar; Elementheart Kobold escolhe o elemento do sopro.
+  "heritages-core/Dragonblood/dragonblood": "pendente",
+  "heritages-core/Elementheart Kobold/element": "pendente",
   "heritages-core/Skilled Human/skill": "pendente",
   "heritages-core/Versatile Human/versatileHeritage": "pendente",
 };

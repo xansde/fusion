@@ -33,17 +33,17 @@
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 1923
+      "documentCount": 2121
     },
     {
       "packId": "pf2e.ancestries-core",
       "slug": "ancestries-core",
-      "documentCount": 10
+      "documentCount": 17
     },
     {
       "packId": "pf2e.heritages-core",
       "slug": "heritages-core",
-      "documentCount": 53
+      "documentCount": 107
     },
     {
       "packId": "pf2e.backgrounds-core",
@@ -71,7 +71,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-08T21:28:42.595Z",
+  "generatedAt": "2026-08-11T00:53:10.248Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.ancestries-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:04.843Z",
+  "generatedAt": "2026-08-11T00:40:34.678Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -26,10 +26,30 @@
       "sourceHash": "0c6a4c76662cda4f9e5cad1a3de85bcc0d6c43be",
       "description": "<p><em>Os anões têm uma reputação bem merecida de povo estoico e severo, entrincheirados em cidadelas e cidades esculpidas em rocha sólida. Embora alguns os vejam como artesãos taciturnos e sem senso de humor da pedra e do metal, os anões — e aqueles que já conviveram com eles — entendem seu zelo desenfreado pelo trabalho, importando-se muito mais com a qualidade do que com a quantidade. Para um estranho, podem parecer desconfiados e fechados em clã, mas para seus amigos e familiares, são calorosos e afetuosos, com salões repletos do som de risadas e martelos batendo em bigornas.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.XzRv30zY3UXRbBho]{Anão}</em></p>"
     },
+    "8lSgvwv4NcflmUeT": {
+      "name": "Catfolk",
+      "sourceHash": "c8f653d58297568284bf82f58b5242dbf2e6f4c1",
+      "description": "<p><em>Andarilhos curiosos e gregários, os catfolk combinam as características de felinos e humanoides tanto na aparência quanto no temperamento. Eles gostam de aprender coisas novas, colecionar histórias e bugigangas, e garantir que seus entes queridos estejam seguros e felizes. Os catfolk se veem como os guardiões escolhidos dos lugares naturais do mundo e costumam ser imprudentemente corajosos, mesmo diante de uma oposição esmagadora. Acreditam que comunidades fortes, amplitude de experiência e autoaperfeiçoamento contínuo os ajudam nessa luta.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.5S1Pq3GoEzLfBbH7]{Catfolk}</em></p>"
+    },
+    "9h2v2QehcxKVxpNq": {
+      "name": "Tengu",
+      "sourceHash": "8afafa1d165fd6ec603e8a55da84bd3b0f7d6784",
+      "description": "<p><em>Os tengus são sobrevivencialistas e conversadores, igualmente à vontade vivendo da natureza selvagem ou encontrando seu lugar em cidades densas. Eles acumulam conhecimento, ferramentas e companheiros, adicionando-os à sua coleção conforme viajam.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.YGIwmuVOJI7uNhGM]{Tengu}</p>"
+    },
+    "BaeUQzt3rVXuRuHT": {
+      "name": "Kobold",
+      "sourceHash": "0218b7fa5119e702045daa343335bd1362fe1fa7",
+      "description": "<p><em>Todo kobold entende instintivamente a importância do poder, e muitos são inclinados a venerar aqueles que o possuem, sejam dragões poderosos, demônios cruéis, feéricos imperiosos ou até mesmo artefatos antigos. Os kobolds buscam essas alianças por pragmatismo — afinal, quem ousaria intimidar um kobold que serve a um dragão ancião? — mas também porque os ovos de kobold incubados perto desses focos de poder adquirem características físicas (e às vezes habilidades) semelhantes às do benfeitor da toca. Por conta própria, os kobolds são artesãos engenhosos e aliados devotados, mas os forasteiros que invadem seu território os encontram como batedores inspirados e emboscadores astutos. No entanto, esses oportunistas reptilianos mostram-se dispostos a cooperar com outros humanoides quando isso lhes é vantajoso, combinando cautela e astúcia para construir sua fortuna no mundo mais amplo.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.naQrTTE7CXu5lnNt]{Kobold}</em></p>"
+    },
     "Oz4HMaSWxQ6y1DsQ": {
       "name": "Humano",
       "sourceHash": "30fd67b0d54bfdb62418799a5f5869013e1a24c3",
       "description": "<p><em>Tão imprevisíveis e variados quanto qualquer um dos povos de Golarion, os humanos têm um ímpeto excepcional e a capacidade de perdurar e se expandir. Embora muitas civilizações tenham prosperado antes da ascensão da humanidade, os humanos construíram algumas das maiores e mais terríveis sociedades ao longo da história, e hoje são o povo mais numeroso nos reinos ao redor do Mar Interior.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.7pU8yM7yPMw92SY3]{Humano}</em></p>"
+    },
+    "S3bjGcLNkgcdBoDW": {
+      "name": "Kholo",
+      "sourceHash": "a7beb21d9649850cad17754a2f9d5b96fee5b963",
+      "description": "<p><em>Os kholo têm má reputação como saqueadores brutais e adoradores de demônios. Muitos acreditam que os kholo são bruxas, canibais e coisa pior. A verdade é mais complexa. Os kholo são caçadores e saqueadores eminentemente práticos e pragmáticos. Para eles, honra é apenas outra palavra para risco inútil. Qualquer perda de um kholo afeta não só o indivíduo, mas também seus companheiros de matilha e parentes. Perder tempo com qualquer coisa que não seja a vitória, seja misericórdia ou crueldade, é visto como quase imoral. Os kholo são mestres de emboscadas, fintas táticas e guerra psicológica. Igualmente incompreendida é a prática kholo de culto aos ancestrais e endocanibalismo. Os kholo consomem seus mortos como sinal de reverência, realizando um grande banquete e transformando os ossos em arte ou armas. Os kholo estendem essa honra a inimigos respeitados, na esperança de trazer a astúcia ou a força de seu inimigo para o clã.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.xBV8oGvecw7abZxc]</em></p>"
     },
     "WP4h3huTSaH3efrS": {
       "name": "Elfo",
@@ -45,6 +65,21 @@
       "name": "Fleshwarp",
       "sourceHash": "395b7138d6f03cc19549f668a8205c70620028d1",
       "description": "<p><em>Fleshwarps são pessoas cujas formas foram criadas ou radicalmente transformadas por magia, alquimia ou energias antinaturais. Sua aparência heterodoxa pode dificultar que encontrem um lugar para si mesmas no mundo.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.vTB1bTYVE4onyyy1]{Fleshwarp}</em></p>"
+    },
+    "nK3A9yscBpRl94DU": {
+      "name": "Tripkee",
+      "sourceHash": "66c827226f7049eaaa07e927bd35139d079fade6",
+      "description": "<p><em>Os tripkees são um povo tímido e cauteloso que geralmente busca evitar se envolver nos assuntos alheios. Apesar de sua visão cautelosa e pequena estatura, tripkees aventureiros ainda tomam atitudes ousadas e nobres quando a situação exige.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.FhIJtKcINEe7fipX]</p>"
+    },
+    "uldX6sI0KqAxzSxO": {
+      "name": "Hobgoblin",
+      "sourceHash": "d32c401c57eac9e44d99b145c630bd6551b7a3e8",
+      "description": "<p><em>Mais altos e mais fortes que seus parentes goblins, os hobgoblins se igualam aos humanos em força e tamanho, com ombros largos e braços longos e poderosos.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.DuWzeY4zugKFFthl]{Hobgoblin}</em></p>"
+    },
+    "w5Ujwban1xw4VU6k": {
+      "name": "Lizardfolk",
+      "sourceHash": "41fdd99814a682d3c1fdb3d0d5e94ea9fc2d9ed8",
+      "description": "<p><em>Os lizardfolk são sobreviventes consumados, herdeiros de impérios considerados antigos até mesmo pelos elfos.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.cbLJs37Nc8FveriK]{Lizardfolk}</em></p>"
     },
     "wtMQWHTU1vNqqZPn": {
       "name": "Halfling",
