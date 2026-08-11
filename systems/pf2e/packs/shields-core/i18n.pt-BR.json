@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.shields-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-08-11T03:35:41.350Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "0bZpX0krDt2cBMeB": {
+      "name": "Escudo de Madeira",
+      "sourceHash": "3e305c881b98f4f92bfbb02d9faf6075f2704a8a",
+      "description": "<p>Embora venham em uma variedade de formatos e tamanhos, a proteção oferecida pelos escudos de madeira vem da robustez de seus materiais. Embora os escudos de madeira sejam mais baratos que os de aço, quebram com mais facilidade.</p><table class=\"pf2e remaster\"><thead><tr><th>Dureza</th><th>PV</th><th>LD</th></tr></thead><tbody><tr><td>3</td><td>12</td><td>6</td></tr></tbody></table>"
+    },
+    "RMwFuNTxtRQyBjmG": {
+      "name": "Broquel",
+      "sourceHash": "5096a93f34481af4532426eba940961143c30c82",
+      "description": "<p>Esse escudo muito pequeno é o favorito de duelistas e guerreiros rápidos e levemente armados. Normalmente é feito de aço e preso ao antebraço. Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Raise a Shield]{Erguer um Escudo} com seu broquel desde que tenha essa mão livre ou esteja segurando nela um objeto leve que não seja uma arma.</p><table class=\"pf2e remaster\"><thead><tr><th>Dureza</th><th>PV</th><th>LD</th></tr></thead><tbody><tr><td>3</td><td>6</td><td>3</td></tr></tbody></table>"
+    },
+    "i0v2cUkWI9ZBUQb1": {
+      "name": "Escudo Torre",
+      "sourceHash": "2e0f4a0fb51d0cbb8f8c78205b433b656d38d2ad",
+      "description": "<p>Esses escudos enormes podem ser usados para oferecer cobertura a quase todo o corpo. Devido ao tamanho, geralmente são feitos de madeira reforçada com metal. A CA aumenta para +4 se você estiver usando a ação @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover]{Buscar Cobertura}.</p>\n<table class=\"pf2e\">\n<thead>\n<tr>\n<th>Dureza</th>\n<th>PV</th>\n<th>LD</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>5</td>\n<td>20</td>\n<td>10</td>\n</tr>\n</tbody>\n</table>"
+    },
+    "rUySi0Zb9hwhLbcW": {
+      "name": "Escudo de Aço",
+      "sourceHash": "22b835c4bad785b5ba921fed9ed28a9c0423413f",
+      "description": "<p>Assim como os escudos de madeira, os escudos de aço vêm em uma variedade de formatos e tamanhos. Embora mais caros que os escudos de madeira, são muito mais duráveis.</p><table class=\"pf2e remaster\"><thead><tr><th>Dureza</th><th>PV</th><th>LD</th></tr></thead><tbody><tr><td>5</td><td>20</td><td>10</td></tr></tbody></table>"
+    }
+  }
+}

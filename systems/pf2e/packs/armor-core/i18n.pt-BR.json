@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.armor-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-08-11T03:35:41.343Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "48zK9DBYvgZPJyOX": {
+      "name": "Meia-Placa",
+      "sourceHash": "603dc11d8c88b945013af39efb65fa7fe4961cdb",
+      "description": "<p>A meia-placa consiste na maior parte das placas da parte superior do corpo usadas na armadura de placas completa, com proteção de placas de aço mais leve ou esparsa para os braços e pernas. Isso oferece parte da proteção da armadura de placas completa com maior flexibilidade e velocidade. Um conjunto dessa armadura vem com uma camada interna de @UUID[Compendium.pf2e.equipment-srd.Item.Padded Armor] e um par de @UUID[Compendium.pf2e.equipment-srd.Item.Gauntlet]{manoplas}.</p>"
+    },
+    "7DxLtZgcLIerFQGh": {
+      "name": "Armadura de Couro Cravejado",
+      "sourceHash": "b50db313d0162910d7414745bd8da34a0c9ff44f",
+      "description": "<p>Essa armadura de couro é reforçada com tachas de metal e, por vezes, pequenas placas de metal, oferecendo a maior parte da flexibilidade da armadura de couro com uma proteção mais robusta.</p>"
+    },
+    "A5eYb1dnTyxRnNPt": {
+      "name": "Cota de Malha",
+      "sourceHash": "173921ae49ba4bb10c8da14e3819a6580f30e065",
+      "description": "<p>Uma cota de malha consiste em várias peças de armadura compostas por pequenos anéis de metal entrelaçados formando uma malha protetora. Normalmente inclui uma camisa de malha, perneiras, um par de braçadeiras e uma coifa, protegendo coletivamente a maior parte do corpo.</p>"
+    },
+    "Cn6BK2LdsQVKzwIA": {
+      "name": "Armadura de Peles",
+      "sourceHash": "d82a6b0ffefaa802ba7f7f1673b3e78fc1a6ec2f",
+      "description": "<p>Uma mistura de peles, couro resistente e, por vezes, couro fervido moldado, essa armadura oferece proteção graças às suas camadas de couro, embora seu volume reduza a mobilidade de quem a usa.</p>"
+    },
+    "JkFokVRCFb0xBClx": {
+      "name": "Cota de Escamas",
+      "sourceHash": "59161342f39d767dc2a0f3f79dd3c4fb5d601b52",
+      "description": "<p>A cota de escamas consiste em muitas escamas de metal costuradas sobre um forro de couro reforçado, geralmente em forma de uma camisa longa que protege o tronco, os braços e as pernas.</p>"
+    },
+    "TahCfgvj5qrcvCvp": {
+      "name": "Armadura de Placas Completa",
+      "sourceHash": "b4cb47c3133d5f61af42efdeb1e39a72a081dee0",
+      "description": "<p>A armadura de placas consiste em placas entrelaçadas que envolvem quase todo o corpo em uma carapaça de aço. É cara e pesada, e quem a usa frequentemente precisa de ajuda para vesti-la corretamente, mas oferece uma das melhores defesas que uma armadura pode fornecer. Um conjunto dessa armadura vem com uma camada interna de @UUID[Compendium.pf2e.equipment-srd.Item.Padded Armor] e um par de @UUID[Compendium.pf2e.equipment-srd.Item.Gauntlet]{manoplas}.</p>"
+    },
+    "YBc2Be8TQpCrDEpg": {
+      "name": "Cota Talabartada",
+      "sourceHash": "d9441f6b3e6a20ab60ec20cd70ecb1f54ee2b3cb",
+      "description": "<p>Esse tipo de armadura é uma cota de malha reforçada com placas de metal flexíveis e entrelaçadas, tipicamente localizadas no tronco, na parte superior dos braços e nas pernas de quem a usa. Um conjunto dessa armadura vem com uma camada interna de @UUID[Compendium.pf2e.equipment-srd.Item.Padded Armor] e um par de @UUID[Compendium.pf2e.equipment-srd.Item.Gauntlet]{manoplas}.</p>"
+    },
+    "dZzuMMY2WJ1BtTF7": {
+      "name": "Roupas de Explorador",
+      "sourceHash": "d31d2e6e7c5026e219c1e4952c91aab8c8664426",
+      "description": "<p>Aventureiros que não usam armadura viajam com roupas duráveis. Embora não seja uma armadura e use sua proficiência em Defesa Desarmada, ainda possui um Limite de Destreza e pode conceder um bônus de item à CA se gravada com runas de potência.</p>"
+    },
+    "ocKCjhULNZLWGwwt": {
+      "name": "Camisa de Malha",
+      "sourceHash": "1fd62a6f67f7b246df60640dc2c6f2c9acdd84fd",
+      "description": "<p>Às vezes chamada de haubergeon, é uma camisa longa construída com os mesmos anéis de metal da cota de malha. No entanto, é bem mais leve que a cota de malha e protege apenas o tronco, a parte superior dos braços e a parte superior das pernas de quem a usa.</p>"
+    },
+    "rKZxBQQ4UEDNVI20": {
+      "name": "Armadura Acolchoada",
+      "sourceHash": "d04e691b7cc55fcc02fb15c1210696a07896a6d8",
+      "description": "<p>Essa armadura é simplesmente uma camada de tecido pesado e acolchoado, mas às vezes é usada por ser tão barata. A armadura acolchoada é mais fácil de danificar e destruir que outros tipos de armadura. Armaduras pesadas vêm com uma camada interna acolchoada incluída em seu Preço, embora ela perca o traço conforto quando usada sob uma armadura pesada. Você pode usar apenas essa camada interna acolchoada para dormir, caso sua armadura pesada seja destruída, ou quando não estiver usando a armadura pesada completa. Isso permite manter uma armadura mágica investida e se beneficiar do poder de quaisquer runas na armadura pesada associada, mas ninguém mais pode usar sua armadura pesada sem a camada interna acolchoada.</p>"
+    },
+    "txqFN5kKkIPHzES0": {
+      "name": "Armadura de Couro",
+      "sourceHash": "1b24684b2eef436d2d6530d7206bcd0fc77c3209",
+      "description": "<p>Uma mistura de couro flexível e couro fervido moldado, um conjunto desse tipo de armadura oferece alguma proteção com o máximo de flexibilidade.</p>"
+    },
+    "vuZZSqmAurrrg4TU": {
+      "name": "Peitoral",
+      "sourceHash": "9b545c7671ad9d6d22c5efce8665bfcd91d3ad50",
+      "description": "<p>Embora chamada de peitoral, esse tipo de armadura consiste em várias peças de placa ou armadura de @UUID[Compendium.pf2e.equipment-srd.Item.Half Plate] que protegem o tronco, o peito, o pescoço e, por vezes, os quadris e as pernas inferiores. Ela concede estrategicamente parte da proteção de uma armadura de placas completa, permitindo maior flexibilidade e velocidade.</p>"
+    }
+  }
+}
