@@ -36,6 +36,18 @@
     }
   },
   {
+    "_id": "jk6fpVrPBv8epXWA",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.jk6fpVrPBv8epXWA",
+    "name": "Amnesiac",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Amnesiac",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "0ZfBP7Tp2P3WN7Dp"
+    }
+  },
+  {
     "_id": "4mwD5vRGeigFjAJX",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.4mwD5vRGeigFjAJX",
     "name": "Animal Whisperer",
@@ -72,6 +84,18 @@
     }
   },
   {
+    "_id": "jtJuOIQHBO1nYn15",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.jtJuOIQHBO1nYn15",
+    "name": "Astrologer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Astrologer",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3YQ1Wcjzk8ftoyo7"
+    }
+  },
+  {
     "_id": "dgXJNL7LUK7PFwlL",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.dgXJNL7LUK7PFwlL",
     "name": "Bandit",
@@ -81,6 +105,18 @@
       "name": "Bandit",
       "system.traits.value": [],
       "flags.fusion.sourceId": "6abqATPjYoF946LD"
+    }
+  },
+  {
+    "_id": "CFuvXy02b06mk137",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.CFuvXy02b06mk137",
+    "name": "Barber",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Barber",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "wudDO9OEsRjJsqhU"
     }
   },
   {
@@ -105,6 +141,30 @@
       "name": "Barrister",
       "system.traits.value": [],
       "flags.fusion.sourceId": "Phvnfdmz4bB7jrI3"
+    }
+  },
+  {
+    "_id": "VCteHK2aW63UKYcn",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.VCteHK2aW63UKYcn",
+    "name": "Blessed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Blessed",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "9pK15dQJVypSCjzO"
+    }
+  },
+  {
+    "_id": "PEw8nI1Gs4OnS8Ut",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.PEw8nI1Gs4OnS8Ut",
+    "name": "Bookkeeper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Bookkeeper",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "o1lhSKOpKPamTITI"
     }
   },
   {
@@ -144,6 +204,18 @@
     }
   },
   {
+    "_id": "dK4Ofui3WOJw8Dhw",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.dK4Ofui3WOJw8Dhw",
+    "name": "Courier",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Courier",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "DBxOUwM7qhGH8MrF"
+    }
+  },
+  {
     "_id": "yOfUH9TSzIHAI7cx",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.yOfUH9TSzIHAI7cx",
     "name": "Criminal",
@@ -165,6 +237,18 @@
       "name": "Cultist",
       "system.traits.value": [],
       "flags.fusion.sourceId": "fuTLDmihr9Z9e5wa"
+    }
+  },
+  {
+    "_id": "aeSwz3yU3bY56Gjq",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.aeSwz3yU3bY56Gjq",
+    "name": "Cursed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Cursed",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "j2G71vQahw1DiWpO"
     }
   },
   {
@@ -213,6 +297,30 @@
       "name": "Farmhand",
       "system.traits.value": [],
       "flags.fusion.sourceId": "SOmJyAtPOokesZoe"
+    }
+  },
+  {
+    "_id": "M2SxShMoznBslERf",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.M2SxShMoznBslERf",
+    "name": "Feral Child",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Feral Child",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Q2brdDtEoI3cmpuD"
+    }
+  },
+  {
+    "_id": "SqnrmO9AtKeiXCGf",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.SqnrmO9AtKeiXCGf",
+    "name": "Feybound",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Feybound",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ppBGlWl0UkBKkJgE"
     }
   },
   {
@@ -288,6 +396,18 @@
     }
   },
   {
+    "_id": "4nwVdjWOwb0XedXT",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.4nwVdjWOwb0XedXT",
+    "name": "Haunted",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Haunted",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "pGOlKz4Krnh7MyUM"
+    }
+  },
+  {
     "_id": "8ARQ1quiAPvGDylk",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.8ARQ1quiAPvGDylk",
     "name": "Herbalist",
@@ -321,6 +441,18 @@
       "name": "Hunter",
       "system.traits.value": [],
       "flags.fusion.sourceId": "5Z3cLEpsx9nHVwhM"
+    }
+  },
+  {
+    "_id": "nYu3HuQvfoMejhua",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.nYu3HuQvfoMejhua",
+    "name": "Insurgent",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Insurgent",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "HdnmIaLadhRfZq8X"
     }
   },
   {
@@ -396,6 +528,30 @@
     }
   },
   {
+    "_id": "rdX3CnfoY7QaURwn",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.rdX3CnfoY7QaURwn",
+    "name": "Outrider",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Outrider",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dAvFZ5QmbAHgXcNp"
+    }
+  },
+  {
+    "_id": "SHblwrVhWwwPw5E4",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.SHblwrVhWwwPw5E4",
+    "name": "Pilgrim",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Pilgrim",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "r9fzNQEz33HyKTxm"
+    }
+  },
+  {
     "_id": "rvmLvw2P5nB3ylbX",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.rvmLvw2P5nB3ylbX",
     "name": "Prisoner",
@@ -420,6 +576,66 @@
     }
   },
   {
+    "_id": "ZF4v12SoB9Ds7Qv5",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.ZF4v12SoB9Ds7Qv5",
+    "name": "Refugee (PC2)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Refugee (PC2)",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "i28Z9JXhEvoc7BX5"
+    }
+  },
+  {
+    "_id": "37NuBbmuE18hTDLF",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.37NuBbmuE18hTDLF",
+    "name": "Returned",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Returned",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "rzyRtasSTfHS3e0y"
+    }
+  },
+  {
+    "_id": "s3ZHCTbUxHWih3L8",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.s3ZHCTbUxHWih3L8",
+    "name": "Root Worker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Root Worker",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ns9BOvCyjdapYhI0"
+    }
+  },
+  {
+    "_id": "B9WNciUBkKQ0q8v2",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.B9WNciUBkKQ0q8v2",
+    "name": "Royalty",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Royalty",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "uC6D2nmDTATxXrV6"
+    }
+  },
+  {
+    "_id": "ZpsPQ9P1W7ownlkH",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.ZpsPQ9P1W7ownlkH",
+    "name": "Saboteur",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Saboteur",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "4Vc8uXVHonrasFnU"
+    }
+  },
+  {
     "_id": "UgHUPyqRiCImAchP",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.UgHUPyqRiCImAchP",
     "name": "Sailor",
@@ -429,6 +645,18 @@
       "name": "Sailor",
       "system.traits.value": [],
       "flags.fusion.sourceId": "Zmwyhsxe4i6rZN75"
+    }
+  },
+  {
+    "_id": "Z1mLRQgwv77XYwRR",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.Z1mLRQgwv77XYwRR",
+    "name": "Scavenger",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Scavenger",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "vHeP960qjhfob4Je"
     }
   },
   {
@@ -456,6 +684,18 @@
     }
   },
   {
+    "_id": "WBnJ2nWD5RmDzjYn",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.WBnJ2nWD5RmDzjYn",
+    "name": "Servant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Servant",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "UdOUj7i8XGTI72Zc"
+    }
+  },
+  {
     "_id": "FusionSmuggler01",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.FusionSmuggler01",
     "name": "Smuggler",
@@ -468,6 +708,18 @@
     }
   },
   {
+    "_id": "FK57rsXJ7QfrhJ21",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.FK57rsXJ7QfrhJ21",
+    "name": "Squire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Squire",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "qbvzNG8hMjb8f66D"
+    }
+  },
+  {
     "_id": "zR1zWtzCC3yd5apL",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.zR1zWtzCC3yd5apL",
     "name": "Street Urchin",
@@ -477,6 +729,18 @@
       "name": "Street Urchin",
       "system.traits.value": [],
       "flags.fusion.sourceId": "moVRsnpjB5THCwxE"
+    }
+  },
+  {
+    "_id": "5EHMZWChQZdawWYm",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.5EHMZWChQZdawWYm",
+    "name": "Tax Collector",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Tax Collector",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ixluAGUDZciLEHtb"
     }
   },
   {
@@ -501,6 +765,18 @@
       "name": "Tinker",
       "system.traits.value": [],
       "flags.fusion.sourceId": "i79pgNIAtJfkkOiw"
+    }
+  },
+  {
+    "_id": "Rq775UTPB0V5kTwZ",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.Rq775UTPB0V5kTwZ",
+    "name": "Ward",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Ward",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "IXxdCzBS0xP20ckw"
     }
   },
   {
