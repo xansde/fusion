@@ -18,7 +18,7 @@
     {
       "packId": "pf2e.spells-core",
       "slug": "spells-core",
-      "documentCount": 1262
+      "documentCount": 1310
     },
     {
       "packId": "pf2e.classes-core",
@@ -48,7 +48,7 @@
     {
       "packId": "pf2e.backgrounds-core",
       "slug": "backgrounds-core",
-      "documentCount": 43
+      "documentCount": 66
     },
     {
       "packId": "pf2e.actions-core",
@@ -71,7 +71,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-11T00:53:10.248Z",
+  "generatedAt": "2026-08-11T03:02:15.213Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

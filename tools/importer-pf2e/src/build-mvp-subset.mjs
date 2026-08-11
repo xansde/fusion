@@ -1159,12 +1159,24 @@ function isFeatsCoreDoc(doc) {
  * "spell"`) carry neither `arcane` tradition nor the `focus` trait, so they
  * stay excluded — the "sem rituals (V2)" requirement holds without an extra
  * filter.
+ *
+ * issue #1 (Player Core 2 completo): 48 of the 170 Player Core 2 spells are
+ * divine/primal/occult non-focus spells (e.g. Astral Projection, Clone,
+ * Teleportation Circle) — they carry no `arcane` tradition and no `focus`/
+ * `composition` trait, so none of the branches above ever selected them,
+ * measured directly in `out/spells/transformed.json`. UNION every
+ * `isPlayerCore2Doc` spell explicitly, same pattern
+ * ancestries-core/heritages-core already use for the ancestry/heritage packs
+ * — deliberately `isPlayerCore2Doc` alone (not `isRemasterCoreDoc`): Player
+ * Core 1 has 489 spells and widening this branch to PC1 would balloon
+ * spells-core by ~122 more docs nobody asked for.
  */
 function isSpellsCoreDoc(doc, existingSourceIds) {
   const sourceId = doc.flags?.fusion?.sourceId;
   if (sourceId && existingSourceIds.has(sourceId)) return true;
   if (hasTradition(doc, "arcane")) return true;
   if (hasTrait(doc, "focus")) return true;
+  if (isPlayerCore2Doc(doc)) return true;
   // r22 (Bard integration): the 10 "composition cantrips" (Allegro,
   // Courageous Anthem, ...) are cast from the Bard's focus pool exactly like
   // the other 10 compositions, but carry trait "cantrip" instead of "focus"
@@ -1376,16 +1388,20 @@ function isHeritagesCoreDoc(doc) {
 
 /**
  * backgrounds-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 40
- * Player Core backgrounds (`isPlayerCoreDoc`) UNION Fireworks Performer +
- * Aeronaut, curated before this issue (R10-B/r18-N2a) for Magus/Finn and kept
- * for backward compatibility (Aeronaut also gets a curated free-feat grant
- * injected further down — see AERONAUT_CURATED_ITEMS).
+ * Player Core backgrounds UNION the 23 Player Core 2 backgrounds (both
+ * measured in `out/backgrounds/transformed.json` by `isRemasterCoreDoc` — same
+ * pattern ancestries-core/heritages-core already use) UNION Fireworks
+ * Performer + Aeronaut, curated before this issue (R10-B/r18-N2a) for
+ * Magus/Finn and kept for backward compatibility (Aeronaut also gets a
+ * curated free-feat grant injected further down — see
+ * AERONAUT_CURATED_ITEMS). Total: 40 + 23 + 2 legacy + Smuggler (authored,
+ * injected below) = 66.
  */
 const LEGACY_CURATED_BACKGROUND_NAMES = ["Fireworks Performer", "Aeronaut"];
 
 function isBackgroundsCoreDoc(doc) {
   if (doc.type !== "background") return false;
-  if (isPlayerCoreDoc(doc)) return true;
+  if (isRemasterCoreDoc(doc)) return true;
   return LEGACY_CURATED_BACKGROUND_NAMES.includes(doc.name);
 }
 
@@ -1643,8 +1659,9 @@ async function buildPf2eSubset() {
     const focusCount = docs.filter(
       (d) => Array.isArray(d.system?.traits?.value) && d.system.traits.value.includes("focus"),
     ).length;
+    const pc2Count = docs.filter(isPlayerCore2Doc).length;
     console.log(
-      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus) de ${all.length} totais`,
+      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus + ${pc2Count} Player Core 2) de ${all.length} totais`,
     );
 
     const manifest = PACK_MANIFESTS["spells-core"];

@@ -877,9 +877,10 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
     assert.equal(docs.length, 107);
   });
 
-  it("backgrounds-core has the 40 Player Core backgrounds plus the legacy Fireworks Performer and Aeronaut (issue #1)", () => {
-    // Issue #1: same shape as the ancestries assertion above — Fireworks
-    // Performer/Aeronaut stay in for the Magus/Finn fixtures.
+  it("backgrounds-core has the 40 Player Core + 23 Player Core 2 backgrounds plus the legacy Fireworks Performer and Aeronaut (issue #1, PC2 completion)", () => {
+    // Issue #1: same shape as the ancestries/heritages assertion above —
+    // Fireworks Performer/Aeronaut stay in for the Magus/Finn fixtures, and
+    // Player Core 2 joins Player Core via isRemasterCoreDoc.
     const docs = loadJson(join(PACKS_DIR, "backgrounds-core", "documents.json"));
     const names = docs.map((d) => d.name);
     assert.ok(names.includes("Fireworks Performer"), "Fireworks Performer background missing");
@@ -888,7 +889,11 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
       (d) => d.system?.publication?.title === "Pathfinder Player Core",
     ).length;
     assert.equal(playerCoreCount, 40);
-    // The 43rd is the AUTHORED Smuggler (LO:WG), which no vendor carries — see
+    const playerCore2Count = docs.filter(
+      (d) => d.system?.publication?.title === "Pathfinder Player Core 2",
+    ).length;
+    assert.equal(playerCore2Count, 23);
+    // The 66th is the AUTHORED Smuggler (LO:WG), which no vendor carries — see
     // SMUGGLER_AUTHORED_DOC in build-mvp-subset.mjs. Asserted by name and by
     // provenance, not just counted: a bare number would have gone stale again
     // (this assertion still said 42 after the Smuggler landed in 4cc46fd).
@@ -899,7 +904,8 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
       ["Smuggler"],
       "backgrounds-core should carry exactly one authored document",
     );
-    assert.equal(docs.length, 43);
+    // 40 (PC1) + 23 (PC2) + 2 legacy (Fireworks Performer, Aeronaut) + 1 authored (Smuggler) = 66.
+    assert.equal(docs.length, 66);
   });
 
   it("no committed R10-B pack document.json exceeds ~15 MB", () => {
