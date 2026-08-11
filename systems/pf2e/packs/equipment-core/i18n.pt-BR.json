@@ -96,11 +96,6 @@
       "sourceHash": "4ee011aa5ff47965b108806918a35a809de32293",
       "description": "<p><strong>Ativar</strong> <span class=\"action-glyph\">A</span> (manipular)</p>\n<hr />\n<p>Esta poção turva e acinzentada tem cheiro de lixeira de peixe velha e um gosto ainda pior. Depois de beber esta poção, você ganha os efeitos de uma magia de @UUID[Compendium.pf2e.spells-srd.Item.Water Breathing]{Respiração Aquática} de 2º grau por 1 hora.</p>"
     },
-    "4Ptof3qPxh5Uzpmp": {
-      "name": "Adaga de Clã",
-      "sourceHash": "da47d616fb96ce14fbdf9a364d9b21c4081f7470",
-      "description": "<p>Esta adaga larga é carregada pelos anões como arma, ferramenta e marca de clã. Perder ou ser obrigado a entregar uma adaga de clã é considerado motivo de vergonha para a maioria dos anões.</p>"
-    },
     "4usFWJfP5LohO58t": {
       "name": "Poção de Sopro Energético (Eletricidade, Menor)",
       "sourceHash": "aa5705d71523d7263558fa890f1ce44e76b155b2",

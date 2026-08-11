@@ -99,13 +99,29 @@ describe("construirGrafo — marcação de ambiguidade (issue #44)", () => {
     // ambiguidade que já existia no texto de pré-requisito "Masterful
     // Hunter" do Ranger — antes só havia 1 candidato (o nó genérico da
     // escolha) para casar; agora há 4 (o nó genérico + as 3 variantes reais).
+    // r28 elevou para 86 ao publicar o Druid (classe piloto): +19 do próprio
+    // Druid e +6 em classes que já estavam no grafo, TODOS medidos e
+    // explicados — nenhum é ambiguidade nova de verdade, é a mesma
+    // ambiguidade de sempre passando a ter um segundo candidato no pack.
+    //   - Druid 0→19: "Untamed Form" (11 arestas — o talento L1 concedido
+    //     pela Ordem Indômita tem HOMÔNIMO na magia de foco de mesmo nome, já
+    //     em spells-core desde a r12) e a família de companheiro animal
+    //     (8 arestas — o vendor escreve o pré-requisito SEM o sufixo
+    //     "(Druid)", então "Animal Companion"/"Mature Animal Companion"/
+    //     "Incredible Companion" casam com o doc do Druid E com o do Ranger).
+    //   - Ranger 3→8 e Bard 2→3 (+6): a MESMA família de companheiro, vista
+    //     do outro lado — os pré-requisitos de Stealthy Companion, Masterful
+    //     Companion, Incredible Companion (Ranger), Mature Animal Companion
+    //     (Ranger) e Chorus Companion ganharam o doc do Druid como segundo
+    //     candidato. Marcar isso é o comportamento CERTO da issue #44: a
+    //     resolução por nome é ambígua e o grafo agora diz que é.
     // Trava o total para que uma regressão silenciosa (uma mudança que pare
     // de marcar ambiguidade) quebre um teste, não um relatório manual.
     const totalAmbiguas = Object.values(grafo.classes).reduce(
       (acc, g) => acc + g.arestasAmbiguas,
       0,
     );
-    assert.equal(totalAmbiguas, 61);
+    assert.equal(totalAmbiguas, 86);
   });
 });
 

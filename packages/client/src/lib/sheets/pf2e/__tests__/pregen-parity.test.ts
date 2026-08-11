@@ -162,6 +162,11 @@ const KNOWN_DIVERGENCES: Record<string, string> = {
   "Bard/skillIncreaseCeiling": "#49",
   "Champion/skillIncreaseCeiling": "#49",
   "Cleric/skillIncreaseCeiling": "#49",
+  // r28 — mesma #49 que atinge TODA classe, agora visível para o Druid
+  // porque publicar a classe trouxe a icônica Lini (pregens L1/L3/L5) para
+  // dentro deste gate. Nada de específico do Druid: é o teto de aumento de
+  // perícia por nível que a derivação não respeita.
+  "Druid/skillIncreaseCeiling": "#49",
   "Fighter/skillIncreaseCeiling": "#49",
   // r25: the two classes curated this rodada break it the same way as the other
   // 12 — the ceiling is not implemented anywhere, so it is class-agnostic. The

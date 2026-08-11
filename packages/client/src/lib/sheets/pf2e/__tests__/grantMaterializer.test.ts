@@ -1202,7 +1202,7 @@ describe("findAdoptableItem vs a paid build slot (issue #15)", () => {
 // a 7th equipment-adjacent gap — resolves as a side effect of issue #24 (it's
 // a level-15 skill feat) and is asserted explicitly below.
 //
-// r28-A5 (equipment-core expansion, 18 -> 250 docs) closed the OTHER group
+// r28-A5 (equipment-core expansion, 18 -> 249 docs (250 menos a Clan Dagger, que vive em weapons-core desde o r28/A4)) closed the OTHER group
 // this comment used to describe: the 7 equipment items granted by
 // ancestry/general feats (Clan Dagger, Clan Pistol, Head Gem, Lucky Keepsake,
 // Orc Warmask, Pilgrim's Token, Tengu Feather Fan) — the vendor pack Fusion
@@ -1344,8 +1344,9 @@ describe("issue #16: every declared grant across the 14 real packs resolves (or 
       "Final Creed",
       "Battle Harbinger Dedication",
       // r28-A5 closed the equipment-grant gap that used to be listed here
-      // (Clan Dagger, Clan Pistol, Head Gem, Lucky Keepsake, Orc Warmask,
-      // Pilgrim's Token, Tengu Feather Fan) — all 7 are now in equipment-core.
+      // (Clan Pistol, Head Gem, Lucky Keepsake, Orc Warmask, Pilgrim's Token,
+      // Tengu Feather Fan — all 6 now in equipment-core; Clan Dagger resolves
+      // against weapons-core since r28/A4's isWeaponsCoreDoc predicate).
     ].sort();
     expect(notFound.map((f) => f.name).sort()).toEqual(expectedRemainingGap);
   });

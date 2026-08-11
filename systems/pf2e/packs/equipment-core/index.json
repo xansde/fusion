@@ -607,26 +607,6 @@
     }
   },
   {
-    "_id": "4Ptof3qPxh5Uzpmp",
-    "uuid": "Compendium.pf2e.equipment-core.Item.4Ptof3qPxh5Uzpmp",
-    "name": "Clan Dagger",
-    "img": "icons/placeholder/weapon.svg",
-    "type": "weapon",
-    "index": {
-      "name": "Clan Dagger",
-      "system.level": 0,
-      "system.traits.value": [
-        "agile",
-        "dwarf",
-        "parry",
-        "versatile-b"
-      ],
-      "system.category": "simple",
-      "system.usage": "held-in-one-hand",
-      "flags.fusion.sourceId": "kJJvKm80KwWXPukV"
-    }
-  },
-  {
     "_id": "wOWFea97E1o7Heug",
     "uuid": "Compendium.pf2e.equipment-core.Item.wOWFea97E1o7Heug",
     "name": "Clan Pistol",

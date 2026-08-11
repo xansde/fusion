@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.class-features-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-08T21:42:58.361Z",
+  "generatedAt": "2026-08-11T05:10:06.528Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -45,6 +45,11 @@
       "sourceHash": "02155024ecb233850bca7ed49fcaf9d9927e1364",
       "description": "<p>Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito.</p>"
     },
+    "1QwFMzHP0i86xktm": {
+      "name": "Força de Vontade Selvagem",
+      "sourceHash": "74dc93f1dfb16405e681101338f85d60b811456c",
+      "description": "<p>Sua vontade primal, como a da mais poderosa das feras, não pode ser domada. Seu grau de proficiência em testes de resistência de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de resistência de Vontade, você obtém um sucesso crítico em vez disso.</p>"
+    },
     "1gLNhDwqDBZXZgW7": {
       "name": "Especialização de Patrulheiro",
       "sourceHash": "db88a29d982d7e352c9a863d85a25dd8aeb1f2fa",
@@ -59,6 +64,11 @@
       "name": "Armadura Lendária",
       "sourceHash": "75932387b0f70508fe6917c00e0c7ef34029014c",
       "description": "<p>Você se protege com aço tão facilmente quanto com fé. Seus graus de proficiência em armadura leve, média e pesada, bem como em defesa sem armadura, aumentam para lendário.</p>"
+    },
+    "2IqeSNTsg56tqZXf": {
+      "name": "Ordem Selvagem",
+      "sourceHash": "5ad42df71a0de3ff3430fe40b34e6d3a5445ece4",
+      "description": "<p>O chamado incontrolável do mundo natural corre por seu corpo. Você pode ter sido criado por um animal selvagem, ou pode ter passado a rejeitar os artifícios das cidades depois de crescer em uma delas. Agora, a magia primal concede a você a habilidade de vestir a forma de uma criatura indomada.</p>\n<p><strong>Perícia da Ordem</strong> Intimidação</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Untamed Form]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Untamed Shift]</p>\n<p><strong>Anátema</strong> Tornar-se totalmente domesticado pelas tentações da civilização. (Isso não impede que você compre e use bens industrializados ou fique em uma cidade para uma aventura, mas você nunca pode passar a depender dessas comodidades ou realmente chamar tal lugar de seu lar permanente.)</p>"
     },
     "2K4xQnGRqtCwjRoU": {
       "name": "Limiar do Segundo Portão",
@@ -163,6 +173,11 @@
       "sourceHash": "12c99939f34524c4e263445412d195a21428aec7",
       "description": "<p>Você sempre defendeu que o refinamento da magia que vincula um mago ao seu familiar pode melhorar a conexão mística e gerar resultados maiores, em comparação com o vínculo seguro, porém genérico, que a maioria dos magos usa atualmente. Você formou um pacto assim com seu familiar, obtendo mais vantagens dele do que a maioria dos magos. Você ganha o talento de mago @UUID[Compendium.pf2e.feats-srd.Item.Familiar]. Seu familiar ganha uma habilidade extra, e ganha uma habilidade extra adicional quando você atinge o 6º, o 12º e o 18º níveis.</p>\n<p>Sua conexão com seu familiar altera sua característica de classe de vínculo arcano, de modo que você armazena sua energia mágica em seu familiar, em vez de em um item que possui; você também ganha a ação livre Drenar Familiar em vez de @UUID[Compendium.pf2e.actionspf2e.Item.Drain Bonded Item]. Drenar Familiar pode ser usada sempre que uma habilidade permitiria usar Drenar Item Vinculado, e funciona de forma idêntica, exceto que você extrai magia do seu familiar em vez de um item.</p>"
     },
+    "5zCp9NdkHHjafwsN": {
+      "name": "Ordem Animal",
+      "sourceHash": "986b69e18b0741cbc0b3b962120236a9eafcce0f",
+      "description": "<p>Você tem uma forte conexão com os animais, sempre sentindo que os compreendia (e eles a você) melhor do que seu próprio povo. Você defende os animais da natureza, com um poderoso animal de companhia ao seu lado.</p>\n<p><strong>Perícia da Ordem</strong> Atletismo</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Animal Companion]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Heal Animal]</p>\n<p><strong>Anátema</strong> Cometer crueldade gratuita contra animais ou matá-los desnecessariamente. (Isso não impede que você se defenda de animais ou os mate de forma limpa para se alimentar).</p>"
+    },
     "6WjjeKhVK8Jas4aM": {
       "name": "Arma Deífica",
       "sourceHash": "98a5a5c21486be6e92a30ccbd73a31a452c119f4",
@@ -181,6 +196,11 @@
       "name": "Musas",
       "sourceHash": "d33d075dac8a34c8bc4e6ec6040d6fec99c2a710",
       "description": "<p>Como bardo, você escolhe uma musa no 1º nível. Essa musa o conduz a grandes feitos e pode ser alguém que você conhece, uma criatura sobrenatural, um local, uma divindade, uma filosofia, ou um mistério cativante. Dependendo do tipo de inspiração que você recebe, sua musa de 1º nível concede a você um talento de bardo específico de 1º nível e adiciona uma magia ao seu repertório.</p>\n<p>Além disso, cada musa abre a porta para muitos talentos de bardo posteriores. Se um único tipo de inspiração não for suficiente para representar sua musa, considere o talento @UUID[Compendium.pf2e.feats-srd.Item.Multifarious Muse].</p><ul><li>@UUID[Compendium.pf2e.classfeatures.Item.Enigma]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Maestro]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Polymath]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Warrior]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Zoophonia]</li></ul>"
+    },
+    "7in2nuThLRPWqnzG": {
+      "name": "Ordem da Onda",
+      "sourceHash": "fad29e729cfb6bbff9ee10a330ed934a6544db69",
+      "description": "<p>A água é a fonte da vida, e você aprendeu a moldar como ela flui.</p>\n<p><strong>Perícia da Ordem</strong> Medicina</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Shore Step]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Rising Surf]</p>\n<p><strong>Anátema</strong> Poluir a água ou permitir que aqueles que poluem fontes de água fiquem impunes. (isso não obriga você a agir contra poluição hídrica potencial ou a se sacrificar contra um inimigo obviamente superior).</p>"
     },
     "7y4VNaiFqDRS5hlL": {
       "name": "Escola de Magia Cívica",
@@ -281,6 +301,11 @@
       "name": "Iniquidade",
       "sourceHash": "8a5c2d0d35a3fd24eaeb206b20c69a6aa4c7f2e4",
       "description": "<p>Você é desonrado, desonesto, e comprometido em quebrar as falsas esperanças da bondade.</p>\n<p><strong>Preceitos</strong> destrua o que o ofende ou está em seu caminho, tire vantagem dos outros, trapaceie, roube</p>\n<p><strong>Anátema</strong> vincular-se a uma lei diferente daquela que sua divindade exige</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Destructive Vengeance]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> Um inimigo ferido pelo dano da reação inicial também sofre dano de espírito persistente igual ao seu modificador de Carisma. (Isso se aplica apenas ao dano que a própria reação causa, não ao dano que você causa com Golpes subsequentes.)</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Cada inimigo na aura do seu campeão, exceto a criatura que ativou a reação, sofre metade do dano que você causa ao inimigo que a ativou</p>"
+    },
+    "AIUxiE3NEsg4x06y": {
+      "name": "Ordem da Folha",
+      "sourceHash": "8304e46e6a3af96f6b1c3cc40dcd82c57a34c440",
+      "description": "<p>Você reverencia a fartura da natureza, atuando tanto como jardineiro quanto como guardião da natureza selvagem. Com seu familiar leshy ao seu lado, você ajuda áreas a se regenerarem após desastres ou expansões negligentes e vira a flora contra aqueles que abusariam dela.</p>\n<p><strong>Perícia da Ordem</strong> Diplomacia</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Cornucopia]</p>\n<p><strong>Anátema</strong> Cometer crueldade gratuita contra plantas ou fungos ou matá-los desnecessariamente. (Isso não impede que você se defenda ou os colha para sobreviver.)</p>"
     },
     "AVh4glubbzygKbI8": {
       "name": "Perícia em Armadura Leve",
@@ -525,6 +550,11 @@
       "sourceHash": "05aa112360a0082921ff302c17d5ae50dd8bc48d",
       "description": "<p>Como um erudito, você conhece muito bem a importância de uma mente sã. Assim, você frequentou uma escola — como a Torre do Vidente ou a Pedra dos Videntes — que ensinava as artes de confundir mentes inferiores com fantasmagorias e ilusões, ou implantar sensações e memórias.</p>\n<p><strong>Currículo</strong></p>\n<ul>\n<li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Daze], @UUID[Compendium.pf2e.spells-srd.Item.Figment]</li>\n<li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dizzying Colors], @UUID[Compendium.pf2e.spells-srd.Item.Sleep], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</li>\n<li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Illusory Creature], @UUID[Compendium.pf2e.spells-srd.Item.Stupefy]</li>\n<li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dream Message], @UUID[Compendium.pf2e.spells-srd.Item.Mind Reading]</li>\n<li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Nightmare], @UUID[Compendium.pf2e.spells-srd.Item.Vision of Death]</li>\n<li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Hallucination], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene]</li>\n<li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Never Mind], @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Calamity]</li>\n<li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Project Image], @UUID[Compendium.pf2e.spells-srd.Item.Warp Mind]</li>\n<li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Disappearance], @UUID[Compendium.pf2e.spells-srd.Item.Uncontrollable Dance]</li>\n<li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Phantasmagoria]</li>\n</ul>\n<p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Charming Push]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Invisibility Cloak]</p>"
     },
+    "L86Ezh38tCiSKmFT": {
+      "name": "Ordem do Cultivo",
+      "sourceHash": "494c1cb4c73b2bd40876d711782b2a8e798e3f41",
+      "description": "<p>Você acredita que a natureza é mais bem cuidada, podada e mantida. A natureza é inerentemente aleatória e caótica por necessidade de sobrevivência — a flor espalha suas sementes por toda parte, na esperança de que algumas germinem, mas você acredita que as plantas realmente prosperam em ambientes ordenados. Assim, você dá uma mão, desobstruindo o que está estagnado, plantando em locais ideais, replantando o que cresce em locais inadequados, adubando o solo e realizando outras tarefas de manutenção. Embora muitos druidas considerem sua abordagem \"intrometida\" ou \"antinatural\", você sabe que o trabalho que faz é vital para a saúde geral do ambiente que você cuida.</p>\n<p>Você é treinado em Ofício. Você também ganha o talento de druida Familiar Leshy. Você ganha a magia de ordem cornucópia. Cometer crueldade gratuita contra plantas ou fungos ou negligenciar o cuidado de plantas que precisam de atenção é anátema para sua ordem. Isso não impede que você mate plantas ou fungos, nem que se defenda de plantas ou fungos.</p>\n<hr />\n<p><strong>Perícia da Ordem</strong> Ofício</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Cornucopia]</p>\n<p><strong>Anátema</strong> Cometer crueldade gratuita contra plantas ou fungos ou matá-los desnecessariamente. (Isso não impede que você se defenda ou os colha para sobreviver.)</p>\n<hr />\n<p><strong>Especial</strong>: A ordem do cultivo é uma variante da ordem da folha. Se você tem a ordem do cultivo, você conta como membro da ordem da folha e se qualifica para talentos da ordem da folha.</p>"
+    },
     "LHeFECB54lAzubfO": {
       "name": "Vontade Majestosa",
       "sourceHash": "a232cb468792e2968c44797797d8add10c094ae7",
@@ -584,6 +614,11 @@
       "name": "Reflexos Precognitivos",
       "sourceHash": "9ee57a5dec0e1cb8360c3dd4cacc80804a1b415d"
     },
+    "Nt0RtM2fMav4e60N": {
+      "name": "Ordem da Chama",
+      "sourceHash": "6d000e17e25594c0e6eb33ec0585ef487f2fc200",
+      "description": "<p>Você sente uma afinidade com as chamas e pode usá-las tanto para socorro quanto para destruição.</p>\n<p><strong>Perícia da Ordem</strong> Acrobacia</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Fire Lung]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Wildfire]</p>\n<p><strong>Anátema</strong> Permitir que fogos antinaturais se espalhem ou impedir que fogos naturais ocorram de um modo que prejudique o ambiente. (isso não impede que você use o fogo de forma destrutiva nem o obriga a combater um fogo controlado ou natural).</p>"
+    },
     "O0MKs0CCVgsNGFrX": {
       "name": "Esquivador de Explosões",
       "sourceHash": "7f416a9af8d97e844935d202d2ea26bc8a53d6bb"
@@ -617,6 +652,11 @@
       "name": "Especialização em Arma Maior (Bárbaro)",
       "sourceHash": "e6248359c175dbce56d96b95600347d04f2f7d6e",
       "description": "<p>As armas que você dominou se tornam verdadeiramente temíveis em suas mãos. Seu dano de especialização em arma aumenta para 4 com armas e ataques desarmados nos quais você é perito, 6 se é mestre, e 8 se é lendário.</p>\n<p>Você ganha um benefício maior da habilidade de especialização do seu instinto. Veja instintos específicos para mais informações.</p>"
+    },
+    "QEbVB0nhQ7sTqvML": {
+      "name": "Hierofante Primal",
+      "sourceHash": "58a60fb5e941693cea8ca2700bbba761d725b23c",
+      "description": "<p>Você comanda as forças mais potentes da magia primal e pode conjurar uma magia de poder verdadeiramente inacreditável. Você ganha um único espaço de magia de 10º grau e pode preparar uma magia nesse espaço usando sua conjuração de druida. Diferente de outros espaços de magia, você não pode usar espaços de 10º grau com habilidades que concedem mais espaços de magia ou que permitem conjurar magias sem gastar espaços de magia. Você não ganha mais magias de 10º grau conforme sobe de nível, mas pode escolher o talento @UUID[Compendium.pf2e.feats-srd.Item.Hierophant's Power] para ganhar um segundo espaço.</p>"
     },
     "QMx05Uer8dWp7K75": {
       "name": "Magias Emblemáticas",
@@ -858,6 +898,11 @@
       "sourceHash": "88c2f2728e2f1a0964dbd77420e2ccf6fa4d79ab",
       "description": "<p>A crença serve como um baluarte contra pensamentos insidiosos. Seu grau de proficiência em testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso.</p>"
     },
+    "aztwW7yAkCF3mRR1": {
+      "name": "Ordem do Esporo",
+      "sourceHash": "0994af3cf000f07908df2cf98777a8d0fea825c3",
+      "description": "<p>Você é fascinado por mofos e fungos, e compreende o papel importante que desempenham na saúde contínua dos ecossistemas. Esse interesse frequentemente o coloca em conflito com comunidades locais, que veem mofos e fungos como algo a ser erradicado, em vez de cultivado.</p>\n<p>Você é treinado em Intimidação. Você também ganha o talento de druida Familiar Leshy, mas deve criar um leshy fúngico. Você ganha a magia de ordem <em>colônia de cogumelos</em>. Cometer crueldade gratuita contra mofos ou fungos, matá-los desnecessariamente, ou interferir nos processos naturais de decomposição, é anátema para sua ordem. Isso não impede que você se defenda de fungos ou mofos, ou os colha para se alimentar.</p>\n<hr />\n<p><strong>Perícia da Ordem</strong> Intimidação</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Leshy Familiar]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mushroom Patch]</p>\n<p><strong>Anátema</strong> Cometer crueldade gratuita contra mofos ou fungos, matá-los desnecessariamente, ou interferir nos processos naturais de decomposição, é anátema para sua ordem. Isso não impede que você se defenda de fungos ou mofos, ou os colha para se alimentar.</p>\n<hr />\n<p><strong>Especial</strong>: A ordem do esporo é uma variante da ordem da folha. Se você tem a ordem do esporo, você conta como membro da ordem da folha e se qualifica para talentos da ordem da folha.</p>"
+    },
     "bHzVkUYr6HsYIzF9": {
       "name": "Especialização em Armas de Psíquico",
       "sourceHash": "2d7662fc510e2b24c6256f5075a5f7c3f1128e97"
@@ -915,6 +960,11 @@
       "sourceHash": "d9d518e1cf84283d3835e85565133fb37a46baea",
       "description": "<p>Você pode estender a magia de magias que armazena com Golpe de Magia. Depois que você faz um Golpe de Magia com uma magia conjurada a partir de um espaço de magia, você retém um eco da magia, armazenado em seu corpo. A próxima vez que você fizer um Golpe de Magia, pode conjurar a mesma magia novamente sem gastar um espaço de magia.</p>\n<p>Se você optar por conjurar uma magia diferente com Golpe de Magia, ou ficar 1 minuto sem usar a magia armazenada, a magia armazenada se dissipa inofensivamente.</p>"
     },
+    "dCH1B3UBF3fLEyMU": {
+      "name": "Anátema (Druida)",
+      "sourceHash": "dc9a7068d3ddcda2e0faaa4d403019b11b3b53a1",
+      "description": "<p>Como guardiões da ordem natural, os druidas consideram anátema os ultrajes contra a natureza. Se você comete repetidamente esses atos, perde suas habilidades mágicas da classe druida, incluindo sua conjuração de druida e os benefícios de sua ordem. Essas habilidades só podem ser recuperadas se você demonstrar seu arrependimento com um ritual de @UUID[Compendium.pf2e.spells-srd.Item.Atone]. Os atos a seguir são anátema para todos os druidas.</p>\n<p><strong>Anátema</strong> devastar lugares naturais, consumir mais recursos naturais do que você precisa para viver confortavelmente, ensinar a Wildsong a não druidas.</p>\n<p>Sua escolha de ordem druídica acrescenta anátemas adicionais, detalhados na entrada da ordem.</p>"
+    },
     "dYhgA64ZW6luX4Bb": {
       "name": "Feitiçaria do Arquimago",
       "sourceHash": "5038362d0198222e09e19a6d3153559981b80139",
@@ -949,6 +999,11 @@
       "name": "Terceira Doutrina",
       "sourceHash": "1bf8bdae2b0ed7a122b12ee7eaf2dec108a2dfcd",
       "description": "<p>Você ganha o terceiro benefício de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Third Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Third Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
+    },
+    "gS7kLg7fRgMku6gd": {
+      "name": "Ordem Druídica",
+      "sourceHash": "35a0144c3912fb0ccab7cd16331241d98eb3c192",
+      "description": "<p>Ao se tornar um druida, você se alinha a uma ordem druídica, que concede a você um talento de classe, uma magia de ordem (veja abaixo) e uma perícia treinada adicional vinculada à sua ordem. Embora você sempre será membro de sua ordem inicial, não é incomum que um druida peça para estudar com outras ordens em busca de maior compreensão do mundo natural, e druidas jogadores estão entre os mais propensos a combinar os poderes de diferentes ordens.</p>\n<p>Magias de ordem são um tipo de magia de foco. Custa 1 Ponto de Foco para conjurar uma magia de foco, e você começa com uma reserva de foco de 1 Ponto de Foco. Você reabastece sua reserva de foco durante suas preparações diárias, e pode recuperar 1 Ponto de Foco gastando 10 minutos usando a atividade Reconcentrar para se comunicar com os espíritos locais da natureza ou de outra forma cuidar da natureza selvagem de um modo condizente com sua ordem.</p>\n<p>Magias de foco são automaticamente elevadas à metade do seu nível arredondada para cima, assim como os truques. Magias de foco não exigem espaços de magia, e você não pode conjurá-las usando espaços de magia. Certos talentos concedem a você mais magias de foco. O número máximo de Pontos de Foco que sua reserva de foco pode conter é igual ao número de magias de foco que você possui, mas nunca pode ser superior a 3 pontos.</p>\n<p><strong>Perícia da Ordem</strong> Você se torna treinado na perícia listada. Se você já é treinado nessa perícia, torna-se treinado em uma perícia diferente à sua escolha.</p>\n<p><strong>Talento de Druida</strong> Você ganha este talento de druida de 1º nível.</p>\n<p><strong>Magia da Ordem</strong> Você ganha automaticamente a magia de ordem listada no 1º nível.</p>\n<p><strong>Anátema</strong> Adicione este anátema aos de todos os druidas.</p><hr /><p>@UUID[Compendium.pf2e.classfeatures.Item.Animal Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Flame Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Leaf Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Stone Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Storm Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Untamed Order]</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Wave Order]</p>"
     },
     "gWbc5my1ar93nO19": {
       "name": "Escola da Magia Rúnica Thassiloniana",
@@ -1038,6 +1093,16 @@
       "name": "Escola da Teoria Mágica Unificada",
       "sourceHash": "3742fdbb7bc1fcc85ee691141f73aa4e6cb15f75",
       "description": "<p>Você rejeita a ideia de que a magia possa ser claramente expressa pelos ensinamentos de uma única escola ou faculdade, e em vez disso direciona seus autoestudos para captar o melhor de cada escola de magia. Ao fazer isso, você encontra as verdades que residem na interseção de cada escola, aproximando-se da natureza ideal da magia arcana. Um dia, você descobrirá aquela teoria única e elegante que descreve toda a magia (talvez uma teoria que leve seu nome?), mas até lá, seus estudos continuam.</p>\n<p><strong>Sem Currículo</strong> Você não tem um currículo definido e, portanto, não possui magias de currículo nem pode se beneficiar de habilidades que as afetem especificamente. Em vez disso, você ganha um talento de classe de mago de 1º nível adicional, e adiciona uma magia de 1º grau à sua escolha ao seu grimório para representar seus estudos diversificados.</p>\n<p>Seus estudos sobre a própria natureza da magia permitiram que você a usasse com mais eficiência — em vez de usar @UUID[Compendium.pf2e.actionspf2e.Item.Drain Bonded Item] apenas uma vez por dia, você pode usá-la uma vez por dia para cada grau de magia que consegue conjurar, relembrando uma magia daquele grau a cada vez.</p>\n<p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Hand of the Apprentice]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Interdisciplinary Incantation]</p>"
+    },
+    "k7CZ8dTLpyWNoX6r": {
+      "name": "Conjuração de Druida",
+      "sourceHash": "c18c731582ffec7544a755a051508a91e40dac29",
+      "description": "<p>O poder do mundo selvagem flui através de você. Você é um conjurador e pode conjurar magias da tradição primal usando a atividade @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell]. Como druida, suas incantações de conjuração podem ser súplicas ao ambiente ao seu redor ou a invocação de votos ancestrais; suas mãos podem balançar como salgueiros ou se curvar em formas de garra enquanto seus gestos direcionam sua magia. No 1º nível, você pode preparar duas magias de 1º grau e cinco truques a cada manhã dentre as magias comuns da lista de magias primal, ou de outras magias primais às quais você ganha acesso e aprende por meio de Aprender uma Magia. Magias preparadas permanecem disponíveis para você até que as conjure ou até que prepare suas magias novamente. O número de magias que você pode preparar por dia é chamado de seus espaços de magia.</p>\n<p>Conforme você aumenta de nível como druida, o número de magias que pode preparar a cada dia aumenta, assim como o grau mais alto de magia que pode conjurar, conforme mostrado na tabela de Magias por Dia do Druida.</p>\n<p>Algumas de suas magias exigem que você tente uma rolagem de ataque de magia para ver o quão eficazes são, ou fazem seus inimigos rolarem contra sua CD de magia (normalmente tentando um teste de resistência). Como seu atributo-chave é Sabedoria, seu modificador de ataque de magia e sua CD de magia usam seu modificador de Sabedoria.</p>\n<h2>Elevando Magias</h2>\n<p>Quando você obtém espaços de magia de 2º grau ou superior, pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, elevando-a para corresponder ao espaço de magia. Muitas magias têm melhorias específicas quando são elevadas a determinados graus.</p>\n<h2>Truques</h2>\n<p>Algumas de suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, quantas vezes quiser por dia. Um truque é sempre automaticamente elevado à metade do seu nível arredondada para cima — isso normalmente equivale ao grau mais alto de espaço de magia de druida que você possui. Por exemplo, como um druida de 1º nível, seus truques são magias de 1º grau, e os de um druida de 5º nível são de 3º grau.</p>"
+    },
+    "kITNUEVRGskHjuNW": {
+      "name": "Ordem da Tempestade",
+      "sourceHash": "0eacbd3e9197de4e98b139057a460d21e3d4680b",
+      "description": "<p>Seja porque você nasceu sob uma tempestade ou sobreviveu a um raio vindo de um céu limpo, agora você carrega a fúria da tempestade em seu coração, canalizando trovões para efeitos terrivelmente destrutivos e cavalgando os ventos pelo ar.</p>\n<p><strong>Perícia da Ordem</strong> Acrobacia</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Storm Born]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Tempest Surge]</p>\n<p><strong>Anátema</strong> Poluir o ar, permitir que aqueles que causam grande poluição atmosférica ou mudanças climáticas fiquem impunes. (Isso não obriga você a agir contra danos ambientais meramente potenciais ou a se sacrificar contra um inimigo obviamente superior.)</p>"
     },
     "kOlD737Mp2ATW6fE": {
       "name": "Vantagem do Atirador",
@@ -1170,6 +1235,11 @@
       "sourceHash": "e8a33c6af2095487b3f58560a6026d5ca800af69",
       "description": "<p>Você é treinado em armadura leve e média, e tem proficiência de perito em testes de Fortitude. Você ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Shield Block], uma reação para reduzir dano com um escudo. Se a arma favorita de sua divindade for uma arma simples ou um ataque desarmado, você ganha o talento de clérigo @UUID[Compendium.pf2e.feats-srd.Item.Deadly Simplicity]. No 13º nível, se você ganhar a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Divine Defense], você também ganha proficiência de perito em armadura leve e média.</p>"
     },
+    "ocwBXAQOBMFajygM": {
+      "name": "Ordem da Pedra",
+      "sourceHash": "191be6998b644456c4b01e804807e3b2cc3b1f9b",
+      "description": "<p>Você é tão resistente quanto a pedra, e encontra conforto em sua presença firme, tanto natural quanto trabalhada.</p>\n<p><strong>Perícia da Ordem</strong> Ofício</p>\n<p><strong>Talento de Druida</strong> @UUID[Compendium.pf2e.feats-srd.Item.Steadying Stone]</p>\n<p><strong>Magia da Ordem</strong> @UUID[Compendium.pf2e.spells-srd.Item.Crushing Ground]</p>\n<p><strong>Anátema</strong> Envenenar ou poluir a terra e escavar o solo sem cuidado para saquear seus recursos naturais. (isso não impede que você cave ou minere de forma responsável).</p>"
+    },
     "of608qmggytB7Dr2": {
       "name": "Especialização de Pistoleiro",
       "sourceHash": "414704a085a78fe6cf6d8f2aae50ee399c11b3b8"
@@ -1252,6 +1322,11 @@
     "rnyzY3icR0G9b2Ul": {
       "name": "Disciplina Precisa",
       "sourceHash": "5962b0141edfe33d8f02401dac9a43bea49950d6"
+    },
+    "rpBHCE3ES0jHb7jE": {
+      "name": "Wildsong",
+      "sourceHash": "508632f0da09d904c577fac7c76b094fbdc9c750",
+      "description": "<p>Você conhece a Wildsong, uma língua secreta conhecida apenas dentro das ordens druídicas, além de quaisquer idiomas que você conheça por sua ancestralidade. A Wildsong é uma língua melódica e tonal que soa mais como chamados de animais do que uma língua falada, e seu alfabeto envolve fractais e espirais, como o arranjo das câmaras de uma concha, os cristais de um floco de neve ou as frondes de uma samambaia. Ensinar a Wildsong a não druidas é anátema.</p>"
     },
     "s5fp5yO7PNlETtIP": {
       "name": "Constituição de Chumbo",
@@ -1442,6 +1517,11 @@
       "name": "Fonte Divina",
       "sourceHash": "951cde3b0c075776c16b47aeb7d486dcedc6c2a1",
       "description": "<p>Pela bênção de sua divindade, você ganha magias adicionais que canalizam a força vital chamada vitalidade ou sua contraforça, o vazio. Ao preparar suas magias todos os dias, você pode preparar magias adicionais de @UUID[Compendium.pf2e.spells-srd.Item.Heal] ou @UUID[Compendium.pf2e.spells-srd.Item.Harm], dependendo de sua divindade. A magia de fonte divina que sua divindade fornece está listada na entrada de Fonte Divina da sua divindade; se ambas estiverem listadas, você pode escolher entre <em>curar</em> ou <em>ferir</em>. Depois de escolher, você não pode mudar sua escolha, a menos que haja intervenção divina.</p>\n<p><strong>Fonte de Cura:</strong> Você ganha 4 espaços de magia adicionais por dia no seu grau mais alto de espaços de magia de clérigo. Você só pode preparar magias de <em>curar</em> nesses espaços. No 5º nível, o número de espaços adicionais aumenta para 5, e no 15º nível, o número total de espaços adicionais aumenta para 6.</p>\n<p><strong>Fonte Danosa:</strong> Você ganha 4 espaços de magia adicionais por dia no seu grau mais alto de espaços de magia de clérigo. Você só pode preparar magias de <em>ferir</em> nesses espaços. No 5º nível, o número de espaços adicionais aumenta para 5, e no 15º nível, o número total de espaços adicionais aumenta para 6.</p>"
+    },
+    "y6y7uCuBpLav1NsV": {
+      "name": "Voz da Natureza",
+      "sourceHash": "80c45ef6dce86e3b54f77bf811ff1acae92181b8",
+      "description": "<p>Você ganha sua escolha entre os talentos de druida @UUID[Compendium.pf2e.feats-srd.Item.Animal Empathy] ou @UUID[Compendium.pf2e.feats-srd.Item.Plant Empathy].</p>"
     },
     "yHxnWqMltRtmafQf": {
       "name": "Teimoso",

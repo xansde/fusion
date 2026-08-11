@@ -9157,6 +9157,198 @@
     }
   },
   {
+    "_id": "2K00ZNWHUKSKNSW8",
+    "uuid": "Compendium.pf2e.spells-core.Item.2K00ZNWHUKSKNSW8",
+    "name": "Astral Projection",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "4Cntq9odgW6xMpAs"
+    }
+  },
+  {
+    "_id": "7ujLBLojZe4zhmWe",
+    "uuid": "Compendium.pf2e.spells-core.Item.7ujLBLojZe4zhmWe",
+    "name": "Clone",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 9,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "rare",
+      "flags.fusion.sourceId": "pZr1xrCpaSu6qrXU"
+    }
+  },
+  {
+    "_id": "5h7EaiZNHVEzx0Tx",
+    "uuid": "Compendium.pf2e.spells-core.Item.5h7EaiZNHVEzx0Tx",
+    "name": "Fantastic Facade",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 9,
+      "system.traits.value": [
+        "illusion"
+      ],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "rare",
+      "flags.fusion.sourceId": "nA0XlPsnMNrQMpio"
+    }
+  },
+  {
+    "_id": "PKHcTDr4HUkysa1B",
+    "uuid": "Compendium.pf2e.spells-core.Item.PKHcTDr4HUkysa1B",
+    "name": "Fortifying Brew",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "yRf59eFtZ50cGlem"
+    }
+  },
+  {
+    "_id": "IEhQoNiSUn5D8x7r",
+    "uuid": "Compendium.pf2e.spells-core.Item.IEhQoNiSUn5D8x7r",
+    "name": "Gathering Call",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 7,
+      "system.traits.value": [
+        "teleportation"
+      ],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "rare",
+      "flags.fusion.sourceId": "nzbnTqHgNKiGZkrZ"
+    }
+  },
+  {
+    "_id": "nWsJMoGLyrZkedek",
+    "uuid": "Compendium.pf2e.spells-core.Item.nWsJMoGLyrZkedek",
+    "name": "Heartbond",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "dZV8nZUKRhGIr6g9"
+    }
+  },
+  {
+    "_id": "8ffcGsmvgS9Be0zI",
+    "uuid": "Compendium.pf2e.spells-core.Item.8ffcGsmvgS9Be0zI",
+    "name": "Inveigle",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "mental"
+      ],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "5pwK2FZX6QwgtfqX"
+    }
+  },
+  {
+    "_id": "Yy21p9Mi4WknYUbw",
+    "uuid": "Compendium.pf2e.spells-core.Item.Yy21p9Mi4WknYUbw",
+    "name": "Phantasmal Custodians",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "uuoPmbjEtqzWZs0v"
+    }
+  },
+  {
+    "_id": "SwcqKeMQEgGqXmte",
+    "uuid": "Compendium.pf2e.spells-core.Item.SwcqKeMQEgGqXmte",
+    "name": "Reincarnate",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "gIVaSCrLhhBzGHQY"
+    }
+  },
+  {
+    "_id": "j5pr5CXzS1dDVVm2",
+    "uuid": "Compendium.pf2e.spells-core.Item.j5pr5CXzS1dDVVm2",
+    "name": "Rest Eternal",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "MTNlvZ0A9xY5sOg1"
+    }
+  },
+  {
+    "_id": "QBZbIR9EnmECUz44",
+    "uuid": "Compendium.pf2e.spells-core.Item.QBZbIR9EnmECUz44",
+    "name": "Shadow Double",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": [
+        "illusion"
+      ],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "rare",
+      "flags.fusion.sourceId": "h5UqEdeqK8iTcU0J"
+    }
+  },
+  {
+    "_id": "glj3cQlPXWc996f7",
+    "uuid": "Compendium.pf2e.spells-core.Item.glj3cQlPXWc996f7",
+    "name": "Teleportation Circle",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 7,
+      "system.traits.value": [
+        "teleportation"
+      ],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "5ZW1w9f4gWlSIuWA"
+    }
+  },
+  {
+    "_id": "qMEdJhqaRUp2zjek",
+    "uuid": "Compendium.pf2e.spells-core.Item.qMEdJhqaRUp2zjek",
+    "name": "Ward Domain",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 6,
+      "system.traits.value": [],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "Er9XNUlL0wB0PM36"
+    }
+  },
+  {
     "_id": "GC4rKF0JEKQWji4X",
     "uuid": "Compendium.pf2e.spells-core.Item.GC4rKF0JEKQWji4X",
     "name": "Acid Splash",
@@ -9694,6 +9886,29 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "izcxFQFwf3woCnFs"
+    }
+  },
+  {
+    "_id": "cN06qs111NPataM9",
+    "uuid": "Compendium.pf2e.spells-core.Item.cN06qs111NPataM9",
+    "name": "Haunting Hymn",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": [
+        "auditory",
+        "cantrip",
+        "concentrate",
+        "manipulate",
+        "sonic"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "b5BQbwmuBhgPXTyi"
     }
   },
   {
@@ -10898,6 +11113,26 @@
     }
   },
   {
+    "_id": "lzIRceh5D1UD0F12",
+    "uuid": "Compendium.pf2e.spells-core.Item.lzIRceh5D1UD0F12",
+    "name": "Concordant Choir",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": [
+        "concentrate",
+        "sonic"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "TSyFZNAbqfkRrcq0"
+    }
+  },
+  {
     "_id": "KcuF0kJNGvndCR2f",
     "uuid": "Compendium.pf2e.spells-core.Item.KcuF0kJNGvndCR2f",
     "name": "Conductive Weapon",
@@ -11705,6 +11940,25 @@
     }
   },
   {
+    "_id": "My1wrxInlcj25uJt",
+    "uuid": "Compendium.pf2e.spells-core.Item.My1wrxInlcj25uJt",
+    "name": "Imprint Message",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "WJOQryAODgYmrL6g"
+    }
+  },
+  {
     "_id": "ChKBsok3rJyfUNZI",
     "uuid": "Compendium.pf2e.spells-core.Item.ChKBsok3rJyfUNZI",
     "name": "Instant Pottery",
@@ -12064,6 +12318,25 @@
     }
   },
   {
+    "_id": "6gMf9kROSvKZZGhG",
+    "uuid": "Compendium.pf2e.spells-core.Item.6gMf9kROSvKZZGhG",
+    "name": "Object Reading",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "5LYi9Efs6cko4GGL"
+    }
+  },
+  {
     "_id": "jJBrC0pYGIkSdopV",
     "uuid": "Compendium.pf2e.spells-core.Item.jJBrC0pYGIkSdopV",
     "name": "Overselling Flourish",
@@ -12209,6 +12482,27 @@
       ],
       "system.traits.rarity": "rare",
       "flags.fusion.sourceId": "TjWHgXqPv5jywMti"
+    }
+  },
+  {
+    "_id": "gFzuyjWuEDdqHak5",
+    "uuid": "Compendium.pf2e.spells-core.Item.gFzuyjWuEDdqHak5",
+    "name": "Protector Tree",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "plant",
+        "wood"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "K9gI08enGtmih5X1"
     }
   },
   {
@@ -12690,6 +12984,26 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "lKcsmeOrgHtK4xQa"
+    }
+  },
+  {
+    "_id": "2DwZLHM4CzYkkg95",
+    "uuid": "Compendium.pf2e.spells-core.Item.2DwZLHM4CzYkkg95",
+    "name": "Summon Lesser Servitor",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "summon"
+      ],
+      "system.traits.traditions": [
+        "divine"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "B0FZLkoHsiRgw7gv"
     }
   },
   {
@@ -13276,6 +13590,26 @@
     }
   },
   {
+    "_id": "kulXBKEapEBGv7iC",
+    "uuid": "Compendium.pf2e.spells-core.Item.kulXBKEapEBGv7iC",
+    "name": "Primal Herd",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 10,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "polymorph"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "pmP8HhXvvEKP3LqU"
+    }
+  },
+  {
     "_id": "OcpzsozYjHffwxnh",
     "uuid": "Compendium.pf2e.spells-core.Item.OcpzsozYjHffwxnh",
     "name": "Remake",
@@ -13603,6 +13937,29 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "ZxHC7V7HtjUsB8zH"
+    }
+  },
+  {
+    "_id": "2r5XlQDDx9Y1lOcb",
+    "uuid": "Compendium.pf2e.spells-core.Item.2r5XlQDDx9Y1lOcb",
+    "name": "Blistering Invective",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "emotion",
+        "fear",
+        "manipulate",
+        "mental"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "hoR6w8BqX2F35Tdx"
     }
   },
   {
@@ -14481,6 +14838,27 @@
     }
   },
   {
+    "_id": "UezR6msPH3eYa9Mc",
+    "uuid": "Compendium.pf2e.spells-core.Item.UezR6msPH3eYa9Mc",
+    "name": "Fungal Infestation",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "concentrate",
+        "fungus",
+        "manipulate",
+        "poison"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "3VxVbZqIRvpKkg3O"
+    }
+  },
+  {
     "_id": "6Lldbe039l6AHPq8",
     "uuid": "Compendium.pf2e.spells-core.Item.6Lldbe039l6AHPq8",
     "name": "Gecko Grip",
@@ -14518,6 +14896,28 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "rthC6dGm3nNrt1xN"
+    }
+  },
+  {
+    "_id": "JG0RvpHMf4UL4Mxx",
+    "uuid": "Compendium.pf2e.spells-core.Item.JG0RvpHMf4UL4Mxx",
+    "name": "Ghoulish Cravings",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "concentrate",
+        "curse",
+        "manipulate",
+        "mental"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "JhRuR7Jj3ViShpq7"
     }
   },
   {
@@ -15358,6 +15758,30 @@
     }
   },
   {
+    "_id": "dlLNJkTNhaQa7nkP",
+    "uuid": "Compendium.pf2e.spells-core.Item.dlLNJkTNhaQa7nkP",
+    "name": "Reaper's Lantern",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "aura",
+        "concentrate",
+        "death",
+        "light",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "dxOF7d5kAWusLKWF"
+    }
+  },
+  {
     "_id": "ktaVaiIfwGRutGqD",
     "uuid": "Compendium.pf2e.spells-core.Item.ktaVaiIfwGRutGqD",
     "name": "Resist Energy",
@@ -15573,6 +15997,28 @@
     }
   },
   {
+    "_id": "KIN9V9o6nf9jXfji",
+    "uuid": "Compendium.pf2e.spells-core.Item.KIN9V9o6nf9jXfji",
+    "name": "Spirit Sense",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "concentrate",
+        "detection",
+        "manipulate",
+        "mental"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "3ehSrqTAm7IPqbIZ"
+    }
+  },
+  {
     "_id": "Zv7mkJj5lKslIujl",
     "uuid": "Compendium.pf2e.spells-core.Item.Zv7mkJj5lKslIujl",
     "name": "Splinter Volley",
@@ -15677,6 +16123,27 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "CQb8HtQ1BPeZmu9h"
+    }
+  },
+  {
+    "_id": "K2nStsnzfL5xHXYy",
+    "uuid": "Compendium.pf2e.spells-core.Item.K2nStsnzfL5xHXYy",
+    "name": "Sudden Blight",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "void"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "XFtO4BBI22Uox2QP"
     }
   },
   {
@@ -16205,6 +16672,46 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "nplNt08TvokZUxtR"
+    }
+  },
+  {
+    "_id": "E78RqbbWLPXOS9O9",
+    "uuid": "Compendium.pf2e.spells-core.Item.E78RqbbWLPXOS9O9",
+    "name": "Animal Vision",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "mental"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "1HfusQ8NDWutGvMx"
+    }
+  },
+  {
+    "_id": "J4dqZJZBewgcn8bJ",
+    "uuid": "Compendium.pf2e.spells-core.Item.J4dqZJZBewgcn8bJ",
+    "name": "Anointed Ground",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": [
+        "concentrate",
+        "consecration",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "divine"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "y3jlOfgsQH1JjkJE"
     }
   },
   {
@@ -18260,6 +18767,27 @@
     }
   },
   {
+    "_id": "TAj0QdQX2BAbjBNT",
+    "uuid": "Compendium.pf2e.spells-core.Item.TAj0QdQX2BAbjBNT",
+    "name": "Threefold Aspect",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "polymorph"
+      ],
+      "system.traits.traditions": [
+        "occult",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "MNiT0dHol5fEcKlz"
+    }
+  },
+  {
     "_id": "oDMDk4bjLN1TbHX7",
     "uuid": "Compendium.pf2e.spells-core.Item.oDMDk4bjLN1TbHX7",
     "name": "Time Jump",
@@ -18556,6 +19084,26 @@
     }
   },
   {
+    "_id": "MCPRfuHFHha6a6ox",
+    "uuid": "Compendium.pf2e.spells-core.Item.MCPRfuHFHha6a6ox",
+    "name": "Wanderer's Guide",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "ppA1StEigPLKEQqR"
+    }
+  },
+  {
     "_id": "ARKwcLSQl2TLnWOe",
     "uuid": "Compendium.pf2e.spells-core.Item.ARKwcLSQl2TLnWOe",
     "name": "Warding Aggression",
@@ -18772,6 +19320,25 @@
       ],
       "system.traits.rarity": "uncommon",
       "flags.fusion.sourceId": "CVvkveEH7lonSTZd"
+    }
+  },
+  {
+    "_id": "70RTN8D1tviMGRq0",
+    "uuid": "Compendium.pf2e.spells-core.Item.70RTN8D1tviMGRq0",
+    "name": "Chroma Leach",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "4y2DMq9DV5HvmnxC"
     }
   },
   {
@@ -19450,6 +20017,27 @@
     }
   },
   {
+    "_id": "4hV4RD6ZCNTpv7lh",
+    "uuid": "Compendium.pf2e.spells-core.Item.4hV4RD6ZCNTpv7lh",
+    "name": "Ghostly Tragedy",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "spirit"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "uncommon",
+      "flags.fusion.sourceId": "WVc30DGbM7TRLLul"
+    }
+  },
+  {
     "_id": "MBKH9PVVYUcuQuqc",
     "uuid": "Compendium.pf2e.spells-core.Item.MBKH9PVVYUcuQuqc",
     "name": "Glass Form",
@@ -19511,6 +20099,27 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "Wpgt5TYcTHLDei6J"
+    }
+  },
+  {
+    "_id": "aVUdGAHpnOQdCZfO",
+    "uuid": "Compendium.pf2e.spells-core.Item.aVUdGAHpnOQdCZfO",
+    "name": "Holy Cascade",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": [
+        "concentrate",
+        "holy",
+        "manipulate",
+        "water"
+      ],
+      "system.traits.traditions": [
+        "divine"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "DZ9bzXYqMjAK9TzC"
     }
   },
   {
@@ -20796,6 +21405,28 @@
     }
   },
   {
+    "_id": "qYNLrCr2ceOGtEMY",
+    "uuid": "Compendium.pf2e.spells-core.Item.qYNLrCr2ceOGtEMY",
+    "name": "Whispers of the Void",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "manipulate",
+        "void"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "FwW2asotQE8dH1WP"
+    }
+  },
+  {
     "_id": "pPcuYo39hN81DrAd",
     "uuid": "Compendium.pf2e.spells-core.Item.pPcuYo39hN81DrAd",
     "name": "Winning Streak",
@@ -21171,6 +21802,26 @@
       ],
       "system.traits.rarity": "uncommon",
       "flags.fusion.sourceId": "zPVJI8Jltt3ERkaU"
+    }
+  },
+  {
+    "_id": "u7AE4yuiYiXJdhfz",
+    "uuid": "Compendium.pf2e.spells-core.Item.u7AE4yuiYiXJdhfz",
+    "name": "Chameleon Coat",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [
+        "concentrate",
+        "illusion",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "xPrbxyOEwy9QaPVn"
     }
   },
   {
@@ -21960,6 +22611,26 @@
     }
   },
   {
+    "_id": "sVwOdxYrK8bYThtQ",
+    "uuid": "Compendium.pf2e.spells-core.Item.sVwOdxYrK8bYThtQ",
+    "name": "Lightning Storm",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [
+        "concentrate",
+        "electricity",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "JyT346VmGtRLsDnV"
+    }
+  },
+  {
     "_id": "3wawo10tQIgWy9vv",
     "uuid": "Compendium.pf2e.spells-core.Item.3wawo10tQIgWy9vv",
     "name": "Magic Passage",
@@ -22462,6 +23133,26 @@
     }
   },
   {
+    "_id": "AMjZj6JrrUS8Iawn",
+    "uuid": "Compendium.pf2e.spells-core.Item.AMjZj6JrrUS8Iawn",
+    "name": "Strange Geometry",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [
+        "concentrate",
+        "illusion",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "m4Mc5XbdML92BKOE"
+    }
+  },
+  {
     "_id": "VF9dvkhI87aPWUVb",
     "uuid": "Compendium.pf2e.spells-core.Item.VF9dvkhI87aPWUVb",
     "name": "Subconscious Suggestion",
@@ -22506,6 +23197,26 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "kghwmH3tQjMIhdH1"
+    }
+  },
+  {
+    "_id": "kQsQlHyHJOZnSOi8",
+    "uuid": "Compendium.pf2e.spells-core.Item.kQsQlHyHJOZnSOi8",
+    "name": "Synesthesia",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "mental"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "OAt2ZEns1gIOCgrn"
     }
   },
   {
@@ -22655,6 +23366,27 @@
       ],
       "system.traits.rarity": "uncommon",
       "flags.fusion.sourceId": "rxvS7EMJ7qmexAyA"
+    }
+  },
+  {
+    "_id": "LXowoIgNshmoqF6o",
+    "uuid": "Compendium.pf2e.spells-core.Item.LXowoIgNshmoqF6o",
+    "name": "Wall of Flesh",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 5,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "ZLLY6ThJXCCrO0rL"
     }
   },
   {
@@ -22828,6 +23560,51 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "ZMvplR106Jxl7B15"
+    }
+  },
+  {
+    "_id": "wP1o8DkHz3D5VohV",
+    "uuid": "Compendium.pf2e.spells-core.Item.wP1o8DkHz3D5VohV",
+    "name": "Blanket of Stars",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 6,
+      "system.traits.value": [
+        "concentrate",
+        "illusion",
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "occult",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "m34WOIGZCEg1h76G"
+    }
+  },
+  {
+    "_id": "zyiS5ll7BYaIuVT5",
+    "uuid": "Compendium.pf2e.spells-core.Item.zyiS5ll7BYaIuVT5",
+    "name": "Blinding Fury",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 6,
+      "system.traits.value": [
+        "concentrate",
+        "curse",
+        "emotion",
+        "incapacitation",
+        "mental"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "NhGXgmI3AjkkwnPk"
     }
   },
   {
@@ -23617,6 +24394,46 @@
       ],
       "system.traits.rarity": "common",
       "flags.fusion.sourceId": "yrZA4k2VAqEP8xx7"
+    }
+  },
+  {
+    "_id": "0jzC59SEwf4XDi9I",
+    "uuid": "Compendium.pf2e.spells-core.Item.0jzC59SEwf4XDi9I",
+    "name": "Sacred Form",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 6,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "polymorph"
+      ],
+      "system.traits.traditions": [
+        "divine"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "MMCQsh12TPaDdPbV"
+    }
+  },
+  {
+    "_id": "ygIrDKBzbitZng1E",
+    "uuid": "Compendium.pf2e.spells-core.Item.ygIrDKBzbitZng1E",
+    "name": "Scintillating Safeguard",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 6,
+      "system.traits.value": [
+        "manipulate"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult",
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "9W2Qv0wXLg6tQg3y"
     }
   },
   {
@@ -24995,6 +25812,28 @@
     }
   },
   {
+    "_id": "nchqJndbhLJQOZb6",
+    "uuid": "Compendium.pf2e.spells-core.Item.nchqJndbhLJQOZb6",
+    "name": "Visions of Danger",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 7,
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "illusion",
+        "manipulate",
+        "visual"
+      ],
+      "system.traits.traditions": [
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "jBGAYmR0BkkbpJvG"
+    }
+  },
+  {
     "_id": "UTo2FcdbfMkzGnxS",
     "uuid": "Compendium.pf2e.spells-core.Item.UTo2FcdbfMkzGnxS",
     "name": "Warp Mind",
@@ -25554,6 +26393,49 @@
     }
   },
   {
+    "_id": "qYXFgb3x1OdKEvdA",
+    "uuid": "Compendium.pf2e.spells-core.Item.qYXFgb3x1OdKEvdA",
+    "name": "Spirit Song",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 8,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "spirit"
+      ],
+      "system.traits.traditions": [
+        "occult",
+        "divine"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "Ht35SDf9PDStJfoC"
+    }
+  },
+  {
+    "_id": "bXn29l79ebs0DpBD",
+    "uuid": "Compendium.pf2e.spells-core.Item.bXn29l79ebs0DpBD",
+    "name": "Spiritual Epidemic",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 8,
+      "system.traits.value": [
+        "concentrate",
+        "curse",
+        "manipulate",
+        "spirit"
+      ],
+      "system.traits.traditions": [
+        "divine",
+        "occult"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "MS60WhVifb45qORJ"
+    }
+  },
+  {
     "_id": "iUhoVrxcjFaG6H0Q",
     "uuid": "Compendium.pf2e.spells-core.Item.iUhoVrxcjFaG6H0Q",
     "name": "Sudden Transposition",
@@ -26089,6 +26971,27 @@
     }
   },
   {
+    "_id": "XDzYP0qurHDIJkjj",
+    "uuid": "Compendium.pf2e.spells-core.Item.XDzYP0qurHDIJkjj",
+    "name": "Nature's Enmity",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 9,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "plant",
+        "wood"
+      ],
+      "system.traits.traditions": [
+        "primal"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "Tc5NLaMu71vrGTJQ"
+    }
+  },
+  {
     "_id": "oaLzsf3IaARNIfrU",
     "uuid": "Compendium.pf2e.spells-core.Item.oaLzsf3IaARNIfrU",
     "name": "Phantasmagoria",
@@ -26347,6 +27250,27 @@
       ],
       "system.traits.rarity": "uncommon",
       "flags.fusion.sourceId": "xxhS66k68u5iIOHC"
+    }
+  },
+  {
+    "_id": "kxmUetUzDFs8x02I",
+    "uuid": "Compendium.pf2e.spells-core.Item.kxmUetUzDFs8x02I",
+    "name": "Weapon of Judgment",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 9,
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "sanctified",
+        "spirit"
+      ],
+      "system.traits.traditions": [
+        "divine"
+      ],
+      "system.traits.rarity": "common",
+      "flags.fusion.sourceId": "ZqmP9gijBmK7y8Xy"
     }
   },
   {

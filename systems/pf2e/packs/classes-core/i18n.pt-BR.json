@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.classes-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-08T21:39:02.627Z",
+  "generatedAt": "2026-08-11T05:10:06.482Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -75,6 +75,11 @@
       "name": "Ladino",
       "sourceHash": "279d85226a5f1fea753de02a6e1b300b72afc8b8",
       "description": "<p><em>Você é habilidoso e oportunista. Usando sua astúcia afiada e reações rápidas, você tira proveito dos deslizes de seus oponentes e ataca onde mais dói. Você joga um jogo perigoso, buscando emoções e testando suas habilidades, e provavelmente não se importa muito com quaisquer leis que porventura atrapalhem seu caminho. Embora o caminho de cada ladino seja único e repleto de perigo, a única coisa que todos vocês têm em comum é a amplitude e a profundidade de suas habilidades.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.u4qPrDRBagxG9wj8]{Ladino}</em></p>"
+    },
+    "wCKgeaPqB6b8gGes": {
+      "name": "Druida",
+      "sourceHash": "b64a156d0f858be2a6eed4f6b9993ff15583d926",
+      "description": "<p><em>O poder da natureza é impossível de resistir. Ele pode trazer ruína à mais robusta fortaleza em minutos, reduzindo até as obras mais poderosas a escombros, queimando-as até virarem cinzas, soterrando-as sob uma avalanche de neve ou afogando-as sob as ondas. Ele pode oferecer fartura infinita e esplendor de tirar o fôlego a quem o respeita — e uma morte agonizante a quem o subestima. Você é um daqueles que ouvem o chamado da natureza. Você se maravilha com a majestade de seu poder e se entrega ao seu serviço.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.8ElntNAGahQka70r]{Druida}</p>"
     }
   }
 }

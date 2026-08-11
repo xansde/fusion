@@ -8,32 +8,42 @@
     {
       "packId": "pf2e.weapons-core",
       "slug": "weapons-core",
-      "documentCount": 42
+      "documentCount": 132
+    },
+    {
+      "packId": "pf2e.armor-core",
+      "slug": "armor-core",
+      "documentCount": 12
+    },
+    {
+      "packId": "pf2e.shields-core",
+      "slug": "shields-core",
+      "documentCount": 4
     },
     {
       "packId": "pf2e.bestiary-core",
       "slug": "bestiary-core",
-      "documentCount": 10
+      "documentCount": 492
     },
     {
       "packId": "pf2e.spells-core",
       "slug": "spells-core",
-      "documentCount": 1262
+      "documentCount": 1310
     },
     {
       "packId": "pf2e.classes-core",
       "slug": "classes-core",
-      "documentCount": 14
+      "documentCount": 15
     },
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 302
+      "documentCount": 309
     },
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 2121
+      "documentCount": 2205
     },
     {
       "packId": "pf2e.ancestries-core",
@@ -48,7 +58,7 @@
     {
       "packId": "pf2e.backgrounds-core",
       "slug": "backgrounds-core",
-      "documentCount": 43
+      "documentCount": 66
     },
     {
       "packId": "pf2e.actions-core",
@@ -63,7 +73,7 @@
     {
       "packId": "pf2e.equipment-core",
       "slug": "equipment-core",
-      "documentCount": 250
+      "documentCount": 249
     },
     {
       "packId": "pf2e.ancestry-features-core",
@@ -71,7 +81,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-11T04:49:26.639Z",
+  "generatedAt": "2026-08-11T12:51:08.815Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

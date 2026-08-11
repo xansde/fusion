@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.feats-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-11T01:05:45.922Z",
+  "generatedAt": "2026-08-11T05:10:06.704Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -171,6 +171,11 @@
       "sourceHash": "09b1fef9172dd58bb56110b7ccc7e73328abf18b",
       "description": "<p>Você é extraordinariamente sensível à presença de sangue. Você ganha sensibilidade ao sangue como um sentido impreciso com alcance de 15 pés. Isso permite que você sinta a presença de criaturas vivas ou mortas que têm sangue (isso inclui a maioria das criaturas que não são imunes a sangramento). Você também é igualmente capaz de detectar a presença de sangue fresco em volumes de uma pinta ou mais, contanto que não tenha mais de 24 horas.</p>"
     },
+    "1ANi8PU0FRMlBNBY": {
+      "name": "Forma Selvagem",
+      "sourceHash": "08fc30a6a0c67d72e9660282216fd3862a61c9b8",
+      "description": "<p>Você é uno com o selvagem, sempre mudando e se adaptando para enfrentar qualquer desafio. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form], que permite se transformar em uma variedade de formas que você pode expandir com talentos de druida.</p>"
+    },
     "1AYatTBBP0OYOtLJ": {
       "name": "Bruxa do Gelo de Irrisen",
       "sourceHash": "1c5a00cd3e3a811de0742ea8df1ef42b37be98a4",
@@ -336,6 +341,11 @@
       "sourceHash": "a6f5bb242313c82c9055307c45b3439b3e236fd9",
       "description": "<p>Você aprendeu a reparar seu equipamento mesmo em circunstâncias desafiadoras, fazendo uso do que tem à disposição. Você pode tentar Reparar um item sem um kit de reparo, em vez disso improvisando ferramentas com seu equipamento ou itens encontrados. Isto adiciona 5 minutos ao tempo que leva para Reparar o item. Você também pode Reparar um item enquanto se move sem precisar de uma superfície estável. Isto adiciona 10 minutos aos tempos que leva para Reparar o item.</p>"
     },
+    "20dCzR5orzRprlzd": {
+      "name": "Passagem pela Floresta",
+      "sourceHash": "ced90427df4e97ea4bf8db1a954fe87a315f9802",
+      "description": "<p>Você sempre consegue encontrar um caminho, quase como se a folhagem se abrisse diante de você. Você ignora qualquer terreno difícil causado por plantas e fungos, como arbustos, trepadeiras e submata.</p>"
+    },
     "21N02dgzd9nssaVR": {
       "name": "Veterano da Vigília Verde",
       "sourceHash": "aedd82582a8ef65a99f82a1af4d0b29d9346cea5",
@@ -471,6 +481,11 @@
       "sourceHash": "908a0ffb7e1a37f61b6ee06baca75ba180ea9469",
       "description": "<p><strong>Requisitos</strong> Você empunha uma arma do grupo lança ou arma de haste</p><hr /><p>Você prefere armas que permitem atacar com violência mantendo os inimigos à distância, dando a você a chance de golpear sem medo de represália. Você dá um Passo e então faz um Golpe com uma lança ou arma de haste que empunha, ou faz um Golpe com a lança ou arma de haste e então dá um Passo.</p>"
     },
+    "2cSxUVJZ5ViTJWC7": {
+      "name": "Passo da Maré",
+      "sourceHash": "390a85b9eec9f45a265fdfff9fb512732a890f1a",
+      "description": "<p>Os baixios e poças de maré sempre o chamaram e permitiram que você passasse sem obstáculos. Você ignora o terreno difícil resultante de água rasa.</p>\n<p>Além disso, se você obtiver um sucesso em um teste de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Balance] sobre uma superfície escorregadia ou molhada, ou em um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Swim], você obtém um sucesso crítico em vez disso.</p>"
+    },
     "2fHqeRzyFqtIcbFG": {
       "name": "Mestre de Muitos Estilos",
       "sourceHash": "4a523fb2b351442adcfe5f715adb6bab8ae5417c",
@@ -530,6 +545,11 @@
       "name": "Estática Mental",
       "sourceHash": "d05662d198b30a9f955392b0585ac9f2461903d9",
       "description": "<p><strong>Gatilho</strong> Você obtém um sucesso crítico em um teste de resistência de Vontade contra um efeito mental de uma criatura.</p>\n<hr />\n<p>Seus pensamentos revidam quando uma mente inferior tenta invadir a sua. Você causa @Damage[@actor.level[mental]]{dano mental igual ao seu nível} à criatura que ativou o gatilho. Se desejar, você também pode enviar à criatura uma única imagem mental que acompanhe o dano, como um olho vigilante ou o pavor de flutuar em um mar infinito.</p>"
+    },
+    "32w7vqmMShQrDqAv": {
+      "name": "Espinhos Empalantes",
+      "sourceHash": "9692e47a4473f5d78f851b0375d4fc86bbdb466e",
+      "description": "<p>Você pode preencher uma área com espinhos devastadores. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Impaling Briars].</p>"
     },
     "35e3dkdQijuPTn7y": {
       "name": "Conexões Criminosas",
@@ -726,6 +746,11 @@
       "sourceHash": "d72c36d691b4bfe12b104795c61d42b9735a9daf",
       "description": "<p>Você pode replicar temporariamente os efeitos de uma runa de propriedade para sua arma ou ataques desarmados. Você aprende a magia de foco @UUID[Compendium.pf2e.spells-srd.Item.Runic Impression].</p>\n<p>Aumente o número de Pontos de Foco em sua reserva de foco por 1.</p>"
     },
+    "4IWXE17qtkZnh1Dv": {
+      "name": "Grinalda Mágica",
+      "sourceHash": "320373800ad5751cb863feea98202ca826d9a52e",
+      "description": "<p>Se sua próxima ação for Conjurar uma Magia com o traço fungo ou planta, uma grinalda de plantas cresce em uma @Template[burst|distance:10] no alcance da magia. As plantas são terreno difícil e terreno perigoso, cobertas, à sua escolha, de espinhos ou vinhas venenosas. Qualquer criatura que se mova para um desses quadrados ou termine seu turno em um deles sofre 2d6 de dano (@Damage[(ternary(gte(@actor.level,20),4,ternary(gte(@actor.level,16),3,2)))d6[piercing]|options:area-damage] de dano por espinhos ou @Damage[(ternary(gte(@actor.level,20),4,ternary(gte(@actor.level,16),3,2)))d6[poison]|options:area-damage] por vinhas). Uma criatura só pode sofrer esse dano uma vez por turno. Você e seu familiar são imunes a esse dano.</p>\n<p>As plantas duram 1 minuto ou até você conjurar outra Grinalda Mágica, o que ocorrer primeiro.</p>\n<p>O dano aumenta para 3d6 no 16º nível e 4d6 no 20º nível.</p>"
+    },
     "4IrtH8X2wtRYs8lF": {
       "name": "Semear Boato",
       "sourceHash": "7b4f23dc09048aab20974cfd16cc68981d1e8231",
@@ -780,6 +805,11 @@
       "name": "Soberania do Sangue",
       "sourceHash": "f3795221e11c103185e14ae03f9ddc1d7ee147fa",
       "description": "<p>Você maneja a magia de sangue com maestria. Quando você se beneficiaria de um efeito de magia de sangue, pode optar por perder Pontos de Vida iguais ao dobro do grau da magia à medida que a energia do seu sangue é drenada. Isso não consome nenhuma ação extra, e como resultado você se beneficia de dois efeitos de magia de sangue diferentes que conhece. Os dois efeitos podem ter alvos diferentes.</p>"
+    },
+    "4eyb9EEnUj1kBk6t": {
+      "name": "Verdadeiro Metamorfo",
+      "sourceHash": "b31aed12e17e7cad8b2e6e1eb130f957465cf466",
+      "description": "<p>Você transcende as limitações da forma. Uma vez por dia você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Nature Incarnate], mesmo que não a tenha preparada, para se transformar em um kaiju. Se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Plant Shape], você pode optar por se transformar em um homem verde em vez disso. Você também ganha a atividade @UUID[Compendium.pf2e.actionspf2e.Item.True Shapeshift].</p>"
     },
     "4gNKEE3uRdpeYzT6": {
       "name": "Sequito",
@@ -1015,6 +1045,11 @@
       "name": "Golpe Veloz",
       "sourceHash": "8b8588e4e61e32c523ea5292db71cdaef1f23548",
       "description": "<p><strong>Requisitos</strong> Você está adjacente a um inimigo.</p>\n<hr />\n<p>Saltando para longe de um inimigo, você Golpeia outro. Desloque-se até sua Velocidade, mas deve terminar esse movimento ao alcance corpo a corpo de um inimigo diferente. Ao fim do seu movimento, faça um Golpe corpo a corpo contra um inimigo agora ao seu alcance. Você pode usar Golpe Veloz enquanto Escava, Escala, Voa ou Nada, em vez de Deslocar, se você tiver o tipo de movimento correspondente.</p>"
+    },
+    "5xVtfFRsRU8wUvHU": {
+      "name": "Magia do Banco de Neve",
+      "sourceHash": "50c48a9d20ad0bb1a3bff064035aec2b493a3afc",
+      "description": "<p>O vento uivante e a precipitação de sua magia se transformam em neve espessa. Se sua próxima ação for Conjurar uma Magia que tenha o traço ar, água ou frio, e que não tenha o traço fogo, selecione uma criatura afetada pela magia no chão. Cada quadrado no chão sob ou adjacente à criatura se enche de neve até o tornozelo. Esses quadrados são terreno difícil até o início do seu próximo turno. Uma criatura pode Interagir para limpar um quadrado de neve, e a neve em um quadrado derrete se esse quadrado for exposto a um efeito de fogo.</p>"
     },
     "5yD1cLG1RCWstpdD": {
       "name": "Movimentos Charmosos",
@@ -1311,6 +1346,11 @@
       "sourceHash": "4d16841b5900d8f1754f0868888b4bd8b4f40cb1",
       "description": "<p>Você aproveita a distração proporcionada por um aliado. Você [[/act sneak options=underhanded-assault]] até um inimigo adjacente a um de seus aliados. Você pode rolar contra o inimigo que está Esgueirando-se em direção, mesmo que ele esteja atualmente observando você, como se estivesse @UUID[Compendium.pf2e.conditionitems.Item.Hidden]. Você sofre uma penalidade de –2 em seu teste de Furtividade. Se seu teste de Furtividade contra o inimigo escolhido tiver sucesso, você pode fazer um Golpe corpo a corpo contra esse inimigo ao final do seu Esgueirar.</p>"
     },
+    "7agZIAxMrsZh51hN": {
+      "name": "Retribuição da Tempestade",
+      "sourceHash": "4ac0b46f090927dec62cbea80c6ac602d6183024",
+      "description": "<p><strong>Gatilho</strong> Um oponente adjacente a você acerta um crítico contra você com uma arma corpo a corpo ou ataque desarmado corpo a corpo.</p>\n<p><strong>Requisitos</strong> Você tem pelo menos 1 Ponto de Foco disponível.</p>\n<hr />\n<p>Você contra-ataca, direcionando uma explosão de fúria tempestuosa contra uma criatura que o feriu. Você conjura @UUID[Compendium.pf2e.spells-srd.Item.Tempest Surge] no oponente que causou o gatilho e empurra essa criatura, movendo-a 5 pés para longe de você se ela falhar em seu teste de Reflexos, ou 10 pés se falhar criticamente. Esse movimento é movimento forçado.</p>"
+    },
     "7amFRAgZhqd1hHpO": {
       "name": "Cabeceado por Auroque",
       "sourceHash": "4a8c3f151664f51983ecd893f01df0debb941fb7",
@@ -1325,6 +1365,11 @@
       "name": "Estilhaçar o Espaço",
       "sourceHash": "261181347b7b2f75bb535a1e26102ebbcc8d3023",
       "description": "<p>O poder absoluto de sua magia fratura a realidade. Use esta amplificação no lugar da entrada normal de amplificação de um truque psi. O truque deve ser um que exija 2 ou mais ações para ser conjurado.</p><hr /><p><strong>Amplificação</strong> Você ou um alvo da magia fica cercado por uma espiral de espaço rasgado. Isso é uma aura, e você escolhe o raio da emanação, até 20 pés. Uma criatura que começa seu turno na aura ou que entra na aura durante seu turno sofre 1d6 de dano de corte para cada grau do truque psi amplificado, com um teste de @Check[reflex|against:occult|basic|options:area-effect,inflicts:prone] contra sua CD de magia. Se a criatura falhar criticamente, o espaço rasgado a desequilibra e ela cai @UUID[Compendium.pf2e.conditionitems.Item.Prone]. A aura dura até o início do seu próximo turno. Você pode escolher se a aura afeta a criatura que a emite.</p>"
+    },
+    "7fXVrin1AkJCh32P": {
+      "name": "Uivo Primal",
+      "sourceHash": "d2e083d939a57418eae88fa1265fa5374b07611e",
+      "description": "<p>Seu companheiro pode soltar um uivo carregado de sua magia primal. Ele ganha a manobra avançada @UUID[Compendium.pf2e.actionspf2e.Item.Primal Howl], além de quaisquer manobras avançadas que já conheça.</p>"
     },
     "7jQyOfzQtZPvwhfq": {
       "name": "Investida com Arremesso",
@@ -1461,6 +1506,11 @@
       "sourceHash": "e8002df2d04e3c0487e652432c66e3367e6d264c",
       "description": "<p>Você compreende os fundamentos comuns das quatro tradições de magia e das essências mágicas, o que lhe permite entendê-las todas por uma lente arcana. Sempre que você usa uma ação de perícia ou um talento de perícia que exige um teste de Natureza, Ocultismo ou Religião, dependendo da tradição da magia, você pode usar Arcanismo em vez disso. Se você normalmente sofreria uma penalidade ou teria uma CD mais alta ao usar Arcanismo em outra magia (como ao usar Identificar Magia), você deixa de sofrer isso.</p>"
     },
+    "8UT22XNdCsEWxoxl": {
+      "name": "Forma Vegetal",
+      "sourceHash": "054ea1bbd12522b47afb0ed8f323cee78166554a",
+      "description": "<p>Você pode assumir a forma de uma criatura vegetal. Se você não tiver forma selvagem, pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Plant Form] uma vez por dia, elevada ao mesmo grau que seu espaço de magia de druida de grau mais alto.</p>\n<p>Se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Untamed Form], adicione as formas listadas em @UUID[Compendium.pf2e.spells-srd.Item.Plant Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form], e sempre que você for polimorfado em outra forma usando forma selvagem, você ganha resistência 5 a veneno.</p>"
+    },
     "8VzSEZT1krxsvkkj": {
       "name": "Golpe de Efeito",
       "sourceHash": "5edd1826b1e0751e05271e7bdeed1a9fce5f38a4",
@@ -1546,6 +1596,11 @@
       "sourceHash": "2b765f3d30f3fca241271b24b70f65a74cdda6ad",
       "description": "<p>Você dá um Passo e então usa @UUID[Compendium.pf2e.actionspf2e.Item.Hide] ou @UUID[Compendium.pf2e.actionspf2e.Item.Sneak]. Você ainda precisa cumprir os requisitos para Esconder-se ou Esgueirar-se, normalmente.</p>"
     },
+    "8ziPc06TfzMGNgkL": {
+      "name": "Magia de Corrente",
+      "sourceHash": "4c6b8345c92a5ca96358d8d292dd4be2c12a3268",
+      "description": "<p>Ao usar sua magia para manipular ar ou água, você desvia parte de suas correntes para formar uma barreira ao seu redor. Se sua próxima ação for @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell] com o traço ar ou água, até o início do seu próximo turno, você ganha um bônus de circunstância +1 à CA ou um bônus de circunstância +2 contra ataques à distância. Esse efeito tem o traço ar ou água, ou ambos, dependendo dos traços da magia que você conjurar. Você também ganha um bônus de circunstância +1 em todos os testes de resistência contra efeitos com o traço ar, traço água, ou ambos, até o início do seu próximo turno, dependendo dos traços da magia.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Current Spell]</p>"
+    },
     "90NujOzdf7Yh9Xr6": {
       "name": "Consultar as Estrelas",
       "sourceHash": "2dbac92fa480311e90f4bb6feacdc7203336e9a9",
@@ -1565,6 +1620,11 @@
       "name": "Verdade Subjetiva",
       "sourceHash": "e7190cb64dcaa8b816028422c817c185fbc0c336",
       "description": "<p>Suas identidades diferentes permitem que você derrote magia que detecta mentiras. Enquanto o que você diz for verdadeiro do ponto de vista de sua identidade atual, você pode enganar efeitos como @UUID[Compendium.pf2e.spells-srd.Item.Ring of Truth] que revelam mentiras.</p>"
+    },
+    "983W2bGIo7g3O3Mc": {
+      "name": "Companheiro Especializado (Druida)",
+      "sourceHash": "8dbaba59b90f7f830992fe64461a1be8ac012b56",
+      "description": "<p>Seu animal companheiro continua a crescer em poder e habilidade. Ele ganha uma especialização à sua escolha</p>\n<hr />\n<p><strong>Especial</strong> Você pode escolher este talento até três vezes. Cada vez, adicione uma especialização diferente ao seu companheiro.</p>"
     },
     "98Lr3ecoL96dSXYl": {
       "name": "Rastreador de Pestes",
@@ -1811,6 +1871,11 @@
       "sourceHash": "ac5309de573a31fae05d02709fdd350bf47ddbb0",
       "description": "<p>Você aprendeu a explorar as aberturas de seus inimigos. Seu dano de ataque furtivo ignora qualquer imunidade ou resistência que o alvo tenha a dano de precisão. Além disso, quando você @UUID[Compendium.pf2e.actionspf2e.Item.Sneak], pode designar uma criatura pela qual você fica não detectado ao final dessa ação. No próximo ataque que fizer contra essa criatura antes do final do seu próximo turno, qualquer dado de ataque furtivo que você rolar menor que 3 se torna um 3. Isso não tem benefício se seu próximo ataque contra a criatura não causar dano de ataque furtivo, e se você designar uma nova criatura, perde o benefício sobre qualquer uma anterior.</p>"
     },
+    "Abg5mYlCU12ab1HW": {
+      "name": "Controle de Forma Perfeito",
+      "sourceHash": "ff8913e157cfa3308b07401275f6ba63c6916011",
+      "description": "<p>Graças à magia e à memória muscular, você consegue permanecer em suas formas alternativas indefinidamente. Quando você usa @UUID[Compendium.pf2e.feats-srd.Item.Form Control], em vez de durar 1 hora, a duração de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] se torna ilimitada (você ainda pode Dispensá-la).</p>"
+    },
     "AcY0pZnHLtQ2BmaI": {
       "name": "Almofada de Ar",
       "sourceHash": "9fc12c992592bd398755e430f83279342c173675",
@@ -1876,10 +1941,20 @@
       "sourceHash": "126674848237a36550d1236e0882098c479a8edf",
       "description": "<p><strong>Frequência</strong> uma vez por minuto</p>\n<p><strong>Requisitos</strong> Você está na Postura do Golpeador de Cabo.</p><hr /><p>O ímpeto de cada um dos seus ataques alimenta o próximo golpe na sequência, criando um ritmo brutal que permite infligir uma surra contínua no seu alvo. Golpeie duas vezes, uma com sua arma e outra com o cabo dela. Cada ataque conta para sua penalidade por ataque múltiplo, mas não aumente sua penalidade até ter feito os dois ataques. Em seguida, Golpeie duas vezes novamente, uma com sua arma e outra com o cabo dela.</p>"
     },
+    "Ar2Zy7uMD94EQ2bU": {
+      "name": "Prisão de Cerca Viva",
+      "sourceHash": "32c7401d5288fee0c01a67fa3416ba1309379cad",
+      "description": "<p>Você cultiva plantas para aprisionar seus inimigos. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Hedge Prison].</p>"
+    },
     "AsAglUNlkP0i8Q1x": {
       "name": "Escudo Espelhado",
       "sourceHash": "86de96321f3701d4706a304661323d8c9fc49926",
       "description": "<p><strong>Gatilho</strong> Um oponente conjurando uma magia que tem você como alvo falha criticamente em uma rolagem de ataque de magia contra sua CA.</p>\n<p><strong>Requisitos</strong> Você tem um escudo erguido.</p>\n<hr />\n<p>Você reflete a magia de volta contra quem a conjurou. Faça um ataque à distância contra o atacante usando sua maior proficiência com uma arma à distância. Se você puder conjurar magias, pode optar por fazer uma rolagem de ataque de magia em vez disso. Se você tiver sucesso, seu oponente sofre os efeitos de uma rolagem de ataque de magia bem-sucedida da própria magia dele (ou os efeitos de um sucesso crítico se sua rolagem de ataque foi um acerto crítico).</p>"
+    },
+    "AsRoBuLorUavtr8E": {
+      "name": "Forma Voadora",
+      "sourceHash": "f0dbfd7f4a84f64843ee27643d6ebebaa9bed321",
+      "description": "<p>Asas o libertam das amarras do solo abaixo. Adicione as formas de morcego e pássaro em @UUID[Compendium.pf2e.spells-srd.Item.Aerial Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. Se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Insect Shape], você também adiciona a forma de vespa à sua lista de <em>forma selvagem</em>. Se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Ferocious Shape], você também adiciona a forma de pterossauro à sua lista de <em>forma selvagem</em>. Sempre que você usar <em>forma selvagem</em> para assumir uma forma que lhe concede um modificador específico de Acrobacia, você ganha um bônus de condição de +1 em testes de Acrobacia.</p>"
     },
     "Atho42a6Nscn5rnB": {
       "name": "Mãos Curativas",
@@ -2106,10 +2181,20 @@
       "sourceHash": "970148da67e16de688ad457a4dc4761296221097",
       "description": "<p><strong>Acesso</strong> Você é de Rahadoum.</p><hr /><p>Kassi Aziril ensinou a você suas técnicas que originaram o uso moderno de Medicina de Batalha. Quando você usa com sucesso Medicina de Batalha, você também pode reduzir a condição @UUID[Compendium.pf2e.conditionitems.Item.Sickened], @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled], ou @UUID[Compendium.pf2e.conditionitems.Item.Clumsy] do alvo em 1 (isso não tem efeito se você estiver sujeito a um efeito continuamente aplicando a condição desajeitado, como ampliar).</p>\n<p>Se você é lendário em Medicina, você pode escolher reduzir a condição @UUID[Compendium.pf2e.conditionitems.Item.Frightened] ou @UUID[Compendium.pf2e.conditionitems.Item.Stunned] do alvo em 1 em vez disso, e se você tiver o talento @UUID[Compendium.pf2e.feats-srd.Item.Godless Healing], você pode escolher reduzir a condição @UUID[Compendium.pf2e.conditionitems.Item.Stupefied] ou @UUID[Compendium.pf2e.conditionitems.Item.Drained] do alvo em 1 em vez disso.</p>\n<p>Se você tiver o talento @UUID[Compendium.pf2e.feats-srd.Item.Mortal Healing], você pode reduzir todas as condições disponíveis em 1 para um alvo que não se beneficiou de magia de vitalidade ou cura nos últimas 24 horas, e se você obtiver um sucesso crítico antes de aplicar os efeitos do talento, você reduz todas as condições disponíveis em 2 para esse alvo em vez disso.</p>"
     },
+    "C5X0lIFM1jkTFsSy": {
+      "name": "Companheiro Ápice",
+      "sourceHash": "b8817703a79f0b21301c57f0e4549a93bea2a288",
+      "description": "<p>Você pode invocar a essência de todo indivíduo animal de uma determinada espécie para transformar temporariamente seu animal em um exemplar de sua espécie. Você aprende a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Apex Companion]. Aumente em 1 o número de Pontos de Foco na sua reserva de foco.</p>"
+    },
     "C5Xgcf8rwHqQLqFP": {
       "name": "Roubo Sutil",
       "sourceHash": "c9120d5f7194b0b35d5d37c319848b16fb7a4249",
       "description": "<p>Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Steal] algo com sucesso, observadores (criaturas outras que a criatura que você roubou) recebem uma penalidade de circunstância –2 às suas CDs de Percepção para detectar seu roubo. Adicionalmente, se você primeiro @UUID[Compendium.pf2e.actionspf2e.Item.Create a Diversion] usando Enganação, realizando uma única ação @UUID[Compendium.pf2e.actionspf2e.Item.Palm an Object] ou Roubar não encerra sua condição @UUID[Compendium.pf2e.conditionitems.Item.Undetected].</p>"
+    },
+    "CAWH3XtWB22K6ozR": {
+      "name": "Empatia Animal",
+      "sourceHash": "6138b693b207531c0522fe13430321d7d063fe5e",
+      "description": "<p>Você tem uma conexão com as criaturas do mundo natural que permite se comunicar com elas em um nível rudimentar. Você pode fazer perguntas, receber respostas e usar a perícia Diplomacia com animais. Na maioria dos casos, animais selvagens lhe darão tempo para expor seu ponto de vista.</p>"
     },
     "CB0fnVfz6nrHQbxW": {
       "name": "Amuleto da Sorte",
@@ -2135,6 +2220,11 @@
       "name": "Forçar a Mente",
       "sourceHash": "1e5f653cb21ce56c6e58ee8870a58e86c68adceb",
       "description": "<p><strong>Frequência</strong> uma vez por hora</p>\n<p><strong>Gatilho</strong> Você conjura um truque psi.</p>\n<p><strong>Requisitos</strong> Você tem 0 Pontos de Foco.</p><hr /><p>Você força seu corpo além de seus limites para usar uma amplificação mesmo quando seu poder mental está esgotado. Você adiciona à magia uma amplificação que custa 1 Ponto de Foco. Em vez de pagar o custo normal em Pontos de Foco, você perde Pontos de Vida iguais a quatro vezes o grau da magia do truque psi amplificado, enquanto sangra pelo nariz ou sofre algum outro sinal visível de esforço.</p>"
+    },
+    "CHVJArXIdvnda1XP": {
+      "name": "Empatia Vegetal",
+      "sourceHash": "ffb3dae5119fe48536cba4357f1b29f5a46dd830",
+      "description": "<p>Você tem uma conexão com a flora que permite se comunicar com ela em um nível rudimentar. Você pode fazer perguntas, receber respostas e usar a perícia Diplomacia com plantas e fungos.</p>"
     },
     "CJs0NmWLAQvXuWig": {
       "name": "Bloqueio Agressivo",
@@ -2215,6 +2305,11 @@
       "name": "Ofício Assinado",
       "sourceHash": "496caa6f811655d83f1cbb16cc06e69ffb59acda",
       "description": "<p>Itens mágicos que você cria carregam um carimbo específico do seu trabalho. Quando você com sucesso Cria um item mágico permanente, faça um teste de @Check[flat|dc:9] quando o item estiver totalmente completo. Qualquer benefício que uma criatura ganha de um capricho de item se aplica apenas enquanto a criatura veste o item (para um item vestível) ou o segura (para um item segurável). O mestre pode permitir caprichos personalizados similares aos listados.</p><hr /><p><strong>Sucesso Crítico</strong> Escolha um capricho de item da tabela e seus detalhes.</p>\n<p><strong>Sucesso</strong> O item ganha um capricho de item aleatório com quaisquer detalhes selecionados pelo mestre.</p><table class=\"pf2-table\"><thead><tr><th>d10</th><th>Capricho</th><th>Descrição</th></tr></thead><tbody><tr><td>1</td><td>Dançante</td><td>Dança no lugar quando não está em uso.</td></tr><tr><td>2</td><td>Imaculado</td><td>Permanece imaculado apesar da sujeira.</td></tr><tr><td>3</td><td>Ambiental</td><td>A aparência muda para combinar com seu ambiente.</td></tr><tr><td>4</td><td>Sujo</td><td>Uma camada de sujeira sempre permanece.</td></tr><tr><td>5</td><td>Flutuante</td><td>Desce lentamente quando solto.</td></tr><tr><td>6</td><td>Cintilante</td><td>Cintila e brilha com luz brilhante como uma tocha.</td></tr><tr><td>7</td><td>Invisível</td><td>O item é invisível, mas fica visível por 1 rodada após ser usado.</td></tr><tr><td>8</td><td>Leal</td><td>Flutua a até 5 pés de seu proprietário, como que em uma corda (mas ainda pode ser apreendido por outro).</td></tr><tr><td>9</td><td>Coloração de Humor</td><td>O humor do usuário afeta a cor do item.</td></tr><tr><td>10</td><td>Hábil</td><td>O item concede um bônus de item +1 em um tipo de teste de pericia.</td></tr></tbody></table>"
+    },
+    "CmpbgzKHBdoqnduR": {
+      "name": "Restauração Floral",
+      "sourceHash": "1f317058748c54fe11ba500811882e432defe21d",
+      "description": "<p><strong>Frequência</strong> uma vez por dia</p><hr /><p>Você pede que as plantas próximas compartilhem sua vitalidade com você para restaurar seu corpo e sua magia. Você recupera 1 Ponto de Foco e @Damage[ceil(@item.level/2)d8[healing]] Pontos de Vida.</p>\n<p>Você precisa estar em um local com pelo menos 15 pés por 15 pés de vida vegetal saudável, podendo ser grama, líquen, alga marinha ou qualquer outra forma de flora natural. Usar Restauração Floral em uma determinada área da natureza não a prejudica, mas impede que essa área da natureza doe sua vitalidade para outro uso de Restauração Floral por 24 horas.</p>\n<p>No 9º nível, e a cada 2 níveis a partir daí, aumente a cura em 1d8.</p>"
     },
     "Coqt5MfRZApAfUTI": {
       "name": "Renascimento em Pedra Viva",
@@ -2436,6 +2531,11 @@
       "sourceHash": "c834fa0c62a4e6eb4adfd8c3a565a48eebace27a",
       "description": "<p>Você aprende o truque de composição @UUID[Compendium.pf2e.spells-srd.Item.Rallying Anthem], que protege você e seus aliados.</p>"
     },
+    "DySDoNVh8cB3erqq": {
+      "name": "Magia Enigmática",
+      "sourceHash": "c92060533f75dcb32b5991ac052a743a23435b7a",
+      "description": "<p><strong>Requisitos</strong> Você está em terreno natural.</p><hr /><p>Você esconde sua magia no coaxar de um sapo, no balançar das árvores, no uivo do vento e no piscar do fogo-fátuo. Se a próxima ação que você realizar for Conjurar uma Magia, a magia ganha o traço sutil, mascarando suas manifestações nas visões e sons naturais do ambiente.</p>\n<p>O traço esconde apenas as ações de conjuração e as manifestações da magia, não seus efeitos, então um observador ainda pode ver você se transformar em um urso gigante.</p>"
+    },
     "E18rcnAOII94wgYt": {
       "name": "Tornar-se Pensamento",
       "sourceHash": "1087a708d9bae3e3b33722c2abec34967990259b",
@@ -2555,6 +2655,11 @@
       "name": "Carne Escancarada",
       "sourceHash": "7256c0b2514e56b83211dfd96263c2404ac3617a",
       "description": "<p><strong>Frequência</strong> uma vez por dia</p>\n<p><strong>Gatilho</strong> Uma criatura da qual você está ciente causa dano a você com um Golpe corpo a corpo.</p>\n<hr />\n<p>Seu ferimento se abre de forma escancarada, horrorizando seu atacante. O atacante deve ser bem-sucedido em um teste de resistência de @Check[fortitude|against:class-spell] contra sua CD de classe ou de magia, o que for maior, ou ficar @UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Enjoado 1} (@UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Enjoado 2} em uma falha crítica). Ele não pode se recuperar da condição enjoado enquanto estiver adjacente a você.</p>"
+    },
+    "EqHsem3descByZ6K": {
+      "name": "Foco Primal",
+      "sourceHash": "e57f6cc79c2053fc0aeb3a28a368ce2658852fc1",
+      "description": "<p>Sua conexão com a natureza é particularmente forte, e os espíritos da natureza se reúnem ao seu redor, ajudando você a repor seu foco. Sempre que você usa Refocar, reabasteça completamente sua reserva de foco.</p>"
     },
     "EqS8pNJxfNGVuGcK": {
       "name": "Chifre-Mágico Evoluído",
@@ -2831,6 +2936,11 @@
       "sourceHash": "65cca4949624e37d871ee1ccc48d727e7c95a854",
       "description": "<p>Você ataca com força suficiente para derrubar a arma da mão do seu inimigo. Faça um Golpe corpo a corpo; se acertar, você pode tentar um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Disarm] esse inimigo.</p>"
     },
+    "GgsorKWx5yFSubku": {
+      "name": "Transformação Reativa",
+      "sourceHash": "12079111411a903c8449e571412762d189e966ba",
+      "description": "<p><strong>Gatilho</strong> varia</p><hr /><p>Você se transforma reflexivamente quando em perigo. Você conjura @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] para se transformar em uma forma concedida por um dos talentos pré-requisito que você possui, dependendo do gatilho. As resistências e vulnerabilidades da sua forma se aplicam contra o dano que a acionou.</p><hr /><p><strong>Gatilho</strong> Você cai 10 pés ou mais</p>\n<p><strong>Efeito</strong> Escolha uma forma de @UUID[Compendium.pf2e.spells-srd.Item.Aerial Form].</p><hr /><p><strong>Gatilho</strong> Você sofre dano de concussão ou de veneno</p>\n<p><strong>Efeito</strong> Escolha uma forma de dragão primal de @UUID[Compendium.pf2e.spells-srd.Item.Dragon Form] que resista ao dano que a acionou.</p><hr /><p><strong>Gatilho</strong> Você sofre dano de fogo</p>\n<p><strong>Efeito</strong> Escolha uma forma de elemental do fogo de @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form].</p><hr /><p><strong>Gatilho</strong> Você sofre dano de veneno</p>\n<p><strong>Efeito</strong> Escolha uma forma de @UUID[Compendium.pf2e.spells-srd.Item.Plant Form].</p>"
+    },
     "GhZ0V2q3lWFaeWOA": {
       "name": "Cura Ímpia",
       "sourceHash": "ab85bfe3d8fa9922a0bae07b7209eeab28eebe3a",
@@ -3040,6 +3150,11 @@
       "name": "Misericórdia Maior",
       "sourceHash": "1e0b7c3cf38b7292b0bc74b997573fbef4c1857b",
       "description": "<p>Sua fé aprimora sua capacidade de remover condições. Acrescente as seguintes opções à lista de condições que você pode anular para qualquer tipo de misericórdia que você possa conceder.</p><ul><li><p><strong>Misericórdia do Corpo</strong> @UUID[Compendium.pf2e.conditionitems.Item.Drained], @UUID[Compendium.pf2e.conditionitems.Item.Slowed]; se você for 16º nível, acrescente @UUID[Compendium.pf2e.conditionitems.Item.Stunned]</p></li><li><p><strong>Misericórdia da Graça</strong> @UUID[Compendium.pf2e.conditionitems.Item.Immobilized], @UUID[Compendium.pf2e.conditionitems.Item.Restrained], @UUID[Compendium.pf2e.conditionitems.Item.Slowed]; se você for 12º nível, acrescente @UUID[Compendium.pf2e.conditionitems.Item.Petrified]; se você for 16º nível, acrescente @UUID[Compendium.pf2e.conditionitems.Item.Stunned]</p></li><li><p><strong>Misericórdia da Mente</strong> @UUID[Compendium.pf2e.conditionitems.Item.Confused], @UUID[Compendium.pf2e.conditionitems.Item.Controlled], @UUID[Compendium.pf2e.conditionitems.Item.Slowed]; se você for 16º nível, acrescente @UUID[Compendium.pf2e.conditionitems.Item.Doomed] e @UUID[Compendium.pf2e.conditionitems.Item.Stunned].</p></li></ul>"
+    },
+    "Hp3NpyciXxmdXh3f": {
+      "name": "Forma Monstruosa",
+      "sourceHash": "04eda1b89745724eddcbfc3d2cf18948894c99f4",
+      "description": "<p>Você pode se transformar em uma poderosa criatura mágica. Adicione as formas de verme-caverna e serpente-marinha listadas em @UUID[Compendium.pf2e.spells-srd.Item.Monstrosity Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. Se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Soaring Shape], adicione também a forma de fênix à sua lista de <em>forma selvagem</em>.</p>"
     },
     "HpegNsnH7J7AzwwF": {
       "name": "Familiaridade com Armas Felinas",
@@ -3316,6 +3431,11 @@
       "sourceHash": "29a6eb14c1715d35381fd13391f96e7036285985",
       "description": "<p><strong>Requisitos</strong> Você está empunhando duas armas corpo a corpo, uma em cada mão.</p>\n<hr />\n<p>Você abre mão da precisão para atacar em uma velocidade impossível. Realize três Golpes corpo a corpo com cada uma das armas exigidas. Seu primeiro ataque com cada arma sofre a penalidade por ataque múltiplo como se você já tivesse feito um ataque neste turno. Todos os Golpes restantes sofrem a penalidade máxima por ataque múltiplo.</p>"
     },
+    "Je5Gu66RkobViJ8m": {
+      "name": "Semear Magia",
+      "sourceHash": "7cc4b3c714e58d0cd167a295447746a671444fae",
+      "description": "<p>Você dobra sua magia em uma semente. Se sua próxima ação for Conjurar uma Magia usando 1 ação ou 2 ações, a magia se planta em um quadrado adjacente em vez de ser conjurada. Você deve tomar todas as decisões referentes à magia no momento em que a conjura. Dentro dos próximos 10 minutos, você pode direcionar sua magia semeada a brotar e produzir os efeitos da magia como uma reação, que é acionada quando uma criatura entra no espaço da magia semeada ou em um quadrado adjacente a ele. Você só pode ter uma magia semeada por vez, e se você não acionar a magia dentro de 10 minutos, ela se dissipa e a magia é perdida. Uma criatura pode notar a magia semeada com um teste de @Check[perception|against:spell] bem-sucedido contra sua CD de magia.</p>"
+    },
     "Jecf4m72SDcFHyq9": {
       "name": "Audiência Direcionada",
       "sourceHash": "562e8fc30681cf71a7b8c854ef369c4a153035fd",
@@ -3391,6 +3511,11 @@
       "sourceHash": "4e6fa2a34e062c49b0f083a3387971d7f641013d",
       "description": "<p>Você deixa poucos sinais ao tentar permanecer despercebido. Quando você usa @UUID[Compendium.pf2e.actionspf2e.Item.Avoid Notice], você também ganha os benefícios de @UUID[Compendium.pf2e.actionspf2e.Item.Cover Tracks], a menos que escolha não fazê-lo.</p>"
     },
+    "K1WMRpnAlSThZMi0": {
+      "name": "Metamorfose Explosiva",
+      "sourceHash": "ae859f4c24e1e702ed2f636644625963867a0acb",
+      "description": "<p>Você usa energia primal adicional para se transformar, criando uma explosão de energia elemental que complementa sua transformação. Se sua próxima ação for conjurar uma magia de metamorfose ou transmutação sem ser truque, escolha ácido, frio, eletricidade ou fogo. Sua transformação cria uma @Template[emanation|distance:5] ao redor de sua nova forma que causa 1d6 de dano desse tipo por grau da magia. Cada criatura nessa área tenta um teste de resistência básico de Reflexos contra sua CD de magia.</p>\n<p>Se sua ação de transmutação tinha um traço correspondente a um tipo de energia, você deve selecionar esse, se possível. Esta ação ganha o traço correspondente ao tipo de energia selecionado.</p>"
+    },
     "K1r0JuJ9fpl2JmiJ": {
       "name": "Aparo Duplo",
       "sourceHash": "a533899dd22da8d934c79f5075c9980192e0c49f",
@@ -3455,6 +3580,11 @@
       "name": "Réplica Refletora",
       "sourceHash": "ee1f5e98be22ec09699d3d4f82e968df22184b82",
       "description": "<p><strong>Gatilho</strong> Um oponente conjura uma magia e você obtém um sucesso crítico em um teste de resistência contra ela.</p>\n<p><strong>Requisitos</strong> Você tem um escudo erguido ou está se beneficiando de Aparo em Duelo ou Aparo Duplo.</p>\n<hr />\n<p>Você tenta anular a magia desencadeante usando técnicas mágicas poderosas observadas nos Montes de Kortos. Use seu modificador de rolagem de ataque com seu escudo ou arma de aparo para seu teste de anulação. Se você anular a magia, ela é refletida contra o conjurador. Se a magia visava criaturas individuais, ela passa a visar apenas o conjurador. Se a magia visava uma área centrada em um ponto, a nova área é centrada no conjurador. Se a magia era um cone ou uma linha, o cone ou a linha emana de você em direção ao conjurador. Se a magia tem uma CD de resistência, ela usa sua CD de classe, e se exige uma rolagem de ataque de magia, use o mesmo modificador de rolagem de ataque do teste de anulação.</p>"
+    },
+    "KR3mLf23PPml0fav": {
+      "name": "Grande Demais para Engolir",
+      "sourceHash": "b6398c1104dcba6949d0c45a83b106a90e2aa511",
+      "description": "<p><strong>Gatilho</strong> Você está sujeito a um efeito do qual poderia tentar @UUID[Compendium.pf2e.actionspf2e.Item.Escape].</p>\n<hr />\n<p>Embora você possa ser pequeno o bastante para ser agarrado normalmente, pode mudar isso a qualquer momento. Você conjura @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. Se você assumir uma nova forma grande demais para o efeito, você escapa automaticamente. Caso contrário, você tenta Escapar. Se isso encerrar um efeito no qual você entrou no espaço da criatura, como @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Swallow Whole], saia daquela criatura para uma área adjacente onde sua nova forma caiba.</p>"
     },
     "KR729WLus6ZUbIcg": {
       "name": "Prever o Tempo",
@@ -3691,6 +3821,11 @@
       "sourceHash": "17703a0eb34b4f8aead7923fb0d7150bd57025a4",
       "description": "<p>Você toma a força animadora dentro de uma criatura morta-viva e a dobra à sua vontade.</p>\n<p>Se a próxima ação que você usar for conjurar @UUID[Compendium.pf2e.spells-srd.Item.Harm] visando uma criatura morta-viva, você transforma os efeitos dessa magia de <em>dano</em>.</p>\n<p>Em vez dos efeitos normais do dano, o alvo passa a ser controlado por você se seu nível for igual ou menor que seu nível - 3. Ele pode tentar um teste de resistência de Vontade para resistir a ser controlado por você.</p>\n<p>Se o alvo já estiver sob o comando de outra pessoa, a criatura controladora também rola um teste de resistência, e o morto-vivo usa o melhor resultado.</p>\n<hr />\n<p><strong>Sucesso Crítico</strong> O alvo não é afetado e fica temporariamente imune por 24 horas.</p>\n<p><strong>Sucesso</strong> O alvo não é afetado.</p>\n<p><strong>Falha</strong> A criatura morta-viva se torna um lacaio sob seu controle. A magia ganha uma duração de 1 minuto, mas é dispensada se você ou um aliado atacar o morto-vivo lacaio.</p>\n<p><strong>Falha Crítica</strong> Como na falha, mas a duração é de 1 hora.</p>"
     },
+    "Lz8i0ill1BA2T3je": {
+      "name": "Endurecer a Carne",
+      "sourceHash": "6a11fa489a9f2b7ca55129e9ead08bb62bf116fa",
+      "description": "<p><strong>Requisitos</strong> Você está pisando em terreno de terra ou pedra.</p>\n<hr />\n<p>Você fortifica sua pele com minerais extraídos da terra e da pedra. Você ganha resistência 3 a dano físico, exceto adamantina, até o início do seu próximo turno. No 12º nível, e a cada 4 níveis depois disso, a resistência aumenta em 1, até um máximo de resistência 6 no 20º nível.</p>"
+    },
     "LzAnGj1Ztrkr3NpW": {
       "name": "Explosão de Poder",
       "sourceHash": "17cb99f4b7cfe7eee38b6769e5a7211c82ca3301",
@@ -3735,6 +3870,11 @@
       "name": "Escapar da Pegada",
       "sourceHash": "ea9104d0a9ca29cead20fbbfdccebcb309d16830",
       "description": "<p><strong>Requisitos</strong> Você está @UUID[Compendium.pf2e.conditionitems.Item.Grabbed], @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] ou @UUID[Compendium.pf2e.conditionitems.Item.Restrained].</p>\n<hr />\n<p>Você tem alguma característica que permite escapar rapidamente de efeitos que o prendem. Tente um teste para Escapar. Se for bem-sucedido, você pode Deslocar-se, Dar um Passo ou fazer um Golpe com um ataque desarmado corpo a corpo, visando a criatura da qual Escapou. Se falhar, em vez disso tenta Escapar uma segunda vez.</p>\n<p>Você aumenta sua penalidade por ataque múltiplo de forma apropriada para as ações que realizou, mas apenas após completar ambas as ações.</p>"
+    },
+    "MEs9Tmn2WcS6i7in": {
+      "name": "Forma Antropomórfica",
+      "sourceHash": "f764623dda3c67afff0839f7ad5fc0dde646b5f5",
+      "description": "<p>O suposto distanciamento dos humanoides em relação aos animais é tolice — assumir suas formas só exige um pouco de prática extra. Você adiciona as formas listadas em @UUID[Compendium.pf2e.spells-srd.Item.Humanoid Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form].</p>"
     },
     "MFSYACrGWRhJ0pga": {
       "name": "Desarme Astuto",
@@ -3806,6 +3946,11 @@
       "sourceHash": "bcd071e38920515d0450dc8eb8dfdf2957173347",
       "description": "<p>Seus sentidos são finamente ajustados às menores variações no ar, a ponto de você conseguir posicionar seu tiro exatamente onde pretende mirar, a qualquer alcance possível com sua arma. Ao atacar com uma arma à distância na qual você tem proficiência mestre ou superior, ignore a penalidade do incremento de alcance dela. (O alcance máximo da arma permanece inalterado.) Além disso, se seu alvo tiver cobertura contra seu ataque com tal arma, ele não ganha o bônus à CA se tiver cobertura leve, ganha apenas o bônus de cobertura leve se tiver cobertura padrão, ou ganha apenas o bônus de cobertura padrão se tiver cobertura ampla.</p>"
     },
+    "MsT97BDFjaS7il17": {
+      "name": "Apoio Instintivo",
+      "sourceHash": "ababfdfd09a8b2c02314624c6e835dac6a8fd114",
+      "description": "<p><strong>Gatilho</strong> Você Conjura uma magia que não é truque e que tem como alvo apenas seu companheiro animal.</p>\n<hr />\n<p>Quando você apoia seu companheiro animal, seu companheiro o apoia por sua vez. Depois que sua magia acontece, seu companheiro ganha suas ações para o turno, como se você o tivesse Comandado, e uma das ações deve ser Apoiar. Se o companheiro já usou quaisquer outras ações, ele não pode Apoiar você, como de costume.</p>"
+    },
     "MsvQmiotl7xoz3XQ": {
       "name": "Pisada Quebra-Mundos",
       "sourceHash": "8dcdbd843fe7b0869e47fb4d8c0094d77ce7e3cd",
@@ -3820,6 +3965,11 @@
       "name": "Grande Forma de Tengu",
       "sourceHash": "dc24a60a59d65ba35591f1e665aefcd242f8f72b",
       "description": "<p>Você assume a forma imponente de um grande espírito alado. Uma vez por dia, como parte do uso de @UUID[Compendium.pf2e.feats-srd.Item.Long-Nosed Form], você também ganha os benefícios de @UUID[Compendium.pf2e.spells-srd.Item.Enlarge] de 4º grau e de @UUID[Compendium.pf2e.spells-srd.Item.Fly] de 4º grau. Isso dura 5 minutos ou até você sair de sua Forma de Nariz Longo, o que ocorrer primeiro.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Great Tengu Form]</p>"
+    },
+    "MuksUWSkTC3mGpCi": {
+      "name": "Réplica Flamejante",
+      "sourceHash": "1bb40478ee6b0b941ea9d7d82f516bf5aaf0e913",
+      "description": "<p><strong>Gatilho</strong> Um oponente adjacente a você o acerta com uma arma corpo a corpo ou ataque desarmado corpo a corpo.</p>\n<p><strong>Frequência</strong> uma vez por minuto</p>\n<hr />\n<p>Ignorando sua dor, você chamusca seu atacante com uma onda de chamas. O oponente que causou o gatilho sofre @Damage[(@actor.level)[fire]]{dano de fogo} igual ao seu nível.</p>"
     },
     "MvekUkjMj4Zdv9no": {
       "name": "Surra Brutal",
@@ -3930,6 +4080,11 @@
       "name": "Espreitador da Matilha",
       "sourceHash": "229ec7c91bcf19e7367080d6986a8bd830ab729c",
       "description": "<p>Emboscadas são uma tradição honrada entre os kholo. Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Terrain Stalker] e pode estender seus efeitos a um único aliado, desde que ele permaneça a até 10 pés de você. Se você tiver proficiência mestre em Furtividade, pode estender o efeito a dois aliados. Se você tiver proficiência lendária em Furtividade, pode estendê-lo a quatro aliados.</p>"
+    },
+    "Naww9chMLUFbwJAm": {
+      "name": "Magia de Ordem",
+      "sourceHash": "aa6f30e3f78b7f5dd2a215974e66ee0160ccdf4a",
+      "description": "<p>Você se aprofundou nos ensinamentos de uma nova ordem, ganhando acesso a uma cobiçada magia de ordem. Escolha uma ordem que você selecionou com @UUID[Compendium.pf2e.feats-srd.Item.Order Explorer]. Você ganha a magia de ordem inicial dessa ordem.</p>\n<hr />\n<p><strong>Especial</strong> Você pode escolher este talento várias vezes. Cada vez que o fizer, deve escolher uma ordem diferente que você tenha selecionado com Explorador de Ordens.</p>"
     },
     "NayiPa1rGsMpVJ6f": {
       "name": "Língua Longa",
@@ -4061,6 +4216,11 @@
       "sourceHash": "64f62d12bb2730583a1bc5b3cc57ba2b14581325",
       "description": "<p>Você gira um inimigo para arremessá-lo contra todas as criaturas próximas antes de jogá-lo para longe. Você usa @UUID[Compendium.pf2e.feats-srd.Item.Thrash]. Durante essa Sacudida, seu talento @UUID[Compendium.pf2e.feats-srd.Item.Collateral Thrash] se aplica a todos os outros inimigos adjacentes a você. Você pode então arremessar a criatura @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] 10 pés, fazendo-a cair @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>\n<p>Se o inimigo que você escolher para Sacudida Colateral também estiver adjacente a você, ele tenta apenas um teste de resistência e sofre o dano apenas uma vez.</p>"
     },
+    "ODB5SXVjaycfsu5e": {
+      "name": "Companheiro Animal Adulto (Druida)",
+      "sourceHash": "5afe6579960299372be62393b1ae9bc3172f9dd3",
+      "description": "<p>Seu companheiro animal cresceu ao longo de suas aventuras, tornando-se um companheiro animal adulto e ganhando capacidades adicionais.</p>\n<p>Seu companheiro animal tem maior independência. Durante um combate, mesmo que você não use a ação Comandar um Animal, seu companheiro animal ainda pode usar 1 ação naquela rodada no seu turno para Golpear ou Deslocar-se (ou Escavar, Escalar, Voar ou Nadar, se tiver esse Deslocamento). Ele pode fazer isso a qualquer momento durante o seu turno, desde que você não esteja realizando uma ação no momento. Se fizer isso, essas são todas as ações que ele recebe naquela rodada — você não pode Comandá-lo depois.</p>"
+    },
     "OErUgSvnYfyZXRX2": {
       "name": "Braço Forte",
       "sourceHash": "5e2d9523606a0d54dd373be29741e4e01952b7cc",
@@ -4096,6 +4256,11 @@
       "sourceHash": "b3fcdaf32cf9d55a367df6fa7c0a87bd385fd872",
       "description": "<p>O poder divino está sempre à flor da pele, respondendo prontamente ao seu chamado. Quando você conjura @UUID[Compendium.pf2e.spells-srd.Item.Harm] ou @UUID[Compendium.pf2e.spells-srd.Item.Heal] gastando 2 ações, pode obter os efeitos da versão de 3 ações em vez da versão de 2 ações.</p>\n<p>Você pode fazer isso com <em>prejudicar</em> se tiver fonte de malefício, ou com <em>curar</em> se tiver fonte de cura (ou com ambas, se tiver Fonte Versátil).</p>"
     },
+    "OUCI7WG9F8Zbk4QU": {
+      "name": "Magia Purificadora",
+      "sourceHash": "b053b09b772b3dbfccc0bacc7fb23e5c893483db",
+      "description": "<p>Você purifica a água dentro do corpo de uma criatura para curá-la de uma doença. Se a próxima ação que você usar for conjurar @UUID[Compendium.pf2e.spells-srd.Item.Heal] visando uma única criatura viva, você pode tentar anular uma doença ou veneno que afete o alvo, além dos outros benefícios de <em>curar</em>. Se fizer isso, <em>curar</em> ganha o traço água.</p>"
+    },
     "OUqH5EiEj63evSkF": {
       "name": "Reflexos Táticos",
       "sourceHash": "58291f8e5d44c9d2f4fdccc30b141a015c3810c5",
@@ -4125,6 +4290,11 @@
       "name": "Vigor Vitorioso",
       "sourceHash": "4c49f3c7ddc8b3c4a6109c4b39eb3e8eacd37069",
       "description": "<p><strong>Gatilho</strong> Você reduz um inimigo a 0 Pontos de Vida</p>\n<hr />\n<p>Suas vitórias em batalha o enchem de orgulho e o imbuem com a energia para lutar um pouco mais, apesar de seus ferimentos. Você ganha pontos de vida temporários iguais ao seu modificador de Constituição até o final do seu próximo turno.</p>"
+    },
+    "OgPswd7GqnUZ3C1b": {
+      "name": "Pulmão de Fogo",
+      "sourceHash": "84d78fbfd4f4f6b05be794b299529a10dd932990",
+      "description": "<p>Uma vida inteira de proximidade com chamas endureceu seus pulmões e olhos contra a fumaça. Você pode respirar normalmente em áreas de cinzas e fumaça sem risco de sufocamento, e ignora a condição @UUID[Compendium.pf2e.conditionitems.Item.Concealed] causada por fumaça.</p>\n<p>Você precisa apenas de um teste simples DC 10 bem-sucedido para se recuperar do dano de fogo persistente, em vez de DC 15 (e a CD ao receber assistência particularmente eficaz é @Check[flat|dc:5] em vez de 10).</p>"
     },
     "Oge52FlzXdha0gD7": {
       "name": "Dança sob os Pés",
@@ -4391,6 +4561,11 @@
       "sourceHash": "891294624fe0aaacaf91fc786f7f9ee16290a246",
       "description": "<p>Você forja uma conexão mística com um aliado usando seu corpo como foco, permitindo que ele se beneficie da sua magia.</p>\n<p>Você coloca uma runa de sangue em um aliado adjacente que dura 1 minuto. Quando você ganharia um efeito de magia de sangue, pode abrir mão dele, concedendo-o ao seu aliado em vez disso.</p>\n<p>Você só pode ungir um aliado por vez; se você colocar outra runa, sua designação anterior termina.</p>"
     },
+    "QDxmf3zN4MFpmGg8": {
+      "name": "Transformação Bizarra",
+      "sourceHash": "8afd7bb919f048cf57cbb0c6a0f3f6a1c933d050",
+      "description": "<p>As formas que você assume desafiam a crença — visões quiméricas de chifres retorcidos ou saliva ácida. Se sua próxima ação for conjurar @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form], você pode mudar o tipo de dano de um único ataque desarmado concedido por <em>forma selvagem</em> para um dos seguintes: ácido, concussão, frio, eletricidade, fogo, veneno, perfuração ou corte. O ataque escolhido ganha o traço apropriado.</p>"
+    },
     "QEBVrgQFpWGEIBrP": {
       "name": "Fôlego Renovado",
       "sourceHash": "116833270e8988460701924134aa139fe553213a",
@@ -4465,6 +4640,16 @@
       "name": "Infusão em Cadeia",
       "sourceHash": "d83971c9258f081bc656d4a91766e322088d311a",
       "description": "<p>A matéria elemental da sua explosão continua se reconstituindo para seguir adiante, não importa quantos corpos ela atravesse. Se sua próxima ação for uma @UUID[Compendium.pf2e.actionspf2e.Item.Elemental Blast] e ela acertar, tente uma nova Explosão Elemental à distância a partir do alvo contra uma criatura diferente que esteja dentro do alcance da explosão, medindo a partir da criatura que você acertou. Você pode continuar encadeando a explosão dessa forma a cada acerto. Sua penalidade por ataque múltiplo se aplica normalmente a quaisquer explosões na cadeia após a primeira. Você pode fazer até cinco explosões no total, mas não pode visar a mesma criatura mais de uma vez. Role o dano apenas uma vez e aplique-o a cada criatura que acertar. (Se você começar com uma explosão corpo a corpo, ainda assim soma sua Força apenas a essa explosão, não às explosões à distância seguintes.)</p>"
+    },
+    "QUyFwtmXsn9INJhg": {
+      "name": "Forma de Inseto",
+      "sourceHash": "47c73d7ac6b375d350f463a859b5ae18be9606cd",
+      "description": "<p>Sua compreensão da vida se expande, permitindo que você imite uma gama mais ampla de criaturas. Adicione as formas de @UUID[Compendium.pf2e.spells-srd.Item.Insect Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. Sempre que você usar <em>forma indomada</em> para se transformar nas formas de inseto sem voo listadas na forma de praga, a duração é de 24 horas em vez de 10 minutos.</p>"
+    },
+    "QWsClGmMf25UkIRg": {
+      "name": "Natureza Atemporal",
+      "sourceHash": "ac39665c9130699b0986843f6aad52374dc3cd4f",
+      "description": "<p>Sustentado pela magia primal, você deixa de envelhecer. A energia primal transbordante lhe concede um bônus de condição +2 a testes de resistência contra doenças e magia primal.</p>"
     },
     "QakutYMPU5CdWEzS": {
       "name": "Conhecimento (Goblin)",
@@ -4550,6 +4735,11 @@
       "name": "Sopro Avassalador",
       "sourceHash": "e6fcbdd8c2b0b652e77d802c6b6a0f52b89620ec",
       "description": "<p>Você controla sua respiração e a alinha com seu qi, exalando com força controlada a fim de superar a resistência do seu oponente. Se você usar sua próxima ação para Conjurar uma Magia que tenha o traço monge e nenhuma duração, a magia e quaisquer Golpes que você fizer como resultado de conjurá-la ignoram uma quantidade da resistência do alvo a dano físico igual ao seu nível.</p>"
+    },
+    "R5n9dLRSwZ0rX2tE": {
+      "name": "Forma Elemental",
+      "sourceHash": "1d1d26e6f67b9c1ffa845a9ced9a9b907c91c1e5",
+      "description": "<p>Você compreende os elementos fundamentais da natureza de tal forma que pode incorporá-los ao seu corpo e se manifestar como uma encarnação viva desses elementos. Adicione as formas de @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. Sempre que você for polimorfado em outra forma usando <em>forma selvagem</em>, você ganha resistência 5 a fogo.</p>"
     },
     "R7Verer6fiET2ASn": {
       "name": "Magia Óssea",
@@ -4646,6 +4836,11 @@
       "sourceHash": "600adb4ae1fb6369f87d98e602d0e94823ffeae6",
       "description": "<p>Você é a prova de que dá sorte viajar com um halfling. Você pode usar Sorte Halfling quando um aliado a até 30 pés falhar em um teste de perícia ou teste de resistência, para permitir que o aliado role novamente o teste que ativou o gatilho, em vez de você rolar novamente seu próprio teste falho. Como de costume, seu aliado precisa usar o novo resultado, mesmo que seja pior que sua primeira rolagem. Se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Guiding Luck], não pode usar o efeito de Sorte Guiada que se aplica a rolagens de ataque e testes de Percepção para usar Sorte Compartilhada em benefício de um aliado.</p>"
     },
+    "RnHMcHJhPU2PaunR": {
+      "name": "Metamorfose Verdejante",
+      "sourceHash": "6cdbba62e894d08d0ac49f91e3441c9046b88dc7",
+      "description": "<p>Você se transformou em uma versão vegetal de si mesmo, ganhando o traço planta e perdendo traços inapropriados para sua nova forma (tipicamente humanoide). Você também ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Verdant Rest].</p>"
+    },
     "RnLPJTqyPPAWFBBO": {
       "name": "Postura da Muralha Intransponível",
       "sourceHash": "53ae55483e1b8f1fced40a57fbbccb27186ef764",
@@ -4655,6 +4850,11 @@
       "name": "Relatórios Minuciosos",
       "sourceHash": "34acfe3d31b22d2501bd03ac052391e29528f1cc",
       "description": "<p>Seus relatórios são minuciosos e informativos, e colocar seus pensamentos no papel o ajuda a reter as informações. Acompanhe cada tipo de criatura que você identificou com sucesso com @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge]. Ao tentar testes de Rememorar Conhecimento contra criaturas em sua lista em combates posteriores, você ganha um bônus de circunstância +2, e você aprende um fato adicional sobre tais criaturas em um sucesso.</p>"
+    },
+    "Ro3ylony41jDl8Sb": {
+      "name": "Conduto das Linhas Ley",
+      "sourceHash": "c8bc03189deb23212cf4a83bd3e012181cf638dc",
+      "description": "<p><strong>Frequência</strong> uma vez por minuto</p>\n<hr />\n<p>Você pode extrair magia das linhas ley do mundo. Se sua próxima ação for Conjurar uma Magia de 5º grau ou menor que não tenha duração, você não gasta a magia preparada ao conjurá-la.</p>"
     },
     "Rqhm4nG8QSnmff4y": {
       "name": "Osso Empalador",
@@ -4921,6 +5121,11 @@
       "sourceHash": "0e20a1654ab6e8dd75b3f603e21f4304904963b5",
       "description": "<p>Seus ancestrais passaram seus dias encobertos e embalados em ilusões e, como resultado, sentir a magia de ilusão é algo natural para você. Você recebe um bônus de circunstância de +1 tanto em testes de Percepção quanto em testes de Vontade contra ilusões.</p>\n<p>Quando você chega a menos de 10 pés de uma ilusão que pode ser desacreditada, o mestre rola um teste secreto para você desacreditá-la, mesmo que não tenha gastado uma ação para Interagir com a ilusão.</p>"
     },
+    "TI2BEC5LfEcOR4y4": {
+      "name": "Resistência a Veneno",
+      "sourceHash": "474fbd6649b771e198c50bbb69086f0d2f61ac8c",
+      "description": "<p><strong>Alquimista</strong> A exposição repetida a reagentes tóxicos fortificou seu corpo contra venenos de todos os tipos.</p>\n<p><strong>Druida</strong> Sua afinidade com o mundo natural lhe concede proteção contra alguns de seus perigos.</p>\n<hr />\n<p>Você ganha resistência a veneno igual à metade do seu nível, e ganha um bônus de condição de +1 em testes de resistência contra venenos.</p>"
+    },
     "TJEzyE6TbjUD1yUL": {
       "name": "Visão Adaptativa",
       "sourceHash": "ce5f53f2847ad97c5bd1dc3e81d22d6398f6dbaa",
@@ -5140,6 +5345,11 @@
       "name": "Confecção de Armadilhas",
       "sourceHash": "5723679530654107511ee9ca5d976195e7a11d50",
       "description": "<p>Você pode usar a atividade Ofício para criar armadilhas. Quando você escolhe este talento, você adiciona as fórmulas para quatro armadilhas comuns de 1º nível ao seu livro de fórmulas.</p>"
+    },
+    "UY1o5CVHhX7T5Pu0": {
+      "name": "Nascido da Tempestade",
+      "sourceHash": "6f58cde35637c371f2832731ace7c06a67528999",
+      "description": "<p>Você está à vontade em meio aos elementos, deleitando-se com o poder da natureza desencadeada. Você não recebe penalidades de circunstância a ataques de magia à distância ou testes de Percepção causadas pelo clima, e suas magias direcionadas não exigem um teste simples para ter sucesso contra um alvo @UUID[Compendium.pf2e.conditionitems.Item.Concealed] pelo clima (como neblina).</p>"
     },
     "UZFxUWk8uP3Z1VLY": {
       "name": "Troca Relâmpago",
@@ -5386,6 +5596,11 @@
       "sourceHash": "ab8cf6a32cc008e4c9775676bf6ec856095a7e89",
       "description": "<p><strong>Frequência</strong> uma vez por dia</p><hr /><p>Você da um apito estridente e aponta, e um enxame massivo de ratos vaza do terreno circundante para preencher uma @Template[burst|distance:30] dentro de 120 pes. Os ratos correm sobre o chão e sobem em paredes e superficies, mordendo e arranhando enquanto causam dano de @Damage[6d8[piercing]|options:area-damage] perfuração a todos os inimigos na área. Os ratos continuam a enxamear na área nos proximos minuto, causando dano de @Damage[3d8[piercing]|options:area-damage] perfuração a qualquer inimigo que termine seu turno na área e transformando a área em terreno difícil (embora os ratos permitam que você e seus aliados passem normalmente). Você pode Dispensar o efeito.</p>"
     },
+    "Vu4m7ifWTwN2EPgo": {
+      "name": "Segredos do Familiar Leshy",
+      "sourceHash": "a1d87ae6f223b2e21a80956341d0e03e9790b05c",
+      "description": "<p>Os segredos da ordem da folha permitem que seu familiar aproveite sua forma leshy. Você pode selecionar uma habilidade de familiar adicional a cada dia, que deve ser uma das seguintes habilidades de familiar leshy. Você não pode selecionar mais de uma habilidade deste talento por vez.</p>\n<ul>\n<li><strong>@UUID[Compendium.pf2e.familiar-abilities.Item.Grasping Tendrils]</strong> Seu familiar pode estender vinhas ou gavinhas semelhantes, aumentando seu alcance natural para 15 pés.</li>\n<li><strong>@UUID[Compendium.pf2e.familiar-abilities.Item.Purify Air]</strong> Seu familiar recicla o ar, fornecendo oxigênio suficiente para uma criatura Média em áreas com ar viciado, como uma câmara selada ou espaço extradimensional. Criaturas dentro de uma @Template[emanation|distance:15] do leshy ganham um bônus de circunstância +2 aos seus testes de resistência contra efeitos de veneno inalado, efeitos olfativos ou outros efeitos que dependam da respiração (como nuvem tóxica), a critério do mestre.</li>\n<li><strong>@UUID[Compendium.pf2e.familiar-abilities.Item.Verdant Burst]</strong> Quando seu familiar morre, ele libera sua energia primal para conjurar a versão de 3 ações de @UUID[Compendium.pf2e.spells-srd.Item.Heal], elevada a um grau 1 menor que o seu espaço de magia de grau mais alto. A magia <em>curar</em> ganha um bônus de condição igual ao dobro do grau da magia aos Pontos de Vida que restaura em plantas. Você precisa ser capaz de conjurar magias de 2º grau usando espaços de magia para selecionar esta habilidade de familiar.</li>\n</ul>"
+    },
     "VwRF3mh9v6GsAOHt": {
       "name": "Mata-Leão",
       "sourceHash": "cb76e4ee48d7e89cd0ea62bda7f6daf13b23ad14",
@@ -5405,6 +5620,11 @@
       "name": "Golpe Ágil",
       "sourceHash": "bfcff1cb4e3931cb3d9d2a98f5eb33c40b53840a",
       "description": "<p>Você é astuto o bastante para encontrar uma abertura no ataque de um oponente. Quando usa sua reação @UUID[Compendium.pf2e.feats-srd.Item.Nimble Dodge], você pode fazer um Golpe corpo a corpo contra a criatura que ativou o gatilho. Esse Golpe não conta para sua penalidade por ataque múltiplo, e sua penalidade por ataque múltiplo não se aplica a esse Golpe. Se você usa o talento @UUID[Compendium.pf2e.feats-srd.Item.Nimble Roll], pode fazer esse Golpe a qualquer momento durante sua rolagem.</p>"
+    },
+    "VzwAY4BQCFby19yO": {
+      "name": "Pedra Estabilizadora",
+      "sourceHash": "cb2745c59aae1703abbf619e2196104ce6f2014b",
+      "description": "<p>A terra lhe ensinou a permanecer inflexível e firme. Se você obtiver um sucesso em um teste de Acrobacia feito para @UUID[Compendium.pf2e.actionspf2e.Item.Balance] em terreno irregular composto de terra ou rocha, você obtém um sucesso crítico em vez disso.</p>\n<p>Enquanto permanecer no chão, você ganha um bônus de circunstância +2 à sua CD de Fortitude ou Reflexos contra tentativas de Empurrar ou Derrubar você. Esse bônus também se aplica a testes de resistência contra magias ou efeitos que tentem deixá-lo caído. Se você for um anão de rocha, esse bônus aumenta para +3.</p>"
     },
     "W0kOSjQH88VmgUtk": {
       "name": "Descanso Final",
@@ -5441,6 +5661,11 @@
       "sourceHash": "e4a409e91648307e40a9b66d25b4bc9f87a6ab40",
       "description": "<p>Sempre que um inimigo começa seu turno adjacente a você, ele deve tentar um teste de resistência de Vontade contra sua CD de classe ou CD de magia, o que for maior. Em caso de falha, o inimigo sofre uma penalidade de condição de -1 em rolagens de ataque e testes de perícia enquanto permanecer adjacente a você. Independentemente do resultado do teste, a criatura fica então temporariamente imune ao flagelo do guardião dos ossos por 24 horas.</p>"
     },
+    "WCKxf7Iv5tL6L70M": {
+      "name": "Transformação Derrubadora",
+      "sourceHash": "2d466fdd81f76d3bdafc687853b450b81d12a80c",
+      "description": "<p><strong>Gatilho</strong> Seu tamanho aumenta devido a um efeito de transmutação.</p>\n<hr />\n<p>Você usa a expansão do seu corpo como alavanca para deslocar uma criatura próxima. Você tenta @UUID[Compendium.pf2e.actionspf2e.Item.Shove] ou @UUID[Compendium.pf2e.actionspf2e.Item.Trip] uma criatura adjacente. Para fins de determinar o tamanho de criatura que você pode afetar, use seu tamanho final após o efeito que causou o gatilho.</p>"
+    },
     "WEkF5aJbdvfNUiYk": {
       "name": "Castigo Divino",
       "sourceHash": "eaf074289b2a357c54a63805a9c9a484f7570b38",
@@ -5465,6 +5690,11 @@
       "name": "Persistência Teimosa",
       "sourceHash": "9aaceaf43b4a3763d876e0a34528d7b578f4eddb",
       "description": "<p>Os humanos são renomados por sua capacidade de persistir através das provações mais exaustivas, que deixariam outros prontos para desistir. Quando você se tornaria @UUID[Compendium.pf2e.conditionitems.Item.Fatigued], tente um @Check[flat|dc:17]. Em caso de sucesso, você não fica fatigado. Se a condição de fatigado tiver uma causa subjacente que você não resolva, como falta de descanso, você deve tentar o teste novamente em um intervalo determinado pelo mestre, até falhar o teste simples ou resolver a causa subjacente.</p>"
+    },
+    "WRtuR3MebNrin46M": {
+      "name": "Língua Verde",
+      "sourceHash": "058540d8ee26b223e7fb99f2ba921c415029e4dc",
+      "description": "<p>Você compartilha uma afinidade especial com tudo que é verde e vivo. Você (e seu familiar leshy, se tiver um) está constantemente sob os efeitos de @UUID[Compendium.pf2e.spells-srd.Item.Speak with Plants]. A maioria das plantas não-criatura reconhece você como um druida da ordem da folha e é amistosa com você.</p>"
     },
     "WSfr19WWFZbCvSbH": {
       "name": "Jato Flamejante",
@@ -5500,6 +5730,11 @@
       "name": "Vasodilatação",
       "sourceHash": "08096093f4315ca7d19f7239d6950f9e99ebbb28",
       "description": "<p>Usando o poder de seu próprio sangue, você encoraja o aumento do fluxo sanguineo para nutrir tecido danificado ou sufoca o fluxo para coagular feridas ou prevenir a disseminação de veneno e doença. Você não requer mais um kit de medico para @UUID[Compendium.pf2e.actionspf2e.Item.Administer First Aid], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Poison], ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], embora sofra @Damage[1[untyped]] dano cada vez que toma uma dessas ações sem as ferramentas apropriadas do consumo de seu sangue. Você não pode reduzir ou prevenir este dano.</p>\n<p>Você ganha um bonus de item de +1 ao executar essas ações usando seu sangue, que aumenta para +2 se for mestre em Medicina e +3 se for lendario.</p>"
+    },
+    "WdHXH56BrtULKUkM": {
+      "name": "Dispensa Defensiva",
+      "sourceHash": "64ff671d0648634014768b69c6a12ae8126c94cf",
+      "description": "<p><strong>Gatilho</strong> Uma criatura da qual você está ciente obtém sucesso crítico em um Golpe contra você.</p>\n<p><strong>Requisitos</strong> Você está sob um efeito de transmutação que pode Dispensar.</p>\n<hr />\n<p>Você muda de forma como meio de evitar um golpe potencialmente fatal. Você Dispensa o efeito de transmutação sob o qual está, e o resultado do Golpe desencadeador se torna um sucesso em vez de um sucesso crítico. Se você deixasse de caber em seu espaço como resultado de retornar à sua forma normal, esta ação falha e você não Dispensa o efeito de transmutação.</p>"
     },
     "Wfb8jBPwtwI40z7w": {
       "name": "Conduto Natural",
@@ -5771,6 +6006,11 @@
       "sourceHash": "d80ea3842a79460a3c0f724e0bc9fe715d0b681c",
       "description": "<p>Energia elemental substitui cada célula do seu corpo por metal puro. Você ganha os benefícios da magia @UUID[Compendium.pf2e.spells-srd.Item.Ferrous Form] (exceto que não pode conjurar <em>dardos de agulha</em>) até o fim do seu próximo turno. Você pode Sustentar o impulso por até 1 minuto, e quando o fizer, pode Erguer um Escudo de metal se estiver empunhando um. Suas Explosões Elementais de metal causam um dado adicional de dano. Se você suspender quaisquer condições com Ligar Carne e Aço, quando ele terminar, você fica temporariamente imune a Ligar Carne e Aço por 1 hora.</p>\n<hr />\n<p><strong>Nível (16º)</strong> A resistência é 15.</p>"
     },
+    "Xl02yDHsCttuiywq": {
+      "name": "Arma Verdejante",
+      "sourceHash": "1c57e5d7062d607b028d1518e10274e0204153e6",
+      "description": "<p>Você cultiva uma semente que pode brotar em um cajado de madeira, um chicote de vinha, ou outra arma. Você gasta 10 minutos concentrando energia primal em uma semente, imprimindo nela o potencial de uma única arma de nível 0 com a qual você é treinado e que não possui partes mecânicas ou componentes metálicos. Enquanto segura a semente imprimida, você pode usar uma ação Interagir para fazê-la crescer imediatamente na forma dessa arma; uma segunda ação Interagir a devolve à forma de semente. A arma verdejante pode ser gravada com runas ou receber talismãs afixados normalmente, que são suprimidos quando a arma está em forma de semente.</p>\n<p>Você pode ter apenas uma semente verdejante por vez. Se você preparar uma segunda, sua primeira semente verdejante imediatamente se torna uma semente comum; quaisquer runas na semente anterior são transferidas para a nova semente sem custo, mas runas inaplicáveis são suprimidas.</p>"
+    },
     "XmEhBgF6NmxGop9J": {
       "name": "Profissional Experiente",
       "sourceHash": "672f5fd60df0de4582e5cef36d72102984d05016",
@@ -5816,6 +6056,11 @@
       "sourceHash": "0265df4f2c08b806611771cf7e15427526360d88",
       "description": "<p>Você eh conectado a grupos que sabem o que esta acontecendo nas ruas, e pode obter informações deles rapidamente. Quando usa Sociedade para @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] em uma área onde tem uma rede (normalmente uma assentamento onde passou pelo menos uma semana ou gastou um dia de tempo livre para construir uma rede mais rápido), você pode contatar um membro desses grupos para obter informações diretamente deles. Isto normalmente leva cerca de uma hora, e não atrai tanta atenção como Colher Informações em público pode. O teste e informação obtida seguem caso contrario as regras normais para Colher Informações.</p>\n<p>Além disso, se consultou com sucesso a rede subterranea, você obtem um bonus de circunstância de +1 no próximo teste para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] que tenta sobre o assunto sobre o qual estava Colhendo Informações, ou um bonus de circunstância de +2 se estiver usando Conhecimento do Submundo para o teste. O GM pode mudar a pericia de Conhecimento relacionada a rede dependendo de sua localização ou especificidades da rede que esta exploitando.</p>"
     },
+    "XxpOLHCjzJNBmD4y": {
+      "name": "Exibição Deimática",
+      "sourceHash": "e3d94e6aa3b7f47a836851d31cff3101f9d46ce2",
+      "description": "<p>Imitando exibições de ameaça animal, você se faz parecer maior e mais imponente. Tente um teste de Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] cada inimigo a até 30 pés. Essa tentativa tem o traço visual, perde o traço auditivo, e você não sofre penalidade se a criatura não entender seu idioma. Role seu teste apenas uma vez e compare-o com a CD de Vontade de cada alvo. Você ganha um bônus de circunstância +2 no teste contra criaturas do tipo animal, fungo e planta, e sofre uma penalidade de circunstância –2 contra outras criaturas. Cada alvo fica então temporariamente imune por 1 minuto.</p>"
+    },
     "Y6UnELENilUKQjXu": {
       "name": "Portal Nutriente",
       "sourceHash": "482737280d2827d1720ceab94c49e83c751d92d4",
@@ -5835,6 +6080,11 @@
       "name": "Investida da Garra Flamejante",
       "sourceHash": "ebbdd39d08b3f02431cc3695e1e344e149a18a94",
       "description": "<p><strong>Requisitos</strong> Você está em @UUID[Compendium.pf2e.feats-srd.Item.Rain of Embers Stance].</p>\n<hr />\n<p>Você avança e se agarra ao seu inimigo com garras de fogo faminto.</p>\n<p>Desloque-se uma vez. Se você terminar seu movimento ao alcance de ao menos um inimigo, pode fazer um Golpe de garra de fogo contra esse inimigo que causa @Damage[1d4[persistent,fire]] de dano adicional. Se ele acertar e causar dano, você pode tentar um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] a criatura que acertou.</p>"
+    },
+    "YCN8U52EkIZTv91B": {
+      "name": "Forma de Dragão",
+      "sourceHash": "aed6005d8c74d62322020a67c15194e59bc333ea",
+      "description": "<p>Você pode assumir a forma de algumas das criaturas mais temíveis do mundo. Adicione as formas listadas em @UUID[Compendium.pf2e.spells-srd.Item.Dragon Form] à sua lista de @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form]. Sempre que você for polimorfado em outra forma usando <em>forma selvagem</em>, você ganha resistência 5 à sua escolha entre concussão ou veneno.</p>"
     },
     "YDSbCn8jTphuyemk": {
       "name": "Perceber o Oculto",
@@ -5911,6 +6161,11 @@
       "sourceHash": "a2264cf6d8c87e2f116ba8c6bc1f890a7c4cc33f",
       "description": "<p>Sua língua dispara mais rápido do que o olho pode ver para recuperar objetos soltos. Você Interage para pegar um único objeto desacompanhado de Volume leve ou menor a até 10 pés de você. Se você não tiver mãos livres suficientes para segurar o objeto, ele cai no chão em seu espaço.</p>"
     },
+    "Yguge6sOntzbhKK3": {
+      "name": "Empatia Verde",
+      "sourceHash": "789e2159671f8b8fb2eb6adb71c88bf7e774fd11",
+      "description": "<p>Você pode se comunicar com plantas e fungos em um nível básico e usar Diplomacia para Causar Boa Impressão neles e para fazer Pedidos muito simples a eles. Plantas e fungos que não são criaturas geralmente não conseguem atender à maioria dos pedidos que você faça a eles, a menos que você tenha acesso a outra magia, como @UUID[Compendium.pf2e.spells-srd.Item.Speak with Plants].</p>\n<p>Por causa de sua afiliação com a ordem da folha, plantas e fungos sentem que você as apoia, então você ganha um bônus de circunstância +2 em seu teste para Fazer um Pedido a uma planta ou fungo usando Empatia Verde.</p>"
+    },
     "Yh4wWxS9pP5UFp9Q": {
       "name": "Extra Elástico",
       "sourceHash": "89997c87da4e07d554f0a5edd76a3e2c30e89e54",
@@ -5920,6 +6175,11 @@
       "name": "Treinamento com Armas Avançadas",
       "sourceHash": "fe8da24bc461a9ff071674ab0c8f9202648fcca7",
       "description": "<p>Você estudou a arte de empunhar uma arma avançada. Escolha um grupo de armas. Você ganha proficiência com todas as armas avançadas desse grupo como se fossem armas marciais do grupo delas.</p>"
+    },
+    "YmJEbbbrnerd3XJj": {
+      "name": "Controle de Forma",
+      "sourceHash": "72f5dad0f5456b921c319614c698d9f91133dafb",
+      "description": "<p>Com cuidado e esforço adicionais, você consegue assumir uma forma alternativa por um período mais longo. Se sua próxima ação for conjurar forma indômita, o grau da magia é 2 menor que o normal (mínimo 1º grau), mas você pode permanecer transformado por até 1 hora ou pela duração listada (o que for maior). Você ainda pode Dispensar forma indômita normalmente.</p>"
     },
     "Ynr8nrpTlqtN8Qfs": {
       "name": "Postura do Pavão",
@@ -5975,6 +6235,11 @@
       "name": "Visão Superior",
       "sourceHash": "b46d6f28208ffc5892d1642d152d517d8e80d6f4",
       "description": "<p>Seus sentidos são incomparáveis. Você ganha um bônus de circunstância de +2 em testes de Percepção e ganha visão em penumbra. Se você já tiver visão em penumbra, ganha visão no escuro em vez disso.</p>\n<p>Além disso, quando você tem como alvo um inimigo, você automaticamente é bem-sucedido no teste simples se esse inimigo estiver @UUID[Compendium.pf2e.conditionitems.Item.Concealed], @UUID[Compendium.pf2e.conditionitems.Item.Hidden] ou @UUID[Compendium.pf2e.conditionitems.Item.Undetected].</p>"
+    },
+    "Z4CwOckufJdxRGsd": {
+      "name": "Forma Feroz",
+      "sourceHash": "6061fe5edf5893aea063a3420a73c23c33a41faf",
+      "description": "<p>Você dominou a forma de dinossauros. Adicione as formas listadas em @UUID[Compendium.pf2e.spells-srd.Item.Dinosaur Form] à sua lista de forma indomada. Sempre que você usar @UUID[Compendium.pf2e.spells-srd.Item.Untamed Form] para assumir uma forma que concede um modificador específico de Atletismo, você ganha um bônus de condição +1 nos seus testes de Atletismo.</p>"
     },
     "Z4Px8Ll43HXJJgSy": {
       "name": "Rolar com o Golpe (Kingmaker)",
@@ -6356,6 +6621,11 @@
       "sourceHash": "d5834ec04636e6744f75d8aa93ab3cdc0c1a0e06",
       "description": "<p><strong>Acesso</strong> Você é de Dongun Hold ou Alkenstar.</p><hr /><p>Você passou a vida toda empunhando armas de fogo e material explosivo. Você tem familiaridade com bombas e armas de fogo; para fins de proficiência, você trata bombas e armas de fogo marciais como armas simples, e armas de fogo avançadas como armas marciais.</p>"
     },
+    "bKcP9CiHmBf4gdeA": {
+      "name": "Caverna Abrigada",
+      "sourceHash": "59f60265759b9416c79386da1b478a54bd7079ba",
+      "description": "<p><strong>Requisitos</strong> Você está de pé em um solo composto de terra, pedra ou material semelhante.</p>\n<hr />\n<p>Você passa 10 minutos comungando com espíritos da terra e da pedra, solicitando abrigo. Ao final desse tempo, a terra se ergue e se abre, formando uma pequena caverna ou monte de terra com 20 pés de diâmetro e 10 pés de altura. Essa caverna tem o traço estrutura e as mesmas restrições que estruturas criadas por itens mágicos. A caverna tem uma única entrada e oferece abrigo contra os elementos.</p>\n<p>A caverna permanece por 12 horas ou até você passar 10 minutos persuadindo a terra a se fechar.</p>"
+    },
     "bM65LRhoBluqozDs": {
       "name": "Purificar Elemento",
       "sourceHash": "71a6dbb3f2b2503107ebb51c6a8c58f6a6f468b5",
@@ -6396,6 +6666,11 @@
       "sourceHash": "3a3e877edb540c70de8073a7dd6eb2c7192dcd53",
       "description": "<p>Você transcendeu as barreiras entre as palavras e o significado. Você consegue falar e entender todos os idiomas falados.</p>"
     },
+    "bVsWPcI3wNLsGIFU": {
+      "name": "Chamador Feérico",
+      "sourceHash": "c66e262f987994e2a371a77ce834a4c208c1e7c8",
+      "description": "<p>Você aprendeu alguns dos truques que os feéricos usam para dobrar a magia primal em direção a ilusões e trapaças. Adicione @UUID[Compendium.pf2e.spells-srd.Item.Illusory Disguise], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Object] e @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene] à sua lista de magias, que você conjura como magias primais.</p>"
+    },
     "bXTwcc0yXribQaSq": {
       "name": "Artimanha de Fane",
       "sourceHash": "68f1546b4d145489d9543cafbfe9a2dc19445be9",
@@ -6431,15 +6706,30 @@
       "sourceHash": "a7d5cb5850ce586e65264d06dfa069d91068ff7f",
       "description": "<p>Você foi abençoado pelo mar, o que lhe concede a habilidade de nadar como um peixe. Você ganha uma Velocidade de natação de 15 pés.</p>\n<p><strong>Especial</strong> Se você tiver o antecedente Bonuwat Tocado pelas Ondas, pode escolher este talento no 1º nível em vez do 5º.</p>"
     },
+    "bcZYY9IzLlTgIHIR": {
+      "name": "Lado a Lado (Druida)",
+      "sourceHash": "8362e30e930c8838a825dc742beb43b1024eb6cb",
+      "description": "<p>Você e seu companheiro animal lutam em conjunto, distraindo seus inimigos e mantendo-os desequilibrados. Sempre que você e seu companheiro animal estiverem adjacentes ao mesmo inimigo, ambos estão flanqueando esse inimigo entre si, independentemente de suas posições reais.</p>"
+    },
     "bdFSgx188h6oEI9w": {
       "name": "Explorador Eficiente",
       "sourceHash": "473a756df226e4f7917a9b9a69206ce9be4e0ba8",
       "description": "<p>Você é mais eficiente ao explorar territórios desconhecidos. Desde que você esteja em um hex que seja predominantemente um terreno no qual você é treinado em uma pericia de Conhecimento associada, você concede ao seu grupo uma atividade de exploração adicional.</p>"
     },
+    "bddz8ONC56z8WacC": {
+      "name": "Transformação Nebulosa",
+      "sourceHash": "c0a4ec6ceca37f1100079612a1f5de2f8ef9b45e",
+      "description": "<p><strong>Frequência</strong> uma vez por minuto</p>\n<p><strong>Gatilho</strong> Você se transforma devido a um efeito de transmutação. Névoas selvagens cobrem sua forma.</p>\n<hr />\n<p>Você cria uma nuvem nebulosa em uma @Template[burst|distance:5] centrada em um dos cantos do seu espaço. Se sua nova forma for Grande ou maior, a nuvem cobre todo o seu espaço em vez disso. Todas as criaturas dentro da área ficam @UUID[Compendium.pf2e.conditionitems.Item.Concealed], e todas as outras ficam ocultadas para elas. A nuvem dura até o início do seu próximo turno, mas é dispersa imediatamente por um vento forte.</p>"
+    },
     "bduri70co98T1fwA": {
       "name": "Concoção Básica",
       "sourceHash": "72fd73d923f001a5ecdc2116c7795b4d9d6d28a4",
       "description": "<p>Você ganha um talento de alquimista de nível 1 ou 2.</p>"
+    },
+    "bgD4olfkRGX1Bf8D": {
+      "name": "Invocar Desastre",
+      "sourceHash": "8f72ced58089acd44d38a7871a4807c71d662d18",
+      "description": "<p>Você pode invocar a fúria da natureza sobre seus inimigos. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Storm Lord].</p>"
     },
     "blWfKWzzFGOy73VU": {
       "name": "Surpresa do Vigarista",
@@ -6521,6 +6811,11 @@
       "sourceHash": "82a622701431f4da6c56d02af2204f7a424a4ccd",
       "description": "<p>Você sofre uma mutação permanente para se tornar mais parecido com as criaturas da sua linhagem. Você ganha o traço ou traços apropriados para esses tipos de criaturas (aberração para aberrante, angel e celestial para angelical, demon e fiend para demoníaca, e assim por diante). Você ganha visão em pouca luz ou visão no escuro, se uma delas for apropriada para criaturas com esses traços. Escolha uma das seguintes opções.</p><ul><li>Se as criaturas associadas à sua linhagem tiverem a capacidade de voar, você ganha uma Velocidade de voo igual à sua Velocidade terrestre.</li><li>Se as criaturas associadas à sua linhagem forem aquáticas ou anfíbias, você se torna anfíbio, capaz de respirar tanto na água quanto no ar igualmente bem, e ganha uma Velocidade de nado igual à sua Velocidade terrestre.</li><li><p>Se as criaturas associadas à sua linhagem tiverem resistência ou imunidade a ácido, frio, eletricidade, fogo, vazio ou sonoro, escolha um tipo de energia ao qual sua linhagem seja imune ou resistente e ganhe resistência 20 contra esse tipo de energia.</p></li></ul>"
     },
+    "cJJz2DT4JNk0A9xN": {
+      "name": "Convocações Primais",
+      "sourceHash": "40c4b3c9c3dd2451d9248ce3b8990ac30b2ac988",
+      "description": "<p>Sempre que você convoca um aliado, você pode potencializá-lo com o poder elemental do ar, da terra, do fogo ou da água. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Primal Summons].</p>"
+    },
     "cJYThRM44LevJjFf": {
       "name": "Debilitações Sinistras",
       "sourceHash": "c68c16bebe498892fff8673ac98e6ca4c3b758b1",
@@ -6601,6 +6896,11 @@
       "sourceHash": "14fe0278d0d27253d01809f5b4a7f20337c43a0a",
       "description": "<p>A magia arcana que você possui cresce em poder e complexidade. Escolha uma magia comum de 2º grau da mesma tradição de uma magia inata que você obteve anteriormente de outro talento de ancestralidade élfica (da lista arcana, se você tiver @UUID[Compendium.pf2e.feats-srd.Item.Otherworldly Magic], por exemplo). Você pode conjurar essa magia como magia inata uma vez por dia, usando a mesma tradição da lista da qual escolheu a magia.</p>\n<p>Sua magia é adaptável. Ao gastar 1 dia de tempo livre, você pode trocar a magia escolhida por outra magia comum de 2º grau da mesma tradição.</p>"
     },
+    "cd5qERwf8n54TnGe": {
+      "name": "Arma Imaculada",
+      "sourceHash": "2fa80ceba4c16cdea829f185da5269da35559610",
+      "description": "<p>Sua arma verdejante pode cortar através das resistências de criaturas mágicas. A arma é tratada como ferro frio e prata. Se você acertar criticamente uma criatura que tenha vulnerabilidade a ferro frio ou prata, o alvo sofre @Damage[1d6[bleed]] de dano, enquanto as energias primais dentro de sua arma retardam sua cura natural.</p>"
+    },
     "ceIIsV37Uf8OEgVy": {
       "name": "Corredor das Rochas",
       "sourceHash": "ae0b1e4917d4fd7020d83b44165bac0c84d7ac67",
@@ -6615,6 +6915,11 @@
       "name": "Muito Sorrateiro",
       "sourceHash": "8c4e5424799bd010079b0bbf0e145af5a47e28e2",
       "description": "<p>Gente mais alta raramente presta atenção às sombras aos seus pés, e você aproveita isso ao máximo. Você pode se mover 5 pés a mais quando realiza a ação @UUID[Compendium.pf2e.actionspf2e.Item.Sneak], até o limite do seu Deslocamento.</p>\n<p>Além disso, enquanto continuar usando ações de Esgueirar e for bem-sucedido em seu teste de Furtividade, você não fica observado caso não tenha cobertura ou cobertura maior e não esteja @UUID[Compendium.pf2e.conditionitems.Item.Concealed] ao final da ação de Esgueirar, desde que tenha cobertura ou cobertura maior ou esteja ocultado ao final do seu turno.</p>"
+    },
+    "cfla8SGPEXeuOdNz": {
+      "name": "Magia do Estrondo",
+      "sourceHash": "16a6619dc3cea2421222b9d6b9e0848702c7417a",
+      "description": "<p>Seu raio rasga o ar, gerando uma onda de choque retumbante. Se sua próxima ação for Conjurar uma Magia que tenha o traço eletricidade ou cause dano de eletricidade, não tenha duração e exija que as criaturas tentem um teste de resistência, a força do raio da magia cria um estrondo, além de seus outros efeitos. Cada criatura que falhar em seu teste de Reflexos contra a magia fica @UUID[Compendium.pf2e.conditionitems.Item.Deafened] por 1 rodada, e as que falharem criticamente também ficam @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>"
     },
     "cfsqqWDMVVkrgxSh": {
       "name": "Medico de Enfermaria",
@@ -6761,6 +7066,11 @@
       "sourceHash": "ff04d4b252a17b1da12a7685e3a238d2990eae36",
       "description": "<p>Você solta um uivo aterrorizante. Tente testes de Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] cada inimigo em um raio de 30 pés: você não recebe penalidade se a criatura não entender seu idioma. Independentemente dos resultados dos seus testes, cada alvo fica então temporariamente imune a Uivo Aterrorizante por 1 minuto.</p>"
     },
+    "dZkFIOKYCcavNaBe": {
+      "name": "Convocador do Vento",
+      "sourceHash": "8b4affada9839c3332af57fd4720d5ccbc5bb51c",
+      "description": "<p>Você convoca os ventos para ajudá-lo, levando-o pelos ares e permitindo sua passagem pelos mais fortes ventos contrários. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Stormwind Flight].</p>"
+    },
     "daufQMgA68tRfMS4": {
       "name": "Conhecimento Elemental",
       "sourceHash": "4ce5622064a31817c945c1f39030fdc59fdd50a4",
@@ -6790,6 +7100,11 @@
       "name": "Sombras Distrativas",
       "sourceHash": "8f51a2590805bf8cdc2ff8886d1fb949be566f67",
       "description": "<p>Você aprendeu a permanecer escondido usando pessoas maiores como distração para evitar chamar atenção para si. Você pode usar criaturas pelo menos um tamanho maior que você (geralmente Médias ou maiores) como cobertura para as ações @UUID[Compendium.pf2e.actionspf2e.Item.Hide] e @UUID[Compendium.pf2e.actionspf2e.Item.Sneak], embora ainda não possa usar tais criaturas como cobertura para outros usos, como a ação @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover].</p>"
+    },
+    "dpZyshVHHqMdskWX": {
+      "name": "Companheiro Incrível (Druida)",
+      "sourceHash": "6849a63e909e8ae68a4dfc7eeb80597d0feb6a46",
+      "description": "<p>Seu companheiro animal continua a crescer e se desenvolver. Ele se torna um companheiro animal ágil ou selvagem, ganhando capacidades adicionais determinadas pelo tipo.</p>"
     },
     "dvitToOZsBndhpca": {
       "name": "Perícia em Duelo",
@@ -6830,6 +7145,11 @@
       "name": "Envergonhar o Pecado",
       "sourceHash": "fe65f96d405184cba73a049908c88bed4c50cc3a",
       "description": "<p><strong>Frequência</strong> uma vez por hora</p>\n<p><strong>Gatilho</strong> Você acerta um golpe crítico em um demônio com um Golpe.</p><hr /><p>Sua convicção contra os pecados dos quais todos os demônios nascem é tão forte que você consegue forçar um demônio a sofrer por seus pecados quando desfere um golpe certeiro contra ele. Além de causar o dano normal do seu acerto crítico, o demônio também sofre os efeitos de sua vulnerabilidade especial. Se o demônio não tiver vulnerabilidade especial, ele recebe, em vez disso, dano adicional de @Damage[(ternary(gte(@actor.level,17),3,ternary(gte(@actor.level,13),2,1)))d6[mental]]. Isso aumenta para 2d6 de dano mental no 13º nível e para 3d6 de dano mental no 17º nível.</p>"
+    },
+    "eEs1kveSvRNKicZP": {
+      "name": "Coração do Kaiju",
+      "sourceHash": "f0db87cdb1d85d26c19ff5171cad32399dc272dd",
+      "description": "<p>Testemunhar de perto o poder dos kaiju Rei Mogaru, Alru e Toraloa despertou uma nova ferocidade em você. Quando você se transforma usando @UUID[Compendium.pf2e.feats-srd.Item.Monstrosity Shape], você pode assumir uma forma de kaiju. Ao adquirir este talento, escolha dano ácido, de frio, de eletricidade, de fogo ou sonoro; esse é o dano que sua arma de sopro causa. Você não pode mudar isso depois. A forma de combate é de tamanho Gigantesco com as habilidades específicas a seguir; os valores de dano já incluem o dado extra por ser uma magia de 9º grau.</p>\n<p><strong>Kaiju</strong> Velocidade 40 pés; resistência física 5;</p>\n<p><strong>Corpo a corpo</strong> <span class=\"action-glyph\">1</span> mandíbulas (alcance natural 20 pés), <strong>Dano</strong> 3d12+20 de perfuração;</p>\n<p><strong>Corpo a corpo</strong> <span class=\"action-glyph\">1</span> garras (ágil, alcance natural 20 pés), <strong>Dano</strong> 3d8+20 de corte;</p>\n<p><strong>Arma de Sopro</strong> <span class=\"action-glyph\">2</span> (evocação, primal) Cada criatura em um @Template[cone|distance:60] sofre @Damage[15d6[@item.flags.system.rulesSelections.damageType]|options:area-damage] de dano (do tipo de dano escolhido), com um teste de resistência @Check[reflex|against:spell|basic|options:area-effect] contra sua CD de magia. Uma vez ativada, sua arma de sopro não pode ser usada novamente por [[/r 1d4 #Recharge Breath Weapon]]{1d4 rodadas}.</p>"
     },
     "eFDigV5ZpeXYR7i1": {
       "name": "Distração Gêmea",
@@ -6900,6 +7220,11 @@
       "name": "Inventor",
       "sourceHash": "49928cfe9fee0dd5b901d0b7818cba78e9976b75",
       "description": "<p>Você é um gênio em Ofício, capaz de determinar facilmente como as coisas são feitas e criar novas invenções. Você pode gastar tempo livre para inventar uma fórmula comum que não conhece. Isso funciona exatamente como a atividade Ofício: você gasta metade do Preço da fórmula adiantado, tenta uma rolagem de Ofício, e em um sucesso ou termina a fórmula pagando a diferença ou trabalha mais para diminuir o Preço. A diferença é que você gasta o tempo adicional em pesquisa, design e desenvolvimento, em vez de criar um item. Assim que estiver completo, você adiciona a nova fórmula que inventou ao seu livro de fórmulas.</p>\n<p>O mestre pode permitir que você invente fórmulas incomuns ou raras, tipicamente com uma CD aumentada. Você precisa do talento Ofício Alquímico para inventar fórmulas alquímicas e do talento Ofício Mágico para inventar fórmulas mágicas.</p>"
+    },
+    "emgbb3zo3hmHZ4eU": {
+      "name": "Pele de Pesh",
+      "sourceHash": "f2b3e499f24f5ce34e47b6487a0e956bcbdfa30e",
+      "description": "<p><strong>Requisitos</strong> Você foi transformado em uma planta por uma magia de transmutação.</p>\n<hr />\n<p>Sua forma vegetal brota centenas de espinhos, e seu sangue causa alucinações leves em criaturas expostas a ele. Cada vez que uma criatura toca você, acerta você com um ataque desarmado, ou acerta você com um ataque de arma corpo a corpo enquanto adjacente a você, essa criatura sofre 1d6 de dano perfurante. Aumente o dano para 2d6 se a magia de transmutação for de grau 8 ou superior, ou para 3d6 se for de grau 10.</p>\n<p>Quando uma criatura adjacente causa dano a você com dano perfurante ou de corte, ela deve ser bem-sucedida em um teste de resistência de Fortitude contra sua CD de classe ou fica estupidificada 1 (ou estupidificada 2 em uma falha crítica) até o final do seu próximo turno.</p>\n<p>Esses benefícios duram até você deixar de estar transmutado em uma planta.</p>"
     },
     "eohmUWXRVU1BUYRM": {
       "name": "Espada e Pistola",
@@ -7141,6 +7466,11 @@
       "sourceHash": "171ad006a63d2378262dfb67233ebc364c0c1b8c",
       "description": "<p>Suas tatuagens são obra de um gênio arcano, uma obra-prima de arte, magia e pele. Escolha uma magia arcana de 3º grau da mesma escola de suas Tatuagens Arcanas, seja uma magia comum ou outra à qual você tenha acesso, incluindo uma magia de grau inferior elevada ao 3º nível, se desejar. Você pode conjurar essa magia uma vez por dia como magia arcana inata.</p>"
     },
+    "gAXM2uFRUZIBIi2c": {
+      "name": "Transformação Curativa",
+      "sourceHash": "ac3fe441998f307f2d33f8664b39a5724efb23ba",
+      "description": "<p>Você consegue aproveitar a magia de metamorfose para fechar feridas e reparar lesões. Se sua próxima ação for conjurar uma magia de transmutação sem ser truque que tenha apenas uma criatura como alvo, sua magia de transmutação também restaura 1d6 Pontos de Vida por grau de magia a essa criatura. Isto é um efeito de cura.</p>"
+    },
     "gAftl5A042RKcykA": {
       "name": "Distração Prolongada",
       "sourceHash": "19ce4063509bbd09322b43fe6d3b138cbaeee07c",
@@ -7191,6 +7521,11 @@
       "sourceHash": "b57f5861ed2895be082a184291c69817dce402bc",
       "description": "<p>Suas extensas viagens, curiosidade e amor pelo aprendizado o ajudam a aprender idiomas rapidamente. Você aprende três novos idiomas, escolhidos entre idiomas comuns e idiomas incomuns aos quais você tem acesso. Esses idiomas assumem a mesma forma (sinalizada ou falada) que seus outros idiomas. Quando você seleciona o talento @UUID[Compendium.pf2e.feats-srd.Item.Multilingual], aprende três novos idiomas em vez de dois.</p>"
     },
+    "gPoej13XKqpwnXCf": {
+      "name": "Companheiro Animal",
+      "sourceHash": "9648464dbd4b7e11a8079e88ed6df221c9a534df",
+      "description": "<p>Você ganha o serviço de um jovem companheiro animal que viaja com você em suas aventuras e obedece a quaisquer comandos simples que você lhe dê, no limite de suas habilidades.</p>"
+    },
     "gQ1lzXmuAG9d5J2B": {
       "name": "Análise do Magus",
       "sourceHash": "0784b65090de7746c403ad9786847922dd1d0ddd",
@@ -7210,6 +7545,11 @@
       "name": "Vingança Furiosa",
       "sourceHash": "56288bc57b94f09862042ecdc07d358c71954ed0",
       "description": "<p><strong>Gatilho</strong> Um inimigo dentro do seu alcance corpo a corpo acerta você criticamente com um Golpe corpo a corpo.</p><hr /><p>O golpe do seu inimigo alimenta sua fúria e provoca sua retaliação imediata. Faça um Golpe corpo a corpo contra o inimigo que acionou o gatilho.</p>"
+    },
+    "gSqbGwjZwXC5Sfy0": {
+      "name": "Presença Verdejante",
+      "sourceHash": "a7e7cc3573cce3f5f098439bd50f8cfda164eaca",
+      "description": "<p><strong>Frequência</strong> uma vez por hora</p>\n<p><strong>Gatilho</strong> Você sofre dano ou conjura uma magia primal.</p>\n<hr />\n<p>As propriedades vivificantes dos <em>orbes-eão</em> florescem dentro de você. Pequenas plantas ou fungos surgem magicamente em todas as superfícies em uma @Template[emanation|distance:60] ao seu redor. Essa vida murcha após 1 dia, a menos que o ambiente possa sustentá-la. Você pode escolher uma das opções a seguir cada vez que usar este talento.</p>\n<ul>\n<li>Você pode fazer com que qualquer número de quadrados de 5 pés na área se torne submata leve, que é terreno difícil e concede cobertura menor.</li>\n<li>Você pode fazer com que uma árvore ou cogumelo gigante surja em qualquer local desocupado na área; ela ocupa um quadrado inteiro de 5 pés e concede cobertura padrão. A árvore ou cogumelo tem 5 de Dureza e 50 Pontos de Vida.</li>\n</ul>"
     },
     "gW9h8FQg0Tq7rMQe": {
       "name": "Consumível Presciente",
@@ -7361,6 +7701,11 @@
       "sourceHash": "7b638c80f2aedd02951048a01247d3ed34cc91c6",
       "description": "<p>Nunca distante da presença amparadora da água, suas técnicas refinadas de respiração concentram sua percepção e controle da água para dentro de si. Você ganha um bônus de circunstância de +2 em testes de resistência de Vontade e em testes de resistência contra veneno até o início do seu próximo turno. Se você gastou duas ações em Circulação do Afluente, também pode tentar um teste simples para encerrar o dano persistente de veneno que estiver sofrendo, reduzindo a CD para 10, como se tivesse recebido os benefícios de recuperação assistida.</p>"
     },
+    "h7QuEakR6L2YwzIA": {
+      "name": "Poder do Hierofante",
+      "sourceHash": "d45c0c928d1b61492105b4c8de3d3114765471cf",
+      "description": "<p>Você se entrelaçou com o mundo natural, e todo o seu poder flui através de você. Você ganha um espaço de magia de 10º grau adicional.</p>"
+    },
     "h7fex42BeNKsZSgF": {
       "name": "Golpeador do Temor",
       "sourceHash": "a85be4bc0e7c5f056e3e86afb761029b07b0b012",
@@ -7445,6 +7790,11 @@
       "name": "Investida Zelosa",
       "sourceHash": "eecc37b695211f01396a136e400f941a529b3b7b",
       "description": "<p><strong>Gatilho</strong> Você conjura uma magia divina que custa 1 ação ou mais e que afeta apenas você ou seu equipamento.</p>\n<hr />\n<p>Você se abençoa em movimento. Desloque-se até 10 pés. Se a magia custou 2 ações ou mais, você pode Deslocar-se até sua Velocidade total em vez disso.</p>"
+    },
+    "hWDDTp4gAjNIVKHA": {
+      "name": "Ventos Elevadores",
+      "sourceHash": "b963d1d524edade8451519dcb8d9e6940361ecd6",
+      "description": "<p>Os ventos estão ansiosos para mantê-lo no ar. Quando você está voando e Conjura uma Magia que tem os traços ar ou eletricidade, você ganha um bônus de condição +10 à sua Velocidade de voo, e pode imediatamente Voar até metade da sua Velocidade.</p>"
     },
     "hWaKNP2DnczOr78W": {
       "name": "Estratégia da Montanha",
@@ -7781,6 +8131,11 @@
       "sourceHash": "4ce453b235a813c115c255371608497abebbfd73",
       "description": "<p>Você sabe como extrair o máximo esforço dos seus aliados na estrada. Seu grupo pode Apressar-se por 20 minutos adicionais além do tempo que o integrante capaz de Apressar-se por mais tempo sozinho conseguiria.</p>"
     },
+    "jwcTxepKo7AxII98": {
+      "name": "Oásis Errante",
+      "sourceHash": "bc86f56a94bf8351b591f54ef78cfe4cacd5d2e6",
+      "description": "<p>Você está cercado por uma energia reconfortante. Você e aliados a até 60 pés de você estão protegidos de calor e frio ambientais severos. Se você for lendário em Sobrevivência, você e esses aliados também estão protegidos de calor e frio ambientais extremos.</p>"
+    },
     "jwtUTweHEJt2VrZH": {
       "name": "Iniciado de Domínio",
       "sourceHash": "6898d9c0529b4896a87c4a53622d89619d239bfe",
@@ -7946,6 +8301,11 @@
       "sourceHash": "ed0fdcb9df37b68b97898d87d609eb76070c06cb",
       "description": "<p>Você pode usar seu conhecimento de engenharia e metalurgia para reforçar temporariamente objetos e estruturas robustas. Ao passar 1 hora trabalhando em um item, você pode conceder a ele um bônus de circunstância de +1 à sua Dureza por 24 horas. Se você for mestre em Ofício, o bônus é +2, e se for lendário, o bônus é +3. Você pode reforçar uma parte de uma estrutura, embora 1 hora geralmente só reforce uma porta, algumas janelas ou outra seção que caiba em um cubo de 10 pés.</p>"
     },
+    "lA0jtzMWa69hck3m": {
+      "name": "Transformação Purificadora",
+      "sourceHash": "07aa7484d5430cb3bba954b5bffe865aab088eb3",
+      "description": "<p>Você aprende a purgar toxinas corporais junto com as transformações de sua magia metamórfica. Quando você usa Transformação Curativa, sua magia de transmutação também pode tentar anular uma doença ou veneno que aflija o alvo. Se você não conseguir anulá-la com sucesso, não pode usar Transformação Purificadora contra essa aflição específica por 24 horas.</p>"
+    },
     "lDE1K5ozWfOG730o": {
       "name": "Devorador da Lua",
       "sourceHash": "7fb136494379233009a877e6a5045c7d67b48301",
@@ -8041,6 +8401,11 @@
       "sourceHash": "f729ba73e3bdac87438af91708456e1085016c80",
       "description": "<p>Você dominou a técnica de arquear um projétil para que ele retorne à sua mão depois de arremessado, embora isso exija um momento para calcular com precisão a trajetória e possíveis ricocheteios.</p>\n<p>Faça um Golpe à distância com uma arma de arremesso. Assim que o Golpe é concluído, a arma faz uma curva ou ricocheteia de volta para sua mão. Se suas mãos estiverem ocupadas quando a arma retornar, ela cai no chão no seu espaço.</p>"
     },
+    "lmHllntEY5Bq6aHL": {
+      "name": "Familiar Leshy",
+      "sourceHash": "b95b2b02a95ef829173b80d71036ddec8f8daa54",
+      "description": "<p>Você invoca um espírito menor da natureza para dentro de um corpo vegetal, criando um companheiro leshy para auxiliá-lo em sua conjuração. Você ganha um familiar, que possui, à sua escolha, a habilidade de familiar de planta ou de fungo; isso não conta contra seu limite usual de habilidades de familiar (normalmente 2). O espírito que você invoca tem uma conexão mais tênue com seu corpo vegetal do que os leshys totalmente independentes, então ele é de tamanho Minúsculo, como outros familiares.</p>"
+    },
     "lmqhdGcG64ahbVLH": {
       "name": "Conjuração Acelerada",
       "sourceHash": "7486304e7a023932aa3f9269614ba255b472f525",
@@ -8135,6 +8500,11 @@
       "name": "Estocada e Furto de Stella",
       "sourceHash": "a053633f25ac4eff4d411840411e3437fffad099",
       "description": "<p><strong>Requisitos</strong> Você está empunhando uma arma corpo a corpo de perfuração ou corte.</p>\n<hr />\n<p>Você avança rapidamente em direção ao seu oponente, buscando estocá-lo e cortar seus cordões de bolsa com um único movimento. Desloque-se até sua Velocidade; esse movimento não aciona reações acionadas por movimento. A qualquer momento durante esse movimento você pode Golpear um oponente dentro do alcance. Se esse Golpe for bem-sucedido, você pode tentar um teste de Ladinagem para Roubar do alvo.</p>"
+    },
+    "mCEsx8cXA7dV0NLT": {
+      "name": "Exalação Fúngica",
+      "sourceHash": "82924c7ce7b27987ccbf3dd1388a8c5b4c4f13b5",
+      "description": "<p>Você pode conjurar esporos tóxicos para infectar inimigos. Você ganha a magia de ordem @UUID[Compendium.pf2e.spells-srd.Item.Fungal Exhalation].</p>"
     },
     "mCfX14FS4lMny4zl": {
       "name": "Assustar até a Morte",
@@ -8786,6 +9156,11 @@
       "sourceHash": "a69cb03194a569519e8e8950506b0a0011fb689d",
       "description": "<p><strong>Custo</strong> 1 Ponto de Determinação</p>\n<hr />\n<p>Recupere Pontos de Vigor igual a metade do máximo.</p>\n<p>@UUID[Compendium.pf2e.action-macros.Macro.Steel Your Resolve]</p>"
     },
+    "pYrv95w8xEh5YrgD": {
+      "name": "Resistência a Fogo",
+      "sourceHash": "94d3e2c42e504bbd2b28a11799cc01d4655937de",
+      "description": "<p>Sua conexão com o calor e as chamas faz com que o fogo relute em usar toda sua força contra você. Você ganha resistência a fogo igual à metade do seu nível, e ganha um bônus de circunstância +1 aos testes de resistência contra efeitos de fogo.</p>"
+    },
     "pZAezVSUEUfvR5ln": {
       "name": "Reversão Ritual",
       "sourceHash": "63fc052a4650ffa3535e9bcbfc5c61292ec8d4b0",
@@ -8870,6 +9245,11 @@
       "name": "Passo Leve",
       "sourceHash": "265b5a919bec098a2c2f454719d563591d9a0750",
       "description": "<p>Você se move com cuidado e rapidez. Você pode realizar um Passo em terreno difícil.</p>"
+    },
+    "pvYoKCNEOHaxEWMk": {
+      "name": "Nadador Natural",
+      "sourceHash": "4e0316d888df9e7235a15084227ecba2f5e90cd7",
+      "description": "<p>A água flui ao seu redor, permitindo que você corte as ondas como se tivesse nascido para isso. Você ganha Deslocamento de natação de 15 pés. Se você já tiver um Deslocamento de natação permanente, nadar para cima ou para baixo não é terreno difícil.</p>"
     },
     "pwMnNMIYh2WDzHIs": {
       "name": "Ladrão Lendário",
@@ -9106,6 +9486,11 @@
       "sourceHash": "1e93eded260fc17ba0bb43413740ea980c621db7",
       "description": "<p>Com tempo e determinação suficientes, você pode roer quase qualquer coisa. Você causa o dobro de seu dano de mandibulas a um objeto inanimado desacompanhado.</p>"
     },
+    "rCa3JdEo6ifNRGzU": {
+      "name": "Chamado da Natureza Selvagem",
+      "sourceHash": "5bacb722dcda07970a36604c0c53063522ca5c71",
+      "description": "<p>Você invoca as criaturas da natureza para virem em seu auxílio. Você pode gastar 10 minutos em comunhão com a natureza para substituir uma magia que você preparou em um dos seus espaços de magia de druida por uma magia @UUID[Compendium.pf2e.spells-srd.Item.Summon Animal] ou @UUID[Compendium.pf2e.spells-srd.Item.Summon Plant or Fungus] do mesmo grau.</p>"
+    },
     "rF4BCV3sNAx8kjHQ": {
       "name": "Finta Desestabilizadora",
       "sourceHash": "f01f1cb8fdbc396b163ad3d7b158b42197b45f5d",
@@ -9230,6 +9615,11 @@
       "name": "Cura Cristalina",
       "sourceHash": "d0414502823a11c636293108c6880182c34be0d9",
       "description": "<p>Você sabe como estimular as habilidades naturais de cura de um corpo através da aplicação de cristais ressonantes. Fazer isso requer que você use pelo menos duas pedras semipreciosas com um valor total de 5 mo ou mais no lugar de um kit de curandeiro, o que permite que você tente [[/act treat-disease skill=occultism]] ou [[/act treat-poison skill=occultism]] usando Ocultismo em vez de Medicina.</p>\n<p>Se você é perito em Ocultismo e usa gemas cujo valor total é igual ou superior a 50 mo, você ganha um bônus de item +1 ao seu teste de Ocultismo. Se você é mestre e o valor das gemas é igual ou superior a 700 mo, o bônus de item aumenta para +2; se você é lendário em Ocultismo e o valor das gemas é igual ou superior a 15.000 mo, o bônus de item aumenta para +3.</p>"
+    },
+    "s02wB7xvjQBROwMW": {
+      "name": "Erguer Menir",
+      "sourceHash": "518a8985abe850861d8636fa7bea1289ff2b0afb",
+      "description": "<p><strong>Frequência</strong> uma vez por hora</p>\n<hr />\n<p>Você ergue do chão um monumento druídico, como uma pedra erguida ou uma árvore de proteção, criando uma poderosa proteção primal que bloqueia outros tipos de magia. O monumento aparece em um quadrado desocupado no chão a até 30 pés, tornando esse quadrado terreno difícil. Escolha arcana, divina ou oculta; todas as criaturas dentro de @Template[emanation|distance:15]{15 pés} do monumento ganham um bônus de condição +2 em seus testes de resistência contra efeitos com esse traço. O monumento dura 1 rodada antes de desmoronar de volta à terra ou desaparecer no nada, mas você pode Sustentar o monumento por até 1 minuto.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Raise Menhir]</p>"
     },
     "s2KcYQDg1XEVm0L9": {
       "name": "Fúria Ferida",
@@ -9886,6 +10276,11 @@
       "sourceHash": "62cef1046ab0ffb6c6ce367d88bf90f51ee53082",
       "description": "<p>Talvez por causa da maldição dentro de você, maldições ocasionalmente o percebem como uma extensão de si mesmas e prontamente se revelam para você. Você ganha um bônus de circunstância +2 em testes para @UUID[Compendium.pf2e.actionspf2e.Item.Identify Magic]{Identificar Magia} em um item amaldiçoado ou uma magia que tenha o traço de maldição.</p>"
     },
+    "voZJpob17kJXpy4x": {
+      "name": "Magia Elemental Avançada",
+      "sourceHash": "2459a30ed1c3d0d53224bdec95e6a6719a017815",
+      "description": "<p>Sua conexão com um dos grandes aspectos elementais da natureza se aprofunda, permitindo maior controle sobre seus poderes.</p>\n<p>Você ganha uma magia de ordem avançada associada à sua ordem:</p><ul><li>se você for membro da ordem da chama, você ganha @UUID[Compendium.pf2e.spells-srd.Item.Combustion];</li><li>se você for membro da ordem da pedra, você ganha @UUID[Compendium.pf2e.spells-srd.Item.Stone Lance];</li><li>se você for membro da ordem da tempestade, você ganha @UUID[Compendium.pf2e.spells-srd.Item.Powerful Inhalation];</li><li>se você for membro da ordem da onda, você ganha @UUID[Compendium.pf2e.spells-srd.Item.Pulverizing Cascade].</li></ul><p>Aumente em 1 o número de Pontos de Foco na sua reserva de foco.</p>"
+    },
     "vsKSvWCCr3JPtTxh": {
       "name": "Superstição Onipresente",
       "sourceHash": "de755edd7090f2a9b89c8ec3f82b62375931974c",
@@ -10060,6 +10455,11 @@
       "name": "Retenção de Forma",
       "sourceHash": "867b3e3e3d99b5047f2840b0a14389fd530b3c15",
       "description": "<p>Você treinou sua mente e corpo para tolerar magia de transmutação por períodos mais longos, desde que se prepare adequadamente para a mudança. Ao preparar uma magia de transmutação que dura 1 minuto e concede uma forma de batalha, você pode preparar a magia em um espaço 2 graus maior que o normal. Isso não concede nenhum dos benefícios normais de elevar uma magia, mas a magia dura até 10 minutos. Por exemplo, se você preparou forma animal em um espaço de 4º grau com Retenção de Forma, você conjuraria uma @UUID[Compendium.pf2e.spells-srd.Item.Animal Form]{Forma Animal} de 2º grau que dura até 10 minutos. Se a magia puder ser Dispensada, isso não muda.</p>"
+    },
+    "wix9uNk6gUEPplUy": {
+      "name": "Explorador de Ordens",
+      "sourceHash": "cc3faaf0c7f2383a7924a907af14c08baab72e42",
+      "description": "<p>Você aprendeu os segredos de outra ordem druídica, passando por quaisquer ritos de iniciação que essa ordem exija e ganhando acesso aos seus segredos. Escolha uma ordem diferente da sua. Você ganha um talento de 1º nível que lista essa ordem como pré-requisito, e você agora é membro dessa ordem para fins de cumprimento de pré-requisitos de talento. Se você cometer atos anátemas à sua nova ordem, você perde todos os talentos e habilidades que exigem aquela ordem, mas mantém seus outros talentos e habilidades de druida. Você não ganha nenhum dos outros benefícios da ordem escolhida.</p>\n<hr />\n<p><strong>Especial</strong> Você pode escolher este talento várias vezes. Cada vez que o fizer, deve escolher uma ordem diferente da sua.</p>"
     },
     "wjWmTOLeIAyVMcRV": {
       "name": "Feitiçaria Propulsora",
@@ -10381,6 +10781,11 @@
       "sourceHash": "1f1a487a26063a1fcf1297a427ae70bce510e175",
       "description": "<p><strong>Gatilho</strong> Você sofreria dano de um ataque, magia ou outro efeito.</p>\n<hr />\n<p>Sua conexão sobrenatural às vezes faz você se desconectar da realidade quando ameaçado, desaparecendo por frações de segundo antes de reaparecer — frequentemente surpreendendo você tanto quanto seus inimigos. Role um @Check[flat|dc:16]. Em caso de sucesso, você ganha resistência a todo dano igual ao seu nível contra o efeito que ativou o gatilho, ganha um bônus de circunstância de +2 em testes de resistência contra esse efeito até o início do seu turno, e ganha a condição @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] por 1 rodada.</p>"
     },
+    "yX3MtOS4xskHqo0n": {
+      "name": "Égide Primal",
+      "sourceHash": "2a4a85d37fa8060813bc21bd2ab300062de203f9",
+      "description": "<p>Você se envolve em um campo espesso de energia primal protetora. Você e os aliados a até 30 pés de você ganham resistência igual ao seu modificador de Sabedoria a dano ácido, de frio, de eletricidade, de fogo, de vitalidade e de vazio.</p>"
+    },
     "yeZrr3S1wusVrGJn": {
       "name": "Conjuração Psíquica Especialista",
       "sourceHash": "18755544207b392e6cc1f3e90943d9e6c29ce815",
@@ -10395,6 +10800,11 @@
       "name": "Fusão de Energia",
       "sourceHash": "04eb86f5f58134f4f2237bfa7add9bac88d1c625",
       "description": "<p>Você funde duas magias, combinando seus tipos de energia. Se a próxima ação que você usar for Conjurar uma Magia que causa dano de energia, selecione uma magia que não seja um truque em seu repertório de magias que cause um tipo diferente de dano de energia, e gaste um espaço de magia adicional do mesmo grau dessa magia secundária.</p>\n<p>A magia que você conjura causa dano adicional igual ao grau do espaço de magia secundário gasto. O dano total da magia é dividido igualmente entre o tipo de energia da magia que você conjura e o tipo de energia da magia secundária.</p>"
+    },
+    "yj9Y6rGw3isw5IdR": {
+      "name": "Presença Esquecida",
+      "sourceHash": "fe59bb37778034acb6a78f382aa8dfb46fcbf624",
+      "description": "<p>O mundo conspira para mantê-lo esquecido e despercebido—memórias se turvam, a tinta borra seu nome em registros, e retratos seus racham e se distorcem sobre seu rosto. Personagens que tentam @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] sobre você sofrem uma penalidade de circunstância –2. Adicione @UUID[Compendium.pf2e.spells-srd.Item.Rewrite Memory] à sua lista de magias como uma magia primal.</p>"
     },
     "yl4gS25mY4IXtgqM": {
       "name": "Magia Menor",
@@ -10556,6 +10966,11 @@
       "sourceHash": "fabe7653ca1f616c8596f74f246efaba33bcfe7d",
       "description": "<p>Você aprendeu a antiga lingua falada pelas criaturas do norte distante. Você pode fazer perguntas de, receber respostas de, usar a pericia de Diplomacia com, e @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] megafauna. Na maioria dos casos, megafauna do Reino dos Senhores Mamute o ouvirá.</p>"
     },
+    "zdGAUfuI0AbQnBXi": {
+      "name": "Invocações Elementais",
+      "sourceHash": "b77a92a1122ad6683e0d24e9f6e9b8865a97cf69",
+      "description": "<p>Você pode invocar os elementos até você. Você pode gastar 10 minutos em comunhão com a natureza para substituir uma magia que você preparou em um dos seus espaços de magia de druida por uma magia @UUID[Compendium.pf2e.spells-srd.Item.Summon Elemental] do mesmo grau.</p>"
+    },
     "zgNZVin783k8CE5Q": {
       "name": "Golpe Sagrado Ricocheteante",
       "sourceHash": "e0dd613a85687328889bb0559569049247611b3b",
@@ -10590,6 +11005,11 @@
       "name": "Que Foi Por Pouco, Né?",
       "sourceHash": "e92ca241e0001df73db4f082256e648d96deec62",
       "description": "<p><strong>Frequência</strong> uma vez por rodada</p>\n<p><strong>Requisitos</strong> Ou você usou Tiro Acidental e acertou seu oponente com o Golpe este turno, ou você usou Escapada Afortunada desde seu último turno e o ataque disparador o errou.</p><hr /><p>Você ri inocentemente sobre a sorte inexplicável de seu último tiro acertando em cheio ou o quão perto o ataque que o errou chegou de arrancar sua cabeça, causando seus inimigos a repensarem se é uma boa ideia se oporem a você em combate. Tente @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] o inimigo que você acertou com Tiro Acidental ou o inimigo que errou você por Escapada Afortunada. Você usa Enganação em vez de Intimidação para tentar o teste para [[/act demoralize statistic=deception]]{Desmoralizar}.</p>"
+    },
+    "zwG2ts88AgJsU07c": {
+      "name": "Crescido do Carvalho",
+      "sourceHash": "f9d0faa081f65375b63da4532e6ae91677800c0e",
+      "description": "<p>Você pode fazer sua pele adquirir a resistência lenhosa de uma árvore ancestral e fazer com que seu familiar acompanhe o exemplo. Você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Oaken Resilience] à vontade como uma magia primal inata com um grau de magia um a menos que o maior grau de magia que você pode conjurar. Essa magia tem como alvo você, assim como seu familiar leshy, se estiver a até 30 pés de você.</p>"
     },
     "zxScauWCV6PNrmJw": {
       "name": "Pele Animal",
