@@ -6,7 +6,11 @@
  * subconjunto curado para o MVP da primeira sessão jogável de cada sistema.
  *
  * Subconjunto pf2e (default):
- *   - pf2e.weapons-core:    ~42 armas básicas (30 + 12 armas de fogo, r25)
+ *   - pf2e.weapons-core:    132 armas (121 mundanas de Player Core 1+2, todas
+ *     simples/marciais/avançadas não-mágicas, via predicado `isWeaponsCoreDoc`
+ *     + 12 armas de fogo legadas de "Guns & Gears" da r25, fora de PC1/PC2
+ *     mas mantidas por sourceId, − 1 gap declarado (Blowgun — ver
+ *     `WEAPONS_CORE_KNOWN_GAP_IDS`) — substituiu a lista fixa de ~42 ids)
  *   - pf2e.conditions:      todas as 43 condições
  *   - pf2e.bestiary-core:   10 monstros de nível -1 a 3 (ORC)
  *   - pf2e.spells-core:     15 magias comuns level 1-3 (ORC)
@@ -432,7 +436,7 @@ const PACK_MANIFESTS = {
   // -------------------------------------------------------------------------
   // r18-N2d — pf2e.equipment-core. Physical gear for Finn (Kineticist 3):
   // his named magic items/consumables plus a lean adventurer's-gear subset.
-  // Fixed source-id list (same pattern as MVP_WEAPON_PF2E_IDS above), curated
+  // Fixed source-id list (same pattern as MVP_EQUIPMENT_PF2E_IDS below), curated
   // from out/equipment/transformed.json. Mixed document types (armor,
   // equipment, consumable, container) — every type has a Zod schema in
   // systems/pf2e/src/schemas/item-armor.ts / item-equipment.ts.
@@ -775,46 +779,91 @@ function isActionsCoreDoc(doc) {
 // pf2eIds da análise 05-id-compat.md / dados da normalização.
 // ---------------------------------------------------------------------------
 
-/** pf2eSourceIds das armas selecionadas para o MVP (curadas da análise). */
-const MVP_WEAPON_PF2E_IDS = new Set([
-  // Simple weapons — melee
-  "rQWaJhI5Bko5x14Z", // Dagger
-  "c58wczIzH2gzeXQL", // Club
-  "tOhoGvmCMw4JpWcS", // Spear
-  "5fu6dCtqhdBnHNqh", // Morningstar
-  "LGgvev6AV0So8tP9", // Hatchet
-  "JNt7GmLCCVz5BiEI", // Javelin
-  "Tt4Qw64fwrxhr5gT", // Dart
-  "UCH4myuFnokGv0vF", // Sling
-  "FVjTuBCIefAgloUU", // Staff
-  // Martial weapons — melee
-  "LJdbVTOZog39EEbi", // Longsword
-  "7tKkkF8eZ4iCLJtp", // Shortsword
-  "tH5GirEy7YB3ZgCk", // Rapier
-  "t5FbyZtRL4qV0V7k", // Flail
-  "rXt4629QSg7KDTgJ", // Warhammer
-  "mlrmkpOlwpnGkw4I", // Maul
-  "8COlYvHe6hKCXY8x", // Greataxe
-  "UX71GkWBL9g41VwM", // Greatsword
-  "War0uyLBx1jA0Ge7", // Battle Axe
-  "FJrsDoaIXksVjld9", // Trident
-  "hMYdSFmMWzidzHih", // Bo Staff
-  "TDrO7Xdyn7juFy3c", // Kukri
-  "f1gwoTkf3Nn0v3PN", // Whip
-  "6KWYmeRMxsQfWhhJ", // Bastard Sword
-  // Ranged
-  "hIgqLgH3YcLZBeoT", // Shortbow
-  "MVAWttmT0QDa7LsV", // Longbow
-  "62nnVQvGhoVLLl2K", // Crossbow
-  "e4NwsnPnpQKbDZ9F", // Composite Shortbow
-  "dUC8Fsa6FZtVikS3", // Composite Longbow
-  "XyA6PKV46aNlLXOd", // Hand Crossbow
-  // Firearms — 12 curadas (r25, bloco 4). Todas nível 0–1, uncommon (NÃO existe
-  // arma de fogo comum no PF2e: o acesso é regional, então filtrar por `common`
-  // devolve conjunto vazio), sem runas, sem magia, item-base. Escolhidas por
-  // cobertura: as 3 categorias de proficiência, reload 0/1/2, alcance de 10 a
-  // 150 pés e os traços próprios do grupo (capacity/scatter/kickback/repeating/
-  // modular/double-barrel/concealable/fatal).
+/**
+ * weapons-core (A4, r28): curadoria por PREDICADO, não mais lista fixa de
+ * source-ids. Substitui a lista de ~42 armas curadas manualmente (r25/r18) —
+ * medido em `out/equipment/transformed.json`: das 975 armas do vendor, 138
+ * são de Player Core 1+2 (`isRemasterCoreDoc`); dessas, 17 são itens mágicos
+ * ou específicos nomeados (bastões/lâminas/adagas com regra própria — ex.
+ * "Staff of Providence", "Spellguard Blade", "Four-Ways Dogslicer") que
+ * carregam `traits.value` com `"magical"` OU runas não-zero
+ * (`potency`/`striking`/`property`) mesmo publicados em PC1/PC2. As 121
+ * restantes são as armas MUNDANAS simples/marciais/avançadas — o conjunto
+ * "TODAS as armas não-mágicas de PC1+PC2" pedido no plano r28/A4. `level` NÃO
+ * é filtro válido aqui: armas avançadas mundanas (ex. Composite Longbow) têm
+ * `system.level === 1` sem serem mágicas — só `magical`/`runes` distinguem
+ * item mágico de item mundano nesta pack.
+ */
+/**
+ * weapons-core (r28/A4): one vendor weapon ("Blowgun") is excluded even
+ * though it passes `isWeaponsCoreDoc` — measured in `out/equipment/
+ * transformed.json`, `system.damage.die` is `""` (empty string) because the
+ * blowgun deals no die-rolled damage of its own in RAW (only its ammunition,
+ * "Blowgun Dart", carries a damage die) — `WeaponDamageSchema.die` requires
+ * `/^d\d+$/`, which an ammo-dependent weapon structurally cannot satisfy.
+ * Fixing this needs schema support for ammo-derived damage (a separate
+ * issue, out of scope for A4's curation pass) — declared as a gap, not
+ * silently dropped.
+ */
+const WEAPONS_CORE_KNOWN_GAP_IDS = new Set([
+  "FPwsiGqMCNPLHmjX", // Blowgun — damage.die: "" (ammo-derived damage, no schema support yet)
+]);
+
+/**
+ * weapons-core (r28/A4): 7 alchemical bombs (Blight Bomb x4, Crystal Shards
+ * x3) carry `system.damage.persistent` in the SHAPE transform.mjs emits for
+ * the equipment pack (`{ faces, number, type }`) rather than the shape
+ * `WeaponDamageSchema.persistent` expects (`{ formula, damageType }`) — a
+ * pre-existing transform↔schema mismatch that no prior curated pack ever
+ * surfaced (nothing with persistent damage was hand-picked before). Reshaped
+ * here, at curation time, rather than in transform.mjs itself: transform.mjs
+ * writes into the SHARED `out/` junction (read-only per the r28 disk-space
+ * errata — an agent that needs to alter extract/normalize/transform must
+ * stop and report instead of re-running the pipeline), so the fix is scoped
+ * to the doc actually entering THIS pack, exactly like the equipment-core
+ * `system.quantity` override a few lines below.
+ */
+function fixWeaponPersistentDamageShape(doc) {
+  const persistent = doc.system?.damage?.persistent;
+  if (!persistent || typeof persistent !== "object") return;
+  if ("formula" in persistent && "damageType" in persistent) return; // already correct shape
+  const { faces, number, type } = persistent;
+  doc.system.damage.persistent = {
+    formula: faces ? `${number}d${faces}` : `${number}`,
+    damageType: type,
+  };
+}
+
+function isWeaponsCoreDoc(doc) {
+  if (doc.type !== "weapon") return false;
+  if (isRemasterCoreDoc(doc)) {
+    const traits = doc.system?.traits?.value ?? [];
+    if (traits.includes("magical")) return false;
+    const runes = doc.system?.runes ?? {};
+    if ((runes.potency ?? 0) > 0) return false;
+    if ((runes.striking ?? 0) > 0) return false;
+    if ((runes.property ?? []).length > 0) return false;
+    return true;
+  }
+  // (b) legacy: the 12 firearms curated in r25 (block 4) — PF2e firearms are
+  // published in "Pathfinder Guns & Gears", NOT Player Core 1/2, so
+  // isRemasterCoreDoc alone drops them. Kept by fixed sourceId (same pattern
+  // as LEGACY_CURATED_ANCESTRY_NAMES below) so the ficha-alvo Fofurinha
+  // fixture (packages/client pathbuilder-fofurinha.test.ts, "Slide Pistol")
+  // and r25's category/reload/trait coverage rationale survive the r28/A4
+  // switch to predicate-based curation.
+  return LEGACY_CURATED_WEAPON_IDS.has(doc.flags?.fusion?.sourceId);
+}
+
+/**
+ * pf2eSourceIds das 12 armas de fogo curadas na r25 (bloco 4) — todas nível
+ * 0–1, uncommon, sem runas/magia, item-base, publicadas em "Pathfinder Guns &
+ * Gears" (fora de PC1/PC2, por isso não capturadas por `isRemasterCoreDoc`).
+ * Escolhidas por cobertura: as 3 categorias de proficiência, reload 0/1/2,
+ * alcance de 10 a 150 pés e os traços próprios do grupo (capacity/scatter/
+ * kickback/repeating/modular/double-barrel/concealable/fatal).
+ */
+const LEGACY_CURATED_WEAPON_IDS = new Set([
   "gO5dOlPBk57bg2x5", // Slide Pistol (a arma da ficha-alvo — capacity-5)
   "N3nNqO5Nw2DIFhrv", // Flintlock Pistol
   "hqMtsTwmOShdAdQW", // Flintlock Musket
@@ -827,9 +876,6 @@ const MVP_WEAPON_PF2E_IDS = new Set([
   "MvzR9nTnvKTeNjvQ", // Double-Barreled Pistol (double-barrel)
   "4LJEpZ2HkCu9BvHI", // Hand Cannon (modular)
   "jcIabnkJgjwzK6Og", // Dwarven Scattergun (advanced, scatter-10)
-  // Unarmed / natural
-  // (include one advanced to round out)
-  "oSQET5hKn9q4xlrl", // Gnome Flickmace (advanced)
 ]);
 
 /** pf2eSourceIds das magias selecionadas para o MVP. */
@@ -1577,7 +1623,10 @@ async function buildPf2eSubset() {
     console.log("[build-mvp] === Pack: weapons-core ===");
     const all = loadTransformed("equipment");
     const weapons = all.filter((d) => d.type === "weapon");
-    const docs = filterToMvpSubset(weapons, MVP_WEAPON_PF2E_IDS);
+    const docs = weapons
+      .filter(isWeaponsCoreDoc)
+      .filter((d) => !WEAPONS_CORE_KNOWN_GAP_IDS.has(d.flags?.fusion?.sourceId));
+    for (const doc of docs) fixWeaponPersistentDamageShape(doc);
     console.log(`[build-mvp] weapons-core: ${docs.length} selecionadas de ${weapons.length} armas`);
 
     const manifest = PACK_MANIFESTS["weapons-core"];
