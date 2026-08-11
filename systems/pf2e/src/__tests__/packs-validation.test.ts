@@ -114,6 +114,11 @@ const PARSERS_BY_TYPE: Record<string, (data: unknown) => unknown> = {
   // the vendor's "backpack" type to Fusion's "container" before the doc is
   // written, so committed packs never carry a literal type "backpack".
   armor: parseArmorSystem,
+  // Shields share the armor schema family: transform.mjs's normalizeArmorSystem
+  // handles both "armor" and "shield" doc types (category defaults to
+  // "unarmored" for shields, which carry no category of their own — see
+  // ArmorCategorySchema in item-armor.ts). No separate shield schema exists.
+  shield: parseArmorSystem,
   equipment: parseEquipmentSystem,
   consumable: parseConsumableSystem,
   container: parseContainerSystem,
