@@ -1012,6 +1012,15 @@ const CURATED_ANCESTRY_TRAITS = [
   "human",
   "leshy",
   "orc",
+  // Player Core 2 (mesma régua da issue #1: ancestralidade no pack sem os
+  // feats dela abre o slot de nível 5 vazio — pego pela varredura headless).
+  "catfolk",
+  "hobgoblin",
+  "kholo",
+  "kobold",
+  "lizardfolk",
+  "tengu",
+  "tripkee",
 ];
 
 /**

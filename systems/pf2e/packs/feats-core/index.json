@@ -1,5 +1,498 @@
 [
   {
+    "_id": "ifHa1q4gUrZXohgh",
+    "uuid": "Compendium.pf2e.feats-core.Item.ifHa1q4gUrZXohgh",
+    "name": "Cat Nap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cat Nap",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk",
+        "concentrate",
+        "exploration"
+      ],
+      "flags.fusion.sourceId": "zvtYsz9jk8tPvlpS"
+    }
+  },
+  {
+    "_id": "0oLcTgUnIJuYFCzk",
+    "uuid": "Compendium.pf2e.feats-core.Item.0oLcTgUnIJuYFCzk",
+    "name": "Catfolk Dance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Catfolk Dance",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "Iqv8qj7ym63YjexN"
+    }
+  },
+  {
+    "_id": "FBcJPuaQOuLC6sgV",
+    "uuid": "Compendium.pf2e.feats-core.Item.FBcJPuaQOuLC6sgV",
+    "name": "Catfolk Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Catfolk Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "eqBWab1J5Be24YAl"
+    }
+  },
+  {
+    "_id": "HpegNsnH7J7AzwwF",
+    "uuid": "Compendium.pf2e.feats-core.Item.HpegNsnH7J7AzwwF",
+    "name": "Catfolk Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Catfolk Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "bEh5qUgX5eFaQwzU"
+    }
+  },
+  {
+    "_id": "ErFJgRTDx33iiCs3",
+    "uuid": "Compendium.pf2e.feats-core.Item.ErFJgRTDx33iiCs3",
+    "name": "Cat's Luck",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cat's Luck",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk",
+        "fortune"
+      ],
+      "flags.fusion.sourceId": "7qBuzHY8kEG8SdEP"
+    }
+  },
+  {
+    "_id": "TDCbQVj34v6XAM7k",
+    "uuid": "Compendium.pf2e.feats-core.Item.TDCbQVj34v6XAM7k",
+    "name": "Saber Teeth",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Saber Teeth",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "AL2KD88ddEl5AetZ"
+    }
+  },
+  {
+    "_id": "oGHCpsArgaoaEYb4",
+    "uuid": "Compendium.pf2e.feats-core.Item.oGHCpsArgaoaEYb4",
+    "name": "Well-Met Traveler",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Well-Met Traveler",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "9t4x8vRmQikEl4vP"
+    }
+  },
+  {
+    "_id": "KuLk5TCEuRZSsYcu",
+    "uuid": "Compendium.pf2e.feats-core.Item.KuLk5TCEuRZSsYcu",
+    "name": "Winter Cat Senses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Winter Cat Senses",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "Ds1waj86N4Z2gCMN"
+    }
+  },
+  {
+    "_id": "51J5fyA4dQgqn3LE",
+    "uuid": "Compendium.pf2e.feats-core.Item.51J5fyA4dQgqn3LE",
+    "name": "Black Cat Curse",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Black Cat Curse",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk",
+        "misfortune",
+        "occult"
+      ],
+      "flags.fusion.sourceId": "fX5FybM93HIQRRd1"
+    }
+  },
+  {
+    "_id": "zU7TKGVFXhf1zLHA",
+    "uuid": "Compendium.pf2e.feats-core.Item.zU7TKGVFXhf1zLHA",
+    "name": "Caterwaul",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Caterwaul",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "catfolk",
+        "concentrate",
+        "emotion",
+        "mental"
+      ],
+      "flags.fusion.sourceId": "nePEcAp7lTL35uyx"
+    }
+  },
+  {
+    "_id": "fhZ4lBmYYWcda4Gw",
+    "uuid": "Compendium.pf2e.feats-core.Item.fhZ4lBmYYWcda4Gw",
+    "name": "Inspirit Hazard",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Inspirit Hazard",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk",
+        "concentrate",
+        "occult"
+      ],
+      "flags.fusion.sourceId": "5iHB5ZFJ25XrZHye"
+    }
+  },
+  {
+    "_id": "eaqKsii9s8v0tld4",
+    "uuid": "Compendium.pf2e.feats-core.Item.eaqKsii9s8v0tld4",
+    "name": "Elude Trouble",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elude Trouble",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "5qVCl5MwPcx0sS7T"
+    }
+  },
+  {
+    "_id": "tetRnngAEakoYXMQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.tetRnngAEakoYXMQ",
+    "name": "Reliable Luck",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reliable Luck",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "QgNo1s6nVbKPU4St"
+    }
+  },
+  {
+    "_id": "DuUyJ5dyz8pfhhoN",
+    "uuid": "Compendium.pf2e.feats-core.Item.DuUyJ5dyz8pfhhoN",
+    "name": "Ten Lives",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ten Lives",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "I7S8Snq8FlrBHmbf"
+    }
+  },
+  {
+    "_id": "uGSdQMroms5kce42",
+    "uuid": "Compendium.pf2e.feats-core.Item.uGSdQMroms5kce42",
+    "name": "Climbing Claws",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Climbing Claws",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "TlMSleKR8Bh0EuSW"
+    }
+  },
+  {
+    "_id": "AD9qktfHUobkxaVx",
+    "uuid": "Compendium.pf2e.feats-core.Item.AD9qktfHUobkxaVx",
+    "name": "Focused Cat Nap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Focused Cat Nap",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "O89mwKPRg0up0J0I"
+    }
+  },
+  {
+    "_id": "xSb1fPAQdZR282oB",
+    "uuid": "Compendium.pf2e.feats-core.Item.xSb1fPAQdZR282oB",
+    "name": "Graceful Guidance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Graceful Guidance",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "2IO2W09IvwGHvatH"
+    }
+  },
+  {
+    "_id": "ySBIuLwlBLFYLvbV",
+    "uuid": "Compendium.pf2e.feats-core.Item.ySBIuLwlBLFYLvbV",
+    "name": "Light Paws",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Light Paws",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "EdVMwFRNV1LX1VWh"
+    }
+  },
+  {
+    "_id": "Z9gPP7WrsN6KeroF",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z9gPP7WrsN6KeroF",
+    "name": "Lucky Break",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lucky Break",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "lF5B49zbDG61sxXa"
+    }
+  },
+  {
+    "_id": "RSK8KGP8udhl4djG",
+    "uuid": "Compendium.pf2e.feats-core.Item.RSK8KGP8udhl4djG",
+    "name": "Pride Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pride Hunter",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "uQGo33E4haaFNg6u"
+    }
+  },
+  {
+    "_id": "tK1nJOEssFPzf32x",
+    "uuid": "Compendium.pf2e.feats-core.Item.tK1nJOEssFPzf32x",
+    "name": "Springing Leaper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Springing Leaper",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "3HuiLoQuJKLAh5rV"
+    }
+  },
+  {
+    "_id": "cJhpW67ymVNEaXoX",
+    "uuid": "Compendium.pf2e.feats-core.Item.cJhpW67ymVNEaXoX",
+    "name": "Well-Groomed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Well-Groomed",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "h11M3QrIHKLj2ezy"
+    }
+  },
+  {
+    "_id": "o7pg8sMErHJ3x3Mx",
+    "uuid": "Compendium.pf2e.feats-core.Item.o7pg8sMErHJ3x3Mx",
+    "name": "Aggravating Scratch",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Aggravating Scratch",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk",
+        "disease"
+      ],
+      "flags.fusion.sourceId": "G6rCbMrHacYWNu1K"
+    }
+  },
+  {
+    "_id": "7NLqTTvWLLJbUaqF",
+    "uuid": "Compendium.pf2e.feats-core.Item.7NLqTTvWLLJbUaqF",
+    "name": "Evade Doom",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Evade Doom",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "l4ux6Mn2fklB2cXM"
+    }
+  },
+  {
+    "_id": "5MWv9whJKBdcba8C",
+    "uuid": "Compendium.pf2e.feats-core.Item.5MWv9whJKBdcba8C",
+    "name": "Luck of the Clowder",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Luck of the Clowder",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "d022Gp8PjS4Q0ZAC"
+    }
+  },
+  {
+    "_id": "JzTaazvyZNgZWn6C",
+    "uuid": "Compendium.pf2e.feats-core.Item.JzTaazvyZNgZWn6C",
+    "name": "No Evidence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "No Evidence",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "AKMx0GYKLjy7jTXl"
+    }
+  },
+  {
+    "_id": "1DpKfhgwnqCLOaKZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.1DpKfhgwnqCLOaKZ",
+    "name": "Predator's Growl",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Predator's Growl",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "WQa6PxkOgyvRpaaM"
+    }
+  },
+  {
+    "_id": "vIJMM7cDSi60aifc",
+    "uuid": "Compendium.pf2e.feats-core.Item.vIJMM7cDSi60aifc",
+    "name": "Sense for Trouble",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sense for Trouble",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "T8cBEhuHWkh3MqgO"
+    }
+  },
+  {
+    "_id": "8zKyYVnWXJAHF6bN",
+    "uuid": "Compendium.pf2e.feats-core.Item.8zKyYVnWXJAHF6bN",
+    "name": "Silent Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Silent Step",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk",
+        "flourish"
+      ],
+      "flags.fusion.sourceId": "HPW7Qi02lkVprW6V"
+    }
+  },
+  {
+    "_id": "PSFqMl2MEJEqfGaa",
+    "uuid": "Compendium.pf2e.feats-core.Item.PSFqMl2MEJEqfGaa",
+    "name": "Wary Skulker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wary Skulker",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "catfolk"
+      ],
+      "flags.fusion.sourceId": "fu1cTh93zgGweduf"
+    }
+  },
+  {
     "_id": "TJEzyE6TbjUD1yUL",
     "uuid": "Compendium.pf2e.feats-core.Item.TJEzyE6TbjUD1yUL",
     "name": "Adaptive Vision",
@@ -3542,6 +4035,414 @@
     }
   },
   {
+    "_id": "2ZeQZg33wUCEMsYK",
+    "uuid": "Compendium.pf2e.feats-core.Item.2ZeQZg33wUCEMsYK",
+    "name": "Alchemical Scholar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Alchemical Scholar",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "nyNsIePvpovlDAws"
+    }
+  },
+  {
+    "_id": "vJlmBh0Rqq8IAa9M",
+    "uuid": "Compendium.pf2e.feats-core.Item.vJlmBh0Rqq8IAa9M",
+    "name": "Cantorian Reinforcement",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cantorian Reinforcement",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "0qshtd4mBcjFAxA8"
+    }
+  },
+  {
+    "_id": "qrhN4w0UngHp11Oi",
+    "uuid": "Compendium.pf2e.feats-core.Item.qrhN4w0UngHp11Oi",
+    "name": "Hobgoblin Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hobgoblin Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "13zaW8ZHRWnRe2pj"
+    }
+  },
+  {
+    "_id": "J4JzQ8l4pc9SLzzD",
+    "uuid": "Compendium.pf2e.feats-core.Item.J4JzQ8l4pc9SLzzD",
+    "name": "Hobgoblin Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hobgoblin Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "n9CBjyiB17srkyr4"
+    }
+  },
+  {
+    "_id": "NwhoGbD3Obf9U2JG",
+    "uuid": "Compendium.pf2e.feats-core.Item.NwhoGbD3Obf9U2JG",
+    "name": "Leech-Clip",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Leech-Clip",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "OZtoTusMmCJymObT"
+    }
+  },
+  {
+    "_id": "V9ATvKb5d7PaNQM5",
+    "uuid": "Compendium.pf2e.feats-core.Item.V9ATvKb5d7PaNQM5",
+    "name": "Remorseless Lash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Remorseless Lash",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "iRztLGEK5OfjZTPg"
+    }
+  },
+  {
+    "_id": "c14RlLYcTPjODsO9",
+    "uuid": "Compendium.pf2e.feats-core.Item.c14RlLYcTPjODsO9",
+    "name": "Sneaky",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sneaky",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "augNhQ51eSlZyead"
+    }
+  },
+  {
+    "_id": "V1b509ZB1IfX1XlF",
+    "uuid": "Compendium.pf2e.feats-core.Item.V1b509ZB1IfX1XlF",
+    "name": "Stone Face",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stone Face",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "Nn80wBZYJZxcuKsJ"
+    }
+  },
+  {
+    "_id": "Lmxt3jkufiauJogN",
+    "uuid": "Compendium.pf2e.feats-core.Item.Lmxt3jkufiauJogN",
+    "name": "Vigorous Health",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vigorous Health",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "D2tyUKQiDSq3JO1Z"
+    }
+  },
+  {
+    "_id": "ceQnrQs5aouDlLmf",
+    "uuid": "Compendium.pf2e.feats-core.Item.ceQnrQs5aouDlLmf",
+    "name": "Can't Fall Here",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Can't Fall Here",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "hobgoblin",
+        "manipulate"
+      ],
+      "flags.fusion.sourceId": "XJfUj2o4HdL5waZL"
+    }
+  },
+  {
+    "_id": "5n5mUucd0wkHahQZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.5n5mUucd0wkHahQZ",
+    "name": "Formation Master",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Formation Master",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "QHPtlFvTpgx1GE7S"
+    }
+  },
+  {
+    "_id": "a7Bqo4caYIadGpJT",
+    "uuid": "Compendium.pf2e.feats-core.Item.a7Bqo4caYIadGpJT",
+    "name": "War Conditioning",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "War Conditioning",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "S1Z5dFAkMKkFSofk"
+    }
+  },
+  {
+    "_id": "LkBn0Q0RHBHf2S4B",
+    "uuid": "Compendium.pf2e.feats-core.Item.LkBn0Q0RHBHf2S4B",
+    "name": "We March On",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "We March On",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "48z7BPYIZJIgj3x5"
+    }
+  },
+  {
+    "_id": "01d6d84pw65lJRGl",
+    "uuid": "Compendium.pf2e.feats-core.Item.01d6d84pw65lJRGl",
+    "name": "Azaersi's Roads",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Azaersi's Roads",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "LoZY48txEgHZxewj"
+    }
+  },
+  {
+    "_id": "Ph5S7qn79VABnWV4",
+    "uuid": "Compendium.pf2e.feats-core.Item.Ph5S7qn79VABnWV4",
+    "name": "Cantorian Restoration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cantorian Restoration",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "healing",
+        "hobgoblin",
+        "vitality"
+      ],
+      "flags.fusion.sourceId": "Qc9MH7wT182qasSV"
+    }
+  },
+  {
+    "_id": "1x8RP5kUbL4x9j3N",
+    "uuid": "Compendium.pf2e.feats-core.Item.1x8RP5kUbL4x9j3N",
+    "name": "Rallying Cry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rallying Cry",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "8l3qDZrfhxUGijjB"
+    }
+  },
+  {
+    "_id": "2tSOma59NmW8eRGo",
+    "uuid": "Compendium.pf2e.feats-core.Item.2tSOma59NmW8eRGo",
+    "name": "Agonizing Rebuke",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Agonizing Rebuke",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "7hwTeZNq6Jmzmtz4"
+    }
+  },
+  {
+    "_id": "qd00t6oIJPEAxKrA",
+    "uuid": "Compendium.pf2e.feats-core.Item.qd00t6oIJPEAxKrA",
+    "name": "Expert Drill Sergeant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Expert Drill Sergeant",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "Fj3ufCawOM6fZB24"
+    }
+  },
+  {
+    "_id": "jEtL4MoGvwMDWb5S",
+    "uuid": "Compendium.pf2e.feats-core.Item.jEtL4MoGvwMDWb5S",
+    "name": "Formation Training",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Formation Training",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "aoz9dCq2NynyUYEf"
+    }
+  },
+  {
+    "_id": "o99FKy5zQkvIl1JX",
+    "uuid": "Compendium.pf2e.feats-core.Item.o99FKy5zQkvIl1JX",
+    "name": "Recognize Ambush",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Recognize Ambush",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "OOBSMpdAfYuiiQqo"
+    }
+  },
+  {
+    "_id": "mQKvrhdlYjjFadM4",
+    "uuid": "Compendium.pf2e.feats-core.Item.mQKvrhdlYjjFadM4",
+    "name": "Runtsage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Runtsage",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "qUZnrueC2a0zf95N"
+    }
+  },
+  {
+    "_id": "DHsa23tjpqEBwCXK",
+    "uuid": "Compendium.pf2e.feats-core.Item.DHsa23tjpqEBwCXK",
+    "name": "Cantorian Rejuvenation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cantorian Rejuvenation",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "healing",
+        "hobgoblin",
+        "vitality"
+      ],
+      "flags.fusion.sourceId": "56HvICglqH7uR3AY"
+    }
+  },
+  {
+    "_id": "gxdDD0v8aw9ir6rh",
+    "uuid": "Compendium.pf2e.feats-core.Item.gxdDD0v8aw9ir6rh",
+    "name": "Fell Rider",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fell Rider",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "mXNwdRSM9kZrT2Um"
+    }
+  },
+  {
+    "_id": "P0u0ij2jUZTWCFDS",
+    "uuid": "Compendium.pf2e.feats-core.Item.P0u0ij2jUZTWCFDS",
+    "name": "Pride in Arms",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pride in Arms",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "CCY6VsGjp5fdmM6K"
+    }
+  },
+  {
+    "_id": "hI1tRZqfmaLDOEvy",
+    "uuid": "Compendium.pf2e.feats-core.Item.hI1tRZqfmaLDOEvy",
+    "name": "Squad Tactics",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Squad Tactics",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "hobgoblin"
+      ],
+      "flags.fusion.sourceId": "jzfV4lJ0721Hfzq1"
+    }
+  },
+  {
     "_id": "9cZFCLcogffLATJS",
     "uuid": "Compendium.pf2e.feats-core.Item.9cZFCLcogffLATJS",
     "name": "Adapted Cantrip",
@@ -4221,6 +5122,1044 @@
     }
   },
   {
+    "_id": "CiStmUIJwocDir8k",
+    "uuid": "Compendium.pf2e.feats-core.Item.CiStmUIJwocDir8k",
+    "name": "Ask the Bones",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ask the Bones",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "Om6WLsTsIt6Ku3JQ"
+    }
+  },
+  {
+    "_id": "y2ecLrGnqZtG1HdB",
+    "uuid": "Compendium.pf2e.feats-core.Item.y2ecLrGnqZtG1HdB",
+    "name": "Crunch",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crunch",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "aOhZUMCn0o2ZMkdW"
+    }
+  },
+  {
+    "_id": "xZku1hJ7S6MBjTVl",
+    "uuid": "Compendium.pf2e.feats-core.Item.xZku1hJ7S6MBjTVl",
+    "name": "Hyena Familiar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hyena Familiar",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "5vipJDU5hGs0SejD"
+    }
+  },
+  {
+    "_id": "mJZtkFL8oJHdRNKZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.mJZtkFL8oJHdRNKZ",
+    "name": "Kholo Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kholo Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "rWiddU8fHl0TraoN"
+    }
+  },
+  {
+    "_id": "HUUPSkAr82YlKXly",
+    "uuid": "Compendium.pf2e.feats-core.Item.HUUPSkAr82YlKXly",
+    "name": "Kholo Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kholo Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "zb7F0M3H8PN3XsdX"
+    }
+  },
+  {
+    "_id": "GOPnK8a6Gd9uy5il",
+    "uuid": "Compendium.pf2e.feats-core.Item.GOPnK8a6Gd9uy5il",
+    "name": "Pack Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pack Hunter",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "aGpH394T1xr2ey88"
+    }
+  },
+  {
+    "_id": "b2o9hMmmuQNv0r7l",
+    "uuid": "Compendium.pf2e.feats-core.Item.b2o9hMmmuQNv0r7l",
+    "name": "Sensitive Nose",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sensitive Nose",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "jOwZMv5jtwdKSfLS"
+    }
+  },
+  {
+    "_id": "DDygwMTxgA2R9o0L",
+    "uuid": "Compendium.pf2e.feats-core.Item.DDygwMTxgA2R9o0L",
+    "name": "Ancestor's Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ancestor's Rage",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "ytgmam8COVq8B7Do"
+    }
+  },
+  {
+    "_id": "WAque3GSstETwb8l",
+    "uuid": "Compendium.pf2e.feats-core.Item.WAque3GSstETwb8l",
+    "name": "Bonekeeper's Bane",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bonekeeper's Bane",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "8q0L0OWsagcCieL3"
+    }
+  },
+  {
+    "_id": "9ZVXsg5TKqkZKOSJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.9ZVXsg5TKqkZKOSJ",
+    "name": "First to Strike, First to Fall",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "First to Strike, First to Fall",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "2z9OyJNiVPNwJeDS"
+    }
+  },
+  {
+    "_id": "Rqhm4nG8QSnmff4y",
+    "uuid": "Compendium.pf2e.feats-core.Item.Rqhm4nG8QSnmff4y",
+    "name": "Impaling Bone",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impaling Bone",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "ud2ulIyiwIAelWyV"
+    }
+  },
+  {
+    "_id": "A4b1LTGd6pPN8nFR",
+    "uuid": "Compendium.pf2e.feats-core.Item.A4b1LTGd6pPN8nFR",
+    "name": "Legendary Laugh",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Laugh",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "Y6n4EDUnWr1vMJTM"
+    }
+  },
+  {
+    "_id": "AkcXirkoSPvoFBlM",
+    "uuid": "Compendium.pf2e.feats-core.Item.AkcXirkoSPvoFBlM",
+    "name": "Absorb Strength",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Absorb Strength",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "iFSy6WtIUUKSYP2C"
+    }
+  },
+  {
+    "_id": "6AGDurMW8hYo1UPl",
+    "uuid": "Compendium.pf2e.feats-core.Item.6AGDurMW8hYo1UPl",
+    "name": "Affliction Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Affliction Resistance",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "5oazhjGmSwfPTlh3"
+    }
+  },
+  {
+    "_id": "4KWlHoSJhUoYVd7y",
+    "uuid": "Compendium.pf2e.feats-core.Item.4KWlHoSJhUoYVd7y",
+    "name": "Distant Cackle",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Distant Cackle",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "P19AnciwNcSqxU7z"
+    }
+  },
+  {
+    "_id": "ab8xW2CAHga7ExnS",
+    "uuid": "Compendium.pf2e.feats-core.Item.ab8xW2CAHga7ExnS",
+    "name": "Left-Hand Blood",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Left-Hand Blood",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "7XA3Hm2md2tU9pEz"
+    }
+  },
+  {
+    "_id": "NYcPYIsFpX1yZu7i",
+    "uuid": "Compendium.pf2e.feats-core.Item.NYcPYIsFpX1yZu7i",
+    "name": "Pack Stalker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pack Stalker",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "0FqbyC5tR2DC0DOk"
+    }
+  },
+  {
+    "_id": "n5LVSMi83J2ZrPnv",
+    "uuid": "Compendium.pf2e.feats-core.Item.n5LVSMi83J2ZrPnv",
+    "name": "Rabid Sprint",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rabid Sprint",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "flourish",
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "kvhouG3yJ2vQkzah"
+    }
+  },
+  {
+    "_id": "St3y1MXwLqVPuNfJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.St3y1MXwLqVPuNfJ",
+    "name": "Right-Hand Blood",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Right-Hand Blood",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "hrITlxkBqHvaiiRS"
+    }
+  },
+  {
+    "_id": "JesJAwsMNXTjVpkw",
+    "uuid": "Compendium.pf2e.feats-core.Item.JesJAwsMNXTjVpkw",
+    "name": "Ambush Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ambush Hunter",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "VWGoFBdfvIkG5T4i"
+    }
+  },
+  {
+    "_id": "67IE3cbw8PjzDFga",
+    "uuid": "Compendium.pf2e.feats-core.Item.67IE3cbw8PjzDFga",
+    "name": "Breath Like Honey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Breath Like Honey",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "FZZXgmVMAmvKHWIo"
+    }
+  },
+  {
+    "_id": "XeQCQerxziBzPRa9",
+    "uuid": "Compendium.pf2e.feats-core.Item.XeQCQerxziBzPRa9",
+    "name": "Grandmother's Wisdom",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Grandmother's Wisdom",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "mU8vTzrWX9fIlG0d"
+    }
+  },
+  {
+    "_id": "ls5A9HzhznUBaPwG",
+    "uuid": "Compendium.pf2e.feats-core.Item.ls5A9HzhznUBaPwG",
+    "name": "Laughing Kholo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Laughing Kholo",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kholo"
+      ],
+      "flags.fusion.sourceId": "QNgnwkKZmJR5jT7K"
+    }
+  },
+  {
+    "_id": "4WcMgfnGibIrVJ7V",
+    "uuid": "Compendium.pf2e.feats-core.Item.4WcMgfnGibIrVJ7V",
+    "name": "Benefactor's Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Benefactor's Resistance",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "DFSeNLLmFyUzprIx"
+    }
+  },
+  {
+    "_id": "9oau7NvlGBdL1eE0",
+    "uuid": "Compendium.pf2e.feats-core.Item.9oau7NvlGBdL1eE0",
+    "name": "Cringe",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cringe",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "emotion",
+        "kobold",
+        "mental",
+        "visual"
+      ],
+      "flags.fusion.sourceId": "WoKiYMCXV27szBdy"
+    }
+  },
+  {
+    "_id": "J4qctGufHZ3vgJSx",
+    "uuid": "Compendium.pf2e.feats-core.Item.J4qctGufHZ3vgJSx",
+    "name": "Draconic Sycophant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Draconic Sycophant",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "HauCZuLvIthFe2we"
+    }
+  },
+  {
+    "_id": "rqtIml0jBxJdfJ9q",
+    "uuid": "Compendium.pf2e.feats-core.Item.rqtIml0jBxJdfJ9q",
+    "name": "Dragon's Presence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragon's Presence",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "SPyvwsiSghySIEw2"
+    }
+  },
+  {
+    "_id": "4G1A1kB55jmrtd4l",
+    "uuid": "Compendium.pf2e.feats-core.Item.4G1A1kB55jmrtd4l",
+    "name": "Dragonscaled Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragonscaled Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "CO7O8PT8RSAR2S1I"
+    }
+  },
+  {
+    "_id": "VgM5ujCtWzxnlSCm",
+    "uuid": "Compendium.pf2e.feats-core.Item.VgM5ujCtWzxnlSCm",
+    "name": "Hoarder's Craw",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hoarder's Craw",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "nJTQIUGjzZcDsBHw"
+    }
+  },
+  {
+    "_id": "hNVCCAM95YLl1vO2",
+    "uuid": "Compendium.pf2e.feats-core.Item.hNVCCAM95YLl1vO2",
+    "name": "Kobold Breath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kobold Breath",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold",
+        "magical"
+      ],
+      "flags.fusion.sourceId": "PPUNMjRLQYnmwQvF"
+    }
+  },
+  {
+    "_id": "ZQiTi4VrO6HXOAFw",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZQiTi4VrO6HXOAFw",
+    "name": "Kobold Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kobold Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "IElFaS5i10MFYIvq"
+    }
+  },
+  {
+    "_id": "3ArfQ2uuKY6TYfYW",
+    "uuid": "Compendium.pf2e.feats-core.Item.3ArfQ2uuKY6TYfYW",
+    "name": "Kobold Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kobold Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "OTjRxyCtwPoqNFP2"
+    }
+  },
+  {
+    "_id": "FSvJ1w8IkiTazHt1",
+    "uuid": "Compendium.pf2e.feats-core.Item.FSvJ1w8IkiTazHt1",
+    "name": "Koi Secrets",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Koi Secrets",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "VQInlv7phdWErkvE"
+    }
+  },
+  {
+    "_id": "ZVOyuZkObVCJ4WQS",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZVOyuZkObVCJ4WQS",
+    "name": "Scamper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scamper",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "xzpMQ2ZRn9zC23XG"
+    }
+  },
+  {
+    "_id": "9xShKf6Yzxp7RnOs",
+    "uuid": "Compendium.pf2e.feats-core.Item.9xShKf6Yzxp7RnOs",
+    "name": "Slither",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Slither",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "TW5TY7kSf50uaX71"
+    }
+  },
+  {
+    "_id": "DkmwbUE02vrOfBX3",
+    "uuid": "Compendium.pf2e.feats-core.Item.DkmwbUE02vrOfBX3",
+    "name": "Snare Setter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snare Setter",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "eMmdBpbMrpIuGowo"
+    }
+  },
+  {
+    "_id": "WzY231z8lQHanUq2",
+    "uuid": "Compendium.pf2e.feats-core.Item.WzY231z8lQHanUq2",
+    "name": "Elite Dracomancer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elite Dracomancer",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "I9cJYC7anz7HmpcJ"
+    }
+  },
+  {
+    "_id": "slwNP4ucsw04i2eR",
+    "uuid": "Compendium.pf2e.feats-core.Item.slwNP4ucsw04i2eR",
+    "name": "Imperial Dragon Potion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Imperial Dragon Potion",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "BoLeT3uNl7iikQuI"
+    }
+  },
+  {
+    "_id": "50UNlEPZaM95W8d4",
+    "uuid": "Compendium.pf2e.feats-core.Item.50UNlEPZaM95W8d4",
+    "name": "Kaiju's Footfalls",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kaiju's Footfalls",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "1i2Ms9egpbnzuUjQ"
+    }
+  },
+  {
+    "_id": "ls91xG399m21zXh1",
+    "uuid": "Compendium.pf2e.feats-core.Item.ls91xG399m21zXh1",
+    "name": "Resplendent Spellhorn",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Resplendent Spellhorn",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "OP5OZFXJwxCTtJyK"
+    }
+  },
+  {
+    "_id": "s9MsyqKlvkW8niq9",
+    "uuid": "Compendium.pf2e.feats-core.Item.s9MsyqKlvkW8niq9",
+    "name": "Tumbling Diversion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tumbling Diversion",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "7QNc7FnfT7GZa5w3"
+    }
+  },
+  {
+    "_id": "KJjJYkRPOuTcfn2j",
+    "uuid": "Compendium.pf2e.feats-core.Item.KJjJYkRPOuTcfn2j",
+    "name": "Vicious Snares",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vicious Snares",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "QjHZN1uAxl2hSbej"
+    }
+  },
+  {
+    "_id": "HSHlf7mdARoYq05q",
+    "uuid": "Compendium.pf2e.feats-core.Item.HSHlf7mdARoYq05q",
+    "name": "Benefactor's Majesty",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Benefactor's Majesty",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "healing",
+        "kobold",
+        "visual"
+      ],
+      "flags.fusion.sourceId": "v0kwHxBXfTihnNSq"
+    }
+  },
+  {
+    "_id": "unDbYHPac5hlZKrP",
+    "uuid": "Compendium.pf2e.feats-core.Item.unDbYHPac5hlZKrP",
+    "name": "Wyrmling Flight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wyrmling Flight",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "hNr4OrMdCMhQLbtB"
+    }
+  },
+  {
+    "_id": "REdbl6HY6aTb3EYK",
+    "uuid": "Compendium.pf2e.feats-core.Item.REdbl6HY6aTb3EYK",
+    "name": "Ally's Shelter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ally's Shelter",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "fortune",
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "j0mlvJcuYGFuMG2S"
+    }
+  },
+  {
+    "_id": "z3XUV1pb8A7m4dmX",
+    "uuid": "Compendium.pf2e.feats-core.Item.z3XUV1pb8A7m4dmX",
+    "name": "Benefactor's Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Benefactor's Strike",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "9tO7Kovo3Ugy0175"
+    }
+  },
+  {
+    "_id": "W7RsJp34A9XRvc5J",
+    "uuid": "Compendium.pf2e.feats-core.Item.W7RsJp34A9XRvc5J",
+    "name": "Duck!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Duck!",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "VHOsMzpzQUX7AEau"
+    }
+  },
+  {
+    "_id": "cOwA4c1g3EAZbZZ1",
+    "uuid": "Compendium.pf2e.feats-core.Item.cOwA4c1g3EAZbZZ1",
+    "name": "Friend of the Family",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Friend of the Family",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "UpHZIBq0ECtgUS6T"
+    }
+  },
+  {
+    "_id": "GMZuW3b8oKuV0rJU",
+    "uuid": "Compendium.pf2e.feats-core.Item.GMZuW3b8oKuV0rJU",
+    "name": "Grovel",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Grovel",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "emotion",
+        "kobold",
+        "mental"
+      ],
+      "flags.fusion.sourceId": "gS9FYlD0Vt8yyZkP"
+    }
+  },
+  {
+    "_id": "r7JXGG2VF1TbKUt7",
+    "uuid": "Compendium.pf2e.feats-core.Item.r7JXGG2VF1TbKUt7",
+    "name": "Kobold Momentum",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kobold Momentum",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "pXwOIzZhfgJrhQxS"
+    }
+  },
+  {
+    "_id": "MkEqXGtt4m49KII9",
+    "uuid": "Compendium.pf2e.feats-core.Item.MkEqXGtt4m49KII9",
+    "name": "Snare Genius",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snare Genius",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "8DIzXO1YpsU3DpJw"
+    }
+  },
+  {
+    "_id": "RuDPKIu5svkijyU9",
+    "uuid": "Compendium.pf2e.feats-core.Item.RuDPKIu5svkijyU9",
+    "name": "Tip the Scales",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tip the Scales",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "Dc5hLCC2qxCDWjX5"
+    }
+  },
+  {
+    "_id": "eCXmdPRusiJhmIrT",
+    "uuid": "Compendium.pf2e.feats-core.Item.eCXmdPRusiJhmIrT",
+    "name": "Winglets",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Winglets",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "juLtvliSzYPCmMa3"
+    }
+  },
+  {
+    "_id": "eT6euWEIFBvoDh3b",
+    "uuid": "Compendium.pf2e.feats-core.Item.eT6euWEIFBvoDh3b",
+    "name": "Between the Scales",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Between the Scales",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "zL6zUrt44tZYyuh4"
+    }
+  },
+  {
+    "_id": "XpoJbicOgXknE8VY",
+    "uuid": "Compendium.pf2e.feats-core.Item.XpoJbicOgXknE8VY",
+    "name": "Breath Unleashed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Breath Unleashed",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "BaVO8UU5ZkL8OZZj"
+    }
+  },
+  {
+    "_id": "XfyuOuUNgpIzdl38",
+    "uuid": "Compendium.pf2e.feats-core.Item.XfyuOuUNgpIzdl38",
+    "name": "Briar Battler",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Briar Battler",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "xM8IWff5yfbQGk4s"
+    }
+  },
+  {
+    "_id": "kKMubIrbp8fC1OaL",
+    "uuid": "Compendium.pf2e.feats-core.Item.kKMubIrbp8fC1OaL",
+    "name": "Close Quarters",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Close Quarters",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "rU9Aw05FFLVq0MTV"
+    }
+  },
+  {
+    "_id": "kVgfMRQ0WZetvwx1",
+    "uuid": "Compendium.pf2e.feats-core.Item.kVgfMRQ0WZetvwx1",
+    "name": "Dracomancer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dracomancer",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "lbiFj4At5BxotaNY"
+    }
+  },
+  {
+    "_id": "hRFjMB3kpr1I2eKf",
+    "uuid": "Compendium.pf2e.feats-core.Item.hRFjMB3kpr1I2eKf",
+    "name": "Draconic Paragon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Draconic Paragon",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "PF8qHT4zd0loLQeJ"
+    }
+  },
+  {
+    "_id": "nbFcSTkfP9pUf8C0",
+    "uuid": "Compendium.pf2e.feats-core.Item.nbFcSTkfP9pUf8C0",
+    "name": "Dragonblood Paragon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragonblood Paragon",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "4EgueMqUm0ebKV4J"
+    }
+  },
+  {
+    "_id": "EqS8pNJxfNGVuGcK",
+    "uuid": "Compendium.pf2e.feats-core.Item.EqS8pNJxfNGVuGcK",
+    "name": "Evolved Spellhorn",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Evolved Spellhorn",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "ELbjdZtAGppc1b30"
+    }
+  },
+  {
+    "_id": "onxhzcJVkv0kIx7d",
+    "uuid": "Compendium.pf2e.feats-core.Item.onxhzcJVkv0kIx7d",
+    "name": "Fleeing Shriek",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fleeing Shriek",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "kobold",
+        "sonic"
+      ],
+      "flags.fusion.sourceId": "oOicdaf3WvT1i5ft"
+    }
+  },
+  {
+    "_id": "WliuAIaaYmUPrPX3",
+    "uuid": "Compendium.pf2e.feats-core.Item.WliuAIaaYmUPrPX3",
+    "name": "Snare Commando",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snare Commando",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "nqDhQdkgsnvebUMr"
+    }
+  },
+  {
+    "_id": "H776wMwnDMD5cVVR",
+    "uuid": "Compendium.pf2e.feats-core.Item.H776wMwnDMD5cVVR",
+    "name": "Winglet Flight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Winglet Flight",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "kobold"
+      ],
+      "flags.fusion.sourceId": "kBnsLuh3eBLjwGpN"
+    }
+  },
+  {
     "_id": "ZEUkUrTqLwlVq19v",
     "uuid": "Compendium.pf2e.feats-core.Item.ZEUkUrTqLwlVq19v",
     "name": "Ageless Spirit",
@@ -4736,6 +6675,554 @@
         "leshy"
       ],
       "flags.fusion.sourceId": "fiA3rfqPcCKFCI83"
+    }
+  },
+  {
+    "_id": "R7Verer6fiET2ASn",
+    "uuid": "Compendium.pf2e.feats-core.Item.R7Verer6fiET2ASn",
+    "name": "Bone Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bone Magic",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "fLDhS0e6fBDjiCUA"
+    }
+  },
+  {
+    "_id": "90NujOzdf7Yh9Xr6",
+    "uuid": "Compendium.pf2e.feats-core.Item.90NujOzdf7Yh9Xr6",
+    "name": "Consult the Stars",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Consult the Stars",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "NySPRgD0FjZY2QGs"
+    }
+  },
+  {
+    "_id": "gpWxA9oTJXUcfVHU",
+    "uuid": "Compendium.pf2e.feats-core.Item.gpWxA9oTJXUcfVHU",
+    "name": "Crocodile's Twin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crocodile's Twin",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "jRtQgOVZMr3QobG1"
+    }
+  },
+  {
+    "_id": "DZPt9031WZTJtxnr",
+    "uuid": "Compendium.pf2e.feats-core.Item.DZPt9031WZTJtxnr",
+    "name": "Iruxi Armaments",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Iruxi Armaments",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "system.maxTakable": 3,
+      "flags.fusion.sourceId": "VatkAzfBYjA6z6OP"
+    }
+  },
+  {
+    "_id": "YgGhKnGTlX6Tz6IO",
+    "uuid": "Compendium.pf2e.feats-core.Item.YgGhKnGTlX6Tz6IO",
+    "name": "Lightning Tongue",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lightning Tongue",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "qzalwa2Ze3dIqIrA"
+    }
+  },
+  {
+    "_id": "QHsnqFCAKZxoUbzn",
+    "uuid": "Compendium.pf2e.feats-core.Item.QHsnqFCAKZxoUbzn",
+    "name": "Lizardfolk Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lizardfolk Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "FhCsnHjdIUyKteCM"
+    }
+  },
+  {
+    "_id": "Uc7As5WkayIqtnZp",
+    "uuid": "Compendium.pf2e.feats-core.Item.Uc7As5WkayIqtnZp",
+    "name": "Marsh Runner",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Marsh Runner",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "itjTPh76mZfJCBxQ"
+    }
+  },
+  {
+    "_id": "EutD7nHjNWUIh1WR",
+    "uuid": "Compendium.pf2e.feats-core.Item.EutD7nHjNWUIh1WR",
+    "name": "Parthenogenic Hatchling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Parthenogenic Hatchling",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "U12Sh43QuY85Prdm"
+    }
+  },
+  {
+    "_id": "72xgUguqOCZAZEB5",
+    "uuid": "Compendium.pf2e.feats-core.Item.72xgUguqOCZAZEB5",
+    "name": "Reptile Rider",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reptile Rider",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "k31sg0xBIwvkfWyg"
+    }
+  },
+  {
+    "_id": "HyHgt4uEnZiSREFR",
+    "uuid": "Compendium.pf2e.feats-core.Item.HyHgt4uEnZiSREFR",
+    "name": "Reptile Speaker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reptile Speaker",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "GEvaoKgQteMrd4ub"
+    }
+  },
+  {
+    "_id": "w8tI12ZMeOBhwiCF",
+    "uuid": "Compendium.pf2e.feats-core.Item.w8tI12ZMeOBhwiCF",
+    "name": "Spirit Coffin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spirit Coffin",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "ky9jhAGOWGj8gAsO"
+    }
+  },
+  {
+    "_id": "mmPGVw5qNMngSATk",
+    "uuid": "Compendium.pf2e.feats-core.Item.mmPGVw5qNMngSATk",
+    "name": "Bone Investiture",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bone Investiture",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "XuL3g2ExgadFtWbb"
+    }
+  },
+  {
+    "_id": "2MWiU7EbzSGf8VkK",
+    "uuid": "Compendium.pf2e.feats-core.Item.2MWiU7EbzSGf8VkK",
+    "name": "Ferry Through Waves",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ferry Through Waves",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "b4YmWetKmNww6r9j"
+    }
+  },
+  {
+    "_id": "OkNLO1iz7OcurUQz",
+    "uuid": "Compendium.pf2e.feats-core.Item.OkNLO1iz7OcurUQz",
+    "name": "Iruxi Spirit Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Iruxi Spirit Strike",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "pivX2SxPQjKDyvHU"
+    }
+  },
+  {
+    "_id": "wq2alCZfncJgSw8n",
+    "uuid": "Compendium.pf2e.feats-core.Item.wq2alCZfncJgSw8n",
+    "name": "Primal Rampage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Primal Rampage",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "X1SPiYJqWzqwzPTs"
+    }
+  },
+  {
+    "_id": "tH2LJ2wQIGn5dgqh",
+    "uuid": "Compendium.pf2e.feats-core.Item.tH2LJ2wQIGn5dgqh",
+    "name": "Spiritual Headhunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spiritual Headhunter",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "Y5w2BOMeZpbSC6Ss"
+    }
+  },
+  {
+    "_id": "sMxcWPXh39IaK2iR",
+    "uuid": "Compendium.pf2e.feats-core.Item.sMxcWPXh39IaK2iR",
+    "name": "Fossil Rider",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fossil Rider",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "IOlvpmeIwlk0IACr"
+    }
+  },
+  {
+    "_id": "lDE1K5ozWfOG730o",
+    "uuid": "Compendium.pf2e.feats-core.Item.lDE1K5ozWfOG730o",
+    "name": "Mooneater",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mooneater",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk",
+        "primal"
+      ],
+      "flags.fusion.sourceId": "FKS9nLz07v9x49sE"
+    }
+  },
+  {
+    "_id": "LF5Eq4gOyuBx6zSd",
+    "uuid": "Compendium.pf2e.feats-core.Item.LF5Eq4gOyuBx6zSd",
+    "name": "Scion Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scion Transformation",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk",
+        "primal"
+      ],
+      "flags.fusion.sourceId": "wFtJlamwRc6rSQmj"
+    }
+  },
+  {
+    "_id": "RvYgiHLdxNqFz2zw",
+    "uuid": "Compendium.pf2e.feats-core.Item.RvYgiHLdxNqFz2zw",
+    "name": "Envenom Fangs",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Envenom Fangs",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "IY86Kvopp4ACuQsw"
+    }
+  },
+  {
+    "_id": "HInlW309CokAcvNr",
+    "uuid": "Compendium.pf2e.feats-core.Item.HInlW309CokAcvNr",
+    "name": "Flexible Tail",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flexible Tail",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "VLCAFIXzUtiv1VuE"
+    }
+  },
+  {
+    "_id": "f07EB2LndWqZGvG7",
+    "uuid": "Compendium.pf2e.feats-core.Item.f07EB2LndWqZGvG7",
+    "name": "Gecko's Grip",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Gecko's Grip",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "kGed3uQbZ7x5SBB8"
+    }
+  },
+  {
+    "_id": "NqdXsZhH3pi2C392",
+    "uuid": "Compendium.pf2e.feats-core.Item.NqdXsZhH3pi2C392",
+    "name": "Guided by the Stars",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Guided by the Stars",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "fortune",
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "s1swBWSqtfrXTJHK"
+    }
+  },
+  {
+    "_id": "Bef80O9kVEhO2ZSt",
+    "uuid": "Compendium.pf2e.feats-core.Item.Bef80O9kVEhO2ZSt",
+    "name": "Iruxi Glide",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Iruxi Glide",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "yqtaAZR9jfen6gEW"
+    }
+  },
+  {
+    "_id": "gBs182LSDd6Exgii",
+    "uuid": "Compendium.pf2e.feats-core.Item.gBs182LSDd6Exgii",
+    "name": "Shed Tail",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shed Tail",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "t3IzY8uSyFj3aGmh"
+    }
+  },
+  {
+    "_id": "lMGUsl5a19OwYQvK",
+    "uuid": "Compendium.pf2e.feats-core.Item.lMGUsl5a19OwYQvK",
+    "name": "Swift Swimmer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swift Swimmer",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "iliy0ONIb8Hw6muA"
+    }
+  },
+  {
+    "_id": "tSDYaAahz29saIxS",
+    "uuid": "Compendium.pf2e.feats-core.Item.tSDYaAahz29saIxS",
+    "name": "Tongue Disarm",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tongue Disarm",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "y0Ru2hRmoRwkRsxZ"
+    }
+  },
+  {
+    "_id": "eiv3NmZ8W58w1GzO",
+    "uuid": "Compendium.pf2e.feats-core.Item.eiv3NmZ8W58w1GzO",
+    "name": "Ancestral Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ancestral Form",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "UWOSRX6FH6MZDlEw"
+    }
+  },
+  {
+    "_id": "FgJWGxoVeM3WET1v",
+    "uuid": "Compendium.pf2e.feats-core.Item.FgJWGxoVeM3WET1v",
+    "name": "Bone Caller",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bone Caller",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "B53sWzd5irAoLn2U"
+    }
+  },
+  {
+    "_id": "NJuDtJEu5MbuoHZm",
+    "uuid": "Compendium.pf2e.feats-core.Item.NJuDtJEu5MbuoHZm",
+    "name": "Dangle",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dangle",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "AGznaQpn2cE6jz9H"
+    }
+  },
+  {
+    "_id": "2CEy6yEY3J1OO6b4",
+    "uuid": "Compendium.pf2e.feats-core.Item.2CEy6yEY3J1OO6b4",
+    "name": "Hone Claws",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hone Claws",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "GU3EQVOMjD9S2YWj"
+    }
+  },
+  {
+    "_id": "CfPy0rtbbmOQKK9T",
+    "uuid": "Compendium.pf2e.feats-core.Item.CfPy0rtbbmOQKK9T",
+    "name": "Read the Stars",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Read the Stars",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "DhqsKns2SaGcOKO9"
+    }
+  },
+  {
+    "_id": "eXxCLi5OhGu5Dyof",
+    "uuid": "Compendium.pf2e.feats-core.Item.eXxCLi5OhGu5Dyof",
+    "name": "River Adaptation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "River Adaptation",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "ruRhslwl9ReaVcY4"
+    }
+  },
+  {
+    "_id": "8oJUV9gq9AjLNGAo",
+    "uuid": "Compendium.pf2e.feats-core.Item.8oJUV9gq9AjLNGAo",
+    "name": "Terrain Advantage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Terrain Advantage",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lizardfolk"
+      ],
+      "flags.fusion.sourceId": "FrzskqwNWexKY5BA"
     }
   },
   {
@@ -5843,6 +8330,736 @@
         "leshy"
       ],
       "flags.fusion.sourceId": "velPTcpjLXPnaYrm"
+    }
+  },
+  {
+    "_id": "guWAF4memb0ThkWQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.guWAF4memb0ThkWQ",
+    "name": "Mariner's Fire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mariner's Fire",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "TmaxLWraJrvSQOkY"
+    }
+  },
+  {
+    "_id": "3EW6CSUoM0rUmCYo",
+    "uuid": "Compendium.pf2e.feats-core.Item.3EW6CSUoM0rUmCYo",
+    "name": "One-Toed Hop",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "One-Toed Hop",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "fD3RSV9nIkJsW6lD"
+    }
+  },
+  {
+    "_id": "EnpOGpZeoHwKACNs",
+    "uuid": "Compendium.pf2e.feats-core.Item.EnpOGpZeoHwKACNs",
+    "name": "Scavenger's Search",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scavenger's Search",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "zaGD9Og2p8Opa0oJ"
+    }
+  },
+  {
+    "_id": "WbgzFfn41IErofoo",
+    "uuid": "Compendium.pf2e.feats-core.Item.WbgzFfn41IErofoo",
+    "name": "Squawk!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Squawk!",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "CCmiEmS7ZgyQUfhn"
+    }
+  },
+  {
+    "_id": "fIdYhbSHHiATBAFB",
+    "uuid": "Compendium.pf2e.feats-core.Item.fIdYhbSHHiATBAFB",
+    "name": "Storm's Lash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Storm's Lash",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "bWyY9NtLU5wXr03y"
+    }
+  },
+  {
+    "_id": "nXR6qsCc9LuPGJBQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.nXR6qsCc9LuPGJBQ",
+    "name": "Tengu Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tengu Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "GjQZMmw2sz8OyLxj"
+    }
+  },
+  {
+    "_id": "OTRKhQJZEy5OMpvw",
+    "uuid": "Compendium.pf2e.feats-core.Item.OTRKhQJZEy5OMpvw",
+    "name": "Tengu Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tengu Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "AmFv3ClkAVRowHLI"
+    }
+  },
+  {
+    "_id": "DdmbN6kaUyXkogbb",
+    "uuid": "Compendium.pf2e.feats-core.Item.DdmbN6kaUyXkogbb",
+    "name": "Uncanny Agility",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Uncanny Agility",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "qpVB9F9DURW4Lti1"
+    }
+  },
+  {
+    "_id": "avp8athW4cHlls5K",
+    "uuid": "Compendium.pf2e.feats-core.Item.avp8athW4cHlls5K",
+    "name": "Waxed Feathers",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Waxed Feathers",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "BRGdj5leyVFRHEUM"
+    }
+  },
+  {
+    "_id": "BmMcK0kcaIPtMvAM",
+    "uuid": "Compendium.pf2e.feats-core.Item.BmMcK0kcaIPtMvAM",
+    "name": "Eclectic Sword Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eclectic Sword Mastery",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "concentrate",
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "DNZlWe2V28KoajoN"
+    }
+  },
+  {
+    "_id": "y6KRIKrRlClEMhvP",
+    "uuid": "Compendium.pf2e.feats-core.Item.y6KRIKrRlClEMhvP",
+    "name": "Harbinger's Caw",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Harbinger's Caw",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "auditory",
+        "divine",
+        "misfortune",
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "KRfZcToCc5nvcQRa"
+    }
+  },
+  {
+    "_id": "oLhahQ8Eo8k4j3OK",
+    "uuid": "Compendium.pf2e.feats-core.Item.oLhahQ8Eo8k4j3OK",
+    "name": "Jinx Glutton",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Jinx Glutton",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "eGfYZoWC6cDa2XWd"
+    }
+  },
+  {
+    "_id": "qhekDtQWloZFDP1a",
+    "uuid": "Compendium.pf2e.feats-core.Item.qhekDtQWloZFDP1a",
+    "name": "Thunder God's Fan",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Thunder God's Fan",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "1jZ7f4TJqiFH8Ied"
+    }
+  },
+  {
+    "_id": "RFOS9c91OPQ9SwrK",
+    "uuid": "Compendium.pf2e.feats-core.Item.RFOS9c91OPQ9SwrK",
+    "name": "Favor of Heaven",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Favor of Heaven",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "VbHuOvF1MM9ls6Tg"
+    }
+  },
+  {
+    "_id": "MtZFsfGG6k8edNUd",
+    "uuid": "Compendium.pf2e.feats-core.Item.MtZFsfGG6k8edNUd",
+    "name": "Great Tengu Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Great Tengu Form",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "ABXUfGoeBgCyFasg"
+    }
+  },
+  {
+    "_id": "xjHg9lyjpeLRRzhM",
+    "uuid": "Compendium.pf2e.feats-core.Item.xjHg9lyjpeLRRzhM",
+    "name": "Hurricane Swing",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hurricane Swing",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "iJrjzLnLJkvQgrbS"
+    }
+  },
+  {
+    "_id": "5QCgntELWbsDT2W1",
+    "uuid": "Compendium.pf2e.feats-core.Item.5QCgntELWbsDT2W1",
+    "name": "Trickster Tengu",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Trickster Tengu",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "oItG5dqlPEi8wNnR"
+    }
+  },
+  {
+    "_id": "4xbihHoTvaaPJd86",
+    "uuid": "Compendium.pf2e.feats-core.Item.4xbihHoTvaaPJd86",
+    "name": "Dogfang Bite",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dogfang Bite",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "wigOSPSxXnapFxeh"
+    }
+  },
+  {
+    "_id": "IYF3hffDmec8RtkW",
+    "uuid": "Compendium.pf2e.feats-core.Item.IYF3hffDmec8RtkW",
+    "name": "Eat Fortune",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eat Fortune",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "concentrate",
+        "divine",
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "rFmJVDdB313EibTs"
+    }
+  },
+  {
+    "_id": "cNJuOzK424vhagTV",
+    "uuid": "Compendium.pf2e.feats-core.Item.cNJuOzK424vhagTV",
+    "name": "Long-Nosed Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Long-Nosed Form",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "concentrate",
+        "polymorph",
+        "primal",
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "WPz97m5FNlbLIQ6p"
+    }
+  },
+  {
+    "_id": "qpmTSiLzRvoXGOxE",
+    "uuid": "Compendium.pf2e.feats-core.Item.qpmTSiLzRvoXGOxE",
+    "name": "Magpie Snatch",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Magpie Snatch",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "NBwH9wEeUfKfOg8R"
+    }
+  },
+  {
+    "_id": "NUHS8cSOfGB9e6yd",
+    "uuid": "Compendium.pf2e.feats-core.Item.NUHS8cSOfGB9e6yd",
+    "name": "Soaring Flight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Soaring Flight",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "Tl8yckXeTCHnwrlM"
+    }
+  },
+  {
+    "_id": "fvHtgC9yrivTarYo",
+    "uuid": "Compendium.pf2e.feats-core.Item.fvHtgC9yrivTarYo",
+    "name": "Tengu Feather Fan",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tengu Feather Fan",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "GAh4CwCMS3Gsl8WH"
+    }
+  },
+  {
+    "_id": "CZhPiq3JaT2vwh2A",
+    "uuid": "Compendium.pf2e.feats-core.Item.CZhPiq3JaT2vwh2A",
+    "name": "Soaring Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Soaring Form",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "WZC2XXQo6Pu2GQeo"
+    }
+  },
+  {
+    "_id": "VYhVqusaHOd7b6fr",
+    "uuid": "Compendium.pf2e.feats-core.Item.VYhVqusaHOd7b6fr",
+    "name": "Wind God's Fan",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wind God's Fan",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tengu"
+      ],
+      "flags.fusion.sourceId": "QUaSGUmRnlMbzw1P"
+    }
+  },
+  {
+    "_id": "I69I5OSzn2mYA8uI",
+    "uuid": "Compendium.pf2e.feats-core.Item.I69I5OSzn2mYA8uI",
+    "name": "Croak Talker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Croak Talker",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "FCGUAdseGVq6nhUw"
+    }
+  },
+  {
+    "_id": "8birtjNd8YfEQrFJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.8birtjNd8YfEQrFJ",
+    "name": "Hunter's Defense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hunter's Defense",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "KYTSvAEqK7KAyVwi"
+    }
+  },
+  {
+    "_id": "z6Z8l1EH6jVgSMTZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.z6Z8l1EH6jVgSMTZ",
+    "name": "Jungle Strider",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Jungle Strider",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "M41PGiFlLE2tByUL"
+    }
+  },
+  {
+    "_id": "D2nvlZKHuSbwvQaJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.D2nvlZKHuSbwvQaJ",
+    "name": "Nocturnal Tripkee",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nocturnal Tripkee",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "BNIAfaJPNCWKs3FN"
+    }
+  },
+  {
+    "_id": "kM9IuftVP13zQPQ2",
+    "uuid": "Compendium.pf2e.feats-core.Item.kM9IuftVP13zQPQ2",
+    "name": "Terrifying Croak",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Terrifying Croak",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "T8tNZANOWUZiXuzO"
+    }
+  },
+  {
+    "_id": "grfAbUrGFaoktZ1x",
+    "uuid": "Compendium.pf2e.feats-core.Item.grfAbUrGFaoktZ1x",
+    "name": "Tripkee Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tripkee Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "5VWItcyt3Mx6mbSK"
+    }
+  },
+  {
+    "_id": "UKnYePt0K6ICyoZZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.UKnYePt0K6ICyoZZ",
+    "name": "Tripkee Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tripkee Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "CvtJ98EZvBGSCLOX"
+    }
+  },
+  {
+    "_id": "m7DO0u4DtObAlbL0",
+    "uuid": "Compendium.pf2e.feats-core.Item.m7DO0u4DtObAlbL0",
+    "name": "Envenomed Edge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Envenomed Edge",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "oaqkhZ6c0Dbk78wi"
+    }
+  },
+  {
+    "_id": "wrRtXgOcvKjOw3Mf",
+    "uuid": "Compendium.pf2e.feats-core.Item.wrRtXgOcvKjOw3Mf",
+    "name": "Hop Up",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hop Up",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "7ntWAreQp3x4wPxT"
+    }
+  },
+  {
+    "_id": "qbHyhzbQyNyS5Bin",
+    "uuid": "Compendium.pf2e.feats-core.Item.qbHyhzbQyNyS5Bin",
+    "name": "Unbound Leaper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unbound Leaper",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "uK8DpaOJ98BeA6KV"
+    }
+  },
+  {
+    "_id": "SRIdKR8bpY4MkMAI",
+    "uuid": "Compendium.pf2e.feats-core.Item.SRIdKR8bpY4MkMAI",
+    "name": "Fantastic Leaps",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fantastic Leaps",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "lbcsniPkdSKIOnU2"
+    }
+  },
+  {
+    "_id": "NayiPa1rGsMpVJ6f",
+    "uuid": "Compendium.pf2e.feats-core.Item.NayiPa1rGsMpVJ6f",
+    "name": "Long Tongue",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Long Tongue",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "OK8X6QFRuRxpBMcZ"
+    }
+  },
+  {
+    "_id": "4ppw3epsZdaekKom",
+    "uuid": "Compendium.pf2e.feats-core.Item.4ppw3epsZdaekKom",
+    "name": "Prodigious Climber",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Prodigious Climber",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "7Te7XHgRjesDKwZn"
+    }
+  },
+  {
+    "_id": "dEYuIv8S6upSOcvb",
+    "uuid": "Compendium.pf2e.feats-core.Item.dEYuIv8S6upSOcvb",
+    "name": "Tenacious Net",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tenacious Net",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "YndH82FX7KLawNBW"
+    }
+  },
+  {
+    "_id": "bIVbJIDbNAZVzbPZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.bIVbJIDbNAZVzbPZ",
+    "name": "Tripkee Glide",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tripkee Glide",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "PRlN77xL6Bm2gUIp"
+    }
+  },
+  {
+    "_id": "yEMcaVUqSNTnTwWj",
+    "uuid": "Compendium.pf2e.feats-core.Item.yEMcaVUqSNTnTwWj",
+    "name": "Vomit Stomach",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vomit Stomach",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "MFcsGkzPYaWxwW4d"
+    }
+  },
+  {
+    "_id": "i80wkiJgvQEPXPKt",
+    "uuid": "Compendium.pf2e.feats-core.Item.i80wkiJgvQEPXPKt",
+    "name": "Absorb Toxin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Absorb Toxin",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "vyb3BYDiIl2MiZp4"
+    }
+  },
+  {
+    "_id": "HXK6yQ3IhWGdjm9d",
+    "uuid": "Compendium.pf2e.feats-core.Item.HXK6yQ3IhWGdjm9d",
+    "name": "Moisture Bath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Moisture Bath",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "manipulate",
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "IwETJ7fhszmlNo7X"
+    }
+  },
+  {
+    "_id": "1uKtO8KAMqNJxXT0",
+    "uuid": "Compendium.pf2e.feats-core.Item.1uKtO8KAMqNJxXT0",
+    "name": "Ricocheting Leap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricocheting Leap",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "5S1nPoxHTgu9MGGV"
+    }
+  },
+  {
+    "_id": "GeeP7aUxyhBNUMMq",
+    "uuid": "Compendium.pf2e.feats-core.Item.GeeP7aUxyhBNUMMq",
+    "name": "Tongue Tether",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tongue Tether",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "tripkee"
+      ],
+      "flags.fusion.sourceId": "5j3nLvicUVmPqzA7"
     }
   },
   {

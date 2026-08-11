@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.heritages-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:05.246Z",
+  "generatedAt": "2026-08-11T00:40:34.687Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -16,20 +16,65 @@
       "sourceHash": "f79533919652839e0a7691318305c3e7ee7d5239",
       "description": "<p>Seus ancestrais sempre tiveram uma conexão com o fogo e uma pele mais grossa, o que permite que você resista a queimaduras. Você ganha resistência a fogo igual à metade do seu nível (mínimo 1). Você também consegue se recuperar de estar em chamas com mais facilidade. Seu teste simples para remover dano de fogo persistente tem CD 10 em vez de CD 15, que é reduzida para @Check[flat|dc:5] se outra criatura usar uma ação particularmente apropriada para ajudar.</p>"
     },
+    "1l4ANyfhwNTIPDbB": {
+      "name": "Tengu Mergulhador de Ondas",
+      "sourceHash": "30a855a25d4c7b11a0dce74c96279df1aeeddb68",
+      "description": "<p>Você é um dos raros tengus capazes de cortar a água como um pássaro corta o ar, e costuma se esconder em rios ou oceanos onde poucos esperam encontrá-lo. Você ganha uma Velocidade de natação de 15 pés.</p>"
+    },
+    "2JpxIECfSt4wptii": {
+      "name": "Tripkee Pele-Grossa",
+      "sourceHash": "640baa90ee688f7b5a89137b55def3c03cb1e63a",
+      "description": "<p>Sua pele grossa e coriácea lembra a de um sapo. Você ganha 8 Pontos de Vida da sua ancestralidade em vez de 6. Você ganha um bônus de circunstância +1 a testes de resistência contra doenças e venenos.</p>"
+    },
     "2o4Y9pu8sQiYyYq9": {
       "name": "Leshy Raiz",
       "sourceHash": "63c692873e5c3a6899cfc2afd0bec80484456538",
       "description": "<p>Seu corpo é feito de raízes resistentes que o prendem firmemente ao solo. Você ganha 10 Pontos de Vida da sua ancestralidade em vez de 8. Você consegue ficar sem luz solar por 2 semanas antes de começar a passar fome. Você ganha um bônus de circunstância +2 à sua CD de Fortitude ou Reflexos contra tentativas de @UUID[Compendium.pf2e.actionspf2e.Item.Reposition], @UUID[Compendium.pf2e.actionspf2e.Item.Shove] ou @UUID[Compendium.pf2e.actionspf2e.Item.Trip] contra você. Esse bônus também se aplica a testes de resistência contra magias ou efeitos que tentem movê-lo ou derrubá-lo na condição @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>"
+    },
+    "3QDFgTweWK35tmNM": {
+      "name": "Kholo Imponente",
+      "sourceHash": "965d61c20ecb6600900e393b1c7d49f54b268dc0",
+      "description": "<p>Você é um kholo imponente e poderoso, com pelagem castanho-amarelada e manchas marrons na pele. Você ganha 10 Pontos de Vida da sua ancestralidade em vez de 8, e ganha um bônus de circunstância +1 a testes de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Reposition]{Reposicionar}, @UUID[Compendium.pf2e.actionspf2e.Item.Shove]{Empurrar} ou @UUID[Compendium.pf2e.actionspf2e.Item.Trip]{Derrubar}.</p>"
+    },
+    "3trQyvZzmEiHdhtU": {
+      "name": "Kobold Espreitador de Cavernas",
+      "sourceHash": "11fb7227ba5834c51c3f0eb3dd3f03934913e0d6",
+      "description": "<p>Você eclodiu em uma toca de túneis estreitos que também abrigava um ser de energia primal da terra, o que fez de você ágil e flexível. Ao @UUID[Compendium.pf2e.actionspf2e.Item.Climb]{Escalar} paredes rochosas, estalactites e outras formações naturais de pedra, você se move à metade da sua Velocidade em um sucesso e à Velocidade total em um sucesso crítico (e você se move à Velocidade total em um sucesso se tiver @UUID[Compendium.pf2e.feats-srd.Item.Quick Climb]). Isso não se aplica se você estiver usando uma Velocidade de escalada. Se você obtiver um sucesso em um teste de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Squeeze], você obtém um sucesso crítico em vez disso.</p>"
+    },
+    "64n2EFGi3L3ubmsQ": {
+      "name": "Kholo das Cavernas",
+      "sourceHash": "84235984bf7b40a5b44ef9fd09ce0c1176e02fce",
+      "description": "<p>Contadores de histórias tecem lendas antigas afirmando que os kholo viviam em cavernas e no subsolo antes que a maioria de sua espécie se aventurasse para a luz. Você é um retorno a esses ancestrais, com um peito largo e marcas que lembram curtos traços pretos em vez de manchas. Seus olhos se desenvolveram para enxergar perfeitamente no escuro, uma vantagem valiosa para o seu clã. Você ganha visão no escuro.</p>"
     },
     "6B5uk7Fe6I4NrWjn": {
       "name": "Rato da Neve",
       "sourceHash": "52bd49dfcc0a7ead728b8951c7f278b0c390d3a7",
       "description": "<p>Você tem uma pelagem mais espessa e um corpo mais volumoso para se defender do frio, concedendo a você resistência ao frio igual a metade do seu nível (mínimo 1). Você trata efeitos de frio ambiental como se fossem um grau menos extremos (frio incrível se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
     },
+    "6c0DDzJOkARmEGCy": {
+      "name": "Kholo Cão",
+      "sourceHash": "969fc5c77370a119ec5cac18e36f38be480f7494",
+      "description": "<p>Você é um kholo de corpo ágil, com uma compleição pré-histórica quase canina. Embora normalmente se mova como um quadrúpede, você ainda consegue ficar em pé e lutar como um bípede, o que permite usar todo o equipamento normalmente. Se tiver as duas mãos livres, você pode aumentar sua Velocidade para 9 metros ao correr sobre os quatro membros.</p>"
+    },
+    "6x1o6yc6R21dtdrA": {
+      "name": "Hobgoblin Fumaceiro",
+      "sourceHash": "aa8636e8b457336392dff331feacd4ed570a4b01",
+      "description": "<p>Sua família é composta de alquimistas, engenheiros e cientistas há gerações, trabalhando em projetos que levam fumaça e fogo ao campo de batalha. Você ganha resistência a fogo igual à metade do seu nível (mínimo 1). Você tem sucesso automático no teste simples CD 5 para atingir uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Ocultada} se essa criatura estiver ocultada apenas por fumaça.</p>"
+    },
     "7lhqu5JgNWLpDKrG": {
       "name": "Orc das Terras Devastadas",
       "sourceHash": "aa69c5ef433195773464180ffdc8ca14ff86752c",
       "description": "<p>Você vem de terras áridas castigadas pelo sol, onde pernas longas e a capacidade de resistir aos elementos ajudaram você a prosperar. Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Hustle] pelo dobro do tempo durante a exploração antes de precisar parar, e você trata os efeitos ambientais de calor como se fossem um grau menos extremos (calor inacreditável se torna extremo, calor extremo se torna severo, e assim por diante).</p>"
+    },
+    "8MRVbtTA2xIGm2Gt": {
+      "name": "Tengu Nascido do Céu",
+      "sourceHash": "12d75eac67054242b85b5fb3eaf2d9043e9b9a8e",
+      "description": "<p>Seus ossos podem ser especialmente leves, você pode ser um raro tengu com asas, ou sua conexão com os espíritos do vento e do céu pode ser mais forte que a da maioria, desacelerando sua queda pelo ar. Você não sofre dano ao cair, independentemente da distância da queda.</p>"
+    },
+    "8tfGSTrp4F8Ji1EW": {
+      "name": "Felino Liminar",
+      "sourceHash": "8ed263581d2ec3c4c03e1cb485df3ed786fd7997",
+      "description": "<p>Você herdou uma proximidade com os cantos mais distantes do mundo, onde as fronteiras entre as dimensões se tornam tênues. Você pode conjurar o truque @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic] como uma magia inata oculta à vontade. Um truque é elevado a um grau de magia igual à metade do seu nível arredondado para cima. Você também ganha um bônus de circunstância +1 a testes de Ocultismo para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge]{Rememorar Conhecimento} sobre criaturas originárias de planos além do Universo.</p>"
     },
     "9YDeXYLc7Se5NhxP": {
       "name": "Leshy da Folha",
@@ -41,6 +86,16 @@
       "sourceHash": "4e6f5cb9783f790d6624fd7457a53b0282f113e1",
       "description": "<p>Você descende de uma linhagem de comandantes de batalha aterrorizantes. Você se torna treinado em Intimidação, e ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Intimidating Glare].</p>"
     },
+    "9nLXFfcCx9ExXgLt": {
+      "name": "Kobold das Galerias Alagadas",
+      "sourceHash": "75342f27bdbcca0f3d45e6c0c9050eeae13aed1e",
+      "description": "<p>Você cresceu em uma toca entrecortada por passagens subaquáticas, naturais ou escavadas, e foi influenciado por uma entidade aquática poderosa ou um ser de água primal. Você ganha uma Velocidade de natação de 15 pés.</p>"
+    },
+    "9vMHY2wcPpYY0ogX": {
+      "name": "Tengu Guardião da Montanha",
+      "sourceHash": "c442ee982acc219301e96f43b2cfe63ab4894910",
+      "description": "<p>Você vem de uma linhagem de tengu ascetas, o que deixa você com uma ligação com os espíritos do mundo e o Grande Além. Você pode conjurar o truque @UUID[Compendium.pf2e.spells-srd.Item.Vitality Lash] como uma magia inata primal à vontade. Um truque é elevado a um grau de magia igual à metade do seu nível arredondado para cima. Toda vez que você conjura uma magia de uma herança ou talento de ancestralidade tengu, você pode decidir se ela é uma magia divina ou primal.</p>"
+    },
     "AaIOLHzPr2pli8vf": {
       "name": "Anão de Sangue Forte",
       "sourceHash": "99bc728bfca63050ad4fb3f8fe23b2636c3c02ed",
@@ -50,6 +105,11 @@
       "name": "Orc das Chuvas",
       "sourceHash": "d41bef20b287430d3b36ea0f0b76fc82454a8d8c",
       "description": "<p>Você nasceu em uma floresta tropical, onde apenas emaranhados de árvores ofereciam proteção contra tempestades torrenciais e enchentes repentinas. Você aprendeu a se mover com destreza por terreno de selva e a resistir às várias enfermidades comuns em ambientes úmidos. Você ganha um bônus de circunstância +2 a testes de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Climb] ou @UUID[Compendium.pf2e.actionspf2e.Item.Swim] e um bônus de circunstância +1 a testes de resistência contra doenças.</p>"
+    },
+    "BBniKsQV0UgbQHWI": {
+      "name": "Kholo Bruxo",
+      "sourceHash": "05daa8317fc65a8ecea2ad44da90e1ca2fbcac08",
+      "description": "<p>Você é um kholo peludo e de pelagem escura, capaz de produzir sons verdadeiramente estranhos. Você pode conjurar o truque @UUID[Compendium.pf2e.spells-srd.Item.Figment] como uma magia inata oculta à vontade. Um truque é elevado a um grau de magia igual à metade do seu nível arredondado para cima. Além disso, você ganha um bônus de circunstância +1 a testes para @UUID[Compendium.pf2e.actionspf2e.Item.Create a Diversion]{Criar uma Distração} e Personificar quando usa apenas sua voz.</p>"
     },
     "BPDF1w5U8k1HrUvZ": {
       "name": "Rato do Deserto",
@@ -61,15 +121,45 @@
       "sourceHash": "287000da5765dc3fac09f97c8b3899c3e5bcf40d",
       "description": "<p>Seus ancestrais eram guardiões de túmulos, e o poder deles de repelir a morte passou para você. Se você obtiver um sucesso em um teste de resistência contra um efeito que tenha o traço vazio ou que tenha sido criado por uma criatura morta-viva, você obtém um sucesso crítico em vez disso.</p>"
     },
+    "CAcizMezfgno7TNZ": {
+      "name": "Tengu Açoitado pela Tempestade",
+      "sourceHash": "e151f9e15d9e515c875b56d7f33a30eb097f8a55",
+      "description": "<p>Seja por uma bênção de Hei Feng ou por ter eclodido de seu ovo durante uma tempestade, você é resistente a tempestades. Você ganha resistência a eletricidade igual à metade do seu nível (mínimo 1). Você automaticamente obtém sucesso no teste simples para ter como alvo uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Concealed] se essa criatura estiver ocultada apenas por chuva ou neblina.</p>"
+    },
+    "CPbZ7cENyyOf94Ir": {
+      "name": "Hobgoblin Chefete",
+      "sourceHash": "7314f8b2f28da19cb00ae4eaa4120fc2c3504dd7",
+      "description": "<p>Você vem de uma longa linhagem de hobgoblins que comandavam goblins. Você é menor do que outros hobgoblins, mas os goblins ainda obedecem a qualquer ordem que você berre. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Group Coercion]. Se você obtiver um sucesso em um teste de Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Coerce]{Coagir} um goblin, você obtém um sucesso crítico em vez disso; se obtiver uma falha crítica, obtém uma falha em vez disso.</p>"
+    },
+    "CYRjuIMd0QluiVxU": {
+      "name": "Tengu Amaldiçoado",
+      "sourceHash": "5062e1f512b843a1e6346b7a263e1026d8ca7f12",
+      "description": "<p>Sua linhagem foi exposta a maldição após maldição, e agora elas escorregam pelas suas penas como chuva. Se você obtiver sucesso em um teste de resistência contra um efeito de maldição ou azar, você obtém um sucesso crítico em vez disso. Quando você fosse ganhar a condição @UUID[Compendium.pf2e.conditionitems.Item.Doomed], tente um @Check[flat|dc:17]. Em um sucesso, reduza em 1 o valor da condição sentenciado que você ganharia.</p>"
+    },
     "CfL5Gq0Pc9T4yqsN": {
       "name": "Halfling do Crepúsculo",
       "sourceHash": "91ae93dc1681c45c5c8720562e9fced06d357437",
       "description": "<p>Seus ancestrais realizaram muitos atos secretos sob a cobertura protetora do crepúsculo, fosse para o bem ou para o mal, e com o tempo desenvolveram a habilidade de enxergar no crepúsculo além até da já aguçada visão típica dos halflings. Você ganha visão em pouca luz.</p>"
     },
+    "Cpes1OTxDiaRvi4g": {
+      "name": "Felino de Orelhas Aguçadas",
+      "sourceHash": "7fe5dcab10e1cb9b8f2a28c9a9afec4394301756",
+      "description": "<p>Você nasceu com orelhas grandes e expressivas, que se movem conforme seu humor e se erguem a qualquer som inesperado. Você ganha um bônus de circunstância +2 para localizar criaturas não detectadas que consiga ouvir dentro de 30 pés com uma ação @UUID[Compendium.pf2e.actionspf2e.Item.Seek]{Investigar}. Enquanto estiver ciente de uma criatura por meio do som, uma vez por rodada, suas orelhas podem ajudá-lo a @UUID[Compendium.pf2e.actionspf2e.Item.Point Out]{Apontar} a criatura para todos os aliados como uma ação livre.</p>"
+    },
+    "E05Pyaovk219ofDB": {
+      "name": "Nefilim",
+      "sourceHash": "b8d9ac5f48579ce270c556618ce6da4cbbceee2a",
+      "description": "<p>Sua natureza é influenciada por celestiais, demônios ou monitores. Isso se manifesta como uma combinação de características que denunciam sua herança, como olhos dourados, uma auréola, chifres ou uma cauda. Você ganha o traço nefilim, além dos traços da sua ancestralidade. Você ganha visão em pouca luz, ou ganha visão no escuro se sua ancestralidade já tiver visão em pouca luz. Você pode escolher entre talentos de nefilim e talentos da sua ancestralidade sempre que ganhar um talento de ancestralidade.</p>"
+    },
     "EZtMRq3LqMfQzNv8": {
       "name": "Gnomo Sensitivo",
       "sourceHash": "546456bfa622420341058ae88adca97ce356032b",
       "description": "<p>Você vê todas as cores mais vívidas, ouve todos os sons mais ricos, e sente principalmente todos os aromas com riqueza incrível de detalhes. Você ganha um sentido especial: olfato impreciso com alcance de 30 pés. Isso significa que você pode usar seu olfato para determinar a localização exata de uma criatura. O mestre normalmente dobra o alcance se você estiver a favor do vento em relação à criatura, ou reduz o alcance à metade se estiver contra o vento.</p>\n<p>Além disso, você ganha um bônus de circunstância +2 a testes de Percepção sempre que estiver tentando localizar uma criatura não detectada que esteja dentro do alcance do seu olfato.</p>"
+    },
+    "FtJNGSiLbbBfcCUd": {
+      "name": "Dhampir",
+      "sourceHash": "469e916af707d093783bcb7dba5ade2c7f26549c",
+      "description": "<p>Você é o descendente de um vampiro, meio vivo e meio morto-vivo, dotado de um charme e uma graça extraordinários, uma palidez sem sangue e caninos alongados. Você ganha o traço dhampir, além dos traços da sua ancestralidade. Você tem a habilidade de cura do vazio, o que significa que você é ferido por dano de vitalidade e curado por efeitos de vazio como se fosse um morto-vivo. Você também ganha visão em pouca luz, ou ganha visão no escuro se sua ancestralidade já tiver visão em pouca luz. Você pode escolher entre talentos de dhampir e talentos da sua ancestralidade sempre que ganhar um talento de ancestralidade.</p>"
     },
     "GFDLACU02E4wsele": {
       "name": "Orc da Sepultura",
@@ -81,10 +171,25 @@
       "sourceHash": "12764fc3acd24009f8c487cc517c84be9fab5cc0",
       "description": "<p>Seus ancestrais viviam em espaços escuros no subsolo, concedendo a você pelo negro escuro e uma aparência vagamente antinatural. Você ganha proficiência treinada em Intimidação e pode usar Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] animais. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] um animal, você não recebe penalidade por não compartilhar um idioma com ele. Se você se tornaria automaticamente treinado em Intimidação (de seu antecedente ou classe, por exemplo), você se torna treinado em outra pericia de sua escolha.</p>\n<p>Atitudes de animais em relação a você começam um grau pior do que o normal, geralmente começando inamistosa em vez de indiferente para animais domesticados, e hostil em vez de inamistosa para animais selvagens.</p>"
     },
+    "GdFk5jT9MjYvb93E": {
+      "name": "Tripkee Ribeirinho",
+      "sourceHash": "e723023f68a00c9dc1fca403144d32d5c72421ca",
+      "description": "<p>Seus ancestrais vivem na água e sobre ela. Você ganha uma Velocidade de natação de 15 pés.</p>"
+    },
+    "H09zZq3SrCyM4kLX": {
+      "name": "Felino da Selva",
+      "sourceHash": "d238589ff8de06c9542c416e3ce2725a2e90fb0b",
+      "description": "<p>Você descende de perseguidores da selva e consegue se mover rapidamente por matagais e vegetação rasteira. Você ignora terreno difícil causado por vegetação rasteira, e terreno difícil maior causado por vegetação rasteira é apenas terreno difícil comum para você.</p>"
+    },
     "H2WGNpBMzCzobJ1T": {
       "name": "Elfo Ártico",
       "sourceHash": "ab6ca8d2736ecf393e2b52af873c7218d9997c24",
       "description": "<p>Você habita as profundezas do gélido norte e desenvolveu uma resiliência incrível contra ambientes frios, o que concede a você resistência a frio igual à metade do seu nível (mínimo 1). Você trata os efeitos ambientais de frio como se fossem um grau menos extremos (frio inacreditável se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
+    },
+    "I4tx13WaL8HeYoxq": {
+      "name": "Felino Caçador",
+      "sourceHash": "76e2357936769f108fc4109b37f8ef715f9e84c0",
+      "description": "<p>Você vem de uma longa linhagem de caçadores e rastreadores habilidosos, e tem um olfato particularmente aguçado. Você ganha olfato impreciso com alcance de 30 pés. Isso significa que você pode usar seu olfato para determinar a localização de uma criatura. O mestre normalmente dobra o alcance se você estiver a favor do vento em relação à criatura, ou reduz o alcance à metade se estiver contra o vento.</p>\n<p>Além disso, você ganha um bônus de circunstância +2 para @UUID[Compendium.pf2e.actionspf2e.Item.Track]{Rastrear} uma criatura ou objeto que você já tenha sentido o cheiro antes.</p>"
     },
     "IuMZkHg9XfJoqrMY": {
       "name": "Elfo da Mata",
@@ -96,6 +201,11 @@
       "sourceHash": "0f8e476c8c6bca2732f040fc1b6e09173b76696c",
       "description": "<p>Você tem uma grande cabaça no lugar do crânio, e como não possui um cérebro físico, pode usar o espaço dentro da sua cabeça. Você pode guardar uma coleção de até 1 Volume de objetos dentro da sua cabeça. A CD de testes para @UUID[Compendium.pf2e.actionspf2e.Item.Steal] objetos de dentro da sua cabeça aumenta em 4. Além disso, se você guardar apenas um objeto dentro da sua cabeça, pode puxá-lo sem esforço para a mão como parte de outra ação para usar o objeto. Puxar o item concede a essa outra ação o traço manipulação.</p>"
     },
+    "JGA4JmOoAfvmxnvL": {
+      "name": "Hobgoblin das Tocas",
+      "sourceHash": "0d32d6c7cb5b22c0a418d4475b8d18580f14a742",
+      "description": "<p>Seus ancestrais viviam no subsolo. Suas orelhas são maiores do que as de outros hobgoblins e sensíveis a ecos. Enquanto estiver no subsolo, ao mirar em um oponente que esteja @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Ocultado} de você ou @UUID[Compendium.pf2e.conditionitems.Item.Hidden]{Escondido} de você, reduza a CD do teste simples para 3 no caso de um alvo ocultado ou para 9 no caso de um alvo escondido. Além disso, se você obtiver um sucesso em um teste de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Squeeze]{Espremer-se}, você obtém um sucesso crítico em vez disso.</p>"
+    },
     "LEFlryu9X5JIb5c5": {
       "name": "Elfo das Cavernas",
       "sourceHash": "532fd092ec803fbdc6c260504dec3b0ba6f9a303",
@@ -106,10 +216,25 @@
       "sourceHash": "a179a373234a7e0bc2e2bf8d93ab89e017d480c4",
       "description": "<p>Sua engenhosidade permite que você se treine em uma grande variedade de perícias. Você se torna treinado em uma perícia à sua escolha. No 5º nível, você se torna perito na perícia escolhida.</p>"
     },
+    "LoQcj744WCjvZu4f": {
+      "name": "Reptiliano Invisível",
+      "sourceHash": "8f0d9b176602864d863d25bba81f8799f4dc5ab7",
+      "description": "<p>Você pode mudar a cor da sua pele para se camuflar com o ambiente, fazendo pequenas mudanças com uma única ação e mudanças drásticas ao longo de uma hora. Quando você está em uma área onde sua coloração é razoavelmente parecida com o ambiente (por exemplo, verde-floresta em uma floresta), você pode usar a aplicação menor, de uma única ação, dessa habilidade para fazer mudanças localizadas que ajudam você a se camuflar no ambiente, ganhando um bônus de circunstância +2 a testes de Furtividade até que seu ambiente mude de coloração ou padrão.</p>"
+    },
+    "LzcpKDP0GsxK6KjW": {
+      "name": "Tengu de Garras",
+      "sourceHash": "cb5d607a8722b8c7ba85b6fd969a11197470aebe",
+      "description": "<p>Suas garras são tão afiadas e fortes quanto seu bico. Você ganha um ataque desarmado de garras que causa 1d4 de dano de corte. Suas garras pertencem ao grupo brawling e têm os traços ágil, precisão, desarmado e versátil P.</p>"
+    },
     "M95t6NrhPbYRG0vk": {
       "name": "Goblin Estômago-de-Ferro",
       "sourceHash": "982694db5c85b3a747ffb2eeb0121765e5c9d85b",
       "description": "<p>Você consegue se alimentar de comida que a maioria das pessoas consideraria estragada. Você consegue se manter alimentado com refeições ruins em um assentamento, desde que haja lixo disponível, sem precisar usar a atividade de tempo livre @UUID[Compendium.pf2e.actionspf2e.Item.Subsist]. Você consegue comer e beber mesmo quando está @UUID[Compendium.pf2e.conditionitems.Item.Sickened].</p>\n<p>Você ganha um bônus de circunstância +2 a testes de resistência contra aflições, contra ganhar a condição enjoado, e para remover a condição enjoado. Quando você obtém um sucesso em um teste de resistência de Fortitude afetado por esse bônus, você obtém um sucesso crítico em vez disso. Todos esses benefícios se aplicam apenas quando a aflição ou condição resultou de algo que você ingeriu.</p>"
+    },
+    "MB7ntE4NAnnxfDW8": {
+      "name": "Changeling",
+      "sourceHash": "afb10f83fce817d4ed26ed6122c24dc77682e9c4",
+      "description": "<p>Sua mãe era uma bruxa. A heterocromia dos seus olhos é o sinal mais óbvio dessa ascendência, mas você provavelmente também tem uma compleição mais esguia, pele mais pálida e cabelo mais escuro do que a maioria dos membros da ancestralidade do seu outro genitor. Você ganha o traço changeling. Você também ganha visão em pouca luz, ou ganha visão no escuro se sua ancestralidade já tiver visão em pouca luz. Você pode escolher entre talentos de changeling e talentos da ancestralidade do seu outro genitor sempre que ganhar um talento de ancestralidade.</p>"
     },
     "MvlfITxKYpoOstUW": {
       "name": "Leshy Fruto",
@@ -126,6 +251,11 @@
       "sourceHash": "a41469b91e41c666de1a09b327392bf178c6f609",
       "description": "<p>O sangue das fadas corre em suas veias, saturando-o com a magia delas e fazendo de você verdadeiramente um deles. Você ganha o traço fada, além dos traços gnomo e humanoide. Escolha um truque da lista de magias primais. Você pode conjurar essa magia como uma magia inata primal à vontade. Um truque é elevado a um grau de magia igual à metade do seu nível arredondado para cima. Você pode trocar esse truque por outro da mesma lista uma vez por dia meditando para se realinhar com o Primeiro Mundo; isso é uma atividade de 10 minutos que tem o traço concentração.</p>"
     },
+    "RJ0NuBAaVWtqrFHI": {
+      "name": "Tripkee Língua-Rápida",
+      "sourceHash": "359661bb98e94071a751309ac3e83c7560459ae4",
+      "description": "<p>Sua língua é especialmente longa, e você consegue lançá-la com alcance e precisão extraordinários. Você pode usar sua língua para conjurar magias com alcance de toque e realizar ações de Interagir extremamente simples, como abrir alguns tipos de portas destrancadas. Sua língua não consegue realizar ações que exijam dedos ou destreza manual significativa, incluindo qualquer ação que exigisse um teste para ser realizada, e você não pode usá-la para segurar itens.</p>"
+    },
     "Rd2aNjE56aR5fN0d": {
       "name": "Rato Longirostro",
       "sourceHash": "e30a7935a7407a2894a1bf087480f6a3905aede9",
@@ -136,6 +266,11 @@
       "sourceHash": "3473b3575cf2ada1bb519b085ae8d57cccef8ecb",
       "description": "<p>Acostumado a uma vida tranquila nas colinas, seu povo considera o descanso e o relaxamento especialmente revigorantes, principalmente quando desfrutam de conforto e boas comidas. Quando você recupera Pontos de Vida durante o descanso noturno, some seu nível aos Pontos de Vida recuperados. Quando alguém usa a perícia Medicina para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds]{Tratar seus Ferimentos}, você pode comer um lanche para somar seu nível aos Pontos de Vida que recupera com o tratamento.</p>"
     },
+    "SP4gKM37bzNssJEs": {
+      "name": "Tripkee Pele-Venenosa",
+      "sourceHash": "790520b751eb7e36fad2bfc08bcd8800a5d338cf",
+      "description": "<p>Você pode ser pequeno, mas as glândulas de veneno escondidas por todo o seu corpo escondem uma defesa mortal. Você ganha a reação @UUID[Compendium.pf2e.actionspf2e.Item.Toxic Skin].</p>"
+    },
     "STr5kDJYUrafYtZy": {
       "name": "Rato do Esgoto",
       "sourceHash": "9c79bd844730717ceec8a0bd3380e6cc48cd3d4b",
@@ -145,6 +280,21 @@
       "name": "Goblin da Neve",
       "sourceHash": "c7106a898b18dfaa9687304006118f562dd974de",
       "description": "<p>Você está aclimatado a viver em terras geladas e tem pele que varia do azul-celeste ao azul-marinho, além de pelagem azul. Você ganha resistência a frio igual à metade do seu nível (mínimo 1). Você trata os efeitos ambientais de frio como se fossem um grau menos extremos (frio inacreditável se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
+    },
+    "TmVZTRuKSNcS2VsI": {
+      "name": "Kobold Cauda Venenosa",
+      "sourceHash": "0360468127c51fb6dbd1e6e64e6981a0178eaa69",
+      "description": "<p>Graças à proximidade de uma criatura venenosa com a sua toca, você nasceu com um esporão vestigial na cauda que secreta veneno mortal. Você ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Tail Toxin].</p>"
+    },
+    "URYizNQUmzYxUdZY": {
+      "name": "Kholo do Hálito Doce",
+      "sourceHash": "277e19739b390000921899d7096e1c66c1f1d9fb",
+      "description": "<p>Você é um kholo listrado, de pelagem clara, com um hálito estranhamente agradável, que pode usar para enfeitiçar suas presas. Você é treinado em Diplomacia (ou em outra perícia, se já for treinado em Diplomacia). Você também ganha um bônus de circunstância +1 a testes para @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression]{Causar Boa Impressão} se o alvo puder sentir o cheiro do seu hálito.</p>"
+    },
+    "Umo1s0yeiOclka8B": {
+      "name": "Aiuvarin",
+      "sourceHash": "fade4a6c6e9433a6066d0ea9739b1dfc4d9cbed9",
+      "description": "<p>Você tem elfos, ou possivelmente outros aiuvarins, em sua árvore genealógica. Você tem orelhas pontudas e outros sinais reveladores de herança élfica. Você ganha o traço elfo, o traço aiuvarin e visão em pouca luz. Além disso, quando você ganha um talento de ancestralidade, pode escolher entre talentos de aiuvarin e de elfo, além dos da sua ancestralidade.</p>"
     },
     "W5S2RLn2VuFTNwEX": {
       "name": "Elfo Ancestral",
@@ -171,6 +321,11 @@
       "sourceHash": "028c5ef816c408daaea78987e192395c1aad8af0",
       "description": "<p>Suas mãos calejadas e olhos vermelhos falam de uma vida passada na escuridão profunda das cavernas montanhosas, onde você aprendeu a batalhar em penhascos rochosos e sobreviver com recursos mínimos. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Terrain Expertise] para terreno subterrâneo e o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Combat Climber].</p>"
     },
+    "ca8GxQCTqBgDIiEN": {
+      "name": "Kholo Formiga",
+      "sourceHash": "9e4a97fba878996995c258459674c1587601515d",
+      "description": "<p>Você é um kholo de feições marcantes e orelhas grandes, com cerca de 90 centímetros de altura. Muitos duvidam que você seja de fato um kholo. Seu tamanho é Pequeno em vez de Médio. Você é treinado em Enganação (ou em outra perícia, se já for treinado em Enganação). Você ganha um bônus de circunstância +1 a testes de Enganação para Mentir quando estiver especificamente alegando inocência, à CD de Enganação contra testes de @UUID[Compendium.pf2e.actionspf2e.Item.Sense Motive]{Perceber Intenções} para desmascarar essas mentiras, e a testes de iniciativa quando você rola Enganação para iniciativa.</p>"
+    },
     "cvhoIv1zMnBGTYcI": {
       "name": "Halfling da Mata Selvagem",
       "sourceHash": "de4001adfcf3be536f56aad6a59c5a4df7e8f0ae",
@@ -181,15 +336,30 @@
       "sourceHash": "fb006bc7b1a216e053aba7224fb851385754fe28",
       "description": "<p>Espinhos cobrem seu corpo. Você ganha um ataque desarmado de espinhos que causa 1d6 de dano de perfuração. Seus espinhos pertencem ao grupo brawling e têm os traços precisão e desarmado.</p>"
     },
+    "dY5g9ZdSk4mTofrc": {
+      "name": "Tripkee Teia do Vento",
+      "sourceHash": "b15ee0d957479f5ffafbd52ed6be1812fbb99064",
+      "description": "<p>Uma teia resistente ao longo de suas mãos e dedos dos pés consegue amortecer qualquer queda. Contanto que você tenha uma mão livre, você não sofre dano de queda, independentemente da distância que cair.</p>"
+    },
     "dwZgfT9raJhXFEWX": {
       "name": "Leshy Fungo",
       "sourceHash": "46edd7d2269414d12bf03efeee28757a6602bf94",
       "description": "<p>Seu corpo foi feito de fungos que crescem à sombra de cavernas e árvores, e você se sente em casa em cavernas escuras e covis. Você ganha visão no escuro. Você perde o traço planta e ganha o traço fungo.</p>"
     },
+    "eUknKUmCXuElXgCW": {
+      "name": "Reptiliano Saltador das Nuvens",
+      "sourceHash": "04fc623be1fe5e5ca26048c59f7e79ef36753777",
+      "description": "<p>Seu corpo é leve, com dobras de pele ao longo dos membros que capturam o ar que passa por baixo de você. Desde que você consiga agir e tenha espaço suficiente, pode abrir as dobras para desacelerar qualquer queda o bastante para evitar sofrer dano (se você tem espaço suficiente para isso fica a critério do mestre).</p>"
+    },
     "f1wFqLQYFFyQF25S": {
       "name": "Elfo Sussurrante",
       "sourceHash": "f0ef2eb2dafd28387ddac88b3ebb60374e97b3fc",
       "description": "<p>Seus ouvidos são finamente calibrados, capazes de detectar até os sussurros mais sutis. Você ganha um bônus de circunstância +2 ao usar a ação @UUID[Compendium.pf2e.actionspf2e.Item.Seek] para encontrar criaturas @UUID[Compendium.pf2e.conditionitems.Item.Hidden] ou @UUID[Compendium.pf2e.conditionitems.Item.Undetected] dentro de 30 pés de você. Quando você tem como alvo um oponente que esteja @UUID[Compendium.pf2e.conditionitems.Item.Concealed] ou escondido de você, reduza a CD do teste simples para 3 no caso de um alvo ocultado ou para 9 no caso de um alvo escondido. Esse benefício não se aplica se você não conseguir ouvir ou se a criatura for incapaz de produzir som (por exemplo, se estiver afetada por uma magia @UUID[Compendium.pf2e.spells-srd.Item.Silence]).</p>"
+    },
+    "fI3Ozq4TxyEh7SoF": {
+      "name": "Felino do Inverno",
+      "sourceHash": "b6b53db064683509ab200835057438737ada492b",
+      "description": "<p>Você tem uma pelagem espessa que o protege do frio. Você ganha resistência a frio igual à metade do seu nível (mínimo 1). Você trata os efeitos ambientais de frio como se fossem um grau menos extremos (frio inacreditável se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
     },
     "fhxYlZ3RuyRFvafU": {
       "name": "Humano Versátil",
@@ -201,10 +371,65 @@
       "sourceHash": "292c214f4334bd79cf350ace651e77c153aea7ce",
       "description": "<p>Seus ancestrais sobreviveram em climas frios. Você se torna treinado em Sobrevivência, e trata os efeitos ambientais de frio como se fossem um grau menos extremos (frio inacreditável se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
     },
+    "hkKdlwC5DfUnAd1t": {
+      "name": "Duskwalker",
+      "sourceHash": "aefa97b81f71368e8d294c531326dcbe0ee3c482",
+      "description": "<p>Graças a um antigo pacto, sua alma renasceu como um duskwalker, um descendente planar com uma conexão aos psicopompos e ao Boneyard. Você ganha o traço duskwalker. Você também ganha visão em pouca luz, ou ganha visão no escuro se sua ancestralidade já tiver visão em pouca luz. Nem seu corpo nem seu espírito jamais podem se tornar mortos-vivos. Você pode escolher entre talentos de duskwalker e talentos da sua ancestralidade sempre que ganhar um talento de ancestralidade.</p>"
+    },
+    "iKAPrVPPllPf7v4L": {
+      "name": "Dragonblood",
+      "sourceHash": "9f6e2ea49b8c4717acd1e45b4a1af6ca8c2fdaa4",
+      "description": "<p>Você descende de alguma forma de um dragão. Suas características físicas podem mostrar isso externamente, com um par de chifres dracônicos, manchas de pele escamosa, ou até mesmo uma cauda, ou você pode desenvolver uma reserva interna de poder dracônico. Você ganha o traço dragonblood, além dos traços da sua ancestralidade. Adicione Dracônico à lista de idiomas adicionais da sua ancestralidade (permitindo que você o escolha como idioma se seu modificador de Inteligência for positivo). Quando você obtiver um sucesso em um teste de resistência contra um efeito de medo, você obtém um sucesso crítico em vez disso. Você pode escolher entre talentos de dragonblood e talentos da sua ancestralidade sempre que ganhar um talento de ancestralidade.</p>"
+    },
     "iKvRp24y6Yh9SmIA": {
       "name": "Anão da Forja",
       "sourceHash": "e3c208a2fbadf9b694507b618010509a63fb7879",
       "description": "<p>Você tem uma adaptação notável a ambientes quentes. Isso concede a você resistência a fogo igual à metade do seu nível (mínimo 1), e você trata os efeitos ambientais de calor como se fossem um grau menos extremos (calor inacreditável se torna extremo, calor extremo se torna severo, e assim por diante).</p>"
+    },
+    "jaLA0pGS156DX2T8": {
+      "name": "Tripkee Pé-Pegajoso",
+      "sourceHash": "8ef3d2173df5f97a776d99cf31fde106d6c052b8",
+      "description": "<p>Suas mãos e pés exsudam uma película que ajuda a aderir a superfícies. Você ganha um bônus de circunstância +2 à sua CD de Fortitude e Reflexos contra tentativas de @UUID[Compendium.pf2e.actionspf2e.Item.Disarm], @UUID[Compendium.pf2e.actionspf2e.Item.Shove], @UUID[Compendium.pf2e.actionspf2e.Item.Reposition] ou @UUID[Compendium.pf2e.actionspf2e.Item.Trip] contra você. Ao subir em árvores, vinhas e outra vegetação, se você obtiver um sucesso no teste de Atletismo para Escalar, você obtém um sucesso crítico em vez disso.</p>"
+    },
+    "jpMCywVDWn9eWGcs": {
+      "name": "Kobold Escamas-de-Dragão",
+      "sourceHash": "56abdfa75588c882d8a7fb6f0900adfa93fa7d14",
+      "description": "<p>Graças à associação da sua toca com um dragão, suas escamas são mais resistentes do que as de outros kobolds. Você ganha 10 Pontos de Vida da sua ancestralidade em vez de 6. Você ganha um bônus de circunstância +1 a testes de resistência contra sopro de dragão, efeitos com o traço sono, e efeitos que o deixariam @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed].</p>"
+    },
+    "ke8BWBtAAK84vdyF": {
+      "name": "Kobold Chifre Mágico",
+      "sourceHash": "b2a90c07bc02e5988f9d80ed34105273d0de25af",
+      "description": "<p>Desde que eclodiu nas proximidades de uma poderosa fonte de magia, um traço dela corre em suas veias. Escolha um truque comum da lista de magias arcanas. Você pode Conjurar esta Magia como uma magia inata arcana à vontade. Um truque é elevado a um grau de magia igual à metade do seu nível arredondado para cima. Você é treinado nas estatísticas de modificador de ataque de magia e CD de magia, e seu atributo de conjuração principal é Carisma.</p>"
+    },
+    "kin6ZHC2wqQOtl85": {
+      "name": "Reptiliano de Gola",
+      "sourceHash": "7d19caf6fde5a6e772fcd484d9cdb39303e20ed0",
+      "description": "<p>Você pode abrir a gola do pescoço e flexionar os espinhos dorsais, Desmoralizando seus inimigos. Ao fazer isso, @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] perde o traço auditivo e ganha o traço visual, e você não sofre penalidade ao tentar Desmoralizar uma criatura que não entenda seu idioma. Você também ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Threatening Approach].</p>"
+    },
+    "lQJSga4RDO79Qu83": {
+      "name": "Hobgoblin Perna-Curta",
+      "sourceHash": "9a92fdd6d1e75e0a0767bc52a95aba3cb6267a59",
+      "description": "<p>Você tem um torso mais longo e ombros mais largos do que a maioria dos hobgoblins, o que faz suas pernas parecerem curtas em comparação. Isso lhe dá um núcleo forte e musculoso e abaixa seu centro de gravidade—características que o ajudam a montar e a escalar—e você treina para montar em sela desde muito cedo. Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Ride]. Além disso, você não fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard]{Desprevenido} enquanto Escala.</p>"
+    },
+    "md4aigcY7sULKUVj": {
+      "name": "Kobold Mandíbula Forte",
+      "sourceHash": "7d2332ea41cf392442edafa73695ec6e8219e8fd",
+      "description": "<p>Sua toca é conhecida por mandíbulas poderosas e dentes afiados, seja para ajudar a se proteger contra predadores naturais ou devido à reverência a uma besta poderosa. Você ganha um ataque desarmado de mandíbulas que causa 1d6 de dano de perfuração. Suas mandíbulas pertencem ao grupo brawling e têm os traços precisão e desarmado.</p>"
+    },
+    "o3CfsgZcR2emMIlP": {
+      "name": "Hobgoblin da Marcha de Guerra",
+      "sourceHash": "0d88b2047e31edda761462d2301cb31f9ba677ea",
+      "description": "<p>Você vem de uma linhagem de mercenários errantes, sempre em marcha e catando comida pelo caminho. Se você falhar, mas não falhar criticamente, ao tentar @UUID[Compendium.pf2e.actionspf2e.Item.Subsist]{Subsistir} na natureza selvagem, você ainda consegue se manter alimentado com refeições ruins. Durante a exploração, você pode @UUID[Compendium.pf2e.actionspf2e.Item.Hustle]{Apressar-se} pelo dobro do tempo antes de precisar parar.</p>"
+    },
+    "o5MeYOQJR2zgjxgh": {
+      "name": "Reptiliano Andarilho das Areias",
+      "sourceHash": "bfb209c533b056f392ce962b919f8486c34cd5cf",
+      "description": "<p>Suas escamas grossas ajudam você a reter água e combater o brilho do sol. Você ganha resistência a fogo igual à metade do seu nível (mínimo 1). Efeitos de calor ambiental são um grau menos extremos para você, e você pode resistir 10 vezes mais do que o normal antes de ser afetado por fome ou sede. Porém, a menos que você vista equipamento de proteção ou procure abrigo, efeitos de frio ambiental são um grau mais extremos para você.</p>"
+    },
+    "osIeS4GtStfzdd1h": {
+      "name": "Kholo do Inverno",
+      "sourceHash": "e879ff66679216c708a15ec815d45e4c487ad5be",
+      "description": "<p>Você é um kholo resistente, coberto por uma pelagem espessa e tufada, que o torna capaz de sobreviver aos invernos rigorosos dos territórios mais frios. Você ganha resistência a frio igual à metade do seu nível (mínimo 1). Você trata os efeitos ambientais de frio como se fossem um grau menos extremos (frio inacreditável se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
     },
     "pVqpKjLfoDY2XzA3": {
       "name": "Rato do Túnel",
@@ -216,15 +441,45 @@
       "sourceHash": "e1d906ca41d08ddc0d5209856d471d81aecd19d5",
       "description": "<p>Seu corpo é feito de algas entrelaçadas, e você se sente tão à vontade debaixo d'água quanto em terra firme. Você ganha uma Velocidade de natação de 20 pés, e sempre pode respirar debaixo d'água. Porém, sua Velocidade terrestre é reduzida em 5 pés (para 20 pés na maioria dos leshies de alga).</p>"
     },
+    "qW11UFTg0kGk9jc7": {
+      "name": "Felino das Nove Vidas",
+      "sourceHash": "39975d7e324b02d5e4784357b33905ba75cf7c0d",
+      "description": "<p>Sua família sempre parece se recuperar de desastres, não por resistência física ou habilidade especializada, mas por pura sorte. Outros felinos sussurram que você tem nove vidas. Enquanto você está na condição @UUID[Compendium.pf2e.conditionitems.Item.Dying]{Morrendo}, você não soma seu valor de morrendo à CD dos seus testes de recuperação (isso significa que a CD normalmente é 10). Além disso, você ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Diehard].</p>"
+    },
+    "qbcpW8HPMk0rfzp9": {
+      "name": "Reptiliano Espreitador da Mata",
+      "sourceHash": "ff40a8d7a12b0734d78eb2924c1db0aaa9397327",
+      "description": "<p>Você se move facilmente por florestas e selvas densas, usando cada galho ou arbusto. Você sempre pode usar a ação @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover] quando estiver em terreno de floresta ou selva para ganhar cobertura, mesmo que não esteja ao lado de um obstáculo atrás do qual normalmente poderia Se Abrigar. Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Terrain Stalker], mesmo que não seja treinado em Furtividade, e deve escolher vegetação rasteira como seu terreno escolhido.</p>"
+    },
     "qnpKVRG7PqwPMFty": {
       "name": "Orc Marcado do Bastião",
       "sourceHash": "479f2745dd93396f9145a4c4c71cdab2337ec829",
       "description": "<p>Você faz parte de uma comunidade de orcs que pratica escarificação ritual ou tatuagem. As marcas em sua pele mostram sua excepcional resistência e vitalidade. Você ganha 12 Pontos de Vida da sua ancestralidade em vez de 10. Você também ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Diehard].</p>"
     },
+    "qrEP6ljlqBSbvzXn": {
+      "name": "Reptiliano das Terras Úmidas",
+      "sourceHash": "d56e027f144880481a3f31b1a196ab441944a779",
+      "description": "<p>Sua família descende da herança mais comum dos reptilianos, e você está acostumado a ambientes aquáticos. Você ganha uma Velocidade de natação de 15 pés.</p>"
+    },
     "qzbpEorZsxVZ82uO": {
       "name": "Gnomo Camaleão",
       "sourceHash": "2efefd623805f4a92959b61889c6b58930702f1c",
       "description": "<p>A cor do seu cabelo e da sua pele é mutável, possivelmente devido a magia latente vinda de influências do Primeiro Mundo ou a efeitos residuais de ilusão. Você consegue mudar lentamente a vivacidade e o tom exato da cor, e essa coloração pode variar por todo o seu corpo, permitindo que você crie padrões ou outros desenhos coloridos. Leva uma única ação para mudanças pequenas e localizadas, e até uma hora para mudanças drásticas em todo o seu corpo. Enquanto você dorme, as cores mudam sozinhas em sintonia com seus sonhos, dando a você uma coloração incomum a cada manhã. Quando você está em uma área onde sua coloração é razoavelmente parecida com o ambiente (por exemplo, verde-floresta em uma floresta), você pode usar a única ação para fazer pequenas mudanças localizadas destinadas a ajudá-lo a se camuflar no ambiente. Isso concede a você um bônus de circunstância +2 a testes de Furtividade até que seu ambiente mude de coloração ou padrão.</p>"
+    },
+    "rLYj6obdz6MyJJCx": {
+      "name": "Tengu Dente-de-Cão",
+      "sourceHash": "786fc3d3dde5de801ab310e2389dd4ed047502ab",
+      "description": "<p>Além de um bico, sua boca também apresenta uma série de dentes pontiagudos e vorazes. Algumas lendas afirmam que suas mandíbulas poderosas conseguem até morder através do aço. Embora você ainda não seja tão forte assim, suas presas ainda podem causar ferimentos terríveis. Seu ataque desarmado de bico ganha o traço letal d8.</p>"
+    },
+    "ttAkk638Tm1jBoDE": {
+      "name": "Hobgoblin Flagelo dos Elfos",
+      "sourceHash": "967ceb02208a112ea5609fce0dc4be8f9d42bbb3",
+      "description": "<p>Os hobgoblins foram criados há muito tempo a partir dos goblins instáveis e prolíficos, para servirem como exército contra os elfos. Embora os elfos tenham eventualmente libertado os hobgoblins de sua servidão, alguns hobgoblins mantêm uma resistência ancestral à magia, que chamam de \"magia élfica\". Você ganha a reação @UUID[Compendium.pf2e.actionspf2e.Item.Resist Elf Magic]{Resistir à Magia Élfica}.</p>"
+    },
+    "uFakcF21UbWFzPxm": {
+      "name": "Dromaar",
+      "sourceHash": "347f2d580d2269d71e614e7c079cd7bccec1ac28",
+      "description": "<p>A força órquica fortalece sua linhagem. Você tem um tom esverdeado na pele e outros indícios de herança órquica. Você ganha o traço orc, o traço dromaar e visão em pouca luz. Quando você ganha um talento de ancestralidade, pode escolher entre talentos de dromaar e de orc, além dos da sua ancestralidade.</p>"
     },
     "uMYunHHMgAR6hgvz": {
       "name": "Sílfide",
@@ -235,6 +490,11 @@
       "name": "Halfling Azarado",
       "sourceHash": "e986901c21bd5e10706ee823f57f86be36a51454",
       "description": "<p>Você nasceu com uma bênção estranha: desprovido da sorte típica dos halflings, você consegue manipular a sorte dos outros. Você nunca pode escolher o talento @UUID[Compendium.pf2e.feats-srd.Item.Halfling Luck], e você ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Jinx].</p>"
+    },
+    "uXoHdsBp2ewzrbAk": {
+      "name": "Felino de Garras Afiadas",
+      "sourceHash": "d86b3297e35394c3fd51f399ac010dd02153d40c",
+      "description": "<p>Sua família tem garras particularmente longas e afiadas, capazes de causar ferimentos sangrentos com um golpe brutal. Você ganha um ataque desarmado de garras que causa 1d6 de dano de corte. Suas garras pertencem ao grupo brawling e têm os traços ágil, precisão e desarmado.</p>"
     },
     "vmV9XelJgTVIekG8": {
       "name": "Gnomo Sombrio",
@@ -261,10 +521,20 @@
       "sourceHash": "15d018bae9af1e26714e6866105f5ece4e9e6c5c",
       "description": "<p>Os heróis anões de outrora conseguiam se livrar da magia de seus inimigos, e um pouco dessa resistência se manifesta em você. Você ganha a reação @UUID[Compendium.pf2e.actionspf2e.Item.Call on Ancient Blood].</p>"
     },
+    "yt5c3VSKvNHrU8d8": {
+      "name": "Kobold Coração Elemental",
+      "sourceHash": "a6042fb7615bf4685d66378350d645426348aab2",
+      "description": "<p>Quando você eclodiu, imprimiu-se em uma criatura fortemente associada a um dos Planos Elementais, como um elemental ou um gênio. Escolha ar, terra, fogo, metal, água ou madeira para o seu benfeitor elemental. Você ganha resistência igual à metade do seu nível (mínimo 1) ao tipo de dano associado ao seu benfeitor elemental: frio para ar, eletricidade para terra, fogo para fogo, sonoro para metal, ácido para água, ou veneno para madeira.</p>"
+    },
     "zCjOWbCxNuzBIDt0": {
       "name": "Gnomo Manancial",
       "sourceHash": "2f161571637e5d44f59ffc773a8cd10d0948da6c",
       "description": "<p>Alguma outra fonte de magia tem um domínio maior sobre você do que a magia primal da sua linhagem feérica. Essa conexão pode vir de um plano oculto ou de uma antiga canção oculta; de uma divindade, um celestial ou um demônio; de resíduos mágicos deixados por uma guerra de magos; ou de uma antiga magia rúnica.</p>\n<p>Escolha arcana, divina ou oculta. Você ganha um truque da lista de magias dessa tradição mágica. Você pode conjurar essa magia como uma magia inata à vontade, como uma magia da tradição escolhida. Um truque é elevado a um grau de magia igual à metade do seu nível arredondado para cima. Sempre que você ganhar uma magia inata primal de um talento de ancestralidade gnomo, mude a tradição dela de primal para a tradição escolhida.</p>"
+    },
+    "zvua3ioLdzbK4P9i": {
+      "name": "Reptiliano Escalador de Penhascos",
+      "sourceHash": "0b5d38e6a5e09fde4a3739ffb1cccd5fab202ade",
+      "description": "<p>Seus dedos dos pés são adaptados para agarrar e escalar. Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Combat Climber] como talento bônus, e, desde que não esteja usando calçados, você pode usar as almofadas adesivas dos seus pés para escalar, deixando as mãos livres. Além disso, se você obtiver um sucesso em um teste de Atletismo para escalar, você obtém um sucesso crítico em vez disso.</p>"
     },
     "zx2v8EENQxFXuu3q": {
       "name": "Leshy Trepadeira",

@@ -14,13 +14,14 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (231 traits).
+ * Trait slug → pt-BR chip label (238 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
   acid: "ácido",
   agile: "ágil",
   air: "ar",
+  aiuvarin: "aiuvarin",
   alchemist: "alquimista",
   amp: "amplificação",
   anadi: "anadi",
@@ -46,6 +47,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   catfolk: "felido",
   centaur: "centauro",
   champion: "campeão",
+  changeling: "changeling",
   circus: "circo",
   class: "classe",
   cleric: "clérigo",
@@ -68,14 +70,18 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   death: "morte",
   dedication: "dedicação",
   detection: "detecção",
+  dhampir: "dampiro",
   disarm: "desarmar",
   disease: "doença",
   divine: "divino",
   "double-barrel": "cano-duplo",
   downtime: "tempo-livre",
+  dragonblood: "sangue-de-dragao",
   dragonet: "dragonete",
+  dromaar: "dromaar",
   druid: "druida",
   duergar: "duergar",
+  duskwalker: "caminhante-do-crepusculo",
   dwarf: "anão",
   earth: "terra",
   eidolon: "eidolon",
@@ -114,6 +120,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   halfling: "halfling",
   healing: "cura",
   hex: "bruxaria",
+  hobgoblin: "hobgoblin",
   holy: "sagrado",
   human: "humano",
   humanoid: "humanoide",
