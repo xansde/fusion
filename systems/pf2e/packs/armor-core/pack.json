@@ -1,0 +1,29 @@
+{
+  "id": "pf2e.armor-core",
+  "label": "PF2e Core Armor",
+  "documentType": "Item",
+  "systemId": "pf2e",
+  "indexFields": [
+    "system.level",
+    "system.category",
+    "system.traits.value",
+    "system.acBonus",
+    "flags.fusion.sourceId"
+  ],
+  "license": {
+    "license": "ORC",
+    "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+    "reservedNotice": "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+    "sourceRepo": "github.com/foundryvtt/pf2e",
+    "sourceVersion": "v14-dev",
+    "textAttribution": "Item/spell/feat/class descriptions in this pack are reproduced from Paizo rules text under the license declared in each document's system.publication.license (\"ORC\" or \"OGL\" only — see the Paizo Community Use Policy for the relevant license); documents without an ORC/OGL publication keep an empty description. The importer pipeline itself is derived from github.com/foundryvtt/pf2e (Apache License 2.0)."
+  },
+  "source": {
+    "repo": "github.com/foundryvtt/pf2e",
+    "version": "v14-dev",
+    "importerVersion": "0.1.0"
+  },
+  "schemaVersion": 1,
+  "documentCount": 12,
+  "generatedAt": "2026-08-11T03:14:23.252Z"
+}

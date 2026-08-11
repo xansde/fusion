@@ -11,6 +11,16 @@
       "documentCount": 42
     },
     {
+      "packId": "pf2e.armor-core",
+      "slug": "armor-core",
+      "documentCount": 12
+    },
+    {
+      "packId": "pf2e.shields-core",
+      "slug": "shields-core",
+      "documentCount": 4
+    },
+    {
       "packId": "pf2e.bestiary-core",
       "slug": "bestiary-core",
       "documentCount": 10
@@ -71,7 +81,7 @@
       "documentCount": 56
     }
   ],
-  "generatedAt": "2026-08-11T00:53:10.248Z",
+  "generatedAt": "2026-08-11T03:14:19.201Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

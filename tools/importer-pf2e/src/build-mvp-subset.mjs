@@ -116,6 +116,59 @@ const PACK_MANIFESTS = {
     },
     schemaVersion: 1,
   },
+  "armor-core": {
+    id: "pf2e.armor-core",
+    label: "PF2e Core Armor",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.acBonus",
+      "flags.fusion.sourceId",
+    ],
+    license: {
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  "shields-core": {
+    id: "pf2e.shields-core",
+    label: "PF2e Core Shields",
+    documentType: "Item",
+    // Vendor/Fusion doc `type` is "shield" (transform.mjs routes it through
+    // normalizeArmorSystem — same schema family as armor, category defaults
+    // to "unarmored" for shields since they carry no category of their own).
+    systemId: "pf2e",
+    indexFields: ["system.level", "system.traits.value", "system.acBonus", "flags.fusion.sourceId"],
+    license: {
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
   conditions: {
     id: "pf2e.conditions",
     label: "PF2e Conditions",
@@ -832,6 +885,48 @@ const MVP_WEAPON_PF2E_IDS = new Set([
   "oSQET5hKn9q4xlrl", // Gnome Flickmace (advanced)
 ]);
 
+/**
+ * pf2eSourceIds das armaduras selecionadas para o MVP (A1, r28).
+ * Curadoria: Player Core ∪ Player Core 2 (via isRemasterCoreDoc), restrita a
+ * `system.category` unarmored/light/medium/heavy (plano r28/A1 — companion
+ * barding fica FORA desta leva: `light-barding`/`heavy-barding` não existem
+ * em ArmorCategorySchema hoje, e adicioná-los é decisão de escopo separada),
+ * EXCLUINDO armaduras mágicas/específicas (traits `magical`/`invested` —
+ * Dragonplate, Ghoul Hide, Holy Chain, Mariner's Splint, Onslaught Hide,
+ * Unholy Plate, Warleader's Bulwark(+Greater)). Resultado: as 12 armaduras
+ * mundanas do núcleo remaster, cobrindo as 4 categorias jogáveis.
+ * Medido em out/equipment/transformed.json (type "armor").
+ */
+const MVP_ARMOR_PF2E_IDS = new Set([
+  "dDIPA1WE9ESF67EB", // Explorer's Clothing (unarmored)
+  "MPcM4Wt6KmWE2kGL", // Chain Shirt (light)
+  "4tIVTg9wj56RrveA", // Leather Armor (light)
+  "zBYEU9E7034ENCmh", // Padded Armor (light)
+  "ewQZ0VeL38v3qFnN", // Studded Leather Armor (light)
+  "r0ifJfoz8aqf0mwk", // Breastplate (medium)
+  "Kf4eJEXnFPuAsseP", // Chain Mail (medium)
+  "AnwzlOs0njF9Jqnr", // Hide Armor (medium)
+  "YMQr577asquZIP65", // Scale Mail (medium)
+  "Gq1cZWSKOtJhKd2p", // Full Plate (heavy)
+  "pRoikbRo5HFW6YUB", // Half Plate (heavy)
+  "6AhDKX1dwRwFpQsU", // Splint Mail (heavy)
+]);
+
+/**
+ * pf2eSourceIds dos escudos selecionados para o MVP (A1, r28).
+ * Mesma curadoria de MVP_ARMOR_PF2E_IDS (Player Core ∪ Player Core 2, sem
+ * traits `magical`/`invested` — exclui Exploding Shield, Glamorous Buckler,
+ * Medusa's Scream(+Greater), Spined Shield). Resultado: os 4 escudos
+ * mundanos básicos do núcleo remaster.
+ * Medido em out/equipment/transformed.json (type "shield").
+ */
+const MVP_SHIELD_PF2E_IDS = new Set([
+  "1k3AsSW7lpU0kEpY", // Buckler
+  "ezVp13Uw8cWW08Da", // Wooden Shield
+  "Yr9yCuJiAlFh3QEB", // Steel Shield
+  "ltundBNFAnP7bgPr", // Tower Shield
+]);
+
 /** pf2eSourceIds das magias selecionadas para o MVP. */
 const MVP_SPELL_PF2E_IDS = new Set([
   // Level 1 cantrips / rank 1
@@ -1425,6 +1520,30 @@ function filterToMvpSubset(docs, selectedPf2eIds) {
 }
 
 /**
+ * A1/r28 finding: transform.mjs's `normalizeArmorSystem` writes an explicit
+ * `strength: null` whenever the vendor doc has no Strength requirement
+ * (shields never carry one; some light armors like Explorer's Clothing
+ * don't either) — same bug CLASS already fixed for `material`/`baseItem` in
+ * that function (explicit vendor `null` must become `undefined`, because
+ * ArmorSystemSchema's `strength: z.number().int().min(0).optional()` accepts
+ * a number or `undefined` but rejects a literal `null`). armor-core/
+ * shields-core are the FIRST packs to ever select `type: "armor"|"shield"`
+ * docs at scale, so this was latent until now.
+ *
+ * Deliberately NOT fixed in transform.mjs/out/ itself: out/ is a shared,
+ * already-generated snapshot read by sibling A3/A4 workstreams in this same
+ * build session (r28 plano, regra 2/3) — re-running the pipeline to pick up
+ * a transform.mjs edit would regenerate everyone's input out from under
+ * them. This is a doc-level patch scoped to ONLY the two packs this
+ * workstream owns, applied after loading the already-transformed JSON.
+ */
+function fixArmorStrengthNull(doc) {
+  if (doc.system?.strength !== null) return doc;
+  const { strength: _strength, ...restSystem } = doc.system;
+  return { ...doc, system: restSystem };
+}
+
+/**
  * Writes pack documents and manifest to systems/<systemId>/packs/<slug>/.
  * REQ-CMP-003/004/030.
  * @param {string} slug
@@ -1591,6 +1710,52 @@ async function buildPf2eSubset() {
     );
 
     report.packs.push({ packId: manifest.id, slug: "weapons-core", documentCount: docs.length });
+  }
+
+  // --- 2b. Armor core (A1/r28 — 12 armaduras mundanas Player Core ∪ PC2) ---
+  {
+    console.log("[build-mvp] === Pack: armor-core ===");
+    const all = loadTransformed("equipment");
+    const armors = all.filter((d) => d.type === "armor");
+    const docs = filterToMvpSubset(armors, MVP_ARMOR_PF2E_IDS).map(fixArmorStrengthNull);
+    console.log(
+      `[build-mvp] armor-core: ${docs.length} selecionadas de ${armors.length} armaduras`,
+    );
+
+    const manifest = PACK_MANIFESTS["armor-core"];
+    writePack("armor-core", docs, manifest);
+
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(PACKS_OUT_DIR, "armor-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+
+    report.packs.push({ packId: manifest.id, slug: "armor-core", documentCount: docs.length });
+  }
+
+  // --- 2c. Shields core (A1/r28 — 4 escudos mundanos Player Core ∪ PC2) ---
+  {
+    console.log("[build-mvp] === Pack: shields-core ===");
+    const all = loadTransformed("equipment");
+    const shields = all.filter((d) => d.type === "shield");
+    const docs = filterToMvpSubset(shields, MVP_SHIELD_PF2E_IDS).map(fixArmorStrengthNull);
+    console.log(
+      `[build-mvp] shields-core: ${docs.length} selecionados de ${shields.length} escudos`,
+    );
+
+    const manifest = PACK_MANIFESTS["shields-core"];
+    writePack("shields-core", docs, manifest);
+
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(PACKS_OUT_DIR, "shields-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+
+    report.packs.push({ packId: manifest.id, slug: "shields-core", documentCount: docs.length });
   }
 
   // --- 3. Core Bestiary (~10 monstros) ---
