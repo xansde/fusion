@@ -32,6 +32,7 @@ import {
   CombatDocumentSchema,
   GridConfigSchema,
   TileDocumentSchema,
+  NoteDocumentSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -161,7 +162,14 @@ export const SceneSchema = BaseDocumentSchema.extend({
   tiles: z.array(TileDocumentSchema).default(() => []),
   drawings: z.array(z.record(z.string(), z.unknown())).default(() => []),
   templates: z.array(z.record(z.string(), z.unknown())).default(() => []),
-  notes: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  /**
+   * Map pins, typed via the shared schema — NOT a second copy. Each note
+   * carries its own ownership (REQ-DOC-056) and is redacted per viewer in
+   * `net/redaction.ts` (REQ-DOC-058). A field this schema does not declare is
+   * silently dropped on every write, which is how `grid` once vanished from
+   * every scene (see docs/lessons.md).
+   */
+  notes: z.array(NoteDocumentSchema).default(() => []),
 });
 
 /**

@@ -344,6 +344,88 @@ export function defaultTokenDocument(id: string): TokenDocument {
 }
 
 // ---------------------------------------------------------------------------
+// Note — a map pin, with its own ownership (REQ-DOC-056/057, REQ-CNV-057/058)
+// ---------------------------------------------------------------------------
+
+/**
+ * A Note is a pin on the map: a village, a ruin, a dungeon entrance.
+ *
+ * It is the **second exception** to REQ-DOC-025 (embedded documents inherit the
+ * parent's ownership — the first is JournalEntryPage). A pin carries its own
+ * ownership map because its visibility is per-player and that is the whole
+ * point of it: the same ruin is nothing to one character, a rumour to another
+ * ("they say something walks the road to Godford") and a named place to a third
+ * who has been there.
+ *
+ * Two rules are not negotiable, both from REQ-DOC-056/057:
+ *
+ *  1. **Every pin is born hidden** (`ownership.default = NONE`). Revealing is a
+ *     deliberate act. A pin that defaults to visible hands the map away the
+ *     instant the GM drops it while preparing the session.
+ *  2. **`none` is absence of payload, `limited` is a redacted payload.** The
+ *     player at `none` never receives the note; the player at `limited`
+ *     receives position and nothing else — no name, no icon, no tooltip, no
+ *     `entryId`/`pageId`, no content flags. Enforced server-side in
+ *     `redaction.ts` (REQ-DOC-058); this schema only defines the shape.
+ *
+ * `global: true` is the escape hatch for landmarks nobody is meant to discover
+ * (the capital, the mountain range): it reads as `observer` for everyone.
+ */
+export const NoteDocumentSchema = z.object({
+  /** Unique 16-character nanoid ID within the Scene's notes collection. */
+  _id: z.string().regex(/^[A-Za-z0-9]{16}$/, "must be 16 chars from [A-Za-z0-9]"),
+
+  /** Soft reference to the JournalEntry this pin opens. */
+  entryId: z.string().nullable().default(null),
+
+  /** Soft reference to a specific page of that entry. */
+  pageId: z.string().nullable().default(null),
+
+  /** Position in scene pixel coordinates. */
+  x: z.number().default(0),
+  y: z.number().default(0),
+
+  /** Elevation, for scenes that stack floors. */
+  elevation: z.number().default(0),
+
+  /** Icon path/URL; null falls back to the engine's neutral pin. */
+  icon: z.string().nullable().default(null),
+
+  /** Icon size in scene pixels. */
+  iconSize: z.number().positive().default(40),
+
+  /** Tooltip override; null uses the linked entry's name. */
+  text: z.string().nullable().default(null),
+
+  /** Label typography. */
+  fontFamily: z.string().default("Signika"),
+  fontSize: z.number().positive().default(24),
+  textColor: z.string().nullable().default(null),
+
+  /** Label anchor relative to the icon (see REQ-CNV-057). */
+  textAnchor: z.number().int().default(1),
+
+  /** Visible to everyone regardless of ownership — reads as `observer`. */
+  global: z.boolean().default(false),
+
+  /**
+   * Per-user reveal state. Default `{ default: NONE }` — born hidden.
+   * REQ-DOC-025 exception, REQ-DOC-056.
+   */
+  ownership: OwnershipSchema.default(() => defaultOwnership()),
+
+  /** Namespaced flags: `flags.fusion.portal = { sceneId }` lives here. */
+  flags: FlagsSchema.default(() => ({})),
+});
+
+export type NoteDocument = z.infer<typeof NoteDocumentSchema>;
+
+/** Factory: build a minimal valid NoteDocument with defaults (born hidden). */
+export function defaultNoteDocument(id: string): NoteDocument {
+  return NoteDocumentSchema.parse({ _id: id });
+}
+
+// ---------------------------------------------------------------------------
 // Tile — an image the scene is composed from (REQ-CNV-003, spec 06)
 // ---------------------------------------------------------------------------
 
@@ -646,9 +728,10 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
 
   /**
    * Embedded map notes / pins (linked to JournalEntries).
-   * Full NoteData schema is defined in spec 06 (M2); placeholder here.
+   * Typed: each pin carries its own ownership (REQ-DOC-056) and is redacted
+   * per viewer server-side (REQ-DOC-058).
    */
-  notes: z.array(z.unknown()).default(() => []),
+  notes: z.array(NoteDocumentSchema).default(() => []),
 });
 
 export type SceneDocument = z.infer<typeof SceneDocumentSchema>;

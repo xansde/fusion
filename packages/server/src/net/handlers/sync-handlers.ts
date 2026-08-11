@@ -20,6 +20,7 @@ import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
 import {
   stripHiddenTokens,
+  redactNotesForViewer,
   stripTokenActorDeltas,
   redactSecretDoors,
   stripHiddenTiles,
@@ -187,12 +188,14 @@ function filterOpsForRole(ops: Envelope[], userId: string | null, role: number):
       continue;
     }
 
-    // Apply hidden-token, secret-door and hidden-tile redaction.
+    // Apply hidden-token, secret-door, hidden-tile and map-pin redaction.
     const stripped = (documents as Record<string, unknown>[]).map((doc) => {
       let redacted = stripHiddenTokens(doc);
       redacted = stripTokenActorDeltas(redacted);
       redacted = redactSecretDoors(redacted);
       redacted = stripHiddenTiles(redacted);
+      // Per-user, and this replay is already per user (REQ-DOC-057/058).
+      redacted = redactNotesForViewer(redacted, userId, role);
       return redacted;
     });
     // If nothing changed (all same references), return the original op.
@@ -317,6 +320,10 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
           redacted = stripTokenActorDeltas(redacted);
           redacted = redactSecretDoors(redacted);
           redacted = stripHiddenTiles(redacted);
+          // Map pins are the one PER-USER cut in a scene: this snapshot is
+          // already built per user, so it is simply applied here
+          // (REQ-DOC-057/058).
+          redacted = redactNotesForViewer(redacted, userId, role);
           return redacted;
         });
       } else {

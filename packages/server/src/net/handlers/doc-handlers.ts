@@ -88,6 +88,9 @@ import {
   stripTokenActorDeltas,
   scenePayloadHasTokenActorDeltas,
   emitOwnershipGatedOp,
+  redactNotesForViewer,
+  scenePayloadHasNotes,
+  socketViewer,
 } from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
@@ -168,6 +171,7 @@ const EMBEDDED_PARENT_MAP: Record<string, string> = {
   Combatant: "Combat",
   Item: "Actor",
   Tile: "Scene",
+  Note: "Scene",
 };
 
 /**
@@ -177,8 +181,12 @@ const EMBEDDED_PARENT_MAP: Record<string, string> = {
  * reveal control. A TRUSTED player who could add or unhide a tile could show
  * the room the GM was saving — so unlike tokens, the TRUSTED floor is not
  * enough here.
+ *
+ * Notes are here for the same reason, one step further: a pin's `ownership`
+ * IS the reveal (REQ-DOC-056), so a player who could write one could hand
+ * themselves the map. Placing and revealing pins is the GM's act.
  */
-const GM_ONLY_EMBEDDED = new Set(["Tile"]);
+const GM_ONLY_EMBEDDED = new Set(["Tile", "Note"]);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1785,6 +1793,45 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
     // Scene, which every player receives — the Actor gate above does not
     // reach them. See redaction.ts stripTokenActorDeltas.
     const hasActorDeltas = scenePayloadHasTokenActorDeltas(payload.documents);
+    // Map pins break the "one player payload for every player" shortcut below:
+    // their visibility is per USER, not per role (REQ-DOC-056/057). A scene
+    // carrying pins therefore takes the per-socket path, where each player's
+    // payload is built against their own userId.
+    const hasNotes = scenePayloadHasNotes(payload.documents);
+
+    if (hasNotes) {
+      // Shared prefix: everything that is per-role can still be computed once.
+      const roleRedacted = payload.documents.map((d) => {
+        let redacted = d;
+        if (hasHiddenTokens && Array.isArray(redacted["tokens"])) {
+          redacted = stripHiddenTokens(redacted);
+        }
+        if (hasActorDeltas && Array.isArray(redacted["tokens"])) {
+          redacted = stripTokenActorDeltas(redacted);
+        }
+        if (hasSecretDoors && Array.isArray(redacted["walls"])) {
+          redacted = redactSecretDoors(redacted);
+        }
+        if (hasHiddenTiles && Array.isArray(redacted["tiles"])) {
+          redacted = stripHiddenTiles(redacted);
+        }
+        return redacted;
+      });
+
+      for (const [, socket] of ns.sockets) {
+        if (socketIsPrivileged(socket)) {
+          socket.emit("op", envelope);
+          continue;
+        }
+        const { userId, role } = socketViewer(socket);
+        const perViewer = roleRedacted.map((d) => redactNotesForViewer(d, userId, role));
+        socket.emit("op", {
+          ...envelope,
+          payload: { ...payload, documents: perViewer },
+        });
+      }
+      return;
+    }
 
     if (hasHiddenTokens || hasSecretDoors || hasHiddenTiles || hasActorDeltas) {
       // Build the player-visible payload once (shared across all player sockets).
