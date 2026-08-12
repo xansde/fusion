@@ -292,7 +292,12 @@ gesto que o GM repete cem vezes por sessão não depende dela.
 ### Missão e lugar
 
 - **REQ-HUB-038** [MVP] Uma missão DEVE poder declarar vínculo com um ou mais POIs
-  (REQ-MREG-005).
+  (REQ-MREG-005), e **cada objetivo** DEVE poder declarar os seus, independentemente
+  da missão e dos demais objetivos. O vínculo é **opcional** em ambos os níveis:
+  objetivo sem lugar é o caso comum. Objetivos diferentes PODEM apontar para o mesmo
+  POI. Amarrar todos os objetivos ao único lugar da missão mandaria a comitiva ao
+  lugar errado — "falar com o xerife" e "a coisa na neblina" não são o mesmo ponto
+  no mapa.
 - **REQ-HUB-039** [MVP] Ao mudar o estado de revelação de uma missão vinculada, o Hub DEVE
   **oferecer** o mesmo degrau para os POIs vinculados em uma ação de um clique — e NÃO DEVE
   aplicá-lo automaticamente (DEC-HUB-07).
@@ -450,8 +455,12 @@ podem ser páginas da mesma entry, e DEC-HUB-04 precisa ser reaberta.
   sinal de "isto mudou", ou a mudança é silenciosa?
 - **Q-HUB-03** Missão concluída sai da lista principal após algum tempo, ou fica para sempre
   em uma seção de arquivo? O protótipo não decide.
-- **Q-HUB-04** Objetivo tem estado de conclusão **por jogador** ou é da mesa? O protótipo
-  assume da mesa; campanhas com objetivos secretos individuais pediriam por jogador.
+- **Q-HUB-04** ✅ Objetivo tem estado de conclusão **por jogador** ou é da mesa?
+  **RESOLVIDA (2026-08-12, dono): é da mesa.** Objetivo concluído fica riscado para
+  todo mundo que o enxerga — o quadro é o diário do grupo, não a lista de cada um.
+  Gravado como um booleano em `flags.fusion.hub.done` da página, e não como mapa de
+  quem marcou. Campanha com objetivo secreto individual resolve com um objetivo
+  revelado só àquele jogador, que é o mecanismo que já existe.
 - **Q-HUB-05** O badge de Missões conta missões ativas ou novidades desde a última abertura?
   A segunda opção exige guardar "última leitura" por usuário.
 - **Q-HUB-06** Um painel registrado por sistema de jogo (REQ-HUB-057) pode declarar atalho,

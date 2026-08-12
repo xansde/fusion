@@ -21,6 +21,7 @@
   import TacticalMinimap from "./TacticalMinimap.svelte";
   import RegionMapPanel from "./RegionMapPanel.svelte";
   import PartyPanel from "./PartyPanel.svelte";
+  import QuestPanel from "./QuestPanel.svelte";
   import { HUB_PANELS, HUB_CLOSE_KEY } from "$lib/hub/commandBar.js";
   import { HUB_SURFACE_CLASS } from "$lib/hub/layers.js";
   import { DEMO_NOTICES } from "$lib/hub/noticeDemo.js";
@@ -43,10 +44,15 @@
 
   const activePanel = $derived(HUB_PANELS.find((panel) => panel.id === active) ?? null);
 
-  /** Where each panel's content is going to come from. */
-  const pending: Record<string, string> = {
-    missions: "O quadro de missões chega com a spec 28 (Hub do jogador) — issue #90.",
-  };
+  /**
+   * Where each panel's content is going to come from.
+   *
+   * Empty now that Missões, Comitiva and Mapa are all real. Kept — rather than
+   * deleted along with its branch — because the next panel to be sketched
+   * lands here first, and re-deriving this scaffolding costs more than the two
+   * lines it occupies.
+   */
+  const pending: Record<string, string> = {};
 
   /** The map panel draws a map: scanlines over it are moiré, not atmosphere. */
   const isMap = $derived(activePanel?.id === "map");
@@ -106,6 +112,15 @@
         {/if}
       {:else if activePanel.id === "party"}
         <PartyPanel />
+      {:else if activePanel.id === "missions"}
+        <!-- Tracking a place switches the Hub to the map, which only this
+             component can do: the panels do not know about each other. -->
+        <QuestPanel
+          onTrackOnMap={() => {
+            active = "map";
+            mapView = "region";
+          }}
+        />
       {:else}
         <p class="pending {HUB_SURFACE_CLASS}">{pending[activePanel.id]}</p>
       {/if}

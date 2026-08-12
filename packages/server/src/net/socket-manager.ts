@@ -52,6 +52,12 @@ import {
   buildRevealPinHandler,
   buildCommentHandler,
 } from "./handlers/region-map-handlers.js";
+import {
+  buildCreatePageHandler,
+  buildUpdatePageHandler,
+  buildDeletePageHandler,
+  buildRevealPageHandler,
+} from "./handlers/journal-handlers.js";
 import { FogStore } from "../fog/index.js";
 import {
   buildCombatCreateHandler,
@@ -365,6 +371,15 @@ export class SocketManager {
     registry.register("regionMap:deletePin", buildDeletePinHandler(regionMapDeps));
     registry.register("regionMap:reveal", buildRevealPinHandler(regionMapDeps));
     registry.register("regionMap:comment", buildCommentHandler(regionMapDeps));
+
+    // Register journal page handlers (DEC-HUB-04). A page carries its own
+    // ownership, so editing one and revealing one are different ops and only
+    // the second may touch it — see the module header.
+    const journalDeps = { store, seqStore, opBuffer, ns };
+    registry.register("journal:createPage", buildCreatePageHandler(journalDeps));
+    registry.register("journal:updatePage", buildUpdatePageHandler(journalDeps));
+    registry.register("journal:deletePage", buildDeletePageHandler(journalDeps));
+    registry.register("journal:revealPage", buildRevealPageHandler(journalDeps));
 
     // Register M2-B fog-of-war handlers
     const fogStore = new FogStore(db);
