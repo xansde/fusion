@@ -116,7 +116,10 @@ function toEquippedArmor(item: Record<string, unknown>): EquippedArmorInput {
  * "base" → "derived" phase split already guarantees this step runs first).
  *
  * Weapon inclusion rule: unarmed-category weapons ALWAYS count (you cannot
- * unequip your own fists/bite), all others require `isEquippedFlag`.
+ * unequip your own fists/bite), all others require `isEquippedFlag`. If the
+ * scan finds no unarmed weapon at all, a synthetic Fist (1d4 bludgeoning,
+ * agile/finesse/nonlethal) is appended — every PF2e character can strike
+ * unarmed per the CRB remaster, regardless of what's in `doc.items`.
  * Armor inclusion rule: the FIRST equipped armor item found becomes
  * `doc._equippedArmor` (no support for stacking multiple armors).
  *
@@ -143,15 +146,12 @@ export const stepCharCollectEquipment: DeriveStep = {
     (sys["derived"] as Record<string, unknown>)["_equipmentCollected"] = true;
 
     const rawItems = doc["items"];
-    if (!Array.isArray(rawItems)) {
-      doc["_equippedWeapons"] = [];
-      return;
-    }
+    const items: unknown[] = Array.isArray(rawItems) ? rawItems : [];
 
     const weapons: EquippedWeaponInput[] = [];
     let armor: EquippedArmorInput | undefined;
 
-    for (const raw of rawItems) {
+    for (const raw of items) {
       if (!raw || typeof raw !== "object") continue;
       const item = raw as Record<string, unknown>;
       const itemType = item["type"];
@@ -168,6 +168,25 @@ export const stepCharCollectEquipment: DeriveStep = {
       if (itemType === "armor" && armor === undefined && isEquippedFlag(itemSys)) {
         armor = toEquippedArmor(item);
       }
+    }
+
+    // Every PF2e character can strike unarmed (CRB remaster, "Unarmed
+    // Attacks": your fists always count as weapons) — this is NOT sourced
+    // from any pack; it's a CRB rule the engine must guarantee even when
+    // `doc.items` has no explicit Fist item. Synthesize one only when the
+    // scan above found no unarmed-category weapon, so a Fist granted by an
+    // item/feature (or any other unarmed strike already present) is never
+    // duplicated.
+    if (!weapons.some((w) => w.category === "unarmed")) {
+      weapons.push({
+        name: "Fist",
+        id: "pf2e.synthetic.fist",
+        damage: { dice: 1, die: "d4", damageType: "bludgeoning", modifier: 0 },
+        category: "unarmed",
+        traits: ["agile", "finesse", "nonlethal"],
+        range: null,
+        runes: { potency: 0, striking: 0 },
+      });
     }
 
     doc["_equippedWeapons"] = weapons;
