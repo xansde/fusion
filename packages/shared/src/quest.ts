@@ -62,7 +62,7 @@ function hubFlags(source: {
 }): Record<string, unknown> {
   const fusion = source.flags?.["fusion"];
   if (!fusion || typeof fusion !== "object") return {};
-  const hub = (fusion as Record<string, unknown>)["hub"];
+  const hub = fusion["hub"];
   if (!hub || typeof hub !== "object") return {};
   return hub as Record<string, unknown>;
 }
