@@ -376,6 +376,247 @@ export function stripHiddenTiles(scene: Record<string, unknown>): Record<string,
   return { ...scene, tiles: filtered };
 }
 
+// ---------------------------------------------------------------------------
+// Map pins — the first PER-VIEWER redaction in a Scene (REQ-DOC-056/057/058)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fields a `limited` pin keeps. Everything else is stripped.
+ *
+ * Declared as a keep-list, not a strip-list, on purpose: a strip-list leaks by
+ * omission the day someone adds a field to the note schema and forgets this
+ * module. With a keep-list the new field is absent from a rumour until somebody
+ * decides otherwise, which is the direction we want to fail in.
+ */
+const RUMOUR_KEEP_FIELDS = ["_id", "x", "y", "elevation", "iconSize", "textAnchor"] as const;
+
+/**
+ * Reduce one authored note to what a viewer at `limited` may receive.
+ *
+ * REQ-DOC-057: position and a generic "something is here" marker — no name, no
+ * themed icon, no tooltip, no `entryId`/`pageId`, no content flags. The client
+ * draws a "?" at the position; everything it would need to draw more is gone
+ * from the payload, not merely unused by the renderer.
+ */
+function redactNoteToRumour(note: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const field of RUMOUR_KEEP_FIELDS) {
+    if (field in note) out[field] = note[field];
+  }
+  // Explicit nulls rather than absent keys: the client parses notes against the
+  // shared schema, and a rumour must be a valid NoteDocument, not a fragment.
+  out["entryId"] = null;
+  out["pageId"] = null;
+  out["icon"] = null;
+  out["text"] = null;
+  out["textColor"] = null;
+  out["global"] = false;
+  out["flags"] = {};
+  // The viewer's own level is all they may learn about who else sees it.
+  out["ownership"] = { default: OwnershipLevel.LIMITED };
+  return out;
+}
+
+/**
+ * Apply per-user pin visibility to a Scene bound for one viewer.
+ *
+ * This is the first redaction in this module that is **per user** rather than
+ * per role, and that difference is structural: hidden tokens, hidden tiles and
+ * secret doors are binary (GM yes, every player no), so a single player payload
+ * can be built once and shared across every player socket. Pins cannot be —
+ * the same broadcast means three different things to three players. Callers on
+ * the broadcast path must therefore build one payload PER SOCKET when
+ * {@link scenePayloadHasNotes} says the scene carries pins.
+ *
+ * Returns the SAME reference when nothing changed (privileged viewer, no notes,
+ * or every note already fully visible), so the "nothing to redact" fast paths
+ * keep working and the shared envelope is reused.
+ */
+export function redactNotesForViewer(
+  scene: Record<string, unknown>,
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown> {
+  if (isRolePrivileged(role)) return scene;
+
+  const rawNotes = scene["notes"];
+  if (!Array.isArray(rawNotes) || rawNotes.length === 0) return scene;
+
+  const notes = rawNotes as Record<string, unknown>[];
+  const visible: Record<string, unknown>[] = [];
+  let changed = false;
+
+  for (const note of notes) {
+    // REQ-DOC-056: `global` reads as observer for everyone.
+    if (note["global"] === true) {
+      visible.push(note);
+      continue;
+    }
+
+    const level = resolveOwnership(ownershipOf(note), userId, role);
+
+    if (level >= OwnershipLevel.OBSERVER) {
+      visible.push(note);
+      continue;
+    }
+
+    if (level === OwnershipLevel.LIMITED) {
+      visible.push(redactNoteToRumour(note));
+      changed = true;
+      continue;
+    }
+
+    // NONE — the note does not exist for this user (REQ-DOC-057).
+    changed = true;
+  }
+
+  if (!changed) return scene;
+  return { ...scene, notes: visible };
+}
+
+/** Return true when a Scene-shaped doc carries at least one map pin. */
+export function sceneHasNotes(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const notes = (doc as Record<string, unknown>)["notes"];
+  return Array.isArray(notes) && notes.length > 0;
+}
+
+/**
+ * Return true when any document in a payload carries map pins.
+ *
+ * The gate for the expensive path: pins force per-socket payload construction,
+ * so a broadcast that carries none must never pay for it.
+ */
+export function scenePayloadHasNotes(documents: Record<string, unknown>[]): boolean {
+  return documents.some((doc) => sceneHasNotes(doc));
+}
+
+// ---------------------------------------------------------------------------
+// Region map pins — the same per-viewer cut, on a document of its own
+// (DEC-MREG-08, REQ-DOC-056/057/058)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fields a `limited` region-map pin keeps.
+ *
+ * Shorter than the Scene note's list because a region pin has less to give
+ * away, and for the same reason it is written as a keep-list: a field added to
+ * `MapPinSchema` tomorrow is absent from a rumour until somebody decides
+ * otherwise. `kind` and `authorName` are deliberately NOT kept — that a rumour
+ * was dropped by a specific player is itself information about the place.
+ */
+const PIN_RUMOUR_KEEP_FIELDS = ["_id", "x", "y"] as const;
+
+/** Reduce one pin to what a viewer at `limited` may receive (REQ-DOC-057). */
+function redactPinToRumour(pin: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const field of PIN_RUMOUR_KEEP_FIELDS) {
+    if (field in pin) out[field] = pin[field];
+  }
+  // Explicit defaults rather than absent keys: the client parses pins against
+  // the shared schema, so a rumour has to be a valid MapPin, not a fragment.
+  out["text"] = "";
+  out["description"] = "";
+  out["icon"] = "";
+  out["kind"] = "gm";
+  out["authorId"] = null;
+  out["authorName"] = "";
+  // The table's conversation about a place is content, and a rumour has none.
+  out["comments"] = [];
+  out["flags"] = {};
+  // The viewer's own level is all they may learn about who else sees it.
+  out["ownership"] = { default: OwnershipLevel.LIMITED };
+  return out;
+}
+
+/**
+ * Apply per-user pin visibility to a RegionMap bound for one viewer.
+ *
+ * Same structural warning as {@link redactNotesForViewer}: this cut is per
+ * USER, so a broadcast carrying a region map must be built once per socket
+ * rather than once per role. Returns the SAME reference when nothing changed.
+ */
+export function redactRegionMapForViewer(
+  map: Record<string, unknown>,
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown> {
+  if (isRolePrivileged(role)) return map;
+
+  const rawPins = map["pins"];
+  if (!Array.isArray(rawPins) || rawPins.length === 0) return map;
+
+  const pins = rawPins as Record<string, unknown>[];
+  const visible: Record<string, unknown>[] = [];
+  let changed = false;
+
+  for (const pin of pins) {
+    const level = resolveOwnership(ownershipOf(pin), userId, role);
+
+    if (level >= OwnershipLevel.OBSERVER) {
+      visible.push(pin);
+      continue;
+    }
+
+    if (level === OwnershipLevel.LIMITED) {
+      visible.push(redactPinToRumour(pin));
+      changed = true;
+      continue;
+    }
+
+    // NONE — the pin does not exist for this user (REQ-DOC-057).
+    changed = true;
+  }
+
+  if (!changed) return map;
+  return { ...map, pins: visible };
+}
+
+/** Return true when a RegionMap-shaped doc carries at least one pin. */
+export function regionMapHasPins(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const pins = (doc as Record<string, unknown>)["pins"];
+  return Array.isArray(pins) && pins.length > 0;
+}
+
+/**
+ * Emit a `doc:create` / `doc:update` carrying region maps, one payload per
+ * socket.
+ *
+ * Returns `false` when the envelope is not a region map with pins, so the
+ * caller can fall through to its ordinary broadcast. Every producer of region
+ * map envelopes goes through here — the pin handlers and the generic document
+ * path both — so the per-user cut cannot be forgotten by one of them.
+ */
+export function emitRegionMapOp(ns: EmittingNamespace, envelope: Envelope): boolean {
+  if (envelope.type !== "doc:create" && envelope.type !== "doc:update") return false;
+
+  const payload = envelope.payload as
+    | { documentType?: unknown; documents?: unknown }
+    | null
+    | undefined;
+  if (!payload || payload.documentType !== "RegionMap" || !Array.isArray(payload.documents)) {
+    return false;
+  }
+
+  const documents = payload.documents as Record<string, unknown>[];
+  if (!documents.some((doc) => regionMapHasPins(doc))) return false;
+
+  for (const [, socket] of ns.sockets) {
+    const { userId, role } = socketViewer(socket);
+    if (isRolePrivileged(role)) {
+      socket.emit("op", envelope);
+      continue;
+    }
+    const perViewer = documents.map((doc) => redactRegionMapForViewer(doc, userId, role));
+    socket.emit("op", {
+      ...envelope,
+      payload: { ...payload, documents: perViewer },
+    });
+  }
+  return true;
+}
+
 /** Return true when a Scene-shaped doc carries at least one hidden tile. */
 /**
  * Empty every token's `actorDelta` in a Scene bound for a non-privileged
@@ -668,6 +909,30 @@ export function redactAckOwnedDocumentsForViewer(
     const visible = filterDocumentsForViewer(documents as Record<string, unknown>[], userId, role);
     if (visible !== documents) {
       newBody["documents"] = visible;
+      changed = true;
+    }
+  }
+
+  // A Scene echoed back to its requester carries map pins, and those are cut
+  // per user (REQ-DOC-057/058). The ack is the fourth emission path, and the
+  // one easiest to forget: a player who legitimately updated a scene would
+  // otherwise read every pin off their own ack.
+  if (documentType === "Scene" && Array.isArray(documents)) {
+    const scenes = documents as Record<string, unknown>[];
+    const redacted = scenes.map((scene) => redactNotesForViewer(scene, userId, role));
+    if (redacted.some((scene, i) => scene !== scenes[i])) {
+      newBody["documents"] = redacted;
+      changed = true;
+    }
+  }
+
+  // Same for a region map: a player who dropped a pin gets the whole map back
+  // in their ack, and every hidden pin on it would ride along (DEC-MREG-08).
+  if (documentType === "RegionMap" && Array.isArray(documents)) {
+    const maps = documents as Record<string, unknown>[];
+    const redacted = maps.map((map) => redactRegionMapForViewer(map, userId, role));
+    if (redacted.some((map, i) => map !== maps[i])) {
+      newBody["documents"] = redacted;
       changed = true;
     }
   }

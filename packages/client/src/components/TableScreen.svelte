@@ -56,6 +56,7 @@
   import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
   import SceneImagesPanel from "./scenes/SceneImagesPanel.svelte";
   import { TileLayer } from "../lib/canvas/TileLayer.js";
+  import { NoteLayer } from "../lib/canvas/NoteLayer.js";
   import { resolveAssetUrl } from "../lib/assets/assetApi.js";
   import { fusionApi } from "../lib/api.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
@@ -718,6 +719,16 @@
       return resolveAssetUrl(path, accessToken, tileUserId);
     });
 
+    // --- Notes (the pins of a region map) ---
+    // Drawn in the InterfaceGroup's `controls` layer: a pin is interface, not
+    // scenery, and DEC-MREG-04 wants it at a fixed screen size under any zoom.
+    // Players never receive a pin they are `none` on, and a rumour arrives
+    // already stripped — this layer draws what it is handed.
+    const noteLayer = new NoteLayer(canvas.getLayer("controls"), {
+      userId,
+      role: session.user?.role ?? 0,
+    });
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -728,6 +739,7 @@
       fogState,
       combatController,
       tileLayer,
+      noteLayer,
     });
   }
 

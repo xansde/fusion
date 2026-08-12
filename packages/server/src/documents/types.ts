@@ -32,6 +32,8 @@ import {
   CombatDocumentSchema,
   GridConfigSchema,
   TileDocumentSchema,
+  NoteDocumentSchema,
+  RegionMapDocumentSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -161,8 +163,27 @@ export const SceneSchema = BaseDocumentSchema.extend({
   tiles: z.array(TileDocumentSchema).default(() => []),
   drawings: z.array(z.record(z.string(), z.unknown())).default(() => []),
   templates: z.array(z.record(z.string(), z.unknown())).default(() => []),
-  notes: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  /**
+   * Map pins, typed via the shared schema — NOT a second copy. Each note
+   * carries its own ownership (REQ-DOC-056) and is redacted per viewer in
+   * `net/redaction.ts` (REQ-DOC-058). A field this schema does not declare is
+   * silently dropped on every write, which is how `grid` once vanished from
+   * every scene (see docs/lessons.md).
+   */
+  notes: z.array(NoteDocumentSchema).default(() => []),
 });
+
+/**
+ * RegionMap — the picture the table consults, with pins on it (DEC-MREG-08).
+ *
+ * Declared by importing the shared schema rather than re-declaring the fields,
+ * for the reason in CLAUDE.md: `.extend()` without `.passthrough()` silently
+ * drops any field the server does not know about, so a second copy of the
+ * shape here would erase every pin the moment the two drifted. `pins` is
+ * listed for exactly that reason — the same trap that once deleted `grid` from
+ * every scene.
+ */
+export const RegionMapSchema = RegionMapDocumentSchema;
 
 /**
  * JournalEntry — with embedded pages.
@@ -308,6 +329,7 @@ export const SettingSchema = BaseDocumentSchema.extend({
 registerDocumentSchema("actors", ActorSchema);
 registerDocumentSchema("items", ItemSchema);
 registerDocumentSchema("scenes", SceneSchema);
+registerDocumentSchema("region_maps", RegionMapSchema);
 registerDocumentSchema("journal_entries", JournalEntrySchema);
 registerDocumentSchema("macros", MacroSchema);
 registerDocumentSchema("roll_tables", RollTableSchema);
@@ -325,6 +347,7 @@ registerDocumentSchema("settings", SettingSchema);
 export type ActorDocument = z.infer<typeof ActorSchema>;
 export type ItemDocument = z.infer<typeof ItemSchema>;
 export type SceneDocument = z.infer<typeof SceneSchema>;
+export type RegionMapDocument = z.infer<typeof RegionMapSchema>;
 export type JournalEntryDocument = z.infer<typeof JournalEntrySchema>;
 export type MacroDocument = z.infer<typeof MacroSchema>;
 export type RollTableDocument = z.infer<typeof RollTableSchema>;

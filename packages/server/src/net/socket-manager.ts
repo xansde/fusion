@@ -45,6 +45,13 @@ import {
   buildFogGetHandler,
   buildFogResetHandler,
 } from "./handlers/fog-handlers.js";
+import {
+  buildCreatePinHandler,
+  buildUpdatePinHandler,
+  buildDeletePinHandler,
+  buildRevealPinHandler,
+  buildCommentHandler,
+} from "./handlers/region-map-handlers.js";
 import { FogStore } from "../fog/index.js";
 import {
   buildCombatCreateHandler,
@@ -342,6 +349,22 @@ export class SocketManager {
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
+
+    // Register region map handlers (DEC-MREG-08). Pins live on a document of
+    // their own, and every op here stamps authorship from the socket rather
+    // than from the payload — see the module header.
+    const regionMapDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      getUserName: (id: string) => authService.getUser(id)?.name ?? null,
+    };
+    registry.register("regionMap:createPin", buildCreatePinHandler(regionMapDeps));
+    registry.register("regionMap:updatePin", buildUpdatePinHandler(regionMapDeps));
+    registry.register("regionMap:deletePin", buildDeletePinHandler(regionMapDeps));
+    registry.register("regionMap:reveal", buildRevealPinHandler(regionMapDeps));
+    registry.register("regionMap:comment", buildCommentHandler(regionMapDeps));
 
     // Register M2-B fog-of-war handlers
     const fogStore = new FogStore(db);

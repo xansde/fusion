@@ -268,6 +268,7 @@ export type DocumentTable =
   | "actors"
   | "items"
   | "scenes"
+  | "region_maps"
   | "journal_entries"
   | "macros"
   | "roll_tables"
@@ -282,6 +283,7 @@ export const DOCUMENT_TABLES: ReadonlySet<DocumentTable> = new Set<DocumentTable
   "actors",
   "items",
   "scenes",
+  "region_maps",
   "journal_entries",
   "macros",
   "roll_tables",

@@ -20,6 +20,8 @@ import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
 import {
   stripHiddenTokens,
+  redactNotesForViewer,
+  redactRegionMapForViewer,
   stripTokenActorDeltas,
   redactSecretDoors,
   stripHiddenTiles,
@@ -52,6 +54,9 @@ const ACTIVE_SCENE_SETTING_KEY = "_meta:activeScene";
 /** Document tables included in the snapshot. */
 const SNAPSHOT_TABLES: Array<{ table: string; docType: string }> = [
   { table: "scenes", docType: "Scene" },
+  // DEC-MREG-08: the region map is a document of its own, so it joins the
+  // snapshot like any other. Its pins are cut per viewer below.
+  { table: "region_maps", docType: "RegionMap" },
   { table: "actors", docType: "Actor" },
   { table: "items", docType: "Item" },
   { table: "journal_entries", docType: "JournalEntry" },
@@ -182,17 +187,30 @@ function filterOpsForRole(ops: Envelope[], userId: string | null, role: number):
       continue;
     }
 
+    // DEC-MREG-08: a region map's pins are cut per user, and this replay is
+    // already per user.
+    if (documentType === "RegionMap" && Array.isArray(documents)) {
+      const cut = (documents as Record<string, unknown>[]).map((doc) =>
+        redactRegionMapForViewer(doc, userId, role),
+      );
+      const mapChanged = cut.some((doc, i) => doc !== documents[i]);
+      out.push(mapChanged ? { ...op, payload: { ...payload, documents: cut } } : op);
+      continue;
+    }
+
     if (documentType !== "Scene" || !Array.isArray(documents)) {
       out.push(op);
       continue;
     }
 
-    // Apply hidden-token, secret-door and hidden-tile redaction.
+    // Apply hidden-token, secret-door, hidden-tile and map-pin redaction.
     const stripped = (documents as Record<string, unknown>[]).map((doc) => {
       let redacted = stripHiddenTokens(doc);
       redacted = stripTokenActorDeltas(redacted);
       redacted = redactSecretDoors(redacted);
       redacted = stripHiddenTiles(redacted);
+      // Per-user, and this replay is already per user (REQ-DOC-057/058).
+      redacted = redactNotesForViewer(redacted, userId, role);
       return redacted;
     });
     // If nothing changed (all same references), return the original op.
@@ -317,8 +335,22 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
           redacted = stripTokenActorDeltas(redacted);
           redacted = redactSecretDoors(redacted);
           redacted = stripHiddenTiles(redacted);
+          // Map pins are the one PER-USER cut in a scene: this snapshot is
+          // already built per user, so it is simply applied here
+          // (REQ-DOC-057/058).
+          redacted = redactNotesForViewer(redacted, userId, role);
           return redacted;
         });
+      } else if (docType === "RegionMap") {
+        // The map itself is shared world state (a map the GM has not opened to
+        // the table sits at `default: NONE` and is filtered by the ownership
+        // branch below — but a visible map still hides most of its pins).
+        visible = all
+          .filter((map) => {
+            const level = resolveOwnership(getOwnershipFromDoc(map), userId, role);
+            return level >= OwnershipLevel.LIMITED;
+          })
+          .map((map) => redactRegionMapForViewer(map, userId, role));
       } else {
         visible = all.filter((doc) => {
           const ownership = getOwnershipFromDoc(doc);

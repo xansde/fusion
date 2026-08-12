@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1387 requisitos [MVP]** definidos nas 35 specs. Os [V2] ficam de fora
+Escopo: os **1400 requisitos [MVP]** definidos nas 35 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 262 | 19% |
-| Citados só por código de produção | 325 | 23% |
-| Sem nenhuma citação | 800 | 58% |
-| **Total [MVP]** | **1387** | |
+| Citados por algum teste | 274 | 20% |
+| Citados só por código de produção | 327 | 23% |
+| Sem nenhuma citação | 799 | 57% |
+| **Total [MVP]** | **1400** | |
 
 ## Por spec
 
@@ -26,11 +26,11 @@ porque ainda não foram prometidos para nenhum marco.
 | --- | ---: | ---: | ---: | ---: | ---: |
 | [00](00-visao-e-escopo.md) | 18 | 0 | 0 | 18 | 0% |
 | [01](01-arquitetura-geral.md) | 42 | 6 | 8 | 28 | 14% |
-| [02](02-modelo-de-dados.md) | 59 | 14 | 16 | 29 | 24% |
+| [02](02-modelo-de-dados.md) | 59 | 17 | 16 | 26 | 29% |
 | [03](03-persistencia-e-mundos.md) | 36 | 2 | 20 | 14 | 6% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 9 | 20 | 19 | 19% |
 | [05](05-usuarios-e-permissoes.md) | 36 | 3 | 17 | 16 | 8% |
-| [06](06-canvas-e-renderizacao.md) | 85 | 14 | 29 | 42 | 16% |
+| [06](06-canvas-e-renderizacao.md) | 85 | 14 | 30 | 41 | 16% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 13 | 23 | 20 | 23% |
 | [08](08-motor-de-rolagens.md) | 49 | 11 | 12 | 26 | 22% |
 | [09](09-chat-e-mensagens.md) | 47 | 10 | 9 | 28 | 21% |
@@ -52,8 +52,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
-| [28](28-hub-do-jogador.md) | 48 | 4 | 1 | 43 | 8% |
+| [28](28-hub-do-jogador.md) | 50 | 4 | 1 | 45 | 8% |
 | [29](29-pets-companions-familiars.md) | 16 | 3 | 6 | 7 | 19% |
 | [32](32-minimapa-tatico.md) | 14 | 7 | 2 | 5 | 50% |
-| [34](34-mapa-de-regiao.md) | 16 | 0 | 0 | 16 | 0% |
+| [34](34-mapa-de-regiao.md) | 27 | 9 | 1 | 17 | 33% |
 | [35](35-avatar-do-personagem.md) | 33 | 1 | 0 | 32 | 3% |

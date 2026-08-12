@@ -127,6 +127,15 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("sound:stop"),
   // server → clients broadcast:
   z.literal("sound:state"),
+  // Region map (DEC-MREG-08) — pins and the table's comments on them.
+  // Dedicated ops rather than the generic embedded path because authorship
+  // comes from the socket and comments are an append, not a replacement; see
+  // packages/server/src/net/handlers/region-map-handlers.ts.
+  z.literal("regionMap:createPin"),
+  z.literal("regionMap:updatePin"),
+  z.literal("regionMap:deletePin"),
+  z.literal("regionMap:reveal"),
+  z.literal("regionMap:comment"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

@@ -270,6 +270,14 @@ gesto que o GM repete cem vezes por sessão não depende dela.
   degrau a partir de quem está mais atrás e NUNCA rebaixa quem já está adiante.
 - **REQ-HUB-032** [MVP] O GM DEVE poder liberar um objetivo individualmente, sem alterar o
   estado da missão nem o dos demais objetivos (DEC-HUB-06).
+- **REQ-HUB-032a** [MVP] O **nome** de cada objetivo DEVE ser escrito pelo GM (é o título da
+  página) e o painel DEVE montar a lista a partir dos objetivos que existem no documento —
+  NÃO DEVE existir conjunto fixo de rótulos no código. Renomear um objetivo NÃO DEVE alterar
+  o estado de revelação dele para usuário algum.
+- **REQ-HUB-032b** [MVP] Cada objetivo PODE ter **descrição** (o corpo da página, com o
+  mesmo editor de `12`); objetivo sem descrição DEVE renderizar como uma linha simples, sem
+  afordância de expandir. A descrição DEVE seguir exatamente a revelação do objetivo que a
+  carrega — NÃO DEVE existir estado em que o usuário vê o nome e não vê o texto.
 - **REQ-HUB-033** [MVP] O GM DEVE dispor da prévia **"ver como \<jogador\>"**, que
   apresenta o painel exatamente como aquele jogador o vê.
 - **REQ-HUB-034** [MVP] Marcar uma missão como concluída DEVE ser privilégio de GM e DEVE
@@ -433,8 +441,11 @@ podem ser páginas da mesma entry, e DEC-HUB-04 precisa ser reaberta.
 
 ## Questões em aberto
 
-- **Q-HUB-01** O gancho e o boato são duas páginas da mesma `JournalEntry` ou dois campos de
-  uma página com redação por campo? A resposta depende de Q-JRN-003 (`12`).
+- **Q-HUB-01** ~~O gancho e o boato são duas páginas da mesma `JournalEntry` ou dois campos
+  de uma página com redação por campo?~~ **Respondida em 2026-08-11:** duas páginas da mesma
+  entry — a missão é um documento só, com pedaços de visibilidade própria. Segue dependendo
+  de Q-JRN-003 (`12`) resolver por **sobrescrita**; o desenho completo, com objetivos de nome
+  livre e descrição opcional, está em `docs/design/quadro-de-missoes.md`.
 - **Q-HUB-02** Quando o GM edita o gancho de uma missão já publicada, o jogador recebe algum
   sinal de "isto mudou", ou a mudança é silenciosa?
 - **Q-HUB-03** Missão concluída sai da lista principal após algum tempo, ou fica para sempre

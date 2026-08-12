@@ -186,6 +186,7 @@ function extractColumns(
       break;
 
     case "journal_entries":
+    case "region_maps":
     case "roll_tables":
     case "playlists":
       cols["name"] = doc["name"] ?? "";
@@ -458,6 +459,7 @@ export class DocumentStore {
       actors: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
       items: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
       scenes: ["name", "active", "navigation", "folder_id", "sort", "created_at", "updated_at"],
+      region_maps: ["name", "folder_id", "sort", "created_at", "updated_at"],
       journal_entries: ["name", "folder_id", "sort", "created_at", "updated_at"],
       macros: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
       roll_tables: ["name", "folder_id", "sort", "created_at", "updated_at"],

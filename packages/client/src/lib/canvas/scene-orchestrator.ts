@@ -92,6 +92,18 @@ export interface ITileLayer {
   destroy(): void;
 }
 
+/**
+ * Minimal interface for the NoteLayer — the pins of a region map.
+ *
+ * Same shape as the tile layer because the reconciliation is the same job; the
+ * difference lives inside, where a pin is drawn as a rumour or as a place
+ * depending on the viewer's level (REQ-DOC-057).
+ */
+export interface INoteLayer {
+  sync(notes: readonly unknown[]): void;
+  destroy(): void;
+}
+
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
@@ -115,6 +127,8 @@ export interface SceneOrchestratorOptions {
   combatController: ICombatController | null;
   /** Injected tile layer. Null when the canvas is unavailable. */
   tileLayer?: ITileLayer | null;
+  /** Injected map-pin layer. Null on scenes that are not region maps. */
+  noteLayer?: INoteLayer | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,6 +152,7 @@ export class SceneOrchestrator {
   private _fogState: FogState | null;
   private _combatController: ICombatController | null;
   private _tileLayer: ITileLayer | null;
+  private _noteLayer: INoteLayer | null;
 
   private _visionComputer = new VisionStateComputer();
 
@@ -164,6 +179,7 @@ export class SceneOrchestrator {
     this._fogState = opts.fogState;
     this._combatController = opts.combatController;
     this._tileLayer = opts.tileLayer ?? null;
+    this._noteLayer = opts.noteLayer ?? null;
   }
 
   // ---------------------------------------------------------------------------
@@ -221,6 +237,7 @@ export class SceneOrchestrator {
     this._combatController?.destroy();
     this._tokenLayer.destroy();
     this._tileLayer?.destroy();
+    this._noteLayer?.destroy();
     this._lightingRenderer.destroy();
 
     this._visionComputer.clearAll();
@@ -253,6 +270,12 @@ export class SceneOrchestrator {
     // persisted before tiles existed have no array at all.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     this._tileLayer?.sync(scene.tiles ?? []);
+
+    // Pins, for the same reason and with the same guard: revealing one is the
+    // GM's most frequent edit on a region map, and scenes persisted before
+    // notes were typed have no array at all.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    this._noteLayer?.sync(scene.notes ?? []);
 
     const walls = scene.walls;
     const tokens = scene.tokens;
