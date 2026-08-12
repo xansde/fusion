@@ -384,6 +384,47 @@ describe("CharacterSheetVM — abilities", () => {
     expect(dex.label).toBe("Des");
     expect(dex.longLabel).toBe("Destreza");
   });
+
+  // Issue #11: a build-driven actor never has `system.abilities` persisted —
+  // only `derive-runner.ts` writes back `system.derived.abilityScores` (see
+  // stepCharBuildAbilities in build.ts, which mutates a throwaway clone).
+  // A guard that bailed out on `!abilities` (before even looking at
+  // `derived.abilityScores`) left the ability block permanently empty for
+  // every character created through the build flow. This fixture reproduces
+  // that exact persisted shape — `system.abilities` absent by construction —
+  // and asserts against the RAW boost rule (10 base + one +2 boost = 12),
+  // never against a value read back from `system.abilities` itself.
+  it("falls back to derived.abilityScores when system.abilities is absent (build-driven actor)", () => {
+    const doc = makeCharacter();
+    const system = doc["system"] as Record<string, unknown>;
+    delete system["abilities"];
+    const derived = system["derived"] as Record<string, unknown>;
+    delete derived["abilityMods"];
+    derived["abilityScores"] = {
+      str: 12, // 10 base + one +2 boost, per PF2e RAW
+      dex: 10,
+      con: 10,
+      int: 10,
+      wis: 10,
+      cha: 10,
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "user-gm",
+      isGm: true,
+      worldId: "world-001",
+    });
+
+    expect(vm.abilities).toHaveLength(6);
+    const str = vm.abilities.find((a) => a.slug === "str")!;
+    expect(str.score).toBe(12);
+    expect(str.mod).toBe(1); // Math.floor((12 - 10) / 2), per PF2e RAW
+    const dex = vm.abilities.find((a) => a.slug === "dex")!;
+    expect(dex.score).toBe(10);
+    expect(dex.mod).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -404,6 +445,54 @@ describe("CharacterSheetVM — saves", () => {
     expect(fort.dc).toBe(21);
     expect(fort.rank).toBe(3);
     expect(fort.rankLabel).toBe("M");
+  });
+
+  // Issue #38. A build-driven character never gets its class-granted save and
+  // perception proficiencies written back to `system.saves` / `system.perception`
+  // — the derivation runs on a clone. So the sheet used to show "U" for a
+  // Fighter's Fortitude while the TOTAL right next to it already carried the
+  // expert bonus, which is the same lie #63 fixed for skills. The derived rank
+  // wins; the persisted value stays only as the fallback for hand-set ranks.
+  it("issue #38: the derived rank wins over an unpersisted system.saves rank", () => {
+    const doc = makeCharacter();
+    const system = doc["system"] as Record<string, unknown>;
+    // What a build-driven actor really looks like: the server trained the
+    // saves on a clone, so the persisted block is still all-untrained.
+    system["saves"] = { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } };
+    system["perception"] = { rank: 0, senses: [] };
+    const derived = system["derived"] as Record<string, unknown>;
+    derived["saves"] = {
+      fortitude: { slug: "fortitude", base: 11, modifiers: [], total: 11, dc: 21, rank: 2 },
+      reflex: { slug: "reflex", base: 9, modifiers: [], total: 9, dc: 19, rank: 1 },
+      will: { slug: "will", base: 8, modifiers: [], total: 8, dc: 18, rank: 1 },
+    };
+    derived["perception"] = {
+      slug: "perception",
+      base: 8,
+      modifiers: [],
+      total: 8,
+      dc: 18,
+      rank: 2,
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+      worldId: "world-001",
+    });
+
+    // RAW PF2e: a level-1 Fighter is EXPERT (rank 2) in Fortitude and
+    // Perception, TRAINED (rank 1) in Reflex and Will. The expectation is the
+    // rule, not a value read back out of the document.
+    const fort = vm.saves.find((s) => s.slug === "fortitude")!;
+    expect(fort.rank).toBe(2);
+    expect(fort.rankLabel).toBe("E");
+    expect(vm.saves.find((s) => s.slug === "reflex")!.rank).toBe(1);
+    expect(vm.saves.find((s) => s.slug === "will")!.rank).toBe(1);
+    expect(vm.perception.rank).toBe(2);
+    expect(vm.perception.rankLabel).toBe("E");
   });
 
   // R24 (#40.3): save.label now comes from t() (pt-BR default locale)

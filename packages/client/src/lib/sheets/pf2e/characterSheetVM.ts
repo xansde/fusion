@@ -957,7 +957,6 @@ export class CharacterSheetVM {
     const abilities = this._system["abilities"] as
       | Record<string, { value: number; mod?: number }>
       | undefined;
-    if (!abilities) return [];
 
     const abilityMods = this._derived?.abilityMods;
     // r11: build-driven actors have their FINAL scores in derived.abilityScores
@@ -966,8 +965,15 @@ export class CharacterSheetVM {
     const derivedScores = (this._derived as { abilityScores?: Record<string, number> } | null)
       ?.abilityScores;
 
+    // Issue #11: build-driven actors NEVER get `system.abilities` persisted —
+    // derive-runner.ts only ever writes back `derived.abilityScores`, never
+    // the raw field. Bailing out on `!abilities` alone left every build-driven
+    // character's ability block empty even though `derivedScores` had the
+    // real, final values. Only bail when NEITHER source has data.
+    if (!abilities && !derivedScores) return [];
+
     return Object.entries(ABILITY_LABELS).map(([slug]) => {
-      const raw = abilities[slug];
+      const raw = abilities?.[slug];
       const score = derivedScores?.[slug] ?? raw?.value ?? 10;
       const mod = abilityMods
         ? ((abilityMods as Record<string, number>)[slug] ?? Math.floor((score - 10) / 2))
@@ -1009,6 +1015,12 @@ export class CharacterSheetVM {
   }
 
   private _perceptionRank(): number {
+    // Issue #38, same contract as skills above: class-granted proficiency is
+    // computed on a clone the server never writes back, so `system.perception`
+    // can be silent about a rank the character really has. The derived rank
+    // wins; the persisted one is the fallback for hand-set (pre-derived) ranks.
+    const derivedRank = this._derived?.perception.rank;
+    if (derivedRank !== undefined) return derivedRank;
     const perception = this._system["perception"] as Record<string, unknown> | undefined;
     return Number(perception?.["rank"] ?? 0);
   }
@@ -1032,8 +1044,12 @@ export class CharacterSheetVM {
     const saveNames = ["fortitude", "reflex", "will"] as const;
 
     return saveNames.map((name) => {
-      const rank = savesSource?.[name]?.rank ?? 0;
       const derivedSave = derived?.saves[name];
+      // Issue #38, same contract as skills and perception: the class trains
+      // saves on a clone the server never persists back, so a build-driven
+      // character showed "U" next to a total that already carried the trained
+      // bonus. Derived rank wins; persisted is the fallback for hand-set ranks.
+      const rank = derivedSave?.rank ?? savesSource?.[name]?.rank ?? 0;
       const total = derivedSave?.total ?? 0;
       return {
         slug: name,
