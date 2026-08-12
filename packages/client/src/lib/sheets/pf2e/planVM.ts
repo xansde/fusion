@@ -2990,6 +2990,7 @@ export function applyClass(
   // `tradition: null`, bloodline-deferred) falls into neither branch here —
   // `bloodlineSpellcastingOps` builds its focus entry once the bloodline
   // choice resolves the tradition.
+  let focusEntryCreated = false;
   if (hasFocusFeature(classSystem)) {
     if (classSystem.spellcasting?.tradition) {
       ops.push(
@@ -2999,15 +3000,44 @@ export function applyClass(
           classSystem.spellcasting.tradition,
         ),
       );
+      focusEntryCreated = true;
     } else if (!classSystem.spellcasting) {
       const fallback = NON_SPELLCASTER_FOCUS_TRADITION[itemName(classDoc) ?? ""];
       if (fallback) {
         ops.push(buildFocusEntryOp(ctx, fallback.ability, fallback.tradition));
+        focusEntryCreated = true;
       }
     }
   }
+  // The entry alone is inert: `system.resources.focusPoints` stays {0,0} and
+  // the sheet's Cast button is `disabled={vm.focusPoints.value <= 0}`, so no
+  // focus spell was castable in ANY class (issue #4). PF2e gives a pool of
+  // one point with your first focus spell — the pool travels with the entry,
+  // which is why it is emitted here and not from a separate code path.
+  if (focusEntryCreated) ops.push(buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL));
 
   return ops;
+}
+
+/**
+ * A first focus spell opens a one-point pool (PF2e core rules). Growing it to
+ * the cap of 3 is a separate concern: it happens when a LATER feat or class
+ * feature grants another focus spell, which this VM does not model yet
+ * (issue #5 tracks the recognition side of that).
+ */
+const INITIAL_FOCUS_POOL = 1;
+
+/** Opens the actor's focus pool at `points`, full — a fresh pool starts unspent. */
+function buildFocusPoolOp(ctx: PlanOpBuilderContext, points: number): DocUpdatePayload {
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: {
+      "system.resources.focusPoints.value": points,
+      "system.resources.focusPoints.max": points,
+    },
+  } satisfies DocUpdatePayload;
 }
 
 /**
@@ -3974,6 +4004,11 @@ function bloodlineSpellcastingOps(
   if (hasFocusFeature(classSystem)) {
     if (!restamp("class:focus")) {
       ops.push(buildFocusEntryOp(ctx, spellcasting.ability, tradition));
+      // Same pairing as applyClass (issue #4): the Sorcerer's focus entry is
+      // created HERE, once the bloodline resolves the tradition, so the pool
+      // has to open here too. A restamp is a bloodline SWAP — the pool is
+      // already open and its spent points are the player's, not ours to reset.
+      ops.push(buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL));
     }
   }
   return ops;
