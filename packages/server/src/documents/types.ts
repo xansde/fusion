@@ -34,6 +34,7 @@ import {
   TileDocumentSchema,
   NoteDocumentSchema,
   RegionMapDocumentSchema,
+  JournalEntryPageSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -187,13 +188,21 @@ export const RegionMapSchema = RegionMapDocumentSchema;
 
 /**
  * JournalEntry — with embedded pages.
+ *
+ * `pages` used to be `z.array(z.record(z.string(), z.unknown()))`: a page could
+ * be anything, which meant it could not be REDACTED, because redaction has to
+ * know where a page keeps its ownership. The quest board rests entirely on
+ * that field (DEC-HUB-04), so the page now carries the shared schema —
+ * imported, never re-declared, for the reason in CLAUDE.md: `.extend()`
+ * without `.passthrough()` silently drops what it does not know, and a second
+ * copy of the shape here would erase every page the moment the two drifted.
  */
 export const JournalEntrySchema = BaseDocumentSchema.extend({
   name: z.string().min(1),
   ownership: BaseDocumentSchema.shape.ownership,
   folder: z.string().nullable().optional(),
   sort: z.number().int().default(0),
-  pages: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  pages: z.array(JournalEntryPageSchema).default(() => []),
 });
 
 /**

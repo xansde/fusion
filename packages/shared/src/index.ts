@@ -25,6 +25,7 @@ export * from "./grid/calibration.js";
 export * from "./scene.js";
 export * from "./region-map.js";
 export * from "./map-package.js";
+export * from "./journal.js";
 export * from "./chat/index.js";
 export * from "./vision/index.js";
 export * from "./fog/index.js";

@@ -90,6 +90,7 @@ import {
   emitOwnershipGatedOp,
   redactNotesForViewer,
   emitRegionMapOp,
+  emitJournalOp,
   scenePayloadHasNotes,
   socketViewer,
 } from "../redaction.js";
@@ -1785,6 +1786,10 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
   // notes, so it takes the per-socket path for the same reason — one broadcast
   // means a different thing to each player.
   if (emitRegionMapOp(ns, envelope)) return;
+
+  // DEC-HUB-04: same story for a quest's pages — one entry, and each objective
+  // revealed to a different subset of the table.
+  if (emitJournalOp(ns, envelope)) return;
 
   // Only Scene doc:create / doc:update need redaction filtering.
   if (

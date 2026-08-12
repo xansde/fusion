@@ -30,7 +30,10 @@
 
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../documents/ownership.js";
 import type { Envelope, Ownership } from "@fusion/shared";
-import { isActorDeltaEmpty } from "@fusion/shared";
+import { isActorDeltaEmpty, canReadPage } from "@fusion/shared";
+
+/** A page's ownership map: the document map, minus the required `default`. */
+type PageOwnership = Record<string, OwnershipLevel>;
 
 // ---------------------------------------------------------------------------
 // Ownership-gated emission (REQ-NET-024, REQ-NET-096, DEC-CNV-15)
@@ -617,6 +620,95 @@ export function emitRegionMapOp(ns: EmittingNamespace, envelope: Envelope): bool
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// JournalEntry pages — per-user reveal (Q-JRN-003, DEC-HUB-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * Drop every page this viewer may not read from a JournalEntry.
+ *
+ * A page is removed, never blanked. There is no rumour state for a page
+ * (REQ-HUB-032b): handing over a title with an empty body would say "there is
+ * a third objective and you have not earned it", which is itself the reveal
+ * the GM was holding back. A quest's rumour is a page of its own that the
+ * player reads in full (DEC-HUB-05).
+ *
+ * The cut is per USER — a page can be open to Tobias and shut to Comedor — so
+ * an envelope carrying journal entries must be built once per socket rather
+ * than once per role. Returns the SAME reference when nothing changed, which
+ * is what keeps the common case (an entry with no per-page rules) free.
+ */
+export function redactJournalForViewer(
+  entry: Record<string, unknown>,
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown> {
+  if (isRolePrivileged(role)) return entry;
+
+  const rawPages = entry["pages"];
+  if (!Array.isArray(rawPages) || rawPages.length === 0) return entry;
+
+  const entryOwnership = ownershipOf(entry);
+  const pages = rawPages as Record<string, unknown>[];
+  const visible = pages.filter((page) =>
+    canReadPage(
+      { ownership: (page["ownership"] ?? {}) as PageOwnership },
+      entryOwnership,
+      userId ?? null,
+    ),
+  );
+
+  if (visible.length === pages.length) return entry;
+  return { ...entry, pages: visible };
+}
+
+/** Return true when a JournalEntry-shaped doc carries at least one page. */
+export function journalHasPages(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const pages = (doc as Record<string, unknown>)["pages"];
+  return Array.isArray(pages) && pages.length > 0;
+}
+
+/**
+ * Emit a `doc:create` / `doc:update` carrying journal entries, one payload per
+ * socket.
+ *
+ * Same contract as {@link emitRegionMapOp}: returns `false` when the envelope
+ * is not a journal entry with pages, so the caller falls through to its
+ * ordinary broadcast. Every producer of journal envelopes goes through here,
+ * so the per-user cut cannot be forgotten by one of them.
+ */
+export function emitJournalOp(ns: EmittingNamespace, envelope: Envelope): boolean {
+  if (envelope.type !== "doc:create" && envelope.type !== "doc:update") return false;
+
+  const payload = envelope.payload as
+    | { documentType?: unknown; documents?: unknown }
+    | null
+    | undefined;
+  if (!payload || payload.documentType !== "JournalEntry" || !Array.isArray(payload.documents)) {
+    return false;
+  }
+
+  const documents = payload.documents as Record<string, unknown>[];
+  if (!documents.some((doc) => journalHasPages(doc))) return false;
+
+  for (const [, socket] of ns.sockets) {
+    const { userId, role } = socketViewer(socket);
+    if (isRolePrivileged(role)) {
+      socket.emit("op", envelope);
+      continue;
+    }
+    // An entry the viewer may not see at all is still gated by
+    // `canViewOwnedDocument` upstream; here we only cut its pages.
+    const perViewer = documents.map((doc) => redactJournalForViewer(doc, userId, role));
+    socket.emit("op", {
+      ...envelope,
+      payload: { ...payload, documents: perViewer },
+    });
+  }
+  return true;
+}
+
 /** Return true when a Scene-shaped doc carries at least one hidden tile. */
 /**
  * Empty every token's `actorDelta` in a Scene bound for a non-privileged
@@ -932,6 +1024,18 @@ export function redactAckOwnedDocumentsForViewer(
     const maps = documents as Record<string, unknown>[];
     const redacted = maps.map((map) => redactRegionMapForViewer(map, userId, role));
     if (redacted.some((map, i) => map !== maps[i])) {
+      newBody["documents"] = redacted;
+      changed = true;
+    }
+  }
+
+  // And for a journal entry: a player who may write on one page of a quest
+  // (their own note, a completed objective) gets the whole entry back in the
+  // ack, and every unrevealed objective on it would ride along (DEC-HUB-04).
+  if (documentType === "JournalEntry" && Array.isArray(documents)) {
+    const entries = documents as Record<string, unknown>[];
+    const redacted = entries.map((entry) => redactJournalForViewer(entry, userId, role));
+    if (redacted.some((entry, i) => entry !== entries[i])) {
       newBody["documents"] = redacted;
       changed = true;
     }
