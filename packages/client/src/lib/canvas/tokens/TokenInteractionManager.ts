@@ -131,10 +131,17 @@ export interface TokenInteractionOptions {
   /** Whether to attach global keyboard listeners (default: true). */
   attachKeyboard?: boolean;
   /**
-   * Targeting access for the right-click gesture. Optional: without it the
-   * right button is a no-op and the manager stays constructible as before.
+   * Targeting access for the right-click gesture.
+   *
+   * REQUIRED (issue #84): this used to be optional, which let real wiring
+   * (TableScreen) silently ship without it — nothing but a runtime no-op on
+   * right-click caught the gap. Making it mandatory turns the compiler into
+   * the guard: any call site that forgets to build a TargetingPort fails to
+   * typecheck instead of shipping a dead gesture. Tests that don't exercise
+   * targeting pass a stub: `{ isTargetedByMe: () => false, toggle: async ()
+   * => {} }`.
    */
-  targeting?: TargetingPort;
+  targeting: TargetingPort;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
   /**
@@ -560,7 +567,6 @@ export class TokenInteractionManager {
     if (this._destroyed) return;
 
     const { targeting } = this._opts;
-    if (!targeting) return;
 
     const tokenId = this._getTokenIdFromTarget(e.target);
     if (!tokenId) return; // right-click on empty canvas: nothing, not even a deselect

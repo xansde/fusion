@@ -176,6 +176,7 @@ function buildOpts(
       diagonalRule: "alternating_1",
     }),
     attachKeyboard: false,
+    targeting: { isTargetedByMe: () => false, toggle: async () => {} },
     ...overrides,
   };
 }
