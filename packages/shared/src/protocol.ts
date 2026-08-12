@@ -136,6 +136,14 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("regionMap:deletePin"),
   z.literal("regionMap:reveal"),
   z.literal("regionMap:comment"),
+  // Journal pages (DEC-HUB-04) — a quest is one entry whose objectives are
+  // revealed one at a time. Dedicated ops because a page is an array element
+  // and array writes replace the whole list; see
+  // packages/server/src/net/handlers/journal-handlers.ts.
+  z.literal("journal:createPage"),
+  z.literal("journal:updatePage"),
+  z.literal("journal:deletePage"),
+  z.literal("journal:revealPage"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 274 | 20% |
-| Citados só por código de produção | 327 | 23% |
-| Sem nenhuma citação | 799 | 57% |
+| Citados por algum teste | 280 | 20% |
+| Citados só por código de produção | 338 | 24% |
+| Sem nenhuma citação | 782 | 56% |
 | **Total [MVP]** | **1400** | |
 
 ## Por spec
@@ -36,7 +36,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [09](09-chat-e-mensagens.md) | 47 | 10 | 9 | 28 | 21% |
 | [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 7 | 16 | 39 | 11% |
-| [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
+| [12](12-journal-tabelas-cartas.md) | 34 | 0 | 3 | 31 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 5 | 44 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 62 | 15 | 31 | 16 | 24% |
@@ -52,7 +52,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
-| [28](28-hub-do-jogador.md) | 50 | 4 | 1 | 45 | 8% |
+| [28](28-hub-do-jogador.md) | 50 | 10 | 9 | 31 | 20% |
 | [29](29-pets-companions-familiars.md) | 16 | 3 | 6 | 7 | 19% |
 | [32](32-minimapa-tatico.md) | 14 | 7 | 2 | 5 | 50% |
 | [34](34-mapa-de-regiao.md) | 27 | 9 | 1 | 17 | 33% |

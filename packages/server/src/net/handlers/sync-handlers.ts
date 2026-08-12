@@ -22,6 +22,7 @@ import {
   stripHiddenTokens,
   redactNotesForViewer,
   redactRegionMapForViewer,
+  redactJournalForViewer,
   stripTokenActorDeltas,
   redactSecretDoors,
   stripHiddenTiles,
@@ -198,6 +199,17 @@ function filterOpsForRole(ops: Envelope[], userId: string | null, role: number):
       continue;
     }
 
+    // DEC-HUB-04: a journal entry's pages are cut per user, and so is this
+    // replay.
+    if (documentType === "JournalEntry" && Array.isArray(documents)) {
+      const cut = (documents as Record<string, unknown>[]).map((doc) =>
+        redactJournalForViewer(doc, userId, role),
+      );
+      const entryChanged = cut.some((doc, i) => doc !== documents[i]);
+      out.push(entryChanged ? { ...op, payload: { ...payload, documents: cut } } : op);
+      continue;
+    }
+
     if (documentType !== "Scene" || !Array.isArray(documents)) {
       out.push(op);
       continue;
@@ -341,6 +353,16 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
           redacted = redactNotesForViewer(redacted, userId, role);
           return redacted;
         });
+      } else if (docType === "JournalEntry") {
+        // The entry is gated like any owned document; its PAGES are then cut
+        // one by one, because a quest is one entry whose objectives are
+        // revealed separately (DEC-HUB-04, Q-JRN-003).
+        visible = all
+          .filter((entry) => {
+            const level = resolveOwnership(getOwnershipFromDoc(entry), userId, role);
+            return level >= OwnershipLevel.LIMITED;
+          })
+          .map((entry) => redactJournalForViewer(entry, userId, role));
       } else if (docType === "RegionMap") {
         // The map itself is shared world state (a map the GM has not opened to
         // the table sits at `default: NONE` and is filtered by the ownership

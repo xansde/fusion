@@ -1,14 +1,21 @@
 # Quadro de Missões — desenho aprovado (2026-08-11)
 
-> **Estado: guardado para depois.** O desenho abaixo foi fechado com o dono em
-> 2026-08-11 e **não** está implementado. A rodada seguiu para o mapa de região
-> (specs 32/34) e este documento existe para que a decisão não precise ser
-> tomada de novo quando o quadro voltar à fila.
+> **Estado: IMPLEMENTADO em 2026-08-12.** O desenho abaixo foi fechado com o
+> dono em 2026-08-11 e construído no dia seguinte: página de journal com
+> ownership próprio (`packages/shared/src/journal.ts`), leitura de missão
+> (`quest.ts`), quatro ops `journal:*`, redação nos quatro caminhos de emissão,
+> e o painel **Missões** do Hub (`QuestPanel.svelte` + `QuestAuthoring.svelte`),
+> com o primeiro editor de texto rico do Fusion.
 >
 > A spec normativa é `specs/28-hub-do-jogador.md` (DEC-HUB-01..10,
 > REQ-HUB-021..042). Este documento **não substitui** a spec: registra o que
-> ficou decidido nesta conversa e que a spec ainda não dizia — as **etapas
+> ficou decidido naquela conversa e que a spec ainda não dizia — as **etapas
 > nomeadas** e a **descrição por etapa**.
+>
+> **O que mudou do desenho para o construído**, por decisão do dono em
+> 2026-08-12: o vínculo com POI é **por etapa**, além de por missão, e é
+> opcional nos dois níveis (REQ-HUB-038 reescrito). Etapas diferentes podem
+> apontar para lugares diferentes — ou para o mesmo, ou para nenhum.
 
 ## O que foi decidido
 
@@ -161,18 +168,25 @@ JournalEntry  "Cães da Estrada"
   └─ page "Voltar e cobrar do xerife" ownership: {default: none}
 ```
 
-## O que falta decidir quando isto voltar
+## O que ficou decidido, e o que continua aberto
 
-- **Reordenar etapa** preservando revelação é `[V2]` na spec (REQ-HUB-037). Se
-  arrastar tiver de existir no MVP, o requisito sobe.
-- **Q-HUB-04** (spec 28): conclusão de etapa é da mesa ou por jogador? O desenho
-  acima assume **da mesa**.
-- Q-HUB-02, Q-HUB-03 e Q-HUB-05 continuam abertas e não bloqueiam este desenho.
+- **Q-HUB-04 — RESOLVIDA (2026-08-12): conclusão de etapa é da mesa.** Gravada
+  como um booleano em `flags.fusion.hub.done` da página, não como mapa de quem
+  marcou. Campanha com objetivo secreto individual resolve com uma etapa
+  revelada só àquele jogador — mecanismo que já existe.
+- **Q-JRN-003 — RESOLVIDA (2026-08-12): sobrescrita, com herança como
+  fallback.** Ver `specs/12-journal-tabelas-cartas.md`.
+- **Reordenar etapa** preservando revelação continua `[V2]` (REQ-HUB-037): a
+  ordem é o campo `sort` da página e o painel a respeita, mas arrastar para
+  reordenar não foi construído.
+- Q-HUB-02, Q-HUB-03 e Q-HUB-05 continuam abertas e não bloqueiam nada.
 
-## Pré-requisito técnico que ainda não existe
+## Pré-requisito técnico — resolvido
 
-`JournalEntrySchema.pages` é `z.array(z.record(z.string(), z.unknown()))` no
-servidor: página sem schema e **sem ownership tipado**. O quadro inteiro depende
-de tipar a página com ownership próprio e de redigi-la por espectador — o mesmo
-trabalho que o pino de mapa já recebeu em `net/redaction.ts`
-(`redactNotesForViewer`), aplicado a `JournalEntryPage`.
+`JournalEntrySchema.pages` era `z.array(z.record(z.string(), z.unknown()))` no
+servidor: página sem schema e **sem ownership tipado**, portanto impossível de
+redigir. Agora é `z.array(JournalEntryPageSchema)`, importando o schema
+compartilhado (nunca uma segunda cópia — `.extend()` sem `.passthrough()` apaga
+em silêncio o que não conhece). A redação por espectador ficou em
+`net/redaction.ts` (`redactJournalForViewer` + `emitJournalOp`), o mesmo
+desenho que o pino de mapa já tinha, aplicado a `JournalEntryPage`.
