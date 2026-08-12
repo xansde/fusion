@@ -137,7 +137,10 @@ describe("richText", () => {
                       {
                         type: "listItem",
                         content: [
-                          { type: "paragraph", content: [{ type: "text", text: "a map fragment" }] },
+                          {
+                            type: "paragraph",
+                            content: [{ type: "text", text: "a map fragment" }],
+                          },
                         ],
                       },
                     ],
