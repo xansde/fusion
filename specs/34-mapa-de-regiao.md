@@ -279,17 +279,21 @@ O que **não** viaja: `ownership`. Todo pin importado nasce oculto
 
 ### 5.5 Pacote de mapa portátil
 
-- **REQ-MREG-018** [MVP] O GM DEVE poder **exportar** uma cena de região como
-  pacote de mapa: um JSON com nome, dimensões, escala (`gridDistance`/
-  `gridUnits`), `flags.fusion.mapScale`, o **nome do arquivo** da imagem de
-  terreno e a lista de pins (posição, ícone, rótulo, texto, flags — incluindo
-  `flags.fusion.portal`).
-- **REQ-MREG-019** [MVP] O pacote exportado NÃO DEVE conter `ownership` de pin
-  algum, nem qualquer outro registro de quem viu o quê (DEC-MREG-07).
+- **REQ-MREG-018** [MVP] O GM DEVE poder **exportar** um mapa de região como
+  pacote de mapa: um JSON com número de formato, nome, dimensões naturais da
+  imagem, escala (`scaleValue`/`scaleUnits`), o **nome do arquivo** da imagem de
+  terreno e a lista de pinos (posição normalizada, ícone, rótulo, descrição,
+  `sourceId` e demais flags).
+- **REQ-MREG-019** [MVP] O pacote exportado NÃO DEVE conter `ownership` de pino
+  algum, **nem os comentários** de pino algum, nem qualquer outro registro de
+  quem viu o quê ou de quem falou o quê (DEC-MREG-07). O arquivo DEVE ser
+  legível e editável à mão em um editor de texto.
 - **REQ-MREG-022** [MVP] O GM DEVE poder **importar** um pacote de mapa,
-  escolhendo a imagem de terreno que o acompanha; a importação DEVE criar uma
-  cena com o preset de região aplicado (REQ-MREG-001) e um Note por pin, todos
-  nascendo ocultos (`ownership.default = none`).
+  escolhendo a imagem de terreno que o acompanha neste mundo; a importação DEVE
+  criar um documento `RegionMap` (REQ-MREG-001) com um pino por entrada, todos
+  nascendo **ocultos** (`ownership.default = none`) e **sem autor** — pino de
+  jogador de outra campanha não tem autor aqui. O mapa em si DEVE nascer aberto
+  à mesa: o que a comitiva descobre são os lugares, não a existência do mapa.
 - **REQ-MREG-023** [MVP] O pacote DEVE carregar um número de versão de formato;
   a importação DEVE recusar, com mensagem clara, versão que não conhece — nunca
   adivinhar campos.
@@ -299,12 +303,12 @@ O que **não** viaja: `ownership`. Todo pin importado nasce oculto
 
 ## 6. Requisitos não-funcionais
 
-- **REQ-MREG-020** [MVP] Uma cena de região com ≥ 100 POIs (dos quais a maioria
+- **REQ-MREG-020** [MVP] Um mapa de região com ≥ 100 POIs (dos quais a maioria
   `none` para um dado jogador) DEVE manter o custo de render do lado do
   jogador proporcional ao que ele **vê** — POIs `none` não chegam ao cliente
   (REQ-DOC-058), portanto não custam.
-- **REQ-MREG-021** [MVP] O Console de Revelação DEVE operar por operações
-  embedded normais na Scene (REQ-DOC-026) — sem endpoint privilegiado próprio.
+- **REQ-MREG-021** [MVP] O Console de Revelação DEVE operar pelas operações
+  `regionMap:*` do documento (REQ-MREG-029) — sem endpoint privilegiado próprio.
 
 ## 7. Critérios de aceitação
 
