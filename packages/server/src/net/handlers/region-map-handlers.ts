@@ -125,9 +125,7 @@ const UpdatePinPayloadSchema = z
   })
   .strict();
 
-const DeletePinPayloadSchema = z
-  .object({ mapId: DocIdSchema, pinId: DocIdSchema })
-  .strict();
+const DeletePinPayloadSchema = z.object({ mapId: DocIdSchema, pinId: DocIdSchema }).strict();
 
 const RevealPayloadSchema = z
   .object({
@@ -177,7 +175,7 @@ function pinsOf(map: Record<string, unknown>): MapPin[] {
 }
 
 function ownershipOfPin(pin: MapPin): Ownership {
-  return (pin.ownership ?? { default: OwnershipLevel.NONE }) as Ownership;
+  return pin.ownership;
 }
 
 /**
@@ -192,7 +190,7 @@ function persistAndBroadcast(
   userId: string,
   mapId: string,
   pins: MapPin[],
-): Ack<unknown> {
+): Ack {
   const updated = deps.store.update("region_maps", mapId, { pins }, { userId });
   if (!updated) {
     return ackError("INTERNAL_ERROR", "Falha ao gravar o mapa");
