@@ -142,19 +142,31 @@
     }
   }
 
+  /** Movement, in pixels, that turns a press into a drag rather than a click. */
+  const DRAG_THRESHOLD_PX = 3;
+
   function onPointerDown(event: PointerEvent): void {
     if (placing) return;
     dragging = true;
     dragMoved = false;
     lastPointer = { x: event.clientX, y: event.clientY };
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    // NOT captured here, deliberately. Capturing on press redirects every
+    // later pointer event — including the one that becomes `click` — to the
+    // frame, so a click on a pin never reached the pin's own button and the
+    // only way to open a place was to focus it and press Enter. The capture
+    // now happens on the first real movement, below, where it is actually
+    // needed (to keep panning while the cursor leaves the frame).
   }
 
   function onPointerMove(event: PointerEvent): void {
     if (!dragging) return;
     const dx = event.clientX - lastPointer.x;
     const dy = event.clientY - lastPointer.y;
-    if (Math.abs(dx) + Math.abs(dy) > 2) dragMoved = true;
+    if (!dragMoved && Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD_PX) {
+      dragMoved = true;
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
+    if (!dragMoved) return;
     lastPointer = { x: event.clientX, y: event.clientY };
     panX += dx;
     panY += dy;
@@ -162,7 +174,8 @@
 
   function onPointerUp(event: PointerEvent): void {
     dragging = false;
-    (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+    const frame = event.currentTarget as HTMLElement;
+    if (frame.hasPointerCapture(event.pointerId)) frame.releasePointerCapture(event.pointerId);
   }
 
   function resetCamera(): void {
@@ -635,16 +648,28 @@
   }
 
   /* The window onto the map. Overflow is hidden so panning cannot push the
-     image over the panel's chrome. */
+     image over the panel's chrome — and `resize` needs a non-visible overflow
+     to offer its handle at all, which is how the frame gets a drag corner.
+
+     `height` rather than `max-height`: the browser writes the dragged size
+     into the element's own height, and a max-height cap would silently undo
+     the drag past that point. */
   .frame {
     position: relative;
     overflow: hidden;
-    min-height: 240px;
-    max-height: 46vh;
+    height: 46vh;
+    min-height: 160px;
+    resize: vertical;
     border: 1px solid var(--fusion-sw-line);
     background: #05121a;
     touch-action: none;
     cursor: grab;
+
+    /* Centres the picture in whatever height the frame currently has, so
+       resizing reframes the map instead of cropping it from the top. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .frame.grabbing {
     cursor: grabbing;
@@ -653,28 +678,34 @@
     cursor: crosshair;
   }
 
+  /* The stage is exactly the size of the picture — never of the frame around
+     it. Pins are placed in percent of this box, so the two have to be the same
+     rectangle or every pin would drift as the frame is resized. */
   .stage {
     position: relative;
     transform-origin: center center;
-    width: 100%;
-    height: 100%;
-    display: flex;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .terrain {
-    width: 100%;
-    height: auto;
     display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
     user-select: none;
     -webkit-user-drag: none;
   }
 
   .no-image {
-    width: 100%;
-    min-height: 240px;
+    width: 280px;
+    height: 160px;
     display: grid;
     place-items: center;
+    padding: 0 16px;
     font-size: 11px;
+    text-align: center;
     color: var(--fusion-sw-dim);
   }
 

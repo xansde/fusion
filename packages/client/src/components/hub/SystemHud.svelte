@@ -62,10 +62,20 @@
    * we" is one idea at two scales.
    */
   let mapView = $state<"region" | "tactical">("region");
+
+  /**
+   * Whether the map window is stretched to the viewport.
+   *
+   * The panel's normal width is chosen for reading a list; a map is a picture
+   * you want as big as the screen allows, and the frame's own resize handle
+   * can only grow within the window it sits in. This widens the window itself,
+   * which is why it lives here and not in the map panel.
+   */
+  let mapFull = $state(false);
 </script>
 
 {#if activePanel}
-  <div class="slot" class:wide={isMap}>
+  <div class="slot" class:wide={isMap} class:full={isMap && mapFull}>
     <SystemWindow title={activePanel.label} onClose={() => (active = null)} scanlines={!isMap}>
       {#if isMap}
         <div class="tabs">
@@ -80,6 +90,13 @@
             class:on={mapView === "tactical"}
             type="button"
             onclick={() => (mapView = "tactical")}>Tático</button
+          >
+          <span class="tabs-spacer"></span>
+          <button
+            class="tab"
+            type="button"
+            title={mapFull ? "Reduzir a janela" : "Ampliar a janela"}
+            onclick={() => (mapFull = !mapFull)}>{mapFull ? "⤡ reduzir" : "⤢ ampliar"}</button
           >
         </div>
         {#if mapView === "region"}
@@ -137,6 +154,19 @@
     max-height: min(74vh, calc(100vh - 120px));
   }
 
+  /* Ampliada: a janela toma a tela até onde a barra de comando permite. */
+  .slot.full {
+    width: calc(100vw - 32px);
+    max-height: calc(100vh - 96px);
+  }
+
+  /* Widening the window without heightening the picture would gain almost
+     nothing — the image is bounded by the frame's height, not its width. A
+     hand-dragged size is an inline style and still wins over this. */
+  .slot.full :global(.frame) {
+    height: calc(100vh - 300px);
+  }
+
   /* SystemWindow is the flex child that must be allowed to shrink; without
      this its `overflow: auto` body would never engage and the panel would
      simply grow past `max-height`. */
@@ -147,8 +177,13 @@
 
   .tabs {
     display: flex;
+    align-items: center;
     gap: 4px;
     margin-bottom: 8px;
+  }
+
+  .tabs-spacer {
+    flex: 1;
   }
 
   .tab {
