@@ -2151,11 +2151,25 @@ export function checkSlotRequirement(
   const traits = asStringArray(asRecord(sys["traits"])["value"]);
 
   if (slotType === "classFeat") {
-    const classTrait = traits.find((tr) => KNOWN_CLASS_TRAITS.has(tr));
-    if (classTrait && classTrait !== planCtx.classSlug) {
+    // A feat shared by several classes carries one trait PER class, in
+    // alphabetical order — so the first one is almost never the character's
+    // (issue #17: 99 feats in feats-core carry 2+ class traits, e.g. Reach
+    // Spell's bard+cleric+druid+oracle+sorcerer+witch+wizard). The test is
+    // "is my class in the list?", matching the sibling `isFeatEligible`,
+    // which already did `traits.includes(opts.classSlug)` — the mismatch is
+    // why the picker OFFERED these feats and the plan then marked them wrong.
+    const classTraits = traits.filter((tr) => KNOWN_CLASS_TRAITS.has(tr));
+    const [firstClassTrait] = classTraits;
+    const { classSlug } = planCtx;
+    // No class on the sheet yet keeps the pre-#17 answer: a class-tagged feat
+    // in a class-feat slot is still flagged.
+    if (
+      firstClassTrait !== undefined &&
+      (classSlug === undefined || !classTraits.includes(classSlug))
+    ) {
       return {
         reasonKey: "FUSION.Sheet.Plan.Requirement.WrongClass",
-        params: { class: capitalizeSlug(classTrait) },
+        params: { class: capitalizeSlug(firstClassTrait) },
       };
     }
   }
@@ -2212,10 +2226,20 @@ function stripParentheticalSuffix(name: string): string {
   return normalizePrereqText(name.replace(/\s*\([^)]*\)\s*$/, ""));
 }
 
-/** "A or B" / "A, B" → ["A", "B"] — mirrors the importer's `candidatosDoRequisito`: both forms are treated as alternatives (satisfying ONE is enough) since the vendor packs use both conventions interchangeably. */
+/**
+ * "A or B" / "A, B" / "A, B, or C" → ["A", "B", "C"] — mirrors the importer's
+ * `candidatosDoRequisito`: every form is treated as alternatives (satisfying
+ * ONE is enough) since the vendor packs use them interchangeably.
+ *
+ * The `,\s*or\s+` branch MUST come first (issue #31). Without it the bare
+ * comma matched first on an Oxford list, leaving the last alternative as
+ * "or Twin Riposte" — a candidate that can never match anything. 27
+ * prerequisites in feats-core use ", or"; all 27 produced a broken last
+ * candidate.
+ */
 function prerequisiteCandidates(text: string): string[] {
   return text
-    .split(/\s+or\s+|,\s*/i)
+    .split(/\s*,\s*or\s+|\s+or\s+|\s*,\s*/i)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 }
@@ -2236,10 +2260,32 @@ const AXIS_SUFFIX_TO_SLOT_TYPE: ReadonlyArray<{ phrase: string; slotType: PlanSl
   { phrase: "arcane thesis", slotType: "arcaneThesis" },
   { phrase: "racket", slotType: "racket" },
   { phrase: "instinct", slotType: "instinct" },
+  // r22 axes (issue #19). Measured in feats-core: 36 `<X> muse`, 7 `<X>
+  // cause`, 1 `<X> doctrine` — all silent before this entry existed. They
+  // resolve by name because `chooseClassChoice` stores the CHOSEN option's
+  // own document in the slot ("Maestro" / bard-muse, "Justice" /
+  // champion-cause, "Warpriest" / cleric-doctrine), so the item name carries
+  // the pick.
+  { phrase: "muse", slotType: "muse" },
+  { phrase: "cause", slotType: "cause" },
+  { phrase: "doctrine", slotType: "doctrine" },
   { phrase: "thesis", slotType: "arcaneThesis" },
   { phrase: "school", slotType: "arcaneSchool" },
   { phrase: "edge", slotType: "huntersEdge" },
-  { phrase: "gate", slotType: "kineticGate" },
+  // DELIBERATELY ABSENT — adding either would only ever produce a FALSE
+  // "unmet", which DEC-BC-05 rates worse than no mark at all:
+  //
+  //  - "gate" (issue #21): `chooseKineticGate` keeps the pick in
+  //    `system.kineticGates`, so the slot item is ALWAYS literally named
+  //    "Kinetic Gate". "Nourishing Gate" would strip to "nourishing" and
+  //    compare against a name that can never be anything but "kinetic" —
+  //    a permanent false positive for every Kineticist.
+  //  - "bloodline": those docs are named "Bloodline: <Name>", so the core
+  //    name is "bloodline aberrant", which never equals a prerequisite's
+  //    stripped "aberrant". Zero prerequisites in feats-core end in
+  //    " bloodline" today (the 12 that mention one are prose, e.g.
+  //    "a bloodline that corresponds with a creature trait"), so nothing is
+  //    lost by leaving it out.
 ];
 
 /**
@@ -2278,6 +2324,10 @@ const AXIS_SLOT_TYPES = new Set<PlanSlotType>([
   "arcaneSchool",
   "hybridStudy",
   "kineticGate",
+  // issue #19 — see AXIS_SUFFIX_TO_SLOT_TYPE for why `bloodline` is absent.
+  "muse",
+  "cause",
+  "doctrine",
 ]);
 
 /**
@@ -2374,13 +2424,21 @@ function evaluatePrerequisiteCandidate(
   if (!axisMatch) return "unresolved";
 
   const chosenName = axisNames[axisMatch.slotType];
+  // Axis not picked yet → this module cannot tell, so it must not mark. The
+  // requirement may well be satisfied one click later, and `checkFeat-
+  // Prerequisites`'s own contract says a character mid-build never gets a
+  // false mark. Returning "unmet" here (the pre-#19 behaviour) put a red mark
+  // on every feat whose axis the player simply hadn't reached yet — invisible
+  // while only `instinct` resolved, but it would have hit all 44 measured
+  // muse/cause/doctrine prerequisites the moment #19 landed.
+  if (chosenName === undefined) return "unresolved";
+
   if (axisMatch.stripped === "") {
     // Generic axis requirement ("arcane school", "hunter's edge"): met as
     // soon as ANY option of that axis is chosen.
-    return chosenName !== undefined ? "met" : "unmet";
+    return "met";
   }
-  const chosenCore = chosenName !== undefined ? axisCoreName(chosenName) : undefined;
-  return chosenCore !== undefined && chosenCore === axisMatch.stripped ? "met" : "unmet";
+  return axisCoreName(chosenName) === axisMatch.stripped ? "met" : "unmet";
 }
 
 /**
