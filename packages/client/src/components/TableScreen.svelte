@@ -22,7 +22,7 @@
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
-  import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
+  import { canLoadScene, isCurrentGeneration } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { sceneReloadKey } from "../lib/canvas/sceneReloadKey.js";
   import {
@@ -85,6 +85,14 @@
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
+  // BUG FIX (race, issue #81): stamps every scene load (dev-scene fallback in
+  // onMount, or a real load in the $effect below) with a monotonically
+  // increasing generation. A load whose generation was superseded by a newer
+  // one (checked via isCurrentGeneration after each of its awaits) undoes
+  // only what IT produced and never publishes into cleanupScene/
+  // sceneOrchestrator — see isCurrentGeneration's doc comment in
+  // canvasReadyGate.ts for the full root-cause writeup.
+  let sceneLoadGeneration = 0;
   let cleanupCombatSync: (() => void) | null = null;
   let cleanupChatSync: (() => void) | null = null;
   let cleanupChatMessageSync: (() => void) | null = null;
@@ -308,7 +316,18 @@
       // A real scene is loaded by the $effect below (gated on canvasReady) once
       // activeSceneState.scene is set — never here, to avoid a double-load race.
       if (!activeSceneState.scene) {
-        cleanupScene = await loadDevScene(canvas);
+        // Stamped with the same generation counter the scene-reload $effect
+        // uses (issue #81): if the component unmounts (or, defensively, a
+        // real scene load somehow starts) while this await is in flight, the
+        // generation moves on and this dev-scene load must not publish over
+        // whatever the newer generation already owns.
+        const myGeneration = ++sceneLoadGeneration;
+        const devCleanupScene = await loadDevScene(canvas);
+        if (isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
+          cleanupScene = devCleanupScene;
+        } else {
+          devCleanupScene?.();
+        }
       }
       // Flip the gate LAST: this gets read by the reactive $effect, which will
       // (re-)run now that the PIXI layer hierarchy is guaranteed to exist.
@@ -347,6 +366,11 @@
   });
 
   onDestroy(() => {
+    // Bump the generation so any load still in flight (dev-scene in onMount,
+    // or a real scene in the $effect below) finds itself superseded when its
+    // await resolves and undoes its own work instead of publishing into
+    // cleanupScene/sceneOrchestrator after this teardown already ran.
+    sceneLoadGeneration++;
     _teardownOrchestrator();
     cleanupScene?.();
     cleanupCombatSync?.();
@@ -499,6 +523,28 @@
    * init()), which re-triggers this effect and performs the (now safe) load —
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
+   *
+   * BUG FIX (teardown race, issue #81): the load below is async
+   * (loadSceneDocument + orchestrator.setup() both await), but a scene
+   * switch is a SYNCHRONOUS re-run of this effect. Two things used to be
+   * wrong about how those combined:
+   *
+   *   1. The previous scene's teardown ran at the TOP of the NEXT run's
+   *      body, not at the END of the PREVIOUS run — so if a fast switch
+   *      B started while switch A's load was still in flight, A's own
+   *      `void (async () => {...})()` could resolve AFTER B's teardown ran
+   *      and publish A's (stale) content into cleanupScene/sceneOrchestrator,
+   *      silently overwriting what B just built.
+   *   2. Nothing stopped a superseded load from publishing at all — there
+   *      was no way to tell "is this still the load anyone wants?" from
+   *      inside the detached async closure.
+   *
+   * Fixed by: (a) returning the teardown as the effect's cleanup function,
+   * which Svelte 5 guarantees to run before the NEXT execution and on
+   * unmount — pairing load N with teardown-of-N at the right end of its
+   * lifetime; and (b) stamping each load with a generation counter
+   * (sceneLoadGeneration) checked via isCurrentGeneration after every await
+   * — a superseded load undoes only what IT produced and never publishes.
    */
   // Only the fields loadSceneDocument() actually reads. Tokens, walls and
   // lights are EMBEDDED in the Scene document, so the mirror hands out a new
@@ -520,20 +566,40 @@
     // Read untracked: we want the current document, not a dependency on it.
     const scene = untrack(() => activeSceneState.scene);
 
-    // Tear down previous orchestrator before changing scene
-    _teardownOrchestrator();
-
-    // Cleanup previous scene content
-    cleanupScene?.();
-    cleanupScene = null;
+    // Every run of this effect — whether or not it ends up loading a scene —
+    // gets its own generation. A load's post-await continuation only
+    // publishes if its generation is still current (see isCurrentGeneration).
+    const myGeneration = ++sceneLoadGeneration;
 
     void (async () => {
       try {
         if (scene) {
-          cleanupScene = await loadSceneDocument(canvas, scene);
+          const nextCleanupScene = await loadSceneDocument(canvas, scene);
+          if (!isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
+            // A newer scene switch already started while this load was in
+            // flight — ITS effect-cleanup (below) already tore down whatever
+            // was live before this load, so there is nothing of ours live to
+            // touch. Undo only what THIS load produced and never publish
+            // into cleanupScene/sceneOrchestrator: the newer generation may
+            // already own them.
+            nextCleanupScene?.();
+            return;
+          }
+          cleanupScene = nextCleanupScene;
+
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
+          if (!isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
+            // Same race, one await later. cleanupScene/sceneOrchestrator
+            // were just published above by THIS generation, so
+            // _teardownOrchestrator() correctly unwinds exactly what this
+            // load produced.
+            _teardownOrchestrator();
+            cleanupScene?.();
+            cleanupScene = null;
+            return;
+          }
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
         // by the Svelte template. Dev-scene is only used in the initial mount
@@ -542,6 +608,17 @@
         console.error("[TableScreen] Scene load failed:", err);
       }
     })();
+
+    // Runs before the NEXT execution of this effect, and on unmount (Svelte 5
+    // guarantee) — this is the teardown for the load THIS run just started
+    // (or for whatever was already live, if this run had no scene to load),
+    // now correctly paired to the END of this run's lifetime instead of the
+    // START of the next one (issue #81).
+    return () => {
+      _teardownOrchestrator();
+      cleanupScene?.();
+      cleanupScene = null;
+    };
   });
 
   // ---- SceneOrchestrator helpers ----
