@@ -239,8 +239,11 @@ export const stepCharBuildAbilities: DeriveStep = {
  * entries for that stat with `level <= character level`, keeping the
  * highest rank seen (upgrades only ever increase rank; the highest entry
  * at-or-below the character's level is authoritative).
+ *
+ * Exported so other build-driven steps (spellcasting entry proficiency —
+ * issue #13) can reuse the SAME mechanism instead of re-implementing it.
  */
-function effectiveRank(
+export function effectiveRank(
   initialRank: number,
   stat: string,
   upgrades: ClassSystem["proficiencyUpgrades"],
