@@ -31,7 +31,6 @@ import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { Wall, DoorState } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import { sendOp } from "../../docs/sendOp.js";
-import { createDocumentId } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -581,14 +580,24 @@ export class WallsLayer {
   // Private — ops
   // ---------------------------------------------------------------------------
 
+  // BUG FIX (issue #83): Wall is embedded in the Scene document. The server
+  // addresses embedded-document creation/deletion with `doc:create`/`doc:delete`
+  // + `parent: { type: "Scene", id: sceneId }` — the same wire shape
+  // tokenDrop.ts's buildTokenDropPayload, TokenInteractionManager's
+  // deleteSelectedToken and tileController.ts's addTile/deleteTile already use.
+  // The `$push`/`$pull` operators these two methods used to send do not exist
+  // in the server's diff engine: it replaces the whole `walls` array with the
+  // literal `{ $push: {...} }` / `{ $pull: [...] }` object, which SceneSchema
+  // then rejects with VALIDATION_FAILED (walls: Expected array, received object).
   private async _createWall(
     a: { x: number; y: number },
     b: { x: number; y: number },
   ): Promise<void> {
     if (!this._socket) return;
     const preset = WALL_PRESETS[this._drawPreset];
-    const wall: Omit<Wall, "_id"> & { _id: string } = {
-      _id: createDocumentId(),
+    // `_id` is generated server-side for embedded documents, so none is sent
+    // here — same contract as the reference call-sites above.
+    const wall: Omit<Wall, "_id"> = {
       a,
       b,
       move: preset.move,
@@ -602,17 +611,11 @@ export class WallsLayer {
 
     try {
       await sendOp(this._socket, {
-        type: "doc:update",
+        type: "doc:create",
         payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: this._sceneId,
-              diff: {
-                walls: { $push: wall },
-              },
-            },
-          ],
+          documentType: "Wall",
+          data: [wall],
+          parent: { type: "Scene", id: this._sceneId },
         },
       });
       this._onWallsChanged?.();
@@ -625,17 +628,11 @@ export class WallsLayer {
     if (!this._socket) return;
     try {
       await sendOp(this._socket, {
-        type: "doc:update",
+        type: "doc:delete",
         payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: this._sceneId,
-              diff: {
-                walls: { $pull: wallIds },
-              },
-            },
-          ],
+          documentType: "Wall",
+          ids: wallIds,
+          parent: { type: "Scene", id: this._sceneId },
         },
       });
     } catch (err) {

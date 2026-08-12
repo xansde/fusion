@@ -13,6 +13,11 @@
  *      eventMode="static" and could not be dragged by anyone; the ruler could
  *      not be started, so the remote-ruler receive path never ran either.
  *      Found by playing the world on 2026-08-07, not by the suite.
+ *   4. WallsLayer and TokenAddDialog (issue #83) — WallsLayer had full unit
+ *      tests and was never `new`'d anywhere; TokenAddDialog was a complete
+ *      component with no button that ever opened it. Neither showed up in a
+ *      grep for its own import outside its own file. Found by a live-play
+ *      sweep of the client tree on 2026-08-12, not by the suite.
  *
  * Every unit test in this repo asks "does this piece work?". None asked "can a
  * person reach it?". A test that mounts Svelte + PIXI + a socket would answer
@@ -54,5 +59,19 @@ describe("TableScreen wires the canvas interactions", () => {
 
   it("feeds token interaction the scene's grid strategy, not a hardcoded size", () => {
     expect(source).toMatch(/canvas\.gridStrategy/);
+  });
+
+  it("constructs the WallsLayer — otherwise no wall can ever be drawn (#83)", () => {
+    expect(source).toMatch(/new WallsLayer\(/);
+  });
+
+  it("destroys the WallsLayer and its mirror subscription on scene switch", () => {
+    expect(source).toMatch(/wallsLayer\?\.destroy\(\)/);
+    expect(source).toMatch(/disposeWallsSync\?\.\(\)/);
+  });
+
+  it("mounts TokenAddDialog behind a real trigger — otherwise no GM can reach it (#83)", () => {
+    expect(source).toMatch(/<TokenAddDialog/);
+    expect(source).toMatch(/showingTokenAddDialog\s*=\s*true/);
   });
 });

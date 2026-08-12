@@ -14,7 +14,6 @@
 
   import type { Socket } from "socket.io-client";
   import { sendOp } from "../../lib/docs/sendOp.js";
-  import { createDocumentId } from "@fusion/shared";
   import { fusionApi } from "../../lib/api.js";
   import { session } from "../../lib/session.svelte.js";
   import { resolveAssetUrl } from "../../lib/assets/assetApi.js";
@@ -124,34 +123,32 @@
     serverError = null;
 
     try {
+      // BUG FIX (issue #83): a Token is embedded in the Scene document, and
+      // the server addresses embedded-document creation with `doc:create` +
+      // `data: [...]` + `parent: { type: "Scene", id }` — the same wire shape
+      // tokenDrop.ts's buildTokenDropPayload and tileController.ts's addTile
+      // already use. The `$push` operator this used to send does not exist in
+      // the server's diff engine: it replaces the whole `tokens` array with
+      // the literal `{ $push: {...} }` object, which SceneSchema then rejects
+      // with VALIDATION_FAILED (tokens: Expected array, received object).
+      //
+      // `_id` is generated server-side for embedded documents, so none is
+      // sent here — same contract as the two reference call-sites above.
       await sendOp(socket, {
-        type: "doc:update",
+        type: "doc:create",
         payload: {
-          documentType: "Scene",
-          updates: [
+          documentType: "Token",
+          data: [
             {
-              _id: sceneId,
-              diff: {
-                tokens: {
-                  $push: {
-                    _id: createDocumentId(),
-                    name: formData.name.trim(),
-                    texture: formData.texture.trim() || null,
-                    x: formData.x,
-                    y: formData.y,
-                    width: formData.width,
-                    height: formData.height,
-                    rotation: 0,
-                    hidden: false,
-                    disposition: 0,
-                    elevation: 0,
-                    bar1: { attribute: null },
-                    bar2: { attribute: null },
-                  },
-                },
-              },
+              name: formData.name.trim(),
+              texture: formData.texture.trim() || null,
+              x: formData.x,
+              y: formData.y,
+              width: formData.width,
+              height: formData.height,
             },
           ],
+          parent: { type: "Scene", id: sceneId },
         },
       });
       onSuccess();
