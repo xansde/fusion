@@ -65,7 +65,47 @@ estado do mundo, assimétrico entre os jogadores.
 
 ## 4. Decisões
 
+### DEC-MREG-08 — O mapa de região é um documento próprio, NÃO uma Scene
+
+> **Substitui DEC-MREG-01.** A decisão original (região = Scene com preset)
+> está mantida abaixo como registro do que foi tentado e por que caiu.
+
+Uma cena é **o lugar onde a mesa está**, e existe uma só ativa por vez. Um mapa
+de região é **referência que se consulta** — abre-se, olha-se, fecha-se. Modelar
+os dois como a mesma coisa obriga a mesa inteira a sair do mapa de batalha para
+alguém conferir onde fica a estrada, e a voltar reativando o encontro e
+recompondo a câmera de todo mundo.
+
+O mapa de região é, portanto, o documento `RegionMap` (tabela `region_maps`):
+`image` + `imageWidth`/`imageHeight`, escala opcional para a barra de escala, e
+`pins: MapPin[]`. Ele vive no painel **Mapa** da System Window (spec 28), nunca
+no canvas da cena, e nada nele participa de ativação de cena, iniciativa,
+tokens, vision, fog ou grid.
+
+Duas consequências de forma:
+
+- **Coordenadas de pino são normalizadas** (0..1 em cada eixo), não pixels. A
+  imagem de um mapa é trocada com frequência (um render melhor, um scan maior,
+  outro corte da mesma costa) e coordenadas em pixel espalhariam todos os pinos
+  na primeira troca.
+- **Todo o encanamento de Scene que a DEC-MREG-01 queria reaproveitar era peso
+  morto** (tokens, paredes, luzes, combate) e cada um desses subsistemas
+  precisaria de um caso especial "isto é uma cena de região" para sair do
+  caminho.
+
+- **Custo aceito:** um tipo de documento a mais — migration, schema, redação por
+  espectador e espelho no cliente. A redação foi a parte reaproveitada: é a
+  mesma função por espectador dos Notes de cena, aplicada aos quatro caminhos de
+  emissão.
+- **Alternativa rejeitada:** guardar o mapa como `JournalEntry` com os pinos em
+  `flags`. Economizaria a tabela e devolveria um documento sem forma tipada,
+  com os pinos fora de qualquer schema — exatamente o que o servidor apaga em
+  silêncio na primeira escrita.
+
 ### DEC-MREG-01 — Região é uma Scene comum, diferenciada por configuração
+
+> **SUPERADA por DEC-MREG-08 (2026-08-11).** Mantida para registro: o preset de
+> cena de região não é mais o caminho, e REQ-MREG-001 foi reescrito.
 
 Não existe tipo novo de Document. Uma cena de região é uma `Scene` com:
 `grid.type = gridless`, `tokenVision = false`, fog desabilitado,
@@ -146,11 +186,34 @@ O que **não** viaja: `ownership`. Todo pin importado nasce oculto
 
 ## 5. Requisitos funcionais
 
-### 5.1 Cena de região
+### 5.1 O documento de mapa
 
-- **REQ-MREG-001** [MVP] O cliente DEVE oferecer, na criação/configuração de
-  cena, um preset **"Mapa de região"** que aplica DEC-MREG-01 de uma vez
-  (gridless, sem vision/fog, unidade km, `flags.fusion.mapScale = "region"`).
+- **REQ-MREG-001** [MVP] O GM DEVE poder criar um mapa de região pelo painel
+  **Mapa** do Hub, escolher sua imagem pelo seletor de arquivos comum
+  (`/api/assets/upload`) e renomeá-lo — sem passar por criação de cena
+  (DEC-MREG-08). Criar e apagar o mapa é privilégio de GM.
+- **REQ-MREG-025** [MVP] O mapa de região DEVE ser o documento `RegionMap`, com
+  `image`, `imageWidth`/`imageHeight`, escala opcional e `pins[]` em
+  coordenadas normalizadas (0..1). Abrir o mapa NÃO DEVE alterar a cena ativa
+  nem a câmera de ninguém.
+- **REQ-MREG-026** [MVP] Qualquer jogador que enxergue o mapa DEVE poder
+  colocar um pino nele. Um pino de jogador nasce **visível para a mesa** e
+  registra seu autor; um pino de GM nasce **oculto** (REQ-DOC-056). A autoria
+  DEVE vir da sessão autenticada, nunca do payload.
+- **REQ-MREG-027** [MVP] Um jogador DEVE poder editar e remover **apenas os
+  próprios** pinos; o GM, qualquer um. Nenhum caminho de cliente PODE escrever
+  `ownership`, `kind` ou `authorId` de um pino — esses três campos são o estado
+  de revelação.
+- **REQ-MREG-028** [MVP] Um pino DEVE aceitar **comentários** assinados por
+  quem os escreveu, exibidos em ordem de escrita. O append DEVE acontecer no
+  servidor sobre o documento recém-lido: substituição de array faria dois
+  jogadores comentando ao mesmo tempo apagarem um ao outro.
+- **REQ-MREG-029** [MVP] Comentar exige nível `observer` no pino. Um pedido de
+  comentário sobre pino oculto DEVE responder `NOT_FOUND` (nunca
+  `PERMISSION_DENIED`), que confirmaria a existência do pino.
+- **REQ-MREG-030** [MVP] O painel do Hub DEVE oferecer a alternância entre o
+  mapa de região e o minimapa tático (spec 32) — as duas leituras de "onde
+  estamos", num botão só da barra de comando.
 - **REQ-MREG-002** [MVP] Em cena de região, a régua (REQ-CNV-060+) DEVE medir
   em km via `gridDistance`/`gridUnits`, com distância euclidiana (gridless).
 - **REQ-MREG-003** [V2] A régua PODE exibir, além dos km, a conversão em
@@ -161,9 +224,11 @@ O que **não** viaja: `ownership`. Todo pin importado nasce oculto
 
 ### 5.2 POIs reveláveis
 
-- **REQ-MREG-005** [MVP] Um POI é um Note comum (REQ-DOC-056): nasce `none`
-  para todos; os três estados por usuário são os de REQ-DOC-057 e o render é o
-  de REQ-CNV-058. Nada nesta spec redefine visibilidade.
+- **REQ-MREG-005** [MVP] Um POI é um `MapPin` do `RegionMap` e segue as mesmas
+  regras de visibilidade de um Note (REQ-DOC-056/057): um pino de GM nasce
+  `none` para todos e os três estados por usuário são os de REQ-DOC-057. Nada
+  nesta spec redefine visibilidade — a redação por espectador é a do servidor,
+  nos quatro caminhos de emissão.
 - **REQ-MREG-006** [MVP] O GM DEVE poder alterar o nível de um POI para
   usuários selecionados a partir do próprio pin (menu de contexto: revelar como
   rumor / revelar / ocultar — por jogador ou para todos).
