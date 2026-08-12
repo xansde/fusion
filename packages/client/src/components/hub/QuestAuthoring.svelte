@@ -23,6 +23,7 @@
    */
 
   import { OwnershipLevel, canReadPage, type JournalEntryPage } from "@fusion/shared";
+  import { isEmptyDoc } from "$lib/ui/richText.js";
   import { getSocket } from "$lib/session.svelte.js";
   import RichText from "../ui/RichText.svelte";
   import {
@@ -66,6 +67,16 @@
     return socket;
   }
 
+  /**
+   * Run one op, reporting failure on screen.
+   *
+   * `busy` counts ops in flight for the "salvando…" hint and NOTHING else. It
+   * used to also disable every button, which is what made the board feel
+   * broken: the rich-text editor reports changes on a debounce, so an ordinary
+   * edit left an op in flight, and the tick that completes an objective was
+   * disabled exactly when the GM reached for it. One op must never gate an
+   * unrelated one.
+   */
   async function run(action: () => Promise<void>): Promise<void> {
     busy = true;
     errorMessage = null;
@@ -135,6 +146,11 @@
       });
       return;
     }
+    // A page is not created from an empty document. The editor reports a
+    // change when it normalises its own initial content, and without this the
+    // GM got a blank "Boato" page they never wrote — which then showed up in
+    // the reveal matrix asking to be published.
+    if (isEmptyDoc(content)) return;
     if (creating[role] === true) return;
     creating = { ...creating, [role]: true };
     void run(async () => {
@@ -240,6 +256,35 @@
     });
   }
 
+  /**
+   * Who HAS this quest.
+   *
+   * Having a quest is reading its hook — that is what puts it on a player's
+   * board (`questReadingFor`). The GM was able to express this before, by
+   * revealing the hook page, but only from inside the hook's own block, which
+   * read as an editing detail rather than as the question it actually is:
+   * whose quest is this? So it gets a control of its own, at the top, in the
+   * words the GM thinks in.
+   */
+  function hasQuest(userId: string): boolean {
+    return hook !== null && canReadPage(hook, entry.ownership, userId);
+  }
+
+  function setQuestAccess(page: JournalEntryPage, userId: string, on: boolean): void {
+    void run(async () => {
+      await revealPage(
+        socketOrThrow(),
+        entry._id,
+        page._id,
+        [userId],
+        on ? OwnershipLevel.OBSERVER : OwnershipLevel.NONE,
+      );
+    });
+  }
+
+  /** Progress as the table reads it: ticked objectives over total. */
+  const doneCount = $derived(objectives.filter((page) => hubOf(page).done === true).length);
+
   const questDone = $derived(
     (entry.flags?.["fusion"]?.["hub"] as { done?: boolean } | undefined)?.done === true,
   );
@@ -253,7 +298,8 @@
       onchange={renameQuest}
       aria-label="Nome da missão"
     />
-    <button class="control" type="button" onclick={toggleQuestDone} disabled={busy}>
+    {#if busy}<span class="saving">salvando…</span>{/if}
+    <button class="control" type="button" onclick={toggleQuestDone}>
       {questDone ? "reabrir" : "concluir"}
     </button>
     <button class="control" type="button" onclick={onClose} aria-label="Fechar autoria">×</button>
@@ -262,6 +308,50 @@
   {#if errorMessage}
     <p class="error">{errorMessage}</p>
   {/if}
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Who has this quest, and how far it has got                         -->
+  <!-- ------------------------------------------------------------------ -->
+  <section class="block access">
+    <div class="block-head">
+      <h4 class="block-title">Quem tem esta missão</h4>
+      <span class="progress">
+        {doneCount} de {objectives.length}
+        {objectives.length === 1 ? "objetivo" : "objetivos"}
+      </span>
+    </div>
+
+    {#if hook}
+      {@const hookPage = hook}
+      <div class="reveal-row">
+        {#each players as player (player.id)}
+          <button
+            class="control tiny"
+            class:on={hasQuest(player.id)}
+            type="button"
+            title={hasQuest(player.id)
+              ? `${player.name} tem a missão — clique para tirar`
+              : `Dar a missão a ${player.name}`}
+            onclick={() => setQuestAccess(hookPage, player.id, !hasQuest(player.id))}
+          >
+            {hasQuest(player.id) ? "●" : "○"}
+            {player.name}
+          </button>
+        {:else}
+          <span class="empty">Nenhum jogador na mesa ainda.</span>
+        {/each}
+      </div>
+      <p class="hint">
+        Dar a missão é revelar o <strong>gancho</strong>. Cada objetivo continua sendo liberado
+        um a um, mais abaixo.
+      </p>
+    {:else}
+      <p class="hint">
+        Escreva o <strong>gancho</strong> abaixo para poder dar esta missão a alguém — é ele que
+        põe a missão no quadro do jogador.
+      </p>
+    {/if}
+  </section>
 
   <!-- ------------------------------------------------------------------ -->
   <!-- Hook and rumour                                                    -->
@@ -283,18 +373,12 @@
             class="control tiny"
             class:on={reveals(hookPage, player.id)}
             type="button"
-            disabled={busy}
             onclick={() => setReveal(hookPage, player.id, !reveals(hookPage, player.id))}
           >
             {player.name}
           </button>
         {/each}
-        <button
-          class="control tiny"
-          type="button"
-          disabled={busy}
-          onclick={() => revealToTable(hookPage)}
-        >
+        <button class="control tiny" type="button" onclick={() => revealToTable(hookPage)}>
           todos ▸
         </button>
       </div>
@@ -321,7 +405,6 @@
             class="control tiny"
             class:on={reveals(rumourPage, player.id)}
             type="button"
-            disabled={busy}
             onclick={() => setReveal(rumourPage, player.id, !reveals(rumourPage, player.id))}
           >
             {player.name}
@@ -348,8 +431,8 @@
         <div class="objective-head">
           <button
             class="tick-button"
+            class:done={hub.done === true}
             type="button"
-            disabled={busy}
             aria-pressed={hub.done === true}
             onclick={() => toggleObjectiveDone(objective)}
           >
@@ -364,7 +447,6 @@
           <button
             class="control tiny danger"
             type="button"
-            disabled={busy}
             onclick={() => removePage(objective)}
             aria-label="Remover objetivo">×</button
           >
@@ -384,18 +466,12 @@
               class="control tiny"
               class:on={reveals(objective, player.id)}
               type="button"
-              disabled={busy}
               onclick={() => setReveal(objective, player.id, !reveals(objective, player.id))}
             >
               {player.name}
             </button>
           {/each}
-          <button
-            class="control tiny"
-            type="button"
-            disabled={busy}
-            onclick={() => revealToTable(objective)}
-          >
+          <button class="control tiny" type="button" onclick={() => revealToTable(objective)}>
             todos ▸
           </button>
         </div>
@@ -408,7 +484,6 @@
                 class="control tiny"
                 class:on={(hub.pois ?? []).includes(pin._id)}
                 type="button"
-                disabled={busy}
                 onclick={() => toggleObjectivePoi(objective, pin._id)}
               >
                 📍 {pin.text || "sem nome"}
@@ -416,12 +491,7 @@
             {/each}
             {#if (hub.pois ?? []).length > 0}
               <!-- Offered, never automatic (DEC-HUB-07). -->
-              <button
-                class="control tiny"
-                type="button"
-                disabled={busy}
-                onclick={() => revealPinsOf(objective)}
-              >
+              <button class="control tiny" type="button" onclick={() => revealPinsOf(objective)}>
                 revelar lugares
               </button>
             {/if}
@@ -445,7 +515,6 @@
             class="control tiny"
             class:on={questPois(entry).includes(pin._id)}
             type="button"
-            disabled={busy}
             onclick={() => toggleQuestPoi(pin._id)}
           >
             📍 {pin.text || "sem nome"}
@@ -476,7 +545,6 @@
                 class="matrix-cell state"
                 class:revealed={reveals(page, player.id)}
                 type="button"
-                disabled={busy}
                 title="{page.name} · {player.name}"
                 onclick={() => setReveal(page, player.id, !reveals(page, player.id))}
               >
@@ -628,6 +696,39 @@
     font-size: 11px;
     font-style: italic;
     color: var(--fusion-sw-dim);
+  }
+
+  .access {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .progress {
+    font-size: 10px;
+    letter-spacing: var(--fusion-sw-track-label);
+    text-transform: uppercase;
+    color: var(--fusion-sw-dim);
+  }
+
+  .hint {
+    margin: 0;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--fusion-sw-dim);
+  }
+
+  .saving {
+    font-size: 9.5px;
+    letter-spacing: var(--fusion-sw-track-label);
+    text-transform: uppercase;
+    color: var(--fusion-sw-gold);
+  }
+
+  /* A completed objective reads as completed in the authoring list too — the
+     GM should not have to switch to the player view to see where they are. */
+  .tick-button.done {
+    border-color: var(--fusion-sw-gold);
+    color: var(--fusion-sw-gold);
   }
 
   .matrix {

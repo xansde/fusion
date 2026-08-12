@@ -16,7 +16,7 @@
    */
 
   import { onMount, onDestroy } from "svelte";
-  import { isObjectiveDone, objectivePois } from "@fusion/shared";
+  import { isObjectiveDone, objectivePois, type JournalEntryPage } from "@fusion/shared";
   import { session, getSocket } from "$lib/session.svelte.js";
   import { HUB_SURFACE_CLASS } from "$lib/hub/layers.js";
   import { isEmptyDoc } from "$lib/ui/richText.js";
@@ -27,6 +27,7 @@
     buildBoard,
     splitBoard,
     createQuest,
+    updatePage,
     listTablePlayers,
     type QuestView,
     type TablePlayer,
@@ -115,6 +116,22 @@
     expanded = { ...expanded, [pageId]: !expanded[pageId] };
   }
 
+  /**
+   * Tick an objective off from the board itself (GM only).
+   *
+   * At the table the GM is reading the quest, not editing it — reaching the
+   * completion tick should not mean opening the authoring panel first. It is
+   * the same op either way; only the surface differs.
+   */
+  function tickObjective(view: QuestView, objective: JournalEntryPage): void {
+    if (!isGm || previewing) return;
+    void run(async () => {
+      await updatePage(socketOrThrow(), view.entry._id, objective._id, {
+        hub: { done: !isObjectiveDone(objective) },
+      });
+    });
+  }
+
   function track(pinId: string): void {
     regionMapStore.openPinId = pinId;
     onTrackOnMap?.(pinId);
@@ -179,6 +196,11 @@
           >
             <span class="bullet">●</span>{view.entry.name}
           </button>
+          {#if view.objectives.length > 0}
+            <span class="badge">
+              {view.objectives.filter((o) => isObjectiveDone(o)).length}/{view.objectives.length}
+            </span>
+          {/if}
           {#if view.done}<span class="badge">concluída</span>{/if}
         </header>
 
@@ -196,7 +218,17 @@
             {@const done = isObjectiveDone(objective)}
             <li class="objective">
               <div class="objective-line">
-                <span class="tick" aria-hidden="true">{done ? "✓" : "○"}</span>
+                {#if isGm && !previewing}
+                  <button
+                    class="tick tick-button"
+                    type="button"
+                    aria-pressed={done}
+                    title={done ? "Reabrir objetivo" : "Concluir objetivo"}
+                    onclick={() => tickObjective(view, objective)}>{done ? "✓" : "○"}</button
+                  >
+                {:else}
+                  <span class="tick" aria-hidden="true">{done ? "✓" : "○"}</span>
+                {/if}
                 <span class="objective-name" class:struck={done}>{objective.name}</span>
                 <!-- No expander when there is no description: most objectives
                      are one line ("falar com o xerife") and an affordance that
@@ -406,8 +438,20 @@
   }
 
   .tick {
-    width: 12px;
+    width: 14px;
     color: var(--fusion-sw-dim);
+    text-align: left;
+  }
+
+  .tick-button {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+  }
+  .tick-button:hover {
+    color: var(--fusion-sw-gold);
   }
 
   .objective-name {
