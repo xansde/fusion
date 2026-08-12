@@ -455,7 +455,7 @@ podem ser páginas da mesma entry, e DEC-HUB-04 precisa ser reaberta.
   sinal de "isto mudou", ou a mudança é silenciosa?
 - **Q-HUB-03** Missão concluída sai da lista principal após algum tempo, ou fica para sempre
   em uma seção de arquivo? O protótipo não decide.
-- ~~**Q-HUB-04** Objetivo tem estado de conclusão **por jogador** ou é da mesa?~~
+- **Q-HUB-04** ✅ Objetivo tem estado de conclusão **por jogador** ou é da mesa?
   **RESOLVIDA (2026-08-12, dono): é da mesa.** Objetivo concluído fica riscado para
   todo mundo que o enxerga — o quadro é o diário do grupo, não a lista de cada um.
   Gravado como um booleano em `flags.fusion.hub.done` da página, e não como mapa de
