@@ -35,7 +35,7 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
-import { PROTOCOL_VERSION, OwnershipLevel } from "@fusion/shared";
+import { PROTOCOL_VERSION, OwnershipLevel, createGmPin, createDocumentId } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
 import { reserveFreePort } from "./helpers/ports.js";
 
@@ -456,6 +456,40 @@ describe("region map — pins, reveal and comments", () => {
 
     expect(pins).toHaveLength(2);
     expect(pins.map((p) => p.text).sort()).toEqual(["Acampamos aqui", "Ruínas de Godford"]);
+  });
+
+  /**
+   * The import path (REQ-MREG-022) creates a map with its pins already in the
+   * payload, which is the one shape no other test exercises: every pin
+   * elsewhere is added afterwards by `regionMap:createPin`. It is worth its
+   * own case because of the trap in CLAUDE.md — a server schema built with
+   * `.extend()` and no `.passthrough()` drops what it does not declare, and
+   * `pins` arriving silently empty would look exactly like a successful
+   * import of an empty map.
+   */
+  it("a map created with pins keeps them, and they arrive hidden (import path)", async () => {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "RegionMap",
+      data: [
+        {
+          name: "Vale importado",
+          image: "/assets/maps/outro-godford.webp",
+          ownership: { default: OwnershipLevel.OBSERVER },
+          pins: [
+            createGmPin(createDocumentId(), { x: 0.1, y: 0.2, text: "Ponte quebrada" }),
+            createGmPin(createDocumentId(), { x: 0.8, y: 0.6, text: "Moinho" }),
+          ],
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const importedId = (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+
+    const gmPins = await snapshotPins(ctx, ctx.gmToken, importedId);
+    expect(gmPins.map((p) => p.text).sort()).toEqual(["Moinho", "Ponte quebrada"]);
+
+    // The map is open to the table; the places on it are not.
+    expect(await snapshotPins(ctx, ctx.tobiasToken, importedId)).toHaveLength(0);
   });
 
   it("the GM may delete a player's pin; the player may delete their own", async () => {

@@ -40,6 +40,13 @@
     isHiddenFromTable,
     type TablePlayer,
   } from "$lib/hub/regionMapStore.svelte.js";
+  import {
+    downloadMapPackage,
+    parseMapPackage,
+    importMapPackage,
+    MAP_PACKAGE_SUFFIX,
+  } from "$lib/hub/mapPackageIo.js";
+  import type { FusionMapPackage } from "@fusion/shared";
   import FilePicker from "../assets/FilePicker.svelte";
 
   const userId = $derived(session.user?.id ?? "");
@@ -64,6 +71,15 @@
   let placing = $state(false);
 
   let showPicker = $state(false);
+  /**
+   * What the asset picker is choosing for. The panel has two reasons to open
+   * it and they finish differently: one updates the map on screen, the other
+   * creates a map that does not exist yet.
+   */
+  let pickerMode = $state<"map-image" | "import-image">("map-image");
+  /** Package read from a file and waiting for its image (REQ-MREG-022). */
+  let pendingPackage = $state<FusionMapPackage | null>(null);
+  let packageInput = $state<HTMLInputElement | null>(null);
   let busy = $state(false);
   let errorMessage = $state<string | null>(null);
   let draftComment = $state("");
@@ -269,7 +285,65 @@
     void run(async () => {
       const id = await createRegionMap(socketOrThrow(), { name: "Novo mapa" });
       regionMapStore.select(id);
-      showPicker = true;
+      openPicker("map-image");
+    });
+  }
+
+  function openPicker(mode: "map-image" | "import-image"): void {
+    pickerMode = mode;
+    showPicker = true;
+  }
+
+  /** The picker finished: either it is dressing this map, or creating one. */
+  function onPickImage(path: string): void {
+    showPicker = false;
+    if (pickerMode === "import-image") {
+      finishImport(path);
+      return;
+    }
+    chooseImage(path);
+  }
+
+  // -- portable packages (GM) -----------------------------------------------
+
+  /**
+   * Export the map on screen as a package file.
+   *
+   * Only the GM gets the button, and that is not merely a permission: a
+   * player's copy of the map is the redacted one, so exporting it would write
+   * a file with holes in it and no way to tell.
+   */
+  function exportPackage(): void {
+    if (map === null) return;
+    try {
+      downloadMapPackage(map);
+    } catch (err) {
+      errorMessage = err instanceof Error ? err.message : String(err);
+    }
+  }
+
+  /** Read the chosen file; a bad one says so instead of failing silently. */
+  async function onPackageChosen(event: Event): Promise<void> {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ""; // so choosing the same file twice fires again
+    if (!file) return;
+    errorMessage = null;
+    try {
+      pendingPackage = parseMapPackage(await file.text());
+    } catch (err) {
+      pendingPackage = null;
+      errorMessage = err instanceof Error ? err.message : String(err);
+    }
+  }
+
+  function finishImport(image: string | null): void {
+    const pkg = pendingPackage;
+    if (pkg === null) return;
+    pendingPackage = null;
+    void run(async () => {
+      const id = await importMapPackage(socketOrThrow(), pkg, image);
+      regionMapStore.select(id);
     });
   }
 
@@ -361,13 +435,67 @@
 
     {#if isGm}
       {#if map}
-        <button class="control" type="button" onclick={() => (showPicker = true)}>
+        <button class="control" type="button" onclick={() => openPicker("map-image")}>
           imagem
         </button>
+        <button class="control" type="button" onclick={exportPackage} title="Baixar este mapa como arquivo">
+          exportar
+        </button>
       {/if}
+      <button
+        class="control"
+        type="button"
+        disabled={busy}
+        onclick={() => packageInput?.click()}
+        title="Abrir um mapa exportado de outro mundo"
+      >
+        importar
+      </button>
       <button class="control" type="button" onclick={newMap} disabled={busy}>+ mapa</button>
     {/if}
   </div>
+
+  <!-- The file itself never reaches the DOM as a control: a bare file input is
+       unstyleable and would fight the panel's chrome. The toolbar button opens
+       it. -->
+  <input
+    class="hidden-input"
+    type="file"
+    accept="application/json,{MAP_PACKAGE_SUFFIX},.json"
+    bind:this={packageInput}
+    onchange={(e) => void onPackageChosen(e)}
+    aria-hidden="true"
+    tabindex="-1"
+  />
+
+  {#if pendingPackage}
+    {@const pkg = pendingPackage}
+    <div class="import-confirm">
+      <p class="import-line">
+        <strong>{pkg.name}</strong> — {pkg.pins.length}
+        {pkg.pins.length === 1 ? "lugar" : "lugares"}, todos ocultos ao chegar.
+      </p>
+      <p class="import-hint">
+        {#if pkg.image}
+          O pacote espera a imagem <code>{pkg.image}</code>. Ela não viaja no arquivo — escolha
+          a cópia deste mundo.
+        {:else}
+          O pacote não nomeia imagem.
+        {/if}
+      </p>
+      <div class="import-actions">
+        <button class="control" type="button" onclick={() => openPicker("import-image")}>
+          escolher imagem
+        </button>
+        <button class="control" type="button" onclick={() => finishImport(null)}>
+          importar sem imagem
+        </button>
+        <button class="control" type="button" onclick={() => (pendingPackage = null)}>
+          cancelar
+        </button>
+      </div>
+    </div>
+  {/if}
 
   {#if errorMessage}
     <p class="error">{errorMessage}</p>
@@ -564,7 +692,7 @@
 {#if showPicker}
   <FilePicker
     token={fusionApi.getToken() ?? ""}
-    onSelect={chooseImage}
+    onSelect={onPickImage}
     onClose={() => (showPicker = false)}
   />
 {/if}
@@ -636,6 +764,43 @@
     margin: 0;
     font-size: 11px;
     color: var(--fusion-sw-bad);
+  }
+
+  /* Present in the DOM (the toolbar button clicks it) but never seen. */
+  .hidden-input {
+    display: none;
+  }
+
+  .import-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border: 1px dashed var(--fusion-sw-line);
+    background: var(--fusion-sw-fill);
+  }
+
+  .import-line,
+  .import-hint {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--fusion-sw-ink);
+  }
+
+  .import-hint {
+    font-size: 11px;
+    color: var(--fusion-sw-dim);
+  }
+
+  .import-hint code {
+    color: var(--fusion-sw-ink);
+  }
+
+  .import-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
   .empty {
