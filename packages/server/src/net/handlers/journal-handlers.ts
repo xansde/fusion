@@ -45,6 +45,7 @@ import {
   createJournalPage,
   createDocumentId,
   JOURNAL_PAGE_TYPES,
+  PAGE_ROLES,
   type Ack,
   type Envelope,
   type JournalEntryPage,
@@ -95,6 +96,8 @@ const DocIdSchema = z.string().regex(/^[A-Za-z0-9]{16}$/);
  */
 const QuestPageStateSchema = z
   .object({
+    /** What this page is doing in the quest — hook, rumour, or objective. */
+    role: z.enum(PAGE_ROLES).optional(),
     done: z.boolean().optional(),
     pois: z.array(DocIdSchema).max(50).optional(),
   })
@@ -180,6 +183,7 @@ function withHubFlags(
   const fusion = { ...(flags["fusion"] ?? {}) };
   const existing = (fusion["hub"] ?? {}) as Record<string, unknown>;
   const next: Record<string, unknown> = { ...existing };
+  if (hub.role !== undefined) next["role"] = hub.role;
   if (hub.done !== undefined) next["done"] = hub.done;
   if (hub.pois !== undefined) next["pois"] = hub.pois;
   fusion["hub"] = next;

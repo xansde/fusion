@@ -481,7 +481,7 @@ export interface CardStackData {
 
 **Q-JRN-002** ~~Resolvida em REQ-JRN-027.~~ O comando `/table` usa roll mode `public` por padrão; o flag `--gm` produz `gmroll` (visível ao GM e ao autor), seguindo a tabela de roll modes de `09-chat-e-mensagens.md` DEC-CHT-02. Sistemas que precisam de draw privado (ex.: tabelas de crit do PF2e) devem usar `POST /api/tables/:id/draw` diretamente com o roll mode desejado, em vez de `/table` pelo chat.
 
-**Q-JRN-003** Permissões por `JournalEntryPage` sobrescrevem ou herdam as da `JournalEntry` pai? O modelo atual assume sobrescrita (ownership da página > ownership da entry). Confirmar com o designer de produto.
+~~**Q-JRN-003** Permissões por `JournalEntryPage` sobrescrevem ou herdam as da `JournalEntry` pai?~~ **RESOLVIDA (2026-08-12, dono): sobrescrita, com herança como fallback.** Página que **não declara nada** herda a entry; página que declara qualquer coisa (uma entrada para o usuário ou um `default` próprio) decide por si. A herança é o fallback e não a regra porque "esta etapa é só do Tobias" não pode exigir declarar `none` para a mesa inteira; e é fallback e **não** a regra porque uma etapa nova numa missão já publicada não pode nascer legível — por isso a fábrica de página grava `{default: none}` explícito. Implementado em `packages/shared/src/journal.ts` (`resolvePageLevel`), consumido pela redação do servidor nos quatro caminhos de emissão. Ver DEC-HUB-04 da spec 28.
 
 **Q-JRN-004** Quando um resultado `compendium` é sorteado de uma `RollTable`, o document do compendium deve ser linkado no resultado ou importado automaticamente para o mundo? O comportamento do Foundry é apenas linkar. Confirmar se Fusion seguirá o mesmo comportamento.
 
