@@ -607,3 +607,24 @@ arquivo do banco. E, quando a visibilidade for reescrita no próprio documento
 (aqui: `whisper` volta a `[]`, `blind` a `false`), preferir isso a um terceiro
 campo de visibilidade: um predicado novo teria que ser replicado nos mesmos
 caminhos que já divergiam.
+
+## Commitar arquivo de subagente ainda vivo derruba o CI no `format:check` (2026-08-12)
+
+**O que aconteceu:** um subagente construía o editor rico (`RichText.svelte` +
+`richText.ts` + teste). Antes de ele terminar, a sessão principal fechou o
+trabalho do quadro de missões com `git add -A` e pushou. Os arquivos do
+subagente entraram no commit **na versão anterior ao `prettier --write` que ele
+ainda ia rodar**, e o CI reprovou em `format:check` — não em teste, não em
+lint, em formatação.
+
+**Por que engana:** o `pnpm format:check` local passava, porque a árvore de
+trabalho JÁ tinha a formatação que o subagente aplicou depois do commit. O que
+estava errado era o _commit_, não a árvore. Rodar o gate localmente responde
+"tudo formatado" e o CI responde "não", e as duas respostas estão certas.
+
+**O que fazer:** o `CLAUDE.md` já manda não escrever no arquivo que um
+subagente está escrevendo; isto é o corolário — **não commite o arquivo de um
+subagente que ainda não reportou**. Se o trabalho paralelo precisa entrar no
+mesmo commit, espere a notificação de conclusão. E, antes de qualquer push,
+`git status` + `git diff --stat`: um diff cosmético pendente logo depois de um
+`git add -A` é sinal de que alguém escreveu no arquivo depois de você.
