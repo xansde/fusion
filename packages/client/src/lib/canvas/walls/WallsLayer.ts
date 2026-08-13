@@ -8,8 +8,15 @@
  * REQ-VIS-008: preset UI
  * REQ-VIS-009: draw/move/delete walls
  *
- * GM-only: this layer is only attached when the user is GM.
- * Players: see door icons only (non-secret, non-locked doors).
+ * Attached for EVERY user, GM and player alike (issue #83) — but what each
+ * of them sees differs. Wall LINE geometry (`_linesContainer`) is GM-only:
+ * the server does not redact wall coordinates for players (it only strips
+ * `doorType` on secret doors), so this layer itself hides the lines via
+ * `_linesContainer.visible = isGm` to keep the dungeon's skeleton from
+ * leaking to players who haven't explored it. Door ICONS
+ * (`_doorsContainer`) are visible/clickable for everyone, except a secret
+ * door's icon, which stays GM-only — opening/closing a door is a player
+ * gesture (`scene:doorState`), so the icon has to render for them.
  *
  * Architecture:
  *   - WallsLayer owns the PIXI containers for wall lines + door icons
@@ -154,6 +161,14 @@ export class WallsLayer {
     // child (the per-wall Graphics below) still gets hit-tested.
     this._linesContainer = new Container();
     this._linesContainer.label = "walls:lines";
+    // REQ-CNV-004 (specs/06-canvas-e-renderizacao.md:281,582,606): wall
+    // geometry — including segments the server never redacts, like the
+    // exact position of a secret door — is GM-only. The server only strips
+    // `doorType` for secret doors; it still ships the raw wall list to every
+    // client, so hiding the drawn lines is this layer's job. Only the
+    // segments are gated; door icons (below, in `_doorsContainer`) stay
+    // visible/clickable for non-secret doors so players can open/close them.
+    this._linesContainer.visible = this._isGm;
     container.addChild(this._linesContainer);
 
     // Door icons (interactive)

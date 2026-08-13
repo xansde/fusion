@@ -219,3 +219,43 @@ describe("WallsLayer — interactivity (eventMode wiring)", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Layer visibility (REQ-CNV-004: walls are GM-only geometry)
+// ---------------------------------------------------------------------------
+//
+// Found in review: the server never redacts wall coordinates for players
+// (only `doorType` on secret doors gets stripped), and this layer was
+// attaching the "controls" hierarchy for every user (issue #83) without
+// hiding the LINE geometry — so a player could see the full skeleton of
+// the dungeon, secret-door segments included, through the still-visible
+// `_linesContainer`. Door icons must stay visible for non-secret doors so
+// players can still open/close them (`scene:doorState` is a player gesture).
+
+describe("WallsLayer — layer visibility (REQ-CNV-004: walls are GM-only geometry)", () => {
+  it("player: the lines container is not visible — wall geometry leaking to players is the regression this guards", () => {
+    const root = new Container();
+    new WallsLayer(root, SCENE_ID, null, false);
+
+    const linesContainer = root.children[0] as Container;
+    expect(linesContainer.visible).toBe(false);
+  });
+
+  it("player: the doors container stays visible — opening a door is a player gesture", () => {
+    const root = new Container();
+    new WallsLayer(root, SCENE_ID, null, false);
+
+    const doorsContainer = root.children[1] as Container;
+    expect(doorsContainer.visible).toBe(true);
+  });
+
+  it("GM: both the lines and doors containers are visible", () => {
+    const root = new Container();
+    new WallsLayer(root, SCENE_ID, null, true);
+
+    const linesContainer = root.children[0] as Container;
+    const doorsContainer = root.children[1] as Container;
+    expect(linesContainer.visible).toBe(true);
+    expect(doorsContainer.visible).toBe(true);
+  });
+});
