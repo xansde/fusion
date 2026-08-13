@@ -1,0 +1,62 @@
+{
+  "card_id": "dsc-08073fee-659",
+  "fase": "discovery",
+  "status": "success",
+  "started_at": "2026-08-05T21:52:36.235Z",
+  "finished_at": "2026-08-05T22:36:30.000Z",
+  "executor": "claude-code",
+  "model": "opus",
+  "effort": "medium",
+  "outputs": {
+    "summary": "Discovery do card 'mapa jogavel' (repo fusion). A entrevista partiu de uma varredura do codigo que mostrou que o canvas NAO parte do zero: mapa/camera/camadas, grid quadrado, tokens de PJ e NPC e movimentacao com permissao (canMoveToken no cliente + validacao de token embedded no servidor: GM/ASSISTANT ou dono) ja existem. O DoD foi definido pelo dono como mapa + grid configuravel + som ambiente + tokens de PJ e NPC + movimentacao (jogador so os proprios, GM todos) + indicador de alvo. Restaram tres lacunas e uma prova: (1) grid configuravel de verdade — hoje so gridSize na UI e so funcoes square* no shared/grid/math.ts, com a interface GridStrategy declarada mas nao implementada; (2) indicador de alvo — a cadeia combat:target -> token:targeted -> TargetingMarker existe ponta a ponta, mas o unico gatilho no produto e um botao do CombatPanel (exige combate ativo) e ele passa 'targeted: true' fixo, ou seja NAO desmarca, e nao ha gesto no mapa; (3) som ambiente — inexistente: howler nao esta instalado e ALLOWED_TYPES do upload aceita so png/jpeg/webp/svg, entao audio e rejeitado antes de chegar ao disco. A prova de 'jogavel' e uma sessao jogada em duas telas, nunca suite verde (licao #48 da r22, teste circular). Escopo fatiado em 4 marcos sobre a base build/app.",
+    "decisions": [
+      "D1 — DoD de 'jogavel' definido pelo dono: mapa + grid configuravel + som ambiente + tokens de jogadores + tokens de NPC/inimigos + movimentacao + indicador de alvo. Fog/visao dinamica, ataque pelo mapa e regua de distancia NAO entram.",
+      "D2 — Som ambiente no escopo minimo: uma faixa por vez, GM da play/stop em loop, sincronizada em todos os clientes pelo servidor (comando, nunca o audio), volume local por jogador. Sem playlist, fila, crossfade ou troca automatica por cena.",
+      "D3 — A musica sai da biblioteca de assets do proprio servidor (world-scope, disco do servidor), escolhida pelo GM.",
+      "D4 — O dono cura a biblioteca de sons: subir, listar e EXCLUIR pela UI. O DELETE /api/assets/:name (GM only) e o deleteAsset() do cliente ja existem; falta expor na UI e aceitar audio no upload.",
+      "D5 — Alvo: multiplos alvos simultaneos, marcar E desmarcar clicando no token do mapa; o toggle hardcoded em 'true' do CombatPanel e um defeito a corrigir.",
+      "D6 — Todo item entrega prova jogada (cena real, duas telas: GM e jogador). Suite verde nao conta como evidencia — e a licao #48 da r22 (teste circular: 80 testes verdes convivendo com 60 defeitos).",
+      "D7 — Grid: tamanho da celula + seletor de tipo na UI; SO quadrado implementado, mas movido para tras da interface GridStrategy ja declarada em shared/src/grid/types.ts; hex aparece desabilitado. Decisao tomada com o dono CIENTE de que a spec 06 marca hex como [MVP] (REQ-CNV-014/015/021/023) e justifica isso para evitar refactor — o adaptador GridStrategy e o preco pago para adiar hex sem cobrar esse refactor depois.",
+      "D8 — Base do trabalho: branch build/app atualizada do remoto (o app vive nela; a main so tem docs).",
+      "D9 — Fatiamento em 4 marcos: M1 Grid, M2 Alvo, M3 Som (independentes entre si, podem ir em paralelo) e M4 Varredura de jogabilidade (depende dos tres). Cada marco termina em PR proprio."
+    ],
+    "open_questions": [
+      "Limite de upload para audio: o teto atual e 20 MB (dimensionado para imagem). Uma faixa longa de ambiente pode passar. Definir o teto especifico de audio na fase Plano.",
+      "Formatos de audio aceitos: recomendacao e mp3 + ogg; wav compartilha o prefixo RIFF com o WebP, entao o detector de magic bytes precisa desambiguar pelos bytes 8-11 — decidir na Plano se wav entra.",
+      "Gesto exato para marcar alvo no mapa (clique com modificador? tecla dedicada? clique direito?) — nao foi fechado na entrevista.",
+      "M4 (varredura) precisa de um segundo humano na segunda tela, ou o proprio dono abre duas sessoes? Afeta o roteiro da prova.",
+      "DEBT-AST-02 (busca de asset existente por varredura de diretorio, O(n)) nao atrapalha uma biblioteca de musicas de mesa, mas nao escala para milhares de arquivos. Nao foi tratado; fica registrado."
+    ],
+    "handoff_doc_path": ".esteira/discovery/dsc-08073fee-659-ctx.md",
+    "repo_lesson_draft": "### Peca implementada nao significa peca alcancavel pelo jogador\n\nNa discovery do 'mapa jogavel' (2026-08-05), o indicador de alvo aparecia como pronto: a cadeia inteira existe e tem teste — o cliente emite combat:target, o servidor resolve o usuario pelo socket em target-handler.ts, faz broadcast de token:targeted, o combatStore reduz o estado e o TargetingMarker desenha a reticula com cor distinta para o alvo proprio e o alheio. Mesmo assim, jogando, nao da para mirar em ninguem pelo mapa: o unico gatilho em todo o produto e um botao do CombatPanel.svelte, que exige combate ativo com combatente vinculado a token, e que passa 'targeted: true' fixo — o comentario acima dele diz 'Target toggle', mas ele nunca desmarca (so a limpeza de fim de turno tira a reticula). O mesmo padrao apareceu na biblioteca de assets: deleteAsset() esta exportado no assetApi e o DELETE /api/assets/:name existe no servidor, mas nenhum componente chama — nao ha botao de excluir em lugar nenhum.\n\nE a mesma forma da licao #48 da r22 (o teste das 12 classes conferia a derivacao contra a tabela do proprio pack): a verificacao olhou para dentro da peca e nunca para a mao do jogador.\n\n**Lesson:** ao avaliar se algo esta pronto, procure o GESTO que o usuario faz — o clique, a tecla, o botao — e nao a cadeia de codigo que responde a ele. Cadeia completa com teste verde e gatilho ausente (ou hardcoded) e o estado mais caro de todos, porque se parece exatamente com pronto.",
+    "knowledge": {
+      "repo_lessons": "queued",
+      "consulted": {
+        "sources": [
+          "CLAUDE.md",
+          ".fusion-build/todo.md",
+          ".fusion-build/r22/varredura-jogabilidade.md",
+          ".fusion-build/r24/handoff-b3-pausado.md",
+          ".fusion-build/r24/plano-batches.md",
+          "specs/06-canvas-e-renderizacao.md",
+          "specs/17-sistema-pf2e.md",
+          "specs/18-sistema-sf2e.md",
+          "specs/19-sistema-etmos.md"
+        ],
+        "hits": 3
+      }
+    },
+    "epic_id": null,
+    "fanout_cards": [
+      { "card_id": "pln-mapa-grid", "marco_id": "M1" },
+      { "card_id": "pln-mapa-alvo", "marco_id": "M2" },
+      { "card_id": "pln-mapa-som", "marco_id": "M3" },
+      { "card_id": "pln-mapa-varredura", "marco_id": "M4" }
+    ]
+  },
+  "registrations": {
+    "taskdex": { "comment_id": null, "label_changed": null, "column_moved_to": null },
+    "vault": { "path": null, "section": null }
+  },
+  "next_fase_suggested": "plano"
+}

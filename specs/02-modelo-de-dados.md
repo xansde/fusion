@@ -106,7 +106,7 @@ Esta spec é a fundação contratual sobre a qual se apoiam: persistência
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Schema runtime com Zod, tipos TS derivados
+### DEC-DOC-01 — Schema runtime com Zod, tipos TS derivados
 
 Validamos todo Document com **Zod** em runtime e derivamos os tipos TypeScript
 via `z.infer`. O schema de engine de cada tipo é fixo no `packages/shared`; o
@@ -125,7 +125,7 @@ schema de `system` é fornecido pela system API.
   da stack fixada. A validação roda no servidor (autoritativo) e opcionalmente
   no cliente para UX.
 
-### D2 — IDs com nanoid (16 chars, alfabeto Foundry-compatível)
+### DEC-DOC-02 — IDs com nanoid (16 chars, alfabeto Foundry-compatível)
 
 `_id` é uma string de **16 caracteres** gerada com **nanoid**, alfabeto
 `A–Za–z0–9` (62 símbolos), o mesmo comprimento e formato usado pelo Foundry.
@@ -140,7 +140,7 @@ schema de `system` é fornecido pela system API.
   JSON importados reduz remapeamento no importador
   (`ver 16-compendiums-e-importacao.md`). IDs são imutáveis após criação.
 
-### D3 — UUID hierárquico próprio, derivado do caminho de embedding
+### DEC-DOC-03 — UUID hierárquico próprio, derivado do caminho de embedding
 
 O Fusion adota um formato de UUID próprio que codifica o caminho do document a
 partir da raiz. Formato:
@@ -155,7 +155,7 @@ Compendium.<packId>.<DocType>.<docId>[.<EmbeddedType>.<embeddedId>]*
   (origem de efeito, alvo de nota, etc.).
 - **Rejeitado: copiar literalmente o esquema do Foundry incluindo o token actor
   sintético `Scene.x.Token.y.Actor.z`.** Mantemos o _padrão_ (é prático e os
-  dados importados o usam), mas simplificamos a forma do token actor — ver D8.
+  dados importados o usam), mas simplificamos a forma do token actor — ver DEC-DOC-08.
 - **Racional:** formato textual, legível, parseável sem consultar o banco, e
   alinhado ao que aparece nos dados importados do `pf2e` (`@UUID[...]`,
   `Compendium.pf2e.<pack>.<Type>.<id>`). A resolução
@@ -163,7 +163,7 @@ Compendium.<packId>.<DocType>.<docId>[.<EmbeddedType>.<embeddedId>]*
   implementação de busca pertence à camada de coleções
   (`ver 03-persistencia-e-mundos.md`).
 
-### D4 — Catálogo de Documents enxuto; cortes explícitos para [V2]
+### DEC-DOC-04 — Catálogo de Documents enxuto; cortes explícitos para [V2]
 
 O Fusion implementa um subconjunto curado dos 34 tipos do Foundry. Cortes
 explícitos para **[V2]**: `Cards`/`Card` (baralhos), `Region`/`RegionBehavior`
@@ -182,7 +182,7 @@ _Document_ de primeira classe.
 - **Racional:** foco no caminho crítico do MVP; reduz superfície de schema,
   validação e sync.
 
-### D5 — Subtypes via discriminated union; sem `template.json`
+### DEC-DOC-05 — Subtypes via discriminated union; sem `template.json`
 
 O conteúdo de `system` é selecionado pelo par `(documentType, subtype)`. Não
 há equivalente ao `template.json` legado do Foundry; schemas `system` são
@@ -194,7 +194,7 @@ sempre Zod registrados pela system API (research `07-...md` §2 confirma que o
 - **Racional:** schemas como código TS-first são a recomendação da própria
   pesquisa (`07-...md` §14.2, ponto 2 e 5).
 
-### D6 — Flags namespaced, registráveis e validáveis opcionalmente
+### DEC-DOC-06 — Flags namespaced, registráveis e validáveis opcionalmente
 
 `flags` segue a estrutura `flags.<namespace>.<key>` do Foundry, mas o Fusion
 permite (não obriga) que um sistema/feature **registre um schema Zod** para seu
@@ -207,7 +207,7 @@ namespace de flags, habilitando validação. Namespaces reservados: `core`
 - **Racional:** default permissivo (flags são `Record<string, unknown>` por
   namespace), com opt-in de validação por quem quiser integridade.
 
-### D7 — Ownership por document com 4 níveis + default + INHERIT
+### DEC-DOC-07 — Ownership por document com 4 níveis + default + INHERIT
 
 Mantemos os níveis `none`(0)/`limited`(1)/`observer`(2)/`owner`(3) e o sentinel
 `inherit`(-1), mais a chave `default`. Esta spec define o **campo** e a **função
@@ -218,7 +218,7 @@ pura de avaliação de nível**; o _enforcement_ por operação fica em
   Foundry cobrem os casos de mesa.
 - **Racional:** modelo conhecido, simples, suficiente. GM sempre tem `owner`.
 
-### D8 — Herança token→actor por delta simplificado (sobre `system`)
+### DEC-DOC-08 — Herança token→actor por delta simplificado (sobre `system`)
 
 Tokens podem ser **linked** (espelham o `Actor` mundial) ou **unlinked**
 (carregam um `actorDelta`). O Fusion **simplifica** o `ActorDelta` do Foundry:
@@ -238,7 +238,7 @@ o delta do MVP é um **merge patch parcial** sobre os campos do Actor
   integralmente se presentes no delta, senão herdadas. Marcado para revisão de
   refinamento em **[V2]** (delta item-granular).
 
-### D9 — `_stats` gerenciado pelo servidor; nunca confiar no cliente
+### DEC-DOC-09 — `_stats` gerenciado pelo servidor; nunca confiar no cliente
 
 Todo document primário carrega `_stats` (createdTime, modifiedTime,
 lastModifiedBy, createdBy, coreVersion, systemId, systemVersion, schemaVersion).
@@ -249,7 +249,7 @@ valores vindos do cliente em `_stats` são ignorados/sobrescritos.
   exigem fonte autoritativa única (`ver 21-seguranca.md`).
 - **Racional:** alinha com servidor autoritativo da stack fixada.
 
-### D10 — Versionamento de schema separado: engine vs system
+### DEC-DOC-10 — Versionamento de schema separado: engine vs system
 
 Cada document carrega `_stats.schemaVersion` (versão do schema de **engine**) e,
 quando tem `system`, o `system.<schemaVersion>` é controlado pela versão do
@@ -262,7 +262,7 @@ sistema de jogo (registrada na system API). Migrações de engine e de system s�
   isoladas reduzem risco (`ver 16-compendiums-e-importacao.md` para migração de
   dados importados).
 
-### D11 — Soft references com resolução tolerante a alvo ausente
+### DEC-DOC-11 — Soft references com resolução tolerante a alvo ausente
 
 Referências entre documents (folder pai, ator de um combatant, journal de uma
 nota, origem de efeito) são **soft**: armazenadas como id/UUID, sem FK forte. A
@@ -274,6 +274,34 @@ graciosamente.
   (ex.: deletar um Actor não deve quebrar mensagens de chat antigas que o
   citam).
 - **Racional:** robustez a dados parciais (importação, deleção) e simplicidade.
+
+### DEC-DOC-12 — Default de `actorLink` é por momento: leitura conservadora, criação por subtipo
+
+`actorLink` responde a **duas** perguntas diferentes e elas têm respostas
+opostas. Na **leitura**, o default do schema é `true`: todo token já persistido
+foi salvo sem o campo, e qualquer outro default reinterpretaria mundos inteiros
+de uma vez — seis tokens que sempre compartilharam uma ficha passariam a ter
+seis pools de pontos de vida sem ninguém ter pedido. Na **criação**, o default é
+`false` para atores `npc` (REQ-DOC-061): é o caso dos seis esqueletos, e exigir
+que o GM marque uma caixa por token é como uma mesa descobre, no meio do
+combate, que matar um matou os seis.
+
+- **Rejeitado: um único default para os dois momentos.** Conservador na criação
+  (`true` sempre) transforma a feature em opt-in invisível; agressivo na leitura
+  (`false` sempre) muda o significado de dados já gravados.
+- **Consequência de redação (REQ-DOC-062):** o corte de `Actor` por ownership
+  (REQ-NET-096) protege os pontos de vida porque eles vivem no `Actor`. Os de um
+  token unlinked **não vivem lá** — vivem no `actorDelta`, dentro da `Scene`,
+  que é estado de mundo compartilhado. O `actorDelta` é portanto redigido para
+  usuários não privilegiados. O corte é **por papel**, não por ownership do
+  `Actor` base: resolver por espectador exigiria consultar o `Actor` em todos os
+  emissores de `Scene`, e a versão fail-closed entra primeiro porque o modo de
+  falha da ordem inversa é vazamento, não número desatualizado. O custo
+  conhecido é que o dono de um ator `npc` (um familiar posicionado unlinked) lê
+  os números do ator base, não os do token — refinar isso é trabalho de V2.
+- **Racional:** o campo é uma decisão do GM sobre a mesa; o schema não pode
+  tomá-la retroativamente, e o servidor deve tomá-la bem no momento em que o
+  token nasce.
 
 ## Requisitos funcionais
 
@@ -445,15 +473,39 @@ embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
   `Actor` mundial.
 - **REQ-DOC-033** [MVP] Quando `actorLink = false`, o `Token` DEVE carregar um
   `actorDelta` (merge patch parcial); o **TokenActor** efetivo DEVE ser
-  reconstruído em memória aplicando o delta sobre o `Actor` base conforme D8
+  reconstruído em memória aplicando o delta sobre o `Actor` base conforme DEC-DOC-08
   (merge profundo de escalares e `system`; substituição integral de `items`/
   `effects` quando presentes no delta).
 - **REQ-DOC-034** [MVP] Mutações no TokenActor de um token unlinked DEVEM ser
   traduzidas pelo servidor em updates do `Token.actorDelta` (e disparar o CRUD do
-  `Token`), nunca do `Actor` base.
+  `Token`), nunca do `Actor` base. Essa operação é a **única rota de autoria** do
+  `actorDelta` para usuário não privilegiado: o servidor DEVE recusar um
+  `doc:update` que escreva `actorDelta` diretamente no `Token` vindo de quem não é
+  GM/Assistant. Sem isso a rota dedicada pode ser contornada, e com ela as três
+  coisas que só ela faz — recusar o que o merge patch não representa
+  (`06-canvas-e-renderizacao.md`, REQ-CNV-094), barrar `ownership` (REQ-USR-015) e
+  recomputar `system.derived` no servidor. A recusa DEVE valer no **servidor**, não
+  só no cliente: o cliente recusa cedo para dar sinal ao GM, mas quem decide é a
+  autoridade, e o mesmo predicado DEVE ser compartilhado pelos dois lados em vez de
+  duplicado.
 - **REQ-DOC-035** [V2] O `actorDelta` PODE evoluir para diff item-granular
   (herança parcial de itens não modificados do `Actor` base), preservando
   compatibilidade do formato armazenado.
+- **REQ-DOC-061** [MVP] Ao **criar** um `Token` sem `actorLink` explícito, o
+  servidor DEVE decidir o valor pelo subtipo do `Actor` base: `npc` nasce
+  `actorLink: false` (unlinked), qualquer outro subtipo — e token sem ator, ou
+  com ator não resolvível — nasce `actorLink: true`. Um `actorLink` explícito no
+  payload sempre prevalece. Isto é a regra de **criação**; o default do schema
+  (`true`) governa a **leitura** de tokens já persistidos, que não têm o campo, e
+  não pode mudar sem reinterpretar todo mundo já salvo (ver DEC-DOC-12).
+- **REQ-DOC-062** [MVP] O `actorDelta` DEVE ser redigido do payload de `Scene`
+  enviado a usuários não privilegiados, no mesmo módulo único de redação usado
+  por hidden tokens e secret doors, cobrindo os quatro caminhos de emissão
+  (snapshot, broadcast, replay de delta e eco do ack) e também os broadcasts de
+  `Scene` originados fora do CRUD (paredes, luzes, portas). Sem isso, o corte de
+  `Actor` por ownership (REQ-NET-096) é contornável: os pontos de vida de um
+  token unlinked não estão no `Actor`, estão dentro da `Scene` que todo jogador
+  recebe.
 
 ### Ciclo CRUD, diffs, eventos e hooks
 
@@ -770,7 +822,7 @@ export interface TokenData {
   displayName: number;
   actorId: DocumentId | null; // soft ref para Actor base
   actorLink: boolean;
-  actorDelta: ActorDeltaPatch | null; // merge patch quando unlinked (D8)
+  actorDelta: ActorDeltaPatch | null; // merge patch quando unlinked (DEC-DOC-08)
   x: number;
   y: number;
   elevation: number;
@@ -790,7 +842,7 @@ export interface TokenData {
   // sem ownership (deriva do Actor referenciado p/ fins de visão)
 }
 
-/** Merge patch parcial simplificado (D8). */
+/** Merge patch parcial simplificado (DEC-DOC-08). */
 export interface ActorDeltaPatch {
   name?: string;
   img?: string | null;
@@ -1133,7 +1185,7 @@ interface Operation {
 - `06-canvas-e-renderizacao.md` — `GridConfig`, `PrototypeTokenData`,
   `TextureConfig`, elevação de tiles.
 - `07-visao-iluminacao-fog.md` — `FogConfig`, `LightConfig`, sight/light de
-  token, e a decisão de fog não ser Document no MVP (D4).
+  token, e a decisão de fog não ser Document no MVP (DEC-DOC-04).
 - `08-motor-de-rolagens.md` — formato serializado de `rolls` em ChatMessage.
 - `09-chat-e-mensagens.md` — `ChatSpeaker`, modos de whisper/blind, styles.
 - `10-combate-e-iniciativa.md` — semântica de `Combat`/`Combatant`, fórmula de
@@ -1198,7 +1250,7 @@ interface Operation {
   frequência sobre embedded muito volumosos (ex.: sync contínuo de posições de
   token) devem observar os limites REQ-PER-NF-002 (< 10 ms P99) e REQ-PER-NF-006
   (100k Documents sem degradação), detalhados em `ver 03-persistencia-e-mundos.md`.
-- **Q2 — Granularidade do delta de token unlinked.** D8 simplifica para merge
+- **Q2 — Granularidade do delta de token unlinked.** DEC-DOC-08 simplifica para merge
   patch; confirmar com a importação do `pf2e` se NPCs do bestiário dependem de
   herança item-a-item (afeta REQ-DOC-033/035). Validar com
   `ver 16-compendiums-e-importacao.md`.
@@ -1217,7 +1269,7 @@ interface Operation {
   `ver 16-compendiums-e-importacao.md`.
 - **Q7 — Validação de flags por terceiros [V2].** Como expor o registro de
   schema de flags (REQ-DOC-011) na system API sem reintroduzir o acoplamento que
-  D6 evita; coordenar com `ver 15-`.
+  DEC-DOC-06 evita; coordenar com `ver 15-`.
 
 ## Referências
 
@@ -1227,6 +1279,6 @@ interface Operation {
 - `docs/research/07-foundry-api-sistemas-modulos.md` — `documentTypes`,
   `TypeDataModel` vs `template.json` (depreciação), registro de dataModels,
   flags vs system, ownership API, modos de ActiveEffect, hooks de CRUD, lições
-  de design (§14) que motivam D1, D5, D6.
+  de design (§14) que motivam DEC-DOC-01, DEC-DOC-05, DEC-DOC-06.
 - Stack fixada do projeto Fusion (TypeScript estrito, Zod, better-sqlite3,
   servidor autoritativo Fastify + socket.io) — `ver 00-`, `01-`, `03-`, `04-`.

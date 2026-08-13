@@ -568,9 +568,9 @@ describe("security response headers", () => {
 
       const res = await fastify.inject({ method: "GET", url: "/" });
       const csp = res.headers["content-security-policy"];
-      expect(csp).toContain("connect-src 'self'");
+      expect(csp).toContain("connect-src 'self' data: blob:");
       // No bare wss:/ws: (unrestricted host) directive value.
-      expect(csp).not.toMatch(/connect-src 'self' wss:/);
+      expect(csp).not.toMatch(/connect-src 'self' data: blob: wss:/);
     } finally {
       rmSync(distDir, { recursive: true, force: true });
     }
@@ -604,7 +604,7 @@ describe("security response headers", () => {
       const res = await fastify.inject({ method: "GET", url: "/" });
       const csp = res.headers["content-security-policy"];
       expect(csp).toContain(
-        "connect-src 'self' wss://my-tunnel.example.com ws://192.168.1.50:33000",
+        "connect-src 'self' data: blob: wss://my-tunnel.example.com ws://192.168.1.50:33000",
       );
     } finally {
       // Close BEFORE removing dataDir: boot() now also opens a dedicated

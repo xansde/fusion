@@ -1,6 +1,6 @@
 # 08 — Relatório de Transformação PF2E → Fusion
 
-> Gerado em: 2026-08-02
+> Gerado em: 2026-08-11
 > Script: `src/transform.mjs --system pf2e` v0.1.0
 > Fonte: vendor/pf2e packs/pf2e branch v14-dev
 
@@ -16,48 +16,49 @@
 | **pathfinder-monster-core** | 492 | 492 | 0 | 0 | 492 | 6695 |
 | **classes** | 27 | 27 | 0 | 1 | 26 | 27 |
 | **class-features** | 841 | 841 | 0 | 400 | 441 | 841 |
-| **feats** | 5987 | 5987 | 0 | 1210 | 4777 | 5987 |
+| **feats** | 5987 | 5987 | 0 | 1209 | 4778 | 5987 |
 | **ancestries** | 50 | 50 | 0 | 11 | 39 | 50 |
-| **heritages** | 322 | 322 | 0 | 107 | 215 | 322 |
+| **ancestry-features** | 55 | 55 | 0 | 20 | 35 | 55 |
+| **heritages** | 322 | 322 | 0 | 106 | 216 | 322 |
 | **backgrounds** | 495 | 495 | 0 | 68 | 427 | 495 |
 | **actions** | 559 | 559 | 0 | 31 | 528 | 559 |
-| **TOTAL** | **16257** | **16257** | **0** | **2158** | **14099** | **22460** |
+| **TOTAL** | **16312** | **16312** | **0** | **2176** | **14136** | **22515** |
 
 ---
 
 ## 2. Cobertura de Rule Elements
 
-**Cobertura total:** 7698/11916 (64.6% suportadas integralmente)
+**Cobertura total:** 7734/11985 (64.5% suportadas integralmente)
 
 | Rule Key | Total | Suportadas | Parciais | Não suportadas | Status |
 |---|---|---|---|---|---|
-| `FlatModifier` | 2121 | 2121 | 0 | 0 | ✅ suportada |
-| `ItemAlteration` | 1554 | 0 | 1554 | 0 | ⚠️ parcial |
-| `RollOption` | 1447 | 1447 | 0 | 0 | ✅ suportada |
-| `ActiveEffectLike` | 1392 | 1097 | 295 | 0 | ✅ suportada |
-| `GrantItem` | 1253 | 1253 | 0 | 0 | ✅ suportada |
+| `FlatModifier` | 2133 | 2133 | 0 | 0 | ✅ suportada |
+| `ItemAlteration` | 1558 | 0 | 1558 | 0 | ⚠️ parcial |
+| `RollOption` | 1456 | 1456 | 0 | 0 | ✅ suportada |
+| `ActiveEffectLike` | 1396 | 1100 | 296 | 0 | ✅ suportada |
+| `GrantItem` | 1259 | 1259 | 0 | 0 | ✅ suportada |
 | `Note` | 628 | 628 | 0 | 0 | ✅ suportada |
-| `ChoiceSet` | 622 | 0 | 0 | 622 | ❌ não suportada |
+| `ChoiceSet` | 627 | 3 | 0 | 624 | ❌ não suportada |
 | `DamageDice` | 397 | 397 | 0 | 0 | ✅ suportada |
-| `Resistance` | 363 | 363 | 0 | 0 | ✅ suportada |
-| `AdjustDegreeOfSuccess` | 251 | 0 | 0 | 251 | ❌ não suportada |
+| `Resistance` | 364 | 364 | 0 | 0 | ✅ suportada |
+| `AdjustDegreeOfSuccess` | 253 | 0 | 0 | 253 | ❌ não suportada |
+| `Strike` | 243 | 0 | 0 | 243 | ❌ não suportada |
 | `Aura` | 234 | 0 | 0 | 234 | ❌ não suportada |
 | `AdjustModifier` | 231 | 0 | 231 | 0 | ⚠️ parcial |
-| `Strike` | 223 | 0 | 0 | 223 | ❌ não suportada |
-| `BaseSpeed` | 173 | 173 | 0 | 0 | ✅ suportada |
+| `BaseSpeed` | 174 | 174 | 0 | 0 | ✅ suportada |
 | `DamageAlteration` | 112 | 0 | 0 | 112 | ❌ não suportada |
+| `Sense` | 109 | 109 | 0 | 0 | ✅ suportada |
 | `MartialProficiency` | 109 | 109 | 0 | 0 | ✅ suportada |
-| `Sense` | 108 | 108 | 0 | 0 | ✅ suportada |
-| `AdjustStrike` | 104 | 0 | 0 | 104 | ❌ não suportada |
-| `TokenLight` | 101 | 0 | 0 | 101 | ❌ não suportada |
+| `AdjustStrike` | 105 | 0 | 0 | 105 | ❌ não suportada |
+| `TokenLight` | 102 | 0 | 0 | 102 | ❌ não suportada |
 | `CriticalSpecialization` | 100 | 0 | 0 | 100 | ❌ não suportada |
 | `CreatureSize` | 62 | 0 | 0 | 62 | ❌ não suportada |
 | `ActorTraits` | 54 | 0 | 0 | 54 | ❌ não suportada |
 | `TokenEffectIcon` | 48 | 0 | 0 | 48 | ❌ não suportada |
 | `EphemeralEffect` | 44 | 0 | 0 | 44 | ❌ não suportada |
-| `Immunity` | 41 | 0 | 41 | 0 | ⚠️ parcial |
+| `Immunity` | 42 | 0 | 42 | 0 | ⚠️ parcial |
 | `FastHealing` | 37 | 0 | 0 | 37 | ❌ não suportada |
-| `Weakness` | 28 | 0 | 0 | 28 | ❌ não suportada |
+| `Weakness` | 29 | 0 | 0 | 29 | ❌ não suportada |
 | `CraftingAbility` | 23 | 0 | 0 | 23 | ❌ não suportada |
 | `DexterityModifierCap` | 12 | 0 | 0 | 12 | ❌ não suportada |
 | `SpecialStatistic` | 12 | 0 | 0 | 12 | ❌ não suportada |
@@ -102,10 +103,11 @@ Nenhum arquivo de imagem do repositório pf2e é incluído.
 | class-features | 841 |
 | feats | 5987 |
 | ancestries | 50 |
+| ancestry-features | 55 |
 | heritages | 322 |
 | backgrounds | 495 |
 | actions | 559 |
-| **TOTAL** | **22460** |
+| **TOTAL** | **22515** |
 
 ---
 

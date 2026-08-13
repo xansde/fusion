@@ -573,6 +573,200 @@ describe("Tobias-by-build — level 3 Magus, fully build-driven (R10-A acceptanc
 });
 
 // ---------------------------------------------------------------------------
+// 3b. stepCharBuildHp — HP derives right after picking a class, before any
+// OTHER build choice exists (issue #39). A redundant extra gate required
+// either an ancestry item OR `system.build` to already be present on top of
+// the class-item gate the step already has — so a character with ONLY a
+// class item (no ancestry chosen yet, no build choice persisted yet) got
+// 0/0 HP until some unrelated choice happened to create `system.build`.
+// ---------------------------------------------------------------------------
+
+describe("stepCharBuildHp — HP derives from the class alone (issue #39)", () => {
+  it("a class-only character (no ancestry item, no system.build at all) still gets HP from the class", () => {
+    const doc: Record<string, unknown> = {
+      system: {
+        systemVersion: "0.1.0",
+        level: { value: 1 },
+        abilities: {
+          str: { value: 10, mod: 0 },
+          dex: { value: 10, mod: 0 },
+          con: { value: 10, mod: 0 },
+          int: { value: 10, mod: 0 },
+          wis: { value: 10, mod: 0 },
+          cha: { value: 10, mod: 0 },
+        },
+        attributes: {
+          // Left at the schema's raw 0/0 default — exactly what a brand new
+          // actor looks like right after the class picker fires.
+          hp: { value: 0, max: 0, temp: 0 },
+          ac: { value: 10 },
+          speed: { value: 25, otherSpeeds: [] },
+          dying: { value: 0, max: 4 },
+          wounded: { value: 0 },
+          doomed: { value: 0 },
+          iwr: { immunities: [], weaknesses: [], resistances: [] },
+        },
+        saves: { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } },
+        perception: { rank: 0, senses: [] },
+        skills: {},
+        proficiencies: {},
+        resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+        details: { keyAbility: "str", level: 1 },
+        traits: { rarity: "common", value: [], size: "med" },
+        // NO `build` block at all — the moment right after picking a class,
+        // before any OTHER build choice (ability boosts, skills, ...) has
+        // ever been persisted.
+      },
+      items: [
+        {
+          _id: "class-barbarian",
+          name: "Barbarian",
+          type: "class",
+          system: { hp: 12, keyAbility: ["str"] },
+        },
+        // Deliberately no ancestry item either.
+      ],
+    };
+
+    runCharacterPipeline(doc);
+
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const hp = derived["hp"] as { max: number };
+    // RAW: a level-1 Barbarian's HP is (12 class HP + CON mod) per level; with
+    // no CON boost and no ancestry chosen yet, that is (12 + 0) * 1 = 12,
+    // plus 0 ancestry HP — NOT the 0/0 the redundant gate used to produce.
+    expect(hp.max).toBe(12);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 3c. stepCharSaves / stepCharPerception — the proficiency RANK travels on
+// the derived statistic (mirrors CONTRACT C1 for skills, issue #38).
+// `stepCharApplyClass` (base phase) already computes the class-granted rank
+// correctly onto `system.saves.*.rank` / `system.perception.rank` — but that
+// mutation is a base-phase, in-memory-only write: only `system.derived` is
+// ever persisted/broadcast (derive-runner.ts), so a freshly loaded document
+// always showed Untrained saves/Perception no matter what the class grants,
+// until the rank also rides on `derived`.
+// ---------------------------------------------------------------------------
+
+describe("stepCharSaves / stepCharPerception — derived rank travels with the statistic (issue #38)", () => {
+  it("a Barbarian's class-granted ranks (RAW: Perception Trained, Fortitude Expert, Reflex/Will Trained) ride on `derived`", () => {
+    const doc: Record<string, unknown> = {
+      system: {
+        systemVersion: "0.1.0",
+        level: { value: 1 },
+        abilities: {
+          str: { value: 10, mod: 0 },
+          dex: { value: 10, mod: 0 },
+          con: { value: 10, mod: 0 },
+          int: { value: 10, mod: 0 },
+          wis: { value: 10, mod: 0 },
+          cha: { value: 10, mod: 0 },
+        },
+        attributes: {
+          hp: { value: 12, max: 12, temp: 0 },
+          ac: { value: 10 },
+          speed: { value: 25, otherSpeeds: [] },
+          dying: { value: 0, max: 4 },
+          wounded: { value: 0 },
+          doomed: { value: 0 },
+          iwr: { immunities: [], weaknesses: [], resistances: [] },
+        },
+        // Deliberately left UNTRAINED here: stepCharApplyClass (base phase)
+        // is what must raise these before stepCharSaves/stepCharPerception
+        // (derived phase) read them.
+        saves: { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } },
+        perception: { rank: 0, senses: [] },
+        skills: {},
+        proficiencies: {},
+        resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+        details: { keyAbility: "str", level: 1 },
+        traits: { rarity: "common", value: [], size: "med" },
+      },
+      items: [
+        {
+          _id: "class-barbarian",
+          name: "Barbarian",
+          type: "class",
+          system: {
+            hp: 12,
+            keyAbility: ["str"],
+            perception: 1, // Trained
+            savingThrows: { fortitude: 2, reflex: 1, will: 1 }, // Expert/Trained/Trained
+            proficiencyUpgrades: [],
+          },
+        },
+      ],
+    };
+
+    runCharacterPipeline(doc);
+
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const saves = derived["saves"] as Record<string, { rank: number; total: number; dc: number }>;
+    const perception = derived["perception"] as { rank: number; total: number; dc: number };
+
+    expect(saves["fortitude"]?.rank).toBe(2);
+    expect(saves["reflex"]?.rank).toBe(1);
+    expect(saves["will"]?.rank).toBe(1);
+    expect(perception.rank).toBe(1);
+
+    // Non-regression: base/total/dc still reflect the SAME rank via
+    // proficiencyBonus (ability mods are all 0 in this fixture).
+    // Expert (rank 2) @ level 1 = 2*2+1 = 5; DC = 15.
+    expect(saves["fortitude"]).toMatchObject({ total: 5, dc: 15 });
+    // Trained (rank 1) @ level 1 = 2+1 = 3; DC = 13.
+    expect(saves["reflex"]).toMatchObject({ total: 3, dc: 13 });
+    expect(perception).toMatchObject({ total: 3, dc: 13 });
+  });
+
+  it("with NO embedded class item, saves/perception still expose their (untrained) rank explicitly, not just via coercion", () => {
+    const doc: Record<string, unknown> = {
+      system: {
+        systemVersion: "0.1.0",
+        level: { value: 1 },
+        abilities: {
+          str: { value: 10, mod: 0 },
+          dex: { value: 10, mod: 0 },
+          con: { value: 10, mod: 0 },
+          int: { value: 10, mod: 0 },
+          wis: { value: 10, mod: 0 },
+          cha: { value: 10, mod: 0 },
+        },
+        attributes: {
+          hp: { value: 10, max: 10, temp: 0 },
+          ac: { value: 10 },
+          speed: { value: 25, otherSpeeds: [] },
+          dying: { value: 0, max: 4 },
+          wounded: { value: 0 },
+          doomed: { value: 0 },
+          iwr: { immunities: [], weaknesses: [], resistances: [] },
+        },
+        saves: { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } },
+        perception: { rank: 0, senses: [] },
+        skills: {},
+        proficiencies: {},
+        resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+        details: { keyAbility: "str", level: 1 },
+        traits: { rarity: "common", value: [], size: "med" },
+      },
+      items: [],
+    };
+
+    runCharacterPipeline(doc);
+
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const saves = derived["saves"] as Record<string, { rank: number }>;
+    const perception = derived["perception"] as { rank: number };
+
+    expect(saves["fortitude"]?.rank).toBe(0);
+    expect(typeof saves["fortitude"]?.rank).toBe("number");
+    expect(perception.rank).toBe(0);
+    expect(typeof perception.rank).toBe("number");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 4. spellSlotsForLevel pure helper
 // ---------------------------------------------------------------------------
 
@@ -741,6 +935,73 @@ describe("Malformed class item degrades to rank-0 defaults instead of throwing",
       string,
       { rank: number }
     >;
+    expect(skills["arcana"].rank).toBe(2);
+  });
+
+  // Issue #49, server half. The builder UI got a level gate on the skill
+  // increase dialog, but the gate the UI enforces is not a gate at all if the
+  // persistence below it accepts anything: a doc:update carrying an explicit
+  // `choice.rank` never passes through that dialog. RAW PF2e — Master needs
+  // character level 7, Legendary needs 15 — so the level of the CHOICE is what
+  // caps it, not the level the character eventually reaches.
+  it("issue #49: an explicit rank above the level gate is clamped, not persisted", () => {
+    const doc: Record<string, unknown> = {
+      system: {
+        systemVersion: "0.1.0",
+        level: { value: 3 },
+        abilities: {
+          str: { value: 10, mod: 0 },
+          dex: { value: 10, mod: 0 },
+          con: { value: 10, mod: 0 },
+          int: { value: 10, mod: 0 },
+          wis: { value: 10, mod: 0 },
+          cha: { value: 10, mod: 0 },
+        },
+        attributes: {
+          hp: { value: 10, max: 10, temp: 0 },
+          ac: { value: 10 },
+          speed: { value: 25, otherSpeeds: [] },
+          dying: { value: 0, max: 4 },
+          wounded: { value: 0 },
+          doomed: { value: 0 },
+          iwr: { immunities: [], weaknesses: [], resistances: [] },
+        },
+        saves: { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } },
+        perception: { rank: 0, senses: [] },
+        skills: {},
+        proficiencies: {},
+        resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+        details: { keyAbility: "str", level: 3 },
+        traits: { rarity: "common", value: [], size: "med" },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [
+            { level: 1, slot: "skillTraining-1a", type: "skillTraining", skill: "arcana" },
+            // Legendary (4) asked for at level 3 — RAW says 15.
+            { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "arcana", rank: 4 },
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+      items: [{ _id: "cls1", type: "class", name: "Broken", system: { hp: 8 } }],
+    };
+
+    runCharacterPipeline(doc);
+
+    const skills = (doc.system as Record<string, unknown>)["skills"] as Record<
+      string,
+      { rank: number }
+    >;
+    // Clamped to expert (2) — the highest a level-3 character can hold.
     expect(skills["arcana"].rank).toBe(2);
   });
 });

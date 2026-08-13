@@ -141,22 +141,31 @@ const KNOWN_DIVERGENCES: Record<string, string> = {
   // entry, and the upgrade table covers neither Fortitude nor spellcasting.
   "Cleric/classSystem.attacks.other": "#50",
 
-  // #49 — the skill increase ceiling (Master needs level 7, Legendary 15) is
-  // not implemented anywhere, so EVERY class breaks it. This is the defect
-  // that proves the point of this suite: the internal sweep has no pack table
-  // to compare a missing rule against, so it could never fail there.
-  "Barbarian/skillIncreaseCeiling": "#49",
-  "Bard/skillIncreaseCeiling": "#49",
-  "Champion/skillIncreaseCeiling": "#49",
-  "Cleric/skillIncreaseCeiling": "#49",
-  "Fighter/skillIncreaseCeiling": "#49",
-  "Kineticist/skillIncreaseCeiling": "#49",
-  "Magus/skillIncreaseCeiling": "#49",
-  "Monk/skillIncreaseCeiling": "#49",
-  "Ranger/skillIncreaseCeiling": "#49",
-  "Rogue/skillIncreaseCeiling": "#49",
-  "Sorcerer/skillIncreaseCeiling": "#49",
-  "Wizard/skillIncreaseCeiling": "#49",
+  // #50 (same family, r25) — the Gunslinger's chassis grants Expert in FIREARMS
+  // and crossbows specifically: `attacks.other = {name: "Simple Firearms,
+  // Martial Firearms", rank: 2}` plus three MartialProficiency rules whose
+  // `definition` narrows to `{or:[item:group:firearm, item:group:crossbow]}`.
+  // transform.mjs drops `attacks.other` outright (`if (key === "other")
+  // continue`) and nothing reads the surviving MartialProficiency rules, so the
+  // rank has nowhere to land. Deliberately NOT curated as
+  // `proficiencyUpgradeExtras`: the only expressible translation today is
+  // `weapons.simple: 2`, which would grant Expert in EVERY simple weapon — more
+  // generous than the rule, i.e. wrong. Needs named/narrowed weapon
+  // proficiency, which is the same gap as "expert in Slide Pistol".
+  "Gunslinger/classSystem.attacks.other": "#50",
+
+  // #49 — RESOLVED, and all 15 entries left this baseline at once. The skill
+  // increase ceiling (Master needs level 7, Legendary 15) used to be
+  // implemented nowhere, so every class diverged from its own pregens here.
+  // `stepCharBuildSkills` now clamps to `maxSkillRankAtLevel(choice.level)`,
+  // and the builder dialog gates the same rule before it ever gets written.
+  //
+  // The note is worth keeping even with the entries gone: this defect is
+  // exactly why this suite exists. The internal class sweep compares a
+  // derivation against the pack's own table, so a rule MISSING from both has
+  // nothing to disagree with and can never fail there. Only a comparison
+  // against externally authored characters — the published pregens — can see
+  // a rule that simply isn't there.
 };
 
 /** Every divergence actually observed in this run (filled by the assertions). */

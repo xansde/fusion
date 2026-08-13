@@ -1,0 +1,179 @@
+{
+  "class": "gunslinger",
+  "displayName": "Gunslinger",
+  "vendorClassFile": "classes/gunslinger.json",
+  "levelBasis": "class",
+  "keyAbilityOptions": ["dex"],
+  "hp": 8,
+  "choiceAxes": [
+    {
+      "otherTag": "gunslinger-way",
+      "featureNameInItemsMap": "Gunslinger's Way",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 6,
+      "optionNames": [
+        "Way of the Drifter",
+        "Way of the Pistolero",
+        "Way of the Sniper",
+        "Way of the Spellshot",
+        "Way of the Triggerbrand",
+        "Way of the Vanguard"
+      ],
+      "category": "way",
+      "slotType": "way",
+      "notes": "optionCount=6 MEDIDO: os 6 arquivos de class-features/ que carregam traits.otherTags 'gunslinger-way' (way-of-the-{drifter,pistolero,sniper,spellshot,triggerbrand,vanguard}.json). O granter e class-features/gunslingers-way.json, cujo ChoiceSet filtra exatamente por ['item:tag:gunslinger-way'] e cujo GrantItem seguinte resolve '{item|flags.system.rulesSelections.way}' — ou seja, o filtro do vendor e a otherTag, nao uma lista de uuids. Way of the Spellshot carrega TAMBEM a otherTag 'class-archetype' (mesmo par que Vindicator/Ranger e Battle Creed/Cleric); pela politica de integracao ja estabelecida na r21/r22 (ver ranger.json e o comentario de normalizeClassFeatureSystem em transform.mjs: 'nada e descartado; requisito sugere, nunca bloqueia') ela CONTA como opcao real do eixo — e e obrigatorio que conte, porque e a opcao que a ficha-alvo da r25 (Fofurinha) escolhe. Detalhe do texto do vendor: o corpo de gunslingers-way.json so cita 5 ways (Drifter, Pistolero, Sniper, Vanguard, Triggerbrand) — o Spellshot nao aparece na prosa porque e class-archetype, mas esta no filtro por tag. As 6 opcoes sao NOVAS no pack (nenhuma esta em class-features-core hoje) e nenhuma delas esta no items{} de classe nenhuma, entao entram exclusivamente pelo ramo de axisCategories de isClassFeaturesCoreDoc."
+    }
+  ],
+  "classFeats": {
+    "trait": "gunslinger",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": [],
+    "measuredTotal": 74,
+    "measuredExclusiveDir": 66,
+    "measuredSharedWithGunslingerTrait": 8,
+    "byLevel": {
+      "1": 7,
+      "2": 6,
+      "4": 7,
+      "6": 12,
+      "8": 7,
+      "10": 9,
+      "12": 7,
+      "14": 8,
+      "16": 4,
+      "18": 4,
+      "20": 3
+    }
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Weapon Specialization",
+      "Perception Mastery",
+      "Medium Armor Expertise",
+      "Greater Weapon Specialization",
+      "Perception Legend",
+      "Medium Armor Mastery"
+    ],
+    "alreadyInPacks": [
+      "Weapon Specialization",
+      "Perception Mastery",
+      "Medium Armor Expertise",
+      "Greater Weapon Specialization",
+      "Perception Legend",
+      "Medium Armor Mastery"
+    ],
+    "missingFromPacks": [
+      "Gunslinger's Way",
+      "Slinger's Precision",
+      "Stubborn",
+      "Gunslinger Weapon Mastery",
+      "Gunslinger Expertise",
+      "Advanced Deed",
+      "Blast Dodger",
+      "Gunslinging Legend",
+      "Greater Deed",
+      "Shootist's Edge",
+      "Lead Constitution"
+    ],
+    "levelDivergences": [
+      {
+        "feature": "Medium Armor Expertise",
+        "genericFileLevel": 11,
+        "gunslingerItemsMapLevel": 13,
+        "sourceGenericFile": "class-features/medium-armor-expertise.json (system.level.value)",
+        "sourceGunslingerLevel": "classes/gunslinger.json system.items{} entry '6sihc'",
+        "decision": "usar 13 (nivel do items{} da classe). Confirmado pela tabela do journal: a linha do nivel 13 do Gunslinger diz 'medium armor expertise'. Magus/Ranger/Thaumaturge concedem em 11 — o nivel realmente varia por classe."
+      },
+      {
+        "feature": "Medium Armor Mastery",
+        "genericFileLevel": 17,
+        "gunslingerItemsMapLevel": 19,
+        "sourceGenericFile": "class-features/medium-armor-mastery.json (system.level.value)",
+        "sourceGunslingerLevel": "classes/gunslinger.json system.items{} entry 'bskyv'",
+        "decision": "usar 19 (nivel do items{} da classe). Bate com a linha 19 do journal ('medium armor mastery'). Mesma divergencia que ranger.json ja registrou para a propria classe."
+      },
+      {
+        "feature": "Perception Legend",
+        "genericFileLevel": 13,
+        "gunslingerItemsMapLevel": 19,
+        "sourceGenericFile": "class-features/perception-legend.json (system.level.value)",
+        "sourceGunslingerLevel": "classes/gunslinger.json system.items{} entry 'QEPUa'",
+        "decision": "usar 19 (nivel do items{} da classe). Bate com a secao 'Incredible Senses Level 19' do journal. ranger.json ja registrou a mesma feature em 15 e cita 'Gunslinger em 19' — as duas curadorias agora concordam por medicao independente."
+      }
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": {
+    "names": [],
+    "alreadyInPacks": [],
+    "notes": "Zero. Medido em out/spells/transformed.json: nenhuma magia carrega trait 'gunslinger'. O doc de classe tem system.spellcasting=0 e o journal nao tem tabela de magias — o Gunslinger nao conjura nem tem pool de foco proprio. A conjuracao que a ficha-alvo da r25 exibe vem do ARQUETIPO (Psychic Dedication concedida pela heranca Ancient Elf), nao desta classe; e o Bloco 3 do handoff, nao esta curadoria."
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Munitions Machinist", "Munitions Crafter"],
+      ["Precious Munitions", "Munitions Machinist"],
+      ["Unshakable Grit", "Grit and Tenacity"],
+      ["Come at Me!", "Pistolero's Challenge"],
+      ["Pistolero's Challenge", "Way of the Pistolero"],
+      ["Showstopper", "Pistol Twirl"],
+      ["Ricochet Master", "Ricochet Shot"],
+      ["Ricochet Legend", "Ricochet Master"],
+      ["Reach for the Stars", "Black Powder Boost"],
+      ["Leap and Fire", "Hit the Dirt!"],
+      ["Drifter's Juke", "Way of the Drifter"],
+      ["Phalanx Breaker", "Way of the Vanguard"],
+      ["Sniper's Aim", "Way of the Sniper"],
+      ["Triggerbrand Salvo", "Way of the Triggerbrand"],
+      ["Defy Fey", "Greenwatch Initiate"],
+      ["Fey Tracker", "Greenwatch Initiate"],
+      ["Greenwatcher", "Defy Fey"]
+    ],
+    "measuredInternalChainCount": 17,
+    "measuredFeatsWithPrereqText": 28,
+    "referencesOutsideSelection": [
+      "Blast Tackle -> 'way of the vanguard' (MINUSCULO no vendor), Disruptive Blur -> 'way of the drifter', Headshot -> 'way of the sniper', Triggerbrand Blitz -> 'way of the triggerbrand': 4 arestas que apontam para uma opcao do eixo `way` com caixa DIFERENTE da dos outros 4 talentos equivalentes (Drifter's Juke/Phalanx Breaker/Sniper's Aim/Triggerbrand Salvo, que citam 'Way of the X' capitalizado). NAO foi declarado prerequisiteFixes para isto: normalizar() de curation/grafo-de-feats.mjs baixa a caixa antes de comparar, entao as 8 arestas resolvem igual — a inconsistencia do vendor e cosmetica, nao um alvo pendurado. Declarar um rename aqui MUDARIA o texto do pack sem corrigir defeito nenhum, e passaria a explodir o build se o vendor arrumasse a caixa.",
+      "Dual-Weapon Reload -> 'Gunslinger or Dual-Weapon Warrior Dedication': o primeiro candidato e a CLASSE (o texto quer dizer 'ser Gunslinger'), nao um feat/feature; o segundo e a dedicacao do arquetipo Dual-Weapon Warrior, fora do conjunto curado (sem arquetipos de multiclasse nesta rodada). Nenhuma aresta de feat-para-feat.",
+      "Hair Trigger -> 'initial deed that allows you to Interact to draw a weapon': referencia DINAMICA ao initial deed concedido pelo `way` escolhido (Into the Fray, Ten Paces, Covered Reload, Spring the Trap, Clear a Path, Energy Shot) — mesma familia do 'champion's reaction' de champion.json. Resolve para um subconjunto de acoes, nao para um no fixo; fica como requisito textual.",
+      "Shooter's Camouflage -> 'master in Stealth'; Showstopper -> 'master in Deception'; Pistol Twirl -> 'trained in Deception'; Warning Shot -> 'trained in Intimidation'; Ostentatious Reload -> 'trained in Performance'; Munitions Machinist -> 'expert in Crafting'; Greenwatch Initiate -> 'trained in Survival': 7 requisitos de proficiencia de PERICIA — texto preservado, nunca convertido em predicado inventado (REQ-BC-034), mesmo tratamento de barbarian/monk/ranger."
+    ],
+    "nonMechanizable": {
+      "count": 7,
+      "pattern": "'trained/expert/master in <Skill>' (proficiencia de pericia)."
+    }
+  },
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "Quick Draw",
+      "Running Reload",
+      "Greenwatch Initiate",
+      "Greenwatch Veteran",
+      "Greenwatcher",
+      "Defy Fey",
+      "Fey Tracker",
+      "Unseen Passage"
+    ],
+    "collisionsDetected": [
+      "entry.name != nome canonico da uuid (caso do Magus/Lightning Reflexes): o items{} do Gunslinger, chave 'zmmy3', tem entry.name 'Greater Weapon Specialization (Level 15)' e uuid '...classfeatures.Item.Greater Weapon Specialization'. Casar por entry.name criaria um documento FANTASMA com sufixo '(Level 15)' no nome; classFeatureNameFromUuid resolve para 'Greater Weapon Specialization', que JA esta em class-features-core (compartilhado com 12 outras classes). E o unico caso de divergencia entre entry.name e a cauda da uuid nas 17 entradas.",
+      "Nenhuma colisao de nome: nenhum dos 74 class feats de trait gunslinger tem homonimo com sourceId diferente em feats-core (1807 docs), nenhum tem sufixo desambiguador '(Gunslinger)', nenhum nome se repete dentro do proprio conjunto, e nenhum dos 17 nomes canonicos do items{} resolve para mais de um doc em class-features/ do vendor. Os 8 de featsAlreadyInPacks batem por sourceId (mesmo doc, trazido pela curadoria de Ranger/Rogue/Investigator via feats/class/shared-class-feats/**).",
+      "attacks.other-nao-modelado (MESMA armadilha ja registrada em cleric.json, com forma diferente): system.attacks do vendor classes/gunslinger.json tem a chave 'other' = {name: 'Simple Firearms, Martial Firearms', rank: 2}, e system.rules tem TRES MartialProficiency (slugs simple-firearms-crossbows valor 2, martial-firearms-crossbows valor 2, advanced-firearms-crossbows valor 1) cujas definitions sao {item:category:X} + {or:[item:group:firearm, item:group:crossbow]}. Isto e a proficiencia POR GRUPO DE ARMA — 'Expert em armas de fogo e bestas simples/marciais no nivel 1' — que nao existe no vocabulario do Fusion (weapons.{simple,martial,advanced,unarmed} apenas). transform.mjs DESCARTA a chave 'other' explicitamente (comentario: 'vendor other is a {name, rank} custom-category slot — not a fixed Fusion stat'), enquanto system.rules sobrevive intacto no doc transformado, sem consumidor. NAO declarado em proficiencyUpgradeExtras: escrever {level:1, stat:'weapons.simple', rank:2} daria Expert em TODA arma simples, o que esta ERRADO (e mais generoso que a regra). Fica como pendencia da integracao central — e exatamente o Bloco 4 do handoff da r25 ('Expert so na Slide Pistol' nao tem onde morar)."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "FONTE PRIMARIA da progressao: vendor/pf2e/packs/pf2e/journals/classes.json, JournalEntry _id kzxu2dI7tFxv6Ix6 ('Classes'), JournalEntryPage _id 88K0xjShkhkckbhv, nome 'Gunslinger' (secoes 'Initial Proficiencies' e a tabela 'Your Level / Class Features', linhas 1..20). Livro: Pathfinder Guns & Gears, licenca ORC, remaster=true (system.publication do doc de classe). Conferido contra o doc de classe classes/gunslinger.json (_id Z9li154CPNmun29Q) linha a linha.",
+    "Proficiencias iniciais MEDIDAS (journal 'Initial Proficiencies' == doc de classe): perception=2 (EXPERT no nivel 1, mais alto que a maioria das classes), savingThrows fortitude=2/reflex=2/will=1 (DOIS saves expert no nivel 1), attacks simple=1/martial=1/unarmed=1/advanced=0 + a chave 'other' descartada (ver dedupe), defenses light=1/medium=1/unarmored=1/heavy=0, spellcasting=0, trainedSkills={value:[], additional:3} — a lista fixa e VAZIA porque a pericia treinada da classe e determinada pelo `way` escolhido ('Trained in one or more skills determined by your gunslinger's way'; cada way tem um ActiveEffectLike de upgrade de rank de pericia: Arcana no Spellshot, Acrobatics no Drifter, Stealth no Sniper, Athletics no Vanguard, Thievery no Triggerbrand, e Deception|Intimidation por ChoiceSet no Pistolero). Class DC: o journal diz 'Trained in gunslinger class DC' e o doc de classe do vendor NAO carrega campo para isso (nenhum dos 27 carrega) — transform.mjs ja cobre com o default classDC=1 para toda classe, entao nao ha lacuna aqui.",
+    "featLevels medidos: ancestry [1,5,9,13,17], class [1,2,4,6,8,10,12,14,16,18,20] (talento de classe JA no nivel 1, como Fighter/Ranger), general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19].",
+    "proficiencyUpgrades: NAO declarados aqui — a derivacao generica de curation/proficiency-upgrades.mjs produz as 19 linhas sozinha, com missing=[] e ignoredRules=[] (rodado nesta rodada contra out/class-features/normalized.json): L3 will2 (Stubborn) · L5 weapons.{simple,martial,unarmed}2 (Gunslinger Weapon Mastery) · L7 perception3 (Perception Mastery) · L9 classDC2 (Gunslinger Expertise, chave 'gunslinger' -> classDC por statFromVendorKey) · L11 reflex3 (Blast Dodger) · L13 armor.{light,medium,unarmored}2 (Medium Armor Expertise) + weapons.{simple,martial,unarmed}3 (Gunslinging Legend) · L17 classDC3 (Shootist's Edge) + fortitude3 (Lead Constitution) · L19 armor.{light,medium,unarmored}3 (Medium Armor Mastery) + perception4 (Perception Legend). Nenhum extra e nenhum espelho necessarios — ao contrario de Magus (weapons.martial por ActiveEffectLike) e Kineticist (classDC->impulse).",
+    "NOMES LEGADO vs REMASTER (mesmo padrao que ranger.json registrou): a PROSA do journal usa titulos de secao pre-remaster que NAO batem com o items{} — 'Singular Expertise' (embed do doc vXbk7Nm1TOTTUNvF) e na verdade 'Slinger's Precision'; 'Vigilant Senses Level 7' e 'Perception Mastery'; 'Evasion Level 11' (embed MV6XIuAgN9uSA0Da, o doc GENERICO 'Evasion') e 'Blast Dodger'; 'Juggernaut Level 17' (via @Localize) e 'Lead Constitution'; 'Incredible Senses Level 19' e 'Perception Legend'. A TABELA de niveis do mesmo journal ja usa os nomes remaster ('slinger's precision', 'blast dodger', 'lead constitution'). Fonte de verdade adotada: o items{} da classe (nome canonico = cauda da uuid), igual ao resto da r21/r22.",
+    "CRUZAMENTO INDEPENDENTE (antidoto da issue #48) com o waybuilder do Igor, C:/Users/xansd/pessoal/Wayfinder/pipeline/base/index.json, registro 'wb:class/gunslinger' (kind class, mechanized=true, prov.progressao='foundry', xref.foundry=Compendium.pf2e.classes.Item.Z9li154CPNmun29Q): BATEM key_ability ['dex'], hp_per_level 8, perception expert, fort/reflex expert + will trained, simple/martial/unarmed trained + advanced untrained + 'Simple Firearms, Martial Firearms' expert (ele PRESERVA a chave 'other' que nos descartamos — ver dedupe), light/medium/unarmored trained + heavy untrained, skill_training free=3, os quatro feat_slot (class/skill/general/ancestry) nivel a nivel, skill_increase [3,5,7,9,11,13,15,17,19], e o eixo 'way' (subclasses[0]: nivel 1, escolhe 1, exatamente as MESMAS 6 opcoes, todas com_mecanica). Nada divergiu nessas 12 dimensoes.",
+    "DIVERGENCIA REGISTRADA no cruzamento com o waybuilder (1 de 18 entradas, a favor do journal do vendor): a `progressao` dele tem 18 itens contra os 17 do items{} — o extra e 'wb:class-feature/evasion' no NIVEL 7. Nao ha suporte para isso na fonte primaria: a linha 7 da tabela do journal e 'General feat, perception mastery, skill increase, weapon specialization' (sem evasion) e o items{} do vendor nao tem entrada 'Evasion' nenhuma. O proprio registro dele denuncia a causa: 'wb:class-feature/evasion' tem source {book:'Guns & Gears', license:'OGL', remaster:false} enquanto TODOS os outros da progressao dele sao {book:'Guns & Gears (Remastered)', license:'ORC', remaster:true} — e o doc PRE-REMASTER que o remaster substituiu por 'Blast Dodger' (que ele tambem lista, no nivel 11, e que concede o mesmo reflex:master). Ou seja: mistura de edicao no merge dele (familia das issues #3/#10 do waybuilder), nao um dado que nos falta. Consequencia se copiassemos: reflex master DUAS vezes (L7 e L11) e uma feature fantasma no nivel 7. Decisao: seguir o journal — 17 features, Blast Dodger em 11, nenhuma Evasion.",
+    "As 6 opcoes do eixo `way` concedem, por GrantItem, 14 acoes (slinger's reload + deed inicial de cada way, mais Recall Ammunition/Dispelling Bullet citados na prosa do Spellshot). TODAS as 14 ja estao em actions-core (521 docs) — verificado nome a nome: Thoughtful Reload, Energy Shot, Recall Ammunition, Dispelling Bullet, Into the Fray, Reloading Strike, Raconteur's Reload, Ten Paces, Covered Reload, 'One Shot, One Kill', Spring the Trap, Touch and Go, Clear a Path, Living Fortification. Nenhum GrantItem de way aponta para class-feature — logo NAO ha caso da issue #16 aqui (nada a acrescentar em GRANT_TARGET_CLASS_FEATURE_NAMES, ao contrario de Ranger/Kineticist/Wizard).",
+    "PENDENCIA da integracao central (fora do escopo deste arquivo, que so pode declarar curadoria): (a) Way of the Spellshot tem um GrantItem de 'Spellshot Dedication' (feats-srd) com predicado self:level>=2 e reevaluateOnUpdate — esse feat NAO entra em feats-core hoje (nao tem trait gunslinger; isFeatsCoreDoc so o pegaria por GRANT_TARGET_DEDICATION_NAMES em build-mvp-subset.mjs, que este arquivo nao pode editar). Nao afeta a ficha-alvo, que e nivel 1. (b) para o eixo aparecer como slot escolhivel na UI faltam duas entradas no planVM.ts do client: CLASS_CHOICE_SLOTS[\"Gunslinger's Way\"] = 'way' e CLASS_CHOICE_SLOT_OPTIONS.way = {packSlug:'class-features-core', category:'gunslinger-way'}, mais 'way' no union PlanSlotType. Sem isso o pack fica correto e o builder nao oferece a escolha. (c) o `way` tambem determina a pericia treinada da classe e a chave de atributo do class DC (Way of the Spellshot forca Int no lugar de Dex por um FlatModifier com selector 'gunslinger'): e proficiencia/atributo POR OPCAO DE EIXO, a mesma extensao de contrato que cleric.json ja pediu para Cloistered vs Warpriest."
+  ]
+}

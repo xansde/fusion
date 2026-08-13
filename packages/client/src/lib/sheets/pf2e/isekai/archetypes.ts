@@ -654,8 +654,7 @@ const QUERIDINHO: IsekaiArchetype = {
   tagline: "Eu não escolhi esse dom. Fui escolhido.",
   color: "#e3c84e",
   revokes: "A especialização de build — os gates de classe e raça.",
-  inspirations:
-    "Touya (Isekai Smartphone) · Ryoma (By the Grace of the Gods) · Maple (Bofuri)",
+  inspirations: "Touya (Isekai Smartphone) · Ryoma (By the Grace of the Gods) · Maple (Bofuri)",
   majorBlessing: {
     title: "Filho Favorito",
     paragraphs: [

@@ -1,0 +1,83 @@
+/* ---------------------------------------------------------------------------
+   system-window.css — palette and metrics of the "System Window".
+
+   The Hub does not look like the rest of the shell, and that is the point. The
+   shell is a tool the GM operates (violet on dark grey, dense, quiet); the Hub
+   is diegetic — it is the *Sistema* talking to the player, and it reads as
+   cyan-on-black with a glow, bracket corners and scanlines.
+
+   Design source: `docs/design/prototipo-log-missoes.html`, which transplanted
+   the visual language from Mario's "System Window" mockup for the
+   Isekai-Companion (`docs/design/referencias/04-system-window-interativo.html`).
+
+   Two rules govern this file, both enforced by
+   `lib/hub/__tests__/systemWindowStyles.test.ts`:
+
+     1. Everything is namespaced `--fusion-sw-*`. Redefining a shell token here
+        would repaint the whole application the moment `main.ts` imports this
+        file — including screens that never show the Hub.
+     2. No literal z-index. Stacking is decided once, by the `--fusion-z-*`
+        scale in `base.css` (REQ-UIF-008).
+
+   Only tokens live here. The chrome itself (bracket corners, scanlines, the
+   command bar) belongs to the components that draw it, scoped by Svelte.
+--------------------------------------------------------------------------- */
+
+:root {
+  /* Core palette — the Sistema's own voice */
+  --fusion-sw-blue:        #57c8ff;
+  --fusion-sw-blue-glow:   rgba(87, 200, 255, 0.55);
+  --fusion-sw-ink:         #dff2fb;  /* body text on the dark panel */
+  --fusion-sw-dim:         #5d8296;  /* secondary text, inactive tabs */
+
+  /* Status hues. `gold` is the rumour/uncertain register, not a warning:
+     in the Hub a rumour is content the player has *partially* uncovered. */
+  --fusion-sw-ok:          #5ef2a4;
+  --fusion-sw-gold:        #ffd166;
+  --fusion-sw-bad:         #ff5c7a;
+  --fusion-sw-violet:      #c69bff;
+
+  /* Hairlines. Two weights: `line` separates, `line-soft` merely suggests. */
+  --fusion-sw-line:        rgba(87, 200, 255, 0.16);
+  --fusion-sw-line-soft:   rgba(87, 200, 255, 0.10);
+  --fusion-sw-line-strong: rgba(87, 200, 255, 0.50);
+
+  /* Panel body. A gradient, not a flat fill — the top edge catches the glow
+     and the bottom sinks into the black, which is what keeps a large panel
+     from looking like a plain modal. */
+  --fusion-sw-panel-top:    rgba(11, 42, 60, 0.84);
+  --fusion-sw-panel-bottom: rgba(3, 14, 22, 0.90);
+  --fusion-sw-panel: linear-gradient(
+    160deg,
+    var(--fusion-sw-panel-top),
+    var(--fusion-sw-panel-bottom)
+  );
+
+  /* Interactive surfaces inside a panel (tabs, buttons). */
+  --fusion-sw-fill:        rgba(87, 200, 255, 0.05);
+  --fusion-sw-fill-active: rgba(87, 200, 255, 0.14);
+
+  /* Glows. `halo` frames a panel; `text` is the CRT bleed on a heading. */
+  --fusion-sw-halo:      0 0 40px rgba(87, 200, 255, 0.20);
+  --fusion-sw-halo-soft: 0 0 16px rgba(87, 200, 255, 0.20);
+  --fusion-sw-text-glow: 0 0 12px var(--fusion-sw-blue-glow);
+
+  /* Chrome metrics */
+  --fusion-sw-corner:      14px; /* arm length of the bracket corners */
+  --fusion-sw-corner-rule: 2px;  /* their stroke weight */
+  --fusion-sw-scan-line:   1px;  /* scanline thickness... */
+  --fusion-sw-scan-gap:    4px;  /* ...and its period */
+  --fusion-sw-scan-tint:   rgba(87, 200, 255, 0.045);
+
+  /* Type. Uppercase with wide tracking is the register of the Sistema; the
+     tracking scale is what makes a title read as a system readout rather than
+     as a heading. */
+  --fusion-sw-font: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system,
+    sans-serif;
+  --fusion-sw-font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  --fusion-sw-track-title: 0.28em;
+  --fusion-sw-track-label: 0.12em;
+
+  /* Motion. Short and eased-out: the Sistema is responsive, not animated. */
+  --fusion-sw-transition: 140ms ease;
+}

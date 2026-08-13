@@ -32,6 +32,9 @@ import {
   CombatDocumentSchema,
   GridConfigSchema,
   TileDocumentSchema,
+  NoteDocumentSchema,
+  RegionMapDocumentSchema,
+  JournalEntryPageSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -161,18 +164,45 @@ export const SceneSchema = BaseDocumentSchema.extend({
   tiles: z.array(TileDocumentSchema).default(() => []),
   drawings: z.array(z.record(z.string(), z.unknown())).default(() => []),
   templates: z.array(z.record(z.string(), z.unknown())).default(() => []),
-  notes: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  /**
+   * Map pins, typed via the shared schema — NOT a second copy. Each note
+   * carries its own ownership (REQ-DOC-056) and is redacted per viewer in
+   * `net/redaction.ts` (REQ-DOC-058). A field this schema does not declare is
+   * silently dropped on every write, which is how `grid` once vanished from
+   * every scene (see docs/lessons.md).
+   */
+  notes: z.array(NoteDocumentSchema).default(() => []),
 });
 
 /**
+ * RegionMap — the picture the table consults, with pins on it (DEC-MREG-08).
+ *
+ * Declared by importing the shared schema rather than re-declaring the fields,
+ * for the reason in CLAUDE.md: `.extend()` without `.passthrough()` silently
+ * drops any field the server does not know about, so a second copy of the
+ * shape here would erase every pin the moment the two drifted. `pins` is
+ * listed for exactly that reason — the same trap that once deleted `grid` from
+ * every scene.
+ */
+export const RegionMapSchema = RegionMapDocumentSchema;
+
+/**
  * JournalEntry — with embedded pages.
+ *
+ * `pages` used to be `z.array(z.record(z.string(), z.unknown()))`: a page could
+ * be anything, which meant it could not be REDACTED, because redaction has to
+ * know where a page keeps its ownership. The quest board rests entirely on
+ * that field (DEC-HUB-04), so the page now carries the shared schema —
+ * imported, never re-declared, for the reason in CLAUDE.md: `.extend()`
+ * without `.passthrough()` silently drops what it does not know, and a second
+ * copy of the shape here would erase every page the moment the two drifted.
  */
 export const JournalEntrySchema = BaseDocumentSchema.extend({
   name: z.string().min(1),
   ownership: BaseDocumentSchema.shape.ownership,
   folder: z.string().nullable().optional(),
   sort: z.number().int().default(0),
-  pages: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  pages: z.array(JournalEntryPageSchema).default(() => []),
 });
 
 /**
@@ -221,6 +251,19 @@ export const PlaylistSchema = BaseDocumentSchema.extend({
 
 /**
  * ChatMessage — typed (subtype selects system schema).
+ *
+ * WARNING — this is a SECOND, DIVERGENT copy of the shared `ChatMessageSchema`
+ * (`@fusion/shared`, packages/shared/src/chat/types.ts). It carries fields the
+ * shared one does not (`author`, `style`, `flavor`, `system`) and lacks fields
+ * the shared one requires (`worldId`, a typed `speaker`). Because `.extend()`
+ * is used WITHOUT `.passthrough()`, any field missing here is silently dropped
+ * on every write that goes through the DocumentStore.
+ *
+ * That is why the chat subsystem does NOT use the DocumentStore for messages:
+ * chat-handler.ts and etmos/conjuracao-handlers.ts write `chat_messages` with
+ * raw SQL against the shared shape. Fields added to the shared schema are
+ * mirrored here anyway, so a future DocumentStore write cannot quietly erase
+ * them (see CLAUDE.md — this is exactly how `grid` disappeared from scenes).
  */
 export const ChatMessageSchema = BaseDocumentSchema.extend({
   type: z.string().default("base"),
@@ -233,6 +276,10 @@ export const ChatMessageSchema = BaseDocumentSchema.extend({
   rolls: z.array(z.unknown()).default(() => []),
   whisper: z.array(z.string()).default(() => []),
   blind: z.boolean().default(false),
+  /** GM reveal audit stamp — REQ-CHT-047. Absent = never revealed. */
+  revealedAt: z.number().int().nonnegative().optional(),
+  /** GM reveal audit stamp — REQ-CHT-047. Absent = never revealed. */
+  revealedBy: z.string().optional(),
   sound: z.string().nullable().optional(),
   system: z.record(z.string(), z.unknown()).default(() => ({})),
 });
@@ -291,6 +338,7 @@ export const SettingSchema = BaseDocumentSchema.extend({
 registerDocumentSchema("actors", ActorSchema);
 registerDocumentSchema("items", ItemSchema);
 registerDocumentSchema("scenes", SceneSchema);
+registerDocumentSchema("region_maps", RegionMapSchema);
 registerDocumentSchema("journal_entries", JournalEntrySchema);
 registerDocumentSchema("macros", MacroSchema);
 registerDocumentSchema("roll_tables", RollTableSchema);
@@ -308,6 +356,7 @@ registerDocumentSchema("settings", SettingSchema);
 export type ActorDocument = z.infer<typeof ActorSchema>;
 export type ItemDocument = z.infer<typeof ItemSchema>;
 export type SceneDocument = z.infer<typeof SceneSchema>;
+export type RegionMapDocument = z.infer<typeof RegionMapSchema>;
 export type JournalEntryDocument = z.infer<typeof JournalEntrySchema>;
 export type MacroDocument = z.infer<typeof MacroSchema>;
 export type RollTableDocument = z.infer<typeof RollTableSchema>;

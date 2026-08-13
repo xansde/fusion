@@ -6,7 +6,11 @@
  * subconjunto curado para o MVP da primeira sessão jogável de cada sistema.
  *
  * Subconjunto pf2e (default):
- *   - pf2e.weapons-core:    ~30 armas básicas (ORC, dados mecânicos)
+ *   - pf2e.weapons-core:    132 armas (121 mundanas de Player Core 1+2, todas
+ *     simples/marciais/avançadas não-mágicas, via predicado `isWeaponsCoreDoc`
+ *     + 12 armas de fogo legadas de "Guns & Gears" da r25, fora de PC1/PC2
+ *     mas mantidas por sourceId, − 1 gap declarado (Blowgun — ver
+ *     `WEAPONS_CORE_KNOWN_GAP_IDS`) — substituiu a lista fixa de ~42 ids)
  *   - pf2e.conditions:      todas as 43 condições
  *   - pf2e.bestiary-core:   10 monstros de nível -1 a 3 (ORC)
  *   - pf2e.spells-core:     15 magias comuns level 1-3 (ORC)
@@ -100,6 +104,59 @@ const PACK_MANIFESTS = {
       "system.damage",
       "flags.fusion.sourceId",
     ],
+    license: {
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  "armor-core": {
+    id: "pf2e.armor-core",
+    label: "PF2e Core Armor",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.acBonus",
+      "flags.fusion.sourceId",
+    ],
+    license: {
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  "shields-core": {
+    id: "pf2e.shields-core",
+    label: "PF2e Core Shields",
+    documentType: "Item",
+    // Vendor/Fusion doc `type` is "shield" (transform.mjs routes it through
+    // normalizeArmorSystem — same schema family as armor, category defaults
+    // to "unarmored" for shields since they carry no category of their own).
+    systemId: "pf2e",
+    indexFields: ["system.level", "system.traits.value", "system.acBonus", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -432,7 +489,7 @@ const PACK_MANIFESTS = {
   // -------------------------------------------------------------------------
   // r18-N2d — pf2e.equipment-core. Physical gear for Finn (Kineticist 3):
   // his named magic items/consumables plus a lean adventurer's-gear subset.
-  // Fixed source-id list (same pattern as MVP_WEAPON_PF2E_IDS above), curated
+  // Fixed source-id list (same pattern as MVP_EQUIPMENT_PF2E_IDS below), curated
   // from out/equipment/transformed.json. Mixed document types (armor,
   // equipment, consumable, container) — every type has a Zod schema in
   // systems/pf2e/src/schemas/item-armor.ts / item-equipment.ts.
@@ -549,6 +606,198 @@ const AERONAUT_CURATED_ITEMS = {
 };
 
 /**
+ * Smuggler (Lost Omens World Guide) — an AUTHORED document, not a selection.
+ *
+ * Every other doc in every pack is SELECTED from a vendor source. This one has
+ * no source to select from: "Smuggler" exists in none of the three canonical
+ * bases. Measured on 2026-08-08 —
+ *
+ *   - foundryvtt/pf2e (our vendor pin): absent from `backgrounds/`;
+ *   - the Archives of Nethys `aon` index: absent (73 LO:WG backgrounds, and
+ *     this is not one of them);
+ *   - Pf2eTools: absent.
+ *
+ * The nearest neighbour is `Black Market Smuggler` (World Guide p.58, OGL):
+ * same book, same trained skills (Stealth + Underworld Lore), same granted
+ * feat (Experienced Smuggler) — but its boost pair is Charisma|Wisdom, NOT
+ * Dexterity|Charisma. That is not a cosmetic difference. A Dexterity boost
+ * from the background is load-bearing for the owner's target sheet: five
+ * Dexterity boosts are what produce Dex 19 at level 1 (the fifth lands on an
+ * 18 and yields +1). With Charisma|Wisdom the same build stops at Dex 17, so
+ * substituting the neighbour silently produces a different character.
+ *
+ * Text transcribed from the owner's Pathbuilder entry (2026-08-08), which
+ * cites "LO: WG". ONE deliberate deviation from that transcription: it reads
+ * "ability boosts" (legacy vocabulary) and this doc says "attribute boosts",
+ * because every other document in these packs uses the remaster vocabulary and
+ * the pt-BR glossary is built on it — mixing the two shows up as inconsistent
+ * text on the sheet.
+ *
+ * Identity: `flags.fusion.sourceId` is the project's document identity (never
+ * the name). An authored doc has no vendor id to carry, so it gets a stable
+ * synthetic one, and `conversion: "authored"` marks it as not-from-a-vendor so
+ * a future integrity sweep can tell the difference between "authored" and
+ * "lost its provenance".
+ *
+ * @see AERONAUT_CURATED_ITEMS for the weaker precedent (curating a FIELD of a
+ * vendor doc). This is the first whole document we author.
+ */
+const SMUGGLER_AUTHORED_DOC = {
+  _id: "FusionSmuggler01",
+  name: "Smuggler",
+  type: "background",
+  img: "icons/placeholder/feat.svg",
+  system: {
+    // ["free","free"] mirrors the vendor's own shape for its structural twin
+    // (Criminal): the "one must be Dexterity or Charisma" restriction lives in
+    // the prose only and is not enforced structurally by any vendor
+    // background. Modelling the pair here would make this doc the only one in
+    // the pack with a constraint the builder does not yet read.
+    boosts: ["free", "free"],
+    description:
+      "<p>You know how to smuggle people in and out of countries.</p>\n" +
+      "<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or " +
+      "<strong>Charisma</strong>, and one is a free attribute boost.</p>\n" +
+      "<p>You're trained in the Stealth skill and the Underworld Lore skill. You gain the " +
+      "@UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler] skill feat.</p>",
+    items: {
+      smugg: {
+        img: "icons/placeholder/feat.svg",
+        level: 1,
+        name: "Experienced Smuggler",
+        uuid: "Compendium.pf2e.feats-srd.Item.Experienced Smuggler",
+      },
+    },
+    publication: {
+      license: "OGL",
+      remaster: false,
+      title: "Pathfinder Lost Omens World Guide",
+    },
+    rules: [],
+    trainedSkills: { lore: ["Underworld Lore"], value: ["stealth"] },
+    traits: { rarity: "common", value: [] },
+    skills: { stealth: { value: 1 } },
+  },
+  flags: {
+    fusion: {
+      conversion: "authored",
+      importerVersion: IMPORTER_VERSION,
+      sourceVersion: "authored",
+      sourceId: "FusionSmuggler01",
+      packName: "backgrounds",
+      unconvertedRules: [],
+      assetSubstitutions: [],
+      authored: {
+        reason: "absent from foundryvtt/pf2e, Archives of Nethys and Pf2eTools",
+        book: "Lost Omens World Guide",
+        transcribedFrom: "Pathbuilder 2e (owner's sheet, 2026-08-08)",
+        nearestVendorNeighbour: "Black Market Smuggler (different boost pair)",
+      },
+    },
+  },
+};
+
+/**
+ * r25 (ficha-alvo Fofurinha) — SECOND authored document of the project.
+ *
+ * The Elf's own sense has no document in ANY base. Measured on 2026-08-08:
+ *
+ *   - all 14 vendor `out/` packs (16,423 docs), by exact name: ABSENT;
+ *   - all 14 published packs (4,237 docs), by exact name: ABSENT;
+ *   - the foundryvtt/pf2e clone carries exactly two files named
+ *     low-light-vision.json, and neither is an ancestry feature:
+ *       * bestiary-ability-glossary-srd/ — an NPC glossary `action` whose whole
+ *         description is `@Localize[PF2E.NPC.Abilities.Glossary.LowLightVision]`
+ *         (no text at all; our vendor pin has no static/lang/), in a pack we do
+ *         not import;
+ *       * kingmaker-features/army-tactics/ — a `campaignFeature` army tactic,
+ *         also in a pack we do not import.
+ *
+ * The vendor expresses the sense as a SCALAR on the ancestry
+ * (`ancestries/elf.json` → `system.vision: "low-light-vision"`, with
+ * `system.rules: []` and `system.items: {}`), never as an item and never as a
+ * rule element. So there is nothing to select or convert — the catalogue entry
+ * has to be authored. This hits EVERY low-light ancestry (5 of the 10 published:
+ * Elf, Fleshwarp, Gnome, Leshy, Ratfolk; 24 of the vendor's 50), plus the 3
+ * published documents that GRANT the sense via a Sense rule element
+ * (heritages-core: Twilight Halfling, Sylph; feats-core: Bloodline Mutation).
+ *
+ * Nearest vendor neighbour: `Greater Darkvision` (this very pack,
+ * sourceId vPhPgzpRjYDMT9Kq, ORC / Player Core) — the sibling sense. Its SHAPE
+ * is the model here (type/category/level/img/publication); its TEXT is not
+ * copied.
+ *
+ * The `sense` rule element is the canonical descriptor `convertSense`
+ * (transform.mjs) already publishes for this exact selector — see
+ * heritages-core "Twilight Halfling", which is byte-identical. It is
+ * schema-valid and forward-compatible, and it is INERT today: engine-2e's
+ * effectsEngine handles only rollOption/flatModifier/note/toggleCondition/iwr,
+ * and derivations/build.ts leaves `perception.senses` empty. Recorded in
+ * `flags.fusion.authored.mechanicsLimitation` so it is not a silent promise.
+ *
+ * @see SMUGGLER_AUTHORED_DOC for the precedent this follows.
+ */
+const LOW_LIGHT_VISION_AUTHORED_DOC = {
+  _id: "FusionLowLight01",
+  name: "Low-Light Vision",
+  type: "feat",
+  img: "icons/placeholder/feat.svg",
+  system: {
+    actionType: "passive",
+    actions: null,
+    category: "ancestryfeature",
+    description:
+      "<p>You can see in dim light as though it were bright light, so you ignore the " +
+      "@UUID[Compendium.pf2e.conditionitems.Item.Concealed] condition due to dim light.</p>",
+    // Ancestry features are auto-conceded and carry level 0 in the vendor data;
+    // FeatSystemSchema floors `level` at 0 for exactly this reason.
+    level: 0,
+    prerequisites: [],
+    publication: {
+      license: "ORC",
+      remaster: true,
+      title: "Pathfinder Player Core",
+    },
+    rules: [
+      {
+        kind: "sense",
+        slug: null,
+        label: null,
+        senseType: null,
+        acuity: "precise",
+        range: null,
+        predicate: null,
+        priority: null,
+        raw: { key: "Sense", selector: "low-light-vision" },
+      },
+    ],
+    traits: { rarity: "common", value: [] },
+  },
+  flags: {
+    fusion: {
+      conversion: "authored",
+      importerVersion: IMPORTER_VERSION,
+      sourceVersion: "authored",
+      sourceId: "FusionLowLight01",
+      packName: "ancestry-features",
+      unconvertedRules: [],
+      assetSubstitutions: [],
+      authored: {
+        reason:
+          "absent by exact name from all 14 vendor out/ packs (16,423 docs) and all 14 published packs (4,237 docs); the only vendor homonyms are an NPC glossary action with no text (@Localize key, pack not imported) and a Kingmaker army tactic",
+        book: "Pathfinder Player Core",
+        transcribedFrom:
+          "authored from the PF2e rule for the sense; the vendor expresses it only as the ancestry scalar system.vision",
+        nearestVendorNeighbour:
+          "Greater Darkvision (ancestry-features, sourceId vPhPgzpRjYDMT9Kq) — sibling sense, shape copied, text not",
+        mechanicsLimitation:
+          "the `sense` rule element is inert: engine-2e effectsEngine has no `sense` case and derivations/build.ts leaves perception.senses empty. Descriptor emitted for schema/forward compatibility only",
+      },
+    },
+  },
+};
+
+/**
  * pf2e.actions-core curation (W2, r11-follow-up): vendor `actions/` physical
  * subfolders to INCLUDE, keyed by the `system.fusionCategory` value injected
  * in normalize.mjs. Every tabletop-relevant category is kept; excluded:
@@ -583,43 +832,145 @@ function isActionsCoreDoc(doc) {
 // pf2eIds da análise 05-id-compat.md / dados da normalização.
 // ---------------------------------------------------------------------------
 
-/** pf2eSourceIds das armas selecionadas para o MVP (curadas da análise). */
-const MVP_WEAPON_PF2E_IDS = new Set([
-  // Simple weapons — melee
-  "rQWaJhI5Bko5x14Z", // Dagger
-  "c58wczIzH2gzeXQL", // Club
-  "tOhoGvmCMw4JpWcS", // Spear
-  "5fu6dCtqhdBnHNqh", // Morningstar
-  "LGgvev6AV0So8tP9", // Hatchet
-  "JNt7GmLCCVz5BiEI", // Javelin
-  "Tt4Qw64fwrxhr5gT", // Dart
-  "UCH4myuFnokGv0vF", // Sling
-  "FVjTuBCIefAgloUU", // Staff
-  // Martial weapons — melee
-  "LJdbVTOZog39EEbi", // Longsword
-  "7tKkkF8eZ4iCLJtp", // Shortsword
-  "tH5GirEy7YB3ZgCk", // Rapier
-  "t5FbyZtRL4qV0V7k", // Flail
-  "rXt4629QSg7KDTgJ", // Warhammer
-  "mlrmkpOlwpnGkw4I", // Maul
-  "8COlYvHe6hKCXY8x", // Greataxe
-  "UX71GkWBL9g41VwM", // Greatsword
-  "War0uyLBx1jA0Ge7", // Battle Axe
-  "FJrsDoaIXksVjld9", // Trident
-  "hMYdSFmMWzidzHih", // Bo Staff
-  "TDrO7Xdyn7juFy3c", // Kukri
-  "f1gwoTkf3Nn0v3PN", // Whip
-  "6KWYmeRMxsQfWhhJ", // Bastard Sword
-  // Ranged
-  "hIgqLgH3YcLZBeoT", // Shortbow
-  "MVAWttmT0QDa7LsV", // Longbow
-  "62nnVQvGhoVLLl2K", // Crossbow
-  "e4NwsnPnpQKbDZ9F", // Composite Shortbow
-  "dUC8Fsa6FZtVikS3", // Composite Longbow
-  "XyA6PKV46aNlLXOd", // Hand Crossbow
-  // Unarmed / natural
-  // (include one advanced to round out)
-  "oSQET5hKn9q4xlrl", // Gnome Flickmace (advanced)
+/**
+ * weapons-core (A4, r28): curadoria por PREDICADO, não mais lista fixa de
+ * source-ids. Substitui a lista de ~42 armas curadas manualmente (r25/r18) —
+ * medido em `out/equipment/transformed.json`: das 975 armas do vendor, 138
+ * são de Player Core 1+2 (`isRemasterCoreDoc`); dessas, 17 são itens mágicos
+ * ou específicos nomeados (bastões/lâminas/adagas com regra própria — ex.
+ * "Staff of Providence", "Spellguard Blade", "Four-Ways Dogslicer") que
+ * carregam `traits.value` com `"magical"` OU runas não-zero
+ * (`potency`/`striking`/`property`) mesmo publicados em PC1/PC2. As 121
+ * restantes são as armas MUNDANAS simples/marciais/avançadas — o conjunto
+ * "TODAS as armas não-mágicas de PC1+PC2" pedido no plano r28/A4. `level` NÃO
+ * é filtro válido aqui: armas avançadas mundanas (ex. Composite Longbow) têm
+ * `system.level === 1` sem serem mágicas — só `magical`/`runes` distinguem
+ * item mágico de item mundano nesta pack.
+ */
+/**
+ * weapons-core (r28/A4): one vendor weapon ("Blowgun") is excluded even
+ * though it passes `isWeaponsCoreDoc` — measured in `out/equipment/
+ * transformed.json`, `system.damage.die` is `""` (empty string) because the
+ * blowgun deals no die-rolled damage of its own in RAW (only its ammunition,
+ * "Blowgun Dart", carries a damage die) — `WeaponDamageSchema.die` requires
+ * `/^d\d+$/`, which an ammo-dependent weapon structurally cannot satisfy.
+ * Fixing this needs schema support for ammo-derived damage (a separate
+ * issue, out of scope for A4's curation pass) — declared as a gap, not
+ * silently dropped.
+ */
+const WEAPONS_CORE_KNOWN_GAP_IDS = new Set([
+  "FPwsiGqMCNPLHmjX", // Blowgun — damage.die: "" (ammo-derived damage, no schema support yet)
+]);
+
+/**
+ * weapons-core (r28/A4): 7 alchemical bombs (Blight Bomb x4, Crystal Shards
+ * x3) carry `system.damage.persistent` in the SHAPE transform.mjs emits for
+ * the equipment pack (`{ faces, number, type }`) rather than the shape
+ * `WeaponDamageSchema.persistent` expects (`{ formula, damageType }`) — a
+ * pre-existing transform↔schema mismatch that no prior curated pack ever
+ * surfaced (nothing with persistent damage was hand-picked before). Reshaped
+ * here, at curation time, rather than in transform.mjs itself: transform.mjs
+ * writes into the SHARED `out/` junction (read-only per the r28 disk-space
+ * errata — an agent that needs to alter extract/normalize/transform must
+ * stop and report instead of re-running the pipeline), so the fix is scoped
+ * to the doc actually entering THIS pack, exactly like the equipment-core
+ * `system.quantity` override a few lines below.
+ */
+function fixWeaponPersistentDamageShape(doc) {
+  const persistent = doc.system?.damage?.persistent;
+  if (!persistent || typeof persistent !== "object") return;
+  if ("formula" in persistent && "damageType" in persistent) return; // already correct shape
+  const { faces, number, type } = persistent;
+  doc.system.damage.persistent = {
+    formula: faces ? `${number}d${faces}` : `${number}`,
+    damageType: type,
+  };
+}
+
+function isWeaponsCoreDoc(doc) {
+  if (doc.type !== "weapon") return false;
+  if (isRemasterCoreDoc(doc)) {
+    const traits = doc.system?.traits?.value ?? [];
+    if (traits.includes("magical")) return false;
+    const runes = doc.system?.runes ?? {};
+    if ((runes.potency ?? 0) > 0) return false;
+    if ((runes.striking ?? 0) > 0) return false;
+    if ((runes.property ?? []).length > 0) return false;
+    return true;
+  }
+  // (b) legacy: the 12 firearms curated in r25 (block 4) — PF2e firearms are
+  // published in "Pathfinder Guns & Gears", NOT Player Core 1/2, so
+  // isRemasterCoreDoc alone drops them. Kept by fixed sourceId (same pattern
+  // as LEGACY_CURATED_ANCESTRY_NAMES below) so the ficha-alvo Fofurinha
+  // fixture (packages/client pathbuilder-fofurinha.test.ts, "Slide Pistol")
+  // and r25's category/reload/trait coverage rationale survive the r28/A4
+  // switch to predicate-based curation.
+  return LEGACY_CURATED_WEAPON_IDS.has(doc.flags?.fusion?.sourceId);
+}
+
+/**
+ * pf2eSourceIds das 12 armas de fogo curadas na r25 (bloco 4) — todas nível
+ * 0–1, uncommon, sem runas/magia, item-base, publicadas em "Pathfinder Guns &
+ * Gears" (fora de PC1/PC2, por isso não capturadas por `isRemasterCoreDoc`).
+ * Escolhidas por cobertura: as 3 categorias de proficiência, reload 0/1/2,
+ * alcance de 10 a 150 pés e os traços próprios do grupo (capacity/scatter/
+ * kickback/repeating/modular/double-barrel/concealable/fatal).
+ */
+const LEGACY_CURATED_WEAPON_IDS = new Set([
+  "gO5dOlPBk57bg2x5", // Slide Pistol (a arma da ficha-alvo — capacity-5)
+  "N3nNqO5Nw2DIFhrv", // Flintlock Pistol
+  "hqMtsTwmOShdAdQW", // Flintlock Musket
+  "ChTaE7jhvCjcS6jI", // Arquebus (kickback, fatal-d12, alcance 150)
+  "csXSDzgZASX4RWr4", // Blunderbuss (scatter-10)
+  "SzUynRs4HVtnpnel", // Air Repeater (reload 0, repeating, agile)
+  "LLYD2GEhzhdxoCAx", // Coat Pistol (concealable)
+  "WUA40bb01pSWv88I", // Fire Lance (reload 2)
+  "tk4cfktEnMrp4K6m", // Pepperbox (capacity-3)
+  "MvzR9nTnvKTeNjvQ", // Double-Barreled Pistol (double-barrel)
+  "4LJEpZ2HkCu9BvHI", // Hand Cannon (modular)
+  "jcIabnkJgjwzK6Og", // Dwarven Scattergun (advanced, scatter-10)
+]);
+
+/**
+ * pf2eSourceIds das armaduras selecionadas para o MVP (A1, r28).
+ * Curadoria: Player Core ∪ Player Core 2 (via isRemasterCoreDoc), restrita a
+ * `system.category` unarmored/light/medium/heavy (plano r28/A1 — companion
+ * barding fica FORA desta leva: `light-barding`/`heavy-barding` não existem
+ * em ArmorCategorySchema hoje, e adicioná-los é decisão de escopo separada),
+ * EXCLUINDO armaduras mágicas/específicas (traits `magical`/`invested` —
+ * Dragonplate, Ghoul Hide, Holy Chain, Mariner's Splint, Onslaught Hide,
+ * Unholy Plate, Warleader's Bulwark(+Greater)). Resultado: as 12 armaduras
+ * mundanas do núcleo remaster, cobrindo as 4 categorias jogáveis.
+ * Medido em out/equipment/transformed.json (type "armor").
+ */
+const MVP_ARMOR_PF2E_IDS = new Set([
+  "dDIPA1WE9ESF67EB", // Explorer's Clothing (unarmored)
+  "MPcM4Wt6KmWE2kGL", // Chain Shirt (light)
+  "4tIVTg9wj56RrveA", // Leather Armor (light)
+  "zBYEU9E7034ENCmh", // Padded Armor (light)
+  "ewQZ0VeL38v3qFnN", // Studded Leather Armor (light)
+  "r0ifJfoz8aqf0mwk", // Breastplate (medium)
+  "Kf4eJEXnFPuAsseP", // Chain Mail (medium)
+  "AnwzlOs0njF9Jqnr", // Hide Armor (medium)
+  "YMQr577asquZIP65", // Scale Mail (medium)
+  "Gq1cZWSKOtJhKd2p", // Full Plate (heavy)
+  "pRoikbRo5HFW6YUB", // Half Plate (heavy)
+  "6AhDKX1dwRwFpQsU", // Splint Mail (heavy)
+]);
+
+/**
+ * pf2eSourceIds dos escudos selecionados para o MVP (A1, r28).
+ * Mesma curadoria de MVP_ARMOR_PF2E_IDS (Player Core ∪ Player Core 2, sem
+ * traits `magical`/`invested` — exclui Exploding Shield, Glamorous Buckler,
+ * Medusa's Scream(+Greater), Spined Shield). Resultado: os 4 escudos
+ * mundanos básicos do núcleo remaster.
+ * Medido em out/equipment/transformed.json (type "shield").
+ */
+const MVP_SHIELD_PF2E_IDS = new Set([
+  "1k3AsSW7lpU0kEpY", // Buckler
+  "ezVp13Uw8cWW08Da", // Wooden Shield
+  "Yr9yCuJiAlFh3QEB", // Steel Shield
+  "ltundBNFAnP7bgPr", // Tower Shield
 ]);
 
 /** pf2eSourceIds das magias selecionadas para o MVP. */
@@ -706,23 +1057,98 @@ const MVP_EQUIPMENT_PF2E_IDS = new Set([
   "UlIxxLm71UdRgCFE", // Flint and Steel — equipment
 ]);
 
-/** pf2eSourceIds dos monstros selecionados para o MVP. */
-const MVP_MONSTER_PF2E_IDS = new Set([
-  // Level -1 (starter encounters)
-  "trchDxbDR2TiPMxT", // Skeleton Guard
-  "fLLKuOXwPq1Iq0U4", // Goblin Warrior
-  "KHTYbQgR5hnFZdGL", // Guard Dog
-  "BIZfjoz8DZt75EDn", // Kobold Warrior
-  "iIJPJcDT8wlJ8z5M", // Giant Rat
-  "Xo4IGzw28hivgMmM", // Zombie Shambler
-  "WBPEvEqIGvxeQKlp", // Eagle
-  // Level 0
-  "YReM6QbqwUz3UTP7", // Orc Scrapper
-  "v1UK3IwCB8wCbL3L", // Leaf Leshy
-  "Ytp0kRaG8iexmPfN", // Hryngar Sharpshooter
-  // Level 1+
-  // (add a few more interesting ones from L1-3)
+/**
+ * r28-A5 — equipment-core expansion (18 → ~300): adventuring gear, tools, and
+ * low-level consumables (potions/elixirs/talismans) from the three "core"
+ * remaster books (Player Core, Player Core 2, GM Core). Curated by
+ * DECLARATIVE PREDICATE (publication + type + category + level + "magical"
+ * trait) — same philosophy as the classes-core predicates below (isFeatsCoreDoc
+ * etc.): a fixed list of hundreds of ids is unmaintainable, and the predicate
+ * is a stable, legible fact about "what a table needs before it can shop".
+ * Measured against out/equipment/transformed.json on 2026-08-11:
+ *   - consumable, category potion/elixir/talisman, level<=8, PC1+PC2+GMCore: 107
+ *   - equipment/container, non-magical, level<=8, PC1+PC2+GMCore: 122 + 5
+ * Explicitly OUT of this leva (declared in the r28-A5 PR, not silently
+ * dropped):
+ *   - every magic item / fundamental or property rune (trait "magical") —
+ *     Treasure Vault territory, a future leva;
+ *   - the ~1,285 consumables outside potion/elixir/talisman (poison, snare,
+ *     drug, oil, mutagen, wand, scroll, gadget, catalyst, fulu) — future leva;
+ *   - anything above level 8 — a level-1-8 table doesn't need it yet;
+ *   - anything from an adventure-path or setting book (Treasure Vault, Guns &
+ *     Gears, Grand Bazaar, Lost Omens ...) EXCEPT the 7 grant-target items
+ *     below, pulled in regardless of book/level because a feat already
+ *     curated into feats-core/ancestry-features-core GRANTS them by name
+ *     (grantMaterializer.test.ts issue #16's "equipment-grant" gap).
+ */
+const EQUIPMENT_CORE_ALLOWED_PUBLICATIONS = new Set([
+  "Pathfinder Player Core",
+  "Pathfinder Player Core 2",
+  "Pathfinder GM Core",
 ]);
+
+/** consumable `system.category` values that count as "potion/elixir/talisman". */
+const EQUIPMENT_CORE_CONSUMABLE_CATEGORIES = new Set(["potion", "elixir", "talisman"]);
+
+/** Level cap for the predicate-curated slice (fixed-id lists below are exempt). */
+const EQUIPMENT_CORE_LEVEL_CAP = 8;
+
+/**
+ * r28-A5 — the 7 equipment items that close the grantMaterializer.test.ts
+ * issue #16 "equipment-grant" gap (Clan Dagger, Clan Pistol, Head Gem,
+ * Lucky Keepsake, Orc Warmask, Pilgrim's Token, Tengu Feather Fan): each is
+ * the GrantItem TARGET of an ancestry/general feat already curated into
+ * feats-core/ancestry-features-core, but two are outside the predicate's
+ * reach entirely — Clan Dagger and Clan Pistol are vendor type "weapon", not
+ * "equipment" — and five ship in books outside the PC1/PC2/GMCore allowlist
+ * above (Lost Omens Ancestry Guide, Lost Omens Tian Xia Character Guide, Lost
+ * Omens Character Guide — Lucky Keepsake is also level 9, over the cap — and
+ * Guns & Gears). Pulled in unconditionally so the grants resolve; the
+ * grantMaterializer.test.ts "regression guard" test's gap list shrinks by
+ * these exact 7 names in the same PR.
+ */
+const EQUIPMENT_CORE_GRANT_TARGET_IDS = new Set([
+  "KekfZ6eRzoZVRemw", // Tengu Feather Fan — equipment, Player Core 2 (also reachable via predicate)
+  "ZEDDVQDtUZ2qOB5q", // Orc Warmask — equipment, Lost Omens Ancestry Guide
+  // "kJJvKm80KwWXPukV" Clan Dagger — REMOVIDO no merge da r28: o predicado
+  // isWeaponsCoreDoc (#102) já publica a adaga em weapons-core; mantê-la aqui
+  // duplicava o doc (pego pelo portão de duplicata do build).
+  "BtncTx8EfxTsHqQI", // Clan Pistol — weapon, Guns & Gears
+  "FA1mAc7rEyC9vzZa", // Head Gem — equipment, Lost Omens Tian Xia Character Guide
+  "nza9skYTNtJe2Wd3", // Lucky Keepsake — equipment, Lost Omens Character Guide, level 9
+  "gwP3Uums2ApH6o9K", // Pilgrim's Token — equipment, Player Core 2 (also reachable via predicate)
+]);
+
+/**
+ * True when a transformed `equipment` vendor-pack doc belongs in the r28-A5
+ * predicate-curated slice: a mundane (non-magical) piece of adventuring
+ * gear/tooling/container, or a potion/elixir/talisman consumable, level <= 8,
+ * published in Player Core, Player Core 2, or GM Core. `hasTrait` is defined
+ * further below in this file (function declarations hoist).
+ */
+function isEquipmentCoreCuratedDoc(doc) {
+  const pub = doc.system?.publication?.title;
+  if (!EQUIPMENT_CORE_ALLOWED_PUBLICATIONS.has(pub)) return false;
+  const level = doc.system?.level ?? 0;
+  if (level > EQUIPMENT_CORE_LEVEL_CAP) return false;
+
+  if (doc.type === "consumable") {
+    return EQUIPMENT_CORE_CONSUMABLE_CATEGORIES.has(doc.system?.category);
+  }
+  if (doc.type === "equipment" || doc.type === "container") {
+    return !hasTrait(doc, "magical");
+  }
+  return false;
+}
+// r28/A2: a lista fixa de 10 ids (MVP_MONSTER_PF2E_IDS) foi removida — o pack
+// bestiary-core agora publica o pathfinder-monster-core inteiro (492 docs,
+// filtro só por type "npc", sem curadoria por id). Histórico dos 10 ids
+// originais: trchDxbDR2TiPMxT (Skeleton Guard), fLLKuOXwPq1Iq0U4 (Goblin
+// Warrior), KHTYbQgR5hnFZdGL (Guard Dog), BIZfjoz8DZt75EDn (Kobold Warrior),
+// iIJPJcDT8wlJ8z5M (Giant Rat), Xo4IGzw28hivgMmM (Zombie Shambler),
+// WBPEvEqIGvxeQKlp (Eagle), YReM6QbqwUz3UTP7 (Orc Scrapper), v1UK3IwCB8wCbL3L
+// (Leaf Leshy), Ytp0kRaG8iexmPfN (Hryngar Sharpshooter) — todos incluídos no
+// pack completo, nenhum perdido.
 
 // ---------------------------------------------------------------------------
 // R10-B (DEC-R10-06) — Magus builder MVP subset selection.
@@ -802,6 +1228,15 @@ const CURATED_ANCESTRY_TRAITS = [
   "human",
   "leshy",
   "orc",
+  // Player Core 2 (mesma régua da issue #1: ancestralidade no pack sem os
+  // feats dela abre o slot de nível 5 vazio — pego pela varredura headless).
+  "catfolk",
+  "hobgoblin",
+  "kholo",
+  "kobold",
+  "lizardfolk",
+  "tengu",
+  "tripkee",
 ];
 
 /**
@@ -820,11 +1255,46 @@ const GRANT_TARGET_DEDICATION_NAMES = [
   "Avenger Dedication",
   "Vindicator Dedication",
   "Runelord Dedication",
+  // r25: same shape exactly — the Gunslinger's "Way of the Spellshot" `way`
+  // axis option (now in class-features-core) carries a GrantItem for this feat,
+  // predicated on self:level >= 2. The feat's own traits are
+  // [archetype, class, dedication] — no `gunslinger` — so no classFeats rule
+  // reaches it, and without this entry the grant resolves to nothing
+  // (grantMaterializer reports target-not-found).
+  "Spellshot Dedication",
 ];
+
+/**
+ * r25: `classFeats.extraNames` da curadoria — nomes de talento que pertencem à
+ * classe mas que NENHUM predicado de trait alcança.
+ *
+ * O campo existe e é validado pelo loader em todas as 14 classes desde a r21,
+ * e nunca foi lido: era dado morto. O caso que obrigou a ligá-lo é a cadeia de
+ * arquétipo da Psychic — `Psychic Dedication` carrega os traits
+ * [archetype, dedication, multiclass] e NÃO o trait `psychic`, então a regra
+ * `classFeats.trait` nunca a alcança, e a classe publicada ficaria sem a rota
+ * de arquétipo que a ficha-alvo usa. Vale para qualquer classe futura na mesma
+ * situação (ou seja: todas — nenhuma dedicação multiclasse carrega o trait da
+ * própria classe).
+ *
+ * É mais geral que `GRANT_TARGET_DEDICATION_NAMES`: o dado fica junto da classe
+ * a que pertence, em vez de numa lista literal solta neste arquivo.
+ */
+let _curatedExtraFeatNames = null;
+function curatedExtraFeatNames() {
+  if (_curatedExtraFeatNames === null) {
+    _curatedExtraFeatNames = new Set();
+    for (const cfg of loadClassCuration().values()) {
+      for (const name of cfg.classFeats.extraNames ?? []) _curatedExtraFeatNames.add(name);
+    }
+  }
+  return _curatedExtraFeatNames;
+}
 
 function isFeatsCoreDoc(doc) {
   if (doc.type !== "feat") return false;
   if (GRANT_TARGET_DEDICATION_NAMES.includes(doc.name)) return true;
+  if (curatedExtraFeatNames().has(doc.name)) return true;
   const category = doc.system?.category;
   const level = doc.system?.level ?? 0;
 
@@ -905,12 +1375,24 @@ function isFeatsCoreDoc(doc) {
  * "spell"`) carry neither `arcane` tradition nor the `focus` trait, so they
  * stay excluded — the "sem rituals (V2)" requirement holds without an extra
  * filter.
+ *
+ * issue #1 (Player Core 2 completo): 48 of the 170 Player Core 2 spells are
+ * divine/primal/occult non-focus spells (e.g. Astral Projection, Clone,
+ * Teleportation Circle) — they carry no `arcane` tradition and no `focus`/
+ * `composition` trait, so none of the branches above ever selected them,
+ * measured directly in `out/spells/transformed.json`. UNION every
+ * `isPlayerCore2Doc` spell explicitly, same pattern
+ * ancestries-core/heritages-core already use for the ancestry/heritage packs
+ * — deliberately `isPlayerCore2Doc` alone (not `isRemasterCoreDoc`): Player
+ * Core 1 has 489 spells and widening this branch to PC1 would balloon
+ * spells-core by ~122 more docs nobody asked for.
  */
 function isSpellsCoreDoc(doc, existingSourceIds) {
   const sourceId = doc.flags?.fusion?.sourceId;
   if (sourceId && existingSourceIds.has(sourceId)) return true;
   if (hasTradition(doc, "arcane")) return true;
   if (hasTrait(doc, "focus")) return true;
+  if (isPlayerCore2Doc(doc)) return true;
   // r22 (Bard integration): the 10 "composition cantrips" (Allegro,
   // Courageous Anthem, ...) are cast from the Bard's focus pool exactly like
   // the other 10 compositions, but carry trait "cantrip" instead of "focus"
@@ -990,34 +1472,75 @@ function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
  */
 const PLAYER_CORE_PUBLICATION_TITLE = "Pathfinder Player Core";
 
-/** True when a Fusion doc's `system.publication.title` is the Player Core book. */
+/**
+ * Título de `system.publication.title` do segundo volume do núcleo remaster,
+ * Pathfinder Player Core 2 — medido nos dados transformados, exatamente com
+ * esse texto. As duas constantes são strings DISTINTAS: a igualdade estrita de
+ * `isPlayerCoreDoc` nunca casa Player Core 2, então o volume 2 precisa de
+ * predicado próprio (não é prefixo, não é "startsWith").
+ */
+const PLAYER_CORE_2_PUBLICATION_TITLE = "Pathfinder Player Core 2";
+
+/**
+ * True when a Fusion doc's `system.publication.title` is the Player Core book.
+ *
+ * ATENÇÃO: este predicado é o critério de curadoria de VÁRIOS packs
+ * (backgrounds-core, feats, ...). Ampliá-lo para incluir Player Core 2
+ * contaminaria TODOS eles de uma vez. Quem quiser o volume 2 usa
+ * `isRemasterCoreDoc` explicitamente, pack a pack — hoje só
+ * ancestries-core/heritages-core o fazem.
+ */
 function isPlayerCoreDoc(doc) {
   return doc.system?.publication?.title === PLAYER_CORE_PUBLICATION_TITLE;
+}
+
+/** True when a Fusion doc comes from Player Core 2. */
+function isPlayerCore2Doc(doc) {
+  return doc.system?.publication?.title === PLAYER_CORE_2_PUBLICATION_TITLE;
+}
+
+/**
+ * True for docs from EITHER remaster core volume (Player Core ∪ Player Core 2)
+ * — o critério de curadoria de ancestries-core/heritages-core. Deliberadamente
+ * separado de `isPlayerCoreDoc` para não alargar por acidente a curadoria dos
+ * outros packs que dependem do volume 1 sozinho.
+ */
+function isRemasterCoreDoc(doc) {
+  return isPlayerCoreDoc(doc) || isPlayerCore2Doc(doc);
 }
 
 /**
  * ancestries-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 8
  * Player Core ancestries (Anão/Dwarf, Elfo/Elf, Gnomo/Gnome, Goblin, Halfling,
- * Humano/Human, Leshy, Orc — measured in `out/ancestries/transformed.json` by
- * `isPlayerCoreDoc`) UNION Ratfolk + Fleshwarp, curated before this issue
- * (R10-B/r18-N2a) for the Magus and Finn characters and kept for backward
- * compatibility — removing them would break the RATFOLK fixture in
- * packages/client's classBuildHarness.ts and the Adopted-Ancestry routing
- * test in planVM.test.ts (both reference these two docs by name).
+ * Humano/Human, Leshy, Orc) UNION the 8 Player Core 2 ancestries (Catfolk,
+ * Hobgoblin, Kholo, Kobold, Lizardfolk, Ratfolk, Tengu, Tripkee) — both
+ * measured in `out/ancestries/transformed.json` by `isRemasterCoreDoc` —
+ * UNION Ratfolk + Fleshwarp, curated before this issue (R10-B/r18-N2a) for
+ * the Magus and Finn characters and kept for backward compatibility —
+ * removing them would break the RATFOLK fixture in packages/client's
+ * classBuildHarness.ts and the Adopted-Ancestry routing test in planVM.test.ts
+ * (both reference these two docs by name). Ratfolk IS a Player Core 2
+ * ancestry, so the legacy list only still matters for Fleshwarp (Lost Omens
+ * Ancestry Guide); it is kept whole so the legacy contract stays explicit.
+ * Total: 8 + 8 + Fleshwarp = 17.
  */
 const LEGACY_CURATED_ANCESTRY_NAMES = ["Ratfolk", "Fleshwarp"];
 
 function isAncestriesCoreDoc(doc) {
   if (doc.type !== "ancestry") return false;
-  if (isPlayerCoreDoc(doc)) return true;
+  if (isRemasterCoreDoc(doc)) return true;
   return LEGACY_CURATED_ANCESTRY_NAMES.includes(doc.name);
 }
 
 /**
- * Ancestry slugs of the 8 Player Core ancestries curated above — used to pull
- * in their corresponding heritages (issue #1).
+ * Ancestry slugs of the 16 remaster ancestries curated above — used to pull in
+ * their corresponding heritages (issue #1). Estes slugs são os valores REAIS
+ * de `system.ancestry.slug` medidos nas heranças de
+ * `out/heritages/transformed.json`: o doc de ancestralidade não carrega
+ * `system.slug` nenhum, quem carrega o vínculo é a herança.
  */
 const CORE_ANCESTRY_SLUGS = [
+  // Player Core
   "dwarf",
   "elf",
   "gnome",
@@ -1026,41 +1549,75 @@ const CORE_ANCESTRY_SLUGS = [
   "human",
   "leshy",
   "orc",
+  // Player Core 2
+  "catfolk",
+  "hobgoblin",
+  "kholo",
+  "kobold",
+  "lizardfolk",
+  "ratfolk",
+  "tengu",
+  "tripkee",
 ];
 
 /**
  * heritages-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): every
- * Player Core heritage (`isPlayerCoreDoc`) linked to one of the 8 core
- * ancestries above via `system.ancestry.slug` (the real vendor linkage field;
- * heritage names alone don't carry an ancestry trait) UNION the 7 Ratfolk
- * heritages + the Sylph versatile heritage, curated before this issue
+ * remaster-core heritage (`isRemasterCoreDoc`) that is EITHER
+ *
+ *   (a) linked to one of the 16 curated ancestries via `system.ancestry.slug`
+ *       (the real vendor linkage field; heritage names alone don't carry an
+ *       ancestry trait), OR
+ *   (b) VERSATILE — see below —
+ *
+ * UNION the Sylph versatile heritage, curated before this issue
  * (R10-B/r18-N2a) for Magus/Finn and kept for backward compatibility (same
- * fixtures as LEGACY_CURATED_ANCESTRY_NAMES above). Versatile heritages carry
- * NO ancestry linkage (`system.ancestry === null`), so Sylph stays selected
- * by explicit name.
+ * fixtures as LEGACY_CURATED_ANCESTRY_NAMES above). Sylph comes from Lost
+ * Omens Ancestry Guide, not from either core volume, so it stays selected by
+ * explicit name.
+ *
+ * POR QUE A VERSÁTIL PRECISA DE RAMO PRÓPRIO (ramo b): uma herança versátil
+ * pode ser escolhida por QUALQUER ancestralidade, e o vendor expressa isso
+ * deixando `system.ancestry === null` — ela não tem vínculo nenhum para o
+ * ramo (a) casar. Enquanto o predicado teve SÓ o ramo (a), as 4 versáteis do
+ * próprio Player Core 1 (Aiuvarin, Changeling, Dromaar, Nephilim) nunca
+ * entraram no pack, e ninguém percebeu porque Sylph — a única versátil
+ * presente — entrava pelo nome, por acidente da curadoria legada. NÃO
+ * substitua este ramo por uma lista de nomes nem o funda no ramo (a): a
+ * ausência de `system.ancestry` é o que define "versátil", e é por ela que o
+ * teste de contagem passa a cobrir versáteis novas de um bump do vendor.
+ *
+ * Total: 45 (PC1 por ancestralidade) + 4 (PC1 versáteis) + 54 (PC2 por
+ * ancestralidade) + 3 (PC2 versáteis: Dhampir, Dragonblood, Duskwalker)
+ * + Sylph = 107.
  */
 function isHeritagesCoreDoc(doc) {
   if (doc.type !== "heritage") return false;
-  if (isPlayerCoreDoc(doc) && CORE_ANCESTRY_SLUGS.includes(doc.system?.ancestry?.slug)) {
-    return true;
+  if (isRemasterCoreDoc(doc)) {
+    // (b) versatile heritage: belongs to no ancestry at all.
+    if (doc.system?.ancestry == null) return true;
+    // (a) heritage of a curated ancestry.
+    if (CORE_ANCESTRY_SLUGS.includes(doc.system.ancestry.slug)) return true;
   }
-  if (doc.system?.ancestry?.slug === "ratfolk") return true;
   if (doc.name === "Sylph") return true;
   return false;
 }
 
 /**
  * backgrounds-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 40
- * Player Core backgrounds (`isPlayerCoreDoc`) UNION Fireworks Performer +
- * Aeronaut, curated before this issue (R10-B/r18-N2a) for Magus/Finn and kept
- * for backward compatibility (Aeronaut also gets a curated free-feat grant
- * injected further down — see AERONAUT_CURATED_ITEMS).
+ * Player Core backgrounds UNION the 23 Player Core 2 backgrounds (both
+ * measured in `out/backgrounds/transformed.json` by `isRemasterCoreDoc` — same
+ * pattern ancestries-core/heritages-core already use) UNION Fireworks
+ * Performer + Aeronaut, curated before this issue (R10-B/r18-N2a) for
+ * Magus/Finn and kept for backward compatibility (Aeronaut also gets a
+ * curated free-feat grant injected further down — see
+ * AERONAUT_CURATED_ITEMS). Total: 40 + 23 + 2 legacy + Smuggler (authored,
+ * injected below) = 66.
  */
 const LEGACY_CURATED_BACKGROUND_NAMES = ["Fireworks Performer", "Aeronaut"];
 
 function isBackgroundsCoreDoc(doc) {
   if (doc.type !== "background") return false;
-  if (isPlayerCoreDoc(doc)) return true;
+  if (isRemasterCoreDoc(doc)) return true;
   return LEGACY_CURATED_BACKGROUND_NAMES.includes(doc.name);
 }
 
@@ -1097,6 +1654,30 @@ function filterToMvpSubset(docs, selectedPf2eIds) {
     const sourceId = doc.flags?.fusion?.sourceId;
     return sourceId && selectedPf2eIds.has(sourceId);
   });
+}
+
+/**
+ * A1/r28 finding: transform.mjs's `normalizeArmorSystem` writes an explicit
+ * `strength: null` whenever the vendor doc has no Strength requirement
+ * (shields never carry one; some light armors like Explorer's Clothing
+ * don't either) — same bug CLASS already fixed for `material`/`baseItem` in
+ * that function (explicit vendor `null` must become `undefined`, because
+ * ArmorSystemSchema's `strength: z.number().int().min(0).optional()` accepts
+ * a number or `undefined` but rejects a literal `null`). armor-core/
+ * shields-core are the FIRST packs to ever select `type: "armor"|"shield"`
+ * docs at scale, so this was latent until now.
+ *
+ * Deliberately NOT fixed in transform.mjs/out/ itself: out/ is a shared,
+ * already-generated snapshot read by sibling A3/A4 workstreams in this same
+ * build session (r28 plano, regra 2/3) — re-running the pipeline to pick up
+ * a transform.mjs edit would regenerate everyone's input out from under
+ * them. This is a doc-level patch scoped to ONLY the two packs this
+ * workstream owns, applied after loading the already-transformed JSON.
+ */
+function fixArmorStrengthNull(doc) {
+  if (doc.system?.strength !== null) return doc;
+  const { strength: _strength, ...restSystem } = doc.system;
+  return { ...doc, system: restSystem };
 }
 
 /**
@@ -1252,7 +1833,10 @@ async function buildPf2eSubset() {
     console.log("[build-mvp] === Pack: weapons-core ===");
     const all = loadTransformed("equipment");
     const weapons = all.filter((d) => d.type === "weapon");
-    const docs = filterToMvpSubset(weapons, MVP_WEAPON_PF2E_IDS);
+    const docs = weapons
+      .filter(isWeaponsCoreDoc)
+      .filter((d) => !WEAPONS_CORE_KNOWN_GAP_IDS.has(d.flags?.fusion?.sourceId));
+    for (const doc of docs) fixWeaponPersistentDamageShape(doc);
     console.log(`[build-mvp] weapons-core: ${docs.length} selecionadas de ${weapons.length} armas`);
 
     const manifest = PACK_MANIFESTS["weapons-core"];
@@ -1268,28 +1852,63 @@ async function buildPf2eSubset() {
     report.packs.push({ packId: manifest.id, slug: "weapons-core", documentCount: docs.length });
   }
 
+  // --- 2b. Armor core (A1/r28 — 12 armaduras mundanas Player Core ∪ PC2) ---
+  {
+    console.log("[build-mvp] === Pack: armor-core ===");
+    const all = loadTransformed("equipment");
+    const armors = all.filter((d) => d.type === "armor");
+    const docs = filterToMvpSubset(armors, MVP_ARMOR_PF2E_IDS).map(fixArmorStrengthNull);
+    console.log(
+      `[build-mvp] armor-core: ${docs.length} selecionadas de ${armors.length} armaduras`,
+    );
+
+    const manifest = PACK_MANIFESTS["armor-core"];
+    writePack("armor-core", docs, manifest);
+
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(PACKS_OUT_DIR, "armor-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+
+    report.packs.push({ packId: manifest.id, slug: "armor-core", documentCount: docs.length });
+  }
+
+  // --- 2c. Shields core (A1/r28 — 4 escudos mundanos Player Core ∪ PC2) ---
+  {
+    console.log("[build-mvp] === Pack: shields-core ===");
+    const all = loadTransformed("equipment");
+    const shields = all.filter((d) => d.type === "shield");
+    const docs = filterToMvpSubset(shields, MVP_SHIELD_PF2E_IDS).map(fixArmorStrengthNull);
+    console.log(
+      `[build-mvp] shields-core: ${docs.length} selecionados de ${shields.length} escudos`,
+    );
+
+    const manifest = PACK_MANIFESTS["shields-core"];
+    writePack("shields-core", docs, manifest);
+
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(PACKS_OUT_DIR, "shields-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+
+    report.packs.push({ packId: manifest.id, slug: "shields-core", documentCount: docs.length });
+  }
+
   // --- 3. Core Bestiary (~10 monstros) ---
   {
     console.log("[build-mvp] === Pack: bestiary-core ===");
+    // r28/A2: TODO o pathfinder-monster-core entra no pack (492 docs, licença
+    // ORC), sem curadoria por id — o pack "core" completo do livro, no mesmo
+    // espírito de familiar-abilities-core/ancestry-features-core (pack
+    // inteiro, sem lista fixa). Antes desta rodada eram só 10 hand-picked
+    // (ver histórico logo acima de MVP_WEAPON_PF2E_IDS/MVP_SPELL_PF2E_IDS —
+    // a lista removida documentava os 10 ids, todos incluídos aqui também).
     const all = loadTransformed("pathfinder-monster-core");
-    const monsters = all.filter((d) => d.type === "npc");
-    const curated = filterToMvpSubset(monsters, MVP_MONSTER_PF2E_IDS);
-
-    // Supplement with additional L1-3 ORC monsters to reach ~10 total
-    const alreadySelected = new Set(curated.map((d) => d._id));
-    const supplemental = monsters
-      .filter((m) => !alreadySelected.has(m._id))
-      .filter((m) => {
-        const level = m.system?.details?.level?.value ?? 0;
-        const pub = m.system?.details?.publication?.license;
-        return pub === "ORC" && level >= 1 && level <= 3;
-      })
-      .sort(
-        (a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0),
-      )
-      .slice(0, Math.max(0, 10 - curated.length));
-
-    const docs = [...curated, ...supplemental];
+    const docs = all.filter((d) => d.type === "npc");
     console.log(`[build-mvp] bestiary-core: ${docs.length} monstros selecionados`);
 
     const manifest = PACK_MANIFESTS["bestiary-core"];
@@ -1318,8 +1937,9 @@ async function buildPf2eSubset() {
     const focusCount = docs.filter(
       (d) => Array.isArray(d.system?.traits?.value) && d.system.traits.value.includes("focus"),
     ).length;
+    const pc2Count = docs.filter(isPlayerCore2Doc).length;
     console.log(
-      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus) de ${all.length} totais`,
+      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus + ${pc2Count} Player Core 2) de ${all.length} totais`,
     );
 
     const manifest = PACK_MANIFESTS["spells-core"];
@@ -1477,6 +2097,20 @@ async function buildPf2eSubset() {
       }
     }
 
+    // Smuggler (LO:WG) is AUTHORED, not selected — no vendor source carries it.
+    // Idempotent: a future vendor snapshot that ships a real "Smuggler" wins,
+    // and this injection becomes a no-op instead of creating a homonym pair.
+    if (!docs.some((d) => d.name === SMUGGLER_AUTHORED_DOC.name)) {
+      docs.push(structuredClone(SMUGGLER_AUTHORED_DOC));
+      // The vendor selection comes out sorted by name; re-sort so the authored
+      // doc lands in place instead of at the tail (keeps documents.json diffs
+      // readable when the next background is added).
+      docs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+      console.log(
+        "[build-mvp] backgrounds-core: injected AUTHORED Smuggler (LO:WG — absent from vendor, AoN and Pf2eTools)",
+      );
+    }
+
     console.log(
       `[build-mvp] backgrounds-core: ${docs.length} background(s) selecionado(s) de ${all.length} totais`,
     );
@@ -1540,13 +2174,33 @@ async function buildPf2eSubset() {
     });
   }
 
-  // --- 13. Equipment core (r18-N2d — Finn's physical gear) ---
-  // Fixed source-id list (same pattern as weapons-core); see
-  // MVP_EQUIPMENT_PF2E_IDS docstring for the full item-by-item breakdown.
+  // --- 13. Equipment core (r18-N2d Finn's gear + r28-A5 predicate expansion) ---
+  // Union of three sources, deduped by sourceId (a doc can legitimately match
+  // more than one — e.g. Tengu Feather Fan is both a grant target AND caught
+  // by the predicate):
+  //   1. MVP_EQUIPMENT_PF2E_IDS — Finn's fixed dossier list (r18-N2d), mostly
+  //      Treasure Vault items outside the r28-A5 predicate's book allowlist.
+  //   2. EQUIPMENT_CORE_GRANT_TARGET_IDS — the 7 items that close the
+  //      grantMaterializer.test.ts issue #16 equipment-grant gap.
+  //   3. isEquipmentCoreCuratedDoc — the r28-A5 predicate-curated slice
+  //      (adventuring gear/tools/containers + potions/elixirs/talismans,
+  //      level<=8, PC1+PC2+GMCore).
   {
     console.log("[build-mvp] === Pack: equipment-core ===");
     const all = loadTransformed("equipment");
-    const docs = filterToMvpSubset(all, MVP_EQUIPMENT_PF2E_IDS);
+    const finnDocs = filterToMvpSubset(all, MVP_EQUIPMENT_PF2E_IDS);
+    const grantTargetDocs = filterToMvpSubset(all, EQUIPMENT_CORE_GRANT_TARGET_IDS);
+    const curatedDocs = all.filter(isEquipmentCoreCuratedDoc);
+
+    const bySourceId = new Map();
+    for (const doc of [...finnDocs, ...grantTargetDocs, ...curatedDocs]) {
+      bySourceId.set(doc.flags?.fusion?.sourceId, doc);
+    }
+    const docs = [...bySourceId.values()];
+    // Vendor selection isn't sorted (three different filters concatenated) —
+    // sort by name so documents.json diffs stay readable when the pack grows.
+    docs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
     // Finn owns 2 Gate Attenuators (same item, not a higher tier) — the
     // curated doc's system.quantity is bumped to reflect that.
     for (const doc of docs) {
@@ -1554,8 +2208,18 @@ async function buildPf2eSubset() {
         doc.system.quantity = 2;
       }
     }
+
+    const missingGrantTargets = [...EQUIPMENT_CORE_GRANT_TARGET_IDS].filter(
+      (id) => !bySourceId.has(id),
+    );
+    if (missingGrantTargets.length > 0) {
+      throw new Error(
+        `[build-mvp] equipment-core: grant-target sourceId(s) not found in out/equipment/transformed.json: ${missingGrantTargets.join(", ")}`,
+      );
+    }
+
     console.log(
-      `[build-mvp] equipment-core: ${docs.length} itens selecionados de ${MVP_EQUIPMENT_PF2E_IDS.size} ids curados (${all.length} totais no pack equipment)`,
+      `[build-mvp] equipment-core: ${docs.length} itens (${finnDocs.length} dossiê Finn + ${grantTargetDocs.length} alvos de grant + ${curatedDocs.length} predicado r28-A5, deduplicados) de ${all.length} totais no pack equipment`,
     );
 
     const manifest = PACK_MANIFESTS["equipment-core"];
@@ -1576,7 +2240,31 @@ async function buildPf2eSubset() {
   {
     console.log("[build-mvp] === Pack: ancestry-features-core ===");
     const all = loadTransformed("ancestry-features");
-    const docs = all;
+    // Copy, not alias: the authored injection below pushes into `docs`, and
+    // mutating the array returned by loadTransformed would be a hidden trap.
+    const docs = [...all];
+
+    // Low-Light Vision (Player Core) is AUTHORED, not selected — the vendor
+    // carries the sense only as the ancestry scalar `system.vision`, never as a
+    // document. Idempotent: a future vendor snapshot that ships a real
+    // "Low-Light Vision" ancestry feature wins, and this becomes a no-op
+    // instead of creating a homonym pair.
+    //
+    // Deliberate divergence from the Smuggler precedent: NO re-sort. The
+    // backgrounds selection comes out of the vendor sorted by name, so the
+    // Smuggler needs a sort to land in place. ancestry-features comes out in
+    // vendor DIRECTORY order (alphabetical by ANCESTRY: Fangs (Anadi),
+    // Constructed (Android), Automaton Core, ...) — sorting here would move all
+    // 55 documents and produce an unreadable diff. Push to the tail instead,
+    // which also matches the fact that this document belongs to no single
+    // ancestry.
+    if (!docs.some((d) => d.name === LOW_LIGHT_VISION_AUTHORED_DOC.name)) {
+      docs.push(structuredClone(LOW_LIGHT_VISION_AUTHORED_DOC));
+      console.log(
+        "[build-mvp] ancestry-features-core: injected AUTHORED Low-Light Vision (sense has no document in the vendor — only the ancestries' system.vision scalar)",
+      );
+    }
+
     console.log(`[build-mvp] ancestry-features-core: ${docs.length} ancestry features`);
 
     const manifest = PACK_MANIFESTS["ancestry-features-core"];

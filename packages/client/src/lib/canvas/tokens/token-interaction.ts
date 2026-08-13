@@ -1,7 +1,7 @@
 /**
  * token-interaction.ts — Pure, PIXI-free token interaction logic.
  *
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §D5
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §DEC-CNV-05
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050..052 (optimistic move)
  * Spec: 05-usuarios-e-permissoes.md (ownership, who can move what)
  *

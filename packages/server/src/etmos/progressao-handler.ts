@@ -55,6 +55,7 @@ import {
   OwnershipLevel,
 } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
+import { emitDocumentOp } from "../net/redaction.js";
 
 // ---------------------------------------------------------------------------
 // Payload
@@ -309,7 +310,9 @@ export function buildProgressaoConfirmarHandler(deps: ProgressaoHandlerDeps): Ha
       payload: { documentType: "Actor", documents: [updated] },
     };
     deps.opBuffer.push(envelope);
-    deps.ns.emit("op", envelope);
+    // REQ-NET-096: an Actor is ownership-gated on emission — per socket, never
+    // namespace-wide, or the whole sheet reaches every connected player.
+    emitDocumentOp(deps.ns, envelope);
 
     return ackOk({ actor: updated, novoNivel: result.novoNivel }, seq);
   };

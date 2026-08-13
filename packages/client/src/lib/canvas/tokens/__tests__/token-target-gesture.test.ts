@@ -122,6 +122,9 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     _id: TOKEN_ID,
     name: "Goblin",
     actorId: null,
+    // REQ-DOC-031: a token declares whether it shares the world Actor.
+    actorLink: true,
+    actorDelta: {},
     texture: null,
     x: 100,
     y: 100,
@@ -133,6 +136,8 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     disposition: 0,
     bar1: { attribute: null },
     bar2: { attribute: null },
+    // REQ-CNV-089: every token declares who may see its bars.
+    displayBars: "observer",
     flags: {},
     vision: {
       enabled: false,
@@ -167,7 +172,7 @@ function makeTargetingPort(mine: Set<string> = new Set()) {
 
 function buildOpts(
   container: ReturnType<typeof makeRecordingContainer>,
-  targeting: TargetingPort | undefined,
+  targeting: TargetingPort,
   onError?: (msg: string) => void,
 ): TokenInteractionOptions {
   return {
@@ -190,16 +195,16 @@ function buildOpts(
       diagonalRule: "alternating_1",
     }),
     attachKeyboard: false,
+    targeting,
     // Spread instead of assignment: exactOptionalPropertyTypes forbids
     // handing an explicit `undefined` to an optional property.
-    ...(targeting ? { targeting } : {}),
     ...(onError ? { onError } : {}),
   };
 }
 
 async function buildManager(
   container: ReturnType<typeof makeRecordingContainer>,
-  targeting: TargetingPort | undefined,
+  targeting: TargetingPort,
   onError?: (msg: string) => void,
 ) {
   const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
@@ -283,16 +288,6 @@ describe("TokenInteractionManager — right-click target gesture", () => {
     container.fire("rightdown", e);
 
     expect(e.stopPropagation).toHaveBeenCalled();
-  });
-
-  it("is a no-op when no targeting port was injected", async () => {
-    await buildManager(container, undefined);
-
-    // Must not throw: the manager stays constructible without the port
-    // (existing call sites and tests do not pass one).
-    expect(() => {
-      container.fire("rightdown", eventOnToken(TOKEN_ID));
-    }).not.toThrow();
   });
 
   it("does not target after destroy()", async () => {

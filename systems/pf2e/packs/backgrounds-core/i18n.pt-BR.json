@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.backgrounds-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:04.870Z",
+  "generatedAt": "2026-08-11T03:20:16.961Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -15,6 +15,11 @@
       "name": "Caçador de Recompensas",
       "sourceHash": "241c3bbd232447c33fe642d6b561dcb2476a8747",
       "description": "<p>Capturar fora-da-lei enchia seus bolsos. Talvez você tivesse um motivo altruísta e buscasse prender criminosos para tornar as ruas mais seguras, ou talvez a moeda fosse motivação suficiente. Suas técnicas para caçar criminosos se transferem facilmente para a vida de aventureiro.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sobrevivência e na perícia Conhecimento (Leis). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Experienced Tracker].</p>"
+    },
+    "37NuBbmuE18hTDLF": {
+      "name": "Retornado",
+      "sourceHash": "5dae0877391b16ff1b96937844477826c2625778",
+      "description": "<p>Você morreu e, miraculosamente, retornou com conhecimento dos reinos além da morte e um vínculo mais forte com a vida. Algumas almas mortas e mortas-vivas podem sentir uma estranha afinidade instintiva com você.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Constituição</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Diehard] e o talento @UUID[Compendium.pf2e.feats-srd.Item.Additional Lore] para Conhecimento (Boneyard).</p>"
     },
     "3wUUi6p9a8KnP8BL": {
       "name": "Professor",
@@ -36,6 +41,16 @@
       "sourceHash": "5a7ea75ea15334701914800579965d638f840c93",
       "description": "<p>Você sempre sentiu uma conexão com os animais, e foi um pequeno passo até aprender a adestrá-los. Enquanto viaja, você encontra continuamente criaturas diferentes, fazendo amizade com elas ao longo do caminho.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Sabedoria</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Natureza e em uma perícia de Conhecimento relacionada a um terreno habitado por animais de que você gosta (como Conhecimento (Planícies) ou Conhecimento (Pântano)). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Train Animal].</p>"
     },
+    "4nwVdjWOwb0XedXT": {
+      "name": "Assombrado",
+      "sourceHash": "791a4878089da3ece680ad0f00e50e173b078745",
+      "description": "<p>Você é seguido por um espírito ou entidade, seja desde a infância ou desde um evento marcante. Você e outras pessoas talvez já tenham visto essa entidade. Você estudou assuntos esotéricos tentando entender sua situação, mas essa presença em sua vida continua sendo um mistério. Seja lá o que essa entidade é ou quer, ela influencia sua vida de maneiras sutis, nem sempre para melhor. Às vezes a entidade o ajuda, mas em outras ocasiões sua influência é malévola ou prejudicial. É mais provável que a entidade se manifeste em situações estressantes.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Sabedoria</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado em Ocultismo e em uma perícia adicional na qual a entidade assombradora é versada, determinada pelo mestre. Sempre que você tentar um teste de perícia para a perícia da entidade, o mestre pode oferecer a você um bônus de circunstância de +1 no teste, como se a entidade estivesse @UUID[Compendium.pf2e.actionspf2e.Item.Aid]{Auxiliando} você. Se você aceitar mas falhar no teste, fica @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 2} (@UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 4} em uma falha crítica). O valor inicial de Amedrontado não pode ser reduzido por efeitos que reduziriam ou impediriam a condição (como a Bravura do guerreiro).</p>"
+    },
+    "5EHMZWChQZdawWYm": {
+      "name": "Cobrador de Impostos",
+      "sourceHash": "7a2796aed274ce870a2cef6a02fd14af7988283c",
+      "description": "<p>Detestado, porém necessário, você era enviado quando os impostos venciam. Cumprir sua função pode ter exigido viagens e persuasão, ou talvez você fosse responsável por cobrar impostos sobre o comércio. De qualquer forma, às vezes isso significava sujar as mãos, e se aventurar pareceu o próximo passo lógico para você.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Intimidação e na perícia de Conhecimento do assentamento que o empregava. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Quick Coercion].</p>"
+    },
     "8ARQ1quiAPvGDylk": {
       "name": "Ervanário",
       "sourceHash": "4023aa7341fe7f5832ba3975aa4b0314bec50b4f",
@@ -46,30 +61,75 @@
       "sourceHash": "7f37d7be2a8b278936b96da31c1caa6d6e9ed67e",
       "description": "<p>Seja em um mosteiro, em um lar religioso, ou apenas como parte da sua vida cotidiana, sua criação foi imersa nas tradições de uma divindade específica. Você pode continuar devoto ou pode ter se afastado do credo da sua infância, mas suas habilidades ainda têm origem na sua devoção.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em um atributo especificado no <strong>Atributo Divino</strong> da sua divindade, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na Perícia Divina listada da sua divindade e ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Assurance] com essa perícia. Você ganha uma perícia de Conhecimento relacionada à sua divindade (Conhecimento (Abadar), por exemplo).</p>"
     },
+    "B9WNciUBkKQ0q8v2": {
+      "name": "Realeza",
+      "sourceHash": "90f985c68ef997f06638c2381e9b8f342f86b60d",
+      "description": "<p>Você é um membro proeminente de uma família real. Você abandonou as rotinas diárias da vida real e partiu em uma jornada de aventura — talvez seja uma rainha deposta esperando recuperar seu trono, um príncipe em busca de uma vida mais emocionante, ou o herdeiro de um soberano em uma missão secreta.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado em Sociedade. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Courtly Graces] e pode influenciar plebeus no território da sua família, bem como nobres em qualquer lugar. Se posteriormente ganhar o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Leverage Connections], você automaticamente tem conexões comuns e nobres em qualquer comunidade no território da sua família real, e tem conexões nobres em grandes comunidades fora do seu território.</p>"
+    },
+    "CFuvXy02b06mk137": {
+      "name": "Barbeiro",
+      "sourceHash": "72da80e3d83cb1372b69b4f8d4c4edc656e2b83d",
+      "description": "<p>Cortes de cabelo, odontologia, sangrias e cirurgias — se exige mão firme e uma navalha, você sabe fazer. Você pode ter partido para a estrada para aprimorar suas habilidades ou testar-se contra um mundo que deixa seus pacientes tão maltratados e cheios de hematomas.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Medicina e na perícia Conhecimento (Cirurgia). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Risky Surgery].</p>"
+    },
     "Cgdx2vWNdH7jo0DZ": {
       "name": "Gladiador",
       "sourceHash": "d7af2e8fa4a009349b0ae0f5546aadd60ed7cb20",
       "description": "<p>Os jogos sangrentos da arena o ensinaram a arte do combate. Antes de alcançar a verdadeira fama, você partiu—ou fugiu—da arena para explorar o mundo. Sua habilidade em derramar sangue e atrair a atenção de uma multidão rendem frutos em uma nova vida de aventureiro.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atuação e na perícia Conhecimento (Gladiadores). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Impressive Performance].</p>"
+    },
+    "FK57rsXJ7QfrhJ21": {
+      "name": "Escudeiro",
+      "sourceHash": "f3c1ff0ee74af171319a09c93a9a56f08a807f02",
+      "description": "<p>Você treinou aos pés de um cavaleiro, mantendo seu equipamento e apoiando-o em torneios e em batalha. Agora você busca um desafio que prove que é digno de se tornar um cavaleiro pleno, ou rejeitou a pompa e a cerimônia para se testar em combate honesto, ainda que menos formal.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Constituição</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atletismo e, à sua escolha, na perícia Conhecimento (Heráldica) ou Conhecimento (Guerra). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Armor Assist].</p>"
     },
     "Fky6f90r3rTCmfXo": {
       "name": "Nobre",
       "sourceHash": "0bdf4373c8044459eb1e644587c795835dad3757",
       "description": "<p>Para o povo comum, a vida de um nobre parece de luxo idílico, mas crescendo como nobre ou como membro da pequena nobreza em ascensão, você conhece a realidade: o destino de um nobre é feito de obrigação e intriga. Seja para escapar de seus deveres se tornando aventureiro, ou para melhorar sua posição, você trocou sedas e pompa por uma vida de aventureiro.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sociedade e na perícia Conhecimento (Genealogia) ou Conhecimento (Heráldica). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Courtly Graces].</p>"
     },
+    "FusionSmuggler01": {
+      "name": "Contrabandista",
+      "sourceHash": "07c71498cc4c7a268538281433b5b7f3d268a336",
+      "description": "<p>Você sabe contrabandear pessoas para dentro e para fora de países.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Furtividade e na perícia Conhecimento (Submundo). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler].</p>"
+    },
     "Kd3LOj1HDjwuZHst": {
       "name": "Emissário",
       "sourceHash": "2ed12112851f0d345ca8d2f4ff751d89c2168df0",
       "description": "<p>Como diplomata ou mensageiro, você viajou por terras distantes. Comunicar-se com pessoas novas e formar alianças eram o seu ganha-pão.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sociedade e em uma perícia de Conhecimento relacionada a uma cidade que você visitou com frequência. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Multilingual].</p>"
+    },
+    "M2SxShMoznBslERf": {
+      "name": "Criança Selvagem",
+      "sourceHash": "bfe6b7904046ee760ea5b905f04c4077ef05d8ab",
+      "description": "<p>Você passou a juventude na natureza selvagem, vivendo perto de animais ou talvez criado por eles. Você tem uma conexão próxima e mística com esses animais e obteve certas habilidades graças a eles, embora isso tenha limitado seu desenvolvimento em atividades mentais.</p>\n<p>Escolha um aumento de atributo. Deve ser em <strong>Força</strong>, <strong>Destreza</strong> ou <strong>Constituição</strong>.</p>\n<p>Você é treinado em Natureza e Sobrevivência. Você ganha visão em pouca luz (ou visão no escuro, se já tiver visão em pouca luz), olfato impreciso com alcance de 30 pés, e o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Forager].</p>"
     },
     "O4nOcuUhSC4Xzc0J": {
       "name": "Charlatão",
       "sourceHash": "c20ef70a4926fd5f04c69460b4ee973c3f7ddf68",
       "description": "<p>Você viajava de lugar em lugar, vendendo falsas fortunas e óleo de cobra em uma cidade, fingindo ser realeza no exílio para seduzir um herdeiro rico na próxima. Tornar-se aventureiro pode ser seu próximo grande golpe ou uma tentativa de usar seus talentos para uma causa maior. Talvez seja um pouco dos dois, já que você percebe que, depois de fingir ser um herói, você se tornou a própria máscara.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Enganação e na perícia Conhecimento (Submundo). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Charming Liar].</p>"
     },
+    "PEw8nI1Gs4OnS8Ut": {
+      "name": "Contador",
+      "sourceHash": "714aacf601f66bdf96b5e992999c525790cf6291",
+      "description": "<p>Você cuidava dos números de uma grande fazenda, dos empreendimentos de um mercador, ou de uma grande guilda na cidade. Você mantinha o controle de despesas, folha de pagamento, lucros e tudo mais relacionado a dinheiro, para o bem ou para o mal. Se foi para o bem, você pode estar se aventurando para aprender como outros exercem esse ofício. Se foi para o mal, você pode estar fugindo de consequências iminentes na esperança de que ninguém o encontre.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sociedade e na perícia Conhecimento (Contabilidade). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Eye for Numbers].</p>"
+    },
+    "Rq775UTPB0V5kTwZ": {
+      "name": "Pupilo",
+      "sourceHash": "d994236ec78df5b2320cb851c30a7701ea70d58e",
+      "description": "<p>Quando era jovem, você se tornou o pupilo de outra casa — hospedado, alimentado e educado, mas nunca totalmente parte da família. Talvez você tivesse que atender às necessidades deles em troca de ser alimentado e criado, ou talvez fosse provido, mas negligenciado. Agora, se aventurar é sua chance de crescer e vagar livre.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Constituição</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atuação e na perícia Conhecimento (Genealogia). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Fascinating Performance].</p>"
+    },
+    "SHblwrVhWwwPw5E4": {
+      "name": "Peregrino",
+      "sourceHash": "68e05cbbc0116027c467b99c638451b3278e28f5",
+      "description": "<p>Na juventude, você fez diversas peregrinações a santuários importantes e locais sagrados. Você pode ter sido um frade mendicante, um vendedor de relíquias religiosas (verdadeiras ou fraudulentas), ou apenas um simples fazendeiro seguindo os ditames da sua fé. Sejam quais forem os objetivos das suas andanças agora, sua fé ainda o protege na estrada.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Sabedoria</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Religião e na perícia de Conhecimento da sua divindade padroeira. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Pilgrim's Token].</p>"
+    },
     "ScQU3Bt3LFfug0Hv": {
       "name": "Caçador",
       "sourceHash": "8c9054e3079f5111ec6ef702d0c09bf1c7d0b9e9",
       "description": "<p>Você perseguia e abatia animais e outras criaturas selvagens. Esfolar animais, aproveitar sua carne e cozinhá-los também faziam parte do seu treinamento, o que pode lhe dar recursos úteis enquanto você aventura.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sobrevivência e na perícia Conhecimento (Curtimento). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Survey Wildlife].</p>"
+    },
+    "SqnrmO9AtKeiXCGf": {
+      "name": "Vinculado às Fadas",
+      "sourceHash": "dd4ea180b268ac998be0070518050d5eae44cecc",
+      "description": "<p>Você passou um tempo no Primeiro Mundo ou em outro reino das fadas e não é mais exatamente a mesma pessoa que era antes. Talvez tenha feito uma compra no lendário Mercado das Bruxas ou se banqueteado com comida e vinho feéricos. Seja qual for o caso, de bom grado ou não, você fez um pacto com as fadas, cujos benefícios vêm com um preço.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado em Conhecimento (Fadas) e ganha a ação livre @UUID[Compendium.pf2e.actionspf2e.Item.Fey's Fortune]. Você deve seguir alguma regra ou limitação como parte do seu pacto com as fadas. Se violar a regra, você perde Fey's Fortune até receber os efeitos de um ritual bem-sucedido de @UUID[Compendium.pf2e.spells-srd.Item.Atone] usando a perícia Natureza. A limitação exata cabe a você e ao mestre, mas o requisito mais comum é que você deve cumprir um único pedido de qualquer fada que saiba o seu nome.</p>"
     },
     "TtOFMTviCV8d1uBQ": {
       "name": "Erudito",
@@ -86,15 +146,45 @@
       "sourceHash": "1866c2e59c2d04d42402865a2eb1ffc8eec3171d",
       "description": "<p>Você ouviu o chamado do mar desde muito jovem. Talvez tenha se alistado em um navio mercante, se juntado à marinha, ou até mesmo se misturado a uma tripulação de piratas e patifes.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Destreza</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atletismo e na perícia Conhecimento (Náutica). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Underwater Marauder].</p>"
     },
+    "VCteHK2aW63UKYcn": {
+      "name": "Abençoado",
+      "sourceHash": "2e42df3169d28cbe97a816755870549615f7c180",
+      "description": "<p>Você foi abençoado por uma divindade. Por um motivo desconhecido, e independentemente das suas crenças reais, uma divindade concedeu a você uma bênção para usar para o bem ou para o mal. Sua bênção concede sabedoria e discernimento para ajudá-lo em suas dificuldades. Você pode ou não saber a identidade do ser que o abençoou, e a bênção pode vir com um custo que você descobrirá mais tarde.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Sabedoria</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado em uma perícia de Conhecimento associada à divindade que o abençoou (como Conhecimento (Shelyn)), se souber a identidade dela, ou então em uma perícia de Conhecimento à escolha do mestre, se não souber. Você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Guidance] como uma magia divina inata à vontade, ou ganha uma bênção semelhante determinada pelo mestre.</p>"
+    },
+    "WBnJ2nWD5RmDzjYn": {
+      "name": "Criado",
+      "sourceHash": "a27cbe96b6a36bef900db6fe205e8a0c0fc74ae9",
+      "description": "<p>Você exerceu um papel de servidão, atendendo nobres e conquistando sua confiança como um dos confidentes da casa. Você pode ter se afastado em bons termos, ou talvez saiba segredos perigosos sobre seus antigos empregadores. De qualquer forma, você está se aventurando em busca de mudança e descobrindo que, nesse novo papel, as habilidades que aprendeu agora servem a você.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sociedade e na perícia Conhecimento (Trabalho). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Read Lips].</p>"
+    },
     "XGTsuhOCcthVvoFt": {
       "name": "Performista de Fogos de Artifício",
       "sourceHash": "4a280fdf80966c7557c8cf10ec2fd44e7479254f",
       "description": "<p>Poucas celebrações em Tian Xia são completas sem um show de fogos de artifício, e seu trabalho é garantir que funcionem sem problemas. Você carrega os fogos, acende os fusíveis e coreografa a apresentação, trazendo o show junto em um desfecho de luzes e explosões. Depois é hora de guardar seu equipamento e seguir para o próximo feriado cívico ou festival religioso. É claro que alguém que viaja pelas estradas com uma mochila cheia de explosivos de alto potencial está fadado a encontrar uma aventura ou duas pelo caminho, e assim ao longo do tempo, seus fogos foram gastos em apoio a essa vida.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser para <strong>Inteligência</strong> ou <strong>Carisma</strong>, e um é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atuação e na perícia Conhecimento de Fogos de Artifício. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Fascinating Performance].</p>"
     },
+    "Z1mLRQgwv77XYwRR": {
+      "name": "Catador",
+      "sourceHash": "1044292cc0d0a2756d91e0eac84e28a9eae4dab5",
+      "description": "<p>Você fez a vida vasculhando o que a sociedade descarta. Talvez tenha catado lixo simplesmente para sobreviver, ou exercido um ofício como trapeiro, carroceiro de esterco, ou algo semelhante. Embora tenha deixado essa vida para trás, você ainda mantém um olho no chão por hábito.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sobrevivência e na perícia de Conhecimento do assentamento em que cresceu catando lixo. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Forager].</p>"
+    },
+    "ZF4v12SoB9Ds7Qv5": {
+      "name": "Refugiado (PC2)",
+      "sourceHash": "00c60c90210da26a82e727d0e65d88d26ab516e5",
+      "description": "<p>Você vem de uma terra muito distante daquela em que se encontra agora, levado pela guerra, pela peste, ou simplesmente em busca de oportunidades. Independentemente da sua origem ou do motivo que o fez deixar sua casa, você se vê como um forasteiro nesta nova terra. Aventurar-se é uma forma de se sustentar enquanto oferece esperança àqueles que mais precisam dela.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Constituição</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sociedade e em uma perícia de Conhecimento relacionada ao assentamento de onde você veio. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Streetwise].</p>"
+    },
+    "ZpsPQ9P1W7ownlkH": {
+      "name": "Sabotador",
+      "sourceHash": "b8c08d5cade9849f07546d1d27de0606783589e2",
+      "description": "<p>Seja por prazer pessoal ou a mando de uma companhia mercenária ou organização militar, você tem talento para destruir coisas. Você tem faro para os pontos fracos de um objeto ou estrutura e sabe onde desferir um golpe de martelo ou uma bomba alquímica. Você se aventura para aprimorar suas habilidades ou completar uma missão específica.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Destreza</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Ladinagem e na perícia Conhecimento (Engenharia). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Concealing Legerdemain].</p>"
+    },
     "aDsvdeCnLEm6xMT0": {
       "name": "Trabalhador Braçal",
       "sourceHash": "eca39dad1db93a7d26fc6ab2bc8d35f36cdece87",
       "description": "<p>Você passou anos realizando trabalho físico árduo. Foi uma vida difícil, mas de alguma forma você sobreviveu. Talvez tenha abraçado a vida de aventureiro como um jeito mais fácil de se sustentar no mundo, ou talvez você aventure sob o comando de outra pessoa.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Constituição</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atletismo e na perícia Conhecimento (Trabalho). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Hefty Hauler].</p>"
+    },
+    "aeSwz3yU3bY56Gjq": {
+      "name": "Amaldiçoado",
+      "sourceHash": "40d86d5e36d22b71ab4b5572211cea6e6d232b13",
+      "description": "<p>Você é vítima de uma maldição pessoal ou hereditária. Por meio de grande esforço e estudo ocultista, você aprendeu a repelir os piores efeitos da maldição e, por extensão, pode se proteger contra outras magias nocivas. Contudo, a maldição ainda paira sobre você e às vezes se manifesta de formas perigosas.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado em Ocultismo e Conhecimento (Maldições). Você ganha a reação @UUID[Compendium.pf2e.actionspf2e.Item.Warding Sign]. Você e o mestre devem determinar os efeitos completos da maldição, embora você já tenha afastado a maior parte deles por enquanto. O mestre determina as manifestações remanescentes da maldição sobre você, que geralmente incluem pelo menos um efeito temático constante ou muito frequente e efeitos ocasionais mais perigosos.</p>"
     },
     "ass1ot8D7XleoOWS": {
       "name": "Guarda",
@@ -110,6 +200,11 @@
       "name": "Remendão",
       "sourceHash": "0b8a3041d272b5519b99a9af96a25fde1c37ce52",
       "description": "<p>Criar todo tipo de pequena invenção coça sua vontade de resolver problemas. Suas habilidades de engenharia têm um viés particularmente criativo, e ninguém sabe o que você vai inventar em seguida. Pode ser um dispositivo genial com potencial imenso, ou pode explodir.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Inteligência</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Ofício e na perícia Conhecimento (Engenharia). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Specialty Crafting].</p>"
+    },
+    "dK4Ofui3WOJw8Dhw": {
+      "name": "Mensageiro",
+      "sourceHash": "de95a00e73fef918fcbebe6d58e76901e8f7193f",
+      "description": "<p>Na juventude, você ganhava dinheiro levando mensagens para pessoas de riqueza e influência, correndo por ruas movimentadas da cidade. Seu comprometimento tenaz em entregar suas mensagens foi um bom treinamento para a vida de aventureiro.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Inteligência</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Sociedade e na perícia de Conhecimento da cidade em que foi criado. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Glean Contents].</p>"
     },
     "dg8qLGhBkFHLBE6B": {
       "name": "Acrobata",
@@ -141,6 +236,16 @@
       "sourceHash": "c0393fb49ba7566211987245f53cafe233b57731",
       "description": "<p>Sua arte é sua maior paixão, seja qual for a forma que ela assuma. A vida de aventureiro pode ajudá-lo a encontrar inspiração, ou simplesmente ser uma forma de sobreviver até você se tornar um artista mundialmente famoso.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Destreza</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Ofício e na perícia Conhecimento (Arte). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Specialty Crafting].</p>"
     },
+    "jk6fpVrPBv8epXWA": {
+      "name": "Amnésico",
+      "sourceHash": "cf8701896ab08b44d1e72b8a50b2e532f6321aa7",
+      "description": "<p>Seu antecedente é... bem... sinceramente, você não consegue se lembrar! Você pode ter pressentimentos nas profundezas da sua mente, correntes de emoções incomuns ou reações inesperadas a certas pessoas ou situações, mas, no fim das contas, você não sabe quem já foi. Você pode estar se aventurando especificamente para se redescobrir. Cabe a você e ao mestre decidir como lidar com a verdade sobre o passado do seu personagem. Vocês podem deixar isso a cargo do mestre para que seja um segredo, trabalhar juntos, ou até deixar em aberto para decidir mais tarde. De qualquer forma, você e o mestre devem determinar alguns detalhes notáveis sobre seu personagem ou seus pertences para obter as primeiras pistas sobre o seu passado.</p>\n<p>Você ganha três aumentos de atributo livres. Você escolhe dois, e o mestre escolhe o terceiro com base nos primeiros indícios da possível história do seu personagem.</p>"
+    },
+    "jtJuOIQHBO1nYn15": {
+      "name": "Astrólogo",
+      "sourceHash": "537dcbb4425988ed3350fd231e1bebfdd57e12de",
+      "description": "<p>Astrólogos buscam nos astros sinais e presságios, usando suas posições no céu para traçar rumos para aqueles que vivem sob eles. Conforme as esferas celestes se movem, o próprio destino também se move. Você estudou os astros e aprendeu a divinar seu caminho com base na orientação deles. Seja porque os astros o chamaram diretamente para uma vida de aventura, ou porque você usa os astros para guiar sua vontade de vagar, você está vivendo a orientação das estrelas em uma vida de aventura.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado em Ocultismo e Conhecimento (Astrologia). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Oddity Identification].</p>"
+    },
     "k8WceOZ0gdvvDVjZ": {
       "name": "Combatente",
       "sourceHash": "1a2c0e807053a8f9f6621212324edeef28e1d77f",
@@ -166,6 +271,11 @@
       "sourceHash": "cf951d93cd2c316361e7cfc76c4029ff023cbd4b",
       "description": "<p>Você dominou as técnicas para pilotar todo tipo de aeronave — balões, dirigíveis, veículos alados ou algo totalmente mais fantástico. Você desenvolveu perícia no uso desses veículos para transporte, exploração e batalha. Você vive pela vista majestosa que esses veículos proporcionam bem acima da refrega e sabe aproveitar os ventos que preenchem os céus.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Destreza</strong>, e um é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atletismo e na perícia Conhecimento (Pilotagem). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Assurance] com Conhecimento (Pilotagem).</p>"
     },
+    "nYu3HuQvfoMejhua": {
+      "name": "Insurgente",
+      "sourceHash": "df1bc13ad377b875a668486d17759c666e960778",
+      "description": "<p>Você era mais que um rebelde; você era um revolucionário, lutando pela promessa de um país novo ou melhor. Você pode ou não ainda acreditar na causa, ou talvez a vitória ou o exílio o tenham levado nesta nova jornada para proclamar sua glória... ou para escapar das consequências de sua derrota.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Enganação e na perícia Conhecimento (Guerra). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Lengthy Diversion].</p>"
+    },
     "oj1jWUuQWvquDQ4d": {
       "name": "Adivinho",
       "sourceHash": "94df0ecde1917ecc2d2b6c2d98ec1ff64dbfcc17",
@@ -176,10 +286,20 @@
       "sourceHash": "e2ea57ae58f76dcdd0003860fa57c769189e50d7",
       "description": "<p>Em uma loja empoeirada, uma banca de mercado ou uma caravana mercante, você negociava mercadorias por dinheiro e bens de troca. As habilidades que você adquiriu ainda se aplicam na vida de aventureiro, na qual um bom negócio em uma armadura pode evitar sua morte.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Carisma</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Diplomacia e na perícia Conhecimento (Comércio). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Bargain Hunter].</p>"
     },
+    "rdX3CnfoY7QaURwn": {
+      "name": "Batedor Montado",
+      "sourceHash": "9caed6f872a7a36afd13f17233d96d51611882bb",
+      "description": "<p>Na juventude, você galopava a cavalo por vastas planícies, servindo como vanguarda para seu assentamento, um exército, ou outro grupo. Ver tantas terras diferentes despertou em você a vontade de se aventurar e explorar o mundo, em vez de apenas cruzá-lo às pressas.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Constituição</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Natureza e na perícia Conhecimento (Planícies). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Express Rider].</p>"
+    },
     "rvmLvw2P5nB3ylbX": {
       "name": "Prisioneiro",
       "sourceHash": "52eb8a1ade86d6991116e6cfc5aae90a55bac9e8",
       "description": "<p>Você foi preso ou punido por crimes (seja você culpado ou não). Agora que sua pena terminou ou você escapou, você aproveita ao máximo a liberdade recém-conquistada da vida de aventureiro.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Força</strong> ou <strong>Constituição</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Furtividade e na perícia Conhecimento (Submundo). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler].</p>"
+    },
+    "s3ZHCTbUxHWih3L8": {
+      "name": "Raizeiro",
+      "sourceHash": "bdd236e50e56908cf0672dfea88ed37fe8250b87",
+      "description": "<p>Alguns males não podem ser curados apenas com ervas. Você também aprendeu remédios rituais, invocando espíritos da natureza para aliviar dores e afastar o mau-olhado. Juntar-se a aventureiros lhe deu companhia na estrada, bem como proteção contra aqueles que o chamariam de farsante — ou coisa pior.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Ocultismo e na perícia Conhecimento (Ervanária). Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Root Magic].</p>"
     },
     "stG67g6asHQ73Fka": {
       "name": "Minerador",

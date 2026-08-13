@@ -133,6 +133,39 @@ export const TokenBarConfigSchema = z.object({
 export type TokenBarConfig = z.infer<typeof TokenBarConfigSchema>;
 
 // ---------------------------------------------------------------------------
+// TokenDisplayMode — who sees the token's resource bars
+// REQ-CNV-089 / REQ-CNV-031, decided in DEC-CNV-15 (spec 06)
+// ---------------------------------------------------------------------------
+
+/**
+ * The five canonical visibility levels for a token overlay (resource bars
+ * today; nameplate and status icons follow the same ladder — REQ-CNV-031).
+ *
+ * `observer` is the ownership-gated level and it means OBSERVER (2) **or more**
+ * on the token's Actor, never OWNER: reading a companion's HP does not require
+ * the right to edit their sheet. There is deliberately no "owner" level — the
+ * spec prose used to say "dono", which named nothing in this codebase.
+ *
+ * The cut itself is enforced on the SERVER (the Actor never reaches a user who
+ * may not see it — REQ-NET-096); this field only says what the client draws
+ * with data it legitimately holds.
+ */
+export const TokenDisplayModeSchema = z.enum([
+  /** Nobody sees the bars, GM included. */
+  "never",
+  /** OBSERVER+ on the token's Actor (or a privileged role) sees them. */
+  "observer",
+  /** Same cut as `observer`, but only while the pointer hovers the token. */
+  "hoverObserver",
+  /** Anyone sees them while hovering, regardless of ownership. */
+  "hoverAll",
+  /** Anyone sees them at all times, regardless of ownership. */
+  "always",
+]);
+
+export type TokenDisplayMode = z.infer<typeof TokenDisplayModeSchema>;
+
+// ---------------------------------------------------------------------------
 // TokenDocument — embedded in Scene
 // Spec 02 §TokenData, Spec 06 §Tokens
 // REQ-DOC-019: Token is embedded; ownership inherits from actor (REQ-DOC-025)
@@ -164,6 +197,47 @@ export const TokenDocumentSchema = z.object({
    * REQ-DOC-031.
    */
   actorId: z.string().nullable().default(null),
+
+  /**
+   * Does this token SHARE the world Actor, or does it own its own copy of it?
+   * REQ-DOC-031 / REQ-DOC-032 / REQ-DOC-033.
+   *
+   * `true` (linked) — the token IS the Actor. Damage taken by the token is
+   * damage taken by the Actor, and every other linked token of that Actor
+   * shows it. This is what a player character wants: one sheet, one hit-point
+   * pool, however many tokens.
+   *
+   * `false` (unlinked) — the token carries an `actorDelta` and the actor it
+   * plays with is reconstructed from base + delta. This is what six skeletons
+   * out of one "Esqueleto" Actor want: killing the third leaves the other
+   * five untouched.
+   *
+   * The default is `true` because it is the only value that leaves every token
+   * ALREADY PERSISTED behaving exactly as before — those tokens have no such
+   * field, and Zod fills the default on every read. `false` as the default
+   * would silently re-interpret the whole existing world. The GM-facing
+   * default for NEWLY created tokens is a different question, answered at
+   * creation time by REQ-DOC-061.
+   */
+  actorLink: z.boolean().default(true),
+
+  /**
+   * This token's private difference from the base Actor — REQ-DOC-033.
+   *
+   * A merge patch over the Actor's fields (`name`, `img`, `system`, and an
+   * integral replacement of `items`/`effects` when present), never a mini
+   * Actor with its own embedded collections — DEC-DOC-08 rejects Foundry's
+   * `EmbeddedCollectionDelta` explicitly. Shapeless because `system` belongs
+   * to the game system, not to the engine.
+   *
+   * Meaningful only when `actorLink === false`; a linked token's delta is
+   * ignored by `effectiveTokenActor` rather than being an error, so flipping
+   * a token back to unlinked restores what it had.
+   *
+   * Reconstruction lives in `actor-delta.ts` (`applyActorDelta`) — one
+   * implementation for server and client, never two.
+   */
+  actorDelta: z.record(z.string(), z.unknown()).default(() => ({})),
 
   /**
    * Path or URL to the token artwork texture.
@@ -216,16 +290,29 @@ export const TokenDocumentSchema = z.object({
   disposition: DispositionSchema.default(0),
 
   /**
-   * Primary attribute bar (e.g. HP).
+   * Primary attribute bar. Defaults to HP so a freshly placed token already
+   * shows a truthful bar (REQ-CNV-090) — `displayBars` still decides who sees
+   * it. A system that stores HP elsewhere overrides per token via the config.
    * Spec 02 §TokenData.bar1.
    */
-  bar1: TokenBarConfigSchema.default({ attribute: null }),
+  bar1: TokenBarConfigSchema.default({ attribute: "attributes.hp" }),
 
   /**
    * Secondary attribute bar.
    * Spec 02 §TokenData.bar2.
    */
   bar2: TokenBarConfigSchema.default({ attribute: null }),
+
+  /**
+   * Who may see this token's resource bars (REQ-CNV-089, DEC-CNV-15).
+   *
+   * Defaults to `observer`: the party sees each other's HP without the GM
+   * configuring anything, while a monster the players do not observe keeps its
+   * bar to itself. The server is what makes that true — it does not emit the
+   * Actor to a user below LIMITED at all (REQ-NET-096) — so this field is the
+   * display policy, not the security boundary.
+   */
+  displayBars: TokenDisplayModeSchema.default("observer"),
 
   /**
    * Namespaced arbitrary data per namespace.
@@ -254,6 +341,88 @@ export type TokenDocument = z.infer<typeof TokenDocumentSchema>;
 /** Factory: build a minimal valid TokenDocument with defaults. */
 export function defaultTokenDocument(id: string): TokenDocument {
   return TokenDocumentSchema.parse({ _id: id });
+}
+
+// ---------------------------------------------------------------------------
+// Note — a map pin, with its own ownership (REQ-DOC-056/057, REQ-CNV-057/058)
+// ---------------------------------------------------------------------------
+
+/**
+ * A Note is a pin on the map: a village, a ruin, a dungeon entrance.
+ *
+ * It is the **second exception** to REQ-DOC-025 (embedded documents inherit the
+ * parent's ownership — the first is JournalEntryPage). A pin carries its own
+ * ownership map because its visibility is per-player and that is the whole
+ * point of it: the same ruin is nothing to one character, a rumour to another
+ * ("they say something walks the road to Godford") and a named place to a third
+ * who has been there.
+ *
+ * Two rules are not negotiable, both from REQ-DOC-056/057:
+ *
+ *  1. **Every pin is born hidden** (`ownership.default = NONE`). Revealing is a
+ *     deliberate act. A pin that defaults to visible hands the map away the
+ *     instant the GM drops it while preparing the session.
+ *  2. **`none` is absence of payload, `limited` is a redacted payload.** The
+ *     player at `none` never receives the note; the player at `limited`
+ *     receives position and nothing else — no name, no icon, no tooltip, no
+ *     `entryId`/`pageId`, no content flags. Enforced server-side in
+ *     `redaction.ts` (REQ-DOC-058); this schema only defines the shape.
+ *
+ * `global: true` is the escape hatch for landmarks nobody is meant to discover
+ * (the capital, the mountain range): it reads as `observer` for everyone.
+ */
+export const NoteDocumentSchema = z.object({
+  /** Unique 16-character nanoid ID within the Scene's notes collection. */
+  _id: z.string().regex(/^[A-Za-z0-9]{16}$/, "must be 16 chars from [A-Za-z0-9]"),
+
+  /** Soft reference to the JournalEntry this pin opens. */
+  entryId: z.string().nullable().default(null),
+
+  /** Soft reference to a specific page of that entry. */
+  pageId: z.string().nullable().default(null),
+
+  /** Position in scene pixel coordinates. */
+  x: z.number().default(0),
+  y: z.number().default(0),
+
+  /** Elevation, for scenes that stack floors. */
+  elevation: z.number().default(0),
+
+  /** Icon path/URL; null falls back to the engine's neutral pin. */
+  icon: z.string().nullable().default(null),
+
+  /** Icon size in scene pixels. */
+  iconSize: z.number().positive().default(40),
+
+  /** Tooltip override; null uses the linked entry's name. */
+  text: z.string().nullable().default(null),
+
+  /** Label typography. */
+  fontFamily: z.string().default("Signika"),
+  fontSize: z.number().positive().default(24),
+  textColor: z.string().nullable().default(null),
+
+  /** Label anchor relative to the icon (see REQ-CNV-057). */
+  textAnchor: z.number().int().default(1),
+
+  /** Visible to everyone regardless of ownership — reads as `observer`. */
+  global: z.boolean().default(false),
+
+  /**
+   * Per-user reveal state. Default `{ default: NONE }` — born hidden.
+   * REQ-DOC-025 exception, REQ-DOC-056.
+   */
+  ownership: OwnershipSchema.default(() => defaultOwnership()),
+
+  /** Namespaced flags: `flags.fusion.portal = { sceneId }` lives here. */
+  flags: FlagsSchema.default(() => ({})),
+});
+
+export type NoteDocument = z.infer<typeof NoteDocumentSchema>;
+
+/** Factory: build a minimal valid NoteDocument with defaults (born hidden). */
+export function defaultNoteDocument(id: string): NoteDocument {
+  return NoteDocumentSchema.parse({ _id: id });
 }
 
 // ---------------------------------------------------------------------------
@@ -559,9 +728,10 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
 
   /**
    * Embedded map notes / pins (linked to JournalEntries).
-   * Full NoteData schema is defined in spec 06 (M2); placeholder here.
+   * Typed: each pin carries its own ownership (REQ-DOC-056) and is redacted
+   * per viewer server-side (REQ-DOC-058).
    */
-  notes: z.array(z.unknown()).default(() => []),
+  notes: z.array(NoteDocumentSchema).default(() => []),
 });
 
 export type SceneDocument = z.infer<typeof SceneDocumentSchema>;

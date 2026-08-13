@@ -29,6 +29,7 @@ import {
   chooseFeat,
   chooseClassChoice,
   chooseKineticGate,
+  chooseDivineFont,
   chooseAdoptedAncestry,
   skillTrainingDialogContext,
   confirmSkillTraining,
@@ -345,6 +346,17 @@ function fillOneSlot(
         doc,
         chooseKineticGate(ctx, level, gateFeature, [{ element: "air" }, { element: "metal" }]),
       );
+      return true;
+    }
+    case "divineFont": {
+      // Issue #34. Like kineticGate above, and unlike every tagged-option axis
+      // in the `default` branch, the Cleric's Heal/Harm font has no pack docs
+      // to pick from — chooseDivineFont synthesizes the classFeature — so the
+      // generic CLASS_CHOICE_SLOT_OPTIONS dispatch can't resolve it and the
+      // slot needs its own case. Picking "heal" is arbitrary for the sweep's
+      // purposes (it only asserts every slot RESOLVES); the Heal-vs-Harm rule
+      // itself is asserted in divineFont.test.ts.
+      applyOps(doc, chooseDivineFont(ctx, level, "heal"));
       return true;
     }
     case "grantedFeat": {

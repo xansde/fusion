@@ -61,6 +61,21 @@
     }
   },
   {
+    "_id": "wCKgeaPqB6b8gGes",
+    "uuid": "Compendium.pf2e.classes-core.Item.wCKgeaPqB6b8gGes",
+    "name": "Druid",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Druid",
+      "system.keyAbility": [
+        "wis"
+      ],
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "7s57JDCaiYYCAdFx"
+    }
+  },
+  {
     "_id": "1VFFHH43BOrf82SB",
     "uuid": "Compendium.pf2e.classes-core.Item.1VFFHH43BOrf82SB",
     "name": "Fighter",
@@ -74,6 +89,21 @@
       ],
       "system.traits.value": [],
       "flags.fusion.sourceId": "8zn3cD6GSmoo1LW4"
+    }
+  },
+  {
+    "_id": "Mx4ch9PiH76OeSwk",
+    "uuid": "Compendium.pf2e.classes-core.Item.Mx4ch9PiH76OeSwk",
+    "name": "Gunslinger",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Gunslinger",
+      "system.keyAbility": [
+        "dex"
+      ],
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Z9li154CPNmun29Q"
     }
   },
   {
@@ -121,6 +151,19 @@
       ],
       "system.traits.value": [],
       "flags.fusion.sourceId": "YPxpk9JbMnKjbNLc"
+    }
+  },
+  {
+    "_id": "kJAUMTXDise4UFG2",
+    "uuid": "Compendium.pf2e.classes-core.Item.kJAUMTXDise4UFG2",
+    "name": "Psychic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Psychic",
+      "system.keyAbility": [],
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Inq4gH3P5PYjSQbD"
     }
   },
   {

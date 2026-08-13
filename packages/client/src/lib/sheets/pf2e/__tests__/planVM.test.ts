@@ -162,6 +162,7 @@ function barbarianClassDoc(): Record<string, unknown> {
     name: "Barbarian",
     type: "class",
     system: {
+      keyAbility: ["str"], // RAW: Barbarian is a single-key-ability class (issue #12).
       featuresByLevel: [
         { level: 1, uuid: "uuid-instinct", name: "Instinct" },
         { level: 1, uuid: "uuid-rage", name: "Rage" },
@@ -2611,10 +2612,7 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   }
 
   it("deletes the outgoing background's Lore, in the legacy slug form it was written with", () => {
-    const ops = applyBackground(
-      ctx(acolyteAppliedDoc("scribing-lore")),
-      fieldMedicBackgroundDoc(),
-    );
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), fieldMedicBackgroundDoc());
     expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
   });
 
@@ -2630,7 +2628,10 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
     );
     expect(delOp).toBeDefined();
     if (delOp?.type !== "doc:update") throw new Error("expected doc:update");
-    const wire = { documentType: delOp.documentType, updates: [{ _id: delOp.id, diff: delOp.diff }] };
+    const wire = {
+      documentType: delOp.documentType,
+      updates: [{ _id: delOp.id, diff: delOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -2650,11 +2651,9 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   it("does NOT delete a Lore the player raised with one of their OWN slots", () => {
     // The background granted it, but the character then spent a skill increase
     // on it — that investment is theirs, the swap doesn't claw it back.
-    const doc = acolyteAppliedDoc(
-      "lore-scribing",
-      {},
-      [{ level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "lore-scribing", rank: 2 }],
-    );
+    const doc = acolyteAppliedDoc("lore-scribing", {}, [
+      { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "lore-scribing", rank: 2 },
+    ]);
     const ops = applyBackground(ctx(doc), fieldMedicBackgroundDoc());
     expect(deletedSkillKeys(ops)).toEqual([]);
   });
@@ -2740,17 +2739,26 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   }
 
   it("keeps a Lore the player ranked up by hand, even with no build choice to prove it", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("lore-scribing", 2)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(deletedSkillKeys(ops)).toEqual([]);
   });
 
   it("keeps a hand-ranked Lore held under the legacy slug too", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("scribing-lore", 2)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(deletedSkillKeys(ops)).toEqual([]);
   });
 
   it("still deletes the outgoing Lore when its persisted rank is 0 (untouched grant)", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 0)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("lore-scribing", 0)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
   });
 
@@ -2772,7 +2780,10 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   });
 
   it("writes rank 0 for a granted Lore the sheet has never held", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("lore-scribing", 2)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(writtenSkillEntry(ops, "lore-warfare")).toMatchObject({ rank: 0, lore: true });
   });
 });
@@ -2818,7 +2829,10 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
    * expanded (doc-handlers.applyDotPathDiff) and `null` inside `system` deletes
    * the key (merge.deepMerge, REQ-DOC-037).
    */
-  function applyOps(doc: Record<string, unknown>, ops: DocUpdatePayload[]): Record<string, unknown> {
+  function applyOps(
+    doc: Record<string, unknown>,
+    ops: DocUpdatePayload[],
+  ): Record<string, unknown> {
     const next = structuredClone(doc);
     for (const op of ops) {
       for (const [path, value] of Object.entries(op.diff)) {
@@ -2857,19 +2871,16 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
   });
 
   it("repoints every build choice that referenced the legacy slug", () => {
-    const doc = docWith(
-      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
-      [
-        {
-          level: 1,
-          slot: "backgroundLore-0",
-          type: "skillTraining",
-          skill: "scribing-lore",
-          rank: 1,
-        },
-        { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
-      ],
-    );
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } }, [
+      {
+        level: 1,
+        slot: "backgroundLore-0",
+        type: "skillTraining",
+        skill: "scribing-lore",
+        rank: 1,
+      },
+      { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
+    ]);
     const ops = updatesOf(loreSlugHealOps(ctx(doc)));
     const choicesOp = ops.find((o) => "system.build.choices" in o.diff);
     expect(choicesOp).toBeDefined();
@@ -2878,18 +2889,15 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
   });
 
   it("is idempotent — replaying the healed document yields no ops", () => {
-    const doc = docWith(
-      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
-      [
-        {
-          level: 1,
-          slot: "backgroundLore-0",
-          type: "skillTraining",
-          skill: "scribing-lore",
-          rank: 1,
-        },
-      ],
-    );
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } }, [
+      {
+        level: 1,
+        slot: "backgroundLore-0",
+        type: "skillTraining",
+        skill: "scribing-lore",
+        rank: 1,
+      },
+    ]);
     const healed = applyOps(doc, updatesOf(loreSlugHealOps(ctx(doc))));
     const healedSkills = (healed["system"] as Record<string, unknown>)["skills"] as Record<
       string,
@@ -2923,18 +2931,15 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
   });
 
   it("emits wire-valid doc:update payloads", () => {
-    const doc = docWith(
-      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
-      [
-        {
-          level: 1,
-          slot: "backgroundLore-0",
-          type: "skillTraining",
-          skill: "scribing-lore",
-          rank: 1,
-        },
-      ],
-    );
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } }, [
+      {
+        level: 1,
+        slot: "backgroundLore-0",
+        type: "skillTraining",
+        skill: "scribing-lore",
+        rank: 1,
+      },
+    ]);
     for (const op of updatesOf(loreSlugHealOps(ctx(doc)))) {
       const wire = { documentType: op.documentType, updates: [{ _id: op.id, diff: op.diff }] };
       expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
@@ -3631,6 +3636,19 @@ describe("abilityBoostsSlotContext", () => {
     expect(backgroundGroup.freeCount).toBe(0);
     const levelledGroup = result.groups.find((g) => g.origin === "levelled")!;
     expect(levelledGroup.freeCount).toBe(4);
+  });
+
+  it("issue #12: a single-key-ability class (Barbarian: str only) restricts classBoost to that one ability, not 'any'", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...barbarianClassDoc(), _id: "item-class" }],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const result = abilityBoostsSlotContext(doc, 1);
+    const classGroup = result.groups.find((g) => g.origin === "classBoost")!;
+    // RAW: Barbarian's key ability is Strength, period — offering all six
+    // (the pre-fix "list of 1 -> undefined/no restriction" behavior) let a
+    // Barbarian take Charisma as its key ability with no warning.
+    expect(classGroup.allowedSlugs).toEqual(["str"]);
   });
 });
 
@@ -4548,6 +4566,71 @@ describe("skillTrainingDialogContext", () => {
     expect(athleticsRow.currentMod).toBe(0); // untrained: just the ability mod
     expect(athleticsRow.targetMod).toBe(0 + skillProficiencyBonus(1, 3)); // trained at char level 3
     expect(athleticsRow.targetModFormatted).toBe(`+${String(athleticsRow.targetMod)}`);
+  });
+
+  // PF2e Remaster core rules (RAW, not read from any pack): Master requires
+  // character level 7+, Legendary requires character level 15+ — regardless
+  // of how many skillIncrease slots the character has spent so far.
+  function docAtLevelWithStealthRank(level: number, rank: number): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...magusClassDoc(), _id: "item-class" }],
+      system: {
+        level: { value: level },
+        details: {},
+        skills: { stealth: { rank } },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  it("issue #49: a rank-2 (expert) skill cannot advance to Master before character level 7", () => {
+    const belowGate = skillTrainingDialogContext(
+      docAtLevelWithStealthRank(6, 2),
+      6,
+      "skillIncrease",
+    );
+    const stealthBelow = belowGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthBelow.targetRank).toBe(3); // would-be Master
+    expect(stealthBelow.eligible).toBe(false); // level 6 < 7
+
+    const atGate = skillTrainingDialogContext(docAtLevelWithStealthRank(7, 2), 7, "skillIncrease");
+    const stealthAtGate = atGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthAtGate.targetRank).toBe(3);
+    expect(stealthAtGate.eligible).toBe(true); // level 7 meets the gate
+  });
+
+  it("issue #49: a rank-3 (master) skill cannot advance to Legendary before character level 15", () => {
+    const belowGate = skillTrainingDialogContext(
+      docAtLevelWithStealthRank(14, 3),
+      14,
+      "skillIncrease",
+    );
+    const stealthBelow = belowGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthBelow.targetRank).toBe(4); // would-be Legendary
+    expect(stealthBelow.eligible).toBe(false); // level 14 < 15
+
+    const atGate = skillTrainingDialogContext(
+      docAtLevelWithStealthRank(15, 3),
+      15,
+      "skillIncrease",
+    );
+    const stealthAtGate = atGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthAtGate.targetRank).toBe(4);
+    expect(stealthAtGate.eligible).toBe(true); // level 15 meets the gate
   });
 });
 

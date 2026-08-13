@@ -68,16 +68,16 @@ Esta spec é o mapa que conecta todas as demais specs. Ela NÃO detalha o conte�
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Processo único Node.js servindo HTTP + WebSocket no mesmo servidor
+### DEC-ARQ-01 — Processo único Node.js servindo HTTP + WebSocket no mesmo servidor
 
 O servidor Fusion é um **único processo Node.js** que instancia um `http.Server`, monta o Fastify para HTTP (estático, REST, auth) e anexa o `socket.io` ao mesmo servidor para tempo real.
 
 - **Alternativas rejeitadas:**
   - _Dois processos separados (HTTP e WS)_: complica deploy local, exige IPC e duplica estado em memória. O caso de uso é single-GM local — não há ganho de escala que justifique.
-  - _Worker threads para o servidor de jogo_: adia o problema de event loop blocking sem resolver a fonte (ver D9 e Riscos). Mantém-se single-thread no MVP, com offload pontual para workers só onde medido como necessário (ex.: visibility polygon pesado — ver `07-visao-iluminacao-fog.md`).
+  - _Worker threads para o servidor de jogo_: adia o problema de event loop blocking sem resolver a fonte (ver DEC-ARQ-09 e Riscos). Mantém-se single-thread no MVP, com offload pontual para workers só onde medido como necessário (ex.: visibility polygon pesado — ver `07-visao-iluminacao-fog.md`).
 - **Racional:** A pesquisa confirma que o Foundry roda como processo único Node.js servindo HTTP + WS simultaneamente (research 01 §2.1, research 06 §1). Um processo único compartilha o estado do world em memória sem serialização entre componentes, simplifica o boot e o lifecycle, e é suficiente para o público-alvo. Montar `socket.io` no mesmo `http.Server` do Fastify é o padrão suportado pela lib (research 15 §13.1: "socket.io é montado no mesmo server instance").
 
-### D2 — Fastify para HTTP, socket.io v4 para tempo real
+### DEC-ARQ-02 — Fastify para HTTP, socket.io v4 para tempo real
 
 HTTP (assets estáticos, REST, auth) usa **Fastify**; o tempo real (sync de Documents, eventos de canvas, chat) usa **socket.io v4**.
 
@@ -87,7 +87,7 @@ HTTP (assets estáticos, REST, auth) usa **Fastify**; o tempo real (sync de Docu
   - _Colyseus_: orientado a jogos de estado altamente dinâmico; o VTT é document-oriented com updates esparsos e semânticos (research 15 §4.2). Over-engineering para o caso.
 - **Racional:** Decisão de stack já fixada pelo projeto; a pesquisa a valida. As **rooms** do socket.io isolam um world por room e permitem broadcast seletivo (por cena, por GM, por usuário). O protocolo concreto vive em `04-rede-e-sincronizacao.md`.
 
-### D3 — Persistência: um `world.db` (better-sqlite3, WAL) por mundo + `assets/` estático
+### DEC-ARQ-03 — Persistência: um `world.db` (better-sqlite3, WAL) por mundo + `assets/` estático
 
 Cada world é um arquivo SQLite autocontido (`world.db`) acessado via **better-sqlite3** em **WAL mode**, mais uma pasta `assets/` servida estaticamente.
 
@@ -96,7 +96,7 @@ Cada world é um arquivo SQLite autocontido (`world.db`) acessado via **better-s
   - _node:sqlite nativo (Node 22+)_: viável e sem dependência (research 15 §11.1), mas better-sqlite3 é mais maduro e ergonômico hoje; ver risco de empacotamento de addon nativo em `22-instalacao-e-distribuicao.md`.
 - **Racional:** better-sqlite3 tem API síncrona (sem overhead de event loop para queries locais), ACID e WAL para leitura concorrente durante escrita (research 15 §11.1). Um arquivo por world = backup e portabilidade triviais. Detalhes de schema e migrations em `03-persistencia-e-mundos.md`.
 
-### D4 — Cliente: Svelte 5 (Runes) + Vite para UI; PIXI.js v8 para o canvas
+### DEC-ARQ-04 — Cliente: Svelte 5 (Runes) + Vite para UI; PIXI.js v8 para o canvas
 
 Toda a UI (HUD, sidebar, fichas, diálogos) é **Svelte 5 (Runes)** buildado por **Vite**; o canvas do mapa é **PIXI.js v8** (WebGPU com fallback WebGL).
 
@@ -105,7 +105,7 @@ Toda a UI (HUD, sidebar, fichas, diálogos) é **Svelte 5 (Runes)** buildado por
   - _PIXI v7 / WebGL-only_ (alvo atual do Foundry, research 01 §6.4): PIXI v8 já é WebGPU-ready com fallback WebGL automático e Render Groups para câmera 2D hardware-accelerated (research 15 §3.1), essenciais para pan/zoom em mapas grandes.
 - **Racional:** Stack fixada e validada. PIXI ocupa um `<canvas>` dedicado e Svelte gerencia o overlay de UI — coexistem sem conflito (research 15 §12.1). Detalhes em `06-canvas-e-renderizacao.md` e `11-ui-framework-e-fichas.md`.
 
-### D5 — Monorepo pnpm com fronteira `shared` no centro
+### DEC-ARQ-05 — Monorepo pnpm com fronteira `shared` no centro
 
 Layout: `packages/server`, `packages/client`, `packages/shared`, `packages/system-api`, `systems/*`, `tools/*`. O pacote `shared` contém schemas, tipos e o protocolo, e é a **única** dependência comum entre server e client.
 
@@ -114,7 +114,7 @@ Layout: `packages/server`, `packages/client`, `packages/shared`, `packages/syste
   - _Tudo em um pacote_: impede impor fronteiras de dependência (ex.: impedir o client de importar código de servidor).
 - **Racional:** O contrato (schemas Zod/TypeScript dos Documents, envelopes de socket, enums de role) precisa ser idêntico nos dois lados. Centralizá-lo em `shared` garante uma única fonte de verdade e habilita validação isomórfica (mesmo schema valida no client antes de enviar e no server ao receber). A direção de dependências é estrita (ver Requisitos).
 
-### D6 — Sistemas compilados junto no MVP (sem plugins dinâmicos de terceiros)
+### DEC-ARQ-06 — Sistemas compilados junto no MVP (sem plugins dinâmicos de terceiros)
 
 Os sistemas (`systems/pf2e`, `systems/sf2e`, `systems/etmos`) são pacotes do monorepo **compilados junto** com o app. O núcleo de regras 2e compartilhado entre PF2e e SF2e vive no pacote `systems/engine-2e`, do qual `systems/pf2e` e `systems/sf2e` dependem. Não há carregamento dinâmico de plugins de terceiros no MVP.
 
@@ -122,7 +122,7 @@ Os sistemas (`systems/pf2e`, `systems/sf2e`, `systems/etmos`) são pacotes do mo
   - _Carregamento dinâmico de plugins arbitrários no MVP_ (modelo de packages do Foundry, research 01 §5.1, research 15 §2.4): superfície de segurança grande (execução de código de terceiros), complexidade de sandbox e de versionamento. Marcado como **[V2]**.
 - **Racional:** Reduz risco e escopo do MVP. Os sistemas registram suas fichas e schemas pela system API (`15-api-de-sistemas.md`) durante o boot. O carregamento dinâmico fica como evolução [V2].
 
-### D7 — Porta default própria 33000 (não 30000)
+### DEC-ARQ-07 — Porta default própria 33000 (não 30000)
 
 A porta TCP default do servidor Fusion é **33000**.
 
@@ -131,7 +131,7 @@ A porta TCP default do servidor Fusion é **33000**.
   - _Portas "bonitas" comuns (8080, 3000)_: alta chance de colisão com outros serviços de dev.
 - **Racional:** 33000 é alto o bastante para não exigir privilégio, distinto do Foundry e mnemônico ("33" ≈ Fusion). Configurável via `fusion.json` → `port` ou flag `--port` (ver Configuração).
 
-### D8 — Validação isomórfica com fonte de verdade no servidor
+### DEC-ARQ-08 — Validação isomórfica com fonte de verdade no servidor
 
 Os mesmos schemas (em `shared`) validam no cliente (UX rápida, feedback imediato) e no servidor (autoridade). A validação do cliente é conveniência; a do servidor é lei.
 
@@ -140,7 +140,7 @@ Os mesmos schemas (em `shared`) validam no cliente (UX rápida, feedback imediat
   - _Validar só no cliente_: inseguro — cliente é não-confiável (anti-cheat, ver `08-motor-de-rolagens.md` e `21-seguranca.md`).
 - **Racional:** O servidor é autoritativo (research 06 §3). Reusar o schema dos dois lados elimina divergência sem abrir mão da autoridade. As rolagens em particular executam **no servidor** (RNG autoritativo) por anti-cheat — decisão da stack, detalhada em `08-motor-de-rolagens.md`.
 
-### D9 — Operações pesadas fora do caminho síncrono do socket
+### DEC-ARQ-09 — Operações pesadas fora do caminho síncrono do socket
 
 Operações potencialmente longas (visibility polygon, importação de compendium, migração de world) NÃO bloqueiam o handler de socket: são feitas de forma assíncrona, em chunks, ou (quando medido necessário) em worker threads.
 
@@ -217,7 +217,7 @@ Operações potencialmente longas (visibility polygon, importação de compendiu
 ## Requisitos não-funcionais
 
 - **REQ-ARQ-038** [MVP] **Latência LAN:** uma operação de update de Document de tamanho típico (mover token, ajustar HP) DEVE ter round-trip mediano < 100 ms em LAN com 1 GM + até 5 jogadores.
-- **REQ-ARQ-039** [MVP] **Não-bloqueio do event loop:** nenhum handler de socket DEVE bloquear o event loop por > 50 ms em operações normais de jogo; operações reconhecidamente pesadas seguem D9.
+- **REQ-ARQ-039** [MVP] **Não-bloqueio do event loop:** nenhum handler de socket DEVE bloquear o event loop por > 50 ms em operações normais de jogo; operações reconhecidamente pesadas seguem DEC-ARQ-09.
 - **REQ-ARQ-040** [MVP] **Footprint do servidor:** o servidor DEVE iniciar e operar uma sessão de MVP em uma máquina com 4 GB de RAM e 2 vCPUs (alinha com o baseline de hardware da pesquisa, research 01 §9.1).
 - **REQ-ARQ-041** [MVP] **Boot frio:** do `fusion serve` até "pronto para conexões" com um world pequeno aberto DEVE levar < 5 s em hardware baseline.
 - **REQ-ARQ-042** [MVP] **Degradação de GPU:** o cliente DEVE detectar a ausência de WebGPU e cair para WebGL automaticamente (capacidade nativa do PIXI v8, research 15 §3.1), sem intervenção do usuário.
@@ -397,7 +397,7 @@ carregar bundle → autenticar (HTTP)
 - `08-motor-de-rolagens.md` — execução autoritativa de rolagens no servidor.
 - `11-ui-framework-e-fichas.md` — framework Svelte e registro de fichas pelo system.
 - `15-api-de-sistemas.md` — contrato pelo qual os systems se registram no boot.
-- `16-compendiums-e-importacao.md` — importação dos dados abertos (operação pesada, D9).
+- `16-compendiums-e-importacao.md` — importação dos dados abertos (operação pesada, DEC-ARQ-09).
 - `21-seguranca.md` — hardening do servidor autoritativo, upload e TLS.
 - `22-instalacao-e-distribuicao.md` — empacotamento, Tauri [fase 2], CLI distribuída e auto-update.
 - `24-operacao-backups-telemetria.md` — backups automáticos antes de migrar, telemetria de operação.
@@ -428,7 +428,7 @@ carregar bundle → autenticar (HTTP)
 - **Q2 — Túnel de internet integrado.** A pesquisa sugere integrar Cloudflare Tunnel como fallback de WAN (research 92 §7). Entra no MVP ou fica [V2]? Decidir junto com `22-instalacao-e-distribuicao.md`.
 - **Q3 — UPnP no MVP.** UPnP automático (como o Foundry) é conveniente mas tem superfície de segurança e confiabilidade variável por roteador. Habilitar por default ou exigir opt-in? Cruzar com `21-seguranca.md`.
 - **Q4 — Granularidade do snapshot inicial.** O snapshot inicial enviado ao cliente deve conter todos os Documents visíveis de uma vez, ou carregar cenas/compendiums sob demanda (lazy load, como o Foundry faz com packs — research 01 §5.5)? Impacta `04-rede-e-sincronizacao.md` e o tempo até `game.ready`.
-- **Q5 — Worker thread para visibility polygon.** Definir o limiar (nº de paredes / tamanho de cena) a partir do qual o cálculo de visão migra para worker thread (D9). Requer medição; cruzar com `07-visao-iluminacao-fog.md`.
+- **Q5 — Worker thread para visibility polygon.** Definir o limiar (nº de paredes / tamanho de cena) a partir do qual o cálculo de visão migra para worker thread (DEC-ARQ-09). Requer medição; cruzar com `07-visao-iluminacao-fog.md`.
 - **Q6 — Política de concorrência por documento.** O MVP adota last-writer-wins por campo (research 06 §8). Há Documents (ex.: combat tracker, iniciativa) que exigem locking otimista ou ordenação especial? Cruzar com `04` e `10-combate-e-iniciativa.md`.
 - **Q7 — `better-sqlite3` vs `node:sqlite` no empacotamento.** O addon nativo do better-sqlite3 complica o empacotamento desktop (research 92 §9). Manter better-sqlite3 e resolver o addon, ou migrar para `node:sqlite` nativo do Node 22+? Decidir com `22-instalacao-e-distribuicao.md`.
 

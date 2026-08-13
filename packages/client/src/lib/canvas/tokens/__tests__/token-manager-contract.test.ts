@@ -130,6 +130,9 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     _id: TOKEN_ID,
     name: "Goblin",
     actorId: null,
+    // REQ-DOC-031: a token declares whether it shares the world Actor.
+    actorLink: true,
+    actorDelta: {},
     texture: null,
     x: 100,
     y: 100,
@@ -141,6 +144,8 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     disposition: 0,
     bar1: { attribute: null },
     bar2: { attribute: null },
+    // REQ-CNV-089: every token declares who may see its bars.
+    displayBars: "observer",
     flags: {},
     vision: {
       enabled: false,
@@ -191,6 +196,7 @@ function buildOpts(
       diagonalRule: "alternating_1",
     }),
     attachKeyboard: false,
+    targeting: { isTargetedByMe: () => false, toggle: async () => {} },
   };
 }
 

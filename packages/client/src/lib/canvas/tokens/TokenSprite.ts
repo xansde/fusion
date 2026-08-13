@@ -1,7 +1,7 @@
 /**
  * TokenSprite.ts — PIXI shell for a single token.
  *
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §D7, §D8
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §DEC-CNV-07, §DEC-CNV-08
  *
  * Design:
  *   - Thin PIXI wrapper — all math delegated to token-visuals.ts.
@@ -10,9 +10,9 @@
  *         ├─ artContainer (Container, centered at footprint center)
  *         │    └─ sprite  (Sprite, from Assets cache or placeholder Graphics)
  *         ├─ ringGraphics (Graphics, border by disposition)
- *         ├─ barsContainer (Container, at bottom of bounding box)
- *         │    ├─ bar1Graphics (Graphics)
- *         │    └─ bar2Graphics (Graphics)
+ *         ├─ barsContainer (Container "bars", at bottom of bounding box)
+ *         │    ├─ bar1Bg / bar1Fill (Graphics "bar1-bg" / "bar1-fill")
+ *         │    └─ bar2Bg / bar2Fill (Graphics "bar2-bg" / "bar2-fill")
  *         ├─ elevationText (Text, badge at top-right when elevation ≠ 0)
  *         └─ nameplate     (Text, below the token bounding box)
  *
@@ -52,7 +52,6 @@ import {
   BAR_GAP_PX,
   BAR_BG_COLOR,
   BAR_FILL_COLORS,
-  barFraction,
   barYOffset,
   computeLod,
   animDuration,
@@ -60,6 +59,14 @@ import {
   type AnimState,
   type LodState,
 } from "./token-visuals.js";
+import {
+  resolveTokenBarValue,
+  shouldShowTokenBars,
+  tokenActorFingerprint,
+  tokenDisplayBars,
+  type TokenBarContext,
+  type TokenActorView,
+} from "./token-bars.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -99,10 +106,24 @@ export class TokenSprite {
   private _placeholder: Graphics | null = null;
   private _ringGraphics: Graphics;
   private _barsContainer: Container;
-  private _bar1: Graphics;
-  private _bar2: Graphics;
+  /**
+   * Each bar is TWO Graphics — track (background) and fill — instead of one.
+   * The fill then owns its own geometry, so "how full is this bar" is a fact
+   * about the scene graph rather than a private number: a test can measure the
+   * painted width, and an absent bar is an object with no instructions at all.
+   */
+  private _bar1Bg: Graphics;
+  private _bar1Fill: Graphics;
+  private _bar2Bg: Graphics;
+  private _bar2Fill: Graphics;
   private _nameplate: Text;
   private _elevationText: Text;
+
+  /** Actor window used to resolve bar values and the viewer's ownership. */
+  private _barContext: TokenBarContext | null;
+
+  /** Whether the pointer is currently over this token (hover display modes). */
+  private _hovered = false;
 
   // Animation
   private _anim: AnimState | null = null;
@@ -125,10 +146,16 @@ export class TokenSprite {
   private _renderX: number;
   private _renderY: number;
 
-  constructor(doc: TokenDocument, gridSize: number, isGm: boolean) {
+  constructor(
+    doc: TokenDocument,
+    gridSize: number,
+    isGm: boolean,
+    barContext: TokenBarContext | null = null,
+  ) {
     this._doc = doc;
     this._gridSize = gridSize;
     this._isGm = isGm;
+    this._barContext = barContext;
 
     this.container = new Container();
     this.container.label = `token:${doc._id}`;
@@ -154,14 +181,25 @@ export class TokenSprite {
     this._ringGraphics.eventMode = "none";
     this.container.addChild(this._ringGraphics);
 
-    // Bars
+    // Bars — track first, fill on top (addChild order IS z order).
     this._barsContainer = new Container();
+    this._barsContainer.label = "bars";
     this._barsContainer.eventMode = "none";
     this.container.addChild(this._barsContainer);
-    this._bar1 = new Graphics();
-    this._bar2 = new Graphics();
-    this._barsContainer.addChild(this._bar1);
-    this._barsContainer.addChild(this._bar2);
+    this._bar1Bg = new Graphics();
+    this._bar1Bg.label = "bar1-bg";
+    this._bar1Fill = new Graphics();
+    this._bar1Fill.label = "bar1-fill";
+    this._bar2Bg = new Graphics();
+    this._bar2Bg.label = "bar2-bg";
+    this._bar2Fill = new Graphics();
+    this._bar2Fill.label = "bar2-fill";
+    for (const g of [this._bar1Bg, this._bar1Fill, this._bar2Bg, this._bar2Fill]) {
+      // Same rule as every other child: the hit test must never descend into
+      // them, or the token stops being clickable (see token-sprite-hittest).
+      g.eventMode = "none";
+      this._barsContainer.addChild(g);
+    }
 
     // Elevation
     this._elevationText = new Text({ text: "", style: ELEVATION_STYLE });
@@ -185,10 +223,32 @@ export class TokenSprite {
     this._drawElevation(doc);
     this._applyAlpha(doc);
     this._applyRotation(doc);
+    this._wireHover();
 
     // Load art (async, non-blocking)
     void this._loadArt(doc, pixelW, pixelH);
   }
+
+  /**
+   * Track the pointer for the `hoverObserver` / `hoverAll` display modes.
+   *
+   * Listeners go on the ROOT container only — it is already `eventMode:
+   * "static"` with an explicit hitArea, so this adds behaviour without touching
+   * the hit test. Children stay `eventMode: "none"`; giving one of them events
+   * would let the hit test descend and is exactly how token clicks broke once.
+   */
+  private _wireHover(): void {
+    this.container.on("pointerover", this._onPointerOver);
+    this.container.on("pointerout", this._onPointerOut);
+  }
+
+  private readonly _onPointerOver = (): void => {
+    this.setHovered(true);
+  };
+
+  private readonly _onPointerOut = (): void => {
+    this.setHovered(false);
+  };
 
   // ---------------------------------------------------------------------------
   // Public API — called by TokenLayer
@@ -225,6 +285,32 @@ export class TokenSprite {
     if (this._selected === selected) return;
     this._selected = selected;
     this._applySelectionOutline();
+  }
+
+  /**
+   * Mark the pointer as being over (or off) this token.
+   *
+   * Only the `hoverObserver` / `hoverAll` display modes care, so this repaints
+   * the bars and nothing else (REQ-CNV-089).
+   */
+  setHovered(hovered: boolean): void {
+    if (this._hovered === hovered) return;
+    this._hovered = hovered;
+    this.refreshBars();
+  }
+
+  /**
+   * Repaint the resource bars from the CURRENT actor data.
+   *
+   * HP lives on the Actor, not on the TokenDocument, so no `doc:update` for the
+   * token ever arrives when a character takes damage — `update()` is never
+   * called and the bar would sit frozen at the value it was born with. The
+   * TokenLayer calls this whenever the mirror's Actor collection changes
+   * (REQ-CNV-090).
+   */
+  refreshBars(): void {
+    const { pixelW, pixelH } = tokenPixelSize(this._doc.width, this._doc.height, this._gridSize);
+    this._drawBars(this._doc, pixelW, pixelH);
   }
 
   /**
@@ -281,7 +367,14 @@ export class TokenSprite {
       }
     }
 
-    // Re-draw visuals if anything else changed
+    // Re-draw visuals if anything else changed.
+    //
+    // This list is a closed, silent contract: a field that is not named here
+    // renders once and then never again, with no error to point at it. The bar
+    // fields below (`bar1`/`bar2`/`displayBars`/`actorId`) are compared by the
+    // value that actually drives the drawing — `bar1` arrives as a fresh object
+    // from the mirror on every scene op, so `!==` on the object would repaint
+    // the bars on every token move for nothing.
     const visualChanged =
       newDoc.width !== oldDoc.width ||
       newDoc.height !== oldDoc.height ||
@@ -290,7 +383,15 @@ export class TokenSprite {
       newDoc.elevation !== oldDoc.elevation ||
       newDoc.hidden !== oldDoc.hidden ||
       newDoc.texture !== oldDoc.texture ||
-      newDoc.rotation !== oldDoc.rotation;
+      newDoc.rotation !== oldDoc.rotation ||
+      newDoc.bar1.attribute !== oldDoc.bar1.attribute ||
+      newDoc.bar2.attribute !== oldDoc.bar2.attribute ||
+      tokenDisplayBars(newDoc) !== tokenDisplayBars(oldDoc) ||
+      newDoc.actorId !== oldDoc.actorId ||
+      // REQ-CNV-092 / REQ-DOC-033: an unlinked token's hit points live in its
+      // OWN document, so damage to it arrives here and nowhere else — no Actor
+      // op is emitted and the Actor subscription in TokenLayer never fires.
+      tokenActorFingerprint(newDoc) !== tokenActorFingerprint(oldDoc);
 
     if (visualChanged || xChanged) {
       this._drawRing(pixelW, pixelH);
@@ -527,40 +628,78 @@ export class TokenSprite {
   // Private — bars (REQ-CNV-028)
   // ---------------------------------------------------------------------------
 
+  /**
+   * Paint both resource bars from the actor the token points at.
+   *
+   * REQ-CNV-090: real value, fraction clamped to [0,1], and NO bar at all when
+   * the path does not resolve / the token has no actor / `max <= 0`. The old
+   * code drew a full bar as a placeholder in every one of those cases, which
+   * reads on the table as "this monster is at full health".
+   * REQ-CNV-089 / DEC-CNV-15: the whole bars container is hidden when this
+   * viewer is not allowed to read them at this moment.
+   */
   private _drawBars(doc: TokenDocument, pixelW: number, pixelH: number): void {
-    this._drawSingleBar(this._bar1, doc, pixelW, pixelH, 0, "bar1");
-    this._drawSingleBar(this._bar2, doc, pixelW, pixelH, 1, "bar2");
+    const actor = this._barContext?.resolve(doc) ?? null;
+    const allowed = shouldShowTokenBars({
+      mode: tokenDisplayBars(doc),
+      level: actor?.level ?? 0,
+      privileged: this._barContext?.privileged ?? false,
+      hovered: this._hovered,
+    });
+
+    this._drawSingleBar(
+      this._bar1Bg,
+      this._bar1Fill,
+      doc,
+      pixelW,
+      pixelH,
+      0,
+      "bar1",
+      actor,
+      allowed,
+    );
+    this._drawSingleBar(
+      this._bar2Bg,
+      this._bar2Fill,
+      doc,
+      pixelW,
+      pixelH,
+      1,
+      "bar2",
+      actor,
+      allowed,
+    );
   }
 
   private _drawSingleBar(
-    g: Graphics,
+    bg: Graphics,
+    fill: Graphics,
     doc: TokenDocument,
     pixelW: number,
     pixelH: number,
     barIndex: 0 | 1,
     barKey: "bar1" | "bar2",
+    actor: TokenActorView | null,
+    allowed: boolean,
   ): void {
-    g.clear();
-    const barConfig = doc[barKey];
-    if (!barConfig.attribute) return; // bar disabled
+    bg.clear();
+    fill.clear();
+    if (!allowed) return;
 
-    // For M1-C, bars read static value/max from token (actor integration is M3).
-    // The bar config only has `attribute` (a dot-path string) — without an actor,
-    // we render a full bar as a placeholder until actor data arrives.
-    // Real values will come from actor in M3.
-    const fraction = 1; // placeholder: full bar
-    const fillColor = BAR_FILL_COLORS[barKey];
+    const reading = resolveTokenBarValue(actor?.system, doc[barKey].attribute);
+    if (!reading) return; // REQ-CNV-090: absent, never a placeholder
+
     const y = barYOffset(barIndex, pixelH);
 
-    // Background
-    g.rect(0, y, pixelW, BAR_HEIGHT_PX);
-    g.fill({ color: BAR_BG_COLOR, alpha: 0.7 });
+    // Track
+    bg.rect(0, y, pixelW, BAR_HEIGHT_PX);
+    bg.fill({ color: BAR_BG_COLOR, alpha: 0.7 });
 
-    // Fill
-    const fillW = Math.max(0, pixelW * barFraction(fraction, 1));
+    // Fill — width is the clamped fraction of the footprint
+    const fillW = pixelW * reading.fraction;
     if (fillW > 0) {
-      g.rect(0, y, fillW, BAR_HEIGHT_PX - BAR_GAP_PX);
-      g.fill({ color: fillColor, alpha: 0.9 });
+      fill.rect(0, y, fillW, BAR_HEIGHT_PX - BAR_GAP_PX);
+      fill.fill({ color: BAR_FILL_COLORS[barKey], alpha: 0.9 });
     }
   }
 

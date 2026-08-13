@@ -1,0 +1,250 @@
+[
+  {
+    "_id": "RMwFuNTxtRQyBjmG",
+    "name": "Buckler",
+    "type": "shield",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 1,
+      "baseItem": "buckler",
+      "bulk": 0.1,
+      "containerId": null,
+      "description": "<p>This very small shield is a favorite of duelists and quick, lightly armored warriors. It's typically made of steel and strapped to your forearm. You can @UUID[Compendium.pf2e.actionspf2e.Item.Raise a Shield] with your buckler as long as you have that hand free or are holding a light object that's not a weapon in that hand.</p><table class=\"pf2e remaster\"><thead><tr><th>Hardness</th><th>HP</th><th>BT</th></tr></thead><tbody><tr><td>3</td><td>6</td><td>3</td></tr></tbody></table>",
+      "grade": null,
+      "hardness": 3,
+      "hp": {
+        "max": 6,
+        "value": 6
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 1
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "reinforcing": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "traits": {
+        "integrated": null,
+        "rarity": "common",
+        "value": []
+      },
+      "category": "unarmored",
+      "armorType": null,
+      "dexCap": null,
+      "checkPenalty": 0
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "1k3AsSW7lpU0kEpY",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "buckler-wooden-boss-brown.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "rUySi0Zb9hwhLbcW",
+    "name": "Steel Shield",
+    "type": "shield",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "steel-shield",
+      "bulk": 1,
+      "containerId": null,
+      "description": "<p>Like wooden shields, steel shields come in a variety of shapes and sizes. Though more expensive than wooden shields, they are much more durable.</p><table class=\"pf2e remaster\"><thead><tr><th>Hardness</th><th>HP</th><th>BT</th></tr></thead><tbody><tr><td>5</td><td>20</td><td>10</td></tr></tbody></table>",
+      "grade": null,
+      "hardness": 5,
+      "hp": {
+        "max": 20,
+        "value": 20
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 2
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "reinforcing": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "traits": {
+        "integrated": null,
+        "rarity": "common",
+        "value": []
+      },
+      "category": "unarmored",
+      "armorType": null,
+      "dexCap": null,
+      "checkPenalty": 0
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Yr9yCuJiAlFh3QEB",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "steel-shield.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "i0v2cUkWI9ZBUQb1",
+    "name": "Tower Shield",
+    "type": "shield",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "tower-shield",
+      "bulk": 4,
+      "containerId": null,
+      "description": "<p>These massive shields can be used to provide cover to nearly the entire body. Due to their size, they are typically made of wood reinforced with metal. AC increases to +4 if you are using the @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover] action.</p>\n<table class=\"pf2e\">\n<thead>\n<tr>\n<th>Hardness</th>\n<th>HP</th>\n<th>BT</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>5</td>\n<td>20</td>\n<td>10</td>\n</tr>\n</tbody>\n</table>",
+      "grade": null,
+      "hardness": 5,
+      "hp": {
+        "max": 20,
+        "value": 20
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 10
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "reinforcing": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "traits": {
+        "integrated": null,
+        "rarity": "common",
+        "value": []
+      },
+      "category": "unarmored",
+      "armorType": null,
+      "dexCap": null,
+      "checkPenalty": 0
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ltundBNFAnP7bgPr",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wardoor-wooden-boss-brown.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0bZpX0krDt2cBMeB",
+    "name": "Wooden Shield",
+    "type": "shield",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "wooden-shield",
+      "bulk": 1,
+      "containerId": null,
+      "description": "<p>Though they come in a variety of shapes and sizes, the protection offered by wooden shields comes from the stoutness of their materials. While wooden shields are less expensive than steel shields, they break more easily.</p><table class=\"pf2e remaster\"><thead><tr><th>Hardness</th><th>HP</th><th>BT</th></tr></thead><tbody><tr><td>3</td><td>12</td><td>6</td></tr></tbody></table>",
+      "grade": null,
+      "hardness": 3,
+      "hp": {
+        "max": 12,
+        "value": 12
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 1
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "reinforcing": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "traits": {
+        "integrated": null,
+        "rarity": "common",
+        "value": []
+      },
+      "category": "unarmored",
+      "armorType": null,
+      "dexCap": null,
+      "checkPenalty": 0
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ezVp13Uw8cWW08Da",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "round-wooden-boss-steel-yellow-blue.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  }
+]

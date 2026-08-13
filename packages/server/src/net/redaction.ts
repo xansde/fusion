@@ -14,10 +14,237 @@
  *   1. buildSnapshot      (full snapshot on join / seq-out-of-buffer resync)
  *   2. broadcastToWorld   (live per-socket emit of doc:create / doc:update)
  *   3. filterOpsForRole   (delta resync — replay of buffered ops)
+ *   4. redactAckResultForNonPrivileged (the ack echoed to the requester)
  *
- * This module is the single source of truth so the three paths can never
+ * This module is the single source of truth so the four paths can never
  * drift out of parity.
+ *
+ * A second, ownership-scoped invariant lives here too (REQ-NET-096):
+ *   - An `Actor` must NEVER reach a user whose effective level on it is below
+ *     LIMITED — by ANY of the four paths. See {@link canViewOwnedDocument}.
+ *   - ...and the op it travelled in must reach them anyway, with `documents`
+ *     empty. Suppressing the whole envelope tears a hole in the socket's `seq`
+ *     stream, which the client reads as a gap it can never close. See
+ *     {@link gateEnvelopeForViewer}.
  */
+
+import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../documents/ownership.js";
+import type { Envelope, Ownership } from "@fusion/shared";
+import { isActorDeltaEmpty, canReadPage } from "@fusion/shared";
+
+/** A page's ownership map: the document map, minus the required `default`. */
+type PageOwnership = Record<string, OwnershipLevel>;
+
+// ---------------------------------------------------------------------------
+// Ownership-gated emission (REQ-NET-024, REQ-NET-096, DEC-CNV-15)
+// ---------------------------------------------------------------------------
+
+/**
+ * The slice of a socket.io `Socket` this module needs. Declared structurally so
+ * the redaction rules stay free of the socket.io types (and so a test can hand
+ * in a recording double instead of a real server). The real `Socket` satisfies
+ * it; `data` is `unknown` because socket.io types it as `any`.
+ */
+export interface EmittingSocket {
+  readonly data: unknown;
+  emit(event: string, envelope: Envelope): void;
+}
+
+/** The slice of a socket.io `Namespace` this module needs. */
+export interface EmittingNamespace {
+  readonly sockets: ReadonlyMap<string, EmittingSocket>;
+  emit(event: string, envelope: Envelope): void;
+}
+
+/**
+ * Document types whose live broadcast / delta replay is gated by the viewer's
+ * effective ownership level, mirroring what `buildSnapshot` already does.
+ *
+ * Only `Actor` for now, deliberately. The Actor is the document that carries
+ * `system.attributes.hp` and `system.derived`, so it is the one whose leak the
+ * token HP indicator would inherit: hiding the bar in the client while the
+ * server still ships every actor to every socket produces a privacy feature
+ * that is one devtools panel deep. `Scene` and `Combat` are shared world state
+ * and are gated by content redaction (hidden tokens/tiles/combatants), not by
+ * ownership — see buildSnapshot for the same split.
+ *
+ * The other ownership-gated types (Item, JournalEntry, Macro, RollTable,
+ * Playlist, Folder) are already filtered in the join snapshot but still ride
+ * the namespace-wide broadcast. Adding them here is a one-line change; it is
+ * out of scope of the HP indicator and each one needs its own check for
+ * collateral damage (a Playlist a player does not own still drives their audio).
+ */
+export const OWNERSHIP_GATED_BROADCAST_TYPES: ReadonlySet<string> = new Set(["Actor"]);
+
+/** Minimum effective level at which an ownership-gated document may be EMITTED. */
+export const MIN_EMIT_LEVEL: OwnershipLevel = OwnershipLevel.LIMITED;
+
+/** Read a document's ownership map, defaulting to "nobody" when absent/malformed. */
+function ownershipOf(doc: Record<string, unknown>): Ownership {
+  const raw = doc["ownership"];
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    return raw as Ownership;
+  }
+  return { default: OwnershipLevel.NONE };
+}
+
+/**
+ * May this viewer receive this document at all?
+ *
+ * The single predicate behind every emission path — never re-derive it inline
+ * in a handler, or the paths drift and only one of them stays closed (which is
+ * exactly how the Actor broadcast stayed open while the snapshot was gated).
+ *
+ * Privileged roles (GM / Assistant) always pass, via `resolveOwnership`'s GM
+ * branch plus the explicit `isRolePrivileged` check — Assistant GM is not
+ * `UserRole.GAMEMASTER` but must still see everything.
+ */
+export function canViewOwnedDocument(
+  doc: unknown,
+  userId: string | null | undefined,
+  role: number,
+): boolean {
+  if (isRolePrivileged(role)) return true;
+  if (!doc || typeof doc !== "object") return false;
+  const level = resolveOwnership(ownershipOf(doc as Record<string, unknown>), userId, role);
+  return level >= MIN_EMIT_LEVEL;
+}
+
+/**
+ * Keep only the documents this viewer may receive.
+ *
+ * Returns the SAME array reference when nothing was removed, so callers can
+ * detect "nothing to redact" by referential equality and reuse the shared
+ * envelope instead of cloning it per socket.
+ */
+export function filterDocumentsForViewer(
+  documents: Record<string, unknown>[],
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown>[] {
+  if (isRolePrivileged(role)) return documents;
+  const visible = documents.filter((doc) => canViewOwnedDocument(doc, userId, role));
+  return visible.length === documents.length ? documents : visible;
+}
+
+/**
+ * The authenticated identity behind a socket, for per-socket ownership checks.
+ *
+ * A socket with no auth data (should not exist past the auth middleware) reads
+ * as an anonymous role-0 viewer, which `canViewOwnedDocument` rejects for every
+ * ownership-gated document — fail closed, not open.
+ */
+export function socketViewer(socket: EmittingSocket): { userId: string | null; role: number } {
+  const data = socket.data as Record<string, unknown> | null | undefined;
+  const userId = data && typeof data["userId"] === "string" ? data["userId"] : null;
+  const role = data && typeof data["role"] === "number" ? data["role"] : 0;
+  return { userId, role };
+}
+
+/**
+ * Rebuild an ownership-gated envelope for one viewer, or return the original
+ * when nothing had to be removed (no allocation, shared object reused).
+ *
+ * The redacted form keeps the ENVELOPE and empties `documents` — it is never a
+ * dropped op. `seq` is a single world-wide counter and the client's
+ * `DocumentMirror` applies an op only when `seq === current + 1`, treating
+ * anything higher as a gap: it discards the op and asks for a resync, which
+ * replays the same window with the same op filtered out. A viewer skipped once
+ * therefore stalls at that seq forever. Every other redaction here strips
+ * CONTENT and keeps the envelope, which is why the problem is new with
+ * ownership gating and not with hidden tokens.
+ *
+ * An empty envelope tells the viewer "op N happened" — which the shared counter
+ * tells them regardless — and nothing about which document, whose, or what
+ * changed.
+ */
+function gateEnvelopeForViewer(
+  envelope: Envelope,
+  payload: Record<string, unknown>,
+  documents: Record<string, unknown>[],
+  userId: string | null,
+  role: number,
+): Envelope {
+  const visible = filterDocumentsForViewer(documents, userId, role);
+  if (visible === documents) return envelope;
+  return { ...envelope, payload: { ...payload, documents: visible } };
+}
+
+/**
+ * Read the ownership-gated `documents` array out of an envelope, or `null` when
+ * the envelope is not one this gate applies to.
+ */
+function ownershipGatedDocumentsOf(
+  envelope: Envelope,
+): { payload: Record<string, unknown>; documents: Record<string, unknown>[] } | null {
+  if (envelope.type !== "doc:create" && envelope.type !== "doc:update") return null;
+
+  const payload = envelope.payload as Record<string, unknown> | null | undefined;
+  if (!payload || typeof payload !== "object") return null;
+
+  const documentType = payload["documentType"];
+  if (typeof documentType !== "string" || !OWNERSHIP_GATED_BROADCAST_TYPES.has(documentType)) {
+    return null;
+  }
+  const documents = payload["documents"];
+  if (!Array.isArray(documents)) return null;
+
+  return { payload, documents: documents as Record<string, unknown>[] };
+}
+
+/**
+ * Emit an envelope per socket when it carries ownership-gated documents,
+ * emptying it for viewers who may not receive any of them.
+ *
+ * Returns `false` when the envelope is NOT ownership-gated, so the caller can
+ * fall through to whatever emission it would otherwise have done (a Scene
+ * redaction pass, or a plain namespace emit). Returns `true` once it has
+ * emitted — the caller must then stop.
+ *
+ * Every handler that puts an Actor on the wire has to go through here or
+ * through {@link emitDocumentOp}; there are more producers than `doc-handlers`
+ * (the Etmos conjuração and progressão handlers each build their own Actor
+ * `doc:update`), and a producer that emits namespace-wide makes REQ-NET-096
+ * false for the whole world, not just for its own feature.
+ */
+export function emitOwnershipGatedOp(ns: EmittingNamespace, envelope: Envelope): boolean {
+  const gated = ownershipGatedDocumentsOf(envelope);
+  if (!gated) return false;
+
+  for (const [, socket] of ns.sockets) {
+    const { userId, role } = socketViewer(socket);
+    socket.emit(
+      "op",
+      gateEnvelopeForViewer(envelope, gated.payload, gated.documents, userId, role),
+    );
+  }
+  return true;
+}
+
+/**
+ * Redact an ownership-gated envelope for ONE viewer — the delta-replay form of
+ * {@link emitOwnershipGatedOp}. Returns the original envelope untouched when it
+ * is not gated, or when this viewer may see everything in it.
+ */
+export function redactOpForViewer(
+  envelope: Envelope,
+  userId: string | null,
+  role: number,
+): Envelope {
+  const gated = ownershipGatedDocumentsOf(envelope);
+  if (!gated) return envelope;
+  return gateEnvelopeForViewer(envelope, gated.payload, gated.documents, userId, role);
+}
+
+/**
+ * Emit a document envelope, ownership-gated when its type demands it and
+ * namespace-wide otherwise. The one-call form of {@link emitOwnershipGatedOp}
+ * for producers that have no second redaction pass to fall through to.
+ */
+export function emitDocumentOp(ns: EmittingNamespace, envelope: Envelope): void {
+  if (emitOwnershipGatedOp(ns, envelope)) return;
+  ns.emit("op", envelope);
+}
 
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
@@ -152,7 +379,386 @@ export function stripHiddenTiles(scene: Record<string, unknown>): Record<string,
   return { ...scene, tiles: filtered };
 }
 
+// ---------------------------------------------------------------------------
+// Map pins — the first PER-VIEWER redaction in a Scene (REQ-DOC-056/057/058)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fields a `limited` pin keeps. Everything else is stripped.
+ *
+ * Declared as a keep-list, not a strip-list, on purpose: a strip-list leaks by
+ * omission the day someone adds a field to the note schema and forgets this
+ * module. With a keep-list the new field is absent from a rumour until somebody
+ * decides otherwise, which is the direction we want to fail in.
+ */
+const RUMOUR_KEEP_FIELDS = ["_id", "x", "y", "elevation", "iconSize", "textAnchor"] as const;
+
+/**
+ * Reduce one authored note to what a viewer at `limited` may receive.
+ *
+ * REQ-DOC-057: position and a generic "something is here" marker — no name, no
+ * themed icon, no tooltip, no `entryId`/`pageId`, no content flags. The client
+ * draws a "?" at the position; everything it would need to draw more is gone
+ * from the payload, not merely unused by the renderer.
+ */
+function redactNoteToRumour(note: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const field of RUMOUR_KEEP_FIELDS) {
+    if (field in note) out[field] = note[field];
+  }
+  // Explicit nulls rather than absent keys: the client parses notes against the
+  // shared schema, and a rumour must be a valid NoteDocument, not a fragment.
+  out["entryId"] = null;
+  out["pageId"] = null;
+  out["icon"] = null;
+  out["text"] = null;
+  out["textColor"] = null;
+  out["global"] = false;
+  out["flags"] = {};
+  // The viewer's own level is all they may learn about who else sees it.
+  out["ownership"] = { default: OwnershipLevel.LIMITED };
+  return out;
+}
+
+/**
+ * Apply per-user pin visibility to a Scene bound for one viewer.
+ *
+ * This is the first redaction in this module that is **per user** rather than
+ * per role, and that difference is structural: hidden tokens, hidden tiles and
+ * secret doors are binary (GM yes, every player no), so a single player payload
+ * can be built once and shared across every player socket. Pins cannot be —
+ * the same broadcast means three different things to three players. Callers on
+ * the broadcast path must therefore build one payload PER SOCKET when
+ * {@link scenePayloadHasNotes} says the scene carries pins.
+ *
+ * Returns the SAME reference when nothing changed (privileged viewer, no notes,
+ * or every note already fully visible), so the "nothing to redact" fast paths
+ * keep working and the shared envelope is reused.
+ */
+export function redactNotesForViewer(
+  scene: Record<string, unknown>,
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown> {
+  if (isRolePrivileged(role)) return scene;
+
+  const rawNotes = scene["notes"];
+  if (!Array.isArray(rawNotes) || rawNotes.length === 0) return scene;
+
+  const notes = rawNotes as Record<string, unknown>[];
+  const visible: Record<string, unknown>[] = [];
+  let changed = false;
+
+  for (const note of notes) {
+    // REQ-DOC-056: `global` reads as observer for everyone.
+    if (note["global"] === true) {
+      visible.push(note);
+      continue;
+    }
+
+    const level = resolveOwnership(ownershipOf(note), userId, role);
+
+    if (level >= OwnershipLevel.OBSERVER) {
+      visible.push(note);
+      continue;
+    }
+
+    if (level === OwnershipLevel.LIMITED) {
+      visible.push(redactNoteToRumour(note));
+      changed = true;
+      continue;
+    }
+
+    // NONE — the note does not exist for this user (REQ-DOC-057).
+    changed = true;
+  }
+
+  if (!changed) return scene;
+  return { ...scene, notes: visible };
+}
+
+/** Return true when a Scene-shaped doc carries at least one map pin. */
+export function sceneHasNotes(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const notes = (doc as Record<string, unknown>)["notes"];
+  return Array.isArray(notes) && notes.length > 0;
+}
+
+/**
+ * Return true when any document in a payload carries map pins.
+ *
+ * The gate for the expensive path: pins force per-socket payload construction,
+ * so a broadcast that carries none must never pay for it.
+ */
+export function scenePayloadHasNotes(documents: Record<string, unknown>[]): boolean {
+  return documents.some((doc) => sceneHasNotes(doc));
+}
+
+// ---------------------------------------------------------------------------
+// Region map pins — the same per-viewer cut, on a document of its own
+// (DEC-MREG-08, REQ-DOC-056/057/058)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fields a `limited` region-map pin keeps.
+ *
+ * Shorter than the Scene note's list because a region pin has less to give
+ * away, and for the same reason it is written as a keep-list: a field added to
+ * `MapPinSchema` tomorrow is absent from a rumour until somebody decides
+ * otherwise. `kind` and `authorName` are deliberately NOT kept — that a rumour
+ * was dropped by a specific player is itself information about the place.
+ */
+const PIN_RUMOUR_KEEP_FIELDS = ["_id", "x", "y"] as const;
+
+/** Reduce one pin to what a viewer at `limited` may receive (REQ-DOC-057). */
+function redactPinToRumour(pin: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const field of PIN_RUMOUR_KEEP_FIELDS) {
+    if (field in pin) out[field] = pin[field];
+  }
+  // Explicit defaults rather than absent keys: the client parses pins against
+  // the shared schema, so a rumour has to be a valid MapPin, not a fragment.
+  out["text"] = "";
+  out["description"] = "";
+  out["icon"] = "";
+  out["kind"] = "gm";
+  out["authorId"] = null;
+  out["authorName"] = "";
+  // The table's conversation about a place is content, and a rumour has none.
+  out["comments"] = [];
+  out["flags"] = {};
+  // The viewer's own level is all they may learn about who else sees it.
+  out["ownership"] = { default: OwnershipLevel.LIMITED };
+  return out;
+}
+
+/**
+ * Apply per-user pin visibility to a RegionMap bound for one viewer.
+ *
+ * Same structural warning as {@link redactNotesForViewer}: this cut is per
+ * USER, so a broadcast carrying a region map must be built once per socket
+ * rather than once per role. Returns the SAME reference when nothing changed.
+ */
+export function redactRegionMapForViewer(
+  map: Record<string, unknown>,
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown> {
+  if (isRolePrivileged(role)) return map;
+
+  const rawPins = map["pins"];
+  if (!Array.isArray(rawPins) || rawPins.length === 0) return map;
+
+  const pins = rawPins as Record<string, unknown>[];
+  const visible: Record<string, unknown>[] = [];
+  let changed = false;
+
+  for (const pin of pins) {
+    const level = resolveOwnership(ownershipOf(pin), userId, role);
+
+    if (level >= OwnershipLevel.OBSERVER) {
+      visible.push(pin);
+      continue;
+    }
+
+    if (level === OwnershipLevel.LIMITED) {
+      visible.push(redactPinToRumour(pin));
+      changed = true;
+      continue;
+    }
+
+    // NONE — the pin does not exist for this user (REQ-DOC-057).
+    changed = true;
+  }
+
+  if (!changed) return map;
+  return { ...map, pins: visible };
+}
+
+/** Return true when a RegionMap-shaped doc carries at least one pin. */
+export function regionMapHasPins(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const pins = (doc as Record<string, unknown>)["pins"];
+  return Array.isArray(pins) && pins.length > 0;
+}
+
+/**
+ * Emit a `doc:create` / `doc:update` carrying region maps, one payload per
+ * socket.
+ *
+ * Returns `false` when the envelope is not a region map with pins, so the
+ * caller can fall through to its ordinary broadcast. Every producer of region
+ * map envelopes goes through here — the pin handlers and the generic document
+ * path both — so the per-user cut cannot be forgotten by one of them.
+ */
+export function emitRegionMapOp(ns: EmittingNamespace, envelope: Envelope): boolean {
+  if (envelope.type !== "doc:create" && envelope.type !== "doc:update") return false;
+
+  const payload = envelope.payload as
+    | { documentType?: unknown; documents?: unknown }
+    | null
+    | undefined;
+  if (!payload || payload.documentType !== "RegionMap" || !Array.isArray(payload.documents)) {
+    return false;
+  }
+
+  const documents = payload.documents as Record<string, unknown>[];
+  if (!documents.some((doc) => regionMapHasPins(doc))) return false;
+
+  for (const [, socket] of ns.sockets) {
+    const { userId, role } = socketViewer(socket);
+    if (isRolePrivileged(role)) {
+      socket.emit("op", envelope);
+      continue;
+    }
+    const perViewer = documents.map((doc) => redactRegionMapForViewer(doc, userId, role));
+    socket.emit("op", {
+      ...envelope,
+      payload: { ...payload, documents: perViewer },
+    });
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// JournalEntry pages — per-user reveal (Q-JRN-003, DEC-HUB-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * Drop every page this viewer may not read from a JournalEntry.
+ *
+ * A page is removed, never blanked. There is no rumour state for a page
+ * (REQ-HUB-032b): handing over a title with an empty body would say "there is
+ * a third objective and you have not earned it", which is itself the reveal
+ * the GM was holding back. A quest's rumour is a page of its own that the
+ * player reads in full (DEC-HUB-05).
+ *
+ * The cut is per USER — a page can be open to Tobias and shut to Comedor — so
+ * an envelope carrying journal entries must be built once per socket rather
+ * than once per role. Returns the SAME reference when nothing changed, which
+ * is what keeps the common case (an entry with no per-page rules) free.
+ */
+export function redactJournalForViewer(
+  entry: Record<string, unknown>,
+  userId: string | null | undefined,
+  role: number,
+): Record<string, unknown> {
+  if (isRolePrivileged(role)) return entry;
+
+  const rawPages = entry["pages"];
+  if (!Array.isArray(rawPages) || rawPages.length === 0) return entry;
+
+  const entryOwnership = ownershipOf(entry);
+  const pages = rawPages as Record<string, unknown>[];
+  const visible = pages.filter((page) =>
+    canReadPage(
+      { ownership: (page["ownership"] ?? {}) as PageOwnership },
+      entryOwnership,
+      userId ?? null,
+    ),
+  );
+
+  if (visible.length === pages.length) return entry;
+  return { ...entry, pages: visible };
+}
+
+/** Return true when a JournalEntry-shaped doc carries at least one page. */
+export function journalHasPages(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const pages = (doc as Record<string, unknown>)["pages"];
+  return Array.isArray(pages) && pages.length > 0;
+}
+
+/**
+ * Emit a `doc:create` / `doc:update` carrying journal entries, one payload per
+ * socket.
+ *
+ * Same contract as {@link emitRegionMapOp}: returns `false` when the envelope
+ * is not a journal entry with pages, so the caller falls through to its
+ * ordinary broadcast. Every producer of journal envelopes goes through here,
+ * so the per-user cut cannot be forgotten by one of them.
+ */
+export function emitJournalOp(ns: EmittingNamespace, envelope: Envelope): boolean {
+  if (envelope.type !== "doc:create" && envelope.type !== "doc:update") return false;
+
+  const payload = envelope.payload as
+    | { documentType?: unknown; documents?: unknown }
+    | null
+    | undefined;
+  if (!payload || payload.documentType !== "JournalEntry" || !Array.isArray(payload.documents)) {
+    return false;
+  }
+
+  const documents = payload.documents as Record<string, unknown>[];
+  if (!documents.some((doc) => journalHasPages(doc))) return false;
+
+  for (const [, socket] of ns.sockets) {
+    const { userId, role } = socketViewer(socket);
+    if (isRolePrivileged(role)) {
+      socket.emit("op", envelope);
+      continue;
+    }
+    // An entry the viewer may not see at all is still gated by
+    // `canViewOwnedDocument` upstream; here we only cut its pages.
+    const perViewer = documents.map((doc) => redactJournalForViewer(doc, userId, role));
+    socket.emit("op", {
+      ...envelope,
+      payload: { ...payload, documents: perViewer },
+    });
+  }
+  return true;
+}
+
 /** Return true when a Scene-shaped doc carries at least one hidden tile. */
+/**
+ * Empty every token's `actorDelta` in a Scene bound for a non-privileged
+ * socket — REQ-DOC-062, protecting the invariant REQ-NET-096 states.
+ *
+ * Why this exists at all: REQ-NET-096 keeps an `Actor` away from anyone below
+ * LIMITED on it, because the Actor is what carries `system.attributes.hp`.
+ * An unlinked token's hit points do NOT live on that Actor — they live in
+ * `Token.actorDelta`, inside a Scene, and Scenes are shared world state that
+ * every player receives. Shipping the delta as authored would hand every
+ * player the current hit points of every monster on the map, which is exactly
+ * the leak the Actor gate was built to close, re-opened one document over.
+ *
+ * The cut is by ROLE, not by ownership of the base Actor, and that is a
+ * deliberate MVP simplification with a known cost: a player who owns an
+ * unlinked token's Actor (a familiar the GM placed unlinked) receives no delta
+ * either and reads the base Actor's numbers. Resolving it per viewer needs the
+ * base Actor's ownership map, which means threading an Actor lookup through
+ * all five Scene emitters; the fail-closed version ships first because the
+ * failure mode of the other order is a leak, not a stale number.
+ *
+ * Returns the SAME reference when no token carried a delta, so the callers'
+ * "nothing to redact" fast path keeps working.
+ */
+export function stripTokenActorDeltas(scene: Record<string, unknown>): Record<string, unknown> {
+  const rawTokens = scene["tokens"];
+  if (!Array.isArray(rawTokens)) return scene;
+
+  const tokens = rawTokens as Record<string, unknown>[];
+  if (!tokens.some((t) => !isActorDeltaEmpty(t["actorDelta"]))) return scene;
+
+  return {
+    ...scene,
+    tokens: tokens.map((t) => (isActorDeltaEmpty(t["actorDelta"]) ? t : { ...t, actorDelta: {} })),
+  };
+}
+
+/** Does this Scene-shaped document carry at least one non-empty `actorDelta`? */
+export function sceneHasTokenActorDeltas(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const tokens = (doc as Record<string, unknown>)["tokens"];
+  if (!Array.isArray(tokens)) return false;
+  return (tokens as Record<string, unknown>[]).some((t) => !isActorDeltaEmpty(t["actorDelta"]));
+}
+
+/** Does any Scene in this broadcast payload carry a non-empty `actorDelta`? */
+export function scenePayloadHasTokenActorDeltas(documents: Record<string, unknown>[]): boolean {
+  return documents.some((doc) => sceneHasTokenActorDeltas(doc));
+}
+
 export function sceneHasHiddenTiles(doc: unknown): boolean {
   if (!doc || typeof doc !== "object") return false;
   const tiles = (doc as Record<string, unknown>)["tiles"];
@@ -288,17 +894,23 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasHiddenTiles(d));
   const parentNeedsHiddenTileRedaction = sceneHasHiddenTiles(parent);
 
+  const documentsNeedActorDeltaRedaction =
+    Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasTokenActorDeltas(d));
+  const parentNeedsActorDeltaRedaction = sceneHasTokenActorDeltas(parent);
+
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
   const documentsNeedsRedaction =
     documentsNeedHiddenTokenRedaction ||
     documentsNeedSecretDoorRedaction ||
-    documentsNeedHiddenTileRedaction;
+    documentsNeedHiddenTileRedaction ||
+    documentsNeedActorDeltaRedaction;
   const parentNeedsRedaction =
     parentNeedsHiddenTokenRedaction ||
     parentNeedsSecretDoorRedaction ||
-    parentNeedsHiddenTileRedaction;
+    parentNeedsHiddenTileRedaction ||
+    parentNeedsActorDeltaRedaction;
 
   if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
     // Nothing to redact — return the original ack untouched.
@@ -312,6 +924,7 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
       let redacted = d;
       if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+      if (Array.isArray(redacted["tokens"])) redacted = stripTokenActorDeltas(redacted);
       if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
       if (Array.isArray(redacted["tiles"])) redacted = stripHiddenTiles(redacted);
       return redacted;
@@ -321,6 +934,7 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
+    if (parentNeedsActorDeltaRedaction) redactedParent = stripTokenActorDeltas(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
     if (parentNeedsHiddenTileRedaction) redactedParent = stripHiddenTiles(redactedParent);
     newBody["parent"] = redactedParent;
@@ -331,5 +945,111 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     newBody["combat"] = stripHiddenCombatantsFromCombat(combat as Record<string, unknown>);
   }
 
+  return { ...ack, result: newBody };
+}
+
+// ---------------------------------------------------------------------------
+// Emission path 4 — the ack echoed to the requester (REQ-NET-096)
+// ---------------------------------------------------------------------------
+
+/**
+ * Drop from an op ACK any `Actor` the requester may not receive.
+ *
+ * Why this exists even though it is a no-op today: every CURRENT handler that
+ * puts an Actor in an ack body already required OWNER (or a privileged role)
+ * on that Actor to get there — doc:create Actor is GM-only, doc:update Actor
+ * demands OWNER, and the Actor-parented embedded paths (a player adding a
+ * spell to their own sheet, a player creating their familiar) all check OWNER
+ * on the parent before touching it. So the ack cannot leak an Actor *as the
+ * code stands*. That is an argument about eight call sites, not an invariant,
+ * and REQ-NET-096 asks for the invariant: the day a handler echoes back an
+ * Actor it merely READ, this is what stops it.
+ *
+ * Unlike {@link redactAckResultForNonPrivileged}, the check is not structural.
+ * An Actor and a Scene both carry an `ownership` map, and Scenes are NOT
+ * ownership-gated for emission (every player receives every scene, see
+ * buildSnapshot) — so guessing by shape would hide scenes from everyone. The
+ * rule reads the DECLARED type instead:
+ *   - `body.documentType` is an ownership-gated type → filter `body.documents`
+ *   - `body.documentType === "Item"` → `body.parent` is that Item's Actor
+ *     (EMBEDDED_PARENT_MAP), so the parent gets the same check.
+ *
+ * Returns the original object when nothing was removed (no allocation).
+ */
+export function redactAckOwnedDocumentsForViewer(
+  result: unknown,
+  userId: string | null | undefined,
+  role: number,
+): unknown {
+  if (isRolePrivileged(role)) return result;
+  if (!result || typeof result !== "object") return result;
+  const ack = result as Record<string, unknown>;
+  if (ack["ok"] !== true) return result;
+
+  const body = ack["result"];
+  if (!body || typeof body !== "object") return result;
+  const bodyObj = body as Record<string, unknown>;
+
+  const documentType = bodyObj["documentType"];
+  if (typeof documentType !== "string") return result;
+
+  const newBody: Record<string, unknown> = { ...bodyObj };
+  let changed = false;
+
+  const documents = bodyObj["documents"];
+  if (OWNERSHIP_GATED_BROADCAST_TYPES.has(documentType) && Array.isArray(documents)) {
+    const visible = filterDocumentsForViewer(documents as Record<string, unknown>[], userId, role);
+    if (visible !== documents) {
+      newBody["documents"] = visible;
+      changed = true;
+    }
+  }
+
+  // A Scene echoed back to its requester carries map pins, and those are cut
+  // per user (REQ-DOC-057/058). The ack is the fourth emission path, and the
+  // one easiest to forget: a player who legitimately updated a scene would
+  // otherwise read every pin off their own ack.
+  if (documentType === "Scene" && Array.isArray(documents)) {
+    const scenes = documents as Record<string, unknown>[];
+    const redacted = scenes.map((scene) => redactNotesForViewer(scene, userId, role));
+    if (redacted.some((scene, i) => scene !== scenes[i])) {
+      newBody["documents"] = redacted;
+      changed = true;
+    }
+  }
+
+  // Same for a region map: a player who dropped a pin gets the whole map back
+  // in their ack, and every hidden pin on it would ride along (DEC-MREG-08).
+  if (documentType === "RegionMap" && Array.isArray(documents)) {
+    const maps = documents as Record<string, unknown>[];
+    const redacted = maps.map((map) => redactRegionMapForViewer(map, userId, role));
+    if (redacted.some((map, i) => map !== maps[i])) {
+      newBody["documents"] = redacted;
+      changed = true;
+    }
+  }
+
+  // And for a journal entry: a player who may write on one page of a quest
+  // (their own note, a completed objective) gets the whole entry back in the
+  // ack, and every unrevealed objective on it would ride along (DEC-HUB-04).
+  if (documentType === "JournalEntry" && Array.isArray(documents)) {
+    const entries = documents as Record<string, unknown>[];
+    const redacted = entries.map((entry) => redactJournalForViewer(entry, userId, role));
+    if (redacted.some((entry, i) => entry !== entries[i])) {
+      newBody["documents"] = redacted;
+      changed = true;
+    }
+  }
+
+  // An embedded Item's parent is always its Actor (EMBEDDED_PARENT_MAP).
+  const parent = bodyObj["parent"];
+  if (documentType === "Item" && parent && typeof parent === "object") {
+    if (!canViewOwnedDocument(parent, userId, role)) {
+      delete newBody["parent"];
+      changed = true;
+    }
+  }
+
+  if (!changed) return result;
   return { ...ack, result: newBody };
 }

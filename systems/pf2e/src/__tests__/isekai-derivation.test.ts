@@ -205,7 +205,10 @@ describe("stepCharIsekaiFocus — ★ locks", () => {
 
 describe("stepCharIsekaiFocus — robustness", () => {
   it("survives a document with no resources block at all", () => {
-    const doc = { type: "character", system: { build: { variantRules: { isekai: true } }, isekai: { archetypes: ["fodao"] } } };
+    const doc = {
+      type: "character",
+      system: { build: { variantRules: { isekai: true } }, isekai: { archetypes: ["fodao"] } },
+    };
     expect(() => {
       stepCharIsekaiFocus.run(doc, {} as never);
     }).not.toThrow();

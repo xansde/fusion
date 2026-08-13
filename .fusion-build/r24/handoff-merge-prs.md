@@ -1,3 +1,9 @@
+> **⚠️ OBSOLETO — não siga este documento.** Verificado em 2026-08-09: a esteira
+> B0→B3 foi inteiramente concluída e mergeada (PRs #67, #70, #74, #75). Os 7 commits
+> do B3 estão em `origin/build/app` e não há nenhum PR aberto. O que está descrito
+> abaixo como "pausado" ou "travado" já não existe. Mantido só como registro
+> histórico. Estado atual em `.fusion-build/r26/handoff-frentes-abertas.md`.
+
 # Handoff — merge da stack de PRs (B0 → B1 → B2)
 
 **Data:** 2026-08-02 · **Estado:** diagnóstico completo, nada aplicado ainda.

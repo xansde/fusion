@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.classes-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:04.991Z",
+  "generatedAt": "2026-08-11T05:10:06.482Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -41,6 +41,11 @@
       "sourceHash": "ea30cd88b5cce88cd6756a6c1958c8c6bd807d78",
       "description": "<p><em>As divindades exercem sua vontade sobre o mundo de infinitas maneiras, e você serve como um dos seus mais firmes servos mortais. Abençoado com magia divina, você vive os ideais de sua fé, adorna-se com os símbolos de sua igreja e treina diligentemente para empunhar a arma favorita de sua divindade. Suas magias podem proteger e curar seus aliados, ou podem punir inimigos e adversários de sua fé, conforme a vontade de sua divindade. A sua é uma vida de devoção, espalhando os ensinamentos de sua fé tanto pela palavra quanto pelo ato.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.N4ABcd6CcCbqmw3x]{Clérigo}</em></p>"
     },
+    "Mx4ch9PiH76OeSwk": {
+      "name": "Pistoleiro",
+      "sourceHash": "1006b4e0c400e1a4e3f30644910e5d047d404d90",
+      "description": "<p><em>Enquanto alguns temem as armas de projétil, você saboreia o clarão ardente, o coice selvagem e a fumaça densa que acompanham um tiro, ou o estalo do cabo e o baque revelador de sua besta um instante antes de o virote encontrar seu alvo. Pronto para mirar em um inimigo a cada momento, você conta com seus reflexos, sua mão firme e seu conhecimento das próprias armas para encher seus adversários de buracos.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.88K0xjShkhkckbhv]{Pistoleiro}</em></p>"
+    },
     "RtdtWLmWtoAnurXp": {
       "name": "Bardo",
       "sourceHash": "d1e756e3f4cef1957e688b08d7212178b740eee7",
@@ -61,10 +66,20 @@
       "sourceHash": "80de4387ce349d748efb5a1910169bd5562368b5",
       "description": "<p><em>Combinando a fisicalidade e a técnica de um guerreiro com a capacidade de conjurar magia arcana, você busca aperfeiçoar a arte de fundir feitiço e golpe. Enquanto o tratado pesado que você carrega reflete horas de pesquisa arcana, seus inimigos não precisam de recordação de seu treinamento. Reconhecem-no conforme você os derrota.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>"
     },
+    "kJAUMTXDise4UFG2": {
+      "name": "Psíquico",
+      "sourceHash": "f6da9770c5f4f7df2c37df3a517ccc43d1ea3c30",
+      "description": "<p><em>A mente pode perceber verdades ocultas aos instrumentos mais precisos, guardar mais segredos que qualquer tomo e mover objetos e corações com mais destreza que qualquer alavanca. Ao mergulhar tanto nos aspectos conscientes quanto nos subconscientes do seu eu interior, você despertou para o poder da magia psíquica, o que lhe permite conjurar magias não por encantamentos ou gestos, mas pela força da sua vontade apenas. Embora a linha tênue entre sua mente e a realidade signifique que um único pensamento desgarrado possa ter consequências indesejadas para você e seus companheiros, você sabe que tudo é possível, se você conseguir imaginar.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.KVoEUJBAbAFUJTqw]{Psíquico}</em></p>"
+    },
     "nvLkRf5OdaAq9zgU": {
       "name": "Ladino",
       "sourceHash": "279d85226a5f1fea753de02a6e1b300b72afc8b8",
       "description": "<p><em>Você é habilidoso e oportunista. Usando sua astúcia afiada e reações rápidas, você tira proveito dos deslizes de seus oponentes e ataca onde mais dói. Você joga um jogo perigoso, buscando emoções e testando suas habilidades, e provavelmente não se importa muito com quaisquer leis que porventura atrapalhem seu caminho. Embora o caminho de cada ladino seja único e repleto de perigo, a única coisa que todos vocês têm em comum é a amplitude e a profundidade de suas habilidades.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.u4qPrDRBagxG9wj8]{Ladino}</em></p>"
+    },
+    "wCKgeaPqB6b8gGes": {
+      "name": "Druida",
+      "sourceHash": "b64a156d0f858be2a6eed4f6b9993ff15583d926",
+      "description": "<p><em>O poder da natureza é impossível de resistir. Ele pode trazer ruína à mais robusta fortaleza em minutos, reduzindo até as obras mais poderosas a escombros, queimando-as até virarem cinzas, soterrando-as sob uma avalanche de neve ou afogando-as sob as ondas. Ele pode oferecer fartura infinita e esplendor de tirar o fôlego a quem o respeita — e uma morte agonizante a quem o subestima. Você é um daqueles que ouvem o chamado da natureza. Você se maravilha com a majestade de seu poder e se entrega ao seu serviço.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.8ElntNAGahQka70r]{Druida}</p>"
     }
   }
 }

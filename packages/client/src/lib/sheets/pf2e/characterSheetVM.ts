@@ -175,6 +175,31 @@ function spellSystemHasAttack(system: Record<string, unknown>): boolean {
   return defense?.["spellAttack"] === true;
 }
 
+/**
+ * Whether a spell DOCUMENT (compendium shape — `system.traits.value`, same
+ * as `spellSystemHasAttack` reads) belongs in a focus-pool entry. Used by
+ * `addSpellToEntry` (issue #8) to keep focus spells out of prepared/
+ * spontaneous grimoires and vice versa.
+ *
+ * True for the "focus" trait, AND for the "composition" trait even without
+ * "focus" (issue #6): 10/20 Bard composition spells in spells-core are
+ * CANTRIPS and correctly omit "focus" per RAW (cantrips never cost a Focus
+ * Point) — but they still only ever go in the Bard's focus-pool entry, never
+ * a prepared/spontaneous grimoire. Without this, the picker's widened
+ * `matchesTraitFilter` (issue #6) would let a player SELECT a composition
+ * cantrip and this guard would then silently reject the resulting
+ * `addSpellToEntry` call (op === null, no feedback).
+ */
+function docHasFocusTrait(doc: Record<string, unknown>): boolean {
+  const system = doc["system"];
+  if (typeof system !== "object" || system === null) return false;
+  const traitsBlock = (system as Record<string, unknown>)["traits"] as
+    | { value?: unknown }
+    | undefined;
+  const traits = Array.isArray(traitsBlock?.value) ? (traitsBlock.value as unknown[]) : [];
+  return traits.includes("focus") || traits.includes("composition");
+}
+
 /** ◆ glyphs for an action cost value 1/2/3, reaction, or free. */
 const SPELL_COST_GLYPHS: Record<string, string> = {
   "1": "◆",
@@ -411,6 +436,16 @@ export interface SpellRow {
    * no damage/heightening data.
    */
   heightening?: SpellHeighteningView;
+  /**
+   * True when casting this spell should spend a Focus Point (issue #36).
+   * RAW: focus spells cost 1 Focus Point when Cast EXCEPT cantrips, which
+   * never cost one — so this is the spell's "focus" trait minus its
+   * "cantrip" trait (a cantrip never carries "focus" in spells-core; see
+   * `focusSpells` below). Only populated for rows built by `focusSpells`
+   * (the Focus tab is the only surface that spends the pool); absent
+   * elsewhere, where casting never touches focusPoints.
+   */
+  costsFocusPoint?: boolean;
 }
 
 /**
@@ -431,6 +466,26 @@ export interface SpellHeighteningView {
   damageDisplay: string | null;
   /** True when a fixed heightening changes target/range/area (badge only, no formula change). */
   hasComplexHeightening: boolean;
+}
+
+/**
+ * How a non-focus spellcasting entry's tab surface should render its ranked
+ * slots (issue #37): `"slots"` for a PREPARED caster (Cleric/Druid/Magus/
+ * Wizard) — each rank shows `max` numbered slot cards a player prepares a
+ * grimoire spell INTO ahead of time, then casts from; `"known-list"` for a
+ * SPONTANEOUS caster (Bard/Psychic/Sorcerer) — there is no "preparing" step,
+ * the entry's embedded spells already ARE the known repertoire, and each rank
+ * just shows how many of its `max` slots remain available to spend on any of
+ * them. Also covers `"innate"`, defensively — no live build path creates a
+ * non-focus innate entry today (focus-pool innate entries are routed to the
+ * separate Focus tab via `isFocusPool`, never through this decision), but an
+ * innate caster has no "preparing" step either, so it shares the same surface
+ * as spontaneous rather than falling through to the prepared-slot UI.
+ */
+export type SpellSurfaceMode = "slots" | "known-list";
+
+export function spellSurfaceModeFor(prepared: string): SpellSurfaceMode {
+  return prepared === "prepared" ? "slots" : "known-list";
 }
 
 /**
@@ -751,6 +806,41 @@ export class CharacterSheetVM {
     return typeof raw === "string" ? raw : "";
   }
 
+  /**
+   * The character's class trait slug (e.g. "bard"), derived from the
+   * embedded `type: "class"` item's name — same source and same
+   * lowercase-trim rule planVM's `classSlug` uses for feat eligibility
+   * (`nameToSlug(itemName(classItem))`), duplicated locally because this VM
+   * is dependency-free by design (see the module doc comment) and planVM
+   * already imports FROM this file, so the reverse import would cycle.
+   * Undefined when no class item is embedded yet.
+   *
+   * Used to scope the focus-spell picker to the character's own class
+   * (issue #7): spells-core's focus spells carry no `traits.traditions` at
+   * all (100% empty), so the class trait on the spell itself is the only
+   * signal distinguishing "Bard focus spell" from "Champion focus spell".
+   */
+  get classTrait(): string | undefined {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    const classItem = items?.find((item) => item["type"] === "class");
+    const name = classItem?.["name"];
+    if (typeof name !== "string") return undefined;
+    const slug = name.trim().toLowerCase();
+    return slug || undefined;
+  }
+
+  /**
+   * Highest focus-spell rank the character can currently pick from the Focus
+   * picker (issue #7). RAW: focus spells are always cast at the highest rank
+   * you can cast, equal to half your level rounded up — the same ceil(level/2)
+   * rule this VM already applies when auto-heightening a known focus spell
+   * (see `focusSpells` / `_heighteningView`). A level-1 character therefore
+   * cannot reach a 10th-rank focus spell like Fatal Aria.
+   */
+  get maxFocusSpellRank(): number {
+    return Math.ceil(this.level / 2);
+  }
+
   // -------------------------------------------------------------------------
   // HP
   // -------------------------------------------------------------------------
@@ -867,7 +957,6 @@ export class CharacterSheetVM {
     const abilities = this._system["abilities"] as
       | Record<string, { value: number; mod?: number }>
       | undefined;
-    if (!abilities) return [];
 
     const abilityMods = this._derived?.abilityMods;
     // r11: build-driven actors have their FINAL scores in derived.abilityScores
@@ -876,8 +965,15 @@ export class CharacterSheetVM {
     const derivedScores = (this._derived as { abilityScores?: Record<string, number> } | null)
       ?.abilityScores;
 
+    // Issue #11: build-driven actors NEVER get `system.abilities` persisted —
+    // derive-runner.ts only ever writes back `derived.abilityScores`, never
+    // the raw field. Bailing out on `!abilities` alone left every build-driven
+    // character's ability block empty even though `derivedScores` had the
+    // real, final values. Only bail when NEITHER source has data.
+    if (!abilities && !derivedScores) return [];
+
     return Object.entries(ABILITY_LABELS).map(([slug]) => {
-      const raw = abilities[slug];
+      const raw = abilities?.[slug];
       const score = derivedScores?.[slug] ?? raw?.value ?? 10;
       const mod = abilityMods
         ? ((abilityMods as Record<string, number>)[slug] ?? Math.floor((score - 10) / 2))
@@ -919,6 +1015,12 @@ export class CharacterSheetVM {
   }
 
   private _perceptionRank(): number {
+    // Issue #38, same contract as skills above: class-granted proficiency is
+    // computed on a clone the server never writes back, so `system.perception`
+    // can be silent about a rank the character really has. The derived rank
+    // wins; the persisted one is the fallback for hand-set (pre-derived) ranks.
+    const derivedRank = this._derived?.perception.rank;
+    if (derivedRank !== undefined) return derivedRank;
     const perception = this._system["perception"] as Record<string, unknown> | undefined;
     return Number(perception?.["rank"] ?? 0);
   }
@@ -942,8 +1044,12 @@ export class CharacterSheetVM {
     const saveNames = ["fortitude", "reflex", "will"] as const;
 
     return saveNames.map((name) => {
-      const rank = savesSource?.[name]?.rank ?? 0;
       const derivedSave = derived?.saves[name];
+      // Issue #38, same contract as skills and perception: the class trains
+      // saves on a clone the server never persists back, so a build-driven
+      // character showed "U" next to a total that already carried the trained
+      // bonus. Derived rank wins; persisted is the fallback for hand-set ranks.
+      const rank = derivedSave?.rank ?? savesSource?.[name]?.rank ?? 0;
       const total = derivedSave?.total ?? 0;
       return {
         slug: name,
@@ -1597,6 +1703,10 @@ export class CharacterSheetVM {
         castTime: typeof rawCastTime === "string" ? rawCastTime : null,
         // Focus spells auto-heighten to the highest rank you can cast (ceil/2).
         heightening: this._heighteningView(sys, spLevel, "focus"),
+        // issue #36: a cantrip never spends a Focus Point, even one collected
+        // here by its "composition" trait (issue #6) rather than "focus" —
+        // isFocusTrait is already false for those, so this stays correct.
+        costsFocusPoint: isFocusTrait,
       });
     }
 
@@ -2442,6 +2552,27 @@ export class CharacterSheetVM {
     spellDoc: Record<string, unknown>,
   ): DocCreateEmbeddedPayload | null {
     if (!this.editable) return null;
+    // issue #8 (RAW): a focus spell only ever occupies a focus-pool
+    // spellcastingEntry, and a non-focus spell never occupies one — the
+    // prepared/spontaneous grimoire and the focus pool are never
+    // interchangeable in PF2e core rules. Concrete case that surfaced this:
+    // Cleric's domain spell (trait "focus") landing in the prepared "divine
+    // Spells" grimoire (isFocusPool false), because before issue #5 the
+    // Cleric had no focus entry to receive it at all. Reject silently
+    // (return null) instead of materializing the invalid combination — same
+    // posture as the `!this.editable` guard above. Only enforced when the
+    // target entry actually exists on this actor; an unresolved/unknown
+    // entryId falls through unchecked, matching pre-existing behavior.
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    const entry = items?.find((it) => it["_id"] === entryId && it["type"] === "spellcastingEntry");
+    if (entry) {
+      const entrySystem = entry["system"];
+      const entryIsFocusPool =
+        typeof entrySystem === "object" &&
+        entrySystem !== null &&
+        (entrySystem as Record<string, unknown>)["isFocusPool"] === true;
+      if (docHasFocusTrait(spellDoc) !== entryIsFocusPool) return null;
+    }
     const { _id: _drop, ...rest } = spellDoc;
     return {
       type: "doc:create",
@@ -2797,9 +2928,52 @@ export interface SpellPickerFilters {
   maxRank?: number;
   /** Restrict to spells whose traditions include this value (e.g. "arcane"). */
   tradition?: string;
+  /**
+   * Restrict to spells belonging to this class trait slug (e.g. "bard") —
+   * issue #7. Focus spells carry no `traditions` at all (spells-core: 458/458
+   * empty), so tradition filtering cannot scope the focus picker to the
+   * character's class; the class trait on the spell itself is the only
+   * signal. An entry with NO known class trait at all (shared/general focus
+   * spells, e.g. domain/archetype grants — 85/458 in spells-core) always
+   * passes, mirroring planVM's `isFeatEligible` classFeat rule: only an
+   * entry tagged for a DIFFERENT class is excluded.
+   */
+  classTrait?: string;
   /** Case-insensitive substring match against the spell name. */
   search?: string;
 }
+
+/**
+ * Known class trait slugs (mirrors planVM.ts's `KNOWN_CLASS_TRAITS` — kept in
+ * sync by hand, same pattern as `SKILL_ABILITY`/`CANONICAL_SKILL_SLUGS`
+ * between these two files; planVM already imports FROM this module, so the
+ * reverse import would cycle). Distinguishes "this spell belongs to a
+ * DIFFERENT class" from "this is a shared/general focus spell" in
+ * `filterSpellPicker`'s `classTrait` filter (issue #7).
+ */
+const KNOWN_CLASS_TRAITS = new Set([
+  "magus",
+  "alchemist",
+  "barbarian",
+  "bard",
+  "champion",
+  "cleric",
+  "druid",
+  "fighter",
+  "gunslinger",
+  "inventor",
+  "investigator",
+  "kineticist",
+  "monk",
+  "oracle",
+  "ranger",
+  "rogue",
+  "sorcerer",
+  "summoner",
+  "swashbuckler",
+  "witch",
+  "wizard",
+]);
 
 function pickerSpellLevel(entry: SpellPickerEntry): number {
   // The "spell" item schema stores level as a flat number at system.level
@@ -2815,6 +2989,43 @@ function pickerSpellTraditions(entry: SpellPickerEntry): string[] {
   const raw = entry.index["system.traits.traditions"];
   if (Array.isArray(raw)) return raw.filter((t): t is string => typeof t === "string");
   return [];
+}
+
+/** The full trait list (system.traits.value) of a picker entry. */
+function pickerSpellTraits(entry: SpellPickerEntry): string[] {
+  const raw = entry.index["system.traits.value"];
+  if (Array.isArray(raw)) return raw.filter((t): t is string => typeof t === "string");
+  return [];
+}
+
+/**
+ * Does an entry's trait list satisfy the picker's `classTrait` filter (issue
+ * #7)? An entry with no KNOWN class trait at all is always eligible (shared
+ * focus spell); an entry tagged for a class is eligible only when that class
+ * matches. Mirrors planVM's `isFeatEligible` classFeat rule verbatim.
+ */
+function matchesClassTrait(traits: string[], classTrait: string): boolean {
+  const looksClassTagged = traits.some((t) => KNOWN_CLASS_TRAITS.has(t));
+  return !looksClassTagged || traits.includes(classTrait);
+}
+
+/**
+ * Does an entry's trait list satisfy a single picker trait-chip filter
+ * (issue #6)? A plain membership check, EXCEPT the "focus" chip also accepts
+ * "composition": PF2e's Bard composition CANTRIPS (Allegro, Courageous
+ * Anthem, Dirge of Doom, House of Imaginary Walls, Rallying Anthem, Silver's
+ * Refrain, Song of Marching, Song of Strength, Triple Time, Uplifting
+ * Overture — 10/20 compositions in spells-core) correctly omit the "focus"
+ * trait, because RAW cantrips never cost a Focus Point — but they belong
+ * next to the composition spells that DO cost one when browsing the Focus
+ * tab's picker. This widens the DISPLAY match only; it never adds "focus" to
+ * the underlying data, which stays the source of truth `costsFocusPoint`
+ * reads from (see `SpellRow.costsFocusPoint`, issue #36).
+ */
+export function matchesTraitFilter(traits: string[], filter: string): boolean {
+  if (traits.includes(filter)) return true;
+  if (filter === "focus" && traits.includes("composition")) return true;
+  return false;
 }
 
 /**
@@ -2950,6 +3161,9 @@ export function filterSpellPicker<T extends SpellPickerEntry>(
     if (filters.tradition !== undefined) {
       const traditions = pickerSpellTraditions(entry);
       if (!traditions.includes(filters.tradition)) return false;
+    }
+    if (filters.classTrait !== undefined) {
+      if (!matchesClassTrait(pickerSpellTraits(entry), filters.classTrait)) return false;
     }
     if (searchNorm && !pickerNameMatches(entry, searchNorm)) return false;
     return true;

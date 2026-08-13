@@ -1,0 +1,182 @@
+[
+  {
+    "_id": "vuZZSqmAurrrg4TU",
+    "uuid": "Compendium.pf2e.armor-core.Item.vuZZSqmAurrrg4TU",
+    "name": "Breastplate",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "medium",
+      "system.traits.value": [],
+      "system.acBonus": 4,
+      "flags.fusion.sourceId": "r0ifJfoz8aqf0mwk"
+    }
+  },
+  {
+    "_id": "A5eYb1dnTyxRnNPt",
+    "uuid": "Compendium.pf2e.armor-core.Item.A5eYb1dnTyxRnNPt",
+    "name": "Chain Mail",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "medium",
+      "system.traits.value": [
+        "flexible",
+        "noisy"
+      ],
+      "system.acBonus": 4,
+      "flags.fusion.sourceId": "Kf4eJEXnFPuAsseP"
+    }
+  },
+  {
+    "_id": "ocKCjhULNZLWGwwt",
+    "uuid": "Compendium.pf2e.armor-core.Item.ocKCjhULNZLWGwwt",
+    "name": "Chain Shirt",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": [
+        "flexible",
+        "noisy"
+      ],
+      "system.acBonus": 2,
+      "flags.fusion.sourceId": "MPcM4Wt6KmWE2kGL"
+    }
+  },
+  {
+    "_id": "dZzuMMY2WJ1BtTF7",
+    "uuid": "Compendium.pf2e.armor-core.Item.dZzuMMY2WJ1BtTF7",
+    "name": "Explorer's Clothing",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "unarmored",
+      "system.traits.value": [
+        "comfort"
+      ],
+      "system.acBonus": 0,
+      "flags.fusion.sourceId": "dDIPA1WE9ESF67EB"
+    }
+  },
+  {
+    "_id": "TahCfgvj5qrcvCvp",
+    "uuid": "Compendium.pf2e.armor-core.Item.TahCfgvj5qrcvCvp",
+    "name": "Full Plate",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 2,
+      "system.category": "heavy",
+      "system.traits.value": [
+        "bulwark"
+      ],
+      "system.acBonus": 6,
+      "flags.fusion.sourceId": "Gq1cZWSKOtJhKd2p"
+    }
+  },
+  {
+    "_id": "48zK9DBYvgZPJyOX",
+    "uuid": "Compendium.pf2e.armor-core.Item.48zK9DBYvgZPJyOX",
+    "name": "Half Plate",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 1,
+      "system.category": "heavy",
+      "system.traits.value": [],
+      "system.acBonus": 5,
+      "flags.fusion.sourceId": "pRoikbRo5HFW6YUB"
+    }
+  },
+  {
+    "_id": "Cn6BK2LdsQVKzwIA",
+    "uuid": "Compendium.pf2e.armor-core.Item.Cn6BK2LdsQVKzwIA",
+    "name": "Hide Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "medium",
+      "system.traits.value": [],
+      "system.acBonus": 3,
+      "flags.fusion.sourceId": "AnwzlOs0njF9Jqnr"
+    }
+  },
+  {
+    "_id": "txqFN5kKkIPHzES0",
+    "uuid": "Compendium.pf2e.armor-core.Item.txqFN5kKkIPHzES0",
+    "name": "Leather Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": [],
+      "system.acBonus": 1,
+      "flags.fusion.sourceId": "4tIVTg9wj56RrveA"
+    }
+  },
+  {
+    "_id": "rKZxBQQ4UEDNVI20",
+    "uuid": "Compendium.pf2e.armor-core.Item.rKZxBQQ4UEDNVI20",
+    "name": "Padded Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": [
+        "comfort"
+      ],
+      "system.acBonus": 1,
+      "flags.fusion.sourceId": "zBYEU9E7034ENCmh"
+    }
+  },
+  {
+    "_id": "JkFokVRCFb0xBClx",
+    "uuid": "Compendium.pf2e.armor-core.Item.JkFokVRCFb0xBClx",
+    "name": "Scale Mail",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "medium",
+      "system.traits.value": [],
+      "system.acBonus": 3,
+      "flags.fusion.sourceId": "YMQr577asquZIP65"
+    }
+  },
+  {
+    "_id": "YBc2Be8TQpCrDEpg",
+    "uuid": "Compendium.pf2e.armor-core.Item.YBc2Be8TQpCrDEpg",
+    "name": "Splint Mail",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 1,
+      "system.category": "heavy",
+      "system.traits.value": [],
+      "system.acBonus": 5,
+      "flags.fusion.sourceId": "6AhDKX1dwRwFpQsU"
+    }
+  },
+  {
+    "_id": "7DxLtZgcLIerFQGh",
+    "uuid": "Compendium.pf2e.armor-core.Item.7DxLtZgcLIerFQGh",
+    "name": "Studded Leather Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": [],
+      "system.acBonus": 2,
+      "flags.fusion.sourceId": "ewQZ0VeL38v3qFnN"
+    }
+  }
+]

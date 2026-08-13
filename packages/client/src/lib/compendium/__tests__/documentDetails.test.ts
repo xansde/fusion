@@ -1071,16 +1071,34 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 217 glossary traits with a non-empty accented value", () => {
+  it("covers all 343 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
     // que ficaram atrás do glossário até esta sincronização; ver
     // traitNames.sync.test.ts para o gate vivo que evita essa deriva daqui
-    // em diante). Count exato de propósito: trait novo no glossário exige
-    // regenerar via tools/translate-packs/gen-client-maps.mjs e revisar.
+    // em diante) + 14 na r25 (os traços das 12 armas de fogo publicadas em
+    // weapons-core — capacity-N, concussive, fatal-dN, kickback, scatter-10,
+    // repeating, modular, double-barrel, concealable — mais `amp` e
+    // `mindshift`, que vêm com a Psychic) + 7 na r27 (as ancestrias
+    // hobgoblin/aiuvarin/changeling/dhampir/dragonblood/dromaar/duskwalker
+    // que o Player Core 2 trouxe via ancestries/heritages-core) + 95 na r28/A2
+    // (bestiary-core expandido de 10 para os 492 monstros do
+    // pathfinder-monster-core: 57 traits de tipo de criatura — dragon, fiend,
+    // undead subtypes como ghost/wraith/wight, ancestrias de monstro como
+    // oni/rakshasa/qlippoth etc. — e 38 traits de arma dos ataques
+    // encaixados nas criaturas — reach-N adicionais, deadly-dN adicionais,
+    // brutal, bulwark, adamantine, cold-iron... — que nunca apareciam em
+    // nenhum pack curado antes) + 17 na r28/A4 (armas mundanas de weapons-core
+    // 42→132) + 2 na r28/A1 (bulwark/comfort de armor-core) — 340 é a UNIÃO
+    // dos três workstreams da r28 após o merge (83 dos 95 do A2 eram inéditos
+    // na união). Count exato de propósito: trait novo no
+    // + 3 na r28/A5 (equipment-core 18→249: alchemical/elixir/precious e afins
+    // que só apareciam em consumíveis). Trait novo exige regenerar via
+    // tools/translate-packs/gen-client-maps.mjs
+    // e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(217);
+    expect(keys.length).toBe(343);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);

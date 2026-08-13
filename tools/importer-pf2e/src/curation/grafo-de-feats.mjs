@@ -96,10 +96,16 @@ function rotulosDoEixo(axis) {
  * candidatos; o resto vira um só.
  */
 export function candidatosDoRequisito(texto) {
-  return String(texto ?? "")
-    .split(/\s+or\s+|,\s*/i)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0);
+  return (
+    String(texto ?? "")
+      // A vírgula de Oxford precisa ser consumida junto com o "or" (issue #31):
+      // com o `,\s*` casando antes, o último candidato de "A, B, or C" saía como
+      // "or C" e nenhuma aresta do grafo resolvia. Mantido em sincronia com
+      // `prerequisiteCandidates` em packages/client/src/lib/sheets/pf2e/planVM.ts.
+      .split(/\s*,\s*or\s+|\s+or\s+|\s*,\s*/i)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0)
+  );
 }
 
 function carregar(pack) {

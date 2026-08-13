@@ -24,11 +24,22 @@ export default defineConfig({
   test: {
     name: "client",
     environment: "node",
-    include: ["src/**/__tests__/**/*.test.ts"],
+    // vite-plugins/ holds Node-only build glue (the avatar acervo publisher);
+    // its pure helpers — the path-traversal guard above all — are worth testing
+    // and must NOT live under src/, which is browser code.
+    include: ["src/**/__tests__/**/*.test.ts", "vite-plugins/__tests__/**/*.test.ts"],
     // FIX-7: socket.test.ts and worldSync.test.ts exercise real socket.io
     // round-trips that occasionally brush the default 5s ceiling on a loaded
-    // machine, causing pre-existing flakiness. Raise the per-test ceiling to
-    // 15s — these are I/O-bound integration tests, not hot loops.
-    testTimeout: 15_000,
+    // machine, causing pre-existing flakiness. These are I/O-bound integration
+    // tests, not hot loops.
+    //
+    // Raised 15s -> 30s (2026-08-12): the ceiling also has to absorb module
+    // TRANSFORM cost, because these suites `await import(...)` the module under
+    // test from inside the first `it(...)` — so whichever test imports first
+    // pays for compiling the whole graph within its own timeout. Measured on a
+    // loaded machine: transform 15.6s against a 15s ceiling, so the first test
+    // failed while the other 11 passed; the same file went 12/12 green at 60s.
+    // A gate that goes red under load is a gate the team learns to ignore.
+    testTimeout: 30_000,
   },
 });

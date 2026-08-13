@@ -94,6 +94,16 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Bloodline: Wyrmblessed/dragonBloodline": "pendente",
   // r22 — Champion's Cause is the new "cause" choiceAxis slot.
   "class-features-core/Cause/cause": "eixo",
+  // --- r25: Psychic's two level-1 axes. Both are declared as choiceAxes in
+  // curation/classes/psychic.json, so the OPTIONS are in the pack with their own
+  // `system.category` (consciousMind / subconsciousMind) — but "Conscious Mind"
+  // and "Subconscious Mind" are NOT in planVM's CLASS_CHOICE_SLOTS, so neither
+  // slot is offered. `pendente`, NOT `eixo`: the pack half is done and the
+  // builder half is not, and marking them `eixo` would claim a slot the player
+  // never sees. The subconscious mind is what determines the Psychic's key
+  // attribute (Int or Cha), so this gap also leaves keyAbility unresolved.
+  "class-features-core/Conscious Mind/consciousMind": "pendente",
+  "class-features-core/Subconscious Mind/subconsciousMind": "pendente",
   // r22 — Champion's own deity pick (name-based, no builder support yet —
   // same family as Ranger's Avenger/Vindicator deity picks above).
   "class-features-core/Deity (Champion)/-": "pendente",
@@ -109,6 +119,15 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // check-derivation.mjs), matching the class-integration policy.
   "class-features-core/Doctrine/doctrine": "eixo",
   "class-features-core/Dragon Instinct/dragon": "pendente",
+  // r28 — Druidic Order é o novo eixo "order" (Druid, nível 1, 9 opções
+  // `druid-order` no pack). Ao contrário dos eixos de Psychic e Gunslinger
+  // (que ficaram "pendente" porque o pack tinha as opções mas o builder não
+  // abria o slot), este entrou COMPLETO: "Druidic Order" está em
+  // CLASS_CHOICE_SLOTS e "order" em CLASS_CHOICE_SLOT_OPTIONS, então o slot
+  // de nível 1 é oferecido e filtrado pela otherTag. O que continua pendente
+  // é o EFEITO da opção escolhida (a perícia treinada da ordem e o vínculo
+  // ordem → magia de foco inicial) — declarado em curation/classes/druid.json.
+  "class-features-core/Druidic Order/druidicOrder": "eixo",
   "class-features-core/Eldritch Trickster/eldritchTrickster": "pendente",
   "class-features-core/Elemental Instinct/elementalInstinctDamage": "pendente",
   "class-features-core/Elemental Instinct/elementalInstinctElement": "pendente",
@@ -125,6 +144,12 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // "pendente" family as Gate's Threshold's own 3 entries just below.
   "class-features-core/Gate Junction/element": "pendente",
   "class-features-core/Gate Junction/junction": "pendente",
+  // r25 — Gunslinger's Way is the new "way" choiceAxis (6 options in the pack,
+  // each with `system.category: "way"`). Same state as the two Psychic axes
+  // above: the options exist, but "Gunslinger's Way" is not in
+  // CLASS_CHOICE_SLOTS, so the level-1 slot is never offered. This is the axis
+  // the target sheet picks (Way of the Spellshot).
+  "class-features-core/Gunslinger's Way/way": "pendente",
   "class-features-core/Gate's Threshold/-": "pendente",
   "class-features-core/Gate's Threshold/element": "pendente",
   "class-features-core/Gate's Threshold/elementFork": "pendente",
@@ -149,6 +174,24 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // "feat:qi-spells" predicate report for the companion Monk Expertise gap).
   "class-features-core/Path to Perfection/pathToPerfection": "pendente",
   "class-features-core/Rogue's Racket/roguesRacket": "eixo",
+  // --- r25: the 6 Psychic conscious minds each carry a `dedicationCantrip`
+  // ChoiceSet whose `choices` is a FLAG PATH
+  // ("flags.system.psychic.dedication.psiCantrips") rather than a filter — it is
+  // the psi cantrip you pick when the conscious mind arrives through Psychic
+  // DEDICATION instead of the class. That is exactly the target sheet's route
+  // (Ignition via The Oscillating Wave), and the builder offers nothing for it.
+  // Note the flag-path form: even the generic ChoiceSet interpretation would not
+  // resolve these without knowing how the granting feat filled the flag.
+  "class-features-core/The Distant Grasp/dedicationCantrip": "pendente",
+  "class-features-core/The Infinite Eye/dedicationCantrip": "pendente",
+  "class-features-core/The Oscillating Wave/dedicationCantrip": "pendente",
+  "class-features-core/The Silent Whisper/dedicationCantrip": "pendente",
+  "class-features-core/The Tangible Dream/dedicationCantrip": "pendente",
+  "class-features-core/The Unbound Step/dedicationCantrip": "pendente",
+  // r25 — the Pistolero is the one Gunslinger way whose trained skill is a
+  // choice (Deception or Intimidation) instead of being fixed; a static
+  // two-value pick, same family as the 4 Player Core backgrounds above.
+  "class-features-core/Way of the Pistolero/skill": "pendente",
   "class-features-core/School of Rooted Wisdom/branch": "pendente",
   // issue #16 — the Runelord archetype-school forces this school in place of
   // a normal arcane-school pick; its own sub-choice (which of the 7 sins) is
@@ -167,10 +210,21 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Third Gate's Threshold/elementFork": "pendente",
   "class-features-core/Third Gate's Threshold/impulseExpand": "pendente",
   "class-features-core/Third Path to Perfection/pathToPerfection": "pendente",
+  // r28 — Voice of Nature (Druid, nível 1) concede UM talento escolhido entre
+  // dois itens LITERAIS (Animal Empathy / Plant Empathy). GRANTED_FEAT_FILTERS
+  // no planVM.ts só sabe filtro por predicado declarativo (categoria/trait/
+  // nível), não lista literal de uuids, então este caso não é expressável lá
+  // hoje. Os dois talentos-alvo ESTÃO em feats-core — falta só o consumidor.
+  "class-features-core/Voice of Nature/feat": "pendente",
   "class-features-core/Vindicator/-": "pendente",
   "class-features-core/Vindicator/deity": "pendente",
   "class-features-core/Weapon Legend/weaponLegend": "pendente",
   "classes-core/Fighter/fighterSkill": "pendente",
+  // r28-A5: Orc Warmask (equipment-core, granted by the Orc Warmask feat) is an
+  // item-level ChoiceSet — the wearer picks the mask's power source (Gods/Land/
+  // Magic/Unknown), same shape as "ancestry-features-core/Clan Dagger/clanWeapon"
+  // above. Not wired into the builder yet — declared debt, not silent.
+  "equipment-core/Orc Warmask/tradition": "pendente",
   "familiar-abilities-core/Damage Avoidance/save": "fora-do-builder",
   "familiar-abilities-core/Elemental/element": "fora-do-builder",
   "familiar-abilities-core/Fast Movement/speed": "fora-do-builder",
@@ -182,6 +236,10 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Ancestral Paragon/ancestralParagon": "pendente",
   "feats-core/Armor Proficiency/-": "pendente",
   "feats-core/Assurance/assurance": "pendente",
+  // r27 — ancestry feats do Player Core 2 (curadoria das 7 ancestralidades
+  // novas): cada um parametriza o próprio feat com uma escolha que o builder
+  // ainda não oferece — mesma família dos "pendente" vizinhos.
+  "feats-core/Benefactor's Resistance/nonPhysicalResistance": "pendente",
   "feats-core/Basic Concoction/basicConcoction": "sub-slot",
   "feats-core/Basic Trickery/basicTrickery": "pendente",
   "feats-core/Canny Acumen/cannyAcumen": "pendente",
@@ -205,10 +263,14 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // same family as the class's own Deity/Divine Font gaps above.
   "feats-core/Deity's Domain/deitysDomain": "pendente",
   "feats-core/Domain Initiate/domainInitiate": "pendente",
+  // r27 — Dragonblood Paragon escolhe o dragão exemplar (mesma escolha da
+  // herança Dragonblood, reapresentada como feat).
+  "feats-core/Dragonblood Paragon/dragonbloodParagon": "pendente",
   "feats-core/Elemental Evolution/damage": "pendente",
   "feats-core/Elemental Lore/elementalLore": "pendente",
   // r22 — Monk's "Entwined Energy Ki" feat picks an energy type — not offered.
   "feats-core/Entwined Energy Ki/entwinedEnergyKi": "pendente",
+  "feats-core/Iruxi Armaments/iruxiArmaments": "pendente",
   "feats-core/Living Weapon/livingWeapon": "pendente",
   // r22 — Champion's "Mercy" feat parameterizes the condition it removes.
   "feats-core/Mercy/-": "pendente",
@@ -216,16 +278,40 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   // feat (mirrors Crossblooded Evolution above, muse instead of bloodline).
   "feats-core/Multifarious Muse/feat": "pendente",
   "feats-core/Multifarious Muse/muse": "pendente",
+  // --- r25: the Psychic archetype chain (reaches feats-core through
+  // classFeats.extraNames — none of these carries the `psychic` trait). ---
+  // "Parallel Breakthrough" picks one psi cantrip out of an explicit `or` list
+  // of slugs; the other two are the same flag-path psi-cantrip pick as the 6
+  // conscious minds above. `Psychic Dedication/consciousMind` is the one that
+  // matters most for the target sheet: it is the choice that makes the whole
+  // level-1 archetype-spellcasting route exist, and nothing offers it.
+  "feats-core/Parallel Breakthrough/spell": "pendente",
+  "feats-core/Psi Development/dedicationCantrip": "pendente",
+  "feats-core/Psychic Dedication/consciousMind": "pendente",
+  // --- r28: as 3 escolhas que os 100 class feats do Druid trouxeram. ---
+  // "Heart of the Kaiju" (L20) parametriza o tipo de dano do sopro da forma
+  // colossal; "Verdant Weapon" (L1) escolhe QUAL arma vira a arma verdejante
+  // (3 flags: a escolha em si + os dois ramos "já tenho uma"/"ganho uma"); e
+  // "Order Explorer" (L2) escolhe uma SEGUNDA ordem druídica — mesma forma do
+  // "Multifarious Muse" do Bardo logo acima (o eixo existe e é oferecido no
+  // nível 1, mas a re-escolha por talento não é).
+  "feats-core/Heart of the Kaiju/damageType": "pendente",
+  "feats-core/Order Explorer/order": "pendente",
+  "feats-core/Verdant Weapon/-": "pendente",
+  "feats-core/Verdant Weapon/existingVerdantWeapon": "pendente",
+  "feats-core/Verdant Weapon/grantedVerdantWeapon": "pendente",
   "feats-core/Rogue Dedication/rogueDedication": "pendente",
   "feats-core/Rogue Dedication/skillFeat": "pendente",
   // r22 — Cleric's "Second Blessing" feat (Blessed One-style) picks a
   // blessing — same family as "Blessing of the Devoted" above.
+  "feats-core/Runtsage/-": "pendente",
   "feats-core/Second Blessing/blessing": "pendente",
   "feats-core/Skill Training/skill": "pendente",
   "feats-core/Specialty Crafting/specialtyCrafting": "pendente",
   "feats-core/Terrain Expertise/terrain": "pendente",
   "feats-core/Terrain Stalker/-": "pendente",
   "feats-core/Virtuosic Performer/performanceType": "pendente",
+  "feats-core/War Conditioning/warConditioning": "pendente",
   "feats-core/Wilderness Spotter/terrain": "pendente",
   // issue #1 — ancestry feats of the 8 newly curated Player Core ancestries
   // (Dwarf/Elf/Gnome/Goblin/Halfling/Human/Leshy/Orc) that themselves
@@ -248,11 +334,28 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Natural Skill/skillTwo": "pendente",
   "feats-core/Viking Shieldbearer/weapon": "pendente",
   // issue #1 — heritage-level parameterized choices for the 8 core
-  // ancestries (Ancient Elf picks an elf-lineage bonus feat; Skilled Human
-  // picks a trained skill; Versatile Human picks a general-feat-eligible
-  // bonus feat) — same unresolved-ChoiceSet shape as Skilled Human's
-  // background cousins above.
+  // ancestries (Skilled Human picks a trained skill; Versatile Human picks a
+  // general-feat-eligible bonus feat) — same unresolved-ChoiceSet shape as
+  // Skilled Human's background cousins above.
+  //
+  // r25, Ancient Elf: two corrections here. (1) The old comment said it "picks
+  // an elf-lineage bonus feat" — it does not. Its filter is
+  // ["item:category:class","item:trait:dedication","item:trait:multiclass"]:
+  // it picks a MULTICLASS DEDICATION, at level 1, waiving the level 2
+  // prerequisite ("even though you don't meet its level prerequisite"). That is
+  // the whole reason the target sheet can carry a Psychic Dedication at level 1.
+  // (2) The PACK half is now done: the importer converts this ChoiceSet into a
+  // `feat-choice` descriptor and marks the paired grant-item `inMemoryOnly`, so
+  // this key is now collected from `system.rules` instead of
+  // `unconvertedRules`. It stays `pendente` because the state in this inventory
+  // is about the BUILDER, and the builder still offers no sub-slot on a
+  // heritage — the heritage is an AbcCardModel with no slotId. Flip to
+  // `sub-slot` when planVM grows that push.
   "heritages-core/Ancient Elf/ancientElf": "pendente",
+  // r27 — heranças do Player Core 2 com escolha própria: Dragonblood escolhe
+  // o dragão exemplar; Elementheart Kobold escolhe o elemento do sopro.
+  "heritages-core/Dragonblood/dragonblood": "pendente",
+  "heritages-core/Elementheart Kobold/element": "pendente",
   "heritages-core/Skilled Human/skill": "pendente",
   "heritages-core/Versatile Human/versatileHeritage": "pendente",
 };

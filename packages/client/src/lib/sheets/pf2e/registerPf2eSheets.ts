@@ -84,7 +84,9 @@ export async function registerPf2eSheets(): Promise<void> {
  * @param opts      Window context: userId, ownership, isGm, sendOpFn, socket
  *                  (DEC-R10-04 — CharacterSheet's Spells tab needs a live
  *                  Socket for the compendium spell picker; optional so
- *                  callers that don't have one yet keep compiling).
+ *                  callers that don't have one yet keep compiling), plus an
+ *                  optional `tokenBinding` when the sheet is opened FROM a
+ *                  token (REQ-DOC-033).
  */
 export function openActorSheet(
   actorId: string,
@@ -96,6 +98,13 @@ export function openActorSheet(
     worldId?: string;
     socket?: Socket;
     sendOpFn?: (op: unknown) => void;
+    /**
+     * Set when this sheet belongs to ONE token rather than to the world Actor.
+     * Six unlinked skeletons share an `actorId`, so keying the window by the
+     * actor would collapse all six sheets into one — the first click would
+     * "open" a window already showing another skeleton's hit points.
+     */
+    tokenBinding?: { sceneId: string; tokenId: string; actorId: string; linked: boolean };
   },
 ): void {
   // Lazy import to avoid circular imports when this module is loaded server-side.
@@ -106,7 +115,9 @@ export function openActorSheet(
     const subtype = typeof rawSubtype === "string" ? rawSubtype : "character";
     const rawName = actorDoc["name"];
     const name = typeof rawName === "string" ? rawName : "Actor";
-    const singletonKey = `sheet:Actor:${actorId}`;
+    const binding = _opts.tokenBinding;
+    const singletonKey =
+      binding && !binding.linked ? `sheet:Token:${binding.tokenId}` : `sheet:Actor:${actorId}`;
 
     const reg = sheetRegistry.resolve("Actor", subtype);
     if (!reg) {

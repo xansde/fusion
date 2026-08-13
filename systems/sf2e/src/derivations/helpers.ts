@@ -10,7 +10,7 @@
  * Pure functions used by both character and NPC derivation steps.
  * No side effects; no imports from Svelte or browser APIs.
  *
- * REQ-SF2-004, REQ-SF2-200 (mirrors REQ-PF2-200/202).
+ * REQ-SF2-004 (mirrors REQ-PF2-200/202).
  */
 
 import {

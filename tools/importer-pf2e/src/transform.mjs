@@ -46,8 +46,18 @@ import { fileURLToPath } from "node:url";
 // r21: progressão de classe vem de DADO (curation/classes/*.json) + derivação
 // sobre o vendor, não de tabela escrita à mão. Ver curation/index.mjs e
 // curation/proficiency-upgrades.mjs.
-import { axisCategoryByOtherTag, classItemsMap, loadClassCuration } from "./curation/index.mjs";
+import {
+  axisCategoryByOtherTag,
+  axisLevelByOtherTag,
+  classItemsMap,
+  loadClassCuration,
+} from "./curation/index.mjs";
 import { deriveProficiencyUpgrades } from "./curation/proficiency-upgrades.mjs";
+
+// r25/bloco 2: ChoiceSet(feat) com filtro literal vira o descritor `feat-choice`
+// que o planVM já sabe consumir (GrantedFeatFilter). Ver o insumo em
+// .fusion-build/r25/insumos/ancient-elf-choiceset.md.
+import { convertChoiceSet } from "./choice-set.mjs";
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -498,7 +508,7 @@ function convertAdjustModifier(re) {
  * REQ-CMP-036: unsupported REs are NOT discarded — caller preserves them
  * in flags.fusion.unconvertedRules.
  */
-function convertRuleElement(re) {
+function convertRuleElement(re, siblingRules = []) {
   const key = re?.key;
   if (!key) return { descriptor: null, state: "unsupported" };
 
@@ -508,6 +518,18 @@ function convertRuleElement(re) {
     let descriptor = null;
 
     switch (key) {
+      case "ChoiceSet": {
+        // ChoiceSet stays "unsupported" in RE_COVERAGE on purpose: most of the
+        // 133 ChoiceSets in the packs are value choices (skill, terrain) with no
+        // consumer in the builder, and they must keep the exact
+        // `_conversionState: "unsupported"` they have today. Only the subset the
+        // client CAN consume — a FEAT choice with a fully literal filter and no
+        // level predicate, paired with the GrantItem that spends the flag —
+        // converts. Everything else falls through to unconvertedRules unchanged.
+        const choice = convertChoiceSet(re, siblingRules);
+        if (choice === null) return { descriptor: null, state: "unsupported" };
+        return { descriptor: choice, state: "supported" };
+      }
       case "FlatModifier":
         descriptor = convertFlatModifier(re);
         break;
@@ -606,7 +628,7 @@ function transformDoc(
     stats.byKey[key].total++;
     stats.totalRules++;
 
-    const { descriptor, state } = convertRuleElement(re);
+    const { descriptor, state } = convertRuleElement(re, rawRules);
 
     if (state === "supported" && descriptor !== null) {
       convertedRules.push(descriptor);
@@ -625,6 +647,26 @@ function transformDoc(
       stats.byKey[key].unsupported++;
       stats.unsupportedRules++;
       hasPartial = true;
+    }
+  }
+
+  // r25/bloco 2: a `grant-item` whose uuid is the placeholder
+  // `{item|flags.system.rulesSelections.<flag>}` of a ChoiceSet we JUST
+  // converted is, by definition, deferred to the picker — which is exactly what
+  // `inMemoryOnly: true` means to the grantMaterializer
+  // (packages/client/src/lib/sheets/pf2e/grantMaterializer.ts). Without the mark
+  // it is reported as "unresolved-placeholder" (issue #35) — a false positive,
+  // because now someone DOES own the choice. Only the placeholders of CONVERTED
+  // flags are marked: the other 46 stay correctly reported, because nobody
+  // resolves them.
+  const convertedChoiceFlags = new Set(
+    convertedRules.filter((r) => r.kind === "feat-choice" && r.flag).map((r) => r.flag),
+  );
+  if (convertedChoiceFlags.size > 0) {
+    for (const rule of convertedRules) {
+      if (rule.kind !== "grant-item" || typeof rule.uuid !== "string") continue;
+      const flag = /^\{item\|flags\.system\.rulesSelections\.([^}]+)\}$/.exec(rule.uuid)?.[1];
+      if (flag && convertedChoiceFlags.has(flag)) rule.inMemoryOnly = true;
     }
   }
 
@@ -672,7 +714,7 @@ function transformDoc(
     const itemUnconverted = [];
 
     for (const re of itemRaws) {
-      const { descriptor, state } = convertRuleElement(re);
+      const { descriptor, state } = convertRuleElement(re, itemRaws);
       const key = re?.key ?? "(unknown)";
       stats.byKey[key] = stats.byKey[key] ?? { total: 0, supported: 0, partial: 0, unsupported: 0 };
       stats.byKey[key].total++;
@@ -1344,10 +1386,23 @@ function normalizeConditionSystem(system, src, docName) {
 
 function normalizeActorSystem(system, src, type) {
   if (type === "npc") {
+    const attributes = src.attributes ?? system.attributes ?? {};
     return {
       ...system,
       abilities: src.abilities ?? system.abilities ?? {},
-      attributes: src.attributes ?? system.attributes ?? {},
+      attributes:
+        attributes.speed && attributes.speed.value === null
+          ? // r28/A2: same bug class as normalizeEffectSystem's badge.max fix —
+            // the vendor stores an explicit `null` land speed for creatures
+            // that only fly/swim (e.g. Banshee: otherSpeeds=[fly 60],
+            // value=null). NpcSystemSchema (packages/shared) requires a
+            // number here; PF2e's own convention for "no land speed" is 0,
+            // not null (every other no-land-speed creature in the vendor
+            // already stores 0 — Banshee is the one exception in the whole
+            // pathfinder-monster-core, confirmed by scanning all 492 raw
+            // docs). Coerce null -> 0 rather than loosen the shared schema.
+            { ...attributes, speed: { ...attributes.speed, value: 0 } }
+          : attributes,
       details: {
         ...(src.details ?? system.details ?? {}),
         // Strip lore/flavor text — Reserved Material under ORC (REQ-LEG-010, spec 26 §D4).
@@ -1447,9 +1502,27 @@ function normalizeClassFeatureSystem(system, src) {
     ? otherTags.map((t) => axisCategories.get(t)).find(Boolean)
     : undefined;
 
+  // r25: choice-option class-features carry vendor `system.level.value: 0` —
+  // they are leaf options of an axis (granted by ChoiceSet+GrantItem off the
+  // concessora), not gated to a character level on their own. `??` below does
+  // NOT catch 0 (it is not nullish), so the raw 0 used to flow straight into
+  // ClassFeatureSystemSchema, which requires level >= 1 — that is the
+  // pre-existing packs-validation red on Champion's Blessed Armament/Shield.
+  // Backfill from the axis's own curated level (champion.json declares
+  // "blessing-of-the-devoted": level 3, which matches BOTH the vendor's
+  // "Blessing of the Devoted" doc AND champion.json's items{} map) whenever the
+  // vendor's own level is 0. Options that already arrive with a real level
+  // (champion-cause, hybridStudy, ...) are untouched.
+  const axisLevels = axisLevelByOtherTag();
+  const axisLevel = Array.isArray(otherTags)
+    ? otherTags.map((t) => axisLevels.get(t)).find((v) => typeof v === "number")
+    : undefined;
+  const rawLevel = src.level?.value ?? src.level ?? system.level ?? 1;
+  const level = rawLevel === 0 && typeof axisLevel === "number" ? axisLevel : rawLevel;
+
   return {
     ...system,
-    level: src.level?.value ?? src.level ?? system.level ?? 1,
+    level,
     category: axisCategory ?? src.category ?? system.category ?? "classfeature",
     prerequisites: src.prerequisites?.value ?? src.prerequisites ?? system.prerequisites ?? [],
     description: src.description?.value ?? src.description ?? system.description ?? "",

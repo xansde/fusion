@@ -61,7 +61,10 @@ describe("Isekai archetype data", () => {
   it("keeps Minor Blessings sorted by level, and every archetype ends at 12", () => {
     for (const arq of ISEKAI_ARCHETYPES) {
       const levels = arq.minorBlessings.map((b) => b.level);
-      expect([...levels].sort((a, b) => a - b), arq.id).toEqual(levels);
+      expect(
+        [...levels].sort((a, b) => a - b),
+        arq.id,
+      ).toEqual(levels);
       expect(levels.at(-1), arq.id).toBe(12);
     }
   });

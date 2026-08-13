@@ -441,6 +441,16 @@ export type PlanSlotType =
   | "muse"
   | "cause"
   | "doctrine"
+  /**
+   * Divine Font (issue #34) — the Cleric's level-1 Heal/Harm pick. Unlike
+   * every other CLASS_CHOICE_SLOTS entry, its options are NOT a tagged
+   * class-features-core doc list (no such per-option doc exists — see
+   * `chooseDivineFont`'s doc comment); it uses its own dedicated dialog, the
+   * same way `kineticGate` does.
+   */
+  | "divineFont"
+  /** Druidic Order (r28) — the Druid's level-1 axis, 9 options. */
+  | "order"
   | "blessing"
   | "skillTraining"
   | "skillIncrease"
@@ -606,6 +616,8 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   muse: "Muse",
   cause: "Cause",
   doctrine: "Doctrine",
+  divineFont: "Divine Font",
+  order: "Druidic Order",
   blessing: "Blessing of the Devoted",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
@@ -929,6 +941,14 @@ export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
   Muses: "muse",
   Cause: "cause",
   Doctrine: "doctrine",
+  // issue #34: a separate level-1 placeholder from "Doctrine" — the Cleric's
+  // class doc (systems/pf2e/packs/classes-core) declares BOTH "Doctrine" and
+  // "Divine Font" at level 1, each its own choice. See `chooseDivineFont`'s
+  // doc comment for why this slot's options aren't in CLASS_CHOICE_SLOT_OPTIONS.
+  "Divine Font": "divineFont",
+  // r28: the Druid's axis feature is named "Druidic Order" in the vendor's
+  // items{} map (the 9 options are "<Name> Order", tagged `druid-order`).
+  "Druidic Order": "order",
   "Blessing of the Devoted": "blessing",
 };
 
@@ -2143,6 +2163,7 @@ export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
   muse: { packSlug: "class-features-core", category: "bard-muse" },
   cause: { packSlug: "class-features-core", category: "champion-cause" },
   doctrine: { packSlug: "class-features-core", category: "cleric-doctrine" },
+  order: { packSlug: "class-features-core", category: "druid-order" },
   blessing: {
     packSlug: "class-features-core",
     category: "blessing-of-the-devoted",
@@ -2263,11 +2284,25 @@ export function checkSlotRequirement(
   const traits = asStringArray(asRecord(sys["traits"])["value"]);
 
   if (slotType === "classFeat") {
-    const classTrait = traits.find((tr) => KNOWN_CLASS_TRAITS.has(tr));
-    if (classTrait && classTrait !== planCtx.classSlug) {
+    // A feat shared by several classes carries one trait PER class, in
+    // alphabetical order — so the first one is almost never the character's
+    // (issue #17: 99 feats in feats-core carry 2+ class traits, e.g. Reach
+    // Spell's bard+cleric+druid+oracle+sorcerer+witch+wizard). The test is
+    // "is my class in the list?", matching the sibling `isFeatEligible`,
+    // which already did `traits.includes(opts.classSlug)` — the mismatch is
+    // why the picker OFFERED these feats and the plan then marked them wrong.
+    const classTraits = traits.filter((tr) => KNOWN_CLASS_TRAITS.has(tr));
+    const [firstClassTrait] = classTraits;
+    const { classSlug } = planCtx;
+    // No class on the sheet yet keeps the pre-#17 answer: a class-tagged feat
+    // in a class-feat slot is still flagged.
+    if (
+      firstClassTrait !== undefined &&
+      (classSlug === undefined || !classTraits.includes(classSlug))
+    ) {
       return {
         reasonKey: "FUSION.Sheet.Plan.Requirement.WrongClass",
-        params: { class: capitalizeSlug(classTrait) },
+        params: { class: capitalizeSlug(firstClassTrait) },
       };
     }
   }
@@ -2324,10 +2359,20 @@ function stripParentheticalSuffix(name: string): string {
   return normalizePrereqText(name.replace(/\s*\([^)]*\)\s*$/, ""));
 }
 
-/** "A or B" / "A, B" → ["A", "B"] — mirrors the importer's `candidatosDoRequisito`: both forms are treated as alternatives (satisfying ONE is enough) since the vendor packs use both conventions interchangeably. */
+/**
+ * "A or B" / "A, B" / "A, B, or C" → ["A", "B", "C"] — mirrors the importer's
+ * `candidatosDoRequisito`: every form is treated as alternatives (satisfying
+ * ONE is enough) since the vendor packs use them interchangeably.
+ *
+ * The `,\s*or\s+` branch MUST come first (issue #31). Without it the bare
+ * comma matched first on an Oxford list, leaving the last alternative as
+ * "or Twin Riposte" — a candidate that can never match anything. 27
+ * prerequisites in feats-core use ", or"; all 27 produced a broken last
+ * candidate.
+ */
 function prerequisiteCandidates(text: string): string[] {
   return text
-    .split(/\s+or\s+|,\s*/i)
+    .split(/\s*,\s*or\s+|\s+or\s+|\s*,\s*/i)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 }
@@ -2348,10 +2393,58 @@ const AXIS_SUFFIX_TO_SLOT_TYPE: ReadonlyArray<{ phrase: string; slotType: PlanSl
   { phrase: "arcane thesis", slotType: "arcaneThesis" },
   { phrase: "racket", slotType: "racket" },
   { phrase: "instinct", slotType: "instinct" },
+  // r22 axes (issue #19). Measured in feats-core: 36 `<X> muse`, 7 `<X>
+  // cause`, 1 `<X> doctrine` — all silent before this entry existed. They
+  // resolve by name because `chooseClassChoice` stores the CHOSEN option's
+  // own document in the slot ("Maestro" / bard-muse, "Justice" /
+  // champion-cause, "Warpriest" / cleric-doctrine), so the item name carries
+  // the pick.
+  { phrase: "muse", slotType: "muse" },
+  { phrase: "cause", slotType: "cause" },
+  { phrase: "doctrine", slotType: "doctrine" },
   { phrase: "thesis", slotType: "arcaneThesis" },
   { phrase: "school", slotType: "arcaneSchool" },
   { phrase: "edge", slotType: "huntersEdge" },
-  { phrase: "gate", slotType: "kineticGate" },
+  // "divine font" (adversarial-review fix, issue #34): MUST be listed before
+  // the bare "font" entry below (this table is matched longest-first). Some
+  // feats (Martyr) phrase their prerequisite as the bare "divine font" —
+  // that's a GENERIC requirement ("have a Divine Font at all", either side),
+  // not a request for a specific font. Without this entry, "divine font"
+  // fell through to the "font" entry's `endsWith(" font")` branch and
+  // stripped to "divine" — a stripped form that can never equal the chosen
+  // font's core ("healing"/"harmful"), producing a FALSE "unmet" on Martyr
+  // for any character whose `classSystem` doesn't independently resolve
+  // "divine font" through `knownPossessedNames` (i.e. `classSystem` is
+  // undefined, or belongs to a class other than the Cleric that granted the
+  // font — e.g. a Fighter with a Cleric dedication). Matching "divine font"
+  // exactly here strips it to "" — the generic-axis branch in
+  // `evaluatePrerequisiteCandidate` — so it's met by ANY font pick,
+  // regardless of `classSystem`.
+  { phrase: "divine font", slotType: "divineFont" },
+  // "font" (issue #34 live-test fix): unlike "gate"/"bloodline" below, this
+  // one IS safe. `chooseDivineFont` synthesizes its own doc — displayed in
+  // pt-BR ("Fonte de Cura"/"Fonte de Dano"), unlike every other axis here —
+  // but `axisChoiceNames` never reads that display name for this slot type;
+  // it resolves the stable English core ("healing"/"harmful") off the doc's
+  // `flags.fusion.sourceId` instead (`DIVINE_FONT_CORE_BY_SOURCE_ID`). So
+  // "healing font"/"harmful font" strip to "healing"/"harmful", which DOES
+  // vary with the player's actual pick — the same shape as
+  // "instinct"/"racket"/etc., not the "gate" trap.
+  { phrase: "font", slotType: "divineFont" },
+  // DELIBERATELY ABSENT — adding either would only ever produce a FALSE
+  // "unmet", which DEC-BC-05 rates worse than no mark at all:
+  //
+  //  - "gate" (issue #21): `chooseKineticGate` keeps the pick in
+  //    `system.kineticGates`, so the slot item is ALWAYS literally named
+  //    "Kinetic Gate". "Nourishing Gate" would strip to "nourishing" and
+  //    compare against a name that can never be anything but "kinetic" —
+  //    a permanent false positive for every Kineticist.
+  //  - "bloodline": those docs are named "Bloodline: <Name>", so the core
+  //    name is "bloodline aberrant", which never equals a prerequisite's
+  //    stripped "aberrant". Zero prerequisites in feats-core end in
+  //    " bloodline" today (the 12 that mention one are prose, e.g.
+  //    "a bloodline that corresponds with a creature trait"), so nothing is
+  //    lost by leaving it out.
 ];
 
 /**
@@ -2390,15 +2483,32 @@ const AXIS_SLOT_TYPES = new Set<PlanSlotType>([
   "arcaneSchool",
   "hybridStudy",
   "kineticGate",
+  // issue #19 — see AXIS_SUFFIX_TO_SLOT_TYPE for why `bloodline` is absent.
+  "muse",
+  "cause",
+  "doctrine",
+  // issue #34 live-test fix — see AXIS_SUFFIX_TO_SLOT_TYPE's "font" entry.
+  "divineFont",
 ]);
 
 /**
- * The character's CURRENT pick for each subclass-axis slot type (by display
- * name), read off the item-backed axis slots (`instinct-1`, `racket-1`, …
- * per `resolveSlot`'s `<type>-<level>` convention) the same way `resolveSlot`
- * itself finds them — via `flags.fusion.build.slot`, not by re-deriving the
- * slot list. A character has at most one item per axis (the choice isn't
- * repeatable), so first match wins.
+ * The character's CURRENT pick for each subclass-axis slot type — normally
+ * the item's own display name (read off the item-backed axis slots
+ * `instinct-1`, `racket-1`, … per `resolveSlot`'s `<type>-<level>`
+ * convention, the same way `resolveSlot` itself finds them, via
+ * `flags.fusion.build.slot`, not by re-deriving the slot list). A character
+ * has at most one item per axis (the choice isn't repeatable), so first
+ * match wins.
+ *
+ * `divineFont` is the one exception: its doc is Fusion-synthesized (see
+ * `chooseDivineFont`) and, since issue #34's live-test fix, DISPLAYED in
+ * pt-BR ("Fonte de Cura"/"Fonte de Dano" — `DIVINE_FONT_OPTIONS`), so its
+ * display name can no longer double as the stable English identity
+ * `axisCoreName`'s "font"-suffix stripping needs. Per this project's
+ * identity convention (`flags.fusion.sourceId`, never the name — PF2e is
+ * full of homonyms), that axis resolves its pick from the stable sourceId
+ * stamped on the doc (`DIVINE_FONT_CORE_BY_SOURCE_ID`) instead, falling back
+ * to the display name only when no such mapping exists.
  */
 function axisChoiceNames(
   items: Array<Record<string, unknown>>,
@@ -2410,7 +2520,20 @@ function axisChoiceNames(
     const dashIdx = flag.slot.indexOf("-");
     const slotType = (dashIdx >= 0 ? flag.slot.slice(0, dashIdx) : flag.slot) as PlanSlotType;
     if (!AXIS_SLOT_TYPES.has(slotType) || slotType in result) continue;
-    const name = itemName(it);
+    const sourceId = itemFusionSourceId(it);
+    // `hasOwnProperty` guard (adversarial-review fix, issue #34): a plain
+    // object literal inherits Object.prototype, so an untrusted sourceId of
+    // "constructor"/"toString"/etc. would otherwise resolve to a Function,
+    // not `undefined` — which then skips the `?? itemName(it)` fallback (a
+    // function is truthy) and reaches `normalizePrereqText` downstream,
+    // crashing on `text.normalize is not a function` and taking out the
+    // whole Plan column. Same idiom as `isSkillWord` in
+    // compendium/prerequisiteTranslation.ts.
+    const stableCore =
+      sourceId && Object.prototype.hasOwnProperty.call(DIVINE_FONT_CORE_BY_SOURCE_ID, sourceId)
+        ? DIVINE_FONT_CORE_BY_SOURCE_ID[sourceId]
+        : undefined;
+    const name = stableCore ?? itemName(it);
     if (name) result[slotType] = name;
   }
   return result;
@@ -2470,6 +2593,59 @@ function knownPossessedNames(
  */
 const UNMODELED_AXIS_PHRASES = new Set(["untamed order"]);
 
+/**
+ * Prerequisite phrases that end in " font" (so `matchAxisSuffix`'s "font"
+ * entry would otherwise treat them as divine-font-axis-shaped) but are
+ * actually unconverted DEITY/lore PROSE, not the clean "<heal|harm> font"
+ * pattern — exhaustively measured against every `system.prerequisites`
+ * string containing "font" across systems/pf2e/packs (feats-core is the only
+ * pack with any):
+ *
+ *   - "deity who grants heal divine font" / "... harm divine font" (Bless
+ *     Tonic / Bless Toxin, both level 7 — each a SINGLE-candidate entry): a
+ *     DEITY condition. Fusion has no deity document to check it against
+ *     (same gap `chooseDivineFont`'s doc comment already names for #34).
+ *     Left to the generic axis-suffix path this strips to a prefix ("deity
+ *     who grants heal divine") that can never equal the chosen font's core
+ *     ("healing"/"harmful") — so EVERY Cleric who has picked a font would
+ *     get a FALSE "unmet" mark, no matter which font they hold. This entry
+ *     is the ONLY thing standing between that and silence for these two
+ *     feats — see divineFont.test.ts's isolated "Bless Tonic"/"Bless Toxin"
+ *     cases, which fail if this entry is removed.
+ *   - "cleric with a negative font" (one candidate of a THREE-candidate
+ *     OR-list — "cleric with a negative font, oracle of bones, or
+ *     necromancer wizard" — shared verbatim by Necromancer's Visage,
+ *     Sepulchral Sublimation and Undying Conviction, all Book of the Dead
+ *     non-remaster): "negative font" is the LEGACY (pre-remaster) name for
+ *     what Fusion's Divine Font choice models as Harmful Font — a related
+ *     but distinct, unconverted concept. UNLIKE the Bless Tonic/Toxin case
+ *     above, this entry is NOT the only thing preventing a false mark on
+ *     those three feats today: its OR-siblings "oracle of bones" and
+ *     "necromancer wizard" match no known name or axis phrase either, so
+ *     `evaluatePrerequisiteEntry` already downgrades the whole entry to
+ *     `"unknown"` (unresolved-in-the-OR) regardless of how THIS candidate
+ *     alone resolves — see that function's `allResolved` logic. Kept anyway
+ *     because the string genuinely IS unmodeled prose (silence is the
+ *     honest answer per DEC-BC-05 on its own terms) and so a future change
+ *     to the OR's other candidates, or to `evaluatePrerequisiteEntry`
+ *     itself, can't silently turn it into a false "unmet". Isolated as a
+ *     sole candidate (never how it appears in real packs), divineFont.
+ *     test.ts proves this entry — not the OR-downgrade — is what keeps it
+ *     silent in that shape.
+ *
+ * Checked before the axis-suffix match below so none of these ever reach it.
+ *
+ * (The remaining "font"-adjacent strings measured — "harmful font or
+ * healing font" [OR of the clean pattern] and "deity that allows clerics to
+ * have both fonts" [plural "fonts", doesn't match the " font" suffix at
+ * all] — already resolve correctly without special-casing.)
+ */
+const UNRESOLVABLE_FONT_PROSE = new Set([
+  "deity who grants heal divine font",
+  "deity who grants harm divine font",
+  "cleric with a negative font",
+]);
+
 /** One `system.prerequisites` candidate's resolution against what the character possesses. `"unresolved"` means this module has no way to tell — never treated as unmet. */
 function evaluatePrerequisiteCandidate(
   raw: string,
@@ -2481,18 +2657,27 @@ function evaluatePrerequisiteCandidate(
   if (knownNames.has(normalized) || knownNames.has(short)) return "met";
 
   if (UNMODELED_AXIS_PHRASES.has(normalized)) return "unmet";
+  if (UNRESOLVABLE_FONT_PROSE.has(normalized)) return "unresolved";
 
   const axisMatch = matchAxisSuffix(normalized);
   if (!axisMatch) return "unresolved";
 
   const chosenName = axisNames[axisMatch.slotType];
+  // Axis not picked yet → this module cannot tell, so it must not mark. The
+  // requirement may well be satisfied one click later, and `checkFeat-
+  // Prerequisites`'s own contract says a character mid-build never gets a
+  // false mark. Returning "unmet" here (the pre-#19 behaviour) put a red mark
+  // on every feat whose axis the player simply hadn't reached yet — invisible
+  // while only `instinct` resolved, but it would have hit all 44 measured
+  // muse/cause/doctrine prerequisites the moment #19 landed.
+  if (chosenName === undefined) return "unresolved";
+
   if (axisMatch.stripped === "") {
     // Generic axis requirement ("arcane school", "hunter's edge"): met as
     // soon as ANY option of that axis is chosen.
-    return chosenName !== undefined ? "met" : "unmet";
+    return "met";
   }
-  const chosenCore = chosenName !== undefined ? axisCoreName(chosenName) : undefined;
-  return chosenCore !== undefined && chosenCore === axisMatch.stripped ? "met" : "unmet";
+  return axisCoreName(chosenName) === axisMatch.stripped ? "met" : "unmet";
 }
 
 /**
@@ -2925,24 +3110,41 @@ export function applyClass(
   // `tradition: null`, bloodline-deferred) falls into neither branch here —
   // `bloodlineSpellcastingOps` builds its focus entry once the bloodline
   // choice resolves the tradition.
-  if (hasFocusFeature(classSystem)) {
-    if (classSystem.spellcasting?.tradition) {
-      ops.push(
-        buildFocusEntryOp(
-          ctx,
-          classSystem.spellcasting.ability,
-          classSystem.spellcasting.tradition,
-        ),
-      );
-    } else if (!classSystem.spellcasting) {
-      const fallback = NON_SPELLCASTER_FOCUS_TRADITION[itemName(classDoc) ?? ""];
-      if (fallback) {
-        ops.push(buildFocusEntryOp(ctx, fallback.ability, fallback.tradition));
-      }
-    }
+  let focusEntryCreated = false;
+  const focusGrant = resolveClassFocusGrant(classSystem, classDoc);
+  if (focusGrant) {
+    ops.push(buildFocusEntryOp(ctx, focusGrant.ability, focusGrant.tradition));
+    focusEntryCreated = true;
   }
+  // The entry alone is inert: `system.resources.focusPoints` stays {0,0} and
+  // the sheet's Cast button is `disabled={vm.focusPoints.value <= 0}`, so no
+  // focus spell was castable in ANY class (issue #4). PF2e gives a pool of
+  // one point with your first focus spell — the pool travels with the entry,
+  // which is why it is emitted here and not from a separate code path.
+  if (focusEntryCreated) ops.push(buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL));
 
   return ops;
+}
+
+/**
+ * A first focus spell opens a one-point pool (PF2e core rules). Growing it to
+ * the cap of 3 is a separate concern: it happens when a LATER feat or class
+ * feature grants another focus spell, which this VM does not model yet
+ * (issue #5 tracks the recognition side of that).
+ */
+const INITIAL_FOCUS_POOL = 1;
+
+/** Opens the actor's focus pool at `points`, full — a fresh pool starts unspent. */
+function buildFocusPoolOp(ctx: PlanOpBuilderContext, points: number): DocUpdatePayload {
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: {
+      "system.resources.focusPoints.value": points,
+      "system.resources.focusPoints.max": points,
+    },
+  } satisfies DocUpdatePayload;
 }
 
 /**
@@ -2959,6 +3161,61 @@ export function applyClass(
  */
 const NON_SPELLCASTER_FOCUS_TRADITION: Record<string, { tradition: string; ability: string }> = {
   Champion: { tradition: "divine", ability: "cha" },
+};
+
+/**
+ * Does the class have a level-1 focus feature (`hasFocusFeature`) or a
+ * no-spellcasting fallback (`NON_SPELLCASTER_FOCUS_TRADITION`) that opens its
+ * focus pool the moment the class itself is applied? Factored out of
+ * `applyClass` so `chooseClassLevel` (multiclass — issue #5's 3rd call site)
+ * can build the SAME entry for a second class without duplicating the
+ * two-branch lookup. Returns `undefined` for a class whose focus feature is
+ * gated behind a later player CHOICE (Cleric/Monk/Ranger's feat trigger,
+ * Wizard's Arcane School axis, Sorcerer's bloodline) — those are resolved at
+ * the point of choice by `FOCUS_GRANTING_FEAT` / `arcaneSchoolFocusOps` /
+ * `bloodlineSpellcastingOps` instead, never here.
+ */
+function resolveClassFocusGrant(
+  classSystem: ClassSystemLike,
+  classDoc: Record<string, unknown>,
+): { ability: string; tradition: string } | undefined {
+  if (!hasFocusFeature(classSystem)) return undefined;
+  if (classSystem.spellcasting?.tradition) {
+    return {
+      ability: classSystem.spellcasting.ability,
+      tradition: classSystem.spellcasting.tradition,
+    };
+  }
+  if (!classSystem.spellcasting) {
+    return NON_SPELLCASTER_FOCUS_TRADITION[itemName(classDoc) ?? ""];
+  }
+  return undefined;
+}
+
+/**
+ * Feats that open a class's focus pool when the PLAYER chooses them — for
+ * Cleric/Monk/Ranger, the level-1 class doesn't itself carry a "<X> Spells"
+ * feature (`hasFocusFeature` never fires) because the focus spells are
+ * gated behind an ordinary class feat with no structured tradition/ability
+ * field in the pack (see the issue #5 measurement: Domain Initiate's own
+ * `system.rules` is unrelated set-property noise, Qi Spells' and Initiate
+ * Warden's are both `[]`). Ability/tradition below are the feats' own RAW
+ * text, not read from any pack field:
+ *  - **Domain Initiate** (Cleric, Player Core p.108): "you can cast the
+ *    domain spell... your focus spells are divine spells, and your
+ *    spellcasting ability for them is Wisdom."
+ *  - **Qi Spells** (Monk, Player Core p.147): "your focus spells are divine
+ *    spells, and your spellcasting ability for them is Wisdom."
+ *  - **Initiate Warden** (Ranger, Player Core p.163, "warden spells"):
+ *    "warden spells are primal spells, and Wisdom is your spellcasting
+ *    ability for them."
+ * A class with its OWN `hasFocusFeature` never reaches this map (Bard,
+ * Champion, Magus, Sorcerer don't grant focus through a class feat).
+ */
+const FOCUS_GRANTING_FEAT: Record<string, { ability: string; tradition: string }> = {
+  "Domain Initiate": { ability: "wis", tradition: "divine" },
+  "Qi Spells": { ability: "wis", tradition: "divine" },
+  "Initiate Warden": { ability: "wis", tradition: "primal" },
 };
 
 /** Builds the doc:create op for the class's non-focus ("class:spellcasting") entry — factored out so `chooseBloodline`-style deferred creation (r22) can build the identical shape once the tradition is resolved from a chosen axis option. */
@@ -3448,8 +3705,7 @@ function backgroundTrainingOps(
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const keptChoices = existingChoices.filter(
-    (c) =>
-      !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
+    (c) => !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
   );
   // The strip has to run even when the incoming background grants NOTHING
   // (Hermit, Raised by Belief): it used to sit behind `newChoices.length > 0`,
@@ -3768,6 +4024,20 @@ export function chooseFeat(
     diff: { "system.build.choices": [...existingChoices, newChoice] },
   } satisfies DocUpdatePayload);
 
+  // issue #5: some classes (Cleric/Monk/Ranger) open their focus pool only
+  // once the player picks a SPECIFIC feat — `FOCUS_GRANTING_FEAT` names them.
+  // Guarded by `!getItems(ctx.doc).some(isFocusEntry)` the same way
+  // `bloodlineSpellcastingOps` guards its own pool-open: a re-pick of this
+  // same feat (or any later trigger) must never reset an already-spent pool
+  // back to full. Known gap: swapping AWAY from this feat to a different one
+  // does not tear the focus entry back down (no slot-tie between the two) —
+  // narrower than `chooseFeat`'s own item, out of scope for this fix.
+  const focusGrant = FOCUS_GRANTING_FEAT[itemName(featDoc) ?? ""];
+  if (focusGrant && !getItems(ctx.doc).some(isFocusEntry)) {
+    ops.push(buildFocusEntryOp(ctx, focusGrant.ability, focusGrant.tradition));
+    ops.push(buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL));
+  }
+
   return ops;
 }
 
@@ -3829,7 +4099,136 @@ export function chooseClassChoice(
   if (slotType === "bloodline") {
     ops.push(...bloodlineSpellcastingOps(ctx, featureDoc));
   }
+  if (slotType === "arcaneSchool") {
+    ops.push(...arcaneSchoolFocusOps(ctx));
+  }
+  if (slotType === "doctrine") {
+    ops.push(...doctrineProficiencyOps(ctx, featureDoc));
+  }
   return ops;
+}
+
+/**
+ * issue #5 — Wizard's focus pool opens on the "Arcane School" axis pick, not
+ * on the class itself: `hasFocusFeature` never fires for Wizard because its
+ * level-1 focus feature is literally named "Arcane School" (no " Spells"
+ * suffix — see `hasFocusFeature`'s naming-convention doc comment), yet every
+ * school option (Player Core p.198, including Universalist) grants "a focus
+ * spell" cast with the Wizard's own spellcasting ability/tradition — already
+ * on the class doc (`arcane`/`int`), so unlike Sorcerer's bloodline there is
+ * no per-option tradition to RESOLVE, just the entry/pool pairing `applyClass`
+ * skipped. Guarded the same way `bloodlineSpellcastingOps` is: re-picking a
+ * different school never re-opens (or resets) an already-open pool.
+ */
+function arcaneSchoolFocusOps(ctx: PlanOpBuilderContext): DocOpPayload[] {
+  const classSystem = readClassSystem(ctx.doc);
+  const spellcasting = classSystem?.spellcasting;
+  if (!spellcasting?.tradition) return [];
+  if (getItems(ctx.doc).some(isFocusEntry)) return [];
+  return [
+    buildFocusEntryOp(ctx, spellcasting.ability, spellcasting.tradition),
+    buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL),
+  ];
+}
+
+/**
+ * issue #50 — the Cleric's Fortitude save and spellcasting proficiency (and,
+ * for Warpriest, its weapon/armor proficiencies) advance at a DIFFERENT pace
+ * per doctrine — Cloistered Cleric reaches expert/master/legendary
+ * spellcasting faster (a pure caster); Warpriest trades that speed for
+ * weapons/armor and never reaches legendary spellcasting. None of these
+ * doctrine-specific lines live in the class doc's own `proficiencyUpgrades`
+ * (only 4 UNCONDITIONAL entries do — perception@5, will@9, reflex@11,
+ * armor.unarmored@13, same for every Cleric regardless of doctrine): the
+ * vendor buries the doctrine-specific ones inside 12 separate "First
+ * Doctrine (Cloistered Cleric)"/"...(Warpriest)" docs that aren't even
+ * reachable from the class item's own `items{}` map — they sit behind an
+ * ACTOR FLAG the vendor sets once the doctrine is chosen (see
+ * tools/importer-pf2e/src/curation/classes/cleric.json's nota 6, measured
+ * directly against the vendor pack, not re-derived from this repo's own
+ * output).
+ *
+ * `effectiveRank` (systems/pf2e/src/derivations/build.ts) already reads
+ * `entry.system.proficiencyUpgrades` generically for ANY stat off the
+ * embedded `type:'class'` item — so merging the chosen doctrine's own lines
+ * onto THAT item is enough; no server change needed.
+ *
+ * DELIBERATELY NOT modeled (per the same curation note): `favoredWeaponRank`
+ * (no `weapons.favored` stat exists anywhere in this codebase) and
+ * Warpriest's level-13 armor bump, which is CONDITIONAL on
+ * `feature:divine-defense` — `ProficiencyUpgrade` (level/stat/rank only) has
+ * no predicate field to express that, and fabricating an unconditional entry
+ * would grant it a level early to every Warpriest, RAW-wrong in the other
+ * direction.
+ *
+ * Swapping doctrines (Cloistered → Warpriest) REPLACES the merged lines
+ * rather than accreting both: every line from EITHER table is stripped from
+ * the class item's current array before the newly chosen doctrine's own
+ * lines are appended, so the base 4 class lines (never touched — they don't
+ * appear in either table) always survive and a re-pick can't leak the
+ * previous doctrine's lines forward.
+ */
+const DOCTRINE_PROFICIENCY_UPGRADES: Record<
+  string,
+  ReadonlyArray<{ level: number; stat: string; rank: number }>
+> = {
+  "Cloistered Cleric": [
+    { level: 3, stat: "fortitude", rank: 2 },
+    { level: 7, stat: "spellcasting", rank: 2 },
+    { level: 11, stat: "weapons.simple", rank: 2 },
+    { level: 11, stat: "weapons.unarmed", rank: 2 },
+    { level: 15, stat: "spellcasting", rank: 3 },
+    { level: 19, stat: "spellcasting", rank: 4 },
+  ],
+  Warpriest: [
+    { level: 1, stat: "fortitude", rank: 2 },
+    { level: 1, stat: "armor.light", rank: 1 },
+    { level: 1, stat: "armor.medium", rank: 1 },
+    { level: 3, stat: "weapons.martial", rank: 1 },
+    { level: 7, stat: "weapons.martial", rank: 2 },
+    { level: 7, stat: "weapons.simple", rank: 2 },
+    { level: 7, stat: "weapons.unarmed", rank: 2 },
+    { level: 11, stat: "spellcasting", rank: 2 },
+    { level: 15, stat: "fortitude", rank: 3 },
+    { level: 19, stat: "spellcasting", rank: 3 },
+  ],
+};
+
+/** Every `{level, stat, rank}` triple from EITHER doctrine's table, as a `"level:stat:rank"` key — used to strip a previously-merged doctrine's lines before a swap re-applies a fresh set. */
+const ALL_DOCTRINE_UPGRADE_KEYS = new Set(
+  Object.values(DOCTRINE_PROFICIENCY_UPGRADES)
+    .flat()
+    .map((u) => `${String(u.level)}:${u.stat}:${String(u.rank)}`),
+);
+
+function doctrineProficiencyOps(
+  ctx: PlanOpBuilderContext,
+  doctrineDoc: Record<string, unknown>,
+): DocOpPayload[] {
+  const upgrades = DOCTRINE_PROFICIENCY_UPGRADES[itemName(doctrineDoc) ?? ""];
+  if (!upgrades) return [];
+  const classItem = findFirstItemByType(ctx.doc, "class");
+  const classId = classItem?.["_id"];
+  if (!classItem || typeof classId !== "string") return [];
+
+  const classSystem = asRecord(classItem["system"]);
+  const currentRaw = classSystem["proficiencyUpgrades"];
+  const current = Array.isArray(currentRaw)
+    ? (currentRaw as Array<{ level: number; stat: string; rank: number }>)
+    : [];
+  const kept = current.filter(
+    (u) => !ALL_DOCTRINE_UPGRADE_KEYS.has(`${String(u.level)}:${u.stat}:${String(u.rank)}`),
+  );
+
+  return [
+    {
+      type: "doc:update",
+      documentType: "Item",
+      id: classId,
+      embedded: { type: "Item", id: ctx.actorId },
+      diff: { "system.proficiencyUpgrades": [...kept, ...upgrades] },
+    } satisfies DocUpdatePayload,
+  ];
 }
 
 /**
@@ -3910,9 +4309,132 @@ function bloodlineSpellcastingOps(
   if (hasFocusFeature(classSystem)) {
     if (!restamp("class:focus")) {
       ops.push(buildFocusEntryOp(ctx, spellcasting.ability, tradition));
+      // Same pairing as applyClass (issue #4): the Sorcerer's focus entry is
+      // created HERE, once the bloodline resolves the tradition, so the pool
+      // has to open here too. A restamp is a bloodline SWAP — the pool is
+      // already open and its spent points are the player's, not ours to reset.
+      ops.push(buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL));
     }
   }
   return ops;
+}
+
+/**
+ * issue #34 — the Cleric's level-1 "Divine Font" classFeature grants either
+ * the Healing Font or the Harmful Font (Player Core p.119, class-features-
+ * core's own "Divine Font" description): "you can prepare additional Heal or
+ * Harm spells... The divine font spell your deity provides is listed in the
+ * Divine Font entry for your deity; if both are listed, you can choose."
+ * Fusion has no Deity document to read that entry from (this module has zero
+ * structured deity/font data — confirmed by measurement), so this models the
+ * RAW subheadings "Healing Font:" / "Harmful Font:" (verbatim strings from
+ * the vendor doc's own description) as a direct player pick, same
+ * simplification "Doctrine" already makes for Cloistered Cleric vs.
+ * Warpriest.
+ *
+ * No per-option document exists in ANY pack for this (measured for #34: the
+ * vendor models the choice as an unconverted ChoiceSet keyed on the deity's
+ * OWN roll options, `flags.fusion.unconvertedRules[0].flag === "divineFont"`
+ * on the "Divine Font" doc — not two separate compendium entries), so the
+ * option is synthesized here the same way `chooseKineticGate` synthesizes
+ * its `gateDoc`: `chooseFeat`'s usual create/replace/`system.build.choices`
+ * machinery (repeat cap, replace-on-reselect) applies unchanged, with no
+ * pack curation required.
+ *
+ * The materialized item's DISPLAY name is pt-BR ("Fonte de Cura" / "Fonte de
+ * Dano" — `DIVINE_FONT_OPTIONS`, matching the picker dialog's own
+ * `FUSION.Sheet.Plan.DivineFont.Heal`/`.Harm` labels; live-test finding: the
+ * sheet used to show the English vendor subheading verbatim, which the
+ * dialog never offered). That's what unblocks the prerequisite half of #34,
+ * but NOT via a plain name match — the doc also carries a stable
+ * `flags.fusion.sourceId` (`DIVINE_FONT_SOURCE_ID`; this project's identity
+ * convention is always sourceId, never the name — PF2e homonyms are the
+ * norm), and `axisChoiceNames`/`AXIS_SUFFIX_TO_SLOT_TYPE`'s "font" entry
+ * resolve the pick from THAT, down to the stable English core
+ * ("healing"/"harmful" — `DIVINE_FONT_CORE_BY_SOURCE_ID`) a prerequisite's
+ * own "healing font"/"harmful font" text (alone or in an "A or B" pair —
+ * Healing Hands, Harming Hands, Heroic Recovery, Denier of Destruction,
+ * Restorative Channel, Improved Command Undead, Command Undead, Fast
+ * Channel, Versatile Font, Sacred Ground, Cast Down — measured against the
+ * pack) strips down to as well, so the two sides compare equal regardless of
+ * display locale. "Martyr"'s bare "divine font" was ALREADY resolvable
+ * before this fix and stays that way through a DIFFERENT path: every
+ * Cleric's class doc names the level-1 feature itself "Divine Font" in
+ * `featuresByLevel`, which `knownPossessedNames` folds in regardless of this
+ * pick or its display name. The remaining entries (deity-conditioned prose
+ * like "deity who grants heal divine font", or the legacy "negative font"
+ * synonym — see `UNRESOLVABLE_FONT_PROSE`) stay unresolved — silence, per
+ * DEC-BC-05, not a fabricated mark.
+ *
+ * OUT OF SCOPE here (server-side, not this VM): the actual extra prepared
+ * spell slots Divine Font grants (4 at 1st, 5 at 5th, 6 at 15th, restricted
+ * to Heal-only or Harm-only) are a spellcasting-entry derivation concern —
+ * `systems/pf2e/src/derivations/spellcasting.ts` — which this lot deliberately
+ * does not touch (another agent is editing that file for issue #13).
+ */
+const DIVINE_FONT_OPTIONS: Record<"heal" | "harm", string> = {
+  heal: "Fonte de Cura",
+  harm: "Fonte de Dano",
+};
+
+/**
+ * Stable `flags.fusion.sourceId` stamped on the synthesized Divine Font
+ * choice docs — see `DIVINE_FONT_OPTIONS`'s doc comment for why the display
+ * name can't double as identity here. These ids are internal to this module
+ * (never read from a pack), so any stable, collision-free string works.
+ */
+const DIVINE_FONT_SOURCE_ID: Record<"heal" | "harm", string> = {
+  heal: "fusion-divine-font-heal",
+  harm: "fusion-divine-font-harm",
+};
+
+/**
+ * Reverse lookup: a Divine Font choice doc's `sourceId` → the axis's stable
+ * English "core" — exactly what `matchAxisSuffix`'s "font" entry strips a
+ * prerequisite's "healing font" / "harmful font" down to (`axisCoreName`
+ * applies the same stripping to a display name; these values are already
+ * bare cores, so it's a no-op on them, per `axisChoiceNames`'s doc comment).
+ */
+const DIVINE_FONT_CORE_BY_SOURCE_ID: Readonly<Record<string, string>> = Object.freeze({
+  [DIVINE_FONT_SOURCE_ID.heal]: "healing",
+  [DIVINE_FONT_SOURCE_ID.harm]: "harmful",
+});
+
+/** A synthetic classFeature doc for the chosen font — see `chooseDivineFont`'s doc comment for why it isn't read from any pack. */
+function divineFontDoc(choice: "heal" | "harm"): Record<string, unknown> {
+  return {
+    name: DIVINE_FONT_OPTIONS[choice],
+    type: "classFeature",
+    system: {
+      category: "classfeature",
+      level: 1,
+      traits: { value: ["cleric"], rarity: "common" },
+      rules: [],
+      prerequisites: [],
+    },
+    flags: {
+      fusion: {
+        sourceId: DIVINE_FONT_SOURCE_ID[choice],
+      },
+    },
+  };
+}
+
+/**
+ * chooseDivineFont — records the Cleric's Divine Font pick via `chooseFeat`'s
+ * usual machinery, in its own `divineFont-1` slot (parallel to
+ * `chooseKineticGate`'s dedicated, non-`chooseClassChoice` flow — there's no
+ * tagged pack option list to pick from; see the doc comment above). Re-
+ * picking (Heal → Harm) REPLACES the item, same as any other axis re-select
+ * — `chooseFeat` already handles this via its own `existingItem` lookup.
+ */
+export function chooseDivineFont(
+  ctx: PlanOpBuilderContext,
+  level: number,
+  choice: "heal" | "harm",
+): DocOpPayload[] {
+  const slot = { slotId: "divineFont-1", type: "divineFont" } as PlanSlotModel;
+  return chooseFeat(ctx, slot, level, divineFontDoc(choice));
 }
 
 /**
@@ -4036,6 +4558,16 @@ export const SKILL_ABILITY: Record<string, AbilitySlug> = {
 
 /** The 16 canonical PF2e skill slugs (REQ-PF2-012) — mirrors CANONICAL_SKILL_SLUGS in characterSheetVM.ts. */
 export const CANONICAL_SKILL_SLUGS: readonly string[] = Object.keys(SKILL_ABILITY);
+
+/**
+ * RAW skill-proficiency level gates (PF2e Remaster core rules): a skill
+ * cannot become Master (rank 3) before character level 7, nor Legendary
+ * (rank 4) before character level 15 — independent of how many skillIncrease
+ * slots the character has already spent. Issue #49: skillTrainingDialogContext
+ * offered these ranks with no level check at all.
+ */
+export const SKILL_MASTER_MIN_LEVEL = 7;
+export const SKILL_LEGENDARY_MIN_LEVEL = 15;
 
 /**
  * proficiencyBonus — pure mirror of systems/pf2e/src/derivations/helpers.ts's
@@ -4172,7 +4704,9 @@ export interface SkillTrainingDialogContext {
  * untrained skills (rank 0 -> 1); "skillIncrease" only offers skills already
  * trained but below Legendary (rank 1-3 -> +1), matching PF2e Remaster rules
  * (you cannot "train" an already-trained skill via a training slot, and you
- * cannot "increase" an untrained one).
+ * cannot "increase" an untrained one). A "skillIncrease" that would land on
+ * Master or Legendary is further gated by character level (issue #49): see
+ * `SKILL_MASTER_MIN_LEVEL`/`SKILL_LEGENDARY_MIN_LEVEL`.
  */
 export function skillTrainingDialogContext(
   doc: Record<string, unknown>,
@@ -4233,8 +4767,20 @@ export function skillTrainingDialogContext(
     const targetRank = kind === "skillTraining" ? 1 : Math.min(currentRank + 1, 4);
     const targetMod = abilityModValue + skillProficiencyBonus(targetRank, charLevel);
 
+    // Issue #49: reaching Master (rank 3) or Legendary (rank 4) is gated by
+    // character level in RAW, regardless of how many skillIncrease slots are
+    // available — a skillIncrease that would land on one of those ranks is
+    // only eligible once charLevel meets the rank's minimum.
+    const meetsRankLevelGate =
+      targetRank < 3 ||
+      (targetRank === 3
+        ? charLevel >= SKILL_MASTER_MIN_LEVEL
+        : charLevel >= SKILL_LEGENDARY_MIN_LEVEL);
+
     const eligible =
-      kind === "skillTraining" ? currentRank === 0 : currentRank >= 1 && currentRank < 4;
+      kind === "skillTraining"
+        ? currentRank === 0
+        : currentRank >= 1 && currentRank < 4 && meetsRankLevelGate;
 
     return {
       slug,
@@ -4484,9 +5030,21 @@ export interface AbilityBoostsSlotContext {
 /**
  * The class's key-ability OPTIONS for the classBoost group, read from the
  * embedded class item's `system.keyAbility` (kept as the full option list —
- * Magus ships ["str","dex"]; applyClass narrowing may reduce it to one).
- * Returns undefined (no restriction) when unreadable, so a malformed class
- * item degrades to "any ability" instead of an empty, unfillable group.
+ * Magus ships ["str","dex"]; single-key classes like Barbarian ship
+ * ["str"]). Returns undefined (no restriction) only when the field is
+ * genuinely absent/empty, so a malformed class item degrades to "any
+ * ability" instead of an empty, unfillable group.
+ *
+ * A single-item list used to fall through to "no restriction" too (issue
+ * #12): that conflated "the class has one fixed key ability" with "any
+ * ability is fine", letting e.g. a Barbarian take Charisma as its key
+ * ability with no warning. The `> 1` guard dated back to a pre-r11
+ * applyClass bug that narrowed the embedded item's keyAbility array down to
+ * the single CHOSEN ability at apply time (so a genuinely multi-option class
+ * like Magus could get stuck offering only its first option) — that bug was
+ * fixed in r11.1 (applyClass now always keeps the class's FULL option list,
+ * see the comment above `applyClass`), so the narrowing this guard defended
+ * against no longer happens and restricting single-option lists is safe.
  */
 function classKeyAbilityOptions(
   classItem: Record<string, unknown> | undefined,
@@ -4494,13 +5052,7 @@ function classKeyAbilityOptions(
   if (!classItem) return undefined;
   const sys = asRecord(classItem["system"]);
   const options = asStringArray(sys["keyAbility"]);
-  // A single-option list means either a genuinely fixed-key class OR a doc
-  // narrowed by the pre-r11 applyClass bug (the user's real Tobias carries
-  // Magus keyAbility ["dex"]). Restricting to it would make the true pick
-  // (str) permanently unreachable — so only lists with a real choice
-  // restrict the group; everything else offers all six (the ledger records
-  // whatever is picked, and the server derives from the ledger).
-  return options.length > 1 ? options : undefined;
+  return options.length > 0 ? options : undefined;
 }
 
 function countFreeBoostSlots(itemDoc: Record<string, unknown> | undefined): number {
@@ -4694,10 +5246,7 @@ export function setClassLevelsVariant(
  * the toggle is false, and keeping them means flipping the switch back does
  * not cost the player their Séquito, their Catálogo or their Essências.
  */
-export function setIsekaiVariant(
-  ctx: PlanOpBuilderContext,
-  on: boolean,
-): DocUpdatePayload | null {
+export function setIsekaiVariant(ctx: PlanOpBuilderContext, on: boolean): DocUpdatePayload | null {
   if (!ctx.editable) return null;
   return {
     type: "doc:update",
@@ -4837,6 +5386,27 @@ export function chooseClassLevel(
       const fusionFlags = asRecord(flags["fusion"]);
       data["flags"] = { ...flags, fusion: { ...fusionFlags, classKey: sourceId } };
       ops.push(entryOp);
+    }
+
+    // issue #5, 3rd call site (multiclass): a second class with its OWN
+    // level-1 focus feature (Bard/Champion/Magus/Sorcerer, via the same
+    // `resolveClassFocusGrant` `applyClass` uses) must open its focus entry
+    // here too — this path never called it before, so a multiclassed one of
+    // these 4 classes got a spellcasting entry but no focus pool at all.
+    // Cleric/Monk/Ranger's feat-triggered and Wizard's Arcane-School-axis
+    // focus (chooseFeat/chooseClassChoice) aren't classKey-tagged for a
+    // SECOND class yet — out of scope here, same gap noted in the report.
+    const focusGrant = resolveClassFocusGrant(classSystem, classDoc);
+    if (focusGrant) {
+      const focusOp = buildFocusEntryOp(ctx, focusGrant.ability, focusGrant.tradition);
+      const focusData = asRecord(focusOp.data);
+      const focusFlags = asRecord(focusData["flags"]);
+      const focusFusionFlags = asRecord(focusFlags["fusion"]);
+      focusData["flags"] = { ...focusFlags, fusion: { ...focusFusionFlags, classKey: sourceId } };
+      ops.push(focusOp);
+      if (!getItems(ctx.doc).some(isFocusEntry)) {
+        ops.push(buildFocusPoolOp(ctx, INITIAL_FOCUS_POOL));
+      }
     }
   }
 

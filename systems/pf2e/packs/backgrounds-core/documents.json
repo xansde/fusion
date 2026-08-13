@@ -183,6 +183,53 @@
     }
   },
   {
+    "_id": "jk6fpVrPBv8epXWA",
+    "name": "Amnesiac",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free",
+        "free"
+      ],
+      "description": "<p>Your background is... well... honestly, you can't remember! You might have inklings deep within your mind, undercurrents of unusual emotions or unexpected responses to certain people or situations, but ultimately you don't know who you once were. You might be adventuring specifically to help discover yourself. It's up to you and the GM how to handle the truth of your character's backstory. You could leave it to the GM so it's a secret, work together with the GM, or even choose to leave it undecided until later. In any case, you and your GM should determine a few noteworthy details about your character or their belongings to get the first clues to your past.</p>\n<p>You gain three free attribute boosts. You choose two, and the GM chooses the third based on their first inklings of your character's possible history.</p>",
+      "items": {},
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": []
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {}
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0ZfBP7Tp2P3WN7Dp",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "4mwD5vRGeigFjAJX",
     "name": "Animal Whisperer",
     "type": "background",
@@ -364,6 +411,68 @@
     }
   },
   {
+    "_id": "jtJuOIQHBO1nYn15",
+    "name": "Astrologer",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>Astrologers look to the stars for signs and portents, using their positions in the heavens to chart courses for those living beneath them. As the celestial spheres move, so does fate itself. You studied the stars and learned to divine your path based on their guidance. Whether the stars directly called you to a life of adventure or you use the stars to guide your wanderlust, you're living out the stars' guidance in a life of adventure.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in Occultism and Astrology Lore. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Oddity Identification] skill feat.</p>",
+      "items": {
+        "prdi2": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Oddity Identification",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Oddity Identification"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "custom": "",
+        "lore": [
+          "Astrology Lore"
+        ],
+        "value": [
+          "occultism"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "occultism": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3YQ1Wcjzk8ftoyo7",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "dgXJNL7LUK7PFwlL",
     "name": "Bandit",
     "type": "background",
@@ -410,6 +519,67 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "6abqATPjYoF946LD",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CFuvXy02b06mk137",
+    "name": "Barber",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>Haircuts, dentistry, bloodletting, and surgery—if it takes a steady hand and a razor, you can do it. You may have taken to the road to expand your skills or test yourself against a world that leaves your patients so battered and bruised.</p>\n<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Medicine skill and the Surgery Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Risky Surgery] skill feat.</p>",
+      "items": {
+        "ph05m": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Risky Surgery",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Risky Surgery"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Surgery Lore"
+        ],
+        "value": [
+          "medicine"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "medicine": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wudDO9OEsRjJsqhU",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -532,6 +702,113 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "Phvnfdmz4bB7jrI3",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "VCteHK2aW63UKYcn",
+    "name": "Blessed",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You have been blessed by a divinity. For an unknown reason, and irrespective of your actual beliefs, a deity has granted you a boon to use for good or ill. Your blessing grants wisdom and insight to aid you in your struggles. You may or may not even know the identity of the being who blessed you, and the blessing might come with a cost you discover later on.</p>\n<p>Choose two attribute boosts. One must be to <strong>Wisdom</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You are trained in a Lore skill associated with the deity who blessed you (such as Shelyn Lore) if you know their identity, or else in a Lore skill of the GM's choice if you don't. Either you can cast @UUID[Compendium.pf2e.spells-srd.Item.Guidance] as a divine innate spell at will, or you gain a similar blessing determined by the GM.</p>",
+      "items": {},
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": []
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {}
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9pK15dQJVypSCjzO",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "PEw8nI1Gs4OnS8Ut",
+    "name": "Bookkeeper",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You ran the numbers on a large farm, for a merchant's endeavors, or with a major guild in the city. You kept track of expenses, payroll, profits, and anything else that had to do with money, for better or worse. If better, you might be adventuring to learn how others ply this trade. If worse, you may be fleeing from impending consequences in the hope that no one finds you.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Society skill and the Accounting Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Eye for Numbers] skill feat.</p>",
+      "items": {
+        "re6l6": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Eye For Numbers",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Eye for Numbers"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Accounting Lore"
+        ],
+        "value": [
+          "society"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "society": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "o1lhSKOpKPamTITI",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -728,6 +1005,65 @@
     }
   },
   {
+    "_id": "dK4Ofui3WOJw8Dhw",
+    "name": "Courier",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>In your youth, you earned coin running messages for persons of wealth and influence, darting through crowded city streets. Your dogged commitment to deliver your message was good training for the life of an adventurer.</p>\n<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or <strong>Intelligence</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Society skill and the Lore skill for the city in which you were raised. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Glean Contents] skill feat.</p>",
+      "items": {
+        "30vfa": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Glean Contents",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Glean Contents"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "society"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "society": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "DBxOUwM7qhGH8MrF",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "yOfUH9TSzIHAI7cx",
     "name": "Criminal",
     "type": "background",
@@ -835,6 +1171,75 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "fuTLDmihr9Z9e5wa",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "aeSwz3yU3bY56Gjq",
+    "name": "Cursed",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You are the victim of a personal or hereditary curse. Through great effort and occult study, you have learned to fend off the curse's worst effects and, by extension, you can protect yourself against other harmful magic. However, the curse still hangs over you and sometimes manifests in dangerous ways.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You are trained in Occultism and Curse Lore. You gain the @UUID[Compendium.pf2e.actionspf2e.Item.Warding Sign] reaction. You and the GM should determine the full effects of the curse, though you've staved most of them off for now. The GM determines the curse's lingering manifestations on you, which usually include at least a constant or very frequent thematic effect and occasional more dangerous effects.</p>",
+      "items": {},
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Warding Sign",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Warding Sign"
+          }
+        }
+      ],
+      "trainedSkills": {
+        "lore": [
+          "Curse Lore"
+        ],
+        "value": [
+          "occultism"
+        ]
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {
+        "occultism": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "j2G71vQahw1DiWpO",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -1088,6 +1493,182 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "SOmJyAtPOokesZoe",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "M2SxShMoznBslERf",
+    "name": "Feral Child",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You spent your youth in the wilderness, living close to or perhaps raised by animals. You have a close, mystical connection with these animals and gained certain abilities from them, though this limited your well-roundedness in mental pursuits.</p>\n<p>Choose one ability boost. It must be <strong>Strength</strong>, <strong>Dexterity</strong>, or <strong>Constitution</strong>.</p>\n<p>You are trained in Nature and Survival. You gain low-light vision (or darkvision if you already had low-light vision), imprecise scent with a range of 30 feet, and the @UUID[Compendium.pf2e.feats-srd.Item.Forager] skill feat.</p>",
+      "items": {
+        "fx8l1": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Forager",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Forager"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": [
+            "self:low-light-vision:from-ancestry"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "predicate": [
+              "self:low-light-vision:from-ancestry"
+            ],
+            "selector": "darkvision"
+          }
+        },
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "low-light-vision"
+          }
+        },
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": 30,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": 30,
+            "selector": "scent"
+          }
+        }
+      ],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "nature",
+          "survival"
+        ]
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {
+        "nature": {
+          "value": 1
+        },
+        "survival": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Q2brdDtEoI3cmpuD",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SqnrmO9AtKeiXCGf",
+    "name": "Feybound",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You have spent time in the First World or another realm of the fey and aren't entirely the same person you were before. Perhaps you made a purchase at the legendary Witchmarket or partook deeply of fey food and wine. Whatever the case, willingly or inadvertently, you made a bargain with the fey, the benefits of which come at a price.</p>\n<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You are trained in Fey Lore and gain the @UUID[Compendium.pf2e.actionspf2e.Item.Fey's Fortune] free action. You must follow some rule or limitation as part of your pact with the fey. If you violate the rule, you lose Fey's Fortune until you receive the effects of a successful @UUID[Compendium.pf2e.spells-srd.Item.Atone] ritual using the Nature skill. The exact limitation is up to you and the GM, but the most common requirement is that you must fulfill a single request from any fey who knows your name.</p>",
+      "items": {},
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Fey's Fortune",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Fey's Fortune"
+          }
+        }
+      ],
+      "trainedSkills": {
+        "lore": [
+          "Fey Lore"
+        ],
+        "value": []
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {}
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ppBGlWl0UkBKkJgE",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -1466,6 +2047,58 @@
     }
   },
   {
+    "_id": "4nwVdjWOwb0XedXT",
+    "name": "Haunted",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You are followed by a spirit or entity, either from childhood or since a momentous event. You and others may have seen this entity. You have studied esoteric subjects trying to understand your situation, but this presence in your life remains a mystery. Whatever this entity is or wants, it influences your life in subtle ways, and not always for the better. Sometimes the entity helps you, but at other times, its influence is malevolent or harmful. The entity is most likely to surface in stressful situations.</p>\n<p>Choose two attribute boosts. One must be to <strong>Wisdom</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You are trained in Occultism and an additional skill in which the haunting entity is well-versed, determined by the GM. Any time you attempt a skill check for the entity's skill, the GM can offer you a +1 circumstance bonus to the check, as though the entity were @UUID[Compendium.pf2e.actionspf2e.Item.Aid]{Aiding} you. If you accept but fail the check, you are @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 2} (@UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 4} on a critical failure). The initial Frightened value can't be reduced by effects that would reduce or prevent the condition (such as a fighter's bravery).</p>",
+      "items": {},
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "occultism"
+        ]
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {
+        "occultism": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pGOlKz4Krnh7MyUM",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "8ARQ1quiAPvGDylk",
     "name": "Herbalist",
     "type": "background",
@@ -1664,6 +2297,67 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "5Z3cLEpsx9nHVwhM",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "nYu3HuQvfoMejhua",
+    "name": "Insurgent",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You were more than a rebel; you were a revolutionary, fighting for the promise of a new or better country. You may or may not still believe in the cause, or perhaps victory or exile has led you on this new journey to trumpet your glory... or to escape the consequences of your defeat.</p>\n<p>Choose two attribute boosts. One must be to <strong>Strength</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Deception skill and the Warfare Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Lengthy Diversion] skill feat.</p>",
+      "items": {
+        "ltz28": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Lengthy Diversion",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Lengthy Diversion"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Warfare Lore"
+        ],
+        "value": [
+          "deception"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "deception": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "HdnmIaLadhRfZq8X",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -2112,6 +2806,126 @@
     }
   },
   {
+    "_id": "rdX3CnfoY7QaURwn",
+    "name": "Outrider",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>In your youth, you galloped on horseback over vast prairies, serving as a vanguard for your settlement, an army, or another group. Seeing so many different lands built a thirst in you to adventure and explore the world instead of just racing past it.</p>\n<p>Choose two attribute boosts. One must be to <strong>Constitution</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Nature skill and the Plains Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Express Rider] skill feat.</p>",
+      "items": {
+        "vfq3c": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Express Rider",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Express Rider"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Plains Lore"
+        ],
+        "value": [
+          "nature"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "nature": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dAvFZ5QmbAHgXcNp",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SHblwrVhWwwPw5E4",
+    "name": "Pilgrim",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>In your youth, you made several pilgrimages to important shrines and sacred sites. You might have been a mendicant friar, a seller of religious relics (real or fraudulent), or just a simple farmer following the dictates of your faith. Whatever the aims of your wanderings now, your faith still protects you on the road.</p>\n<p>Choose two attribute boosts. One must be to <strong>Wisdom</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Religion skill and the Lore skill for your patron deity. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Pilgrim's Token] skill feat.</p>",
+      "items": {
+        "1cme1": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Pilgrim's Token",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Pilgrim's Token"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "religion"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "religion": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "r9fzNQEz33HyKTxm",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "rvmLvw2P5nB3ylbX",
     "name": "Prisoner",
     "type": "background",
@@ -2226,6 +3040,308 @@
     }
   },
   {
+    "_id": "ZF4v12SoB9Ds7Qv5",
+    "name": "Refugee (PC2)",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You come from a land very distant from the one you now find yourself in, driven by war, plague, or simply in the pursuit of opportunity. Regardless of your origin or the reason you left your home, you find yourself an outsider in this new land. Adventuring is a way to support yourself while offering hope to those who need it most.</p>\n<p>Choose two attribute boosts. One must be to <strong>Constitution</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Society skill and a Lore skill related to the settlement you came from. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Streetwise] skill feat.</p>",
+      "items": {
+        "17wwh": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Streetwise",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Streetwise"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "society"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "society": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "i28Z9JXhEvoc7BX5",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "37NuBbmuE18hTDLF",
+    "name": "Returned",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You died and miraculously returned with knowledge of the realms beyond death and a stronger link to life. Some dead and undead souls might feel a strange, instinctual kinship with you.</p>\n<p>Choose two attribute boosts. One must be to <strong>Constitution</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You gain the @UUID[Compendium.pf2e.feats-srd.Item.Diehard] feat and the @UUID[Compendium.pf2e.feats-srd.Item.Additional Lore] feat for Boneyard Lore.</p>",
+      "items": {
+        "bpwjq": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Diehard",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Diehard"
+        },
+        "k29rl": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Additional Lore",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Additional Lore"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "**Boneyard Lore (with Additional Lore perks)"
+        ],
+        "value": []
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {}
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "rzyRtasSTfHS3e0y",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "s3ZHCTbUxHWih3L8",
+    "name": "Root Worker",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>Some ailments can't be cured by herbs alone. You learned ritual remedies as well, calling on nature spirits to soothe aches and ward off the evil eye. Taking up with adventurers has given you company on the road, as well as protection from those who would brand you a fake—or worse.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Occultism skill and the Herbalism Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Root Magic] skill feat.</p>",
+      "items": {
+        "rzhqp": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Root Magic",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Root Magic"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Herbalism Lore"
+        ],
+        "value": [
+          "occultism"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "occultism": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ns9BOvCyjdapYhI0",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "B9WNciUBkKQ0q8v2",
+    "name": "Royalty",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You are a prominent member of a royal family. You have eschewed the daily routines of royal life and taken up an adventurous quest—perhaps you're a deposed queen hoping to regain her throne, a prince seeking a more exciting life, or a sovereign's heir on a secret mission.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You are trained in Society. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Courtly Graces] skill feat and can influence commoners in your family's territory, as well as nobility anywhere. If you later gain the @UUID[Compendium.pf2e.feats-srd.Item.Leverage Connections] skill feat, you automatically have common and noble connections within any community in your royal family's territory and have noble connections in large communities outside your territory.</p>",
+      "items": {
+        "zslzu": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Courtly Graces",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Courtly Graces"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "society"
+        ]
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": []
+      },
+      "skills": {
+        "society": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uC6D2nmDTATxXrV6",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ZpsPQ9P1W7ownlkH",
+    "name": "Saboteur",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>Whether you do it for personal enjoyment or at the behest of a mercenary company or military organization, you have a knack for destroying things. You have a sense for an object or structure's weak spots and know where to deliver a hammer strike or alchemical bomb. You adventure to hone your skills or complete a particular mission.</p>\n<p>Choose two attribute boosts. One must be to <strong>Strength</strong> or <strong>Dexterity</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Thievery skill and the Engineering Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Concealing Legerdemain] skill feat.</p>",
+      "items": {
+        "hb9mc": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Concealing Legerdemain",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Concealing Legerdemain"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "custom": "",
+        "lore": [
+          "Engineering Lore"
+        ],
+        "value": [
+          "thievery"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "thievery": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "4Vc8uXVHonrasFnU",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "UgHUPyqRiCImAchP",
     "name": "Sailor",
     "type": "background",
@@ -2274,6 +3390,65 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "Zmwyhsxe4i6rZN75",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Z1mLRQgwv77XYwRR",
+    "name": "Scavenger",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You've made a living sorting through the things society throws away. You might have scavenged simply to survive, or plied a trade as a ragpicker, dung carter, or the like. While you've left that life behind, you still keep one eye on the ground out of habit.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Survival skill and the Lore skill for the settlement you grew up scavenging in. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Forager] skill feat.</p>",
+      "items": {
+        "y8g6e": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Forager",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Forager"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "survival"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "survival": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vHeP960qjhfob4Je",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -2453,6 +3628,189 @@
     }
   },
   {
+    "_id": "WBnJ2nWD5RmDzjYn",
+    "name": "Servant",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You held a role of servitude, waiting on nobles and engendering their trust as one of the confidantes of the household. You might have walked away on good terms, or perhaps you know dangerous secrets about your former employers. Regardless, you're adventuring for a change and finding that in this new role, the skills you've learned now serve you.</p>\n<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Society skill and the Labor Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Read Lips] skill feat.</p>",
+      "items": {
+        "z7jfd": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Read Lips",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Read Lips"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Labor Lore"
+        ],
+        "value": [
+          "society"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "society": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "UdOUj7i8XGTI72Zc",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "FusionSmuggler01",
+    "name": "Smuggler",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You know how to smuggle people in and out of countries.</p>\n<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Stealth skill and the Underworld Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler] skill feat.</p>",
+      "items": {
+        "smugg": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Experienced Smuggler",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Experienced Smuggler"
+        }
+      },
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens World Guide"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Underworld Lore"
+        ],
+        "value": [
+          "stealth"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "stealth": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "authored",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "authored",
+        "sourceId": "FusionSmuggler01",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [],
+        "authored": {
+          "reason": "absent from foundryvtt/pf2e, Archives of Nethys and Pf2eTools",
+          "book": "Lost Omens World Guide",
+          "transcribedFrom": "Pathbuilder 2e (owner's sheet, 2026-08-08)",
+          "nearestVendorNeighbour": "Black Market Smuggler (different boost pair)"
+        }
+      }
+    }
+  },
+  {
+    "_id": "FK57rsXJ7QfrhJ21",
+    "name": "Squire",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You trained at the feet of a knight, maintaining their gear and supporting them at tourneys and in battle. Now you search for a challenge that will prove you worthy of full knighthood, or you've spurned pomp and ceremony to test yourself in honest, albeit less formal, combat.</p>\n<p>Choose two attribute boosts. One must be to <strong>Strength</strong> or <strong>Constitution</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Athletics skill and your choice of the Heraldry Lore or Warfare Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Armor Assist] skill feat.</p>",
+      "items": {
+        "o4nzb": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Armor Assist",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Armor Assist"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Heraldry Lore or Warfare Lore"
+        ],
+        "value": [
+          "athletics"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "athletics": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qbvzNG8hMjb8f66D",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "zR1zWtzCC3yd5apL",
     "name": "Street Urchin",
     "type": "background",
@@ -2499,6 +3857,65 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "moVRsnpjB5THCwxE",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "5EHMZWChQZdawWYm",
+    "name": "Tax Collector",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>Reviled but required, you were sent when taxes were due. Performing your job might have required travel and persuasion, or perhaps you were responsible for collecting taxes on trade. Either way, it sometimes meant dirty hands, and adventuring seemed the next logical step to you.</p>\n<p>Choose two attribute boosts. One must be to <strong>Strength</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Intimidation skill and the Lore skill for the settlement that employed you. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Quick Coercion] skill feat.</p>",
+      "items": {
+        "ihsus": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Quick Coercion",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Quick Coercion"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [],
+        "value": [
+          "intimidation"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "intimidation": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ixluAGUDZciLEHtb",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -2651,6 +4068,67 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "i79pgNIAtJfkkOiw",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Rq775UTPB0V5kTwZ",
+    "name": "Ward",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>When you were young, you became the ward of another house—boarded, fed, and educated, but never quite a part of the family. Perhaps you had to tend to their needs in return for feeding and raising you, or perhaps you were provided for but disregarded. Now, adventuring is your chance to grow and roam free.</p>\n<p>Choose two attribute boosts. One must be to <strong>Constitution</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Performance skill and the Genealogy Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Fascinating Performance] skill feat.</p>",
+      "items": {
+        "rdv0j": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Fascinating Performance",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Fascinating Performance"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Genealogy Lore"
+        ],
+        "value": [
+          "performance"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "performance": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "IXxdCzBS0xP20ckw",
         "packName": "backgrounds",
         "unconvertedRules": [],
         "assetSubstitutions": [

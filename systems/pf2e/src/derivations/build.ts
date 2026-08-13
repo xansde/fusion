@@ -239,8 +239,11 @@ export const stepCharBuildAbilities: DeriveStep = {
  * entries for that stat with `level <= character level`, keeping the
  * highest rank seen (upgrades only ever increase rank; the highest entry
  * at-or-below the character's level is authoritative).
+ *
+ * Exported so other build-driven steps (spellcasting entry proficiency —
+ * issue #13) can reuse the SAME mechanism instead of re-implementing it.
  */
-function effectiveRank(
+export function effectiveRank(
   initialRank: number,
   stat: string,
   upgrades: ClassSystem["proficiencyUpgrades"],
@@ -474,6 +477,25 @@ export const stepCharApplyClass: DeriveStep = {
  * Reads:  doc.items (class item), system.build.choices, system.level
  * Writes: system.skills.<slug>.rank
  */
+/**
+ * Issue #49 — RAW PF2e skill-proficiency level gates: a character cannot be
+ * Master (rank 3) before level 7, nor Legendary (rank 4) before level 15.
+ * Trained and Expert have no gate. The builder UI enforces the same rule in
+ * `skillTrainingDialogContext` (packages/client planVM.ts, its own
+ * SKILL_MASTER_MIN_LEVEL / SKILL_LEGENDARY_MIN_LEVEL) — the two live apart
+ * because the client cannot import the rules engine, so a change to one is a
+ * change to both.
+ */
+const SKILL_MASTER_MIN_LEVEL = 7;
+const SKILL_LEGENDARY_MIN_LEVEL = 15;
+
+/** Highest skill rank RAW allows a character of `level` to hold. */
+function maxSkillRankAtLevel(level: number): number {
+  if (level >= SKILL_LEGENDARY_MIN_LEVEL) return 4;
+  if (level >= SKILL_MASTER_MIN_LEVEL) return 3;
+  return 2;
+}
+
 export const stepCharBuildSkills: DeriveStep = {
   id: "pf2e.character.base.buildSkills",
   documentType: "Actor",
@@ -532,8 +554,14 @@ export const stepCharBuildSkills: DeriveStep = {
       // this fallback keeps a rank-less skillIncrease from being silently
       // ignored (audit r10-A, low issue 3).
       const current = (sys.skills[slug] as { rank?: number } | undefined)?.rank ?? 0;
-      const targetRank =
+      const requested =
         choice.rank ?? (choice.type === "skillTraining" ? 1 : Math.min(current + 1, 4));
+      // Issue #49: clamp to what the choice's own level allows. The builder UI
+      // has the same gate, but a UI gate is not a gate — an explicit
+      // `choice.rank` written by any other path (a hand-made doc:update, an
+      // import, a future tool) never passes through that dialog. The cap is
+      // keyed on the level the choice was TAKEN at, which is what RAW limits.
+      const targetRank = Math.min(requested, maxSkillRankAtLevel(choice.level));
       setFloor(slug, targetRank);
     }
   },
@@ -586,8 +614,19 @@ export const stepCharBuildHp: DeriveStep = {
     const levels = levelsOf(doc, sys);
     if (levels.classes.size === 0) return;
 
+    // NOTE (issue #39): this step used to also require `ancestryHp !==
+    // undefined || sys.build` before computing anything, on top of the
+    // `classes.size === 0` gate two lines above. That extra condition was
+    // redundant with the class-item gate (stepCharApplyClass uses no such
+    // guard) and was the ONLY reason a freshly-classed character showed
+    // 0/0 HP: right after picking a class, there is no ancestry item yet
+    // AND no `system.build` block yet (it is only created by the FIRST
+    // persisted build choice), so both halves of the `&&` were satisfied
+    // and the step aborted before ever computing HP. `ancestryHp ?? 0` and
+    // `sys.build?.bonusHp ?? 0` below already degrade safely to "just the
+    // class's HP" when nothing else has been chosen — there is nothing left
+    // for this gate to protect against.
     const ancestryHp = findAncestryHp(doc);
-    if (ancestryHp === undefined && !sys.build) return;
 
     const level = getLevel(sys);
     const conScore = sys.abilities?.con?.value ?? 10;

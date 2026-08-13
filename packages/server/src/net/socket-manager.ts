@@ -28,6 +28,7 @@ import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
   buildDocDeleteHandler,
+  buildTokenUpdateActorHandler,
 } from "./handlers/doc-handlers.js";
 import {
   buildWallCreateHandler,
@@ -44,6 +45,19 @@ import {
   buildFogGetHandler,
   buildFogResetHandler,
 } from "./handlers/fog-handlers.js";
+import {
+  buildCreatePinHandler,
+  buildUpdatePinHandler,
+  buildDeletePinHandler,
+  buildRevealPinHandler,
+  buildCommentHandler,
+} from "./handlers/region-map-handlers.js";
+import {
+  buildCreatePageHandler,
+  buildUpdatePageHandler,
+  buildDeletePageHandler,
+  buildRevealPageHandler,
+} from "./handlers/journal-handlers.js";
 import { FogStore } from "../fog/index.js";
 import {
   buildCombatCreateHandler,
@@ -74,6 +88,7 @@ import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-h
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
+  buildChatRevealHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
 import {
@@ -87,7 +102,7 @@ import {
   registerReacaoResetOnTurnStart,
   buildProgressaoConfirmarHandler,
 } from "../etmos/index.js";
-import { redactAckResultForNonPrivileged } from "./redaction.js";
+import { redactAckResultForNonPrivileged, redactAckOwnedDocumentsForViewer } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
@@ -295,6 +310,11 @@ export class SocketManager {
     registry.register("doc:update", buildDocUpdateHandler(syncDeps));
     registry.register("doc:delete", buildDocDeleteHandler(syncDeps));
 
+    // REQ-DOC-034: "mutate the actor of THIS token". Routes to the world Actor
+    // for a linked token and to Token.actorDelta for an unlinked one — both by
+    // delegating to the doc:update handler registered just above.
+    registry.register("token:updateActor", buildTokenUpdateActorHandler(syncDeps));
+
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
@@ -321,6 +341,8 @@ export class SocketManager {
     const chatDeps = { db, ns, seqStore, worldId };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
+    // REQ-CHT-045: GM turns an already-sent private message public.
+    registry.register("chat:reveal", buildChatRevealHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
     const visionDeps = { store, seqStore, opBuffer, ns };
@@ -333,6 +355,31 @@ export class SocketManager {
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
+
+    // Register region map handlers (DEC-MREG-08). Pins live on a document of
+    // their own, and every op here stamps authorship from the socket rather
+    // than from the payload — see the module header.
+    const regionMapDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      getUserName: (id: string) => authService.getUser(id)?.name ?? null,
+    };
+    registry.register("regionMap:createPin", buildCreatePinHandler(regionMapDeps));
+    registry.register("regionMap:updatePin", buildUpdatePinHandler(regionMapDeps));
+    registry.register("regionMap:deletePin", buildDeletePinHandler(regionMapDeps));
+    registry.register("regionMap:reveal", buildRevealPinHandler(regionMapDeps));
+    registry.register("regionMap:comment", buildCommentHandler(regionMapDeps));
+
+    // Register journal page handlers (DEC-HUB-04). A page carries its own
+    // ownership, so editing one and revealing one are different ops and only
+    // the second may touch it — see the module header.
+    const journalDeps = { store, seqStore, opBuffer, ns };
+    registry.register("journal:createPage", buildCreatePageHandler(journalDeps));
+    registry.register("journal:updatePage", buildUpdatePageHandler(journalDeps));
+    registry.register("journal:deletePage", buildDeletePageHandler(journalDeps));
+    registry.register("journal:revealPage", buildRevealPageHandler(journalDeps));
 
     // Register M2-B fog-of-war handlers
     const fogStore = new FogStore(db);
@@ -769,9 +816,18 @@ export class SocketManager {
           // (GM / ASSISTANT) receive the unredacted result.  redactAckResult*
           // clones before stripping and never mutates the shared object that
           // the live-broadcast / op-buffer paths also reference.
+          //
+          // REQ-NET-096: the ack is the fourth emission path, and the only one
+          // that knows WHO asked. redactAckOwnedDocumentsForViewer needs that
+          // identity (ownership is per-user, not per-role), which is why it is
+          // a second call and not folded into the pure role-based one above.
           const acked = isRolePrivileged(data.role)
             ? result
-            : redactAckResultForNonPrivileged(result);
+            : redactAckOwnedDocumentsForViewer(
+                redactAckResultForNonPrivileged(result),
+                data.userId,
+                data.role,
+              );
 
           // REQ-NET-011: echo requestId back in ack (M0-C pendência)
           if (

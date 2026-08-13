@@ -1757,6 +1757,570 @@
     }
   },
   {
+    "_id": "wCKgeaPqB6b8gGes",
+    "name": "Druid",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 1,
+        "unarmored": 1
+      },
+      "description": "<p><em>The power of nature is impossible to resist. It can bring ruin to the stoutest fortress in minutes, reducing even the mightiest works to rubble, burning them to ash, burying them beneath an avalanche of snow, or drowning them beneath the waves. It can provide endless bounty and breathtaking splendor to those who respect it—and an agonizing death to those who take it too lightly. You are one of those who hear nature's call. You stand in awe of the majesty of its power and give yourself over to its service.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.8ElntNAGahQka70r]{Druid}</p>",
+      "hp": 8,
+      "keyAbility": [
+        "wis"
+      ],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "spellcasting": {
+        "tradition": "primal",
+        "type": "prepared",
+        "ability": "wis",
+        "cantripsKnown": [
+          {
+            "level": 1,
+            "count": 5
+          },
+          {
+            "level": 2,
+            "count": 5
+          },
+          {
+            "level": 3,
+            "count": 5
+          },
+          {
+            "level": 4,
+            "count": 5
+          },
+          {
+            "level": 5,
+            "count": 5
+          },
+          {
+            "level": 6,
+            "count": 5
+          },
+          {
+            "level": 7,
+            "count": 5
+          },
+          {
+            "level": 8,
+            "count": 5
+          },
+          {
+            "level": 9,
+            "count": 5
+          },
+          {
+            "level": 10,
+            "count": 5
+          },
+          {
+            "level": 11,
+            "count": 5
+          },
+          {
+            "level": 12,
+            "count": 5
+          },
+          {
+            "level": 13,
+            "count": 5
+          },
+          {
+            "level": 14,
+            "count": 5
+          },
+          {
+            "level": 15,
+            "count": 5
+          },
+          {
+            "level": 16,
+            "count": 5
+          },
+          {
+            "level": 17,
+            "count": 5
+          },
+          {
+            "level": 18,
+            "count": 5
+          },
+          {
+            "level": 19,
+            "count": 5
+          },
+          {
+            "level": 20,
+            "count": 5
+          }
+        ],
+        "slots": [
+          {
+            "level": 1,
+            "slots": {
+              "1": 2
+            }
+          },
+          {
+            "level": 2,
+            "slots": {
+              "1": 3
+            }
+          },
+          {
+            "level": 3,
+            "slots": {
+              "1": 3,
+              "2": 2
+            }
+          },
+          {
+            "level": 4,
+            "slots": {
+              "1": 3,
+              "2": 3
+            }
+          },
+          {
+            "level": 5,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 2
+            }
+          },
+          {
+            "level": 6,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3
+            }
+          },
+          {
+            "level": 7,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 2
+            }
+          },
+          {
+            "level": 8,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3
+            }
+          },
+          {
+            "level": 9,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 2
+            }
+          },
+          {
+            "level": 10,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3
+            }
+          },
+          {
+            "level": 11,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 2
+            }
+          },
+          {
+            "level": 12,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3
+            }
+          },
+          {
+            "level": 13,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 2
+            }
+          },
+          {
+            "level": 14,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3
+            }
+          },
+          {
+            "level": 15,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 2
+            }
+          },
+          {
+            "level": 16,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3
+            }
+          },
+          {
+            "level": 17,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 2
+            }
+          },
+          {
+            "level": 18,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3
+            }
+          },
+          {
+            "level": 19,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          },
+          {
+            "level": 20,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          }
+        ]
+      },
+      "trainedSkills": {
+        "value": [
+          "nature"
+        ],
+        "additional": 2
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 3,
+          "stat": "fortitude",
+          "rank": 2
+        },
+        {
+          "level": 3,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "spellcasting",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.medium",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 15,
+          "stat": "spellcasting",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "spellcasting",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "dCH1B3UBF3fLEyMU",
+          "name": "Anathema (Druid)"
+        },
+        {
+          "level": 1,
+          "uuid": "k7CZ8dTLpyWNoX6r",
+          "name": "Druid Spellcasting"
+        },
+        {
+          "level": 1,
+          "uuid": "gS7kLg7fRgMku6gd",
+          "name": "Druidic Order"
+        },
+        {
+          "level": 1,
+          "uuid": "rpBHCE3ES0jHb7jE",
+          "name": "Wildsong"
+        },
+        {
+          "level": 1,
+          "uuid": "MbMJIRm8Ecdwk7pi",
+          "name": "Shield Block"
+        },
+        {
+          "level": 1,
+          "uuid": "y6y7uCuBpLav1NsV",
+          "name": "Voice of Nature"
+        },
+        {
+          "level": 3,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 3,
+          "uuid": "BKAFVXNFDrdPg8fB",
+          "name": "Fortitude Expertise"
+        },
+        {
+          "level": 5,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "HBkLN3XV5QAcSEaH",
+          "name": "Expert Spellcaster"
+        },
+        {
+          "level": 11,
+          "uuid": "1QwFMzHP0i86xktm",
+          "name": "Wild Willpower"
+        },
+        {
+          "level": 11,
+          "uuid": "LVADu3YwnAamOx70",
+          "name": "Weapon Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "j125sa25OAnogfDh",
+          "name": "Medium Armor Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 15,
+          "uuid": "qm5rjGcbeMbHRQ79",
+          "name": "Master Spellcaster"
+        },
+        {
+          "level": 19,
+          "uuid": "Qb6mPsJUxA73nPlp",
+          "name": "Legendary Spellcaster"
+        },
+        {
+          "level": 19,
+          "uuid": "QEbVB0nhQ7sTqvML",
+          "name": "Primal Hierophant"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7s57JDCaiYYCAdFx",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "druid.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "1VFFHH43BOrf82SB",
     "name": "Fighter",
     "type": "class",
@@ -2095,6 +2659,378 @@
           {
             "field": "img",
             "original": "fighter.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Mx4ch9PiH76OeSwk",
+    "name": "Gunslinger",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 1,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 1,
+        "unarmored": 1
+      },
+      "description": "<p><em>While some fear projectile weapons, you savor the searing flash, wild kick, and cloying smoke that accompanies a gunshot, or snap of the cable and telltale thunk of your crossbow just before your bolt finds purchase. Ready to draw a bead on an enemy at every turn, you rely on your reflexes, steady hand, and knowledge of your weapons to riddle your foes with holes.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.88K0xjShkhkckbhv]{Gunslinger}</em></p>",
+      "hp": 8,
+      "keyAbility": [
+        "dex"
+      ],
+      "perception": 2,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "rules": [
+        {
+          "kind": "proficiency",
+          "slug": "simple-firearms-crossbows",
+          "label": "PF2E.SpecificRule.MartialProficiency.SimpleFirearmsCrossbows",
+          "selector": null,
+          "value": 2,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "definition": [
+              "item:category:simple",
+              {
+                "or": [
+                  "item:group:firearm",
+                  "item:group:crossbow"
+                ]
+              }
+            ],
+            "key": "MartialProficiency",
+            "label": "PF2E.SpecificRule.MartialProficiency.SimpleFirearmsCrossbows",
+            "slug": "simple-firearms-crossbows",
+            "value": 2
+          }
+        },
+        {
+          "kind": "proficiency",
+          "slug": "martial-firearms-crossbows",
+          "label": "PF2E.SpecificRule.MartialProficiency.MartialFirearmsCrossbows",
+          "selector": null,
+          "value": 2,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "definition": [
+              "item:category:martial",
+              {
+                "or": [
+                  "item:group:firearm",
+                  "item:group:crossbow"
+                ]
+              }
+            ],
+            "key": "MartialProficiency",
+            "label": "PF2E.SpecificRule.MartialProficiency.MartialFirearmsCrossbows",
+            "slug": "martial-firearms-crossbows",
+            "value": 2
+          }
+        },
+        {
+          "kind": "proficiency",
+          "slug": "advanced-firearms-crossbows",
+          "label": "PF2E.SpecificRule.MartialProficiency.AdvancedFirearmsCrossbows",
+          "selector": null,
+          "value": 1,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "definition": [
+              "item:category:advanced",
+              {
+                "or": [
+                  "item:group:firearm",
+                  "item:group:crossbow"
+                ]
+              }
+            ],
+            "key": "MartialProficiency",
+            "label": "PF2E.SpecificRule.MartialProficiency.AdvancedFirearmsCrossbows",
+            "slug": "advanced-firearms-crossbows",
+            "value": 1
+          }
+        }
+      ],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 2,
+        "will": 1
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "trainedSkills": {
+        "value": [],
+        "additional": 3
+      },
+      "traits": {
+        "rarity": "uncommon",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 3,
+          "stat": "will",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.martial",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "perception",
+          "rank": 3
+        },
+        {
+          "level": 9,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "reflex",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.medium",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "weapons.martial",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "classDC",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "fortitude",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.medium",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "perception",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "3j2a5pR5k2pIIMfy",
+          "name": "Gunslinger's Way"
+        },
+        {
+          "level": 1,
+          "uuid": "AsDFUiIfQm959vaG",
+          "name": "Slinger's Precision"
+        },
+        {
+          "level": 3,
+          "uuid": "yHxnWqMltRtmafQf",
+          "name": "Stubborn"
+        },
+        {
+          "level": 5,
+          "uuid": "TOdjbLf0G0CY4I1K",
+          "name": "Gunslinger Weapon Mastery"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 7,
+          "uuid": "a1x0l48GmQCZqIYw",
+          "name": "Perception Mastery"
+        },
+        {
+          "level": 9,
+          "uuid": "of608qmggytB7Dr2",
+          "name": "Gunslinger Expertise"
+        },
+        {
+          "level": 9,
+          "uuid": "hXkKmhJz32xzsPEG",
+          "name": "Advanced Deed"
+        },
+        {
+          "level": 11,
+          "uuid": "O0MKs0CCVgsNGFrX",
+          "name": "Blast Dodger"
+        },
+        {
+          "level": 13,
+          "uuid": "j125sa25OAnogfDh",
+          "name": "Medium Armor Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "2byIZO1kHKW0IhyI",
+          "name": "Gunslinging Legend"
+        },
+        {
+          "level": 15,
+          "uuid": "HhbtGCmB4PMvg3bD",
+          "name": "Greater Deed"
+        },
+        {
+          "level": 15,
+          "uuid": "08FZP49WC5QReus0",
+          "name": "Greater Weapon Specialization (Level 15)"
+        },
+        {
+          "level": 17,
+          "uuid": "kOlD737Mp2ATW6fE",
+          "name": "Shootist's Edge"
+        },
+        {
+          "level": 17,
+          "uuid": "s5fp5yO7PNlETtIP",
+          "name": "Lead Constitution"
+        },
+        {
+          "level": 19,
+          "uuid": "goMuPizfdUMG7iVu",
+          "name": "Perception Legend"
+        },
+        {
+          "level": 19,
+          "uuid": "ZI7nywEZnJF0CMiw",
+          "name": "Medium Armor Mastery"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Z9li154CPNmun29Q",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gunslinger.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -3205,6 +4141,578 @@
           {
             "field": "img",
             "original": "monk.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "kJAUMTXDise4UFG2",
+    "name": "Psychic",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 0,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>The mind can perceive truths hidden to fine-tuned instruments, house more secrets than any tome, and move objects and hearts more deftly than any lever. By delving into both the conscious and subconscious aspects of your inner self, you have awoken to the might of psychic magic, allowing you to cast spells not through incantations or gestures but by the power of your will alone. While the thin line between your mind and reality means that a single errant thought could have unintended consequences for yourself and your companions, you know that anything is possible, if you can imagine it.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.KVoEUJBAbAFUJTqw]{Psychic}</em></p>",
+      "hp": 6,
+      "keyAbility": [],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Dark Archive (Remastered)"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "spellcasting": {
+        "tradition": "occult",
+        "type": "spontaneous",
+        "ability": "cha",
+        "cantripsKnown": [
+          {
+            "level": 1,
+            "count": 3
+          },
+          {
+            "level": 2,
+            "count": 3
+          },
+          {
+            "level": 3,
+            "count": 3
+          },
+          {
+            "level": 4,
+            "count": 3
+          },
+          {
+            "level": 5,
+            "count": 3
+          },
+          {
+            "level": 6,
+            "count": 3
+          },
+          {
+            "level": 7,
+            "count": 3
+          },
+          {
+            "level": 8,
+            "count": 3
+          },
+          {
+            "level": 9,
+            "count": 3
+          },
+          {
+            "level": 10,
+            "count": 3
+          },
+          {
+            "level": 11,
+            "count": 3
+          },
+          {
+            "level": 12,
+            "count": 3
+          },
+          {
+            "level": 13,
+            "count": 3
+          },
+          {
+            "level": 14,
+            "count": 3
+          },
+          {
+            "level": 15,
+            "count": 3
+          },
+          {
+            "level": 16,
+            "count": 3
+          },
+          {
+            "level": 17,
+            "count": 3
+          },
+          {
+            "level": 18,
+            "count": 3
+          },
+          {
+            "level": 19,
+            "count": 3
+          },
+          {
+            "level": 20,
+            "count": 3
+          }
+        ],
+        "slots": [
+          {
+            "level": 1,
+            "slots": {
+              "1": 1
+            }
+          },
+          {
+            "level": 2,
+            "slots": {
+              "1": 2
+            }
+          },
+          {
+            "level": 3,
+            "slots": {
+              "1": 2,
+              "2": 1
+            }
+          },
+          {
+            "level": 4,
+            "slots": {
+              "1": 2,
+              "2": 2
+            }
+          },
+          {
+            "level": 5,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 1
+            }
+          },
+          {
+            "level": 6,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2
+            }
+          },
+          {
+            "level": 7,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 1
+            }
+          },
+          {
+            "level": 8,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2
+            }
+          },
+          {
+            "level": 9,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 1
+            }
+          },
+          {
+            "level": 10,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2
+            }
+          },
+          {
+            "level": 11,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 1
+            }
+          },
+          {
+            "level": 12,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2
+            }
+          },
+          {
+            "level": 13,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 1
+            }
+          },
+          {
+            "level": 14,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2
+            }
+          },
+          {
+            "level": 15,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2,
+              "8": 1
+            }
+          },
+          {
+            "level": 16,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2,
+              "8": 2
+            }
+          },
+          {
+            "level": 17,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2,
+              "8": 2,
+              "9": 1
+            }
+          },
+          {
+            "level": 18,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2,
+              "8": 2,
+              "9": 2
+            }
+          },
+          {
+            "level": 19,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2,
+              "8": 2,
+              "9": 2,
+              "10": 1
+            }
+          },
+          {
+            "level": 20,
+            "slots": {
+              "1": 2,
+              "2": 2,
+              "3": 2,
+              "4": 2,
+              "5": 2,
+              "6": 2,
+              "7": 2,
+              "8": 2,
+              "9": 2,
+              "10": 1
+            }
+          }
+        ]
+      },
+      "trainedSkills": {
+        "value": [
+          "occultism"
+        ],
+        "additional": 3
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "spellcasting",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "fortitude",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 15,
+          "stat": "spellcasting",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "will",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "spellcasting",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "Z6ISMiIDUVehPZmP",
+          "name": "Psychic Spellcasting"
+        },
+        {
+          "level": 1,
+          "uuid": "vEp8Z5fg4HU8tvpI",
+          "name": "Psi Cantrips and Amps"
+        },
+        {
+          "level": 1,
+          "uuid": "nQTpgcTB2J6xWpHc",
+          "name": "Unleash Psyche"
+        },
+        {
+          "level": 1,
+          "uuid": "EfHqx2QeWQY4vTwc",
+          "name": "Subconscious Mind"
+        },
+        {
+          "level": 1,
+          "uuid": "shczM0gg4u250Dzd",
+          "name": "Conscious Mind"
+        },
+        {
+          "level": 1,
+          "uuid": "IPkRrReHUSAhWrb3",
+          "name": "Spell Repertoire"
+        },
+        {
+          "level": 3,
+          "uuid": "QMx05Uer8dWp7K75",
+          "name": "Signature Spells"
+        },
+        {
+          "level": 5,
+          "uuid": "bo2iG9dZJchxMlYz",
+          "name": "Clarity of Focus"
+        },
+        {
+          "level": 5,
+          "uuid": "Nd4InkdNc7A45pz4",
+          "name": "Precognitive Reflexes"
+        },
+        {
+          "level": 7,
+          "uuid": "HBkLN3XV5QAcSEaH",
+          "name": "Expert Spellcaster"
+        },
+        {
+          "level": 9,
+          "uuid": "BKAFVXNFDrdPg8fB",
+          "name": "Fortitude Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "LVADu3YwnAamOx70",
+          "name": "Weapon Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "H7vwbzHShLOwfTsr",
+          "name": "Extrasensory Perception"
+        },
+        {
+          "level": 11,
+          "uuid": "cPDTYe9ZkmFFMmIA",
+          "name": "Walls of Will"
+        },
+        {
+          "level": 13,
+          "uuid": "mAJhIhHmleq7gDBy",
+          "name": "Personal Barrier"
+        },
+        {
+          "level": 13,
+          "uuid": "bHzVkUYr6HsYIzF9",
+          "name": "Psychic Weapon Specialization"
+        },
+        {
+          "level": 15,
+          "uuid": "qm5rjGcbeMbHRQ79",
+          "name": "Master Spellcaster"
+        },
+        {
+          "level": 17,
+          "uuid": "UpAHeIEx0uW9tgH2",
+          "name": "Fortress of Will"
+        },
+        {
+          "level": 19,
+          "uuid": "Iqw6GNz6IkBKr0zW",
+          "name": "Infinite Mind"
+        },
+        {
+          "level": 19,
+          "uuid": "Qb6mPsJUxA73nPlp",
+          "name": "Legendary Spellcaster"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Inq4gH3P5PYjSQbD",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "class.svg",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]

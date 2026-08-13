@@ -1,5 +1,90 @@
 [
   {
+    "_id": "03aHpa92cMQL6EMt",
+    "uuid": "Compendium.pf2e.weapons-core.Item.03aHpa92cMQL6EMt",
+    "name": "Adze",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "forceful",
+        "sweep",
+        "tripkee"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "8V4mgecGASsQ7fjl"
+    }
+  },
+  {
+    "_id": "hXrH1AzbLUU02FB1",
+    "uuid": "Compendium.pf2e.weapons-core.Item.hXrH1AzbLUU02FB1",
+    "name": "Air Repeater",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "repeating"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "SzUynRs4HVtnpnel"
+    }
+  },
+  {
+    "_id": "e3kCEAlho5iXxjmB",
+    "uuid": "Compendium.pf2e.weapons-core.Item.e3kCEAlho5iXxjmB",
+    "name": "Arbalest",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "backstabber"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "K3qNqWRvBhnlwE3Q"
+    }
+  },
+  {
+    "_id": "NNDoejzhhWKar6Dc",
+    "uuid": "Compendium.pf2e.weapons-core.Item.NNDoejzhhWKar6Dc",
+    "name": "Arquebus",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "concussive",
+        "fatal-d12",
+        "kickback"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "ChTaE7jhvCjcS6jI"
+    }
+  },
+  {
     "_id": "wVXpiOdvD8kdIYO0",
     "uuid": "Compendium.pf2e.weapons-core.Item.wVXpiOdvD8kdIYO0",
     "name": "Bastard Sword",
@@ -40,6 +125,235 @@
     }
   },
   {
+    "_id": "iST0dEoWFmlgZpig",
+    "uuid": "Compendium.pf2e.weapons-core.Item.iST0dEoWFmlgZpig",
+    "name": "Blasting Stone (Greater)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 11,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "sonic",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "sonic",
+        "dice": 3,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "dsMkvuLgpOOGLWDy"
+    }
+  },
+  {
+    "_id": "AelxbLF8nDoNCeH6",
+    "uuid": "Compendium.pf2e.weapons-core.Item.AelxbLF8nDoNCeH6",
+    "name": "Blasting Stone (Lesser)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "sonic",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "sonic",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "Xnqglykl3Cif8rN9"
+    }
+  },
+  {
+    "_id": "IXwEUkGcIyrGWaU0",
+    "uuid": "Compendium.pf2e.weapons-core.Item.IXwEUkGcIyrGWaU0",
+    "name": "Blasting Stone (Major)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 17,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "sonic",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "sonic",
+        "dice": 4,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "IuGydh0En8LbfnWo"
+    }
+  },
+  {
+    "_id": "k9Au8rV9QpgU2Khb",
+    "uuid": "Compendium.pf2e.weapons-core.Item.k9Au8rV9QpgU2Khb",
+    "name": "Blasting Stone (Moderate)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 3,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "sonic",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "sonic",
+        "dice": 2,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "JOaELkzLWTywhn5Z"
+    }
+  },
+  {
+    "_id": "kvzahDlRaS5E48WZ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.kvzahDlRaS5E48WZ",
+    "name": "Blight Bomb (Greater)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 11,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "poison",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "poison",
+        "dice": 3,
+        "die": "d4",
+        "persistent": {
+          "formula": "3d4",
+          "damageType": "poison"
+        }
+      },
+      "flags.fusion.sourceId": "LhMXIGelSrFPYild"
+    }
+  },
+  {
+    "_id": "6g1G4k8IPYCMEXmz",
+    "uuid": "Compendium.pf2e.weapons-core.Item.6g1G4k8IPYCMEXmz",
+    "name": "Blight Bomb (Lesser)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "poison",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "poison",
+        "dice": 1,
+        "die": "d4",
+        "persistent": {
+          "formula": "1d4",
+          "damageType": "poison"
+        }
+      },
+      "flags.fusion.sourceId": "j8ajvNqyyQGBpBch"
+    }
+  },
+  {
+    "_id": "7vq8YTRkMMxdNIEV",
+    "uuid": "Compendium.pf2e.weapons-core.Item.7vq8YTRkMMxdNIEV",
+    "name": "Blight Bomb (Major)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 17,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "poison",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "poison",
+        "dice": 4,
+        "die": "d4",
+        "persistent": {
+          "formula": "4d4",
+          "damageType": "poison"
+        }
+      },
+      "flags.fusion.sourceId": "sJjuv1991SZ7DWWD"
+    }
+  },
+  {
+    "_id": "K0jm6A4Nc5j5sMTk",
+    "uuid": "Compendium.pf2e.weapons-core.Item.K0jm6A4Nc5j5sMTk",
+    "name": "Blight Bomb (Moderate)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 3,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "poison",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "poison",
+        "dice": 2,
+        "die": "d4",
+        "persistent": {
+          "formula": "2d4",
+          "damageType": "poison"
+        }
+      },
+      "flags.fusion.sourceId": "158vwM1andv8DbRI"
+    }
+  },
+  {
+    "_id": "LiSC3YqSUlFSyNky",
+    "uuid": "Compendium.pf2e.weapons-core.Item.LiSC3YqSUlFSyNky",
+    "name": "Blunderbuss",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "concussive",
+        "scatter-10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "csXSDzgZASX4RWr4"
+    }
+  },
+  {
     "_id": "zfxeVhDAoCKL5cbn",
     "uuid": "Compendium.pf2e.weapons-core.Item.zfxeVhDAoCKL5cbn",
     "name": "Bo Staff",
@@ -63,6 +377,217 @@
     }
   },
   {
+    "_id": "wEbm29gT7vYndkHs",
+    "uuid": "Compendium.pf2e.weapons-core.Item.wEbm29gT7vYndkHs",
+    "name": "Bola",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "nonlethal",
+        "ranged-trip",
+        "thrown"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "YUzPv0i8d8p2J9yx"
+    }
+  },
+  {
+    "_id": "xyYmW5QUz7E5RjZb",
+    "uuid": "Compendium.pf2e.weapons-core.Item.xyYmW5QUz7E5RjZb",
+    "name": "Bottled Lightning (Greater)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 11,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "electricity",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 3,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "r2iTRbt1zpkAqHj2"
+    }
+  },
+  {
+    "_id": "RQORtiaaZ0R9kmU4",
+    "uuid": "Compendium.pf2e.weapons-core.Item.RQORtiaaZ0R9kmU4",
+    "name": "Bottled Lightning (Lesser)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "electricity",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "AFR01HVd7DcZvkpP"
+    }
+  },
+  {
+    "_id": "UCql2W2E60Y5FAlG",
+    "uuid": "Compendium.pf2e.weapons-core.Item.UCql2W2E60Y5FAlG",
+    "name": "Bottled Lightning (Major)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 17,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "electricity",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 4,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "rpbbfkexLhtadBDV"
+    }
+  },
+  {
+    "_id": "uQPzERWci7vfNBSJ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.uQPzERWci7vfNBSJ",
+    "name": "Bottled Lightning (Moderate)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 3,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "electricity",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 2,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "97QyNEOAyYLdGaYc"
+    }
+  },
+  {
+    "_id": "pvbfptNjgclyoKrB",
+    "uuid": "Compendium.pf2e.weapons-core.Item.pvbfptNjgclyoKrB",
+    "name": "Breaching Pike",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "hobgoblin",
+        "razing",
+        "reach"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "ymyPCjfyXCNyDcnn"
+    }
+  },
+  {
+    "_id": "FqzbPshyFNZljdwo",
+    "uuid": "Compendium.pf2e.weapons-core.Item.FqzbPshyFNZljdwo",
+    "name": "Capturing Spetum",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "hampering",
+        "hobgoblin",
+        "reach",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "IBxtmyiVjWVqFawh"
+    }
+  },
+  {
+    "_id": "4Ptof3qPxh5Uzpmp",
+    "uuid": "Compendium.pf2e.weapons-core.Item.4Ptof3qPxh5Uzpmp",
+    "name": "Clan Dagger",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "dwarf",
+        "parry",
+        "versatile-b"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "kJJvKm80KwWXPukV"
+    }
+  },
+  {
+    "_id": "eGo64I2hdTP3p3Sf",
+    "uuid": "Compendium.pf2e.weapons-core.Item.eGo64I2hdTP3p3Sf",
+    "name": "Claw Blade",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "catfolk",
+        "deadly-d8",
+        "disarm",
+        "finesse",
+        "versatile-p"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "fvvfZxfGV9i3urkd"
+    }
+  },
+  {
     "_id": "423eTVfFyu1RWvBJ",
     "uuid": "Compendium.pf2e.weapons-core.Item.423eTVfFyu1RWvBJ",
     "name": "Club",
@@ -80,6 +605,28 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "c58wczIzH2gzeXQL"
+    }
+  },
+  {
+    "_id": "yY5waDlzvTdxo4Hx",
+    "uuid": "Compendium.pf2e.weapons-core.Item.yY5waDlzvTdxo4Hx",
+    "name": "Coat Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "concealable",
+        "concussive",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "LLYD2GEhzhdxoCAx"
     }
   },
   {
@@ -144,6 +691,112 @@
     }
   },
   {
+    "_id": "bRfvDoHhVPUOexlg",
+    "uuid": "Compendium.pf2e.weapons-core.Item.bRfvDoHhVPUOexlg",
+    "name": "Cruuk",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "shove",
+        "thrown-30",
+        "tripkee"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "v8C4hkqMNeUk60Db"
+    }
+  },
+  {
+    "_id": "CCzcFKvSFwtQu1tb",
+    "uuid": "Compendium.pf2e.weapons-core.Item.CCzcFKvSFwtQu1tb",
+    "name": "Crystal Shards (Greater)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 12,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "earth",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 3,
+        "die": "d4",
+        "persistent": {
+          "formula": "1",
+          "damageType": "bleed"
+        }
+      },
+      "flags.fusion.sourceId": "ivaL0xt33k6QNwQK"
+    }
+  },
+  {
+    "_id": "o3r4J6dqZy9ufKDf",
+    "uuid": "Compendium.pf2e.weapons-core.Item.o3r4J6dqZy9ufKDf",
+    "name": "Crystal Shards (Major)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 18,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "earth",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 4,
+        "die": "d4",
+        "persistent": {
+          "formula": "1",
+          "damageType": "bleed"
+        }
+      },
+      "flags.fusion.sourceId": "V2knI4GpdJYLupjg"
+    }
+  },
+  {
+    "_id": "ffcUI2MXWtuOZsBz",
+    "uuid": "Compendium.pf2e.weapons-core.Item.ffcUI2MXWtuOZsBz",
+    "name": "Crystal Shards (Moderate)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 4,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "earth",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 2,
+        "die": "d4",
+        "persistent": {
+          "formula": "1",
+          "damageType": "bleed"
+        }
+      },
+      "flags.fusion.sourceId": "V4wgOWYmHlbSZsVG"
+    }
+  },
+  {
     "_id": "34nTLSjgq8d2Vmtz",
     "uuid": "Compendium.pf2e.weapons-core.Item.34nTLSjgq8d2Vmtz",
     "name": "Dagger",
@@ -167,6 +820,27 @@
     }
   },
   {
+    "_id": "VoZEjHBlwXOyyHue",
+    "uuid": "Compendium.pf2e.weapons-core.Item.VoZEjHBlwXOyyHue",
+    "name": "Daikyu",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "forceful",
+        "propulsive"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "RN3m5Hb5LPbdZGoO"
+    }
+  },
+  {
     "_id": "fXIVQcDApWV2gf6S",
     "uuid": "Compendium.pf2e.weapons-core.Item.fXIVQcDApWV2gf6S",
     "name": "Dart",
@@ -185,6 +859,209 @@
         "die": "d4"
       },
       "flags.fusion.sourceId": "Tt4Qw64fwrxhr5gT"
+    }
+  },
+  {
+    "_id": "BwTrSPVjvkSc4YWt",
+    "uuid": "Compendium.pf2e.weapons-core.Item.BwTrSPVjvkSc4YWt",
+    "name": "Dogslicer",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "backstabber",
+        "finesse",
+        "goblin"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "olwngGXM3hpgoLEP"
+    }
+  },
+  {
+    "_id": "iwSQS7fuWt4Zd1St",
+    "uuid": "Compendium.pf2e.weapons-core.Item.iwSQS7fuWt4Zd1St",
+    "name": "Double-Barreled Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "concussive",
+        "double-barrel",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "MvzR9nTnvKTeNjvQ"
+    }
+  },
+  {
+    "_id": "BSTNNs7HFL9KbFX1",
+    "uuid": "Compendium.pf2e.weapons-core.Item.BSTNNs7HFL9KbFX1",
+    "name": "Dwarven Scattergun",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "concussive",
+        "dwarf",
+        "kickback",
+        "scatter-10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "jcIabnkJgjwzK6Og"
+    }
+  },
+  {
+    "_id": "ExIfyn8rvmwKkVRl",
+    "uuid": "Compendium.pf2e.weapons-core.Item.ExIfyn8rvmwKkVRl",
+    "name": "Dwarven War Axe",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "dwarf",
+        "sweep",
+        "two-hand-d12"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "MYnh7w7EL3AcQT41"
+    }
+  },
+  {
+    "_id": "nvTArbJJDBFFXNn0",
+    "uuid": "Compendium.pf2e.weapons-core.Item.nvTArbJJDBFFXNn0",
+    "name": "Elven Curve Blade",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "elf",
+        "finesse",
+        "forceful"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "mgrabKkyLmvxgLBK"
+    }
+  },
+  {
+    "_id": "xrKsoAkCLKEjuXrO",
+    "uuid": "Compendium.pf2e.weapons-core.Item.xrKsoAkCLKEjuXrO",
+    "name": "Falchion",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "forceful",
+        "sweep"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "XGtIUZ4ZNKuFx1uL"
+    }
+  },
+  {
+    "_id": "cKLGBnzAXEv7YO9P",
+    "uuid": "Compendium.pf2e.weapons-core.Item.cKLGBnzAXEv7YO9P",
+    "name": "Fangwire",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "backstabber",
+        "deadly-d8",
+        "finesse",
+        "grapple",
+        "kobold"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "wYruARP1YLfTQBsc"
+    }
+  },
+  {
+    "_id": "x4KQGWCY6m3ADAwJ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.x4KQGWCY6m3ADAwJ",
+    "name": "Filcher's Fork",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "backstabber",
+        "deadly-d6",
+        "finesse",
+        "halfling",
+        "thrown-20"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "CVTgOpNuRE7hsnc1"
+    }
+  },
+  {
+    "_id": "CocSCZ6gUPbAKzmz",
+    "uuid": "Compendium.pf2e.weapons-core.Item.CocSCZ6gUPbAKzmz",
+    "name": "Fire Lance",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "WUA40bb01pSWv88I"
     }
   },
   {
@@ -210,6 +1087,309 @@
     }
   },
   {
+    "_id": "FaLoH1XHzDsyzGAZ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.FaLoH1XHzDsyzGAZ",
+    "name": "Flintlock Musket",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "concussive",
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "hqMtsTwmOShdAdQW"
+    }
+  },
+  {
+    "_id": "vsNpLjRVRAq0B59N",
+    "uuid": "Compendium.pf2e.weapons-core.Item.vsNpLjRVRAq0B59N",
+    "name": "Flintlock Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "concussive",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "N3nNqO5Nw2DIFhrv"
+    }
+  },
+  {
+    "_id": "74LFqhlcYPjOhpq6",
+    "uuid": "Compendium.pf2e.weapons-core.Item.74LFqhlcYPjOhpq6",
+    "name": "Flying Talon",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "agile",
+        "finesse",
+        "kobold",
+        "ranged-trip",
+        "tethered",
+        "thrown-10",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "ucz1WdBA0Ma34OsS"
+    }
+  },
+  {
+    "_id": "a1fzIZXbXiD3M0jZ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.a1fzIZXbXiD3M0jZ",
+    "name": "Frost Vial (Greater)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 11,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "cold",
+        "consumable",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "cold",
+        "dice": 3,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "intVPcEzbE9o4NQd"
+    }
+  },
+  {
+    "_id": "C8foZWoH0ADrK0y1",
+    "uuid": "Compendium.pf2e.weapons-core.Item.C8foZWoH0ADrK0y1",
+    "name": "Frost Vial (Lesser)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "cold",
+        "consumable",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "cold",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "EpxmUtLpCkE8R6KJ"
+    }
+  },
+  {
+    "_id": "GDKg9SsF5bNlEyU6",
+    "uuid": "Compendium.pf2e.weapons-core.Item.GDKg9SsF5bNlEyU6",
+    "name": "Frost Vial (Major)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 17,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "cold",
+        "consumable",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "cold",
+        "dice": 4,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "4DJQID8GIlxQ7b9C"
+    }
+  },
+  {
+    "_id": "u9BghzcMnBXu2a4A",
+    "uuid": "Compendium.pf2e.weapons-core.Item.u9BghzcMnBXu2a4A",
+    "name": "Frost Vial (Moderate)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 3,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "cold",
+        "consumable",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "cold",
+        "dice": 2,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "nVvH1ZcM7OwIVIs8"
+    }
+  },
+  {
+    "_id": "VWi8PxG8gFkHRuOC",
+    "uuid": "Compendium.pf2e.weapons-core.Item.VWi8PxG8gFkHRuOC",
+    "name": "Gauntlet",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "free-hand"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "Ix2vicchE79d6Cl3"
+    }
+  },
+  {
+    "_id": "QLu3jyHlR15hvCeu",
+    "uuid": "Compendium.pf2e.weapons-core.Item.QLu3jyHlR15hvCeu",
+    "name": "Ghost Charge (Greater)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 11,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "splash",
+        "vitality"
+      ],
+      "system.damage": {
+        "damageType": "vitality",
+        "dice": 3,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "28osNZINXLWzqzUL"
+    }
+  },
+  {
+    "_id": "H5HnfT0MoWZWQddi",
+    "uuid": "Compendium.pf2e.weapons-core.Item.H5HnfT0MoWZWQddi",
+    "name": "Ghost Charge (Lesser)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "splash",
+        "vitality"
+      ],
+      "system.damage": {
+        "damageType": "vitality",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "LNd5u19GqC51ngby"
+    }
+  },
+  {
+    "_id": "5pD13YQyMM9L5Aa4",
+    "uuid": "Compendium.pf2e.weapons-core.Item.5pD13YQyMM9L5Aa4",
+    "name": "Ghost Charge (Major)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 17,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "splash",
+        "vitality"
+      ],
+      "system.damage": {
+        "damageType": "vitality",
+        "dice": 4,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "i7bJcib5TUJKOd4Z"
+    }
+  },
+  {
+    "_id": "qyxGgUYNih9tsl6r",
+    "uuid": "Compendium.pf2e.weapons-core.Item.qyxGgUYNih9tsl6r",
+    "name": "Ghost Charge (Moderate)",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 3,
+      "system.category": "martial",
+      "system.traits.value": [
+        "alchemical",
+        "bomb",
+        "consumable",
+        "splash",
+        "vitality"
+      ],
+      "system.damage": {
+        "damageType": "vitality",
+        "dice": 2,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "Wf94e8YNhZdIvWc9"
+    }
+  },
+  {
+    "_id": "ynDqAToSO6ZcRU6e",
+    "uuid": "Compendium.pf2e.weapons-core.Item.ynDqAToSO6ZcRU6e",
+    "name": "Glaive",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "deadly-d8",
+        "forceful",
+        "reach"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "vlnzTSsRmWeSkt9O"
+    }
+  },
+  {
     "_id": "WLQmXb9poN7qyXCu",
     "uuid": "Compendium.pf2e.weapons-core.Item.WLQmXb9poN7qyXCu",
     "name": "Gnome Flickmace",
@@ -229,6 +1409,29 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "oSQET5hKn9q4xlrl"
+    }
+  },
+  {
+    "_id": "6ShS6qq6Zp9InMt8",
+    "uuid": "Compendium.pf2e.weapons-core.Item.6ShS6qq6Zp9InMt8",
+    "name": "Gnome Hooked Hammer",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "gnome",
+        "trip",
+        "two-hand-d10",
+        "versatile-p"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "1U7Laa7Yt7i3G77L"
     }
   },
   {
@@ -252,6 +1455,47 @@
     }
   },
   {
+    "_id": "xJ4d0iv5dxfC7Y8o",
+    "uuid": "Compendium.pf2e.weapons-core.Item.xJ4d0iv5dxfC7Y8o",
+    "name": "Greatclub",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "backswing",
+        "shove"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "kdGqnqbrwPzQfTsm"
+    }
+  },
+  {
+    "_id": "3RMO0R1PPjggMqUO",
+    "uuid": "Compendium.pf2e.weapons-core.Item.3RMO0R1PPjggMqUO",
+    "name": "Greatpick",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "fatal-d12"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "3Zv5hSXXtlaDatUv"
+    }
+  },
+  {
     "_id": "CvSLXnuw98gXuMpo",
     "uuid": "Compendium.pf2e.weapons-core.Item.CvSLXnuw98gXuMpo",
     "name": "Greatsword",
@@ -269,6 +1513,113 @@
         "die": "d12"
       },
       "flags.fusion.sourceId": "UX71GkWBL9g41VwM"
+    }
+  },
+  {
+    "_id": "d4Tu1l0pPstYbBkp",
+    "uuid": "Compendium.pf2e.weapons-core.Item.d4Tu1l0pPstYbBkp",
+    "name": "Guisarme",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "reach",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "TT0pJz9odKApfq6D"
+    }
+  },
+  {
+    "_id": "Kis2HGqPcVkFP3XU",
+    "uuid": "Compendium.pf2e.weapons-core.Item.Kis2HGqPcVkFP3XU",
+    "name": "Halberd",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "reach",
+        "versatile-s"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "dgWxsYm0DWHb27h6"
+    }
+  },
+  {
+    "_id": "axamkQCBUrmxyTT1",
+    "uuid": "Compendium.pf2e.weapons-core.Item.axamkQCBUrmxyTT1",
+    "name": "Halfling Sling Staff",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "halfling",
+        "propulsive"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "DV4qelKHrviM0O5i"
+    }
+  },
+  {
+    "_id": "a3Bq09PWjagqluSl",
+    "uuid": "Compendium.pf2e.weapons-core.Item.a3Bq09PWjagqluSl",
+    "name": "Hand Adze",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "finesse",
+        "sweep",
+        "thrown-10",
+        "tripkee"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "MccX4AlmqYDjAN2J"
+    }
+  },
+  {
+    "_id": "MFuoIF0gLsUhujDb",
+    "uuid": "Compendium.pf2e.weapons-core.Item.MFuoIF0gLsUhujDb",
+    "name": "Hand Cannon",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "modular"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "4LJEpZ2HkCu9BvHI"
     }
   },
   {
@@ -312,6 +1663,47 @@
     }
   },
   {
+    "_id": "ajQjmqMyFyU1F2Xj",
+    "uuid": "Compendium.pf2e.weapons-core.Item.ajQjmqMyFyU1F2Xj",
+    "name": "Heavy Crossbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "giO4LwIKGzJZoaxa"
+    }
+  },
+  {
+    "_id": "IWyyZT7afwDG8aOC",
+    "uuid": "Compendium.pf2e.weapons-core.Item.IWyyZT7afwDG8aOC",
+    "name": "Horsechopper",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "goblin",
+        "reach",
+        "trip",
+        "versatile-p"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "YnwEttFE1bJacLDh"
+    }
+  },
+  {
     "_id": "KXkuKWffHk5b80Rs",
     "uuid": "Compendium.pf2e.weapons-core.Item.KXkuKWffHk5b80Rs",
     "name": "Javelin",
@@ -329,6 +1721,114 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "JNt7GmLCCVz5BiEI"
+    }
+  },
+  {
+    "_id": "3bg0fOkM8o4IWA5i",
+    "uuid": "Compendium.pf2e.weapons-core.Item.3bg0fOkM8o4IWA5i",
+    "name": "Kama",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "monk",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "zSAoyzcf3nSeZCiF"
+    }
+  },
+  {
+    "_id": "BLzx7eb1ZemTP9d8",
+    "uuid": "Compendium.pf2e.weapons-core.Item.BLzx7eb1ZemTP9d8",
+    "name": "Katana",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "deadly-d8",
+        "two-hand-d10",
+        "versatile-p"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "Y1dkRsRd1Z7Jf2y6"
+    }
+  },
+  {
+    "_id": "6lGzAsBhLLJFC2W7",
+    "uuid": "Compendium.pf2e.weapons-core.Item.6lGzAsBhLLJFC2W7",
+    "name": "Katar",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "deadly-d6",
+        "monk"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "Fg3GkCDkszj5WtgQ"
+    }
+  },
+  {
+    "_id": "GkgidCedE39e81NH",
+    "uuid": "Compendium.pf2e.weapons-core.Item.GkgidCedE39e81NH",
+    "name": "Khakkhara",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "shove",
+        "two-hand-d10",
+        "versatile-p"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "KgKSX95uVSg8iBBA"
+    }
+  },
+  {
+    "_id": "oHMH3lN7u4eZn85w",
+    "uuid": "Compendium.pf2e.weapons-core.Item.oHMH3lN7u4eZn85w",
+    "name": "Khopesh",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "YLb6XnT7OxAVGL5m"
     }
   },
   {
@@ -354,6 +1854,92 @@
     }
   },
   {
+    "_id": "SrNYSWboOSZNaLVx",
+    "uuid": "Compendium.pf2e.weapons-core.Item.SrNYSWboOSZNaLVx",
+    "name": "Lance",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "deadly-d8",
+        "jousting-d6",
+        "reach"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "OPMzQdM9rZznMGhW"
+    }
+  },
+  {
+    "_id": "Hi0YNVHlHUhXt2Iy",
+    "uuid": "Compendium.pf2e.weapons-core.Item.Hi0YNVHlHUhXt2Iy",
+    "name": "Light Hammer",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "thrown-20"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "FibwLZ12EIEwLGhw"
+    }
+  },
+  {
+    "_id": "7peIlFet6iMGwezA",
+    "uuid": "Compendium.pf2e.weapons-core.Item.7peIlFet6iMGwezA",
+    "name": "Light Mace",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "finesse",
+        "shove"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "x1TOpwH755Ami5bC"
+    }
+  },
+  {
+    "_id": "TNia8v9o3aCltHfB",
+    "uuid": "Compendium.pf2e.weapons-core.Item.TNia8v9o3aCltHfB",
+    "name": "Light Pick",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "RbM4HvPyrZ4YJxRc"
+    }
+  },
+  {
     "_id": "sRYCmq4N5vSkGU6K",
     "uuid": "Compendium.pf2e.weapons-core.Item.sRYCmq4N5vSkGU6K",
     "name": "Longbow",
@@ -375,6 +1961,26 @@
     }
   },
   {
+    "_id": "PaZHscVwHcbSYmMZ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.PaZHscVwHcbSYmMZ",
+    "name": "Longspear",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "reach"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "aXuJh4i8HqSu6NYV"
+    }
+  },
+  {
     "_id": "ZC0yCuIHZvc8ap7H",
     "uuid": "Compendium.pf2e.weapons-core.Item.ZC0yCuIHZvc8ap7H",
     "name": "Longsword",
@@ -392,6 +1998,72 @@
         "die": "d8"
       },
       "flags.fusion.sourceId": "LJdbVTOZog39EEbi"
+    }
+  },
+  {
+    "_id": "FgErK80k7iD7TTH3",
+    "uuid": "Compendium.pf2e.weapons-core.Item.FgErK80k7iD7TTH3",
+    "name": "Mace",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "shove"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "9iDqOLNFKxiTcFKE"
+    }
+  },
+  {
+    "_id": "UWDG1BW8VjtCwvNK",
+    "uuid": "Compendium.pf2e.weapons-core.Item.UWDG1BW8VjtCwvNK",
+    "name": "Main-Gauche",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "disarm",
+        "finesse",
+        "parry",
+        "versatile-s"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "iWcw1sFLAzByVLBP"
+    }
+  },
+  {
+    "_id": "7BGsQgqdmidNwMyI",
+    "uuid": "Compendium.pf2e.weapons-core.Item.7BGsQgqdmidNwMyI",
+    "name": "Mambele",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "deadly-d8",
+        "disarm",
+        "thrown-20"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "MeA0g9xvWCbGxf2g"
     }
   },
   {
@@ -435,6 +2107,136 @@
     }
   },
   {
+    "_id": "m28cAmIQ7ghL0v1t",
+    "uuid": "Compendium.pf2e.weapons-core.Item.m28cAmIQ7ghL0v1t",
+    "name": "Nunchaku",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "backswing",
+        "disarm",
+        "finesse",
+        "monk"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "LA8wwpQBi6tylE6z"
+    }
+  },
+  {
+    "_id": "CFbvb5BuqiSQ1jLR",
+    "uuid": "Compendium.pf2e.weapons-core.Item.CFbvb5BuqiSQ1jLR",
+    "name": "Orc Knuckle Dagger",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "disarm",
+        "orc"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "sAjzLXgA2LnIwpBM"
+    }
+  },
+  {
+    "_id": "R3EvPQTkFysirZ1k",
+    "uuid": "Compendium.pf2e.weapons-core.Item.R3EvPQTkFysirZ1k",
+    "name": "Orc Necksplitter",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "forceful",
+        "orc",
+        "sweep"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "J6H5UbLVsSXShoTs"
+    }
+  },
+  {
+    "_id": "WXcwO9CkNvFU3aXu",
+    "uuid": "Compendium.pf2e.weapons-core.Item.WXcwO9CkNvFU3aXu",
+    "name": "Pepperbox",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "capacity-3",
+        "concussive",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "tk4cfktEnMrp4K6m"
+    }
+  },
+  {
+    "_id": "sGZBfT6aQcvI4qDK",
+    "uuid": "Compendium.pf2e.weapons-core.Item.sGZBfT6aQcvI4qDK",
+    "name": "Pick",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "6I4YJAQUbTAqbpsI"
+    }
+  },
+  {
+    "_id": "TvkBeVODetPMDlPj",
+    "uuid": "Compendium.pf2e.weapons-core.Item.TvkBeVODetPMDlPj",
+    "name": "Ranseur",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "disarm",
+        "reach"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "UfurZQK6H6SgOjqe"
+    }
+  },
+  {
     "_id": "MkMFwelxRUIHXXWr",
     "uuid": "Compendium.pf2e.weapons-core.Item.MkMFwelxRUIHXXWr",
     "name": "Rapier",
@@ -454,6 +2256,155 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "tH5GirEy7YB3ZgCk"
+    }
+  },
+  {
+    "_id": "zqS3xEaX5RnBenLf",
+    "uuid": "Compendium.pf2e.weapons-core.Item.zqS3xEaX5RnBenLf",
+    "name": "Sai",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "disarm",
+        "finesse",
+        "monk",
+        "versatile-b"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "u2u6dkr01AB34tyA"
+    }
+  },
+  {
+    "_id": "lEzuZf1TMup3WM93",
+    "uuid": "Compendium.pf2e.weapons-core.Item.lEzuZf1TMup3WM93",
+    "name": "Sap",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "nonlethal"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "TLQErnOpM9Luy7rL"
+    }
+  },
+  {
+    "_id": "xrZCW2pgkZ8RDKJO",
+    "uuid": "Compendium.pf2e.weapons-core.Item.xrZCW2pgkZ8RDKJO",
+    "name": "Sawtooth Saber",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "agile",
+        "finesse",
+        "twin"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "wkzxLpSe7LN6c5Ld"
+    }
+  },
+  {
+    "_id": "w1qwvhxqYi4IID90",
+    "uuid": "Compendium.pf2e.weapons-core.Item.w1qwvhxqYi4IID90",
+    "name": "Scimitar",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "forceful",
+        "sweep"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "grmaV4GdoGD7sKbn"
+    }
+  },
+  {
+    "_id": "IDqyWdbdJI7JskO0",
+    "uuid": "Compendium.pf2e.weapons-core.Item.IDqyWdbdJI7JskO0",
+    "name": "Scythe",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "deadly-d10",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "H74vYwHJ8XT4qOPI"
+    }
+  },
+  {
+    "_id": "vanUYe3L56o2bcfE",
+    "uuid": "Compendium.pf2e.weapons-core.Item.vanUYe3L56o2bcfE",
+    "name": "Shield Boss",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "attached-to-shield"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "dfum7DpOEkwxwTsT"
+    }
+  },
+  {
+    "_id": "GBViqHOtzBhrXOWc",
+    "uuid": "Compendium.pf2e.weapons-core.Item.GBViqHOtzBhrXOWc",
+    "name": "Shield Spikes",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "attached-to-shield"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "nSO0Z662LkkLfa2u"
     }
   },
   {
@@ -499,6 +2450,72 @@
     }
   },
   {
+    "_id": "9rc8LUN8HT1Ziu9p",
+    "uuid": "Compendium.pf2e.weapons-core.Item.9rc8LUN8HT1Ziu9p",
+    "name": "Shuriken",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "monk",
+        "thrown"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "fjkwYZ0hRmBztwBG"
+    }
+  },
+  {
+    "_id": "vzKVu6J0CsBEkLM0",
+    "uuid": "Compendium.pf2e.weapons-core.Item.vzKVu6J0CsBEkLM0",
+    "name": "Sickle",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "finesse",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "ynnBwzkzsR6B73iO"
+    }
+  },
+  {
+    "_id": "e9lIuOi9OGJzVw3X",
+    "uuid": "Compendium.pf2e.weapons-core.Item.e9lIuOi9OGJzVw3X",
+    "name": "Slide Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "capacity-5",
+        "concussive",
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "gO5dOlPBk57bg2x5"
+    }
+  },
+  {
     "_id": "QqNXoDFpzt1XPFpj",
     "uuid": "Compendium.pf2e.weapons-core.Item.QqNXoDFpzt1XPFpj",
     "name": "Sling",
@@ -540,6 +2557,71 @@
     }
   },
   {
+    "_id": "tzqSVrP8gOIUFxH6",
+    "uuid": "Compendium.pf2e.weapons-core.Item.tzqSVrP8gOIUFxH6",
+    "name": "Spiked Chain",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "disarm",
+        "finesse",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "zi9ovfoRp2fMhfpO"
+    }
+  },
+  {
+    "_id": "y4i64c38bm3jkabu",
+    "uuid": "Compendium.pf2e.weapons-core.Item.y4i64c38bm3jkabu",
+    "name": "Spiked Gauntlet",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "free-hand"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "YFfG2fMyaIAXkmtr"
+    }
+  },
+  {
+    "_id": "hSeMSKrackfjsnKk",
+    "uuid": "Compendium.pf2e.weapons-core.Item.hSeMSKrackfjsnKk",
+    "name": "Spirit Thresher",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "kholo",
+        "sweep",
+        "versatile-s"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d12"
+      },
+      "flags.fusion.sourceId": "0z3x5UzMlZLcDOUv"
+    }
+  },
+  {
     "_id": "n6JFYoW2KALKOVq5",
     "uuid": "Compendium.pf2e.weapons-core.Item.n6JFYoW2KALKOVq5",
     "name": "Staff",
@@ -558,6 +2640,141 @@
         "die": "d4"
       },
       "flags.fusion.sourceId": "FVjTuBCIefAgloUU"
+    }
+  },
+  {
+    "_id": "kfEIrftqPd8Dv87m",
+    "uuid": "Compendium.pf2e.weapons-core.Item.kfEIrftqPd8Dv87m",
+    "name": "Starknife",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "deadly-d6",
+        "finesse",
+        "thrown-20",
+        "versatile-s"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "Mv2I6M70bagbaBPn"
+    }
+  },
+  {
+    "_id": "9frP3wFnijEWYU3f",
+    "uuid": "Compendium.pf2e.weapons-core.Item.9frP3wFnijEWYU3f",
+    "name": "Sword Cane",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "concealable",
+        "finesse"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "VitLIpdIAmKlGb7i"
+    }
+  },
+  {
+    "_id": "3oN8iPmZ4hxmbobI",
+    "uuid": "Compendium.pf2e.weapons-core.Item.3oN8iPmZ4hxmbobI",
+    "name": "Temple Sword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "monk",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "NIsxR5zXtVa3PuyU"
+    }
+  },
+  {
+    "_id": "eVVEa0ut1LKwDwSU",
+    "uuid": "Compendium.pf2e.weapons-core.Item.eVVEa0ut1LKwDwSU",
+    "name": "Tengu Gale Blade",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "disarm",
+        "finesse",
+        "tengu"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "6qJkA6fnHHiF4CEV"
+    }
+  },
+  {
+    "_id": "run4g2D6Eihk6Oji",
+    "uuid": "Compendium.pf2e.weapons-core.Item.run4g2D6Eihk6Oji",
+    "name": "Thunder Sling",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "propulsive",
+        "tengu"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "pnA6uENYDDduWmAn"
+    }
+  },
+  {
+    "_id": "nWcSkQV0P1kzUOOJ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.nWcSkQV0P1kzUOOJ",
+    "name": "Tricky Pick",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "backstabber",
+        "fatal-d10",
+        "kobold",
+        "modular"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "zO6Fvq7ghEXpJgJR"
     }
   },
   {
@@ -581,6 +2798,76 @@
     }
   },
   {
+    "_id": "3k6aFmjXChGfi6K5",
+    "uuid": "Compendium.pf2e.weapons-core.Item.3k6aFmjXChGfi6K5",
+    "name": "Versatile Vial",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "acid",
+        "alchemical",
+        "bomb",
+        "consumable",
+        "infused",
+        "splash"
+      ],
+      "system.damage": {
+        "damageType": "acid",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "ljT5pe8D7rudJqus"
+    }
+  },
+  {
+    "_id": "gNdAjbeQVwbH8WEn",
+    "uuid": "Compendium.pf2e.weapons-core.Item.gNdAjbeQVwbH8WEn",
+    "name": "Wakizashi",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "deadly-d8",
+        "finesse",
+        "versatile-p"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "YOpopjoWgU7bkmwh"
+    }
+  },
+  {
+    "_id": "BIT3QYIubtqH1MA3",
+    "uuid": "Compendium.pf2e.weapons-core.Item.BIT3QYIubtqH1MA3",
+    "name": "War Flail",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "disarm",
+        "sweep",
+        "trip"
+      ],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d10"
+      },
+      "flags.fusion.sourceId": "mVxA9E2ernBL6fM6"
+    }
+  },
+  {
     "_id": "5UtaQdctjvknsGNg",
     "uuid": "Compendium.pf2e.weapons-core.Item.5UtaQdctjvknsGNg",
     "name": "Warhammer",
@@ -598,6 +2885,29 @@
         "die": "d8"
       },
       "flags.fusion.sourceId": "rXt4629QSg7KDTgJ"
+    }
+  },
+  {
+    "_id": "xzjL2JhEKpwDGJQi",
+    "uuid": "Compendium.pf2e.weapons-core.Item.xzjL2JhEKpwDGJQi",
+    "name": "Whip Claw",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "catfolk",
+        "finesse",
+        "hampering",
+        "reach"
+      ],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "QAEVaSQ3SCT8AuBX"
     }
   },
   {

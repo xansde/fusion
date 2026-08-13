@@ -20,7 +20,7 @@
 
 import { describe, it, expect, afterEach } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -179,5 +179,66 @@ console.log(JSON.stringify({ okCorrect, okWrong }));
         { encoding: "utf8" },
       ),
     ).toThrow();
+  });
+});
+
+/**
+ * `--dir --exclude` — how the avatar acervo stays OUT of the SEA blob.
+ *
+ * The exclusion is a size decision with a hard consequence: the packaged
+ * executable sits at ~134 MB of a 150 MB budget (REQ-DST-046) and the acervo is
+ * 22 MB, so if this flag silently stopped working `pnpm build:release` would
+ * fail at phase 7 — after ~10 minutes of building. Cheap test, expensive bug.
+ */
+describe("pack-native.mjs --dir --exclude", () => {
+  /** The archive's index: an 8-byte LE length, then that many bytes of JSON. */
+  function lerIndice(arquivo: string): string[] {
+    const bytes = readFileSync(arquivo);
+    const tamanho = Number(bytes.readBigUInt64LE(0));
+    const json = bytes.subarray(8, 8 + tamanho).toString("utf8");
+    return (JSON.parse(json) as { entries: { path: string }[] }).entries.map((e) => e.path);
+  }
+
+  function montarArvore(): string {
+    const raiz = makeTempDir();
+    mkdirSync(join(raiz, "assets-client"), { recursive: true });
+    mkdirSync(join(raiz, "avatar", "atlas", "body"), { recursive: true });
+    writeFileSync(join(raiz, "index.html"), "<html></html>");
+    writeFileSync(join(raiz, "assets-client", "app.js"), "console.log(1)");
+    writeFileSync(join(raiz, "avatar", "catalogo.json"), "{}");
+    writeFileSync(join(raiz, "avatar", "atlas", "body", "male.png"), "png");
+    return raiz;
+  }
+
+  it("drops the excluded top-level directory and keeps everything else", () => {
+    const origem = montarArvore();
+    const saida = join(makeTempDir(), "client.bin");
+    execFileSync(process.execPath, [scriptPath, "--dir", origem, saida, "--exclude", "avatar"]);
+
+    const caminhos = lerIndice(saida);
+    expect(caminhos.sort()).toEqual(["assets-client/app.js", "index.html"]);
+    expect(caminhos.some((p) => p.includes("avatar"))).toBe(false);
+  });
+
+  it("packs the excluded directory when the flag is absent", () => {
+    const origem = montarArvore();
+    const saida = join(makeTempDir(), "client.bin");
+    execFileSync(process.execPath, [scriptPath, "--dir", origem, saida]);
+
+    const caminhos = lerIndice(saida);
+    expect(caminhos).toContain("avatar/catalogo.json");
+    expect(caminhos).toContain("avatar/atlas/body/male.png");
+  });
+
+  it("only excludes at the top level, never a nested directory of the same name", () => {
+    const origem = montarArvore();
+    mkdirSync(join(origem, "assets-client", "avatar"), { recursive: true });
+    writeFileSync(join(origem, "assets-client", "avatar", "icone.png"), "png");
+    const saida = join(makeTempDir(), "client.bin");
+    execFileSync(process.execPath, [scriptPath, "--dir", origem, saida, "--exclude", "avatar"]);
+
+    const caminhos = lerIndice(saida);
+    expect(caminhos).toContain("assets-client/avatar/icone.png");
+    expect(caminhos).not.toContain("avatar/catalogo.json");
   });
 });

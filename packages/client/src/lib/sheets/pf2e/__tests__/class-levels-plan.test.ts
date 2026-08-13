@@ -87,6 +87,29 @@ function magusClassDoc(): Record<string, unknown> {
   };
 }
 
+/**
+ * Magus WITH its level-1 "Conflux Spells" focus feature — `magusClassDoc()`
+ * above deliberately omits it (its own tests don't need focus). Additive
+ * fixture for issue #5's 3rd call site: multiclassing into a class whose
+ * OWN level-1 feature opens a focus pool (`hasFocusFeature`/
+ * `resolveClassFocusGrant`), same recognition `applyClass` already used —
+ * `chooseClassLevel` never called it before this fix.
+ */
+function magusClassDocWithFocus(): Record<string, unknown> {
+  const doc = magusClassDoc();
+  const system = doc["system"] as Record<string, unknown>;
+  return {
+    ...doc,
+    system: {
+      ...system,
+      featuresByLevel: [
+        ...(system["featuresByLevel"] as unknown[]),
+        { level: 1, uuid: "u-conflux", name: "Conflux Spells" },
+      ],
+    },
+  };
+}
+
 /** An actor with the given embedded class items and build block. */
 function actorDoc(
   level: number,
@@ -318,6 +341,79 @@ describe("chooseClassLevel", () => {
     // Without this the server refuses to guess which class the entry belongs
     // to once there are two casting classes — by design.
     expect(fusion["classKey"]).toBe(MAGUS_SRC);
+  });
+
+  it("issue #5 (multiclass): a second class with a level-1 focus feature also opens its own classKey-tagged focus pool", () => {
+    const doc = actorDoc(2, [fighterClassDoc()], {
+      variantRules: { classLevels: true },
+      choices: split({ 1: FIGHTER_SRC }),
+    });
+    const ops = chooseClassLevel(opCtx(doc), 2, magusClassDocWithFocus());
+
+    const focusEntry = ops.find(
+      (o) =>
+        o.type === "doc:create" &&
+        (o as { data: Record<string, unknown> }).data["name"] === "Focus Spells",
+    ) as { data: Record<string, unknown> } | undefined;
+    expect(focusEntry).toBeDefined();
+    const flags = focusEntry?.data["flags"] as Record<string, unknown>;
+    const fusion = flags["fusion"] as Record<string, unknown>;
+    // Same reasoning as the spellcasting entry above: without classKey the
+    // server can't attribute this focus entry to the SECOND class.
+    expect(fusion["classKey"]).toBe(MAGUS_SRC);
+    const sys = focusEntry?.data["system"] as Record<string, unknown>;
+    expect(sys["isFocusPool"]).toBe(true);
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("arcane");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("int");
+
+    const poolUpdate = ops.find(
+      (o) =>
+        o.type === "doc:update" &&
+        (o as { diff: Record<string, unknown> }).diff["system.resources.focusPoints.value"] !==
+          undefined,
+    );
+    expect(poolUpdate).toBeDefined();
+    expect((poolUpdate as { diff: Record<string, unknown> }).diff).toEqual({
+      "system.resources.focusPoints.value": 1,
+      "system.resources.focusPoints.max": 1,
+    });
+  });
+
+  it("issue #5 (multiclass): does NOT re-open the pool when the actor already has a focus entry", () => {
+    const doc = actorDoc(2, [fighterClassDoc()], {
+      variantRules: { classLevels: true },
+      choices: split({ 1: FIGHTER_SRC }),
+    });
+    // Simulates a focus entry already opened by some other source (e.g. the
+    // primary class) — its spent points must survive this pick untouched.
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "existing-focus",
+      name: "Focus Spells",
+      type: "spellcastingEntry",
+      system: { isFocusPool: true, tradition: { value: "divine" }, ability: { value: "cha" } },
+    });
+    const ops = chooseClassLevel(opCtx(doc), 2, magusClassDocWithFocus());
+    const poolUpdate = ops.find(
+      (o) =>
+        o.type === "doc:update" &&
+        (o as { diff: Record<string, unknown> }).diff["system.resources.focusPoints.value"] !==
+          undefined,
+    );
+    expect(poolUpdate).toBeUndefined();
+  });
+
+  it("issue #5 (multiclass): a second class with NO focus feature (Fighter) opens no focus pool", () => {
+    const doc = actorDoc(2, [magusClassDocWithFocus()], {
+      variantRules: { classLevels: true },
+      choices: split({ 1: MAGUS_SRC }),
+    });
+    const ops = chooseClassLevel(opCtx(doc), 2, fighterClassDoc());
+    const focusEntry = ops.find(
+      (o) =>
+        o.type === "doc:create" &&
+        (o as { data: Record<string, unknown> }).data["name"] === "Focus Spells",
+    );
+    expect(focusEntry).toBeUndefined();
   });
 
   it("REFUSES a new class on an odd level, even if the UI asks", () => {

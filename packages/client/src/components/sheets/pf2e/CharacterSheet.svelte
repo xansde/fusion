@@ -32,6 +32,8 @@
   import { getSocket, session } from "$lib/session.svelte.js";
   import { sendChatOpForId } from "$lib/docs/sendOp.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
+  import { subscribeEffectiveActorDoc } from "$lib/scenes/tokenActor.js";
+  import type { TokenActorBinding } from "$lib/scenes/tokenActor.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ActionsTab from "./ActionsTab.svelte";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
@@ -44,6 +46,7 @@
   import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
   import { getIsekaiVariant, getIsekaiArchetypes } from "$lib/sheets/pf2e/planVM.js";
   import { isPortraitPlaceholder } from "$lib/common/portrait.js";
+  import { readAvatarFlag } from "@fusion/shared";
   import { fusionApi } from "$lib/api.js";
   import { t, i18n } from "$lib/i18n/i18n.js";
 
@@ -59,6 +62,14 @@
     isGm: boolean;
     worldId?: string;
     sendOpFn?: (op: ChatRollPayload | DocOpPayload) => void;
+    /**
+     * Set when this sheet was opened FROM a token (REQ-DOC-033). A `character`
+     * is born linked (REQ-DOC-061), but the token config dialog lets a GM
+     * unlink ANY token (REQ-CNV-093) — and an unlinked one whose sheet reads
+     * the base Actor while its writes land on the delta shows numbers that are
+     * not the ones being edited.
+     */
+    tokenBinding?: TokenActorBinding | null;
   }
 
   let {
@@ -69,6 +80,7 @@
     isGm,
     worldId = "",
     sendOpFn = () => {},
+    tokenBinding = null,
   }: Props = $props();
 
   // ---------------------------------------------------------------------------
@@ -79,15 +91,18 @@
   // whenever an Actor document batch changes; vm is re-derived from liveDoc.
   // ---------------------------------------------------------------------------
 
+  // REQ-DOC-033: with a token bound, "the current document" is the
+  // reconstructed TokenActor, and it changes on SCENE ops as well as on Actor
+  // ops. `subscribeEffectiveActorDoc` owns both subscriptions and degrades to
+  // the plain Actor watch when nothing is bound — which is every sheet opened
+  // from the sidebar, i.e. the overwhelming majority.
   let liveDoc = $state(doc);
 
-  $effect(() => {
-    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
-      const fresh = docs.find((d) => (d as { _id?: unknown })._id === actorId);
-      if (fresh) liveDoc = fresh;
-    });
-    return unsub;
-  });
+  $effect(() =>
+    subscribeEffectiveActorDoc(worldMirror, actorId, tokenBinding, (fresh) => {
+      liveDoc = fresh;
+    }),
+  );
 
   // ---------------------------------------------------------------------------
   // View-model — recreated whenever the live document changes
@@ -351,6 +366,44 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Avatar — the paper-doll built from the waybuilder-avatar acervo, stored in
+  // `flags.fusion.avatar` and shown in the table's bottom-right corner.
+  //
+  // A window of its own rather than an in-sheet modal: the creator needs the
+  // room (627 pieces, and every grid cell composes the whole character), and a
+  // singleton key per actor means clicking twice focuses the one that is open.
+  //
+  // Both the component and the window manager are imported lazily so the sheet's
+  // chunk does not carry the acervo's renderer for players who never open it.
+  // The creator saves through its own pruned doc:update (lib/avatar/patch.ts) —
+  // this sheet is not in that path, so `scheduleUpdate` is deliberately unused.
+  // ---------------------------------------------------------------------------
+
+  async function openAvatarCreator(): Promise<void> {
+    const [{ windowManager }, { default: AvatarCreator }] = await Promise.all([
+      import("$lib/windows/window-manager.js"),
+      import("../../avatar/AvatarCreator.svelte"),
+    ]);
+    windowManager.open({
+      singletonKey: `avatar:Actor:${actorId}`,
+      title: t("FUSION.Avatar.Title", { name: vm.name }),
+      icon: "🧍",
+      resizable: true,
+      minimizable: true,
+      minWidth: 620,
+      minHeight: 460,
+      position: { width: 940, height: 640 },
+      component: AvatarCreator,
+      componentProps: {
+        actorId,
+        nome: vm.name,
+        avatarAtual: readAvatarFlag(liveDoc),
+        podeEditar: vm.editable,
+      },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Rest (header "Descansar" button — Pathbuilder "Rest" reference).
   // Recovers every expended spell slot, refills Focus Points, and heals HP
   // (CON mod × level, min 1 × level — r16). Emits a chat summary card.
@@ -539,6 +592,19 @@
         />
       {/if}
     </div>
+
+    <!-- Avatar (paper-doll) — a different thing from the portrait: the portrait
+         is an image file, the avatar is a figure built from the acervo that also
+         stands in the table's corner. Open to anyone who can see the sheet; the
+         creator itself is read-only without edit rights. -->
+    <button
+      type="button"
+      class="sheet-avatar-btn"
+      onclick={openAvatarCreator}
+      title={t("FUSION.Avatar.Open")}
+    >
+      <span aria-hidden="true">🧍</span>{t("FUSION.Avatar.Button")}
+    </button>
 
     <div class="sheet-header__info">
       <h2 class="sheet-header__name">{vm.name}</h2>
@@ -1300,6 +1366,27 @@
     flex-shrink: 0;
     width: 56px;
     height: 56px;
+  }
+
+  /* Avatar opener — sits next to the portrait, not inside its 56×56 box. */
+  .sheet-avatar-btn {
+    align-items: center;
+    align-self: center;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-pill);
+    color: var(--fusion-text);
+    cursor: pointer;
+    display: flex;
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .sheet-avatar-btn:hover,
+  .sheet-avatar-btn:focus-visible {
+    border-color: var(--fusion-accent);
   }
 
   .sheet-portrait-edit {

@@ -46,6 +46,17 @@ const ACCENT_FIXES = {
   aberration: "aberração",
   acid: "ácido",
   agile: "ágil",
+  // r25 — traços das armas de fogo (Guns & Gears) e do Psychic. O glossário os
+  // guarda sem acento, como todo o resto; estes cinco precisam do acerto aqui
+  // porque são rótulo de chip visível ao jogador. Hífen preservado, igual a
+  // "two-hand-d12" → "duas-mãos-d12". Os outros nove traços novos
+  // (concussivo, coice, modular, capacidade-N, cano-duplo, fatal-dN,
+  // dispersão-10 é o único hifenizado com acento) não têm acento a corrigir.
+  amp: "amplificação",
+  concealable: "ocultável",
+  mindshift: "mudança-mental",
+  repeating: "repetição",
+  "scatter-10": "dispersão-10",
   alchemist: "alquimista",
   arcane: "arcano",
   archetype: "arquétipo",
@@ -125,6 +136,14 @@ const ACCENT_FIXES = {
   "versatile-p": "versátil-p",
   "versatile-s": "versátil-c",
   water: "água",
+  // r28/A4 — 17 novos traços das ~79 armas mundanas acrescentadas a
+  // weapons-core (Player Core 1+2, categoria simples/marcial/avançada, sem
+  // magia/runas — ver isWeaponsCoreDoc em build-mvp-subset.mjs).
+  alchemical: "alquímico",
+  "free-hand": "mão-livre",
+  "two-hand-d10": "duas-mãos-d10",
+  twin: "gêmeo",
+  "versatile-b": "versátil-b",
   // damage types
   bludgeoning: "concussão",
   piercing: "perfuração",

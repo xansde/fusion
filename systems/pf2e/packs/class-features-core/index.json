@@ -16,6 +16,22 @@
     }
   },
   {
+    "_id": "hXkKmhJz32xzsPEG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.hXkKmhJz32xzsPEG",
+    "name": "Advanced Deed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Advanced Deed",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "3JLW5vPshsJf3nCY"
+    }
+  },
+  {
     "_id": "mRLd1vgm5NpYMpD7",
     "uuid": "Compendium.pf2e.class-features-core.Item.mRLd1vgm5NpYMpD7",
     "name": "Agile Mind",
@@ -67,6 +83,22 @@
     }
   },
   {
+    "_id": "dCH1B3UBF3fLEyMU",
+    "uuid": "Compendium.pf2e.class-features-core.Item.dCH1B3UBF3fLEyMU",
+    "name": "Anathema (Druid)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Anathema (Druid)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "nfBn8QB6HVdzpTFV"
+    }
+  },
+  {
     "_id": "oqbnOYq8BmDDXWid",
     "uuid": "Compendium.pf2e.class-features-core.Item.oqbnOYq8BmDDXWid",
     "name": "Animal Instinct",
@@ -83,6 +115,25 @@
         "barbarian-instinct"
       ],
       "flags.fusion.sourceId": "0FtzFbUrN56KA67z"
+    }
+  },
+  {
+    "_id": "5zCp9NdkHHjafwsN",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5zCp9NdkHHjafwsN",
+    "name": "Animal Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Animal Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "POBvoXifa9HaejAg"
     }
   },
   {
@@ -308,6 +359,22 @@
     }
   },
   {
+    "_id": "O0MKs0CCVgsNGFrX",
+    "uuid": "Compendium.pf2e.class-features-core.Item.O0MKs0CCVgsNGFrX",
+    "name": "Blast Dodger",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Blast Dodger",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Uz2Izzi5A8N6Dxjn"
+    }
+  },
+  {
     "_id": "IDQ2uKdJvhXxK0zv",
     "uuid": "Compendium.pf2e.class-features-core.Item.IDQ2uKdJvhXxK0zv",
     "name": "Blessed Armament",
@@ -315,7 +382,7 @@
     "type": "classFeature",
     "index": {
       "name": "Blessed Armament",
-      "system.level": 0,
+      "system.level": 3,
       "system.category": "blessingOfTheDevoted",
       "system.traits.value": [
         "champion"
@@ -334,7 +401,7 @@
     "type": "classFeature",
     "index": {
       "name": "Blessed Shield",
-      "system.level": 0,
+      "system.level": 3,
       "system.category": "blessingOfTheDevoted",
       "system.traits.value": [
         "champion"
@@ -887,6 +954,22 @@
     }
   },
   {
+    "_id": "bo2iG9dZJchxMlYz",
+    "uuid": "Compendium.pf2e.class-features-core.Item.bo2iG9dZJchxMlYz",
+    "name": "Clarity of Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Clarity of Focus",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "k9MeSdp2DbGd1hFz"
+    }
+  },
+  {
     "_id": "w5ZmsIyNU0f66q8E",
     "uuid": "Compendium.pf2e.class-features-core.Item.w5ZmsIyNU0f66q8E",
     "name": "Cleric Spellcasting",
@@ -967,6 +1050,41 @@
         "magus"
       ],
       "flags.fusion.sourceId": "FkbFgmoVz5lHhSMo"
+    }
+  },
+  {
+    "_id": "shczM0gg4u250Dzd",
+    "uuid": "Compendium.pf2e.class-features-core.Item.shczM0gg4u250Dzd",
+    "name": "Conscious Mind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Conscious Mind",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "0fv6NVMZZ0peGL9e"
+    }
+  },
+  {
+    "_id": "L86Ezh38tCiSKmFT",
+    "uuid": "Compendium.pf2e.class-features-core.Item.L86Ezh38tCiSKmFT",
+    "name": "Cultivation Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Cultivation Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "IiYUhFGqq2Nw0b5Y"
     }
   },
   {
@@ -1271,6 +1389,38 @@
     }
   },
   {
+    "_id": "k7CZ8dTLpyWNoX6r",
+    "uuid": "Compendium.pf2e.class-features-core.Item.k7CZ8dTLpyWNoX6r",
+    "name": "Druid Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Druid Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "b8pnRxGuNzG0buuh"
+    }
+  },
+  {
+    "_id": "gS7kLg7fRgMku6gd",
+    "uuid": "Compendium.pf2e.class-features-core.Item.gS7kLg7fRgMku6gd",
+    "name": "Druidic Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Druidic Order",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "8STJEFVJISujgpMR"
+    }
+  },
+  {
     "_id": "IWh85cirQmPjmrDr",
     "uuid": "Compendium.pf2e.class-features-core.Item.IWh85cirQmPjmrDr",
     "name": "Eldritch Trickster",
@@ -1306,6 +1456,25 @@
         "barbarian-instinct"
       ],
       "flags.fusion.sourceId": "0jSS6pgNXsC8k4o7"
+    }
+  },
+  {
+    "_id": "w7UgiP9ykOitwHuX",
+    "uuid": "Compendium.pf2e.class-features-core.Item.w7UgiP9ykOitwHuX",
+    "name": "Emotional Acceptance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Emotional Acceptance",
+      "system.level": 1,
+      "system.category": "subconsciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-subconscious-mind"
+      ],
+      "flags.fusion.sourceId": "PNihL10QAB1sYSRn"
     }
   },
   {
@@ -1433,6 +1602,22 @@
         "kineticist"
       ],
       "flags.fusion.sourceId": "jyCEC3eC4B6YaGoy"
+    }
+  },
+  {
+    "_id": "H7vwbzHShLOwfTsr",
+    "uuid": "Compendium.pf2e.class-features-core.Item.H7vwbzHShLOwfTsr",
+    "name": "Extrasensory Perception",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Extrasensory Perception",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "wOl7EeF7S6i753Ef"
     }
   },
   {
@@ -1628,6 +1813,25 @@
     }
   },
   {
+    "_id": "Nt0RtM2fMav4e60N",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Nt0RtM2fMav4e60N",
+    "name": "Flame Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Flame Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "NdeFvIXdHwKYLiUj"
+    }
+  },
+  {
     "_id": "WsjMAdbmegii8Kqf",
     "uuid": "Compendium.pf2e.class-features-core.Item.WsjMAdbmegii8Kqf",
     "name": "Flurry of Blows",
@@ -1683,6 +1887,22 @@
         "swashbuckler"
       ],
       "flags.fusion.sourceId": "F57Na5VxfBp56kke"
+    }
+  },
+  {
+    "_id": "UpAHeIEx0uW9tgH2",
+    "uuid": "Compendium.pf2e.class-features-core.Item.UpAHeIEx0uW9tgH2",
+    "name": "Fortress of Will",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fortress of Will",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "Hw6Ji7Fgx0XkVkac"
     }
   },
   {
@@ -1817,6 +2037,25 @@
     }
   },
   {
+    "_id": "n3Qgl8HeragRkvwF",
+    "uuid": "Compendium.pf2e.class-features-core.Item.n3Qgl8HeragRkvwF",
+    "name": "Gathered Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gathered Lore",
+      "system.level": 1,
+      "system.category": "subconsciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-subconscious-mind"
+      ],
+      "flags.fusion.sourceId": "0UKDEtZ7ffTEsqCK"
+    }
+  },
+  {
     "_id": "GjQbLNUBD82eOW61",
     "uuid": "Compendium.pf2e.class-features-core.Item.GjQbLNUBD82eOW61",
     "name": "Giant Instinct",
@@ -1885,6 +2124,22 @@
         "holy"
       ],
       "flags.fusion.sourceId": "h1NGH4TVeBljftni"
+    }
+  },
+  {
+    "_id": "HhbtGCmB4PMvg3bD",
+    "uuid": "Compendium.pf2e.class-features-core.Item.HhbtGCmB4PMvg3bD",
+    "name": "Greater Deed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Deed",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "yc9RuXXxmZ9YidH6"
     }
   },
   {
@@ -2008,6 +2263,70 @@
         "thaumaturge"
       ],
       "flags.fusion.sourceId": "Z7HX6TeFsaup7Dx9"
+    }
+  },
+  {
+    "_id": "of608qmggytB7Dr2",
+    "uuid": "Compendium.pf2e.class-features-core.Item.of608qmggytB7Dr2",
+    "name": "Gunslinger Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gunslinger Expertise",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "aKr6OE8vI2BsJzf1"
+    }
+  },
+  {
+    "_id": "TOdjbLf0G0CY4I1K",
+    "uuid": "Compendium.pf2e.class-features-core.Item.TOdjbLf0G0CY4I1K",
+    "name": "Gunslinger Weapon Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gunslinger Weapon Mastery",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "9nRT8aq05Fy2D3i3"
+    }
+  },
+  {
+    "_id": "3j2a5pR5k2pIIMfy",
+    "uuid": "Compendium.pf2e.class-features-core.Item.3j2a5pR5k2pIIMfy",
+    "name": "Gunslinger's Way",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gunslinger's Way",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "LDqVxLKrwEqSegiu"
+    }
+  },
+  {
+    "_id": "2byIZO1kHKW0IhyI",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2byIZO1kHKW0IhyI",
+    "name": "Gunslinging Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gunslinging Legend",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "ULOAZWZEokbJC6Rq"
     }
   },
   {
@@ -2174,6 +2493,22 @@
         "magus-hybrid-study"
       ],
       "flags.fusion.sourceId": "ZslXrvYRxHBXc1Ds"
+    }
+  },
+  {
+    "_id": "Iqw6GNz6IkBKr0zW",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Iqw6GNz6IkBKr0zW",
+    "name": "Infinite Mind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Infinite Mind",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "mZwD2brwXlyR9RAR"
     }
   },
   {
@@ -2377,6 +2712,41 @@
         "magus-hybrid-study"
       ],
       "flags.fusion.sourceId": "3gVDqDPSz4fB5T9G"
+    }
+  },
+  {
+    "_id": "s5fp5yO7PNlETtIP",
+    "uuid": "Compendium.pf2e.class-features-core.Item.s5fp5yO7PNlETtIP",
+    "name": "Lead Constitution",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Lead Constitution",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "i7NKYQNGu5AaR1qb"
+    }
+  },
+  {
+    "_id": "AIUxiE3NEsg4x06y",
+    "uuid": "Compendium.pf2e.class-features-core.Item.AIUxiE3NEsg4x06y",
+    "name": "Leaf Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Leaf Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "u4nlOzPj2WHkIj9l"
     }
   },
   {
@@ -3082,6 +3452,22 @@
     }
   },
   {
+    "_id": "mAJhIhHmleq7gDBy",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mAJhIhHmleq7gDBy",
+    "name": "Personal Barrier",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Personal Barrier",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "MtHLCQGD6OW98WC2"
+    }
+  },
+  {
     "_id": "OrPuwVgGwjCEz2nm",
     "uuid": "Compendium.pf2e.class-features-core.Item.OrPuwVgGwjCEz2nm",
     "name": "Polymath",
@@ -3117,6 +3503,25 @@
     }
   },
   {
+    "_id": "rnyzY3icR0G9b2Ul",
+    "uuid": "Compendium.pf2e.class-features-core.Item.rnyzY3icR0G9b2Ul",
+    "name": "Precise Discipline",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Precise Discipline",
+      "system.level": 1,
+      "system.category": "subconsciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-subconscious-mind"
+      ],
+      "flags.fusion.sourceId": "Qrhw4SILfT8YNQgB"
+    }
+  },
+  {
     "_id": "rkGtWFGsR3fOlHV6",
     "uuid": "Compendium.pf2e.class-features-core.Item.rkGtWFGsR3fOlHV6",
     "name": "Precision",
@@ -3136,6 +3541,38 @@
     }
   },
   {
+    "_id": "Nd4InkdNc7A45pz4",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Nd4InkdNc7A45pz4",
+    "name": "Precognitive Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Precognitive Reflexes",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "Ftz5jVa9X6aXybkC"
+    }
+  },
+  {
+    "_id": "QEbVB0nhQ7sTqvML",
+    "uuid": "Compendium.pf2e.class-features-core.Item.QEbVB0nhQ7sTqvML",
+    "name": "Primal Hierophant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Primal Hierophant",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "nzgb43mQmLgaqDoQ"
+    }
+  },
+  {
     "_id": "q5U9JtyjBIro75z5",
     "uuid": "Compendium.pf2e.class-features-core.Item.q5U9JtyjBIro75z5",
     "name": "Prodigious Will",
@@ -3149,6 +3586,54 @@
         "wizard"
       ],
       "flags.fusion.sourceId": "j5TZw3xoIo6Lz0Re"
+    }
+  },
+  {
+    "_id": "vEp8Z5fg4HU8tvpI",
+    "uuid": "Compendium.pf2e.class-features-core.Item.vEp8Z5fg4HU8tvpI",
+    "name": "Psi Cantrips and Amps",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Psi Cantrips and Amps",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "1tyNn9sduyexXLfL"
+    }
+  },
+  {
+    "_id": "Z6ISMiIDUVehPZmP",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Z6ISMiIDUVehPZmP",
+    "name": "Psychic Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Psychic Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "iXwqJyBsjJNrKJae"
+    }
+  },
+  {
+    "_id": "bHzVkUYr6HsYIzF9",
+    "uuid": "Compendium.pf2e.class-features-core.Item.bHzVkUYr6HsYIzF9",
+    "name": "Psychic Weapon Specialization",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Psychic Weapon Specialization",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "a58MGVX2L589sC9g"
     }
   },
   {
@@ -3880,6 +4365,22 @@
     }
   },
   {
+    "_id": "kOlD737Mp2ATW6fE",
+    "uuid": "Compendium.pf2e.class-features-core.Item.kOlD737Mp2ATW6fE",
+    "name": "Shootist's Edge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Shootist's Edge",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "RkofVX55ciXZyfAA"
+    }
+  },
+  {
     "_id": "QMx05Uer8dWp7K75",
     "uuid": "Compendium.pf2e.class-features-core.Item.QMx05Uer8dWp7K75",
     "name": "Signature Spells",
@@ -3896,6 +4397,22 @@
         "sorcerer"
       ],
       "flags.fusion.sourceId": "VKRjmXxBFLrJK01c"
+    }
+  },
+  {
+    "_id": "AsDFUiIfQm959vaG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.AsDFUiIfQm959vaG",
+    "name": "Slinger's Precision",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Slinger's Precision",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "vXbk7Nm1TOTTUNvF"
     }
   },
   {
@@ -4059,6 +4576,25 @@
     }
   },
   {
+    "_id": "aztwW7yAkCF3mRR1",
+    "uuid": "Compendium.pf2e.class-features-core.Item.aztwW7yAkCF3mRR1",
+    "name": "Spore Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spore Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "X0k3njLOLX0322Po"
+    }
+  },
+  {
     "_id": "fs8vce7CnfjA7OU4",
     "uuid": "Compendium.pf2e.class-features-core.Item.fs8vce7CnfjA7OU4",
     "name": "Staff Nexus",
@@ -4097,6 +4633,60 @@
     }
   },
   {
+    "_id": "ocwBXAQOBMFajygM",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ocwBXAQOBMFajygM",
+    "name": "Stone Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Stone Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "fKTewWlYgFuhl4KA"
+    }
+  },
+  {
+    "_id": "kITNUEVRGskHjuNW",
+    "uuid": "Compendium.pf2e.class-features-core.Item.kITNUEVRGskHjuNW",
+    "name": "Storm Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Storm Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "acqqlYmti8D9QJi0"
+    }
+  },
+  {
+    "_id": "yHxnWqMltRtmafQf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.yHxnWqMltRtmafQf",
+    "name": "Stubborn",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Stubborn",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Wpdeh6EkcAKA60oH"
+    }
+  },
+  {
     "_id": "RhQckzSWHQESDGTs",
     "uuid": "Compendium.pf2e.class-features-core.Item.RhQckzSWHQESDGTs",
     "name": "Studious Spells",
@@ -4110,6 +4700,22 @@
         "magus"
       ],
       "flags.fusion.sourceId": "6HCI2iHyBZAr7a4P"
+    }
+  },
+  {
+    "_id": "EfHqx2QeWQY4vTwc",
+    "uuid": "Compendium.pf2e.class-features-core.Item.EfHqx2QeWQY4vTwc",
+    "name": "Subconscious Mind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Subconscious Mind",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "79ZetrRF6S01P4Vf"
     }
   },
   {
@@ -4177,6 +4783,120 @@
         "fighter"
       ],
       "flags.fusion.sourceId": "2ImD2TB0RVic1VUc"
+    }
+  },
+  {
+    "_id": "4Fdd4Vd2SngeLZ9J",
+    "uuid": "Compendium.pf2e.class-features-core.Item.4Fdd4Vd2SngeLZ9J",
+    "name": "The Distant Grasp",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "The Distant Grasp",
+      "system.level": 1,
+      "system.category": "consciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-conscious-mind"
+      ],
+      "flags.fusion.sourceId": "1rlBo3LcwIuPDCvz"
+    }
+  },
+  {
+    "_id": "6o3p9l1fh0YxxZjd",
+    "uuid": "Compendium.pf2e.class-features-core.Item.6o3p9l1fh0YxxZjd",
+    "name": "The Infinite Eye",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "The Infinite Eye",
+      "system.level": 1,
+      "system.category": "consciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-conscious-mind"
+      ],
+      "flags.fusion.sourceId": "rvpTsj9epRuNH3uB"
+    }
+  },
+  {
+    "_id": "hCXIB0MEjOUdfCff",
+    "uuid": "Compendium.pf2e.class-features-core.Item.hCXIB0MEjOUdfCff",
+    "name": "The Oscillating Wave",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "The Oscillating Wave",
+      "system.level": 1,
+      "system.category": "consciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-conscious-mind"
+      ],
+      "flags.fusion.sourceId": "5tSR0WzMPFn5s3Xs"
+    }
+  },
+  {
+    "_id": "0dRFTgtKX0T6k4K3",
+    "uuid": "Compendium.pf2e.class-features-core.Item.0dRFTgtKX0T6k4K3",
+    "name": "The Silent Whisper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "The Silent Whisper",
+      "system.level": 1,
+      "system.category": "consciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-conscious-mind"
+      ],
+      "flags.fusion.sourceId": "rdWWlqvxXgfWDaSO"
+    }
+  },
+  {
+    "_id": "Jcl2CM4jJ1NUFNOg",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Jcl2CM4jJ1NUFNOg",
+    "name": "The Tangible Dream",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "The Tangible Dream",
+      "system.level": 1,
+      "system.category": "consciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-conscious-mind"
+      ],
+      "flags.fusion.sourceId": "8dAm3ULUqaK4N5a7"
+    }
+  },
+  {
+    "_id": "RTJhpUJ9Y3Sq89RU",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RTJhpUJ9Y3Sq89RU",
+    "name": "The Unbound Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "The Unbound Step",
+      "system.level": 1,
+      "system.category": "consciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-conscious-mind"
+      ],
+      "flags.fusion.sourceId": "FaSY47siV1x6CAQp"
     }
   },
   {
@@ -4349,6 +5069,41 @@
     }
   },
   {
+    "_id": "nQTpgcTB2J6xWpHc",
+    "uuid": "Compendium.pf2e.class-features-core.Item.nQTpgcTB2J6xWpHc",
+    "name": "Unleash Psyche",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Unleash Psyche",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "HwUps0waR29bwlTI"
+    }
+  },
+  {
+    "_id": "2IqeSNTsg56tqZXf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2IqeSNTsg56tqZXf",
+    "name": "Untamed Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Untamed Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "v0EjtiwdeMj8ykI0"
+    }
+  },
+  {
     "_id": "j2TPXfKvF7IhZYtc",
     "uuid": "Compendium.pf2e.class-features-core.Item.j2TPXfKvF7IhZYtc",
     "name": "Versatile Legend",
@@ -4382,6 +5137,57 @@
         "ranger-hunters-edge"
       ],
       "flags.fusion.sourceId": "QOOwC3S41CKGkxlN"
+    }
+  },
+  {
+    "_id": "y6y7uCuBpLav1NsV",
+    "uuid": "Compendium.pf2e.class-features-core.Item.y6y7uCuBpLav1NsV",
+    "name": "Voice of Nature",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Voice of Nature",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "d5BFFHXFJYKs5LXr"
+    }
+  },
+  {
+    "_id": "cPDTYe9ZkmFFMmIA",
+    "uuid": "Compendium.pf2e.class-features-core.Item.cPDTYe9ZkmFFMmIA",
+    "name": "Walls of Will",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Walls of Will",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "Kf9lSN6pVS2Hy4KI"
+    }
+  },
+  {
+    "_id": "aij78LtTKq4lhsUO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.aij78LtTKq4lhsUO",
+    "name": "Wandering Reverie",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wandering Reverie",
+      "system.level": 1,
+      "system.category": "subconsciousMind",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "system.traits.otherTags": [
+        "psychic-subconscious-mind"
+      ],
+      "flags.fusion.sourceId": "EMErBnhrgUHEKAsZ"
     }
   },
   {
@@ -4436,6 +5242,140 @@
         "bard-muse"
       ],
       "flags.fusion.sourceId": "N03BtRvjX9TeHRa4"
+    }
+  },
+  {
+    "_id": "7in2nuThLRPWqnzG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.7in2nuThLRPWqnzG",
+    "name": "Wave Order",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wave Order",
+      "system.level": 1,
+      "system.category": "order",
+      "system.traits.value": [
+        "druid"
+      ],
+      "system.traits.otherTags": [
+        "druid-order"
+      ],
+      "flags.fusion.sourceId": "FuUXyv2yBs7zRgqT"
+    }
+  },
+  {
+    "_id": "HRnA0xmrG30O4uF9",
+    "uuid": "Compendium.pf2e.class-features-core.Item.HRnA0xmrG30O4uF9",
+    "name": "Way of the Drifter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Way of the Drifter",
+      "system.level": 1,
+      "system.category": "way",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "system.traits.otherTags": [
+        "gunslinger-way"
+      ],
+      "flags.fusion.sourceId": "a3pSIKkDVTvvNSRO"
+    }
+  },
+  {
+    "_id": "yttg3GGW6XZO1bmW",
+    "uuid": "Compendium.pf2e.class-features-core.Item.yttg3GGW6XZO1bmW",
+    "name": "Way of the Pistolero",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Way of the Pistolero",
+      "system.level": 1,
+      "system.category": "way",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "system.traits.otherTags": [
+        "gunslinger-way"
+      ],
+      "flags.fusion.sourceId": "qRLRrHf0kzaJ7xt0"
+    }
+  },
+  {
+    "_id": "w1mnA1K7jZ82v9q8",
+    "uuid": "Compendium.pf2e.class-features-core.Item.w1mnA1K7jZ82v9q8",
+    "name": "Way of the Sniper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Way of the Sniper",
+      "system.level": 1,
+      "system.category": "way",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "system.traits.otherTags": [
+        "gunslinger-way"
+      ],
+      "flags.fusion.sourceId": "QWXvksGJhOjXbBqi"
+    }
+  },
+  {
+    "_id": "GqdbV12AHmWNUbq8",
+    "uuid": "Compendium.pf2e.class-features-core.Item.GqdbV12AHmWNUbq8",
+    "name": "Way of the Spellshot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Way of the Spellshot",
+      "system.level": 1,
+      "system.category": "way",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "system.traits.otherTags": [
+        "class-archetype",
+        "gunslinger-way"
+      ],
+      "flags.fusion.sourceId": "OmgtSDV1FubDUqWR"
+    }
+  },
+  {
+    "_id": "z2YUYClazMImsCge",
+    "uuid": "Compendium.pf2e.class-features-core.Item.z2YUYClazMImsCge",
+    "name": "Way of the Triggerbrand",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Way of the Triggerbrand",
+      "system.level": 1,
+      "system.category": "way",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "system.traits.otherTags": [
+        "gunslinger-way"
+      ],
+      "flags.fusion.sourceId": "YryaWAGcHeaRnXzS"
+    }
+  },
+  {
+    "_id": "FklpQlUIpbdT2zSC",
+    "uuid": "Compendium.pf2e.class-features-core.Item.FklpQlUIpbdT2zSC",
+    "name": "Way of the Vanguard",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Way of the Vanguard",
+      "system.level": 1,
+      "system.category": "way",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "system.traits.otherTags": [
+        "gunslinger-way"
+      ],
+      "flags.fusion.sourceId": "vB0yVFxJVZwalt2g"
     }
   },
   {
@@ -4551,6 +5491,38 @@
         "rogue"
       ],
       "flags.fusion.sourceId": "v8UNEJR5IDKi8yqa"
+    }
+  },
+  {
+    "_id": "1QwFMzHP0i86xktm",
+    "uuid": "Compendium.pf2e.class-features-core.Item.1QwFMzHP0i86xktm",
+    "name": "Wild Willpower",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wild Willpower",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "yqaRnXFjRnFWsWvY"
+    }
+  },
+  {
+    "_id": "rpBHCE3ES0jHb7jE",
+    "uuid": "Compendium.pf2e.class-features-core.Item.rpBHCE3ES0jHb7jE",
+    "name": "Wildsong",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wildsong",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "druid"
+      ],
+      "flags.fusion.sourceId": "RiAGlnnp4S21BAG3"
     }
   },
   {

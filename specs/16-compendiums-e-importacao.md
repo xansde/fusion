@@ -102,7 +102,7 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
   (`_id`, `name`, `img`, `type` + campos extras declarados) usada para listar/buscar
   sem carregar o documento completo.
 - **UUID de compendium**: identificador resolvível no formato
-  `Compendium.<packId>.<DocType>.<docId>` (`ver 02-modelo-de-dados.md`, D3).
+  `Compendium.<packId>.<DocType>.<docId>` (`ver 02-modelo-de-dados.md`, DEC-DOC-03).
 - **`packId`**: identificador estável de um pack, no formato `<systemId>.<packSlug>`
   (ex.: `pf2e.bestiary-1`, `etmos.particles`).
 - **Compendium browser**: aplicação de UI que lista e filtra o conteúdo dos packs e
@@ -132,7 +132,7 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Um `pack.db` SQLite por pack, com schema idêntico ao `world.db`
+### DEC-CMP-01 — Um `pack.db` SQLite por pack, com schema idêntico ao `world.db`
 
 Cada pack é um arquivo SQLite `compendiums/<packId>/pack.db` com o **mesmo schema**
 de tabelas e índices do `world.db` (`ver 03-persistencia-e-mundos.md`, REQ-PER-006/007).
@@ -153,7 +153,7 @@ Um pack contém só **um tipo** de Document primário (ex.: pack de Actors, pack
   cliente SQLite. Packs de mundo (criados pelo GM) ficam em
   `worlds/<slug>/compendiums/<packSlug>/` com o mesmo formato.
 
-### D2 — Índice leve materializado para _lazy browse_
+### DEC-CMP-02 — Índice leve materializado para _lazy browse_
 
 O browse e a busca operam sobre um **índice** projetado de cada documento
 (`_id`, `name`, `img`, `type` + campos declarados no `pack.json`), nunca carregando
@@ -172,7 +172,7 @@ uma tabela `pack_index` no `pack.db`).
   específicos do sistema (ex.: `system.level.value` no PF2e) são declarados em
   `pack.json.indexFields` para entrarem no índice.
 
-### D3 — Metadados de licença **por pack** (e por documento quando necessário)
+### DEC-CMP-03 — Metadados de licença **por pack** (e por documento quando necessário)
 
 Cada `pack.json` carrega um bloco `license` obrigatório (origem, licença, versão de
 origem, atribuição). Quando documentos de um mesmo pack têm licenças distintas (ex.:
@@ -189,7 +189,7 @@ default do pack.
 - **Racional:** granularidade adequada ao risco legal; o compendium browser exibe a
   licença e o importer propaga o notice para o mundo (`ver 26-licencas-e-legal.md`).
 
-### D4 — Importador é uma ferramenta **offline** (`tools/importer-pf2e`), não runtime
+### DEC-CMP-04 — Importador é uma ferramenta **offline** (`tools/importer-pf2e`), não runtime
 
 A conversão pf2e→Fusion roda **fora do servidor de jogo**, como CLI em
 `tools/importer-pf2e`, produzindo `pack.db` + `pack.json` versionados e
@@ -204,7 +204,7 @@ prontos.
 - **Racional:** separação limpa "build-time vs run-time"; a conversão é revisável
   via diff report antes de publicar; os packs gerados são determinísticos e auditáveis.
 
-### D5 — `foundryvtt-cli` para extração; sem reimplementar leitura de LevelDB
+### DEC-CMP-05 — `foundryvtt-cli` para extração; sem reimplementar leitura de LevelDB
 
 O importer usa o `foundryvtt-cli` (MIT, open-source) com o comando `unpack` para
 extrair os packs LevelDB do `foundryvtt/pf2e` em arquivos JSON por documento, com a
@@ -221,7 +221,7 @@ opção `omitVolatile` ligada.
 - **Racional:** menor superfície de código; a fonte primária são os JSON
   versionados no repo pf2e (sob Apache-2.0/ORC), legíveis e estáveis.
 
-### D6 — Mapeamento de Rule Elements com **tabela de cobertura** e fallback explícito
+### DEC-CMP-06 — Mapeamento de Rule Elements com **tabela de cobertura** e fallback explícito
 
 O importer traduz cada RE de `system.rules` para um **modifier descriptor** do
 Fusion segundo uma **tabela de cobertura** declarativa. REs sem conversor não são
@@ -246,7 +246,7 @@ marcado `flags.fusion.conversion = "partial"`. A spec define o **formato-alvo** 
   preservação total dos dados de origem; segurança para o GM saber o que está e o
   que não está automatizado.
 
-### D7 — `_id` de origem **preservado** nos packs do sistema (re-import idempotente)
+### DEC-CMP-07 — `_id` de origem **preservado** nos packs do sistema (re-import idempotente)
 
 Os `_id` de 16 chars dos documentos do pf2e (`docs/research/10-...md` §4.2) são
 **preservados** no pack Fusion (compatíveis com REQ-DOC-001 de `ver 02-`). O importer
@@ -261,7 +261,7 @@ independente).
   preservar `_id` no pack mantém links resilientes e diffs limpos; clonar com novo
   `_id` ao importar para o mundo evita colisão com o pack.
 
-### D8 — Política de assets: nunca importar arte da Paizo; placeholders livres
+### DEC-CMP-08 — Política de assets: nunca importar arte da Paizo; placeholders livres
 
 O importer **não copia** nenhum arquivo de imagem do repo pf2e (arte cedida só ao
 ecossistema Foundry — `docs/research/14-...md` §5.4). Para cada referência de arte
@@ -275,7 +275,7 @@ livres (Game-icons.net CC BY 3.0, Kenney CC0) e registra a substituição.
   do pf2e/Foundry = risco ALTO"); placeholders temáticos por tipo/trait dão UX
   aceitável; o GM pode trocar por arte própria depois.
 
-### D9 — Versionamento de pack atado à release de origem + `schemaVersion` do importer
+### DEC-CMP-09 — Versionamento de pack atado à release de origem + `schemaVersion` do importer
 
 Cada `pack.json` registra `source.version` (release do `foundryvtt/pf2e`, ex.:
 `v8.2.0`), `importer.version` (versão do `tools/importer-pf2e`) e
@@ -287,7 +287,7 @@ report acompanha o que mudou entre gerações.
 - **Racional:** rastreabilidade dupla (dado vs. conversor); permite re-rodar o
   importer só porque a tabela de cobertura cresceu, mesmo sem nova release do pf2e.
 
-### D10 — Etmos: packs editoriais à mão, mesmo formato, sem importador automático
+### DEC-CMP-10 — Etmos: packs editoriais à mão, mesmo formato, sem importador automático
 
 Os packs do Etmos (`docs/research/10-...md` §11; SRD da Editora Balde Galáctico) são
 criados **manualmente** a partir do material-fonte (ex.: 81 Partículas como Items),
@@ -348,7 +348,7 @@ de Foundry.
 - **REQ-CMP-011** [MVP] Links inline `@UUID[Compendium.<packId>.<Type>.<id>]{Label}`
   presentes em textos importados (`docs/research/10-...md` §9.3) DEVEM ser
   preservados e resolvíveis; quando o alvo não existir, a UI DEVE degradar para o
-  label textual (soft reference, `ver 02-`, D11).
+  label textual (soft reference, `ver 02-`, DEC-DOC-11).
 
 ### Compendium browser (UI)
 
@@ -409,7 +409,7 @@ de Foundry.
 - **REQ-CMP-026** [MVP] O importer DEVE consumir como fonte primária os JSON do
   diretório `packs/` do repositório `foundryvtt/pf2e` (quando presentes) e, como
   fallback, extrair de um build LevelDB via `foundryvtt-cli unpack` com
-  `omitVolatile` ligado (`docs/research/02-...md` §11.6, D5).
+  `omitVolatile` ligado (`docs/research/02-...md` §11.6, DEC-CMP-05).
 - **REQ-CMP-027** [MVP] Para cada documento de origem, o importer DEVE aplicar um
   **transformador por `(documentType, subtype)`** que mapeia campo a campo o schema
   pf2e para o schema `system` do Fusion (`ver 17-sistema-pf2e.md`), preservando
@@ -444,7 +444,7 @@ de Foundry.
 - **REQ-CMP-032** [MVP] O importer NÃO DEVE copiar nenhum arquivo binário de imagem
   do repositório `foundryvtt/pf2e`; apenas paths para placeholders livres (já
   presentes no bundle do Fusion) DEVEM aparecer nos campos de arte
-  (`docs/research/14-...md` §5.4, D8).
+  (`docs/research/14-...md` §5.4, DEC-CMP-08).
 - **REQ-CMP-033** [MVP] O importer DEVE emitir no relatório o **manifesto de
   placeholders**: a contagem de substituições de arte por tipo e a lista de
   traits/subtypes sem placeholder específico (caíram no genérico). Este manifesto é
@@ -468,9 +468,9 @@ de Foundry.
 - **REQ-CMP-036** [MVP] Para REs marcados `unsupported` (ou `partial` no que não
   cobrirem), o importer DEVE preservar o RE original em
   `flags.fusion.unconvertedRules` (array) e marcar
-  `flags.fusion.conversion = "partial"` no documento, **sem descartar** dados (D6).
+  `flags.fusion.conversion = "partial"` no documento, **sem descartar** dados (DEC-CMP-06).
   (Data-model real: o campo vive em `flags.fusion.conversion`, não em
-  `system.fusion.*` — ver nota de alinhamento em §D6.)
+  `system.fusion.*` — ver nota de alinhamento em §DEC-CMP-06.)
 - **REQ-CMP-037** [MVP] O importer DEVE suportar as **expressões de valor** dos REs
   (`@actor.level`, `floor(...)`, `ternary(...)`, `match/when(...)` —
   `docs/research/10-...md` §5.5), traduzindo-as para a sintaxe de roll data do Fusion
@@ -487,7 +487,7 @@ de Foundry.
 ### Pipeline — versionamento, idempotência e relatório
 
 - **REQ-CMP-040** [MVP] O importer DEVE registrar em `pack.json`: `source.repo`,
-  `source.version` (release do pf2e), `importer.version` e `generatedAt` (D9).
+  `source.version` (release do pf2e), `importer.version` e `generatedAt` (DEC-CMP-09).
 - **REQ-CMP-041** [MVP] O importer DEVE ser **idempotente**: dada a mesma
   `source.version` e a mesma `importer.version`, reexecutar produz packs com os
   mesmos `_id` e o mesmo conteúdo não-volátil (mesma ordenação determinística de
@@ -511,7 +511,7 @@ de Foundry.
 
 - **REQ-CMP-046** [MVP] O Fusion DEVE suportar **packs Etmos** construídos a partir
   de **arquivos-fonte** JSON/YAML versionados (não importados de Foundry),
-  empacotados pelo mesmo _packer_ que gera `pack.db` + `pack.json` + índice (D10).
+  empacotados pelo mesmo _packer_ que gera `pack.db` + `pack.json` + índice (DEC-CMP-10).
 - **REQ-CMP-047** [MVP] O pack `etmos.particles` DEVE conter as **81 Partículas**
   como Documents `Item` do subtype apropriado do sistema Etmos
   (`ver 19-sistema-etmos.md`), cada uma com sua mecânica e `pack.json.license`
@@ -611,7 +611,7 @@ export interface FusionConversionFlags {
   conversion: "full" | "partial"; // "partial" se houve RE não convertido
   importerVersion: string;
   sourceVersion: string;
-  unconvertedRules: Json[]; // REs originais preservados (D6)
+  unconvertedRules: Json[]; // REs originais preservados (DEC-CMP-06)
   assetSubstitutions: Array<{ field: string; original: string; placeholder: string }>;
 }
 ```
@@ -786,11 +786,11 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   importado permanece como UUID de compendium e ainda resolve (REQ-CMP-022, 011).
 - **CA-CMP-06** Nenhum arquivo de imagem do repo `foundryvtt/pf2e` é copiado pelo
   importer; todo campo de arte aponta para um placeholder livre presente no bundle, e
-  as substituições são listadas no relatório (REQ-CMP-031, 032, 033, D8).
+  as substituições são listadas no relatório (REQ-CMP-031, 032, 033, DEC-CMP-08).
 - **CA-CMP-07** Um feat com `system.rules` contendo um `FlatModifier` produz um
   `ModifierDescriptor` `flat-modifier` com `selector`/`value`/`predicate`; um RE de
   `key` `Aura` (unsupported no MVP) é preservado em `flags.fusion.unconvertedRules` e
-  o documento é marcado `conversion: "partial"` (REQ-CMP-034..036, D6).
+  o documento é marcado `conversion: "partial"` (REQ-CMP-034..036, DEC-CMP-06).
 - **CA-CMP-08** Uma expressão de valor `floor(@actor.level / 2)` é traduzida para a
   sintaxe de roll data do Fusion; uma expressão não parseável faz o RE cair em
   `partial` sem gerar valor incorreto (REQ-CMP-037).
@@ -808,7 +808,7 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
 - **CA-CMP-12** O pack `etmos.particles` é construído a partir de arquivos-fonte
   JSON/YAML (sem extração de Foundry), contém as 81 Partículas como Items válidos
   contra o schema Etmos, com `pack.json.license` referenciando o SRD da Editora Balde
-  Galáctico (REQ-CMP-046, 047, 048, D10).
+  Galáctico (REQ-CMP-046, 047, 048, DEC-CMP-10).
 - **CA-CMP-13** Cada `pack.json` carrega o bloco `license` por pack e
   `source.version`/`importer.version`; um documento com `system.publication` OGL num
   pack ORC tem sua licença individual exibida no browser (REQ-CMP-003, 004, 005, 040).
