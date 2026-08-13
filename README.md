@@ -137,6 +137,39 @@ pnpm test             # vitest (~3.7k testes)
 
 `pnpm format` e `pnpm lint --fix` corrigem a maior parte do que os dois primeiros apontam.
 
+### Um passo a mais antes do `pnpm test`
+
+Num clone recém-feito, `pnpm test` termina com **uma** falha esperada:
+
+```
+FAIL client src/lib/sheets/pf2e/__tests__/pregen-parity.test.ts
+Error: ENOENT: no such file or directory, scandir '…/tools/importer-pf2e/vendor/pf2e/packs/pf2e/iconics'
+```
+
+Esse teste (o gate da issue #48) confere nossa derivação de personagem contra as **fichas pregeradas oficiais da Paizo** — dado que não produzimos e que **não pode ser commitado**. Ele vive num clone esparso e gitignorado do repositório `foundryvtt/pf2e`. O CI faz esse passo sozinho; na sua máquina, uma vez:
+
+```bash
+git clone --depth 1 --filter=blob:none --sparse \
+  https://github.com/foundryvtt/pf2e tools/importer-pf2e/vendor/pf2e
+git -C tools/importer-pf2e/vendor/pf2e sparse-checkout set packs/pf2e/iconics
+```
+
+São ~12 MB (o sparse checkout evita clonar o sistema inteiro). Todo o resto da suíte — 322 dos 324 arquivos — passa sem nenhum passo extra.
+
+## O que o repositório contém, e o que fica de fora
+
+Tudo que o Fusion precisa **para rodar e para jogar** está versionado: os 26 compêndios (`systems/*/packs/`, ~5.900 documentos entre PF2e, SF2e e Etmos), os overlays de tradução pt-BR, os assets do dado 3D e o catálogo de avatares (via dependência npm pinada). Depois do `pnpm build` não há nenhum passo de geração de conteúdo.
+
+Fica **fora** do repositório, de propósito:
+
+| O quê                                                    | Por quê                                           | Precisa dele quando                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `tools/importer-pf2e/vendor/`                            | conteúdo da Paizo, não redistribuível             | rodar `pregen-parity.test.ts`, ou reimportar os packs do zero                                     |
+| `tools/importer-pf2e/out/`, `tools/translate-packs/out/` | intermediários do pipeline, regeneráveis          | regenerar packs — e nesse caso precisam ser **frescos**: um `out/` velho reverte o enriquecimento |
+| `docs/etmos-fontes/`                                     | material com copyright da Editora Balde Galáctico | trabalhar no sistema Etmos (uso privado do grupo)                                                 |
+
+Nada disso é necessário para instalar, buildar e jogar.
+
 ## Estrutura
 
 ```
