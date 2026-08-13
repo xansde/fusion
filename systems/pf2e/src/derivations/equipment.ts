@@ -174,10 +174,18 @@ export const stepCharCollectEquipment: DeriveStep = {
     // Attacks": your fists always count as weapons) — this is NOT sourced
     // from any pack; it's a CRB rule the engine must guarantee even when
     // `doc.items` has no explicit Fist item. Synthesize one only when the
-    // scan above found no unarmed-category weapon, so a Fist granted by an
-    // item/feature (or any other unarmed strike already present) is never
-    // duplicated.
-    if (!weapons.some((w) => w.category === "unarmed")) {
+    // scan above found no weapon that IS a Fist already — checked by name,
+    // not by `category === "unarmed"` alone. Ancestry/heritage features that
+    // grant a differently-named unarmed attack (Claw, Jaws, Talon, ...) do
+    // NOT replace your fists per that same CRB rule — having claws doesn't
+    // remove the ability to punch — so a character with a granted Claw must
+    // end up with BOTH Claw and Fist. Only an item literally named "Fist"
+    // (e.g. one already synthesized, or a feature that specifically upgrades
+    // your fists) should suppress the synthetic one below (BUG FIX, found in
+    // review — the old `category === "unarmed"` check ate the Fist for ANY
+    // granted unarmed weapon, `derivations-equipment.test.ts`'s Claw case
+    // included).
+    if (!weapons.some((w) => w.category === "unarmed" && w.name === "Fist")) {
       weapons.push({
         name: "Fist",
         id: "pf2e.synthetic.fist",
