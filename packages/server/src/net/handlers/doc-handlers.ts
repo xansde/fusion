@@ -68,6 +68,7 @@ import {
   DocDeletePayloadSchema,
   TokenDocumentSchema,
   TileDocumentSchema,
+  WallDocumentSchema,
   TokenUpdateActorPayloadSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
@@ -171,6 +172,13 @@ const GM_ONLY_CREATE_DELETE = new Set([
  * feats, etc. are Items living in the Actor's `items[]` collection. Unlike
  * Token (embedded.id = the parent Scene's id) and Combatant (embedded.id =
  * the parent Combat's id), Item's embedded.id is the parent Actor's id.
+ *
+ * Wall is embedded in Scene (issue #83): geometry that lives in
+ * `Scene.walls[]`, exactly like Token lives in `Scene.tokens[]`. Without this
+ * entry, doc:update's embedded path (handleEmbeddedUpdate) cannot resolve
+ * "Wall" to a parent table and rejects with "Unknown parent type: Wall" —
+ * doc:create/doc:delete are unaffected because they take `parent.type`
+ * straight from the client-supplied payload.
  */
 const EMBEDDED_PARENT_MAP: Record<string, string> = {
   Token: "Scene",
@@ -178,6 +186,7 @@ const EMBEDDED_PARENT_MAP: Record<string, string> = {
   Item: "Actor",
   Tile: "Scene",
   Note: "Scene",
+  Wall: "Scene",
 };
 
 /**
@@ -191,8 +200,15 @@ const EMBEDDED_PARENT_MAP: Record<string, string> = {
  * Notes are here for the same reason, one step further: a pin's `ownership`
  * IS the reveal (REQ-DOC-056), so a player who could write one could hand
  * themselves the map. Placing and revealing pins is the GM's act.
+ *
+ * Walls are here too (issue #83): a wall is level geometry exactly like a
+ * tile — move/sight/light/sound restrictions and door state are the GM's
+ * scene design, not a player prop. This mirrors the design already shipped
+ * for the dedicated `wall:create`/`wall:update`/`wall:delete` handlers
+ * (vision-handlers.ts) — the generic doc:* path must enforce the same rule,
+ * not a looser one.
  */
-const GM_ONLY_EMBEDDED = new Set(["Tile", "Note"]);
+const GM_ONLY_EMBEDDED = new Set(["Tile", "Note", "Wall"]);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1369,6 +1385,17 @@ function handleEmbeddedCreate(
         return ackError("VALIDATION_FAILED", tileResult.error.message);
       }
       created.push(tileResult.data);
+    } else if (embeddedType === "Wall") {
+      // Same reasoning as Tile above (issue #83): validate here so a bad wall
+      // reports what is wrong with the wall, not an opaque Scene rejection.
+      // This is the SAME WallDocumentSchema Scene.walls is typed with
+      // (documents/types.ts) — imported from @fusion/shared, never a second
+      // copy of the schema.
+      const wallResult = WallDocumentSchema.safeParse(raw);
+      if (!wallResult.success) {
+        return ackError("VALIDATION_FAILED", wallResult.error.message);
+      }
+      created.push(wallResult.data);
     } else {
       // SF2e augmentation slot-limit validation (REQ-SF2-024, CA-SF2-05).
       //

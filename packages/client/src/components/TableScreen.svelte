@@ -22,7 +22,7 @@
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
-  import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
+  import { canLoadScene, isCurrentGeneration } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { sceneReloadKey } from "../lib/canvas/sceneReloadKey.js";
   import {
@@ -57,6 +57,8 @@
   import SceneImagesPanel from "./scenes/SceneImagesPanel.svelte";
   import { TileLayer } from "../lib/canvas/TileLayer.js";
   import { NoteLayer } from "../lib/canvas/NoteLayer.js";
+  import { WallsLayer } from "../lib/canvas/walls/WallsLayer.js";
+  import TokenAddDialog from "./scenes/TokenAddDialog.svelte";
   import { resolveAssetUrl } from "../lib/assets/assetApi.js";
   import { fusionApi } from "../lib/api.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
@@ -83,6 +85,14 @@
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
+  // BUG FIX (race, issue #81): stamps every scene load (dev-scene fallback in
+  // onMount, or a real load in the $effect below) with a monotonically
+  // increasing generation. A load whose generation was superseded by a newer
+  // one (checked via isCurrentGeneration after each of its awaits) undoes
+  // only what IT produced and never publishes into cleanupScene/
+  // sceneOrchestrator — see isCurrentGeneration's doc comment in
+  // canvasReadyGate.ts for the full root-cause writeup.
+  let sceneLoadGeneration = 0;
   let cleanupCombatSync: (() => void) | null = null;
   let cleanupChatSync: (() => void) | null = null;
   let cleanupChatMessageSync: (() => void) | null = null;
@@ -117,6 +127,30 @@
   // the chain of code existed, the user's gesture did not.
   let tokenInteraction: TokenInteractionManager | null = null;
 
+  // Walls (GM draws/deletes; door icons interactive for everyone). One per
+  // active scene, same lifecycle as tokenInteraction above — issue #83:
+  // WallsLayer existed with full tests since M1-C but was never CONSTRUCTED
+  // in production, so wall drawing had no gesture to reach it.
+  let wallsLayer: WallsLayer | null = null;
+
+  // WallsLayer is NOT driven by SceneOrchestrator (unlike tileLayer/noteLayer
+  // below): walls are deliberately excluded from `reloadKey` (see its comment)
+  // so a wall edit does not tear down and rebuild the whole scene. This
+  // subscription is WallsLayer's own live feed from the mirror, disposed in
+  // _teardownOrchestrator alongside the rest of the per-scene wiring.
+  let disposeWallsSync: (() => void) | null = null;
+
+  // Whether the GM currently has wall-drawing mode on — drives the toolbar
+  // toggle button's label/aria-pressed. Not perfectly synced with
+  // WallsLayer.isDrawing: pressing Escape stops drawing INSIDE the layer
+  // without notifying Svelte, so the button can show "on" for one extra
+  // click after Escape. That click still resolves correctly (stopDrawing()
+  // on an already-stopped layer is a harmless no-op) and re-syncs the label.
+  let wallsDrawingActive = $state(false);
+
+  // Add-token dialog (GM). Mirrors showingSceneImages/calibrationCanvas below.
+  let showingTokenAddDialog = $state(false);
+
   // Ruler (hold R, Ctrl+click adds a waypoint). Same wiring gap as the tokens:
   // RulerStateMachine had tests and no gesture, so nobody could ever start one
   // — and since nobody started one, the remote-ruler receive path never ran
@@ -150,6 +184,18 @@
 
   function closeGridCalibration(): void {
     calibrationCanvas = null;
+  }
+
+  /** Toggle wall-drawing mode on the active WallsLayer (GM only). */
+  function toggleWallDrawing(): void {
+    if (!wallsLayer) return;
+    if (wallsDrawingActive) {
+      wallsLayer.stopDrawing();
+      wallsDrawingActive = false;
+    } else {
+      wallsLayer.startDrawing("normal");
+      wallsDrawingActive = true;
+    }
   }
 
   // Scene images panel (GM): which images the scene is composed of and when
@@ -270,7 +316,18 @@
       // A real scene is loaded by the $effect below (gated on canvasReady) once
       // activeSceneState.scene is set — never here, to avoid a double-load race.
       if (!activeSceneState.scene) {
-        cleanupScene = await loadDevScene(canvas);
+        // Stamped with the same generation counter the scene-reload $effect
+        // uses (issue #81): if the component unmounts (or, defensively, a
+        // real scene load somehow starts) while this await is in flight, the
+        // generation moves on and this dev-scene load must not publish over
+        // whatever the newer generation already owns.
+        const myGeneration = ++sceneLoadGeneration;
+        const devCleanupScene = await loadDevScene(canvas);
+        if (isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
+          cleanupScene = devCleanupScene;
+        } else {
+          devCleanupScene?.();
+        }
       }
       // Flip the gate LAST: this gets read by the reactive $effect, which will
       // (re-)run now that the PIXI layer hierarchy is guaranteed to exist.
@@ -309,6 +366,11 @@
   });
 
   onDestroy(() => {
+    // Bump the generation so any load still in flight (dev-scene in onMount,
+    // or a real scene in the $effect below) finds itself superseded when its
+    // await resolves and undoes its own work instead of publishing into
+    // cleanupScene/sceneOrchestrator after this teardown already ran.
+    sceneLoadGeneration++;
     _teardownOrchestrator();
     cleanupScene?.();
     cleanupCombatSync?.();
@@ -461,6 +523,28 @@
    * init()), which re-triggers this effect and performs the (now safe) load —
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
+   *
+   * BUG FIX (teardown race, issue #81): the load below is async
+   * (loadSceneDocument + orchestrator.setup() both await), but a scene
+   * switch is a SYNCHRONOUS re-run of this effect. Two things used to be
+   * wrong about how those combined:
+   *
+   *   1. The previous scene's teardown ran at the TOP of the NEXT run's
+   *      body, not at the END of the PREVIOUS run — so if a fast switch
+   *      B started while switch A's load was still in flight, A's own
+   *      `void (async () => {...})()` could resolve AFTER B's teardown ran
+   *      and publish A's (stale) content into cleanupScene/sceneOrchestrator,
+   *      silently overwriting what B just built.
+   *   2. Nothing stopped a superseded load from publishing at all — there
+   *      was no way to tell "is this still the load anyone wants?" from
+   *      inside the detached async closure.
+   *
+   * Fixed by: (a) returning the teardown as the effect's cleanup function,
+   * which Svelte 5 guarantees to run before the NEXT execution and on
+   * unmount — pairing load N with teardown-of-N at the right end of its
+   * lifetime; and (b) stamping each load with a generation counter
+   * (sceneLoadGeneration) checked via isCurrentGeneration after every await
+   * — a superseded load undoes only what IT produced and never publishes.
    */
   // Only the fields loadSceneDocument() actually reads. Tokens, walls and
   // lights are EMBEDDED in the Scene document, so the mirror hands out a new
@@ -482,20 +566,72 @@
     // Read untracked: we want the current document, not a dependency on it.
     const scene = untrack(() => activeSceneState.scene);
 
-    // Tear down previous orchestrator before changing scene
-    _teardownOrchestrator();
-
-    // Cleanup previous scene content
-    cleanupScene?.();
-    cleanupScene = null;
+    // Every run of this effect — whether or not it ends up loading a scene —
+    // gets its own generation. A load's post-await continuation only
+    // publishes if its generation is still current (see isCurrentGeneration).
+    const myGeneration = ++sceneLoadGeneration;
 
     void (async () => {
       try {
         if (scene) {
-          cleanupScene = await loadSceneDocument(canvas, scene);
+          const nextCleanupScene = await loadSceneDocument(canvas, scene);
+          if (!isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
+            // A newer scene switch already started while this load was in
+            // flight — ITS effect-cleanup (below) already tore down whatever
+            // was live before this load, so there is nothing of ours live to
+            // touch. Undo only what THIS load produced and never publish
+            // into cleanupScene/sceneOrchestrator: the newer generation may
+            // already own them.
+            nextCleanupScene?.();
+            return;
+          }
+          cleanupScene = nextCleanupScene;
+
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
+          // _createOrchestrator is synchronous and, as a side effect, publishes
+          // THIS generation's wallsLayer/tokenInteraction/ticker/etc into the
+          // same shared fields _teardownOrchestrator reads. Snapshot them into
+          // locals right here — nothing else can run between this line and the
+          // snapshot, so these are guaranteed to be exactly what THIS
+          // generation created, never a later one's. The stale branch below
+          // tears down from these locals instead of re-reading the shared
+          // fields, which a newer generation may have already overwritten by
+          // the time this continuation resumes (bug found in review: a second
+          // await gives the exact same stale-teardown race issue #81 fixed at
+          // the effect-cleanup level, one layer deeper).
+          const thisGenOrchestrator = sceneOrchestrator;
+          const thisGenWallsLayer = wallsLayer;
+          const thisGenTokenInteraction = tokenInteraction;
+          const thisGenTickerDisposer = _tickerDisposer;
+          const thisGenDisposeWallsSync = disposeWallsSync;
+          const thisGenDisposeRuler = disposeRuler;
+          const thisGenDisposePing = disposePing;
+          const thisGenDisposePresence = disposePresence;
+
           await sceneOrchestrator.setup();
+          if (!isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
+            // Same race, one await later — but this time a NEWER generation
+            // may already have run its own checkpoint above and published its
+            // own instances into sceneOrchestrator/wallsLayer/tokenInteraction/
+            // etc. Calling the shared teardown helper here would read the
+            // CURRENT (possibly newer) values and destroy someone else's live
+            // scene — exactly the #81 symptom (canvas goes blank on scene
+            // switch), just one await later than the bug that was fixed
+            // there. Dispose only the local snapshot THIS generation
+            // created; never touch the shared fields, which may or may not
+            // still be ours.
+            thisGenTickerDisposer?.();
+            thisGenTokenInteraction?.destroy();
+            thisGenDisposeWallsSync?.();
+            thisGenWallsLayer?.destroy();
+            thisGenDisposeRuler?.();
+            thisGenDisposePing?.();
+            thisGenDisposePresence?.();
+            thisGenOrchestrator.teardown();
+            nextCleanupScene?.();
+            return;
+          }
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
         // by the Svelte template. Dev-scene is only used in the initial mount
@@ -504,6 +640,17 @@
         console.error("[TableScreen] Scene load failed:", err);
       }
     })();
+
+    // Runs before the NEXT execution of this effect, and on unmount (Svelte 5
+    // guarantee) — this is the teardown for the load THIS run just started
+    // (or for whatever was already live, if this run had no scene to load),
+    // now correctly paired to the END of this run's lifetime instead of the
+    // START of the next one (issue #81).
+    return () => {
+      _teardownOrchestrator();
+      cleanupScene?.();
+      cleanupScene = null;
+    };
   });
 
   // ---- SceneOrchestrator helpers ----
@@ -546,6 +693,11 @@
     // remove the callback and prevent accumulation across scene switches (bug fix #2).
     const tickerCb = (ticker: { deltaMS: number }) => {
       sceneOrchestrator?.tick(ticker.deltaMS, canvas.camera.scale);
+      // WallsLayer needs a fresh camera every frame to convert pointer events
+      // to world space while drawing (see `wallsLayer` below) — `canvas.camera`
+      // is reassigned wholesale on every pan/zoom, so a snapshot taken once at
+      // construction time goes stale the moment the GM moves the view.
+      wallsLayer?.setCamera(canvas.camera);
     };
     _tickerDisposer = canvas.addTicker(tickerCb);
 
@@ -729,6 +881,39 @@
       role: session.user?.role ?? 0,
     });
 
+    // --- Walls (GM draws/deletes; door icons interactive for everyone) ---
+    // Same `controls` layer as the ruler/ping/NoteLayer above (interactive
+    // overlay, not scenery). Wall a/b coordinates already live in the same
+    // padded scene-pixel space tokens do (sceneLoader.ts draws the background
+    // at padX/padY too) — only the grid's origin needs the padding offset,
+    // for the snap-to-grid math in WallsLayer's drawing tool.
+    const newWallsLayer = new WallsLayer(
+      canvas.getLayer("controls"),
+      scene._id,
+      sock,
+      currentIsGm,
+    );
+    newWallsLayer.setGrid(
+      gridSize,
+      Math.round(scene.width * scene.padding),
+      Math.round(scene.height * scene.padding),
+    );
+    newWallsLayer.setWalls(scene.walls);
+    if (canvasContainer) newWallsLayer.attachToElement(canvasContainer);
+    wallsLayer = newWallsLayer;
+    wallsDrawingActive = false;
+
+    // WallsLayer is NOT driven by SceneOrchestrator's own mirror subscription
+    // the way tileLayer/noteLayer are (via its private _onSceneChange) —
+    // walls are deliberately excluded from `reloadKey` (see that comment)
+    // so a wall edit never tears down and rebuilds the whole scene. This
+    // subscription is WallsLayer's own live feed, disposed alongside the
+    // rest of the per-scene wiring in _teardownOrchestrator.
+    disposeWallsSync = worldMirror.subscribe<SceneDocument>("Scene", (scenes) => {
+      const updated = scenes.find((s) => s._id === scene._id);
+      if (updated) newWallsLayer.setWalls(updated.walls);
+    });
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -761,6 +946,17 @@
     // scene and points them at destroyed sprites.
     tokenInteraction?.destroy();
     tokenInteraction = null;
+
+    // Same reasoning as tokenInteraction above: WallsLayer holds a window
+    // keydown listener while drawing, plus PIXI pointer handlers on wall/door
+    // graphics the scene teardown is about to destroy. The mirror
+    // subscription is unrelated to PIXI but must go too, or it keeps calling
+    // setWalls() on a layer whose containers no longer exist.
+    disposeWallsSync?.();
+    disposeWallsSync = null;
+    wallsLayer?.destroy();
+    wallsLayer = null;
+    wallsDrawingActive = false;
 
     disposeRuler?.();
     disposeRuler = null;
@@ -913,6 +1109,20 @@
     />
   {/if}
 
+  <!-- Add token dialog (GM, issue #83): the "+ Token" header button below -->
+  {#if showingTokenAddDialog && activeSceneState.scene && getSocket()}
+    <TokenAddDialog
+      sceneId={activeSceneState.scene._id}
+      socket={getSocket()!}
+      onClose={() => {
+        showingTokenAddDialog = false;
+      }}
+      onSuccess={() => {
+        showingTokenAddDialog = false;
+      }}
+    />
+  {/if}
+
   <!-- -------------------------------------------------------------------- -->
   <!-- Header overlay                                                        -->
   <!-- -------------------------------------------------------------------- -->
@@ -972,6 +1182,32 @@
         disabled={calibrationCanvas !== null}
       >
         {t("FUSION.Scene.Calibrate.Open")}
+      </button>
+    {/if}
+
+    <!--
+      Add token + draw wall (GM, issue #83). Plain English labels, not t():
+      TokenAddDialog.svelte (which "+ Token" opens) has no i18n strings of its
+      own either, and adding these two keys would mean touching the locale
+      JSON files, which sit outside this fix's file scope.
+    -->
+    {#if isGm() && activeSceneState.scene}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={() => {
+          showingTokenAddDialog = true;
+        }}
+      >
+        + Token
+      </button>
+    {/if}
+    {#if isGm() && activeSceneState.scene && canvasReady}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={toggleWallDrawing}
+        aria-pressed={wallsDrawingActive}
+      >
+        {wallsDrawingActive ? "Drawing Wall…" : "Draw Wall"}
       </button>
     {/if}
 

@@ -203,7 +203,7 @@ describe("stepCharCollectEquipment — armor collection", () => {
 // ---------------------------------------------------------------------------
 
 describe("stepCharCollectEquipment — weapon collection", () => {
-  it("Funda (sling): simple, ranged 50, 1d6 bludgeoning, equipped → 1 strike, attackBonus 9, isRanged true", () => {
+  it("Funda (sling): simple, ranged 50, 1d6 bludgeoning, equipped → strike present, attackBonus 9, isRanged true", () => {
     const doc = makeCharDoc({
       level: 3,
       abilities: {
@@ -242,14 +242,17 @@ describe("stepCharCollectEquipment — weapon collection", () => {
 
     const derived = getDerived(doc);
     const strikes = derived["strikes"] as Array<{
+      label: string;
       isRanged: boolean;
       attackBonus: number;
       damageRoll?: string;
       variants: Array<{ total: number }>;
     }>;
 
-    expect(strikes).toHaveLength(1);
-    const strike = strikes[0];
+    // The equipped Funda plus the synthetic Fist (issue #62 — no unarmed
+    // weapon exists in doc.items, so the collector always adds one).
+    expect(strikes).toHaveLength(2);
+    const strike = strikes.find((s) => s.label === "Funda");
     expect(strike).toBeDefined();
     if (!strike) return;
     // dex mod(4) + simple prof rank1@lvl3(5) + potency(0) = 9
@@ -301,13 +304,17 @@ describe("stepCharCollectEquipment — weapon collection", () => {
 
     const derived = getDerived(doc);
     const strikes = derived["strikes"] as Array<{
+      label: string;
       attackBonus: number;
       damageRoll?: string;
       variants: Array<{ total: number }>;
     }>;
 
-    expect(strikes).toHaveLength(1);
-    const strike = strikes[0];
+    // A granted Mordida (Bite) does not replace the character's fists (CRB
+    // remaster "Unarmed Attacks") — the synthetic Fist is also present.
+    expect(strikes).toHaveLength(2);
+    expect(strikes.map((s) => s.label)).toEqual(expect.arrayContaining(["Mordida", "Fist"]));
+    const strike = strikes.find((s) => s.label === "Mordida");
     expect(strike).toBeDefined();
     if (!strike) return;
     // finesse: dex(4) > str(-1) → attack uses dex. unarmed prof rank1@lvl3 = 5. total = 4+5=9
@@ -320,7 +327,7 @@ describe("stepCharCollectEquipment — weapon collection", () => {
     expect(strike.variants[2]?.total).toBe(1);
   });
 
-  it("non-equipped martial weapon does NOT become a strike", () => {
+  it("non-equipped martial weapon does NOT become a strike (but the synthetic Fist does)", () => {
     const doc = makeCharDoc({
       items: [
         {
@@ -344,8 +351,117 @@ describe("stepCharCollectEquipment — weapon collection", () => {
     stepCharStrikes.run(doc, emptyCtx());
 
     const derived = getDerived(doc);
-    const strikes = derived["strikes"] as unknown[];
-    expect(strikes).toHaveLength(0);
+    const strikes = derived["strikes"] as Array<{ label: string; damageRoll?: string }>;
+    // The un-equipped Longsword never becomes a strike; the only strike
+    // present is the synthetic Fist (issue #62 — see describe block below).
+    expect(strikes).toHaveLength(1);
+    expect(strikes[0]?.label).toBe("Fist");
+    expect(strikes.some((s) => s.label === "Longsword")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stepCharCollectEquipment — synthetic Fist when no unarmed weapon exists
+// Issue #62: a Monk (or any character) with no weapon equipped had NO
+// unarmed strike at all, because the collector only ever picked up an
+// unarmed weapon that already existed in doc.items — it never synthesized
+// one. Every PF2e character can strike unarmed per the CRB remaster; this is
+// a rule of the book, not something read off any pack.
+// ---------------------------------------------------------------------------
+
+describe("stepCharCollectEquipment — synthetic Fist (issue #62)", () => {
+  it("empty items (Monk with no weapon equipped) → gets exactly one strike: Fist, 1d4 bludgeoning", () => {
+    const doc = makeCharDoc({ items: [] });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{
+      label: string;
+      damageRoll?: string;
+      damageType?: string;
+      traits: string[];
+    }>;
+
+    expect(strikes).toHaveLength(1);
+    const strike = strikes[0];
+    expect(strike).toBeDefined();
+    if (!strike) return;
+    expect(strike.label).toBe("Fist");
+    // 1d4 bludgeoning, str mod 0 (default ability score 10) → no flat bonus.
+    expect(strike.damageRoll).toBe("1d4");
+    expect(strike.damageType).toBe("bludgeoning");
+    expect(strike.traits).toEqual(expect.arrayContaining(["agile", "finesse", "nonlethal"]));
+  });
+
+  it("character already has a granted unarmed weapon (e.g. Claw) → Fist is still synthesized (CRB: claws don't replace your fists)", () => {
+    const doc = makeCharDoc({
+      items: [
+        {
+          _id: "claw-1",
+          name: "Claw",
+          type: "weapon",
+          system: {
+            category: "unarmed",
+            range: null,
+            damage: { dice: 1, die: "d4", damageType: "slashing", modifier: 0 },
+            traits: { value: ["agile", "finesse"] },
+            runes: { potency: 0, striking: 0 },
+            // NOTE: no `equipped` field — unarmed strikes always count.
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{ label: string; damageType?: string }>;
+
+    // Per CRB remaster "Unarmed Attacks": having claws does not remove your
+    // fists — the granted Claw AND the default Fist must both show up.
+    expect(strikes).toHaveLength(2);
+    expect(strikes.map((s) => s.label)).toEqual(expect.arrayContaining(["Claw", "Fist"]));
+    expect(strikes.find((s) => s.label === "Claw")?.damageType).toBe("slashing");
+    expect(strikes.find((s) => s.label === "Fist")?.damageType).toBe("bludgeoning");
+  });
+
+  it("character already has a granted Fist (e.g. an upgraded unarmed feature) → no duplicate synthetic Fist", () => {
+    const doc = makeCharDoc({
+      items: [
+        {
+          _id: "fist-1",
+          name: "Fist",
+          type: "weapon",
+          system: {
+            category: "unarmed",
+            range: null,
+            // Upgraded die (1d6 instead of the synthetic default 1d4) — a
+            // stand-in for a feature that improves the fist strike itself.
+            damage: { dice: 1, die: "d6", damageType: "bludgeoning", modifier: 0 },
+            traits: { value: ["agile", "finesse", "nonlethal"] },
+            runes: { potency: 0, striking: 0 },
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{ label: string; damageRoll?: string }>;
+
+    // Only the granted Fist shows up — the collector must not ALSO push its
+    // own synthetic 1d4 Fist alongside an already-present one named "Fist".
+    expect(strikes).toHaveLength(1);
+    expect(strikes[0]?.label).toBe("Fist");
+    expect(strikes[0]?.damageRoll).toBe("1d6");
   });
 });
 
