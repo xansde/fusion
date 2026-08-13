@@ -403,6 +403,91 @@ describe("stepCharSpellcasting", () => {
     const derived = getDerived(doc);
     expect(derived["spellcasting"]).toEqual({});
   });
+
+  // issue #13: the entry is born `proficiency.value: 1` (trained) by planVM's
+  // buildSpellcastingEntryOp and NEVER updated afterward — the item's stored
+  // rank is frozen at creation for the entry's whole lifetime. Progression
+  // must come from the class's `proficiencyUpgrades` table (the same
+  // mechanism stepCharApplyClass already uses for weapons/saves/perception/
+  // classDC), not from re-reading the item.
+  it("issue #13: Wizard level 20, entry stored at proficiency.value 1 (trained) → rank 4 (legendary), from the class's proficiencyUpgrades", () => {
+    const doc = makeCharDoc({
+      level: 20,
+      abilities: {
+        str: { value: 10 },
+        dex: { value: 10 },
+        con: { value: 10 },
+        int: { value: 18 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      items: [
+        {
+          _id: "class-wizard",
+          name: "Wizard",
+          type: "class",
+          system: {
+            // Real shape from systems/pf2e/packs/classes-core/documents.json
+            // (Wizard): rank 2 at 7, rank 3 at 15, rank 4 at 19.
+            proficiencyUpgrades: [
+              { level: 7, stat: "spellcasting", rank: 2 },
+              { level: 15, stat: "spellcasting", rank: 3 },
+              { level: 19, stat: "spellcasting", rank: 4 },
+            ],
+          },
+        },
+        {
+          _id: "entry-1",
+          name: "Arcane Spellcasting",
+          type: "spellcastingEntry",
+          system: {
+            ability: { value: "int" },
+            // planVM's real, frozen-at-creation value — not a fixture
+            // shortcut. See buildSpellcastingEntryOp in planVM.ts.
+            proficiency: { value: 1 },
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharSpellcasting.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const spellcasting = derived["spellcasting"] as Record<string, { rank: number }>;
+    // RAW (PF2e Remaster class progression, a fact of the rule system, not
+    // read from the fixture): a Wizard is Trained at 1, Expert at 7, Master
+    // at 15, Legendary at 19 — so a level-20 Wizard's spellcasting MUST be
+    // rank 4, no matter what the item itself was stamped with at creation.
+    expect(spellcasting["entry-1"]?.rank).toBe(4);
+  });
+
+  it("issue #13 (no class item — r9 manual-entry actor): stored proficiency rank is kept as-is, unchanged behavior", () => {
+    const doc = makeCharDoc({
+      level: 20,
+      items: [
+        {
+          _id: "entry-1",
+          name: "Arcane Spellcasting",
+          type: "spellcastingEntry",
+          system: {
+            ability: { value: "int" },
+            proficiency: { value: 1 },
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharSpellcasting.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const spellcasting = derived["spellcasting"] as Record<string, { rank: number }>;
+    // No embedded class item to attribute the entry to — falls back to the
+    // item's own stored rank, exactly like before this fix (no regression
+    // for r9 manual-entry actors).
+    expect(spellcasting["entry-1"]?.rank).toBe(1);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -31,7 +31,7 @@
    */
 
   import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow, SpellRow, SpellNameTranslator, SpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
-  import { buildSpellNameTranslator, buildSpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import { buildSpellNameTranslator, buildSpellDetailsResolver, spellSurfaceModeFor } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
   import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
@@ -521,12 +521,21 @@
       if (op) {
         sendOpFn(op);
         flashGrimoireRow(spellName);
-        showToast({
-          message: t("FUSION.Sheet.Spells.Toast.Added", { name: spellName }),
-          spellName,
-          rank: spellRank,
-          entryId: pickerEntryId,
-        });
+        // A spontaneous/innate entry (issue #37) has no "preparing" step — a
+        // newly known spell is already castable, so the toast must NOT offer
+        // "Preparar agora" (that action targets a numbered slot index, a
+        // concept the known-list surface doesn't render at all).
+        const entry = findEntry(pickerEntryId);
+        if (entry && spellSurfaceModeFor(entry.prepared) === "known-list") {
+          showToast({ message: t("FUSION.Sheet.Spells.Toast.AddedToKnown", { name: spellName }) });
+        } else {
+          showToast({
+            message: t("FUSION.Sheet.Spells.Toast.Added", { name: spellName }),
+            spellName,
+            rank: spellRank,
+            entryId: pickerEntryId,
+          });
+        }
       }
     } else if (pickerMode === "prepare" && pickerRank !== undefined && pickerSlotIndex !== null) {
       // Guided flow: add to the grimoire (unless already known), then
@@ -647,6 +656,52 @@
     if (cast) emitCast(cast);
   }
 
+  // --- Spontaneous/innate casting (issue #37) -------------------------------
+  //
+  // A spontaneous entry's `system.slots.<rank>.prepared` array is the SAME
+  // shape a prepared entry uses (buildSlotsMap seeds it identically for both
+  // caster types) — it just never gets an `id` attached, since spontaneous
+  // casting doesn't tie a specific slot instance to a specific known spell.
+  // We reuse it purely as an anonymous "how many slots of this rank are
+  // still unspent" counter, toggling `expended` on the first free instance.
+
+  /** How many of a rank's slots are still unspent, for a known-list (spontaneous/innate) entry. */
+  function availableSlotCount(entry: SpellcastingEntryRow, rank: number): number {
+    const slot = entry.slots.find((s) => s.rank === rank);
+    const max = slot?.max ?? 0;
+    let available = 0;
+    for (let i = 0; i < max; i++) {
+      if (!vm.getPreparedSlot(entry.entryId, rank, i)?.expended) available++;
+    }
+    return available;
+  }
+
+  /** Index of the first unspent slot instance at a rank, or null if all are expended. */
+  function firstAvailableSlotIndex(entry: SpellcastingEntryRow, rank: number): number | null {
+    const slot = entry.slots.find((s) => s.rank === rank);
+    const max = slot?.max ?? 0;
+    for (let i = 0; i < max; i++) {
+      if (!vm.getPreparedSlot(entry.entryId, rank, i)?.expended) return i;
+    }
+    return null;
+  }
+
+  /**
+   * Cast a known spell from a spontaneous/innate entry: spend the first
+   * available slot of the spell's own rank (no "which slot" choice — unlike
+   * `castSpell`, a spontaneous slot instance was never tied to a specific
+   * spell) and announce the cast exactly like a prepared cast does.
+   */
+  function castKnownSpell(entry: SpellcastingEntryRow, rank: number, spellId: string, spellName: string): void {
+    const slotIndex = firstAvailableSlotIndex(entry, rank);
+    if (slotIndex === null) return; // button is disabled in this state; defensive no-op
+    const op = vm.toggleSlotExpended(entry.entryId, rank, slotIndex);
+    if (op) sendOpFn(op);
+    void spellName;
+    const cast = vm.castSpell(spellId, entry.entryId, "prepared", rank);
+    if (cast) emitCast(cast);
+  }
+
   /**
    * Roll a spell's DAMAGE at its effective rank (r16-G3). `surface` selects the
    * heightening rule; `slotRank` is only used for prepared spells. The VM reads
@@ -694,10 +749,18 @@
     if (cast) emitCast(cast);
   }
 
-  /** Casting a focus spell spends one Focus Point (min 0) and announces it. */
-  function castFocusSpell(spellId?: string): void {
-    const op = vm.setFocusPoints(Math.max(0, vm.focusPoints.value - 1));
-    if (op) sendOpFn(op);
+  /**
+   * Casting a focus spell spends one Focus Point (min 0) and announces it —
+   * UNLESS the spell is a cantrip (issue #36: e.g. a Bard composition
+   * cantrip like Courageous Anthem), which RAW never costs a Focus Point.
+   * `costsFocusPoint` comes from `vm.focusSpells` (SpellRow), which reads
+   * the spell's own "focus" trait — the source of truth, never inferred here.
+   */
+  function castFocusSpell(spellId?: string, costsFocusPoint = true): void {
+    if (costsFocusPoint) {
+      const op = vm.setFocusPoints(Math.max(0, vm.focusPoints.value - 1));
+      if (op) sendOpFn(op);
+    }
     // r16: chat announcement (+ attack roll for attack focus spells). Focus
     // spells auto-heighten to ceil(level/2); the VM resolves the entry for DC.
     if (spellId && vm.focusEntryId) {
@@ -898,125 +961,190 @@
             </div>
           {/if}
 
-          {#each entry.slots.filter((s) => !s.isCantrip) as slot (slot.rank)}
-            <div class="spells-section">
-              <h3 class="spells-section__label">{t("FUSION.Sheet.Spells.Rank", { rank: slot.rank })}</h3>
-              <div class="spells-slots">
-                {#each Array.from({ length: slot.max }) as _, slotIndex (slotIndex)}
-                  {@const prepared = vm.getPreparedSlot(entry.entryId, slot.rank, slotIndex)}
-                  {#if prepared && prepared.id}
-                    {@const resolvedName = resolvedSlotName(entry.entryId, prepared.id)}
-                    {#if resolvedName === null}
-                      <!-- Dangling reference: the prepared id matches no embedded
-                           spell (removed/never materialized). Show an explicit
-                           error state with a clear action — NEVER the raw id. -->
-                      <div class="spell-slot-card spell-slot-card--missing">
+          {#if spellSurfaceModeFor(entry.prepared) === "slots"}
+            <!-- PREPARED caster (Cleric/Druid/Magus/Wizard): numbered slot
+                 cards you prepare a grimoire spell into ahead of time. -->
+            {#each entry.slots.filter((s) => !s.isCantrip) as slot (slot.rank)}
+              <div class="spells-section">
+                <h3 class="spells-section__label">{t("FUSION.Sheet.Spells.Rank", { rank: slot.rank })}</h3>
+                <div class="spells-slots">
+                  {#each Array.from({ length: slot.max }) as _, slotIndex (slotIndex)}
+                    {@const prepared = vm.getPreparedSlot(entry.entryId, slot.rank, slotIndex)}
+                    {#if prepared && prepared.id}
+                      {@const resolvedName = resolvedSlotName(entry.entryId, prepared.id)}
+                      {#if resolvedName === null}
+                        <!-- Dangling reference: the prepared id matches no embedded
+                             spell (removed/never materialized). Show an explicit
+                             error state with a clear action — NEVER the raw id. -->
+                        <div class="spell-slot-card spell-slot-card--missing">
+                          <div class="spell-slot-card__main">
+                            <span class="spell-slot-card__name spell-slot-card__name--missing">
+                              {t("FUSION.Sheet.Spells.SlotRemoved")}
+                            </span>
+                          </div>
+                          <div class="spell-slot-card__actions">
+                            {#if vm.editable}
+                              <button
+                                type="button"
+                                class="spell-btn spell-btn--ghost"
+                                onclick={() => clearDanglingSlot(entry.entryId, slot.rank, slotIndex)}
+                              >
+                                {t("FUSION.Sheet.Spells.ClearSlot")}
+                              </button>
+                            {/if}
+                          </div>
+                        </div>
+                      {:else}
+                      {@const preparedHeighten = vm.heightenedSpell(prepared.id, "prepared", slot.rank)}
+                      {@const preparedCost = formatIndexActionCost(vm.resolveSpellCastTime(entry.entryId, prepared.id), i18n.locale)}
+                      <div class="spell-slot-card" class:spell-slot-card--expended={prepared.expended}>
                         <div class="spell-slot-card__main">
-                          <span class="spell-slot-card__name spell-slot-card__name--missing">
-                            {t("FUSION.Sheet.Spells.SlotRemoved")}
+                          <span class="spell-slot-card__name">
+                            {@render spellNameButton(resolvedName, prepared.id, "spell-slot-card__name-text", preparedCost)}
+                            {#if !prepared.expended}
+                              <span class="spell-slot-card__dot" title={t("FUSION.Sheet.Spells.SlotAvailable")}></span>
+                            {/if}
                           </span>
+                          {@render heightenChrome(preparedHeighten, prepared.id, "prepared", slot.rank, resolvedName)}
                         </div>
                         <div class="spell-slot-card__actions">
                           {#if vm.editable}
+                            {#if !prepared.expended}
+                              <button
+                                type="button"
+                                class="spell-btn spell-btn--primary"
+                                onclick={() => castSpell(entry, slot.rank, slotIndex, prepared.id, resolvedName)}
+                              >
+                                {t("FUSION.Sheet.Spells.Cast")}
+                              </button>
+                            {:else}
+                              <span class="spell-slot-card__expended-label">{t("FUSION.Sheet.Spells.Expended")}</span>
+                              <button
+                                type="button"
+                                class="spell-btn spell-btn--recover"
+                                onclick={() => recoverSlot(entry, slot.rank, slotIndex)}
+                              >
+                                {t("FUSION.Sheet.Spells.Recover")}
+                              </button>
+                            {/if}
                             <button
                               type="button"
                               class="spell-btn spell-btn--ghost"
-                              onclick={() => clearDanglingSlot(entry.entryId, slot.rank, slotIndex)}
+                              onclick={() => unprepare(entry, slot.rank, slotIndex)}
                             >
-                              {t("FUSION.Sheet.Spells.ClearSlot")}
+                              {t("FUSION.Sheet.Spells.Swap")}
                             </button>
                           {/if}
                         </div>
                       </div>
+                      {/if}
                     {:else}
-                    {@const preparedHeighten = vm.heightenedSpell(prepared.id, "prepared", slot.rank)}
-                    {@const preparedCost = formatIndexActionCost(vm.resolveSpellCastTime(entry.entryId, prepared.id), i18n.locale)}
-                    <div class="spell-slot-card" class:spell-slot-card--expended={prepared.expended}>
-                      <div class="spell-slot-card__main">
-                        <span class="spell-slot-card__name">
-                          {@render spellNameButton(resolvedName, prepared.id, "spell-slot-card__name-text", preparedCost)}
-                          {#if !prepared.expended}
-                            <span class="spell-slot-card__dot" title={t("FUSION.Sheet.Spells.SlotAvailable")}></span>
-                          {/if}
-                        </span>
-                        {@render heightenChrome(preparedHeighten, prepared.id, "prepared", slot.rank, resolvedName)}
-                      </div>
-                      <div class="spell-slot-card__actions">
+                      <button
+                        type="button"
+                        class="spell-slot-empty"
+                        disabled={!vm.editable}
+                        onclick={() => openPrepareMenu(entry, slot.rank, slotIndex)}
+                      >
+                        {t("FUSION.Sheet.Spells.PrepareEllipsis")}
+                      </button>
+                    {/if}
+                  {/each}
+                </div>
+              </div>
+            {/each}
+
+            <div class="spells-section">
+              <div class="spells-section__header">
+                <h3 class="spells-section__label">{t("FUSION.Sheet.Spells.Grimoire")}</h3>
+                {#if vm.editable}
+                  <button type="button" class="spell-btn spell-btn--primary" onclick={() => openAddPicker(entry)}>
+                    {t("FUSION.Sheet.Spells.AddSpell")}
+                  </button>
+                {/if}
+              </div>
+              {#if grimoireSpells(entry).length === 0}
+                <p class="spells-empty spells-empty--inline">{t("FUSION.Sheet.Spells.GrimoireEmpty")}</p>
+              {:else}
+                <div class="spells-grimoire">
+                  {#each grimoireSpells(entry) as spell (spell.id)}
+                    {@const gCost = formatIndexActionCost(spell.castTime, i18n.locale)}
+                    <div
+                      class="spell-chip spell-chip--row"
+                      class:spell-chip--new={spell.name === recentlyAddedDisplayName}
+                    >
+                      {@render spellNameButton(spell.name, spell.id, "spell-chip__name", gCost)}
+                      {#if vm.editable}
+                        <button type="button" class="spell-btn spell-btn--ghost" onclick={() => removeFromGrimoire(spell.id)}>
+                          {t("FUSION.Sheet.Spells.Remove")}
+                        </button>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          {:else}
+            <!-- SPONTANEOUS/innate caster (Bard/Psychic/Sorcerer, issue #37):
+                 no "preparing" step — the entry's embedded spells ARE the
+                 known repertoire, and any of them can spend any of the
+                 rank's remaining slots. -->
+            <div class="spells-section">
+              <div class="spells-section__header">
+                <h3 class="spells-section__label">{t("FUSION.Sheet.Spells.KnownSpells")}</h3>
+                {#if vm.editable}
+                  <button type="button" class="spell-btn spell-btn--primary" onclick={() => openAddPicker(entry)}>
+                    {t("FUSION.Sheet.Spells.AddSpell")}
+                  </button>
+                {/if}
+              </div>
+            </div>
+
+            {#each entry.slots.filter((s) => !s.isCantrip) as slot (slot.rank)}
+              <div class="spells-section">
+                <h3 class="spells-section__label">
+                  {t("FUSION.Sheet.Spells.Rank", { rank: slot.rank })}
+                  <span class="spells-section__hint">
+                    {t("FUSION.Sheet.Spells.SlotsAvailable", {
+                      value: String(availableSlotCount(entry, slot.rank)),
+                      max: String(slot.max),
+                    })}
+                  </span>
+                </h3>
+                {#if slot.spells.length === 0}
+                  <p class="spells-empty spells-empty--inline">{t("FUSION.Sheet.Spells.KnownSpellsEmptyRank")}</p>
+                {:else}
+                  <div class="spells-grimoire">
+                    {#each slot.spells as spell (spell.id)}
+                      {@const kName = translateName(spell.name)}
+                      {@const kCost = formatIndexActionCost(spell.castTime, i18n.locale)}
+                      {@const kHeighten = vm.heightenedSpell(spell.id, "prepared", slot.rank)}
+                      {@const kAvailable = availableSlotCount(entry, slot.rank)}
+                      <div class="focus-spell-row" class:spell-chip--new={kName === recentlyAddedDisplayName}>
+                        <div class="focus-spell-row__main">
+                          {@render spellNameButton(kName, spell.id, "focus-spell-row__name", kCost)}
+                          {@render heightenChrome(kHeighten, spell.id, "prepared", slot.rank, kName)}
+                        </div>
                         {#if vm.editable}
-                          {#if !prepared.expended}
-                            <button
-                              type="button"
-                              class="spell-btn spell-btn--primary"
-                              onclick={() => castSpell(entry, slot.rank, slotIndex, prepared.id, resolvedName)}
-                            >
-                              {t("FUSION.Sheet.Spells.Cast")}
-                            </button>
-                          {:else}
-                            <span class="spell-slot-card__expended-label">{t("FUSION.Sheet.Spells.Expended")}</span>
-                            <button
-                              type="button"
-                              class="spell-btn spell-btn--recover"
-                              onclick={() => recoverSlot(entry, slot.rank, slotIndex)}
-                            >
-                              {t("FUSION.Sheet.Spells.Recover")}
-                            </button>
-                          {/if}
                           <button
                             type="button"
-                            class="spell-btn spell-btn--ghost"
-                            onclick={() => unprepare(entry, slot.rank, slotIndex)}
+                            class="spell-btn spell-btn--primary"
+                            disabled={kAvailable <= 0}
+                            title={kAvailable <= 0 ? t("FUSION.Sheet.Spells.NoSlotsAvailable") : ""}
+                            onclick={() => castKnownSpell(entry, slot.rank, spell.id, kName)}
                           >
-                            {t("FUSION.Sheet.Spells.Swap")}
+                            {t("FUSION.Sheet.Spells.Cast")}
+                          </button>
+                          <button type="button" class="spell-btn spell-btn--ghost" onclick={() => removeFromGrimoire(spell.id)}>
+                            {t("FUSION.Sheet.Spells.Remove")}
                           </button>
                         {/if}
                       </div>
-                    </div>
-                    {/if}
-                  {:else}
-                    <button
-                      type="button"
-                      class="spell-slot-empty"
-                      disabled={!vm.editable}
-                      onclick={() => openPrepareMenu(entry, slot.rank, slotIndex)}
-                    >
-                      {t("FUSION.Sheet.Spells.PrepareEllipsis")}
-                    </button>
-                  {/if}
-                {/each}
-              </div>
-            </div>
-          {/each}
-
-          <div class="spells-section">
-            <div class="spells-section__header">
-              <h3 class="spells-section__label">{t("FUSION.Sheet.Spells.Grimoire")}</h3>
-              {#if vm.editable}
-                <button type="button" class="spell-btn spell-btn--primary" onclick={() => openAddPicker(entry)}>
-                  {t("FUSION.Sheet.Spells.AddSpell")}
-                </button>
-              {/if}
-            </div>
-            {#if grimoireSpells(entry).length === 0}
-              <p class="spells-empty spells-empty--inline">{t("FUSION.Sheet.Spells.GrimoireEmpty")}</p>
-            {:else}
-              <div class="spells-grimoire">
-                {#each grimoireSpells(entry) as spell (spell.id)}
-                  {@const gCost = formatIndexActionCost(spell.castTime, i18n.locale)}
-                  <div
-                    class="spell-chip spell-chip--row"
-                    class:spell-chip--new={spell.name === recentlyAddedDisplayName}
-                  >
-                    {@render spellNameButton(spell.name, spell.id, "spell-chip__name", gCost)}
-                    {#if vm.editable}
-                      <button type="button" class="spell-btn spell-btn--ghost" onclick={() => removeFromGrimoire(spell.id)}>
-                        {t("FUSION.Sheet.Spells.Remove")}
-                      </button>
-                    {/if}
+                    {/each}
                   </div>
-                {/each}
+                {/if}
               </div>
-            {/if}
-          </div>
+            {/each}
+          {/if}
         </div>
       {/each}
     {:else if activeTab?.kind === "focus"}
@@ -1079,7 +1207,7 @@
                   class="spell-btn spell-btn--primary"
                   disabled={vm.focusPoints.value <= 0}
                   title={vm.focusPoints.value <= 0 ? t("FUSION.Sheet.Spells.NoFocusPoints") : ""}
-                  onclick={() => castFocusSpell(spell.id)}
+                  onclick={() => castFocusSpell(spell.id, spell.costsFocusPoint ?? true)}
                 >
                   {t("FUSION.Sheet.Spells.Cast")}
                 </button>
@@ -1112,9 +1240,10 @@
       tradition={pickerMode === "focus" ? "" : entry.tradition}
       traditionLabel={traditionLabel(entry.tradition)}
       entryLabel={entry.label}
-      maxRank={pickerMode === "prepare" ? pickerRank : undefined}
+      maxRank={pickerMode === "prepare" ? pickerRank : pickerMode === "focus" ? vm.maxFocusSpellRank : undefined}
       initialRank={pickerMode === "prepare" ? pickerRank : undefined}
       initialTrait={pickerMode === "focus" ? "focus" : undefined}
+      classTrait={pickerMode === "focus" ? vm.classTrait : undefined}
       onClose={closePicker}
       onSelect={handlePickerSelect}
     />

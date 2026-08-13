@@ -67,6 +67,7 @@
     filterSpellPicker,
     sortSpellPickerEntries,
     resolveInitialTradition,
+    matchesTraitFilter,
   } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import { groupTraits } from "../../../lib/sheets/pf2e/traitGroups.js";
   import { normalizeSearchText } from "@fusion/shared";
@@ -86,12 +87,29 @@
     initialRank?: number | undefined;
     /** Pre-select this trait chip (e.g. "focus" when adding a focus spell). */
     initialTrait?: string | undefined;
+    /**
+     * Restrict results to this class trait slug (e.g. "bard") — issue #7.
+     * Unlike `initialTrait` (a removable chip), this is a hard filter the
+     * player cannot toggle off: a shared/general focus spell (no class
+     * trait at all) still passes, but a spell tagged for a DIFFERENT class
+     * never shows, regardless of chip state.
+     */
+    classTrait?: string | undefined;
     onClose: () => void;
     onSelect: (doc: Record<string, unknown>) => void;
   }
 
-  let { tradition, traditionLabel, entryLabel, maxRank, initialRank, initialTrait, onClose, onSelect }: Props =
-    $props();
+  let {
+    tradition,
+    traditionLabel,
+    entryLabel,
+    maxRank,
+    initialRank,
+    initialTrait,
+    classTrait,
+    onClose,
+    onSelect,
+  }: Props = $props();
 
   let query = $state("");
   // svelte-ignore state_referenced_locally — intentional: initialRank seeds
@@ -184,6 +202,7 @@
       ...(traditionFilter !== null ? { tradition: traditionFilter } : {}),
       search: query,
       ...(maxRank !== undefined ? { maxRank } : {}),
+      ...(classTrait !== undefined ? { classTrait } : {}),
     });
     const chipped = base
       .filter((e) => {
@@ -192,8 +211,7 @@
       })
       .filter((e) => {
         if (!traitFilter) return true;
-        const raw = e.index["system.traits.value"];
-        return Array.isArray(raw) && raw.includes(traitFilter);
+        return matchesTraitFilter(traitsOf(e), traitFilter);
       });
     return sortSpellPickerEntries(chipped);
   });

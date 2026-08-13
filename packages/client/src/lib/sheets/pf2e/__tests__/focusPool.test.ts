@@ -12,7 +12,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { applyClass } from "../planVM.js";
+import { applyClass, chooseFeat, chooseClassChoice } from "../planVM.js";
+import type { PlanSlotModel, PlanOpBuilderContext } from "../planVM.js";
 import type { DocOpPayload } from "../characterSheetVM.js";
 
 /** A class doc shaped like the real compiled packs, parameterized on its level-1 features. */
@@ -118,5 +119,217 @@ describe("applyClass — focus pool (issue #4)", () => {
   it("nothing is emitted when the sheet is not editable", () => {
     const ops = applyClass({ actorId: "a", doc: characterDoc(), editable: false }, magusLike());
     expect(ops).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// issue #5 — Cleric/Monk/Ranger/Wizard: focus pool gated behind a later
+// CHOICE (feat or axis), not the class item itself. `hasFocusFeature`
+// (applyClass) only recognizes a level-1 CLASS FEATURE named "<X> Spells" —
+// verified against the real pack (systems/pf2e/packs/classes-core): only
+// Bard/Champion/Magus/Sorcerer have one. Cleric/Monk/Ranger's focus spells
+// are gated behind an ordinary class FEAT (Domain Initiate/Qi Spells/
+// Initiate Warden) with no structured tradition/ability field at all in the
+// pack; Wizard's is gated behind the "Arcane School" AXIS, whose name
+// doesn't end in " Spells" either. Fixtures below are shaped like the real
+// pack docs (level-1 `type: "feat"`/`"classFeature"`, correct class trait),
+// but the ability/tradition assertions come from each feat's own RAW text
+// (cited in FOCUS_GRANTING_FEAT's doc comment in planVM.ts), never from a
+// pack field — there isn't one to read.
+// ---------------------------------------------------------------------------
+
+function ctxWithDoc(doc: Record<string, unknown>, actorId = "actor-1"): PlanOpBuilderContext {
+  return { actorId, doc, editable: true };
+}
+
+const CLASS_FEAT_SLOT: PlanSlotModel = {
+  slotId: "classFeat-1",
+  type: "classFeat",
+  label: "Class Feat",
+  filled: false,
+};
+
+function domainInitiateFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-domain-initiate",
+    name: "Domain Initiate",
+    type: "feat",
+    system: { level: 1, traits: { rarity: "common", value: ["cleric"] } },
+  };
+}
+
+function qiSpellsFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-qi-spells",
+    name: "Qi Spells",
+    type: "feat",
+    system: { level: 1, traits: { rarity: "common", value: ["monk"] } },
+  };
+}
+
+function initiateWardenFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-initiate-warden",
+    name: "Initiate Warden",
+    type: "feat",
+    system: { level: 1, traits: { rarity: "common", value: ["ranger"] } },
+  };
+}
+
+function toughnessFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-toughness",
+    name: "Toughness",
+    type: "feat",
+    system: { level: 1, traits: { rarity: "common", value: ["general"] } },
+  };
+}
+
+function focusEntryOpFrom(ops: DocOpPayload[]): DocOpPayload | undefined {
+  return ops.find(
+    (o) =>
+      o.type === "doc:create" && (o.data as Record<string, unknown>)["name"] === "Focus Spells",
+  );
+}
+
+describe("chooseFeat — focus pool opens on a chosen FEAT (issue #5: Cleric/Monk/Ranger)", () => {
+  it("Domain Initiate (Cleric) opens a divine/wis focus pool", () => {
+    const ops = chooseFeat(ctxWithDoc(characterDoc()), CLASS_FEAT_SLOT, 1, domainInitiateFeatDoc());
+    const focusOp = focusEntryOpFrom(ops);
+    expect(focusOp).toBeDefined();
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    const sys = focusOp.data["system"] as Record<string, unknown>;
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("divine");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("wis");
+    expect(sys["isFocusPool"]).toBe(true);
+    expect(focusPointsFrom(ops)).toEqual({ value: 1, max: 1 });
+  });
+
+  it("Qi Spells (Monk) opens a divine/wis focus pool", () => {
+    const ops = chooseFeat(ctxWithDoc(characterDoc()), CLASS_FEAT_SLOT, 1, qiSpellsFeatDoc());
+    const focusOp = focusEntryOpFrom(ops);
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    const sys = focusOp.data["system"] as Record<string, unknown>;
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("divine");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("wis");
+    expect(focusPointsFrom(ops)).toEqual({ value: 1, max: 1 });
+  });
+
+  it("Initiate Warden (Ranger) opens a primal/wis focus pool", () => {
+    const ops = chooseFeat(ctxWithDoc(characterDoc()), CLASS_FEAT_SLOT, 1, initiateWardenFeatDoc());
+    const focusOp = focusEntryOpFrom(ops);
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    const sys = focusOp.data["system"] as Record<string, unknown>;
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("primal");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("wis");
+    expect(focusPointsFrom(ops)).toEqual({ value: 1, max: 1 });
+  });
+
+  it("a feat NOT in the focus-granting map never opens a pool (no false positives)", () => {
+    const ops = chooseFeat(ctxWithDoc(characterDoc()), CLASS_FEAT_SLOT, 1, toughnessFeatDoc());
+    expect(focusPointsFrom(ops)).toBeUndefined();
+    expect(focusEntryOpFrom(ops)).toBeUndefined();
+  });
+
+  it("re-picking the trigger feat when a focus entry ALREADY exists does not reset an already-spent pool", () => {
+    const doc = characterDoc();
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "existing-focus",
+      name: "Focus Spells",
+      type: "spellcastingEntry",
+      system: { isFocusPool: true, tradition: { value: "divine" }, ability: { value: "wis" } },
+    });
+    const ops = chooseFeat(ctxWithDoc(doc), CLASS_FEAT_SLOT, 1, domainInitiateFeatDoc());
+    expect(focusEntryOpFrom(ops)).toBeUndefined();
+    expect(focusPointsFrom(ops)).toBeUndefined();
+  });
+});
+
+/** Real Wizard shape: `spellcasting.tradition`/`ability` fixed (arcane/int), "Arcane School" among its level-1 features (no " Spells" suffix). */
+function wizardLike(): Record<string, unknown> {
+  return classDoc(
+    "Wizard",
+    [
+      { level: 1, uuid: "u-wiz-spellcasting", name: "Wizard Spellcasting" },
+      { level: 1, uuid: "u-arcane-school", name: "Arcane School" },
+    ],
+    {
+      tradition: "arcane",
+      type: "prepared",
+      ability: "int",
+      cantripsKnown: [{ level: 1, count: 5 }],
+      slots: [{ level: 1, slots: { "1": 2 } }],
+    },
+  );
+}
+
+/** A character with the Wizard class already embedded (as `applyClass` would have left it). */
+function wizardActorDoc(): Record<string, unknown> {
+  const doc = characterDoc();
+  return {
+    ...doc,
+    items: [
+      {
+        ...wizardLike(),
+        _id: "item-class",
+        flags: { fusion: { build: { level: 1, slot: "class" } } },
+      },
+    ],
+  };
+}
+
+function schoolFeatureDoc(name: string, id: string): Record<string, unknown> {
+  return {
+    _id: id,
+    name,
+    type: "classFeature",
+    system: { level: 1, traits: { otherTags: ["wizard-arcane-school"], value: [] } },
+  };
+}
+
+describe("chooseClassChoice(arcaneSchool) — Wizard focus pool (issue #5)", () => {
+  it("choosing a school opens the class's own arcane/int focus pool", () => {
+    const ops = chooseClassChoice(
+      ctxWithDoc(wizardActorDoc()),
+      "arcaneSchool",
+      1,
+      schoolFeatureDoc("School of Evocation", "feature-evocation"),
+    );
+    const focusOp = focusEntryOpFrom(ops);
+    expect(focusOp).toBeDefined();
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    const sys = focusOp.data["system"] as Record<string, unknown>;
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("arcane");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("int");
+    expect(sys["isFocusPool"]).toBe(true);
+    expect(focusPointsFrom(ops)).toEqual({ value: 1, max: 1 });
+  });
+
+  it("does nothing when the actor has no Wizard class item on the sheet (defensive)", () => {
+    const ops = chooseClassChoice(
+      ctxWithDoc(characterDoc()),
+      "arcaneSchool",
+      1,
+      schoolFeatureDoc("School of Evocation", "feature-evocation"),
+    );
+    expect(focusEntryOpFrom(ops)).toBeUndefined();
+  });
+
+  it("re-picking a different school does not re-open (or reset) an already-open pool", () => {
+    const doc = wizardActorDoc();
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "existing-focus",
+      name: "Focus Spells",
+      type: "spellcastingEntry",
+      system: { isFocusPool: true, tradition: { value: "arcane" }, ability: { value: "int" } },
+    });
+    const ops = chooseClassChoice(
+      ctxWithDoc(doc),
+      "arcaneSchool",
+      1,
+      schoolFeatureDoc("School of Abjuration", "feature-abjuration"),
+    );
+    expect(focusEntryOpFrom(ops)).toBeUndefined();
+    expect(focusPointsFrom(ops)).toBeUndefined();
   });
 });
