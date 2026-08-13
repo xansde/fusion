@@ -4299,6 +4299,16 @@ export const SKILL_ABILITY: Record<string, AbilitySlug> = {
 export const CANONICAL_SKILL_SLUGS: readonly string[] = Object.keys(SKILL_ABILITY);
 
 /**
+ * RAW skill-proficiency level gates (PF2e Remaster core rules): a skill
+ * cannot become Master (rank 3) before character level 7, nor Legendary
+ * (rank 4) before character level 15 — independent of how many skillIncrease
+ * slots the character has already spent. Issue #49: skillTrainingDialogContext
+ * offered these ranks with no level check at all.
+ */
+export const SKILL_MASTER_MIN_LEVEL = 7;
+export const SKILL_LEGENDARY_MIN_LEVEL = 15;
+
+/**
  * proficiencyBonus — pure mirror of systems/pf2e/src/derivations/helpers.ts's
  * `proficiencyBonus`/`calculateProficiencyBonus`: untrained (rank 0) = +0
  * (level NOT added); trained..legendary = rank*2 + level. MUST stay in sync
@@ -4433,7 +4443,9 @@ export interface SkillTrainingDialogContext {
  * untrained skills (rank 0 -> 1); "skillIncrease" only offers skills already
  * trained but below Legendary (rank 1-3 -> +1), matching PF2e Remaster rules
  * (you cannot "train" an already-trained skill via a training slot, and you
- * cannot "increase" an untrained one).
+ * cannot "increase" an untrained one). A "skillIncrease" that would land on
+ * Master or Legendary is further gated by character level (issue #49): see
+ * `SKILL_MASTER_MIN_LEVEL`/`SKILL_LEGENDARY_MIN_LEVEL`.
  */
 export function skillTrainingDialogContext(
   doc: Record<string, unknown>,
@@ -4494,8 +4506,20 @@ export function skillTrainingDialogContext(
     const targetRank = kind === "skillTraining" ? 1 : Math.min(currentRank + 1, 4);
     const targetMod = abilityModValue + skillProficiencyBonus(targetRank, charLevel);
 
+    // Issue #49: reaching Master (rank 3) or Legendary (rank 4) is gated by
+    // character level in RAW, regardless of how many skillIncrease slots are
+    // available — a skillIncrease that would land on one of those ranks is
+    // only eligible once charLevel meets the rank's minimum.
+    const meetsRankLevelGate =
+      targetRank < 3 ||
+      (targetRank === 3
+        ? charLevel >= SKILL_MASTER_MIN_LEVEL
+        : charLevel >= SKILL_LEGENDARY_MIN_LEVEL);
+
     const eligible =
-      kind === "skillTraining" ? currentRank === 0 : currentRank >= 1 && currentRank < 4;
+      kind === "skillTraining"
+        ? currentRank === 0
+        : currentRank >= 1 && currentRank < 4 && meetsRankLevelGate;
 
     return {
       slug,
@@ -4745,9 +4769,21 @@ export interface AbilityBoostsSlotContext {
 /**
  * The class's key-ability OPTIONS for the classBoost group, read from the
  * embedded class item's `system.keyAbility` (kept as the full option list —
- * Magus ships ["str","dex"]; applyClass narrowing may reduce it to one).
- * Returns undefined (no restriction) when unreadable, so a malformed class
- * item degrades to "any ability" instead of an empty, unfillable group.
+ * Magus ships ["str","dex"]; single-key classes like Barbarian ship
+ * ["str"]). Returns undefined (no restriction) only when the field is
+ * genuinely absent/empty, so a malformed class item degrades to "any
+ * ability" instead of an empty, unfillable group.
+ *
+ * A single-item list used to fall through to "no restriction" too (issue
+ * #12): that conflated "the class has one fixed key ability" with "any
+ * ability is fine", letting e.g. a Barbarian take Charisma as its key
+ * ability with no warning. The `> 1` guard dated back to a pre-r11
+ * applyClass bug that narrowed the embedded item's keyAbility array down to
+ * the single CHOSEN ability at apply time (so a genuinely multi-option class
+ * like Magus could get stuck offering only its first option) — that bug was
+ * fixed in r11.1 (applyClass now always keeps the class's FULL option list,
+ * see the comment above `applyClass`), so the narrowing this guard defended
+ * against no longer happens and restricting single-option lists is safe.
  */
 function classKeyAbilityOptions(
   classItem: Record<string, unknown> | undefined,
@@ -4755,13 +4791,7 @@ function classKeyAbilityOptions(
   if (!classItem) return undefined;
   const sys = asRecord(classItem["system"]);
   const options = asStringArray(sys["keyAbility"]);
-  // A single-option list means either a genuinely fixed-key class OR a doc
-  // narrowed by the pre-r11 applyClass bug (the user's real Tobias carries
-  // Magus keyAbility ["dex"]). Restricting to it would make the true pick
-  // (str) permanently unreachable — so only lists with a real choice
-  // restrict the group; everything else offers all six (the ledger records
-  // whatever is picked, and the server derives from the ledger).
-  return options.length > 1 ? options : undefined;
+  return options.length > 0 ? options : undefined;
 }
 
 function countFreeBoostSlots(itemDoc: Record<string, unknown> | undefined): number {

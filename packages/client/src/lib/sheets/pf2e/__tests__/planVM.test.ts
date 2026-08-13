@@ -162,6 +162,7 @@ function barbarianClassDoc(): Record<string, unknown> {
     name: "Barbarian",
     type: "class",
     system: {
+      keyAbility: ["str"], // RAW: Barbarian is a single-key-ability class (issue #12).
       featuresByLevel: [
         { level: 1, uuid: "uuid-instinct", name: "Instinct" },
         { level: 1, uuid: "uuid-rage", name: "Rage" },
@@ -3636,6 +3637,19 @@ describe("abilityBoostsSlotContext", () => {
     const levelledGroup = result.groups.find((g) => g.origin === "levelled")!;
     expect(levelledGroup.freeCount).toBe(4);
   });
+
+  it("issue #12: a single-key-ability class (Barbarian: str only) restricts classBoost to that one ability, not 'any'", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...barbarianClassDoc(), _id: "item-class" }],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const result = abilityBoostsSlotContext(doc, 1);
+    const classGroup = result.groups.find((g) => g.origin === "classBoost")!;
+    // RAW: Barbarian's key ability is Strength, period — offering all six
+    // (the pre-fix "list of 1 -> undefined/no restriction" behavior) let a
+    // Barbarian take Charisma as its key ability with no warning.
+    expect(classGroup.allowedSlugs).toEqual(["str"]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -4552,6 +4566,71 @@ describe("skillTrainingDialogContext", () => {
     expect(athleticsRow.currentMod).toBe(0); // untrained: just the ability mod
     expect(athleticsRow.targetMod).toBe(0 + skillProficiencyBonus(1, 3)); // trained at char level 3
     expect(athleticsRow.targetModFormatted).toBe(`+${String(athleticsRow.targetMod)}`);
+  });
+
+  // PF2e Remaster core rules (RAW, not read from any pack): Master requires
+  // character level 7+, Legendary requires character level 15+ — regardless
+  // of how many skillIncrease slots the character has spent so far.
+  function docAtLevelWithStealthRank(level: number, rank: number): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...magusClassDoc(), _id: "item-class" }],
+      system: {
+        level: { value: level },
+        details: {},
+        skills: { stealth: { rank } },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  it("issue #49: a rank-2 (expert) skill cannot advance to Master before character level 7", () => {
+    const belowGate = skillTrainingDialogContext(
+      docAtLevelWithStealthRank(6, 2),
+      6,
+      "skillIncrease",
+    );
+    const stealthBelow = belowGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthBelow.targetRank).toBe(3); // would-be Master
+    expect(stealthBelow.eligible).toBe(false); // level 6 < 7
+
+    const atGate = skillTrainingDialogContext(docAtLevelWithStealthRank(7, 2), 7, "skillIncrease");
+    const stealthAtGate = atGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthAtGate.targetRank).toBe(3);
+    expect(stealthAtGate.eligible).toBe(true); // level 7 meets the gate
+  });
+
+  it("issue #49: a rank-3 (master) skill cannot advance to Legendary before character level 15", () => {
+    const belowGate = skillTrainingDialogContext(
+      docAtLevelWithStealthRank(14, 3),
+      14,
+      "skillIncrease",
+    );
+    const stealthBelow = belowGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthBelow.targetRank).toBe(4); // would-be Legendary
+    expect(stealthBelow.eligible).toBe(false); // level 14 < 15
+
+    const atGate = skillTrainingDialogContext(
+      docAtLevelWithStealthRank(15, 3),
+      15,
+      "skillIncrease",
+    );
+    const stealthAtGate = atGate.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthAtGate.targetRank).toBe(4);
+    expect(stealthAtGate.eligible).toBe(true); // level 15 meets the gate
   });
 });
 

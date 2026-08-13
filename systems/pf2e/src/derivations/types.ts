@@ -283,15 +283,26 @@ export interface CharacterDerived {
   /** Armor Class breakdown. REQ-PF2-020 */
   readonly ac: DerivedStatistic;
 
-  /** Saving throws. REQ-PF2-015 */
+  /**
+   * Saving throws. REQ-PF2-015.
+   *
+   * Each entry also carries the `rank` it was derived from (mirrors
+   * CONTRACT C1 for skills, issue #38) — the sheet must read the
+   * proficiency label from here, not from `system.saves`, which never
+   * receives the class-granted rank back once derivation runs (only
+   * `system.derived` is persisted).
+   */
   readonly saves: {
-    readonly fortitude: DerivedStatistic;
-    readonly reflex: DerivedStatistic;
-    readonly will: DerivedStatistic;
+    readonly fortitude: DerivedSkillStatistic;
+    readonly reflex: DerivedSkillStatistic;
+    readonly will: DerivedSkillStatistic;
   };
 
-  /** Perception. REQ-PF2-014 */
-  readonly perception: DerivedStatistic;
+  /**
+   * Perception. REQ-PF2-014. Carries `rank` for the same reason `saves`
+   * does above (issue #38).
+   */
+  readonly perception: DerivedSkillStatistic;
 
   /** All 16 canonical skills (and any Lore skills). REQ-PF2-012 */
   readonly skills: Record<string, DerivedSkillStatistic>;

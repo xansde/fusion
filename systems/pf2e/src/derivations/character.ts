@@ -26,7 +26,6 @@ import { SKILL_ABILITY, SKILL_SLUGS } from "../types.js";
 import { abilityMod, proficiencyBonus, resolveStatisticMulti, mapPenalties } from "./helpers.js";
 import { deriveStrikeFromWeapon, type StrikeModifier } from "../actions/strikes.js";
 import type {
-  DerivedStatistic,
   DerivedSkillStatistic,
   DerivedStrike,
   ModifierBreakdown,
@@ -321,6 +320,14 @@ export const stepCharAc: DeriveStep = {
  * Each save = abilityMod + proficiencyBonus + Σmodifiers.
  * Selectors: specific ("fortitude") + broad ("saving-throw").
  *
+ * Each entry also exposes the `rank` it was derived from (mirrors CONTRACT
+ * C1 for skills, issue #38) — `system.saves.<name>.rank` IS correctly
+ * computed by `stepCharApplyClass` (base phase, including
+ * `proficiencyUpgrades`), but that mutation lives only in the server's
+ * in-memory derive pass: only `system.derived` is ever persisted/broadcast
+ * (derive-runner.ts), so a freshly loaded document would otherwise always
+ * show the class-granted save as Untrained.
+ *
  * Reads:  system.derived.abilityMods, system.saves, system.level
  * Writes: system.derived.saves
  */
@@ -344,7 +351,7 @@ export const stepCharSaves: DeriveStep = {
       will: "wis",
     } as const;
 
-    const saves: Record<string, DerivedStatistic> = {};
+    const saves: Record<string, DerivedSkillStatistic> = {};
     // ROBUSTNESS (audit issue 1): system.saves may be entirely absent.
     const sysSaves = sys.saves ?? ({} as CharacterSystem["saves"]);
 
@@ -357,13 +364,18 @@ export const stepCharSaves: DeriveStep = {
       const base = mod + proficiencyBonus(rank, level);
 
       // Merge specific selector (e.g. "fortitude") and broad "saving-throw"
-      saves[saveName] = resolveStatisticMulti(
+      const stat = resolveStatisticMulti(
         saveName,
         base,
         [saveName, "saving-throw"],
         ctx.synthetics,
         ctx.rollOptions,
       );
+
+      // The rank rides along on the derived statistic (issue #38) — see the
+      // step-level comment above for why this can't just be read back from
+      // `system.saves` downstream.
+      saves[saveName] = { ...stat, rank };
     }
 
     derived["saves"] = saves;
@@ -377,6 +389,10 @@ export const stepCharSaves: DeriveStep = {
 
 /**
  * Derive Perception = WIS mod + proficiencyBonus(perception rank) + Σmodifiers.
+ *
+ * Also exposes the `rank` it was derived from (issue #38) — same rationale
+ * as `stepCharSaves` above: `system.perception.rank` is correctly computed
+ * by `stepCharApplyClass` but never persisted on its own.
  *
  * Reads:  system.derived.abilityMods, system.perception.rank, system.level
  * Writes: system.derived.perception
@@ -406,7 +422,7 @@ export const stepCharPerception: DeriveStep = {
       ctx.rollOptions,
     );
 
-    derived["perception"] = stat;
+    derived["perception"] = { ...stat, rank };
   },
 };
 
