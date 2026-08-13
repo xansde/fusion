@@ -589,15 +589,47 @@
 
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
+          // _createOrchestrator is synchronous and, as a side effect, publishes
+          // THIS generation's wallsLayer/tokenInteraction/ticker/etc into the
+          // same shared fields _teardownOrchestrator reads. Snapshot them into
+          // locals right here — nothing else can run between this line and the
+          // snapshot, so these are guaranteed to be exactly what THIS
+          // generation created, never a later one's. The stale branch below
+          // tears down from these locals instead of re-reading the shared
+          // fields, which a newer generation may have already overwritten by
+          // the time this continuation resumes (bug found in review: a second
+          // await gives the exact same stale-teardown race issue #81 fixed at
+          // the effect-cleanup level, one layer deeper).
+          const thisGenOrchestrator = sceneOrchestrator;
+          const thisGenWallsLayer = wallsLayer;
+          const thisGenTokenInteraction = tokenInteraction;
+          const thisGenTickerDisposer = _tickerDisposer;
+          const thisGenDisposeWallsSync = disposeWallsSync;
+          const thisGenDisposeRuler = disposeRuler;
+          const thisGenDisposePing = disposePing;
+          const thisGenDisposePresence = disposePresence;
+
           await sceneOrchestrator.setup();
           if (!isCurrentGeneration(myGeneration, sceneLoadGeneration)) {
-            // Same race, one await later. cleanupScene/sceneOrchestrator
-            // were just published above by THIS generation, so
-            // _teardownOrchestrator() correctly unwinds exactly what this
-            // load produced.
-            _teardownOrchestrator();
-            cleanupScene?.();
-            cleanupScene = null;
+            // Same race, one await later — but this time a NEWER generation
+            // may already have run its own checkpoint above and published its
+            // own instances into sceneOrchestrator/wallsLayer/tokenInteraction/
+            // etc. Calling the shared teardown helper here would read the
+            // CURRENT (possibly newer) values and destroy someone else's live
+            // scene — exactly the #81 symptom (canvas goes blank on scene
+            // switch), just one await later than the bug that was fixed
+            // there. Dispose only the local snapshot THIS generation
+            // created; never touch the shared fields, which may or may not
+            // still be ours.
+            thisGenTickerDisposer?.();
+            thisGenTokenInteraction?.destroy();
+            thisGenDisposeWallsSync?.();
+            thisGenWallsLayer?.destroy();
+            thisGenDisposeRuler?.();
+            thisGenDisposePing?.();
+            thisGenDisposePresence?.();
+            thisGenOrchestrator.teardown();
+            nextCleanupScene?.();
             return;
           }
         }
