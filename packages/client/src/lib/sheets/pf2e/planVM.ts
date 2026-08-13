@@ -2286,6 +2286,32 @@ const AXIS_SUFFIX_TO_SLOT_TYPE: ReadonlyArray<{ phrase: string; slotType: PlanSl
   { phrase: "thesis", slotType: "arcaneThesis" },
   { phrase: "school", slotType: "arcaneSchool" },
   { phrase: "edge", slotType: "huntersEdge" },
+  // "divine font" (adversarial-review fix, issue #34): MUST be listed before
+  // the bare "font" entry below (this table is matched longest-first). Some
+  // feats (Martyr) phrase their prerequisite as the bare "divine font" —
+  // that's a GENERIC requirement ("have a Divine Font at all", either side),
+  // not a request for a specific font. Without this entry, "divine font"
+  // fell through to the "font" entry's `endsWith(" font")` branch and
+  // stripped to "divine" — a stripped form that can never equal the chosen
+  // font's core ("healing"/"harmful"), producing a FALSE "unmet" on Martyr
+  // for any character whose `classSystem` doesn't independently resolve
+  // "divine font" through `knownPossessedNames` (i.e. `classSystem` is
+  // undefined, or belongs to a class other than the Cleric that granted the
+  // font — e.g. a Fighter with a Cleric dedication). Matching "divine font"
+  // exactly here strips it to "" — the generic-axis branch in
+  // `evaluatePrerequisiteCandidate` — so it's met by ANY font pick,
+  // regardless of `classSystem`.
+  { phrase: "divine font", slotType: "divineFont" },
+  // "font" (issue #34 live-test fix): unlike "gate"/"bloodline" below, this
+  // one IS safe. `chooseDivineFont` synthesizes its own doc — displayed in
+  // pt-BR ("Fonte de Cura"/"Fonte de Dano"), unlike every other axis here —
+  // but `axisChoiceNames` never reads that display name for this slot type;
+  // it resolves the stable English core ("healing"/"harmful") off the doc's
+  // `flags.fusion.sourceId` instead (`DIVINE_FONT_CORE_BY_SOURCE_ID`). So
+  // "healing font"/"harmful font" strip to "healing"/"harmful", which DOES
+  // vary with the player's actual pick — the same shape as
+  // "instinct"/"racket"/etc., not the "gate" trap.
+  { phrase: "font", slotType: "divineFont" },
   // DELIBERATELY ABSENT — adding either would only ever produce a FALSE
   // "unmet", which DEC-BC-05 rates worse than no mark at all:
   //
@@ -2342,15 +2368,28 @@ const AXIS_SLOT_TYPES = new Set<PlanSlotType>([
   "muse",
   "cause",
   "doctrine",
+  // issue #34 live-test fix — see AXIS_SUFFIX_TO_SLOT_TYPE's "font" entry.
+  "divineFont",
 ]);
 
 /**
- * The character's CURRENT pick for each subclass-axis slot type (by display
- * name), read off the item-backed axis slots (`instinct-1`, `racket-1`, …
- * per `resolveSlot`'s `<type>-<level>` convention) the same way `resolveSlot`
- * itself finds them — via `flags.fusion.build.slot`, not by re-deriving the
- * slot list. A character has at most one item per axis (the choice isn't
- * repeatable), so first match wins.
+ * The character's CURRENT pick for each subclass-axis slot type — normally
+ * the item's own display name (read off the item-backed axis slots
+ * `instinct-1`, `racket-1`, … per `resolveSlot`'s `<type>-<level>`
+ * convention, the same way `resolveSlot` itself finds them, via
+ * `flags.fusion.build.slot`, not by re-deriving the slot list). A character
+ * has at most one item per axis (the choice isn't repeatable), so first
+ * match wins.
+ *
+ * `divineFont` is the one exception: its doc is Fusion-synthesized (see
+ * `chooseDivineFont`) and, since issue #34's live-test fix, DISPLAYED in
+ * pt-BR ("Fonte de Cura"/"Fonte de Dano" — `DIVINE_FONT_OPTIONS`), so its
+ * display name can no longer double as the stable English identity
+ * `axisCoreName`'s "font"-suffix stripping needs. Per this project's
+ * identity convention (`flags.fusion.sourceId`, never the name — PF2e is
+ * full of homonyms), that axis resolves its pick from the stable sourceId
+ * stamped on the doc (`DIVINE_FONT_CORE_BY_SOURCE_ID`) instead, falling back
+ * to the display name only when no such mapping exists.
  */
 function axisChoiceNames(
   items: Array<Record<string, unknown>>,
@@ -2362,7 +2401,20 @@ function axisChoiceNames(
     const dashIdx = flag.slot.indexOf("-");
     const slotType = (dashIdx >= 0 ? flag.slot.slice(0, dashIdx) : flag.slot) as PlanSlotType;
     if (!AXIS_SLOT_TYPES.has(slotType) || slotType in result) continue;
-    const name = itemName(it);
+    const sourceId = itemFusionSourceId(it);
+    // `hasOwnProperty` guard (adversarial-review fix, issue #34): a plain
+    // object literal inherits Object.prototype, so an untrusted sourceId of
+    // "constructor"/"toString"/etc. would otherwise resolve to a Function,
+    // not `undefined` — which then skips the `?? itemName(it)` fallback (a
+    // function is truthy) and reaches `normalizePrereqText` downstream,
+    // crashing on `text.normalize is not a function` and taking out the
+    // whole Plan column. Same idiom as `isSkillWord` in
+    // compendium/prerequisiteTranslation.ts.
+    const stableCore =
+      sourceId && Object.prototype.hasOwnProperty.call(DIVINE_FONT_CORE_BY_SOURCE_ID, sourceId)
+        ? DIVINE_FONT_CORE_BY_SOURCE_ID[sourceId]
+        : undefined;
+    const name = stableCore ?? itemName(it);
     if (name) result[slotType] = name;
   }
   return result;
@@ -2422,6 +2474,59 @@ function knownPossessedNames(
  */
 const UNMODELED_AXIS_PHRASES = new Set(["untamed order"]);
 
+/**
+ * Prerequisite phrases that end in " font" (so `matchAxisSuffix`'s "font"
+ * entry would otherwise treat them as divine-font-axis-shaped) but are
+ * actually unconverted DEITY/lore PROSE, not the clean "<heal|harm> font"
+ * pattern — exhaustively measured against every `system.prerequisites`
+ * string containing "font" across systems/pf2e/packs (feats-core is the only
+ * pack with any):
+ *
+ *   - "deity who grants heal divine font" / "... harm divine font" (Bless
+ *     Tonic / Bless Toxin, both level 7 — each a SINGLE-candidate entry): a
+ *     DEITY condition. Fusion has no deity document to check it against
+ *     (same gap `chooseDivineFont`'s doc comment already names for #34).
+ *     Left to the generic axis-suffix path this strips to a prefix ("deity
+ *     who grants heal divine") that can never equal the chosen font's core
+ *     ("healing"/"harmful") — so EVERY Cleric who has picked a font would
+ *     get a FALSE "unmet" mark, no matter which font they hold. This entry
+ *     is the ONLY thing standing between that and silence for these two
+ *     feats — see divineFont.test.ts's isolated "Bless Tonic"/"Bless Toxin"
+ *     cases, which fail if this entry is removed.
+ *   - "cleric with a negative font" (one candidate of a THREE-candidate
+ *     OR-list — "cleric with a negative font, oracle of bones, or
+ *     necromancer wizard" — shared verbatim by Necromancer's Visage,
+ *     Sepulchral Sublimation and Undying Conviction, all Book of the Dead
+ *     non-remaster): "negative font" is the LEGACY (pre-remaster) name for
+ *     what Fusion's Divine Font choice models as Harmful Font — a related
+ *     but distinct, unconverted concept. UNLIKE the Bless Tonic/Toxin case
+ *     above, this entry is NOT the only thing preventing a false mark on
+ *     those three feats today: its OR-siblings "oracle of bones" and
+ *     "necromancer wizard" match no known name or axis phrase either, so
+ *     `evaluatePrerequisiteEntry` already downgrades the whole entry to
+ *     `"unknown"` (unresolved-in-the-OR) regardless of how THIS candidate
+ *     alone resolves — see that function's `allResolved` logic. Kept anyway
+ *     because the string genuinely IS unmodeled prose (silence is the
+ *     honest answer per DEC-BC-05 on its own terms) and so a future change
+ *     to the OR's other candidates, or to `evaluatePrerequisiteEntry`
+ *     itself, can't silently turn it into a false "unmet". Isolated as a
+ *     sole candidate (never how it appears in real packs), divineFont.
+ *     test.ts proves this entry — not the OR-downgrade — is what keeps it
+ *     silent in that shape.
+ *
+ * Checked before the axis-suffix match below so none of these ever reach it.
+ *
+ * (The remaining "font"-adjacent strings measured — "harmful font or
+ * healing font" [OR of the clean pattern] and "deity that allows clerics to
+ * have both fonts" [plural "fonts", doesn't match the " font" suffix at
+ * all] — already resolve correctly without special-casing.)
+ */
+const UNRESOLVABLE_FONT_PROSE = new Set([
+  "deity who grants heal divine font",
+  "deity who grants harm divine font",
+  "cleric with a negative font",
+]);
+
 /** One `system.prerequisites` candidate's resolution against what the character possesses. `"unresolved"` means this module has no way to tell — never treated as unmet. */
 function evaluatePrerequisiteCandidate(
   raw: string,
@@ -2433,6 +2538,7 @@ function evaluatePrerequisiteCandidate(
   if (knownNames.has(normalized) || knownNames.has(short)) return "met";
 
   if (UNMODELED_AXIS_PHRASES.has(normalized)) return "unmet";
+  if (UNRESOLVABLE_FONT_PROSE.has(normalized)) return "unresolved";
 
   const axisMatch = matchAxisSuffix(normalized);
   if (!axisMatch) return "unresolved";
@@ -4117,21 +4223,30 @@ function bloodlineSpellcastingOps(
  * machinery (repeat cap, replace-on-reselect) applies unchanged, with no
  * pack curation required.
  *
- * Materializing the pick as a `classFeature` item named literally "Healing
- * Font" / "Harmful Font" is also what unblocks the prerequisite half of #34:
- * `knownPossessedNames` already treats every embedded `classFeature` item's
- * name as known (no change needed there), and most feats-core entries citing
- * a font use EXACTLY the phrase "healing font"/"harmful font" (alone or in
- * an "A or B" pair — Healing Hands, Harming Hands, Heroic Recovery, Denier of
- * Destruction, Restorative Channel, Improved Command Undead, Command Undead,
- * Fast Channel, Versatile Font, Sacred Ground, Cast Down — measured against
- * the pack), which now resolves by direct name match. "Martyr"'s bare
- * "divine font" was ALREADY resolvable before this fix: every Cleric's class
- * doc names the level-1 feature itself "Divine Font" in `featuresByLevel`,
- * which `knownPossessedNames` already folds in regardless of this pick. The
- * remaining entries (deity-conditioned prose like "deity who grants heal
- * divine font", or the "negative font" synonym) stay unresolved — silence,
- * per DEC-BC-05, not a fabricated mark.
+ * The materialized item's DISPLAY name is pt-BR ("Fonte de Cura" / "Fonte de
+ * Dano" — `DIVINE_FONT_OPTIONS`, matching the picker dialog's own
+ * `FUSION.Sheet.Plan.DivineFont.Heal`/`.Harm` labels; live-test finding: the
+ * sheet used to show the English vendor subheading verbatim, which the
+ * dialog never offered). That's what unblocks the prerequisite half of #34,
+ * but NOT via a plain name match — the doc also carries a stable
+ * `flags.fusion.sourceId` (`DIVINE_FONT_SOURCE_ID`; this project's identity
+ * convention is always sourceId, never the name — PF2e homonyms are the
+ * norm), and `axisChoiceNames`/`AXIS_SUFFIX_TO_SLOT_TYPE`'s "font" entry
+ * resolve the pick from THAT, down to the stable English core
+ * ("healing"/"harmful" — `DIVINE_FONT_CORE_BY_SOURCE_ID`) a prerequisite's
+ * own "healing font"/"harmful font" text (alone or in an "A or B" pair —
+ * Healing Hands, Harming Hands, Heroic Recovery, Denier of Destruction,
+ * Restorative Channel, Improved Command Undead, Command Undead, Fast
+ * Channel, Versatile Font, Sacred Ground, Cast Down — measured against the
+ * pack) strips down to as well, so the two sides compare equal regardless of
+ * display locale. "Martyr"'s bare "divine font" was ALREADY resolvable
+ * before this fix and stays that way through a DIFFERENT path: every
+ * Cleric's class doc names the level-1 feature itself "Divine Font" in
+ * `featuresByLevel`, which `knownPossessedNames` folds in regardless of this
+ * pick or its display name. The remaining entries (deity-conditioned prose
+ * like "deity who grants heal divine font", or the legacy "negative font"
+ * synonym — see `UNRESOLVABLE_FONT_PROSE`) stay unresolved — silence, per
+ * DEC-BC-05, not a fabricated mark.
  *
  * OUT OF SCOPE here (server-side, not this VM): the actual extra prepared
  * spell slots Divine Font grants (4 at 1st, 5 at 5th, 6 at 15th, restricted
@@ -4140,9 +4255,32 @@ function bloodlineSpellcastingOps(
  * does not touch (another agent is editing that file for issue #13).
  */
 const DIVINE_FONT_OPTIONS: Record<"heal" | "harm", string> = {
-  heal: "Healing Font",
-  harm: "Harmful Font",
+  heal: "Fonte de Cura",
+  harm: "Fonte de Dano",
 };
+
+/**
+ * Stable `flags.fusion.sourceId` stamped on the synthesized Divine Font
+ * choice docs — see `DIVINE_FONT_OPTIONS`'s doc comment for why the display
+ * name can't double as identity here. These ids are internal to this module
+ * (never read from a pack), so any stable, collision-free string works.
+ */
+const DIVINE_FONT_SOURCE_ID: Record<"heal" | "harm", string> = {
+  heal: "fusion-divine-font-heal",
+  harm: "fusion-divine-font-harm",
+};
+
+/**
+ * Reverse lookup: a Divine Font choice doc's `sourceId` → the axis's stable
+ * English "core" — exactly what `matchAxisSuffix`'s "font" entry strips a
+ * prerequisite's "healing font" / "harmful font" down to (`axisCoreName`
+ * applies the same stripping to a display name; these values are already
+ * bare cores, so it's a no-op on them, per `axisChoiceNames`'s doc comment).
+ */
+const DIVINE_FONT_CORE_BY_SOURCE_ID: Readonly<Record<string, string>> = Object.freeze({
+  [DIVINE_FONT_SOURCE_ID.heal]: "healing",
+  [DIVINE_FONT_SOURCE_ID.harm]: "harmful",
+});
 
 /** A synthetic classFeature doc for the chosen font — see `chooseDivineFont`'s doc comment for why it isn't read from any pack. */
 function divineFontDoc(choice: "heal" | "harm"): Record<string, unknown> {
@@ -4155,6 +4293,11 @@ function divineFontDoc(choice: "heal" | "harm"): Record<string, unknown> {
       traits: { value: ["cleric"], rarity: "common" },
       rules: [],
       prerequisites: [],
+    },
+    flags: {
+      fusion: {
+        sourceId: DIVINE_FONT_SOURCE_ID[choice],
+      },
     },
   };
 }
