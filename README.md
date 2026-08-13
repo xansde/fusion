@@ -4,68 +4,138 @@ VTT (virtual tabletop) web próprio, construído em **clean-room** e inspirado n
 
 Sistemas de jogo suportados: **Pathfinder 2e (remaster)**, **Starfinder 2e** e **Etmos RPG**.
 
-## Pré-requisitos
+## Onde está o código
 
-| Ferramenta | Versão |
-| ---------- | ------ |
-| Node.js    | 22+    |
-| pnpm       | 11+    |
+| Branch      | O que é                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------- |
+| `main`      | Espelho publicável da `build/app`. É o que um `git clone` entrega — sempre a versão íntegra e executável.      |
+| `build/app` | **Branch de integração.** Todo trabalho parte dela e volta para ela por PR. É onde o desenvolvimento acontece. |
 
-O `pnpm install` compila dependências nativas (`better-sqlite3`), então é preciso ter um toolchain de build C++ disponível — no Windows, o que vem com o Visual Studio Build Tools; no Linux, `build-essential`.
+Para **rodar** o projeto, `main` basta. Para **contribuir**, parta de `build/app` (ver [CONTRIBUTING.md](CONTRIBUTING.md)).
 
-## Rodando
+## Instalando em uma máquina nova
+
+### Pré-requisitos
+
+| Ferramenta | Versão exigida | Como conferir |
+| ---------- | -------------- | ------------- |
+| Node.js    | 22 ou superior | `node -v`     |
+| pnpm       | 11 ou superior | `pnpm -v`     |
+
+São as mesmas versões que o CI usa (`.github/workflows/ci.yml`), e estão declaradas em `engines` no `package.json`. Se o `pnpm` não estiver instalado: `corepack enable && corepack prepare pnpm@11 --activate`.
+
+O `pnpm install` compila dependências nativas (`better-sqlite3`), então é preciso ter um toolchain C++ disponível:
+
+- **Windows**: "Desktop development with C++" do Visual Studio Build Tools.
+- **Linux**: `build-essential` (Debian/Ubuntu) ou equivalente.
+- **macOS**: `xcode-select --install`.
+
+### Os quatro comandos
 
 ```bash
+git clone https://github.com/xansde/fusion.git
+cd fusion
 pnpm install
 pnpm build          # ordem topológica: shared → system-api → systems → client → server
-node packages/server/dist/index.js serve
 ```
 
-O servidor sobe em `http://localhost:33000`. No primeiro uso, abra `/setup` para o assistente de configuração.
+O `pnpm build` compila os quatro pacotes e os quatro sistemas de jogo. Não há passo de geração de conteúdo: os compêndios (`systems/*/packs/`) são versionados e já vêm no clone.
 
-Para abrir um mundo já existente direto no boot:
+### Criando o primeiro mundo
 
 ```bash
-node packages/server/dist/index.js serve --world <slug>
+node packages/server/dist/cli/index.js world create meu_mundo --system pf2e --title "Minha Campanha"
 ```
 
-O mundo fica disponível em `http://localhost:33000/world/<slug>`.
+O `--system` é **obrigatório** — os ids válidos são `pf2e`, `sf2e`, `etmos` e `stub`.
 
-### CLI do servidor
+O comando imprime uma **senha de GM gerada aleatoriamente, mostrada uma única vez e impossível de recuperar depois**. Guarde-a antes de fechar o terminal. Para escolher a sua, passe `--gm-password <senha>`.
 
-```
-fusion serve                  Sobe o servidor
-  --port <n>                  Porta TCP (default: 33000)
-  --data-dir <path>           Diretório de dados
-  --world <slug>              Abre este mundo no boot
-  --tunnel                    Expõe o servidor via Cloudflare quick tunnel
-  --no-open                   Não abre o assistente de setup no navegador
-
-fusion world list             Lista os mundos do diretório de dados
-fusion world create <slug>    Cria um mundo
-fusion world backup <slug>    Backup manual de um mundo
-fusion user add <world> <name>
-```
-
-### Desenvolvimento
-
-O client tem dev server com HMR:
+### Subindo o servidor
 
 ```bash
+node packages/server/dist/cli/index.js serve --world meu_mundo
+```
+
+O mundo fica em `http://localhost:33000/world/meu_mundo`, e os jogadores entram pelo mesmo endereço na rede local (trocando `localhost` pelo IP da máquina do GM). Sem `--world`, o servidor sobe no assistente de configuração em `http://localhost:33000/setup`, que abre sozinho no navegador na primeira execução.
+
+Para expor a mesa pela internet sem configurar roteador, `--tunnel` levanta um Cloudflare quick tunnel e imprime a URL pública (baixa o `cloudflared` na primeira vez).
+
+### Onde ficam os dados
+
+O diretório de dados guarda mundos, usuários e backups. O padrão depende do sistema operacional:
+
+| SO      | Caminho padrão                               |
+| ------- | -------------------------------------------- |
+| Windows | `%USERPROFILE%\Documents\FusionVTT`          |
+| macOS   | `~/Documents/FusionVTT`                      |
+| Linux   | `$XDG_DATA_HOME/FusionVTT`, ou `~/FusionVTT` |
+
+Se já existir um `~/.fusion` de uma versão anterior, ele continua sendo usado (fallback legado). Qualquer comando aceita `--data-dir <path>` para apontar outro lugar — é assim que se roda um servidor de teste sem tocar no mundo em jogo.
+
+**Levar a campanha para outro PC** é copiar esse diretório: o mundo vive nele, não no repositório.
+
+## CLI do servidor
+
+O binário é `packages/server/dist/cli/index.js` (o `packages/server/dist/index.js` reexporta o mesmo CLI).
+
+```
+fusion serve                            Sobe o servidor
+  --port <n>                            Porta TCP (default: 33000)
+  --data-dir <path>                     Diretório de dados
+  --world <slug>                        Abre este mundo no boot
+  --log-level <level>                   trace|debug|info|warn|error|fatal|silent
+  --tunnel                              Expõe o servidor via Cloudflare quick tunnel
+  --no-open                             Não abre o assistente de setup no navegador
+
+fusion world list                       Lista os mundos do diretório de dados
+fusion world create <slug> --system <id>
+  --title <text>                        Título legível (default: o slug)
+  --gm-password <pwd>                   Senha do GM (default: gerada e impressa uma vez)
+fusion world backup <slug>              Backup manual de um mundo
+fusion user add <world> <name>          Cria um usuário no mundo
+```
+
+Todo comando aceita `--help`.
+
+## Desenvolvimento
+
+O client tem dev server com HMR. Ele **não substitui o servidor** — precisa dos dois rodando:
+
+```bash
+# terminal 1 — servidor de regras (autoritativo)
+node packages/server/dist/cli/index.js serve --world meu_mundo
+
+# terminal 2 — client com HMR
 pnpm --filter @fusion/client dev
 ```
 
+O Vite sobe em `http://localhost:5173` e faz proxy de `/api` e `/socket.io` para a porta 33000. Abra o `5173` no navegador, não o `33000`.
+
+> **Rodando mais de um servidor na mesma máquina**: a porta 33000 com o data-dir padrão é "a mesa ao vivo". Um servidor de teste apontando para lá derruba a sessão em andamento sem aviso. Para testar, use sempre uma porta livre (`--port 33021`) **e** um `--data-dir` descartável.
+
+### Executável standalone
+
+Para distribuir o servidor a quem não tem Node instalado, `pnpm build:release` empacota tudo num binário único (Node SEA) em `dist-release/fusion-server-<versão>-<plataforma>-<arch>[.exe]`, e `pnpm smoke:release` confere o artefato.
+
+> ⚠️ **O comando falha hoje** (verificado em 13/08/2026): o `.exe` é gerado com ~157,6 MB e a fase 7/8 aborta por estourar o teto de 150 MB da `REQ-DST-046`. O binário fica em `dist-release/` e é utilizável, mas o build sai com código de erro — não dá para usar em release automatizada até o tamanho baixar (comprimir os assets do client ou adotar o fallback zip-portable previsto no design DA-04).
+
+Enquanto isso, o caminho suportado para outra máquina é o clone + `pnpm build` descrito acima.
+
 ## Verificação
 
-Os mesmos gates que o CI aplica:
+Os mesmos gates que o CI aplica, na mesma ordem:
 
 ```bash
+pnpm build
 pnpm typecheck        # tsc + svelte-check
-pnpm lint             # eslint (strictTypeChecked)
 pnpm format:check     # prettier
-pnpm test             # vitest (~3.7k testes)
+pnpm lint             # eslint (strictTypeChecked)
 pnpm lint:boundaries  # dependency-cruiser (fronteiras entre pacotes)
+pnpm test             # vitest (~3.7k testes)
 ```
+
+`pnpm format` e `pnpm lint --fix` corrigem a maior parte do que os dois primeiros apontam.
 
 ## Estrutura
 
@@ -113,10 +183,11 @@ As specs são a **definição do objetivo**: se o comportamento não cumpre uma 
 
 | Documento                                              | O que é                                                            |
 | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| [`specs/README.md`](specs/README.md)                   | Índice das 33 specs e o registro de áreas (`REQ-<ÁREA>-NNN`)       |
+| [`specs/README.md`](specs/README.md)                   | Índice das specs e o registro de áreas (`REQ-<ÁREA>-NNN`)          |
 | [`specs/CONVENCOES.md`](specs/CONVENCOES.md)           | O metamodelo: o que é uma spec, níveis, ids, anatomia              |
 | [`specs/RASTREABILIDADE.md`](specs/RASTREABILIDADE.md) | Quem foi conferir cada requisito [MVP] — gerado, não editado à mão |
 | [`specs/RESUMO.md`](specs/RESUMO.md)                   | Resumo executivo de cada spec, para leitura corrida                |
+| [`docs/primeira-sessao.md`](docs/primeira-sessao.md)   | Roteiro de uma primeira sessão de jogo, do zero à mesa             |
 | [`docs/research/`](docs/research/)                     | Os 21 documentos de pesquisa que fundamentam as specs              |
 | [`docs/lessons.md`](docs/lessons.md)                   | Lições aprendidas na implementação (erros que não devem voltar)    |
 
