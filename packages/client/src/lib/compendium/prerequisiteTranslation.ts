@@ -168,7 +168,7 @@ const CURATED_PREREQUISITE_PT: Readonly<Record<string, string>> = Object.freeze(
   "you follow a deity": "você segue uma divindade",
   "exactly one kinetic element": "exatamente um elemento cinético",
   "devotion spell (lay on hands)": "magia devocional (impor as mãos)",
-  "harmful font": "fonte prejudicial",
+  "harmful font": "fonte de dano",
   familiar: "familiar",
   "divine spells": "magias divinas",
   "cleric with a negative font, oracle of bones, or necromancer wizard":
