@@ -267,3 +267,43 @@ já mexido pelas duas ondas) → escolher entre Onda D (destrava a mesa) e Onda 
 
 O rumo recomendado continua sendo **D**: temos 492 monstros e nenhum gesto na interface põe
 um deles no mapa.
+
+---
+
+## 9. ADENDO — o handoff foi executado (2026-08-12, madrugada)
+
+A sessão seguinte rodou este handoff em ultracode. Estado ao fechar:
+
+| Entrega | Onde |
+|---|---|
+| §3.1 + §3.3 (eixo `font` do #34 + Fonte Divina em pt-BR) | **PR #119**, empilhado sobre o #115 |
+| §3.2 → issue do filtro de foco (85 magias sem trait) | **#117** |
+| Issue do pack do Cleric sem progressão de conjuração (§2, "vale issue própria") | **#118** |
+| §3.4 → roteiro (artifact) corrigido | passos 10/12 (talento é nível 2) e 19/20 (aba Magias é fixa) |
+| **Onda D** (#83 #81 #84 #62) | **PR #121** contra `build/app`, 12 commits |
+| Powerful Fist não faz nada (motor ItemAlteration inexistente + itemId placeholder) | **#120**, descoberto pela trilha do #62 |
+
+**Validação ao vivo (GM, mesma noite):** e2e completo no build do #119 — tudo bateu,
+inclusive a inversão da marcação com a troca de fonte (o ganho do #34 ficou visível) e o
+pt-BR na ficha. Mártir não é testável ao vivo em personagem nível 1–2 (talento de nível 8;
+coberto por teste unitário do caso multiclasse). **#34 segue aberta de propósito**: falta a
+metade mecânica — os espaços de Curar/Dano por dia — reconfirmada pelo GM no teste.
+**#72 e #80 continuam sem prova jogada.**
+
+**Verificação da Onda D:** cinco trilhas disjuntas POR ARQUIVO (client serializado — a
+lição da §7.2 aplicada e funcionando), duas rodadas de revisão adversarial que acharam e
+mataram 9 problemas reais (porta que não abria pelo mesmo defeito de shape do `$push`,
+interação PIXI morta por `eventMode`, o fix do #81 desfazendo o estado compartilhado,
+jogador vendo a geometria das paredes por cima do fog, etc.). Suítes completas: server
+1136 ✓ · client 3272 ✓ · pf2e 1133 ✓ · shared 906 ✓ (única falha: `pregen-parity`,
+ambiental — vendor `iconics` ausente na worktree).
+
+**Merge (humano, ordem sugerida):** `#114` → `#115` → `#119` (pilha; o GitHub retarget
+sozinho a cada merge) · `#116` (este handoff) e `#121` (Onda D) são independentes e
+podem entrar a qualquer momento.
+
+**Gotcha novo para a próxima sessão:** o `gh` trocou de conta sozinho DUAS vezes no meio
+do trabalho (§7.5 continua valendo — confira `gh auth status` antes de todo push). E o
+data-dir de demo copiado de um mundo VIVO carrega o `world.lock` junto — apague o lock
+DA CÓPIA antes do serve, e marque `setupCompleted: true` no `Config/fusion.json` da cópia
+para o `/` não redirecionar ao `/setup`.
