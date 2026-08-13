@@ -41,6 +41,7 @@
     isFeatAtRepeatCap,
     chooseClassChoice,
     chooseKineticGate,
+    chooseDivineFont,
     chooseAdoptedAncestry,
     readGateElements,
     isAncestryAdoptable,
@@ -102,6 +103,7 @@
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
   import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
   import KineticGateDialog from "./KineticGateDialog.svelte";
+  import DivineFontDialog from "./DivineFontDialog.svelte";
   import { t, i18n } from "../../../../lib/i18n/i18n.js";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
   import {
@@ -748,6 +750,7 @@
   let slotPicker = $state<SlotPicker>(null);
   let boostsDialogTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
   let kineticGateTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
+  let divineFontTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
 
   // Repeat-cap rejection notice (W2 frente 1) — chooseFeat silently refuses
   // (returns []) a feat that already hit its `maxTakable` cap, so the picker
@@ -798,6 +801,14 @@
     }
     if (slot.type === "kineticGate") {
       kineticGateTarget = { level, slot };
+      return;
+    }
+    // issue #34 — no per-option pack doc exists for this slot (see
+    // `chooseDivineFont`'s doc comment), so it can't go through the generic
+    // CLASS_CHOICE_SLOT_OPTIONS picker below; it gets its own tiny dialog,
+    // the same way kineticGate does.
+    if (slot.type === "divineFont") {
+      divineFontTarget = { level, slot };
       return;
     }
     if (slot.type === "classLevel") {
@@ -994,6 +1005,13 @@
     if (!kineticGateTarget) return;
     sendAll(chooseKineticGate(opCtx, kineticGateTarget.level, featureDoc, picks));
     kineticGateTarget = null;
+  }
+
+  /** Divine Font confirm (issue #34) — no doc resolution needed, `chooseDivineFont` synthesizes the item itself. */
+  function handleDivineFontConfirm(choice: "heal" | "harm"): void {
+    if (!divineFontTarget) return;
+    sendAll(chooseDivineFont(opCtx, divineFontTarget.level, choice));
+    divineFontTarget = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -1322,6 +1340,14 @@
     title={t("FUSION.Sheet.Plan.KineticGate.Title")}
     onClose={() => { kineticGateTarget = null; }}
     onConfirm={handleKineticGateConfirm}
+  />
+{/if}
+
+{#if divineFontTarget}
+  <DivineFontDialog
+    title={t("FUSION.Sheet.Plan.DivineFont.Title")}
+    onClose={() => { divineFontTarget = null; }}
+    onConfirm={handleDivineFontConfirm}
   />
 {/if}
 

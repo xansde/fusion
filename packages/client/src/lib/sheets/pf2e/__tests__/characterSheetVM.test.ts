@@ -6,6 +6,9 @@
  */
 
 import { describe, it, expect, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   CharacterSheetVM,
   fmtMod,
@@ -15,9 +18,11 @@ import {
   filterSpellPicker,
   sortSpellPickerEntries,
   resolveInitialTradition,
+  matchesTraitFilter,
   buildSpellNameTranslator,
   buildSpellDetailsResolver,
   translatedStrikeDamageFormula,
+  spellSurfaceModeFor,
   type SpellPickerEntry,
   type SpellDetailsIndexEntry,
 } from "../characterSheetVM.js";
@@ -29,6 +34,33 @@ import {
   AbilityCardSchema,
 } from "@fusion/shared";
 import { i18n } from "../../../i18n/index.js";
+
+// ---------------------------------------------------------------------------
+// Real pack data (issues #6, #7, #36) — never a hand-copied table of the
+// spells-core content, so the assertions below are checked against the
+// actual vendor data the app ships, the same non-circular pattern
+// prereqEvaluator.test.ts established.
+// ---------------------------------------------------------------------------
+
+const PACKS = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../../../../../systems/pf2e/packs",
+);
+
+function loadSpellsCore(): Array<Record<string, unknown>> {
+  return JSON.parse(
+    readFileSync(path.join(PACKS, "spells-core", "documents.json"), "utf8"),
+  ) as Array<Record<string, unknown>>;
+}
+
+function realSpellTraits(name: string): string[] {
+  const spells = loadSpellsCore();
+  const doc = spells.find((d) => d["name"] === name);
+  if (!doc) throw new Error(`fixture spell not found in spells-core: ${name}`);
+  const system = doc["system"] as Record<string, unknown>;
+  const traits = system["traits"] as Record<string, unknown>;
+  return (traits["value"] as unknown[]).filter((t): t is string => typeof t === "string");
+}
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -1515,6 +1547,96 @@ describe("CharacterSheetVM — spell management ops (protocol-validated)", () =>
     expect(vm.addSpellToEntry("entry-arcane", { name: "Fireball" })).toBeNull();
   });
 
+  // ---------------------------------------------------------------------------
+  // issue #8 — a focus-trait spell only ever occupies a focus-pool entry, and
+  // a non-focus spell never occupies one (PF2e core rules: the prepared/
+  // spontaneous grimoire and the focus pool are never interchangeable). The
+  // concrete case this guards against: with issue #5 fixed, the Cleric now
+  // HAS a focus entry — but nothing stopped its domain spell (trait "focus")
+  // from also being dropped into the prepared "divine Spells" grimoire.
+  // Spell docs are the REAL spells-core documents (not a hand-copied trait
+  // table) — same non-circular pattern `realSpellTraits` above established
+  // for issues #6/#7/#36.
+  // ---------------------------------------------------------------------------
+  describe("addSpellToEntry — focus/non-focus mismatch guard (issue #8)", () => {
+    function realSpellDoc(name: string): Record<string, unknown> {
+      const spells = loadSpellsCore();
+      const doc = spells.find((d) => d["name"] === name);
+      if (!doc) throw new Error(`fixture spell not found in spells-core: ${name}`);
+      return doc;
+    }
+
+    function docWithFocusAndPreparedEntries(): Record<string, unknown> {
+      const doc = makeCharacter();
+      const items = doc["items"] as Array<Record<string, unknown>>;
+      items.push({
+        _id: "entry-divine-prepared",
+        name: "divine Spells",
+        type: "spellcastingEntry",
+        system: {
+          tradition: "divine",
+          prepared: "prepared",
+          ability: "wis",
+          isFocusPool: false,
+          slots: {},
+        },
+      });
+      items.push({
+        _id: "entry-focus",
+        name: "Focus Spells",
+        type: "spellcastingEntry",
+        system: {
+          tradition: "divine",
+          prepared: "innate",
+          ability: "wis",
+          isFocusPool: true,
+          slots: {},
+        },
+      });
+      return doc;
+    }
+
+    function vmWithFocusAndPreparedEntries(): CharacterSheetVM {
+      return new CharacterSheetVM({
+        doc: docWithFocusAndPreparedEntries(),
+        actorId: "actor-001",
+        ownership: OwnershipLevel.OWNER,
+        userId: "u",
+        isGm: true,
+      });
+    }
+
+    it('REJECTS a real focus-trait spell ("Adapt Self", a Cleric domain spell — verified against spells-core: traits include "cleric" and "focus") going into a prepared (non-focus) entry', () => {
+      const vm = vmWithFocusAndPreparedEntries();
+      const op = vm.addSpellToEntry("entry-divine-prepared", realSpellDoc("Adapt Self"));
+      expect(op).toBeNull();
+    });
+
+    it('ACCEPTS the same focus spell ("Adapt Self") going into the FOCUS entry', () => {
+      const vm = vmWithFocusAndPreparedEntries();
+      const op = vm.addSpellToEntry("entry-focus", realSpellDoc("Adapt Self"));
+      expect(op).not.toBeNull();
+    });
+
+    it('REJECTS a real non-focus spell ("Heal" — verified against spells-core: no "focus" trait) going into the FOCUS entry', () => {
+      const vm = vmWithFocusAndPreparedEntries();
+      const op = vm.addSpellToEntry("entry-focus", realSpellDoc("Heal"));
+      expect(op).toBeNull();
+    });
+
+    it('ACCEPTS "Heal" going into the prepared (non-focus) entry', () => {
+      const vm = vmWithFocusAndPreparedEntries();
+      const op = vm.addSpellToEntry("entry-divine-prepared", realSpellDoc("Heal"));
+      expect(op).not.toBeNull();
+    });
+
+    it("does not enforce the guard when entryId doesn't resolve to a real item on the actor (unchanged pre-#8 behavior)", () => {
+      const vm = makeVM();
+      const op = vm.addSpellToEntry("entry-does-not-exist", realSpellDoc("Adapt Self"));
+      expect(op).not.toBeNull();
+    });
+  });
+
   it("removeSpell builds a doc:delete with parent Actor", () => {
     const vm = makeVM();
     const op = vm.removeSpell("spell-magic-missile");
@@ -2357,6 +2479,60 @@ describe("CharacterSheetVM — focusSpells / focusEntryId", () => {
     // The base fixture's Magic Missile / Shield / Ray of Frost are not focus.
     expect(vm.focusSpells).toEqual([]);
   });
+
+  // issue #36: costsFocusPoint must reflect the spell's OWN "focus" trait —
+  // never "every row in the Focus tab" — because RAW cantrips (including the
+  // 10/20 Bard composition cantrips picked up via issue #6's widened picker
+  // filter) never cost a Focus Point when cast. Traits are the REAL ones
+  // read from spells-core (loadSpellsCore), not a hand-copied fixture.
+  describe("costsFocusPoint (issue #36)", () => {
+    it("is true for a real focus spell that costs a Focus Point (Counter Performance)", () => {
+      const doc = makeFocusDoc();
+      const items = doc["items"] as Array<Record<string, unknown>>;
+      items.push({
+        _id: "spell-counter-performance",
+        name: "Counter Performance",
+        type: "spell",
+        location: "entry-focus",
+        system: { level: 1, traits: { value: realSpellTraits("Counter Performance") } },
+      });
+      const vm = new CharacterSheetVM({
+        doc,
+        actorId: "actor-001",
+        ownership: OwnershipLevel.OWNER,
+        userId: "u",
+        isGm: true,
+      });
+      const row = vm.focusSpells.find((s) => s.id === "spell-counter-performance");
+      expect(row?.costsFocusPoint).toBe(true);
+    });
+
+    it("is false for a real composition CANTRIP added to the focus entry (Courageous Anthem)", () => {
+      const doc = makeFocusDoc();
+      const items = doc["items"] as Array<Record<string, unknown>>;
+      items.push({
+        _id: "spell-courageous-anthem",
+        name: "Courageous Anthem",
+        type: "spell",
+        // addSpellToEntry (issue #6/#8) links a composition cantrip to the
+        // focus-pool entry via `location`, same as any other focus spell —
+        // the cantrip itself never carries the "focus" trait.
+        location: "entry-focus",
+        system: { level: 0, traits: { value: realSpellTraits("Courageous Anthem") } },
+      });
+      const vm = new CharacterSheetVM({
+        doc,
+        actorId: "actor-001",
+        ownership: OwnershipLevel.OWNER,
+        userId: "u",
+        isGm: true,
+      });
+      const row = vm.focusSpells.find((s) => s.id === "spell-courageous-anthem");
+      // Collected (linked to the focus entry), but must NOT cost a point.
+      expect(row).toBeDefined();
+      expect(row?.costsFocusPoint).toBe(false);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -2579,6 +2755,90 @@ describe("filterSpellPicker", () => {
     it("does not match a term absent from both EN name and namePt", () => {
       expect(filterSpellPicker(translated, { search: "gelo" })).toEqual([]);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// filterSpellPicker — classTrait (issue #7)
+//
+// spells-core's focus spells carry NO `traditions` at all (458/458 empty),
+// so the RAW rule this exercises ("a class-specific focus spell is only
+// available to a character of that class; level <= ceil(charLevel/2)") can
+// only be enforced via the spell's own class trait + maxRank. Fixtures are
+// read from the REAL spells-core pack (loadSpellsCore/realEntry below), and
+// the assertions name specific real spells picked from the RAW rule — never
+// a recount of "however many filterSpellPicker itself returns".
+// ---------------------------------------------------------------------------
+
+describe("filterSpellPicker — classTrait (issue #7)", () => {
+  function realEntry(name: string): SpellPickerEntry {
+    const spells = loadSpellsCore();
+    const doc = spells.find((d) => d["name"] === name);
+    if (!doc) throw new Error(`fixture spell not found in spells-core: ${name}`);
+    const system = doc["system"] as Record<string, unknown>;
+    return {
+      name,
+      index: {
+        "system.level": system["level"],
+        "system.traits.traditions": [],
+        "system.traits.value": (system["traits"] as Record<string, unknown>)["value"],
+      },
+    };
+  }
+
+  it("excludes a real focus spell tagged for a DIFFERENT class (Lay on Hands is Champion-only)", () => {
+    const result = filterSpellPicker([realEntry("Lay on Hands")], { classTrait: "bard" });
+    expect(result).toEqual([]);
+  });
+
+  it("keeps a real focus spell tagged for the character's own class", () => {
+    const result = filterSpellPicker([realEntry("Counter Performance")], { classTrait: "bard" });
+    expect(result.map((e) => e.name)).toEqual(["Counter Performance"]);
+  });
+
+  it("keeps a shared focus spell that carries no class trait at all (Familiar Form)", () => {
+    const result = filterSpellPicker([realEntry("Familiar Form")], { classTrait: "bard" });
+    expect(result.map((e) => e.name)).toEqual(["Familiar Form"]);
+  });
+
+  it("combined with maxRank, hides a same-class spell above a level-1 Bard's ceiling (Fatal Aria, rank 10)", () => {
+    const result = filterSpellPicker([realEntry("Fatal Aria"), realEntry("Counter Performance")], {
+      classTrait: "bard",
+      maxRank: 1, // ceil(1 / 2) — a level-1 character's focus-spell ceiling.
+    });
+    expect(result.map((e) => e.name)).toEqual(["Counter Performance"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// matchesTraitFilter (issue #6)
+//
+// 10/20 Bard composition spells in spells-core are CANTRIPS (Allegro,
+// Courageous Anthem, ...) and correctly omit the "focus" trait per RAW
+// (cantrips never cost a Focus Point) — but must still surface in the Focus
+// tab's picker next to the compositions that DO cost a point. Real trait
+// arrays, read from spells-core, not a hand-copied table.
+// ---------------------------------------------------------------------------
+
+describe("matchesTraitFilter (issue #6)", () => {
+  it("matches a real non-cantrip composition spell against the 'focus' filter directly", () => {
+    expect(matchesTraitFilter(realSpellTraits("Counter Performance"), "focus")).toBe(true);
+  });
+
+  it("matches a real composition CANTRIP against 'focus' via the composition widening, even though it lacks the trait", () => {
+    const traits = realSpellTraits("Courageous Anthem");
+    expect(traits).not.toContain("focus"); // confirms the vendor data (RAW: cantrips never cost focus)
+    expect(matchesTraitFilter(traits, "focus")).toBe(true);
+  });
+
+  it("does not match a spell with neither 'focus' nor 'composition'", () => {
+    expect(matchesTraitFilter(realSpellTraits("Fireball"), "focus")).toBe(false);
+  });
+
+  it("does not widen a filter other than 'focus'", () => {
+    // "composition" chip itself must not accidentally match on other traits.
+    expect(matchesTraitFilter(realSpellTraits("Counter Performance"), "composition")).toBe(true);
+    expect(matchesTraitFilter(realSpellTraits("Fireball"), "composition")).toBe(false);
   });
 });
 
@@ -3021,5 +3281,56 @@ describe("CharacterSheetVM — skill rank from derived (C2) and Lore labels (C4)
     const lore = vmFor(doc).skills.find((s) => s.slug === "lore")!;
     expect(lore.isLore).toBe(true);
     expect(lore.label).toBe("Lore");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// spellSurfaceModeFor (issue #37) — the Bard is a SPONTANEOUS caster (it
+// knows a repertoire and spends slots on any known spell) but the Spells tab
+// rendered every non-focus entry as if it were PREPARED (numbered slots you
+// fill ahead of time via "Preparar do grimório…"). The assertion below comes
+// from `system.spellcasting.type` read straight out of classes-core — never
+// a hand-copied table — the same non-circular pattern issue #7's classTrait
+// tests and prereqEvaluator.test.ts established.
+// ---------------------------------------------------------------------------
+
+function loadClassesCore(): Array<Record<string, unknown>> {
+  return JSON.parse(
+    readFileSync(path.join(PACKS, "classes-core", "documents.json"), "utf8"),
+  ) as Array<Record<string, unknown>>;
+}
+
+function realSpellcastingType(className: string): string {
+  const classes = loadClassesCore();
+  const doc = classes.find((d) => d["name"] === className);
+  if (!doc) throw new Error(`fixture class not found in classes-core: ${className}`);
+  const system = doc["system"] as Record<string, unknown>;
+  const spellcasting = system["spellcasting"] as Record<string, unknown> | undefined;
+  const type = spellcasting?.["type"];
+  if (typeof type !== "string") {
+    throw new Error(`classes-core class '${className}' has no system.spellcasting.type`);
+  }
+  return type;
+}
+
+describe("spellSurfaceModeFor (issue #37)", () => {
+  it.each(["Bard", "Psychic", "Sorcerer"])(
+    "%s is spontaneous in classes-core → known-list surface (no 'preparing' step)",
+    (className) => {
+      expect(realSpellcastingType(className)).toBe("spontaneous");
+      expect(spellSurfaceModeFor(realSpellcastingType(className))).toBe("known-list");
+    },
+  );
+
+  it.each(["Cleric", "Druid", "Magus", "Wizard"])(
+    "%s is prepared in classes-core → slots surface (numbered slot cards)",
+    (className) => {
+      expect(realSpellcastingType(className)).toBe("prepared");
+      expect(spellSurfaceModeFor(realSpellcastingType(className))).toBe("slots");
+    },
+  );
+
+  it("an innate (non-focus) entry gets the known-list surface too — no 'preparing' step for it either", () => {
+    expect(spellSurfaceModeFor("innate")).toBe("known-list");
   });
 });
