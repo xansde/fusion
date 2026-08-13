@@ -13,6 +13,26 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 - `specs/` — especificações completas (índice em `specs/README.md`). Implementação segue as specs.
 - `docs/research/` — pesquisa que fundamenta as specs (21 docs sobre Foundry, PF2e, SF2e, Etmos, licenças, bibliotecas).
 
+## Branches
+
+- **`build/app` é a branch de integração**: toda branch de trabalho parte dela e volta para ela por PR. É o estado corrente do projeto.
+- **`main` é o espelho publicável** — o que um `git clone` entrega. Recebe merge de `build/app` quando o conjunto está íntegro; nunca recebe trabalho direto. Push nela exige instrução literal do Alexandre.
+- Branch nova sempre a partir de `origin/build/app` recém-buscado (`git fetch origin` antes), nunca do checkout local.
+
+## Setup e execução (o passo a passo verificado está no README)
+
+```bash
+pnpm install && pnpm build                                   # Node 22+, pnpm 11+
+node packages/server/dist/cli/index.js world create <slug> --system pf2e   # --system é obrigatório
+node packages/server/dist/cli/index.js serve --world <slug>
+```
+
+- O binário do CLI é `packages/server/dist/cli/index.js` (`dist/index.js` reexporta o mesmo CLI).
+- Ids de sistema válidos: `pf2e`, `sf2e`, `etmos`, `stub`.
+- `world create` imprime a senha do GM **uma única vez** e ela não é recuperável — capturar na hora ou passar `--gm-password`.
+- Dev do client exige os dois processos no ar: `serve` na 33000 + `pnpm --filter @fusion/client dev` (Vite na 5173, com proxy de `/api` e `/socket.io`). Abrir a 5173, não a 33000.
+- Os packs (`systems/*/packs/`) são versionados: não há passo de geração de conteúdo depois do clone.
+
 ## Stack
 
 TypeScript estrito · Node.js 22+ · monorepo pnpm · Fastify + socket.io v4 (servidor autoritativo) · better-sqlite3 · Svelte 5 (Runes) + Vite · PIXI.js v8 · @dice-roller/rpg-dice-roller (RNG no servidor) · @3d-dice/dice-box · clipper2-ts + honeycomb-grid · TipTap · Howler.js · Tauri v2 (fase 2).
