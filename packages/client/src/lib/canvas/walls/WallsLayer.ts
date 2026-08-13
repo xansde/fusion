@@ -15,7 +15,13 @@
  *   - WallsLayer owns the PIXI containers for wall lines + door icons
  *   - WallDrawingTool handles click-to-draw chain of wall segments
  *   - Door icons are clickable by all users (non-secret, unlocked doors)
- *   - Wall ops are sent via sendOp (doc:update with $push/$pull on scene.walls)
+ *   - Wall create/delete are sent via sendOp as `doc:create`/`doc:delete` with
+ *     `documentType: "Wall"` and `parent: { type: "Scene", id: sceneId }` —
+ *     Wall is an embedded document (issue #83), so the server allocates the
+ *     `_id` and folds it into `Scene.walls[]`. Door state toggling is sent as
+ *     the dedicated `scene:doorState` op (not `doc:update`), matching the
+ *     permission split the server enforces (open/close: any user; lock/unlock
+ *     and secret doors: GM/ASSISTANT only).
  *
  * Color coding (GM view):
  *   normal wall:    #ff4444 (red)
@@ -124,16 +130,35 @@ export class WallsLayer {
     this._isGm = isGm;
     this._onWallsChanged = onWallsChanged ?? null;
 
-    // Lines (wall segments) — below doors
+    // BUG FIX (found in review): `container` is the shared "controls" layer
+    // (see FusionCanvas._buildHierarchy), which FusionCanvas builds with
+    // `eventMode = "none"` — PIXI's docs are explicit that "none" "[i]gnores
+    // all interaction events, even on its children", and EventBoundary's
+    // `_interactivePrune` enforces that literally: a "none" ancestor prunes
+    // the whole subtree before it even looks at children, regardless of what
+    // eventMode THEY carry. Without this override every pointerdown on a wall
+    // line or door icon was dropped before it ever reached them — selecting,
+    // deleting or opening a door silently did nothing, GM or player. This
+    // mirrors TokenInteractionManager's identical fix for the "tokens" layer
+    // (same "every layer starts none" default there). Safe to share with
+    // NoteLayer/RulerLayer/PingLayer, also parented under "controls": each of
+    // those sets its OWN root to "none" to opt out, and pruning is decided by
+    // a node's own literal eventMode, not what it inherited — so they stay
+    // uninteractive no matter what this line does to their shared parent.
+    container.eventMode = "static";
+
+    // Lines (wall segments) — below doors. Must NOT be "none": that would
+    // independently prune this subtree the same way the parent fix above
+    // guards against, blocking every wall line regardless of its own
+    // eventMode. Left at the Container default ("passive") so an interactive
+    // child (the per-wall Graphics below) still gets hit-tested.
     this._linesContainer = new Container();
     this._linesContainer.label = "walls:lines";
-    this._linesContainer.eventMode = "none";
     container.addChild(this._linesContainer);
 
     // Door icons (interactive)
     this._doorsContainer = new Container();
     this._doorsContainer.label = "walls:doors";
-    this._doorsContainer.eventMode = "auto";
     container.addChild(this._doorsContainer);
 
     // Drawing preview (topmost)
@@ -267,7 +292,13 @@ export class WallsLayer {
 
     for (const wall of this._walls) {
       const g = new Graphics();
-      g.eventMode = this._isGm ? "auto" : "none";
+      // BUG FIX (found in review): "auto" never fires its own events — PIXI's
+      // docs say so explicitly ("Does not emit events... Same as
+      // `interactive = false`"), and EventBoundary.isInteractive() only
+      // returns true for "static"/"dynamic". The g.on("pointerdown", ...)
+      // handler below never fired with "auto", so a GM's click could never
+      // select (and therefore never delete) a wall.
+      g.eventMode = this._isGm ? "static" : "none";
 
       const color = this._wallColor(wall);
       const selected = this._selectedWallIds.has(wall._id);
@@ -355,7 +386,14 @@ export class WallsLayer {
     }
 
     c.addChild(g);
-    c.eventMode = "auto";
+    // BUG FIX (found in review): same "auto" mistake as the wall-line
+    // Graphics above — "auto" never emits its own events, so the
+    // c.on("pointerdown", ...) handler below never fired for any user. "auto"
+    // is retained for the inner circle `g`; a plain (non-hitArea) Container
+    // like `c` has no geometry of its own, so `c`'s hit test is satisfied via
+    // `g`'s real hit-tested shape — only `c` needs to be "static" for
+    // isInteractive() to resolve it as the propagation target.
+    c.eventMode = "static";
     c.cursor = wall.doorState === "locked" ? "not-allowed" : "pointer";
 
     // Door interaction
@@ -640,21 +678,31 @@ export class WallsLayer {
     }
   }
 
+  // BUG FIX (review of issue #83): this used to send `doc:update` with
+  // `documentType: "Scene"` and a dot-path diff `walls.<id>.doorState` — the
+  // exact same shape `_createWall`/`_sendWallsDelete` were fixed away from
+  // above. The server's `applyDotPathDiff` expands that dot-path into
+  // `{ walls: { "<id>": { doorState: ... } } }`, and `deepMerge` sees an
+  // array on the target (`walls`) meet an object on the patch, which its
+  // "mixed types" branch REPLACES wholesale — `walls` becomes an object and
+  // `SceneSchema` rejects it (`walls: Expected array, received object`).
+  // Doors never opened for anyone, GM or player.
+  //
+  // The server already ships a dedicated op for exactly this, with exactly
+  // the permission split this UI needs (open/close: anyone; lock/unlock and
+  // secret doors: GM/ASSISTANT only) — `scene:doorState`
+  // (DoorStatePayloadSchema, vision-handlers.ts buildDoorStateHandler). Using
+  // it also sidesteps the generic embedded `doc:update` path entirely, whose
+  // GM_ONLY_EMBEDDED set would incorrectly block a player's own door toggle.
   private async _sendDoorStateUpdate(wallId: string, state: DoorState): Promise<void> {
     if (!this._socket) return;
     try {
       await sendOp(this._socket, {
-        type: "doc:update",
+        type: "scene:doorState",
         payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: this._sceneId,
-              diff: {
-                [`walls.${wallId}.doorState`]: state,
-              },
-            },
-          ],
+          sceneId: this._sceneId,
+          wallId,
+          state,
         },
       });
     } catch (err) {
