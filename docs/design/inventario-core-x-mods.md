@@ -120,19 +120,19 @@ bloco opcional (mod), para ser refeito com calma.
 
 ### Básico (núcleo — nunca é mod)
 
-| Bloco          | O que entra                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Mundo e dados  | criar/abrir mundo, **documents + schemas, persistência SQLite**, export/import, backups — **próximo foco de trabalho**          |
-| Rede           | server autoritativo, snapshot/broadcast/replay/ack, reconexão, presença                                                         |
-| Usuários       | login GM/jogador, roles, ownership, redação de visibilidade                                                                     |
-| Rolagem e chat | motor de dados no server, roll modes, chat com cards, macros simples                                                            |
-| Combate        | combat tracker (iniciativa/turnos); o **cálculo** de iniciativa é do sistema (spec 10)                                          |
-| Fichas         | window manager + **contrato** de ficha (`sheetRegistry`) — a ficha em si vem do sistema                                         |
-| Compêndio      | browser de packs + contrato de importação — o conteúdo vem do sistema                                                           |
-| Distribuição   | CLI `serve`/`world create`, túnel, auto-update, assets/upload                                                                   |
-| Cena           | **só** exibir a imagem da cena ativa (sem grid, sem tokens, sem ferramentas em cima) — confirmado 15/08                         |
-| Áudio          | playlists/sons (spec 13) — funcionou bem, o Alexandre quer no jogo base                                                         |
-| Conteúdo PF2e  | packs e atualização do compêndio do r28 (#101–#107, inclusive Druid) entram na base — conteúdo é dado do jogo, não "coisa ruim" |
+| Bloco          | O que entra                                                                                                                                                                                                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mundo e dados  | criar/abrir mundo, **documents + schemas, persistência SQLite**, export/import, backups — **próximo foco de trabalho**                                                                                                                                                                  |
+| Rede           | server autoritativo, snapshot/broadcast/replay/ack, reconexão, presença                                                                                                                                                                                                                 |
+| Usuários       | login GM/jogador, roles, ownership, redação de visibilidade                                                                                                                                                                                                                             |
+| Rolagem e chat | motor de dados no server, roll modes, chat com cards, macros simples                                                                                                                                                                                                                    |
+| Combate        | combat tracker (iniciativa/turnos); o **cálculo** de iniciativa é do sistema (spec 10)                                                                                                                                                                                                  |
+| Fichas         | window manager + **contrato** de ficha (`sheetRegistry`) — a ficha em si vem do sistema                                                                                                                                                                                                 |
+| Compêndio      | browser de packs + contrato de importação — o conteúdo vem do sistema                                                                                                                                                                                                                   |
+| Distribuição   | CLI `serve`/`world create`, túnel, auto-update, assets/upload                                                                                                                                                                                                                           |
+| Cena           | **só** exibir a imagem da cena ativa (sem grid, sem tokens, sem ferramentas em cima) — confirmado 15/08                                                                                                                                                                                 |
+| Áudio          | playlists/sons (spec 13) — funcionou bem, o Alexandre quer no jogo base                                                                                                                                                                                                                 |
+| Conteúdo PF2e  | packs e atualização do compêndio do r28 (#101–#107, inclusive Druid), pré-requisitos (#111), pool de foco (#112) e as correções das ondas A/B (#114, #115, #119) entram na base; da onda D (#121) só a parte PF2e (Punho por regra) — a parte de canvas fica fora com o resto do canvas |
 
 ### Fora do básico (mod/addon — opcional, desligável por mundo)
 
