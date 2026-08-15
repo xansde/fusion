@@ -199,7 +199,11 @@ describe("classesOnSheet — identity by sourceId, never by name", () => {
   });
 
   it("does not merge two classes that happen to share a name", () => {
-    const homonym = { ...magusClassDoc(), name: "Fighter", flags: { fusion: { sourceId: "other" } } };
+    const homonym = {
+      ...magusClassDoc(),
+      name: "Fighter",
+      flags: { fusion: { sourceId: "other" } },
+    };
     const doc = actorDoc(6, [fighterClassDoc(), homonym]);
     expect(classesOnSheet(doc)).toHaveLength(2);
   });
@@ -236,9 +240,7 @@ describe("derivePlan — the classLevel slot", () => {
         choices: split({ 1: FIGHTER_SRC, 2: FIGHTER_SRC, 3: MAGUS_SRC, 4: FIGHTER_SRC }),
       }),
     );
-    const labels = plan.levels.map(
-      (l) => l.slots.find((s) => s.type === "classLevel")?.choiceName,
-    );
+    const labels = plan.levels.map((l) => l.slots.find((s) => s.type === "classLevel")?.choiceName);
     expect(labels).toEqual(["Fighter 1", "Fighter 2", "Magus 1", "Fighter 3"]);
   });
 
@@ -511,7 +513,9 @@ describe("resolveClassRef — tolerant, like the server's matchClass", () => {
 
   it("returns undefined for a ref that matches nothing", () => {
     const doc = actorDoc(2, [fighterClassDoc()]);
-    expect(resolveClassRef("Compendium.fusion.classes-core.nope", classesOnSheet(doc))).toBeUndefined();
+    expect(
+      resolveClassRef("Compendium.fusion.classes-core.nope", classesOnSheet(doc)),
+    ).toBeUndefined();
   });
 
   it("labels the slot with the class NAME even when the ref is a uuid", () => {
@@ -536,9 +540,7 @@ describe("resolveClassRef — tolerant, like the server's matchClass", () => {
         ],
       }),
     );
-    const labels = plan.levels.map(
-      (l) => l.slots.find((s) => s.type === "classLevel")?.choiceName,
-    );
+    const labels = plan.levels.map((l) => l.slots.find((s) => s.type === "classLevel")?.choiceName);
     expect(labels).toEqual(["Fighter 1", "Fighter 2"]);
   });
 });
@@ -558,7 +560,9 @@ describe("no duplicate class item (live defect: Cleric twice)", () => {
     });
     const ops = chooseClassLevel(opCtx(doc), 2, magusClassDoc());
     const classCreates = ops.filter(
-      (o) => o.type === "doc:create" && (o as { data: Record<string, unknown> }).data["type"] === "class",
+      (o) =>
+        o.type === "doc:create" &&
+        (o as { data: Record<string, unknown> }).data["type"] === "class",
     );
     expect(classCreates).toHaveLength(0);
   });
@@ -570,7 +574,9 @@ describe("no duplicate class item (live defect: Cleric twice)", () => {
     });
     const ops = chooseClassLevel(opCtx(doc), 2, magusClassDoc());
     const classCreates = ops.filter(
-      (o) => o.type === "doc:create" && (o as { data: Record<string, unknown> }).data["type"] === "class",
+      (o) =>
+        o.type === "doc:create" &&
+        (o as { data: Record<string, unknown> }).data["type"] === "class",
     );
     expect(classCreates).toHaveLength(1);
   });

@@ -1124,11 +1124,7 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("Bloodrager instinct + Draconic Arrogance (needs 'dragon instinct'): stays PICKABLE but gets marked unmet", () => {
     const doc = baseCharacterDoc({
-      items: [
-        barbarianWithClassFeatDoc(),
-        instinctItem("Bloodrager"),
-        draconicArroganceFeatDoc(),
-      ],
+      items: [barbarianWithClassFeatDoc(), instinctItem("Bloodrager"), draconicArroganceFeatDoc()],
       system: { level: { value: 1 }, details: {} },
     });
     const plan = derivePlan(doc);
@@ -1164,11 +1160,7 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("prerequisite prose outside the model (e.g. 'trained in Athletics') is UNKNOWN, never marked", () => {
     const doc = baseCharacterDoc({
-      items: [
-        barbarianWithClassFeatDoc(),
-        instinctItem("Bloodrager"),
-        unresolvableFeatDoc(),
-      ],
+      items: [barbarianWithClassFeatDoc(), instinctItem("Bloodrager"), unresolvableFeatDoc()],
       system: { level: { value: 1 }, details: {} },
     });
     const plan = derivePlan(doc);
@@ -1179,9 +1171,7 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
   });
 
   it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
-    expect(
-      checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5),
-    ).toBeUndefined();
+    expect(checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5)).toBeUndefined();
   });
 
   /**
@@ -1850,7 +1840,8 @@ describe("chooseClassChoice(bloodline) — tradition resolution per lineage", ()
       const ops = chooseClassChoice(ctx(doc), "bloodline", 1, bloodlineFeatureDoc(bloodlineName));
 
       const spellOp = ops.find(
-        (o) => o.type === "doc:create" && (o.data["name"] as string) === `${expectedTradition} Spells`,
+        (o) =>
+          o.type === "doc:create" && (o.data["name"] as string) === `${expectedTradition} Spells`,
       );
       expect(
         spellOp,
@@ -1915,7 +1906,10 @@ describe("chooseClassChoice(bloodline) — tradition resolution per lineage", ()
       const spellUpdateOp = ops.find(
         (o) => o.type === "doc:update" && o.id === "item-sorc-spells",
       ) as DocUpdatePayload | undefined;
-      expect(spellUpdateOp, `expected a doc:update on item-sorc-spells, ops: ${JSON.stringify(ops)}`).toBeDefined();
+      expect(
+        spellUpdateOp,
+        `expected a doc:update on item-sorc-spells, ops: ${JSON.stringify(ops)}`,
+      ).toBeDefined();
       expect(spellUpdateOp!.diff["system.tradition.value"]).toBe("divine");
       expect(spellUpdateOp!.diff["name"]).toBe("divine Spells");
 
@@ -1939,7 +1933,9 @@ describe("chooseClassChoice(bloodline) — tradition resolution per lineage", ()
       // No accidental doc:create — this is a RESTAMP of the existing items,
       // not a fresh pair of entries.
       const createOps = ops.filter((o) => o.type === "doc:create");
-      const entryCreates = createOps.filter((o) => (o.data["type"] as string) === "spellcastingEntry");
+      const entryCreates = createOps.filter(
+        (o) => (o.data["type"] as string) === "spellcastingEntry",
+      );
       expect(entryCreates).toHaveLength(0);
     });
   });
@@ -2616,10 +2612,7 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   }
 
   it("deletes the outgoing background's Lore, in the legacy slug form it was written with", () => {
-    const ops = applyBackground(
-      ctx(acolyteAppliedDoc("scribing-lore")),
-      fieldMedicBackgroundDoc(),
-    );
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), fieldMedicBackgroundDoc());
     expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
   });
 
@@ -2635,7 +2628,10 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
     );
     expect(delOp).toBeDefined();
     if (delOp?.type !== "doc:update") throw new Error("expected doc:update");
-    const wire = { documentType: delOp.documentType, updates: [{ _id: delOp.id, diff: delOp.diff }] };
+    const wire = {
+      documentType: delOp.documentType,
+      updates: [{ _id: delOp.id, diff: delOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -2655,11 +2651,9 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   it("does NOT delete a Lore the player raised with one of their OWN slots", () => {
     // The background granted it, but the character then spent a skill increase
     // on it — that investment is theirs, the swap doesn't claw it back.
-    const doc = acolyteAppliedDoc(
-      "lore-scribing",
-      {},
-      [{ level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "lore-scribing", rank: 2 }],
-    );
+    const doc = acolyteAppliedDoc("lore-scribing", {}, [
+      { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "lore-scribing", rank: 2 },
+    ]);
     const ops = applyBackground(ctx(doc), fieldMedicBackgroundDoc());
     expect(deletedSkillKeys(ops)).toEqual([]);
   });
@@ -2745,17 +2739,26 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   }
 
   it("keeps a Lore the player ranked up by hand, even with no build choice to prove it", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("lore-scribing", 2)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(deletedSkillKeys(ops)).toEqual([]);
   });
 
   it("keeps a hand-ranked Lore held under the legacy slug too", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("scribing-lore", 2)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(deletedSkillKeys(ops)).toEqual([]);
   });
 
   it("still deletes the outgoing Lore when its persisted rank is 0 (untouched grant)", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 0)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("lore-scribing", 0)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
   });
 
@@ -2777,7 +2780,10 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
   });
 
   it("writes rank 0 for a granted Lore the sheet has never held", () => {
-    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    const ops = applyBackground(
+      ctx(preLoreBranchDoc("lore-scribing", 2)),
+      fieldMedicBackgroundDoc(),
+    );
     expect(writtenSkillEntry(ops, "lore-warfare")).toMatchObject({ rank: 0, lore: true });
   });
 });
@@ -2823,7 +2829,10 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
    * expanded (doc-handlers.applyDotPathDiff) and `null` inside `system` deletes
    * the key (merge.deepMerge, REQ-DOC-037).
    */
-  function applyOps(doc: Record<string, unknown>, ops: DocUpdatePayload[]): Record<string, unknown> {
+  function applyOps(
+    doc: Record<string, unknown>,
+    ops: DocUpdatePayload[],
+  ): Record<string, unknown> {
     const next = structuredClone(doc);
     for (const op of ops) {
       for (const [path, value] of Object.entries(op.diff)) {
@@ -2862,19 +2871,16 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
   });
 
   it("repoints every build choice that referenced the legacy slug", () => {
-    const doc = docWith(
-      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
-      [
-        {
-          level: 1,
-          slot: "backgroundLore-0",
-          type: "skillTraining",
-          skill: "scribing-lore",
-          rank: 1,
-        },
-        { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
-      ],
-    );
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } }, [
+      {
+        level: 1,
+        slot: "backgroundLore-0",
+        type: "skillTraining",
+        skill: "scribing-lore",
+        rank: 1,
+      },
+      { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
+    ]);
     const ops = updatesOf(loreSlugHealOps(ctx(doc)));
     const choicesOp = ops.find((o) => "system.build.choices" in o.diff);
     expect(choicesOp).toBeDefined();
@@ -2883,18 +2889,15 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
   });
 
   it("is idempotent — replaying the healed document yields no ops", () => {
-    const doc = docWith(
-      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
-      [
-        {
-          level: 1,
-          slot: "backgroundLore-0",
-          type: "skillTraining",
-          skill: "scribing-lore",
-          rank: 1,
-        },
-      ],
-    );
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } }, [
+      {
+        level: 1,
+        slot: "backgroundLore-0",
+        type: "skillTraining",
+        skill: "scribing-lore",
+        rank: 1,
+      },
+    ]);
     const healed = applyOps(doc, updatesOf(loreSlugHealOps(ctx(doc))));
     const healedSkills = (healed["system"] as Record<string, unknown>)["skills"] as Record<
       string,
@@ -2928,18 +2931,15 @@ describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)
   });
 
   it("emits wire-valid doc:update payloads", () => {
-    const doc = docWith(
-      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
-      [
-        {
-          level: 1,
-          slot: "backgroundLore-0",
-          type: "skillTraining",
-          skill: "scribing-lore",
-          rank: 1,
-        },
-      ],
-    );
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } }, [
+      {
+        level: 1,
+        slot: "backgroundLore-0",
+        type: "skillTraining",
+        skill: "scribing-lore",
+        rank: 1,
+      },
+    ]);
     for (const op of updatesOf(loreSlugHealOps(ctx(doc)))) {
       const wire = { documentType: op.documentType, updates: [{ _id: op.id, diff: op.diff }] };
       expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);

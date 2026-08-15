@@ -107,13 +107,9 @@ export function findClassItems(doc: Record<string, unknown>): EmbeddedClass[] {
 
     const i18n = raw.i18n;
     const ptBR =
-      i18n && typeof i18n === "object"
-        ? (i18n as Record<string, unknown>)["ptBR"]
-        : undefined;
+      i18n && typeof i18n === "object" ? (i18n as Record<string, unknown>)["ptBR"] : undefined;
     const localized =
-      ptBR && typeof ptBR === "object"
-        ? (ptBR as Record<string, unknown>)["name"]
-        : undefined;
+      ptBR && typeof ptBR === "object" ? (ptBR as Record<string, unknown>)["name"] : undefined;
 
     classes.push({
       key,
