@@ -111,3 +111,44 @@ Tudo depois de `ab4966f` (02/08), exceto os fixes do r24 que já estão na `stab
    e ainda assim ser "mod" se for opcional e passar só pelos pontos de registro. Carregamento
    dinâmico de terceiro segue [V2]/M6 — não precisa entrar agora.
 6. **O que da `alfa/app` (§7) vira mod, o que vira núcleo, o que morre?**
+
+## 9. Conceito 1 — "tudo que é BÁSICO para o VTT" (Alexandre, 2026-08-15)
+
+Primeiro princípio da fronteira: o núcleo é só o **básico**. Régua do Alexandre: o que
+"só trouxe problema" no canvas **não é básico** — vai inteiro para fora do núcleo, como
+bloco opcional (mod), para ser refeito com calma.
+
+### Básico (núcleo — nunca é mod)
+
+| Bloco          | O que entra                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Mundo e dados  | criar/abrir mundo, **documents + schemas, persistência SQLite**, export/import, backups — **próximo foco de trabalho** |
+| Rede           | server autoritativo, snapshot/broadcast/replay/ack, reconexão, presença                                                |
+| Usuários       | login GM/jogador, roles, ownership, redação de visibilidade                                                            |
+| Rolagem e chat | motor de dados no server, roll modes, chat com cards, macros simples                                                   |
+| Combate        | combat tracker (iniciativa/turnos); o **cálculo** de iniciativa é do sistema (spec 10)                                 |
+| Fichas         | window manager + **contrato** de ficha (`sheetRegistry`) — a ficha em si vem do sistema                                |
+| Compêndio      | browser de packs + contrato de importação — o conteúdo vem do sistema                                                  |
+| Distribuição   | CLI `serve`/`world create`, túnel, auto-update, assets/upload                                                          |
+| Cena           | **só** exibir a imagem da cena ativa (sem grid, sem tokens, sem ferramentas em cima) — a confirmar                     |
+
+### Fora do básico (mod/addon — opcional, desligável por mundo)
+
+- **Canvas de mesa inteiro como um bloco**: tokens, ping, régua, **grid** (calibração incluída),
+  templates de área. Classificado pelo Alexandre como parte das "coisas ruins" — sai por inteiro.
+- **Visão inteira como um bloco**: walls, visão, iluminação, fog. Sai por inteiro, como um todo.
+- Minimapa tático (spec 32) · mapa de região (34) · System Window/hub, comitiva, quest board (28)
+  · avatar (35) · pets/companions (29) · multiclasse por níveis (30) · áudio (13) · journal rico,
+  roll tables, cartas (12) · dados 3D · **cada sistema de jogo** (pf2e, sf2e, etmos) atrás da
+  `system-api`.
+
+### Em aberto
+
+- Journal simples (anotações do GM) — básico ou mod?
+- A "Cena" mínima do básico é só a imagem, ou nem isso (VTT documents-first, sem canvas no núcleo)?
+
+### Próximo passo declarado
+
+Melhorar **documentos e banco de dados** (documents/schemas/store/SQLite) — é o chão em que os
+mods vão se plugar (tipos de documento registráveis, campos por mod sem `.extend()` apagando
+campo desconhecido — ver `docs/lessons.md` sobre o `grid` que sumia).
