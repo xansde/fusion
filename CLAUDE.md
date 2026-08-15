@@ -13,11 +13,14 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 - `specs/` — especificações completas (índice em `specs/README.md`). Implementação segue as specs.
 - `docs/research/` — pesquisa que fundamenta as specs (21 docs sobre Foundry, PF2e, SF2e, Etmos, licenças, bibliotecas).
 
-## Branches
+## Branches (modelo alfa → beta → stable, desde 2026-08-15)
 
-- **`build/app` é a branch de integração**: toda branch de trabalho parte dela e volta para ela por PR. É o estado corrente do projeto.
-- **`main` é o espelho publicável** — o que um `git clone` entrega. Recebe merge de `build/app` quando o conjunto está íntegro; nunca recebe trabalho direto. Push nela exige instrução literal do Alexandre.
-- Branch nova sempre a partir de `origin/build/app` recém-buscado (`git fetch origin` antes), nunca do checkout local.
+- **`alfa/app`** — desenvolvimento e experimentação: é onde rodam os testes e onde se espera que tudo quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta para ela por PR.
+- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` quando um conjunto está íntegro (suíte verde + teste ao vivo).
+- **`stable/app`** — o app de verdade, pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto.
+- **`build/app`** — branch histórica de integração (até 13/08/2026), congelada; `alfa/app` nasceu dela. **`main`** é o espelho publicável e só recebe merge com instrução literal do Alexandre.
+- Nascimento: `stable/app` = `beta/app` = estado pré-mapa de `build/app` (`ab4966f`, 02/08) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados; `alfa/app` = ponta de `build/app` em 13/08 (toda a onda de mapa/hub/quest board a partir de 07/08 vive só ali).
+- Promoção é sempre ato humano (merge `alfa→beta` e `beta→stable`); nada de push direto em `beta`/`stable`.
 
 ## Setup e execução (o passo a passo verificado está no README)
 
