@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Configurações (4 variantes)</title>
+<!--
+  PROTOTYPE — throwaway. Pergunta: "como é a tela de Configurações dentro da gaveta,
+  para GM e para jogador?"
+
+  CHASSI: todas as variantes usam a variante C aprovada em 2026-08-15 (abas físicas à
+  esquerda da gaveta, movendo junto), já com as decisões da spec 36 aplicadas:
+    · sem chevron e sem ✕ — o único gesto de recolher é clicar no ícone da aba ativa
+      (DEC-GAV-03);
+    · sem atalhos de teclado (DEC-GAV-05);
+    · largura fixa 300px de painel + 44px de trilho (DEC-GAV-04);
+    · Configurações passa para o grupo "all" (grill de 2026-08-15) — o jogador abre a
+      aba e vê só o que é dele; o grupo GM fica com NPCs e Cenas.
+
+  O QUE VARIA: só o conteúdo da aba Configurações (?variant=1..4), com papel trocável
+  (GM ↔ jogador) e a seção de Mods em dois estados (vazia hoje ↔ populada amanhã).
+
+  Chips "a decidir" marcam o que ainda vai ao grill, não o que já foi decidido.
+  Não é código de produção; não importar nada daqui sem reescrever.
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem;font-weight:600}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center}
+  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f}
+  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+
+  /* ---------- Chassi C ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.combat{background:rgba(255,215,0,.18);border:1px solid #ffd700;color:#ffd700;font-size:.6rem}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .sidebar{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding:10px 0;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .tabbtn.is-active .icon{width:22px;height:22px}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .tabs .foot{margin-top:auto;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column}
+  .is-open .panel{display:flex}
+  .panel-head{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border-bottom:1px solid var(--accent-dim);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .panel-head .back{background:none;border:0;color:var(--accent-hover);cursor:pointer;font-size:1rem;line-height:1;padding:0 .2rem}
+  .panel-body{flex:1;overflow:auto;padding:.75rem .8rem;color:var(--muted);font-size:.85rem}
+  .panel-body::-webkit-scrollbar{width:8px}
+  .panel-body::-webkit-scrollbar-thumb{background:var(--surface-alt);border-radius:99px}
+
+  /* ---------- Conteúdo genérico das outras abas ---------- */
+  .row{display:flex;align-items:center;gap:.5rem;padding:.4rem .5rem;border-radius:var(--radius-sm)}
+  .row:hover{background:var(--surface-alt)}
+  .row .name{color:var(--text)}
+  .row .sub{color:var(--subtle);font-size:.75rem;margin-left:auto}
+  .empty{text-align:center;padding:1.5rem 0 .75rem;color:var(--muted)}
+  .msg{padding:.4rem .5rem;border-left:2px solid var(--border);margin-bottom:.5rem}
+  .msg b{color:var(--text)}
+  .btnp{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+  .btns{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;cursor:pointer}
+  .btnp[disabled],.btns[disabled]{opacity:.45;cursor:not-allowed}
+  .actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+
+  /* ---------- Controles de configuração ---------- */
+  .sec{border-bottom:1px solid var(--border)}
+  .sec:last-child{border-bottom:0}
+  .sec-head{display:flex;align-items:center;gap:.5rem;width:100%;background:none;border:0;color:var(--text);font:inherit;font-weight:600;padding:.6rem .1rem;cursor:pointer;text-align:left}
+  .sec-head .chev{color:var(--subtle);transition:transform .15s;font-size:.75rem}
+  .sec.open .sec-head .chev{transform:rotate(90deg)}
+  .sec-head .count{margin-left:auto;color:var(--subtle);font-size:.72rem;background:var(--surface-alt);border-radius:999px;padding:.05rem .4rem}
+  .sec-body{padding:0 0 .7rem;display:none}
+  .sec.open .sec-body{display:block}
+  .sec-hint{color:var(--subtle);font-size:.75rem;line-height:1.45;margin:0 0 .6rem}
+
+  .set{display:flex;align-items:center;gap:.5rem;padding:.45rem 0;border-bottom:1px solid rgba(46,46,61,.55)}
+  .set:last-child{border-bottom:0}
+  .set .lbl{color:var(--text);flex:1;min-width:0}
+  .set .lbl small{display:block;color:var(--subtle);font-size:.72rem;font-weight:400;margin-top:.1rem;line-height:1.35}
+  .set .ctl{flex:0 0 auto;display:flex;align-items:center;gap:.35rem}
+  .set.stack{display:block}
+  .set.stack .ctl{margin-top:.35rem;display:block}
+
+  .toggle{width:32px;height:18px;border-radius:999px;background:var(--border);position:relative;border:0;cursor:pointer;padding:0}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:left .12s}
+  .toggle.on{background:var(--accent)}.toggle.on::after{left:16px;background:#fff}
+  select,input[type=text]{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.25rem .4rem;font:inherit;font-size:.8rem;max-width:150px}
+  input[type=text]{width:100%;max-width:none}
+  input[type=range]{width:110px;accent-color:var(--accent)}
+  .ro{color:var(--muted);font-size:.8rem}
+  .chip{font-size:.6rem;letter-spacing:.04em;border-radius:3px;padding:.05rem .3rem;border:1px solid;white-space:nowrap}
+  .chip.mod{color:var(--accent-hover);border-color:var(--accent)}
+  .chip.sys{color:#5cc8ff;border-color:#2f7fa8}
+  .chip.gm{color:var(--danger);border-color:var(--danger)}
+  .chip.q{color:var(--warn);border-color:var(--warn)}
+
+  /* usuários */
+  .user{display:flex;align-items:center;gap:.5rem;padding:.45rem 0;border-bottom:1px solid rgba(46,46,61,.55)}
+  .user:last-child{border-bottom:0}
+  .ava{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:700;color:#0b0b0f;flex:0 0 auto}
+  .user .info{flex:1;min-width:0}
+  .user .info b{color:var(--text);font-weight:600;display:block;font-size:.85rem}
+  .user .info span{color:var(--subtle);font-size:.72rem}
+  .user .on{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:.25rem}
+  .user .off{width:7px;height:7px;border-radius:50%;background:var(--subtle);display:inline-block;margin-right:.25rem}
+  .user .acts{display:flex;gap:.15rem}
+  .iconbtn{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:.85rem;padding:.15rem .2rem;border-radius:var(--radius-sm)}
+  .iconbtn:hover{color:var(--text);background:var(--surface-alt)}
+
+  /* mods */
+  .mods-empty{border:1px dashed var(--border);border-radius:var(--radius);padding:.9rem;text-align:center;color:var(--subtle);font-size:.8rem;line-height:1.5}
+  .mods-empty .btnp{margin-top:.6rem}
+  .mod{display:flex;align-items:center;gap:.5rem;padding:.45rem 0;border-bottom:1px solid rgba(46,46,61,.55)}
+  .mod:last-child{border-bottom:0}
+  .mod .info{flex:1;min-width:0}
+  .mod .info b{color:var(--text);font-weight:600;display:block;font-size:.85rem}
+  .mod .info span{color:var(--subtle);font-size:.72rem}
+
+  /* busca (V2) */
+  .search{display:flex;align-items:center;gap:.4rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.3rem .5rem;margin-bottom:.7rem;color:var(--subtle);font-size:.8rem}
+  .search input{background:none;border:0;color:var(--text);font:inherit;font-size:.8rem;flex:1;outline:none;padding:0}
+
+  /* segmentos (V3) */
+  .seg{display:flex;gap:2px;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:2px;margin-bottom:.7rem}
+  .seg button{flex:1;background:none;border:0;color:var(--muted);font:inherit;font-size:.74rem;padding:.28rem .1rem;border-radius:3px;cursor:pointer;white-space:nowrap}
+  .seg button.on{background:var(--accent);color:#fff;font-weight:600}
+
+  /* índice (V4) */
+  .idx{display:flex;align-items:center;gap:.6rem;width:100%;background:none;border:0;border-bottom:1px solid rgba(46,46,61,.55);color:var(--text);font:inherit;padding:.6rem .1rem;cursor:pointer;text-align:left}
+  .idx:hover{background:var(--surface-alt)}
+  .idx .ico{font-size:1rem;width:20px;text-align:center}
+  .idx .txt{flex:1}
+  .idx .txt small{display:block;color:var(--subtle);font-size:.72rem;font-weight:400;margin-top:.1rem}
+  .idx .go{color:var(--subtle)}
+
+  /* ---------- Switcher (não faz parte do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.5rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem .35rem .75rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.85rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;min-width:28px;padding:0 .6rem;border-radius:999px;cursor:pointer;font-size:.78rem;font-weight:600}
+  .switcher .lbl{min-width:300px;text-align:center}
+  .switcher .lbl small{display:block;font-weight:400;color:#555;font-size:.72rem}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 aha</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+<div class="stage"><div class="art"><div class="house"><div class="star">★</div></div></div></div>
+
+<div id="root"></div>
+
+<div class="switcher">
+  <button id="prev" title="Variante anterior (←)">‹</button>
+  <span class="lbl" id="lbl"></span>
+  <button id="next" title="Próxima variante (→)">›</button>
+  <button id="role" title="Trocar papel (P)">papel</button>
+  <button id="mods" title="Mods instalados ou não (M)">mods</button>
+</div>
+
+<script>
+/* ================= dados mock ================= */
+const ICONS = {
+  chat:      '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:  '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:    '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:      '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:    '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:  '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+/* grupo "all" ganhou Configurações (decisão do grill 2026-08-15) */
+const TABS = [
+  {id:'chat',      label:'Chat',          group:'all', badge:'3'},
+  {id:'contacts',  label:'Contatos',      group:'all'},
+  {id:'combat',    label:'Combate',       group:'all', badge:'⚔', badgeCls:'combat'},
+  {id:'compendium',label:'Compêndio',     group:'all'},
+  {id:'npcs',      label:'NPCs',          group:'gm'},
+  {id:'scenes',    label:'Cenas',         group:'gm'},
+  {id:'settings',  label:'Configurações', group:'all', foot:true},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+
+const OTHER = {
+  chat: `<div class="msg"><b>Gamemaster</b> · <span style="font-size:.75rem">21:04</span><br>Vocês entram na sala do trono…</div>
+    <div class="msg"><b>Fofurinha</b> · <span style="font-size:.75rem">21:05</span><br>Rolo Percepção — <b>1d20+7 = 19</b></div>
+    <div style="margin-top:.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;color:var(--subtle)">Digite uma mensagem ou /r 1d20…</div>`,
+  contacts: `<div class="row"><span>🧝</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
+    <div class="row"><span>🧔</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div>`,
+  combat: `<p class="empty">Nenhum combate ativo.</p><div class="actions"><button class="btnp">Criar combate</button></div>`,
+  compendium: `<div class="row"><span class="name">Talentos</span><span class="sub">1.812</span></div>
+    <div class="row"><span class="name">Magias</span><span class="sub">1.024</span></div>
+    <div class="row"><span class="name">Bestiário</span><span class="sub">492</span></div>`,
+  npcs: `<div class="row"><span>👹</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>
+    <div class="row"><span>🐉</span><span class="name">Dragão Jovem</span><span class="sub">NPC</span></div>`,
+  scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub">ativa</span></div>
+    <div class="row"><span style="color:var(--subtle)">○</span><span class="name">Sala do trono</span><span class="sub">▶ ✎ 🗑</span></div>`,
+};
+
+/* ---- catálogo de mods (Conceito 1, 15/08): o que saiu do núcleo ---- */
+const MODS = [
+  {id:'canvas',  name:'Canvas de mesa',      desc:'Tokens, grid, régua, ping, templates', on:true,  v:'1.0'},
+  {id:'vision',  name:'Visão e iluminação',  desc:'Paredes, fog, luzes',                  on:true,  v:'1.0'},
+  {id:'minimap', name:'Minimapa tático',     desc:'Miniatura da cena ativa',              on:false, v:'0.3'},
+  {id:'regmap',  name:'Mapa de região',      desc:'Mapa do mundo com pinos',              on:true,  v:'0.6'},
+  {id:'quests',  name:'Quadro de missões',   desc:'Missões e etapas reveláveis',          on:false, v:'0.4'},
+  {id:'dice3d',  name:'Dados 3D',            desc:'Animação de rolagem na mesa',          on:true,  v:'1.2'},
+];
+
+/* ---- seções: quem vê o quê ---- */
+function secMe(){
+  return `<p class="sec-hint">Valem para você, em qualquer mundo deste servidor.</p>
+  <div class="set"><span class="lbl">Idioma</span><span class="ctl"><select><option>Português (BR)</option><option>English</option></select></span></div>
+  <div class="set"><span class="lbl">Tema</span><span class="ctl"><select><option>Escuro</option><option>Claro</option><option>Do sistema</option></select></span></div>
+  <div class="set"><span class="lbl">Volume geral</span><span class="ctl"><input type="range" value="70"></span></div>
+  <div class="set"><span class="lbl">Música<small>Trilha de fundo tocada pelo GM</small></span><span class="ctl"><input type="range" value="45"></span></div>
+  <div class="set"><span class="lbl">Som ao receber mensagem</span><span class="ctl"><button class="toggle on"></button></span></div>
+  <div class="set"><span class="lbl">Avisar quando for meu turno</span><span class="ctl"><button class="toggle on"></button></span></div>
+  <div class="set"><span class="lbl">Zoom com a roda do mouse <span class="chip mod">mod Canvas</span><small>Aparece porque o mod de canvas está ativo</small></span><span class="ctl"><button class="toggle on"></button></span></div>`;
+}
+function secWorld(){
+  return `<p class="sec-hint">Valem para todos nesta mesa. Só o GM altera.</p>
+  <div class="set stack"><span class="lbl">Nome do mundo</span><span class="ctl"><input type="text" value="teste_xande"></span></div>
+  <div class="set"><span class="lbl">Sistema</span><span class="ctl"><span class="ro">Pathfinder 2e</span></span></div>
+  <div class="set"><span class="lbl">Modo de rolagem padrão</span><span class="ctl"><select><option>Público</option><option>Sussurro ao GM</option><option>Secreto</option></select></span></div>
+  <div class="set"><span class="lbl">Proficiência sem nível <span class="chip sys">PF2e</span></span><span class="ctl"><button class="toggle"></button></span></div>
+  <div class="set"><span class="lbl">Dano crítico automático <span class="chip sys">PF2e</span></span><span class="ctl"><button class="toggle on"></button></span></div>`;
+}
+function secPerms(){
+  const p=(n,r)=>`<div class="set"><span class="lbl">${n}</span><span class="ctl"><select><option ${r==='j'?'selected':''}>Jogador</option><option ${r==='a'?'selected':''}>Assistente</option><option ${r==='m'?'selected':''}>Mestre</option></select></span></div>`;
+  return `<p class="sec-hint">Papel mínimo para cada ação (REQ-USR-008/009). Uma linha por permissão — nunca uma matriz, que não cabe em 300px.</p>
+  ${p('Criar tokens','j')}${p('Usar a régua','j')}${p('Enviar arquivo','a')}${p('Criar macros','j')}${p('Ver nome de todo token','m')}`;
+}
+function secUsers(){
+  const u=(n,role,color,on,me)=>`<div class="user"><span class="ava" style="background:${color}">${n[0]}</span>
+    <span class="info"><b>${n}${me?' <span class="chip gm">você</span>':''}</b><span><span class="${on?'on':'off'}"></span>${role}</span></span>
+    <span class="acts"><button class="iconbtn" title="Editar">✎</button><button class="iconbtn" title="Resetar senha">🔑</button>${on?'<button class="iconbtn" title="Desconectar">⏏</button>':'<button class="iconbtn" title="Desativar">⏻</button>'}</span></div>`;
+  return `${u('Gamemaster','Mestre','#ff5c5c',true,true)}${u('Fofurinha','Jogador','#7c5cfc',true)}${u('Tobias','Jogador','#3ddc84',false)}${u('Ana','Assistente','#e5b83b',false)}
+  <div class="actions" style="margin-top:.7rem"><button class="btnp">Novo usuário</button></div>`;
+}
+function secMods(role){
+  if(!modsOn){
+    return `<div class="mods-empty">Nenhum mod instalado neste mundo.<br>
+      Mods acrescentam painéis, camadas e regras opcionais.
+      <br><button class="btnp" disabled>Instalar mod (V2)</button></div>`;
+  }
+  if(role==='player'){
+    return `<p class="sec-hint">Ativos nesta mesa. Quem liga e desliga é o GM. <span class="chip q">a decidir: jogador vê esta lista?</span></p>
+      ${MODS.filter(m=>m.on).map(m=>`<div class="mod"><span class="info"><b>${m.name}</b><span>${m.desc}</span></span><span class="ro">ativo</span></div>`).join('')}`;
+  }
+  return `<p class="sec-hint">Ligar ou desligar vale para este mundo. O que é um mod e como se instala: spec da API de Mods.</p>
+    ${MODS.map(m=>`<div class="mod"><span class="info"><b>${m.name}</b><span>${m.desc} · v${m.v}</span></span><button class="toggle ${m.on?'on':''}"></button></div>`).join('')}
+    <div class="actions" style="margin-top:.7rem"><button class="btnp" disabled>Instalar mod (V2)</button></div>`;
+}
+
+function sections(role){
+  const all = [
+    {id:'me',    ico:'👤', title:'Minhas preferências', hint:'Idioma, tema, som',            body:secMe,    count:7},
+    {id:'world', ico:'🌍', title:'Mundo',               hint:'Nome, sistema, regras',        body:secWorld, count:5, gm:true},
+    {id:'perms', ico:'🔒', title:'Permissões',          hint:'O que cada papel pode fazer',  body:secPerms, count:5, gm:true},
+    {id:'users', ico:'👥', title:'Usuários',            hint:'Contas da mesa',               body:secUsers, count:4, gm:true},
+    {id:'mods',  ico:'🧩', title:'Mods',                hint: modsOn?'6 instalados':'nenhum instalado', body:()=>secMods(role), count: modsOn?6:0},
+  ];
+  return all.filter(s=>!s.gm || role==='gm');
+}
+
+/* ================= variantes da tela de Configurações ================= */
+const NAMES = {
+  1:'Acordeão — um aberto por vez',
+  2:'Acordeão + busca (todas abertas)',
+  3:'Segmentos no topo — uma seção por vez',
+  4:'Índice → entra na seção (drill-in)',
+};
+const HINTS = {
+  1:'A decisão literal do grill: 4–5 acordeões empilhados, controles inline, uma coluna.',
+  2:'Mesma pilha, com busca que filtra por nome — o seguro para quando mods trouxerem dezenas de settings.',
+  3:'Troca acordeão por segmento: menos rolagem, mais cliques; o título da seção some da lista.',
+  4:'Gaveta vira mestre-detalhe: lista de categorias, entra e volta com "‹". Escala sem fim, ao custo de um nível de navegação.',
+};
+
+function renderSettings(role){
+  const secs = sections(role);
+  if(variant===1){
+    return `<div class="panel-body">${secs.map(s=>`
+      <div class="sec ${openSec===s.id?'open':''}">
+        <button class="sec-head" data-sec="${s.id}"><span class="chev">▶</span>${s.title}<span class="count">${s.count}</span></button>
+        <div class="sec-body">${s.body()}</div>
+      </div>`).join('')}</div>`;
+  }
+  if(variant===2){
+    return `<div class="panel-body">
+      <div class="search">🔍<input placeholder="Buscar configuração…" /></div>
+      ${secs.map(s=>`
+      <div class="sec open">
+        <button class="sec-head" data-sec="${s.id}"><span class="chev">▶</span>${s.title}<span class="count">${s.count}</span></button>
+        <div class="sec-body">${s.body()}</div>
+      </div>`).join('')}</div>`;
+  }
+  if(variant===3){
+    const cur = secs.find(s=>s.id===openSec) || secs[0];
+    return `<div class="panel-body">
+      <div class="seg">${secs.map(s=>`<button data-sec="${s.id}" class="${cur.id===s.id?'on':''}">${s.title.split(' ')[0]}</button>`).join('')}</div>
+      ${cur.body()}</div>`;
+  }
+  const cur = secs.find(s=>s.id===drill);
+  if(!cur){
+    return `<div class="panel-body">${secs.map(s=>`
+      <button class="idx" data-drill="${s.id}"><span class="ico">${s.ico}</span><span class="txt">${s.title}<small>${s.hint}</small></span><span class="go">›</span></button>`).join('')}</div>`;
+  }
+  return `<div class="panel-body">${cur.body()}</div>`;
+}
+
+/* ================= estado ================= */
+const params = new URLSearchParams(location.search);
+let variant = [1,2,3,4].includes(+params.get('variant')) ? +params.get('variant') : 1;
+let role = params.get('role')==='player' ? 'player' : 'gm';
+let modsOn = params.get('mods')==='1';
+let active = 'settings', open = true, openSec = 'me', drill = null;
+
+function tabButton(t){
+  const badge = t.badge && (active!==t.id || !open) ? `<span class="badge ${t.badgeCls||''}">${t.badge}</span>` : '';
+  return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+}
+function panelHead(){
+  const secs = sections(role);
+  if(variant===4 && drill){
+    const cur = secs.find(s=>s.id===drill);
+    return `<div class="panel-head"><button class="back" data-back title="Voltar">‹</button><span>${cur.title}</span></div>`;
+  }
+  return `<div class="panel-head"><span>${TITLE[active]}</span></div>`;
+}
+function body(){
+  return active==='settings' ? renderSettings(role) : `<div class="panel-body">${OTHER[active]}</div>`;
+}
+
+function render(){
+  const isGm = role==='gm';
+  const all = TABS.filter(t=>t.group==='all' && !t.foot);
+  const gms = TABS.filter(t=>t.group==='gm' && isGm);
+  const foot = TABS.filter(t=>t.foot);
+  if(!isGm && ['npcs','scenes'].includes(active)) active='chat';
+  if(!isGm && ['world','perms','users'].includes(openSec)) openSec='me';
+  if(!isGm && ['world','perms','users'].includes(drill)) drill=null;
+
+  document.getElementById('root').innerHTML = `
+    <div class="${open?'is-open':''}"><aside class="sidebar">
+      <nav class="tabs">
+        <div class="grp">${all.map(tabButton).join('')}</div>
+        ${gms.length?`<div class="grp gm">${gms.map(tabButton).join('')}</div>`:''}
+        <div class="foot">${foot.map(tabButton).join('')}</div>
+      </nav>
+      <div class="panel">${panelHead()}${body()}</div>
+    </aside></div>`;
+
+  document.getElementById('who').className = isGm ? 'who' : 'who player';
+  document.getElementById('who').innerHTML = isGm
+    ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+    : '<b>●</b> Fofurinha · <span style="color:var(--muted)">Jogador</span>';
+
+  const root = document.getElementById('root');
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.tab;
+    if(open&&active===id){open=false;} else {active=id;open=true;}
+    render();
+  });
+  root.querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.sec;
+    openSec = (variant===1 && openSec===id) ? null : id;
+    render();
+  });
+  root.querySelectorAll('[data-drill]').forEach(b=>b.onclick=()=>{drill=b.dataset.drill;render();});
+  root.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{drill=null;render();});
+  root.querySelectorAll('.toggle').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+
+  document.getElementById('lbl').innerHTML =
+    `V${variant} — ${NAMES[variant]} · ${role==='gm'?'GM':'JOGADOR'}<small>${HINTS[variant]}</small>`;
+  document.getElementById('role').textContent = role==='gm' ? 'ver como jogador' : 'ver como GM';
+  document.getElementById('mods').textContent = modsOn ? 'mods: instalados' : 'mods: nenhum';
+
+  const u=new URL(location);
+  u.searchParams.set('variant',variant); u.searchParams.set('role',role); u.searchParams.set('mods',modsOn?'1':'0');
+  history.replaceState(null,'',u);
+}
+function cycle(d){variant=((variant-1+d+4)%4)+1; drill=null; render();}
+document.getElementById('prev').onclick=()=>cycle(-1);
+document.getElementById('next').onclick=()=>cycle(1);
+document.getElementById('role').onclick=()=>{role = role==='gm'?'player':'gm'; drill=null; render();};
+document.getElementById('mods').onclick=()=>{modsOn=!modsOn; render();};
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='ArrowLeft')cycle(-1);
+  if(e.key==='ArrowRight')cycle(1);
+  if(e.key==='p'||e.key==='P'){role = role==='gm'?'player':'gm'; drill=null; render();}
+  if(e.key==='m'||e.key==='M'){modsOn=!modsOn; render();}
+});
+render();
+</script>
+</body>
+</html>
