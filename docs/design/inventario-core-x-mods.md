@@ -138,14 +138,13 @@ bloco opcional (mod), para ser refeito com calma.
   templates de área. Classificado pelo Alexandre como parte das "coisas ruins" — sai por inteiro.
 - **Visão inteira como um bloco**: walls, visão, iluminação, fog. Sai por inteiro, como um todo.
 - Minimapa tático (spec 32) · mapa de região (34) · System Window/hub, comitiva, quest board (28)
-  · avatar (35) · pets/companions (29) · multiclasse por níveis (30) · áudio (13) · journal rico,
+  · avatar (35) · pets/companions (29) · multiclasse por níveis (30) · journal rico,
   roll tables, cartas (12) · dados 3D · **cada sistema de jogo** (pf2e, sf2e, etmos) atrás da
   `system-api`.
 
 ### Em aberto
 
 - Journal simples (anotações do GM) — básico ou mod?
-- A "Cena" mínima do básico é só a imagem, ou nem isso (VTT documents-first, sem canvas no núcleo)?
 
 ### Próximo passo declarado
 
