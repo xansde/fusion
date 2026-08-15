@@ -18,7 +18,7 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 - **`alfa/app`** — desenvolvimento e experimentação: é onde rodam os testes e onde se espera que tudo quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta para ela por PR.
 - **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` quando um conjunto está íntegro (suíte verde + teste ao vivo).
 - **`stable/app`** — o app de verdade, pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto.
-- **`build/app`** — branch histórica de integração (até 13/08/2026), congelada; `alfa/app` nasceu dela. **`main`** é o espelho publicável e só recebe merge com instrução literal do Alexandre.
+- **`build/app`** — linha do **Mario**: ele segue trabalhando nela com as atualizações que ELE quer. Não é integração nossa, não apagar, não mergear nela sem combinar; `alfa/app` nasceu dela em 13/08. **`main`** é o espelho publicável e só recebe merge com instrução literal do Alexandre.
 - Nascimento: `stable/app` = `beta/app` = estado pré-mapa de `build/app` (`ab4966f`, 02/08) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados; `alfa/app` = ponta de `build/app` em 13/08 (toda a onda de mapa/hub/quest board a partir de 07/08 vive só ali).
 - Promoção é sempre ato humano (merge `alfa→beta` e `beta→stable`); nada de push direto em `beta`/`stable`.
 
