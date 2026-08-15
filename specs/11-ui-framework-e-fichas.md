@@ -346,6 +346,10 @@ chat, combat tracker).
   (DEC-UIF-10). As tabs do MVP são: Chat, Combat, Scenes, Actors, Items, Journal,
   Compendium, Settings. As tabs Tables, Cards e Playlists são **[V2]** no shell,
   mas o slot de registro de tab deve existir desde o MVP.
+  > **Concretizado pela spec 36** (`36-gaveta-lateral.md`, DEC-GAV-01/07, 2026-08-15):
+  > a lista efetiva do MVP passa a ser Chat, Contatos, Combate, Compêndio (todos) +
+  > NPCs, Cenas, Configurações (GM); Items e Journal ficam como slot sem aba no MVP.
+  > O "slot de registro" é `registerSidebarTab` (REQ-GAV-030).
 - **REQ-UIF-003** [MVP] Os **scene controls** (toolbar esquerda) devem expor uma
   coluna de "controls" (cada um ativa uma layer do canvas — ver
   `06-canvas-e-renderizacao.md`) e, para o control ativo, sua lista de "tools".
