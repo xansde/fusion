@@ -115,6 +115,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-MREG-` | [34](34-mapa-de-regiao.md)                | Mapa de região                     |
 | `REQ-AVT-`  | [35](35-avatar-do-personagem.md)          | Avatar do personagem               |
 | `REQ-GAV-`  | [36](36-gaveta-lateral.md)                | Gaveta lateral (spec-mãe das abas) |
+| `REQ-CFG-`  | [37](37-configuracoes.md)                 | Configurações (aba da gaveta)      |
 
 <!-- prefixos:end -->
 

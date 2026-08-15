@@ -1260,6 +1260,11 @@ interface Operation {
 - **Q4 — `Setting` de cliente vs mundo.** Settings de escopo `client` ficam em
   `localStorage` (não são Documents). Confirmar a fronteira: apenas
   `world`/`user`-scope viram `SettingDocument`? (`ver 05-`, `ver 15-`).
+  **Respondida em parte (2026-08-15, `ver 37-configuracoes.md`):** setting declarada de
+  escopo `world` vira `SettingDocument`, com chave namespaceada por quem a declarou; e
+  preferência de cliente (volume, notificações) **não** vira Document nem viaja ao
+  servidor. **Continua aberto** o escopo `user`: nenhuma existe hoje e a aba
+  Configurações não lhe deu casa — ver Q-CFG-01 da spec 37.
 - **Q5 — Limite de tamanho de Document.** Definir um teto prático (ex.: ator com
   N itens, journal com páginas grandes) para evitar payloads de sync excessivos;
   alvo a fixar junto de `ver 04-` e `ver 25-`.
