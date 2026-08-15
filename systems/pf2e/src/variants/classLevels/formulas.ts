@@ -121,7 +121,8 @@ export function spellcastRank(
   characterLevel: number,
   options: { fromArchetype?: boolean; nativeRank?: number } = {},
 ): number {
-  if (options.fromArchetype === true) return options.nativeRank ?? dedicationSpellRank(characterLevel);
+  if (options.fromArchetype === true)
+    return options.nativeRank ?? dedicationSpellRank(characterLevel);
   const onSummonAxis = traits.some((trait) =>
     (SUMMON_AXIS_TRAITS as readonly string[]).includes(trait),
   );
