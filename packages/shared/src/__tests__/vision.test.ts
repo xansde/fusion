@@ -12,7 +12,7 @@
  * All coordinate arithmetic is chosen to give exact or near-exact results in
  * floating-point, allowing numerical vertex verification.
  *
- * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-020–REQ-VIS-031
+ * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-020–REQ-VIS-030
  */
 
 import { describe, it, expect } from "vitest";

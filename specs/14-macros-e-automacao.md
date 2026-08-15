@@ -42,7 +42,7 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 
 **Macro** — documento persistido no mundo que encapsula uma ação reutilizável. Dois tipos: `chat` e `script`.
 
-**Chat Macro** — produz uma mensagem de chat com suporte a texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030) e inline rolls (ex.: `[[1d20+5]]`). Executável por qualquer usuário com permissão de leitura. Para UI rica em macros, usar o `CardData` declarativo de `09-chat-e-mensagens.md` D-CHT-03 — não HTML arbitrário.
+**Chat Macro** — produz uma mensagem de chat com suporte a texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030) e inline rolls (ex.: `[[1d20+5]]`). Executável por qualquer usuário com permissão de leitura. Para UI rica em macros, usar o `CardData` declarativo de `09-chat-e-mensagens.md` DEC-CHT-03 — não HTML arbitrário.
 
 **Script Macro** — executa código TypeScript/JavaScript em sandbox isolada. Disponível apenas para o GM. Recebe contexto serializado (actor, token, targets, scene) e retorna comandos estruturados para o servidor executar.
 
@@ -140,7 +140,7 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 
 ### Macros de Chat
 
-**REQ-MAC-001** [MVP] O sistema deve suportar macros do tipo `chat` que, ao serem executadas, postam uma mensagem no chat do mundo ativo. O conteúdo da mensagem deve aceitar texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030 — bold, italic, código inline, links http/https, listas) e inline roll expressions no formato `[[fórmula]]`. HTML arbitrário é proibido; macros que precisarem de UI rica devem usar o `CardData` declarativo (ver `09-chat-e-mensagens.md` D-CHT-03).
+**REQ-MAC-001** [MVP] O sistema deve suportar macros do tipo `chat` que, ao serem executadas, postam uma mensagem no chat do mundo ativo. O conteúdo da mensagem deve aceitar texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030 — bold, italic, código inline, links http/https, listas) e inline roll expressions no formato `[[fórmula]]`. HTML arbitrário é proibido; macros que precisarem de UI rica devem usar o `CardData` declarativo (ver `09-chat-e-mensagens.md` DEC-CHT-03).
 
 **REQ-MAC-002** [MVP] Ao executar uma macro de chat, inline rolls presentes no conteúdo devem ser avaliados pelo motor de rolagens do servidor (ver `08-motor-de-rolagens.md`) e o resultado deve ser incorporado à mensagem antes do envio ao chat.
 
