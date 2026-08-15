@@ -16,8 +16,16 @@
   "classFeatures": {
     "fromItemsMap": true,
     "extraNames": [],
-    "sharedWithOtherClasses": ["Perception Expertise", "Weapon Specialization", "Greater Weapon Specialization"],
-    "alreadyInPacks": ["Perception Expertise", "Weapon Specialization", "Greater Weapon Specialization"],
+    "sharedWithOtherClasses": [
+      "Perception Expertise",
+      "Weapon Specialization",
+      "Greater Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Perception Expertise",
+      "Weapon Specialization",
+      "Greater Weapon Specialization"
+    ],
     "missingFromPacks": [
       "Powerful Fist",
       "Flurry of Blows",

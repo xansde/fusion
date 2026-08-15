@@ -325,7 +325,13 @@ describe("CA-MCL-02 — Fighter 3 / Wizard 2 at character level 5", () => {
 // ---------------------------------------------------------------------------
 
 describe("REQ-MCL-203 — the result does not depend on ordering", () => {
-  const choices = split({ 1: FIGHTER_ID, 2: FIGHTER_ID, 3: WIZARD_ID, 4: FIGHTER_ID, 5: WIZARD_ID });
+  const choices = split({
+    1: FIGHTER_ID,
+    2: FIGHTER_ID,
+    3: WIZARD_ID,
+    4: FIGHTER_ID,
+    5: WIZARD_ID,
+  });
 
   it("is unchanged when the class ITEMS are listed in the other order", () => {
     const a = makeDoc(5, [fighterItem, wizardItem, ancestryItem], {
@@ -386,12 +392,17 @@ describe("robustness — malformed splits degrade instead of throwing", () => {
     expect(() => {
       runCharacterPipeline(doc);
     }).not.toThrow();
-    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
     // The unresolvable level is dropped, NOT silently handed to the Fighter:
     // guessing would move HP and proficiencies to a class never taken.
-    expect((derived["classLevels"] as { classLevels: Record<string, number> }).classLevels).toEqual({
-      [FIGHTER_ID]: 2,
-    });
+    expect((derived["classLevels"] as { classLevels: Record<string, number> }).classLevels).toEqual(
+      {
+        [FIGHTER_ID]: 2,
+      },
+    );
   });
 
   it("survives a class item authored outside the schema", () => {

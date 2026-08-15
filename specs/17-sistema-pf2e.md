@@ -158,7 +158,7 @@ condições igual). Isolar esse motor é a forma natural de evitar fork.
 `(Item, "weapon")`) tem um schema Zod registrado na system API. O `_source.system`
 é validado por esse schema; os tipos TS são derivados via `z.infer`.
 
-**Racional:** Alinha com a decisão D1 da spec 02 (Zod runtime + tipos derivados).
+**Racional:** Alinha com a decisão DEC-DOC-01 da spec 02 (Zod runtime + tipos derivados).
 Os dados vêm de importação externa (JSON do `pf2e`) e precisam de validação
 autoritativa no servidor.
 

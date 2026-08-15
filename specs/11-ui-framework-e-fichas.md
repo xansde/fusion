@@ -322,7 +322,7 @@ dados do usuário autenticado.
   (client-side) e a spec 23 (server-side) sem duplicar donos do mesmo dado.
   `ClientUIPreferences` cobre apenas geometria e estado de layout local;
   keybindings e qualidade gráfica pertencem ao modelo de usuário de `05`/`23`.
-  Reconcilia DEC-UIF-10 com DECISÃO-A11-07 e REQ-A11-021 de
+  Reconcilia DEC-UIF-10 com DEC-A11-07 e REQ-A11-021 de
   `ver 23-acessibilidade-e-dispositivos.md`.
 
 ---
@@ -346,6 +346,10 @@ chat, combat tracker).
   (DEC-UIF-10). As tabs do MVP são: Chat, Combat, Scenes, Actors, Items, Journal,
   Compendium, Settings. As tabs Tables, Cards e Playlists são **[V2]** no shell,
   mas o slot de registro de tab deve existir desde o MVP.
+  > **Concretizado pela spec 36** (`36-gaveta-lateral.md`, DEC-GAV-01/07, 2026-08-15):
+  > a lista efetiva do MVP passa a ser Chat, Contatos, Combate, Compêndio (todos) +
+  > NPCs, Cenas, Configurações (GM); Items e Journal ficam como slot sem aba no MVP.
+  > O "slot de registro" é `registerSidebarTab` (REQ-GAV-030).
 - **REQ-UIF-003** [MVP] Os **scene controls** (toolbar esquerda) devem expor uma
   coluna de "controls" (cada um ativa uma layer do canvas — ver
   `06-canvas-e-renderizacao.md`) e, para o control ativo, sua lista de "tools".
@@ -969,7 +973,7 @@ relevantes à UI.
   (localStorage vs. IndexedDB). A escolha concreta fica em
   `ver 23-acessibilidade-e-dispositivos.md`. Preferências portáveis
   (keybindings, tema, locale, qualidade gráfica) são persistidas server-side
-  por `userId` conforme DECISÃO-A11-07 e REQ-A11-021 de `23` — não há dois
+  por `userId` conforme DEC-A11-07 e REQ-A11-021 de `23` — não há dois
   donos: `ClientUIPreferences` cobre apenas dados de dispositivo local.
 
 ---

@@ -1457,7 +1457,9 @@ export class CharacterSheetVM {
           ability,
           spellDC,
           ...(ownerClassLabel !== undefined ? { ownerClassLabel } : {}),
-          ...(entryLevels?.classLevel !== undefined ? { ownerClassLevel: entryLevels.classLevel } : {}),
+          ...(entryLevels?.classLevel !== undefined
+            ? { ownerClassLevel: entryLevels.classLevel }
+            : {}),
           ...(entryLevels?.effectiveRank !== undefined
             ? { effectiveRank: entryLevels.effectiveRank }
             : {}),

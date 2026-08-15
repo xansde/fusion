@@ -67,7 +67,7 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 
 ## Decisões
 
-### DECISÃO-A11-01: Meta de conformidade — WCAG 2.2 AA para UI HTML; best-effort para canvas
+### DEC-A11-01: Meta de conformidade — WCAG 2.2 AA para UI HTML; best-effort para canvas
 
 **Decisão:** Toda a UI HTML (Svelte) do Fusion deve atingir conformidade WCAG 2.2 AA. O canvas PixiJS adota estratégia de "acessibilidade via alternativas": overlay DOM do PixiJS accessibility system para tokens e controles principais; opções textuais equivalentes (lista de tokens, combat tracker, sheets) para usuários que não podem interagir com o canvas.
 
@@ -81,7 +81,7 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 
 ---
 
-### DECISÃO-A11-02: Input layer unificado via Pointer Events API
+### DEC-A11-02: Input layer unificado via Pointer Events API
 
 **Decisão:** Toda a interação com o canvas usa exclusivamente a **Pointer Events API** (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`). Não haverá código que use `MouseEvent` ou `TouchEvent` diretamente no canvas.
 
@@ -94,7 +94,7 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 
 ---
 
-### DECISÃO-A11-03: Layout responsivo em dois modos — GM desktop e Jogador tablet
+### DEC-A11-03: Layout responsivo em dois modos — GM desktop e Jogador tablet
 
 **Decisão:** O Fusion define dois modos de layout baseados em media query composta `(max-width: 1024px) and (pointer: coarse)`:
 
@@ -113,7 +113,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ---
 
-### DECISÃO-A11-04: `<dialog>` nativo para modais bloqueantes; window manager próprio para janelas flutuantes
+### DEC-A11-04: `<dialog>` nativo para modais bloqueantes; window manager próprio para janelas flutuantes
 
 **Decisão:** O Fusion separa dois mecanismos de janela conforme a natureza do conteúdo (ver **DEC-UIF-02** em `11-ui-framework-e-fichas.md`):
 
@@ -130,7 +130,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ---
 
-### DECISÃO-A11-05: `touch-action: none` no canvas com fallback para iOS Safari
+### DEC-A11-05: `touch-action: none` no canvas com fallback para iOS Safari
 
 **Decisão:** O canvas recebe `touch-action: none` via CSS. Para iOS Safari (onde `none` pode não funcionar de forma confiável), event listeners são registrados com `{ passive: false }` para chamar `preventDefault()` nos gestos gerenciados pelo app.
 
@@ -143,7 +143,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ---
 
-### DECISÃO-A11-06: Altura com `dvh` e `viewport-fit=cover`
+### DEC-A11-06: Altura com `dvh` e `viewport-fit=cover`
 
 **Decisão:** A altura do container principal da aplicação usa `100dvh` (Dynamic Viewport Height). O viewport meta inclui `viewport-fit=cover` e o layout respeita `env(safe-area-inset-*)`.
 
@@ -164,7 +164,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ---
 
-### DECISÃO-A11-07: KeybindingRegistry com defaults fixos no MVP; remapeamento em [V2]
+### DEC-A11-07: KeybindingRegistry com defaults fixos no MVP; remapeamento em [V2]
 
 **Decisão:** Um registro central de keybindings (`KeybindingRegistry`) mapeia `action` → `(key, modifiers)`. No MVP, cada ação tem um default fixo não-remapeável pelo usuário. Em [V2], o usuário poderá sobrescrever via painel de configurações, com persistência por usuário no banco (REQ-A11-021..022).
 
@@ -178,7 +178,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ---
 
-### DECISÃO-A11-08: Toggles de qualidade de renderização
+### DEC-A11-08: Toggles de qualidade de renderização
 
 **Decisão:** O Fusion expõe um painel de configurações de qualidade gráfica com toggles independentes, persistidos por usuário:
 
@@ -198,7 +198,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ---
 
-### DECISÃO-A11-09: PWA com Web App Manifest [V2]
+### DEC-A11-09: PWA com Web App Manifest [V2]
 
 **Decisão:** O Fusion servirá, em V2, um `manifest.webmanifest` com `display: standalone`, `orientation: landscape` e ícones, e registrará um Service Worker que cacheia o app shell. Dados de jogo ao vivo (state, tokens, mapa) não são cacheados pelo Service Worker.
 
@@ -285,7 +285,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ### Suporte touch e tablet
 
-**REQ-A11-040** [MVP] Toda interação com o canvas deve usar exclusivamente a **Pointer Events API**. Nenhum handler direto de `TouchEvent` ou `MouseEvent` deve existir no canvas (ver DECISÃO-A11-02).
+**REQ-A11-040** [MVP] Toda interação com o canvas deve usar exclusivamente a **Pointer Events API**. Nenhum handler direto de `TouchEvent` ou `MouseEvent` deve existir no canvas (ver DEC-A11-02).
 
 **REQ-A11-041** [MVP] O canvas deve suportar os seguintes gestos touch fundamentais via Pointer Events:
 
@@ -301,7 +301,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 **[MVP-stretch]:** Implementar se validado em hardware real antes do freeze de MVP; caso contrário promovido a [V2]. O zoom via pinch com âncora no ponto médio dos dois dedos (Questão 2) requer validação em dispositivos reais — no MVP o zoom pode usar o centro da tela como âncora se a âncora de gesto não for validada a tempo.
 
-**REQ-A11-042** [MVP] O canvas deve ter `touch-action: none` via CSS, com listeners registrados como `{ passive: false }` para suporte a iOS Safari (ver DECISÃO-A11-05).
+**REQ-A11-042** [MVP] O canvas deve ter `touch-action: none` via CSS, com listeners registrados como `{ passive: false }` para suporte a iOS Safari (ver DEC-A11-05).
 
 **REQ-A11-043** [MVP] O layout em modo tablet (`deviceMode === 'tablet'`) deve: maximizar o canvas para 100% da viewport; ocultar scene controls de GM; colapsar a sidebar por padrão; renderizar um FAB no canto inferior direito para acesso rápido a chat/sheet/rolls; exibir sheets como bottom drawers, não como janelas flutuantes.
 
@@ -341,7 +341,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 ### Performance em hardware fraco
 
-**REQ-A11-070** [MVP] O Fusion deve expor um painel de configurações de qualidade gráfica acessível via menu de configurações → "Desempenho". Os toggles definidos em DECISÃO-A11-08 devem ser persistidos por usuário.
+**REQ-A11-070** [MVP] O Fusion deve expor um painel de configurações de qualidade gráfica acessível via menu de configurações → "Desempenho". Os toggles definidos em DEC-A11-08 devem ser persistidos por usuário.
 
 **REQ-A11-071** [MVP] Ao detectar `prefers-reduced-motion: reduce` no sistema operacional, o Fusion deve inicializar com `lights.animated = false` e `canvas.particleEffects = false`. O usuário pode sobrescrever via painel de desempenho.
 

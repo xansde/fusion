@@ -109,7 +109,7 @@ MVP — `ver 01-arquitetura-geral.md`).
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Sistema definido em TypeScript via `defineSystem()`, não um `system.json` cego
+### DEC-SYS-01 — Sistema definido em TypeScript via `defineSystem()`, não um `system.json` cego
 
 Um sistema é declarado por uma função `defineSystem(manifest, registrar)` que
 retorna um `SystemModule`. O manifest é um **objeto TypeScript validado por Zod**,
@@ -129,10 +129,10 @@ não um arquivo JSON lido às cegas. Como os sistemas são compilados junto
   _forma_ declarativa do manifest do Foundry (campos de research 07 §1.2), mas
   como interface TS.
 
-### D2 — Schemas `system` em Zod, registrados por `(documentType, subtype)`
+### DEC-SYS-02 — Schemas `system` em Zod, registrados por `(documentType, subtype)`
 
 Cada subtype de Document declara seu `system` com um schema **Zod**, alinhado a
-`02-modelo-de-dados.md` (D1 daquela spec). O `SystemDataModel` agrupa o schema,
+`02-modelo-de-dados.md` (DEC-DOC-01 daquela spec). O `SystemDataModel` agrupa o schema,
 suas migrações e suas funções de derivação.
 
 - **Rejeitado: portar `DataModel`/`DataField` do Foundry** (research 07 §2.2). É
@@ -144,7 +144,7 @@ suas migrações e suas funções de derivação.
   artefato. O servidor é autoritativo e valida `system` em runtime
   (`ver 21-seguranca.md`). Um único mecanismo de schema para engine e sistema.
 
-### D3 — Derivação com ordem de dependência explícita (fim do "prepareData hell")
+### DEC-SYS-03 — Derivação com ordem de dependência explícita (fim do "prepareData hell")
 
 A principal dor do Foundry: `prepareBaseData`/`prepareDerivedData` rodam em ordem
 fixa e implícita; quando um cálculo depende de outro, o autor recorre a truques
@@ -175,7 +175,7 @@ registrar.derive({
   (`base` antes de effects, `derived` após) por serem semanticamente necessárias
   (research 02 §15.1).
 
-### D4 — Motor de effects data-driven unificado, discriminado por `type`
+### DEC-SYS-04 — Motor de effects data-driven unificado, discriminado por `type`
 
 Um único motor de effects, com regras discriminadas por `type`, generaliza os
 Rule Elements do PF2e (research 10 §5). O conjunto de tipos no MVP é **fechado e
@@ -200,7 +200,7 @@ implementado pela engine** (não há `type` definido por sistema no MVP); sistem
   Modificadores são **factory functions deferidas** avaliadas no momento
   do roll (research 10 §5.1) — automação condicional sem reavaliar tudo.
 
-### D5 — Predicados sobre roll options (Set de strings), avaliados tarde
+### DEC-SYS-05 — Predicados sobre roll options (Set de strings), avaliados tarde
 
 A ativação condicional de effects e a aplicação de modificadores em rolls usam
 **predicados** avaliados contra um `Set<string>` de **roll options** (research 10
@@ -213,7 +213,7 @@ preparação.
   PF2e — research 10 §5.2), testáveis e seguros. Avaliar tarde permite considerar
   o alvo e o contexto do roll (`target:*`, domínios do check).
 
-### D6 — Sheets são componentes Svelte registrados, com contexto tipado
+### DEC-SYS-06 — Sheets são componentes Svelte registrados, com contexto tipado
 
 Uma sheet é um **componente Svelte 5 (Runes)** registrado para um
 `(documentType, subtype)` com um `SystemSheetContext` tipado. Reatividade vem do
@@ -229,7 +229,7 @@ Svelte; não há `render()` manual.
   uma única arquitetura de UI. O sistema registra `{ component, types,
 makeDefault, label }` (forma de research 07 §4.1, modernizada).
 
-### D7 — Hooks tipados, síncronos para cancelar, com payload nomeado
+### DEC-SYS-07 — Hooks tipados, síncronos para cancelar, com payload nomeado
 
 A engine expõe um **barramento de hooks tipado**: cada hook tem um nome e um tipo
 de payload. Hooks `pre*` (cancelar/mutar) rodam **no servidor**, são **síncronos**
@@ -246,17 +246,17 @@ clientes. Alinhado a `02-modelo-de-dados.md` (tabela de hooks de ciclo de vida).
   de payload. Cancelamento síncrono no servidor preserva a autoridade
   (`ver 04-`, `ver 21-`).
 
-### D8 — Settings declaradas com schema Zod e escopo, sem menu mágico
+### DEC-SYS-08 — Settings declaradas com schema Zod e escopo, sem menu mágico
 
 Settings são declaradas com `{ key, scope, schema (Zod), default, ... }`. Escopos
 `world` | `user` | `client` (research 07 §6.2). O valor é validado pelo schema.
 
 - **Rejeitado: `type: Boolean | Number | String | DataField`** (Foundry,
   research 07 §6.1). Zod cobre todos os casos com validação real e tipo inferido.
-- **Racional:** consistência com D2; o tipo TS de cada setting é inferido do
+- **Racional:** consistência com DEC-SYS-02; o tipo TS de cada setting é inferido do
   schema. Persistência em `ver 03-`; sincronização world-scope em `ver 04-`.
 
-### D9 — Versão da engine como contrato semver; migrações de system monotônicas
+### DEC-SYS-09 — Versão da engine como contrato semver; migrações de system monotônicas
 
 O manifest declara `engineCompat` (range semver da engine) e o sistema tem sua
 própria `version`. Migrações de dados de `system` são **funções monotônicas
@@ -270,7 +270,7 @@ da engine (`ver 02-`/`ver 03-`).
   Migrações por (documentType, subtype, fromVersion→toVersion) são testáveis e
   encadeáveis (research 02 §7.3: `migrateData` encadeado por herança).
 
-### D10 — Condições/status como dados de sistema registrados, com automação opcional
+### DEC-SYS-10 — Condições/status como dados de sistema registrados, com automação opcional
 
 Condições (PF2e: research 10 §8.1; Etmos: Fadiga, Inconsciente — research 12b
 §12) são registradas como `ConditionDefinition` (slug, label, ícone, valued?,
@@ -279,7 +279,7 @@ sistema fornece os dados e, opcionalmente, effects.
 
 - **Rejeitado: condições hardcoded na engine.** Cada sistema tem seu conjunto
   (PF2e ~40; Etmos punhado).
-- **Racional:** registro declarativo reusa o motor de effects (D4); condições
+- **Racional:** registro declarativo reusa o motor de effects (DEC-SYS-04); condições
   numeradas (frightened N, Fadiga) viram `value` + effect parametrizado.
 
 ---
@@ -318,7 +318,7 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
   bloquear a abertura com mensagem clara e oferta de migração quando aplicável.
 - **REQ-SYS-008** [V2] A engine DEVE suportar carregamento dinâmico de sistemas/
   módulos de terceiros (fora do monorepo), com sandbox e verificação de
-  integridade. (Fora do MVP por D1 e `ver 01-`/`ver 21-`.)
+  integridade. (Fora do MVP por DEC-SYS-01 e `ver 01-`/`ver 21-`.)
 
 ### Registro de document subtypes e schemas `system`
 
@@ -351,7 +351,7 @@ SystemDataModelSpec)` que registra um `SystemDataModel` para um
   `run(doc, ctx)`.
 - **REQ-SYS-021** [MVP] A engine DEVE executar `prepareData` de um Document na
   ordem: (1) reset para cópia de `_source`; (2) steps `phase: "base"`;
-  (3) preparação de embedded; (4) **aplicação dos effects** (D4) populando
+  (3) preparação de embedded; (4) **aplicação dos effects** (DEC-SYS-04) populando
   synthetics; (5) steps `phase: "derived"`. Nunca mutando `_source`
   (`ver 02-` §prepareData).
 - **REQ-SYS-022** [MVP] Dentro de cada fase, a engine DEVE ordenar os `DeriveStep`
@@ -515,7 +515,7 @@ label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
   degreeOfSuccessAdjustments, rollOptions, iwr) consumível pelos `DeriveStep`s da
   fase `derived` e pelo motor de rolagens (research 10 §6).
 - **REQ-SYS-089** [V2] O motor DEVE permitir `EffectRule.type` adicionais
-  registrados pelo sistema (effects plugáveis), com sandbox. Fora do MVP (D4).
+  registrados pelo sistema (effects plugáveis), com sandbox. Fora do MVP (DEC-SYS-04).
 - **REQ-SYS-090** [MVP] Effects com `predicate` que não satisfaça os roll options
   no momento da aplicação DEVEM ser ignorados sem erro (no-op), e a desativação
   via `ignored` DEVE removê-los do processamento.
@@ -572,7 +572,7 @@ source }`, aplicadas em cadeia da versão de origem dos dados até a `version`
   porém com tipos.
 - **REQ-SYS-136** [MVP] **Independência de jogo:** a engine NÃO hardcoda regras de
   PF2e/SF2e/Etmos; toda regra específica vem por dados/registro do sistema (o
-  motor de effects e o agregador de stacking são genéricos — D4/REQ-SYS-085).
+  motor de effects e o agregador de stacking são genéricos — DEC-SYS-04/REQ-SYS-085).
 - **REQ-SYS-137** [MVP] **Testabilidade:** um `SystemModule` é um valor puro
   construível e inspecionável em teste de unidade sem subir servidor nem canvas.
 

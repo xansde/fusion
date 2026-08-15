@@ -3329,8 +3329,7 @@ function backgroundTrainingOps(
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const keptChoices = existingChoices.filter(
-    (c) =>
-      !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
+    (c) => !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
   );
   // The strip has to run even when the incoming background grants NOTHING
   // (Hermit, Raised by Belief): it used to sit behind `newChoices.length > 0`,
@@ -5346,12 +5345,6 @@ export function detailsRequestForAutoFeature(
   feature: AutoFeatureModel,
   level?: number,
 ): PlanDetailsRequest | null {
-  // An Isekai blessing has no compendium document: the layer's content lives
-  // in `./isekai/`. Falling through to the name search below would hunt for
-  // "Plot Armor" in class-features-core and, on a hit, show something that
-  // isn't this blessing at all. The chip carries its own text — the caller
-  // renders it directly.
-  if (feature.isekai) return null;
   const packSlug = feature.detailsPackSlug ?? "class-features-core";
   return {
     packSlug,

@@ -73,7 +73,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 
 ## Decisões
 
-### D-CHT-01: ChatMessage é um Document persistido, não estado efêmero
+### DEC-CHT-01: ChatMessage é um Document persistido, não estado efêmero
 
 **Decisão:** `ChatMessage` segue o padrão Document do Fusion (ver `02-modelo-de-dados.md`): persiste em SQLite, recebe `_id` único, é sincronizado via WebSocket para todos os clientes elegíveis com o mesmo envelope CRUD de outros Documents.
 
@@ -86,7 +86,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 
 ---
 
-### D-CHT-02: Roll modes mapeados em campos `whisper` e `blind`
+### DEC-CHT-02: Roll modes mapeados em campos `whisper` e `blind`
 
 **Decisão:** Os quatro roll modes mapeiam diretamente em dois campos booleanos/array do documento:
 
@@ -107,7 +107,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-03: Chat cards são schemas JSON declarativos — sem HTML arbitrário
+### DEC-CHT-03: Chat cards são schemas JSON declarativos — sem HTML arbitrário
 
 **Decisão:** Sistemas registram chat cards via um schema tipado `CardData` em JSON. O cliente Svelte renderiza o card a partir deste schema usando um componente `<ChatCard>` controlado. Sistemas **não** podem injetar HTML arbitrário em `content` — apenas markdown leve sanitizado.
 
@@ -120,7 +120,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-04: Comandos de chat são registrados em um registry extensível
+### DEC-CHT-04: Comandos de chat são registrados em um registry extensível
 
 **Decisão:** Existe um `CommandRegistry` no servidor que mapeia prefixo de string para handler. Comandos built-in (`/roll`, `/w`, etc.) são registrados na inicialização. Sistemas podem registrar comandos adicionais via `SystemAPI.registerChatCommand()` (ver `15-api-de-sistemas.md`).
 
@@ -132,7 +132,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-05: Sanitização por allowlist no servidor antes de persistir
+### DEC-CHT-05: Sanitização por allowlist no servidor antes de persistir
 
 **Decisão:** Todo conteúdo textual de mensagens passa por uma etapa de sanitização no servidor antes de ser persistido e distribuído. A sanitização usa uma allowlist de elementos/atributos Markdown/HTML leve (parágrafo, bold, italic, código, link http/https, lista não-ordenada). Tags não permitidas são stripped. O card declarativo nunca passa por este pipeline — é renderizado via componente Svelte controlado.
 
@@ -140,7 +140,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-06: Paginação por cursor, não por offset
+### DEC-CHT-06: Paginação por cursor, não por offset
 
 **Decisão:** O carregamento do log usa paginação por cursor (campo `_id` como cursor, `ORDER BY timestamp DESC`), não por `LIMIT/OFFSET`. O cliente carrega as N mensagens mais recentes na abertura; ao rolar para cima, solicita o próximo bloco antes do cursor mais antigo visível.
 
@@ -153,7 +153,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-07: Busca full-text via SQLite FTS5
+### DEC-CHT-07: Busca full-text via SQLite FTS5
 
 **Decisão:** Uma tabela FTS5 (`chat_fts`) é mantida em sincronia com a tabela principal via triggers. Busca de texto livre é roteada para `chat_fts MATCH ?`. Resultados são paginados (máx 50 por página).
 
@@ -164,7 +164,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-08: Inline rolls avaliados no servidor, resultado embutido no documento
+### DEC-CHT-08: Inline rolls avaliados no servidor, resultado embutido no documento
 
 **Decisão:** Ao processar uma mensagem com `[[fórmula]]`, o servidor extrai, avalia via motor de rolagens (ver `08-motor-de-rolagens.md`) e substitui a expressão pelo span de resultado antes de persistir. O documento final armazena o resultado; não há reavaliação no cliente.
 
@@ -172,7 +172,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-09: Chat bubbles com duração fixa no MVP
+### DEC-CHT-09: Chat bubbles com duração fixa no MVP
 
 **Decisão:** Chat bubbles são renderizadas no canvas como overlays SVG acima do token, com duração padrão de 5 segundos (não configurável no MVP). Texto truncado após 120 caracteres com `…`. Visibilidade segue a visibilidade do token.
 
@@ -180,6 +180,22 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 - _Duração configurável por mundo:_ deixada para V2 para simplificar o MVP.
 - _Balões com estilo CSS completo:_ SVG controlado é mais simples de integrar com PIXI.js (ver `06-canvas-e-renderizacao.md`).
+
+---
+
+### DEC-CHT-10: Revelação é mutação persistida da mensagem, não reemissão efêmera
+
+**Decisão:** Revelar uma mensagem privada já enviada (rolagem em `gmroll`/`blindroll`/`selfroll`, ou sussurro) **reescreve o documento persistido**: `whisper` volta a `[]`, `blind` volta a `false`, e a mensagem carimba `revealedBy` (quem revelou) e `revealedAt` (quando). Só depois da escrita o servidor reemite a mensagem, socket a socket.
+
+A consequência é a razão da decisão: a visibilidade do chat é lida por **três** caminhos independentes — o broadcast ao vivo, o `chat:history` e o snapshot de entrada no mundo — e todos derivam a mesma resposta dos mesmos dois campos (`whisper`, `blind`). Mudando os campos, os três passam a concordar **sem nenhum predicado novo**: revelação não é um quarto conceito de visibilidade, é o estado `public` que a DEC-CHT-02 já define.
+
+**Alternativas rejeitadas:**
+
+- _Reemitir a mensagem de forma efêmera só no broadcast:_ quem estava conectado veria a rolagem, mas o documento continuaria privado — a mensagem sumiria de novo no primeiro reload, e nunca apareceria para quem entrasse depois. Visibilidade que não sobrevive ao F5 não é revelação, é ilusão.
+- _Usar o `doc:update` genérico de documentos:_ o `ChatMessage` do servidor é uma segunda cópia divergente do schema compartilhado; o broadcast de `doc:update` não filtra `whisper`/`blind`, então o próprio update vazaria a rolagem cega para a mesa no instante em que fosse emitido — e o cliente sequer escuta `doc:update` de `ChatMessage`. O chat mantém seu próprio caminho de emissão até que as duas cópias do schema sejam unificadas.
+- _Persistir um campo `revealed: boolean` mantendo `whisper`/`blind` intactos:_ criaria um terceiro predicado de visibilidade a ser replicado nos três caminhos de leitura — exatamente o defeito que esta decisão evita.
+
+**Racional:** a revelação tem que valer para o mundo inteiro e para sempre, não para quem estava com a aba aberta. Reaproveitar `whisper`/`blind` mantém um único predicado de visibilidade; os campos de auditoria existem para a UI dizer que aquilo foi revelado pelo narrador, nunca para decidir quem vê.
 
 ---
 
@@ -306,6 +322,18 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 **REQ-CHT-044** [V2] O usuário DEVE poder abrir o painel de chat em uma janela separada do browser via botão de pop-out.
 
+### Revelação de mensagens privadas
+
+**REQ-CHT-045** [MVP] Um usuário com papel privilegiado (GM ou Assistente de GM) PODE revelar uma `ChatMessage` privada — aquela cujo `whisper` não está vazio ou cujo `blind` é `true` — tornando-a visível a todos os usuários do mundo. A operação é solicitada pelo evento `chat:reveal`, que identifica a mensagem já existente pelo `_id`.
+
+**REQ-CHT-046** [MVP] A revelação DEVE ser persistida no documento (`whisper` passa a `[]` e `blind` a `false`) **antes** de qualquer emissão, de modo que os três caminhos de leitura entreguem a mensagem revelada: o broadcast ao vivo, o `chat:history` e o snapshot de entrada no mundo. Uma revelação que só altere o broadcast NÃO satisfaz este requisito.
+
+**REQ-CHT-047** [MVP] A mensagem revelada DEVE registrar quem revelou (`revealedBy`, User ID) e quando (`revealedAt`, Unix ms), e o cliente DEVE sinalizar visualmente que aquela mensagem foi revelada pelo narrador. Os campos de auditoria são de exibição: eles NÃO DEVEM participar da decisão de quem recebe a mensagem, que continua sendo derivada apenas de `whisper` e `blind` (DEC-CHT-10).
+
+**REQ-CHT-048** [MVP] Um usuário sem papel privilegiado NÃO DEVE conseguir revelar mensagem alguma: o servidor DEVE responder com erro de permissão e a mensagem DEVE permanecer privada, inclusive no histórico. Revelar uma mensagem que já é pública NÃO DEVE alterar o documento nem gerar broadcast.
+
+**REQ-CHT-049** [MVP] Revelar NÃO DEVE reexecutar a rolagem nem expor a semente do RNG: o payload emitido é exatamente o resultado persistido no momento da rolagem, e o `seed` permanece restrito ao log de auditoria (ver `08-motor-de-rolagens.md`, REQ-ROL-049). Em particular, o autor de uma `blindroll` revelada DEVE passar a receber o resultado real no lugar do texto substituto de confirmação previsto em REQ-ROL-032.
+
 ---
 
 ## Requisitos não-funcionais
@@ -418,6 +446,10 @@ export interface ChatMessage {
   whisper: string[];
   /** Se true, clientes não-GM não recebem os dados de rolagem */
   blind: boolean;
+  /** Unix ms em que um GM revelou esta mensagem; ausente = nunca foi revelada (REQ-CHT-047) */
+  revealedAt?: number;
+  /** User ID de quem revelou; ausente = nunca foi revelada (REQ-CHT-047) */
+  revealedBy?: string;
   /** Rolls avaliados (para type === 'roll') */
   rolls?: RollData[];
   /** Chat card declarativo (para type === 'system' com card) */
@@ -465,6 +497,7 @@ export type ServerChatCommandHandler = (
 | `document:delete` (chat) | `{ _id: string }`      | GM deleta mensagem.                                                          |
 | `chat:card-action`       | `CardActionRequest`    | Clique em botão de card.                                                     |
 | `chat:flush` (request)   | `{}`                   | GM solicita limpeza do log.                                                  |
+| `chat:reveal`            | `ChatRevealPayload`    | GM revela mensagem privada já enviada (REQ-CHT-045).                         |
 
 ### Eventos socket.io (servidor → clientes)
 
@@ -525,6 +558,10 @@ export type ServerChatCommandHandler = (
 **CA-CHT-010** Um token visível na cena envia `/emote examina a sala` → um chat bubble aparece acima do token no canvas por 5 segundos; jogadores que não veem o token não veem o bubble.
 
 **CA-CHT-011** Mensagem com conteúdo `**texto em negrito** e [[1d6]]` → negrito renderizado; `[[1d6]]` substituído pelo resultado avaliado pelo servidor (ex.: `**texto em negrito** e 4`).
+
+**CA-CHT-012** Um jogador digita `/gmroll 1d20`; o GM revela a mensagem → o jogador que não era destinatário passa a ver o resultado no broadcast, encontra a mesma mensagem ao consultar o histórico, e um cliente que conecta depois a recebe no snapshot de entrada.
+
+**CA-CHT-013** Um jogador digita `/blindroll 1d20`; o GM revela a mensagem → o autor deixa de ver o texto de confirmação e passa a ver o total realmente rolado, idêntico ao que o GM já via; nenhum payload entregue contém `seed`. Se, em vez do GM, um jogador comum solicitar a revelação, o servidor recusa por permissão e a mensagem continua invisível para os demais, inclusive no histórico.
 
 ---
 
