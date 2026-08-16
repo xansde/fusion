@@ -698,10 +698,15 @@ describe("POST /api/assets/token + GET /assets/* with query-token", () => {
   });
 
   it("returns 401 when query-token is expired", async () => {
-    // Build an expired token by back-dating exp by 10 minutes
-    const { issueAssetToken } = await import("../assets/asset-token.js");
+    // Build an expired token by back-dating exp by 10 minutes.
+    //
+    // T025: this has to use the CURRENT signer (`issueBrowseGrant`), not the
+    // superseded `issueAssetToken`. A token in the old format is rejected for
+    // being unrecognisable, which would make this test pass without ever
+    // exercising the expiry check it is named after.
+    const { issueBrowseGrant } = await import("../assets/asset-grant.js");
     const pastMs = Date.now() - 10 * 60 * 1000;
-    const { token, exp } = issueAssetToken(ctx.gmUserId, ctx.secret, pastMs);
+    const { token, exp } = issueBrowseGrant(ctx.gmUserId, ctx.secret, pastMs);
 
     const resp = await ctx.fastify.inject({
       method: "GET",

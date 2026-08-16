@@ -22,8 +22,13 @@ import { session } from "../session.svelte.js";
  *
  * BUG A FIX: scene.background is persisted as a clean `/assets/<name>` path
  * (no query token — see resolveAssetUrl()'s doc comment). We mint a fresh
- * token right before PIXI Assets.load() instead of loading the raw path,
+ * credential right before PIXI Assets.load() instead of loading the raw path,
  * otherwise the server's static route 401s on every scene load.
+ *
+ * T025: that credential is a grant for THIS scene document, and the same mint
+ * covers every token texture of the scene. This call is what fills the cache the
+ * TokenSprites then read — the scene pays one round-trip for its background and
+ * its forty tokens together, not forty-one.
  *
  * @returns Cleanup function — call before loading a new scene.
  */
@@ -45,7 +50,10 @@ export async function loadSceneDocument(
       const userId = session.user?.id;
       const loadUrl =
         accessToken && userId
-          ? await resolveAssetUrl(scene.background, accessToken, userId)
+          ? await resolveAssetUrl(scene.background, accessToken, userId, {
+              table: "scenes",
+              id: scene._id,
+            })
           : scene.background;
       const texture = await Assets.load<Texture>(loadUrl);
       const sprite = new Sprite(texture);

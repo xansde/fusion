@@ -119,7 +119,8 @@
   const backgroundSrc = $derived(resolvedBackground ?? immediateBackground);
 
   $effect(() => {
-    const background = head.kind === "on-air" ? head.background : null;
+    const onAir = head.kind === "on-air" ? head : null;
+    const background = onAir?.background ?? null;
     if (background === null || background.kind !== "image") {
       resolvedBackground = null;
       return;
@@ -130,13 +131,17 @@
       return;
     }
     const token = fusionApi.getToken();
-    if (!token || !userId) {
+    if (!token || !userId || onAir === null) {
       // No session to mint a token with → the colour box is the honest fallback.
       resolvedBackground = null;
       return;
     }
     let cancelled = false;
-    void resolveAssetUrl(raw, token, userId)
+    // T025: the background is a field of the scene ON AIR, so that scene is the
+    // document the grant is asked for. A player who cannot see the scene gets no
+    // grant and the head keeps its colour box — the same thing it already shows
+    // while the resolve is in flight, so nothing flashes.
+    void resolveAssetUrl(raw, token, userId, { table: "scenes", id: onAir.sceneId })
       .then((url) => {
         if (!cancelled) resolvedBackground = url;
       })

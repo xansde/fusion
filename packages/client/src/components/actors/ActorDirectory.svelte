@@ -281,7 +281,12 @@
             title={t("FUSION.Sidebar.Actors.DragHint")}
           >
             <!-- Actor portrait (r19-W4): circular, with an initials fallback. -->
-            <ActorPortrait img={actor.img} name={actor.name} size={32} />
+            <ActorPortrait
+              img={actor.img}
+              docRef={{ table: "actors", id: actor._id }}
+              name={actor.name}
+              size={32}
+            />
 
             <!-- Name + type -->
             <div class="actor-row__info">
