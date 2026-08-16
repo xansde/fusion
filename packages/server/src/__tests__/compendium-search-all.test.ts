@@ -29,6 +29,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { io as ioClient } from "socket.io-client";
 import type { Socket as ClientSocket } from "socket.io-client";
+import type { Logger } from "pino";
 
 import { boot } from "../boot.js";
 import type { BootResult } from "../boot.js";
@@ -489,6 +490,35 @@ describe("compendium:searchAll — REQ-CPD-030, REQ-CPD-031, REQ-CPD-032, REQ-CM
 // servidor"), so the wire and the client are deliberately out of the sample.
 // ---------------------------------------------------------------------------
 
+/** The one line the service writes when it builds the cross-pack index. */
+const BUILD_LOG_MESSAGE = "Built cross-pack compendium search index";
+
+/**
+ * A logger that only remembers the index-build announcements. It is the
+ * observable that makes "built once" checkable without a stopwatch — see the
+ * note on the reuse test below.
+ */
+function collectingLogger(): { logger: Logger; buildLogs: Array<Record<string, unknown>> } {
+  const buildLogs: Array<Record<string, unknown>> = [];
+  const noop = (): void => {
+    /* the service's other log levels are irrelevant here */
+  };
+  const stub = {
+    debug: (payload: unknown, message?: string): void => {
+      if (message === BUILD_LOG_MESSAGE && typeof payload === "object" && payload !== null) {
+        buildLogs.push(payload as Record<string, unknown>);
+      }
+    },
+    trace: noop,
+    info: noop,
+    warn: noop,
+    error: noop,
+    fatal: noop,
+    silent: noop,
+  };
+  return { logger: stub as unknown as Logger, buildLogs };
+}
+
 describe("RNF-CPD-01 — the aggregated search answers within budget on the full pf2e acervo", () => {
   /**
    * The requirement is < 300 ms on a REFERENCE machine. This assertion uses a
@@ -532,24 +562,42 @@ describe("RNF-CPD-01 — the aggregated search answers within budget on the full
     }
   }, 180_000);
 
+  /**
+   * WHY NOT A STOPWATCH: an earlier version of this test compared the second
+   * search's wall time against the first one's. It did not hold — with the
+   * cache REMOVED from the service the assertion still passed, because a
+   * rebuild over the committed acervo is fast enough in absolute terms to sit
+   * under any ceiling loose enough to survive a shared CI runner. The build is
+   * therefore asserted where it is actually observable: the service announces
+   * each build once, and a cached index announces it exactly once no matter how
+   * many searches follow.
+   */
   it("RNF-CPD-01: the cross-pack index is built once and reused (a second search does not rebuild it)", () => {
-    const svc = new CompendiumService();
+    const { logger, buildLogs } = collectingLogger();
+    const svc = new CompendiumService(logger);
     const packsDir = resolveSystemPacksDir("pf2e");
     if (packsDir === null) throw new Error("Committed pf2e packs not found");
     svc.discoverPacks(packsDir, "pf2e");
 
-    const coldStart = performance.now();
-    svc.searchAllPacks(Role.GAMEMASTER, { text: "goblin" });
-    const cold = performance.now() - coldStart;
+    // Nothing is built until someone searches: the index is lazy.
+    expect(buildLogs).toHaveLength(0);
 
-    const warmStart = performance.now();
-    const warm2 = svc.searchAllPacks(Role.GAMEMASTER, { text: "goblin" });
-    const warm = performance.now() - warmStart;
+    const first = svc.searchAllPacks(Role.GAMEMASTER, { text: "goblin" });
+    expect(first.totalMatched).toBeGreaterThan(0);
+    expect(buildLogs).toHaveLength(1);
 
-    expect(warm2.totalMatched).toBeGreaterThan(0);
-    // The point is the cache, not the exact ratio: the second call must not pay
-    // the index build again.
-    expect(warm).toBeLessThan(Math.max(cold / 2, CI_CEILING_MS));
-    expect(warm).toBeLessThan(CI_CEILING_MS);
+    // More searches — different text, different filters, no text at all — and
+    // the index is still the one built above.
+    const second = svc.searchAllPacks(Role.GAMEMASTER, { text: "goblin" });
+    const everything = svc.searchAllPacks(Role.GAMEMASTER, {});
+    expect(second.totalMatched).toBe(first.totalMatched);
+    expect(buildLogs).toHaveLength(1);
+
+    // And that single build covered the whole shelf, cross-checked against the
+    // aggregation's own tally rather than against itself: the GM sees every
+    // pack, so an empty search reaches every row the build produced.
+    const built = buildLogs[0]!;
+    expect(built["packs"]).toBe(everything.packsSearched);
+    expect(built["entries"]).toBe(everything.totalMatched);
   }, 180_000);
 });
