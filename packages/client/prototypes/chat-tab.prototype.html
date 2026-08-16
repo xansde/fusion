@@ -24,9 +24,16 @@
      comando que NOMEIA o modo (/gmroll, /blindroll) vence o seletor, e só para
      aquela mensagem. A janela de dados NÃO escolhe modo: ela monta a rolagem,
      quem decide a plateia é o seletor.
-   · NADA É APAGADO do log: o Mestre INVALIDA uma mensagem, que fica no lugar,
-     acinzentada e riscada, e pode ser revalidada. Isso substitui a deleção de
-     REQ-CHT-005 (o flush do log inteiro, REQ-CHT-006, continua existindo).
+   · NADA É APAGADO do log: a mensagem é INVALIDADA e fica no lugar, acinzentada
+     e riscada. Substitui a deleção de REQ-CHT-005 (o flush do log inteiro,
+     REQ-CHT-006, continua existindo). Regras:
+       – invalida o MESTRE ou o AUTOR; grava-se quem invalidou;
+       – revalida sempre o Mestre; o autor só desfaz o que ele mesmo invalidou —
+         invalidação do Mestre é palavra final;
+       – invalidar é ANOTAÇÃO no log, não desfazimento: dano já aplicado e
+         iniciativa já lançada continuam onde estão, e o narrador decide o resto.
+   · a caixa de escrita cresce com o texto (uma linha até cinco) e o placeholder
+     é curto: quem escreve não precisa ler instrução.
    · acima da escrita, 3 DADOS FAVORITOS + o botão que abre a janela de dados.
      Favorito = rótulo + fórmula em texto + modo ("segue o seletor" ou travado).
      Guardado no APARELHO, por MUNDO + USUÁRIO (nunca no servidor). No MVP a
@@ -244,7 +251,8 @@
   /* ---------- Composer ---------- */
   .composer{padding:.35rem .5rem .45rem;display:flex;flex-direction:column;gap:.3rem;flex:0 0 auto;background:var(--surface)}
   .composer .line{display:flex;gap:.3rem;align-items:flex-end}
-  .composer textarea{flex:1;min-width:0;resize:none;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.35rem .45rem;font:inherit;font-size:.83rem;height:34px;line-height:1.3}
+  /* cresce com o texto: uma linha por padrão, até 5 linhas; só então rola */
+  .composer textarea{flex:1;min-width:0;resize:none;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.35rem .45rem;font:inherit;font-size:.83rem;height:32px;min-height:32px;max-height:110px;line-height:1.35;overflow-y:hidden}
   .composer textarea:focus{outline:1px solid var(--accent);border-color:var(--accent)}
   .composer .send{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);width:32px;height:34px;font-size:.9rem;cursor:pointer;flex:0 0 auto}
 
@@ -579,7 +587,7 @@ function msgHtml(m, prev){
   if(m.invalid) cls.push('m--invalid');
 
   let seals='';
-  if(m.invalid) seals += '<span class="seal invalid">invalidada pelo Mestre</span>';
+  if(m.invalid) seals += `<span class="seal invalid">invalidada ${m.invalidBy==='gm'?'pelo Mestre':'pelo autor'}</span>`;
   if(m.blind && !m.revealed) seals += '<span class="seal blind">cega · só o Mestre</span>';
   if(m.revealed) seals += '<span class="seal revealed">revelada</span>';
   if(m.type==='whisper') seals += `<span class="seal whisper">para ${esc(m.to)}</span>`;
@@ -604,12 +612,14 @@ function msgHtml(m, prev){
   if(m.type==='ability') body=abilityHtml(m);
 
   const canReveal = role==='gm' && (m.type==='whisper' || (m.blind && !m.revealed) || m.mode==='gmroll');
-  /* NADA é apagado: o Mestre invalida, e a mensagem fica acinzentada no lugar
-     onde sempre esteve. Isso substitui a deleção de REQ-CHT-005. */
-  const acts = role==='gm'
-    ? `<span class="acts">${canReveal?`<button title="Revelar para a mesa">${MODE_ICON.gmroll}</button>`:''}<button title="Copiar">⧉</button>
-       <button data-invalid="${m.id}" title="${m.invalid?'Revalidar':'Invalidar — risca sem apagar'}">${m.invalid?'↺':'⊘'}</button></span>`
-    : `<span class="acts"><button title="Copiar">⧉</button></span>`;
+  /* NADA é apagado: invalidar risca no lugar, substituindo a deleção de REQ-CHT-005.
+     Quem invalida: o Mestre ou o AUTOR. Quem revalida: sempre o Mestre; o autor só
+     desfaz o que ele mesmo invalidou — invalidação do Mestre é palavra final. */
+  const isAuthor = m.who===ME(), isGm = role==='gm';
+  const invBtn = !m.invalid
+    ? ((isGm||isAuthor) ? `<button data-invalid="${m.id}" title="Invalidar — risca sem apagar">⊘</button>` : '')
+    : ((isGm || (m.invalidBy==='author' && isAuthor)) ? `<button data-invalid="${m.id}" title="Revalidar">↺</button>` : '');
+  const acts = `<span class="acts">${isGm&&canReveal?`<button title="Revelar para a mesa">${MODE_ICON.gmroll}</button>`:''}<button title="Copiar">⧉</button>${invBtn}</span>`;
 
   const bcolor = (cont||m.type==='whisper'||m.blind||isCard) ? '' : (COLOR[m.who]||'var(--border)');
   return `<div class="${cls.join(' ')}" ${bcolor?`style="border-left-color:${bcolor}"`:''}>${acts}${meta}${body}</div>`;
@@ -659,7 +669,7 @@ function composerHtml(){
       ${MODE_ICON[m.id]}<span class="tip" style="${pos}"><b>${m.name}</b><br>${m.help}</span></button>`;
   }).join('');
   return `<div class="composer">
-    <div class="line"><textarea id="draft" placeholder="Escreva ou /r 1d20+7…   ·   Enter envia, Shift+Enter quebra linha">${esc(draft)}</textarea><button class="send" id="send" title="Enviar (Enter)">➤</button></div>
+    <div class="line"><textarea id="draft" rows="1" placeholder="Digite aqui…">${esc(draft)}</textarea><button class="send" id="send" title="Enviar (Enter · Shift+Enter quebra linha)">➤</button></div>
     <div class="modes">${thumb}${btns}</div>
   </div>`;
 }
@@ -818,7 +828,10 @@ function wire(){
   root.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>rollFav(+b.dataset.fav));
   root.querySelectorAll('[data-ctx]').forEach(b=>b.onclick=()=>{ctxHit=+b.dataset.ctx;ctxRange={up:5,down:5};win={kind:'context'};render();});
   root.querySelectorAll('[data-invalid]').forEach(b=>b.onclick=()=>{
-    const m=msgs.find(x=>x.id===+b.dataset.invalid); if(m) m.invalid=!m.invalid; render();
+    const m=msgs.find(x=>x.id===+b.dataset.invalid); if(!m) return;
+    if(m.invalid){ m.invalid=false; delete m.invalidBy; }
+    else { m.invalid=true; m.invalidBy = role==='gm' ? 'gm' : 'author'; }
+    render();
   });
   float.querySelectorAll('[data-ctxmore]').forEach(b=>b.onclick=()=>{
     if(b.dataset.ctxmore==='up') ctxRange.up+=5; else ctxRange.down+=5; render();
@@ -831,10 +844,15 @@ function wire(){
   /* Enter envia; Shift+Enter quebra linha */
   const ta=root.querySelector('#draft');
   if(ta){
-    ta.oninput=e=>{draft=e.target.value;};
+    const grow=()=>{ ta.style.height='auto';
+      const h=Math.min(ta.scrollHeight, 110);
+      ta.style.height=h+'px';
+      ta.style.overflowY = ta.scrollHeight>110 ? 'auto' : 'hidden'; };
+    ta.oninput=e=>{draft=e.target.value;grow();};
     ta.onkeydown=e=>{
       if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); draft=ta.value; focusInput=true; sendDraft(); }
     };
+    grow();
     if(focusInput){ focusInput=false; ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); }
   }
   const sendBtn=root.querySelector('#send'); if(sendBtn) sendBtn.onclick=()=>{const t=root.querySelector('#draft'); if(t) draft=t.value; focusInput=true; sendDraft();};
@@ -968,7 +986,7 @@ function paintSwitcher(){
     <table>
       <tr><td>barra superior</td><td><b>pesquisa fixa + ⋯</b> (⋯ = Meus dados; exportar/limpar são do Mestre)</td></tr>
       <tr><td>escrita</td><td><b>largura total</b>; <b>Enter</b> envia, <b>Shift+Enter</b> quebra linha</td></tr>
-      <tr><td>moderação</td><td>nada é apagado — o Mestre <b>invalida</b> (fica riscado e cinza)</td></tr>
+      <tr><td>moderação</td><td>nada é apagado — <b>Mestre ou autor invalida</b>; o autor só desfaz o que ele mesmo invalidou</td></tr>
       <tr><td>modo de rolagem</td><td><b>${modeOf(mode).name}</b> — persiste, e manda em TODAS as rolagens (emenda REQ-CHT-017)</td></tr>
       <tr><td>dados</td><td>3 favoritos (aparelho + <b>mundo</b> + usuário) + janela de montagem</td></tr>
       <tr><td>alvo</td><td>${hasTarget?'<b>nome + grau</b>, sem a CA para o jogador':'<b>sem alvo</b> → rolagem sem grau'}</td></tr>
