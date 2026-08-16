@@ -168,6 +168,67 @@ function isPrivileged(role: number): boolean {
   return isRolePrivileged(role);
 }
 
+/**
+ * Parent document type → the collection key its embedded documents live under,
+ * derived from EMBEDDED_PARENT_MAP so a new embedded type is covered the day it
+ * is registered there. Same convention the embedded handlers use to build
+ * `collectionKey` (`embeddedType.toLowerCase() + "s"`).
+ */
+const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries(
+  Object.entries(EMBEDDED_PARENT_MAP).map(([embeddedType, parentType]) => [
+    parentType,
+    `${embeddedType.toLowerCase()}s`,
+  ]),
+);
+
+/**
+ * Fields that doc:update must not write through the generic path, checked
+ * before anything is persisted.
+ *
+ * `Scene.active` (T010): which scene is active is world state, not a field of a
+ * document. Writing it here set the flag without updating
+ * settings['_meta:activeScene'], without deactivating the previous scene and
+ * without broadcasting — the second writer that made the two records disagree.
+ * `world:activeScene` is the one way in.
+ *
+ * Embedded collections (`Scene.tokens`, `Actor.items`, `Combat.combatants`):
+ * the generic path hands the diff straight to store.update(), with none of the
+ * per-document ownership check, system-specific validation or redacted
+ * broadcast that the embedded handlers provide. Replacing the array wholesale
+ * bypassed all of it — verified by execution: a player who owns their own sheet
+ * replaced `items` with an entry of an unknown type, wiping what was there, and
+ * got ok:true.
+ *
+ * Only an *array* value is refused, and that is deliberate: an array is the one
+ * shape that reaches the database through this path. Any other shape is already
+ * rejected downstream, because deepMerge replaces the array with the object and
+ * the document then fails schema validation — including the dot-path operator
+ * forms (`items.+`, `items.-<id>`) the character sheet sends today. Refusing
+ * those here too would trade one rejection for another and hide that they need
+ * an implementation, not a guard.
+ */
+function rejectUnwritableField(
+  documentType: string,
+  expandedDiff: Record<string, unknown>,
+): Ack<never> | null {
+  if (documentType === "Scene" && "active" in expandedDiff) {
+    return ackError(
+      "VALIDATION_FAILED",
+      "Scene.active is not writable through doc:update — use the world:activeScene operation",
+    );
+  }
+
+  const collectionKey = EMBEDDED_COLLECTION_BY_PARENT[documentType];
+  if (collectionKey !== undefined && Array.isArray(expandedDiff[collectionKey])) {
+    return ackError(
+      "VALIDATION_FAILED",
+      `${documentType}.${collectionKey} is not writable as a whole through doc:update — use embedded operations (updates[].embedded)`,
+    );
+  }
+
+  return null;
+}
+
 /** Extract the ownership map from a raw document, returning a default if absent. */
 function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
   if (
@@ -738,13 +799,34 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     // Check for embedded updates (tokens inside scenes)
     const hasEmbedded = updates.some((u) => u.embedded);
     if (hasEmbedded) {
-      // All updates in the batch must be embedded OR all primary
+      // All updates in the batch must be embedded OR all primary — a mixed
+      // batch cannot be routed to a single code path: handleEmbeddedUpdate
+      // below only ever processes `embedded` entries (`if (!upd.embedded)
+      // continue;`), so a mixed batch would silently drop every primary
+      // entry while the ack still comes back ok:true. Reject explicitly
+      // instead of half-processing (found by execution, not by the spec).
+      const allEmbedded = updates.every((u) => u.embedded);
+      if (!allEmbedded) {
+        return ackError(
+          "VALIDATION_FAILED",
+          "doc:update batch cannot mix primary and embedded updates — send them as separate batches",
+        );
+      }
       return handleEmbeddedUpdate(deps, ctx, documentType, updates);
     }
 
     const table = resolveTable(documentType);
     if (!table) {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
+    }
+
+    // Pre-flight: reject the whole batch before writing anything. The loop
+    // below persists as it goes, so a guard that fires mid-loop would leave
+    // the earlier entries written, skip the broadcast and still ack ok:false —
+    // server and clients diverging in silence until the next resync.
+    for (const upd of updates) {
+      const rejection = rejectUnwritableField(documentType, applyDotPathDiff({}, upd.diff));
+      if (rejection) return rejection;
     }
 
     const authorCtx = { userId: ctx.userId };
@@ -791,18 +873,6 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // discard on read-back).  The same expansion is already applied in the
       // embedded path via applyDotPathDiff in handleEmbeddedUpdate.
       let expandedDiff = applyDotPathDiff({}, upd.diff);
-
-      // T010: which scene is active is world state, not a field of a document.
-      // Letting it through here wrote the flag without updating
-      // settings['_meta:activeScene'], without deactivating the previous scene
-      // and without broadcasting — the second writer that made the two records
-      // disagree. `world:activeScene` is the one way in.
-      if (documentType === "Scene" && "active" in expandedDiff) {
-        return ackError(
-          "VALIDATION_FAILED",
-          "Scene.active is not writable through doc:update — use the world:activeScene operation",
-        );
-      }
 
       // WIRING-DERIVE: system.derived is server-computed only — strip any
       // client-supplied value so a stale/forged autosave payload can never
