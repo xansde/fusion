@@ -328,7 +328,7 @@ gesto de recolher ou persistência de `open`/`activeTab`, que são desta spec:
 | Contatos      | _a criar_                 | 02/05/11                              |
 | Combate       | [40](40-aba-combate.md)   | 10                                    |
 | Compêndio     | _a criar_                 | 16                                    |
-| NPCs          | _a criar_                 | 02/05/11                              |
+| NPCs          | [42](42-aba-npcs.md)      | 02/05/11 (compêndio: 16)              |
 | Cenas         | _a criar_                 | 06/11                                 |
 | Configurações | [37](37-configuracoes.md) | 05/15/13 (mods: [V2] por REQ-ESC-012) |
 

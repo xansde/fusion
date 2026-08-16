@@ -156,6 +156,9 @@ apagada sem rastro.
   `prefixo-com-dono` (§4). A lacuna já cobrou preço fora das specs: a forma do estado
   quente no banco foi adiada por não existir spec de Token, e a `40` teve de banir a
   palavra da interface (DEC-CBA-06).
+- **Ficha de não-jogável**: sem número ainda. A spec `42` (DEC-NPC-13) decidiu que a ficha
+  de NPC será muito mais maleável que a de personagem e que definir qualquer parte dela na
+  aba criaria uma segunda dona; a aba só abre a ficha que essa spec futura definir.
 - **API de Módulos/Mods**: sem número ainda. `00` (`REQ-ESC-012`) fixa sistemas como
   pacotes compilados e trata plugin dinâmico como [V2]; quando a extensão de terceiros
   virar trabalho, ela toma o próximo número livre (`35`).
