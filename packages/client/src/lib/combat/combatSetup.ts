@@ -18,16 +18,29 @@
  * Deciding that in the markup would mean three nested conditionals in a template nobody can
  * test; `initiativeCellFor()` answers it once, in a function a test can interrogate.
  *
- * On the concealment of a creature's initiative from a player (REQ-CBA-067): this is a rule
- * of THIS SCREEN, in the sense DEC-CBA-11 separates — the server does not strip `initiative`
- * from a non-privileged payload today, it strips participants marked `hidden` (REQ-CBA-082).
- * If the intent is secrecy rather than restraint, the fix belongs to the server's single
- * redaction module, not to a second filter drawn here.
+ * On the concealment of a creature's initiative from a player (REQ-CBA-067): what this module
+ * draws is the SCREEN half of the rule, and the screen half alone does not satisfy it. Unlike
+ * REQ-CBA-083, which downgrades the creature's health to an explicit display rule while the
+ * value keeps arriving by another route (DEC-CBA-11, Q-CBA-02), REQ-CBA-067 has no such
+ * carve-out written anywhere in spec 40 — so it is a secrecy requirement, and secrecy is the
+ * server's job (REQ-CBA-080, REQ-CBA-082).
+ *
+ * **Registered gap (openQuestion for the server lane).** Today the server strips participants
+ * marked `hidden` and nothing else: `packages/server/src/net/redaction.ts` never mentions
+ * `initiative`, so the figure reaches the player's socket by all three paths (snapshot,
+ * broadcast and ack). Closing it belongs to that single redaction module — never to a second
+ * filter drawn here — and it is NOT the one-liner it looks like: `buildTrackerRows()` and
+ * `combatStore`'s ordered view both re-sort the roster with `sortCombatants()`, which sinks
+ * every `initiative === null` entry to the bottom. Blanking the creatures' value server-side
+ * without first making the client honour the order the server already persisted would hand the
+ * player a queue in the wrong order, and the order is the whole point once the encounter runs
+ * (REQ-CBA-030, REQ-CBA-070).
  */
 
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import type { ViewerRole } from "./combatVisibility.js";
 import { addableTokens } from "./combatTracker.js";
+import { skillNamePt } from "../sheets/pf2e/skillNames.js";
 
 // ---------------------------------------------------------------------------
 // The three states of the panel (REQ-CBA-010)
@@ -231,9 +244,12 @@ export function buildInitiativeCells(
 /**
  * One statistic the participant could roll initiative with (REQ-CBA-066).
  *
- * `id` is the slug the system's initiative formula understands; `label` is what the panel
- * writes. The default option — roll with whatever the system picks on its own — is NOT in
- * this list: it is the absence of a choice, and the panel offers it as such.
+ * `id` is the slug the system's initiative formula understands — it travels untouched in the
+ * `options` bag of `combat:rollInitiative`. `label` is what the panel WRITES ON SCREEN, and
+ * therefore is not the slug: the slugs of `system.derived.skills` are the canonical English
+ * ones, and a drawer in pt-BR that offers "Thievery" is a drawer that leaked an identifier
+ * into the interface. The default option — roll with whatever the system picks on its own —
+ * is NOT in this list: it is the absence of a choice, and the panel offers it as such.
  */
 export interface InitiativeStatisticOption {
   readonly id: string;
@@ -252,10 +268,16 @@ export interface InitiativeStatisticOption {
  * "registrar a escolha no participante" half of the requirement. Should Q-CBA-03 close the
  * other way, what moves is where this list is rendered, not how the choice is carried.
  *
- * The source is the actor's own derived skills, read the way the sheets read them. When the
- * actor is not in the mirror, or has no derived skills, the answer is an empty list and the
- * panel offers no menu at all — degradação aberta: a missing declaration costs the choice,
- * never the roll.
+ * The source is the actor's own derived skills, read the way the sheets read them — and named
+ * the way the sheets name them: `skillNamePt()` is the table the character sheet already uses
+ * for exactly these slugs, so the drawer and the sheet call a skill by the same word, Lore
+ * included ("Saber (…)"), and an unknown slug degrades to itself instead of disappearing.
+ * The ordering follows the label, not the slug: what the reader scans is the label, and in
+ * pt-BR the two orders are not the same list.
+ *
+ * When the actor is not in the mirror, or has no derived skills, the answer is an empty list
+ * and the panel offers no menu at all — degradação aberta: a missing declaration costs the
+ * choice, never the roll.
  */
 export function initiativeStatisticOptions(
   actor: Record<string, unknown> | null | undefined,
@@ -270,19 +292,8 @@ export function initiativeStatisticOptions(
 
   return Object.keys(skills as Record<string, unknown>)
     .filter((slug) => slug.length > 0)
-    .sort((a, b) => a.localeCompare(b, "pt-BR"))
-    .map((slug) => ({ id: slug, label: capitalize(slug) }));
-}
-
-/**
- * Capitalize a slug for display.
- *
- * Deliberately the same shaping the PF2e formula applies when it labels the statistic it
- * rolled, so the label the panel offers before the roll and the label the participant
- * carries after it are the same string.
- */
-function capitalize(slug: string): string {
-  return slug.charAt(0).toUpperCase() + slug.slice(1);
+    .map((slug) => ({ id: slug, label: skillNamePt(slug) }))
+    .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
 }
 
 /**

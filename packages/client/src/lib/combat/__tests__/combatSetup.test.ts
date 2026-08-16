@@ -411,8 +411,52 @@ describe("escolha da estatística de iniciativa (REQ-CBA-066)", () => {
   it("oferece as estatísticas do próprio ator, em ordem legível", () => {
     const options = initiativeStatisticOptions(actor);
 
+    // A ordem é a do RÓTULO, que é o que a pessoa lê: Acrobacia < Enganação < Furtividade.
     expect(options.map((o) => o.id)).toEqual(["acrobatics", "deception", "stealth"]);
-    expect(options.map((o) => o.label)).toEqual(["Acrobatics", "Deception", "Stealth"]);
+    expect(options.map((o) => o.label)).toEqual(["Acrobacia", "Enganação", "Furtividade"]);
+  });
+
+  it("REQ-CBA-066: o rótulo do menu é texto de tela em pt-BR, nunca o slug em inglês", () => {
+    const options = initiativeStatisticOptions({
+      system: {
+        derived: {
+          skills: {
+            thievery: { total: 8 },
+            stealth: { total: 9 },
+            athletics: { total: 5 },
+            "lore-underworld": { total: 3 },
+          },
+        },
+      },
+    });
+
+    // Nenhum rótulo pode ser o slug cru, nem o slug só com a inicial maiúscula.
+    for (const option of options) {
+      expect(option.label).not.toBe(option.id);
+      expect(option.label).not.toBe(option.id.charAt(0).toUpperCase() + option.id.slice(1));
+    }
+
+    const byId = new Map(options.map((o) => [o.id, o.label]));
+    expect(byId.get("thievery")).toBe("Ladinagem");
+    expect(byId.get("stealth")).toBe("Furtividade");
+    expect(byId.get("athletics")).toBe("Atletismo");
+    expect(byId.get("lore-underworld")).toBe("Saber (Underworld)");
+  });
+
+  it("REQ-CBA-066: o id continua sendo o slug que a fórmula do sistema entende", () => {
+    const options = initiativeStatisticOptions(actor);
+    const stealth = options.find((o) => o.label === "Furtividade");
+
+    expect(stealth?.id).toBe("stealth");
+    expect(initiativeRollOptions(stealth?.id)).toEqual({ skill: "stealth" });
+  });
+
+  it("uma perícia que a tabela não conhece degrada para o próprio slug, sem sumir do menu", () => {
+    const options = initiativeStatisticOptions({
+      system: { derived: { skills: { "perícia-inventada": { total: 1 } } } },
+    });
+
+    expect(options).toEqual([{ id: "perícia-inventada", label: "perícia-inventada" }]);
   });
 
   it("sem ator, sem declaração de perícias, a escolha simplesmente não aparece", () => {
