@@ -58,9 +58,10 @@
    · cura continua marcada "sem modelo hoje" — o AbilityCard só conhece
      damageFormula/damageType, e ninguém aplica nada em ninguém ainda.
 
-  EM ABERTO (ainda pendente de decisão, alternável no switcher):
-   · quando o contador de não-lidas zera: ao ABRIR a aba (REQ-CHT-039 de hoje) ou
-     ao LER de fato, rolando até o fim (DEC-GAV-06 da spec-mãe).
+   · NÃO-LIDAS: o contador zera ao ABRIR o Chat, e o log abre posicionado na
+     PRIMEIRA MENSAGEM NÃO LIDA — não no fim. A linha "N novas" fica no lugar
+     onde você parou até você chegar ao fim do log. Isso confirma REQ-CHT-039 e
+     emenda REQ-GAV-022 da spec-mãe, que diz que abrir a aba não altera badge.
 
   Não é código de produção; não importar nada daqui sem reescrever.
 -->
@@ -331,7 +332,6 @@
   <button id="role">papel</button>
   <button id="state">estado</button>
   <button id="target" class="alt">alvo</button>
-  <button id="unread" class="alt">não-lido</button>
   <button id="incoming" class="alt">chega mensagem</button>
 </div>
 <div class="legend" id="legend"></div>
@@ -398,13 +398,12 @@ const params = new URLSearchParams(location.search);
 let role       = params.get('role')==='player' ? 'player' : 'gm';
 let empty      = params.get('state')==='empty';
 let hasTarget  = params.get('target')!=='0';
-let unreadRule = params.get('unread')==='read' ? 'read' : 'open';   /* ainda em aberto */
 let mode       = params.get('mode') || 'public';                    /* persiste por mundo+usuário */
 
 let active='chat', open=true, menu=false, query='';
 let win=null;              /* {kind:'dice'|'context'|'favs', ...} */
 let confirmFlush=false;
-let unread=0, newFrom=null, savesOpen={}, logScroll=null, stickBottom=true;
+let unread=0, newFrom=null, newCount=0, scrollToNew=false, savesOpen={}, logScroll=null, stickBottom=true;
 let ctxRange={up:5,down:5}, ctxHit=null;
 
 const ME = ()=> role==='gm' ? 'Gamemaster' : 'Fofurinha';
@@ -633,7 +632,8 @@ function logHtml(){
   }
   let out='',prev=null;
   list.forEach(m=>{
-    if(newFrom && m.id===newFrom) out += `<div class="newdiv">${unread} nova${unread>1?'s':''}</div>`;
+    /* a linha fica mesmo depois do contador zerar: ela é o lugar onde você parou */
+    if(newFrom && m.id===newFrom) out += `<div class="newdiv" id="newdiv">${newCount} nova${newCount>1?'s':''}</div>`;
     out += msgHtml(m,prev); prev=m;
   });
   return `<div class="log" id="log">${out}</div>`;
@@ -749,7 +749,7 @@ function chatHead(){
     <button class="hact ${menu?'on':''}" data-menu title="Mais">⋯</button></div>`;
 }
 function chatBody(){
-  const jump = unread>0 ? `<button class="jump" id="jump">↓ ${unread} nova${unread>1?'s':''}</button>` : '';
+  const jump = (newCount>0 && !stickBottom) ? `<button class="jump" id="jump">↓ ${newCount} nova${newCount>1?'s':''}</button>` : '';
   const middle = query ? resultsHtml() : logHtml();
   return `<div class="chat">${middle}${jump}${diceBarHtml()}${composerHtml()}</div>`;
 }
@@ -804,7 +804,7 @@ function render(){
 
   const u=new URL(location);
   u.searchParams.set('role',role); u.searchParams.set('state',empty?'empty':'full');
-  u.searchParams.set('target',hasTarget?'1':'0'); u.searchParams.set('unread',unreadRule);
+  u.searchParams.set('target',hasTarget?'1':'0');
   u.searchParams.set('mode',mode);
   history.replaceState(null,'',u);
 }
@@ -816,7 +816,11 @@ function wire(){
   root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
     const id=b.dataset.tab;
     if(open&&active===id){open=false;}
-    else{ active=id; open=true; if(id==='chat'&&unreadRule==='open'){unread=0;newFrom=null;} }
+    else{
+      active=id; open=true;
+      /* abrir o Chat zera o contador E posiciona o log na primeira não lida */
+      if(id==='chat'){ if(unread>0){scrollToNew=true;stickBottom=false;} unread=0; }
+    }
     menu=false; render();
   });
   root.querySelectorAll('[data-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();menu=!menu;render();});
@@ -868,7 +872,8 @@ function wire(){
   if(log) log.onscroll=()=>{
     logScroll=log.scrollTop;
     stickBottom = log.scrollHeight-log.scrollTop-log.clientHeight < 24;
-    if(stickBottom && unreadRule==='read' && unread>0) markRead();
+    /* chegou ao fim: a marca de "você parou aqui" cumpriu o papel e sai */
+    if(stickBottom && newFrom){ newFrom=null; newCount=0; unread=0; render(); }
   };
 
   /* janela de dados */
@@ -892,9 +897,14 @@ function wire(){
 
   document.body.onclick=e=>{ if(menu && !e.target.closest('.menu') && !e.target.closest('[data-menu]')){menu=false;render();} };
 }
-function markRead(){unread=0;newFrom=null;render();}
+function markRead(){unread=0;newFrom=null;newCount=0;render();}
 function restoreScroll(){
   const log=document.getElementById('log'); if(!log) return;
+  if(scrollToNew){
+    scrollToNew=false;
+    const div=document.getElementById('newdiv');
+    if(div){ log.scrollTop = Math.max(0, div.offsetTop - log.offsetTop - 8); return; }
+  }
   if(stickBottom||logScroll===null) log.scrollTop=log.scrollHeight; else log.scrollTop=logScroll;
 }
 
@@ -951,9 +961,12 @@ function incoming(){
   const m=Object.assign({},src,{id:nextId++,t:'21:1'+(incomingIdx%10)});
   msgs.push(m);
   const chatOpen = active==='chat' && open;
-  if(!(chatOpen && unreadRule==='open')){
+  if(!chatOpen){                              /* aba fechada: acumula e acende o badge */
     if(!unread) newFrom=m.id;
-    unread++; stickBottom=false;
+    unread++; newCount=unread; stickBottom=false;
+  } else if(!stickBottom){                    /* aba aberta, lendo o passado: só avisa */
+    if(!newFrom) newFrom=m.id;
+    newCount++;
   }
   render();
 }
@@ -979,7 +992,6 @@ function paintSwitcher(){
   document.getElementById('role').textContent   = role==='gm'?'ver como jogador':'ver como GM';
   document.getElementById('state').textContent  = empty?'log: vazio':'log: com mensagens';
   document.getElementById('target').textContent = hasTarget?'alvo: selecionado':'alvo: nenhum';
-  document.getElementById('unread').textContent = unreadRule==='open'?'não-lido: zera ao ABRIR':'não-lido: zera ao LER';
 
   document.getElementById('legend').innerHTML = `
     <h4>Aba Chat — versão decidida (spec 38)</h4>
@@ -991,25 +1003,23 @@ function paintSwitcher(){
       <tr><td>dados</td><td>3 favoritos (aparelho + <b>mundo</b> + usuário) + janela de montagem</td></tr>
       <tr><td>alvo</td><td>${hasTarget?'<b>nome + grau</b>, sem a CA para o jogador':'<b>sem alvo</b> → rolagem sem grau'}</td></tr>
       <tr><td>dados 3D</td><td><b>fora</b> — vira mod futuro</td></tr>
-      <tr><td>em aberto</td><td>não-lido zera <b>${unreadRule==='open'?'ao abrir (REQ-CHT-039)':'ao ler (DEC-GAV-06)'}</b></td></tr>
+      <tr><td>não-lido</td><td>zera ao <b>abrir o Chat</b>, e o log abre na <b>primeira não lida</b></td></tr>
     </table>
     <div style="margin-top:.4rem;padding-top:.35rem;border-top:1px solid #ddd;color:#666">
       experimente: clicar num favorito · o botão de dado abre a janela de montagem · escrever e apertar <b>Enter</b> ·
       passar o mouse sobre os 4 ícones de modo · pesquisar “goblin” e clicar num resultado (contexto ±5) ·
-      passar o mouse numa mensagem e <b>invalidar</b> (⊘) · <b>p</b> troca o papel.</div>`;
+      passar o mouse numa mensagem e <b>invalidar</b> (⊘) · fechar o Chat, apertar <b>n</b> algumas vezes e reabrir (badge some, log abre na primeira não lida) · <b>p</b> troca o papel.</div>`;
 }
 
 document.getElementById('role').onclick    =()=>{role=role==='gm'?'player':'gm';menu=false;win=null;render();};
 document.getElementById('state').onclick   =()=>{empty=!empty;applyEmpty();render();};
 document.getElementById('target').onclick  =()=>{hasTarget=!hasTarget;applyTarget();render();};
-document.getElementById('unread').onclick  =()=>{unreadRule=unreadRule==='open'?'read':'open';render();};
 document.getElementById('incoming').onclick=()=>incoming();
 
 document.addEventListener('keydown',e=>{
   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
   if(e.key==='p'||e.key==='P'){role=role==='gm'?'player':'gm';win=null;render();}
   if(e.key==='n'||e.key==='N'){incoming();}
-  if(e.key==='u'||e.key==='U'){unreadRule=unreadRule==='open'?'read':'open';render();}
   if(e.key==='v'||e.key==='V'){empty=!empty;applyEmpty();render();}
   if(e.key==='t'||e.key==='T'){hasTarget=!hasTarget;applyTarget();render();}
 });
