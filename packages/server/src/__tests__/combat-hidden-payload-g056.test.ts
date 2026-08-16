@@ -532,6 +532,110 @@ describe(
     });
 
     // -------------------------------------------------------------------------
+    // The ack echoed back to the requester (GENERIC document path)
+    //
+    // The two shapes below are the ones the `combat:*` ack never exercises: a
+    // Combat body reaching the requester under `documents[]` (embedded
+    // Combatant update) and under `parent` (embedded Combatant delete). Both
+    // are reachable by a PLAYER — the embedded permission check authorizes the
+    // combatant whose `actorId` points at an actor the player OWNS.
+    // -------------------------------------------------------------------------
+
+    it("ack de doc:update embutido de Combatant: o Combat que volta em documents[] é redigido (REQ-CBA-082)", async () => {
+      const fx = await setupCombatWithHidden();
+      const { socket: playerSocket } = await connectPlayer();
+      await drain();
+
+      // The player owns the actor behind their own combatant, so this embedded
+      // update is authorized — and it republishes the WHOLE parent Combat,
+      // hidden NPC included, as `{ documentType: "Combat", documents: [...] }`.
+      const ack = await sendOp(playerSocket, "doc:update", {
+        documentType: "Combatant",
+        updates: [
+          {
+            _id: fx.pcCombatantId,
+            diff: { defeated: true },
+            embedded: { type: "Combatant", id: fx.combatId },
+          },
+        ],
+      });
+      expect(ack["ok"]).toBe(true);
+
+      const result = ack["result"] as Record<string, unknown>;
+      expect(result["documentType"]).toBe("Combat");
+      const documents = result["documents"] as Record<string, unknown>[];
+      // The ack really carries a Combat body — otherwise the leak assertion
+      // below would pass vacuously.
+      expect(documents.length).toBe(1);
+      expect(documents[0]!["_id"]).toBe(fx.combatId);
+      expect((documents[0]!["combatants"] as unknown[]).length).toBe(1);
+      expectNoHiddenLeak(ack, fx);
+
+      // The same op from the GM keeps the hidden combatant in the ack — proof
+      // that the body carries the full roster before redaction.
+      const gmAck = await sendOp(gmSocket, "doc:update", {
+        documentType: "Combatant",
+        updates: [
+          {
+            _id: fx.pcCombatantId,
+            diff: { defeated: false },
+            embedded: { type: "Combatant", id: fx.combatId },
+          },
+        ],
+      });
+      const gmCombat = (
+        (gmAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+      )[0]!;
+      expect((gmCombat["combatants"] as Record<string, unknown>[]).length).toBe(2);
+      expect(
+        (gmCombat["combatants"] as Record<string, unknown>[]).some((c) => c["hidden"] === true),
+      ).toBe(true);
+
+      playerSocket.disconnect();
+    });
+
+    it("ack de doc:delete embutido de Combatant: o Combat que volta em parent é redigido (REQ-CBA-082)", async () => {
+      const fx = await setupCombatWithHidden();
+      const { socket: playerSocket } = await connectPlayer();
+      await drain();
+
+      // Embedded delete echoes `{ documentType: "Combatant", ids, parent }` —
+      // the parent being the whole Combat, hidden NPC included.
+      const ack = await sendOp(playerSocket, "doc:delete", {
+        documentType: "Combatant",
+        ids: [fx.pcCombatantId],
+        parent: { type: "Combat", id: fx.combatId },
+      });
+      expect(ack["ok"]).toBe(true);
+
+      const result = ack["result"] as Record<string, unknown>;
+      expect(result["documentType"]).toBe("Combatant");
+      const parent = result["parent"] as Record<string, unknown>;
+      expect(parent["_id"]).toBe(fx.combatId);
+      // Own combatant gone + hidden NPC redacted away — the player is left
+      // with an empty roster, never with the hidden participant.
+      expect((parent["combatants"] as unknown[]).length).toBe(0);
+      expectNoHiddenLeak(ack, fx);
+
+      // The hidden NPC was NOT deleted — it is still in the stored encounter,
+      // which the GM keeps seeing. So the empty roster above is redaction, not
+      // an encounter that happened to be empty.
+      const gmAck = await sendOp(gmSocket, "doc:update", {
+        documentType: "Combat",
+        updates: [{ _id: fx.combatId, diff: { round: 2 } }],
+      });
+      const gmCombatants = (
+        (
+          (gmAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+        )[0]!["combatants"] as Record<string, unknown>[]
+      ).filter((c) => c["hidden"] === true);
+      expect(gmCombatants.length).toBe(1);
+      expect(gmCombatants[0]!["_id"]).toBe(fx.npcCombatantId);
+
+      playerSocket.disconnect();
+    });
+
+    // -------------------------------------------------------------------------
     // combat:turnChange delivered to the player
     // -------------------------------------------------------------------------
 
