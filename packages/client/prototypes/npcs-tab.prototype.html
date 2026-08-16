@@ -1,0 +1,2542 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROTOTYPE — Aba NPCs (grill rodada 1: três variantes)</title>
+    <!--
+  PROTOTYPE — descartável. Rodada 1 do grill da aba NPCs. Não é código de
+  produção; não importar nada daqui.
+
+  ════════════════════════════════════════════════════════════════════════════
+  POR QUE ESTA ABA EXISTE (e por que ela nasce devendo)
+  ════════════════════════════════════════════════════════════════════════════
+  A spec 39 (Contatos) tirou "+Novo" e "excluir" da aba do jogador e escreveu a
+  dívida com todas as letras (DEC-CTT-01): o cliente fica SEM NENHUMA forma de
+  criar ou excluir ator até esta aba existir. A 39 §2.2 também transferiu para
+  cá, nominalmente: o diretório completo de não-jogadores, PASTAS, AUTORIA,
+  SUBTIPOS e IMPORTAÇÃO.
+  Ou seja: esta aba não é "a Contatos do Mestre". É o lugar da autoria.
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE JÁ VEM DECIDIDO DA 39 (tratei como não-negociável — confira)
+  ════════════════════════════════════════════════════════════════════════════
+   · CONDIÇÃO por contrato (DEC-CTT-11): cor por tom (verde ajuda / vermelho
+     atrapalha / roxo situação), `critical` PREENCHE o chip (não é 4ª cor),
+     valor colado ao rótulo em tabular, ajuda em tooltip desenhado, ordem
+     crítica→penalidade→situação→benefício, teto 2 + "+N", SEM ÍCONE.
+   · SUB-PERSONAGEM encapsulado no dono (DEC-CTT-06) — o corvo Nix aparece
+     dentro da Vess, nunca solto. Aqui vale para NPC também.
+   · TÍTULO livre sob o nome (DEC-CTT-07). A Q-CTT-05 perguntava se vale para
+     não-jogador; este protótipo APOSTA QUE SIM e deixa o Mestre editar aqui.
+   · CONHECIMENTO se edita NUM LUGAR SÓ (DEC-CTT-05), a janela "Quem conhece
+     quem". Aqui ela é a MESMA janela, alcançável pelo mesmo rodapé fixo; o
+     cartão mostra o estado só em LEITURA (✓2 ◐1). Nenhum controle de estado
+     no cartão — se isso te incomodar na hora de revelar, é exatamente o
+     feedback que a rodada 2 precisa.
+   · REDAÇÃO no servidor (REQ-CTT-081..083): esconder no cliente não esconde.
+
+  ════════════════════════════════════════════════════════════════════════════
+  AS TRÊS VARIANTES — cada uma aposta em uma coisa diferente
+  ════════════════════════════════════════════════════════════════════════════
+  A · DIRETÓRIO   — pastas de verdade (documento Folder, servidor), aninhadas,
+                    árvore. É o ActorDirectory de hoje, feito direito. Aposta:
+                    o Mestre quer um gerenciador de arquivos, e o bestiário
+                    inteiro mora aqui dentro.
+  B · ELENCO      — organiza por PAPEL NA FICÇÃO: "Em cena" (quem está na cena
+                    ativa agora), "Elenco" (recorrentes, com nome), "Avulsos"
+                    (bestiário, recolhido, só chega por busca). Pasta vira
+                    detalhe secundário. Aposta: durante o jogo o Mestre não
+                    quer árvore, quer quem importa agora.
+  C · BANCADA     — uma busca só que atravessa MUNDO e COMPÊNDIO. O resultado
+                    vem em duas faixas: "no mundo" e "nos compêndios (importar)".
+                    Aposta: a pergunta real do Mestre é "me dá um goblin", e
+                    ele não quer saber se já está no mundo ou não.
+                    (A REQ-CMP-018 já manda o drop de ator de pack importar
+                    antes de criar o token — C é levar isso a sério.)
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE O PROTÓTIPO PÕE NA MESA DE PROPÓSITO (é aqui que quero seu feedback)
+  ════════════════════════════════════════════════════════════════════════════
+   Q1 — CRIAR: a janela "Novo" oferece TODOS os subtipos do sistema, inclusive
+        Personagem — e diz que o Personagem criado aqui vai APARECER NA ABA
+        CONTATOS, não nesta lista. É a proposta de pagar a dívida da DEC-CTT-01
+        inteira: criar é autoria (é daqui), listar é por plateia (é de lá).
+        Alternativa: esta aba só cria não-jogador, e criar PC vira gesto da
+        seção Usuários da 37.
+   Q2 — ESCALA: ligue "bestiário importado" no switcher. São 492 atores no
+        mundo. A variante A vira uma árvore com uma pasta gigante; a B empurra
+        para "Avulsos" recolhido; a C dilui na busca. A 39 pôde assumir
+        "dezenas" (RNF-CTT-02); aqui não dá.
+   Q3 — REVELAR: o cartão só LÊ o estado (✓2 ◐1). Revelar exige abrir a janela.
+        É o preço da DEC-CTT-05. Vale a pena?
+   Q4 — VIDA: botão "vida" no switcher. Argumento para NÃO mostrar, mais forte
+        que o da 39: com token desvinculado (REQ-DOC-033) a vida do ator-base é
+        MOLDE, não valor vivo — os 3 goblins na cena têm cada um a sua. Exibir
+        "a vida do ator" aqui é exibir um número que não descreve ninguém.
+   Q5 — VÍNCULO DO TOKEN: arrastar goblin para o mapa cria token DESVINCULADO
+        (cada um com sua vida); arrastar um NPC nomeado cria VINCULADO. O
+        protótipo mostra o default vindo do subtipo, com o modificador para
+        inverter (Alt). Hoje o código cria sempre vinculado.
+   Q6 — EXCLUIR: a janela de exclusão mostra o que vai junto — N tokens em M
+        cenas, combate ativo (que RECUSA a exclusão), e o conhecimento que
+        será apagado. A REQ-CTT-076 só cobriu o caso espelho (excluir
+        personagem); excluir contato não está em spec nenhuma.
+   Q7 — PERIGO/VEÍCULO: "Armadilha de Fosso" é subtipo `hazard`. Ator que não é
+        gente cabe numa aba chamada "NPCs"? (o trilho da 36 já batizou assim)
+
+  NOTA DE VOCABULÁRIO — o mesmo problema que a aba Combate encontrou: TOKEN
+  ainda não tem spec fechada. Aqui a palavra aparece só onde é inevitável
+  (contagem de presença no mapa) e a spec vai ter que pendurar isso na spec de
+  Token que ainda será escrita.
+-->
+    <style>
+      :root {
+        --bg: #0e0e12;
+        --surface: #18181f;
+        --surface-alt: #1f1f2a;
+        --border: #2e2e3d;
+        --text: #e8e8f0;
+        --muted: #8888a0;
+        --subtle: #55556a;
+        --accent: #7c5cfc;
+        --accent-hover: #9b7ffe;
+        --accent-dim: rgba(124, 92, 252, 0.15);
+        --danger: #ff5c5c;
+        --warn: #e5b83b;
+        --ok: #3ddc84;
+        --special: #b98cff;
+        --radius-sm: 4px;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+        --header: 48px;
+        --panel-w: 300px;
+        --rail-w: 44px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 14px;
+        overflow: hidden;
+      }
+
+      /* ---------- App shell (mock) ---------- */
+      .header {
+        height: var(--header);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        z-index: 200;
+      }
+      .header .bolt {
+        color: #f5a623;
+      }
+      .header .world {
+        font-weight: 600;
+      }
+      .header .pill {
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        color: var(--accent-hover);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .header .spacer {
+        flex: 1;
+      }
+      .header .status {
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+      .header .who {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+      }
+      .header .who b {
+        color: var(--danger);
+      }
+      .header .who.player b {
+        color: var(--ok);
+      }
+      .header .btn {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 0.2rem 0.6rem;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+      .stage {
+        position: absolute;
+        top: var(--header);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #0b0b0f;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .stage .art {
+        width: 44vh;
+        height: 44vh;
+        border-radius: 6px;
+        background: radial-gradient(circle at 50% 45%, #2f6bd6 0%, #1a3f8f 55%, #132c68 100%);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 0 0 1px #21407f;
+      }
+      .stage .art .house {
+        width: 60%;
+        height: 60%;
+        background: #fff;
+        clip-path: polygon(50% 0, 100% 40%, 88% 40%, 88% 100%, 12% 100%, 12% 40%, 0 40%);
+        display: grid;
+        place-items: center;
+      }
+      .stage .art .star {
+        font-size: 9vh;
+        color: #e5b83b;
+        margin-top: 22%;
+      }
+      .stage .drop {
+        position: absolute;
+        left: calc(50% - 15vh);
+        top: calc(50% + 7vh);
+        border: 2px dashed var(--accent);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        color: var(--accent-hover);
+        font-size: 0.72rem;
+        background: rgba(11, 11, 15, 0.85);
+        text-align: center;
+        line-height: 1.5;
+      }
+      .stage .drop b {
+        color: var(--warn);
+      }
+      .stage .scenepill {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        background: rgba(11, 11, 15, 0.85);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .stage .scenepill b {
+        color: var(--ok);
+      }
+
+      /* ---------- Chassi C (spec 36) ---------- */
+      .icon {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        display: block;
+      }
+      .tabbtn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        transition:
+          color 0.12s,
+          background 0.12s;
+      }
+      .tabbtn:hover {
+        color: var(--text);
+      }
+      .tabbtn .badge {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        line-height: 1;
+      }
+      .tabbtn .tip {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.1s;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        z-index: 5;
+      }
+      .tabbtn:hover .tip {
+        opacity: 1;
+      }
+      .sidebar {
+        position: absolute;
+        top: var(--header);
+        right: 0;
+        bottom: 0;
+        display: flex;
+        z-index: 90;
+      }
+      .tabs {
+        width: var(--rail-w);
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .tabbtn {
+        width: 40px;
+        height: 44px;
+        border: 1px solid var(--border);
+        border-right: 0;
+        border-radius: var(--radius) 0 0 var(--radius);
+        background: var(--surface-alt);
+        color: var(--muted);
+      }
+      .tabs .tabbtn.is-active {
+        background: var(--surface);
+        color: var(--accent-hover);
+        width: 44px;
+        border-color: var(--accent);
+        z-index: 2;
+      }
+      .is-open .tabs .tabbtn.is-active {
+        box-shadow: 1px 0 0 0 var(--surface);
+      }
+      .tabs .tabbtn.is-active .icon {
+        width: 22px;
+        height: 22px;
+      }
+      .tabs .grp {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .grp.gm {
+        margin-top: 14px;
+        position: relative;
+      }
+      .tabs .grp.gm::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .tabs .grp.gm .tabbtn {
+        border-color: rgba(255, 92, 92, 0.35);
+      }
+      .tabs .foot {
+        margin-top: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .foot::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .panel {
+        width: var(--panel-w);
+        background: var(--surface);
+        border-left: 1px solid var(--accent);
+        display: none;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+      .is-open .panel {
+        display: flex;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.5rem;
+        border-bottom: 1px solid var(--accent-dim);
+        flex: 0 0 auto;
+      }
+      .panel-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 0.15rem 0.3rem;
+        flex: 1;
+      }
+      .panel-body {
+        flex: 1;
+        overflow: auto;
+        padding: 0.5rem 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        min-height: 0;
+      }
+      .panel-body::-webkit-scrollbar {
+        width: 8px;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: var(--surface-alt);
+        border-radius: 99px;
+      }
+      /* rodapé FIXO do painel — o mesmo gesto da 39 (DEC-CTT-05) */
+      .panel-foot {
+        flex: 0 0 auto;
+        border-top: 1px solid var(--border);
+        background: var(--surface-alt);
+        padding: 0.4rem 0.5rem;
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+      }
+
+      /* ---------- Peças ---------- */
+      .search {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.4rem;
+      }
+      .search:focus-within {
+        border-color: var(--accent);
+      }
+      .search input {
+        flex: 1;
+        min-width: 0;
+        background: none;
+        border: 0;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.8rem;
+        padding: 0.15rem 0;
+        outline: none;
+      }
+      .search .mag {
+        color: var(--subtle);
+        display: grid;
+        place-items: center;
+      }
+      .search .mag .icon {
+        width: 13px;
+        height: 13px;
+      }
+      .hbtn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: var(--radius-sm);
+        height: 26px;
+        min-width: 26px;
+        padding: 0 0.45rem;
+        font: inherit;
+        font-size: 0.72rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        justify-content: center;
+      }
+      .hbtn:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .hbtn.wide {
+        flex: 1;
+      }
+      .hbtn.pri {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        background: var(--accent-dim);
+      }
+      .hbtn .icon {
+        width: 14px;
+        height: 14px;
+      }
+
+      .sec {
+        margin: 0.7rem 0 0.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0 0.2rem;
+      }
+      .sec:first-child {
+        margin-top: 0.1rem;
+      }
+      .sec .lbl {
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .sec.click {
+        cursor: pointer;
+      }
+      .sec.click:hover .lbl {
+        color: var(--muted);
+      }
+      .sec .cnt {
+        font-size: 0.66rem;
+        color: var(--subtle);
+        background: var(--surface-alt);
+        border-radius: 999px;
+        padding: 0 0.35rem;
+      }
+      .sec .line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .sec .chev {
+        color: var(--subtle);
+        font-size: 0.7rem;
+        width: 0.8rem;
+        text-align: center;
+      }
+
+      /* ---------- Árvore de pastas (variante A) ---------- */
+      .fold {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.22rem 0.25rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        color: var(--muted);
+        user-select: none;
+      }
+      .fold:hover {
+        background: var(--surface-alt);
+        color: var(--text);
+      }
+      .fold .chev {
+        width: 0.75rem;
+        color: var(--subtle);
+        font-size: 0.65rem;
+        flex: 0 0 auto;
+      }
+      .fold .fn {
+        font-size: 0.76rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .fold .cnt {
+        font-size: 0.64rem;
+        color: var(--subtle);
+        margin-left: auto;
+        flex: 0 0 auto;
+      }
+      .fold .tools {
+        display: flex;
+        gap: 0.1rem;
+        opacity: 0;
+        transition: opacity 0.12s;
+        flex: 0 0 auto;
+      }
+      .fold:hover .tools {
+        opacity: 1;
+      }
+      .fold .tools button {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 0 0.1rem;
+      }
+      .fold .tools button:hover {
+        color: var(--accent-hover);
+      }
+      .kids {
+        margin-left: 0.55rem;
+        padding-left: 0.35rem;
+        border-left: 1px solid var(--border);
+      }
+
+      /* ---------- Linha de ator ---------- */
+      .act {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.28rem 0.3rem;
+        border-radius: var(--radius-sm);
+        cursor: grab;
+        position: relative;
+      }
+      .act:hover {
+        background: var(--surface-alt);
+      }
+      .act.sel {
+        background: var(--accent-dim);
+        box-shadow: inset 0 0 0 1px var(--accent);
+      }
+      .act .av {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        font-size: 0.66rem;
+        font-weight: 700;
+        color: #0b0b0f;
+        position: relative;
+      }
+      .act .av.hz {
+        border-radius: var(--radius-sm);
+      }
+      .act .idt {
+        flex: 1;
+        min-width: 0;
+      }
+      .act .nm {
+        font-size: 0.8rem;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .act .ttl {
+        font-size: 0.68rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+      .act .ttl > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .act .ttl.fallback > span {
+        color: var(--subtle);
+        font-style: italic;
+      }
+      .act .ttl .pen {
+        color: var(--subtle);
+        font-size: 0.65rem;
+        cursor: text;
+        opacity: 0;
+        transition: opacity 0.12s;
+        flex: 0 0 auto;
+      }
+      .act:hover .ttl .pen {
+        opacity: 1;
+      }
+      .act .ttl input {
+        flex: 1;
+        min-width: 0;
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.68rem;
+        padding: 0.05rem 0.25rem;
+        outline: none;
+      }
+      .act .meta {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex: 0 0 auto;
+      }
+      .act .tools {
+        display: none;
+        gap: 0.1rem;
+        flex: 0 0 auto;
+      }
+      .act:hover .tools {
+        display: flex;
+      }
+      .act:hover .meta.hide-on-hover {
+        display: none;
+      }
+      .act .tools button {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        font-size: 0.74rem;
+        padding: 0 0.12rem;
+        line-height: 1;
+      }
+      .act .tools button:hover {
+        color: var(--accent-hover);
+      }
+      .act .tools button.del:hover {
+        color: var(--danger);
+      }
+
+      .lvl {
+        font-size: 0.62rem;
+        color: var(--subtle);
+        font-variant-numeric: tabular-nums;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0 0.25rem;
+      }
+      .hp {
+        font-size: 0.62rem;
+        color: var(--warn);
+        font-variant-numeric: tabular-nums;
+      }
+      .tok {
+        font-size: 0.62rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        cursor: default;
+      }
+      .know {
+        font-size: 0.62rem;
+        font-variant-numeric: tabular-nums;
+        cursor: default;
+        white-space: nowrap;
+      }
+      .know .k2 {
+        color: var(--ok);
+      }
+      .know .k1 {
+        color: var(--warn);
+      }
+      .know .k0 {
+        color: var(--subtle);
+      }
+
+      /* --- condições (contrato herdado da 39) --- */
+      .conds {
+        display: flex;
+        gap: 0.22rem;
+        flex-wrap: wrap;
+        margin: 0.15rem 0 0.2rem 2.05rem;
+      }
+      .chip {
+        font-size: 0.62rem;
+        border-radius: 999px;
+        padding: 0.02rem 0.35rem;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        white-space: nowrap;
+        max-width: 118px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: default;
+      }
+      .chip .v {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .chip.harm {
+        border-color: rgba(255, 92, 92, 0.5);
+        color: #ff9a9a;
+        background: rgba(255, 92, 92, 0.08);
+      }
+      .chip.benefit {
+        border-color: rgba(61, 220, 132, 0.5);
+        color: var(--ok);
+        background: rgba(61, 220, 132, 0.08);
+      }
+      .chip.special {
+        border-color: rgba(185, 140, 255, 0.5);
+        color: var(--special);
+        background: rgba(185, 140, 255, 0.1);
+      }
+      .chip.crit {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: #160608;
+        font-weight: 700;
+      }
+      .chip.more {
+        cursor: pointer;
+        border-style: dashed;
+        color: var(--subtle);
+      }
+      .chip.more:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+
+      /* sub-personagem encapsulado (DEC-CTT-06) */
+      .sub {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin: 0 0 0.15rem 1.7rem;
+        padding: 0.1rem 0.3rem 0.1rem 0.35rem;
+        border-left: 2px solid var(--border);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        cursor: grab;
+      }
+      .sub:hover {
+        background: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--accent);
+      }
+      .sub .nm {
+        font-size: 0.72rem;
+        color: var(--text);
+      }
+      .sub .sb {
+        font-size: 0.62rem;
+        color: var(--subtle);
+        margin-left: auto;
+      }
+
+      /* faixa de compêndio (variante C) */
+      .band {
+        margin: 0.55rem 0 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.3rem;
+        border-radius: var(--radius-sm);
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+      }
+      .band.pack {
+        border-style: dashed;
+        border-color: rgba(124, 92, 252, 0.45);
+        background: rgba(124, 92, 252, 0.06);
+      }
+      .band .lbl {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .band .cnt {
+        font-size: 0.65rem;
+        color: var(--subtle);
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .act.frompack .nm {
+        color: var(--muted);
+      }
+      .act.frompack .av {
+        opacity: 0.65;
+      }
+      .imp {
+        background: none;
+        border: 1px solid rgba(124, 92, 252, 0.5);
+        color: var(--accent-hover);
+        border-radius: 999px;
+        font: inherit;
+        font-size: 0.6rem;
+        padding: 0.02rem 0.4rem;
+        cursor: pointer;
+      }
+      .imp:hover {
+        background: var(--accent-dim);
+      }
+      .packsrc {
+        font-size: 0.6rem;
+        color: var(--subtle);
+      }
+
+      .vazio {
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 0.9rem;
+        text-align: center;
+        color: var(--subtle);
+        font-size: 0.78rem;
+        line-height: 1.55;
+        margin: 0.6rem 0.1rem;
+      }
+      .vazio b {
+        color: var(--muted);
+      }
+      .hint {
+        color: var(--subtle);
+        font-size: 0.7rem;
+        text-align: center;
+        padding: 0.6rem 0.3rem 0;
+        line-height: 1.45;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: var(--radius-sm);
+        color: var(--muted);
+      }
+      .row:hover {
+        background: var(--surface-alt);
+      }
+      .row .name {
+        color: var(--text);
+        font-size: 0.82rem;
+      }
+      .row .sub2 {
+        color: var(--subtle);
+        font-size: 0.75rem;
+        margin-left: auto;
+      }
+      .empty {
+        text-align: center;
+        padding: 1.5rem 0 0.75rem;
+        color: var(--muted);
+      }
+
+      #tip {
+        position: fixed;
+        z-index: 9998;
+        max-width: 230px;
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.5rem;
+        font-size: 0.72rem;
+        line-height: 1.4;
+        color: var(--text);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        pointer-events: none;
+        display: none;
+      }
+      #tip b {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      #tip .tone {
+        color: var(--subtle);
+        font-size: 0.66rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+
+      /* janela (spec 11) */
+      .win {
+        position: fixed;
+        top: 90px;
+        left: calc(50% - 300px);
+        width: 600px;
+        background: var(--surface);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+        z-index: 500;
+        overflow: hidden;
+      }
+      .win.danger {
+        border-color: var(--danger);
+      }
+      .win .wh {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.6rem;
+        background: var(--surface-alt);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .win .wh .x {
+        margin-left: auto;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .win .wb {
+        padding: 0.7rem 0.8rem 0.9rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        max-height: 64vh;
+        overflow: auto;
+      }
+      .win .wb b {
+        color: var(--text);
+      }
+      .win .note {
+        margin-top: 0.65rem;
+        color: var(--subtle);
+        font-size: 0.72rem;
+        line-height: 1.5;
+      }
+      .win .wf {
+        display: flex;
+        gap: 0.4rem;
+        justify-content: flex-end;
+        padding: 0.5rem 0.8rem 0.7rem;
+        border-top: 1px solid var(--border);
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+      }
+      .field > label {
+        width: 80px;
+        color: var(--subtle);
+        font-size: 0.74rem;
+        flex: 0 0 auto;
+      }
+      .field input,
+      .field select {
+        flex: 1;
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.78rem;
+        padding: 0.25rem 0.4rem;
+        outline: none;
+      }
+      .field input:focus,
+      .field select:focus {
+        border-color: var(--accent);
+      }
+      .subtypes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        flex: 1;
+      }
+      .subtypes button {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 999px;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.1rem 0.6rem;
+        cursor: pointer;
+      }
+      .subtypes button:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .subtypes button.on {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        font-weight: 600;
+      }
+      .warnbox {
+        margin-top: 0.6rem;
+        border: 1px solid rgba(229, 184, 59, 0.4);
+        background: rgba(229, 184, 59, 0.07);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 0.55rem;
+        color: var(--warn);
+        font-size: 0.74rem;
+        line-height: 1.5;
+      }
+      .warnbox b {
+        color: var(--warn);
+      }
+      .stopbox {
+        margin-top: 0.6rem;
+        border: 1px solid var(--danger);
+        background: rgba(255, 92, 92, 0.08);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 0.55rem;
+        color: #ff9a9a;
+        font-size: 0.74rem;
+        line-height: 1.5;
+      }
+      .stopbox b {
+        color: #ffc9c9;
+      }
+      .conseq {
+        list-style: none;
+        margin: 0.4rem 0 0;
+        padding: 0;
+      }
+      .conseq li {
+        display: flex;
+        gap: 0.45rem;
+        align-items: baseline;
+        padding: 0.2rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.76rem;
+      }
+      .conseq li:last-child {
+        border-bottom: 0;
+      }
+      .conseq li i {
+        font-style: normal;
+        width: 1.2rem;
+        text-align: center;
+        flex: 0 0 auto;
+      }
+      .btn-danger {
+        background: var(--danger);
+        border: 1px solid var(--danger);
+        color: #160608;
+        font-weight: 700;
+        border-radius: var(--radius-sm);
+        padding: 0.25rem 0.7rem;
+        font: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-danger[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-ghost {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: var(--radius-sm);
+        padding: 0.25rem 0.7rem;
+        font: inherit;
+        font-size: 0.76rem;
+        cursor: pointer;
+      }
+      .btn-ghost:hover {
+        color: var(--text);
+      }
+      .keys {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 0.2rem;
+        font-size: 0.74rem;
+      }
+      .keys span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--subtle);
+      }
+      .keys i {
+        font-style: normal;
+        font-size: 0.95rem;
+        width: 1.1rem;
+        text-align: center;
+      }
+      .k0 {
+        color: var(--subtle);
+      }
+      .k1 {
+        color: var(--warn);
+      }
+      .k2 {
+        color: var(--ok);
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .matrix th,
+      .matrix td {
+        border: 1px solid var(--border);
+        padding: 0.2rem 0.35rem;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .matrix thead th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.72rem;
+        background: var(--surface-alt);
+        cursor: pointer;
+        user-select: none;
+      }
+      .matrix thead th:hover {
+        color: var(--accent-hover);
+      }
+      .matrix thead th:first-child {
+        cursor: default;
+        text-align: left;
+      }
+      .matrix thead th small {
+        display: block;
+        color: var(--subtle);
+        font-size: 0.62rem;
+        font-weight: 400;
+      }
+      .matrix td.nm {
+        text-align: left;
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .matrix td.nm:hover {
+        color: var(--accent-hover);
+      }
+      .matrix td.nm small {
+        display: block;
+        color: var(--subtle);
+        font-size: 0.65rem;
+      }
+      .matrix td button.cell {
+        background: none;
+        border: 0;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 100%;
+        line-height: 1.3;
+        border-radius: var(--radius-sm);
+      }
+      .matrix td button.cell:hover {
+        background: var(--surface-alt);
+      }
+      .matrix td button.cell.ex {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      /* ---------- Switcher + legenda ---------- */
+      .switcher {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff;
+        color: #111;
+        border-radius: 999px;
+        padding: 0.35rem 0.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .switcher button {
+        border: 0;
+        background: #111;
+        color: #fff;
+        height: 28px;
+        padding: 0 0.7rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 600;
+      }
+      .switcher button.alt {
+        background: #5a4bd6;
+      }
+      .switcher button.var {
+        background: #0a7d5a;
+      }
+      .legend {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.96);
+        color: #111;
+        border-radius: 10px;
+        padding: 0.6rem 0.7rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+        font-size: 0.72rem;
+        max-width: 410px;
+        line-height: 1.45;
+      }
+      .legend h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.78rem;
+      }
+      .legend td {
+        padding: 0.12rem 0.25rem;
+        vertical-align: top;
+      }
+      .legend td:first-child {
+        color: #666;
+        white-space: nowrap;
+      }
+      .legend b {
+        color: #111;
+      }
+      .legend .sw {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-right: 0.2rem;
+      }
+      .legend .q {
+        margin-top: 0.45rem;
+        padding-top: 0.4rem;
+        border-top: 1px solid #ddd;
+        color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="bolt">⚡</span><span class="world">teste_xande</span
+      ><span class="pill">🗺 aha</span>
+      <span class="spacer"></span>
+      <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+      <span class="who" id="who"></span>
+      <button class="btn">Sair</button>
+    </div>
+    <div class="stage">
+      <div class="scenepill">cena ativa: <b>●</b> Fortaleza</div>
+      <div class="art">
+        <div class="house"><div class="star">★</div></div>
+      </div>
+      <div class="drop" id="dropzone">
+        arraste um ator para cá → vira presença no mapa<br /><b id="droplink"
+          >goblin: desvinculado (cada um com sua vida)</b
+        >
+      </div>
+    </div>
+
+    <div id="root"></div>
+    <div id="float"></div>
+    <div id="tip"></div>
+
+    <div class="switcher">
+      <button id="variant" class="var">variante</button>
+      <button id="role">papel</button>
+      <button id="bestiary" class="alt">bestiário</button>
+      <button id="hp" class="alt">vida</button>
+      <button id="state">estado</button>
+    </div>
+    <div class="legend" id="legend"></div>
+
+    <script>
+      /* ================= chassi (spec 36) ================= */
+      const ICONS = {
+        chat: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+        contacts:
+          '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+        combat:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+        compendium:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+        npcs: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+        scenes:
+          '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+        settings:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+      };
+      const UI_ICON = {
+        search:
+          '<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>',
+        sheet:
+          '<svg class="icon" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+        grid: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
+        plus: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        trash:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>',
+      };
+      const TABS = [
+        { id: "chat", label: "Chat", group: "all", badge: "3" },
+        { id: "contacts", label: "Contatos", group: "all" },
+        { id: "combat", label: "Combate", group: "all" },
+        { id: "compendium", label: "Compêndio", group: "all" },
+        { id: "npcs", label: "NPCs", group: "gm" },
+        { id: "scenes", label: "Cenas", group: "gm" },
+        { id: "settings", label: "Configurações", group: "all", foot: true },
+      ];
+      const TITLE = {
+        chat: "Chat",
+        contacts: "Contatos",
+        combat: "Combate",
+        compendium: "Compêndio",
+        npcs: "NPCs",
+        scenes: "Cenas",
+        settings: "Configurações",
+      };
+      const OTHER = {
+        chat: `<div class="row"><span class="name">Fofurinha</span><span class="sub2">21:14</span></div>`,
+        contacts: `<div class="row"><span class="name">Tobias</span><span class="sub2">você</span></div>
+    <div class="row"><span class="name">Fofurinha</span><span class="sub2">na mesa</span></div>
+    <p class="hint">A aba do jogador. Não cria nem exclui ator (DEC-CTT-01) —<br/>é esta aba aqui que paga essa dívida.</p>`,
+        combat: `<p class="empty">Nenhum combate ativo.</p>`,
+        compendium: `<div class="row"><span class="name">Bestiário 1</span><span class="sub2">492</span></div>
+    <div class="row"><span class="name">Talentos</span><span class="sub2">1.812</span></div>`,
+        scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
+        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">›</span></div>`,
+      };
+
+      /* ================= condições (contrato herdado da 39) ================= */
+      const COND = {
+        unconscious: {
+          lb: "Inconsciente",
+          tone: "harm",
+          critical: true,
+          help: "Caído e sem agir; não percebe o que acontece em volta.",
+        },
+        frightened: {
+          lb: "Amedrontado",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade igual ao valor em testes e CDs. Cai 1 ao fim do seu turno.",
+        },
+        wounded: {
+          lb: "Ferido",
+          valued: true,
+          tone: "harm",
+          help: "Se cair de novo, você começa a Morrer num grau pior.",
+        },
+        invisible: {
+          lb: "Invisível",
+          tone: "special",
+          help: "Indetectado por quem depende da visão, até ser localizado.",
+        },
+        hidden: {
+          lb: "Escondido",
+          tone: "special",
+          help: "Sabem mais ou menos onde você está, mas não conseguem te ver.",
+        },
+        quickened: {
+          lb: "Acelerado",
+          tone: "benefit",
+          help: "Uma ação extra por turno, limitada ao que a fonte permite.",
+        },
+        slowed: {
+          lb: "Lento",
+          valued: true,
+          tone: "harm",
+          help: "Começa o turno com menos ações, igual ao valor.",
+        },
+      };
+      const TONE_LB = { harm: "penalidade", benefit: "benefício", special: "situação" };
+      const ORDER = { crit: 0, harm: 1, special: 2, benefit: 3 };
+      const condRank = (c) => {
+        const d = COND[c.slug] || {};
+        return d.critical ? ORDER.crit : ORDER[d.tone || "special"];
+      };
+      const sortConds = (list) =>
+        [...list].sort(
+          (a, b) =>
+            condRank(a) - condRank(b) ||
+            (COND[a.slug]?.lb || a.slug).localeCompare(COND[b.slug]?.lb || b.slug, "pt-BR"),
+        );
+
+      /* ================= mundo mock ================= */
+      /* subtipos declarados pelo sistema (systems/pf2e — REQ-DOC-023) */
+      const SUBTYPES = [
+        { id: "character", lb: "Personagem", pc: true },
+        { id: "npc", lb: "NPC" },
+        { id: "hazard", lb: "Perigo" },
+        { id: "vehicle", lb: "Veículo" },
+      ];
+
+      const PCS = [
+        { id: "tobias", name: "Tobias", color: "#7c5cfc" },
+        { id: "fofurinha", name: "Fofurinha", color: "#3ddc84" },
+        { id: "rurik", name: "Rurik", color: "#e5b83b" },
+      ];
+
+      /* pastas (documento Folder — servidor) */
+      const FOLDERS = [
+        { id: "f-vila", name: "Vila de Pedra Alta", parent: null },
+        { id: "f-corvo", name: "O Círculo do Corvo", parent: null },
+        { id: "f-best", name: "Bestiário", parent: null },
+        { id: "f-gob", name: "Goblinoides", parent: "f-best" },
+        { id: "f-mortos", name: "Mortos-vivos", parent: "f-best" },
+      ];
+
+      /* atores não-jogadores do mundo.
+         cast  = recorrente/nomeado (variante B: "Elenco")
+         tok   = presenças no mapa, por cena
+         link  = default de vínculo ao arrastar (Q5)
+         know  = { pcId: 0|1|2 } estado do par (leitura; edição só na janela) */
+      const NPCS = [
+        {
+          id: "aldric",
+          name: "Mestre Aldric",
+          title: "A Voz do Bosque",
+          type: "npc",
+          lvl: 5,
+          hp: "68/68",
+          folder: "f-vila",
+          cast: true,
+          color: "#c98b5e",
+          link: true,
+          tok: {},
+          know: { tobias: 2, fofurinha: 1, rurik: 0 },
+        },
+        {
+          id: "bram",
+          name: "Ferreiro Bram",
+          title: "",
+          type: "npc",
+          lvl: 3,
+          hp: "45/45",
+          folder: "f-vila",
+          cast: true,
+          color: "#8a8f98",
+          link: true,
+          tok: {},
+          know: { tobias: 2, fofurinha: 2, rurik: 0 },
+        },
+        {
+          id: "yara",
+          name: "Irmã Yara",
+          title: "",
+          type: "npc",
+          lvl: 4,
+          hp: "52/52",
+          folder: "f-vila",
+          cast: true,
+          color: "#d6b3e8",
+          link: true,
+          tok: {},
+          know: { tobias: 1, fofurinha: 1, rurik: 0 },
+        },
+        {
+          id: "vess",
+          name: "Vess, a Corvo",
+          title: "Quem paga, some",
+          type: "npc",
+          lvl: 8,
+          hp: "115/115",
+          folder: "f-corvo",
+          cast: true,
+          color: "#5b6b8c",
+          link: true,
+          tok: { Fortaleza: 1 },
+          conds: [{ slug: "invisible" }, { slug: "quickened" }],
+          know: { tobias: 1, fofurinha: 0, rurik: 0 },
+          subs: [{ name: "Nix", kind: "familiar (corvo)" }],
+        },
+        {
+          id: "hood",
+          name: "O Encapuzado",
+          title: "",
+          type: "npc",
+          lvl: 6,
+          hp: "84/84",
+          folder: "f-corvo",
+          cast: true,
+          color: "#3a3a4d",
+          link: true,
+          tok: {},
+          know: { tobias: 1, fofurinha: 1, rurik: 1 },
+        },
+        {
+          id: "gob-war",
+          name: "Goblin Guerreiro",
+          title: "",
+          type: "npc",
+          lvl: -1,
+          hp: "6/6",
+          folder: "f-gob",
+          color: "#6a9a3f",
+          link: false,
+          tok: { Fortaleza: 3 },
+          conds: [
+            { slug: "frightened", v: 2 },
+            { slug: "wounded", v: 1 },
+            { slug: "slowed", v: 1 },
+            { slug: "hidden" },
+          ],
+          know: { tobias: 2, fofurinha: 2, rurik: 2 },
+          inCombat: true,
+        },
+        {
+          id: "gob-cmd",
+          name: "Goblin Comando",
+          title: "",
+          type: "npc",
+          lvl: 1,
+          hp: "18/18",
+          folder: "f-gob",
+          color: "#4f7a2e",
+          link: false,
+          tok: { Fortaleza: 1 },
+          conds: [{ slug: "unconscious" }],
+          know: { tobias: 2, fofurinha: 2, rurik: 2 },
+        },
+        {
+          id: "hobgob",
+          name: "Hobgoblin Soldado",
+          title: "",
+          type: "npc",
+          lvl: 1,
+          hp: "22/22",
+          folder: "f-gob",
+          color: "#9a5f3f",
+          link: false,
+          tok: {},
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        },
+        {
+          id: "zumbi",
+          name: "Zumbi Devorador",
+          title: "",
+          type: "npc",
+          lvl: 1,
+          hp: "30/30",
+          folder: "f-mortos",
+          color: "#6b7a5e",
+          link: false,
+          tok: {},
+          know: { tobias: 1, fofurinha: 0, rurik: 0 },
+        },
+        {
+          id: "esq",
+          name: "Esqueleto Guardião",
+          title: "",
+          type: "npc",
+          lvl: 2,
+          hp: "24/24",
+          folder: "f-mortos",
+          color: "#c9c4b5",
+          link: false,
+          tok: {},
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        },
+        {
+          id: "cavalo",
+          name: "Cavalo de Carga",
+          title: "",
+          type: "npc",
+          lvl: 0,
+          hp: "20/20",
+          folder: null,
+          color: "#a07c4f",
+          link: false,
+          tok: {},
+          know: { tobias: 2, fofurinha: 2, rurik: 2 },
+        },
+        {
+          id: "fosso",
+          name: "Armadilha de Fosso",
+          title: "",
+          type: "hazard",
+          lvl: 1,
+          hp: "—",
+          folder: null,
+          color: "#8a6b3f",
+          link: false,
+          tok: { Fortaleza: 1 },
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        },
+      ];
+
+      /* enxurrada do bestiário — só entra quando o switcher liga (Q2) */
+      const FLOOD_NAMES = [
+        "Aranha Gigante",
+        "Basilisco",
+        "Bugbear Batedor",
+        "Cão Infernal",
+        "Coruja Gigante",
+        "Dragão Vermelho Jovem",
+        "Elemental de Fogo",
+        "Espectro",
+        "Gnoll Caçador",
+        "Golem de Argila",
+        "Harpia",
+        "Kobold Lanceiro",
+        "Lobo Atroz",
+        "Manticora",
+        "Minotauro",
+        "Ogro Bruto",
+        "Orc Guerreiro",
+        "Sereia",
+        "Trol",
+        "Vampiro Servo",
+        "Verme Púrpura",
+        "Xamã Lagarto",
+        "Zumbi Bruto",
+        "Ettin",
+      ];
+      function floodActors() {
+        return FLOOD_NAMES.map((n, i) => ({
+          id: "fl-" + i,
+          name: n,
+          title: "",
+          type: "npc",
+          lvl: (i % 12) - 1,
+          hp: 10 + i * 3 + "/" + (10 + i * 3),
+          folder: i % 2 ? "f-gob" : "f-mortos",
+          color: ["#6a9a3f", "#8a5f9a", "#9a5f3f", "#5f7a9a"][i % 4],
+          link: false,
+          tok: {},
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+          flood: true,
+        }));
+      }
+
+      /* compêndios (variante C) */
+      const PACK = [
+        { id: "p1", name: "Goblin Piromaníaco", lvl: 1, pack: "Bestiário 1", color: "#6a9a3f" },
+        { id: "p2", name: "Goblin Chefe de Guerra", lvl: 2, pack: "Bestiário 1", color: "#4f7a2e" },
+        { id: "p3", name: "Cão Goblin", lvl: 1, pack: "Bestiário 1", color: "#7a6a3f" },
+        { id: "p4", name: "Goblin Comando", lvl: 1, pack: "Bestiário 1", color: "#4f7a2e" },
+        { id: "p5", name: "Esqueleto Arqueiro", lvl: 1, pack: "Bestiário 1", color: "#c9c4b5" },
+        { id: "p6", name: "Zumbi Rastejante", lvl: 0, pack: "Bestiário 2", color: "#6b7a5e" },
+      ];
+
+      /* ================= estado ================= */
+      const url = new URL(location);
+      let variant = (url.searchParams.get("v") || "A").toUpperCase();
+      let role = url.searchParams.get("role") === "player" ? "player" : "gm";
+      let flood = url.searchParams.get("flood") === "1";
+      let showHp = url.searchParams.get("hp") === "1";
+      let empty = url.searchParams.get("state") === "empty";
+      let open = true;
+      let active = "npcs";
+      let query = "";
+      let sel = null;
+      let win = null; /* null | "new" | "delete" | "matrix" | "sheet" */
+      let newType = "npc";
+      let delTarget = null;
+      let editTitle = null;
+      let expanded = {
+        "f-vila": true,
+        "f-corvo": true,
+        "f-best": true,
+        "f-gob": true,
+        "f-mortos": false,
+      };
+      let bandOpen = { world: true, pack: true, loose: false };
+      let expandConds = {};
+      let dragLinked = null;
+
+      /* conhecimento: regra geral + exceções (mesmo modelo da 39) */
+      const rule = {};
+      const ex = {};
+      function seedKnowledge() {
+        allNpcs(true).forEach((n) => {
+          /* a regra geral é o estado mais comum entre os personagens;
+             o que destoar dela vira exceção (mesmo modelo da 39) */
+          const vals = PCS.map((p) => (n.know ? (n.know[p.id] ?? 0) : 0));
+          const tally = [0, 0, 0];
+          vals.forEach((v) => tally[v]++);
+          rule[n.id] = tally.indexOf(Math.max(...tally));
+          ex[n.id] = {};
+          PCS.forEach((p, i) => {
+            if (vals[i] !== rule[n.id]) ex[n.id][p.id] = vals[i];
+          });
+        });
+      }
+      const know = (n, p) => (ex[n] && p in ex[n] ? ex[n][p] : (rule[n] ?? 0));
+      const isEx = (n, p) => !!(ex[n] && p in ex[n]);
+      function setKnow(n, p, v) {
+        if (v === (rule[n] ?? 0)) delete ex[n][p];
+        else ex[n][p] = v;
+      }
+
+      /* ================= helpers ================= */
+      function allNpcs(includeFlood) {
+        return includeFlood || flood ? [...NPCS, ...floodActors()] : [...NPCS];
+      }
+      function visible() {
+        if (empty) return [];
+        const list = allNpcs();
+        if (!query.trim()) return list;
+        const q = query.trim().toLowerCase();
+        return list.filter(
+          (n) => n.name.toLowerCase().includes(q) || (n.title || "").toLowerCase().includes(q),
+        );
+      }
+      const byName = (a, b) => a.name.localeCompare(b.name, "pt-BR");
+      const tokCount = (n) => Object.values(n.tok || {}).reduce((a, b) => a + b, 0);
+      const initials = (s) =>
+        s
+          .split(" ")
+          .filter((w) => w.length > 2)
+          .slice(0, 2)
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase() || s[0].toUpperCase();
+
+      function knowSummary(n) {
+        let k2 = 0,
+          k1 = 0;
+        PCS.forEach((p) => {
+          const v = know(n.id, p.id);
+          if (v === 2) k2++;
+          else if (v === 1) k1++;
+        });
+        const k0 = PCS.length - k2 - k1;
+        const help = encodeURIComponent(
+          JSON.stringify({
+            t: "Quem conhece " + n.name,
+            h:
+              `<b>${k2}</b> conhece(m) · <b>${k1}</b> entreviu/entreviram · <b>${k0}</b> não vê(em).<br><br>` +
+              `Aqui é <b>leitura</b>. Mudar isso é só na janela <b>Quem conhece quem</b>, pelo rodapé — é a DEC-CTT-05 da spec 39.`,
+            tone: "conhecimento (par contato × personagem)",
+          }),
+        );
+        return `<span class="know" data-help="${help}"><span class="k2">✓${k2}</span> <span class="k1">◐${k1}</span> <span class="k0">·${k0}</span></span>`;
+      }
+
+      function condsHtml(n) {
+        if (!n.conds || !n.conds.length) return "";
+        const sorted = sortConds(n.conds);
+        const expandedNow = !!expandConds[n.id];
+        const shown = expandedNow ? sorted : sorted.slice(0, 2);
+        const rest = sorted.length - shown.length;
+        const chips = shown
+          .map((c) => {
+            const d = COND[c.slug] || {};
+            const tone = d.critical ? "crit" : d.tone || "special";
+            const lb = d.lb || c.slug;
+            const val = c.v != null ? ` <span class="v">${c.v}</span>` : "";
+            const help = encodeURIComponent(
+              JSON.stringify({
+                t: lb + (c.v != null ? " " + c.v : ""),
+                h: d.help || "",
+                tone: (d.critical ? "crítica · " : "") + (TONE_LB[d.tone] || "situação"),
+              }),
+            );
+            return `<span class="chip ${tone}" data-help="${help}">${lb}${val}</span>`;
+          })
+          .join("");
+        const more = rest > 0 ? `<span class="chip more" data-more="${n.id}">+${rest}</span>` : "";
+        return `<div class="conds">${chips}${more}</div>`;
+      }
+
+      function actorRow(n, opts = {}) {
+        const sub = n.type === "hazard" ? "hz" : "";
+        const t = n.title;
+        const titleLine =
+          editTitle === n.id
+            ? `<div class="ttl"><input id="titleinput" value="${t || ""}" placeholder="um título para ${n.name}"/></div>`
+            : t
+              ? `<div class="ttl"><span>${t}</span><span class="pen" data-title="${n.id}">✎</span></div>`
+              : `<div class="ttl fallback"><span>${SUBTYPES.find((s) => s.id === n.type)?.lb || n.type} · nível ${n.lvl}</span><span class="pen" data-title="${n.id}">✎</span></div>`;
+        const tk = tokCount(n);
+        const tkHelp = encodeURIComponent(
+          JSON.stringify({
+            t: "Presença no mapa",
+            h: tk
+              ? Object.entries(n.tok)
+                  .map(([s, c]) => `<b>${c}</b> em ${s}`)
+                  .join("<br>")
+              : "não está em cena nenhuma",
+            tone: n.link
+              ? "arrasta VINCULADO (um só, vida compartilhada)"
+              : "arrasta DESVINCULADO (cada um com sua vida)",
+          }),
+        );
+        const meta = `<span class="meta hide-on-hover">
+        ${showHp ? `<span class="hp">${n.hp}</span>` : ""}
+        <span class="lvl">${n.lvl}</span>
+        ${tk ? `<span class="tok" data-help="${tkHelp}">⬡${tk}</span>` : ""}
+        ${knowSummary(n)}
+      </span>`;
+        const tools = `<span class="tools">
+        <button data-sheet="${n.id}" title="abrir ficha">▤</button>
+        <button data-move="${n.id}" title="mover de pasta">🗀</button>
+        <button class="del" data-del="${n.id}" title="excluir ator">✕</button>
+      </span>`;
+        const subs = (n.subs || [])
+          .map(
+            (s) =>
+              `<div class="sub"><span class="nm">${s.name}</span><span class="sb">${s.kind}</span></div>`,
+          )
+          .join("");
+        return `<div class="act ${sel === n.id ? "sel" : ""} ${opts.pack ? "frompack" : ""}" data-act="${n.id}" draggable="true">
+        <span class="av ${sub}" style="background:${n.color}">${initials(n.name)}</span>
+        <span class="idt"><span class="nm">${n.name}</span>${titleLine}</span>
+        ${meta}${tools}
+      </div>${condsHtml(n)}${subs}`;
+      }
+
+      /* ================= variante A — diretório ================= */
+      function folderNode(f, list, depth) {
+        const kids = FOLDERS.filter((x) => x.parent === f.id);
+        const mine = list.filter((n) => n.folder === f.id).sort(byName);
+        const deepCount =
+          mine.length + kids.reduce((a, k) => a + list.filter((n) => n.folder === k.id).length, 0);
+        if (query.trim() && deepCount === 0) return "";
+        const isOpen = expanded[f.id] || !!query.trim();
+        const inner = isOpen
+          ? `<div class="kids">${kids.map((k) => folderNode(k, list, depth + 1)).join("")}${mine
+              .map((n) => actorRow(n))
+              .join("")}</div>`
+          : "";
+        return `<div class="fold" data-fold="${f.id}">
+        <span class="chev">${isOpen ? "▾" : "▸"}</span>
+        <span class="fn">${f.name}</span>
+        <span class="cnt">${deepCount}</span>
+        <span class="tools"><button data-newin="${f.id}" title="novo ator aqui">＋</button><button title="renomear">✎</button><button title="excluir pasta">✕</button></span>
+      </div>${inner}`;
+      }
+      function bodyA() {
+        const list = visible();
+        if (!list.length) return emptyState();
+        const roots = FOLDERS.filter((f) => !f.parent);
+        const loose = list.filter((n) => !n.folder).sort(byName);
+        return (
+          roots.map((f) => folderNode(f, list, 0)).join("") +
+          (loose.length
+            ? `<div class="sec"><span class="lbl">sem pasta</span><span class="cnt">${loose.length}</span><span class="line"></span></div>${loose
+                .map((n) => actorRow(n))
+                .join("")}`
+            : "")
+        );
+      }
+
+      /* ================= variante B — elenco ================= */
+      function bodyB() {
+        const list = visible();
+        if (!list.length) return emptyState();
+        const inScene = list.filter((n) => tokCount(n) > 0).sort(byName);
+        const cast = list.filter((n) => n.cast && tokCount(n) === 0).sort(byName);
+        const loose = list.filter((n) => !n.cast && tokCount(n) === 0).sort(byName);
+        const looseOpen = bandOpen.loose || !!query.trim();
+        const sec = (id, lbl, arr, clickable) =>
+          arr.length
+            ? `<div class="sec ${clickable ? "click" : ""}" ${clickable ? `data-band="${id}"` : ""}>
+          ${clickable ? `<span class="chev">${looseOpen ? "▾" : "▸"}</span>` : ""}
+          <span class="lbl">${lbl}</span><span class="cnt">${arr.length}</span><span class="line"></span></div>`
+            : "";
+        return (
+          sec("scene", "em cena · Fortaleza", inScene) +
+          inScene.map((n) => actorRow(n)).join("") +
+          sec("cast", "elenco", cast) +
+          cast.map((n) => actorRow(n)).join("") +
+          sec("loose", "avulsos", loose, true) +
+          (looseOpen ? loose.map((n) => actorRow(n)).join("") : "") +
+          (loose.length && !looseOpen
+            ? `<p class="hint">${loose.length} atores sem papel na história.<br/>Abra, ou ache pela busca.</p>`
+            : "")
+        );
+      }
+
+      /* ================= variante C — bancada ================= */
+      function bodyC() {
+        const list = visible().sort(byName);
+        const q = query.trim().toLowerCase();
+        const packHits = q
+          ? PACK.filter((p) => p.name.toLowerCase().includes(q))
+          : PACK.slice(0, 3);
+        const worldPart = list.length
+          ? list.map((n) => actorRow(n)).join("")
+          : `<p class="hint">${
+              empty ? "Nenhum ator no mundo ainda." : "Nada no mundo com esse nome."
+            }<br/>Olhe a faixa de compêndio abaixo.</p>`;
+        const packPart = packHits
+          .map(
+            (p) => `<div class="act frompack" draggable="true">
+        <span class="av" style="background:${p.color}">${initials(p.name)}</span>
+        <span class="idt"><span class="nm">${p.name}</span>
+          <span class="ttl fallback"><span class="packsrc">${p.pack} · nível ${p.lvl}</span></span></span>
+        <span class="meta"><button class="imp" data-import="${p.id}">importar</button></span>
+      </div>`,
+          )
+          .join("");
+        return `<div class="band"><span class="lbl">no mundo</span><span class="cnt">${
+          empty ? 0 : allNpcs().length
+        }</span></div>${worldPart}
+      <div class="band pack"><span class="lbl">nos compêndios</span><span class="cnt">${
+        q ? packHits.length + " de 492" : "492"
+      }</span></div>${packPart}
+      <p class="hint">Arrastar de qualquer uma das duas faixas cria presença no mapa.<br/>Da faixa de baixo, o ator é <b>importado antes</b> (REQ-CMP-018).</p>`;
+      }
+
+      function emptyState() {
+        if (empty)
+          return `<div class="vazio"><b>Nenhum ator neste mundo ainda.</b><br/>
+        Crie o primeiro, ou traga um do compêndio.<br/><br/>
+        <button class="hbtn pri" id="newempty">＋ Novo ator</button></div>`;
+        return `<div class="vazio">Nada encontrado para <b>"${query}"</b>.</div>`;
+      }
+
+      /* ================= janelas (spec 11) ================= */
+      function newWinHtml() {
+        const st = SUBTYPES.find((s) => s.id === newType);
+        return `<div class="win" style="width:480px;left:calc(50% - 240px)">
+      <div class="wh">${UI_ICON.plus} Novo ator<button class="x" data-winclose>✕</button></div>
+      <div class="wb">
+        <div class="field"><label>Tipo</label>
+          <div class="subtypes">${SUBTYPES.map(
+            (s) =>
+              `<button class="${s.id === newType ? "on" : ""}" data-st="${s.id}">${s.lb}</button>`,
+          ).join("")}</div>
+        </div>
+        <div class="field"><label>Nome</label><input placeholder="${
+          st.pc ? "nome do personagem" : "nome do ator"
+        }" /></div>
+        <div class="field"><label>Pasta</label>
+          <select>${["(sem pasta)", ...FOLDERS.map((f) => f.name)]
+            .map((n) => `<option>${n}</option>`)
+            .join("")}</select></div>
+        ${
+          st.pc
+            ? `<div class="warnbox"><b>Q1 — a proposta que este protótipo faz.</b><br/>
+        Personagem é criado <b>aqui</b> (autoria), mas aparece na aba <b>Contatos</b>, não nesta lista:
+        criar é desta aba, listar é por plateia. É assim que a dívida da DEC-CTT-01 é paga por inteiro —
+        senão criar um PC continua não tendo endereço em lugar nenhum do app.<br/><br/>
+        <b>Alternativa a discutir:</b> esta aba só cria não-jogador, e criar PC vira gesto da
+        seção <b>Usuários</b> da spec 37 (o PC nasce colado ao usuário dele).</div>`
+            : `<div class="note">Os tipos vêm do <b>sistema ativo</b> (pf2e), não desta aba —
+        mesmo princípio da DEC-CTT-11: a UI pinta o que o sistema declarou.
+        <br/><b>Q7:</b> "Perigo" e "Veículo" não são gente. Cabem numa aba chamada <b>NPCs</b>?</div>`
+        }
+      </div>
+      <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
+        <button class="hbtn pri">Criar</button></div></div>`;
+      }
+
+      function deleteWinHtml() {
+        const n = allNpcs(true).find((x) => x.id === delTarget);
+        if (!n) return "";
+        const tk = tokCount(n);
+        const scenes = Object.entries(n.tok || {});
+        let k2 = 0,
+          k1 = 0;
+        PCS.forEach((p) => {
+          const v = know(n.id, p.id);
+          if (v === 2) k2++;
+          else if (v === 1) k1++;
+        });
+        return `<div class="win danger" style="width:500px;left:calc(50% - 250px)">
+      <div class="wh">${UI_ICON.trash} Excluir <b style="color:var(--text)">&nbsp;${n.name}</b>?
+        <button class="x" data-winclose>✕</button></div>
+      <div class="wb">
+        <b>O que vai junto:</b>
+        <ul class="conseq">
+          <li><i>⬡</i><span>${
+            tk
+              ? `<b>${tk}</b> presença(s) no mapa, em ${scenes.map(([s, c]) => `${s} (${c})`).join(", ")} — somem junto.`
+              : "nenhuma presença em cena."
+          }</span></li>
+          <li><i>◐</i><span>${
+            k2 + k1
+              ? `<b>${k2}</b> personagem(ns) conhece(m) e <b>${k1}</b> entreviu/entreviram — o conhecimento é apagado com o ator.`
+              : "ninguém conhece este ator; nada de conhecimento a apagar."
+          }</span></li>
+          <li><i>▤</i><span>a ficha e os itens embutidos vão junto, sem lixeira.</span></li>
+        </ul>
+        ${
+          n.inCombat
+            ? `<div class="stopbox"><b>Recusado:</b> este ator está em um <b>combate ativo</b>.
+          Encerre o combate, ou tire-o dele, antes de excluir.<br/>
+          <b>Q6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem apaga as exceções que o citam).
+          Excluir <i>contato</i> não está em spec nenhuma: cascata silenciosa, recusa, ou aviso?</div>`
+            : `<div class="warnbox"><b>Q6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem
+          apaga as exceções que o citam). Excluir <i>contato</i> não está em spec nenhuma.</div>`
+        }
+      </div>
+      <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
+        <button class="btn-danger" ${n.inCombat ? "disabled" : ""}>Excluir</button></div></div>`;
+      }
+
+      const ST = ["oculto", "entrevisto", "conhecido"];
+      const SYM = ["·", "◐", "✓"];
+      function matrixHtml() {
+        const list = allNpcs()
+          .filter((n) => !n.flood)
+          .sort(byName);
+        return `<div class="win"><div class="wh">${UI_ICON.grid} Quem conhece quem
+      <button class="x" data-winclose>✕</button></div>
+    <div class="wb">
+      A <b>mesma janela</b> da aba Contatos (spec 39, REQ-CTT-061). Ela é alcançável pelas duas abas
+      porque o conhecimento se edita <b>num lugar só</b> — DEC-CTT-05.
+      <div class="keys"><span><i class="k0">·</i>oculto</span><span><i class="k1">◐</i>entrevisto</span>
+        <span><i class="k2">✓</i>conhecido</span><span><i>__</i>sublinhado = exceção</span></div>
+      <table class="matrix"><thead><tr><th>contato</th>
+        ${PCS.map((p) => `<th data-col="${p.id}">${p.name}<small>coluna inteira</small></th>`).join("")}
+      </tr></thead><tbody>
+      ${list
+        .map(
+          (n) => `<tr>
+        <td class="nm" data-rowcycle="${n.id}">${n.name}<small>regra geral: ${ST[rule[n.id] ?? 0]}</small></td>
+        ${PCS.map((p) => {
+          const v = know(n.id, p.id);
+          return `<td><button class="cell k${v} ${isEx(n.id, p.id) ? "ex" : ""}" data-mx="${n.id}::${p.id}">${SYM[v]}</button></td>`;
+        }).join("")}
+      </tr>`,
+        )
+        .join("")}
+      </tbody></table>
+      <div class="note"><b>Q3</b> — na aba NPCs o cartão só <b>lê</b> o estado (✓2 ◐1). Revelar exige vir até aqui.
+        É o preço da DEC-CTT-05: um lugar só de edição. O gesto real do Mestre é
+        "criei o NPC → a mesa encontrou → revelo" — vale a pena o desvio?</div>
+    </div></div>`;
+      }
+
+      function sheetWinHtml() {
+        const n = allNpcs(true).find((x) => x.id === win.replace("sheet:", ""));
+        return `<div class="win" style="width:460px;left:calc(50% - 230px)">
+      <div class="wh">${UI_ICON.sheet} Ficha — ${n ? n.name : "?"}<button class="x" data-winclose>✕</button></div>
+      <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11) —
+      §7.5 do contrato da spec-mãe. Duplo-clique na linha faz o mesmo (DEC-CTT-13).</div></div>`;
+      }
+
+      function winHtml() {
+        if (!win) return "";
+        if (win === "new") return newWinHtml();
+        if (win === "delete") return deleteWinHtml();
+        if (win === "matrix") return matrixHtml();
+        if (win.startsWith("sheet:")) return sheetWinHtml();
+        return "";
+      }
+
+      /* ================= render ================= */
+      function npcsHead() {
+        return `<div class="panel-head">
+      <div class="search"><span class="mag">${UI_ICON.search}</span>
+        <input id="q" placeholder="Procurar ator" value="${query}"/></div>
+      <button class="hbtn pri" id="new" title="novo ator ou pasta">${UI_ICON.plus}</button>
+    </div>`;
+      }
+      function tabButton(t) {
+        const badge = t.badge ? `<span class="badge">${t.badge}</span>` : "";
+        return `<button class="tabbtn ${active === t.id && open ? "is-active" : ""}" data-tab="${t.id}" aria-label="${t.label}">
+      ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+      }
+      function render() {
+        const isGm = role === "gm";
+        if (!isGm && ["npcs", "scenes"].includes(active)) active = "contacts";
+        if (!isGm) win = null;
+        const all = TABS.filter((t) => t.group === "all" && !t.foot),
+          gms = TABS.filter((t) => t.group === "gm" && isGm),
+          foot = TABS.filter((t) => t.foot);
+
+        const isNpcs = active === "npcs";
+        const head = isNpcs
+          ? npcsHead()
+          : `<div class="panel-head"><span class="panel-title">${TITLE[active]}</span></div>`;
+        const body = isNpcs
+          ? `<div class="panel-body">${variant === "A" ? bodyA() : variant === "B" ? bodyB() : bodyC()}</div>`
+          : `<div class="panel-body">${OTHER[active] || ""}</div>`;
+        /* rodapé fixo — o mesmo da aba Contatos (DEC-CTT-05/REQ-CTT-060) */
+        const footer = isNpcs
+          ? `<div class="panel-foot"><button class="hbtn wide" id="matrix">${UI_ICON.grid} Quem conhece quem</button></div>`
+          : "";
+
+        document.getElementById("root").innerHTML = `
+      <div class="${open ? "is-open" : ""}"><aside class="sidebar">
+        <nav class="tabs">
+          <div class="grp">${all.map(tabButton).join("")}</div>
+          ${gms.length ? `<div class="grp gm">${gms.map(tabButton).join("")}</div>` : ""}
+          <div class="foot">${foot.map(tabButton).join("")}</div>
+        </nav>
+        <div class="panel">${head}${body}${footer}</div>
+      </aside></div>`;
+        document.getElementById("float").innerHTML = winHtml();
+
+        const who = document.getElementById("who");
+        who.className = isGm ? "who" : "who player";
+        who.innerHTML = isGm
+          ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+          : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha) — não vê esta aba</span>';
+
+        const dl = document.getElementById("droplink");
+        dl.textContent = dragLinked
+          ? dragLinked.link
+            ? `${dragLinked.name}: VINCULADO (um só; a vida é a do ator)`
+            : `${dragLinked.name}: DESVINCULADO (cada um com sua vida)`
+          : "goblin: desvinculado · Aldric: vinculado — Alt inverte (Q5)";
+
+        hideTip();
+        wire();
+        paintSwitcher();
+        const u = new URL(location);
+        u.searchParams.set("v", variant);
+        u.searchParams.set("role", role);
+        u.searchParams.set("flood", flood ? "1" : "0");
+        u.searchParams.set("hp", showHp ? "1" : "0");
+        u.searchParams.set("state", empty ? "empty" : "full");
+        history.replaceState(null, "", u);
+      }
+
+      /* ================= tooltip ================= */
+      const tipEl = () => document.getElementById("tip");
+      function showTip(el) {
+        let d;
+        try {
+          d = JSON.parse(decodeURIComponent(el.dataset.help));
+        } catch {
+          return;
+        }
+        const t = tipEl();
+        t.innerHTML = `<b>${d.t}</b>${d.h || '<i style="color:var(--subtle)">sem texto de ajuda declarado</i>'}<span class="tone">${d.tone}</span>`;
+        t.style.display = "block";
+        const r = el.getBoundingClientRect(),
+          tr = t.getBoundingClientRect();
+        t.style.left = Math.max(8, r.left - tr.width - 10) + "px";
+        t.style.top = Math.max(8, r.top - 4) + "px";
+      }
+      function hideTip() {
+        const t = tipEl();
+        if (t) t.style.display = "none";
+      }
+
+      /* ================= eventos ================= */
+      function wire() {
+        const root = document.getElementById("root"),
+          float = document.getElementById("float");
+
+        root.querySelectorAll("[data-tab]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const id = b.dataset.tab;
+              if (open && active === id) open = false;
+              else {
+                active = id;
+                open = true;
+              }
+              editTitle = null;
+              render();
+            }),
+        );
+
+        root.querySelectorAll("[data-fold]").forEach(
+          (f) =>
+            (f.onclick = (e) => {
+              if (e.target.closest("button")) return;
+              const id = f.dataset.fold;
+              expanded[id] = !expanded[id];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-band]").forEach(
+          (s) =>
+            (s.onclick = () => {
+              bandOpen.loose = !bandOpen.loose;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-more]").forEach(
+          (m) =>
+            (m.onclick = (e) => {
+              e.stopPropagation();
+              expandConds[m.dataset.more] = !expandConds[m.dataset.more];
+              render();
+            }),
+        );
+
+        root.querySelectorAll("[data-act]").forEach((a) => {
+          a.onclick = (e) => {
+            if (e.target.closest("button") || e.target.closest(".pen")) return;
+            sel = a.dataset.act;
+            render();
+          };
+          a.ondblclick = () => {
+            win = "sheet:" + a.dataset.act;
+            render();
+          };
+          a.ondragstart = () => {
+            const n = allNpcs(true).find((x) => x.id === a.dataset.act);
+            dragLinked = n;
+            const dl = document.getElementById("droplink");
+            if (dl && n)
+              dl.textContent = n.link
+                ? `${n.name}: VINCULADO (um só; a vida é a do ator)`
+                : `${n.name}: DESVINCULADO (cada um com sua vida)`;
+          };
+          a.ondragend = () => {
+            dragLinked = null;
+            render();
+          };
+        });
+
+        root.querySelectorAll("[data-title]").forEach(
+          (p) =>
+            (p.onclick = (e) => {
+              e.stopPropagation();
+              editTitle = p.dataset.title;
+              render();
+              const i = document.getElementById("titleinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const ti = document.getElementById("titleinput");
+        if (ti)
+          ti.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const n = allNpcs(true).find((x) => x.id === editTitle);
+              const real = NPCS.find((x) => x.id === editTitle);
+              if (real) real.title = ti.value.trim();
+              else if (n) n.title = ti.value.trim();
+              editTitle = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              editTitle = null;
+              render();
+            }
+          };
+
+        root.querySelectorAll("[data-sheet]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              win = "sheet:" + b.dataset.sheet;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-del]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              delTarget = b.dataset.del;
+              win = "delete";
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-newin]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              win = "new";
+              render();
+            }),
+        );
+        const nb = document.getElementById("new");
+        if (nb)
+          nb.onclick = () => {
+            win = "new";
+            render();
+          };
+        const ne = document.getElementById("newempty");
+        if (ne)
+          ne.onclick = () => {
+            win = "new";
+            render();
+          };
+        const mx = document.getElementById("matrix");
+        if (mx)
+          mx.onclick = () => {
+            win = "matrix";
+            render();
+          };
+
+        float.querySelectorAll("[data-winclose]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              win = null;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-st]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newType = b.dataset.st;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-mx]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const [npc, pc] = b.dataset.mx.split("::");
+              setKnow(npc, pc, (know(npc, pc) + 1) % 3);
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-rowcycle]").forEach(
+          (td) =>
+            (td.onclick = () => {
+              const npc = td.dataset.rowcycle;
+              rule[npc] = ((rule[npc] ?? 0) + 1) % 3;
+              ex[npc] = {};
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-col]").forEach(
+          (th) =>
+            (th.onclick = () => {
+              const pc = th.dataset.col;
+              const list = allNpcs().filter((n) => !n.flood);
+              const vals = list.map((n) => know(n.id, pc));
+              const uniform = vals.every((v) => v === vals[0]) ? vals[0] : -1;
+              const next = uniform === -1 ? 2 : (uniform + 1) % 3;
+              list.forEach((n) => setKnow(n.id, pc, next));
+              render();
+            }),
+        );
+
+        document.querySelectorAll("[data-help]").forEach((el) => {
+          el.onmouseenter = () => showTip(el);
+          el.onmouseleave = hideTip;
+        });
+
+        const q = document.getElementById("q");
+        if (q)
+          q.oninput = () => {
+            query = q.value;
+            render();
+            const el = document.getElementById("q");
+            if (el) {
+              el.focus();
+              el.setSelectionRange(query.length, query.length);
+            }
+          };
+      }
+
+      /* ================= switcher / legenda ================= */
+      const VAR_LB = {
+        A: "A · diretório (pastas)",
+        B: "B · elenco (ficção)",
+        C: "C · bancada (mundo+pack)",
+      };
+      const VAR_NOTE = {
+        A: `<tr><td>aposta</td><td><b>árvore de pastas de verdade</b> (documento Folder, servidor, aninhada).
+          É o ActorDirectory de hoje feito direito. O bestiário inteiro mora aqui.</td></tr>
+        <tr><td>custo</td><td>com 492 atores vira gerenciador de arquivos no meio da sessão — ligue <b>bestiário</b>.</td></tr>`,
+        B: `<tr><td>aposta</td><td>organiza por <b>papel na ficção</b>: em cena agora · elenco recorrente ·
+          avulsos (recolhido, só por busca). Pasta vira detalhe.</td></tr>
+        <tr><td>custo</td><td>"elenco" e "avulso" são julgamento de quem escreve, não dado. Quem marca?</td></tr>`,
+        C: `<tr><td>aposta</td><td>uma busca só atravessa <b>mundo e compêndio</b>. A pergunta do Mestre é
+          "me dá um goblin" — não "já importei?".</td></tr>
+        <tr><td>custo</td><td>invade a aba Compêndio (spec 16) e cria dois lugares de importar.</td></tr>`,
+      };
+      function paintSwitcher() {
+        document.getElementById("variant").textContent = VAR_LB[variant];
+        document.getElementById("role").textContent =
+          role === "gm" ? "ver como jogador" : "ver como Mestre";
+        document.getElementById("bestiary").textContent = flood
+          ? "bestiário: importado (36)"
+          : "bestiário: mundo enxuto";
+        document.getElementById("hp").textContent = showHp ? "vida: mostrando" : "vida: oculta";
+        document.getElementById("state").textContent = empty
+          ? "estado: vazio"
+          : "estado: com conteúdo";
+
+        document.getElementById("legend").innerHTML = `
+      <h4>Aba NPCs — rodada 1 · variante ${VAR_LB[variant]}</h4>
+      <table>
+        ${VAR_NOTE[variant]}
+        <tr><td>o que é só daqui</td><td><b>criar · excluir · pastas · subtipos · importar</b> — a 39 §2.2
+          transferiu tudo isso para cá, e a DEC-CTT-01 deixou o cliente sem criar/excluir até esta aba existir.</td></tr>
+        <tr><td>conhecimento</td><td>no cartão é <b>leitura</b> (<span style="color:#2a8">✓</span>conhecem
+          <span style="color:#a80">◐</span>entreviram <span style="color:#888">·</span>não veem).
+          Editar só no rodapé — DEC-CTT-05.</td></tr>
+        <tr><td>condição</td><td><span class="sw" style="background:#ff5c5c"></span>penalidade
+          <span class="sw" style="background:#3ddc84"></span>benefício
+          <span class="sw" style="background:#b98cff"></span>situação · preenchido = tira da cena</td></tr>
+        <tr><td>⬡ n</td><td>presenças no mapa. Passe o mouse: mostra em que cena, e se o arraste
+          nasce vinculado ou não (<b>Q5</b>).</td></tr>
+      </table>
+      <div class="q"><b>experimente:</b> ＋ no cabeçalho → escolha <b>Personagem</b> e leia a proposta da <b>Q1</b> ·
+        ✕ no <b>Goblin Guerreiro</b> → exclusão <b>recusada</b> por combate ativo (<b>Q6</b>) ·
+        arraste o goblin e depois o Aldric para o mapa e veja o vínculo mudar (<b>Q5</b>) ·
+        ligue <b>vida</b> (<b>Q4</b>) e <b>bestiário</b> (<b>Q2</b>) · ✎ edita o título de um NPC (<b>Q-CTT-05</b>).</div>
+      <div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>1/2/3</b> variante ·
+        <b>p</b> papel · <b>b</b> bestiário · <b>h</b> vida · <b>v</b> vazio</div>`;
+      }
+
+      document.getElementById("variant").onclick = () => {
+        variant = variant === "A" ? "B" : variant === "B" ? "C" : "A";
+        win = null;
+        render();
+      };
+      document.getElementById("role").onclick = () => {
+        role = role === "gm" ? "player" : "gm";
+        win = null;
+        render();
+      };
+      document.getElementById("bestiary").onclick = () => {
+        flood = !flood;
+        seedKnowledge();
+        render();
+      };
+      document.getElementById("hp").onclick = () => {
+        showHp = !showHp;
+        render();
+      };
+      document.getElementById("state").onclick = () => {
+        empty = !empty;
+        render();
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+        if (e.key === "1") variant = "A";
+        if (e.key === "2") variant = "B";
+        if (e.key === "3") variant = "C";
+        if (e.key === "p") role = role === "gm" ? "player" : "gm";
+        if (e.key === "b") {
+          flood = !flood;
+          seedKnowledge();
+        }
+        if (e.key === "h") showHp = !showHp;
+        if (e.key === "v") empty = !empty;
+        if (["1", "2", "3", "p", "b", "h", "v"].includes(e.key)) {
+          if (["1", "2", "3", "p"].includes(e.key)) win = null;
+          render();
+        }
+        if (e.key === "Escape" && win) {
+          win = null;
+          render();
+        }
+      });
+
+      seedKnowledge();
+      render();
+    </script>
+  </body>
+</html>
