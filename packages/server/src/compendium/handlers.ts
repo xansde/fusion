@@ -8,9 +8,12 @@
  *   compendium:list             — list available packs (all roles)
  *   compendium:index            — get pack index (all roles)
  *   compendium:search           — search/filter pack index (all roles)
+ *   compendium:searchAll        — search every VISIBLE pack at once (all roles)
  *   compendium:get              — load full document (all roles)
  *   compendium:i18nBySourceRef  — resolve pt-BR overlay by origin ref (all roles)
  *   compendium:import           — import doc(s) to world (GM/ASSISTANT only)
+ *   compendium:importToActor    — bring doc(s) into ONE sheet; the predicate is
+ *                                 OWNER of the DESTINATION actor, not the role
  *
  * PACK AUDIENCE (REQ-CMP-004a/010a, REQ-CPD-070/071/074): "all roles" above
  * means "every role, over the packs that role can see". Each read handler
@@ -36,16 +39,22 @@ import {
   CompendiumListPayloadSchema,
   CompendiumIndexPayloadSchema,
   CompendiumSearchPayloadSchema,
+  CompendiumSearchAllPayloadSchema,
   CompendiumGetPayloadSchema,
   CompendiumI18nBySourceRefPayloadSchema,
   CompendiumImportPayloadSchema,
+  CompendiumImportToActorPayloadSchema,
 } from "@fusion/shared";
-import type { Ack } from "@fusion/shared";
+import type { Ack, Envelope } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import type { CompendiumService } from "./service.js";
 import type { WriteMetricsCollector } from "../documents/write-metrics.js";
 import { PermissionDeniedError } from "./service.js";
 import { isRolePrivileged } from "../documents/ownership.js";
+import { DocumentNotFoundError } from "../documents/store.js";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
+import type { SeqStore } from "../net/seq-store.js";
+import type { OpBuffer } from "../net/op-buffer.js";
 
 // ---------------------------------------------------------------------------
 // Handler deps
@@ -63,7 +72,25 @@ export interface CompendiumHandlerDeps {
    * system package loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * The world's game system id (e.g. "pf2e", "sf2e"), when known. Forwarded
+   * to `CompendiumService.importToActor` so the sheet door applies the SAME
+   * system-specific server rules `doc:create` applies to an embedded Item —
+   * today SF2e's augmentation slot limit (REQ-SF2-024). Same field, same
+   * meaning and same optionality as `DocHandlerDeps.systemId`.
+   */
+  systemId?: string;
   logger?: Logger;
+  /**
+   * Sequence + op buffer of the world namespace. Needed only by
+   * `compendium:importToActor`, which mutates an Actor and therefore has to
+   * announce it on the SAME `doc:update` channel every other write uses —
+   * otherwise the sheet the player just filled would only appear after a
+   * reload, and a resyncing client would replay a gap. Optional so the read
+   * handlers keep building with nothing but the service.
+   */
+  seqStore?: SeqStore;
+  opBuffer?: OpBuffer;
   /**
    * The world's write-metrics collector (T016), forwarded to
    * `importToWorld` so the rows an import writes are accounted for like any
@@ -156,6 +183,44 @@ export function buildCompendiumSearchHandler(deps: CompendiumHandlerDeps): Handl
     }
 
     return { ok: true, result: { packId: parsed.data.packId, entries } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// compendium:searchAll — one search over every pack the CALLER can see
+// REQ-CPD-030..032, REQ-CMP-013a/013b, RNF-CPD-01
+// ---------------------------------------------------------------------------
+
+/**
+ * The aggregated counterpart of `compendium:search`. There is no `packId` in
+ * the payload: the scope IS "every pack visible to this role", resolved from
+ * `ctx.role` — the role the socket authenticated with — inside the service
+ * (REQ-CPD-030, REQ-CMP-013a).
+ *
+ * There is no permission branch here on purpose. A player is allowed to run
+ * this search; what changes is what the search can SEE, and that is decided by
+ * the one audience predicate in CompendiumService (REQ-CPD-071). A hidden pack
+ * contributes no entry, no group and no count, so the answer a player gets is
+ * the answer he would get if the pack had never been published (REQ-SEC-020).
+ *
+ * The response is already grouped, counted and truncated by the server
+ * (REQ-CPD-031/032): the client never receives — and therefore never has to
+ * download — the whole acervo to search it (DEC-CPD-02, DEC-CMP-02).
+ */
+export function buildCompendiumSearchAllHandler(deps: CompendiumHandlerDeps): HandlerFn {
+  return (payload, ctx): Ack => {
+    const parsed = CompendiumSearchAllPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Invalid compendium:searchAll payload",
+      };
+    }
+
+    const result = deps.compendium.searchAllPacks(ctx.role, parsed.data);
+
+    return { ok: true, result };
   };
 }
 
@@ -314,5 +379,122 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
       }
       throw err;
     }
+  };
+}
+
+// ---------------------------------------------------------------------------
+// compendium:importToActor — bring pack doc(s) into ONE sheet
+// Spec 43 §5.7 — REQ-CPD-061, REQ-CPD-064, REQ-CPD-073
+// ---------------------------------------------------------------------------
+
+/**
+ * The sheet counterpart of `compendium:import`.
+ *
+ * THERE IS NO ROLE CHECK HERE, AND THAT IS THE POINT (DEC-CPD-05). Bringing
+ * something to the WORLD asks `isRolePrivileged` because the world is the Game
+ * Master's; bringing it to a SHEET asks `OWNER` of the DESTINATION actor,
+ * because the sheet is its owner's (REQ-CPD-073). That check lives in
+ * `CompendiumService.importToActor`, on top of the single `resolveOwnership`
+ * every write path in this server already uses — a player owning the actor
+ * passes, a player who does not own it is denied, and a Game Master passes
+ * because `resolveOwnership` already answers OWNER for a privileged role
+ * (REQ-CPD-060 keeps its own, separate door).
+ *
+ * The audience gate is not weakened by this door: the pack document is read
+ * with the CALLER's role, so a `gm` pack answers "not found" to a player here
+ * exactly as it does to `compendium:get` (REQ-CPD-071).
+ *
+ * Bringing the same entry twice is allowed and produces a SECOND embedded item
+ * (REQ-CPD-064) — nothing here consults what the actor already carries.
+ *
+ * THE REFUSAL DOES NOT DESCRIBE THE DESTINATION. For a non-privileged caller,
+ * "you do not own this sheet" and "there is no such sheet" collapse into one
+ * identical ack: otherwise the handler answers the question "does actor X
+ * exist?" for every id a player cares to try, which is exactly what REQ-SEC-021
+ * and REQ-CPD-071 forbid ("NONE é indistinguível de 'não existe'").
+ */
+export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps): HandlerFn {
+  return (payload, ctx): Ack => {
+    const parsed = CompendiumImportToActorPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Invalid compendium:importToActor payload",
+      };
+    }
+
+    // REQ-SEC-021 / REQ-CPD-071: the ONE answer a non-privileged caller gets
+    // for a destination he may not write. "Not yours" and "not there" have to
+    // be the same sentence, or probing actorIds turns the ack into a directory
+    // of the sheets he cannot see.
+    const destinationRefusal = `No OWNER access to destination actor ${parsed.data.actorId}`;
+
+    let outcome;
+    try {
+      const importOpts: {
+        db: typeof deps.db;
+        actorId: string;
+        userId: string;
+        role: number;
+        systemId?: string;
+        systemModule?: SystemModule;
+        logger?: Logger;
+      } = {
+        db: deps.db,
+        actorId: parsed.data.actorId,
+        userId: ctx.userId,
+        role: ctx.role,
+      };
+      if (deps.systemId !== undefined) importOpts.systemId = deps.systemId;
+      if (deps.systemModule !== undefined) importOpts.systemModule = deps.systemModule;
+      if (deps.logger !== undefined) importOpts.logger = deps.logger;
+
+      outcome = deps.compendium.importToActor(parsed.data.uuids, importOpts);
+    } catch (err) {
+      const refusedByOwnership = err instanceof PermissionDeniedError;
+      const destinationMissing = err instanceof DocumentNotFoundError;
+      if (refusedByOwnership || destinationMissing) {
+        // A caller who cannot see the world's actors gets one indistinguishable
+        // refusal for both outcomes (REQ-SEC-021, REQ-CPD-071). A privileged
+        // role sees every actor already, so telling it the destination is
+        // simply not there reveals nothing and keeps the diagnosis honest.
+        if (!isRolePrivileged(ctx.role)) {
+          return { ok: false, code: "PERMISSION_DENIED", message: destinationRefusal };
+        }
+        return refusedByOwnership
+          ? { ok: false, code: "PERMISSION_DENIED", message: err.message }
+          : { ok: false, code: "NOT_FOUND", message: err.message };
+      }
+      throw err;
+    }
+
+    const { actor, ...result } = outcome;
+
+    // Announce the changed sheet on the ordinary document channel, so every
+    // client's mirror (and the sheet already open on screen) sees the new items
+    // without a reload.
+    //
+    // The emit goes through `broadcastToWorld` — the single funnel every other
+    // `doc:update` site uses — and NEVER through a bare `ns.emit` here. What an
+    // Actor envelope carries per role is a decision of that funnel (today: the
+    // namespace-wide fast path, the same one doc-handlers.ts takes for an
+    // Actor); building a second emit path would mean a redaction added there
+    // tomorrow would silently skip this door (REQ-SEC-020).
+    if (actor && deps.seqStore && deps.opBuffer) {
+      const seq = deps.seqStore.next();
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq,
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [actor] },
+      };
+      // REQ-NET-062: push BEFORE emitting, like every other doc:update site.
+      deps.opBuffer.push(envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
+      return { ok: true, seq, result };
+    }
+
+    return { ok: true, result };
   };
 }

@@ -41,6 +41,12 @@ import {
 import type { SidebarPanelModule } from "../registry.js";
 import { formatSidebarBadge } from "../badges.svelte.js";
 import { chatStore } from "../../chat/chatStore.svelte.js";
+import {
+  compendiumImportBadge,
+  finishCompendiumBatchImport,
+  resetCompendiumImportActivity,
+  startCompendiumBatchImport,
+} from "../../compendium/importActivity.js";
 import { scenePrepareBadge, scenePrepareState } from "../../scenes/prepareState.svelte.js";
 import { activeSceneState } from "../../docs/activeScene.svelte.js";
 import SidebarRail from "../../../components/sidebar/SidebarRail.svelte";
@@ -77,9 +83,10 @@ describe("the core tabs register through the public call (G016)", () => {
   beforeEach(() => {
     clearSidebarTabs();
     chatStore.unreadCount = 0;
+    resetCompendiumImportActivity();
     contactsStateDot.clear();
-    // Three tabs now own a badge (Chat, Contatos, Cenas) plus Combate's dot; a test that
-    // counts drawn dots only means something if every other store starts put out.
+    // Four tabs now own a badge (Chat, Contatos, Compêndio, Cenas) plus Combate's dot; a
+    // test that counts drawn dots only means something if every other store starts put out.
     scenePrepareState.sceneId = null;
     activeSceneState.id = null;
     registerCoreSidebarTabs();
@@ -318,12 +325,37 @@ describe("the core tabs register through the public call (G016)", () => {
     });
 
     it("REQ-GAV-020: tabs with no news carry no badge at all", () => {
-      // "contacts" and "scenes" are absent from this list on purpose: spec 39 gives the
-      // first a state dot (REQ-CTT-002) and spec 44 the second (REQ-CEN-003), both
-      // asserted right below.
-      for (const id of ["actors", "compendium", "settings"]) {
+      // "contacts", "compendium" and "scenes" are absent from this list on purpose: spec
+      // 39 gives the first a state dot (REQ-CTT-002), spec 43 the second (REQ-CPD-002)
+      // and spec 44 the third (REQ-CEN-003) — all three asserted right below.
+      for (const id of ["actors", "settings"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
+    });
+
+    it("REQ-CPD-002/REQ-CPD-005: Compêndio brings a state dot, and it draws nothing at rest", () => {
+      // Spec 43 §5.1 gave this tab a badge where G016 had none: a dot for a
+      // running batch import of this user, never a counter, and off otherwise.
+      const badge = getSidebarTab("compendium")?.badge;
+
+      expect(badge).toBe(compendiumImportBadge);
+      expect(typeof badge?.value).toBe("boolean");
+      expect(formatSidebarBadge(badge?.value).kind).toBe("none");
+    });
+
+    it("REQ-CPD-003/REQ-CPD-004: the dot follows the import, and drawing the rail does not move it", () => {
+      startCompendiumBatchImport("run-1");
+
+      expect(formatSidebarBadge(getSidebarTab("compendium")?.badge?.value)).toEqual({
+        kind: "dot",
+        text: null,
+      });
+      // Opening, switching and collapsing the drawer leave it exactly as it was.
+      renderRail();
+      expect(compendiumImportBadge.value).toBe(true);
+
+      finishCompendiumBatchImport("run-1");
+      expect(formatSidebarBadge(getSidebarTab("compendium")?.badge?.value).kind).toBe("none");
     });
 
     it("REQ-CTT-002: Contatos brings a state dot — one badge, and never a number", () => {

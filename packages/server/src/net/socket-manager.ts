@@ -111,9 +111,11 @@ import {
   buildCompendiumListHandler,
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
+  buildCompendiumSearchAllHandler,
   buildCompendiumGetHandler,
   buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
+  buildCompendiumImportToActorHandler,
 } from "../compendium/index.js";
 
 // --------------------------------------------------------------------------
@@ -424,6 +426,14 @@ export class SocketManager {
       db,
       ns,
       logger: this.logger,
+      // Only `compendium:importToActor` writes a document, and it announces it
+      // on the ordinary doc:update channel (REQ-CPD-061).
+      seqStore,
+      opBuffer,
+      // Same pair `syncDeps` carries: the sheet door runs the SAME embedded-Item
+      // validation `doc:create` runs (documents/embedded-item.ts), and the
+      // system-specific half of it needs the world's systemId.
+      ...(systemId !== undefined ? { systemId } : {}),
       // T016: `compendium:import` is a live session op — it writes rows of
       // `actors`/`items` through a DocumentStore of its own, holding the very
       // same IMMEDIATE lock. Without this the busiest minute of the evening
@@ -435,6 +445,9 @@ export class SocketManager {
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));
     registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
+    // REQ-CPD-030..032 / REQ-CMP-013a: one search over every pack the caller
+    // can see, answered already grouped, counted and truncated by the server.
+    registry.register("compendium:searchAll", buildCompendiumSearchAllHandler(compDeps));
     registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
     // Issue #43: a world document has no `uuid` (importToWorld strips it to keep
     // the world copy EN-pure), so `compendium:get` cannot serve its translation.
@@ -445,6 +458,9 @@ export class SocketManager {
       buildCompendiumI18nBySourceRefHandler(compDeps),
     );
     registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
+    // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
+    // by OWNER of the destination actor, inside the service.
+    registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
 
     // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).
     // Only meaningful when the active world system is "etmos" — registered

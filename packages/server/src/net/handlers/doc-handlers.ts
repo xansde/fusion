@@ -58,7 +58,11 @@ import {
   DocumentValidationError,
   DocumentIdCollisionError,
 } from "../../documents/store.js";
-import { prunedPatch } from "../../documents/merge.js";
+import {
+  validateEmbeddedItemForSystem,
+  augmentationSlotLimitViolation,
+} from "../../documents/embedded-item.js";
+import { recomputeDerivedIfNeeded } from "../../documents/derive.js";
 import {
   UserRole,
   resolveOwnership,
@@ -89,14 +93,11 @@ import {
   buildContactViewer,
   getContactKnowledgeSource,
 } from "../redaction.js";
-import {
-  validateAugmentationSlotLimit,
-  AUGMENTATION_SLOT_LIMIT,
-  AUGMENTATION_SLOT_LIMIT_I18N_KEY,
-  type AugmentationLikeItem,
-} from "@fusion/system-sf2e";
+// The augmentation-slot rule itself moved to `documents/embedded-item.ts` (spec 43
+// §5.7, DEC-CPD-05) so `compendium:importToActor` runs the SAME predicate this file
+// runs — only the payload type is still read here.
+import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
-import { runActorDerivation } from "../derive-runner.js";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -501,87 +502,6 @@ function authorizePlayerCompanionDelete(
 }
 
 /**
- * Result of validating an embedded Item document against the active
- * system's registered data models (see validateEmbeddedItemForSystem).
- */
-interface ItemSystemValidation {
-  ok: true;
-  /** The item with its `system` subtree replaced by the schema-parsed value
-   *  (defaults applied, unknown keys stripped per the model's own schema). */
-  doc: Record<string, unknown>;
-}
-interface ItemSystemValidationError {
-  ok: false;
-  message: string;
-}
-
-/**
- * Validate an embedded Item document's `type` + `system` subtree against the
- * active system's registered data models (SystemModule.models, keyed
- * "Item:<subtype>" — see packages/system-api/src/system-module.ts).
- *
- * REQ-DOC (R10-C): closes the gap where embedded Item create/update
- * accepted arbitrary `system` payloads with zero schema validation. Rules:
- *   - `manifest.documentTypes.Item` is a CLOSED list: an item `type` not
- *     declared there is rejected (unknown subtype).
- *   - A declared subtype MUST have a registered SystemDataModel (guaranteed
- *     by validateSystemModule/REQ-SYS-011 as a CI gate on every system
- *     package, but we still guard defensively here rather than throw).
- *   - Only `system` is validated against the model's Zod schema — engine
- *     fields (name, ownership, ...) are already covered by DocumentStore's
- *     own schema on the primary Item path, and embedded Items are never
- *     written through DocumentStore.create/update directly (they're spliced
- *     into the parent Actor's `items[]` array), so this is the only place
- *     that ever validates them.
- *
- * No systemModule available (systemId unset, stub system, or test deps that
- * don't wire one) → validation is skipped entirely (returns ok:true
- * unchanged), preserving the pre-R10-C behavior for callers that don't care.
- */
-function validateEmbeddedItemForSystem(
-  systemModule: SystemModule | undefined,
-  raw: Record<string, unknown>,
-): ItemSystemValidation | ItemSystemValidationError {
-  if (!systemModule) {
-    return { ok: true, doc: raw };
-  }
-
-  const itemTypes = systemModule.manifest.documentTypes["Item"];
-  if (!itemTypes) {
-    // System doesn't declare any Item subtypes at all — nothing to validate
-    // against; skip (defense-in-depth, should not happen for pf2e/sf2e).
-    return { ok: true, doc: raw };
-  }
-
-  const subtype = typeof raw["type"] === "string" ? raw["type"] : undefined;
-  if (!subtype || !itemTypes.includes(subtype)) {
-    return {
-      ok: false,
-      message: `Unknown Item type "${String(raw["type"])}" for system "${systemModule.manifest.id}" (known types: ${itemTypes.join(", ")})`,
-    };
-  }
-
-  const model = systemModule.models.get(`Item:${subtype}`);
-  if (!model) {
-    return {
-      ok: false,
-      message: `Item type "${subtype}" is declared by system "${systemModule.manifest.id}" but has no registered data model`,
-    };
-  }
-
-  const systemData = raw["system"] ?? {};
-  const result = model.schema.safeParse(systemData);
-  if (!result.success) {
-    return {
-      ok: false,
-      message: `Invalid system data for Item type "${subtype}": ${result.error.message}`,
-    };
-  }
-
-  return { ok: true, doc: { ...raw, system: result.data } };
-}
-
-/**
  * Build a broadcast envelope for an op and push it to the buffer.
  */
 function buildBroadcastEnvelope(
@@ -629,122 +549,6 @@ export interface DocHandlerDeps {
    * being silently swallowed — see recomputeDerivedIfNeeded.
    */
   logger?: Logger;
-}
-
-// ---------------------------------------------------------------------------
-// Derivation recompute helper (WIRING-DERIVE)
-// ---------------------------------------------------------------------------
-
-/**
- * Recompute `system.derived` for a persisted Actor document and, if it
- * changed, persist the recomputed subtree via a second store.update() before
- * the caller broadcasts.
- *
- * Only acts on `documentType === "Actor"` when a systemModule is available;
- * every other call is a no-op returning the input doc unchanged. Never
- * touches authored fields — `runActorDerivation` writes exclusively to
- * `doc.system.derived` (see derive-runner.ts docstring for the full
- * contract).
- *
- * The second store.update() bumps `_stats.version` again and re-runs
- * validation, but that is intentional: the persisted document must reflect
- * the derived state that gets broadcast, and `system` is a passthrough
- * z.record so validation always succeeds for these writes.
- *
- * ROBUSTNESS (audit issue 1): a minimal-but-schema-valid Actor doc (e.g.
- * `{name, type: "character"}` with no `system.abilities`/`attributes`) is
- * ACCEPTED by the store's passthrough `system` schema, but the pf2e/sf2e
- * DeriveSteps assume those fields exist and throw a TypeError when they
- * don't. Because this helper runs AFTER the document is already persisted
- * (doc:create/doc:update already committed the write), an uncaught throw
- * here would surface as INTERNAL_ERROR to the client with a ghost write
- * already in the DB (persisted but never broadcast). Every call is
- * therefore wrapped: on failure we log a warning and return the doc
- * UNCHANGED (no derived, or whatever partial derived a previous successful
- * call already produced) rather than let the exception propagate.
- *
- * AUTHORSHIP (audit M4.5-corretor, BAIXA): the second store.update() below
- * MUST be given the same `authorCtx` the caller used for its own write —
- * otherwise DocumentStore.update falls back to `defaultAuthor` and
- * `_stats.lastModifiedBy` on the persisted/broadcast document silently
- * reverts to the default author even though a real, identified user
- * (ctx.userId) triggered the change. Callers therefore pass their resolved
- * `authorCtx` through as the 4th argument.
- */
-function recomputeDerivedIfNeeded(
-  deps: Pick<DocHandlerDeps, "store" | "systemModule" | "logger">,
-  documentType: string,
-  doc: Record<string, unknown>,
-  authorCtx?: { userId: string },
-): Record<string, unknown> {
-  if (documentType !== "Actor" || !deps.systemModule) return doc;
-
-  try {
-    // Deep-clone `system` before handing it to runActorDerivation (audit
-    // issue 5): the DeriveSteps' documented contract is "only ever writes to
-    // doc.system.derived" (see derive-runner.ts docstring), but several
-    // steps ALSO write cache fields outside `derived` for their own internal
-    // consumption (e.g. pf2e/sf2e stepCharAbilityMods mirrors the computed
-    // mod onto `system.abilities.<ability>.mod`, and stepCharStrikes reads
-    // that same cached mod back). A shallow clone of `system` still shares
-    // nested objects like `system.abilities.str` by reference with the
-    // document already returned by the store — mutating `.mod` on it would
-    // silently corrupt an object that may be referenced elsewhere (e.g.
-    // computeDiff snapshots taken earlier in the same handler call for other
-    // items in a batch). A full structuredClone removes that hazard; only
-    // `system.derived` is ever read back out and persisted, so the clone's
-    // cost (proportional to one actor's `system` subtree) is paid once per
-    // recompute and nothing else from the clone is retained.
-    const workingDoc: Record<string, unknown> = { ...doc };
-    const sys = doc["system"];
-    workingDoc["system"] =
-      sys && typeof sys === "object" && !Array.isArray(sys)
-        ? structuredClone(sys as Record<string, unknown>)
-        : {};
-
-    const derived = runActorDerivation(workingDoc, deps.systemModule);
-    if (!derived) return doc;
-
-    const id = doc["_id"] as string | undefined;
-    if (!id) return doc;
-
-    const newDerived = (workingDoc["system"] as Record<string, unknown>)["derived"];
-
-    // PRUNING (r24 S2): store.update() deep-merges, and deepMerge PRESERVES
-    // any key the patch does not mention. Patching only the new derived is
-    // therefore purely additive — `system.derived` grew forever and never
-    // shed a key the recompute stopped producing. That is how a Lore skill
-    // dropped from `system.skills` (background swap) kept living in
-    // `derived.skills` and kept rendering on the sheet.
-    //
-    // prunedPatch compares the derived ALREADY on the document (`doc` is the
-    // untouched original — `workingDoc.system` is a structuredClone, so the
-    // derivation mutated the copy, never this one) with the freshly computed
-    // one, and adds an explicit null for every vanished key. null inside
-    // `system` is deleteKey (REQ-DOC-037), so the single store.update()
-    // below both updates and prunes: no second write, no second broadcast,
-    // and no window where the sheet has no derived at all.
-    const oldSystem = doc["system"];
-    const oldDerived =
-      oldSystem && typeof oldSystem === "object" && !Array.isArray(oldSystem)
-        ? (oldSystem as Record<string, unknown>)["derived"]
-        : undefined;
-    const derivedPatch = prunedPatch(oldDerived, newDerived);
-
-    const patched = deps.store.update(
-      "actors",
-      id,
-      { system: { derived: derivedPatch } },
-      authorCtx,
-    );
-    return patched ?? doc;
-  } catch (err) {
-    deps.logger?.warn(
-      { err, documentId: doc["_id"], documentType },
-      "Actor derivation failed for a single document — skipping derived, document persists without it",
-    );
-    return doc;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1370,27 +1174,26 @@ function handleEmbeddedCreate(
     } else {
       // SF2e augmentation slot-limit validation (REQ-SF2-024, CA-SF2-05).
       //
-      // This is the ONLY real code path where an Item is embedded into an
+      // This handler is ONE of the two code paths that embed an Item into an
       // Actor's items[] collection in production (doc:create with
-      // documentType="Item" + parent={type:"Actor", id}) — the system-api
-      // hook bus is never invoked here (see systems/sf2e/src/hooks/
-      // augmentation.ts docstring for the full investigation). Gated on the
-      // world's systemId being "sf2e" (a world runs a single system for all
-      // its actors — there is no per-Actor systemId field) so pf2e/other
-      // worlds are entirely unaffected. Checked against `existing` PLUS any
-      // augmentations already accepted earlier in this same batch, so a
-      // single doc:create call with multiple augmentations is capped too.
-      if (embeddedType === "Item" && parent.type === "Actor" && deps.systemId === "sf2e") {
-        const augCheck = validateAugmentationSlotLimit(
+      // documentType="Item" + parent={type:"Actor", id}); the other is
+      // `compendium:importToActor` (spec 43 §5.7, DEC-CPD-05). The system-api
+      // hook bus is never invoked by either (see systems/sf2e/src/hooks/
+      // augmentation.ts docstring for the full investigation), so both call
+      // the SAME predicate, which lives in documents/embedded-item.ts. It is
+      // gated on the world's systemId being "sf2e" (a world runs a single
+      // system for all its actors — there is no per-Actor systemId field) so
+      // pf2e/other worlds are entirely unaffected. Checked against `existing`
+      // PLUS any augmentation already accepted earlier in this same batch, so
+      // a single doc:create call with several augmentations is capped too.
+      if (embeddedType === "Item" && parent.type === "Actor") {
+        const augViolation = augmentationSlotLimitViolation(
+          deps.systemId,
           [...existing, ...created] as AugmentationLikeItem[],
           raw,
         );
-        if (!augCheck.ok) {
-          const i18nKey = augCheck.i18nKey ?? AUGMENTATION_SLOT_LIMIT_I18N_KEY;
-          return ackError(
-            "VALIDATION_FAILED",
-            `${i18nKey}: actor already has ${String(augCheck.currentNonApexCount)} non-apex augmentations installed (limit ${String(AUGMENTATION_SLOT_LIMIT)})`,
-          );
+        if (augViolation !== null) {
+          return ackError("VALIDATION_FAILED", augViolation);
         }
       }
 

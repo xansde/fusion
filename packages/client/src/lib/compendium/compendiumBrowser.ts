@@ -13,7 +13,12 @@
 
 import type { PackManifest, PackIndexEntry } from "@fusion/shared";
 import { searchPackIndex, normalizeSearchText } from "@fusion/shared";
-import type { CompendiumSearchPayload } from "@fusion/shared";
+import type {
+  CompendiumSearchPayload,
+  CompendiumSearchAllPayload,
+  CompendiumSearchFilters,
+} from "@fusion/shared";
+import type { ScopedSearchQuery } from "./browserScope.js";
 import type { SupportedLocale } from "../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
@@ -138,6 +143,13 @@ export interface BrowserFilterState {
   maxLevel?: number;
   /** Min level filter (system.level.value >= minLevel). */
   minLevel?: number;
+  /**
+   * Rarity facet (REQ-CPD-033), mapped to the same index field the aggregated
+   * payload uses. It is here so a facet means ONE thing in both scopes: set
+   * "rare" at root, open a pack, and the same documents are excluded
+   * (REQ-CPD-034).
+   */
+  rarity?: string;
 }
 
 /**
@@ -157,6 +169,12 @@ export function buildSearchQuery(
   if (state.trait) {
     // traits are stored in system.traits.value[]
     filters["system.traits.value"] = { contains: state.trait };
+  }
+
+  if (state.rarity) {
+    // Same field `buildSearchAllPayload` uses, so the facet does not change
+    // meaning when the scope narrows to one pack (REQ-CPD-034).
+    filters["system.traits.rarity"] = state.rarity;
   }
 
   if (state.maxLevel !== undefined) {
@@ -182,6 +200,327 @@ export function buildSearchQuery(
     text: state.text || undefined,
     filters: Object.keys(filters).length > 0 ? filters : undefined,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Aggregated search across every visible pack
+// REQ-CPD-012 (the body at root scope), DEC-CPD-02 (the server owns the index)
+// ---------------------------------------------------------------------------
+
+/** One line of an aggregated result: an entry plus the pack it came from. */
+export interface AggregatedSearchLine {
+  readonly entry: PackIndexEntry;
+  readonly packId: string;
+  /** Pack label, so the line can name its source without the manifest. */
+  readonly packLabel: string;
+  readonly documentType: string;
+}
+
+/**
+ * How many matches one pack contributed to a group — the server's per-group
+ * tally (`CompendiumSearchAllPackTally`), carried through so a truncated group
+ * can offer opening THAT pack in its own scope (REQ-CPD-032). Without it the
+ * notice could only say how many were left out, never where to go read them.
+ */
+export interface AggregatedSearchPackTally {
+  readonly packId: string;
+  readonly label: string;
+  readonly matched: number;
+}
+
+/** The lines of one document type, plus how many the server left out. */
+export interface AggregatedSearchGroup {
+  readonly documentType: string;
+  /** Matches in this group BEFORE the server's per-group limit. */
+  readonly total: number;
+  readonly lines: readonly AggregatedSearchLine[];
+  /** `total - lines.length`, never negative — what the group could not show. */
+  readonly omitted: number;
+  /** Per-pack breakdown of `total`, biggest contributor first (REQ-CPD-032). */
+  readonly packs: readonly AggregatedSearchPackTally[];
+}
+
+/** What the panel renders in aggregated-result mode. */
+export interface AggregatedSearchResult {
+  readonly groups: readonly AggregatedSearchGroup[];
+}
+
+/** i18n key for a document type heading; falls back to the raw type via `t()`. */
+export function documentTypeLabelKey(documentType: string): string {
+  return `FUSION.Compendium.DocType.${documentType}`;
+}
+
+// ---------------------------------------------------------------------------
+// Field naming vocabulary — ONE per field, for the line and for the preview
+// ---------------------------------------------------------------------------
+
+/** Translation key for a declared index path. */
+export function fieldLabelKey(path: string): string {
+  return `FUSION.Compendium.Field.${path}`;
+}
+
+/**
+ * Last meaningful segment of a dotted path, title-cased — the label of last
+ * resort for a field no bundle names. `system.level.value` → "Level", because a
+ * pack may declare anything and a missing string must still read as a word
+ * rather than as `FUSION.Compendium.Field.system.level.value`.
+ */
+export function fieldFallbackLabel(path: string): string {
+  const parts = path.split(".").filter((part) => part.length > 0);
+  const tail = parts.filter((part) => part !== "value" && part !== "system");
+  const word =
+    (tail.length > 0 ? tail[tail.length - 1] : (parts[parts.length - 1] ?? path)) ?? path;
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/**
+ * Translation key for a mechanical rule's label. Rules are not index paths —
+ * they are shapes the engine understands — so they get their own keys, but the
+ * SAME two-halves contract (key + fallback word) as a declared field, resolved
+ * by the same `resolveFieldLabel`.
+ */
+export function ruleLabelKey(rule: RuleLabel): string {
+  return `FUSION.Compendium.Preview.Rule.${rule}`;
+}
+
+/** The rule labels the preview knows how to name. */
+export type RuleLabel = "Immunity" | "Modifier" | "Resistance" | "Weakness" | "Note" | "Generic";
+
+/** English word of last resort for a rule label; "Generic" reads as "Rule". */
+const RULE_FALLBACK_LABEL: Readonly<Record<RuleLabel, string>> = {
+  Immunity: "Immunity",
+  Modifier: "Modifier",
+  Resistance: "Resistance",
+  Weakness: "Weakness",
+  Note: "Note",
+  Generic: "Rule",
+};
+
+/**
+ * Turn the current scope's question into the `compendium:searchAll` payload.
+ *
+ * The facets that ARE index fields travel as `filters`, in exactly the shape the
+ * per-pack search uses — a facet must not mean one thing in one scope and
+ * another in the other (REQ-CPD-034). A scope confined to a pack never reaches
+ * here: that search is answered by the pack's own index (REQ-CPD-014).
+ *
+ * The `documentType` and `packId` facets are deliberately ABSENT from this
+ * payload: `CompendiumSearchAllPayloadSchema` filters `indexFields`, and neither
+ * of those is one — both are properties of the PACK, and the schema drops
+ * `packId` on purpose so the scope of an aggregated search is always "everything
+ * this role can see". They are applied to the ANSWER, exactly, by
+ * `applyAggregatedFacets` in `aggregatedFacets.ts`, which reads the server's own
+ * per-group total and per-pack tally instead of recounting what survived
+ * truncation.
+ */
+export function buildSearchAllPayload(query: ScopedSearchQuery): CompendiumSearchAllPayload {
+  const filters: CompendiumSearchFilters = {};
+
+  const { minLevel, maxLevel, rarity } = query.facets;
+  if (minLevel !== undefined || maxLevel !== undefined) {
+    filters["system.level.value"] = {
+      ...(minLevel !== undefined ? { gte: minLevel } : {}),
+      ...(maxLevel !== undefined ? { lte: maxLevel } : {}),
+    };
+  }
+  if (rarity !== undefined) filters["system.traits.rarity"] = rarity;
+
+  return {
+    ...(query.text !== undefined ? { text: query.text } : {}),
+    ...(Object.keys(filters).length > 0 ? { filters } : {}),
+  };
+}
+
+/**
+ * Read a server aggregated-search answer into the shape the body renders.
+ *
+ * Tolerant on purpose: the ack is JSON off the wire, and a missing count or an
+ * unexpected line must degrade to "show what came" instead of tearing the panel
+ * down mid-search. Two shapes are accepted — already grouped (what the handler
+ * of REQ-CPD-031 returns) and a flat list of lines, which is grouped here by
+ * document type.
+ */
+export function normalizeAggregatedSearchResult(raw: unknown): AggregatedSearchResult {
+  const root = asRecord(raw);
+  if (!root) return { groups: [] };
+
+  const rawGroups = root["groups"];
+  if (Array.isArray(rawGroups)) {
+    const groups: AggregatedSearchGroup[] = [];
+    for (const item of rawGroups) {
+      const group = asRecord(item);
+      if (!group) continue;
+      const lines = readLines(
+        group["lines"] ?? group["entries"],
+        readString(group["documentType"]),
+      );
+      const documentType =
+        readString(group["documentType"]) ?? lines[0]?.documentType ?? UNKNOWN_DOCUMENT_TYPE;
+      const total = readCount(group["total"], lines.length);
+      groups.push({
+        documentType,
+        total,
+        lines,
+        omitted: Math.max(0, total - lines.length),
+        packs: readPackTallies(group["packs"], lines),
+      });
+    }
+    return { groups };
+  }
+
+  const flat = readLines(root["lines"] ?? root["entries"], undefined);
+  return { groups: groupLinesByType(flat) };
+}
+
+const UNKNOWN_DOCUMENT_TYPE = "Unknown";
+
+function groupLinesByType(lines: readonly AggregatedSearchLine[]): AggregatedSearchGroup[] {
+  const byType = new Map<string, AggregatedSearchLine[]>();
+  for (const line of lines) {
+    const bucket = byType.get(line.documentType);
+    if (bucket) bucket.push(line);
+    else byType.set(line.documentType, [line]);
+  }
+  return [...byType].map(([documentType, groupLines]) => ({
+    documentType,
+    total: groupLines.length,
+    lines: groupLines,
+    omitted: 0,
+    packs: talliesFromLines(groupLines),
+  }));
+}
+
+/**
+ * Read the per-pack tally of a group (REQ-CPD-032). When the answer carries
+ * none — a flat list, or an older shape — the tally is derived from the lines
+ * that DID arrive, so a truncated group still offers a pack to open instead of
+ * only counting what it hid.
+ */
+function readPackTallies(
+  raw: unknown,
+  lines: readonly AggregatedSearchLine[],
+): AggregatedSearchPackTally[] {
+  if (!Array.isArray(raw)) return talliesFromLines(lines);
+
+  const tallies: AggregatedSearchPackTally[] = [];
+  for (const item of raw) {
+    const record = asRecord(item);
+    if (!record) continue;
+    const packId = readString(record["packId"]);
+    if (packId === undefined) continue;
+    tallies.push({
+      packId,
+      label: readString(record["label"]) ?? readString(record["packLabel"]) ?? packId,
+      matched: readCount(record["matched"], 0),
+    });
+  }
+
+  if (tallies.length === 0) return talliesFromLines(lines);
+  return sortTallies(tallies);
+}
+
+function talliesFromLines(lines: readonly AggregatedSearchLine[]): AggregatedSearchPackTally[] {
+  const byPack = new Map<string, { packId: string; label: string; matched: number }>();
+  for (const line of lines) {
+    if (line.packId.length === 0) continue;
+    const existing = byPack.get(line.packId);
+    if (existing) existing.matched++;
+    else byPack.set(line.packId, { packId: line.packId, label: line.packLabel, matched: 1 });
+  }
+  return sortTallies([...byPack.values()]);
+}
+
+function sortTallies(tallies: AggregatedSearchPackTally[]): AggregatedSearchPackTally[] {
+  return [...tallies].sort(
+    (a, b) => b.matched - a.matched || a.label.localeCompare(b.label, "pt-BR"),
+  );
+}
+
+function readLines(raw: unknown, groupType: string | undefined): AggregatedSearchLine[] {
+  if (!Array.isArray(raw)) return [];
+  const lines: AggregatedSearchLine[] = [];
+  for (const item of raw) {
+    const line = readLine(item, groupType);
+    if (line) lines.push(line);
+  }
+  return lines;
+}
+
+function readLine(raw: unknown, groupType: string | undefined): AggregatedSearchLine | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  // Either { entry, packId, packLabel } or a flattened entry carrying the source.
+  const entryRecord = asRecord(record["entry"]) ?? record;
+  const uuid = readString(entryRecord["uuid"]);
+  const name = readString(entryRecord["name"]);
+  if (uuid === undefined || name === undefined) return null;
+
+  const packId = readString(record["packId"]) ?? packIdFromUuid(uuid) ?? "";
+  return {
+    entry: toPackIndexEntry(entryRecord, uuid, name),
+    packId,
+    packLabel: readString(record["packLabel"]) ?? packId,
+    documentType:
+      readString(record["documentType"]) ??
+      groupType ??
+      documentTypeFromUuid(uuid) ??
+      UNKNOWN_DOCUMENT_TYPE,
+  };
+}
+
+/**
+ * Build a REAL `PackIndexEntry` out of a wire record.
+ *
+ * The tolerance promised above is only tolerance if the value handed on is
+ * complete: every consumer of a line dereferences `entry.index` (the world seal
+ * reads `flags.fusion.sourceId` off it, the declared fields read their paths off
+ * it), so a record that arrived without `index` used to degrade into a
+ * TypeError at render time instead of into "show what came". The missing halves
+ * are filled with the empty value of their type here, at the ONE place the
+ * untyped record becomes a typed entry.
+ */
+function toPackIndexEntry(
+  record: Record<string, unknown>,
+  uuid: string,
+  name: string,
+): PackIndexEntry {
+  const index = asRecord(record["index"]) ?? {};
+  return {
+    ...(record as Partial<PackIndexEntry>),
+    _id: readString(record["_id"]) ?? uuid.split(".").at(-1) ?? uuid,
+    uuid,
+    name,
+    img: typeof record["img"] === "string" ? record["img"] : null,
+    type: typeof record["type"] === "string" ? record["type"] : null,
+    index,
+  };
+}
+
+/** "Compendium.<packId>.<DocType>.<docId>" — REQ-CMP-009. */
+function packIdFromUuid(uuid: string): string | undefined {
+  const parts = uuid.split(".");
+  return parts.length >= 4 ? parts.slice(1, parts.length - 2).join(".") : undefined;
+}
+
+function documentTypeFromUuid(uuid: string): string | undefined {
+  const parts = uuid.split(".");
+  return parts.length >= 4 ? parts[parts.length - 2] : undefined;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function readCount(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : fallback;
 }
 
 // ---------------------------------------------------------------------------
@@ -277,13 +616,21 @@ export function sortEntries(
 export interface PreviewField {
   /**
    * Stable, unique key for {#each} keying. Two rules can map to the SAME
-   * `label` (e.g. Confused has three rules that all fall back to "Regra"),
-   * so the label alone is NOT a safe each-key — a duplicate key throws
-   * `each_key_duplicate` and aborts the render. The key is `${label}#${index}`,
+   * label (e.g. Confused has three rules that all fall back to "Regra"), so the
+   * label alone is NOT a safe each-key — a duplicate key throws
+   * `each_key_duplicate` and aborts the render. The key is `${labelKey}#${index}`,
    * unique by construction and stable across re-renders of the same document.
    */
   key: string;
-  label: string;
+  /**
+   * Translation key for the field's name — the SAME vocabulary the result line
+   * uses (`fieldLabelKey`, `FUSION.Compendium.Field.*`), so the row and the
+   * window opened from it never name the same field differently. Resolved by
+   * the view through `resolveFieldLabel`, never rendered raw.
+   */
+  labelKey: string;
+  /** What to show when no bundle defines `labelKey` — never the raw key. */
+  fallbackLabel: string;
   value: string;
 }
 
@@ -321,29 +668,29 @@ export function buildDocumentPreview(
 ): DocumentPreview {
   const system = (doc["system"] ?? {}) as Record<string, unknown>;
   const type = typeof doc["type"] === "string" ? doc["type"] : null;
-  // Collected as {label, value}; keyed with a unique `key` once at the return.
-  const fields: Array<{ label: string; value: string }> = [];
+  // Collected as {labelKey, fallbackLabel, value}; keyed once at the return.
+  const fields: RawPreviewField[] = [];
 
   // Common fields
   const level = extractNested(system, "level", "value");
   if (typeof level === "number" || typeof level === "string") {
-    fields.push({ label: "Nível", value: String(level) });
+    fields.push(pathField("system.level.value", String(level)));
   }
 
   const traits = extractNested(system, "traits", "value");
   if (Array.isArray(traits) && traits.length > 0) {
-    fields.push({ label: "Traits", value: (traits as string[]).join(", ") });
+    fields.push(pathField("system.traits.value", (traits as string[]).join(", ")));
   }
 
   // Actor-specific
   const hp = extractNested(system, "attributes", "hp", "max");
   if (typeof hp === "number" || typeof hp === "string") {
-    fields.push({ label: "HP", value: String(hp) });
+    fields.push(pathField("system.attributes.hp.max", String(hp)));
   }
 
   const ac = extractNested(system, "attributes", "ac", "value");
   if (typeof ac === "number" || typeof ac === "string") {
-    fields.push({ label: "CA", value: String(ac) });
+    fields.push(pathField("system.attributes.ac.value", String(ac)));
   }
 
   // Item (weapon) specific
@@ -352,13 +699,13 @@ export function buildDocumentPreview(
     const dmgObj = damage as Record<string, unknown>;
     const die = dmgObj["die"] as string | undefined;
     const dmgType = dmgObj["damageType"] as string | undefined;
-    if (die) fields.push({ label: "Dano", value: `${die} ${dmgType ?? ""}`.trim() });
+    if (die) fields.push(pathField("system.damage", `${die} ${dmgType ?? ""}`.trim()));
   }
 
   // Spell-specific
   const traditions = extractNested(system, "traditions", "value");
   if (Array.isArray(traditions) && traditions.length > 0) {
-    fields.push({ label: "Tradições", value: (traditions as string[]).join(", ") });
+    fields.push(pathField("system.traditions.value", (traditions as string[]).join(", ")));
   }
 
   // Mechanical effects — system.rules[] (structural only, never proprietary prose).
@@ -388,12 +735,13 @@ export function buildDocumentPreview(
     img: typeof doc["img"] === "string" ? doc["img"] : null,
     type,
     description,
-    // Unique each-key per field: label + index. Guards against duplicate labels
-    // (multiple rules mapping to the same pt-BR label) that would otherwise
+    // Unique each-key per field: label key + index. Guards against duplicate
+    // labels (multiple rules mapping to the same string) that would otherwise
     // throw `each_key_duplicate` and abort the preview render.
     fields: fields.map((f, i) => ({
-      key: `${f.label}#${String(i)}`,
-      label: f.label,
+      key: `${f.labelKey}#${String(i)}`,
+      labelKey: f.labelKey,
+      fallbackLabel: f.fallbackLabel,
       value: f.value,
     })),
     licenseLabel,
@@ -442,6 +790,23 @@ function pickPreviewDescription(
  * back to a generic representation so the preview never silently drops data.
  * REQ-CMP-015 (#4): mechanical effect visibility, never proprietary prose.
  */
+/** A preview field before it is given its `{#each}` key. */
+interface RawPreviewField {
+  labelKey: string;
+  fallbackLabel: string;
+  value: string;
+}
+
+/** A preview field named after the index path it came from. */
+function pathField(path: string, value: string): RawPreviewField {
+  return { labelKey: fieldLabelKey(path), fallbackLabel: fieldFallbackLabel(path), value };
+}
+
+/** A preview field named after a mechanical rule. */
+function ruleField(rule: RuleLabel, value: string): RawPreviewField {
+  return { labelKey: ruleLabelKey(rule), fallbackLabel: RULE_FALLBACK_LABEL[rule], value };
+}
+
 /** Best-effort string for an unknown rule value: primitives only, else "?". */
 function scalar(v: unknown): string {
   if (typeof v === "string") return v;
@@ -449,12 +814,12 @@ function scalar(v: unknown): string {
   return "?";
 }
 
-function buildRuleField(rule: Record<string, unknown>): { label: string; value: string } {
+function buildRuleField(rule: Record<string, unknown>): RawPreviewField {
   const kind = typeof rule["kind"] === "string" ? rule["kind"] : "unknown";
   const subkind = typeof rule["subkind"] === "string" ? rule["subkind"] : undefined;
 
   if (kind === "flat-modifier" && subkind === "immunity") {
-    return { label: "Imunidade", value: scalar(rule["damageType"] ?? rule["selector"]) };
+    return ruleField("Immunity", scalar(rule["damageType"] ?? rule["selector"]));
   }
 
   if (kind === "flat-modifier") {
@@ -462,36 +827,30 @@ function buildRuleField(rule: Record<string, unknown>): { label: string; value: 
     const value = rule["value"];
     const sign = typeof value === "number" && value >= 0 ? "+" : "";
     const type = typeof rule["type"] === "string" ? ` (${rule["type"]})` : "";
-    return { label: "Modificador", value: `${selector} ${sign}${scalar(value)}${type}` };
+    return ruleField("Modifier", `${selector} ${sign}${scalar(value)}${type}`);
   }
 
   if (kind === "resistance") {
     const target = scalar(rule["damageType"] ?? rule["selector"]);
     const value = rule["value"];
-    return {
-      label: "Resistência",
-      value: value !== undefined ? `${target} ${scalar(value)}` : target,
-    };
+    return ruleField("Resistance", value !== undefined ? `${target} ${scalar(value)}` : target);
   }
 
   if (kind === "weakness") {
     const target = scalar(rule["damageType"] ?? rule["selector"]);
     const value = rule["value"];
-    return {
-      label: "Fraqueza",
-      value: value !== undefined ? `${target} ${scalar(value)}` : target,
-    };
+    return ruleField("Weakness", value !== undefined ? `${target} ${scalar(value)}` : target);
   }
 
   if (kind === "note") {
-    const title = typeof rule["title"] === "string" ? rule["title"] : "Nota";
-    return { label: "Nota", value: title };
+    const title = typeof rule["title"] === "string" ? rule["title"] : "";
+    return ruleField("Note", title.length > 0 ? title : kind);
   }
 
   // Generic fallback: kind + best-effort key field, so no rule is silently dropped.
   const detailKey = Object.keys(rule).find((k) => k !== "kind" && k !== "key");
   const detail = detailKey ? `${detailKey}: ${scalar(rule[detailKey])}` : "";
-  return { label: "Regra", value: detail ? `${kind} — ${detail}` : kind };
+  return ruleField("Generic", detail ? `${kind} — ${detail}` : kind);
 }
 
 function extractNested(obj: Record<string, unknown>, ...keys: string[]): unknown {
