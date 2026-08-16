@@ -6,7 +6,10 @@
  * server-rendered markup. Everything this task owns there is structural.
  *
  * Covers REQ-ACH-010 (fixed bar: search across the width, "⋯" at the right, no title),
- * REQ-ACH-015 (what the "⋯" offers, and to whom), REQ-ACH-020 (the log fills what is left,
+ * REQ-ACH-015 **only in the half the panel delivers** — the favourites editor for every role
+ * and the GAMEMASTER gate on the two log entries; exporting and clearing have no server
+ * operation and are a registered gap (task G041), never a covered requirement, as the second
+ * "⋯" block below states at length —, REQ-ACH-020 (the log fills what is left,
  * and the results take its place while a term is typed), REQ-ACH-030 (the box shares its
  * line with the send button and nothing else), REQ-ACH-031 (one row to start) and
  * REQ-ACH-032 (the Enter / Shift+Enter instruction lives in the send button's tooltip,
@@ -77,6 +80,14 @@ function escaped(text: string): string {
 /** Pictographs — the exact class of character the drawer bans. */
 const PICTOGRAPH = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
 
+/**
+ * The "⋯" menu markup alone. The menu ends where the band below the bar begins: G040 took
+ * the dice canvas host out of the panel (RNF-ACH-03), so the favourites row is the landmark.
+ */
+function menuMarkup(body: string): string {
+  return body.slice(body.indexOf('class="chat-panel__menu '), body.indexOf('class="dice-tray'));
+}
+
 /** Svelte appends a scope hash to every styled class, so match the class as a token. */
 function hasClass(body: string, className: string): boolean {
   return new RegExp(`class="${className}[ "]`).test(body);
@@ -128,7 +139,12 @@ describe("barra superior fixa: pesquisa e ⋯, sem título (REQ-ACH-010)", () =>
   });
 });
 
-describe("o menu ⋯: favoritos para todos, log só para o Mestre (REQ-ACH-015)", () => {
+/**
+ * The half of REQ-ACH-015 this panel really delivers: the favourites editor opens for every
+ * role, and the two log entries are gated on `role === GAMEMASTER`. Nothing here reads the
+ * disabled state as fulfilment — that lives in its own block below, on purpose.
+ */
+describe("o menu ⋯ abre o editor de favoritos para qualquer papel (REQ-ACH-015)", () => {
   it("offers the favourites editor to a player, and nothing about the log", () => {
     const body = renderPanel(false);
 
@@ -138,31 +154,19 @@ describe("o menu ⋯: favoritos para todos, log só para o Mestre (REQ-ACH-015)"
     expect(body).not.toContain('data-action="clear-log"');
   });
 
-  it("adds exporting and clearing for the GAMEMASTER only", () => {
+  it("keeps the favourites entry live for every role — it is the one that acts", () => {
+    for (const body of [renderPanel(false), renderPanel(true)]) {
+      const menu = menuMarkup(body);
+      expect(menu).toMatch(/data-action="favorites"(?![^>]* disabled)/);
+    }
+  });
+
+  it("shows the two log entries to the GAMEMASTER alone (role gate, REQ-ACH-015)", () => {
     const body = renderPanel(true);
 
     expect(body).toContain('data-action="favorites"');
     expect(body).toContain('data-action="export"');
     expect(body).toContain('data-action="clear-log"');
-  });
-
-  it("keeps the two log actions disabled and says why — no server operation yet", () => {
-    // REQ-CHT-006 (flush) and REQ-CHT-037 (export) have no handler on the server. A menu
-    // entry that silently does nothing is worse than one that explains itself.
-    const body = renderPanel(true);
-    // The menu ends where the band below the bar begins. G040 took the dice canvas host
-    // out of the panel (RNF-ACH-03), so the favourites row is now the next landmark.
-    const menu = body.slice(
-      body.indexOf('class="chat-panel__menu '),
-      body.indexOf('class="dice-tray'),
-    );
-    const reason = escaped(t("FUSION.Chat.Menu.Unavailable"));
-
-    expect(menu.match(/ disabled/g)).toHaveLength(2);
-    expect(menu).toContain(reason);
-    expect(menu).toMatch(/title="[^"]*Indispon/);
-    // The favourites entry, which does work, is NOT disabled.
-    expect(menu).toMatch(/data-action="favorites"(?![^>]* disabled)/);
   });
 
   it("starts closed and is a real menu of real buttons", () => {
@@ -171,6 +175,32 @@ describe("o menu ⋯: favoritos para todos, log só para o Mestre (REQ-ACH-015)"
     expect(body).toMatch(/class="chat-panel__menu [^"]*"[^>]*role="menu"/);
     expect(body).toMatch(/class="chat-panel__menu [^>]*hidden=""/);
     expect(body).toContain('role="menuitem"');
+  });
+});
+
+/**
+ * LEIA ANTES DE CONTAR COBERTURA. Este bloco prova o OPOSTO de um requisito entregue: que
+ * exportar e limpar o log NÃO agem. As citações de REQ-CHT-006 (flush) e REQ-CHT-037
+ * (export) que aparecem aqui e no componente são **pendência registrada**, nunca prova de
+ * comportamento — não existe handler para nenhuma das duas no servidor, e a spec 38 §5.10
+ * exige que ambas sejam verificadas lá, então o painel também não pode fabricá-las no
+ * cliente. A operação está registrada como tarefa própria: G041 em
+ * `docs/design/gaveta-lateral/tasks.md`. Enquanto ela não existir, REQ-ACH-015 está
+ * entregue pela METADE — o painel põe os dois itens onde a spec manda, desabilitados e com
+ * o motivo, e quem auditar a rastreabilidade tem que ler isto como lacuna aberta.
+ */
+describe("exportar e limpar seguem sem operação de servidor: o painel não finge que agem", () => {
+  it("draws both entries disabled, with the reason, instead of a control that does nothing", () => {
+    const body = renderPanel(true);
+    const menu = menuMarkup(body);
+    const reason = escaped(t("FUSION.Chat.Menu.Unavailable"));
+
+    expect(menu).toMatch(/data-action="export"[^>]* disabled/);
+    expect(menu).toMatch(/data-action="clear-log"[^>]* disabled/);
+    // Exactly those two, and nothing else in the menu, is inert.
+    expect(menu.match(/ disabled/g)).toHaveLength(2);
+    expect(menu).toContain(reason);
+    expect(menu).toMatch(/title="[^"]*Indispon/);
   });
 });
 

@@ -354,7 +354,11 @@ inteira, crescendo de 1 a 5 linhas; **Enter** envia, **Shift+Enter** quebra; a i
 mora no tooltip do botão de enviar, não dentro do campo. `⋯` oferece o editor de favoritos
 a todos e, só ao GAMEMASTER, exportar e limpar o log.
 
-**Cobre:** REQ-ACH-010, REQ-ACH-015, REQ-ACH-020, REQ-ACH-030..034.
+**Cobre:** REQ-ACH-010, REQ-ACH-015 (**metade**: o editor de favoritos para qualquer papel e
+o corte por papel dos dois itens de log), REQ-ACH-020, REQ-ACH-030..034.
+**Não cobre:** exportar e limpar de fato — não existe operação de servidor para nenhuma das
+duas. G033 entrega o lugar, desabilitado e com o motivo; a operação é **G041**, e enquanto
+ela não existir REQ-ACH-015 fica aberto pela metade.
 
 ### G034 — Seletor de modo: um lugar decide a plateia
 
@@ -445,6 +449,27 @@ futuro. A dependência pode ficar no repositório, desligada.
 **Cobre:** RNF-ACH-03 (DEC-ACH-12).
 **Pronto quando:** abrir a aba não monta canvas de dado e **não carrega o chunk** do
 dice-box.
+
+### G041 — Limpar e exportar o log: o "⋯" do Mestre precisa de servidor
+
+`packages/server/src/chat/chat-handler.ts` · `@fusion/shared` (protocolo) · `ChatPanel.svelte`
+
+Lacuna encontrada na revisão da Fase 3, registrada aqui para não passar por entregue.
+Limpar o log (REQ-CHT-006 — trunca a tabela principal e a FTS5 e emite `chat:flush` para
+todos os clientes limparem o painel) e exportar o log (REQ-CHT-037 — JSON com a estrutura
+completa dos documentos, e texto plano `timestamp | speaker.alias | content`) **não existem
+no servidor**: não há handler nem rota para nenhuma das duas. Sem elas, a metade do "⋯" que
+é do Mestre em REQ-ACH-015 fica desenhada e desabilitada — G033 entrega o lugar, não a
+operação — e nenhum teste do painel pode contar REQ-CHT-006/REQ-CHT-037 como provados.
+As duas são verificadas **no servidor** (REQ-ACH-090): esconder o item no cliente não é
+proteção. Ao entregar, o painel troca os dois itens desabilitados por ações reais, e é aí
+que REQ-ACH-015 fecha.
+
+**Cobre:** REQ-CHT-006, REQ-CHT-037, e a metade de REQ-ACH-015 que G033 não entrega.
+**Pronto quando:** teste em que o jogador tenta limpar e é recusado, o Mestre limpa e o log
+fica vazio para todos os clientes; e o export do Mestre traz a mensagem sussurrada que o
+jogador não podia ver, enquanto a mesma operação é recusada ao jogador — asserção sobre o
+**payload**/resposta do servidor, não sobre a tela.
 
 ---
 
@@ -1034,7 +1059,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods é verificada no 
 | B   | Fase 2 — plateia de pack (G020, G021) | A (G003, G004) | Único defeito **vivo** do conjunto; não depende de UI               |
 | C   | Fase 1 — contêiner (G010–G017)        | —              | Bloqueia as sete abas. Pode correr em paralelo com B                |
 | D   | Fase 7 — Cenas (G080–G086)            | C              | O contêiner já arrancou o painel de cenas de dentro do `AppSidebar` |
-| E   | Fase 3 — Chat (G030–G040)             | C              | Painel mais usado; metade do trabalho é servidor e independe de D   |
+| E   | Fase 3 — Chat (G030–G041)             | C              | Painel mais usado; metade do trabalho é servidor e independe de D   |
 | F   | Fase 4 — Combate (G050–G056)          | C, A (G001)    | Condições dependem do contrato emendado                             |
 | G   | Fase 5 — Contatos (G060–G066)         | C, A (G001)    | Traz o único modelo novo; abre a dívida de criar/excluir ator       |
 | H   | Fase 6 — NPCs (G070–G078)             | G, B           | **Não deixar G sem H**: é H que devolve criar e excluir             |
@@ -1094,6 +1119,7 @@ requisito fala de payload.
 | -------- | ----------------------------------------------------------------- | ------ |
 | Q-CFG-03 | Quem conta os personagens afetados ao desligar regra variante     | G103   |
 | Q-ACH-02 | Invalidar um card invalida as rolagens filhas junto?              | G032   |
+| Q-ACH-03 | O export do log inclui mensagens invalidadas e a marca?           | G041   |
 | Q-ACH-04 | Favorito com fórmula inválida: desabilita ou falha ao clicar?     | G035   |
 | Q-CTT-02 | Categorias no aparelho se perdem ao trocar de máquina             | G064   |
 | Q-CBA-03 | Onde aparece a escolha de estatística de iniciativa               | G053   |

@@ -16,11 +16,15 @@
    *      (REQ-ACH-040) — both inside `ChatInput`.
    *
    * The "⋯" menu offers the favourites editor to every role and, only to a GAMEMASTER,
-   * exporting and clearing the log (REQ-ACH-015). Neither of those two has a server
-   * operation yet (`chat:flush` of REQ-CHT-006 and the export of REQ-CHT-037 are not
-   * implemented), so they are drawn where the spec puts them and disabled WITH the reason
-   * — the same call `favoriteDice` made for an unusable favourite: a control that says why
-   * it cannot act beats one that silently does nothing.
+   * exporting and clearing the log (REQ-ACH-015). ONLY THE FIRST HALF IS DELIVERED HERE.
+   * `chat:flush` (REQ-CHT-006) and the export (REQ-CHT-037) have no server operation, and
+   * spec 38 §5.10 requires both to be verified on the server — so this panel cannot fake
+   * them from the client either. The two entries are drawn where the spec puts them and
+   * disabled WITH the reason — the same call `favoriteDice` made for an unusable favourite:
+   * a control that says why it cannot act beats one that silently does nothing. That is a
+   * placeholder, not the requirement: REQ-ACH-015 stays HALF-OPEN until the server task
+   * lands (G041 in `docs/design/gaveta-lateral/tasks.md`), and no test in this component
+   * may read the disabled state as proof of REQ-CHT-006/REQ-CHT-037.
    *
    * NO 3D DICE HERE, ON PURPOSE (RNF-ACH-03 / DEC-ACH-12, plan G040). The 3D dice
    * animation of spec 08 (REQ-ROL-035..038, REQ-ROL-042) used to live in this panel: it
@@ -235,9 +239,11 @@
 
         {#if isGm}
           <!--
-            REQ-ACH-015: exporting (REQ-CHT-037) and clearing (REQ-CHT-006) belong to the
-            GAMEMASTER alone. Both wait on a server operation that does not exist yet, so
-            they are shown disabled with the reason instead of pretending to work.
+            REQ-ACH-015 puts exporting (REQ-CHT-037) and clearing (REQ-CHT-006) under the
+            GAMEMASTER alone. Both wait on a server operation that does not exist yet
+            (task G041), so what follows is the PLACE the spec asks for, not the action it
+            asks for: shown disabled with the reason instead of pretending to work. The
+            role gate below is real and is the half of REQ-ACH-015 this panel does deliver.
           -->
           <button
             class="chat-panel__menu-item"
