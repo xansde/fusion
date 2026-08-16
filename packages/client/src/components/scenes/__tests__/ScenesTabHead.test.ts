@@ -24,7 +24,10 @@ import type { SceneDocument } from "@fusion/shared";
 
 import ScenesTab from "../ScenesTab.svelte";
 import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
-import { SCENE_HEAD_IMAGE_SIZES } from "../../../lib/scenes/scenesTabVM.js";
+import {
+  SCENE_HEAD_HEIGHT_TOKEN,
+  SCENE_HEAD_IMAGE_SIZES,
+} from "../../../lib/scenes/scenesTabVM.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -67,6 +70,11 @@ function styleOfScenesTab(): string {
   return style;
 }
 
+/** The theme sheet — the only place a design token is given a number. */
+function baseCss(): string {
+  return readFileSync(fileURLToPath(new URL("../../../styles/base.css", import.meta.url)), "utf8");
+}
+
 /** The declaration block of a single class selector, for height assertions. */
 function ruleFor(css: string, selector: string): string {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -101,15 +109,13 @@ describe("ScenesTab — the head that says what is on air", () => {
     it("REQ-CEN-010: the height comes from the theme token, and it is a height, not a floor", () => {
       const rule = ruleFor(styleOfScenesTab(), ".scene-head");
 
-      expect(rule).toMatch(/height:\s*var\(--fusion-scene-head-height\)/);
+      // The token the head is drawn with is the very one the VM module publishes as the
+      // head's theme contract (`SCENE_HEAD_HEIGHT_TOKEN`) — rename one side and this fails.
+      expect(rule).toMatch(new RegExp(`height:\\s*var\\(${SCENE_HEAD_HEIGHT_TOKEN}\\)`));
       expect(rule).not.toMatch(/min-height/);
       expect(rule).not.toMatch(/max-height/);
-      // And the token is defined once, in the theme.
-      const base = readFileSync(
-        fileURLToPath(new URL("../../../styles/base.css", import.meta.url)),
-        "utf8",
-      );
-      expect(base).toMatch(/--fusion-scene-head-height:\s*\d+px/);
+      // And the token is given a number in exactly one place: the theme.
+      expect(baseCss()).toMatch(new RegExp(`${SCENE_HEAD_HEIGHT_TOKEN}:\\s*\\d+px`));
     });
 
     it("REQ-CEN-013: a long name is truncated legibly instead of wrapping the head taller", () => {
@@ -173,6 +179,15 @@ describe("ScenesTab — the head that says what is on air", () => {
       expect(html).toContain(`sizes="${SCENE_HEAD_IMAGE_SIZES}"`);
       // And the image is covered into the head instead of setting its size.
       expect(ruleFor(styleOfScenesTab(), ".scene-head__image")).toMatch(/object-fit:\s*cover/);
+    });
+
+    it("RNF-CEN-02: the `sizes` hint is the drawer's width, and follows it", () => {
+      // `sizes` is an HTML attribute and cannot read a CSS custom property, so the drawer
+      // width is repeated in `scenesTabVM.ts`. This is the guard against the two drifting
+      // apart: widen the drawer (REQ-GAV-012) and the hint has to be widened with it.
+      const drawerWidth = /--fusion-sidebar-width:\s*([^;]+);/.exec(baseCss())?.[1]?.trim();
+
+      expect(drawerWidth).toBe(SCENE_HEAD_IMAGE_SIZES);
     });
 
     it("REQ-CEN-012: a scene with no image paints its own background colour, same box", () => {

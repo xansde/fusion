@@ -7,19 +7,18 @@
  * map, a scene with only a colour, no scene at all, and a world whose scene list has not
  * arrived yet.
  *
- * Covers REQ-CEN-010, REQ-CEN-011, REQ-CEN-012, REQ-CEN-013, REQ-CEN-014, REQ-CEN-015
- * and RNF-CEN-02.
+ * Covers REQ-CEN-011, REQ-CEN-012, REQ-CEN-014, REQ-CEN-015 and RNF-CEN-02.
+ *
+ * The head's fixed height (REQ-CEN-010, REQ-CEN-013) is deliberately NOT asserted here:
+ * height is declarative and lives in the theme token plus the component's stylesheet, so
+ * a pure projection cannot observe it. It is proven in
+ * `components/scenes/__tests__/ScenesTabHead.test.ts`.
  */
 
 import { describe, expect, it } from "vitest";
 import type { SceneDocument } from "@fusion/shared";
 
-import {
-  SCENE_HEAD_HEIGHT_TOKEN,
-  SCENE_HEAD_IMAGE_SIZES,
-  SCENE_HEAD_KEYS,
-  buildSceneHeadVM,
-} from "../scenesTabVM.js";
+import { SCENE_HEAD_IMAGE_SIZES, SCENE_HEAD_KEYS, buildSceneHeadVM } from "../scenesTabVM.js";
 
 function makeScene(overrides: Partial<SceneDocument> & { _id: string }): SceneDocument {
   return {
@@ -93,7 +92,7 @@ describe("scenesTabVM — the head of the Cenas tab", () => {
     });
   });
 
-  describe("background and height (REQ-CEN-012, REQ-CEN-013)", () => {
+  describe("the background of the head (REQ-CEN-012)", () => {
     it("REQ-CEN-012: a scene with no background image falls back to its own colour", () => {
       const vm = buildSceneHeadVM({
         scenes: [makeScene({ _id: "s1", background: null, backgroundColor: "#2b1a3d" })],
@@ -123,22 +122,18 @@ describe("scenesTabVM — the head of the Cenas tab", () => {
       expect(vm).toMatchObject({ background: { kind: "image", color: "#0a0a12" } });
     });
 
-    it("REQ-CEN-013: with or without an image, the head carries exactly the same fields", () => {
-      const withImage = buildSceneHeadVM({
-        scenes: [makeScene({ _id: "s1", background: "/assets/mapa.webp" })],
-        activeSceneId: "s1",
-      });
-      const withoutImage = buildSceneHeadVM({
-        scenes: [makeScene({ _id: "s1", name: "Um nome muito, muito, muito mais longo" })],
+    it("REQ-CEN-012: a scene that stores no colour still gets one — the box is never a hole", () => {
+      // A world imported without `backgroundColor` (or with it blanked) must not produce
+      // a head with nothing to paint: the fallback colour is what keeps the box filled.
+      const vm = buildSceneHeadVM({
+        scenes: [makeScene({ _id: "s1", background: null, backgroundColor: "  " })],
         activeSceneId: "s1",
       });
 
-      // Same shape → nothing appears or disappears to push the head taller or shorter.
-      expect(Object.keys(withoutImage).sort()).toEqual(Object.keys(withImage).sort());
-    });
-
-    it("REQ-CEN-010: the fixed height is a theme token, never a number decided here", () => {
-      expect(SCENE_HEAD_HEIGHT_TOKEN).toBe("--fusion-scene-head-height");
+      expect(vm.kind).toBe("on-air");
+      if (vm.kind !== "on-air") return;
+      expect(vm.background.kind).toBe("color");
+      expect(vm.background.color).toMatch(/^#[0-9a-fA-F]{6}$/);
     });
   });
 
@@ -203,9 +198,10 @@ describe("scenesTabVM — the head of the Cenas tab", () => {
         activeSceneId: "s1",
       });
 
+      // The hint is handed over on every image head, and it is the drawer's width —
+      // never the scene's own 8000px. That the value still matches the drawer is checked
+      // against the theme in `ScenesTabHead.test.ts`.
       expect(vm).toMatchObject({ background: { sizes: SCENE_HEAD_IMAGE_SIZES } });
-      // The hint is the drawer's width, never the scene's own pixel width.
-      expect(SCENE_HEAD_IMAGE_SIZES).toBe("300px");
     });
 
     it("RNF-CEN-02: prefers the smaller `thumb` when the world has one", () => {
