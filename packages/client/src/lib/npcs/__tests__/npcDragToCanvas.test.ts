@@ -89,7 +89,19 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
 
   it("REQ-NPC-063: the drop creates the presence on the scene, embedded in it", () => {
     const table = source("../../../components/TableScreen.svelte");
-    const drop = table.slice(table.indexOf("function handleCanvasDrop"));
+    const dropFnStart = table.indexOf("function handleCanvasDrop");
+    expect(dropFnStart).toBeGreaterThan(-1);
+    const dropFn = table.slice(dropFnStart);
+
+    // Isolate the actor-drag branch only. handleCanvasDrop also has a
+    // compendium-drag branch right below it that builds the very same
+    // doc:create/Token/embedded shape — slicing to EOF would let a deleted
+    // actor branch hide undetected behind the compendium one.
+    const actorBranchStart = dropFn.indexOf("const actorPayload = _getActorDragPayload(event);");
+    const compBranchStart = dropFn.indexOf("const compPayload = _getCompendiumDragPayload(event);");
+    expect(actorBranchStart).toBeGreaterThan(-1);
+    expect(compBranchStart).toBeGreaterThan(actorBranchStart);
+    const drop = dropFn.slice(actorBranchStart, compBranchStart);
 
     expect(drop).toContain("buildTokenFromActorFields");
     expect(drop).toContain('type: "doc:create"');
