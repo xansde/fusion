@@ -2,11 +2,23 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<title>PROTOTYPE — Sidebar rail (3 variantes)</title>
+<title>PROTOTYPE — Sidebar rail (3 variantes; C aprovada)</title>
 <!--
-  PROTOTYPE — throwaway. Pergunta: "como a barra lateral direita deve ficar com
-  botões verticais só-ícone, visíveis mesmo recolhida, + aba de Configurações/Mods do GM?"
-  Três variantes trocáveis via ?variant=A|B|C e pela barra flutuante inferior (← →).
+  PROTOTYPE — throwaway. Pergunta original: "como a barra lateral direita deve ficar
+  com botões verticais só-ícone, visíveis mesmo recolhida?"
+  Três variantes trocáveis via ?variant=A|B|C e pela barra inferior (← →).
+
+  ATUALIZADO ao estado decidido pela spec 36 (a variante C foi a aprovada), para não
+  contradizer as specs vigentes — as três variantes seguem hoje o mesmo conjunto de
+  abas e os mesmos gestos:
+   · sete abas em três blocos: Chat/Contatos/Combate/Compêndio, grupo GM (NPCs/Cenas)
+     e Configurações ancorada no RODAPÉ (DEC-GAV-01 emendada por DEC-GAV-09);
+   · recolher = clicar no ícone da aba ativa; sem chevron e sem ✕ (DEC-GAV-03);
+   · sem atalhos de teclado (DEC-GAV-05);
+   · badge aparece mesmo na aba ativa e aberta (REQ-GAV-021).
+
+  O painel de cada aba é assunto da spec-filha: Configurações → 37 e
+  settings-tab.prototype.html; Chat → 38 e chat-tab.prototype.html.
   Não é código de produção; não importar nada daqui sem reescrever.
 -->
 <style>
@@ -101,9 +113,12 @@
   .C .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
   .C.is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
   .C .tabs .tabbtn.is-active .icon{width:22px;height:22px}
-  .C .tabs .chev{width:40px;height:26px;border-radius:var(--radius-sm) 0 0 var(--radius-sm);margin-bottom:6px;font-size:.8rem;background:none;border:1px solid var(--border);border-right:0;color:var(--subtle)}
-  .C .tabs .grp{margin-top:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
-  .C .tabs .grp .tabbtn{border-color:rgba(255,92,92,.35)}
+  .C .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .C .tabs .grp.gm{margin-top:14px;position:relative}
+  .C .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .C .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .C .tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .C .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
   .C .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column}
   .C.is-open .panel{display:flex}
   .C .panel .panel-head{border-bottom-color:var(--accent-dim)}
@@ -142,15 +157,17 @@ const ICONS = {
   chat:    '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
   actors:  '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
   compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:    '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
   settings:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
 };
 const TABS = [
-  {id:'chat',      label:'Chat',          key:'1', badge:'3'},
-  {id:'combat',    label:'Combate',       key:'2', badge:'⚔', badgeCls:'combat'},
-  {id:'actors',    label:'Atores',        key:'3'},
-  {id:'compendium',label:'Compêndio',     key:'4'},
-  {id:'scenes',    label:'Cenas',         key:'5', gm:true},
-  {id:'settings',  label:'Configurações', key:'6', gm:true},
+  {id:'chat',      label:'Chat',          badge:'3'},
+  {id:'actors',    label:'Contatos'},
+  {id:'combat',    label:'Combate',       badge:'⚔', badgeCls:'combat'},
+  {id:'compendium',label:'Compêndio'},
+  {id:'npcs',      label:'NPCs',          gm:true},
+  {id:'scenes',    label:'Cenas',         gm:true},
+  {id:'settings',  label:'Configurações', foot:true},   /* DEC-GAV-09: grupo "all", no rodapé */
 ];
 const CONTENT = {
   scenes: `<div class="panel-body">
@@ -167,24 +184,26 @@ const CONTENT = {
       <div style="margin-top:.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;color:var(--subtle)">Digite uma mensagem ou /r 1d20…</div></div>`,
   actors: `<div class="panel-body">
       <div class="row"><span>🧝</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
-      <div class="row"><span>🧔</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div>
+      <div class="row"><span>🧔</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div></div>`,
+  npcs: `<div class="panel-body">
       <div class="row"><span>👹</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>
-      <div class="actions" style="margin-top:.8rem"><button class="btnp">Novo ator</button><button class="btns">Importar</button></div></div>`,
+      <div class="row"><span>🐺</span><span class="name">Lobo atroz</span><span class="sub">NPC</span></div>
+      <div class="actions" style="margin-top:.8rem"><button class="btnp">Novo NPC</button><button class="btns">Importar</button></div></div>`,
   compendium: `<div class="panel-body">
       <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;color:var(--subtle);margin-bottom:.6rem">🔍 Buscar no compêndio…</div>
       <div class="row"><span class="name">Talentos</span><span class="sub">1.812</span></div>
       <div class="row"><span class="name">Magias</span><span class="sub">1.024</span></div>
       <div class="row"><span class="name">Equipamentos</span><span class="sub">2.310</span></div>
       <div class="row"><span class="name">Bestiário</span><span class="sub">492</span></div></div>`,
+  /* conteúdo real da aba: spec 37 + settings-tab.prototype.html (índice → seção) */
   settings: `<div class="panel-body">
-      <div class="sec-title">Mods</div>
-      <div class="mods-empty">Nenhum mod instalado neste mundo.<br><button class="btnp">Gerenciar mods</button></div>
-      <div class="sec-title" style="margin-top:1.2rem">Mundo</div>
-      <div class="setting"><span class="name">Rolagens secretas do GM</span><span class="toggle on"></span></div>
-      <div class="setting"><span class="name">Iniciativa automática</span><span class="toggle"></span></div>
-      <div class="setting"><span class="name">Idioma</span><span style="color:var(--muted)">pt-BR</span></div></div>`,
+      <div class="row"><span class="name">Minhas preferências</span><span class="sub">›</span></div>
+      <div class="row"><span class="name">Mundo</span><span class="sub">›</span></div>
+      <div class="row"><span class="name">Permissões</span><span class="sub">›</span></div>
+      <div class="row"><span class="name">Usuários</span><span class="sub">›</span></div>
+      <div class="row"><span class="name">Mods</span><span class="sub">›</span></div></div>`,
 };
-const TITLE = {scenes:'Cenas',combat:'Rastreador de combate',chat:'Chat',actors:'Atores',compendium:'Compêndio',settings:'Configurações & Mods'};
+const TITLE = {scenes:'Cenas',combat:'Rastreador de combate',chat:'Chat',actors:'Contatos',npcs:'NPCs',compendium:'Compêndio',settings:'Configurações'};
 
 /* ---------- estado ---------- */
 const params = new URLSearchParams(location.search);
@@ -195,37 +214,39 @@ let active = 'combat', open = true;
 const isGm = true;
 
 function tabButton(t){
-  const badge = t.badge && (active!==t.id || !open) ? `<span class="badge ${t.badgeCls||''}">${t.badge}</span>` : '';
+  /* REQ-GAV-021: o badge aparece sempre que existir — inclusive na aba ativa e aberta */
+  const badge = t.badge ? `<span class="badge ${t.badgeCls||''}">${t.badge}</span>` : '';
   return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}">
-    ${ICONS[t.id]}${badge}<span class="tip">${t.label}${t.gm?'<span class="gm-tag">GM</span>':''}<span class="kbd">Alt+${t.key}</span></span></button>`;
+    ${ICONS[t.id]}${badge}<span class="tip">${t.label}${t.gm?'<span class="gm-tag">GM</span>':''}</span></button>`;
 }
 function panel(){
   const gm = TABS.find(t=>t.id===active).gm ? '<span class="gm-tag">GM</span>' : '';
-  return `<div class="panel"><div class="panel-head"><span>${TITLE[active]}${gm}</span><button class="close" data-close title="Recolher">✕</button></div>${CONTENT[active]}</div>`;
+  /* DEC-GAV-03: sem ✕ — recolher é clicar no ícone da aba ativa */
+  return `<div class="panel"><div class="panel-head"><span>${TITLE[active]}${gm}</span></div>${CONTENT[active]}</div>`;
 }
-const players = TABS.filter(t=>!t.gm), gms = TABS.filter(t=>t.gm && isGm);
+const players = TABS.filter(t=>!t.gm && !t.foot),
+      gms     = TABS.filter(t=>t.gm && isGm),
+      foot    = TABS.filter(t=>t.foot);
 
 function render(){
   const root = document.getElementById('root');
   let html='';
   if(variant==='A'){
     html = `<div class="A ${open?'is-open':''}"><aside class="sidebar">${panel()}
-      <nav class="rail">${players.map(tabButton).join('')}<div class="divider"></div>${gms.filter(t=>t.id!=='settings').map(tabButton).join('')}
-      <div class="grow"></div>${gms.filter(t=>t.id==='settings').map(tabButton).join('')}</nav></aside></div>`;
+      <nav class="rail">${players.map(tabButton).join('')}<div class="divider"></div>${gms.map(tabButton).join('')}
+      <div class="grow"></div><div class="divider"></div>${foot.map(tabButton).join('')}</nav></aside></div>`;
   } else if(variant==='B'){
     html = `<div class="B ${open?'is-open':''}"><aside class="sidebar">${panel()}
-      <nav class="dock">${players.map(tabButton).join('')}<div class="sep"></div>${gms.map(tabButton).join('')}</nav></aside></div>`;
+      <nav class="dock">${players.map(tabButton).join('')}<div class="sep"></div>${gms.map(tabButton).join('')}<div class="sep"></div>${foot.map(tabButton).join('')}</nav></aside></div>`;
   } else {
     html = `<div class="C ${open?'is-open':''}"><aside class="sidebar">
-      <nav class="tabs"><button class="tabbtn chev" data-toggle title="${open?'Recolher':'Expandir'}">${open?'›':'‹'}</button>
-      ${players.map(tabButton).join('')}
-      <div class="grp">${gms.map(tabButton).join('')}</div></nav>${panel()}</aside></div>`;
+      <nav class="tabs"><div class="grp">${players.map(tabButton).join('')}</div>
+      <div class="grp gm">${gms.map(tabButton).join('')}</div>
+      <div class="foot">${foot.map(tabButton).join('')}</div></nav>${panel()}</aside></div>`;
   }
   root.innerHTML = html;
   root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const id=b.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render();});
-  root.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{open=false;render();});
-  root.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{open=!open;render();});
-  document.getElementById('lbl').innerHTML = `${variant} — ${NAMES[variant]}<small>clique no ícone ativo recolhe · Alt+1..6 troca aba · ← → troca variante</small>`;
+  document.getElementById('lbl').innerHTML = `${variant} — ${NAMES[variant]}<small>clique no ícone ativo recolhe (único gesto) · ← → troca variante</small>`;
   const u=new URL(location); u.searchParams.set('variant',variant); history.replaceState(null,'',u);
 }
 function cycle(d){variant=VARIANTS[(VARIANTS.indexOf(variant)+d+3)%3];render();}
@@ -234,7 +255,7 @@ document.getElementById('next').onclick=()=>cycle(1);
 document.addEventListener('keydown',e=>{
   if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)||document.activeElement.isContentEditable) return;
   if(e.key==='ArrowLeft')cycle(-1); if(e.key==='ArrowRight')cycle(1);
-  if(e.altKey&&/^[1-6]$/.test(e.key)){const t=TABS[+e.key-1]; if(t){active=t.id;open=true;render();e.preventDefault();}}
+  /* DEC-GAV-05: sem atalhos de aba — o Alt+N do protótipo original ficou de fora */
 });
 render();
 </script>

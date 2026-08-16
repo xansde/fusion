@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Chat (variantes para a spec 38)</title>
+<!--
+  PROTOTYPE — throwaway. Comparador de variantes da ABA CHAT (spec 38, a escrever),
+  no MESMO chassi já aprovado da aba Configurações (settings-tab.prototype.html).
+
+  CHASSI (spec 36, variante C): abas físicas à esquerda da gaveta, movendo junto;
+  sem chevron e sem ✕ (recolher = clicar no ícone ativo, DEC-GAV-03); sem atalhos
+  (DEC-GAV-05); 300px de painel + 44px de trilho (DEC-GAV-04); Configurações no
+  rodapé do trilho (DEC-GAV-09); badge visível inclusive na aba ativa (REQ-GAV-021).
+
+  O QUE ESTE PROTÓTIPO EXISTE PARA DECIDIR (a spec 09 já é dona do conteúdo —
+  ChatMessage, comandos, roll modes, cards, bubbles; a 38 é dona do PAINEL):
+
+   1. Onde vivem buscar / exportar / limpar o log (hoje sem tela nenhuma).
+   2. Onde os dados 3D rolam: nos 300px da gaveta ou sobre a mesa inteira.
+   3. Como o seletor de roll mode ocupa a barra de escrita.
+   4. Quais ações de mensagem existem no hover (revelar, apagar — spec 09
+      REQ-CHT-005 e REQ-CHT-045, também sem tela hoje).
+   5. Transversal: quando o contador de não-lidas zera (botão "não-lido" no
+      switcher alterna as duas regras candidatas).
+
+  VARIANTES
+   1 Enxuta      — o que existe hoje, arrumado: nenhuma ferramenta de log.
+   2 Drill-in    — busca e ferramentas viram tela dentro da gaveta, com "‹" (irmã da 37).
+   3 Janela      — busca e ferramentas abrem janela flutuante (spec 11, REQ-UIF-009).
+   4 Barra       — faixa de filtros + busca que filtra o próprio log, sem tela nova.
+
+  Não é código de produção; não importar nada daqui sem reescrever.
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem;font-weight:600}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center;overflow:hidden}
+  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f}
+  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.combat{background:rgba(255,215,0,.18);border:1px solid #ffd700;color:#ffd700;font-size:.6rem}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .sidebar{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding:10px 0;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .tabbtn.is-active .icon{width:22px;height:22px}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .tabs .foot{margin-top:auto;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column;position:relative;overflow:hidden}
+  .is-open .panel{display:flex}
+  .panel-head{display:flex;align-items:center;gap:.4rem;padding:.6rem .8rem;border-bottom:1px solid var(--accent-dim);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);flex:0 0 auto}
+  .panel-head .back{background:none;border:0;color:var(--accent-hover);cursor:pointer;font-size:1.05rem;line-height:1;padding:0 .15rem 0 0}
+  .panel-head .ttl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .panel-head .hact{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:.9rem;line-height:1;padding:.1rem .25rem;border-radius:var(--radius-sm)}
+  .panel-head .hact:hover{color:var(--text);background:var(--surface-alt)}
+  .panel-head .hact.on{color:var(--accent-hover);background:var(--accent-dim)}
+  .panel-body{flex:1;overflow:auto;padding:.75rem .8rem;color:var(--muted);font-size:.85rem;min-height:0}
+  .panel-body::-webkit-scrollbar,.log::-webkit-scrollbar{width:8px}
+  .panel-body::-webkit-scrollbar-thumb,.log::-webkit-scrollbar-thumb{background:var(--surface-alt);border-radius:99px}
+
+  /* ---------- Conteúdo mock das outras abas ---------- */
+  .row{display:flex;align-items:center;gap:.5rem;padding:.4rem .5rem;border-radius:var(--radius-sm)}
+  .row:hover{background:var(--surface-alt)}
+  .row .name{color:var(--text)}
+  .row .sub{color:var(--subtle);font-size:.75rem;margin-left:auto}
+  .empty{text-align:center;padding:1.5rem 0 .75rem;color:var(--muted)}
+  .btnp{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+  .btns{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;cursor:pointer}
+  .btnd{background:var(--danger);color:#fff;border:0;border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+  .actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+  .vazio{border:1px dashed var(--border);border-radius:var(--radius);padding:1rem .9rem;text-align:center;color:var(--subtle);font-size:.8rem;line-height:1.5}
+  .set{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid rgba(46,46,61,.55)}
+  .set .lbl{color:var(--text);flex:1;min-width:0}
+  .set .lbl small{display:block;color:var(--subtle);font-size:.72rem;font-weight:400;margin-top:.1rem;line-height:1.35}
+  .sec-hint{color:var(--subtle);font-size:.75rem;line-height:1.45;margin:0 0 .7rem}
+  .confirm{border:1px solid var(--danger);border-radius:var(--radius);padding:.6rem;margin:.5rem 0;background:rgba(255,92,92,.07);color:var(--text);font-size:.8rem;line-height:1.45}
+  .confirm .acts{display:flex;gap:.4rem;margin-top:.6rem}
+  select{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.25rem .4rem;font:inherit;font-size:.8rem}
+
+  /* ---------- Chat: log ---------- */
+  .chat{display:flex;flex-direction:column;height:100%;min-height:0;position:relative}
+  .log{flex:1;overflow:auto;padding:.55rem .7rem .7rem;display:flex;flex-direction:column;gap:.5rem;min-height:0}
+  .m{position:relative;border-left:2px solid var(--border);padding:.05rem .5rem .05rem .5rem;font-size:.83rem;line-height:1.45;color:var(--text)}
+  .m .meta{display:flex;align-items:baseline;gap:.35rem;font-size:.75rem;color:var(--subtle);margin-bottom:.12rem}
+  .m .meta b{font-weight:700}
+  .m .body{white-space:pre-wrap;word-break:break-word}
+  .m--cont{margin-top:-.32rem}
+  .m--emote{font-style:italic;color:var(--muted)}
+  .m--whisper{border-left-color:var(--accent);background:rgba(124,92,252,.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .m--whisper .to{color:var(--accent-hover);font-size:.72rem}
+  .m--blind{border-left-color:var(--warn);background:rgba(229,184,59,.06);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .m--sys{border-left-color:#2f7fa8}
+  .m--hit{outline:1px solid var(--warn);outline-offset:2px;border-radius:var(--radius-sm)}
+  .seal{font-size:.62rem;letter-spacing:.04em;border-radius:3px;padding:.05rem .3rem;border:1px solid;white-space:nowrap;margin-left:.25rem}
+  .seal.blind{color:var(--warn);border-color:var(--warn)}
+  .seal.revealed{color:var(--ok);border-color:var(--ok)}
+  .seal.whisper{color:var(--accent-hover);border-color:var(--accent)}
+  mark{background:rgba(229,184,59,.3);color:var(--text);border-radius:2px}
+
+  /* rolagem */
+  .roll{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .45rem;margin-top:.15rem}
+  .roll .top{display:flex;align-items:center;gap:.4rem}
+  .roll .flavor{flex:1;min-width:0;color:var(--muted);font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .roll .total{font-size:1.05rem;font-weight:700;color:var(--accent-hover)}
+  .roll .total.crit{color:var(--ok)}
+  .roll .exp{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:.7rem;padding:0 .1rem}
+  .roll .brk{margin-top:.3rem;padding-top:.3rem;border-top:1px solid var(--border);color:var(--subtle);font-size:.72rem;font-family:ui-monospace,monospace}
+  .roll .formula{color:var(--subtle);font-size:.7rem;font-family:ui-monospace,monospace}
+
+  /* card de sistema */
+  .card{background:var(--surface-alt);border:1px solid #2f7fa8;border-radius:var(--radius-sm);padding:.4rem .45rem;margin-top:.15rem}
+  .card .ct{color:var(--text);font-weight:600;font-size:.82rem}
+  .card .cs{color:var(--subtle);font-size:.72rem;margin-bottom:.25rem}
+  .card .cf{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);padding:.1rem 0}
+  .card .cf b{color:var(--text)}
+  .card .cb{display:flex;gap:.3rem;margin-top:.35rem;flex-wrap:wrap}
+  .card .cb button{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .45rem;font:inherit;font-size:.72rem;cursor:pointer}
+  .card .cb button:hover{border-color:var(--accent)}
+
+  /* ações no hover */
+  .m .acts{position:absolute;top:-6px;right:2px;display:none;gap:.1rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.1rem}
+  .m:hover .acts{display:flex}
+  .m .acts button{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:.75rem;padding:.1rem .25rem;border-radius:3px}
+  .m .acts button:hover{color:var(--text);background:var(--surface)}
+
+  /* divisor de não lidas + jump */
+  .newdiv{display:flex;align-items:center;gap:.5rem;color:var(--danger);font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+  .newdiv::before,.newdiv::after{content:"";height:1px;background:rgba(255,92,92,.4);flex:1}
+  .jump{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--composer-h,64px) + 8px);background:var(--danger);color:#fff;border:0;border-radius:999px;padding:.25rem .7rem;font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:6}
+
+  /* barra de ferramentas (V4) */
+  .toolbar{display:flex;align-items:center;gap:.25rem;padding:.35rem .6rem;border-bottom:1px solid var(--border);flex:0 0 auto;overflow:hidden}
+  .chipf{background:none;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:.1rem .45rem;font:inherit;font-size:.7rem;cursor:pointer;white-space:nowrap}
+  .chipf.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-hover)}
+  .toolbar .sp{flex:1}
+  .searchline{display:flex;gap:.3rem;padding:.35rem .6rem;border-bottom:1px solid var(--border);flex:0 0 auto}
+  .searchline input{flex:1;min-width:0;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.25rem .4rem;font:inherit;font-size:.8rem}
+
+  /* composer */
+  .composer{border-top:1px solid var(--border);padding:.45rem .6rem .55rem;display:flex;flex-direction:column;gap:.35rem;flex:0 0 auto;background:var(--surface)}
+  .composer .line{display:flex;gap:.35rem;align-items:flex-end}
+  .composer textarea{flex:1;min-width:0;resize:none;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.35rem .45rem;font:inherit;font-size:.83rem;height:34px;line-height:1.3}
+  .composer textarea:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+  .composer .send{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);width:32px;height:34px;font-size:.9rem;cursor:pointer;flex:0 0 auto}
+  .composer .modebtn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);height:34px;padding:0 .45rem;font:inherit;font-size:.75rem;cursor:pointer;flex:0 0 auto;white-space:nowrap}
+  .composer .modebtn.priv{border-color:var(--accent);color:var(--accent-hover)}
+  .composer .modeline{display:flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--subtle)}
+  .composer .target{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:999px;padding:.05rem .4rem;font-size:.7rem}
+  .composer .hintline{color:var(--subtle);font-size:.68rem}
+
+  /* menu inline "⋯" */
+  .menu{position:absolute;top:38px;right:8px;z-index:20;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:170px;padding:.25rem}
+  .menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);font:inherit;font-size:.8rem;padding:.35rem .5rem;border-radius:var(--radius-sm);cursor:pointer}
+  .menu button:hover{background:var(--surface)}
+  .menu button.danger{color:var(--danger)}
+  .menu .sep{height:1px;background:var(--border);margin:.2rem 0}
+
+  /* busca: resultados */
+  .res{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid rgba(46,46,61,.55);color:var(--text);font:inherit;padding:.5rem .1rem;cursor:pointer}
+  .res:hover{background:var(--surface-alt)}
+  .res .rmeta{display:flex;gap:.35rem;font-size:.7rem;color:var(--subtle);margin-bottom:.1rem}
+  .res .rtxt{font-size:.8rem;line-height:1.35}
+
+  /* janela flutuante (V3) */
+  .win{position:absolute;z-index:150;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:0 18px 50px rgba(0,0,0,.65);display:flex;flex-direction:column;overflow:hidden}
+  .win .wh{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600}
+  .win .wh .sp{flex:1}
+  .win .wh button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 .2rem}
+  .win .wb{padding:.6rem .7rem;overflow:auto;font-size:.82rem;color:var(--muted)}
+  .win table{width:100%;border-collapse:collapse;font-size:.78rem}
+  .win th{text-align:left;color:var(--subtle);font-weight:600;padding:.25rem .3rem;border-bottom:1px solid var(--border)}
+  .win td{padding:.3rem .3rem;border-bottom:1px solid rgba(46,46,61,.55);color:var(--text);vertical-align:top}
+  .win td .goto{background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius-sm);font:inherit;font-size:.7rem;padding:.1rem .35rem;cursor:pointer;white-space:nowrap}
+
+  /* dados 3D */
+  .dice{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:120}
+  .dice .d{font-size:3rem;filter:drop-shadow(0 6px 18px rgba(0,0,0,.8));animation:tumble .9s ease-out}
+  .dice .lab{position:absolute;bottom:18%;color:var(--text);background:rgba(11,11,15,.8);border:1px solid var(--border);border-radius:999px;padding:.2rem .7rem;font-size:.8rem}
+  .dice--panel{z-index:60}
+  .dice--panel .d{font-size:2rem}
+  @keyframes tumble{0%{transform:translateY(-40px) rotate(-90deg) scale(.6);opacity:0}60%{opacity:1}100%{transform:translateY(0) rotate(20deg) scale(1);opacity:1}}
+
+  /* ---------- Switcher + legenda (não fazem parte do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.4rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.8rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;padding:0 .7rem;border-radius:999px;cursor:pointer;font-size:.76rem;font-weight:600}
+  .switcher button.alt{background:#5a4bd6}
+  .switcher .lbl{padding:0 .5rem;color:#555;font-weight:400;font-size:.72rem;max-width:230px}
+  .legend{position:fixed;left:16px;bottom:16px;z-index:9999;background:rgba(255,255,255,.96);color:#111;border-radius:10px;padding:.6rem .7rem;box-shadow:0 8px 30px rgba(0,0,0,.55);font-size:.72rem;max-width:330px;line-height:1.45}
+  .legend h4{margin:0 0 .35rem;font-size:.78rem}
+  .legend table{border-collapse:collapse;width:100%}
+  .legend td{padding:.12rem .25rem;vertical-align:top}
+  .legend td:first-child{color:#666;white-space:nowrap}
+  .legend b{color:#111}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 aha</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+<div class="stage"><div class="art"><div class="house"><div class="star">★</div></div></div><div id="stage-dice"></div></div>
+
+<div id="root"></div>
+<div id="float"></div>
+
+<div class="switcher">
+  <button id="variant">variante</button>
+  <button id="role">papel</button>
+  <button id="state">estado</button>
+  <button id="unread" class="alt">não-lido</button>
+  <button id="incoming" class="alt">chega mensagem</button>
+  <span class="lbl" id="lbl"></span>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ================= chassi (spec 36) ================= */
+const ICONS = {
+  chat:      '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:  '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:    '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:      '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:    '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:  '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+const TABS = [
+  {id:'chat',      label:'Chat',          group:'all'},
+  {id:'contacts',  label:'Contatos',      group:'all'},
+  {id:'combat',    label:'Combate',       group:'all', badge:'⚔', badgeCls:'combat'},
+  {id:'compendium',label:'Compêndio',     group:'all'},
+  {id:'npcs',      label:'NPCs',          group:'gm'},
+  {id:'scenes',    label:'Cenas',         group:'gm'},
+  {id:'settings',  label:'Configurações', group:'all', foot:true},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  contacts: `<div class="row"><span>🧝</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
+    <div class="row"><span>🧔</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div>`,
+  combat: `<p class="empty">Nenhum combate ativo.</p><div class="actions"><button class="btnp">Criar combate</button></div>`,
+  compendium: `<div class="row"><span class="name">Talentos</span><span class="sub">1.812</span></div>
+    <div class="row"><span class="name">Magias</span><span class="sub">1.024</span></div>`,
+  npcs: `<div class="row"><span>👹</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>`,
+  scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub">ativa</span></div>`,
+  settings: `<p class="sec-hint">Índice de seções — ver settings-tab.prototype.html.</p>
+    <div class="row"><span class="name">Minhas preferências</span><span class="sub">›</span></div>
+    <div class="row"><span class="name">Mundo</span><span class="sub">›</span></div>`,
+};
+
+/* ================= variantes ================= */
+const VARIANTS = {
+  1:{name:'Enxuta',      lbl:'V1: o que existe hoje, arrumado — sem busca, sem export, dados nos 300px',
+     eixos:{busca:'não existe',ferr:'não existem',dados:'dentro do painel (300px)',mode:'select no composer',acoes:'hover: revelar / apagar'}},
+  2:{name:'Drill-in',    lbl:'V2: busca e ferramentas são TELA dentro da gaveta, com "‹" — irmã da aba Configurações',
+     eixos:{busca:'tela na gaveta (‹ volta)',ferr:'⋯ → tela na gaveta',dados:'sobre a mesa inteira',mode:'botão cíclico no composer',acoes:'hover: revelar / apagar'}},
+  3:{name:'Janela',      lbl:'V3: busca e ferramentas abrem JANELA flutuante (spec 11) — o painel só tem log e escrita',
+     eixos:{busca:'janela flutuante',ferr:'janela flutuante',dados:'sobre a mesa inteira',mode:'select no composer',acoes:'hover + "ir para" na janela'}},
+  4:{name:'Barra',       lbl:'V4: faixa de filtros no topo; a busca FILTRA o próprio log, sem tela nova nem janela',
+     eixos:{busca:'filtra o log no lugar',ferr:'menu ⋯ inline',dados:'sobre a mesa, desligável na barra',mode:'linha própria + alvo do sussurro',acoes:'hover: revelar / apagar'}},
+};
+
+/* ================= estado mock ================= */
+const params = new URLSearchParams(location.search);
+let role    = params.get('role')==='player' ? 'player' : 'gm';
+let variant = [1,2,3,4].includes(+params.get('variant')) ? +params.get('variant') : 1;
+let empty   = params.get('state')==='empty';
+let unreadRule = params.get('unread')==='open' ? 'open' : 'read';   /* eixo transversal */
+
+let active='chat', open=true;
+let view='log';            /* V2: 'log' | 'search' | 'tools' */
+let menu=false;            /* menu ⋯ */
+let win=null;              /* V3: 'search' | 'tools' */
+let filter='all';          /* V4 */
+let inlineSearch=false;    /* V4 */
+let query='';
+let mode='public';
+let expanded={};
+let unread=0, newFrom=null;   /* id a partir do qual há não-lidas */
+let dice=null, diceTimer=null;
+let confirmFlush=false;
+let logScroll=null, stickBottom=true;
+
+const ME = ()=> role==='gm' ? 'Gamemaster' : 'Fofurinha';
+const COLOR = {Gamemaster:'#ff5c5c',Fofurinha:'#7c5cfc',Tobias:'#3ddc84'};
+
+let nextId = 100;
+const BASE = [
+  {id:1,who:'Gamemaster',t:'21:04',type:'text',text:'Vocês empurram a porta da sala do trono. O ar cheira a ferro velho e cera queimada.'},
+  {id:2,who:'Fofurinha',t:'21:05',type:'roll',flavor:'Percepção',formula:'1d20+7',total:19,brk:'1d20 [12] + 7'},
+  {id:3,who:'Tobias',t:'21:05',type:'emote',text:'avança dois passos e ergue o escudo.'},
+  {id:4,who:'Gamemaster',t:'21:06',type:'whisper',to:'Fofurinha',text:'Só você percebe: há uma alavanca atrás do trono, meio escondida pelo tapete.'},
+  {id:5,who:'Tobias',t:'21:07',type:'system',card:{title:'Golpe — Espada longa',sub:'Ação · agilidade',fields:[['Ataque','+11'],['Dano','1d8+4 cortante']],buttons:['Rolar dano','Crítico']}},
+  {id:6,who:'Gamemaster',t:'21:08',type:'roll',flavor:'Furtividade do goblin',formula:'1d20+9',total:23,brk:'1d20 [14] + 9',blind:true},
+  {id:7,who:'Fofurinha',t:'21:09',type:'text',text:'Eu chuto o tapete pra ver o que tem embaixo.'},
+  {id:8,who:'Gamemaster',t:'21:10',type:'roll',flavor:'Reflexos (revelada)',formula:'1d20+5',total:8,brk:'1d20 [3] + 5',revealed:true},
+  {id:9,who:'Gamemaster',t:'21:11',type:'text',text:'A porta atrás de vocês range. Rolem iniciativa.'},
+];
+let msgs = BASE.slice();
+
+const INCOMING = [
+  {who:'Tobias',type:'roll',flavor:'Iniciativa',formula:'1d20+5',total:11,brk:'1d20 [6] + 5'},
+  {who:'Fofurinha',type:'roll',flavor:'Iniciativa',formula:'1d20+7',total:24,brk:'1d20 [17] + 7'},
+  {who:'Tobias',type:'text',text:'Eu fico na frente da Fofurinha.'},
+  {who:'Gamemaster',type:'text',text:'Dois goblins entram pela porta lateral.'},
+];
+let incomingIdx=0;
+
+/* ================= helpers ================= */
+function visible(m){
+  if(role==='gm') return true;
+  if(m.blind && !m.revealed) return false;                 /* jogador não vê rolagem cega */
+  if(m.type==='whisper' && m.to!=='Fofurinha') return false;
+  return true;
+}
+function matches(m){
+  if(!query) return true;
+  const hay = ((m.text||'')+' '+(m.flavor||'')+' '+((m.card&&m.card.title)||'')+' '+m.who).toLowerCase();
+  return hay.includes(query.toLowerCase());
+}
+function passFilter(m){
+  if(filter==='all') return true;
+  if(filter==='rolls') return m.type==='roll';
+  if(filter==='whispers') return m.type==='whisper' || m.blind;
+  if(filter==='system') return m.type==='system';
+  return true;
+}
+function hl(s){
+  if(!query) return esc(s);
+  const i=s.toLowerCase().indexOf(query.toLowerCase());
+  if(i<0) return esc(s);
+  return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+query.length))+'</mark>'+esc(s.slice(i+query.length));
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ================= mensagens ================= */
+function msgHtml(m, prev){
+  const cont = prev && prev.who===m.who && prev.type!=='system' && m.type!=='system' && m.type!=='whisper';
+  const cls = ['m'];
+  if(cont) cls.push('m--cont');
+  if(m.type==='emote') cls.push('m--emote');
+  if(m.type==='whisper') cls.push('m--whisper');
+  if(m.blind && !m.revealed) cls.push('m--blind');
+  if(m.type==='system') cls.push('m--sys');
+  if(query && matches(m) && (variant===4)) cls.push('m--hit');
+
+  let seals='';
+  if(m.blind && !m.revealed) seals += '<span class="seal blind">cega · só o Mestre</span>';
+  if(m.revealed) seals += '<span class="seal revealed">👁 revelada</span>';
+  if(m.type==='whisper') seals += `<span class="seal whisper">✉ para ${esc(m.to)}</span>`;
+
+  const meta = cont ? '' :
+    `<div class="meta"><b style="color:${COLOR[m.who]||'#fff'}">${esc(m.who)}</b><span>${m.t}</span>${seals}</div>`;
+
+  let body='';
+  if(m.type==='text' || m.type==='whisper') body = `<div class="body">${hl(m.text)}</div>`;
+  if(m.type==='emote') body = `<div class="body">${esc(m.who)} ${hl(m.text)}</div>`;
+  if(m.type==='roll'){
+    const isOpen = !!expanded[m.id];
+    const showTotal = (!m.blind || role==='gm' || m.revealed);
+    body = showTotal
+      ? `<div class="roll"><div class="top">
+           <span class="flavor">${hl(m.flavor)}</span>
+           <span class="total ${m.total>=20?'crit':''}">${m.total}</span>
+           <button class="exp" data-exp="${m.id}">${isOpen?'▾':'▸'}</button></div>
+           <div class="formula">${esc(m.formula)}</div>
+           ${isOpen?`<div class="brk">${esc(m.brk||'')}</div>`:''}</div>`
+      : `<div class="roll"><div class="top"><span class="flavor">rolagem cega enviada ao Mestre</span><span class="total">•</span></div></div>`;
+  }
+  if(m.type==='system'){
+    const c=m.card;
+    body = `<div class="card"><div class="ct">${hl(c.title)}</div><div class="cs">${esc(c.sub)}</div>
+      ${c.fields.map(f=>`<div class="cf"><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join('')}
+      <div class="cb">${c.buttons.map(b=>`<button>${esc(b)}</button>`).join('')}</div></div>`;
+  }
+
+  const canReveal = role==='gm' && (m.type==='whisper' || (m.blind && !m.revealed));
+  const acts = role==='gm'
+    ? `<span class="acts">${canReveal?'<button title="Revelar para a mesa (REQ-CHT-045)">👁</button>':''}<button title="Copiar">⧉</button><button title="Apagar (REQ-CHT-005)">🗑</button></span>`
+    : `<span class="acts"><button title="Copiar">⧉</button></span>`;
+
+  return `<div class="${cls.join(' ')}" style="border-left-color:${cont||m.type==='whisper'||m.blind||m.type==='system'?'':(COLOR[m.who]||'var(--border)')}">${acts}${meta}${body}</div>`;
+}
+
+function logHtml(){
+  const list = msgs.filter(visible).filter(passFilter).filter(m=> (variant===4 && query) ? matches(m) : true);
+  if(!list.length){
+    const why = query ? `Nenhuma mensagem casa com “${esc(query)}”.` : (filter!=='all' ? 'Nenhuma mensagem deste tipo.' : 'Nenhuma mensagem ainda.<br><span style="font-size:.75rem">Escreva abaixo, ou role um dado com <code>/r 1d20</code>.</span>');
+    return `<div class="log" id="log"><div class="vazio" style="margin-top:1.2rem">${why}</div></div>`;
+  }
+  let out='', prev=null;
+  list.forEach(m=>{
+    if(newFrom && m.id===newFrom) out += `<div class="newdiv">${unread} nova${unread>1?'s':''}</div>`;
+    out += msgHtml(m, prev); prev=m;
+  });
+  return `<div class="log" id="log">${out}</div>`;
+}
+
+/* ================= composer ================= */
+const MODES = [
+  {id:'public', lbl:'Público',  icon:'📢'},
+  {id:'gmroll', lbl:'Ao Mestre',icon:'👁'},
+  {id:'blind',  lbl:'Cega',     icon:'🙈'},
+  {id:'self',   lbl:'Só eu',    icon:'🔒'},
+  {id:'whisper',lbl:'Sussurro', icon:'✉'},
+];
+function modeObj(){return MODES.find(m=>m.id===mode)||MODES[0];}
+
+function composerHtml(){
+  const sel = `<select id="modesel">${MODES.map(m=>`<option value="${m.id}" ${mode===m.id?'selected':''}>${m.icon} ${m.lbl}</option>`).join('')}</select>`;
+  const ta  = `<textarea placeholder="Escreva ou /r 1d20+7…"></textarea>`;
+  const send= `<button class="send" title="Enviar">➤</button>`;
+  const dicebtn = `<button class="modebtn" id="rolldice" title="Rolar 1d20 (demonstra os dados 3D)">🎲</button>`;
+
+  if(variant===1) return `<div class="composer" id="composer"><div class="line">${sel}${ta}${send}</div><div class="hintline">${dicebtn} dados 3D rolam dentro deste painel</div></div>`;
+  if(variant===2){
+    const m=modeObj();
+    return `<div class="composer" id="composer"><div class="line">
+      <button class="modebtn ${mode!=='public'?'priv':''}" id="modecycle" title="Trocar o modo da rolagem">${m.icon} ${m.lbl}</button>${ta}${send}</div>
+      <div class="hintline">${dicebtn} dados rolam sobre a mesa inteira</div></div>`;
+  }
+  if(variant===3) return `<div class="composer" id="composer"><div class="line">${sel}${ta}${send}</div><div class="hintline">${dicebtn} dados rolam sobre a mesa inteira</div></div>`;
+  /* V4 */
+  const alvo = mode==='whisper' ? `<span class="target">para: Tobias ✕</span>` : '';
+  return `<div class="composer" id="composer">
+    <div class="modeline">${sel}${alvo}<span style="flex:1"></span>${dicebtn}</div>
+    <div class="line">${ta}${send}</div></div>`;
+}
+
+/* ================= telas de ferramentas ================= */
+function searchResultsHtml(){
+  const hits = msgs.filter(visible).filter(m=>query && matches(m));
+  if(!query) return `<p class="sec-hint">Digite para buscar no log inteiro do mundo (FTS5 no servidor — REQ-CHT-036).</p>`;
+  if(!hits.length) return `<div class="vazio">Nenhuma mensagem casa com “${esc(query)}”.</div>`;
+  return hits.map(m=>{
+    const txt = m.text || m.flavor || (m.card&&m.card.title) || '';
+    return `<button class="res"><span class="rmeta"><b style="color:${COLOR[m.who]}">${esc(m.who)}</b><span>${m.t}</span>${m.type==='whisper'?'<span class="seal whisper">✉</span>':''}</span><span class="rtxt">${hl(txt)}</span></button>`;
+  }).join('');
+}
+function searchScreenHtml(){
+  return `<div class="searchline"><input id="q" placeholder="Buscar no log…" value="${esc(query)}" /></div>
+    <div class="panel-body">${searchResultsHtml()}</div>`;
+}
+function toolsScreenHtml(){
+  const conf = confirmFlush
+    ? `<div class="confirm"><b>Limpar o log apaga as ${msgs.length} mensagens deste mundo, para todos.</b><br>Não há desfazer.<div class="acts"><button class="btnd" id="doflush">Limpar mesmo assim</button><button class="btns" id="noflush">Cancelar</button></div></div>`
+    : '';
+  return `<div class="panel-body">
+    <p class="sec-hint">Ferramentas do log — só o Mestre (REQ-CHT-005/006/037).</p>
+    <div class="set"><span class="lbl">Exportar em JSON<small>estrutura completa dos documentos</small></span><button class="btns">Baixar</button></div>
+    <div class="set"><span class="lbl">Exportar em texto<small>hora · autor · conteúdo</small></span><button class="btns">Baixar</button></div>
+    <div class="set"><span class="lbl">Limpar o log<small>apaga tudo, para todos</small></span><button class="btnd" id="askflush">Limpar</button></div>
+    ${conf}</div>`;
+}
+
+/* ================= janela flutuante (V3) ================= */
+function winHtml(){
+  if(!win) return '';
+  if(win==='search'){
+    const hits = msgs.filter(visible).filter(m=>query && matches(m));
+    const rows = !query
+      ? `<tr><td colspan="4" style="color:var(--subtle)">Digite um termo para buscar no log do mundo.</td></tr>`
+      : (hits.length ? hits.map(m=>{
+          const txt = m.text || m.flavor || (m.card&&m.card.title) || '';
+          return `<tr><td style="white-space:nowrap;color:var(--subtle)">${m.t}</td><td style="white-space:nowrap;color:${COLOR[m.who]}">${esc(m.who)}</td><td>${hl(txt)}</td><td><button class="goto">ir para</button></td></tr>`;
+        }).join('') : `<tr><td colspan="4" style="color:var(--subtle)">Nada encontrado para “${esc(query)}”.</td></tr>`);
+    return `<div class="win" style="left:26%;top:18%;width:520px;height:340px">
+      <div class="wh">🔍 Buscar no chat<span class="sp"></span><button data-winclose>✕</button></div>
+      <div class="wb" style="flex:1">
+        <div class="searchline" style="border:0;padding:0 0 .5rem"><input id="qwin" placeholder="Buscar no log…" value="${esc(query)}" /></div>
+        <table><thead><tr><th>hora</th><th>quem</th><th>mensagem</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div></div>`;
+  }
+  const conf = confirmFlush
+    ? `<div class="confirm"><b>Limpar o log apaga as ${msgs.length} mensagens deste mundo, para todos.</b><div class="acts"><button class="btnd" id="doflush">Limpar mesmo assim</button><button class="btns" id="noflush">Cancelar</button></div></div>` : '';
+  return `<div class="win" style="left:34%;top:24%;width:400px">
+    <div class="wh">⋯ Ferramentas do log<span class="sp"></span><button data-winclose>✕</button></div>
+    <div class="wb">
+      <div class="set"><span class="lbl">Exportar em JSON</span><button class="btns">Baixar</button></div>
+      <div class="set"><span class="lbl">Exportar em texto</span><button class="btns">Baixar</button></div>
+      <div class="set"><span class="lbl">Limpar o log<small>apaga tudo, para todos</small></span><button class="btnd" id="askflush">Limpar</button></div>
+      ${conf}</div></div>`;
+}
+
+/* ================= cabeçalho + corpo do chat ================= */
+function chatHead(){
+  const gm = role==='gm';
+  if(variant===1){
+    return `<div class="panel-head"><span class="ttl">Chat</span></div>`;
+  }
+  if(variant===2){
+    if(view==='search') return `<div class="panel-head"><button class="back" data-back>‹</button><span class="ttl">Buscar no log</span></div>`;
+    if(view==='tools')  return `<div class="panel-head"><button class="back" data-back>‹</button><span class="ttl">Ferramentas do log</span></div>`;
+    return `<div class="panel-head"><span class="ttl">Chat</span>
+      <button class="hact" data-go="search" title="Buscar no log">🔍</button>
+      ${gm?'<button class="hact" data-go="tools" title="Ferramentas do log">⋯</button>':''}</div>`;
+  }
+  if(variant===3){
+    return `<div class="panel-head"><span class="ttl">Chat</span>
+      <button class="hact ${win==='search'?'on':''}" data-win="search" title="Buscar no log (abre janela)">🔍</button>
+      ${gm?`<button class="hact ${win==='tools'?'on':''}" data-win="tools" title="Ferramentas do log (abre janela)">⋯</button>`:''}</div>`;
+  }
+  return `<div class="panel-head"><span class="ttl">Chat</span></div>`;
+}
+function chatToolbar(){
+  if(variant!==4) return '';
+  const chips = [['all','Tudo'],['rolls','Rolagens'],['whispers','Privadas'],['system','Sistema']]
+    .map(c=>`<button class="chipf ${filter===c[0]?'on':''}" data-filter="${c[0]}">${c[1]}</button>`).join('');
+  const bar = `<div class="toolbar">${chips}<span class="sp"></span>
+    <button class="hact ${inlineSearch?'on':''}" data-inline title="Buscar">🔍</button>
+    ${role==='gm'?'<button class="hact" data-menu title="Mais">⋯</button>':''}</div>`;
+  const line = inlineSearch ? `<div class="searchline"><input id="q" placeholder="Filtrar o log…" value="${esc(query)}" /><button class="btns" data-clearq>✕</button></div>` : '';
+  return bar+line;
+}
+function chatBody(){
+  if(variant===2 && view==='search') return searchScreenHtml();
+  if(variant===2 && view==='tools')  return toolsScreenHtml();
+  const jump = unread>0 ? `<button class="jump" id="jump">↓ ${unread} nova${unread>1?'s':''}</button>` : '';
+  const panelDice = (variant===1 && dice) ? `<div class="dice dice--panel"><div class="d">🎲</div><div class="lab">${dice}</div></div>` : '';
+  return `<div class="chat">${chatToolbar()}${logHtml()}${jump}${composerHtml()}${panelDice}</div>`;
+}
+
+/* ================= render ================= */
+function tabButton(t){
+  const badgeVal = t.id==='chat' ? (unread>0?String(unread):null) : (t.badge||null);
+  /* REQ-GAV-021: badge aparece mesmo na aba ativa e aberta */
+  const badge = badgeVal ? `<span class="badge ${t.badgeCls||''}">${badgeVal}</span>` : '';
+  return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+}
+
+function render(){
+  const isGm = role==='gm';
+  if(!isGm && ['npcs','scenes'].includes(active)) active='chat';
+  if(!isGm && view==='tools') view='log';
+  if(!isGm && win==='tools') win=null;
+  const all=TABS.filter(t=>t.group==='all'&&!t.foot), gms=TABS.filter(t=>t.group==='gm'&&isGm), foot=TABS.filter(t=>t.foot);
+
+  const head = active==='chat' ? chatHead() : `<div class="panel-head"><span class="ttl">${TITLE[active]}</span></div>`;
+  const body = active==='chat' ? chatBody() : `<div class="panel-body">${OTHER[active]||''}</div>`;
+  const menuHtml = menu ? `<div class="menu">
+      ${variant===4?'<button data-inline2>🔍 Buscar no log</button><div class="sep"></div>':''}
+      <button>⤓ Exportar em JSON</button><button>⤓ Exportar em texto</button>
+      <div class="sep"></div><button class="danger" id="askflush">🗑 Limpar o log</button>
+    </div>` : '';
+  const confInline = (menu===false && confirmFlush && variant!==2 && variant!==3)
+    ? `<div class="menu" style="width:250px"><div class="confirm" style="margin:0"><b>Apagar as ${msgs.length} mensagens, para todos?</b><div class="acts"><button class="btnd" id="doflush">Limpar</button><button class="btns" id="noflush">Cancelar</button></div></div></div>` : '';
+
+  document.getElementById('root').innerHTML=`
+    <div class="${open?'is-open':''}"><aside class="sidebar">
+      <nav class="tabs">
+        <div class="grp">${all.map(tabButton).join('')}</div>
+        ${gms.length?`<div class="grp gm">${gms.map(tabButton).join('')}</div>`:''}
+        <div class="foot">${foot.map(tabButton).join('')}</div>
+      </nav>
+      <div class="panel">${head}${body}${menuHtml}${confInline}</div>
+    </aside></div>`;
+
+  document.getElementById('float').innerHTML = winHtml();
+  document.getElementById('stage-dice').innerHTML =
+    (variant!==1 && dice) ? `<div class="dice"><div class="d">🎲</div><div class="lab">${dice}</div></div>` : '';
+
+  const who=document.getElementById('who');
+  who.className = isGm?'who':'who player';
+  who.innerHTML = isGm ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+                       : '<b>●</b> Fofurinha · <span style="color:var(--muted)">Jogador</span>';
+
+  wire();
+  restoreScroll();
+  paintSwitcher();
+
+  const u=new URL(location);
+  u.searchParams.set('variant',variant); u.searchParams.set('role',role);
+  u.searchParams.set('state',empty?'empty':'full'); u.searchParams.set('unread',unreadRule);
+  history.replaceState(null,'',u);
+}
+
+/* ================= eventos ================= */
+function wire(){
+  const root=document.getElementById('root'), float=document.getElementById('float');
+
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.tab;
+    if(open&&active===id){ open=false; }
+    else {
+      active=id; open=true;
+      if(id==='chat' && unreadRule==='open'){ unread=0; newFrom=null; }   /* regra A */
+    }
+    menu=false; view='log'; render();
+  });
+  root.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{view=b.dataset.go;menu=false;render();});
+  root.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{view='log';query='';confirmFlush=false;render();});
+  root.querySelectorAll('[data-menu]').forEach(b=>b.onclick=(e)=>{e.stopPropagation();menu=!menu;render();});
+  root.querySelectorAll('[data-win]').forEach(b=>b.onclick=()=>{win = win===b.dataset.win ? null : b.dataset.win;render();});
+  float.querySelectorAll('[data-winclose]').forEach(b=>b.onclick=()=>{win=null;confirmFlush=false;render();});
+  root.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;render();});
+  root.querySelectorAll('[data-inline]').forEach(b=>b.onclick=()=>{inlineSearch=!inlineSearch;if(!inlineSearch)query='';render();});
+  root.querySelectorAll('[data-inline2]').forEach(b=>b.onclick=()=>{inlineSearch=true;menu=false;render();});
+  root.querySelectorAll('[data-clearq]').forEach(b=>b.onclick=()=>{query='';render();});
+  root.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{const id=+b.dataset.exp;expanded[id]=!expanded[id];render();});
+
+  const menuBtn = root.querySelector('#askflush') || float.querySelector('#askflush');
+  if(menuBtn) menuBtn.onclick=()=>{confirmFlush=true;menu=false;render();};
+  const no = root.querySelector('#noflush') || float.querySelector('#noflush');
+  if(no) no.onclick=()=>{confirmFlush=false;render();};
+  const yes = root.querySelector('#doflush') || float.querySelector('#doflush');
+  if(yes) yes.onclick=()=>{msgs=[];unread=0;newFrom=null;confirmFlush=false;menu=false;render();};
+
+  const modesel=root.querySelector('#modesel'); if(modesel) modesel.onchange=e=>{mode=e.target.value;render();};
+  const cycle=root.querySelector('#modecycle'); if(cycle) cycle.onclick=()=>{
+    const i=MODES.findIndex(m=>m.id===mode); mode=MODES[(i+1)%MODES.length].id; render();
+  };
+  const rd=root.querySelector('#rolldice'); if(rd) rd.onclick=()=>rollDice();
+
+  [root.querySelector('#q'), float.querySelector('#qwin')].forEach(inp=>{
+    if(!inp) return;
+    inp.oninput=e=>{query=e.target.value;render();
+      const again=document.getElementById(inp.id); if(again){again.focus();again.setSelectionRange(query.length,query.length);} };
+  });
+
+  const jump=root.querySelector('#jump'); if(jump) jump.onclick=()=>{
+    const log=document.getElementById('log'); if(log) log.scrollTop=log.scrollHeight;
+    markRead();
+  };
+  const log=root.querySelector('#log');
+  if(log){
+    log.onscroll=()=>{
+      logScroll=log.scrollTop;
+      stickBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 24;
+      if(stickBottom && unreadRule==='read' && unread>0) markRead();
+    };
+  }
+  document.body.onclick=e=>{ if(menu && !e.target.closest('.menu') && !e.target.closest('[data-menu]')){menu=false;render();} };
+}
+function markRead(){ unread=0; newFrom=null; render(); }
+
+function restoreScroll(){
+  const log=document.getElementById('log'); if(!log) return;
+  if(stickBottom || logScroll===null) log.scrollTop=log.scrollHeight;
+  else log.scrollTop=logScroll;
+}
+
+function rollDice(){
+  const total = 1+Math.floor(Math.random()*20);
+  dice = `1d20 → ${total}`;
+  clearTimeout(diceTimer);
+  diceTimer=setTimeout(()=>{dice=null;render();},1800);
+  render();
+}
+
+function incoming(){
+  const src = INCOMING[incomingIdx % INCOMING.length]; incomingIdx++;
+  const m = Object.assign({},src,{id:nextId++, t:'21:1'+(incomingIdx%10)});
+  msgs.push(m);
+  const chatOpen = active==='chat' && open;
+  const zeraNaHora = chatOpen && unreadRule==='open';
+  if(!zeraNaHora){
+    if(!unread) newFrom=m.id;
+    unread++;
+    stickBottom=false;
+  }
+  render();
+}
+
+/* ================= switcher / legenda ================= */
+function paintSwitcher(){
+  document.getElementById('variant').textContent = `variante ${variant} · ${VARIANTS[variant].name}`;
+  document.getElementById('role').textContent    = role==='gm' ? 'ver como jogador' : 'ver como GM';
+  document.getElementById('state').textContent   = empty ? 'log: vazio' : 'log: com mensagens';
+  document.getElementById('unread').textContent  = unreadRule==='open' ? 'não-lido: zera ao ABRIR' : 'não-lido: zera ao LER';
+  document.getElementById('lbl').textContent     = VARIANTS[variant].lbl;
+
+  const e = VARIANTS[variant].eixos;
+  document.getElementById('legend').innerHTML = `
+    <h4>Variante ${variant} — ${VARIANTS[variant].name}</h4>
+    <table>
+      <tr><td>buscar no log</td><td><b>${e.busca}</b></td></tr>
+      <tr><td>exportar / limpar</td><td><b>${e.ferr}</b></td></tr>
+      <tr><td>dados 3D</td><td><b>${e.dados}</b></td></tr>
+      <tr><td>modo da rolagem</td><td><b>${e.mode}</b></td></tr>
+      <tr><td>ações da mensagem</td><td><b>${e.acoes}</b></td></tr>
+      <tr><td>não-lido</td><td><b>${unreadRule==='open'?'zera ao abrir a aba (REQ-CHT-039 de hoje)':'zera ao rolar até o fim (DEC-GAV-06 ao pé da letra)'}</b></td></tr>
+    </table>
+    <div style="margin-top:.4rem;color:#666">teclas: <b>1–4</b> variante · <b>p</b> papel · <b>n</b> chega mensagem · <b>u</b> regra do não-lido · <b>v</b> log vazio</div>`;
+}
+
+function applyEmpty(){ msgs = empty ? [] : BASE.slice(); unread=0; newFrom=null; }
+
+document.getElementById('variant').onclick =()=>{variant=variant%4+1;view='log';win=null;menu=false;inlineSearch=false;query='';render();};
+document.getElementById('role').onclick    =()=>{role=role==='gm'?'player':'gm';menu=false;render();};
+document.getElementById('state').onclick   =()=>{empty=!empty;applyEmpty();render();};
+document.getElementById('unread').onclick  =()=>{unreadRule=unreadRule==='open'?'read':'open';render();};
+document.getElementById('incoming').onclick=()=>incoming();
+
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(['1','2','3','4'].includes(e.key)){variant=+e.key;view='log';win=null;menu=false;query='';render();}
+  if(e.key==='p'||e.key==='P'){role=role==='gm'?'player':'gm';render();}
+  if(e.key==='n'||e.key==='N'){incoming();}
+  if(e.key==='u'||e.key==='U'){unreadRule=unreadRule==='open'?'read':'open';render();}
+  if(e.key==='v'||e.key==='V'){empty=!empty;applyEmpty();render();}
+});
+
+applyEmpty();
+render();
+</script>
+</body>
+</html>
