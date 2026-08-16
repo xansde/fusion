@@ -1,0 +1,2101 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROTOTYPE — Aba Contatos (grill de 2026-08-16, 3ª rodada)</title>
+    <!--
+  PROTOTYPE — descartável. 3ª rodada do grill. Não é código de produção.
+
+  O FURO QUE ESTA RODADA CONSERTA
+  O estado (oculto/entrevisto/conhecido) estava no CONTATO, mas conhecer é por
+  PERSONAGEM: o Tobias pode conhecer o Mestre Aldric enquanto a Fofurinha só o
+  entreviu. Um estado por contato não sabe dizer isso.
+  → O estado passou a ser do PAR (contato × personagem). A célula da matriz
+    deixou de ser caixinha de marcar e virou TRI-ESTADO que CICLA no clique:
+        ·  oculto  →  ◐  entrevisto  →  ✓  conhecido  →  ·
+    A coluna "Estado" sumiu da tabela: ela não tinha como existir.
+
+  COMO A REGRA GERAL SOBREVIVE (personagem que ainda nem existe)
+   · Cada contato tem uma REGRA GERAL (o clique no nome do contato, na linha,
+     cicla ela e alinha a linha inteira).
+   · Uma célula clicada vira EXCEÇÃO daquele personagem, e aparece com o
+     símbolo sublinhado.
+   · Personagem criado depois nasce com a REGRA GERAL de cada contato — é o
+     que faz o "entrou jogador novo" ser um clique, não trinta.
+   · O clique no nome do personagem (topo da coluna) cicla a coluna inteira,
+     gravando exceções — é o ajuste fino de quem chegou agora.
+
+  OUTRAS DECISÕES DESTA RODADA
+   · O Mestre NÃO configura mais nada no cartão da aba: sumiu a barra de
+     estado/quem dos cartões. Configuração de conhecimento vive num lugar só,
+     a janela "Quem conhece quem".
+   · Essa janela é aberta por um RODAPÉ FIXO do painel, que existe só para o
+     Mestre — não rola com a lista, não aparece para jogador.
+   · CATEGORIAS: o jogador agrupa seus conhecidos como quiser (cidade, nível de
+     confiança, o que for). Criar, renomear, excluir e mover são dele; o Mestre
+     tem as dele, e não enxerga nem administra as dos jogadores. Contato sem
+     categoria cai em "Sem categoria", que só aparece quando tem alguém.
+     Um contato está em UMA categoria (mover, não marcar): em 300px, contato
+     repetido em duas listas é confusão garantida.
+   · Com dois personagens, o jogador vê a UNIÃO — e o estado que vale é o
+     MAIOR dos dois (conhecido > entrevisto > oculto).
+
+  MANTIDO DA RODADA ANTERIOR
+   · vida não aparece para ninguém · anotação só na ficha (privada) ·
+     título editável aqui (✎) · sub-personagem encapsulado no dono ·
+     contrato de condição (cor por tom, valor colado, ajuda no hover, ordem
+     fixa, teto 2 + "+N", sem ícone) — ver bloco abaixo.
+
+  ════════════════════════════════════════════════════════════════════════════
+  CONTRATO DE EXIBIÇÃO DE CONDIÇÃO  (inalterado — vai para a spec)
+  ════════════════════════════════════════════════════════════════════════════
+  A aba não conhece condição nenhuma: pinta o que o SISTEMA declarou.
+  `ConditionDefinition` já existe (packages/system-api/src/registries.ts:90 —
+  slug, label, img, valued?, effects?, overrides?) e systems/pf2e/src/
+  conditions.ts declara ~35 condições reais. FALTAM, e esta spec acrescenta
+  como emenda à 15:  tone: "benefit"|"harm"|"special" · help: string ·
+  critical?: boolean.
+   1. COR — verde ajuda quem carrega, vermelho atrapalha, roxo é situação
+      (detecção/atitude/controle). `critical` PREENCHE o chip (não é 4ª cor) e
+      é só para o que tira da cena: Morrendo, Inconsciente, Paralisado.
+   2. NÚMERO — quando `valued`, o valor é parte do rótulo ("Amedrontado 2"),
+      tabular, colado. Nunca parênteses, badge à parte ou chip duplicado.
+   3. AJUDA — tooltip DESENHADO no hover, texto vindo do sistema.
+   4. FALHA ABERTA — sem `help`, chip sem tooltip; sem `tone`, cai em special.
+      Declaração incompleta nunca esconde condição de quem a tem.
+   5. ORDEM — crítica → penalidade → situação → benefício, alfabética dentro.
+   6. TETO — 2 + "+N", expande no lugar, reticências com nome no tooltip.
+   7. SEM ÍCONE na aba (arte da Paizo é proibida no projeto).
+-->
+    <style>
+      :root {
+        --bg: #0e0e12;
+        --surface: #18181f;
+        --surface-alt: #1f1f2a;
+        --border: #2e2e3d;
+        --text: #e8e8f0;
+        --muted: #8888a0;
+        --subtle: #55556a;
+        --accent: #7c5cfc;
+        --accent-hover: #9b7ffe;
+        --accent-dim: rgba(124, 92, 252, 0.15);
+        --danger: #ff5c5c;
+        --warn: #e5b83b;
+        --ok: #3ddc84;
+        --special: #b98cff;
+        --radius-sm: 4px;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+        --header: 48px;
+        --panel-w: 300px;
+        --rail-w: 44px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 14px;
+        overflow: hidden;
+      }
+
+      /* ---------- App shell (mock) ---------- */
+      .header {
+        height: var(--header);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        z-index: 200;
+      }
+      .header .bolt {
+        color: #f5a623;
+      }
+      .header .world {
+        font-weight: 600;
+      }
+      .header .pill {
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        color: var(--accent-hover);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .header .spacer {
+        flex: 1;
+      }
+      .header .status {
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+      .header .who {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+      }
+      .header .who b {
+        color: var(--danger);
+      }
+      .header .who.player b {
+        color: var(--ok);
+      }
+      .header .btn {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 0.2rem 0.6rem;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+      .stage {
+        position: absolute;
+        top: var(--header);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #0b0b0f;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .stage .art {
+        width: 44vh;
+        height: 44vh;
+        border-radius: 6px;
+        background: radial-gradient(circle at 50% 45%, #2f6bd6 0%, #1a3f8f 55%, #132c68 100%);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 0 0 1px #21407f;
+      }
+      .stage .art .house {
+        width: 60%;
+        height: 60%;
+        background: #fff;
+        clip-path: polygon(50% 0, 100% 40%, 88% 40%, 88% 100%, 12% 100%, 12% 40%, 0 40%);
+        display: grid;
+        place-items: center;
+      }
+      .stage .art .star {
+        font-size: 9vh;
+        color: #e5b83b;
+        margin-top: 22%;
+      }
+      .stage .drop {
+        position: absolute;
+        left: calc(50% - 12vh);
+        top: calc(50% + 7vh);
+        border: 2px dashed var(--accent);
+        border-radius: 6px;
+        padding: 0.2rem 0.5rem;
+        color: var(--accent-hover);
+        font-size: 0.72rem;
+        background: rgba(11, 11, 15, 0.8);
+      }
+
+      /* ---------- Chassi C (spec 36) ---------- */
+      .icon {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        display: block;
+      }
+      .tabbtn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        transition:
+          color 0.12s,
+          background 0.12s;
+      }
+      .tabbtn:hover {
+        color: var(--text);
+      }
+      .tabbtn .badge {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        line-height: 1;
+      }
+      .tabbtn .tip {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.1s;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        z-index: 5;
+      }
+      .tabbtn:hover .tip {
+        opacity: 1;
+      }
+      .sidebar {
+        position: absolute;
+        top: var(--header);
+        right: 0;
+        bottom: 0;
+        display: flex;
+        z-index: 90;
+      }
+      .tabs {
+        width: var(--rail-w);
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .tabbtn {
+        width: 40px;
+        height: 44px;
+        border: 1px solid var(--border);
+        border-right: 0;
+        border-radius: var(--radius) 0 0 var(--radius);
+        background: var(--surface-alt);
+        color: var(--muted);
+      }
+      .tabs .tabbtn.is-active {
+        background: var(--surface);
+        color: var(--accent-hover);
+        width: 44px;
+        border-color: var(--accent);
+        z-index: 2;
+      }
+      .is-open .tabs .tabbtn.is-active {
+        box-shadow: 1px 0 0 0 var(--surface);
+      }
+      .tabs .tabbtn.is-active .icon {
+        width: 22px;
+        height: 22px;
+      }
+      .tabs .grp {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .grp.gm {
+        margin-top: 14px;
+        position: relative;
+      }
+      .tabs .grp.gm::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .tabs .grp.gm .tabbtn {
+        border-color: rgba(255, 92, 92, 0.35);
+      }
+      .tabs .foot {
+        margin-top: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .foot::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .panel {
+        width: var(--panel-w);
+        background: var(--surface);
+        border-left: 1px solid var(--accent);
+        display: none;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+      .is-open .panel {
+        display: flex;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.5rem;
+        border-bottom: 1px solid var(--accent-dim);
+        flex: 0 0 auto;
+      }
+      .panel-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 0.15rem 0.3rem;
+        flex: 1;
+      }
+      .panel-body {
+        flex: 1;
+        overflow: auto;
+        padding: 0.5rem 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        min-height: 0;
+      }
+      .panel-body::-webkit-scrollbar {
+        width: 8px;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: var(--surface-alt);
+        border-radius: 99px;
+      }
+      /* rodapé FIXO do painel — só existe para o Mestre */
+      .panel-foot {
+        flex: 0 0 auto;
+        border-top: 1px solid var(--border);
+        background: var(--surface-alt);
+        padding: 0.4rem 0.5rem;
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+      }
+
+      /* ---------- Peças ---------- */
+      .search {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.4rem;
+      }
+      .search:focus-within {
+        border-color: var(--accent);
+      }
+      .search input {
+        flex: 1;
+        min-width: 0;
+        background: none;
+        border: 0;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.8rem;
+        padding: 0.15rem 0;
+        outline: none;
+      }
+      .search .mag {
+        color: var(--subtle);
+        display: grid;
+        place-items: center;
+      }
+      .search .mag .icon {
+        width: 13px;
+        height: 13px;
+      }
+      .hbtn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: var(--radius-sm);
+        height: 26px;
+        min-width: 26px;
+        padding: 0 0.45rem;
+        font: inherit;
+        font-size: 0.72rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        justify-content: center;
+      }
+      .hbtn:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .hbtn.wide {
+        flex: 1;
+      }
+      .hbtn .icon {
+        width: 14px;
+        height: 14px;
+      }
+
+      .sec {
+        margin: 0.6rem 0 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0 0.2rem;
+      }
+      .sec:first-child {
+        margin-top: 0.1rem;
+      }
+      .sec .lbl {
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--subtle);
+      }
+      .sec .cnt {
+        font-size: 0.66rem;
+        color: var(--subtle);
+        background: var(--surface-alt);
+        border-radius: 999px;
+        padding: 0 0.35rem;
+      }
+      .sec .line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .sec.click {
+        cursor: pointer;
+      }
+      .sec.click:hover .lbl {
+        color: var(--muted);
+      }
+      .sec .add {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.68rem;
+        padding: 0 0.15rem;
+      }
+      .sec .add:hover {
+        color: var(--accent-hover);
+      }
+      /* categoria: um degrau abaixo da seção */
+      .cat {
+        margin: 0.45rem 0 0.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0 0.2rem 0 0.35rem;
+        border-left: 2px solid var(--border);
+      }
+      .cat .nm {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .cat .nm:hover {
+        color: var(--text);
+      }
+      .cat .cnt {
+        font-size: 0.64rem;
+        color: var(--subtle);
+      }
+      .cat .tools {
+        margin-left: auto;
+        display: flex;
+        gap: 0.1rem;
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      .cat:hover .tools {
+        opacity: 1;
+      }
+      .cat .tools button {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 0 0.15rem;
+      }
+      .cat .tools button:hover {
+        color: var(--accent-hover);
+      }
+      .cat input {
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.7rem;
+        padding: 0.05rem 0.3rem;
+        outline: none;
+        flex: 1;
+        min-width: 0;
+      }
+      .cat.vazia .nm {
+        color: var(--subtle);
+        font-style: italic;
+      }
+
+      .av {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: #0b0b0f;
+        position: relative;
+      }
+      .av.sm {
+        width: 22px;
+        height: 22px;
+        font-size: 0.62rem;
+      }
+      .av.q {
+        background: #2a2a38 !important;
+        color: var(--subtle);
+        font-size: 1rem;
+      }
+      .av .pres {
+        position: absolute;
+        right: -1px;
+        bottom: -1px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid var(--surface-alt);
+        background: var(--subtle);
+      }
+      .av .pres.on {
+        background: var(--ok);
+      }
+
+      .card {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.45rem 0.5rem;
+        margin-bottom: 0.35rem;
+      }
+      .card.mine {
+        border-color: rgba(124, 92, 252, 0.5);
+        background: rgba(124, 92, 252, 0.07);
+      }
+      .card.gone {
+        opacity: 0.6;
+      }
+      .card.npc {
+        margin-left: 0.35rem;
+      }
+      .card .top {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+      }
+      .card .idt {
+        flex: 1;
+        min-width: 0;
+      }
+      .card .nm {
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+      }
+      .card .move {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        font-size: 0.8rem;
+        opacity: 0;
+        transition: opacity 0.12s;
+        flex: 0 0 auto;
+      }
+      .card:hover .move {
+        opacity: 1;
+      }
+      .card .move:hover {
+        color: var(--accent-hover);
+      }
+      .ttl {
+        font-size: 0.72rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+      .ttl > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ttl .pen {
+        color: var(--subtle);
+        font-size: 0.68rem;
+        flex: 0 0 auto;
+        cursor: text;
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      .card:hover .ttl .pen {
+        opacity: 1;
+      }
+      .ttl.fallback > span {
+        color: var(--subtle);
+        font-style: italic;
+      }
+      .ttl input {
+        flex: 1;
+        min-width: 0;
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.1rem 0.3rem;
+        outline: none;
+      }
+
+      /* menu de mover para categoria */
+      .movemenu {
+        margin-top: 0.4rem;
+        padding-top: 0.4rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+      .movemenu button {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.66rem;
+        padding: 0.05rem 0.45rem;
+        cursor: pointer;
+      }
+      .movemenu button:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .movemenu button.on {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        background: var(--accent-dim);
+      }
+      .movemenu input {
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.66rem;
+        padding: 0.05rem 0.45rem;
+        outline: none;
+        width: 120px;
+      }
+
+      /* --- condições --- */
+      .conds {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        margin-top: 0.4rem;
+      }
+      .chip {
+        font-size: 0.64rem;
+        border-radius: 999px;
+        padding: 0.05rem 0.4rem;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        white-space: nowrap;
+        max-width: 118px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: default;
+      }
+      .chip .v {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .chip.harm {
+        border-color: rgba(255, 92, 92, 0.5);
+        color: #ff9a9a;
+        background: rgba(255, 92, 92, 0.08);
+      }
+      .chip.benefit {
+        border-color: rgba(61, 220, 132, 0.5);
+        color: var(--ok);
+        background: rgba(61, 220, 132, 0.08);
+      }
+      .chip.special {
+        border-color: rgba(185, 140, 255, 0.5);
+        color: var(--special);
+        background: rgba(185, 140, 255, 0.1);
+      }
+      .chip.crit {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: #160608;
+        font-weight: 700;
+      }
+      .chip.you {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        background: var(--accent-dim);
+        max-width: none;
+      }
+      .chip.off {
+        color: var(--subtle);
+      }
+      .chip.more {
+        cursor: pointer;
+        border-style: dashed;
+        color: var(--subtle);
+      }
+      .chip.more:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .chip.st {
+        border-color: rgba(229, 184, 59, 0.45);
+        color: var(--warn);
+      }
+      .chip.count {
+        border-style: dashed;
+        color: var(--subtle);
+      }
+
+      #tip {
+        position: fixed;
+        z-index: 9998;
+        max-width: 230px;
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.5rem;
+        font-size: 0.72rem;
+        line-height: 1.4;
+        color: var(--text);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        pointer-events: none;
+        display: none;
+      }
+      #tip b {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      #tip .tone {
+        color: var(--subtle);
+        font-size: 0.66rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+
+      /* sub-personagem encapsulado */
+      .sub {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.35rem 0 0 0.3rem;
+        padding: 0.15rem 0.3rem 0.15rem 0.4rem;
+        border-left: 2px solid var(--border);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        cursor: pointer;
+      }
+      .sub:hover {
+        background: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--accent);
+      }
+      .sub .nm {
+        font-size: 0.76rem;
+        color: var(--text);
+      }
+      .sub .sb {
+        font-size: 0.66rem;
+        color: var(--subtle);
+        margin-left: auto;
+      }
+      .sub .conds {
+        margin-top: 0;
+      }
+
+      .vazio {
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 0.9rem;
+        text-align: center;
+        color: var(--subtle);
+        font-size: 0.78rem;
+        line-height: 1.55;
+        margin: 0.6rem 0.1rem;
+      }
+      .vazio b {
+        color: var(--muted);
+      }
+      .hint {
+        color: var(--subtle);
+        font-size: 0.7rem;
+        text-align: center;
+        padding: 0.6rem 0.3rem 0;
+        line-height: 1.45;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: var(--radius-sm);
+        color: var(--muted);
+      }
+      .row:hover {
+        background: var(--surface-alt);
+      }
+      .row .name {
+        color: var(--text);
+        font-size: 0.82rem;
+      }
+      .row .sub2 {
+        color: var(--subtle);
+        font-size: 0.75rem;
+        margin-left: auto;
+      }
+      .empty {
+        text-align: center;
+        padding: 1.5rem 0 0.75rem;
+        color: var(--muted);
+      }
+
+      /* janela (spec 11) */
+      .win {
+        position: fixed;
+        top: 90px;
+        left: calc(50% - 300px);
+        width: 600px;
+        background: var(--surface);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+        z-index: 500;
+        overflow: hidden;
+      }
+      .win .wh {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.6rem;
+        background: var(--surface-alt);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .win .wh .x {
+        margin-left: auto;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .win .wb {
+        padding: 0.7rem 0.8rem 0.9rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        max-height: 64vh;
+        overflow: auto;
+      }
+      .win .wb b {
+        color: var(--text);
+      }
+      .keys {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 0.2rem;
+        font-size: 0.74rem;
+      }
+      .keys span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--subtle);
+      }
+      .keys i {
+        font-style: normal;
+        font-size: 0.95rem;
+        width: 1.1rem;
+        text-align: center;
+      }
+      .k0 {
+        color: var(--subtle);
+      }
+      .k1 {
+        color: var(--warn);
+      }
+      .k2 {
+        color: var(--ok);
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .matrix th,
+      .matrix td {
+        border: 1px solid var(--border);
+        padding: 0.2rem 0.35rem;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .matrix thead th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.72rem;
+        background: var(--surface-alt);
+        cursor: pointer;
+        user-select: none;
+      }
+      .matrix thead th:hover {
+        color: var(--accent-hover);
+      }
+      .matrix thead th:first-child {
+        cursor: default;
+        text-align: left;
+      }
+      .matrix thead th:first-child:hover {
+        color: var(--muted);
+      }
+      .matrix thead th small {
+        display: block;
+        color: var(--subtle);
+        font-size: 0.62rem;
+        font-weight: 400;
+      }
+      .matrix td.nm {
+        text-align: left;
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .matrix td.nm:hover {
+        color: var(--accent-hover);
+      }
+      .matrix td.nm small {
+        display: block;
+        color: var(--subtle);
+        font-size: 0.65rem;
+      }
+      .matrix td button.cell {
+        background: none;
+        border: 0;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 100%;
+        line-height: 1.3;
+        border-radius: var(--radius-sm);
+      }
+      .matrix td button.cell:hover {
+        background: var(--surface-alt);
+      }
+      .matrix td button.cell.ex {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .win .note {
+        margin-top: 0.65rem;
+        color: var(--subtle);
+        font-size: 0.72rem;
+        line-height: 1.5;
+      }
+
+      /* ---------- Switcher + legenda ---------- */
+      .switcher {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff;
+        color: #111;
+        border-radius: 999px;
+        padding: 0.35rem 0.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .switcher button {
+        border: 0;
+        background: #111;
+        color: #fff;
+        height: 28px;
+        padding: 0 0.7rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 600;
+      }
+      .switcher button.alt {
+        background: #5a4bd6;
+      }
+      .legend {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.96);
+        color: #111;
+        border-radius: 10px;
+        padding: 0.6rem 0.7rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+        font-size: 0.72rem;
+        max-width: 385px;
+        line-height: 1.45;
+      }
+      .legend h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.78rem;
+      }
+      .legend td {
+        padding: 0.12rem 0.25rem;
+        vertical-align: top;
+      }
+      .legend td:first-child {
+        color: #666;
+        white-space: nowrap;
+      }
+      .legend b {
+        color: #111;
+      }
+      .legend .sw {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-right: 0.2rem;
+      }
+      .legend .q {
+        margin-top: 0.45rem;
+        padding-top: 0.4rem;
+        border-top: 1px solid #ddd;
+        color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="bolt">⚡</span><span class="world">teste_xande</span
+      ><span class="pill">🗺 aha</span>
+      <span class="spacer"></span>
+      <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+      <span class="who" id="who"></span>
+      <button class="btn">Sair</button>
+    </div>
+    <div class="stage">
+      <div class="art">
+        <div class="house"><div class="star">★</div></div>
+      </div>
+      <div class="drop">arraste um contato para cá → vira token</div>
+    </div>
+
+    <div id="root"></div>
+    <div id="float"></div>
+    <div id="tip"></div>
+
+    <div class="switcher">
+      <button id="role">papel</button>
+      <button id="flood" class="alt">condições</button>
+      <button id="newbie" class="alt">jogador novo</button>
+      <button id="state">estado</button>
+    </div>
+    <div class="legend" id="legend"></div>
+
+    <script>
+      /* ================= chassi (spec 36) ================= */
+      const ICONS = {
+        chat: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+        contacts:
+          '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+        combat:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+        compendium:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+        npcs: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+        scenes:
+          '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+        settings:
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+      };
+      const UI_ICON = {
+        search:
+          '<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>',
+        sheet:
+          '<svg class="icon" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+        grid: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
+      };
+      const TABS = [
+        { id: "chat", label: "Chat", group: "all", badge: "3" },
+        { id: "contacts", label: "Contatos", group: "all" },
+        { id: "combat", label: "Combate", group: "all" },
+        { id: "compendium", label: "Compêndio", group: "all" },
+        { id: "npcs", label: "NPCs", group: "gm" },
+        { id: "scenes", label: "Cenas", group: "gm" },
+        { id: "settings", label: "Configurações", group: "all", foot: true },
+      ];
+      const TITLE = {
+        chat: "Chat",
+        contacts: "Contatos",
+        combat: "Combate",
+        compendium: "Compêndio",
+        npcs: "NPCs",
+        scenes: "Cenas",
+        settings: "Configurações",
+      };
+      const OTHER = {
+        chat: `<div class="row"><span class="name">Fofurinha</span><span class="sub2">21:14</span></div>`,
+        combat: `<p class="empty">Nenhum combate ativo.</p>`,
+        compendium: `<div class="row"><span class="name">Talentos</span><span class="sub2">1.812</span></div>`,
+        npcs: `<div class="row"><span class="name">Mestre Aldric</span><span class="sub2">npc</span></div>
+    <div class="row"><span class="name">Vess, a Corvo</span><span class="sub2">npc</span></div>`,
+        scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
+        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">›</span></div>`,
+      };
+
+      /* ================= condições (contrato no topo) ================= */
+      const COND = {
+        dying: {
+          lb: "Morrendo",
+          valued: true,
+          tone: "harm",
+          critical: true,
+          help: "Inconsciente e perto da morte. O valor sobe a cada golpe que chega.",
+        },
+        unconscious: {
+          lb: "Inconsciente",
+          tone: "harm",
+          critical: true,
+          help: "Caído e sem agir; não percebe o que acontece em volta.",
+        },
+        paralyzed: {
+          lb: "Paralisado",
+          tone: "harm",
+          critical: true,
+          help: "Não age e fica desprevenido; a mente continua acordada.",
+        },
+        frightened: {
+          lb: "Amedrontado",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade igual ao valor em testes e CDs. Cai 1 ao fim do seu turno.",
+        },
+        wounded: {
+          lb: "Ferido",
+          valued: true,
+          tone: "harm",
+          help: "Se cair de novo, você começa a Morrer num grau pior.",
+        },
+        enfeebled: {
+          lb: "Enfraquecido",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade igual ao valor no que depende de Força.",
+        },
+        slowed: {
+          lb: "Lento",
+          valued: true,
+          tone: "harm",
+          help: "Começa o turno com menos ações, igual ao valor.",
+        },
+        sickened: {
+          lb: "Enjoado",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade em tudo; não consegue ingerir nada enquanto durar.",
+        },
+        dazzled: {
+          lb: "Ofuscado",
+          tone: "harm",
+          help: "Tudo além de bem perto conta como encoberto para você.",
+        },
+        grabbed: {
+          lb: "Agarrado",
+          tone: "harm",
+          help: "Preso no lugar e desprevenido até conseguir se soltar.",
+        },
+        "persistent-damage": {
+          lb: "Dano persistente",
+          valued: true,
+          tone: "harm",
+          help: "Sofre o dano no fim do turno até apagar a fonte.",
+        },
+        quickened: {
+          lb: "Acelerado",
+          tone: "benefit",
+          help: "Uma ação extra por turno, limitada ao que a fonte permite.",
+        },
+        invisible: {
+          lb: "Invisível",
+          tone: "special",
+          help: "Indetectado por quem depende da visão, até ser localizado.",
+        },
+        hidden: {
+          lb: "Escondido",
+          tone: "special",
+          help: "Sabem mais ou menos onde você está, mas não conseguem te ver.",
+        },
+      };
+      const TONE_LB = { harm: "penalidade", benefit: "benefício", special: "situação" };
+      const ORDER = { crit: 0, harm: 1, special: 2, benefit: 3 };
+      const condRank = (c) => {
+        const d = COND[c.slug] || {};
+        return d.critical ? ORDER.crit : ORDER[d.tone || "special"];
+      };
+      const sortConds = (list) =>
+        [...list].sort(
+          (a, b) =>
+            condRank(a) - condRank(b) ||
+            (COND[a.slug]?.lb || a.slug).localeCompare(COND[b.slug]?.lb || b.slug, "pt-BR"),
+        );
+
+      /* ================= dados mock ================= */
+      const PCS = [
+        {
+          id: "c1",
+          name: "Fofurinha",
+          title: "A Voz do Bosque",
+          cls: "Druida 5",
+          owner: "Alexandre",
+          online: true,
+          conds: [{ slug: "frightened", v: 2 }, { slug: "wounded", v: 1 }, { slug: "hidden" }],
+        },
+        {
+          id: "c2",
+          name: "Tobias",
+          title: "Escudo da Ponte",
+          cls: "Guerreiro 5",
+          owner: "Tobias",
+          online: true,
+          conds: [{ slug: "quickened" }],
+        },
+        {
+          id: "c3",
+          name: "Nima",
+          title: "",
+          cls: "Ladina 5",
+          owner: "Nima",
+          online: false,
+          conds: [{ slug: "enfeebled", v: 1 }],
+        },
+      ];
+      const NEWBIE = {
+        id: "c4",
+        name: "Rurik",
+        title: "",
+        cls: "Clérigo 4",
+        owner: "Rurik",
+        online: true,
+        conds: [],
+      };
+      const COLOR = {
+        c1: "#7c5cfc",
+        c2: "#3ddc84",
+        c3: "#e5b83b",
+        c4: "#d97b5a",
+        p1: "#9b7ffe",
+        p2: "#63c98f",
+        n1: "#c08457",
+        n2: "#6ea8d8",
+        n3: "#5b5b70",
+        n4: "#8a6ea8",
+      };
+      const SUBS = [
+        { id: "p1", of: "c1", name: "Grão", kind: "Familiar", conds: [{ slug: "dying", v: 1 }] },
+        { id: "p2", of: "c2", name: "Bruta", kind: "Companheiro animal", conds: [] },
+      ];
+      const NPCS = [
+        { id: "n1", name: "Mestre Aldric", title: "Ferreiro da Vila do Cruzamento" },
+        { id: "n2", name: "Capitã Roswyn", title: "Guarda da Fortaleza" },
+        { id: "n3", name: "Vess, a Corvo", title: "Informante do porto" },
+        { id: "n4", name: "Irmão Calvo", title: "Cultista do Verme" },
+      ];
+      const FLOOD = [
+        { slug: "dying", v: 2 },
+        { slug: "frightened", v: 3 },
+        { slug: "enfeebled", v: 2 },
+        { slug: "slowed", v: 1 },
+        { slug: "sickened", v: 1 },
+        { slug: "dazzled" },
+        { slug: "grabbed" },
+        { slug: "quickened" },
+        { slug: "invisible" },
+        { slug: "persistent-damage", v: 5 },
+      ];
+
+      /* ================= conhecimento: estado POR PAR =================
+   0 oculto · 1 entrevisto · 2 conhecido
+   `rule[npc]`   = regra geral do contato (vale para personagem sem exceção,
+                   inclusive os que ainda não existem)
+   `ex[npc][pc]` = exceção daquele personagem                                */
+      const ST = ["oculto", "entrevisto", "conhecido"];
+      const SYM = ["·", "◐", "✓"];
+      let rule = { n1: 1, n2: 0, n3: 1, n4: 0 };
+      let ex = { n1: { c2: 2 }, n2: { c1: 2 }, n3: {}, n4: {} };
+      const know = (npc, pc) => (ex[npc] && ex[npc][pc] != null ? ex[npc][pc] : rule[npc]);
+      const isEx = (npc, pc) => !!(ex[npc] && ex[npc][pc] != null);
+      function setKnow(npc, pc, v) {
+        ex[npc] = ex[npc] || {};
+        if (v === rule[npc]) delete ex[npc][pc];
+        else ex[npc][pc] = v;
+      }
+
+      /* ================= estado da UI ================= */
+      const params = new URLSearchParams(location.search);
+      let role = params.get("role") === "gm" ? "gm" : "player";
+      let flood = params.get("flood") === "1";
+      let newbie = params.get("newbie") === "1";
+      let empty = params.get("state") === "empty";
+
+      let active = "contacts",
+        open = true,
+        query = "",
+        win = null;
+      let collapsed = {},
+        expandConds = {},
+        editTitle = null,
+        moveFor = null,
+        newCatFor = null,
+        renameCat = null;
+
+      let titles = Object.fromEntries([...PCS, NEWBIE].map((p) => [p.id, p.title]));
+      /* categorias são DO USUÁRIO que organiza (jogador ou Mestre), nunca do mundo */
+      let cats = { player: ["Vila do Cruzamento", "Gente de confiança"], gm: [] };
+      let catOf = { player: { n1: "Vila do Cruzamento" }, gm: {} };
+      const myCats = () => cats[role === "gm" ? "gm" : "player"];
+      const myCatOf = () => catOf[role === "gm" ? "gm" : "player"];
+
+      const USER = () => (role === "gm" ? "Gamemaster" : "Alexandre");
+      const ROSTER = () => (newbie ? [...PCS, NEWBIE] : PCS);
+      const MYPCS = () => (role === "gm" ? [] : ROSTER().filter((p) => p.owner === USER()));
+      const OTHERS = () => (role === "gm" ? ROSTER() : ROSTER().filter((p) => p.owner !== USER()));
+      const subsOf = (id) => SUBS.filter((s) => s.of === id);
+      const initials = (n) => n.trim().slice(0, 2);
+      const match = (o) =>
+        !query || (o.name + " " + (o.title || "")).toLowerCase().includes(query.toLowerCase());
+      const condsOf = (p) => (flood && p.id === "c1" ? FLOOD : p.conds || []);
+      const canEditTitle = (p) => role === "gm" || p.owner === USER();
+
+      /* união: o estado que vale para o jogador é o MAIOR entre seus personagens */
+      function myState(npcId) {
+        if (role === "gm") return 2;
+        return MYPCS().reduce((max, p) => Math.max(max, know(npcId, p.id)), 0);
+      }
+      /* para o Mestre: quantos personagens conhecem/entreviram */
+      function reach(npcId) {
+        const r = ROSTER().map((p) => know(npcId, p.id));
+        return {
+          k: r.filter((v) => v === 2).length,
+          g: r.filter((v) => v === 1).length,
+          t: r.length,
+        };
+      }
+
+      /* ================= peças ================= */
+      function avatar(o, id, cls = "") {
+        const pres =
+          o.online === undefined ? "" : `<span class="pres ${o.online ? "on" : ""}"></span>`;
+        return `<span class="av ${cls}" style="background:${COLOR[id] || "#3a3a4a"}">${initials(o.name)}${pres}</span>`;
+      }
+      const avatarQ = (cls = "") => `<span class="av q ${cls}">?</span>`;
+      function sec(label, count, key, extra = "") {
+        return `<div class="sec ${key ? "click" : ""}" ${key ? `data-sec="${key}"` : ""}>
+    ${key ? `<span class="lbl" style="color:var(--subtle)">${collapsed[key] ? "▸" : "▾"}</span>` : ""}
+    <span class="lbl">${label}</span>${count != null ? `<span class="cnt">${count}</span>` : ""}
+    <span class="line"></span>${extra}</div>`;
+      }
+      function titleLine(p) {
+        const t = titles[p.id];
+        if (editTitle === p.id)
+          return `<div class="ttl"><input id="titleinput" value="${t || ""}" placeholder="um título para ${p.name}"/></div>`;
+        return `<div class="ttl ${t ? "" : "fallback"}"><span>${t || p.cls || "—"}</span>
+    ${canEditTitle(p) ? `<span class="pen" data-title="${p.id}" title="Editar título">✎</span>` : ""}</div>`;
+      }
+      function chipOf(c) {
+        const d = COND[c.slug] || {};
+        const lb = d.lb || c.slug,
+          tone = d.tone || "special";
+        const val = d.valued && c.v != null ? ` <span class="v">${c.v}</span>` : "";
+        const payload = encodeURIComponent(
+          JSON.stringify({
+            t: lb + (d.valued && c.v != null ? " " + c.v : ""),
+            h: d.help || "",
+            tone: TONE_LB[tone],
+          }),
+        );
+        return `<span class="chip ${tone} ${d.critical ? "crit" : ""}" data-help="${payload}">${lb}${val}</span>`;
+      }
+      function condsHtml(p) {
+        const list = sortConds(condsOf(p));
+        if (!list.length) return "";
+        const openAll = expandConds[p.id];
+        const show = openAll ? list : list.slice(0, 2);
+        const rest = list.length - show.length;
+        return `<div class="conds">${show.map(chipOf).join("")}
+    ${rest > 0 ? `<span class="chip more" data-conds="${p.id}">+${rest}</span>` : ""}
+    ${openAll && list.length > 2 ? `<span class="chip more" data-conds="${p.id}">menos</span>` : ""}</div>`;
+      }
+
+      /* ================= corpo da aba ================= */
+      function contactsBody() {
+        if (empty)
+          return role === "gm"
+            ? `<div class="vazio">Nenhum personagem de jogador ainda.<br>Crie um ator, dê posse a um jogador, e ele aparece aqui para a mesa.</div>`
+            : `<div class="vazio">Você ainda não tem personagem nesta mesa.<br>Quando o Mestre te der um, ele aparece aqui — junto de quem você for conhecendo.</div>`;
+
+        const my = MYPCS().filter(match),
+          tb = OTHERS().filter(match);
+        let h = "";
+        h += sec(role === "gm" ? "A mesa" : "Na mesa", my.length + tb.length, "mesa");
+        if (!collapsed["mesa"]) {
+          my.forEach((p) => (h += pcCard(p, true)));
+          tb.forEach((p) => (h += pcCard(p, false)));
+        }
+
+        /* conhecidos: quem o jogador vê (estado > 0), agrupados nas categorias DELE */
+        const visible = NPCS.filter((n) => myState(n.id) > 0).filter((n) =>
+          match({ name: n.name, title: n.title }),
+        );
+        h += sec(
+          "Conhecidos",
+          visible.length,
+          "kn",
+          `<button class="add" data-newcat="1" title="Nova categoria">+ categoria</button>`,
+        );
+        if (!collapsed["kn"]) {
+          if (newCatFor === "new")
+            h += `<div class="cat"><input id="newcatinput" placeholder="nome da categoria"/></div>`;
+          const groups = [
+            ...myCats().map((c) => [c, visible.filter((n) => myCatOf()[n.id] === c)]),
+            [
+              "Sem categoria",
+              visible.filter((n) => !myCatOf()[n.id] || !myCats().includes(myCatOf()[n.id])),
+            ],
+          ];
+          groups.forEach(([name, items]) => {
+            if (name === "Sem categoria" && !items.length) return; /* balde só aparece com gente */
+            h += catHeader(name, items.length);
+            if (!collapsed["cat:" + name]) items.forEach((n) => (h += npcCard(n)));
+          });
+          if (!visible.length)
+            h += `<div class="vazio">Você ainda não conhece ninguém por aqui.<br>Nomes aparecem conforme a história apresenta.</div>`;
+        }
+        return h;
+      }
+      function catHeader(name, count) {
+        const custom = myCats().includes(name);
+        if (renameCat === name)
+          return `<div class="cat"><input id="renameinput" value="${name}"/></div>`;
+        return `<div class="cat ${count ? "" : "vazia"}">
+    <span class="nm" data-sec="cat:${name}">${collapsed["cat:" + name] ? "▸" : "▾"} ${name}</span>
+    <span class="cnt">${count}</span>
+    ${
+      custom
+        ? `<span class="tools">
+      <button data-catup="${name}" title="Subir">▲</button>
+      <button data-catdown="${name}" title="Descer">▼</button>
+      <button data-rename="${name}" title="Renomear">✎</button>
+      <button data-delcat="${name}" title="Excluir categoria (os contatos voltam para Sem categoria)">✕</button></span>`
+        : ""
+    }
+  </div>`;
+      }
+      function pcCard(p, isMine) {
+        return `<div class="card ${isMine ? "mine" : ""} ${p.online ? "" : "gone"}" draggable="true">
+    <div class="top" data-open="${p.name}">${avatar(p, p.id)}
+      <span class="idt"><span class="nm">${p.name}
+        ${isMine ? '<span class="chip you">você</span>' : ""}
+        ${p.online ? "" : '<span class="chip off">fora</span>'}</span>${titleLine(p)}</span>
+    </div>
+    ${condsHtml(p)}
+    ${subsOf(p.id)
+      .map(
+        (s) => `<div class="sub" data-open="${s.name}">${avatar(s, s.id, "sm")}
+      <span class="nm">${s.name}</span><span class="sb">${s.kind}</span>
+      ${(s.conds || []).length ? `<span class="conds" style="margin-left:.3rem">${sortConds(s.conds).slice(0, 1).map(chipOf).join("")}</span>` : ""}
+      </div>`,
+      )
+      .join("")}
+  </div>`;
+      }
+      function npcCard(n) {
+        const st = myState(n.id),
+          veiled = st === 1;
+        const r = reach(n.id);
+        return `<div class="card npc" draggable="${role === "gm"}">
+    <div class="top" data-open="${veiled ? "—" : n.name}">
+      ${veiled ? avatarQ() : avatar(n, n.id)}
+      <span class="idt"><span class="nm">${veiled ? "Não identificado" : n.name}
+        ${veiled ? '<span class="chip st">entrevisto</span>' : ""}
+        ${role === "gm" ? `<span class="chip count" title="quantos personagens conhecem">${r.k}/${r.t} conhecem${r.g ? ` · ${r.g} entreviu` : ""}</span>` : ""}</span>
+        <div class="ttl ${veiled ? "fallback" : ""}"><span>${veiled ? "você o viu, mas não sabe quem é" : n.title}</span></div></span>
+      ${veiled ? "" : `<button class="move" data-move="${n.id}" title="Mover para categoria">🗀</button>`}
+    </div>
+    ${moveFor === n.id ? moveMenu(n) : ""}
+  </div>`;
+      }
+      function moveMenu(n) {
+        const cur = myCatOf()[n.id] || "";
+        return `<div class="movemenu">
+    ${myCats()
+      .map(
+        (c) => `<button class="${cur === c ? "on" : ""}" data-moveto="${n.id}::${c}">${c}</button>`,
+      )
+      .join("")}
+    <button class="${cur ? "" : "on"}" data-moveto="${n.id}::">Sem categoria</button>
+    ${
+      newCatFor === n.id
+        ? `<input id="newcatinput" placeholder="nova categoria"/>`
+        : `<button data-newcat="${n.id}">+ nova…</button>`
+    }
+  </div>`;
+      }
+
+      /* ================= janela: quem conhece quem ================= */
+      function matrixHtml() {
+        const pcs = ROSTER();
+        return `<div class="win"><div class="wh">${UI_ICON.grid} Quem conhece quem<button class="x" data-winclose>✕</button></div>
+    <div class="wb">
+      Cada célula é o par <b>contato × personagem</b> e cicla no clique — por isso o Tobias pode
+      conhecer o Aldric enquanto a Fofurinha só o entreviu.
+      <div class="keys">
+        <span><i class="k0">·</i> oculto — não existe para ele</span>
+        <span><i class="k1">◐</i> entrevisto — viu, não sabe quem é</span>
+        <span><i class="k2">✓</i> conhecido — nome e título</span>
+        <span><i style="text-decoration:underline">✓</i> exceção da regra geral</span>
+      </div>
+      <table class="matrix">
+        <thead><tr><th>Contato <small>clique cicla a linha e vira a regra geral</small></th>
+          ${pcs.map((p) => `<th data-col="${p.id}">${p.name}<small>cicla a coluna</small></th>`).join("")}
+        </tr></thead>
+        <tbody>
+        ${NPCS.map(
+          (n) => `<tr>
+          <td class="nm" data-rowcycle="${n.id}">${n.name}<small>regra geral: ${ST[rule[n.id]]}</small></td>
+          ${pcs
+            .map((p) => {
+              const v = know(n.id, p.id);
+              return `<td><button class="cell k${v} ${isEx(n.id, p.id) ? "ex" : ""}" data-mx="${n.id}::${p.id}">${SYM[v]}</button></td>`;
+            })
+            .join("")}
+        </tr>`,
+        ).join("")}
+        </tbody></table>
+      <div class="note">A <b>regra geral</b> é o que vale para quem não tem exceção — inclusive o
+        personagem que ainda vai ser criado. Por isso "entrou jogador novo" é um clique na coluna
+        dele, e não trinta cliques célula a célula.</div>
+    </div></div>`;
+      }
+      function winHtml() {
+        if (!win) return "";
+        if (win === "matrix") return matrixHtml();
+        return `<div class="win" style="width:460px;left:calc(50% - 230px)">
+    <div class="wh">${UI_ICON.sheet} Ficha — ${win}<button class="x" data-winclose>✕</button></div>
+    <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11) — §7.5 do
+      contrato da spec-mãe.<br><br>É aqui que vive a <b>anotação</b>, privada de quem escreveu.</div></div>`;
+      }
+
+      /* ================= render ================= */
+      function contactsHead() {
+        return `<div class="panel-head">
+    <div class="search"><span class="mag">${UI_ICON.search}</span>
+      <input id="q" placeholder="Procurar contato" value="${query}"/></div>
+  </div>`;
+      }
+      function tabButton(t) {
+        const badge = t.badge ? `<span class="badge">${t.badge}</span>` : "";
+        return `<button class="tabbtn ${active === t.id && open ? "is-active" : ""}" data-tab="${t.id}" aria-label="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+      }
+      function render() {
+        const isGm = role === "gm";
+        if (!isGm && ["npcs", "scenes"].includes(active)) active = "contacts";
+        const all = TABS.filter((t) => t.group === "all" && !t.foot),
+          gms = TABS.filter((t) => t.group === "gm" && isGm),
+          foot = TABS.filter((t) => t.foot);
+
+        const head =
+          active === "contacts"
+            ? contactsHead()
+            : `<div class="panel-head"><span class="panel-title">${TITLE[active]}</span></div>`;
+        const body =
+          active === "contacts"
+            ? `<div class="panel-body">${contactsBody()}</div>`
+            : `<div class="panel-body">${OTHER[active] || ""}</div>`;
+        /* rodapé fixo: só Mestre, só na aba Contatos */
+        const footer =
+          active === "contacts" && isGm
+            ? `<div class="panel-foot"><button class="hbtn wide" id="matrix">${UI_ICON.grid} Quem conhece quem</button></div>`
+            : "";
+
+        document.getElementById("root").innerHTML = `
+    <div class="${open ? "is-open" : ""}"><aside class="sidebar">
+      <nav class="tabs">
+        <div class="grp">${all.map(tabButton).join("")}</div>
+        ${gms.length ? `<div class="grp gm">${gms.map(tabButton).join("")}</div>` : ""}
+        <div class="foot">${foot.map(tabButton).join("")}</div>
+      </nav>
+      <div class="panel">${head}${body}${footer}</div>
+    </aside></div>`;
+        document.getElementById("float").innerHTML = winHtml();
+
+        const who = document.getElementById("who");
+        who.className = isGm ? "who" : "who player";
+        who.innerHTML = isGm
+          ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+          : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha)</span>';
+
+        hideTip();
+        wire();
+        paintSwitcher();
+        const u = new URL(location);
+        u.searchParams.set("role", role);
+        u.searchParams.set("flood", flood ? "1" : "0");
+        u.searchParams.set("newbie", newbie ? "1" : "0");
+        u.searchParams.set("state", empty ? "empty" : "full");
+        history.replaceState(null, "", u);
+      }
+
+      /* ================= tooltip ================= */
+      const tipEl = () => document.getElementById("tip");
+      function showTip(el) {
+        let d;
+        try {
+          d = JSON.parse(decodeURIComponent(el.dataset.help));
+        } catch {
+          return;
+        }
+        const t = tipEl();
+        t.innerHTML = `<b>${d.t}</b>${d.h || '<i style="color:var(--subtle)">sem texto de ajuda declarado</i>'}<span class="tone">${d.tone}</span>`;
+        t.style.display = "block";
+        const r = el.getBoundingClientRect(),
+          tr = t.getBoundingClientRect();
+        t.style.left = Math.max(8, r.left - tr.width - 10) + "px";
+        t.style.top = Math.max(8, r.top - 4) + "px";
+      }
+      function hideTip() {
+        const t = tipEl();
+        if (t) t.style.display = "none";
+      }
+
+      /* ================= eventos ================= */
+      function wire() {
+        const root = document.getElementById("root"),
+          float = document.getElementById("float");
+
+        root.querySelectorAll("[data-tab]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const id = b.dataset.tab;
+              if (open && active === id) {
+                open = false;
+              } else {
+                active = id;
+                open = true;
+              }
+              editTitle = null;
+              moveFor = null;
+              newCatFor = null;
+              renameCat = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-sec]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              collapsed[b.dataset.sec] = !collapsed[b.dataset.sec];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-conds]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              expandConds[b.dataset.conds] = !expandConds[b.dataset.conds];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-help]").forEach((el) => {
+          el.onmouseenter = () => showTip(el);
+          el.onmouseleave = hideTip;
+        });
+
+        /* título */
+        root.querySelectorAll("[data-title]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              editTitle = b.dataset.title;
+              render();
+              const i = document.getElementById("titleinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const ti = document.getElementById("titleinput");
+        if (ti) {
+          ti.onblur = () => {
+            titles[editTitle] = ti.value.trim();
+            editTitle = null;
+            render();
+          };
+          ti.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              ti.blur();
+            }
+            if (e.key === "Escape") {
+              editTitle = null;
+              render();
+            }
+          };
+        }
+
+        /* categorias */
+        root.querySelectorAll("[data-move]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveFor = moveFor === b.dataset.move ? null : b.dataset.move;
+              newCatFor = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-moveto]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const [id, cat] = b.dataset.moveto.split("::");
+              if (cat) myCatOf()[id] = cat;
+              else delete myCatOf()[id];
+              moveFor = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-newcat]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              newCatFor = b.dataset.newcat === "1" ? "new" : b.dataset.newcat;
+              render();
+              const i = document.getElementById("newcatinput");
+              if (i) i.focus();
+            }),
+        );
+        const nc = document.getElementById("newcatinput");
+        if (nc) {
+          nc.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const v = nc.value.trim();
+              if (v) {
+                if (!myCats().includes(v)) myCats().push(v);
+                if (newCatFor !== "new") myCatOf()[newCatFor] = v;
+              }
+              newCatFor = null;
+              moveFor = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              newCatFor = null;
+              render();
+            }
+          };
+          nc.onblur = () => {
+            newCatFor = null;
+            render();
+          };
+        }
+        root.querySelectorAll("[data-rename]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              renameCat = b.dataset.rename;
+              render();
+              const i = document.getElementById("renameinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const rn = document.getElementById("renameinput");
+        if (rn) {
+          rn.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const old = renameCat,
+                v = rn.value.trim();
+              if (v && v !== old) {
+                const arr = myCats();
+                arr[arr.indexOf(old)] = v;
+                Object.keys(myCatOf()).forEach((k) => {
+                  if (myCatOf()[k] === old) myCatOf()[k] = v;
+                });
+              }
+              renameCat = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              renameCat = null;
+              render();
+            }
+          };
+          rn.onblur = () => {
+            renameCat = null;
+            render();
+          };
+        }
+        /* reordenar categorias: a ordem é do jogador, e vive no aparelho junto com elas */
+        const moveCat = (name, dir) => {
+          const arr = myCats(),
+            i = arr.indexOf(name),
+            j = i + dir;
+          if (i < 0 || j < 0 || j >= arr.length) return;
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+          render();
+        };
+        root.querySelectorAll("[data-catup]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveCat(b.dataset.catup, -1);
+            }),
+        );
+        root.querySelectorAll("[data-catdown]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveCat(b.dataset.catdown, +1);
+            }),
+        );
+        root.querySelectorAll("[data-delcat]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const c = b.dataset.delcat,
+                arr = myCats();
+              arr.splice(arr.indexOf(c), 1);
+              Object.keys(myCatOf()).forEach((k) => {
+                if (myCatOf()[k] === c) delete myCatOf()[k];
+              });
+              render();
+            }),
+        );
+
+        root.querySelectorAll("[data-open]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              if (
+                e.target.closest(
+                  "[data-title],[data-conds],[data-move],[data-moveto],[data-newcat],input",
+                )
+              )
+                return;
+              win = b.dataset.open;
+              render();
+            }),
+        );
+        const mx = document.getElementById("matrix");
+        if (mx)
+          mx.onclick = () => {
+            win = "matrix";
+            render();
+          };
+        float.querySelectorAll("[data-winclose]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              win = null;
+              render();
+            }),
+        );
+
+        /* --- matriz tri-estado --- */
+        float.querySelectorAll("[data-mx]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const [npc, pc] = b.dataset.mx.split("::");
+              setKnow(npc, pc, (know(npc, pc) + 1) % 3);
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-rowcycle]").forEach(
+          (td) =>
+            (td.onclick = () => {
+              const npc = td.dataset.rowcycle;
+              rule[npc] = (rule[npc] + 1) % 3;
+              ex[npc] = {}; /* a linha volta a ser uniforme */
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-col]").forEach(
+          (th) =>
+            (th.onclick = () => {
+              const pc = th.dataset.col;
+              const vals = NPCS.map((n) => know(n.id, pc));
+              const uniform = vals.every((v) => v === vals[0]) ? vals[0] : -1;
+              const next = uniform === -1 ? 2 : (uniform + 1) % 3; /* misturado → tudo conhecido */
+              NPCS.forEach((n) => setKnow(n.id, pc, next));
+              render();
+            }),
+        );
+
+        const q = document.getElementById("q");
+        if (q)
+          q.oninput = () => {
+            query = q.value;
+            render();
+            const el = document.getElementById("q");
+            if (el) {
+              el.focus();
+              el.setSelectionRange(query.length, query.length);
+            }
+          };
+      }
+
+      /* ================= switcher / legenda ================= */
+      function paintSwitcher() {
+        document.getElementById("role").textContent =
+          role === "gm" ? "ver como jogador" : "ver como Mestre";
+        document.getElementById("flood").textContent = flood
+          ? "condições: enxurrada"
+          : "condições: normais";
+        document.getElementById("newbie").textContent = newbie
+          ? "mesa: com Rurik (novo)"
+          : "mesa: 3 personagens";
+        document.getElementById("state").textContent = empty
+          ? "estado: vazio"
+          : "estado: com conteúdo";
+
+        document.getElementById("legend").innerHTML = `
+    <h4>Aba Contatos — conhecimento por par, categorias do jogador</h4>
+    <table>
+      <tr><td>conhecer</td><td>estado do <b>par contato × personagem</b>: · oculto → ◐ entrevisto → ✓ conhecido</td></tr>
+      <tr><td>regra geral</td><td>por contato; a célula é <b>exceção</b> (símbolo sublinhado). Personagem novo nasce na regra geral</td></tr>
+      <tr><td>onde se edita</td><td>só em <b>Quem conhece quem</b>, aberto pelo <b>rodapé fixo</b> — que só o Mestre tem</td></tr>
+      <tr><td>categorias</td><td>de quem organiza (jogador ou Mestre), <b>uma por contato</b>; "Sem categoria" só aparece com gente</td></tr>
+      <tr><td>dois personagens</td><td>o jogador vê a <b>união</b>, no estado mais alto dos dois</td></tr>
+      <tr><td>condição</td><td><span class="sw" style="background:#ff5c5c"></span>penalidade
+        <span class="sw" style="background:#3ddc84"></span>benefício
+        <span class="sw" style="background:#b98cff"></span>situação · preenchido = tira da cena</td></tr>
+    </table>
+    <div class="q"><b>experimente:</b> como Mestre, abra o rodapé → o Aldric já está <b>✓ para o Tobias</b> e
+      <b>◐ para a Fofurinha</b> · clique no nome dele (linha) e veja a regra geral mudar ·
+      ligue <b>jogador novo</b> e clique em <b>Rurik</b> no topo · como jogador, use o 🗀 de um conhecido
+      para movê-lo de categoria, ou crie uma nova.</div>
+    <div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>p</b> papel · <b>f</b> condições ·
+      <b>n</b> jogador novo · <b>v</b> vazio</div>`;
+      }
+      document.getElementById("role").onclick = () => {
+        role = role === "gm" ? "player" : "gm";
+        win = null;
+        editTitle = null;
+        moveFor = null;
+        render();
+      };
+      document.getElementById("flood").onclick = () => {
+        flood = !flood;
+        render();
+      };
+      document.getElementById("newbie").onclick = () => {
+        newbie = !newbie;
+        render();
+      };
+      document.getElementById("state").onclick = () => {
+        empty = !empty;
+        render();
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+        if (e.key === "p") {
+          role = role === "gm" ? "player" : "gm";
+          win = null;
+          render();
+        }
+        if (e.key === "f") {
+          flood = !flood;
+          render();
+        }
+        if (e.key === "n") {
+          newbie = !newbie;
+          render();
+        }
+        if (e.key === "v") {
+          empty = !empty;
+          render();
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>
