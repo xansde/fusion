@@ -44,7 +44,7 @@ import { fileURLToPath } from "node:url";
 // r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
 import { acharDuplicatas, formatarErroDeDuplicata } from "./curation/duplicata.mjs";
-import { resolvePackAudience } from "./pack-audience.mjs";
+import { withResolvedAudience } from "./pack-audience.mjs";
 import {
   applyPrerequisiteFixes,
   assertAllPrerequisiteFixesApplied,
@@ -1172,9 +1172,10 @@ function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
   // for every pack — see pack-audience.mjs. It reads the pack's CONTENT, so a
   // creature or hazard pack that does not exist yet is still born `gm`; a slug
   // list would only have covered the packs someone remembered to enumerate.
+  // The caller's manifest does NOT get to declare its own audience: that is the
+  // case-by-case decision REQ-PF2-142 forbids, so the rule overrides it here.
   const finalManifest = {
-    ...manifest,
-    audience: manifest.audience ?? resolvePackAudience(slug, docs),
+    ...withResolvedAudience(manifest, slug, docs),
     documentCount: docs.length,
     generatedAt: new Date().toISOString(),
   };

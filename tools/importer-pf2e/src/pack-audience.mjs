@@ -60,3 +60,28 @@ export function resolvePackAudience(slug, docs) {
   }
   return "all";
 }
+
+/**
+ * Stamp the resolved audience onto a pack manifest, on the way to disk.
+ *
+ * The rule always wins over whatever the caller brought. Honouring an
+ * `audience` declared by the pack's own manifest — as the generator used to,
+ * via `manifest.audience ?? resolvePackAudience(...)` — is precisely the
+ * "plateia decidida caso a caso na geração" that REQ-PF2-142 forbids: one line
+ * in one manifest would have been enough to publish a bestiary to the players
+ * while the central rule kept answering `gm` to nobody. There is exactly one
+ * place to make a pack GM-only, and it is `GM_ONLY_DOCUMENT_TYPES` /
+ * `GM_ONLY_PACK_SLUGS` above.
+ *
+ * Every other manifest field is carried over untouched: the audience is
+ * manifest metadata beside `license` (REQ-PF2-140) and changing it never
+ * touches the documents (REQ-PF2-144, REQ-PF2-145).
+ *
+ * @param {Readonly<Record<string, unknown>>} manifest — the pack's manifest.
+ * @param {string} slug — the pack's directory slug.
+ * @param {ReadonlyArray<{ type?: unknown }>} docs — the documents being written.
+ * @returns {Record<string, unknown>} a copy with `audience` set by the rule.
+ */
+export function withResolvedAudience(manifest, slug, docs) {
+  return { ...manifest, audience: resolvePackAudience(slug, docs) };
+}

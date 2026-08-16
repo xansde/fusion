@@ -2,7 +2,8 @@
  * pack-audience.test.mjs — the audience of a published pack is decided by its
  * CONTENT, not by a list of slugs.
  *
- * REQ-CPD-072, REQ-PF2-141, REQ-PF2-142, REQ-PF2-143.
+ * REQ-CPD-072, REQ-PF2-140, REQ-PF2-141, REQ-PF2-142, REQ-PF2-143, REQ-PF2-144,
+ * REQ-PF2-145.
  *
  * The defect this suite exists for: while the rule was `slug === "bestiary-core"`,
  * every pack the system had not yet published fell through to `"all"`. A second
@@ -21,7 +22,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { resolvePackAudience } from "../pack-audience.mjs";
+import { resolvePackAudience, withResolvedAudience } from "../pack-audience.mjs";
 
 const npc = (name) => ({ _id: name, name, type: "npc", system: {} });
 const hazard = (name) => ({ _id: name, name, type: "hazard", system: {} });
@@ -67,4 +68,65 @@ test("REQ-PF2-141: a malformed document without a type never opens a creature pa
     resolvePackAudience("bestiary-core", [null, { name: "no type" }, npc("Ogre")]),
     "gm",
   );
+});
+
+// ---------------------------------------------------------------------------
+// The manifest does not get a vote.
+//
+// The generator used to finalize a pack with
+// `audience: manifest.audience ?? resolvePackAudience(slug, docs)`. That `??`
+// was a second, undocumented way to set a pack's audience: any manifest that
+// declared one escaped the central rule entirely — the exact "plateia decidida
+// caso a caso na geração" REQ-PF2-142 forbids. No manifest used it, which is
+// why nothing failed; these tests are what keeps it from coming back.
+// ---------------------------------------------------------------------------
+
+test("REQ-PF2-142: a manifest declaring 'all' cannot publish a creature pack to the players", () => {
+  const finalized = withResolvedAudience({ license: "ORC", audience: "all" }, "bestiary-core", [
+    npc("Goblin Warrior"),
+  ]);
+  assert.equal(finalized.audience, "gm");
+});
+
+test("REQ-PF2-142: a manifest declaring 'all' cannot publish a hazard pack to the players", () => {
+  const finalized = withResolvedAudience({ license: "ORC", audience: "all" }, "hazards-core", [
+    hazard("Hidden Pit"),
+  ]);
+  assert.equal(finalized.audience, "gm");
+});
+
+test("REQ-PF2-143: a manifest declaring 'gm' does not close a pack of rules the player needs", () => {
+  const finalized = withResolvedAudience({ license: "ORC", audience: "gm" }, "feats-core", [
+    feat("Assurance"),
+  ]);
+  assert.equal(finalized.audience, "all");
+});
+
+test("REQ-PF2-140: a manifest that declares nothing still comes back with an audience", () => {
+  const finalized = withResolvedAudience({ license: "ORC" }, "spells-core", [feat("Heal")]);
+  assert.equal(finalized.audience, "all");
+});
+
+test("REQ-PF2-140/REQ-PF2-145: only `audience` is touched — the rest of the manifest survives", () => {
+  const manifest = Object.freeze({
+    id: "pf2e.bestiary-core",
+    label: "Bestiário",
+    license: "ORC",
+    system: "pf2e",
+    audience: "all",
+  });
+  const finalized = withResolvedAudience(manifest, "bestiary-core", [npc("Ogre")]);
+
+  assert.deepEqual(finalized, { ...manifest, audience: "gm" });
+  // The caller's manifest is not mutated: audience is metadata written on the
+  // way out, never a rewrite of what the pipeline holds (REQ-PF2-145).
+  assert.equal(manifest.audience, "all");
+});
+
+test("REQ-PF2-144: resolving the audience never touches the documents", () => {
+  const docs = [npc("Goblin Warrior"), npc("Ogre")];
+  const before = JSON.stringify(docs);
+  withResolvedAudience({ license: "ORC" }, "bestiary-core", docs);
+  assert.equal(JSON.stringify(docs), before);
+  assert.equal(docs.length, 2);
 });
