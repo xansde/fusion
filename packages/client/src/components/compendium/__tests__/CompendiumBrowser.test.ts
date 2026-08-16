@@ -180,3 +180,39 @@ describe("CompendiumBrowser — one panel, two bodies, no switch", () => {
     expect(declarationsOf(".compendium-browser__scroll")).toContain("overflow-x: hidden");
   });
 });
+
+// ---------------------------------------------------------------------------
+// REQ-CPD-032 — the way OUT of a truncated group
+// ---------------------------------------------------------------------------
+//
+// The server sends the per-pack tally and the client keeps it
+// (`lib/compendium/__tests__/aggregatedSearch.test.ts`); what is checked here
+// is that the panel spends it — a group that only counts what it hid leaves the
+// reader with no way to reach the rest. `$effect` never runs under the server
+// renderer, so the aggregated body never has data to draw: the wiring is read
+// in the template, where the requirement lives.
+
+describe("a truncated group offers the pack it hid (REQ-CPD-032)", () => {
+  it("REQ-CPD-032: the truncation notice is followed by a control that opens the pack", () => {
+    const template = source().split("<style>")[0] ?? "";
+    const omittedAt = template.indexOf("FUSION.Compendium.Omitted");
+    expect(omittedAt).toBeGreaterThan(-1);
+
+    // The block that says how many were left out also draws one control per
+    // contributing pack, and that control opens the pack in its own scope.
+    const notice = template.slice(omittedAt, omittedAt + 900);
+    expect(notice).toContain("group.packs");
+    expect(notice).toMatch(/openPackById\(tally\.packId, tally\.label\)/);
+    expect(notice).toContain("FUSION.Compendium.OpenPackWithMatches");
+  });
+
+  it("REQ-CPD-032: the control names the pack and how many it holds, in the reader's language", () => {
+    // Both bundles answer, so the button is never drawn as a raw key.
+    expect(t("FUSION.Compendium.OpenPackWithMatches", { pack: "Magias", count: 37 })).toContain(
+      "Magias",
+    );
+    expect(t("FUSION.Compendium.OpenPackWithMatches", { pack: "Magias", count: 37 })).not.toContain(
+      "FUSION.",
+    );
+  });
+});

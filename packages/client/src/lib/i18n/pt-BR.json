@@ -308,6 +308,11 @@
     "1": "mais 1 não exibido",
     "other": "mais {{count}} não exibidos"
   },
+  "FUSION.Compendium.OpenPackWithMatches": {
+    "1": "Abrir {{pack}} (1 resultado)",
+    "other": "Abrir {{pack}} ({{count}} resultados)"
+  },
+  "FUSION.Compendium.OmittedOpenLabel": "Abrir o pack de origem para ver o resto",
   "FUSION.Compendium.SortBy": "Ordenar por",
   "FUSION.Compendium.SortName": "Nome",
   "FUSION.Compendium.SortLevel": "Nível",
@@ -386,6 +391,13 @@
   "FUSION.Compendium.Field.system.traditions.value": "Tradições",
   "FUSION.Compendium.Field.system.category": "Categoria",
   "FUSION.Compendium.Field.system.group": "Grupo",
+  "FUSION.Compendium.Field.system.damage": "Dano",
+  "FUSION.Compendium.Preview.Rule.Immunity": "Imunidade",
+  "FUSION.Compendium.Preview.Rule.Modifier": "Modificador",
+  "FUSION.Compendium.Preview.Rule.Resistance": "Resistência",
+  "FUSION.Compendium.Preview.Rule.Weakness": "Fraqueza",
+  "FUSION.Compendium.Preview.Rule.Note": "Nota",
+  "FUSION.Compendium.Preview.Rule.Generic": "Regra",
   "FUSION.Sheet.Proficiency.Untrained": "Destreinado",
   "FUSION.Sheet.Proficiency.Trained": "Treinado",
   "FUSION.Sheet.Proficiency.Expert": "Especialista",

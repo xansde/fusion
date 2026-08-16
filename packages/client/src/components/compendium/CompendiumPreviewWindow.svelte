@@ -40,6 +40,7 @@
     type PreviewLoadState,
   } from "../../lib/compendium/previewWindow.js";
   import { buildDocumentPreview, isKnownPlaceholderImg } from "../../lib/compendium/compendiumBrowser.js";
+  import { resolveFieldLabel } from "../../lib/compendium/resultLine.js";
   import {
     getDocument,
     importToActor,
@@ -242,7 +243,7 @@
       <dl class="compendium-preview__fields">
         {#each preview.fields as field (field.key)}
           <div class="compendium-preview__field">
-            <dt class="compendium-preview__field-label">{field.label}</dt>
+            <dt class="compendium-preview__field-label">{resolveFieldLabel(field, t)}</dt>
             <dd class="compendium-preview__field-value">{field.value}</dd>
           </div>
         {/each}

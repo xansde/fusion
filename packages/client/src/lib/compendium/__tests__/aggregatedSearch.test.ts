@@ -9,7 +9,7 @@
  * reading of the answer: grouped by document type, each line naming its source,
  * each group saying how many it left out.
  *
- * Covers REQ-CPD-012 and REQ-CPD-014.
+ * Covers REQ-CPD-012, REQ-CPD-014 and the client half of REQ-CPD-032.
  */
 
 import { describe, expect, it } from "vitest";
@@ -17,6 +17,7 @@ import type { Socket } from "socket.io-client";
 
 import { COMPENDIUM_SEARCH_ALL_QUERY, searchAllPacks } from "../compendiumApi.js";
 import { buildSearchAllPayload, normalizeAggregatedSearchResult } from "../compendiumBrowser.js";
+import { buildResultLine } from "../resultLine.js";
 import {
   initialBrowserScope,
   buildScopedSearchQuery,
@@ -193,5 +194,150 @@ describe("aggregated search — one question to the server, not one per pack", (
     });
     expect(partial.groups[0]?.lines).toHaveLength(1);
     expect(partial.groups[0]?.omitted).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-CPD-032 — the truncated group must offer a way INTO the pack
+// ---------------------------------------------------------------------------
+//
+// The server half (the tally in the payload) is pinned by
+// `packages/server/src/__tests__/compendium-search-all.test.ts`. This is the
+// client half: the count of what was hidden is useless on its own, so the
+// per-pack tally has to survive the reading of the answer — it is what names
+// the pack the reader is sent to.
+
+describe("aggregated search — a truncated group offers the pack it hid", () => {
+  it("REQ-CPD-032: the per-pack tally survives into the group the body draws", () => {
+    const result = normalizeAggregatedSearchResult({
+      groups: [
+        {
+          documentType: "Actor",
+          total: 60,
+          truncated: true,
+          omitted: 59,
+          packs: [
+            { packId: "pf2e.bestiary-core", label: "Bestiário", matched: 48 },
+            { packId: "world.meus-npcs", label: "Meus NPCs", matched: 12 },
+          ],
+          entries: [
+            {
+              _id: "g1",
+              uuid: "Compendium.pf2e.bestiary-core.Actor.g1",
+              name: "Goblin Warrior",
+              img: null,
+              type: "npc",
+              index: {},
+              packId: "pf2e.bestiary-core",
+              packLabel: "Bestiário",
+            },
+          ],
+        },
+      ],
+    });
+
+    const group = result.groups[0];
+    expect(group?.omitted).toBe(59);
+    // Each contributing pack is nameable and openable, biggest first.
+    expect(group?.packs.map((p) => p.packId)).toEqual(["pf2e.bestiary-core", "world.meus-npcs"]);
+    expect(group?.packs[0]?.label).toBe("Bestiário");
+    expect(group?.packs[0]?.matched).toBe(48);
+  });
+
+  it("REQ-CPD-032: the tallies come biggest contributor first, whatever order they arrive in", () => {
+    const result = normalizeAggregatedSearchResult({
+      groups: [
+        {
+          documentType: "Item",
+          total: 30,
+          packs: [
+            { packId: "a", label: "A", matched: 3 },
+            { packId: "b", label: "B", matched: 27 },
+          ],
+          entries: [],
+        },
+      ],
+    });
+
+    expect(result.groups[0]?.packs.map((p) => p.packId)).toEqual(["b", "a"]);
+  });
+
+  it("REQ-CPD-032: an answer with no tally still names the packs its lines came from", () => {
+    // Older/flat shapes carry no `packs`. A truncated group with no way in at
+    // all would be the defect; the lines that DID arrive name their source.
+    const result = normalizeAggregatedSearchResult({
+      groups: [
+        {
+          documentType: "Item",
+          total: 40,
+          lines: [
+            line("Compendium.pf2e.spells-core.Item.s1", "Fireball", {
+              packId: "pf2e.spells-core",
+              packLabel: "Magias",
+            }),
+            line("Compendium.pf2e.spells-core.Item.s2", "Ignition", {
+              packId: "pf2e.spells-core",
+              packLabel: "Magias",
+            }),
+          ],
+        },
+      ],
+    });
+
+    expect(result.groups[0]?.omitted).toBe(38);
+    expect(result.groups[0]?.packs).toEqual([
+      { packId: "pf2e.spells-core", label: "Magias", matched: 2 },
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The tolerance the normalizer promises has to reach the DRAWING side
+// ---------------------------------------------------------------------------
+
+describe("aggregated search — a half-formed line degrades instead of throwing", () => {
+  it("REQ-CPD-012: a line with no index bag still builds, instead of taking the panel down", () => {
+    const result = normalizeAggregatedSearchResult({
+      groups: [
+        {
+          documentType: "Item",
+          total: 1,
+          entries: [{ uuid: "Compendium.pf2e.spells-core.Item.s1", name: "Fireball" }],
+        },
+      ],
+    });
+
+    const readLine = result.groups[0]?.lines[0];
+    expect(readLine).toBeDefined();
+    // The missing halves are filled in, so every consumer can dereference them.
+    expect(readLine?.entry.index).toEqual({});
+    expect(readLine?.entry.img).toBeNull();
+    expect(readLine?.entry.type).toBeNull();
+
+    // REQ-CPD-041/043: building the drawn line reads `entry.index` for the
+    // declared fields and for the world seal. Before the fix this threw a
+    // TypeError inside the markup, which takes the whole panel down.
+    expect(() =>
+      buildResultLine(readLine!.entry, {
+        documentType: "Item",
+        packId: "pf2e.spells-core",
+        packLabel: "Magias",
+        locale: "pt-BR",
+        indexFields: ["system.level.value"],
+        viewerIsPrivileged: false,
+      }),
+    ).not.toThrow();
+
+    const built = buildResultLine(readLine!.entry, {
+      documentType: "Item",
+      packId: "pf2e.spells-core",
+      packLabel: "Magias",
+      locale: "pt-BR",
+      indexFields: ["system.level.value"],
+      viewerIsPrivileged: false,
+    });
+    expect(built.name.map((s) => s.text).join("")).toBe("Fireball");
+    expect(built.fields).toEqual([]);
+    expect(built.inWorld).toBe(false);
   });
 });

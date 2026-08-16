@@ -28,7 +28,7 @@ import {
   type PreviewLoadState,
 } from "../../../lib/compendium/previewWindow.js";
 import "../../../lib/i18n/index.js";
-import { t } from "../../../lib/i18n/i18n.js";
+import { i18n, t } from "../../../lib/i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -192,6 +192,68 @@ describe("bringing the entry over from the window (REQ-CPD-053)", () => {
     expect(renderWindow({}, previewReady(FIREBALL))).not.toContain(
       t("FUSION.Compendium.Line.ImportShort"),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The window names a field the way the LINE names it, in the reader's language
+// ---------------------------------------------------------------------------
+//
+// The row and the window opened from that row must not name the same field
+// differently: the line resolves `FUSION.Compendium.Field.*` through the
+// bundle, so the window has to as well. A pt-BR string compiled into the
+// module would spell "Nível" at an `en` seat, right beside the row's "Level".
+
+describe("the preview names its fields through the bundle (REQ-CPD-051)", () => {
+  it("REQ-CPD-051: the window follows the active locale, like the line above it", () => {
+    const previous = i18n.locale;
+    try {
+      i18n.setLocale("pt-BR");
+      const ptBr = renderWindow({}, previewReady(FIREBALL));
+      expect(ptBr).toContain("Nível");
+      expect(ptBr).toContain("Traços");
+
+      i18n.setLocale("en");
+      const en = renderWindow({}, previewReady(FIREBALL));
+      expect(en).toContain("Level");
+      expect(en).toContain("Traits");
+      // The pt-BR word is gone at an `en` seat — it was never a compiled string.
+      expect(en).not.toContain("Nível");
+    } finally {
+      i18n.setLocale(previous);
+    }
+  });
+
+  it("REQ-CPD-051: a mechanical rule is named through the bundle too, not in-module", () => {
+    const blinded: Record<string, unknown> = {
+      name: "Blinded",
+      img: null,
+      type: "condition",
+      system: {
+        publication: { license: "ORC" },
+        rules: [{ kind: "flat-modifier", selector: "perception", value: -4, type: "status" }],
+      },
+    };
+    const previous = i18n.locale;
+    try {
+      i18n.setLocale("en");
+      const en = renderWindow({}, previewReady(blinded));
+      expect(en).toContain("Modifier");
+      expect(en).not.toContain("Modificador");
+    } finally {
+      i18n.setLocale(previous);
+    }
+  });
+
+  it("REQ-CPD-051: no pt-BR label is compiled into the preview builder", () => {
+    const src = readFileSync(
+      fileURLToPath(new URL("../../../lib/compendium/compendiumBrowser.ts", import.meta.url)),
+      "utf8",
+    );
+
+    for (const word of ['"Nível"', '"Tradições"', '"Imunidade"', '"Resistência"']) {
+      expect(src).not.toContain(word);
+    }
   });
 });
 

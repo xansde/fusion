@@ -881,9 +881,36 @@
                 {/each}
               </ul>
               {#if group.omitted > 0}
+                <!--
+                  REQ-CPD-032: the truncated group says how many it left out AND
+                  offers opening the pack they are in — the count alone leaves
+                  the reader with no way to reach the rest.
+                -->
                 <p class="result-group__omitted">
                   {t("FUSION.Compendium.Omitted", { count: group.omitted })}
                 </p>
+                {#if group.packs.length > 0}
+                  <ul
+                    class="result-group__packs"
+                    role="list"
+                    aria-label={t("FUSION.Compendium.OmittedOpenLabel")}
+                  >
+                    {#each group.packs as tally (tally.packId)}
+                      <li>
+                        <button
+                          type="button"
+                          class="result-group__open-pack"
+                          onclick={() => openPackById(tally.packId, tally.label)}
+                        >
+                          {t("FUSION.Compendium.OpenPackWithMatches", {
+                            pack: tally.label,
+                            count: tally.matched,
+                          })}
+                        </button>
+                      </li>
+                    {/each}
+                  </ul>
+                {/if}
               {/if}
             </div>
           {/each}
@@ -1172,6 +1199,31 @@
     color: var(--fusion-text-muted, #888);
     margin: 0.2rem 0 0;
     padding: 0 0.25rem;
+  }
+
+  .result-group__packs {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.15rem 0 0;
+    padding: 0 0.25rem;
+  }
+
+  .result-group__open-pack {
+    font: inherit;
+    font-size: 0.7rem;
+    color: var(--fusion-accent, #6aa9ff);
+    background: none;
+    border: 1px solid var(--fusion-border, #333);
+    border-radius: var(--fusion-radius-sm, 3px);
+    padding: 0.1rem 0.35rem;
+    cursor: pointer;
+  }
+
+  .result-group__open-pack:hover {
+    color: var(--fusion-accent-hover, #8cc0ff);
+    border-color: var(--fusion-accent, #6aa9ff);
   }
 
   .entries-filter {

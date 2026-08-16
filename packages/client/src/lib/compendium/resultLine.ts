@@ -33,7 +33,12 @@
 import type { PackIndexEntry } from "@fusion/shared";
 import { normalizeSearchText } from "@fusion/shared";
 
-import { entryDisplayName, entrySecondaryName } from "./compendiumBrowser.js";
+import {
+  entryDisplayName,
+  entrySecondaryName,
+  fieldFallbackLabel,
+  fieldLabelKey,
+} from "./compendiumBrowser.js";
 import type { SupportedLocale } from "../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
@@ -173,14 +178,27 @@ export function buildWorldOriginIndex(docs: readonly unknown[]): WorldOriginInde
   return { bySourceId };
 }
 
+/**
+ * The entry's index bag, or an empty one.
+ *
+ * The TYPE says `index` is always there; the WIRE does not. An aggregated
+ * answer is JSON off a socket, and a line that arrived without its bag must
+ * degrade to "no declared fields, no seal" instead of throwing inside the
+ * markup — where the exception takes the whole panel down, not one row.
+ */
+function entryIndexOf(entry: PackIndexEntry): Record<string, unknown> {
+  return (entry as { index?: Record<string, unknown> }).index ?? {};
+}
+
 /** Whether the world already holds a document that came from this entry. */
 export function entryIsInWorld(entry: PackIndexEntry, index: WorldOriginIndex): boolean {
-  const sourceId = readString(entry.index[SOURCE_ID_PATH]);
+  const entryIndex = entryIndexOf(entry);
+  const sourceId = readString(entryIndex[SOURCE_ID_PATH]);
   if (sourceId === undefined) return false;
   const packNames = index.bySourceId.get(sourceId);
   if (packNames === undefined) return false;
 
-  const entryPackName = readString(entry.index[PACK_NAME_PATH]);
+  const entryPackName = readString(entryIndex[PACK_NAME_PATH]);
   if (entryPackName === undefined || packNames.size === 0) return true;
   return packNames.has(entryPackName);
 }
@@ -262,23 +280,18 @@ export interface ResultLineField {
   readonly segments: readonly HighlightSegment[];
 }
 
-/** Translation key for a declared index path. */
-export function fieldLabelKey(path: string): string {
-  return `FUSION.Compendium.Field.${path}`;
-}
-
 /**
- * Last meaningful segment of a dotted path, title-cased — the label of last
- * resort for a field no bundle names. `system.level.value` → "Level", because a
- * pack may declare anything and a missing string must still read as a word
- * rather than as `FUSION.Compendium.Field.system.level.value`.
+ * The naming vocabulary itself lives in `compendiumBrowser.ts`, next to
+ * `documentTypeLabelKey`, so the line and the preview window opened FROM the
+ * line name the same field with the same string. Re-exported here because the
+ * line is where callers expect to find it.
  */
-export function fieldFallbackLabel(path: string): string {
-  const parts = path.split(".").filter((part) => part.length > 0);
-  const tail = parts.filter((part) => part !== "value" && part !== "system");
-  const word =
-    (tail.length > 0 ? tail[tail.length - 1] : (parts[parts.length - 1] ?? path)) ?? path;
-  return word.charAt(0).toUpperCase() + word.slice(1);
+export { fieldLabelKey, fieldFallbackLabel };
+
+/** The two halves of a label, shared by the line's fields and the preview's. */
+export interface LabelledField {
+  readonly labelKey: string;
+  readonly fallbackLabel: string;
 }
 
 /**
@@ -287,7 +300,7 @@ export function fieldFallbackLabel(path: string): string {
  * the raw key when it misses).
  */
 export function resolveFieldLabel(
-  field: ResultLineField,
+  field: LabelledField,
   translate: (key: string) => string,
 ): string {
   const resolved = translate(field.labelKey);
@@ -431,11 +444,12 @@ function buildResultLineFields(
   const declared = ctx.indexFields ?? [];
   const fields: ResultLineField[] = [];
   const seen = new Set<string>();
+  const entryIndex = entryIndexOf(entry);
 
   for (const path of declared) {
     if (seen.has(path) || !isDisplayableField(path)) continue;
     if (!ctx.viewerIsPrivileged && isCreatureStatField(path)) continue;
-    const value = formatIndexValue(entry.index[path]);
+    const value = formatIndexValue(entryIndex[path]);
     if (value === null) continue;
     seen.add(path);
     fields.push({
