@@ -110,7 +110,7 @@ function visibleTextOutsideTooltips(html: string): string {
 
 /**
  * Emoji and symbol characters that must never appear in the rail (REQ-NPC-094).
- * The range deliberately covers the three glyphs the legacy `AppSidebar` used —
+ * The range deliberately covers the three glyphs the pre-drawer sidebar used —
  * U+276F (❯), U+2630 (☰) and U+2694 (⚔) — plus the emoji planes and the
  * variation selector that turns a symbol into an emoji.
  */

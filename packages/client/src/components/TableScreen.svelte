@@ -9,7 +9,7 @@
    * M1-B (SCENE-UI): GM sidebar with Scenes tab. Players see no sidebar but
    * receive the NoSceneOverlay while waiting for the GM to activate a scene.
    *
-   * Spec 36 (gaveta lateral): the side drawer replaces AppSidebar — an icon-only
+   * Spec 36 (gaveta lateral): the side drawer replaces the old tabbed sidebar — an icon-only
    * rail plus the panel of the active tab, with the core tabs registered through
    * `registerCoreSidebarTabs` (REQ-GAV-030).
    *

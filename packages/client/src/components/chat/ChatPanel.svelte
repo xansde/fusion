@@ -61,7 +61,7 @@
     // (REQ-GAV-017), so mount/unmount IS the visibility signal. Zeroing the unread
     // counter on open is the chat's own rule (REQ-CHT-039 / REQ-ACH-004) — the rail
     // never touches a badge (REQ-GAV-022). Before the drawer existed this lived in
-    // AppSidebar, which had to watch `activeTab` because the panel could not.
+    // the sidebar container, which had to watch `activeTab` because the panel could not.
     setChatTabVisible(true);
   });
 

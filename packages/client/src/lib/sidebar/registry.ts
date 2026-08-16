@@ -51,7 +51,7 @@ export const SETTINGS_TAB_ID = "settings";
  * that needs anything else reads it from its own store — the drawer does not grow
  * per-tab props.
  *
- * Mirrors what the legacy `AppSidebar.svelte` handed to its panels, so the existing
+ * Mirrors what the pre-drawer sidebar handed to its panels, so the existing
  * panels can be bridged onto the registry without a redesign (G016).
  */
 export interface SidebarPanelProps {

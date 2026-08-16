@@ -192,7 +192,7 @@ export const sessionActions = {
 
 /**
  * Returns the current socket instance (may be null before connection).
- * Used by UI components (e.g. ScenesSidebar) that need to send ops.
+ * Used by UI components (e.g. the drawer's Cenas tab) that need to send ops.
  */
 export function getSocket(): Socket | null {
   return socketManager.socket;

@@ -4,7 +4,8 @@
  * SYMPTOM: chat only reflected a new roll/message after switching tabs and
  * back. ROOT CAUSE: the `socket.on("op", ...)` listener and attachChatSync's
  * teardown lived in ChatPanel's onMount/onDestroy, but ChatPanel only exists
- * while AppSidebar.activeTab === "chat" ({#if} unmounts the real component).
+ * while the chat tab is the sidebar's active one (the container unmounts the
+ * real component on switch or collapse).
  * Leaving the chat tab: (a) killed the "op" listener — incoming messages were
  * dropped; (b) attachChatSync's cleanup zeroed chatStore.messages. Returning
  * to the tab remounted ChatPanel and loadInitialHistory() re-fetched from the

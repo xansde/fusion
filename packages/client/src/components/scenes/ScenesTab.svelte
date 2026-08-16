@@ -2,7 +2,7 @@
   /**
    * ScenesTab.svelte — the Cenas tab of the side drawer (spec 44, id "scenes").
    *
-   * This is the scene panel that used to live INSIDE `chat/AppSidebar.svelte`: the
+   * This is the scene panel that used to live INSIDE the pre-drawer sidebar: the
    * list, the active-scene dot, activate/edit/delete and the three dialogs. It moved
    * out unchanged (plan G016 is a bridge, not a redesign) so the drawer can mount it
    * through the registry like any other tab (REQ-GAV-030, REQ-CEN-001).
@@ -24,7 +24,7 @@
 
   import type { SceneDocument } from "@fusion/shared";
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
-  import { sidebarState } from "../../lib/scenes/scenesState.svelte.js";
+  import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
   import SceneCreateDialog from "./SceneCreateDialog.svelte";
   import SceneDeleteConfirm from "./SceneDeleteConfirm.svelte";
@@ -68,11 +68,11 @@
   </header>
 
   <div class="scenes-tab__body" role="list" aria-label={t("FUSION.Sidebar.Scenes.Title")}>
-    {#if sidebarState.scenes.length === 0}
+    {#if sceneListState.scenes.length === 0}
       <!-- Spec 36 §7.4: the empty state of the tab — a world with no scene yet. -->
       <p class="scenes-tab__empty">{t("FUSION.Sidebar.Scenes.Empty")}</p>
     {:else}
-      {#each sidebarState.scenes as scene (scene._id)}
+      {#each sceneListState.scenes as scene (scene._id)}
         {@const isActive = scene._id === activeSceneId}
         <div class="scene-row" class:scene-row--active={isActive} role="listitem">
           <span

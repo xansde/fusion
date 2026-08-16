@@ -1,5 +1,5 @@
 /**
- * ScenesTab.test.ts — the scene panel after it left `AppSidebar` (G016).
+ * ScenesTab.test.ts — the scene panel after it left the pre-drawer sidebar (G016).
  *
  * The move is a bridge, not a redesign: the table must keep doing everything it did
  * — list the scenes, see which one is on air, activate, edit, delete, and be told
@@ -18,7 +18,7 @@ import { render } from "svelte/server";
 import type { SceneDocument } from "@fusion/shared";
 
 import ScenesTab from "../ScenesTab.svelte";
-import { sidebarState } from "../../../lib/scenes/scenesState.svelte.js";
+import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -48,13 +48,13 @@ function renderTab(activeSceneId: string | null): string {
   return body;
 }
 
-describe("ScenesTab — the scene panel, moved out of AppSidebar unchanged", () => {
+describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged", () => {
   beforeEach(() => {
-    sidebarState.scenes = [];
+    sceneListState.scenes = [];
   });
 
   it("REQ-CEN-001: lists every scene of the world and marks the one on air", () => {
-    sidebarState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
+    sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
 
@@ -66,7 +66,7 @@ describe("ScenesTab — the scene panel, moved out of AppSidebar unchanged", () 
   });
 
   it("REQ-CEN-001: every scene keeps its activate, edit and delete actions", () => {
-    sidebarState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
+    sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
 
@@ -89,7 +89,7 @@ describe("ScenesTab — the scene panel, moved out of AppSidebar unchanged", () 
   });
 
   it("REQ-GAV-011: the panel carries no collapse control of its own", () => {
-    sidebarState.scenes = [makeScene("s1", "Taverna")];
+    sceneListState.scenes = [makeScene("s1", "Taverna")];
 
     const html = renderTab("s1");
 
@@ -99,7 +99,7 @@ describe("ScenesTab — the scene panel, moved out of AppSidebar unchanged", () 
   });
 
   it("REQ-NPC-094: the row actions are drawn icons, never a glyph", () => {
-    sidebarState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
+    sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
 
