@@ -62,6 +62,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 38  | [Aba Chat](38-aba-chat.md)                                           | Aba da gaveta: log, dados favoritos, invalidação |
 | 39  | [Contatos](39-contatos.md)                                           | Aba da gaveta: mesa, conhecidos, quem conhece    |
 | 40  | [Aba Combate](40-aba-combate.md)                                     | Aba da gaveta: cabeça de turno, fila, montagem   |
+| 42  | [Aba NPCs](42-aba-npcs.md)                                           | Aba da gaveta: pastas, autoria, atitude, baú     |
 
 ## Níveis
 
@@ -123,6 +124,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-ACH-`  | [38](38-aba-chat.md)                      | Aba Chat (painel da gaveta)        |
 | `REQ-CTT-`  | [39](39-contatos.md)                      | Contatos (aba da gaveta)           |
 | `REQ-CBA-`  | [40](40-aba-combate.md)                   | Aba Combate (painel da gaveta)     |
+| `REQ-NPC-`  | [42](42-aba-npcs.md)                      | Aba NPCs (painel da gaveta)        |
 
 <!-- prefixos:end -->
 

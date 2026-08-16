@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Compêndio (grill rodada 1: três variantes)</title>
+<!--
+  PROTOTYPE — descartável. Rodada 1 do grill da aba Compêndio. Não é código de
+  produção; não importar nada daqui.
+
+  ════════════════════════════════════════════════════════════════════════════
+  O PONTO DE PARTIDA É DIFERENTE DAS OUTRAS ABAS
+  ════════════════════════════════════════════════════════════════════════════
+  Chat, Contatos, Combate e NPCs nasceram de tela em branco. Compêndio NÃO:
+  `CompendiumBrowser.svelte` já existe, funciona e faz o essencial —
+  packs agrupados por tipo → índice do pack → busca/filtro/ordenação →
+  preview sob demanda → importar (só GM) → arrastar para canvas/ficha.
+  Ele cumpre REQ-CMP-012..018 e REQ-CMP-021.
+
+  Então esta rodada não pergunta "como seria a aba". Pergunta:
+  **o que quebra quando esse painel entra numa gaveta de 300px, com o PF2e
+  inteiro dentro dele, e com um jogador do outro lado da tela?**
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE JÁ VEM DECIDIDO (tratei como não-negociável — confira)
+  ════════════════════════════════════════════════════════════════════════════
+   · GRUPO "TODOS" (DEC-GAV-01): Compêndio não é aba de Mestre. O jogador tem
+     o ícone dele, na mesma posição do trilho do Mestre.
+   · LARGURA FIXA 300+44 (DEC-GAV-04): o que não couber abre JANELA, não
+     estica a gaveta. Hoje o preview abre DENTRO do painel e come a lista.
+   · PACK É A UNIDADE DE LICENÇA (DEC-CMP-03): `pack.json.license`, com
+     override por documento. Licença não é enfeite: é o motivo do projeto ser
+     clean-room. Ela tem que caber em 300px.
+   · ÍNDICE LEVE (DEC-CMP-02): a lista mostra só `_id/name/img/type` +
+     indexFields; documento completo só no preview (REQ-CMP-015).
+   · IMPORTAR CLONA COM `_id` NOVO (REQ-CMP-021) e ator solto no canvas
+     importa ANTES de virar presença no mapa (REQ-CMP-018).
+   · PAINEL É DESMONTADO AO TROCAR DE ABA (REQ-GAV-017): busca digitada e
+     pack aberto morrem, a menos que esta spec diga onde eles moram.
+
+  ════════════════════════════════════════════════════════════════════════════
+  AS TRÊS VARIANTES — cada uma aposta em uma coisa diferente
+  ════════════════════════════════════════════════════════════════════════════
+  A · ESTANTE  — o painel de hoje, feito para 300px. Grupos por tipo de
+                 documento, packs colapsáveis com contagem e selo de licença;
+                 entrar no pack dá busca + filtros + ordenação. Aposta: o
+                 Mestre pensa por FONTE ("está no Monster Core"), e a fonte é
+                 o que a licença obriga a mostrar.
+                 Custo: para achar uma coisa você precisa saber onde ela mora.
+
+  B · BUSCA    — a aba É um campo de busca que atravessa todos os packs. O
+                 resultado vem agrupado por tipo, com facetas em chip (nível,
+                 traço, raridade, fonte). Pack deixa de ser lugar e vira
+                 filtro. Sem busca, a aba mostra fixados e recentes.
+                 Aposta: ninguém navega um acervo de 12 mil documentos —
+                 todo mundo digita.
+                 Custo: exige busca cross-pack no servidor, que a 16 não tem
+                 (REQ-CMP-013 é busca DENTRO do pack). É requisito novo.
+
+  C · BALCÃO   — organiza por DESTINO, não por tipo: "Mapa" (o que você
+                 arrasta para a cena), "Ficha" (o que você dá a alguém),
+                 "Mesa" (o que você lê e mostra). Cada balcão traz o gesto
+                 certo já engatilhado.
+                 Aposta: durante o jogo o compêndio é almoxarifado, não
+                 biblioteca — a pergunta é "para onde isso vai".
+                 Custo: destino é opinião NOSSA; o sistema declara
+                 `documentType`, não destino. E o balcão "Mapa" simplesmente
+                 não existe para o jogador — o que resolve a Q2 de graça, ou
+                 esconde a decisão debaixo do tapete.
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE O PROTÓTIPO PÕE NA MESA DE PROPÓSITO (é aqui que quero seu feedback)
+  ════════════════════════════════════════════════════════════════════════════
+   Q1 — PREVIEW FORA DA GAVETA. Aqui o preview abre em JANELA sobre o mapa
+        (DEC-GAV-04), e não como lâmina dentro do painel como é hoje. Ganha
+        espaço para stat block e licença; perde o "olhar rápido sem sair da
+        lista". Clique no 👁 de qualquer resultado.
+
+   Q2 — O JOGADOR VÊ O BESTIÁRIO? Hoje o servidor libera listar/buscar/prever
+        a QUALQUER papel; só importar é `isRolePrivileged`. Ou seja: o jogador
+        pode abrir a ficha do dragão que ele vai enfrentar hoje à noite, com
+        CA, resistências e reações. Ninguém decidiu isso — é o default de quem
+        implementou. Ligue "papel: jogador" nas três variantes.
+        Proposta do protótipo: packs têm PLATEIA (`audience: all | gm`), e
+        bestiário/perigos nascem `gm`. É decisão de produto, não de código.
+
+   Q3 — IMPORTAR VS. USAR. O jogador arrasta "Bola de Fogo" do pack para a
+        própria ficha. Isso importa a magia para o mundo (REQ-CMP-021 clona)
+        — e importar é privilégio de Mestre. Então o jogador pode ou não pode?
+        Aqui ele PODE, e o servidor importa em nome dele (o alvo é a ficha
+        dele, não o mundo). Se isso te incomodar, é o feedback que eu quero.
+
+   Q4 — BUSCA CROSS-PACK. A variante B só existe se o servidor souber buscar
+        em todos os packs de uma vez. Isso não está na 16. Vale o custo?
+        (12.000+ documentos, REQ-CMP-049 dá 1,5s só para indexar UM pack.)
+
+   Q5 — DOIS NOMES. O overlay pt-BR já existe em produção e não está em spec
+        nenhuma. Aqui a lista mostra o nome pt-BR grande e o inglês pequeno,
+        e a busca casa com os dois ("fireball" acha "Bola de Fogo").
+        Formalizar isso é trabalho desta spec ou emenda na 16?
+
+   Q6 — O QUE SOBREVIVE À TROCA DE ABA. REQ-GAV-017 desmonta o painel. Você
+        digita "goblin", vai no Chat responder uma pergunta, volta — e perdeu.
+        Aqui a busca e o pack aberto sobrevivem (moram fora do componente,
+        no aparelho, como as categorias da DEC-CTT-08). Sobrevivem por
+        sessão ou para sempre?
+
+   Q7 — JÁ ESTÁ NO MUNDO. O selo ⟨no mundo⟩ marca o que já foi importado.
+        Ele evita import duplicado — mas o documento importado NÃO acompanha
+        o pack quando o pack é atualizado (Q-CMP-07 da 16). O selo mente com
+        o tempo. Mostrar assim mesmo, ou não mostrar?
+
+   Q8 — BADGE. Proposta: NENHUM em repouso — compêndio não tem "novidade".
+        Ponto de estado só enquanto uma importação em lote está correndo
+        (ligue "importando"). Concorda, ou nem isso?
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;--special:#b98cff;
+    --gold:#e0b64a;
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center;overflow:hidden}
+  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f;position:relative}
+  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+  .drop{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);border:1px dashed var(--subtle);border-radius:var(--radius);padding:.5rem .9rem;color:var(--muted);font-size:.76rem;text-align:center;background:rgba(0,0,0,.4);line-height:1.5}
+  .drop.hot{border-color:var(--accent);color:var(--accent-hover);background:var(--accent-dim)}
+  .drop b{color:var(--text)}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.dot{min-width:9px;width:9px;height:9px;padding:0;background:var(--accent-hover)}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .gm-tag{font-size:.6rem;color:var(--danger);border:1px solid var(--danger);border-radius:3px;padding:0 3px;margin-left:.4rem;letter-spacing:.05em}
+
+  .shell{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding-top:10px;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column;overflow:hidden}
+  .is-open .panel{display:flex}
+
+  /* ---------- Painel ---------- */
+  .phead{display:flex;align-items:center;gap:.35rem;padding:.45rem .6rem;border-bottom:1px solid var(--accent-dim);flex-shrink:0}
+  .phead .ttl{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .phead .ttl b{color:var(--text)}
+  .phead .grow{flex:1}
+  .pbody{flex:1;overflow:auto;padding-bottom:.6rem}
+
+  .b{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.22rem .5rem;font:inherit;font-size:.74rem;cursor:pointer;white-space:nowrap}
+  .b:hover{border-color:var(--accent)}
+  .b.p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .b.g{background:transparent;color:var(--muted)}
+  .b:disabled{opacity:.4;cursor:not-allowed}
+  .ib{background:none;border:1px solid transparent;border-radius:var(--radius-sm);color:var(--subtle);cursor:pointer;width:22px;height:22px;display:grid;place-items:center;font-size:.72rem;padding:0}
+  .ib:hover{background:var(--surface-alt);color:var(--text)}
+  .ib.on{color:var(--accent-hover)}
+
+  /* ---------- Busca e filtros ---------- */
+  .srch{display:flex;align-items:center;gap:.35rem;padding:.4rem .5rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface-alt)}
+  .srch input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font:inherit;font-size:.78rem;padding:.28rem .45rem}
+  .srch input:focus{outline:0;border-color:var(--accent)}
+  .srch .scope{font-size:.62rem;color:var(--subtle);white-space:nowrap}
+  .facets{display:flex;gap:.25rem;flex-wrap:wrap;padding:.35rem .5rem;border-bottom:1px solid var(--border);flex-shrink:0}
+  .fc{font-size:.66rem;border:1px solid var(--border);border-radius:999px;padding:.05rem .4rem;color:var(--muted);background:var(--surface-alt);cursor:pointer;white-space:nowrap}
+  .fc:hover{border-color:var(--accent);color:var(--text)}
+  .fc.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-hover);font-weight:600}
+  .fc .x{color:var(--subtle);margin-left:.2rem}
+  .counter{font-size:.64rem;color:var(--subtle);padding:.3rem .6rem .1rem;display:flex;align-items:center;gap:.3rem}
+  .counter b{color:var(--muted)}
+  .counter .grow{flex:1}
+
+  /* ---------- Seções ---------- */
+  .secl{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:.5rem .6rem .15rem;display:flex;align-items:center;gap:.4rem;cursor:pointer}
+  .secl .cnt{color:var(--muted);font-family:var(--mono);font-weight:400;letter-spacing:0}
+  .secl::after{content:"";flex:1;height:1px;background:var(--border)}
+  .secl .caret{color:var(--subtle);font-size:.7rem;width:9px}
+
+  /* ---------- Linha de pack (variante A) ---------- */
+  .pk{display:flex;align-items:center;gap:.45rem;padding:.3rem .5rem .3rem .7rem;cursor:pointer;border-left:3px solid transparent}
+  .pk:hover{background:var(--surface-alt);border-left-color:var(--accent)}
+  .pk .ic{font-size:.95rem;width:18px;text-align:center;flex-shrink:0}
+  .pk .mid{flex:1;min-width:0}
+  .pk .nm{font-size:.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pk .sub{font-size:.62rem;color:var(--subtle);display:flex;align-items:center;gap:.3rem}
+  .pk .cnt{font-family:var(--mono);font-size:.7rem;color:var(--muted);flex-shrink:0}
+  .lic{font-size:.56rem;letter-spacing:.04em;border:1px solid var(--border);border-radius:3px;padding:0 .2rem;color:var(--subtle);white-space:nowrap}
+  .lic.orc{color:var(--gold);border-color:rgba(224,182,74,.4)}
+  .lic.world{color:var(--ok);border-color:rgba(61,220,132,.4)}
+  .aud{font-size:.56rem;letter-spacing:.04em;border:1px solid rgba(255,92,92,.45);color:var(--danger);border-radius:3px;padding:0 .2rem;white-space:nowrap}
+
+  /* ---------- Linha de entrada ---------- */
+  .en{display:flex;align-items:center;gap:.45rem;padding:.28rem .5rem .28rem .55rem;border-left:3px solid transparent;position:relative;cursor:grab}
+  .en:hover{background:var(--surface-alt)}
+  .en.drag{opacity:.45}
+  .en .por{width:28px;height:28px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-alt);border:1px solid var(--border);display:grid;place-items:center;font-size:1rem}
+  .en .mid{flex:1;min-width:0}
+  .en .nm{font-size:.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.25rem}
+  .en .nm mark{background:rgba(124,92,252,.35);color:#fff;border-radius:2px}
+  .en .en2{font-size:.62rem;color:var(--subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic}
+  .en .meta{font-size:.62rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-top:.05rem}
+  .en .lv{font-family:var(--mono);font-size:.68rem;color:var(--muted);flex-shrink:0}
+  .en .acts{display:flex;gap:.05rem;flex-shrink:0;opacity:0;transition:opacity .12s}
+  .en:hover .acts{opacity:1}
+  .en.inworld{border-left-color:rgba(61,220,132,.5)}
+  .tr{font-size:.58rem;border:1px solid var(--border);border-radius:2px;padding:0 .18rem;color:var(--subtle)}
+  .tr.rare{color:var(--gold);border-color:rgba(224,182,74,.45)}
+  .tr.uncommon{color:var(--warn);border-color:rgba(229,184,59,.4)}
+  .src{font-size:.6rem;color:var(--subtle)}
+  .inw{font-size:.58rem;color:var(--ok);border:1px solid rgba(61,220,132,.4);border-radius:2px;padding:0 .18rem;white-space:nowrap}
+
+  /* ---------- Balcões (variante C) ---------- */
+  .seg{display:flex;gap:0;padding:.4rem .5rem 0;flex-shrink:0}
+  .seg button{flex:1;background:var(--surface-alt);border:1px solid var(--border);color:var(--muted);font:inherit;font-size:.72rem;padding:.3rem 0;cursor:pointer}
+  .seg button:first-child{border-radius:var(--radius-sm) 0 0 var(--radius-sm)}
+  .seg button:last-child{border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .seg button+button{border-left:0}
+  .seg button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-hover);font-weight:700}
+  .gest{font-size:.64rem;color:var(--subtle);padding:.3rem .6rem .1rem;line-height:1.4}
+  .gest b{color:var(--muted)}
+  .to{display:flex;align-items:center;gap:.3rem;padding:.3rem .5rem;border-bottom:1px solid var(--border);background:var(--surface-alt);font-size:.68rem;color:var(--muted);flex-shrink:0}
+  .to select{background:var(--bg);border:1px solid var(--border);color:var(--text);font:inherit;font-size:.7rem;border-radius:var(--radius-sm);padding:.1rem .2rem}
+
+  /* ---------- Estados ---------- */
+  .empty{text-align:center;padding:1.5rem .9rem .8rem;color:var(--muted);font-size:.82rem}
+  .empty .hint{font-size:.72rem;color:var(--subtle);margin-top:.4rem;line-height:1.5}
+  .crumb{display:flex;align-items:center;gap:.3rem;padding:.3rem .5rem;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--muted);flex-shrink:0}
+  .crumb .back{background:none;border:0;color:var(--accent-hover);cursor:pointer;font:inherit;font-size:.7rem;padding:0}
+  .crumb b{color:var(--text)}
+  .more{font-size:.68rem;color:var(--subtle);text-align:center;padding:.45rem;border-top:1px dashed var(--border);margin-top:.3rem}
+  .wip{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);border:1px solid rgba(229,184,59,.5);border-radius:3px;padding:0 .25rem}
+  .bar-imp{background:rgba(124,92,252,.16);border-bottom:1px solid var(--accent);color:var(--accent-hover);font-size:.7rem;padding:.3rem .6rem;display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+  .bar-imp .prog{flex:1;height:4px;background:var(--surface-alt);border-radius:3px;overflow:hidden}
+  .bar-imp .prog i{display:block;height:100%;width:38%;background:var(--accent)}
+
+  /* ---------- Janela flutuante (preview) ---------- */
+  .win{position:fixed;z-index:9000;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:0 18px 50px rgba(0,0,0,.65);width:420px;max-height:74vh;display:flex;flex-direction:column;overflow:hidden}
+  .win .wh{display:flex;align-items:center;gap:.4rem;padding:.4rem .55rem;background:var(--surface-alt);border-bottom:1px solid var(--border);cursor:move}
+  .win .wh .t{font-size:.82rem;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .win .wh .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.9rem}
+  .win .wb{padding:.6rem .7rem;overflow:auto;font-size:.78rem;line-height:1.5}
+  .win .hero{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.5rem}
+  .win .hero .por{width:56px;height:56px;border-radius:var(--radius);background:var(--surface-alt);border:1px solid var(--border);display:grid;place-items:center;font-size:2rem;flex-shrink:0}
+  .win .hero h3{margin:0;font-size:1rem}
+  .win .hero .en2{font-style:italic;color:var(--subtle);font-size:.72rem}
+  .win .kv{display:grid;grid-template-columns:auto 1fr;gap:.15rem .5rem;font-size:.74rem;margin:.4rem 0}
+  .win .kv dt{color:var(--subtle)}
+  .win .txt{color:var(--muted);font-size:.75rem;line-height:1.55;border-top:1px solid var(--border);padding-top:.45rem;margin-top:.45rem}
+  .win .foot{display:flex;gap:.35rem;padding:.45rem .55rem;border-top:1px solid var(--border);background:var(--surface-alt);flex-wrap:wrap;align-items:center}
+  .win .licbox{font-size:.66rem;color:var(--subtle);border-top:1px solid var(--border);padding-top:.4rem;margin-top:.5rem;line-height:1.45}
+  .win .licbox b{color:var(--muted)}
+
+  /* ---------- Alternador + legenda (fora do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.4rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.8rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;padding:0 .7rem;border-radius:999px;cursor:pointer;font-size:.76rem;font-weight:600}
+  .switcher button.var{background:#5a4bd6}
+  .switcher button.alt{background:#2f7a55}
+  .legend{position:fixed;left:16px;bottom:16px;z-index:9999;background:rgba(255,255,255,.96);color:#111;border-radius:10px;padding:.6rem .7rem;box-shadow:0 8px 30px rgba(0,0,0,.55);font-size:.72rem;max-width:430px;line-height:1.45}
+  .legend h4{margin:0 0 .35rem;font-size:.78rem}
+  .legend table{border-collapse:collapse}
+  .legend td{padding:.1rem .25rem;vertical-align:top}
+  .legend td:first-child{color:#666;white-space:nowrap}
+  .legend b{color:#111}
+  .legend .q{margin-top:.45rem;padding-top:.4rem;border-top:1px solid #ddd;color:#444}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 Fortaleza</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+
+<div class="stage">
+  <div class="art"><div class="house"><div class="star">★</div></div></div>
+  <div class="drop" id="dropzone">arraste um resultado para cá<br/><b id="droplbl">ator de pack: importa primeiro, depois vira presença (REQ-CMP-018)</b></div>
+</div>
+
+<div id="root"></div>
+<div id="float"></div>
+
+<div class="switcher">
+  <button id="variant" class="var">variante</button>
+  <button id="role">papel</button>
+  <button id="big" class="alt">acervo</button>
+  <button id="imp" class="alt">importando</button>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ===================== chassi (spec 36) ===================== */
+const ICONS = {
+  chat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+const TABS = [
+  {id:'chat',label:'Chat',group:'all'},
+  {id:'contacts',label:'Contatos',group:'all'},
+  {id:'combat',label:'Combate',group:'all'},
+  {id:'compendium',label:'Compêndio',group:'all'},
+  {id:'npcs',label:'NPCs',group:'gm'},
+  {id:'scenes',label:'Cenas',group:'gm'},
+  {id:'settings',label:'Configurações',group:'all',foot:true},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  chat:'<div class="empty">o painel do Chat é a spec 38</div>',
+  contacts:'<div class="empty">o painel de Contatos é a spec 39</div>',
+  combat:'<div class="empty">o painel de Combate é a spec 40</div>',
+  npcs:'<div class="empty">o diretório de NPCs é a spec 42 (em grill)</div>',
+  scenes:'<div class="empty">a lista de Cenas é a spec-filha irmã desta</div>',
+  settings:'<div class="empty">o painel de Configurações é a spec 37</div>',
+};
+
+/* ===================== acervo mock (números reais do PF2e) =====================
+   `aud` é a PROPOSTA da Q2: plateia do pack. `gm` some do trilho do jogador.
+   `dest` é a PROPOSTA da variante C: para onde a coisa vai.              */
+const PACKS = [
+  {id:'monster-core', label:'Monster Core',        type:'Criaturas', dest:'map',   n:441,  lic:'ORC',  aud:'gm',  ic:'🐉'},
+  {id:'npc-core',     label:'NPC Core',            type:'Criaturas', dest:'map',   n:328,  lic:'ORC',  aud:'gm',  ic:'🧝'},
+  {id:'bestiary-2',   label:'Bestiário 2 (legado)',type:'Criaturas', dest:'map',   n:355,  lic:'OGL',  aud:'gm',  ic:'🐺'},
+  {id:'hazards',      label:'Perigos',             type:'Criaturas', dest:'map',   n:212,  lic:'ORC',  aud:'gm',  ic:'🪤'},
+  {id:'equipment',    label:'Equipamento',         type:'Itens',     dest:'sheet', n:5203, lic:'ORC',  aud:'all', ic:'⚔'},
+  {id:'spells',       label:'Magias',              type:'Itens',     dest:'sheet', n:1478, lic:'ORC',  aud:'all', ic:'✨'},
+  {id:'feats',        label:'Talentos',            type:'Itens',     dest:'sheet', n:4126, lic:'ORC',  aud:'all', ic:'🏅'},
+  {id:'ancestries',   label:'Ancestralidades',     type:'Itens',     dest:'sheet', n:17,   lic:'ORC',  aud:'all', ic:'🧬'},
+  {id:'heritages',    label:'Heranças',            type:'Itens',     dest:'sheet', n:107,  lic:'ORC',  aud:'all', ic:'🧬'},
+  {id:'backgrounds',  label:'Antecedentes',        type:'Itens',     dest:'sheet', n:243,  lic:'ORC',  aud:'all', ic:'📜'},
+  {id:'classes',      label:'Classes',             type:'Itens',     dest:'sheet', n:12,   lic:'ORC',  aud:'all', ic:'🎓'},
+  {id:'actions',      label:'Ações',               type:'Itens',     dest:'sheet', n:124,  lic:'ORC',  aud:'all', ic:'➡'},
+  {id:'conditions',   label:'Condições',           type:'Regras',    dest:'table', n:42,   lic:'ORC',  aud:'all', ic:'🌀'},
+  {id:'glossary',     label:'Glossário de regras', type:'Regras',    dest:'table', n:318,  lic:'ORC',  aud:'all', ic:'📖'},
+  {id:'tables',       label:'Tabelas de rolagem',  type:'Regras',    dest:'table', n:66,   lic:'ORC',  aud:'all', ic:'🎲'},
+  {id:'world-npcs',   label:'Elenco de teste_xande',type:'Criaturas',dest:'map',   n:12,   lic:'mundo',aud:'gm',  ic:'🏰'},
+  {id:'world-loot',   label:'Tesouros da campanha',type:'Itens',     dest:'sheet', n:23,   lic:'mundo',aud:'all', ic:'💰'},
+];
+const P = (id) => PACKS.find(p=>p.id===id);
+
+/* entradas: nome pt-BR + nome original (Q5). `w` = já importado no mundo (Q7) */
+const ENTRIES = [
+  {id:'e1', nm:'Goblin Guerreiro',  en:'Goblin Warrior',   pk:'monster-core', lv:-1, ic:'👹', tr:['goblin','humanoide'], w:true},
+  {id:'e2', nm:'Goblin Comando',    en:'Goblin Commando',  pk:'monster-core', lv:1,  ic:'👹', tr:['goblin','humanoide']},
+  {id:'e3', nm:'Cão-goblin',        en:'Goblin Dog',       pk:'monster-core', lv:1,  ic:'🐕', tr:['animal']},
+  {id:'e4', nm:'Xamã Goblin',       en:'Goblin Pyro',      pk:'monster-core', lv:1,  ic:'🧙', tr:['goblin','conjurador']},
+  {id:'e5', nm:'Dragão Vermelho Jovem', en:'Young Red Dragon', pk:'monster-core', lv:10, ic:'🐉', tr:['dragão','fogo'], rar:'uncommon'},
+  {id:'e6', nm:'Lobo Atroz',        en:'Dire Wolf',        pk:'monster-core', lv:3,  ic:'🐺', tr:['animal']},
+  {id:'e7', nm:'Esqueleto Guarda',  en:'Skeleton Guard',   pk:'monster-core', lv:-1, ic:'💀', tr:['morto-vivo'], w:true},
+  {id:'e8', nm:'Bandido',           en:'Bandit',           pk:'npc-core',     lv:1,  ic:'🗡', tr:['humano']},
+  {id:'e9', nm:'Guarda da Cidade',  en:'Town Guard',       pk:'npc-core',     lv:1,  ic:'💂', tr:['humano'], w:true},
+  {id:'e10',nm:'Fosso Camuflado',   en:'Hidden Pit',       pk:'hazards',      lv:1,  ic:'🪤', tr:['mecânico']},
+  {id:'e11',nm:'Bola de Fogo',      en:'Fireball',         pk:'spells',       lv:3,  ic:'🔥', tr:['fogo','evocação']},
+  {id:'e12',nm:'Curar',             en:'Heal',             pk:'spells',       lv:1,  ic:'💚', tr:['vitalidade'], w:true},
+  {id:'e13',nm:'Escudo',            en:'Shield',           pk:'spells',       lv:1,  ic:'🛡', tr:['truque']},
+  {id:'e14',nm:'Mão de Fogo',       en:'Burning Hands',    pk:'spells',       lv:1,  ic:'🔥', tr:['fogo']},
+  {id:'e15',nm:'Espada Longa',      en:'Longsword',        pk:'equipment',    lv:0,  ic:'⚔', tr:['arma','versátil']},
+  {id:'e16',nm:'Espada Longa +1',   en:'+1 Longsword',     pk:'equipment',    lv:2,  ic:'⚔', tr:['mágico'], w:true},
+  {id:'e17',nm:'Poção de Cura Menor',en:'Minor Healing Potion',pk:'equipment',lv:1, ic:'🧪', tr:['consumível']},
+  {id:'e18',nm:'Bomba de Fogo Alquímica',en:'Lesser Alchemist’s Fire',pk:'equipment',lv:1,ic:'💣',tr:['alquímico','fogo']},
+  {id:'e19',nm:'Ataque Poderoso',   en:'Power Attack',     pk:'feats',        lv:1,  ic:'🏅', tr:['guerreiro','fluxo']},
+  {id:'e20',nm:'Sopro de Fogo',     en:'Breath Fire',      pk:'feats',        lv:1,  ic:'🏅', tr:['kobold','fogo']},
+  {id:'e21',nm:'Amedrontado',       en:'Frightened',       pk:'conditions',   lv:null,ic:'🌀',tr:['condição']},
+  {id:'e22',nm:'Fogo persistente',  en:'Persistent Fire',  pk:'glossary',     lv:null,ic:'📖',tr:['dano']},
+  {id:'e23',nm:'Tesouro do Covil',  en:'Lair Treasure',    pk:'tables',       lv:null,ic:'🎲',tr:['tabela']},
+  {id:'e24',nm:'Mestre Aldric',     en:null,               pk:'world-npcs',   lv:6,  ic:'🧓', tr:['humano','elenco'], w:true},
+  {id:'e25',nm:'Chama do Farol',    en:null,               pk:'world-loot',   lv:5,  ic:'🔦', tr:['mágico','único'], rar:'rare', w:true},
+];
+const TXT = {
+  e1:'Goblins guerreiros são a espinha dorsal de qualquer bando: barulhentos, rápidos e mais perigosos em grupo do que sozinhos.',
+  e5:'Dragões vermelhos jovens já são vaidosos e cruéis o bastante para cobrar tributo de aldeias inteiras.',
+  e11:'Uma esfera de chamas explode no ponto escolhido, causando dano de fogo em área.',
+  e15:'Arma marcial versátil de corte; a mais comum entre soldados e mercenários.',
+  e24:'O velho ferreiro que conhece a fortaleza desde antes do cerco. Documento do mundo, não de pack.',
+};
+
+/* ===================== estado ===================== */
+const url = new URL(location);
+let variant = (url.searchParams.get('v')||'A').toUpperCase();
+let role    = url.searchParams.get('role')==='player' ? 'player' : 'gm';
+let big     = url.searchParams.get('big')!=='0';      /* acervo PF2e completo */
+let importing = url.searchParams.get('imp')==='1';
+let active='compendium', open=true;
+let q='';                       /* busca (sobrevive à troca de aba — Q6) */
+let openPack=null;              /* variante A: pack aberto */
+let collapsed={};               /* variante A: grupos recolhidos */
+let facet={type:null, lvl:null, rar:null, src:null};
+let counter='map';              /* variante C: balcão */
+let win=null;                   /* janela de preview (Q1) */
+let winPos={x:null,y:null};
+let target='Fofurinha';         /* variante C: para quem vai o item */
+
+const isGm = ()=> role==='gm';
+/* Q2: pack com plateia `gm` não existe para o jogador */
+const packs = ()=> PACKS.filter(p=> (isGm()||p.aud==='all') && (big || p.lic==='mundo'));
+const packOk = (id)=> packs().some(p=>p.id===id);
+
+const norm = (s)=> (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function hits(){
+  const t = norm(q);
+  let list = ENTRIES.filter(e=>packOk(e.pk));
+  if(t) list = list.filter(e=> norm(e.nm).includes(t) || norm(e.en).includes(t) || e.tr.some(x=>norm(x).includes(t)));
+  if(facet.type) list = list.filter(e=> P(e.pk).type===facet.type);
+  if(facet.src)  list = list.filter(e=> e.pk===facet.src);
+  if(facet.rar)  list = list.filter(e=> e.rar===facet.rar);
+  if(facet.lvl==='low')  list = list.filter(e=> e.lv!==null && e.lv<=3);
+  if(facet.lvl==='high') list = list.filter(e=> e.lv!==null && e.lv>3);
+  return list;
+}
+/* o mock tem 25 linhas; o acervo tem 12 mil. O contador mente a verdade. */
+const REAL = ()=> packs().reduce((a,p)=>a+p.n,0);
+function scaled(shown){
+  if(!q && !facet.type && !facet.src) return REAL();
+  return Math.max(shown, Math.round(shown * (big?37:1)));
+}
+
+/* ===================== peças ===================== */
+function tabButton(t){
+  const gm = t.group==='gm';
+  let badge='';
+  if(t.id==='chat') badge='<span class="badge">3</span>';
+  if(t.id==='compendium' && importing) badge='<span class="badge dot"></span>';
+  return '<button class="tabbtn '+(active===t.id&&open?'is-active':'')+'" data-tab="'+t.id+'" aria-label="'+t.label+'">'
+    + ICONS[t.id] + badge + '<span class="tip">'+t.label+(gm?'<span class="gm-tag">GM</span>':'')+'</span></button>';
+}
+function mark(s){
+  if(!q) return s;
+  const i = norm(s).indexOf(norm(q));
+  if(i<0) return s;
+  return s.slice(0,i)+'<mark>'+s.slice(i,i+q.length)+'</mark>'+s.slice(i+q.length);
+}
+function lvlOf(e){ return e.lv===null? '' : (e.lv<0? 'Nv −1' : 'Nv '+e.lv); }
+
+function entryRow(e, opts){
+  opts = opts||{};
+  const p = P(e.pk);
+  const canImport = isGm();
+  const acts = '<div class="acts">'
+    + '<button class="ib" data-prev="'+e.id+'" title="Pré-visualizar (abre janela)">👁</button>'
+    + (canImport ? '<button class="ib" data-imp="'+e.id+'" title="Importar para o mundo">⬇</button>' : '')
+    + (p.dest==='sheet' ? '<button class="ib" data-sheet="'+e.id+'" title="Mandar para uma ficha">📋</button>' : '')
+    + '</div>';
+  return '<div class="en'+(e.w?' inworld':'')+'" draggable="true" data-en="'+e.id+'">'
+    + '<div class="por">'+e.ic+'</div>'
+    + '<div class="mid">'
+    +   '<div class="nm">'+mark(e.nm)+(e.w?'<span class="inw" title="já importado neste mundo">no mundo</span>':'')+'</div>'
+    +   (e.en?'<div class="en2">'+mark(e.en)+'</div>':'')
+    +   '<div class="meta">'
+    +     (opts.src?'<span class="src">'+p.label+'</span>':'')
+    +     (e.rar?'<span class="tr '+e.rar+'">'+(e.rar==='rare'?'raro':'incomum')+'</span>':'')
+    +     e.tr.slice(0,2).map(t=>'<span class="tr">'+t+'</span>').join('')
+    +   '</div>'
+    + '</div>'
+    + (e.lv!==null?'<span class="lv">'+lvlOf(e)+'</span>':'')
+    + acts + '</div>';
+}
+
+function searchBar(scope){
+  return '<div class="srch">'
+    + '<input id="q" type="search" placeholder="Buscar…" value="'+q.replace(/"/g,'&quot;')+'" />'
+    + '<span class="scope">'+scope+'</span></div>';
+}
+function facetBar(){
+  const f=[];
+  const chip=(k,v,lb)=>'<button class="fc'+(facet[k]===v?' on':'')+'" data-f="'+k+'" data-v="'+v+'">'+lb+(facet[k]===v?'<span class="x">✕</span>':'')+'</button>';
+  f.push(chip('type','Criaturas','criaturas'));
+  f.push(chip('type','Itens','itens'));
+  f.push(chip('type','Regras','regras'));
+  f.push(chip('lvl','low','nível ≤3'));
+  f.push(chip('lvl','high','nível &gt;3'));
+  f.push(chip('rar','rare','raro'));
+  if(facet.src) f.push('<button class="fc on" data-f="src" data-v="'+facet.src+'">fonte: '+P(facet.src).label+'<span class="x">✕</span></button>');
+  return '<div class="facets">'+f.join('')+'</div>';
+}
+function impBar(){
+  return importing ? '<div class="bar-imp">⬇ importando 38/100<span class="prog"><i></i></span></div>' : '';
+}
+
+/* ================= variante A — estante ================= */
+function bodyA(){
+  if(openPack){
+    const p = P(openPack);
+    const list = hits().filter(e=>e.pk===openPack);
+    return '<div class="crumb"><button class="back" data-back="1">‹ Compêndios</button> / <b>'+p.label+'</b>'
+      +   ' <span class="lic '+(p.lic==='ORC'?'orc':p.lic==='mundo'?'world':'')+'">'+p.lic+'</span></div>'
+      + searchBar('neste pack')
+      + facetBar()
+      + '<div class="counter"><b>'+scaled(list.length)+'</b> de '+p.n+'<span class="grow"></span>'
+      +   '<button class="b g" data-sort="1">nome ↑</button></div>'
+      + '<div>'+ (list.length? list.map(e=>entryRow(e,{})).join('') : '<div class="empty">Nenhum resultado.<div class="hint">A busca vale só dentro deste pack — é assim que a REQ-CMP-013 é hoje.</div></div>')
+      + (list.length&&big?'<div class="more">rolando: mais '+(p.n-list.length)+' entradas</div>':'') + '</div>';
+  }
+  const groups = ['Criaturas','Itens','Regras'];
+  let out = searchBar('nomes de pack');
+  out += groups.map(function(g){
+    const ps = packs().filter(p=>p.type===g && (!q || norm(p.label).includes(norm(q))));
+    if(!ps.length) return '';
+    const col = collapsed[g];
+    return '<div class="secl" data-col="'+g+'"><span class="caret">'+(col?'▸':'▾')+'</span>'+g+' <span class="cnt">'+ps.length+'</span></div>'
+      + (col?'':ps.map(function(p){
+          return '<div class="pk" data-pk="'+p.id+'"><span class="ic">'+p.ic+'</span>'
+            + '<div class="mid"><div class="nm">'+p.label+'</div>'
+            + '<div class="sub"><span class="lic '+(p.lic==='ORC'?'orc':p.lic==='mundo'?'world':'')+'">'+p.lic+'</span>'
+            + (p.aud==='gm'?'<span class="aud">só GM</span>':'')+'</div></div>'
+            + '<span class="cnt">'+p.n+'</span></div>';
+        }).join(''));
+  }).join('');
+  return out;
+}
+
+/* ================= variante B — busca ================= */
+function bodyB(){
+  const list = hits();
+  let out = searchBar('todo o acervo') + facetBar();
+  if(!q && !facet.type && !facet.src && !facet.rar && !facet.lvl){
+    const fav = ENTRIES.filter(e=>['e11','e1','e17'].includes(e.id) && packOk(e.pk));
+    const rec = ENTRIES.filter(e=>['e5','e15','e21'].includes(e.id) && packOk(e.pk));
+    out += '<div class="counter"><b>'+REAL()+'</b> documentos em '+packs().length+' compêndios</div>'
+      + '<div class="secl">fixados <span class="cnt">'+fav.length+'</span></div>'
+      + (fav.length?fav.map(e=>entryRow(e,{src:true})).join(''):'<div class="empty" style="padding:.6rem">nada fixado ainda</div>')
+      + '<div class="secl">recentes <span class="cnt">'+rec.length+'</span></div>'
+      + rec.map(e=>entryRow(e,{src:true})).join('')
+      + '<div class="more">a aba abre em branco de propósito: <b>digite</b>. Pack aqui é filtro, não lugar.</div>';
+    return out;
+  }
+  const byType = {};
+  list.forEach(function(e){ const t=P(e.pk).type; (byType[t]=byType[t]||[]).push(e); });
+  const keys = Object.keys(byType);
+  out += '<div class="counter"><b>'+scaled(list.length)+'</b> resultados<span class="grow"></span>'
+    + (q?'<span>busca casa pt-BR e original</span>':'')+'</div>';
+  if(!keys.length) return out + '<div class="empty">Nada encontrado.<div class="hint">A busca varre todos os compêndios que você pode ver'
+    + (isGm()?'':' — o bestiário não está entre eles (Q2)')+'.</div></div>';
+  out += keys.map(function(t){
+    return '<div class="secl">'+t+' <span class="cnt">'+byType[t].length+'</span></div>'
+      + byType[t].map(e=>entryRow(e,{src:true})).join('');
+  }).join('');
+  return out;
+}
+
+/* ================= variante C — balcão ================= */
+const COUNTERS = {
+  map:  {lb:'Mapa',  dest:'map',   gest:'<b>arraste para a cena.</b> Ator de pack é importado antes de virar presença (REQ-CMP-018).'},
+  sheet:{lb:'Ficha', dest:'sheet', gest:'<b>escolha para quem</b> e solte na ficha — ou clique 📋.'},
+  table:{lb:'Mesa',  dest:'table', gest:'<b>abrir</b> mostra o texto; <b>mostrar</b> joga o verbete no chat para todos.'},
+};
+function bodyC(){
+  const avail = Object.keys(COUNTERS).filter(k=> k!=='map' || isGm());
+  if(!avail.includes(counter)) counter = avail[0];
+  const c = COUNTERS[counter];
+  const list = hits().filter(e=>P(e.pk).dest===c.dest);
+  let out = '<div class="seg">'+avail.map(k=>'<button class="'+(counter===k?'on':'')+'" data-cnt="'+k+'">'+COUNTERS[k].lb+'</button>').join('')+'</div>'
+    + searchBar('neste balcão');
+  if(counter==='sheet') out += '<div class="to">para <select id="tgt"><option>Fofurinha</option><option>Tobias</option>'
+    + (isGm()?'<option>Goblin Guerreiro (cena)</option>':'')+'</select></div>';
+  out += '<div class="gest">'+c.gest+'</div>';
+  out += '<div class="counter"><b>'+scaled(list.length)+'</b> disponíveis<span class="grow"></span>'
+    + '<span>'+packs().filter(p=>p.dest===c.dest).length+' compêndios</span></div>';
+  out += list.length? list.map(e=>entryRow(e,{src:true})).join('')
+    : '<div class="empty">Nada neste balcão.<div class="hint">Balcão é opinião nossa: o sistema declara <b>documentType</b>, não destino (Q da variante C).</div></div>';
+  return out;
+}
+
+/* ================= janela de preview (Q1) ================= */
+function winHtml(){
+  if(!win) return '';
+  const e = ENTRIES.find(x=>x.id===win); if(!e) return '';
+  const p = P(e.pk);
+  const x = winPos.x!==null?winPos.x:(window.innerWidth-420-380);
+  const y = winPos.y!==null?winPos.y:120;
+  const kv = [];
+  if(e.lv!==null) kv.push(['Nível', e.lv<0?'−1':e.lv]);
+  kv.push(['Tipo', p.type]);
+  kv.push(['Traços', e.tr.join(', ')+(e.rar?' · '+(e.rar==='rare'?'raro':'incomum'):'')]);
+  kv.push(['Fonte', p.label]);
+  return '<div class="win" style="left:'+x+'px;top:'+y+'px">'
+    + '<div class="wh" data-drag="1"><span class="t">'+e.nm+'</span>'
+    +   '<button class="ib" data-pin="1" title="Fixar">📌</button>'
+    +   '<button class="x" data-close="1">✕</button></div>'
+    + '<div class="wb">'
+    +   '<div class="hero"><div class="por">'+e.ic+'</div><div><h3>'+e.nm+'</h3>'
+    +     (e.en?'<div class="en2">'+e.en+'</div>':'')+'</div></div>'
+    +   '<dl class="kv">'+kv.map(k=>'<dt>'+k[0]+'</dt><dd>'+k[1]+'</dd>').join('')+'</dl>'
+    +   '<div class="txt">'+(TXT[e.id]||'Resumo do documento carregado sob demanda (REQ-CMP-015): o índice não traz isto.')+'</div>'
+    +   '<div class="licbox"><b>'+p.lic+'</b> — licença do pack (DEC-CMP-03). '
+    +     (p.lic==='OGL'?'Conteúdo legado sob OGL 1.0a; ':'')
+    +     'nomes de produto e arte da editora não são redistribuídos (regra clean-room do projeto).</div>'
+    + '</div>'
+    + '<div class="foot">'
+    +   (isGm()?'<button class="b p" data-imp="'+e.id+'">Importar para o mundo</button>':'')
+    +   (p.dest==='sheet'?'<button class="b" data-sheet="'+e.id+'">Mandar para a ficha de '+target+'</button>':'')
+    +   (p.dest==='table'?'<button class="b">Mostrar no chat</button>':'')
+    +   '<span style="flex:1"></span>'
+    +   (e.w?'<span class="inw">já no mundo</span>':'')
+    + '</div></div>';
+}
+
+/* ================= painel ================= */
+function panelCompendium(){
+  const head = '<div class="phead"><span class="ttl">Compêndio</span><span class="grow"></span>'
+    + (variant==='A'&&openPack?'<button class="ib" data-back="1" title="Voltar">↩</button>':'')
+    + (isGm()?'<button class="ib" title="Importar em lote [V2]">⬇</button>':'')
+    + '<button class="ib" title="Ordenar / opções">⋯</button></div>';
+  const body = variant==='A'?bodyA():variant==='B'?bodyB():bodyC();
+  return head + impBar() + '<div class="pbody">'+body+'</div>';
+}
+function panel(){
+  const inner = active==='compendium'
+    ? panelCompendium()
+    : '<div class="phead"><span class="ttl">'+TITLE[active]+'</span></div><div class="pbody">'+OTHER[active]+'</div>';
+  return '<div class="panel">'+inner+'</div>';
+}
+
+/* ===================== render ===================== */
+function render(){
+  const all = TABS.filter(t=>t.group==='all'&&!t.foot);
+  const gms = TABS.filter(t=>t.group==='gm'&&isGm());
+  const foot= TABS.filter(t=>t.foot);
+  document.getElementById('root').innerHTML =
+    '<div class="'+(open?'is-open':'')+'"><aside class="shell">'
+    + '<nav class="tabs"><div class="grp">'+all.map(tabButton).join('')+'</div>'
+    + '<div class="grp gm">'+gms.map(tabButton).join('')+'</div>'
+    + '<div class="foot">'+foot.map(tabButton).join('')+'</div></nav>'
+    + panel() + '</aside></div>';
+  document.getElementById('float').innerHTML = winHtml();
+
+  const who = document.getElementById('who');
+  who.className = 'who '+(isGm()?'':'player');
+  who.innerHTML = isGm() ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+                         : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha)</span>';
+  wire(); chrome();
+  const u = new URL(location);
+  u.searchParams.set('v',variant); u.searchParams.set('role',role);
+  u.searchParams.set('big',big?'1':'0'); u.searchParams.set('imp',importing?'1':'0');
+  history.replaceState(null,'',u);
+}
+
+function wire(){
+  const root = document.getElementById('root'), float = document.getElementById('float');
+  const on = (scope,sel,fn)=> scope.querySelectorAll(sel).forEach(el=>{ el.onclick=(ev)=>{ ev.stopPropagation(); fn(el,ev); }; });
+
+  on(root,'[data-tab]', el=>{ const id=el.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render(); });
+  on(root,'[data-pk]',  el=>{ openPack=el.dataset.pk; q=''; render(); });
+  on(root,'[data-back]',()=>{ openPack=null; q=''; render(); });
+  on(root,'[data-col]', el=>{ const g=el.dataset.col; collapsed[g]=!collapsed[g]; render(); });
+  on(root,'[data-cnt]', el=>{ counter=el.dataset.cnt; render(); });
+  on(root,'[data-f]',   el=>{ const k=el.dataset.f, v=el.dataset.v; facet[k] = facet[k]===v?null:v; render(); });
+  [root,float].forEach(s=>{
+    on(s,'[data-prev]', el=>{ win=el.dataset.prev; render(); });
+    on(s,'[data-imp]',  el=>{ const e=ENTRIES.find(x=>x.id===el.dataset.imp); if(e){ e.w=true; } render(); });
+    on(s,'[data-sheet]',el=>{ const e=ENTRIES.find(x=>x.id===el.dataset.sheet); if(e){ e.w=true; } flash('→ ficha de '+target+': '+e.nm+(isGm()?'':' (importado em nome do jogador — Q3)')); render(); });
+  });
+  on(float,'[data-close]',()=>{ win=null; render(); });
+
+  const qi = root.querySelector('#q');
+  if(qi){ qi.oninput = (e)=>{ q=e.target.value; const pos=e.target.selectionStart; render();
+      const n=document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos,pos); } }; }
+  const tg = root.querySelector('#tgt');
+  if(tg){ tg.onchange = (e)=>{ target=e.target.value; render(); }; }
+
+  /* arrastar para o mapa */
+  const dz = document.getElementById('dropzone');
+  root.querySelectorAll('[data-en]').forEach(el=>{
+    el.ondragstart = (ev)=>{ const e=ENTRIES.find(x=>x.id===el.dataset.en); ev.dataTransfer.setData('text/plain', e.id);
+      el.classList.add('drag'); dz.classList.add('hot');
+      document.getElementById('droplbl').textContent = P(e.pk).dest==='map'
+        ? e.nm+': importa e vira presença na cena (REQ-CMP-018)'
+        : e.nm+': solte numa ficha — no mapa isso não é presença'; };
+    el.ondragend = ()=>{ el.classList.remove('drag'); dz.classList.remove('hot'); };
+  });
+  dz.ondragover = (ev)=>ev.preventDefault();
+  dz.ondrop = (ev)=>{ ev.preventDefault(); const e=ENTRIES.find(x=>x.id===ev.dataTransfer.getData('text/plain'));
+    if(e){ e.w=true; flash(P(e.pk).dest==='map' ? e.nm+' importado e posto na cena' : e.nm+' não vira presença: é item'); }
+    dz.classList.remove('hot'); render(); };
+
+  /* arrastar a janela */
+  const wh = float.querySelector('[data-drag]');
+  if(wh) wh.onmousedown = (ev)=>{
+    const w = float.querySelector('.win'), r = w.getBoundingClientRect();
+    const dx = ev.clientX-r.left, dy = ev.clientY-r.top;
+    const mv = (e2)=>{ winPos.x = e2.clientX-dx; winPos.y = e2.clientY-dy; w.style.left=winPos.x+'px'; w.style.top=winPos.y+'px'; };
+    const up = ()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  };
+}
+function flash(msg){
+  const lbl = document.getElementById('droplbl');
+  lbl.textContent = msg;
+  setTimeout(()=>{ const l=document.getElementById('droplbl'); if(l) l.textContent='ator de pack: importa primeiro, depois vira presença (REQ-CMP-018)'; }, 2600);
+}
+
+/* ===================== alternador / legenda ===================== */
+const VAR_LB = {A:'A · estante (packs)', B:'B · busca (tudo)', C:'C · balcão (destino)'};
+const VAR_NOTE = {
+  A:`<tr><td>aposta</td><td>o <b>pack é o lugar</b>: grupos por tipo, packs colapsáveis com contagem e licença;
+      entrar no pack dá busca e filtros. É o <b>painel de hoje</b> feito para 300px.</td></tr>
+     <tr><td>custo</td><td>para achar algo você precisa saber onde mora. Ligue o acervo completo e conte quantos cliques
+      até "Bola de Fogo".</td></tr>`,
+  B:`<tr><td>aposta</td><td>ninguém navega 12 mil documentos: <b>a aba é a busca</b>. Resultado agrupado por tipo,
+      pack vira faceta, e a tela em repouso mostra fixados/recentes.</td></tr>
+     <tr><td>custo</td><td>exige <b>busca cross-pack no servidor</b>, que a 16 não tem (REQ-CMP-013 é dentro do pack).
+      Requisito novo, e caro (Q4).</td></tr>`,
+  C:`<tr><td>aposta</td><td>organiza por <b>destino</b> — Mapa · Ficha · Mesa — e já engatilha o gesto certo
+      (arrastar / mandar para quem / mostrar no chat).</td></tr>
+     <tr><td>custo</td><td>destino é <b>opinião nossa</b>: o sistema declara documentType. E some com o balcão Mapa
+      para o jogador, o que resolve a Q2 sem discutir a Q2.</td></tr>`,
+};
+function chrome(){
+  document.getElementById('variant').textContent = VAR_LB[variant];
+  document.getElementById('role').textContent = isGm()?'papel: Mestre':'papel: jogador';
+  document.getElementById('big').textContent = big?'acervo: PF2e completo':'acervo: só o mundo';
+  document.getElementById('imp').textContent = importing?'importando: sim':'importando: não';
+  document.getElementById('legend').innerHTML =
+    '<h4>Aba Compêndio — rodada 1 · variante '+VAR_LB[variant]+'</h4><table>'
+    + VAR_NOTE[variant]
+    + '<tr><td>o que muda</td><td>o painel <b>já existe</b> (CompendiumBrowser). A rodada testa o que quebra em 300px,'
+    + ' com o PF2e inteiro e com um <b>jogador</b> do outro lado.</td></tr>'
+    + '<tr><td>preview</td><td>abre em <b>janela</b> sobre o mapa (DEC-GAV-04), não como lâmina que come a lista'
+    + ' — é a <b>Q1</b>. Arraste a janela pelo título.</td></tr>'
+    + '<tr><td>plateia</td><td>proposta da <b>Q2</b>: pack tem plateia. <span class="q" style="border:0;padding:0;display:inline">'
+    + 'bestiário/perigos nascem <b>só GM</b></span> — troque o papel e veja o acervo encolher.</td></tr>'
+    + '<tr><td>dois nomes</td><td>pt-BR grande, original pequeno; a busca casa os dois ("fireball" → Bola de Fogo) — <b>Q5</b>.</td></tr>'
+    + '</table>'
+    + '<div class="q"><b>experimente:</b> busque <b>fogo</b> nas três variantes · abra 👁 em "Dragão Vermelho Jovem" e leia a caixa de licença ·'
+    + ' arraste "Bola de Fogo" para o mapa (não vira presença) e "Goblin Guerreiro" (vira) ·'
+    + ' troque para <b>jogador</b> e repita a busca.</div>'
+    + '<div class="q"><b>em aberto:</b> Q3 jogador importa em nome próprio? · Q4 busca cross-pack vale o custo? ·'
+    + ' Q6 busca sobrevive à troca de aba? · Q7 selo "no mundo" mente quando o pack muda · Q8 badge só durante import.</div>'
+    + '<div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>1/2/3</b> variante · <b>p</b> papel · <b>a</b> acervo · <b>i</b> importando · <b>Esc</b> fecha janela</div>';
+}
+document.getElementById('variant').onclick = ()=>{ variant = variant==='A'?'B':variant==='B'?'C':'A'; openPack=null; win=null; render(); };
+document.getElementById('role').onclick = ()=>{ role = isGm()?'player':'gm'; if(openPack&&!packOk(openPack)) openPack=null; if(win){ const e=ENTRIES.find(x=>x.id===win); if(e&&!packOk(e.pk)) win=null; } render(); };
+document.getElementById('big').onclick = ()=>{ big=!big; openPack=null; render(); };
+document.getElementById('imp').onclick = ()=>{ importing=!importing; render(); };
+document.addEventListener('keydown', (e)=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='1'){variant='A';openPack=null;win=null;render();}
+  else if(e.key==='2'){variant='B';win=null;render();}
+  else if(e.key==='3'){variant='C';win=null;render();}
+  else if(e.key==='p') document.getElementById('role').click();
+  else if(e.key==='a') document.getElementById('big').click();
+  else if(e.key==='i') document.getElementById('imp').click();
+  else if(e.key==='Escape'&&win){ win=null; render(); }
+});
+render();
+</script>
+</body>
+</html>

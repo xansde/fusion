@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Cenas (grill rodada 1: três variantes)</title>
+<!--
+  PROTOTYPE — descartável. Rodada 1 do grill da aba Cenas. Não é código de
+  produção; não importar nada daqui.
+
+  ════════════════════════════════════════════════════════════════════════════
+  ESTA ABA É A PORTA DE ENTRADA DO MESTRE
+  ════════════════════════════════════════════════════════════════════════════
+  DEC-GAV-02: no primeiro acesso, o jogador abre em Chat e o Mestre abre em
+  CENAS. É a primeira coisa que ele vê ao entrar no mundo — e a única aba com
+  esse privilégio. Isso deveria mandar no desenho, e é o que a variante C
+  leva a sério.
+
+  Como no Compêndio, o ponto de partida não é tela em branco:
+  `ScenesSidebar.svelte` já existe (lista de nomes, ● da ativa, ▶ ✎ 🗑,
+  "+ New"), o servidor tem CRUD e a ativação tem handler dedicado.
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE JÁ ESTÁ DECIDIDO — E ONDE (tratei como não-negociável)
+  ════════════════════════════════════════════════════════════════════════════
+   · ABA DO GRUPO GM (DEC-GAV-01). O jogador não tem este ícone. Troque o
+     papel no alternador: a aba SOME do trilho.
+   · ATIVAR É GLOBAL, INSTANTÂNEO E TEM UM ESCRITOR SÓ. `world:activeScene`
+     (GM-only) escreve `settings['_meta:activeScene']` e faz broadcast para
+     todo mundo; `doc:update {active}` é BLOQUEADO no servidor
+     (migration 008_scene_active). Não existe "olhar sem levar a mesa junto".
+     Hoje isso vive num comentário de migration — a spec-filha tem que
+     promover a decisão a normativa.
+   · MAPA DE REGIÃO NÃO É CENA (DEC-MREG-08, spec 34): `RegionMap` é
+     documento, mora no painel Mapa do Hub, e nunca entra nesta lista.
+   · `thumb` EXISTE NO SCHEMA E NINGUÉM GERA (assets/routes.ts: "thumbnail
+     generation is TODO post-MVP"). Toda miniatura aqui é mentira de
+     protótipo — ligue "miniatura: não gerada" e veja o que sobra.
+   · `folder` E `sort` EXISTEM no SceneDocument e a UI nunca usou.
+   · O QUE NÃO CABE EM 300px JÁ TEM DIÁLOGO: `SceneCreateDialog`,
+     `ScenePerceptionDialog`, `SceneDeleteConfirm`. Viram janelas flutuantes
+     (DEC-GAV-04 + REQ-UIF-009), não telas dentro da gaveta.
+
+  ════════════════════════════════════════════════════════════════════════════
+  AS TRÊS VARIANTES
+  ════════════════════════════════════════════════════════════════════════════
+  A · LISTA    — o painel de hoje, feito direito: nome, ● da ativa, ações no
+                 hover, busca que aparece quando a lista cresce, agrupamento
+                 por pasta (que o schema já tem). Sem imagem nenhuma.
+                 Aposta: cena se reconhece pelo NOME, e miniatura é uma
+                 promessa que o projeto ainda não pode cumprir.
+                 Custo: nada na linha diz o que a cena É. Numa campanha de
+                 28 cenas, "Corredor 3" e "Corredor 4" são a mesma coisa.
+
+  B · GALERIA  — cartões de miniatura em duas colunas, nome sobreposto,
+                 moldura na ativa. Aposta: mapa é imagem; o Mestre reconhece
+                 pelo desenho antes de ler.
+                 Custo: COMPRA uma pipeline de thumbnail que não existe
+                 (Q2), e em 300px cada cartão tem ~137px — ligue "miniatura:
+                 não gerada" para ver a galeria virar uma grade de retângulos
+                 cinza com texto cortado.
+
+  C · MESA     — o topo é fixo: "NO AR" — a cena que a mesa inteira está
+                 vendo, com os controles que o Mestre aperta durante o jogo
+                 (escuridão, luz global, resetar névoa) e quantos jogadores
+                 estão nela. Embaixo, o acervo para preparar e trocar.
+                 Aposta: se esta é a porta de entrada do Mestre, ela tem que
+                 responder "o que está no ar agora" antes de "quais cenas
+                 existem".
+                 Custo: dá ao painel uma cabeça de altura fixa (como a aba
+                 Combate) e encosta na spec 07 — escuridão e névoa são
+                 controles de cena ou da barra do canvas?
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE O PROTÓTIPO PÕE NA MESA DE PROPÓSITO
+  ════════════════════════════════════════════════════════════════════════════
+   Q1 — ATIVAR MOVE A MESA INTEIRA, SEM VOLTA. É a pergunta central. Clicar ▶
+        teleporta todo mundo na hora — inclusive no meio de um combate na
+        outra cena. Três saídas possíveis, e o protótipo mostra a terceira:
+          (a) nada muda: clicou, foi;
+          (b) confirmação sempre ("levar 3 jogadores para Cripta?");
+          (c) VER ≠ ATIVAR: o Mestre abre a cena para preparar sem levar
+              ninguém, e "pôr no ar" é um segundo gesto, explícito.
+        (c) é o modelo do Foundry, exige `sceneId` por usuário na presença
+        (REQ-USR-032/033, previsto e NÃO implementado) e muda o servidor.
+        Aqui ele está desenhado como "modo preparo" — experimente ✎ numa
+        cena que não está no ar.
+
+   Q2 — MINIATURA. `thumb` está no schema desde sempre e nada preenche. A
+        variante B só se sustenta se alguém renderizar a cena e salvar o PNG.
+        É trabalho de canvas, não de UI. Vale o custo, ou lista ganha?
+
+   Q3 — PASTAS. `folder` e `sort` existem no documento. Entram no MVP (como
+        na variante A) ou a lista fica plana e a busca resolve?
+
+   Q4 — ORDEM. Alfabética, ou `sort` manual arrastando? Cena nova entra onde
+        — topo ou fim? (Hoje: nem uma coisa nem outra, vem na ordem do banco.)
+
+   Q5 — EXCLUIR A CENA QUE ESTÁ NO AR. Recusar, como o combate recusa? Ou
+        aceitar e cair no `NoSceneOverlay` que já existe? Aqui está recusado.
+
+   Q6 — BADGE. Proposta: NENHUM. Cena não tem "não visto". Só faria sentido
+        se a Q1 fechar em (c) — aí o ponto marcaria "você está preparando
+        uma cena diferente da que está no ar".
+
+   Q7 — O MESTRE VAI PROCURAR O MAPA DE REGIÃO AQUI. Ele é documento, não
+        cena (DEC-MREG-08), e mora no Hub. Uma linha morta no rodapé
+        apontando para lá resolve, ou é poluição?
+
+   Q8 — DUPLICAR NÃO EXISTE. `sceneController` tem create/update/activate/
+        delete/list. Duplicar uma cena preparada (mesmo grid, mesmo fundo) é
+        o pedido mais óbvio de quem prepara sessão. Entra?
+
+   Q9 — QUANTOS JOGADORES ESTÃO AQUI. O painel mostra "3 na cena" — mas
+        `userPresenceUpdate` com `sceneId` está previsto na 05 e NÃO
+        implementado. Enquanto ativar for global, o número é sempre "todos":
+        ou o dado é inútil, ou ele é a prova de que a Q1 precisa de (c).
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;--special:#b98cff;
+    --live:#3ddc84;--live-dim:rgba(61,220,132,.10);
+    --prep:#e5b83b;
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+    --live-h:158px;              /* cabeça "no ar" — altura fixa (variante C) */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;overflow:hidden;display:grid;place-items:center}
+  .stage .canvasart{position:absolute;inset:0}
+  .stage .lbl{position:relative;z-index:2;background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:var(--radius);padding:.5rem .9rem;text-align:center;line-height:1.5;font-size:.82rem}
+  .stage .lbl b{font-size:1rem}
+  .stage .lbl small{color:var(--muted);font-size:.72rem}
+  .stage .prepbar{position:absolute;top:0;left:0;right:0;z-index:3;background:rgba(229,184,59,.16);border-bottom:1px solid var(--prep);color:var(--prep);font-size:.76rem;font-weight:700;padding:.3rem .7rem;display:flex;align-items:center;gap:.5rem}
+  .stage .prepbar .grow{flex:1}
+  .stage .prepbar button{background:var(--prep);border:0;color:#111;font:inherit;font-size:.72rem;font-weight:700;border-radius:var(--radius-sm);padding:.15rem .5rem;cursor:pointer}
+  .stage .prepbar .g{background:transparent;color:var(--prep);border:1px solid var(--prep)}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.dot{min-width:9px;width:9px;height:9px;padding:0;background:var(--prep)}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .gm-tag{font-size:.6rem;color:var(--danger);border:1px solid var(--danger);border-radius:3px;padding:0 3px;margin-left:.4rem;letter-spacing:.05em}
+
+  .shell{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding-top:10px;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column;overflow:hidden}
+  .is-open .panel{display:flex}
+
+  /* ---------- Painel ---------- */
+  .phead{display:flex;align-items:center;gap:.35rem;padding:.45rem .6rem;border-bottom:1px solid var(--accent-dim);flex-shrink:0}
+  .phead .ttl{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .phead .ttl b{color:var(--text)}
+  .phead .grow{flex:1}
+  .pbody{flex:1;overflow:auto;padding-bottom:.6rem}
+
+  .b{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.22rem .5rem;font:inherit;font-size:.74rem;cursor:pointer;white-space:nowrap}
+  .b:hover{border-color:var(--accent)}
+  .b.p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .b.live{background:rgba(61,220,132,.16);border-color:var(--live);color:var(--live);font-weight:700}
+  .b.live:hover{background:rgba(61,220,132,.26)}
+  .b.g{background:transparent;color:var(--muted)}
+  .b.d{background:transparent;border-color:var(--danger);color:var(--danger)}
+  .b:disabled{opacity:.4;cursor:not-allowed}
+  .ib{background:none;border:1px solid transparent;border-radius:var(--radius-sm);color:var(--subtle);cursor:pointer;width:22px;height:22px;display:grid;place-items:center;font-size:.74rem;padding:0}
+  .ib:hover{background:var(--surface);color:var(--text)}
+  .ib.dg:hover{color:var(--danger)}
+  .ib.on{color:var(--accent-hover)}
+
+  .srch{display:flex;align-items:center;gap:.35rem;padding:.4rem .5rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface-alt)}
+  .srch input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font:inherit;font-size:.78rem;padding:.28rem .45rem}
+  .srch input:focus{outline:0;border-color:var(--accent)}
+  .counter{font-size:.64rem;color:var(--subtle);padding:.35rem .6rem .1rem;display:flex;align-items:center;gap:.3rem}
+  .counter .grow{flex:1}
+  .secl{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:.5rem .6rem .15rem;display:flex;align-items:center;gap:.4rem;cursor:pointer}
+  .secl .cnt{color:var(--muted);font-family:var(--mono);font-weight:400;letter-spacing:0}
+  .secl::after{content:"";flex:1;height:1px;background:var(--border)}
+  .secl .caret{color:var(--subtle);font-size:.7rem;width:9px}
+
+  /* ---------- Cabeça "no ar" (variante C) ---------- */
+  .live{height:var(--live-h);display:flex;flex-direction:column;padding:.5rem .6rem .45rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--live-dim),transparent);flex-shrink:0;overflow:hidden}
+  .live .top{display:flex;gap:.55rem;align-items:flex-start}
+  .live .th{width:74px;height:52px;border-radius:var(--radius-sm);border:2px solid var(--live);flex-shrink:0;overflow:hidden;position:relative;display:grid;place-items:center;font-size:1.3rem}
+  .live .lbl{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--live);font-weight:700;display:flex;align-items:center;gap:.3rem}
+  .live .lbl .pulse{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 8px rgba(61,220,132,.9)}
+  .live .nm{font-size:.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .live .meta{font-size:.66rem;color:var(--subtle);margin-top:.1rem;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
+  .live .ctl{display:flex;gap:.25rem;margin-top:auto;padding-top:.4rem;flex-wrap:wrap}
+  .live .ctl .grow{flex:1}
+  .tog{display:flex;align-items:center;gap:.25rem;font-size:.68rem;color:var(--muted);background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.12rem .35rem;cursor:pointer}
+  .tog.on{color:var(--warn);border-color:rgba(229,184,59,.5);background:rgba(229,184,59,.10)}
+  .who-here{font-size:.62rem;color:var(--muted);display:flex;align-items:center;gap:.2rem}
+  .who-here .wip{margin-left:.2rem}
+
+  /* ---------- Linha de cena (variante A / C) ---------- */
+  .sc{display:flex;align-items:center;gap:.45rem;padding:.3rem .5rem .3rem .55rem;border-left:3px solid transparent;cursor:pointer}
+  .sc:hover{background:var(--surface-alt)}
+  .sc.on{border-left-color:var(--live);background:rgba(61,220,132,.06)}
+  .sc.prep{border-left-color:var(--prep);background:rgba(229,184,59,.06)}
+  .sc .dot{width:8px;height:8px;border-radius:50%;background:var(--surface-alt);border:1px solid var(--subtle);flex-shrink:0}
+  .sc.on .dot{background:var(--live);border-color:var(--live);box-shadow:0 0 7px rgba(61,220,132,.8)}
+  .sc.prep .dot{background:var(--prep);border-color:var(--prep)}
+  .sc .th{width:34px;height:24px;border-radius:3px;border:1px solid var(--border);flex-shrink:0;display:grid;place-items:center;font-size:.72rem;overflow:hidden}
+  .sc .mid{flex:1;min-width:0}
+  .sc .nm{font-size:.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.25rem}
+  .sc .nm mark{background:rgba(124,92,252,.35);color:#fff;border-radius:2px}
+  .sc .sub{font-size:.62rem;color:var(--subtle);display:flex;align-items:center;gap:.3rem;white-space:nowrap;overflow:hidden}
+  .sc .acts{display:flex;gap:.05rem;flex-shrink:0;opacity:0;transition:opacity .12s}
+  .sc:hover .acts{opacity:1}
+  .sc .grip{color:var(--subtle);cursor:grab;font-size:.7rem;width:10px;flex-shrink:0;opacity:0}
+  .sc:hover .grip{opacity:1}
+  .tagn{font-size:.56rem;letter-spacing:.04em;border:1px solid var(--border);border-radius:3px;padding:0 .2rem;color:var(--subtle);white-space:nowrap}
+  .tagn.night{color:var(--special);border-color:rgba(185,140,255,.45)}
+  .tagn.fog{color:var(--muted)}
+
+  /* ---------- Galeria (variante B) ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;padding:.45rem .5rem}
+  .card{position:relative;border-radius:var(--radius-sm);border:1px solid var(--border);overflow:hidden;cursor:pointer;aspect-ratio:4/3;display:flex;align-items:flex-end}
+  .card:hover{border-color:var(--accent)}
+  .card.on{border-color:var(--live);box-shadow:0 0 0 1px var(--live)}
+  .card.prep{border-color:var(--prep)}
+  .card .bgi{position:absolute;inset:0;display:grid;place-items:center;font-size:1.4rem}
+  .card .cap{position:relative;width:100%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.88) 55%);padding:.9rem .35rem .25rem;font-size:.7rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .flag{position:absolute;top:.2rem;left:.2rem;z-index:2;font-size:.55rem;letter-spacing:.05em;text-transform:uppercase;font-weight:700;border-radius:3px;padding:0 .25rem;background:var(--live);color:#08130c}
+  .card .flag.prep{background:var(--prep);color:#1b1505}
+  .card .acts{position:absolute;top:.2rem;right:.2rem;z-index:2;display:flex;gap:.1rem;opacity:0;transition:opacity .12s}
+  .card:hover .acts{opacity:1}
+  .card .acts .ib{background:rgba(0,0,0,.6);color:#ddd;width:20px;height:20px}
+  .card .nothumb{position:absolute;inset:0;display:grid;place-items:center;background:repeating-linear-gradient(45deg,#1c1c25,#1c1c25 6px,#20202b 6px,#20202b 12px);color:var(--subtle);font-size:.6rem;text-align:center;padding:.3rem}
+
+  /* ---------- Estados / avisos ---------- */
+  .empty{text-align:center;padding:1.6rem .9rem .8rem;color:var(--muted);font-size:.82rem}
+  .empty .hint{font-size:.72rem;color:var(--subtle);margin-top:.4rem;line-height:1.5}
+  .acts-c{display:flex;gap:.4rem;justify-content:center;margin-top:.8rem;flex-wrap:wrap}
+  .foot-note{font-size:.64rem;color:var(--subtle);border-top:1px dashed var(--border);margin-top:.5rem;padding:.45rem .6rem;line-height:1.45}
+  .foot-note b{color:var(--muted)}
+  .wip{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);border:1px solid rgba(229,184,59,.5);border-radius:3px;padding:0 .22rem}
+  .noaccess{padding:1.4rem .9rem;color:var(--muted);font-size:.8rem;line-height:1.6;text-align:center}
+
+  /* ---------- Janela flutuante ---------- */
+  .win{position:fixed;z-index:9000;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:0 18px 50px rgba(0,0,0,.65);width:440px;max-height:76vh;display:flex;flex-direction:column;overflow:hidden}
+  .win .wh{display:flex;align-items:center;gap:.4rem;padding:.4rem .55rem;background:var(--surface-alt);border-bottom:1px solid var(--border);cursor:move}
+  .win .wh .t{font-size:.82rem;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .win .wh .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.9rem}
+  .win .wb{padding:.6rem .7rem;overflow:auto;font-size:.78rem;line-height:1.5}
+  .win .row{display:grid;grid-template-columns:118px 1fr;gap:.3rem .6rem;align-items:center;margin-bottom:.35rem}
+  .win .row label{color:var(--subtle);font-size:.72rem}
+  .win input[type=text],.win input[type=number],.win select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font:inherit;font-size:.76rem;padding:.2rem .35rem;width:100%}
+  .win .two{display:flex;gap:.4rem}
+  .win .sect{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);margin:.7rem 0 .35rem;border-bottom:1px solid var(--border);padding-bottom:.2rem}
+  .win .foot{display:flex;gap:.35rem;padding:.45rem .55rem;border-top:1px solid var(--border);background:var(--surface-alt);align-items:center}
+  .win .warn{background:rgba(255,92,92,.10);border:1px solid rgba(255,92,92,.4);color:var(--danger);border-radius:var(--radius-sm);padding:.4rem .5rem;font-size:.74rem;line-height:1.45;margin-bottom:.5rem}
+  .win .note{color:var(--subtle);font-size:.72rem;line-height:1.45}
+
+  /* ---------- Alternador + legenda (fora do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.4rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.8rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;padding:0 .7rem;border-radius:999px;cursor:pointer;font-size:.76rem;font-weight:600}
+  .switcher button.var{background:#5a4bd6}
+  .switcher button.alt{background:#2f7a55}
+  .legend{position:fixed;left:16px;bottom:16px;z-index:9999;background:rgba(255,255,255,.96);color:#111;border-radius:10px;padding:.6rem .7rem;box-shadow:0 8px 30px rgba(0,0,0,.55);font-size:.72rem;max-width:440px;line-height:1.45}
+  .legend h4{margin:0 0 .35rem;font-size:.78rem}
+  .legend table{border-collapse:collapse}
+  .legend td{padding:.1rem .25rem;vertical-align:top}
+  .legend td:first-child{color:#666;white-space:nowrap}
+  .legend b{color:#111}
+  .legend .q{margin-top:.45rem;padding-top:.4rem;border-top:1px solid #ddd;color:#444}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill" id="hpill">🗺</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+
+<div class="stage" id="stage"></div>
+
+<div id="root"></div>
+<div id="float"></div>
+
+<div class="switcher">
+  <button id="variant" class="var">variante</button>
+  <button id="role">papel</button>
+  <button id="big" class="alt">acervo</button>
+  <button id="thumb" class="alt">miniatura</button>
+  <button id="state">estado</button>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ===================== chassi (spec 36) ===================== */
+const ICONS = {
+  chat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+const TABS = [
+  {id:'chat',label:'Chat',group:'all'},
+  {id:'contacts',label:'Contatos',group:'all'},
+  {id:'combat',label:'Combate',group:'all'},
+  {id:'compendium',label:'Compêndio',group:'all'},
+  {id:'npcs',label:'NPCs',group:'gm'},
+  {id:'scenes',label:'Cenas',group:'gm'},
+  {id:'settings',label:'Configurações',group:'all',foot:true},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  chat:'<div class="empty">o painel do Chat é a spec 38</div>',
+  contacts:'<div class="empty">o painel de Contatos é a spec 39</div>',
+  combat:'<div class="empty">o painel de Combate é a spec 40</div>',
+  compendium:'<div class="empty">o painel do Compêndio é a spec-filha irmã desta</div>',
+  npcs:'<div class="empty">o diretório de NPCs é a spec 42 (em grill)</div>',
+  settings:'<div class="empty">o painel de Configurações é a spec 37</div>',
+};
+
+/* ===================== cenas mock =====================
+   `g` = gradiente que finge a miniatura; `ic` = o emoji do meio.
+   `pasta` existe no schema (folder/sort) e a UI nunca usou (Q3).       */
+const G = {
+  keep:'radial-gradient(circle at 45% 40%,#2f6bd6,#132c68)',
+  crypt:'radial-gradient(circle at 50% 45%,#3d2b55,#150f22)',
+  forest:'radial-gradient(circle at 40% 55%,#2f6b45,#0f2418)',
+  town:'radial-gradient(circle at 55% 50%,#7a5c33,#2a1d0f)',
+  cave:'radial-gradient(circle at 50% 60%,#4a4a52,#131316)',
+  sea:'radial-gradient(circle at 50% 45%,#1f6b7a,#0b2429)',
+};
+const BASE = [
+  {id:'s1', nm:'Fortaleza de Pedra Alta', f:'Ato 1', g:G.keep,   ic:'🏰', w:70,h:50, grid:100, night:false, fog:true,  notes:'jogo hoje'},
+  {id:'s2', nm:'Cripta dos Sete',         f:'Ato 1', g:G.crypt,  ic:'⚰',  w:40,h:40, grid:100, night:true,  fog:true},
+  {id:'s3', nm:'Estrada da Floresta',     f:'Ato 1', g:G.forest, ic:'🌲', w:60,h:40, grid:100, night:false, fog:false},
+  {id:'s4', nm:'Vila de Beirapedra',      f:'Ato 1', g:G.town,   ic:'🏘', w:50,h:50, grid:100, night:false, fog:false},
+  {id:'s5', nm:'Caverna do Eco',          f:'Ato 2', g:G.cave,   ic:'🕳', w:35,h:35, grid:100, night:true,  fog:true},
+  {id:'s6', nm:'Porto de Maré Baixa',     f:'Ato 2', g:G.sea,    ic:'⚓', w:80,h:45, grid:100, night:false, fog:false},
+];
+/* campanha longa: o paredão que a lista plana não segura (Q3/Q4) */
+const EXTRA = [];
+(function(){
+  const packs = [
+    ['Ato 2', G.cave, '🕳', ['Corredor 1','Corredor 2','Corredor 3','Salão dos Ossos','Poço','Ponte Quebrada']],
+    ['Ato 3', G.crypt,'⚰', ['Antecâmara','Câmara Selada','Escadaria','Altar','Fosso','Saída Norte']],
+    ['Rascunhos', G.forest,'🌲',['Encontro aleatório','Clareira','Acampamento','Emboscada','Trilha','Rio']],
+    ['Cidade', G.town, '🏘',['Taverna','Mercado','Docas','Templo']],
+  ];
+  let k=0;
+  packs.forEach(function(p){ p[3].forEach(function(n){ k++; EXTRA.push({id:'x'+k, nm:n, f:p[0], g:p[1], ic:p[2], w:40,h:40, grid:100, night:false, fog:true}); }); });
+})();
+
+/* ===================== estado ===================== */
+const url = new URL(location);
+let variant = (url.searchParams.get('v')||'A').toUpperCase();
+let role    = url.searchParams.get('role')==='player' ? 'player' : 'gm';
+let big     = url.searchParams.get('big')==='1';
+let hasThumb= url.searchParams.get('thumb')!=='0';
+let stateKind = url.searchParams.get('state')==='empty' ? 'empty' : 'full';
+let active='scenes', open=true;
+let liveId='s1';                 /* a cena NO AR — global, um escritor só */
+let prepId=null;                 /* Q1(c): cena aberta só para o Mestre */
+let sel=null;
+let q='';
+let collapsed={};
+let win=null;                    /* {kind:'config'|'perc'|'del'|'new', id} */
+let winPos={x:null,y:null};
+let toast=null;
+
+const isGm = ()=> role==='gm';
+const scenes = ()=> stateKind==='empty' ? [] : (big ? BASE.concat(EXTRA) : BASE.slice());
+const S = (id)=> scenes().find(s=>s.id===id);
+const live = ()=> S(liveId);
+const norm = (s)=> (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function shown(){
+  let l = scenes();
+  if(q) l = l.filter(s=> norm(s.nm).includes(norm(q)) || norm(s.f).includes(norm(q)));
+  return l;
+}
+function say(msg){ toast=msg; render(); setTimeout(()=>{ toast=null; render(); }, 3200); }
+
+/* ===================== peças ===================== */
+function tabButton(t){
+  const gm = t.group==='gm';
+  let badge='';
+  if(t.id==='chat') badge='<span class="badge">3</span>';
+  /* Q6: badge só existiria se a Q1 fechar em "ver ≠ ativar" */
+  if(t.id==='scenes' && prepId) badge='<span class="badge dot"></span>';
+  return '<button class="tabbtn '+(active===t.id&&open?'is-active':'')+'" data-tab="'+t.id+'" aria-label="'+t.label+'">'
+    + ICONS[t.id] + badge + '<span class="tip">'+t.label+(gm?'<span class="gm-tag">GM</span>':'')+'</span></button>';
+}
+function mark(s){
+  if(!q) return s;
+  const i = norm(s).indexOf(norm(q));
+  if(i<0) return s;
+  return s.slice(0,i)+'<mark>'+s.slice(i,i+q.length)+'</mark>'+s.slice(i+q.length);
+}
+function thumbStyle(s){ return hasThumb ? 'background:'+s.g : ''; }
+function thumbInner(s){ return hasThumb ? '' : '<span style="color:#55556a;font-size:.6rem">?</span>'; }
+function tags(s){
+  return (s.night?'<span class="tagn night">noite</span>':'')
+       + (s.fog?'<span class="tagn fog">névoa</span>':'');
+}
+function sceneActs(s){
+  const isLive = s.id===liveId;
+  return '<div class="acts">'
+    + (isLive?'':'<button class="ib" data-go="'+s.id+'" title="Pôr no ar (leva a mesa inteira)">▶</button>')
+    + '<button class="ib" data-prep="'+s.id+'" title="Abrir para preparar (só você — Q1c)">✎</button>'
+    + '<button class="ib" data-cfg="'+s.id+'" title="Configurar (janela)">⚙</button>'
+    + '<button class="ib" data-dup="'+s.id+'" title="Duplicar (não existe hoje — Q8)">⧉</button>'
+    + '<button class="ib dg" data-del="'+s.id+'" title="Excluir">🗑</button>'
+    + '</div>';
+}
+function sceneRow(s){
+  const cls = ['sc', s.id===liveId?'on':'', s.id===prepId?'prep':''].join(' ');
+  return '<div class="'+cls+'" data-sc="'+s.id+'">'
+    + (big?'<span class="grip" title="ordenar (sort) — Q4">⠿</span>':'')
+    + '<span class="dot"></span>'
+    + '<div class="th" style="'+thumbStyle(s)+'">'+(hasThumb?s.ic:thumbInner(s))+'</div>'
+    + '<div class="mid"><div class="nm">'+mark(s.nm)+'</div>'
+    +   '<div class="sub">'+s.w+'×'+s.h+' '+tags(s)+(s.id===liveId?'<span class="tagn" style="color:var(--live);border-color:rgba(61,220,132,.5)">no ar</span>':'')+'</div>'
+    + '</div>'
+    + sceneActs(s) + '</div>';
+}
+
+/* ================= variante A — lista ================= */
+function bodyA(){
+  const list = shown();
+  if(!list.length) return emptyBody();
+  const folders = [];
+  list.forEach(s=>{ if(!folders.includes(s.f)) folders.push(s.f); });
+  let out = (scenes().length>8?searchBar():'')
+    + '<div class="counter"><b>'+list.length+'</b> cenas em '+folders.length+' pastas<span class="grow"></span>'
+    + '<span>ordem: '+(big?'manual (sort)':'alfabética')+'</span></div>';
+  out += folders.map(function(f){
+    const ss = list.filter(s=>s.f===f);
+    const col = collapsed[f];
+    return '<div class="secl" data-col="'+f+'"><span class="caret">'+(col?'▸':'▾')+'</span>'+f+' <span class="cnt">'+ss.length+'</span></div>'
+      + (col?'':ss.map(sceneRow).join(''));
+  }).join('');
+  return out + footNote();
+}
+
+/* ================= variante B — galeria ================= */
+function bodyB(){
+  const list = shown();
+  if(!list.length) return emptyBody();
+  let out = (scenes().length>8?searchBar():'')
+    + '<div class="counter"><b>'+list.length+'</b> cenas<span class="grow"></span>'
+    + (hasThumb?'<span>miniatura: gerada</span>':'<span style="color:var(--warn)">miniatura: nenhuma existe</span>')+'</div>'
+    + '<div class="grid">'
+    + list.map(function(s){
+        const cls = ['card', s.id===liveId?'on':'', s.id===prepId?'prep':''].join(' ');
+        const flag = s.id===liveId ? '<span class="flag">no ar</span>'
+                   : s.id===prepId ? '<span class="flag prep">preparo</span>' : '';
+        const body = hasThumb
+          ? '<div class="bgi" style="background:'+s.g+'">'+s.ic+'</div>'
+          : '<div class="nothumb">sem miniatura<br/>'+s.w+'×'+s.h+'</div>';
+        return '<div class="'+cls+'" data-sc="'+s.id+'">'+body+flag
+          + '<div class="acts">'
+          +   (s.id===liveId?'':'<button class="ib" data-go="'+s.id+'" title="Pôr no ar">▶</button>')
+          +   '<button class="ib" data-cfg="'+s.id+'" title="Configurar">⚙</button>'
+          + '</div>'
+          + '<div class="cap">'+mark(s.nm)+'</div></div>';
+      }).join('')
+    + '</div>';
+  return out + footNote();
+}
+
+/* ================= variante C — mesa ================= */
+function liveHead(){
+  const s = live();
+  if(!s) return '<div class="live" style="height:auto"><div class="lbl"><span class="pulse" style="background:var(--danger);box-shadow:none"></span>nada no ar</div>'
+    + '<div class="meta" style="margin-top:.3rem">Os jogadores estão vendo a tela de espera (<b>NoSceneOverlay</b>).</div>'
+    + '<div class="ctl"><button class="b live grow" data-go="'+(scenes()[0]?scenes()[0].id:'')+'">Pôr a primeira cena no ar</button></div></div>';
+  return '<div class="live">'
+    + '<div class="top">'
+    +   '<div class="th" style="'+thumbStyle(s)+'">'+(hasThumb?s.ic:'<span style="font-size:.55rem;color:var(--subtle);text-align:center">sem<br/>miniatura</span>')+'</div>'
+    +   '<div style="min-width:0;flex:1">'
+    +     '<div class="lbl"><span class="pulse"></span>no ar</div>'
+    +     '<div class="nm">'+s.nm+'</div>'
+    +     '<div class="meta">'+s.w+'×'+s.h+' · grade '+s.grid+'px'
+    +       '<span class="who-here">· 3 na cena <span class="wip">wip</span></span></div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="ctl">'
+    +   '<button class="tog '+(s.night?'on':'')+'" data-night="'+s.id+'">🌙 escuridão</button>'
+    +   '<button class="tog '+(s.fog?'on':'')+'" data-fogt="'+s.id+'">🌫 névoa</button>'
+    +   '<button class="b" data-fog="'+s.id+'">Resetar névoa</button>'
+    +   '<button class="b g grow" data-cfg="'+s.id+'">Configurar…</button>'
+    + '</div></div>';
+}
+function bodyC(){
+  const list = shown().filter(s=>s.id!==liveId);
+  let out = '';
+  if(!scenes().length) return emptyBody();
+  out += '<div class="counter">acervo<span class="grow"></span><b>'+list.length+'</b> outras cenas</div>';
+  out += (scenes().length>8?searchBar():'');
+  out += list.map(sceneRow).join('');
+  return out + footNote();
+}
+
+/* ================= comuns ================= */
+function searchBar(){
+  return '<div class="srch"><input id="q" type="search" placeholder="Buscar cena…" value="'+q.replace(/"/g,'&quot;')+'" /></div>';
+}
+function emptyBody(){
+  if(q) return '<div class="empty">Nenhuma cena com esse nome.</div>';
+  return '<div class="empty">Nenhuma cena neste mundo.'
+    + '<div class="hint">Uma cena é o mapa que a mesa vê. Enquanto não houver uma no ar, os jogadores ficam na tela de espera.</div>'
+    + '<div class="acts-c"><button class="b p" data-new="1">Criar a primeira cena</button></div></div>';
+}
+function footNote(){
+  return '<div class="foot-note"><b>Mapa de região</b> não é cena (DEC-MREG-08): ele é documento e abre pelo Hub. '
+    + 'Esta linha é a <b>Q7</b> — resolve a confusão ou é poluição?</div>';
+}
+
+/* ================= janelas ================= */
+function winHtml(){
+  if(!win) return '';
+  const s = S(win.id) || {nm:'Nova cena', w:40,h:40, grid:100, night:false, fog:true, g:G.keep, ic:'🗺'};
+  const x = winPos.x!==null?winPos.x:(window.innerWidth-440-380);
+  const y = winPos.y!==null?winPos.y:110;
+  let title='', body='', foot='';
+  if(win.kind==='del'){
+    const isLive = win.id===liveId;
+    title = 'Excluir cena';
+    body = (isLive
+      ? '<div class="warn"><b>Recusado.</b> "'+s.nm+'" está <b>no ar</b>: a mesa inteira está dentro dela agora. '
+        + 'Ponha outra cena no ar antes de excluir esta. <br/><br/>É a proposta da <b>Q5</b> — o combate recusa do mesmo jeito.</div>'
+      : '<p>Excluir <b>'+s.nm+'</b> apaga junto o que mora dentro dela: presenças no mapa, paredes, luzes, sons e desenhos.</p>'
+        + '<div class="note">O que <b>não</b> vai junto: os atores (eles são documentos do mundo, não da cena) e o journal ligado.</div>')
+      ;
+    foot = isLive ? '<button class="b" data-close="1">Entendi</button>'
+                  : '<span style="flex:1"></span><button class="b g" data-close="1">Cancelar</button><button class="b d" data-close="1">Excluir</button>';
+  } else if(win.kind==='perc'){
+    title = 'Percepção — '+s.nm;
+    body = '<div class="row"><label>Escuridão</label><input type="range" min="0" max="100" value="'+(s.night?70:0)+'" /></div>'
+      + '<div class="row"><label>Luz global</label><select><option>ligada</option><option>desligada</option></select></div>'
+      + '<div class="row"><label>Limiar</label><input type="number" value="0.75" step="0.05" /></div>'
+      + '<div class="row"><label>Visão por token</label><select><option>ligada</option><option>desligada</option></select></div>'
+      + '<div class="note">Já existe como <b>ScenePerceptionDialog</b>. Abre em janela porque não cabe nos 300px (DEC-GAV-04) — é o item 5 do contrato da spec-mãe.</div>';
+    foot = '<span style="flex:1"></span><button class="b g" data-close="1">Cancelar</button><button class="b p" data-close="1">Salvar</button>';
+  } else {
+    title = (win.kind==='new'?'Nova cena':'Configurar — '+s.nm);
+    body = '<div class="row"><label>Nome</label><input type="text" value="'+(win.kind==='new'?'':s.nm)+'" /></div>'
+      + '<div class="row"><label>Pasta</label><select><option>Ato 1</option><option>Ato 2</option><option>(nenhuma)</option></select></div>'
+      + '<div class="sect">Dimensões</div>'
+      + '<div class="row"><label>Largura × altura</label><div class="two"><input type="number" value="'+s.w+'" /><input type="number" value="'+s.h+'" /></div></div>'
+      + '<div class="row"><label>Preenchimento</label><input type="number" value="0.25" step="0.05" /></div>'
+      + '<div class="sect">Grade</div>'
+      + '<div class="row"><label>Tipo</label><select><option>quadrada</option><option>hexagonal (ponta cima)</option><option>sem grade</option></select></div>'
+      + '<div class="row"><label>Tamanho (px)</label><input type="number" value="'+s.grid+'" /></div>'
+      + '<div class="sect">Fundo</div>'
+      + '<div class="row"><label>Imagem</label><input type="text" value="assets/maps/'+s.id+'.webp" /></div>'
+      + '<div class="row"><label>Cor</label><input type="text" value="#0b0b0f" /></div>'
+      + '<div class="note">É o <b>SceneCreateDialog</b> de hoje. Note o tamanho: nada disso caberia na gaveta — '
+      + 'e por isso a lista só precisa de <b>pôr no ar · preparar · configurar · duplicar · excluir</b>.</div>';
+    foot = '<button class="b" data-perc="'+win.id+'">Percepção…</button><span style="flex:1"></span>'
+      + '<button class="b g" data-close="1">Cancelar</button><button class="b p" data-close="1">Salvar</button>';
+  }
+  return '<div class="win" style="left:'+x+'px;top:'+y+'px">'
+    + '<div class="wh" data-drag="1"><span class="t">'+title+'</span><button class="x" data-close="1">✕</button></div>'
+    + '<div class="wb">'+body+'</div><div class="foot">'+foot+'</div></div>';
+}
+
+/* ================= painel ================= */
+function panelScenes(){
+  if(!isGm()) return '<div class="phead"><span class="ttl">Cenas</span></div>'
+    + '<div class="pbody"><div class="noaccess">Esta aba é do <b>grupo GM</b> (DEC-GAV-01).<br/>'
+    + 'No trilho do jogador ela nem aparece — o painel só está aqui para você ver o contraste.<br/><br/>'
+    + '<span class="wip">redação no servidor</span><br/>'
+    + 'Esconder o ícone não é proteção: o predicado que protege o dado é <b>isRolePrivileged</b> no handler (REQ-GAV-034).</div></div>';
+  const head = '<div class="phead"><span class="ttl">Cenas</span>'
+    + (scenes().length?'<span class="ttl"> · <b>'+scenes().length+'</b></span>':'')
+    + '<span class="grow"></span>'
+    + '<button class="ib" data-new="1" title="Nova cena">＋</button>'
+    + '<button class="ib" title="Ordenar / opções">⋯</button></div>';
+  const body = variant==='A'?bodyA():variant==='B'?bodyB():bodyC();
+  const head2 = (variant==='C') ? liveHead() : '';
+  const t = toast ? '<div class="bar-imp" style="background:rgba(61,220,132,.14);border-color:var(--live);color:var(--live);font-size:.7rem;padding:.3rem .6rem">'+toast+'</div>' : '';
+  return head + t + head2 + '<div class="pbody">'+body+'</div>';
+}
+function panel(){
+  const inner = active==='scenes'
+    ? panelScenes()
+    : '<div class="phead"><span class="ttl">'+TITLE[active]+'</span></div><div class="pbody">'+OTHER[active]+'</div>';
+  return '<div class="panel">'+inner+'</div>';
+}
+
+/* ===================== render ===================== */
+function stageHtml(){
+  const s = prepId ? S(prepId) : live();
+  const isPrep = !!prepId;
+  if(!s) return '<div class="canvasart" style="background:#0b0b0f"></div>'
+    + '<div class="lbl"><b>Nenhuma cena no ar</b><br/><small>NoSceneOverlay — o que o jogador vê</small></div>';
+  return '<div class="canvasart" style="background:'+(hasThumb?s.g:'#14141b')+'"></div>'
+    + (isPrep? '<div class="prepbar">✎ preparando <b style="color:#fff">'+s.nm+'</b> — os jogadores continuam em "'+(live()?live().nm:'nada')+'"'
+        + '<span class="grow"></span><button data-go="'+s.id+'">Pôr no ar</button>'
+        + '<button class="g" data-unprep="1">Sair do preparo</button></div>' : '')
+    + '<div class="lbl"><b>'+s.nm+'</b><br/><small>'+(isPrep?'só você está vendo isto (Q1c)':'a mesa inteira está vendo isto')+'</small></div>';
+}
+function render(){
+  const all = TABS.filter(t=>t.group==='all'&&!t.foot);
+  const gms = TABS.filter(t=>t.group==='gm'&&isGm());
+  const foot= TABS.filter(t=>t.foot);
+  if(!isGm() && active==='scenes'){ /* mantém o painel visível para o contraste */ }
+  document.getElementById('root').innerHTML =
+    '<div class="'+(open?'is-open':'')+'"><aside class="shell">'
+    + '<nav class="tabs"><div class="grp">'+all.map(tabButton).join('')+'</div>'
+    + (gms.length?'<div class="grp gm">'+gms.map(tabButton).join('')+'</div>':'')
+    + '<div class="foot">'+foot.map(tabButton).join('')+'</div></nav>'
+    + panel() + '</aside></div>';
+  document.getElementById('float').innerHTML = winHtml();
+  document.getElementById('stage').innerHTML = stageHtml();
+
+  const who = document.getElementById('who');
+  who.className = 'who '+(isGm()?'':'player');
+  who.innerHTML = isGm() ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+                         : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha)</span>';
+  document.getElementById('hpill').textContent = '🗺 ' + (live()?live().nm:'sem cena');
+  wire(); chrome();
+  const u = new URL(location);
+  u.searchParams.set('v',variant); u.searchParams.set('role',role);
+  u.searchParams.set('big',big?'1':'0'); u.searchParams.set('thumb',hasThumb?'1':'0');
+  u.searchParams.set('state',stateKind);
+  history.replaceState(null,'',u);
+}
+
+function wire(){
+  const root=document.getElementById('root'), float=document.getElementById('float'), stage=document.getElementById('stage');
+  const on=(scope,sel,fn)=>scope.querySelectorAll(sel).forEach(el=>{ el.onclick=(ev)=>{ ev.stopPropagation(); fn(el,ev); }; });
+
+  on(root,'[data-tab]', el=>{ const id=el.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render(); });
+  on(root,'[data-col]', el=>{ const f=el.dataset.col; collapsed[f]=!collapsed[f]; render(); });
+  on(root,'[data-sc]',  el=>{ sel=el.dataset.sc; render(); });
+
+  [root,stage].forEach(s=>{
+    on(s,'[data-go]', el=>{ const id=el.dataset.go; const nm=S(id)?S(id).nm:'';
+      liveId=id; prepId=null; say('▶ '+nm+' está no ar — toda a mesa foi levada junto, sem aviso (Q1).'); });
+  });
+  on(root,'[data-prep]', el=>{ prepId = prepId===el.dataset.prep ? null : el.dataset.prep; render(); });
+  on(stage,'[data-unprep]', ()=>{ prepId=null; render(); });
+  on(root,'[data-new]',  ()=>{ win={kind:'new',id:null}; render(); });
+  on(root,'[data-dup]',  el=>{ say('⧉ duplicar não existe no sceneController de hoje (Q8).'); });
+  on(root,'[data-fog]',  ()=>{ say('🌫 névoa resetada para todos — sem confirmação. Certo?'); });
+  on(root,'[data-fogt]', el=>{ const s=S(el.dataset.fogt); if(s){ s.fog=!s.fog; } render(); });
+  on(root,'[data-night]',el=>{ const s=S(el.dataset.night); if(s){ s.night=!s.night; } render(); });
+  [root,float].forEach(s=>{
+    on(s,'[data-cfg]', el=>{ win={kind:'config',id:el.dataset.cfg}; render(); });
+    on(s,'[data-del]', el=>{ win={kind:'del',id:el.dataset.del}; render(); });
+    on(s,'[data-perc]',el=>{ win={kind:'perc',id:el.dataset.perc}; render(); });
+  });
+  on(float,'[data-close]',()=>{ win=null; render(); });
+
+  const qi = root.querySelector('#q');
+  if(qi){ qi.oninput=(e)=>{ q=e.target.value; const p=e.target.selectionStart; render();
+    const n=document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(p,p); } }; }
+
+  const wh = float.querySelector('[data-drag]');
+  if(wh) wh.onmousedown=(ev)=>{
+    const w=float.querySelector('.win'), r=w.getBoundingClientRect();
+    const dx=ev.clientX-r.left, dy=ev.clientY-r.top;
+    const mv=(e2)=>{ winPos.x=e2.clientX-dx; winPos.y=e2.clientY-dy; w.style.left=winPos.x+'px'; w.style.top=winPos.y+'px'; };
+    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  };
+}
+
+/* ===================== alternador / legenda ===================== */
+const VAR_LB = {A:'A · lista (nome)', B:'B · galeria (miniatura)', C:'C · mesa (no ar)'};
+const VAR_NOTE = {
+  A:`<tr><td>aposta</td><td>cena se reconhece pelo <b>nome</b>. Pastas (o schema já tem <b>folder</b>/<b>sort</b>),
+      busca quando a lista cresce, ações no hover. Zero imagem — nada que o projeto ainda não gere.</td></tr>
+     <tr><td>custo</td><td>ligue o <b>acervo de campanha</b>: "Corredor 1..3" não dizem nada. A linha não mostra o que a cena É.</td></tr>`,
+  B:`<tr><td>aposta</td><td>mapa é <b>imagem</b>: duas colunas de miniatura, moldura verde na que está no ar.
+      O Mestre reconhece antes de ler.</td></tr>
+     <tr><td>custo</td><td><b>thumb não é gerado por ninguém</b> (assets/routes.ts: TODO post-MVP).
+      Desligue "miniatura" e veja o que a variante vira — é a <b>Q2</b>.</td></tr>`,
+  C:`<tr><td>aposta</td><td>esta é a <b>porta de entrada do Mestre</b> (DEC-GAV-02). O topo responde
+      "o que está no ar agora" com os controles da sessão; o acervo vem embaixo.</td></tr>
+     <tr><td>custo</td><td>cabeça de altura fixa come ~1/3 do painel, e escuridão/névoa aqui encostam
+      na spec 07 (são controles de cena ou da barra do canvas?).</td></tr>`,
+};
+function chrome(){
+  document.getElementById('variant').textContent = VAR_LB[variant];
+  document.getElementById('role').textContent = isGm()?'papel: Mestre':'papel: jogador (sem a aba)';
+  document.getElementById('big').textContent = big?'acervo: campanha (28)':'acervo: mundo (6)';
+  document.getElementById('thumb').textContent = hasThumb?'miniatura: fingida':'miniatura: não gerada';
+  document.getElementById('state').textContent = stateKind==='empty'?'estado: vazio':'estado: com cenas';
+  document.getElementById('legend').innerHTML =
+    '<h4>Aba Cenas — rodada 1 · variante '+VAR_LB[variant]+'</h4><table>'
+    + VAR_NOTE[variant]
+    + '<tr><td>o que já existe</td><td>backend pronto (<b>world:activeScene</b>, GM-only, broadcast global) e um front quase pronto'
+    + ' (<b>ScenesSidebar</b>). A spec-filha <b>formaliza e migra</b> — não constrói do zero.</td></tr>'
+    + '<tr><td>ativar</td><td>é <b>global e instantâneo</b>: um escritor só, <b>doc:update{active} é bloqueado</b> no servidor.'
+    + ' Clique ▶ e leia o aviso — é a <b>Q1</b>.</td></tr>'
+    + '<tr><td>preparo</td><td>✎ abre a cena <b>só para você</b> (a proposta Q1c). Exige <b>sceneId</b> na presença'
+    + ' (REQ-USR-032/033), previsto e <b>não implementado</b>.</td></tr>'
+    + '<tr><td>fora da gaveta</td><td>⚙ configurar e percepção abrem <b>janela</b> (DEC-GAV-04): grade, fundo, dimensões,'
+    + ' escuridão. A lista fica com 5 verbos.</td></tr>'
+    + '</table>'
+    + '<div class="q"><b>experimente:</b> ▶ em "Cripta dos Sete" (a mesa vai junto) · ✎ na mesma cena e olhe a faixa amarela no mapa ·'
+    + ' 🗑 na cena que está no ar (recusa, <b>Q5</b>) · ⚙ para ver o tamanho do que <b>não</b> cabe em 300px ·'
+    + ' desligue a <b>miniatura</b> na variante B.</div>'
+    + '<div class="q"><b>em aberto:</b> Q3 pastas no MVP? · Q4 ordem manual ou alfabética? · Q6 badge só se existir preparo ·'
+    + ' Q7 linha do mapa de região · Q8 duplicar · Q9 "3 na cena" não existe enquanto ativar for global.</div>'
+    + '<div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>1/2/3</b> variante · <b>p</b> papel · <b>a</b> acervo ·'
+    + ' <b>m</b> miniatura · <b>v</b> vazio · <b>Esc</b> fecha janela/preparo</div>';
+}
+document.getElementById('variant').onclick=()=>{ variant = variant==='A'?'B':variant==='B'?'C':'A'; win=null; render(); };
+document.getElementById('role').onclick=()=>{ role = isGm()?'player':'gm'; win=null; prepId=null; render(); };
+document.getElementById('big').onclick=()=>{ big=!big; q=''; render(); };
+document.getElementById('thumb').onclick=()=>{ hasThumb=!hasThumb; render(); };
+document.getElementById('state').onclick=()=>{ stateKind = stateKind==='empty'?'full':'empty'; prepId=null; win=null; render(); };
+document.addEventListener('keydown',(e)=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='1'){variant='A';win=null;render();}
+  else if(e.key==='2'){variant='B';win=null;render();}
+  else if(e.key==='3'){variant='C';win=null;render();}
+  else if(e.key==='p') document.getElementById('role').click();
+  else if(e.key==='a') document.getElementById('big').click();
+  else if(e.key==='m') document.getElementById('thumb').click();
+  else if(e.key==='v') document.getElementById('state').click();
+  else if(e.key==='Escape'){ if(win){win=null;} else if(prepId){prepId=null;} render(); }
+});
+render();
+</script>
+</body>
+</html>

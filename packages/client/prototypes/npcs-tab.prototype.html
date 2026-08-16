@@ -1,0 +1,3003 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROTOTYPE — Aba NPCs (rodada 3: atitude, preset e ícones desenhados)</title>
+    <!--
+  PROTOTYPE — descartável. Rodada 3 do grill. Não é código de produção.
+  Rodada 1 (três variantes) e rodada 2 (diretório) estão no histórico do arquivo.
+
+  ════════════════════════════════════════════════════════════════════════════
+  DECIDIDO NA RODADA 1 (2026-08-16)
+  ════════════════════════════════════════════════════════════════════════════
+   1. DIRETÓRIO é o desenho, com o Mestre CRIANDO pastas e podendo FIXÁ-LAS no topo.
+   2. MOVER ATOR por arraste E pelo botão de pasta — as duas formas.
+   3. PERSONAGEM NÃO NASCE AQUI. "A aba é de NPC, ou seja, personagens NÃO
+      jogáveis." Personagem nasce colado ao player: todo player criado nasce com
+      um personagem em branco. → emenda na 37 (Usuários) e na 05.
+   4. VEÍCULO SAIU. Ver o item 1 da rodada 3: ele nunca existiu.
+   5. CRIAR NPC tem dois caminhos: do bestiário (browser aqui) ou do zero.
+   6. VIDA NÃO APARECE nesta aba.
+   7. Ficha de NPC será muito mais maleável que a de personagem, e ganha SPEC
+      PRÓPRIA. Esta spec não define ficha — só abre a que a spec dela definir.
+
+  ════════════════════════════════════════════════════════════════════════════
+  DECIDIDO NA RODADA 2 (2026-08-16)
+  ════════════════════════════════════════════════════════════════════════════
+   1. VEÍCULO NÃO EXISTE — não ocupa eixo nenhum, não é subtipo cortado, é coisa
+      que o Fusion não tem. Confirmado no código: systems/pf2e/src/index.ts:71
+      declara Actor: ["character","npc","hazard","loot","familiar"]. "vehicle"
+      não aparece em lugar nenhum do repo; foi invenção do protótipo da rodada 1.
+      → A janela de criação oferece NPC e Perigo. `familiar` nasce colado a um dono
+        (DEC-CTT-06), e `loot` é assunto do baú (item 3).
+   2. "TIPO DE NPC" É PRESET. Mercador, chefe, montaria pré-preenchem a ficha na
+      criação e NÃO viram capacidade gravada no ator. Os presets AINDA NÃO EXISTEM,
+      mas vão existir — a spec fixa o conceito e o ponto de extensão, não o catálogo.
+      → Consequência que o protótipo passou a respeitar: o preset SOME depois de
+        criar. Não há etiqueta de "mercador" na linha, porque não há nada gravado
+        para etiquetar. Só aparece na janela de criação.
+   3. BAÚ NÃO É ATOR. "É uma ferramenta para ajudar na agilidade do GM narrar."
+      → O botão põe um baú direto na cena e ele NUNCA aparece no diretório.
+      → Fica pendurado: o pf2e declara o subtipo `loot`, que é exatamente o
+        recipiente. Se o baú não é ator, `loot` fica sem uso — ou o baú usa `loot`
+        por baixo sem nunca ser listado. Onde vive o conteúdo do baú é assunto da
+        spec de Token/Cenas, não desta.
+   4. NOVO — ATITUDE. Cada NPC pode ter uma atitude diante dos jogadores:
+      INIMIGO · NEUTRO · ALIADO. É configuração para a PARTY INTEIRA, não por
+      personagem. Atributo simples; só importa de verdade mais para a frente.
+      → O contraste que vale registrar na spec: CONHECIMENTO é por par
+        contato × personagem (DEC-CTT-03), ATITUDE é da party toda. Duas
+        granularidades diferentes de propósito, e a spec tem que dizer por quê.
+      → No protótipo: marca à esquerda dos números, sempre visível, que CICLA no
+        clique (aliado → neutro → inimigo), como a célula da matriz da 39.
+        Perigo não tem atitude — a marca simplesmente não aparece.
+   5. SEM EMOJI. Todo ícone desta tela é desenhado. Era regra do projeto desde a
+      DEC-ACH-04 (spec 38): "emoji muda de desenho e de cor em cada sistema
+      operacional e não acompanha o tema". O protótipo estava violando em nove
+      lugares (baú, pastas, ficha, lápis, ✕, estrela, hexágono, chevrons).
+
+  ════════════════════════════════════════════════════════════════════════════
+  HERDADO DA SPEC 39 (não se rediscute)
+  ════════════════════════════════════════════════════════════════════════════
+   · Condição por contrato (DEC-CTT-11) · sub-personagem encapsulado (DEC-CTT-06)
+   · título livre (DEC-CTT-07, fecha Q-CTT-05) · conhecimento se edita num lugar
+     só (DEC-CTT-05) · redação no servidor (REQ-CTT-081..083).
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE AINDA NÃO FOI DECIDIDO (vira Q- na spec se não fechar agora)
+  ════════════════════════════════════════════════════════════════════════════
+   N1 FIXAR PASTA — "Goblinoides" está fixada e SAIU de dentro de "Bestiário"
+      (sobe com o caminho). É isso, ou fixar só devia ordenar entre as irmãs? E o
+      favorito mora no aparelho (como as categorias da 39) ou na pasta?
+   N5 IMPORTAR DO BESTIÁRIO — cai em qual pasta? E guarda vínculo com o pack de
+      origem, para atualizar depois, ou vira cópia solta?
+   N6 EXCLUIR — recusa enquanto houver combate ativo? (a REQ-CTT-076 só cobriu o
+      caso espelho: excluir personagem)
+   N7 REVELAR — o cartão só lê o estado; revelar exige o rodapé. Continua assim?
+   N8 VÍNCULO NO ARRASTE — goblin desvinculado, Aldric vinculado. Depende da
+      spec 41 (Token), que ainda não existe.
+   N9 SEGUNDO PERSONAGEM — se o personagem nasce com o player, o SEGUNDO
+      personagem de um jogador nasce como? A 39 já prevê o caso (CA-CTT-010).
+   N10 EXCLUIR PERSONAGEM — criar ganhou casa (Usuários); excluir não tem nenhuma.
+-->
+    <style>
+      :root {
+        --bg: #0e0e12;
+        --surface: #18181f;
+        --surface-alt: #1f1f2a;
+        --border: #2e2e3d;
+        --text: #e8e8f0;
+        --muted: #8888a0;
+        --subtle: #55556a;
+        --accent: #7c5cfc;
+        --accent-hover: #9b7ffe;
+        --accent-dim: rgba(124, 92, 252, 0.15);
+        --danger: #ff5c5c;
+        --warn: #e5b83b;
+        --ok: #3ddc84;
+        --special: #b98cff;
+        --pin: #f5a623;
+        --radius-sm: 4px;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+        --header: 48px;
+        --panel-w: 300px;
+        --rail-w: 44px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 14px;
+        overflow: hidden;
+      }
+
+      /* ---------- App shell (mock) ---------- */
+      .header {
+        height: var(--header);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        z-index: 200;
+      }
+      .header .bolt {
+        color: #f5a623;
+      }
+      .header .world {
+        font-weight: 600;
+      }
+      .header .pill {
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        color: var(--accent-hover);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .header .spacer {
+        flex: 1;
+      }
+      .header .status {
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+      .header .who {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+      }
+      .header .who b {
+        color: var(--danger);
+      }
+      .header .who.player b {
+        color: var(--ok);
+      }
+      .header .btn {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 0.2rem 0.6rem;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+      .stage {
+        position: absolute;
+        top: var(--header);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #0b0b0f;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .stage .art {
+        width: 44vh;
+        height: 44vh;
+        border-radius: 6px;
+        background: radial-gradient(circle at 50% 45%, #2f6bd6 0%, #1a3f8f 55%, #132c68 100%);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 0 0 1px #21407f;
+      }
+      .stage .art .house {
+        width: 60%;
+        height: 60%;
+        background: #fff;
+        clip-path: polygon(50% 0, 100% 40%, 88% 40%, 88% 100%, 12% 100%, 12% 40%, 0 40%);
+        display: grid;
+        place-items: center;
+      }
+      .stage .art .star {
+        font-size: 9vh;
+        color: #e5b83b;
+        margin-top: 22%;
+      }
+      .stage .drop {
+        position: absolute;
+        left: calc(50% - 16vh);
+        top: calc(50% + 7vh);
+        border: 2px dashed var(--accent);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        color: var(--accent-hover);
+        font-size: 0.72rem;
+        background: rgba(11, 11, 15, 0.85);
+        text-align: center;
+        line-height: 1.5;
+        min-width: 32vh;
+      }
+      .stage .drop b {
+        color: var(--warn);
+      }
+      .stage .drop.hot {
+        border-color: var(--ok);
+        color: var(--ok);
+      }
+      .stage .scenepill {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        background: rgba(11, 11, 15, 0.85);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .stage .scenepill b {
+        color: var(--ok);
+      }
+      .stage .chestmark {
+        position: absolute;
+        left: calc(50% + 9vh);
+        top: calc(50% - 5vh);
+        color: var(--pin);
+        text-align: center;
+        filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.5));
+      }
+      .stage .chestmark .icon {
+        width: 30px;
+        height: 30px;
+        margin: 0 auto;
+      }
+      .stage .chestmark small {
+        display: block;
+        font-size: 0.6rem;
+        margin-top: 2px;
+      }
+
+      /* ---------- Chassi C (spec 36) ---------- */
+      .icon {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        display: block;
+      }
+      .icon.fill {
+        fill: currentColor;
+        stroke-width: 1.2;
+      }
+      .tabbtn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        transition:
+          color 0.12s,
+          background 0.12s;
+      }
+      .tabbtn:hover {
+        color: var(--text);
+      }
+      .tabbtn .badge {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        line-height: 1;
+      }
+      .tabbtn .tip {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.1s;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        z-index: 5;
+      }
+      .tabbtn:hover .tip {
+        opacity: 1;
+      }
+      .sidebar {
+        position: absolute;
+        top: var(--header);
+        right: 0;
+        bottom: 0;
+        display: flex;
+        z-index: 90;
+      }
+      .tabs {
+        width: var(--rail-w);
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .tabbtn {
+        width: 40px;
+        height: 44px;
+        border: 1px solid var(--border);
+        border-right: 0;
+        border-radius: var(--radius) 0 0 var(--radius);
+        background: var(--surface-alt);
+        color: var(--muted);
+      }
+      .tabs .tabbtn.is-active {
+        background: var(--surface);
+        color: var(--accent-hover);
+        width: 44px;
+        border-color: var(--accent);
+        z-index: 2;
+      }
+      .is-open .tabs .tabbtn.is-active {
+        box-shadow: 1px 0 0 0 var(--surface);
+      }
+      .tabs .tabbtn.is-active .icon {
+        width: 22px;
+        height: 22px;
+      }
+      .tabs .grp {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .grp.gm {
+        margin-top: 14px;
+        position: relative;
+      }
+      .tabs .grp.gm::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .tabs .grp.gm .tabbtn {
+        border-color: rgba(255, 92, 92, 0.35);
+      }
+      .tabs .foot {
+        margin-top: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .foot::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--border);
+      }
+      .panel {
+        width: var(--panel-w);
+        background: var(--surface);
+        border-left: 1px solid var(--accent);
+        display: none;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+      .is-open .panel {
+        display: flex;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.5rem;
+        border-bottom: 1px solid var(--accent-dim);
+        flex: 0 0 auto;
+      }
+      .panel-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 0.15rem 0.3rem;
+        flex: 1;
+      }
+      .panel-body {
+        flex: 1;
+        overflow: auto;
+        padding: 0.5rem 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        min-height: 0;
+      }
+      .panel-body::-webkit-scrollbar {
+        width: 8px;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: var(--surface-alt);
+        border-radius: 99px;
+      }
+      .panel-foot {
+        flex: 0 0 auto;
+        border-top: 1px solid var(--border);
+        background: var(--surface-alt);
+        padding: 0.4rem 0.5rem;
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+      }
+
+      /* ---------- Peças ---------- */
+      .search {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.4rem;
+      }
+      .search:focus-within {
+        border-color: var(--accent);
+      }
+      .search input {
+        flex: 1;
+        min-width: 0;
+        background: none;
+        border: 0;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.8rem;
+        padding: 0.15rem 0;
+        outline: none;
+      }
+      .search .mag {
+        color: var(--subtle);
+        display: grid;
+        place-items: center;
+      }
+      .search .mag .icon {
+        width: 13px;
+        height: 13px;
+      }
+      .hbtn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: var(--radius-sm);
+        height: 26px;
+        min-width: 26px;
+        padding: 0 0.45rem;
+        font: inherit;
+        font-size: 0.72rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        justify-content: center;
+      }
+      .hbtn:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .hbtn.wide {
+        flex: 1;
+      }
+      .hbtn.pri {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        background: var(--accent-dim);
+      }
+      .hbtn.chestb {
+        border-color: rgba(245, 166, 35, 0.5);
+        color: var(--pin);
+      }
+      .hbtn.chestb:hover {
+        background: rgba(245, 166, 35, 0.1);
+        border-color: var(--pin);
+      }
+      .hbtn .icon {
+        width: 14px;
+        height: 14px;
+      }
+
+      .sec {
+        margin: 0.7rem 0 0.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0 0.2rem;
+      }
+      .sec:first-child {
+        margin-top: 0.1rem;
+      }
+      .sec .lbl {
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--subtle);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .sec.pinned .lbl {
+        color: var(--pin);
+      }
+      .sec .lbl .icon {
+        width: 11px;
+        height: 11px;
+      }
+      .sec .cnt {
+        font-size: 0.66rem;
+        color: var(--subtle);
+        background: var(--surface-alt);
+        border-radius: 999px;
+        padding: 0 0.35rem;
+      }
+      .sec .line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .sec .add {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.68rem;
+        padding: 0 0.15rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .sec .add .icon {
+        width: 12px;
+        height: 12px;
+      }
+      .sec .add:hover {
+        color: var(--accent-hover);
+      }
+      .sec.drop-ok {
+        outline: 1px dashed var(--accent);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+      }
+
+      /* ---------- Árvore de pastas ---------- */
+      .fold {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.22rem 0.25rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        color: var(--muted);
+        user-select: none;
+      }
+      .fold:hover {
+        background: var(--surface-alt);
+        color: var(--text);
+      }
+      .fold.drop-ok {
+        background: var(--accent-dim);
+        box-shadow: inset 0 0 0 1px var(--accent);
+        color: var(--text);
+      }
+      .fold .chev {
+        color: var(--subtle);
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .fold .chev .icon {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.12s;
+      }
+      .fold .chev.open .icon {
+        transform: rotate(90deg);
+      }
+      .fold .pinmark {
+        color: var(--pin);
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .fold .pinmark .icon {
+        width: 12px;
+        height: 12px;
+      }
+      .fold .fn {
+        font-size: 0.76rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .fold .path {
+        font-size: 0.6rem;
+        color: var(--subtle);
+        font-weight: 400;
+        flex: 0 0 auto;
+      }
+      .fold .cnt {
+        font-size: 0.64rem;
+        color: var(--subtle);
+        margin-left: auto;
+        flex: 0 0 auto;
+      }
+      .fold .tools {
+        display: none;
+        gap: 0.05rem;
+        flex: 0 0 auto;
+        margin-left: auto;
+      }
+      .fold:hover .tools {
+        display: flex;
+      }
+      .fold:hover .cnt {
+        display: none;
+      }
+      .fold .tools button {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        padding: 0.1rem;
+        line-height: 0;
+        border-radius: var(--radius-sm);
+      }
+      .fold .tools button .icon {
+        width: 13px;
+        height: 13px;
+      }
+      .fold .tools button:hover {
+        color: var(--accent-hover);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .fold .tools button.del:hover {
+        color: var(--danger);
+      }
+      .fold .tools button.pinb.on {
+        color: var(--pin);
+      }
+      .fold input {
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.74rem;
+        padding: 0.05rem 0.3rem;
+        outline: none;
+        flex: 1;
+        min-width: 0;
+      }
+      .kids {
+        margin-left: 0.55rem;
+        padding-left: 0.35rem;
+        border-left: 1px solid var(--border);
+      }
+
+      /* ---------- Linha de ator ---------- */
+      .act {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.28rem 0.3rem;
+        border-radius: var(--radius-sm);
+        cursor: grab;
+        position: relative;
+      }
+      .act:hover {
+        background: var(--surface-alt);
+      }
+      .act.sel {
+        background: var(--accent-dim);
+        box-shadow: inset 0 0 0 1px var(--accent);
+      }
+      .act.dragging {
+        opacity: 0.4;
+      }
+      .act .av {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        font-size: 0.66rem;
+        font-weight: 700;
+        color: #0b0b0f;
+        position: relative;
+      }
+      .act .av.hz {
+        border-radius: var(--radius-sm);
+      }
+      .act .idt {
+        flex: 1;
+        min-width: 0;
+      }
+      .act .nm {
+        font-size: 0.8rem;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .act .ttl {
+        font-size: 0.68rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+      .act .ttl > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .act .ttl.fallback > span {
+        color: var(--subtle);
+        font-style: italic;
+      }
+      .act .ttl .pen {
+        color: var(--subtle);
+        cursor: text;
+        opacity: 0;
+        transition: opacity 0.12s;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .act .ttl .pen .icon {
+        width: 11px;
+        height: 11px;
+      }
+      .act:hover .ttl .pen {
+        opacity: 1;
+      }
+      .act .ttl input {
+        flex: 1;
+        min-width: 0;
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.68rem;
+        padding: 0.05rem 0.25rem;
+        outline: none;
+      }
+      .act .meta {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex: 0 0 auto;
+      }
+      .act .tools {
+        display: none;
+        gap: 0.05rem;
+        flex: 0 0 auto;
+      }
+      .act:hover .tools {
+        display: flex;
+      }
+      .act:hover .meta.hide-on-hover {
+        display: none;
+      }
+      .act .tools button {
+        background: none;
+        border: 0;
+        color: var(--subtle);
+        cursor: pointer;
+        padding: 0.1rem;
+        line-height: 0;
+        border-radius: var(--radius-sm);
+      }
+      .act .tools button .icon {
+        width: 13px;
+        height: 13px;
+      }
+      .act .tools button:hover {
+        color: var(--accent-hover);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .act .tools button.del:hover {
+        color: var(--danger);
+      }
+
+      /* atitude — sempre visível, cicla no clique */
+      .att {
+        background: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        padding: 0.08rem;
+        line-height: 0;
+        border-radius: var(--radius-sm);
+        flex: 0 0 auto;
+      }
+      .att .icon {
+        width: 14px;
+        height: 14px;
+      }
+      .att:hover {
+        border-color: currentColor;
+      }
+      .att.ally {
+        color: var(--ok);
+      }
+      .att.neutral {
+        color: var(--muted);
+      }
+      .att.foe {
+        color: var(--danger);
+      }
+
+      .lvl {
+        font-size: 0.62rem;
+        color: var(--subtle);
+        font-variant-numeric: tabular-nums;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0 0.25rem;
+      }
+      .tok {
+        font-size: 0.62rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        cursor: default;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.1rem;
+      }
+      .tok .icon {
+        width: 11px;
+        height: 11px;
+      }
+      .know {
+        font-size: 0.62rem;
+        font-variant-numeric: tabular-nums;
+        cursor: default;
+        white-space: nowrap;
+      }
+      .know .k2 {
+        color: var(--ok);
+      }
+      .know .k1 {
+        color: var(--warn);
+      }
+      .know .k0 {
+        color: var(--subtle);
+      }
+
+      /* menu de mover para pasta (convive com o arraste) */
+      .movemenu {
+        margin: 0.1rem 0 0.35rem 2rem;
+        padding: 0.35rem 0.4rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-alt);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+      .movemenu button {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.64rem;
+        padding: 0.05rem 0.45rem;
+        cursor: pointer;
+      }
+      .movemenu button:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .movemenu button.on {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        background: var(--accent-dim);
+      }
+
+      /* --- condições (contrato herdado da 39) --- */
+      .conds {
+        display: flex;
+        gap: 0.22rem;
+        flex-wrap: wrap;
+        margin: 0.15rem 0 0.2rem 2rem;
+      }
+      .chip {
+        font-size: 0.62rem;
+        border-radius: 999px;
+        padding: 0.02rem 0.35rem;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        white-space: nowrap;
+        max-width: 118px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: default;
+      }
+      .chip .v {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .chip.harm {
+        border-color: rgba(255, 92, 92, 0.5);
+        color: #ff9a9a;
+        background: rgba(255, 92, 92, 0.08);
+      }
+      .chip.benefit {
+        border-color: rgba(61, 220, 132, 0.5);
+        color: var(--ok);
+        background: rgba(61, 220, 132, 0.08);
+      }
+      .chip.special {
+        border-color: rgba(185, 140, 255, 0.5);
+        color: var(--special);
+        background: rgba(185, 140, 255, 0.1);
+      }
+      .chip.crit {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: #160608;
+        font-weight: 700;
+      }
+      .chip.more {
+        cursor: pointer;
+        border-style: dashed;
+        color: var(--subtle);
+      }
+      .chip.more:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+
+      /* sub-personagem encapsulado (DEC-CTT-06) */
+      .sub {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin: 0 0 0.15rem 1.65rem;
+        padding: 0.1rem 0.3rem 0.1rem 0.35rem;
+        border-left: 2px solid var(--border);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        cursor: grab;
+      }
+      .sub:hover {
+        background: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--accent);
+      }
+      .sub .nm {
+        font-size: 0.72rem;
+        color: var(--text);
+      }
+      .sub .sb {
+        font-size: 0.62rem;
+        color: var(--subtle);
+        margin-left: auto;
+      }
+
+      .vazio {
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 0.9rem;
+        text-align: center;
+        color: var(--subtle);
+        font-size: 0.78rem;
+        line-height: 1.55;
+        margin: 0.6rem 0.1rem;
+      }
+      .vazio b {
+        color: var(--muted);
+      }
+      .hint {
+        color: var(--subtle);
+        font-size: 0.7rem;
+        text-align: center;
+        padding: 0.6rem 0.3rem 0;
+        line-height: 1.45;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: var(--radius-sm);
+        color: var(--muted);
+      }
+      .row:hover {
+        background: var(--surface-alt);
+      }
+      .row .name {
+        color: var(--text);
+        font-size: 0.82rem;
+      }
+      .row .sub2 {
+        color: var(--subtle);
+        font-size: 0.75rem;
+        margin-left: auto;
+      }
+      .empty {
+        text-align: center;
+        padding: 1.5rem 0 0.75rem;
+        color: var(--muted);
+      }
+
+      #tip {
+        position: fixed;
+        z-index: 9998;
+        max-width: 235px;
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.5rem;
+        font-size: 0.72rem;
+        line-height: 1.4;
+        color: var(--text);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        pointer-events: none;
+        display: none;
+      }
+      #tip b {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      #tip .tone {
+        color: var(--subtle);
+        font-size: 0.66rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+
+      /* janela (spec 11) */
+      .win {
+        position: fixed;
+        top: 84px;
+        left: calc(50% - 300px);
+        width: 600px;
+        background: var(--surface);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+        z-index: 500;
+        overflow: hidden;
+      }
+      .win.danger {
+        border-color: var(--danger);
+      }
+      .win .wh {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.6rem;
+        background: var(--surface-alt);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .win .wh .x {
+        margin-left: auto;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0.1rem;
+        line-height: 0;
+      }
+      .win .wh .x .icon {
+        width: 15px;
+        height: 15px;
+      }
+      .win .wb {
+        padding: 0.7rem 0.8rem 0.9rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        max-height: 62vh;
+        overflow: auto;
+      }
+      .win .wb b {
+        color: var(--text);
+      }
+      .win .note {
+        margin-top: 0.65rem;
+        color: var(--subtle);
+        font-size: 0.72rem;
+        line-height: 1.5;
+      }
+      .win .wf {
+        display: flex;
+        gap: 0.4rem;
+        justify-content: flex-end;
+        padding: 0.5rem 0.8rem 0.7rem;
+        border-top: 1px solid var(--border);
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+      }
+      .field > label {
+        width: 74px;
+        color: var(--subtle);
+        font-size: 0.74rem;
+        flex: 0 0 auto;
+      }
+      .field input,
+      .field select {
+        flex: 1;
+        background: #0b0b0f;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.78rem;
+        padding: 0.25rem 0.4rem;
+        outline: none;
+      }
+      .field input:focus,
+      .field select:focus {
+        border-color: var(--accent);
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        flex: 1;
+      }
+      .pills button {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 999px;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.1rem 0.6rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .pills button .icon {
+        width: 12px;
+        height: 12px;
+      }
+      .pills button:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .pills button.on {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        font-weight: 600;
+      }
+      .pills button.on.ally {
+        color: var(--ok);
+        border-color: var(--ok);
+        background: rgba(61, 220, 132, 0.1);
+      }
+      .pills button.on.foe {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: rgba(255, 92, 92, 0.1);
+      }
+      .wtabs {
+        display: flex;
+        gap: 0.35rem;
+        border-bottom: 1px solid var(--border);
+        padding: 0 0.8rem;
+        background: var(--surface-alt);
+      }
+      .wtabs button {
+        background: none;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.78rem;
+        padding: 0.4rem 0.5rem;
+        cursor: pointer;
+      }
+      .wtabs button:hover {
+        color: var(--text);
+      }
+      .wtabs button.on {
+        color: var(--accent-hover);
+        border-bottom-color: var(--accent);
+        font-weight: 600;
+      }
+      .browser {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        max-height: 190px;
+        overflow: auto;
+        margin-top: 0.4rem;
+      }
+      .brow {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.28rem 0.45rem;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+      }
+      .brow:last-child {
+        border-bottom: 0;
+      }
+      .brow:hover {
+        background: var(--surface-alt);
+      }
+      .brow.on {
+        background: var(--accent-dim);
+        box-shadow: inset 2px 0 0 var(--accent);
+      }
+      .brow .av {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #0b0b0f;
+        flex: 0 0 auto;
+      }
+      .brow .bn {
+        color: var(--text);
+        font-size: 0.78rem;
+        flex: 1;
+        min-width: 0;
+      }
+      .brow .bs {
+        font-size: 0.66rem;
+        color: var(--subtle);
+      }
+      .warnbox {
+        margin-top: 0.6rem;
+        border: 1px solid rgba(229, 184, 59, 0.4);
+        background: rgba(229, 184, 59, 0.07);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 0.55rem;
+        color: var(--warn);
+        font-size: 0.74rem;
+        line-height: 1.5;
+      }
+      .warnbox b {
+        color: var(--warn);
+      }
+      .stopbox {
+        margin-top: 0.6rem;
+        border: 1px solid var(--danger);
+        background: rgba(255, 92, 92, 0.08);
+        border-radius: var(--radius-sm);
+        padding: 0.45rem 0.55rem;
+        color: #ff9a9a;
+        font-size: 0.74rem;
+        line-height: 1.5;
+      }
+      .stopbox b {
+        color: #ffc9c9;
+      }
+      .conseq {
+        list-style: none;
+        margin: 0.4rem 0 0;
+        padding: 0;
+      }
+      .conseq li {
+        display: flex;
+        gap: 0.45rem;
+        align-items: flex-start;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.76rem;
+      }
+      .conseq li:last-child {
+        border-bottom: 0;
+      }
+      .conseq li .icon {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 auto;
+        margin-top: 2px;
+        color: var(--subtle);
+      }
+      .btn-danger {
+        background: var(--danger);
+        border: 1px solid var(--danger);
+        color: #160608;
+        border-radius: var(--radius-sm);
+        padding: 0.25rem 0.7rem;
+        font: inherit;
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-danger[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-ghost {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: var(--radius-sm);
+        padding: 0.25rem 0.7rem;
+        font: inherit;
+        font-size: 0.76rem;
+        cursor: pointer;
+      }
+      .btn-ghost:hover {
+        color: var(--text);
+      }
+      .keys {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 0.2rem;
+        font-size: 0.74rem;
+      }
+      .keys span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--subtle);
+      }
+      .keys i {
+        font-style: normal;
+        font-size: 0.95rem;
+        width: 1.1rem;
+        text-align: center;
+      }
+      .k0 {
+        color: var(--subtle);
+      }
+      .k1 {
+        color: var(--warn);
+      }
+      .k2 {
+        color: var(--ok);
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .matrix th,
+      .matrix td {
+        border: 1px solid var(--border);
+        padding: 0.2rem 0.35rem;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .matrix thead th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.72rem;
+        background: var(--surface-alt);
+        cursor: pointer;
+        user-select: none;
+      }
+      .matrix thead th:hover {
+        color: var(--accent-hover);
+      }
+      .matrix thead th:first-child {
+        cursor: default;
+        text-align: left;
+      }
+      .matrix thead th small {
+        display: block;
+        color: var(--subtle);
+        font-size: 0.62rem;
+        font-weight: 400;
+      }
+      .matrix td.nm {
+        text-align: left;
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .matrix td.nm:hover {
+        color: var(--accent-hover);
+      }
+      .matrix td.nm small {
+        display: block;
+        color: var(--subtle);
+        font-size: 0.65rem;
+      }
+      .matrix td button.cell {
+        background: none;
+        border: 0;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 100%;
+        line-height: 1.3;
+        border-radius: var(--radius-sm);
+      }
+      .matrix td button.cell:hover {
+        background: var(--surface-alt);
+      }
+      .matrix td button.cell.ex {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      /* ---------- Switcher + legenda ---------- */
+      .switcher {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff;
+        color: #111;
+        border-radius: 999px;
+        padding: 0.35rem 0.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .switcher button {
+        border: 0;
+        background: #111;
+        color: #fff;
+        height: 28px;
+        padding: 0 0.7rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 600;
+      }
+      .switcher button.alt {
+        background: #5a4bd6;
+      }
+      .legend {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.96);
+        color: #111;
+        border-radius: 10px;
+        padding: 0.6rem 0.7rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+        font-size: 0.72rem;
+        max-width: 420px;
+        line-height: 1.45;
+      }
+      .legend h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.78rem;
+      }
+      .legend td {
+        padding: 0.12rem 0.25rem;
+        vertical-align: top;
+      }
+      .legend td:first-child {
+        color: #666;
+        white-space: nowrap;
+      }
+      .legend b {
+        color: #111;
+      }
+      .legend .sw {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-right: 0.2rem;
+      }
+      .legend .q {
+        margin-top: 0.45rem;
+        padding-top: 0.4rem;
+        border-top: 1px solid #ddd;
+        color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="bolt">⚡</span><span class="world">teste_xande</span
+      ><span class="pill">🗺 aha</span>
+      <span class="spacer"></span>
+      <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+      <span class="who" id="who"></span>
+      <button class="btn">Sair</button>
+    </div>
+    <div class="stage">
+      <div class="scenepill">cena ativa: <b>●</b> Fortaleza</div>
+      <div class="art">
+        <div class="house"><div class="star">★</div></div>
+      </div>
+      <div class="chestmark" id="chestmark" style="display: none"></div>
+      <div class="drop" id="dropzone">
+        arraste um ator para cá → vira presença no mapa<br /><b id="droplink"></b>
+      </div>
+    </div>
+
+    <div id="root"></div>
+    <div id="float"></div>
+    <div id="tip"></div>
+
+    <div class="switcher">
+      <button id="role">papel</button>
+      <button id="bestiary" class="alt">bestiário</button>
+      <button id="state">estado</button>
+    </div>
+    <div class="legend" id="legend"></div>
+
+    <script>
+      /* ================= ícones — TODOS desenhados, nenhum emoji ================= */
+      const svg = (paths, extra) =>
+        `<svg class="icon${extra ? " " + extra : ""}" viewBox="0 0 24 24">${paths}</svg>`;
+      const ICONS = {
+        chat: svg('<path d="M4 5h16v11H9l-5 4z"/>'),
+        contacts: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'),
+        combat: svg(
+          '<path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/>',
+        ),
+        compendium: svg(
+          '<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/>',
+        ),
+        npcs: svg(
+          '<path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/>',
+        ),
+        scenes: svg(
+          '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
+        ),
+        settings: svg(
+          '<path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/>',
+        ),
+      };
+      const UI = {
+        search: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'),
+        sheet: svg(
+          '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+        ),
+        grid: svg(
+          '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+        ),
+        plus: svg('<path d="M12 5v14M5 12h14"/>'),
+        trash: svg('<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>'),
+        close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+        pencil: svg('<path d="M4 20h4L20 8l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
+        folder: svg(
+          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+        ),
+        folderPlus: svg(
+          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/>',
+        ),
+        chevron: svg('<path d="M9 6l6 6-6 6"/>'),
+        star: svg(
+          '<path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.9z"/>',
+        ),
+        starOn: svg(
+          '<path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.9z"/>',
+          "fill",
+        ),
+        hex: svg('<path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9z"/>'),
+        chest: svg(
+          '<rect x="3" y="8" width="18" height="11" rx="2"/><path d="M3 12.5h18"/><path d="M5.5 8V7a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3v1"/><path d="M11 12.5h2v3h-2z"/>',
+        ),
+        ally: svg(
+          '<path d="M12 3.5l7 3v6c0 4-3 6.8-7 7.8-4-1-7-3.8-7-7.8v-6z"/><path d="M9 12l2 2 4-4"/>',
+        ),
+        neutral: svg('<circle cx="12" cy="12" r="8"/><path d="M8.5 12h7"/>'),
+        foe: svg(
+          '<path d="M5 4.5l9.5 9.5M19 4.5L9.5 14"/><path d="M13 15.5l3.2 3.2M11 15.5l-3.2 3.2"/>',
+        ),
+      };
+      const TABS = [
+        { id: "chat", label: "Chat", group: "all", badge: "3" },
+        { id: "contacts", label: "Contatos", group: "all" },
+        { id: "combat", label: "Combate", group: "all" },
+        { id: "compendium", label: "Compêndio", group: "all" },
+        { id: "npcs", label: "NPCs", group: "gm" },
+        { id: "scenes", label: "Cenas", group: "gm" },
+        { id: "settings", label: "Configurações", group: "all", foot: true },
+      ];
+      const TITLE = {
+        chat: "Chat",
+        contacts: "Contatos",
+        combat: "Combate",
+        compendium: "Compêndio",
+        npcs: "NPCs",
+        scenes: "Cenas",
+        settings: "Configurações",
+      };
+      const OTHER = {
+        chat: `<div class="row"><span class="name">Fofurinha</span><span class="sub2">21:14</span></div>`,
+        contacts: `<div class="row"><span class="name">Tobias</span><span class="sub2">você</span></div>
+    <div class="row"><span class="name">Fofurinha</span><span class="sub2">na mesa</span></div>
+    <p class="hint">A aba do jogador (spec 39).<br/>Personagem aparece aqui — mas nasce junto com o player,<br/>em Configurações › Usuários.</p>`,
+        combat: `<p class="empty">Nenhum combate ativo.</p>`,
+        compendium: `<div class="row"><span class="name">Bestiário 1</span><span class="sub2">492</span></div>
+    <div class="row"><span class="name">Talentos</span><span class="sub2">1.812</span></div>`,
+        scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
+        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">›</span></div>
+    <div class="row"><span class="name">Usuários</span><span class="sub2">›</span></div>
+    <p class="hint">É aqui que nasce personagem:<br/>criar um player cria o personagem em branco dele.</p>`,
+      };
+
+      /* ================= condições (contrato herdado da 39) ================= */
+      const COND = {
+        unconscious: {
+          lb: "Inconsciente",
+          tone: "harm",
+          critical: true,
+          help: "Caído e sem agir; não percebe o que acontece em volta.",
+        },
+        frightened: {
+          lb: "Amedrontado",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade igual ao valor em testes e CDs. Cai 1 ao fim do seu turno.",
+        },
+        wounded: {
+          lb: "Ferido",
+          valued: true,
+          tone: "harm",
+          help: "Se cair de novo, você começa a Morrer num grau pior.",
+        },
+        invisible: {
+          lb: "Invisível",
+          tone: "special",
+          help: "Indetectado por quem depende da visão, até ser localizado.",
+        },
+        hidden: {
+          lb: "Escondido",
+          tone: "special",
+          help: "Sabem mais ou menos onde você está, mas não conseguem te ver.",
+        },
+        quickened: {
+          lb: "Acelerado",
+          tone: "benefit",
+          help: "Uma ação extra por turno, limitada ao que a fonte permite.",
+        },
+        slowed: {
+          lb: "Lento",
+          valued: true,
+          tone: "harm",
+          help: "Começa o turno com menos ações, igual ao valor.",
+        },
+      };
+      const TONE_LB = { harm: "penalidade", benefit: "benefício", special: "situação" };
+      const ORDER = { crit: 0, harm: 1, special: 2, benefit: 3 };
+      const condRank = (c) => {
+        const d = COND[c.slug] || {};
+        return d.critical ? ORDER.crit : ORDER[d.tone || "special"];
+      };
+      const sortConds = (list) =>
+        [...list].sort(
+          (a, b) =>
+            condRank(a) - condRank(b) ||
+            (COND[a.slug]?.lb || a.slug).localeCompare(COND[b.slug]?.lb || b.slug, "pt-BR"),
+        );
+
+      /* ================= mundo mock ================= */
+      /* pf2e declara: character, npc, hazard, loot, familiar (systems/pf2e/src/index.ts:71).
+         Esta aba cria NPC e Perigo. character nasce com o player; familiar nasce colado a um
+         dono; loot é o baú, que não é ator listado. VEÍCULO NÃO EXISTE no Fusion. */
+      const SUBTYPES = [
+        { id: "npc", lb: "NPC" },
+        { id: "hazard", lb: "Perigo" },
+      ];
+      /* PRESETS de criação — pré-preenchem a ficha e não ficam gravados.
+         Ainda não existem no projeto; a spec fixa o conceito, não o catálogo. */
+      const PRESETS = [
+        { id: "", lb: "— nenhum" },
+        { id: "mercador", lb: "Mercador" },
+        { id: "montaria", lb: "Montaria" },
+        { id: "chefe", lb: "Chefe" },
+      ];
+      /* ATITUDE diante dos jogadores — party inteira, não por personagem */
+      const ATT = [
+        { id: "ally", lb: "Aliado", icon: "ally" },
+        { id: "neutral", lb: "Neutro", icon: "neutral" },
+        { id: "foe", lb: "Inimigo", icon: "foe" },
+      ];
+      const ATT_LB = Object.fromEntries(ATT.map((a) => [a.id, a.lb]));
+      const nextAtt = (cur) => ATT[(ATT.findIndex((a) => a.id === cur) + 1) % ATT.length].id;
+
+      const PCS = [
+        { id: "tobias", name: "Tobias" },
+        { id: "fofurinha", name: "Fofurinha" },
+        { id: "rurik", name: "Rurik" },
+      ];
+
+      const FOLDERS = [
+        { id: "f-vila", name: "Vila de Pedra Alta", parent: null, pin: true },
+        { id: "f-corvo", name: "O Círculo do Corvo", parent: null, pin: false },
+        { id: "f-best", name: "Bestiário", parent: null, pin: false },
+        { id: "f-gob", name: "Goblinoides", parent: "f-best", pin: true },
+        { id: "f-mortos", name: "Mortos-vivos", parent: "f-best", pin: false },
+      ];
+      const folderById = (id) => FOLDERS.find((f) => f.id === id);
+      function folderPath(f) {
+        const parts = [];
+        let cur = f.parent ? folderById(f.parent) : null;
+        while (cur) {
+          parts.unshift(cur.name);
+          cur = cur.parent ? folderById(cur.parent) : null;
+        }
+        return parts.join(" › ");
+      }
+      const pinnedIds = () => FOLDERS.filter((f) => f.pin).map((f) => f.id);
+
+      const NPCS = [
+        {
+          id: "aldric",
+          name: "Mestre Aldric",
+          title: "A Voz do Bosque",
+          type: "npc",
+          att: "ally",
+          lvl: 5,
+          folder: "f-vila",
+          color: "#c98b5e",
+          link: true,
+          tok: {},
+          know: { tobias: 2, fofurinha: 1, rurik: 0 },
+        },
+        {
+          id: "bram",
+          name: "Ferreiro Bram",
+          title: "",
+          type: "npc",
+          att: "neutral",
+          lvl: 3,
+          folder: "f-vila",
+          color: "#8a8f98",
+          link: true,
+          tok: {},
+          know: { tobias: 2, fofurinha: 2, rurik: 0 },
+        },
+        {
+          id: "yara",
+          name: "Irmã Yara",
+          title: "",
+          type: "npc",
+          att: "ally",
+          lvl: 4,
+          folder: "f-vila",
+          color: "#d6b3e8",
+          link: true,
+          tok: {},
+          know: { tobias: 1, fofurinha: 1, rurik: 0 },
+        },
+        {
+          id: "vess",
+          name: "Vess, a Corvo",
+          title: "Quem paga, some",
+          type: "npc",
+          att: "foe",
+          lvl: 8,
+          folder: "f-corvo",
+          color: "#5b6b8c",
+          link: true,
+          tok: { Fortaleza: 1 },
+          conds: [{ slug: "invisible" }, { slug: "quickened" }],
+          know: { tobias: 1, fofurinha: 0, rurik: 0 },
+          subs: [{ name: "Nix", kind: "familiar (corvo)" }],
+        },
+        {
+          id: "hood",
+          name: "O Encapuzado",
+          title: "",
+          type: "npc",
+          att: "foe",
+          lvl: 6,
+          folder: "f-corvo",
+          color: "#3a3a4d",
+          link: true,
+          tok: {},
+          know: { tobias: 1, fofurinha: 1, rurik: 1 },
+        },
+        {
+          id: "gob-war",
+          name: "Goblin Guerreiro",
+          title: "",
+          type: "npc",
+          att: "foe",
+          lvl: -1,
+          folder: "f-gob",
+          color: "#6a9a3f",
+          link: false,
+          tok: { Fortaleza: 3 },
+          conds: [
+            { slug: "frightened", v: 2 },
+            { slug: "wounded", v: 1 },
+            { slug: "slowed", v: 1 },
+            { slug: "hidden" },
+          ],
+          know: { tobias: 2, fofurinha: 2, rurik: 2 },
+          inCombat: true,
+        },
+        {
+          id: "gob-cmd",
+          name: "Goblin Comando",
+          title: "",
+          type: "npc",
+          att: "foe",
+          lvl: 1,
+          folder: "f-gob",
+          color: "#4f7a2e",
+          link: false,
+          tok: { Fortaleza: 1 },
+          conds: [{ slug: "unconscious" }],
+          know: { tobias: 2, fofurinha: 2, rurik: 2 },
+        },
+        {
+          id: "hobgob",
+          name: "Hobgoblin Soldado",
+          title: "",
+          type: "npc",
+          att: "foe",
+          lvl: 1,
+          folder: "f-gob",
+          color: "#9a5f3f",
+          link: false,
+          tok: {},
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        },
+        {
+          id: "zumbi",
+          name: "Zumbi Devorador",
+          title: "",
+          type: "npc",
+          att: "foe",
+          lvl: 1,
+          folder: "f-mortos",
+          color: "#6b7a5e",
+          link: false,
+          tok: {},
+          know: { tobias: 1, fofurinha: 0, rurik: 0 },
+        },
+        {
+          id: "esq",
+          name: "Esqueleto Guardião",
+          title: "",
+          type: "npc",
+          att: "foe",
+          lvl: 2,
+          folder: "f-mortos",
+          color: "#c9c4b5",
+          link: false,
+          tok: {},
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        },
+        {
+          id: "mula",
+          name: "Mula de Carga",
+          title: "",
+          type: "npc",
+          att: "neutral",
+          lvl: 0,
+          folder: null,
+          color: "#a07c4f",
+          link: false,
+          tok: {},
+          know: { tobias: 2, fofurinha: 2, rurik: 2 },
+        },
+        {
+          id: "fosso",
+          name: "Armadilha de Fosso",
+          title: "",
+          type: "hazard",
+          att: null /* perigo não tem atitude — a marca some */,
+          lvl: 1,
+          folder: null,
+          color: "#8a6b3f",
+          link: false,
+          tok: { Fortaleza: 1 },
+          know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        },
+      ];
+
+      const FLOOD_NAMES = [
+        "Aranha Gigante",
+        "Basilisco",
+        "Bugbear Batedor",
+        "Cão Infernal",
+        "Coruja Gigante",
+        "Dragão Vermelho Jovem",
+        "Elemental de Fogo",
+        "Espectro",
+        "Gnoll Caçador",
+        "Golem de Argila",
+        "Harpia",
+        "Kobold Lanceiro",
+        "Lobo Atroz",
+        "Manticora",
+        "Minotauro",
+        "Ogro Bruto",
+        "Orc Guerreiro",
+        "Sereia",
+        "Trol",
+        "Vampiro Servo",
+        "Verme Púrpura",
+        "Xamã Lagarto",
+        "Zumbi Bruto",
+        "Ettin",
+      ];
+      const FLOOD = FLOOD_NAMES.map((n, i) => ({
+        id: "fl-" + i,
+        name: n,
+        title: "",
+        type: "npc",
+        att: "foe",
+        lvl: (i % 12) - 1,
+        folder: i % 2 ? "f-gob" : "f-mortos",
+        color: ["#6a9a3f", "#8a5f9a", "#9a5f3f", "#5f7a9a"][i % 4],
+        link: false,
+        tok: {},
+        know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        flood: true,
+      }));
+
+      const PACK = [
+        { id: "p1", name: "Goblin Piromaníaco", lvl: 1, pack: "Bestiário 1", color: "#6a9a3f" },
+        { id: "p2", name: "Goblin Chefe de Guerra", lvl: 2, pack: "Bestiário 1", color: "#4f7a2e" },
+        { id: "p3", name: "Cão Goblin", lvl: 1, pack: "Bestiário 1", color: "#7a6a3f" },
+        { id: "p4", name: "Esqueleto Arqueiro", lvl: 1, pack: "Bestiário 1", color: "#c9c4b5" },
+        { id: "p5", name: "Zumbi Rastejante", lvl: 0, pack: "Bestiário 2", color: "#6b7a5e" },
+        { id: "p6", name: "Ogro Guerreiro", lvl: 3, pack: "Bestiário 1", color: "#9a7a5f" },
+        { id: "p7", name: "Lobo Comum", lvl: 1, pack: "Bestiário 1", color: "#7a7a8a" },
+        { id: "p8", name: "Bandido Veterano", lvl: 2, pack: "Bestiário 1", color: "#8a5f4f" },
+      ];
+
+      /* ================= estado ================= */
+      const url = new URL(location);
+      let role = url.searchParams.get("role") === "player" ? "player" : "gm";
+      let flood = url.searchParams.get("flood") === "1";
+      let empty = url.searchParams.get("state") === "empty";
+      let open = true;
+      let active = "npcs";
+      let query = "";
+      let sel = null;
+      let win = null;
+      let newMode = "pack";
+      let newType = "npc";
+      let newPreset = "";
+      let newAtt = "foe";
+      let packQuery = "";
+      let packPick = null;
+      let delTarget = null;
+      let editTitle = null;
+      let newFolderIn = undefined;
+      let renameFolder = null;
+      let moveFor = null;
+      let chestOnScene = false;
+      let expanded = {
+        "f-vila": true,
+        "f-corvo": true,
+        "f-best": true,
+        "f-gob": true,
+        "f-mortos": false,
+      };
+      let expandConds = {};
+      let dragActor = null;
+
+      const rule = {};
+      const ex = {};
+      function seedKnowledge() {
+        [...NPCS, ...FLOOD].forEach((n) => {
+          const vals = PCS.map((p) => (n.know ? (n.know[p.id] ?? 0) : 0));
+          const tally = [0, 0, 0];
+          vals.forEach((v) => tally[v]++);
+          rule[n.id] = tally.indexOf(Math.max(...tally));
+          ex[n.id] = {};
+          PCS.forEach((p, i) => {
+            if (vals[i] !== rule[n.id]) ex[n.id][p.id] = vals[i];
+          });
+        });
+      }
+      const know = (n, p) => (ex[n] && p in ex[n] ? ex[n][p] : (rule[n] ?? 0));
+      const isEx = (n, p) => !!(ex[n] && p in ex[n]);
+      function setKnow(n, p, v) {
+        if (v === (rule[n] ?? 0)) delete ex[n][p];
+        else ex[n][p] = v;
+      }
+
+      /* ================= helpers ================= */
+      const allNpcs = () => (flood ? [...NPCS, ...FLOOD] : [...NPCS]);
+      const findActor = (id) => [...NPCS, ...FLOOD].find((x) => x.id === id);
+      function visible() {
+        if (empty) return [];
+        const list = allNpcs();
+        if (!query.trim()) return list;
+        const q = query.trim().toLowerCase();
+        return list.filter(
+          (n) => n.name.toLowerCase().includes(q) || (n.title || "").toLowerCase().includes(q),
+        );
+      }
+      const byName = (a, b) => a.name.localeCompare(b.name, "pt-BR");
+      const tokCount = (n) => Object.values(n.tok || {}).reduce((a, b) => a + b, 0);
+      const initials = (s) =>
+        s
+          .split(" ")
+          .filter((w) => w.length > 2)
+          .slice(0, 2)
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase() || s[0].toUpperCase();
+
+      function knowSummary(n) {
+        let k2 = 0,
+          k1 = 0;
+        PCS.forEach((p) => {
+          const v = know(n.id, p.id);
+          if (v === 2) k2++;
+          else if (v === 1) k1++;
+        });
+        const k0 = PCS.length - k2 - k1;
+        const help = encodeURIComponent(
+          JSON.stringify({
+            t: "Quem conhece " + n.name,
+            h:
+              `<b>${k2}</b> conhece(m) · <b>${k1}</b> entreviu/entreviram · <b>${k0}</b> não vê(em).<br><br>` +
+              `Repare no contraste: conhecimento é <b>por personagem</b>; atitude é da <b>party inteira</b>. Aqui é leitura — mudar é só na janela, pelo rodapé (<b>N7</b>).`,
+            tone: "conhecimento · par NPC × personagem",
+          }),
+        );
+        return `<span class="know" data-help="${help}"><span class="k2">✓${k2}</span> <span class="k1">◐${k1}</span> <span class="k0">·${k0}</span></span>`;
+      }
+
+      function condsHtml(n) {
+        if (!n.conds || !n.conds.length) return "";
+        const sorted = sortConds(n.conds);
+        const isExp = !!expandConds[n.id];
+        const shown = isExp ? sorted : sorted.slice(0, 2);
+        const rest = sorted.length - shown.length;
+        const chips = shown
+          .map((c) => {
+            const d = COND[c.slug] || {};
+            const tone = d.critical ? "crit" : d.tone || "special";
+            const lb = d.lb || c.slug;
+            const val = c.v != null ? ` <span class="v">${c.v}</span>` : "";
+            const help = encodeURIComponent(
+              JSON.stringify({
+                t: lb + (c.v != null ? " " + c.v : ""),
+                h: d.help || "",
+                tone: (d.critical ? "crítica · " : "") + (TONE_LB[d.tone] || "situação"),
+              }),
+            );
+            return `<span class="chip ${tone}" data-help="${help}">${lb}${val}</span>`;
+          })
+          .join("");
+        const more = rest > 0 ? `<span class="chip more" data-more="${n.id}">+${rest}</span>` : "";
+        return `<div class="conds">${chips}${more}</div>`;
+      }
+
+      function moveMenu(n) {
+        if (moveFor !== n.id) return "";
+        const opts = [{ id: null, name: "(sem pasta)" }, ...FOLDERS];
+        return `<div class="movemenu">${opts
+          .map(
+            (f) =>
+              `<button class="${(n.folder ?? null) === (f.id ?? null) ? "on" : ""}" data-moveto="${n.id}::${f.id ?? ""}">${f.name}</button>`,
+          )
+          .join("")}</div>`;
+      }
+
+      function attButton(n) {
+        if (!n.att) return "";
+        const def = ATT.find((a) => a.id === n.att);
+        const help = encodeURIComponent(
+          JSON.stringify({
+            t: "Atitude: " + def.lb,
+            h: "Vale para a <b>party inteira</b> — não é por personagem, ao contrário do conhecimento. Clique para ciclar: aliado → neutro → inimigo.<br><br>Atributo simples; só passa a importar de verdade mais para a frente (combate, comportamento).",
+            tone: "atitude · party inteira",
+          }),
+        );
+        return `<button class="att ${n.att}" data-att="${n.id}" data-help="${help}" aria-label="Atitude: ${def.lb}">${UI[def.icon]}</button>`;
+      }
+
+      function actorRow(n) {
+        const hz = n.type === "hazard" ? "hz" : "";
+        const t = n.title;
+        const titleLine =
+          editTitle === n.id
+            ? `<div class="ttl"><input id="titleinput" value="${t || ""}" placeholder="um título para ${n.name}"/></div>`
+            : t
+              ? `<div class="ttl"><span>${t}</span><span class="pen" data-title="${n.id}">${UI.pencil}</span></div>`
+              : `<div class="ttl fallback"><span>${SUBTYPES.find((s) => s.id === n.type)?.lb || n.type} · nível ${n.lvl}</span><span class="pen" data-title="${n.id}">${UI.pencil}</span></div>`;
+        const tk = tokCount(n);
+        const tkHelp = encodeURIComponent(
+          JSON.stringify({
+            t: "Presença no mapa",
+            h: tk
+              ? Object.entries(n.tok)
+                  .map(([s, c]) => `<b>${c}</b> em ${s}`)
+                  .join("<br>")
+              : "não está em cena nenhuma",
+            tone: n.link
+              ? "N8 · arrasta VINCULADO (um só, vida compartilhada)"
+              : "N8 · arrasta DESVINCULADO (cada um com sua vida)",
+          }),
+        );
+        const meta = `<span class="meta hide-on-hover">
+        <span class="lvl">${n.lvl}</span>
+        ${tk ? `<span class="tok" data-help="${tkHelp}">${UI.hex}${tk}</span>` : ""}
+        ${knowSummary(n)}
+      </span>`;
+        const tools = `<span class="tools">
+        <button data-sheet="${n.id}" title="abrir ficha">${UI.sheet}</button>
+        <button data-move="${n.id}" title="mudar de pasta">${UI.folder}</button>
+        <button class="del" data-del="${n.id}" title="excluir ator">${UI.trash}</button>
+      </span>`;
+        const subs = (n.subs || [])
+          .map(
+            (s) =>
+              `<div class="sub"><span class="nm">${s.name}</span><span class="sb">${s.kind}</span></div>`,
+          )
+          .join("");
+        return `<div class="act ${sel === n.id ? "sel" : ""} ${dragActor === n.id ? "dragging" : ""}" data-act="${n.id}" draggable="true">
+        <span class="av ${hz}" style="background:${n.color}">${initials(n.name)}</span>
+        <span class="idt"><span class="nm">${n.name}</span>${titleLine}</span>
+        ${attButton(n)}${meta}${tools}
+      </div>${condsHtml(n)}${moveMenu(n)}${subs}`;
+      }
+
+      /* ---------- árvore ---------- */
+      function subtreeCount(fid, list) {
+        const kids = FOLDERS.filter((x) => x.parent === fid);
+        return (
+          list.filter((n) => n.folder === fid).length +
+          kids.reduce((a, k) => a + subtreeCount(k.id, list), 0)
+        );
+      }
+      function newFolderInput() {
+        return `<div class="fold"><span class="chev">${UI.chevron}</span>
+        <input id="newfolderinput" placeholder="nome da pasta"/></div>`;
+      }
+      function folderNode(f, list, opts) {
+        const o = opts || {};
+        const pins = pinnedIds();
+        /* pasta fixada sai do lugar dela na árvore e sobe para o topo (N1) */
+        const kids = FOLDERS.filter((x) => x.parent === f.id && !pins.includes(x.id));
+        const mine = list.filter((n) => n.folder === f.id).sort(byName);
+        const total = subtreeCount(f.id, list);
+        if (query.trim() && total === 0) return "";
+        const isOpen = expanded[f.id] || !!query.trim();
+        const renaming = renameFolder === f.id;
+        const newHere = newFolderIn === f.id;
+        const inner = isOpen
+          ? `<div class="kids">${newHere ? newFolderInput() : ""}${kids
+              .map((k) => folderNode(k, list, o))
+              .join("")}${mine.map((n) => actorRow(n)).join("")}</div>`
+          : "";
+        const path = o.showPath && f.parent ? `<span class="path">${folderPath(f)} ›</span>` : "";
+        return `<div class="fold" data-fold="${f.id}" data-dropfolder="${f.id}">
+        <span class="chev ${isOpen ? "open" : ""}">${UI.chevron}</span>
+        ${f.pin ? `<span class="pinmark">${UI.starOn}</span>` : ""}
+        ${path}
+        ${renaming ? `<input id="renameinput" value="${f.name}"/>` : `<span class="fn">${f.name}</span>`}
+        <span class="cnt">${total}</span>
+        <span class="tools">
+          <button class="pinb ${f.pin ? "on" : ""}" data-pin="${f.id}" title="${f.pin ? "desafixar" : "fixar no topo"}">${f.pin ? UI.starOn : UI.star}</button>
+          <button data-newfolder="${f.id}" title="nova subpasta">${UI.folderPlus}</button>
+          <button data-newin="${f.id}" title="novo NPC aqui">${UI.plus}</button>
+          <button data-rename="${f.id}" title="renomear">${UI.pencil}</button>
+          <button class="del" data-delfolder="${f.id}" title="excluir pasta">${UI.close}</button>
+        </span>
+      </div>${inner}`;
+      }
+
+      function npcsBody() {
+        const list = visible();
+        if (!list.length) return emptyState();
+        const pinned = FOLDERS.filter((f) => f.pin);
+        const roots = FOLDERS.filter((f) => !f.parent && !f.pin);
+        const loose = list.filter((n) => !n.folder).sort(byName);
+        const pinnedBlock = pinned.length
+          ? `<div class="sec pinned"><span class="lbl">${UI.starOn} fixadas</span><span class="cnt">${pinned.length}</span><span class="line"></span></div>` +
+            pinned.map((f) => folderNode(f, list, { showPath: true })).join("")
+          : "";
+        const treeBlock =
+          `<div class="sec"><span class="lbl">pastas</span><span class="line"></span>
+            <button class="add" data-newfolder="">${UI.folderPlus} nova</button></div>` +
+          (newFolderIn === null ? newFolderInput() : "") +
+          roots.map((f) => folderNode(f, list)).join("");
+        const looseBlock =
+          `<div class="sec" data-dropfolder=""><span class="lbl">sem pasta</span><span class="cnt">${loose.length}</span><span class="line"></span></div>` +
+          loose.map((n) => actorRow(n)).join("");
+        return pinnedBlock + treeBlock + looseBlock;
+      }
+
+      function emptyState() {
+        if (empty)
+          return `<div class="vazio"><b>Nenhum NPC neste mundo ainda.</b><br/>
+        Crie do zero, ou puxe um do bestiário.<br/><br/>
+        <button class="hbtn pri" id="newempty">${UI.plus} Novo NPC</button></div>
+        <p class="hint">Personagem de jogador não aparece aqui —<br/>ele nasce com o player, em Configurações › Usuários.</p>`;
+        return `<div class="vazio">Nada encontrado para <b>"${query}"</b>.</div>`;
+      }
+
+      /* ================= janelas (spec 11) ================= */
+      function newWinHtml() {
+        const hits = packQuery.trim()
+          ? PACK.filter((p) => p.name.toLowerCase().includes(packQuery.trim().toLowerCase()))
+          : PACK;
+        const picked = PACK.find((p) => p.id === packPick);
+        const body =
+          newMode === "pack"
+            ? `<div class="field"><label>Buscar</label>
+            <input id="packq" value="${packQuery}" placeholder="goblin, esqueleto, ogro…"/></div>
+          <div class="browser">${
+            hits.length
+              ? hits
+                  .map(
+                    (p) => `<div class="brow ${p.id === packPick ? "on" : ""}" data-pack="${p.id}">
+              <span class="av" style="background:${p.color}">${initials(p.name)}</span>
+              <span class="bn">${p.name}</span><span class="bs">${p.pack} · nv ${p.lvl}</span></div>`,
+                  )
+                  .join("")
+              : '<div class="brow"><span class="bs">nada no bestiário com esse nome</span></div>'
+          }</div>
+          ${
+            picked
+              ? `<div class="note"><b>${picked.name}</b> vem de <b>${picked.pack}</b>.
+            <br/><b>N5</b> — importar copia para o mundo (REQ-CMP-021). Vai para qual pasta: a
+            escolhida abaixo, uma pasta "Importados", ou a que espelha o pack? E o ator guarda
+            vínculo com a origem, para atualizar quando o pack mudar, ou vira cópia solta?</div>`
+              : ""
+          }`
+            : `<div class="field"><label>Tipo</label>
+            <div class="pills">${SUBTYPES.map(
+              (s) =>
+                `<button class="${s.id === newType ? "on" : ""}" data-st="${s.id}">${s.lb}</button>`,
+            ).join("")}</div></div>
+          <div class="field"><label>Nome</label><input placeholder="nome do NPC"/></div>`;
+        return `<div class="win" style="width:520px;left:calc(50% - 260px)">
+      <div class="wh">${UI.plus} Novo NPC<button class="x" data-winclose>${UI.close}</button></div>
+      <div class="wtabs">
+        <button class="${newMode === "pack" ? "on" : ""}" data-mode="pack">Do bestiário</button>
+        <button class="${newMode === "scratch" ? "on" : ""}" data-mode="scratch">Criar do zero</button>
+      </div>
+      <div class="wb">
+        ${body}
+        <div class="field"><label>Preset</label>
+          <div class="pills">${PRESETS.map(
+            (r) =>
+              `<button class="${r.id === newPreset ? "on" : ""}" data-preset="${r.id}">${r.lb}</button>`,
+          ).join("")}</div></div>
+        <div class="field"><label>Atitude</label>
+          <div class="pills">${ATT.map(
+            (a) =>
+              `<button class="${a.id === newAtt ? "on " + a.id : ""}" data-newatt="${a.id}">${UI[a.icon]}${a.lb}</button>`,
+          ).join("")}</div></div>
+        <div class="field"><label>Pasta</label>
+          <select>${["(sem pasta)", ...FOLDERS.map((f) => f.name)]
+            .map((n) => `<option>${n}</option>`)
+            .join("")}</select></div>
+        <div class="note"><b>Preset é preset:</b> pré-preenche a ficha e não fica gravado no ator —
+          por isso não há etiqueta de "mercador" na lista. Os presets ainda não existem no projeto;
+          a spec fixa o conceito e o ponto de extensão, não o catálogo.
+          <br/><br/><b>Atitude</b>, ao contrário, é atributo do ator e vale para a party inteira.
+          <br/><br/>Só NPC e Perigo: <b>personagem</b> nasce com o player (Configurações › Usuários),
+          <b>familiar</b> nasce colado a um dono, e <b>veículo não existe no Fusion</b>.</div>
+      </div>
+      <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
+        <button class="hbtn pri">${newMode === "pack" ? "Importar e criar" : "Criar"}</button></div></div>`;
+      }
+
+      function deleteWinHtml() {
+        const n = findActor(delTarget);
+        if (!n) return "";
+        const tk = tokCount(n);
+        const scenes = Object.entries(n.tok || {});
+        let k2 = 0,
+          k1 = 0;
+        PCS.forEach((p) => {
+          const v = know(n.id, p.id);
+          if (v === 2) k2++;
+          else if (v === 1) k1++;
+        });
+        return `<div class="win danger" style="width:500px;left:calc(50% - 250px)">
+      <div class="wh">${UI.trash} Excluir <b style="color:var(--text)">&nbsp;${n.name}</b>?
+        <button class="x" data-winclose>${UI.close}</button></div>
+      <div class="wb">
+        <b>O que vai junto:</b>
+        <ul class="conseq">
+          <li>${UI.hex}<span>${
+            tk
+              ? `<b>${tk}</b> presença(s) no mapa, em ${scenes.map(([s, c]) => `${s} (${c})`).join(", ")} — somem junto.`
+              : "nenhuma presença em cena."
+          }</span></li>
+          <li>${UI.grid}<span>${
+            k2 + k1
+              ? `<b>${k2}</b> personagem(ns) conhece(m) e <b>${k1}</b> entreviu/entreviram — o conhecimento é apagado com o ator.`
+              : "ninguém conhece este ator; nada de conhecimento a apagar."
+          }</span></li>
+          <li>${UI.sheet}<span>a ficha e os itens embutidos vão junto, sem lixeira.</span></li>
+        </ul>
+        ${
+          n.inCombat
+            ? `<div class="stopbox"><b>Recusado:</b> este ator está em um <b>combate ativo</b>.
+          Encerre o combate, ou tire-o dele, antes de excluir.<br/>
+          <b>N6</b> — recusar é o certo, ou é atrapalhar o Mestre?</div>`
+            : `<div class="warnbox"><b>N6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem
+          apaga as exceções que o citam). Excluir NPC não está em spec nenhuma.</div>`
+        }
+      </div>
+      <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
+        <button class="btn-danger" ${n.inCombat ? "disabled" : ""}>Excluir</button></div></div>`;
+      }
+
+      const ST = ["oculto", "entrevisto", "conhecido"];
+      const SYM = ["·", "◐", "✓"];
+      function matrixHtml() {
+        const list = allNpcs()
+          .filter((n) => !n.flood)
+          .sort(byName);
+        return `<div class="win"><div class="wh">${UI.grid} Quem conhece quem
+      <button class="x" data-winclose>${UI.close}</button></div>
+    <div class="wb">
+      A <b>mesma janela</b> da aba Contatos (spec 39, REQ-CTT-061), alcançável pelas duas abas porque o
+      conhecimento se edita <b>num lugar só</b> — DEC-CTT-05.
+      <div class="keys"><span><i class="k0">·</i>oculto</span><span><i class="k1">◐</i>entrevisto</span>
+        <span><i class="k2">✓</i>conhecido</span><span><i>__</i>sublinhado = exceção</span></div>
+      <table class="matrix"><thead><tr><th>NPC</th>
+        ${PCS.map((p) => `<th data-col="${p.id}">${p.name}<small>coluna inteira</small></th>`).join("")}
+      </tr></thead><tbody>
+      ${list
+        .map(
+          (n) => `<tr>
+        <td class="nm" data-rowcycle="${n.id}">${n.name}<small>regra geral: ${ST[rule[n.id] ?? 0]}</small></td>
+        ${PCS.map((p) => {
+          const v = know(n.id, p.id);
+          return `<td><button class="cell k${v} ${isEx(n.id, p.id) ? "ex" : ""}" data-mx="${n.id}::${p.id}">${SYM[v]}</button></td>`;
+        }).join("")}
+      </tr>`,
+        )
+        .join("")}
+      </tbody></table>
+      <div class="note"><b>Por que esta grade existe e a atitude não tem uma:</b> conhecer é do par
+        NPC × personagem (o Tobias conhece o ferreiro, a Fofurinha só o entreviu); atitude é da
+        <b>party inteira</b>, então cabe num atributo do ator, editável na própria linha.
+        <br/><br/><b>N7</b> — revelar exige vir até aqui. Vale o desvio, ou o cartão precisa de um
+        "revelar a todos"?</div>
+    </div></div>`;
+      }
+
+      function sheetWinHtml() {
+        const n = findActor(win.replace("sheet:", ""));
+        return `<div class="win" style="width:470px;left:calc(50% - 235px)">
+      <div class="wh">${UI.sheet} Ficha — ${n ? n.name : "?"}<button class="x" data-winclose>${UI.close}</button></div>
+      <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11).
+      <div class="note">A ficha de NPC vai ser <b>muito mais maleável</b> que a de personagem, e ganha
+      <b>spec própria</b>. Esta spec não a define: só diz que a aba abre a ficha que a spec dela
+      definir.</div></div></div>`;
+      }
+
+      function winHtml() {
+        if (!win) return "";
+        if (win === "new") return newWinHtml();
+        if (win === "delete") return deleteWinHtml();
+        if (win === "matrix") return matrixHtml();
+        if (win.startsWith("sheet:")) return sheetWinHtml();
+        return "";
+      }
+
+      /* ================= render ================= */
+      function npcsHead() {
+        return `<div class="panel-head">
+      <div class="search"><span class="mag">${UI.search}</span>
+        <input id="q" placeholder="Procurar NPC" value="${query}"/></div>
+      <button class="hbtn pri" id="new" title="novo NPC">${UI.plus}</button>
+    </div>`;
+      }
+      function tabButton(t) {
+        const badge = t.badge ? `<span class="badge">${t.badge}</span>` : "";
+        return `<button class="tabbtn ${active === t.id && open ? "is-active" : ""}" data-tab="${t.id}" aria-label="${t.label}">
+      ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+      }
+      function render() {
+        const isGm = role === "gm";
+        if (!isGm && ["npcs", "scenes"].includes(active)) active = "contacts";
+        if (!isGm) win = null;
+        const all = TABS.filter((t) => t.group === "all" && !t.foot),
+          gms = TABS.filter((t) => t.group === "gm" && isGm),
+          foot = TABS.filter((t) => t.foot);
+
+        const isNpcs = active === "npcs";
+        const head = isNpcs
+          ? npcsHead()
+          : `<div class="panel-head"><span class="panel-title">${TITLE[active]}</span></div>`;
+        const body = `<div class="panel-body">${isNpcs ? npcsBody() : OTHER[active] || ""}</div>`;
+        const footer = isNpcs
+          ? `<div class="panel-foot">
+          <button class="hbtn chestb" id="chest" title="põe um baú direto na cena ativa">${UI.chest} Baú</button>
+          <button class="hbtn wide" id="matrix">${UI.grid} Quem conhece</button></div>`
+          : "";
+
+        document.getElementById("root").innerHTML = `
+      <div class="${open ? "is-open" : ""}"><aside class="sidebar">
+        <nav class="tabs">
+          <div class="grp">${all.map(tabButton).join("")}</div>
+          ${gms.length ? `<div class="grp gm">${gms.map(tabButton).join("")}</div>` : ""}
+          <div class="foot">${foot.map(tabButton).join("")}</div>
+        </nav>
+        <div class="panel">${head}${body}${footer}</div>
+      </aside></div>`;
+        document.getElementById("float").innerHTML = winHtml();
+
+        const who = document.getElementById("who");
+        who.className = isGm ? "who" : "who player";
+        who.innerHTML = isGm
+          ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+          : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha) — não vê esta aba</span>';
+
+        const n = dragActor ? findActor(dragActor) : null;
+        document.getElementById("droplink").textContent = n
+          ? n.link
+            ? `${n.name}: VINCULADO (um só; a vida é a do ator)`
+            : `${n.name}: DESVINCULADO (cada um com sua vida)`
+          : "goblin desvinculado · Aldric vinculado — N8 em aberto";
+        const cm = document.getElementById("chestmark");
+        cm.style.display = chestOnScene ? "block" : "none";
+        cm.innerHTML = chestOnScene ? `${UI.chest}<small>baú — não é ator</small>` : "";
+
+        hideTip();
+        wire();
+        paintSwitcher();
+        const u = new URL(location);
+        u.searchParams.set("role", role);
+        u.searchParams.set("flood", flood ? "1" : "0");
+        u.searchParams.set("state", empty ? "empty" : "full");
+        history.replaceState(null, "", u);
+      }
+
+      /* ================= tooltip ================= */
+      const tipEl = () => document.getElementById("tip");
+      function showTip(el) {
+        let d;
+        try {
+          d = JSON.parse(decodeURIComponent(el.dataset.help));
+        } catch {
+          return;
+        }
+        const t = tipEl();
+        t.innerHTML = `<b>${d.t}</b>${d.h || '<i style="color:var(--subtle)">sem texto de ajuda declarado</i>'}<span class="tone">${d.tone}</span>`;
+        t.style.display = "block";
+        const r = el.getBoundingClientRect(),
+          tr = t.getBoundingClientRect();
+        t.style.left = Math.max(8, r.left - tr.width - 10) + "px";
+        t.style.top = Math.max(8, r.top - 4) + "px";
+      }
+      function hideTip() {
+        const t = tipEl();
+        if (t) t.style.display = "none";
+      }
+
+      /* ================= eventos ================= */
+      function wire() {
+        const root = document.getElementById("root"),
+          float = document.getElementById("float");
+
+        root.querySelectorAll("[data-tab]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const id = b.dataset.tab;
+              if (open && active === id) open = false;
+              else {
+                active = id;
+                open = true;
+              }
+              editTitle = moveFor = renameFolder = null;
+              newFolderIn = undefined;
+              render();
+            }),
+        );
+
+        /* --- pastas --- */
+        root.querySelectorAll("[data-fold]").forEach(
+          (f) =>
+            (f.onclick = (e) => {
+              if (e.target.closest("button") || e.target.tagName === "INPUT") return;
+              const id = f.dataset.fold;
+              expanded[id] = !expanded[id];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-pin]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const f = folderById(b.dataset.pin);
+              if (f) f.pin = !f.pin;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-newfolder]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const p = b.dataset.newfolder;
+              newFolderIn = p === "" ? null : p;
+              if (p) expanded[p] = true;
+              render();
+              const i = document.getElementById("newfolderinput");
+              if (i) i.focus();
+            }),
+        );
+        const nf = document.getElementById("newfolderinput");
+        if (nf)
+          nf.onkeydown = (e) => {
+            if (e.key === "Enter" && nf.value.trim()) {
+              FOLDERS.push({
+                id: "f-new-" + FOLDERS.length,
+                name: nf.value.trim(),
+                parent: newFolderIn ?? null,
+                pin: false,
+              });
+              newFolderIn = undefined;
+              render();
+            }
+            if (e.key === "Escape") {
+              newFolderIn = undefined;
+              render();
+            }
+          };
+        root.querySelectorAll("[data-rename]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              renameFolder = b.dataset.rename;
+              render();
+              const i = document.getElementById("renameinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const rn = document.getElementById("renameinput");
+        if (rn)
+          rn.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const f = folderById(renameFolder);
+              if (f && rn.value.trim()) f.name = rn.value.trim();
+              renameFolder = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              renameFolder = null;
+              render();
+            }
+          };
+        root.querySelectorAll("[data-delfolder]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const id = b.dataset.delfolder;
+              [...NPCS, ...FLOOD].forEach((n) => {
+                if (n.folder === id) n.folder = null;
+              });
+              FOLDERS.filter((f) => f.parent === id).forEach((f) => (f.parent = null));
+              const i = FOLDERS.findIndex((f) => f.id === id);
+              if (i >= 0) FOLDERS.splice(i, 1);
+              render();
+            }),
+        );
+
+        /* --- atores --- */
+        root.querySelectorAll("[data-act]").forEach((a) => {
+          a.onclick = (e) => {
+            if (e.target.closest("button") || e.target.closest(".pen")) return;
+            sel = a.dataset.act;
+            render();
+          };
+          a.ondblclick = () => {
+            win = "sheet:" + a.dataset.act;
+            render();
+          };
+          a.ondragstart = (ev) => {
+            dragActor = a.dataset.act;
+            ev.dataTransfer.effectAllowed = "move";
+            try {
+              ev.dataTransfer.setData("text/plain", dragActor);
+            } catch (err) {
+              /* alguns navegadores exigem, outros não */
+            }
+            const n2 = findActor(dragActor);
+            const dl = document.getElementById("droplink");
+            if (dl && n2)
+              dl.textContent = n2.link
+                ? `${n2.name}: VINCULADO (um só; a vida é a do ator)`
+                : `${n2.name}: DESVINCULADO (cada um com sua vida)`;
+          };
+          a.ondragend = () => {
+            dragActor = null;
+            render();
+          };
+        });
+
+        /* --- atitude: cicla no clique --- */
+        root.querySelectorAll("[data-att]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const n2 = findActor(b.dataset.att);
+              if (n2) n2.att = nextAtt(n2.att);
+              render();
+            }),
+        );
+
+        /* --- drop de ator em pasta (e em "sem pasta") --- */
+        root.querySelectorAll("[data-dropfolder]").forEach((el) => {
+          el.ondragover = (ev) => {
+            if (!dragActor) return;
+            ev.preventDefault();
+            el.classList.add("drop-ok");
+          };
+          el.ondragleave = () => el.classList.remove("drop-ok");
+          el.ondrop = (ev) => {
+            ev.preventDefault();
+            el.classList.remove("drop-ok");
+            const n2 = findActor(dragActor);
+            if (n2) n2.folder = el.dataset.dropfolder === "" ? null : el.dataset.dropfolder;
+            dragActor = null;
+            render();
+          };
+        });
+
+        root.querySelectorAll("[data-title]").forEach(
+          (p) =>
+            (p.onclick = (e) => {
+              e.stopPropagation();
+              editTitle = p.dataset.title;
+              render();
+              const i = document.getElementById("titleinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const ti = document.getElementById("titleinput");
+        if (ti)
+          ti.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const n2 = findActor(editTitle);
+              if (n2) n2.title = ti.value.trim();
+              editTitle = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              editTitle = null;
+              render();
+            }
+          };
+
+        root.querySelectorAll("[data-move]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveFor = moveFor === b.dataset.move ? null : b.dataset.move;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-moveto]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const parts = b.dataset.moveto.split("::");
+              const n2 = findActor(parts[0]);
+              if (n2) n2.folder = parts[1] === "" ? null : parts[1];
+              moveFor = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-sheet]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              win = "sheet:" + b.dataset.sheet;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-del]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              delTarget = b.dataset.del;
+              win = "delete";
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-more]").forEach(
+          (m) =>
+            (m.onclick = (e) => {
+              e.stopPropagation();
+              expandConds[m.dataset.more] = !expandConds[m.dataset.more];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-newin]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              win = "new";
+              render();
+            }),
+        );
+
+        const nb = document.getElementById("new");
+        if (nb)
+          nb.onclick = () => {
+            win = "new";
+            render();
+          };
+        const ne = document.getElementById("newempty");
+        if (ne)
+          ne.onclick = () => {
+            win = "new";
+            render();
+          };
+        const mx = document.getElementById("matrix");
+        if (mx)
+          mx.onclick = () => {
+            win = "matrix";
+            render();
+          };
+        const ch = document.getElementById("chest");
+        if (ch)
+          ch.onclick = () => {
+            chestOnScene = !chestOnScene;
+            render();
+          };
+
+        /* --- janelas --- */
+        float.querySelectorAll("[data-winclose]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              win = null;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-mode]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newMode = b.dataset.mode;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-st]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newType = b.dataset.st;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-preset]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newPreset = b.dataset.preset;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-newatt]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newAtt = b.dataset.newatt;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-pack]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              packPick = b.dataset.pack;
+              render();
+            }),
+        );
+        const pq = document.getElementById("packq");
+        if (pq)
+          pq.oninput = () => {
+            packQuery = pq.value;
+            render();
+            const el = document.getElementById("packq");
+            if (el) {
+              el.focus();
+              el.setSelectionRange(packQuery.length, packQuery.length);
+            }
+          };
+        float.querySelectorAll("[data-mx]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const parts = b.dataset.mx.split("::");
+              setKnow(parts[0], parts[1], (know(parts[0], parts[1]) + 1) % 3);
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-rowcycle]").forEach(
+          (td) =>
+            (td.onclick = () => {
+              const npc = td.dataset.rowcycle;
+              rule[npc] = ((rule[npc] ?? 0) + 1) % 3;
+              ex[npc] = {};
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-col]").forEach(
+          (th) =>
+            (th.onclick = () => {
+              const pc = th.dataset.col;
+              const list = allNpcs().filter((n2) => !n2.flood);
+              const vals = list.map((n2) => know(n2.id, pc));
+              const uniform = vals.every((v) => v === vals[0]) ? vals[0] : -1;
+              const next = uniform === -1 ? 2 : (uniform + 1) % 3;
+              list.forEach((n2) => setKnow(n2.id, pc, next));
+              render();
+            }),
+        );
+
+        document.querySelectorAll("[data-help]").forEach((el) => {
+          el.onmouseenter = () => showTip(el);
+          el.onmouseleave = hideTip;
+        });
+
+        const q = document.getElementById("q");
+        if (q)
+          q.oninput = () => {
+            query = q.value;
+            render();
+            const el = document.getElementById("q");
+            if (el) {
+              el.focus();
+              el.setSelectionRange(query.length, query.length);
+            }
+          };
+      }
+
+      /* arraste para o mapa */
+      const dz = document.getElementById("dropzone");
+      dz.ondragover = (e) => {
+        if (!dragActor) return;
+        e.preventDefault();
+        dz.classList.add("hot");
+      };
+      dz.ondragleave = () => dz.classList.remove("hot");
+      dz.ondrop = (e) => {
+        e.preventDefault();
+        dz.classList.remove("hot");
+        const n = findActor(dragActor);
+        if (n) n.tok = Object.assign({}, n.tok, { Fortaleza: ((n.tok || {}).Fortaleza || 0) + 1 });
+        dragActor = null;
+        render();
+      };
+
+      /* ================= switcher / legenda ================= */
+      function paintSwitcher() {
+        document.getElementById("role").textContent =
+          role === "gm" ? "ver como jogador" : "ver como Mestre";
+        document.getElementById("bestiary").textContent = flood
+          ? "bestiário: importado (36)"
+          : "bestiário: mundo enxuto";
+        document.getElementById("state").textContent = empty
+          ? "estado: vazio"
+          : "estado: com conteúdo";
+
+        document.getElementById("legend").innerHTML = `
+      <h4>Aba NPCs — rodada 3 · atitude, preset e ícones desenhados</h4>
+      <table>
+        <tr><td>novo aqui</td><td><b>atitude</b> na linha (aliado · neutro · inimigo), que <b>cicla no
+          clique</b> e vale para a <b>party inteira</b> · <b>preset</b> só na criação, sem etiqueta na
+          lista · <b>zero emoji</b>: todo ícone desenhado (DEC-ACH-04)</td></tr>
+        <tr><td>atitude × conhecimento</td><td>atitude é da party toda (atributo do ator);
+          conhecimento é do par NPC × personagem (grade). Granularidades diferentes de propósito —
+          e a spec vai ter que dizer por quê.</td></tr>
+        <tr><td>baú</td><td><b>não é ator</b>: some da cena e nunca entra no diretório. É atalho de
+          narração do Mestre. O pf2e declara o subtipo <b>loot</b> — se o baú não é ator, ele fica
+          sem uso ou é usado por baixo sem ser listado.</td></tr>
+        <tr><td>veículo</td><td>não existe no Fusion — conferido: pf2e declara
+          <i>character, npc, hazard, loot, familiar</i>. Era invenção do protótipo.</td></tr>
+        <tr><td>condição</td><td><span class="sw" style="background:#ff5c5c"></span>penalidade
+          <span class="sw" style="background:#3ddc84"></span>benefício
+          <span class="sw" style="background:#b98cff"></span>situação · preenchido = tira da cena</td></tr>
+      </table>
+      <div class="q"><b>experimente:</b> clique na marca de atitude do <b>Bram</b> e veja ciclar ·
+        o <b>Fosso</b> (perigo) não tem atitude nenhuma · a estrela fixa/desafixa pasta ·
+        arraste o <b>Zumbi</b> para "Vila de Pedra Alta" · o botão <b>Baú</b> põe e tira o baú da cena.</div>
+      <div class="q" style="border:0;padding-top:.3rem;color:#666">ainda aberto:
+        <b>N1</b> fixar · <b>N5</b> importar · <b>N6</b> excluir · <b>N7</b> revelar ·
+        <b>N8</b> vínculo · <b>N9/N10</b> segundo personagem e excluir personagem</div>`;
+      }
+
+      document.getElementById("role").onclick = () => {
+        role = role === "gm" ? "player" : "gm";
+        win = null;
+        render();
+      };
+      document.getElementById("bestiary").onclick = () => {
+        flood = !flood;
+        render();
+      };
+      document.getElementById("state").onclick = () => {
+        empty = !empty;
+        render();
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+        if (e.key === "p") {
+          role = role === "gm" ? "player" : "gm";
+          win = null;
+          render();
+        }
+        if (e.key === "b") {
+          flood = !flood;
+          render();
+        }
+        if (e.key === "v") {
+          empty = !empty;
+          render();
+        }
+        if (e.key === "Escape" && win) {
+          win = null;
+          render();
+        }
+      });
+
+      seedKnowledge();
+      render();
+    </script>
+  </body>
+</html>
