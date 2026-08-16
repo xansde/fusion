@@ -2,81 +2,83 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <title>PROTOTYPE — Aba NPCs (rodada 2: diretório com pastas fixadas)</title>
+    <title>PROTOTYPE — Aba NPCs (rodada 3: atitude, preset e ícones desenhados)</title>
     <!--
-  PROTOTYPE — descartável. Rodada 2 do grill. Não é código de produção.
-  A rodada 1 (três variantes: diretório · elenco · bancada) está no histórico
-  do arquivo — commit "aba NPCs - 3 variantes para o grill (rodada 1)".
+  PROTOTYPE — descartável. Rodada 3 do grill. Não é código de produção.
+  Rodada 1 (três variantes) e rodada 2 (diretório) estão no histórico do arquivo.
 
   ════════════════════════════════════════════════════════════════════════════
-  O QUE O ALEXANDRE DECIDIU NA RODADA 1 (2026-08-16)
+  DECIDIDO NA RODADA 1 (2026-08-16)
   ════════════════════════════════════════════════════════════════════════════
-   1. DIRETÓRIO (variante A) é o desenho — com duas exigências novas: o Mestre
-      CRIA pastas, e pode FIXAR pastas de interesse no topo.
-   2. MOVER ATOR por drag-and-drop entre pastas, ALÉM do botão "mudar de pasta".
-      (as duas formas, não uma ou outra)
+   1. DIRETÓRIO é o desenho, com o Mestre CRIANDO pastas e podendo FIXÁ-LAS no topo.
+   2. MOVER ATOR por arraste E pelo botão de pasta — as duas formas.
    3. PERSONAGEM NÃO NASCE AQUI. "A aba é de NPC, ou seja, personagens NÃO
-      jogáveis. Aqui não é a casa de personagens." Personagem nasce colado ao
-      player: TODO PLAYER CRIADO NASCE COM UM PERSONAGEM EM BRANCO associado.
-      → Vira emenda na spec 37 (seção Usuários) e na 05, não requisito daqui.
-      → E deixa uma ponta solta: EXCLUIR personagem continua sem endereço
-        nenhum no app (ver N9 abaixo).
-   4. VEÍCULO SAIU da criação; PERIGO fica. (a lista de subtipos não é mais
-      "tudo que o sistema declara" — ver N4)
-   5. CRIAR NPC tem DOIS CAMINHOS: puxar do bestiário (browser aqui dentro) ou
-      criar a própria besta do zero. A ideia da variante C sobreviveu — mas
-      DENTRO da criação, não como espinha do painel.
-   6. VIDA NÃO APARECE nesta aba. Botão removido, questão encerrada.
-   7. NOVO: TIPOS DE NPC (ex.: mercador) — um NPC tem um papel que muda o que
-      ele é na mesa. Está no protótipo como campo "papel", e é a pergunta mais
-      aberta da rodada (N2).
-   8. NOVO: BAÚ DIRETO NA CENA, por botão específico — está no rodapé (N3).
-   9. Ficha de NPC será MUITO mais maleável que a de personagem, e ganha SPEC
-      PRÓPRIA no futuro. Esta spec não define ficha de NPC — só cita.
+      jogáveis." Personagem nasce colado ao player: todo player criado nasce com
+      um personagem em branco. → emenda na 37 (Usuários) e na 05.
+   4. VEÍCULO SAIU. Ver o item 1 da rodada 3: ele nunca existiu.
+   5. CRIAR NPC tem dois caminhos: do bestiário (browser aqui) ou do zero.
+   6. VIDA NÃO APARECE nesta aba.
+   7. Ficha de NPC será muito mais maleável que a de personagem, e ganha SPEC
+      PRÓPRIA. Esta spec não define ficha — só abre a que a spec dela definir.
 
   ════════════════════════════════════════════════════════════════════════════
-  HERDADO DA SPEC 39 (não se rediscute aqui)
+  DECIDIDO NA RODADA 2 (2026-08-16)
   ════════════════════════════════════════════════════════════════════════════
-   · Condição por contrato (DEC-CTT-11): tom, crítica preenchida, valor colado,
-     tooltip desenhado, ordem, teto 2 + "+N", sem ícone.
-   · Sub-personagem encapsulado no dono (DEC-CTT-06) — Nix dentro da Vess.
-   · Título livre sob o nome (DEC-CTT-07) — aqui vale para NPC (fecha Q-CTT-05).
-   · Conhecimento se edita num lugar só (DEC-CTT-05): no cartão é LEITURA.
-   · Redação no servidor (REQ-CTT-081..083).
+   1. VEÍCULO NÃO EXISTE — não ocupa eixo nenhum, não é subtipo cortado, é coisa
+      que o Fusion não tem. Confirmado no código: systems/pf2e/src/index.ts:71
+      declara Actor: ["character","npc","hazard","loot","familiar"]. "vehicle"
+      não aparece em lugar nenhum do repo; foi invenção do protótipo da rodada 1.
+      → A janela de criação oferece NPC e Perigo. `familiar` nasce colado a um dono
+        (DEC-CTT-06), e `loot` é assunto do baú (item 3).
+   2. "TIPO DE NPC" É PRESET. Mercador, chefe, montaria pré-preenchem a ficha na
+      criação e NÃO viram capacidade gravada no ator. Os presets AINDA NÃO EXISTEM,
+      mas vão existir — a spec fixa o conceito e o ponto de extensão, não o catálogo.
+      → Consequência que o protótipo passou a respeitar: o preset SOME depois de
+        criar. Não há etiqueta de "mercador" na linha, porque não há nada gravado
+        para etiquetar. Só aparece na janela de criação.
+   3. BAÚ NÃO É ATOR. "É uma ferramenta para ajudar na agilidade do GM narrar."
+      → O botão põe um baú direto na cena e ele NUNCA aparece no diretório.
+      → Fica pendurado: o pf2e declara o subtipo `loot`, que é exatamente o
+        recipiente. Se o baú não é ator, `loot` fica sem uso — ou o baú usa `loot`
+        por baixo sem nunca ser listado. Onde vive o conteúdo do baú é assunto da
+        spec de Token/Cenas, não desta.
+   4. NOVO — ATITUDE. Cada NPC pode ter uma atitude diante dos jogadores:
+      INIMIGO · NEUTRO · ALIADO. É configuração para a PARTY INTEIRA, não por
+      personagem. Atributo simples; só importa de verdade mais para a frente.
+      → O contraste que vale registrar na spec: CONHECIMENTO é por par
+        contato × personagem (DEC-CTT-03), ATITUDE é da party toda. Duas
+        granularidades diferentes de propósito, e a spec tem que dizer por quê.
+      → No protótipo: marca à esquerda dos números, sempre visível, que CICLA no
+        clique (aliado → neutro → inimigo), como a célula da matriz da 39.
+        Perigo não tem atitude — a marca simplesmente não aparece.
+   5. SEM EMOJI. Todo ícone desta tela é desenhado. Era regra do projeto desde a
+      DEC-ACH-04 (spec 38): "emoji muda de desenho e de cor em cada sistema
+      operacional e não acompanha o tema". O protótipo estava violando em nove
+      lugares (baú, pastas, ficha, lápis, ✕, estrela, hexágono, chevrons).
 
   ════════════════════════════════════════════════════════════════════════════
-  O QUE ESTA RODADA PÕE NA MESA (as perguntas que sobraram)
+  HERDADO DA SPEC 39 (não se rediscute)
+  ════════════════════════════════════════════════════════════════════════════
+   · Condição por contrato (DEC-CTT-11) · sub-personagem encapsulado (DEC-CTT-06)
+   · título livre (DEC-CTT-07, fecha Q-CTT-05) · conhecimento se edita num lugar
+     só (DEC-CTT-05) · redação no servidor (REQ-CTT-081..083).
+
+  ════════════════════════════════════════════════════════════════════════════
+  O QUE AINDA NÃO FOI DECIDIDO (vira Q- na spec se não fechar agora)
   ════════════════════════════════════════════════════════════════════════════
    N1 FIXAR PASTA — "Goblinoides" está fixada e SAIU de dentro de "Bestiário"
-      (aparece no topo com o caminho). É isso, ou fixar só devia subir a pasta
-      entre as irmãs dela, sem tirar da árvore? E o favorito é do APARELHO
-      (como as categorias da 39, DEC-CTT-08) ou do documento Folder (e então
-      todo Mestre vê o mesmo)?
-   N2 PAPEL DO NPC — "mercador", "baú", "montaria" aparecem como campo na
-      criação e como etiqueta na linha. Mas o que é isso?
-        (a) PRESET — pré-preenche a ficha e some (não fica gravado); ou
-        (b) CAPACIDADE — fica no ator e muda o que ele faz (mercador tem
-            estoque, baú tem conteúdo saqueável).
-      E quem declara a lista: o SISTEMA (como as condições) ou o MESTRE cria
-      os tipos dele no mundo?
-   N3 BAÚ NA CENA — o botão do rodapé põe um baú direto na cena ativa. Esse
-      baú vira ator do mundo, listado aqui? Ou é coisa só da cena, que esta
-      aba nunca vê? (esbarra na spec 41 — Token — que ainda não existe)
-   N4 QUEM CORTA O VEÍCULO — o sistema pf2e declara `vehicle`. Tirar da tela é
-      lista branca desta aba, ou o sistema é que passa a declarar quais
-      subtipos são criáveis aqui?
-   N5 IMPORTAR DO BESTIÁRIO — vai para qual pasta? E o ator importado guarda
-      vínculo com o pack de origem (para atualizar depois) ou vira cópia solta?
-   N6 EXCLUIR — a janela ainda recusa quando há combate ativo e avisa o que cai
-      junto. Não foi comentado: continua assim?
-   N7 REVELAR — o cartão só lê o estado; revelar exige o rodapé. Não foi
-      comentado: continua assim?
-   N8 ARRASTE PARA O MAPA — goblin nasce desvinculado, Aldric vinculado. Não
-      foi comentado, e agora depende da spec 41 (Token).
-   N9 EXCLUIR PERSONAGEM — se PC nasce com o player, PC morre com o player?
-      Hoje não há tela nenhuma que exclua personagem: a dívida da DEC-CTT-01
-      ficou só metade paga.
-   N10 O NOME DA ABA — com perigo e baú dentro, "NPCs" ainda descreve a aba?
+      (sobe com o caminho). É isso, ou fixar só devia ordenar entre as irmãs? E o
+      favorito mora no aparelho (como as categorias da 39) ou na pasta?
+   N5 IMPORTAR DO BESTIÁRIO — cai em qual pasta? E guarda vínculo com o pack de
+      origem, para atualizar depois, ou vira cópia solta?
+   N6 EXCLUIR — recusa enquanto houver combate ativo? (a REQ-CTT-076 só cobriu o
+      caso espelho: excluir personagem)
+   N7 REVELAR — o cartão só lê o estado; revelar exige o rodapé. Continua assim?
+   N8 VÍNCULO NO ARRASTE — goblin desvinculado, Aldric vinculado. Depende da
+      spec 41 (Token), que ainda não existe.
+   N9 SEGUNDO PERSONAGEM — se o personagem nasce com o player, o SEGUNDO
+      personagem de um jogador nasce como? A 39 já prevê o caso (CA-CTT-010).
+   N10 EXCLUIR PERSONAGEM — criar ganhou casa (Usuários); excluir não tem nenhuma.
 -->
     <style>
       :root {
@@ -250,18 +252,23 @@
       .stage .scenepill b {
         color: var(--ok);
       }
-      .stage .chest {
+      .stage .chestmark {
         position: absolute;
         left: calc(50% + 9vh);
-        top: calc(50% - 4vh);
-        font-size: 1.6rem;
-        filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.6));
-      }
-      .stage .chest small {
-        display: block;
-        font-size: 0.6rem;
+        top: calc(50% - 5vh);
         color: var(--pin);
         text-align: center;
+        filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.5));
+      }
+      .stage .chestmark .icon {
+        width: 30px;
+        height: 30px;
+        margin: 0 auto;
+      }
+      .stage .chestmark small {
+        display: block;
+        font-size: 0.6rem;
+        margin-top: 2px;
       }
 
       /* ---------- Chassi C (spec 36) ---------- */
@@ -274,6 +281,10 @@
         stroke-linecap: round;
         stroke-linejoin: round;
         display: block;
+      }
+      .icon.fill {
+        fill: currentColor;
+        stroke-width: 1.2;
       }
       .tabbtn {
         position: relative;
@@ -551,9 +562,16 @@
         letter-spacing: 0.07em;
         text-transform: uppercase;
         color: var(--subtle);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
       }
       .sec.pinned .lbl {
         color: var(--pin);
+      }
+      .sec .lbl .icon {
+        width: 11px;
+        height: 11px;
       }
       .sec .cnt {
         font-size: 0.66rem;
@@ -573,8 +591,15 @@
         color: var(--subtle);
         cursor: pointer;
         font: inherit;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         padding: 0 0.15rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .sec .add .icon {
+        width: 12px;
+        height: 12px;
       }
       .sec .add:hover {
         color: var(--accent-hover);
@@ -606,10 +631,28 @@
         color: var(--text);
       }
       .fold .chev {
-        width: 0.75rem;
         color: var(--subtle);
-        font-size: 0.65rem;
         flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .fold .chev .icon {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.12s;
+      }
+      .fold .chev.open .icon {
+        transform: rotate(90deg);
+      }
+      .fold .pinmark {
+        color: var(--pin);
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .fold .pinmark .icon {
+        width: 12px;
+        height: 12px;
       }
       .fold .fn {
         font-size: 0.76rem;
@@ -632,7 +675,7 @@
       }
       .fold .tools {
         display: none;
-        gap: 0.1rem;
+        gap: 0.05rem;
         flex: 0 0 auto;
         margin-left: auto;
       }
@@ -647,23 +690,23 @@
         border: 0;
         color: var(--subtle);
         cursor: pointer;
-        font-size: 0.72rem;
-        padding: 0 0.12rem;
-        line-height: 1;
+        padding: 0.1rem;
+        line-height: 0;
+        border-radius: var(--radius-sm);
+      }
+      .fold .tools button .icon {
+        width: 13px;
+        height: 13px;
       }
       .fold .tools button:hover {
         color: var(--accent-hover);
+        background: rgba(255, 255, 255, 0.06);
       }
       .fold .tools button.del:hover {
         color: var(--danger);
       }
-      .fold .tools button.pinb.on,
-      .fold .pinmark {
+      .fold .tools button.pinb.on {
         color: var(--pin);
-      }
-      .fold .pinmark {
-        font-size: 0.7rem;
-        flex: 0 0 auto;
       }
       .fold input {
         background: #0b0b0f;
@@ -687,7 +730,7 @@
       .act {
         display: flex;
         align-items: center;
-        gap: 0.45rem;
+        gap: 0.4rem;
         padding: 0.28rem 0.3rem;
         border-radius: var(--radius-sm);
         cursor: grab;
@@ -725,25 +768,9 @@
       .act .nm {
         font-size: 0.8rem;
         color: var(--text);
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        min-width: 0;
-      }
-      .act .nm > span {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-      }
-      .role {
-        font-size: 0.58rem;
-        border-radius: 999px;
-        padding: 0 0.32rem;
-        border: 1px solid rgba(245, 166, 35, 0.45);
-        color: var(--pin);
-        background: rgba(245, 166, 35, 0.08);
-        flex: 0 0 auto;
-        cursor: default;
       }
       .act .ttl {
         font-size: 0.68rem;
@@ -764,11 +791,16 @@
       }
       .act .ttl .pen {
         color: var(--subtle);
-        font-size: 0.65rem;
         cursor: text;
         opacity: 0;
         transition: opacity 0.12s;
         flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+      }
+      .act .ttl .pen .icon {
+        width: 11px;
+        height: 11px;
       }
       .act:hover .ttl .pen {
         opacity: 1;
@@ -793,7 +825,7 @@
       }
       .act .tools {
         display: none;
-        gap: 0.1rem;
+        gap: 0.05rem;
         flex: 0 0 auto;
       }
       .act:hover .tools {
@@ -807,14 +839,46 @@
         border: 0;
         color: var(--subtle);
         cursor: pointer;
-        font-size: 0.74rem;
-        padding: 0 0.12rem;
-        line-height: 1;
+        padding: 0.1rem;
+        line-height: 0;
+        border-radius: var(--radius-sm);
+      }
+      .act .tools button .icon {
+        width: 13px;
+        height: 13px;
       }
       .act .tools button:hover {
         color: var(--accent-hover);
+        background: rgba(255, 255, 255, 0.06);
       }
       .act .tools button.del:hover {
+        color: var(--danger);
+      }
+
+      /* atitude — sempre visível, cicla no clique */
+      .att {
+        background: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        padding: 0.08rem;
+        line-height: 0;
+        border-radius: var(--radius-sm);
+        flex: 0 0 auto;
+      }
+      .att .icon {
+        width: 14px;
+        height: 14px;
+      }
+      .att:hover {
+        border-color: currentColor;
+      }
+      .att.ally {
+        color: var(--ok);
+      }
+      .att.neutral {
+        color: var(--muted);
+      }
+      .att.foe {
         color: var(--danger);
       }
 
@@ -831,6 +895,13 @@
         color: var(--muted);
         font-variant-numeric: tabular-nums;
         cursor: default;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.1rem;
+      }
+      .tok .icon {
+        width: 11px;
+        height: 11px;
       }
       .know {
         font-size: 0.62rem;
@@ -848,9 +919,9 @@
         color: var(--subtle);
       }
 
-      /* menu de mover para pasta (o botão 🗀 — convive com o arraste) */
+      /* menu de mover para pasta (convive com o arraste) */
       .movemenu {
-        margin: 0.1rem 0 0.35rem 2.05rem;
+        margin: 0.1rem 0 0.35rem 2rem;
         padding: 0.35rem 0.4rem;
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
@@ -884,7 +955,7 @@
         display: flex;
         gap: 0.22rem;
         flex-wrap: wrap;
-        margin: 0.15rem 0 0.2rem 2.05rem;
+        margin: 0.15rem 0 0.2rem 2rem;
       }
       .chip {
         font-size: 0.62rem;
@@ -938,7 +1009,7 @@
         display: flex;
         align-items: center;
         gap: 0.35rem;
-        margin: 0 0 0.15rem 1.7rem;
+        margin: 0 0 0.15rem 1.65rem;
         padding: 0.1rem 0.3rem 0.1rem 0.35rem;
         border-left: 2px solid var(--border);
         border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
@@ -1061,8 +1132,13 @@
         background: none;
         border: 0;
         color: var(--muted);
-        font-size: 1rem;
         cursor: pointer;
+        padding: 0.1rem;
+        line-height: 0;
+      }
+      .win .wh .x .icon {
+        width: 15px;
+        height: 15px;
       }
       .win .wb {
         padding: 0.7rem 0.8rem 0.9rem;
@@ -1131,6 +1207,13 @@
         font-size: 0.72rem;
         padding: 0.1rem 0.6rem;
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .pills button .icon {
+        width: 12px;
+        height: 12px;
       }
       .pills button:hover {
         color: var(--text);
@@ -1142,7 +1225,16 @@
         color: var(--accent-hover);
         font-weight: 600;
       }
-      /* abas da janela de criação: do bestiário × do zero */
+      .pills button.on.ally {
+        color: var(--ok);
+        border-color: var(--ok);
+        background: rgba(61, 220, 132, 0.1);
+      }
+      .pills button.on.foe {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: rgba(255, 92, 92, 0.1);
+      }
       .wtabs {
         display: flex;
         gap: 0.35rem;
@@ -1171,7 +1263,7 @@
       .browser {
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
-        max-height: 200px;
+        max-height: 190px;
         overflow: auto;
         margin-top: 0.4rem;
       }
@@ -1248,19 +1340,20 @@
       .conseq li {
         display: flex;
         gap: 0.45rem;
-        align-items: baseline;
-        padding: 0.2rem 0;
+        align-items: flex-start;
+        padding: 0.25rem 0;
         border-bottom: 1px solid var(--border);
         font-size: 0.76rem;
       }
       .conseq li:last-child {
         border-bottom: 0;
       }
-      .conseq li i {
-        font-style: normal;
-        width: 1.2rem;
-        text-align: center;
+      .conseq li .icon {
+        width: 14px;
+        height: 14px;
         flex: 0 0 auto;
+        margin-top: 2px;
+        color: var(--subtle);
       }
       .btn-danger {
         background: var(--danger);
@@ -1426,7 +1519,7 @@
         padding: 0.6rem 0.7rem;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
         font-size: 0.72rem;
-        max-width: 415px;
+        max-width: 420px;
         line-height: 1.45;
       }
       .legend h4 {
@@ -1473,7 +1566,7 @@
       <div class="art">
         <div class="house"><div class="star">★</div></div>
       </div>
-      <div class="chest" id="chestmark" style="display: none">🧰<small>baú</small></div>
+      <div class="chestmark" id="chestmark" style="display: none"></div>
       <div class="drop" id="dropzone">
         arraste um ator para cá → vira presença no mapa<br /><b id="droplink"></b>
       </div>
@@ -1491,30 +1584,65 @@
     <div class="legend" id="legend"></div>
 
     <script>
-      /* ================= chassi (spec 36) ================= */
+      /* ================= ícones — TODOS desenhados, nenhum emoji ================= */
+      const svg = (paths, extra) =>
+        `<svg class="icon${extra ? " " + extra : ""}" viewBox="0 0 24 24">${paths}</svg>`;
       const ICONS = {
-        chat: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
-        contacts:
-          '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
-        combat:
-          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
-        compendium:
-          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
-        npcs: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
-        scenes:
-          '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
-        settings:
-          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+        chat: svg('<path d="M4 5h16v11H9l-5 4z"/>'),
+        contacts: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'),
+        combat: svg(
+          '<path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/>',
+        ),
+        compendium: svg(
+          '<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/>',
+        ),
+        npcs: svg(
+          '<path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/>',
+        ),
+        scenes: svg(
+          '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
+        ),
+        settings: svg(
+          '<path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/>',
+        ),
       };
-      const UI_ICON = {
-        search:
-          '<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>',
-        sheet:
-          '<svg class="icon" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
-        grid: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
-        plus: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
-        trash:
-          '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>',
+      const UI = {
+        search: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'),
+        sheet: svg(
+          '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+        ),
+        grid: svg(
+          '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+        ),
+        plus: svg('<path d="M12 5v14M5 12h14"/>'),
+        trash: svg('<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>'),
+        close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+        pencil: svg('<path d="M4 20h4L20 8l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
+        folder: svg(
+          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+        ),
+        folderPlus: svg(
+          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/>',
+        ),
+        chevron: svg('<path d="M9 6l6 6-6 6"/>'),
+        star: svg(
+          '<path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.9z"/>',
+        ),
+        starOn: svg(
+          '<path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.9z"/>',
+          "fill",
+        ),
+        hex: svg('<path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9z"/>'),
+        chest: svg(
+          '<rect x="3" y="8" width="18" height="11" rx="2"/><path d="M3 12.5h18"/><path d="M5.5 8V7a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3v1"/><path d="M11 12.5h2v3h-2z"/>',
+        ),
+        ally: svg(
+          '<path d="M12 3.5l7 3v6c0 4-3 6.8-7 7.8-4-1-7-3.8-7-7.8v-6z"/><path d="M9 12l2 2 4-4"/>',
+        ),
+        neutral: svg('<circle cx="12" cy="12" r="8"/><path d="M8.5 12h7"/>'),
+        foe: svg(
+          '<path d="M5 4.5l9.5 9.5M19 4.5L9.5 14"/><path d="M13 15.5l3.2 3.2M11 15.5l-3.2 3.2"/>',
+        ),
       };
       const TABS = [
         { id: "chat", label: "Chat", group: "all", badge: "3" },
@@ -1604,20 +1732,29 @@
         );
 
       /* ================= mundo mock ================= */
-      /* VEÍCULO SAIU (rodada 1) e PERSONAGEM não nasce aqui */
+      /* pf2e declara: character, npc, hazard, loot, familiar (systems/pf2e/src/index.ts:71).
+         Esta aba cria NPC e Perigo. character nasce com o player; familiar nasce colado a um
+         dono; loot é o baú, que não é ator listado. VEÍCULO NÃO EXISTE no Fusion. */
       const SUBTYPES = [
         { id: "npc", lb: "NPC" },
         { id: "hazard", lb: "Perigo" },
       ];
-      /* "tipos de NPC" — o conceito novo da rodada 1 (N2) */
-      const ROLES = [
+      /* PRESETS de criação — pré-preenchem a ficha e não ficam gravados.
+         Ainda não existem no projeto; a spec fixa o conceito, não o catálogo. */
+      const PRESETS = [
         { id: "", lb: "— nenhum" },
         { id: "mercador", lb: "Mercador" },
-        { id: "container", lb: "Baú / contêiner" },
         { id: "montaria", lb: "Montaria" },
         { id: "chefe", lb: "Chefe" },
       ];
-      const ROLE_LB = Object.fromEntries(ROLES.map((r) => [r.id, r.lb]));
+      /* ATITUDE diante dos jogadores — party inteira, não por personagem */
+      const ATT = [
+        { id: "ally", lb: "Aliado", icon: "ally" },
+        { id: "neutral", lb: "Neutro", icon: "neutral" },
+        { id: "foe", lb: "Inimigo", icon: "foe" },
+      ];
+      const ATT_LB = Object.fromEntries(ATT.map((a) => [a.id, a.lb]));
+      const nextAtt = (cur) => ATT[(ATT.findIndex((a) => a.id === cur) + 1) % ATT.length].id;
 
       const PCS = [
         { id: "tobias", name: "Tobias" },
@@ -1625,7 +1762,6 @@
         { id: "rurik", name: "Rurik" },
       ];
 
-      /* pastas — documento Folder (servidor). pin = fixada no topo (N1) */
       const FOLDERS = [
         { id: "f-vila", name: "Vila de Pedra Alta", parent: null, pin: true },
         { id: "f-corvo", name: "O Círculo do Corvo", parent: null, pin: false },
@@ -1651,7 +1787,7 @@
           name: "Mestre Aldric",
           title: "A Voz do Bosque",
           type: "npc",
-          role: "",
+          att: "ally",
           lvl: 5,
           folder: "f-vila",
           color: "#c98b5e",
@@ -1664,7 +1800,7 @@
           name: "Ferreiro Bram",
           title: "",
           type: "npc",
-          role: "mercador",
+          att: "neutral",
           lvl: 3,
           folder: "f-vila",
           color: "#8a8f98",
@@ -1677,7 +1813,7 @@
           name: "Irmã Yara",
           title: "",
           type: "npc",
-          role: "mercador",
+          att: "ally",
           lvl: 4,
           folder: "f-vila",
           color: "#d6b3e8",
@@ -1690,7 +1826,7 @@
           name: "Vess, a Corvo",
           title: "Quem paga, some",
           type: "npc",
-          role: "chefe",
+          att: "foe",
           lvl: 8,
           folder: "f-corvo",
           color: "#5b6b8c",
@@ -1705,7 +1841,7 @@
           name: "O Encapuzado",
           title: "",
           type: "npc",
-          role: "",
+          att: "foe",
           lvl: 6,
           folder: "f-corvo",
           color: "#3a3a4d",
@@ -1718,7 +1854,7 @@
           name: "Goblin Guerreiro",
           title: "",
           type: "npc",
-          role: "",
+          att: "foe",
           lvl: -1,
           folder: "f-gob",
           color: "#6a9a3f",
@@ -1738,7 +1874,7 @@
           name: "Goblin Comando",
           title: "",
           type: "npc",
-          role: "",
+          att: "foe",
           lvl: 1,
           folder: "f-gob",
           color: "#4f7a2e",
@@ -1752,7 +1888,7 @@
           name: "Hobgoblin Soldado",
           title: "",
           type: "npc",
-          role: "",
+          att: "foe",
           lvl: 1,
           folder: "f-gob",
           color: "#9a5f3f",
@@ -1765,7 +1901,7 @@
           name: "Zumbi Devorador",
           title: "",
           type: "npc",
-          role: "",
+          att: "foe",
           lvl: 1,
           folder: "f-mortos",
           color: "#6b7a5e",
@@ -1778,7 +1914,7 @@
           name: "Esqueleto Guardião",
           title: "",
           type: "npc",
-          role: "",
+          att: "foe",
           lvl: 2,
           folder: "f-mortos",
           color: "#c9c4b5",
@@ -1791,7 +1927,7 @@
           name: "Mula de Carga",
           title: "",
           type: "npc",
-          role: "montaria",
+          att: "neutral",
           lvl: 0,
           folder: null,
           color: "#a07c4f",
@@ -1804,7 +1940,7 @@
           name: "Armadilha de Fosso",
           title: "",
           type: "hazard",
-          role: "",
+          att: null /* perigo não tem atitude — a marca some */,
           lvl: 1,
           folder: null,
           color: "#8a6b3f",
@@ -1845,7 +1981,7 @@
         name: n,
         title: "",
         type: "npc",
-        role: "",
+        att: "foe",
         lvl: (i % 12) - 1,
         folder: i % 2 ? "f-gob" : "f-mortos",
         color: ["#6a9a3f", "#8a5f9a", "#9a5f3f", "#5f7a9a"][i % 4],
@@ -1855,7 +1991,6 @@
         flood: true,
       }));
 
-      /* bestiário (compêndio) — o browser dentro da criação */
       const PACK = [
         { id: "p1", name: "Goblin Piromaníaco", lvl: 1, pack: "Bestiário 1", color: "#6a9a3f" },
         { id: "p2", name: "Goblin Chefe de Guerra", lvl: 2, pack: "Bestiário 1", color: "#4f7a2e" },
@@ -1879,7 +2014,8 @@
       let win = null;
       let newMode = "pack";
       let newType = "npc";
-      let newRole = "";
+      let newPreset = "";
+      let newAtt = "foe";
       let packQuery = "";
       let packPick = null;
       let delTarget = null;
@@ -1928,10 +2064,7 @@
         if (!query.trim()) return list;
         const q = query.trim().toLowerCase();
         return list.filter(
-          (n) =>
-            n.name.toLowerCase().includes(q) ||
-            (n.title || "").toLowerCase().includes(q) ||
-            (ROLE_LB[n.role] || "").toLowerCase().includes(q),
+          (n) => n.name.toLowerCase().includes(q) || (n.title || "").toLowerCase().includes(q),
         );
       }
       const byName = (a, b) => a.name.localeCompare(b.name, "pt-BR");
@@ -1959,8 +2092,8 @@
             t: "Quem conhece " + n.name,
             h:
               `<b>${k2}</b> conhece(m) · <b>${k1}</b> entreviu/entreviram · <b>${k0}</b> não vê(em).<br><br>` +
-              `Aqui é <b>leitura</b>. Mudar é só na janela <b>Quem conhece quem</b>, pelo rodapé (DEC-CTT-05 da spec 39). <b>N7</b>: continua assim?`,
-            tone: "conhecimento (par contato × personagem)",
+              `Repare no contraste: conhecimento é <b>por personagem</b>; atitude é da <b>party inteira</b>. Aqui é leitura — mudar é só na janela, pelo rodapé (<b>N7</b>).`,
+            tone: "conhecimento · par NPC × personagem",
           }),
         );
         return `<span class="know" data-help="${help}"><span class="k2">✓${k2}</span> <span class="k1">◐${k1}</span> <span class="k0">·${k0}</span></span>`;
@@ -2003,6 +2136,19 @@
           .join("")}</div>`;
       }
 
+      function attButton(n) {
+        if (!n.att) return "";
+        const def = ATT.find((a) => a.id === n.att);
+        const help = encodeURIComponent(
+          JSON.stringify({
+            t: "Atitude: " + def.lb,
+            h: "Vale para a <b>party inteira</b> — não é por personagem, ao contrário do conhecimento. Clique para ciclar: aliado → neutro → inimigo.<br><br>Atributo simples; só passa a importar de verdade mais para a frente (combate, comportamento).",
+            tone: "atitude · party inteira",
+          }),
+        );
+        return `<button class="att ${n.att}" data-att="${n.id}" data-help="${help}" aria-label="Atitude: ${def.lb}">${UI[def.icon]}</button>`;
+      }
+
       function actorRow(n) {
         const hz = n.type === "hazard" ? "hz" : "";
         const t = n.title;
@@ -2010,8 +2156,8 @@
           editTitle === n.id
             ? `<div class="ttl"><input id="titleinput" value="${t || ""}" placeholder="um título para ${n.name}"/></div>`
             : t
-              ? `<div class="ttl"><span>${t}</span><span class="pen" data-title="${n.id}">✎</span></div>`
-              : `<div class="ttl fallback"><span>${SUBTYPES.find((s) => s.id === n.type)?.lb || n.type} · nível ${n.lvl}</span><span class="pen" data-title="${n.id}">✎</span></div>`;
+              ? `<div class="ttl"><span>${t}</span><span class="pen" data-title="${n.id}">${UI.pencil}</span></div>`
+              : `<div class="ttl fallback"><span>${SUBTYPES.find((s) => s.id === n.type)?.lb || n.type} · nível ${n.lvl}</span><span class="pen" data-title="${n.id}">${UI.pencil}</span></div>`;
         const tk = tokCount(n);
         const tkHelp = encodeURIComponent(
           JSON.stringify({
@@ -2026,25 +2172,15 @@
               : "N8 · arrasta DESVINCULADO (cada um com sua vida)",
           }),
         );
-        const roleHelp = encodeURIComponent(
-          JSON.stringify({
-            t: "Papel: " + (ROLE_LB[n.role] || "—"),
-            h: "<b>N2</b> — isto é um <b>preset</b> que só pré-preencheu a ficha, ou uma <b>capacidade</b> que fica no ator (mercador tem estoque, baú tem conteúdo)? E quem declara a lista: o sistema, ou o Mestre?",
-            tone: "conceito novo desta rodada",
-          }),
-        );
-        const roleTag = n.role
-          ? `<span class="role" data-help="${roleHelp}">${ROLE_LB[n.role]}</span>`
-          : "";
         const meta = `<span class="meta hide-on-hover">
         <span class="lvl">${n.lvl}</span>
-        ${tk ? `<span class="tok" data-help="${tkHelp}">⬡${tk}</span>` : ""}
+        ${tk ? `<span class="tok" data-help="${tkHelp}">${UI.hex}${tk}</span>` : ""}
         ${knowSummary(n)}
       </span>`;
         const tools = `<span class="tools">
-        <button data-sheet="${n.id}" title="abrir ficha">▤</button>
-        <button data-move="${n.id}" title="mudar de pasta">🗀</button>
-        <button class="del" data-del="${n.id}" title="excluir ator">✕</button>
+        <button data-sheet="${n.id}" title="abrir ficha">${UI.sheet}</button>
+        <button data-move="${n.id}" title="mudar de pasta">${UI.folder}</button>
+        <button class="del" data-del="${n.id}" title="excluir ator">${UI.trash}</button>
       </span>`;
         const subs = (n.subs || [])
           .map(
@@ -2054,8 +2190,8 @@
           .join("");
         return `<div class="act ${sel === n.id ? "sel" : ""} ${dragActor === n.id ? "dragging" : ""}" data-act="${n.id}" draggable="true">
         <span class="av ${hz}" style="background:${n.color}">${initials(n.name)}</span>
-        <span class="idt"><span class="nm"><span>${n.name}</span>${roleTag}</span>${titleLine}</span>
-        ${meta}${tools}
+        <span class="idt"><span class="nm">${n.name}</span>${titleLine}</span>
+        ${attButton(n)}${meta}${tools}
       </div>${condsHtml(n)}${moveMenu(n)}${subs}`;
       }
 
@@ -2068,7 +2204,7 @@
         );
       }
       function newFolderInput() {
-        return `<div class="fold"><span class="chev">▸</span>
+        return `<div class="fold"><span class="chev">${UI.chevron}</span>
         <input id="newfolderinput" placeholder="nome da pasta"/></div>`;
       }
       function folderNode(f, list, opts) {
@@ -2089,17 +2225,17 @@
           : "";
         const path = o.showPath && f.parent ? `<span class="path">${folderPath(f)} ›</span>` : "";
         return `<div class="fold" data-fold="${f.id}" data-dropfolder="${f.id}">
-        <span class="chev">${isOpen ? "▾" : "▸"}</span>
-        ${f.pin ? '<span class="pinmark">★</span>' : ""}
+        <span class="chev ${isOpen ? "open" : ""}">${UI.chevron}</span>
+        ${f.pin ? `<span class="pinmark">${UI.starOn}</span>` : ""}
         ${path}
         ${renaming ? `<input id="renameinput" value="${f.name}"/>` : `<span class="fn">${f.name}</span>`}
         <span class="cnt">${total}</span>
         <span class="tools">
-          <button class="pinb ${f.pin ? "on" : ""}" data-pin="${f.id}" title="${f.pin ? "desafixar" : "fixar no topo"}">${f.pin ? "★" : "☆"}</button>
-          <button data-newfolder="${f.id}" title="nova subpasta">🗀+</button>
-          <button data-newin="${f.id}" title="novo NPC aqui">＋</button>
-          <button data-rename="${f.id}" title="renomear">✎</button>
-          <button class="del" data-delfolder="${f.id}" title="excluir pasta">✕</button>
+          <button class="pinb ${f.pin ? "on" : ""}" data-pin="${f.id}" title="${f.pin ? "desafixar" : "fixar no topo"}">${f.pin ? UI.starOn : UI.star}</button>
+          <button data-newfolder="${f.id}" title="nova subpasta">${UI.folderPlus}</button>
+          <button data-newin="${f.id}" title="novo NPC aqui">${UI.plus}</button>
+          <button data-rename="${f.id}" title="renomear">${UI.pencil}</button>
+          <button class="del" data-delfolder="${f.id}" title="excluir pasta">${UI.close}</button>
         </span>
       </div>${inner}`;
       }
@@ -2111,12 +2247,12 @@
         const roots = FOLDERS.filter((f) => !f.parent && !f.pin);
         const loose = list.filter((n) => !n.folder).sort(byName);
         const pinnedBlock = pinned.length
-          ? `<div class="sec pinned"><span class="lbl">★ fixadas</span><span class="cnt">${pinned.length}</span><span class="line"></span></div>` +
+          ? `<div class="sec pinned"><span class="lbl">${UI.starOn} fixadas</span><span class="cnt">${pinned.length}</span><span class="line"></span></div>` +
             pinned.map((f) => folderNode(f, list, { showPath: true })).join("")
           : "";
         const treeBlock =
           `<div class="sec"><span class="lbl">pastas</span><span class="line"></span>
-            <button class="add" data-newfolder="">🗀+ nova</button></div>` +
+            <button class="add" data-newfolder="">${UI.folderPlus} nova</button></div>` +
           (newFolderIn === null ? newFolderInput() : "") +
           roots.map((f) => folderNode(f, list)).join("");
         const looseBlock =
@@ -2129,7 +2265,7 @@
         if (empty)
           return `<div class="vazio"><b>Nenhum NPC neste mundo ainda.</b><br/>
         Crie do zero, ou puxe um do bestiário.<br/><br/>
-        <button class="hbtn pri" id="newempty">＋ Novo NPC</button></div>
+        <button class="hbtn pri" id="newempty">${UI.plus} Novo NPC</button></div>
         <p class="hint">Personagem de jogador não aparece aqui —<br/>ele nasce com o player, em Configurações › Usuários.</p>`;
         return `<div class="vazio">Nada encontrado para <b>"${query}"</b>.</div>`;
       }
@@ -2170,30 +2306,33 @@
             ).join("")}</div></div>
           <div class="field"><label>Nome</label><input placeholder="nome do NPC"/></div>`;
         return `<div class="win" style="width:520px;left:calc(50% - 260px)">
-      <div class="wh">${UI_ICON.plus} Novo NPC<button class="x" data-winclose>✕</button></div>
+      <div class="wh">${UI.plus} Novo NPC<button class="x" data-winclose>${UI.close}</button></div>
       <div class="wtabs">
         <button class="${newMode === "pack" ? "on" : ""}" data-mode="pack">Do bestiário</button>
         <button class="${newMode === "scratch" ? "on" : ""}" data-mode="scratch">Criar do zero</button>
       </div>
       <div class="wb">
         ${body}
-        <div class="field"><label>Papel</label>
-          <div class="pills">${ROLES.map(
+        <div class="field"><label>Preset</label>
+          <div class="pills">${PRESETS.map(
             (r) =>
-              `<button class="${r.id === newRole ? "on" : ""}" data-role="${r.id}">${r.lb}</button>`,
+              `<button class="${r.id === newPreset ? "on" : ""}" data-preset="${r.id}">${r.lb}</button>`,
+          ).join("")}</div></div>
+        <div class="field"><label>Atitude</label>
+          <div class="pills">${ATT.map(
+            (a) =>
+              `<button class="${a.id === newAtt ? "on " + a.id : ""}" data-newatt="${a.id}">${UI[a.icon]}${a.lb}</button>`,
           ).join("")}</div></div>
         <div class="field"><label>Pasta</label>
           <select>${["(sem pasta)", ...FOLDERS.map((f) => f.name)]
             .map((n) => `<option>${n}</option>`)
             .join("")}</select></div>
-        <div class="warnbox"><b>N2 — a pergunta desta rodada.</b> "Papel" é o seu "tipos de NPC".
-          Ele é um <b>preset</b> (pré-preenche a ficha e some) ou uma <b>capacidade</b> que fica no ator
-          e muda o que ele faz — mercador com estoque, baú com conteúdo saqueável? E quem declara a
-          lista: o <b>sistema</b> (como as condições, DEC-CTT-11) ou o <b>Mestre</b> cria os tipos do
-          mundo dele?</div>
-        <div class="note"><b>Personagem não está aqui</b> — a aba é de não-jogáveis. Personagem nasce
-          com o player, em Configurações › Usuários. <b>Veículo saiu</b> na rodada 1, e a <b>N4</b>
-          pergunta quem manda nisso: lista branca da aba, ou o sistema declarando o que é criável aqui.</div>
+        <div class="note"><b>Preset é preset:</b> pré-preenche a ficha e não fica gravado no ator —
+          por isso não há etiqueta de "mercador" na lista. Os presets ainda não existem no projeto;
+          a spec fixa o conceito e o ponto de extensão, não o catálogo.
+          <br/><br/><b>Atitude</b>, ao contrário, é atributo do ator e vale para a party inteira.
+          <br/><br/>Só NPC e Perigo: <b>personagem</b> nasce com o player (Configurações › Usuários),
+          <b>familiar</b> nasce colado a um dono, e <b>veículo não existe no Fusion</b>.</div>
       </div>
       <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
         <button class="hbtn pri">${newMode === "pack" ? "Importar e criar" : "Criar"}</button></div></div>`;
@@ -2212,28 +2351,28 @@
           else if (v === 1) k1++;
         });
         return `<div class="win danger" style="width:500px;left:calc(50% - 250px)">
-      <div class="wh">${UI_ICON.trash} Excluir <b style="color:var(--text)">&nbsp;${n.name}</b>?
-        <button class="x" data-winclose>✕</button></div>
+      <div class="wh">${UI.trash} Excluir <b style="color:var(--text)">&nbsp;${n.name}</b>?
+        <button class="x" data-winclose>${UI.close}</button></div>
       <div class="wb">
         <b>O que vai junto:</b>
         <ul class="conseq">
-          <li><i>⬡</i><span>${
+          <li>${UI.hex}<span>${
             tk
               ? `<b>${tk}</b> presença(s) no mapa, em ${scenes.map(([s, c]) => `${s} (${c})`).join(", ")} — somem junto.`
               : "nenhuma presença em cena."
           }</span></li>
-          <li><i>◐</i><span>${
+          <li>${UI.grid}<span>${
             k2 + k1
               ? `<b>${k2}</b> personagem(ns) conhece(m) e <b>${k1}</b> entreviu/entreviram — o conhecimento é apagado com o ator.`
               : "ninguém conhece este ator; nada de conhecimento a apagar."
           }</span></li>
-          <li><i>▤</i><span>a ficha e os itens embutidos vão junto, sem lixeira.</span></li>
+          <li>${UI.sheet}<span>a ficha e os itens embutidos vão junto, sem lixeira.</span></li>
         </ul>
         ${
           n.inCombat
             ? `<div class="stopbox"><b>Recusado:</b> este ator está em um <b>combate ativo</b>.
           Encerre o combate, ou tire-o dele, antes de excluir.<br/>
-          <b>N6</b> — não foi comentado na rodada 1: recusar é o certo, ou é atrapalhar o Mestre?</div>`
+          <b>N6</b> — recusar é o certo, ou é atrapalhar o Mestre?</div>`
             : `<div class="warnbox"><b>N6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem
           apaga as exceções que o citam). Excluir NPC não está em spec nenhuma.</div>`
         }
@@ -2248,8 +2387,8 @@
         const list = allNpcs()
           .filter((n) => !n.flood)
           .sort(byName);
-        return `<div class="win"><div class="wh">${UI_ICON.grid} Quem conhece quem
-      <button class="x" data-winclose>✕</button></div>
+        return `<div class="win"><div class="wh">${UI.grid} Quem conhece quem
+      <button class="x" data-winclose>${UI.close}</button></div>
     <div class="wb">
       A <b>mesma janela</b> da aba Contatos (spec 39, REQ-CTT-061), alcançável pelas duas abas porque o
       conhecimento se edita <b>num lugar só</b> — DEC-CTT-05.
@@ -2270,20 +2409,22 @@
         )
         .join("")}
       </tbody></table>
-      <div class="note"><b>N7</b> — na aba NPCs o cartão só <b>lê</b> o estado. Revelar exige vir até aqui.
-        O gesto real do Mestre é "criei o NPC → a mesa encontrou → revelo": vale o desvio, ou o cartão
-        precisa de um "revelar a todos"?</div>
+      <div class="note"><b>Por que esta grade existe e a atitude não tem uma:</b> conhecer é do par
+        NPC × personagem (o Tobias conhece o ferreiro, a Fofurinha só o entreviu); atitude é da
+        <b>party inteira</b>, então cabe num atributo do ator, editável na própria linha.
+        <br/><br/><b>N7</b> — revelar exige vir até aqui. Vale o desvio, ou o cartão precisa de um
+        "revelar a todos"?</div>
     </div></div>`;
       }
 
       function sheetWinHtml() {
         const n = findActor(win.replace("sheet:", ""));
         return `<div class="win" style="width:470px;left:calc(50% - 235px)">
-      <div class="wh">${UI_ICON.sheet} Ficha — ${n ? n.name : "?"}<button class="x" data-winclose>✕</button></div>
+      <div class="wh">${UI.sheet} Ficha — ${n ? n.name : "?"}<button class="x" data-winclose>${UI.close}</button></div>
       <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11).
       <div class="note">A ficha de NPC vai ser <b>muito mais maleável</b> que a de personagem, e ganha
-      <b>spec própria</b> (decisão da rodada 1). Esta spec não a define: só diz que a aba abre a ficha
-      que a spec dela definir.</div></div></div>`;
+      <b>spec própria</b>. Esta spec não a define: só diz que a aba abre a ficha que a spec dela
+      definir.</div></div></div>`;
       }
 
       function winHtml() {
@@ -2298,9 +2439,9 @@
       /* ================= render ================= */
       function npcsHead() {
         return `<div class="panel-head">
-      <div class="search"><span class="mag">${UI_ICON.search}</span>
+      <div class="search"><span class="mag">${UI.search}</span>
         <input id="q" placeholder="Procurar NPC" value="${query}"/></div>
-      <button class="hbtn pri" id="new" title="novo NPC">${UI_ICON.plus}</button>
+      <button class="hbtn pri" id="new" title="novo NPC">${UI.plus}</button>
     </div>`;
       }
       function tabButton(t) {
@@ -2323,8 +2464,8 @@
         const body = `<div class="panel-body">${isNpcs ? npcsBody() : OTHER[active] || ""}</div>`;
         const footer = isNpcs
           ? `<div class="panel-foot">
-          <button class="hbtn chestb" id="chest" title="põe um baú direto na cena ativa">🧰 Baú na cena</button>
-          <button class="hbtn wide" id="matrix">${UI_ICON.grid} Quem conhece</button></div>`
+          <button class="hbtn chestb" id="chest" title="põe um baú direto na cena ativa">${UI.chest} Baú</button>
+          <button class="hbtn wide" id="matrix">${UI.grid} Quem conhece</button></div>`
           : "";
 
         document.getElementById("root").innerHTML = `
@@ -2350,7 +2491,9 @@
             ? `${n.name}: VINCULADO (um só; a vida é a do ator)`
             : `${n.name}: DESVINCULADO (cada um com sua vida)`
           : "goblin desvinculado · Aldric vinculado — N8 em aberto";
-        document.getElementById("chestmark").style.display = chestOnScene ? "block" : "none";
+        const cm = document.getElementById("chestmark");
+        cm.style.display = chestOnScene ? "block" : "none";
+        cm.innerHTML = chestOnScene ? `${UI.chest}<small>baú — não é ator</small>` : "";
 
         hideTip();
         wire();
@@ -2440,7 +2583,7 @@
           nf.onkeydown = (e) => {
             if (e.key === "Enter" && nf.value.trim()) {
               FOLDERS.push({
-                id: "f-" + FOLDERS.length + "-" + nf.value.trim().length,
+                id: "f-new-" + FOLDERS.length,
                 name: nf.value.trim(),
                 parent: newFolderIn ?? null,
                 pin: false,
@@ -2526,6 +2669,17 @@
             render();
           };
         });
+
+        /* --- atitude: cicla no clique --- */
+        root.querySelectorAll("[data-att]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const n2 = findActor(b.dataset.att);
+              if (n2) n2.att = nextAtt(n2.att);
+              render();
+            }),
+        );
 
         /* --- drop de ator em pasta (e em "sem pasta") --- */
         root.querySelectorAll("[data-dropfolder]").forEach((el) => {
@@ -2673,10 +2827,17 @@
               render();
             }),
         );
-        float.querySelectorAll("[data-role]").forEach(
+        float.querySelectorAll("[data-preset]").forEach(
           (b) =>
             (b.onclick = () => {
-              newRole = b.dataset.role;
+              newPreset = b.dataset.preset;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-newatt]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newAtt = b.dataset.newatt;
               render();
             }),
         );
@@ -2775,27 +2936,29 @@
           : "estado: com conteúdo";
 
         document.getElementById("legend").innerHTML = `
-      <h4>Aba NPCs — rodada 2 · diretório com pastas fixadas</h4>
+      <h4>Aba NPCs — rodada 3 · atitude, preset e ícones desenhados</h4>
       <table>
-        <tr><td>fechado</td><td>diretório de pastas · o Mestre cria pasta · <b>★ fixa no topo</b> ·
-          arrastar OU 🗀 move de pasta · sem vida · <b>personagem não nasce aqui</b> ·
-          veículo fora, perigo dentro · criar tem <b>bestiário + do zero</b></td></tr>
-        <tr><td>★ fixadas</td><td>"Goblinoides" saiu de dentro de "Bestiário" e subiu com o caminho —
-          <b>N1</b>: é isso, ou fixar só devia ordenar entre irmãs? e o favorito é do aparelho ou da pasta?</td></tr>
-        <tr><td>papel</td><td>a etiqueta laranja (mercador, chefe, montaria) é o seu "tipos de NPC" —
-          <b>N2</b>: preset ou capacidade? quem declara a lista?</td></tr>
-        <tr><td>🧰 baú</td><td>botão do rodapé põe direto na cena — <b>N3</b>: vira ator listado aqui,
-          ou é coisa só da cena? (depende da spec 41, Token)</td></tr>
+        <tr><td>novo aqui</td><td><b>atitude</b> na linha (aliado · neutro · inimigo), que <b>cicla no
+          clique</b> e vale para a <b>party inteira</b> · <b>preset</b> só na criação, sem etiqueta na
+          lista · <b>zero emoji</b>: todo ícone desenhado (DEC-ACH-04)</td></tr>
+        <tr><td>atitude × conhecimento</td><td>atitude é da party toda (atributo do ator);
+          conhecimento é do par NPC × personagem (grade). Granularidades diferentes de propósito —
+          e a spec vai ter que dizer por quê.</td></tr>
+        <tr><td>baú</td><td><b>não é ator</b>: some da cena e nunca entra no diretório. É atalho de
+          narração do Mestre. O pf2e declara o subtipo <b>loot</b> — se o baú não é ator, ele fica
+          sem uso ou é usado por baixo sem ser listado.</td></tr>
+        <tr><td>veículo</td><td>não existe no Fusion — conferido: pf2e declara
+          <i>character, npc, hazard, loot, familiar</i>. Era invenção do protótipo.</td></tr>
         <tr><td>condição</td><td><span class="sw" style="background:#ff5c5c"></span>penalidade
           <span class="sw" style="background:#3ddc84"></span>benefício
           <span class="sw" style="background:#b98cff"></span>situação · preenchido = tira da cena</td></tr>
       </table>
-      <div class="q"><b>experimente:</b> ☆/★ numa pasta e veja ela subir para "fixadas" ·
-        <b>🗀+ nova</b> cria pasta (Enter confirma) · arraste o <b>Zumbi</b> para "Vila de Pedra Alta" ·
-        ＋ abre a criação com <b>Do bestiário</b> e <b>Criar do zero</b> ·
-        🧰 põe o baú na cena · ✕ no <b>Goblin Guerreiro</b> ainda recusa por combate ativo.</div>
-      <div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>p</b> papel ·
-        <b>b</b> bestiário · <b>v</b> vazio · <b>Esc</b> fecha janela</div>`;
+      <div class="q"><b>experimente:</b> clique na marca de atitude do <b>Bram</b> e veja ciclar ·
+        o <b>Fosso</b> (perigo) não tem atitude nenhuma · a estrela fixa/desafixa pasta ·
+        arraste o <b>Zumbi</b> para "Vila de Pedra Alta" · o botão <b>Baú</b> põe e tira o baú da cena.</div>
+      <div class="q" style="border:0;padding-top:.3rem;color:#666">ainda aberto:
+        <b>N1</b> fixar · <b>N5</b> importar · <b>N6</b> excluir · <b>N7</b> revelar ·
+        <b>N8</b> vínculo · <b>N9/N10</b> segundo personagem e excluir personagem</div>`;
       }
 
       document.getElementById("role").onclick = () => {
