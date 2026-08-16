@@ -86,8 +86,7 @@
   import { t } from "../../lib/i18n/i18n.js";
   import ActorPortrait from "../common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
-  import KnowledgeGridWindow from "./KnowledgeGridWindow.svelte";
-  import { windowManager } from "../../lib/windows/window-manager.js";
+  import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
 
   const { socket, worldId, userId, isGm }: SidebarPanelProps = $props();
 
@@ -397,22 +396,13 @@
   // -------------------------------------------------------------------------
 
   /**
-   * Open "Quem conhece quem" outside the drawer (REQ-CTT-061). The singleton key
-   * means a second click focuses the window already open instead of stacking a
-   * second grid over the first (REQ-UIF-014).
+   * Open "Quem conhece quem" outside the drawer (REQ-CTT-061). The open call lives
+   * in `lib/contacts/knowledgeWindow.ts` because the NPCs tab's footer opens the
+   * very same window (REQ-NPC-072): one function, one singleton key, one grid —
+   * a second click from either tab focuses the window already open (REQ-UIF-014).
    */
   function openKnowledgeGrid(): void {
-    windowManager.open({
-      singletonKey: "contacts:knowledge",
-      title: t("FUSION.Contacts.Knowledge.Window"),
-      resizable: true,
-      minimizable: true,
-      position: { width: 720, height: 460 },
-      minWidth: 360,
-      minHeight: 220,
-      component: KnowledgeGridWindow,
-      componentProps: { socket },
-    });
+    openKnowledgeWindow(socket);
   }
 </script>
 

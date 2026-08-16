@@ -1120,5 +1120,61 @@
   "FUSION.Npcs.Presence.InScene": {
     "1": "1 em {{scene}}",
     "other": "{{count}} em {{scene}}"
-  }
+  },
+  "FUSION.Npcs.Create.Title": "Criar não-jogável",
+  "FUSION.Npcs.Create.New": "Novo não-jogável",
+  "FUSION.Npcs.Create.NewInFolder": "Criar não-jogável em {{name}}",
+  "FUSION.Npcs.Create.Folder": "Pasta",
+  "FUSION.Npcs.Create.Attitude": "Atitude inicial",
+  "FUSION.Npcs.Create.NoAttitude": "sem atitude",
+  "FUSION.Npcs.Create.FromBestiary": "Do bestiário",
+  "FUSION.Npcs.Create.FromScratch": "Do zero",
+  "FUSION.Npcs.Create.BestiarySearch": "Buscar criatura por nome…",
+  "FUSION.Npcs.Create.Search": "Buscar",
+  "FUSION.Npcs.Create.Searching": "Buscando…",
+  "FUSION.Npcs.Create.NoBestiaryResult": "Nada encontrado para “{{term}}”.",
+  "FUSION.Npcs.Create.Import": "Importar",
+  "FUSION.Npcs.Create.Subtype": "Tipo",
+  "FUSION.Npcs.Create.Name": "Nome",
+  "FUSION.Npcs.Create.Preset": "Preset",
+  "FUSION.Npcs.Create.NoPreset": "nenhum",
+  "FUSION.Npcs.Create.Preset.merchant": "Mercador",
+  "FUSION.Npcs.Create.Preset.mount": "Montaria",
+  "FUSION.Npcs.Create.Preset.boss": "Chefe",
+  "FUSION.Npcs.Create.Cancel": "Cancelar",
+  "FUSION.Npcs.Create.Confirm": "Criar",
+  "FUSION.Npcs.Create.CharacterElsewhere": "Personagem de jogador não nasce aqui: nasce junto com o usuário, nas Configurações.",
+  "FUSION.Npcs.Attitude.Cycle": "Mudar a atitude de {{name}} para {{next}}",
+  "FUSION.Npcs.Chest.Open": "Pôr um baú na cena",
+  "FUSION.Npcs.Chest.NoScene": "Nenhuma cena no ar: o baú vai para a cena ativa, e não há uma.",
+  "FUSION.Npcs.Chest.Window": "Baú",
+  "FUSION.Npcs.Chest.Pending.Title": "O baú ainda não é posto na cena",
+  "FUSION.Npcs.Chest.Pending.Scene": "Destino: {{scene}}",
+  "FUSION.Npcs.Chest.Pending.Body": "O baú não é ator: ele vive na cena, e por isso nunca aparece na árvore de pastas, na busca, em contagem de pasta nem na janela “Quem conhece quem”. Onde vive o conteúdo dele ainda não está decidido — é assunto da spec de cenas e presenças —, então esta janela ainda não põe nada na mesa.",
+  "FUSION.Npcs.Delete.Title": "Excluir não-jogável",
+  "FUSION.Npcs.Delete.Open": "Excluir {{name}}",
+  "FUSION.Npcs.Delete.Question": "Excluir “{{name}}”? A exclusão não tem volta.",
+  "FUSION.Npcs.Delete.Loading": "Lendo o que cai junto…",
+  "FUSION.Npcs.Delete.Falls": "O que cai junto",
+  "FUSION.Npcs.Delete.Presence": {
+    "1": "1 presença em cena, que será removida",
+    "other": "{{count}} presenças em cena, que serão removidas"
+  },
+  "FUSION.Npcs.Delete.NoPresence": "Nenhuma presença em cena.",
+  "FUSION.Npcs.Delete.Knowledge": "Conhecimento sobre ele (regra geral: {{general}}; {{exceptions}} exceções): {{known}} conhecem e {{glimpsed}} entreviram. Tudo isso deixa de existir.",
+  "FUSION.Npcs.Delete.NoKnowledge": "Nenhum conhecimento gravado sobre ele.",
+  "FUSION.Npcs.Delete.Items": {
+    "1": "A ficha vai junto, com 1 item.",
+    "other": "A ficha vai junto, com {{count}} itens."
+  },
+  "FUSION.Npcs.Delete.Blocked": "Não dá para excluir {{name}} agora: ele está em um encontro que ainda não terminou.",
+  "FUSION.Npcs.Delete.BlockedIn": {
+    "1": "encontro em {{scene}}, com 1 combatente dele",
+    "other": "encontro em {{scene}}, com {{count}} combatentes dele"
+  },
+  "FUSION.Npcs.Delete.Unblock": "Para destravar: encerre o encontro, ou tire o ator dele na aba Combate. Depois volte aqui.",
+  "FUSION.Npcs.Delete.NotHere": "Personagem de jogador não é excluído aqui.",
+  "FUSION.Npcs.Delete.Failed": "Não foi possível excluir: {{message}}",
+  "FUSION.Npcs.Delete.Cancel": "Cancelar",
+  "FUSION.Npcs.Delete.Confirm": "Excluir"
 }

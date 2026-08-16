@@ -156,6 +156,19 @@ describe("REQ-NPC-030: portrait, name, title, level and attitude", () => {
     expect(rowOf(TRAP._id).attitude).toBeNull();
   });
 
+  it("REQ-NPC-037: a hazard reads no attitude even when its document carries one", () => {
+    // CA-NPC-010: a hazard has none. The flag below can only come from a hand
+    // edit or a document written before the subtype gate existed — the row is
+    // the last place that could turn it into an indication, and it does not.
+    const [row] = buildNpcRows({
+      actors: [{ ...TRAP, flags: { fusion: { attitude: "enemy" } } }],
+      isPrivileged: true,
+    });
+
+    expect(row?.subtype).toBe("hazard");
+    expect(row?.attitude).toBeNull();
+  });
+
   it("REQ-NPC-030: only the non-playables are rows — a character is not one of them", () => {
     const ids = rows().map((row) => row.id);
 

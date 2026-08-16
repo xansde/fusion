@@ -48,6 +48,8 @@
   import { t } from "../../lib/i18n/i18n.js";
   import ActorPortrait from "../common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
+  import NpcsFooter from "./NpcsFooter.svelte";
+  import NpcKnowledgeCount from "./NpcKnowledgeCount.svelte";
   import {
     conditionRegistry,
     ensureConditionRegistry,
@@ -87,6 +89,15 @@
     readNpcDragPayload,
     type MovableActor,
   } from "../../lib/npcs/moveActor.js";
+  import { openNpcCreateWindow } from "../../lib/npcs/npcCreateWindow.js";
+  import { openNpcDeleteWindow } from "../../lib/npcs/npcDeleteWindow.js";
+  import { isDeletableNpcSubtype } from "../../lib/npcs/deleteNpc.js";
+  import {
+    attitudeCycleOp,
+    attitudeLabelKey,
+    nextAttitude,
+    subtypeAcceptsAttitude,
+  } from "../../lib/npcs/npcAttitude.js";
   import {
     emptyNpcFolderPrefs,
     loadNpcFolderPrefs,
@@ -97,7 +108,7 @@
     type NpcFolderPrefs,
   } from "../../lib/npcs/folderPrefs.js";
 
-  const { socket, worldId, userId, isGm }: SidebarPanelProps = $props();
+  const { socket, worldId, userId, isGm, activeSceneId }: SidebarPanelProps = $props();
 
   // Seeded from the mirror at construction, not inside the effect: the panel is
   // mounted only while its tab is open (REQ-GAV-017), so it has to draw the tree
@@ -294,6 +305,26 @@
   }
 
   // -------------------------------------------------------------------------
+  // Creating a non-playable (spec 42 §5.6)
+  //
+  // The panel opens the window and hands it the folder the gesture came from
+  // (REQ-NPC-047); everything the window then does — the two doors, the subtypes
+  // it offers, the preset it forgets — lives in `lib/npcs/createNpc.ts`.
+  // -------------------------------------------------------------------------
+
+  /** REQ-NPC-040: from the head of the panel, and from the head of each folder. */
+  function openCreate(folderId: string | null): void {
+    error = null;
+    openNpcCreateWindow({
+      socket,
+      folderId,
+      // The same option list the move control walks, so "Sem pasta" is spelled
+      // once and a folder cannot be a destination of one gesture and not the other.
+      folderOptions: moveTargetOptions(tree, folderId),
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // Moving a non-playable between folders (REQ-NPC-028 / REQ-NPC-029)
   //
   // Two gestures, one operation. `moveNpc` is the only place that talks to the
@@ -461,6 +492,41 @@
     }
   }
 
+  /**
+   * REQ-NPC-038: one activation, one step of the cycle — `ally → neutral → enemy`,
+   * the order the shared module owns so no second order can be invented here. The
+   * write is the ordinary `doc:update` of `flags.fusion.attitude`; the server is
+   * what refuses it to a non-privileged socket (REQ-NPC-080), not this button.
+   */
+  async function onCycleAttitude(row: NpcRow): Promise<void> {
+    const op = attitudeCycleOp({ id: row.id, subtype: row.subtype, attitude: row.attitude });
+    // A subtype that carries no attitude asks for nothing (REQ-NPC-037): the
+    // hazard's row has no control, and this is the second lock behind it.
+    if (op === null) return;
+    try {
+      await sendOp(socket, op);
+      error = null;
+    } catch (err) {
+      report(err);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Deleting a non-playable (spec 42 §5.7)
+  //
+  // The panel only opens the confirmation and hands it the row it came from.
+  // Everything the confirmation then shows — the presences, the knowledge, the
+  // items, and the refusal while an encounter is live — is read from the server
+  // by `lib/npcs/deleteNpc.ts`, because two of those three numbers are not in
+  // this client's mirror to count.
+  // -------------------------------------------------------------------------
+
+  /** REQ-NPC-050/051: never a bare confirm — the window says what falls. */
+  function openDelete(row: NpcRow): void {
+    error = null;
+    openNpcDeleteWindow({ socket, actorId: row.id, name: row.name, subtype: row.subtype });
+  }
+
   /** The move control and the drag payload speak of documents, the row of a view. */
   function movableOf(row: NpcRow): MovableActor {
     return { _id: row.id, name: row.name, type: row.subtype, img: row.img, folder: row.folderId };
@@ -532,8 +598,36 @@
             <!-- REQ-NPC-037: an attitude is shown only when there is one, and it is
                  a WORD as well as a colour (REQ-NPC-094). -->
             <span class="npcs-row__attitude" data-npc-attitude={row.attitude}
-              >{t(`FUSION.Npcs.Attitude.${row.attitude}`)}</span
+              >{t(attitudeLabelKey(row.attitude))}</span
             >
+          {/if}
+          {#if isGm && subtypeAcceptsAttitude(row.subtype)}
+            <!-- REQ-NPC-038: the control that cycles, on the row itself and operable
+                 by keyboard (it is a button, so Enter and Space already work). A
+                 hazard has none, so it gets no control at all (CA-NPC-010). -->
+            <button
+              class="npcs-panel__icon-btn"
+              type="button"
+              data-action="cycle-attitude"
+              data-npc-cycle={row.id}
+              data-attitude-next={nextAttitude(row.attitude)}
+              aria-label={t("FUSION.Npcs.Attitude.Cycle", {
+                name: row.name,
+                next: t(attitudeLabelKey(nextAttitude(row.attitude))),
+              })}
+              onclick={() => void onCycleAttitude(row)}
+            >
+              <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
+                <path
+                  d="M3.4 8a4.6 4.6 0 0 1 7.9-3.2M12.6 8a4.6 4.6 0 0 1-7.9 3.2M11.3 2.4v2.4H8.9M4.7 13.6v-2.4h2.4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linejoin="round"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
           {/if}
         </span>
 
@@ -598,6 +692,11 @@
             <span class="npcs-row__presence-scenes">{presenceScenesLabel(row)}</span>
           </span>
         {/if}
+
+        <!-- REQ-NPC-070/071: how many know and how many glimpsed, in READING. The
+             component is a span with no control of any kind; knowledge is edited
+             only in the window the footer opens (REQ-NPC-072). -->
+        <NpcKnowledgeCount knowledge={row.knowledge} />
       </div>
 
       <!-- REQ-NPC-035: the keyboard path to the very sheet the double-click opens. -->
@@ -618,6 +717,32 @@
           />
         </svg>
       </button>
+
+      {#if isGm && isDeletableNpcSubtype(row.subtype)}
+        <!-- REQ-NPC-050: deleting is offered only to a privileged seat, and only
+             for what this tab lists — a player's character has no row here and
+             therefore no delete (REQ-NPC-055). The control opens the confirmation
+             of REQ-NPC-051; it never deletes on the spot. -->
+        <button
+          class="npcs-panel__icon-btn npcs-panel__icon-btn--danger"
+          type="button"
+          data-action="delete-npc"
+          data-npc-delete={row.id}
+          aria-label={t("FUSION.Npcs.Delete.Open", { name: row.name })}
+          onclick={() => openDelete(row)}
+        >
+          <!-- Drawn glyph, never an emoji (REQ-NPC-094): a lidded bin. -->
+          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+            <path
+              d="M3.4 4.6h9.2M6.4 4.6V3h3.2v1.6M4.6 4.6l.6 8.4h5.6l.6-8.4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      {/if}
 
       {@render moveControl(movableOf(row))}
     </div>
@@ -651,6 +776,16 @@
       aria-label={t("FUSION.Npcs.Search")}
       bind:value={query}
     />
+    <!-- REQ-NPC-040: the first of the two doors into creation — the head of the
+         panel. The second is the head of each folder, below. -->
+    <button
+      class="npcs-panel__tool-btn"
+      type="button"
+      data-action="new-npc"
+      onclick={() => openCreate(null)}
+    >
+      {t("FUSION.Npcs.Create.New")}
+    </button>
     <!-- REQ-NPC-021: creating a folder is reachable from the panel itself. -->
     <button
       class="npcs-panel__tool-btn"
@@ -798,6 +933,27 @@
             {/if}
 
             <span class="npcs-folder__tools">
+              <!-- REQ-NPC-040/REQ-NPC-047: creating from a folder head opens the
+                   window with that folder already selected. -->
+              <button
+                class="npcs-panel__icon-btn"
+                type="button"
+                data-action="new-npc-in-folder"
+                data-npc-create-folder={row.node.id}
+                aria-label={t("FUSION.Npcs.Create.NewInFolder", { name: row.node.name })}
+                onclick={() => openCreate(row.node.id)}
+              >
+                <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
+                  <path
+                    d="M8 4.2v7.6M4.2 8h7.6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.2" />
+                </svg>
+              </button>
               <button
                 class="npcs-panel__icon-btn"
                 type="button"
@@ -949,6 +1105,11 @@
       </li>
     </ul>
   </div>
+
+  <!-- REQ-NPC-062: the footer is FIXED, so it is a sibling of the scrolling body
+       and never a child of it. What it holds is spec 42 §5.8 and lives in
+       `NpcsFooter.svelte` — the panel only gives it its place. -->
+  <NpcsFooter {socket} {activeSceneId} />
 </div>
 
 <style>

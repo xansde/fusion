@@ -19,6 +19,10 @@
  *    define a second field: it reads and writes `flags.fusion.title` through the
  *    very functions the Contatos tab uses, so a title written on one tab is the
  *    title read on the other.
+ *  - **Knowledge is read, never moved** (REQ-NPC-070/071). The row carries how many
+ *    characters know and how many glimpsed the actor, and nothing that could change
+ *    it: the counting function is the 39's and the only place an edit exists is the
+ *    "Quem conhece quem" window the footer opens (REQ-NPC-072).
  *  - **A presence is counted, never described** (REQ-NPC-036). The row carries how
  *    many and in which scenes; token ids, names, coordinates and the hidden flag
  *    never enter the shape, because the line is about the actor and none of that
@@ -26,7 +30,8 @@
  *    says "presence" and reads only `tokens[].actorId`.
  */
 
-import { readActorAttitude, type ActorAttitude } from "@fusion/shared";
+import type { ActorAttitude } from "@fusion/shared";
+import { attitudeOfActor } from "./npcAttitude.js";
 import type { ConditionDisplayContract, ConditionView } from "../conditions/conditionView.js";
 import {
   CONTACT_TITLE_FLAG_PATH,
@@ -44,6 +49,7 @@ import {
   type FolderRow,
   type FolderedDoc,
 } from "./folderTree.js";
+import { npcKnowledgeCounts, playerCharacterIds, type NpcKnowledgeCounts } from "./npcKnowledge.js";
 
 // ---------------------------------------------------------------------------
 // The documents this module reads
@@ -137,6 +143,12 @@ export interface NpcRow {
   readonly conditions: readonly ConditionView[];
   readonly presence: NpcPresence;
   readonly subCharacters: readonly NpcSubRow[];
+  /**
+   * How many characters know and how many glimpsed this actor (REQ-NPC-070), in
+   * READING only — the row carries no way to move it (REQ-NPC-071), and the field
+   * that could is `null` wherever the knowledge map is not delivered.
+   */
+  readonly knowledge: NpcKnowledgeCounts | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -305,6 +317,10 @@ export function buildNpcRows(input: NpcRowsInput): NpcRow[] {
   const npcs = input.actors.filter(isNpcRowActor);
   const npcIds = new Set(npcs.map((doc) => doc._id));
 
+  // REQ-NPC-070: knowledge is counted over the table's characters, and it is only
+  // counted at all for a privileged role — the map reaches nobody else (REQ-NPC-083).
+  const characterIds = input.isPrivileged ? playerCharacterIds(input.actors) : [];
+
   const subsByMaster = new Map<string, NpcActorDoc[]>();
   for (const doc of input.actors) {
     if (!isSubCharacter(doc)) continue;
@@ -330,10 +346,14 @@ export function buildNpcRows(input: NpcRowsInput): NpcRow[] {
       title: resolveNpcTitleLine(doc, input.subtypeLabel),
       canEditTitle: input.isPrivileged,
       level: npcLevel(doc),
-      attitude: readActorAttitude(doc) ?? null,
+      // REQ-NPC-037: read through the subtype gate, not straight off the flag —
+      // a hazard shows no attitude even if a stray one survived on its document
+      // (CA-NPC-010), and the row is the last place that could leak it.
+      attitude: attitudeOfActor(doc),
       conditions: buildContactConditions(doc, declarations),
       presence: countScenePresences(scenes, doc._id),
       subCharacters: subs.map((sub) => buildSubRow(sub, declarations)).sort(compareByName),
+      knowledge: input.isPrivileged ? npcKnowledgeCounts(doc, characterIds) : null,
     });
   }
 

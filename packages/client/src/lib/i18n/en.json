@@ -1120,5 +1120,61 @@
   "FUSION.Npcs.Presence.InScene": {
     "1": "1 in {{scene}}",
     "other": "{{count}} in {{scene}}"
-  }
+  },
+  "FUSION.Npcs.Create.Title": "Create non-playable",
+  "FUSION.Npcs.Create.New": "New non-playable",
+  "FUSION.Npcs.Create.NewInFolder": "Create a non-playable in {{name}}",
+  "FUSION.Npcs.Create.Folder": "Folder",
+  "FUSION.Npcs.Create.Attitude": "Initial attitude",
+  "FUSION.Npcs.Create.NoAttitude": "no attitude",
+  "FUSION.Npcs.Create.FromBestiary": "From the bestiary",
+  "FUSION.Npcs.Create.FromScratch": "From scratch",
+  "FUSION.Npcs.Create.BestiarySearch": "Search a creature by name…",
+  "FUSION.Npcs.Create.Search": "Search",
+  "FUSION.Npcs.Create.Searching": "Searching…",
+  "FUSION.Npcs.Create.NoBestiaryResult": "Nothing found for “{{term}}”.",
+  "FUSION.Npcs.Create.Import": "Import",
+  "FUSION.Npcs.Create.Subtype": "Type",
+  "FUSION.Npcs.Create.Name": "Name",
+  "FUSION.Npcs.Create.Preset": "Preset",
+  "FUSION.Npcs.Create.NoPreset": "none",
+  "FUSION.Npcs.Create.Preset.merchant": "Merchant",
+  "FUSION.Npcs.Create.Preset.mount": "Mount",
+  "FUSION.Npcs.Create.Preset.boss": "Boss",
+  "FUSION.Npcs.Create.Cancel": "Cancel",
+  "FUSION.Npcs.Create.Confirm": "Create",
+  "FUSION.Npcs.Create.CharacterElsewhere": "A player character is not born here: it is born with the user, in Settings.",
+  "FUSION.Npcs.Attitude.Cycle": "Change {{name}}'s attitude to {{next}}",
+  "FUSION.Npcs.Chest.Open": "Put a chest on the scene",
+  "FUSION.Npcs.Chest.NoScene": "No scene on air: the chest goes to the active scene, and there is none.",
+  "FUSION.Npcs.Chest.Window": "Chest",
+  "FUSION.Npcs.Chest.Pending.Title": "The chest is not placed on the scene yet",
+  "FUSION.Npcs.Chest.Pending.Scene": "Destination: {{scene}}",
+  "FUSION.Npcs.Chest.Pending.Body": "The chest is not an actor: it lives on the scene, which is why it never shows up in the folder tree, in the search, in a folder count or in the knowledge window. Where its content lives is still undecided — that belongs to the scenes and presences spec — so this window does not put anything on the table yet.",
+  "FUSION.Npcs.Delete.Title": "Delete non-playable",
+  "FUSION.Npcs.Delete.Open": "Delete {{name}}",
+  "FUSION.Npcs.Delete.Question": "Delete “{{name}}”? Deleting cannot be undone.",
+  "FUSION.Npcs.Delete.Loading": "Reading what falls with it…",
+  "FUSION.Npcs.Delete.Falls": "What falls with it",
+  "FUSION.Npcs.Delete.Presence": {
+    "1": "1 presence on a scene, which will be removed",
+    "other": "{{count}} presences on scenes, which will be removed"
+  },
+  "FUSION.Npcs.Delete.NoPresence": "No presence on any scene.",
+  "FUSION.Npcs.Delete.Knowledge": "Knowledge about it (general rule: {{general}}; {{exceptions}} exceptions): {{known}} know it and {{glimpsed}} glimpsed it. All of it ceases to exist.",
+  "FUSION.Npcs.Delete.NoKnowledge": "No knowledge recorded about it.",
+  "FUSION.Npcs.Delete.Items": {
+    "1": "The sheet goes with it, holding 1 item.",
+    "other": "The sheet goes with it, holding {{count}} items."
+  },
+  "FUSION.Npcs.Delete.Blocked": "{{name}} cannot be deleted right now: it is in an encounter that has not ended.",
+  "FUSION.Npcs.Delete.BlockedIn": {
+    "1": "encounter on {{scene}}, with 1 combatant of it",
+    "other": "encounter on {{scene}}, with {{count}} combatants of it"
+  },
+  "FUSION.Npcs.Delete.Unblock": "To unblock: end the encounter, or take the actor out of it in the Combat tab. Then come back here.",
+  "FUSION.Npcs.Delete.NotHere": "A player's character is not deleted here.",
+  "FUSION.Npcs.Delete.Failed": "Could not delete: {{message}}",
+  "FUSION.Npcs.Delete.Cancel": "Cancel",
+  "FUSION.Npcs.Delete.Confirm": "Delete"
 }
