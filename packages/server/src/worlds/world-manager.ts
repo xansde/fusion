@@ -27,6 +27,14 @@ import { runGc, formatGcReport } from "../db/gc.js";
 import type { GcOptions } from "../db/gc.js";
 import { DEFAULT_GC_SESSION_RETENTION_DAYS, DEFAULT_GC_AUDIT_RETENTION_MONTHS } from "../config.js";
 import {
+  backupAssets,
+  restoreAssets,
+  readAssetManifest,
+  validateManifestBlobs,
+  removeAssetManifest,
+  pruneUnreferencedAssetBlobs,
+} from "./asset-backup.js";
+import {
   FUSION_VERSION,
   MINIMUM_FUSION_DATA_FORMAT,
   type WorldManifest,
@@ -211,6 +219,26 @@ function removeLock(lockFilePath: string): void {
  * means "keep everything".
  */
 export type BackupRetention = Record<BackupEntry["type"], number>;
+
+/**
+ * Result of {@link WorldManager.restoreBackup}.
+ */
+export interface RestoreResult {
+  /** The backup that was restored from. */
+  restoredFrom: BackupEntry;
+  /**
+   * Safety-net snapshot of the pre-restore state (db + assets, when there
+   * were assets), taken before anything was overwritten — see
+   * `restoreBackup`'s doc comment. Null only when there was no existing
+   * world.db to snapshot in the first place.
+   */
+  preRestoreBackup: BackupEntry | null;
+  /**
+   * Whether `restoredFrom` had an asset manifest — i.e. whether assets/
+   * was written back as part of this restore, not just world.db.
+   */
+  assetsRestored: boolean;
+}
 
 const DEFAULT_BACKUP_RETENTION: BackupRetention = {
   auto: 10, // REQ-PER-025
@@ -584,6 +612,15 @@ export class WorldManager {
     }
 
     // Create pre-delete backup (REQ-PER-014)
+    //
+    // D4/T024: deliberately does NOT call backupAssets(). The db copy made
+    // here lives under worldDir/backups/, which is INSIDE `dir` — the very
+    // directory this method renames into trash a few lines down. The
+    // current, untouched assets/ directory already travels to trash as
+    // part of that same rename; a separate asset bundle sitting next to it
+    // in the same trashed folder would duplicate bytes for zero additional
+    // safety (contrast with `auto`/`manual`, where the backup is the ONLY
+    // copy of that point-in-time state once assets/ moves on).
     const dbFilePath = dbPath(this.dataDir, slug);
     if (existsSync(dbFilePath)) {
       const bDir = backupsDir(this.dataDir, slug);
@@ -607,10 +644,20 @@ export class WorldManager {
   // --------------------------------------------------------------------------
 
   /**
-   * Create a backup of a world's database.
+   * Create a backup of a world's database (and, per D4/T024, its assets).
    *
    * Uses Database.backup() (online backup API) — safe while the world is open.
    * Falls back to file copy when the world is closed.
+   *
+   * `auto` and `manual` both bundle assets (see {@link backupAssets}):
+   * these are the two "restore this world to how it looked" snapshot
+   * kinds, where a document's img/texture/background field has to resolve
+   * to a real file after a restore, not just a schema-valid row. Content
+   * addressing is what keeps that affordable for `auto` — a periodic
+   * backup only pays to hash unchanged assets, never to re-copy them. The
+   * hash pass itself is async/streaming precisely so it never blocks the
+   * event loop while doing that — see asset-backup.ts's module doc for the
+   * measured before/after event-loop-blocking numbers.
    *
    * REQ-PER-024..026.
    */
@@ -641,6 +688,13 @@ export class WorldManager {
       copyFileSync(srcPath, destPath);
     }
 
+    // Assets travel with this backup (D4/T024) — see this method's doc
+    // comment for why both `auto` and `manual` bundle them. Awaited: async
+    // I/O + streaming hash all the way down (see asset-backup.ts's doc
+    // comment) — this must never block the event loop the way a sync
+    // readFileSync-per-asset pass would while the world is open.
+    await backupAssets(join(dir, "assets"), bDir, destPath);
+
     // Prune old backups of this kind (REQ-PER-025)
     this.pruneBackups(slug, [type]);
 
@@ -669,6 +723,17 @@ export class WorldManager {
    * format (`pre-update-<epochMs>.db`) does not match the canonical
    * `pre-event-update-<version>-<ISO>.db` shape the spec requires callers
    * (update/updater.ts) to produce.
+   *
+   * D4/T024: deliberately does NOT call {@link backupAssets}. This backup
+   * exists to protect against a failed app-binary swap (REQ-DST-022) —
+   * the thing at risk is whether world.db is readable by whichever binary
+   * ends up running, not whether files in assets/ still exist. An app
+   * update never writes to a world's assets/ directory, so the directory
+   * a rollback would find there is already exactly right; bundling a copy
+   * of it here would just be dead weight carried through every future
+   * app update, unlike `auto`/`manual` where the whole point is that the
+   * CURRENT assets/ state may no longer exist by the time someone
+   * restores.
    */
   async backupPreUpdate(slug: string, version: string): Promise<BackupEntry> {
     if (!isValidSlug(slug)) throw new InvalidSlugError(slug);
@@ -741,6 +806,146 @@ export class WorldManager {
         } satisfies BackupEntry;
       })
       .sort((a, b) => a.timestamp - b.timestamp);
+  }
+
+  /**
+   * Restore a world's database — and, when the chosen backup captured
+   * them, its assets — from a backup file by name (D4/T024).
+   *
+   * Atomicity (fix for the review finding "restore não é atômico"): the
+   * source backup's asset manifest is read AND validated — every blob it
+   * references confirmed present in the repository — BEFORE anything about
+   * the world is touched. A corrupted manifest ({@link CorruptedAssetManifestError})
+   * or a missing blob ({@link MissingAssetBlobError}) both abort here, with
+   * world.db, assets/ and the backups/ directory exactly as they were.
+   * Only once that validation succeeds does the method take the
+   * pre-restore safety-net snapshot and then swap world.db in — so a
+   * restore either completes in full or changes nothing, never a
+   * database-already-swapped-but-assets-missing half state.
+   *
+   * A manifest that legitimately does not exist (backup predates T024, or
+   * is a kind that never bundles assets) is NOT an error — {@link
+   * readAssetManifest} returns null for that case, and this method
+   * proceeds to restore world.db only, exactly as before this fix.
+   *
+   * Safety net: once validation passes, this takes a "pre-restore" backup
+   * of the world's CURRENT state (db + assets, same as `manual`) so a
+   * restore-to-the-wrong-backup mistake is itself recoverable. Every
+   * pre-restore backup bundles assets unconditionally — the whole point
+   * of this snapshot is to protect whatever `restoreAssets` is about to
+   * overwrite a moment later.
+   *
+   * Requires the world to be closed in this process, and unlocked by any
+   * other — same checks as {@link delete}, same reason: overwriting
+   * world.db out from under a live better-sqlite3 handle (or a WAL file
+   * another process still has open) corrupts state instead of restoring it.
+   *
+   * Assets are MERGED into `assets/`, never replaced wholesale — see
+   * {@link restoreAssets}'s doc comment. A backup that never bundled
+   * assets (pre-update, pre-migration, pre-delete — see their call sites
+   * for why) restores the database only; `assets/` is left exactly as it
+   * was, which is correct because those backup kinds never touched it
+   * either.
+   *
+   * Async (unlike the pre-fix version): the world is required to be
+   * closed, so there is still no live SQLite connection to go through the
+   * online backup API for — every step here remains a plain file copy —
+   * but the pre-restore safety snapshot goes through {@link backupAssets},
+   * which is itself async (streaming hash, see asset-backup.ts). This
+   * method awaits that call rather than fire-and-forget it.
+   */
+  async restoreBackup(slug: string, filename: string): Promise<RestoreResult> {
+    if (!isValidSlug(slug)) throw new InvalidSlugError(slug);
+
+    const dir = worldDir(this.dataDir, slug);
+    if (!existsSync(dir)) throw new WorldNotFoundError(slug);
+
+    if (this.openWorlds.has(slug)) {
+      throw new Error(`Cannot restore world "${slug}" while it is open. Close it first.`);
+    }
+
+    const lock = lockPath(this.dataDir, slug);
+    const existingLock = readLock(lock);
+    if (existingLock !== null && isProcessAlive(existingLock.pid)) {
+      throw new WorldLockedError(slug, existingLock.pid);
+    }
+
+    if (!filename.endsWith(".db")) {
+      throw new Error(`Invalid backup filename "${filename}" — expected a ".db" file`);
+    }
+
+    const bDir = backupsDir(this.dataDir, slug);
+    const sourcePath = join(bDir, filename);
+    if (!existsSync(sourcePath)) {
+      throw new Error(`Backup "${filename}" not found for world "${slug}"`);
+    }
+
+    const restoredFrom: BackupEntry = {
+      filename,
+      type: this._backupType(filename),
+      timestamp: this._backupTimestamp(filename),
+      sizeBytes: statSync(sourcePath).size,
+      path: sourcePath,
+    };
+
+    const dbFilePath = dbPath(this.dataDir, slug);
+    const assetsDirPath = join(dir, "assets");
+
+    // Validate BEFORE touching anything — see this method's doc comment.
+    // readAssetManifest throws CorruptedAssetManifestError on a corrupted
+    // manifest (propagates straight out of this method: nothing below has
+    // run yet, so nothing needs to be undone) and returns null only for the
+    // legitimate "this backup never bundled assets" case.
+    const manifest = readAssetManifest(sourcePath);
+    if (manifest) {
+      // Throws MissingAssetBlobError naming the exact missing blob —
+      // again before any write to world.db or assets/.
+      validateManifestBlobs(manifest, bDir);
+    }
+
+    // Pre-restore safety net — captures the current db + assets before
+    // either gets overwritten below. Only reached once validation above
+    // has confirmed the restore itself can proceed.
+    let preRestoreBackup: BackupEntry | null = null;
+    if (existsSync(dbFilePath)) {
+      mkdirSync(bDir, { recursive: true });
+      const ts = Date.now();
+      const preRestoreFilename = `pre-restore-${String(ts)}.db`;
+      const preRestorePath = join(bDir, preRestoreFilename);
+      copyFileSync(dbFilePath, preRestorePath);
+      await backupAssets(assetsDirPath, bDir, preRestorePath);
+      this.pruneBackups(slug, ["pre-restore"]);
+
+      preRestoreBackup = {
+        filename: preRestoreFilename,
+        type: "pre-restore",
+        timestamp: ts,
+        sizeBytes: statSync(preRestorePath).size,
+        path: preRestorePath,
+      };
+    }
+
+    // Restore the database itself.
+    copyFileSync(sourcePath, dbFilePath);
+    // A restored world.db is the sole source of truth going forward — drop
+    // any leftover WAL/SHM so open() never checkpoints journal frames that
+    // predate the file it just found.
+    for (const suffix of ["-wal", "-shm"]) {
+      try {
+        rmSync(`${dbFilePath}${suffix}`, { force: true });
+      } catch {
+        // Best-effort
+      }
+    }
+
+    // Restore assets, if this backup captured any. Blobs were already
+    // validated present above, so this should not throw in practice — see
+    // restoreAssets's doc comment for why it still checks.
+    if (manifest) {
+      await restoreAssets(manifest, bDir, assetsDirPath);
+    }
+
+    return { restoredFrom, preRestoreBackup, assetsRestored: manifest !== null };
   }
 
   // --------------------------------------------------------------------------
@@ -844,12 +1049,25 @@ export class WorldManager {
       // listBackups sorts oldest→newest; drop from the front.
       for (const entry of ofType.slice(0, ofType.length - limit)) {
         try {
-          rmSync(join(bDir, entry.filename), { force: true });
+          const fullPath = join(bDir, entry.filename);
+          rmSync(fullPath, { force: true });
+          // D4/T024: the .db file's companion asset manifest (if any) is
+          // this backup's alone — remove it with the backup itself.
+          removeAssetManifest(fullPath);
           removed.push(entry.filename);
         } catch {
           // Best-effort
         }
       }
+    }
+
+    // D4/T024: a blob in the shared repository may still be referenced by
+    // a backup of a DIFFERENT type/age than whatever was just pruned above
+    // — sweep against every manifest still on disk rather than trying to
+    // reason about which blobs "belonged" only to the entries just
+    // removed. Only worth the readdir when something actually changed.
+    if (removed.length > 0) {
+      pruneUnreferencedAssetBlobs(bDir);
     }
 
     return removed;

@@ -3,6 +3,7 @@
  */
 
 import { printChatArchiveHelp } from "./commands/chat.js";
+import { printWorldRestoreHelp } from "./commands/worlds.js";
 import { FUSION_VERSION } from "@fusion/shared";
 
 const VERSION = FUSION_VERSION;
@@ -18,6 +19,8 @@ COMMANDS
   world list             List all worlds in the data directory
   world create <slug>    Create a new world
   world backup <slug>    Create a manual backup of a world
+  world restore <slug>   Restore a world's database (and assets) from a backup
+                         (destructive; needs --confirm-restore)
   user add <world> <name>
                          Add a user to a world
   chat archive <world>   Export a date range of chat to a file, then remove it
@@ -76,6 +79,8 @@ SUBCOMMANDS
   list                   List all worlds
   create <slug>          Create a new world
   backup <slug>          Create a manual backup
+  restore <slug>         Restore a world's database (and assets) from a backup
+                         (destructive; needs --confirm-restore)
 
 Run 'fusion world <subcommand> --help' for more details.
 `;
@@ -184,6 +189,9 @@ export function printHelp(topic: string | undefined): void {
       break;
     case "world backup":
       process.stdout.write(USAGE_WORLD_BACKUP);
+      break;
+    case "world restore":
+      printWorldRestoreHelp();
       break;
     case "user":
       process.stdout.write(USAGE_USER);

@@ -157,7 +157,10 @@ describe("migration 008 — the active scene lives in one place (T010)", () => {
   it("removes the scenes.active column and its index", () => {
     const db = openMigratedWorld();
     try {
-      expect(getSchemaVersion(db.raw)).toBe(8);
+      // At least 8: this case is about what migration 008 removed, not about
+      // where the migration head happens to be. Pinning the exact head here
+      // made every later migration fail a test that has nothing to do with it.
+      expect(getSchemaVersion(db.raw)).toBeGreaterThanOrEqual(8);
 
       const columns = (db.raw.pragma("table_info(scenes)") as { name: string }[]).map(
         (c) => c.name,
