@@ -6,7 +6,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { sendOp, OpError, makeSendOpFn, sendChatOpForId } from "../sendOp.js";
+import {
+  sendOp,
+  OpError,
+  makeSendOpFn,
+  sendChatOpForId,
+  _resetPrimaryWriteStateForTests,
+} from "../sendOp.js";
 import type { Socket } from "socket.io-client";
 import {
   DocUpdatePayloadSchema,
@@ -131,6 +137,13 @@ describe("sendOp", () => {
 describe("makeSendOpFn", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // T013 (redesign): makeSendOpFn now serializes primary doc:update writes
+    // per document _id in a module-level queue (see sendOp.ts). Without this
+    // reset, a test above that never triggers its mock ack (e.g. a dropped/
+    // malformed op) would leave a permanently-pending queue entry that blocks
+    // every LATER test reusing the same document id — not a flaky failure,
+    // a silent hang. See sendOp-expected-version.test.ts for the same reset.
+    _resetPrimaryWriteStateForTests();
   });
 
   afterEach(() => {
@@ -194,13 +207,20 @@ describe("makeSendOpFn", () => {
     let current = first.socket;
     const fn = makeSendOpFn(() => current);
 
+    // T013 (redesign): distinct document ids ("a1"/"a2") — a real reconnect
+    // wouldn't fire a second primary write to the SAME document before the
+    // first is acked, and sendOp.ts's per-document write queue would (by
+    // design) defer a same-id second write until the first settles, which
+    // this synchronous test (no ack ever triggered, no await) can't observe.
+    // Using two ids keeps this test's actual subject — the lazy accessor
+    // re-resolving on every call — decoupled from that unrelated behavior.
     fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} });
     expect(first.socket.emit).toHaveBeenCalledOnce();
     expect(second.socket.emit).not.toHaveBeenCalled();
 
     // Simulate a reconnect: SocketManager.connect() replaces the instance.
     current = second.socket;
-    fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} });
+    fn({ type: "doc:update", documentType: "Actor", id: "a2", diff: {} });
     expect(first.socket.emit).toHaveBeenCalledOnce(); // unchanged
     expect(second.socket.emit).toHaveBeenCalledOnce(); // op rode the NEW socket
   });
@@ -229,6 +249,7 @@ describe("makeSendOpFn", () => {
 describe("makeSendOpFn — doc:* payload normalization (protocol-validated)", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    _resetPrimaryWriteStateForTests(); // see "makeSendOpFn" describe above
   });
 
   afterEach(() => {

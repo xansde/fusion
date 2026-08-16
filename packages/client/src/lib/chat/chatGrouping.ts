@@ -48,6 +48,12 @@ export interface GroupedChat {
    * parent. A parent with no children has no entry here.
    */
   childrenByParent: Map<string, ChatMessage[]>;
+  /**
+   * Ids of TOP-LEVEL messages that continue the previous one and therefore must
+   * render WITHOUT repeating the header (REQ-ACH-025). Nested children never
+   * appear here — they render inside their parent's card, not as log rows.
+   */
+  continuations: Set<string>;
 }
 
 /**
@@ -84,5 +90,79 @@ export function groupChatMessages(messages: readonly ChatMessage[]): GroupedChat
     }
   }
 
-  return { topLevel, childrenByParent };
+  return { topLevel, childrenByParent, continuations: collectContinuations(topLevel) };
+}
+
+// ---------------------------------------------------------------------------
+// Author grouping — REQ-ACH-025
+// ---------------------------------------------------------------------------
+
+/**
+ * True when the message renders as a CARD: a declarative `card` payload, an
+ * Etmos conjuration, or a PF2e ability/spell-cast card riding on a plain text
+ * announcement. A card is a block with its own frame — stacking one under
+ * another message's header would make it look like part of that message.
+ */
+export function isCardMessage(msg: ChatMessage): boolean {
+  if (msg.card !== undefined) return true;
+  const flags = msg.flags as Record<string, Record<string, unknown> | undefined> | undefined;
+  if (flags?.["etmos"]?.["conjuracao"] !== undefined) return true;
+  const pf2e = flags?.["pf2e"];
+  return pf2e?.["abilityCard"] !== undefined || pf2e?.["spellCast"] !== undefined;
+}
+
+/** True when the message is a whisper (private recipients or the whisper type). */
+export function isWhisperMessage(msg: ChatMessage): boolean {
+  return msg.type === "whisper" || msg.whisper.length > 0;
+}
+
+/**
+ * True when the message stands in the log marked as void (REQ-CHT-005).
+ *
+ * Read structurally instead of through the schema type: invalidation is a flag
+ * the server writes on the message document, and every message persisted before
+ * it existed simply has no such property — which reads exactly like `false`.
+ */
+export function isInvalidMessage(msg: ChatMessage): boolean {
+  return (msg as { invalid?: boolean }).invalid === true;
+}
+
+/**
+ * A message may only join the previous one's header when it is a plain, public
+ * message by the same author (REQ-ACH-025). Cards, whispers and invalidated
+ * messages are excluded on BOTH sides: they never continue a run, and they never
+ * anchor one — whatever comes after them starts fresh with its own header.
+ *
+ * "Same author" is the pair (userId, alias): the Master alternating between two
+ * NPC voices is two different authors on screen, even though it is one user. The
+ * blind flag is compared too, because its badge lives in the header — grouping a
+ * blind roll under a non-blind header would hide that it was blind.
+ */
+export function canGroupWithPrevious(
+  current: ChatMessage,
+  previous: ChatMessage | undefined,
+): boolean {
+  if (previous === undefined) return false;
+  for (const msg of [current, previous]) {
+    if (isCardMessage(msg) || isWhisperMessage(msg) || isInvalidMessage(msg)) return false;
+  }
+  if (current.speaker.userId !== previous.speaker.userId) return false;
+  if (current.speaker.alias !== previous.speaker.alias) return false;
+  return current.blind === previous.blind;
+}
+
+/**
+ * Ids of the messages in an ordered list that continue the previous one — i.e.
+ * the ones whose header must be suppressed (REQ-ACH-025). The first message of
+ * a list is never a continuation.
+ */
+export function collectContinuations(messages: readonly ChatMessage[]): Set<string> {
+  const continuations = new Set<string>();
+  for (let i = 1; i < messages.length; i++) {
+    const current = messages[i];
+    if (current && canGroupWithPrevious(current, messages[i - 1])) {
+      continuations.add(current._id);
+    }
+  }
+  return continuations;
 }

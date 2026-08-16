@@ -142,6 +142,49 @@ const GM_ONLY_CREATE_DELETE = new Set([
 ]);
 
 /**
+ * Document types the generic doc:create / doc:update / doc:delete path must
+ * never touch, mapped to the refusal message that names the operation that
+ * owns them instead.
+ *
+ * `ChatMessage` (REQ-CHT-005, detailed by REQ-ACH-080..086): a message is never
+ * deleted from the log — moderation of a single message IS invalidation, and
+ * `chat:invalidate` is its one door. Posting is `chat:send`, which authors the
+ * message server-side, resolves the speaker, runs the roll and redacts the
+ * broadcast per recipient (REQ-CHT-004). The generic path does none of that: it
+ * hands the client's payload to DocumentStore and broadcasts it namespace-wide.
+ *
+ * Leaving it open left the whole rule resting on a client that chose to obey
+ * it, which REQ-ACH-090 says explicitly is not protection — verified by
+ * execution before this guard existed: a GM emitting
+ * `doc:delete {documentType: "ChatMessage", ids: [id]}` got `ok: true` and the
+ * line was gone from the next `chat:history`.
+ *
+ * The refusal is by TYPE, not by field, on purpose. A field list (`invalid`,
+ * `invalidatedBy`, `content`, ...) would still leave `whisper` writable, and
+ * widening `whisper` on a stored message hands a private line to everyone the
+ * next time `chat:history` reads the row — the same leak by another key. There
+ * is no field of a ChatMessage this path is supposed to write, so the whole
+ * type is refused and the chat handlers stay the single writer of
+ * `chat_messages`.
+ */
+const GENERIC_PATH_FORBIDDEN_TYPES: Record<string, string> = {
+  ChatMessage:
+    "ChatMessage is not writable through doc:create/doc:update/doc:delete — use chat:send to post and chat:invalidate to moderate (REQ-CHT-005 / REQ-ACH-080)",
+};
+
+/**
+ * Refuse an operation aimed at a document type the generic path does not own.
+ * Checked against the payload's `documentType` AND the parent's type, so the
+ * embedded routes cannot be used as a way around it.
+ */
+function rejectForbiddenDocumentType(documentType: string, parentType?: string): Ack<never> | null {
+  const message =
+    GENERIC_PATH_FORBIDDEN_TYPES[documentType] ??
+    (parentType === undefined ? undefined : GENERIC_PATH_FORBIDDEN_TYPES[parentType]);
+  return message === undefined ? null : ackError("PERMISSION_DENIED", message);
+}
+
+/**
  * Embedded collection names → their parent's documentType.
  *
  * Combatant is embedded in Combat (M2-C); the collection key is derived as
@@ -694,6 +737,10 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     const payload = parsed.data;
     const { documentType, data, parent } = payload;
 
+    // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
+    const forbidden = rejectForbiddenDocumentType(documentType, parent?.type);
+    if (forbidden) return forbidden;
+
     // Embedded token creation (tokens inside a Scene)
     if (parent) {
       return handleEmbeddedCreate(deps, ctx, documentType, data, parent);
@@ -844,6 +891,16 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     const payload = parsed.data;
     const { documentType, updates } = payload;
 
+    // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
+    // Checked against every embedded type in the batch as well, so an
+    // `updates[].embedded` entry cannot smuggle one past the top-level type.
+    const forbidden = rejectForbiddenDocumentType(documentType);
+    if (forbidden) return forbidden;
+    for (const upd of updates) {
+      const forbiddenEmbedded = rejectForbiddenDocumentType(upd.embedded?.type ?? documentType);
+      if (forbiddenEmbedded) return forbiddenEmbedded;
+    }
+
     // Check for embedded updates (tokens inside scenes)
     const hasEmbedded = updates.some((u) => u.embedded);
     if (hasEmbedded) {
@@ -884,20 +941,17 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
     }
 
-    // Pre-flight: reject the whole batch before writing anything. The loop
-    // below persists as it goes, so a guard that fires mid-loop would leave
-    // the earlier entries written, skip the broadcast and still ack ok:false —
+    // Pre-flight: judge the whole batch before writing anything. The loop below
+    // persists as it goes, so a rejection fired mid-loop would leave the
+    // earlier entries written, skip the broadcast, and still ack ok:false —
     // server and clients diverging in silence until the next resync.
+    //
+    // The order of the checks is the order of the answers the caller deserves:
+    // "that document is not there", then "it is not yours", then "you did not
+    // say which version you saw". Telling someone without access that a field
+    // is missing would also confirm the document exists.
+    const loaded = new Map<string, Record<string, unknown>>();
     for (const upd of updates) {
-      const rejection = rejectUnwritableField(documentType, applyDotPathDiff({}, upd.diff));
-      if (rejection) return rejection;
-    }
-
-    const authorCtx = { userId: ctx.userId };
-    const updated: Record<string, unknown>[] = [];
-
-    for (const upd of updates) {
-      // Load existing document for ownership check
       let existing: Record<string, unknown>;
       try {
         existing = deps.store.get(table as never, upd._id);
@@ -907,8 +961,9 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         }
         throw err;
       }
+      loaded.set(upd._id, existing);
 
-      // Permission check: must be GM/ASSISTANT or OWNER of the document
+      // Must be GM/ASSISTANT or OWNER of the document.
       if (!isPrivileged(ctx.role)) {
         const ownership = getOwnershipFromDoc(existing);
         const level = resolveOwnership(ownership, ctx.userId, ctx.role);
@@ -917,15 +972,59 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         }
       }
 
+      // T013: expectedVersion is mandatory on the primary path for a
+      // non-privileged writer. GM/ASSISTANT keep the opt-in behaviour — several
+      // server-side writers still bump `_stats.version` without ever setting
+      // the field, and that traffic is not client-authored.
+      //
+      // Every player write funnels through sendOp.ts, which fills the field
+      // from the client's DocumentMirror before the op leaves the browser. One
+      // that still arrives without it is either hand-built or comes from a
+      // client whose mirror never held the document — neither should be able to
+      // last-write-win over another player's edit in silence.
+      if (!isPrivileged(ctx.role) && upd.expectedVersion === undefined) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `expectedVersion is required for ${documentType}/${upd._id} — reload the document and retry`,
+        );
+      }
+
+      const rejection = rejectUnwritableField(documentType, applyDotPathDiff({}, upd.diff));
+      if (rejection) return rejection;
+    }
+
+    const authorCtx = { userId: ctx.userId };
+    const updated: Record<string, unknown>[] = [];
+
+    for (const upd of updates) {
+      // Loaded during pre-flight, where NOT_FOUND and PERMISSION_DENIED were
+      // already answered for every entry in the batch.
+      const existing = loaded.get(upd._id) as Record<string, unknown>;
+
       // STALE_WRITE check: expectedVersion must match _stats.version (monotonic
       // write counter, starts at 1 and increments on every successful update).
       // Do NOT compare against modifiedTime — it is a wall-clock timestamp
       // which lives in a different numeric space and is not monotonically
       // reliable for concurrent-write detection.
+      //
+      // T013: the comparison no longer short-circuits when the STORED
+      // document has no _stats.version. Before, ANY expectedVersion the
+      // client sent was silently accepted whenever the server-side value was
+      // missing/undefined — defeating the whole point of an optimistic-
+      // concurrency check. Treating "no stored version" as 0 closes that
+      // silent bypass. A document actually missing _stats.version (a
+      // hand-seeded/legacy document that never went through the normal
+      // create path — buildCreateStats always sets version:1) is a separate,
+      // pre-existing bug in documents/store.ts's buildUpdateStats (it computes
+      // `existing.version + 1` = NaN, which then fails schema validation on
+      // every subsequent write) — out of scope for this file; reported
+      // separately rather than fixed here since the fix lives outside this
+      // handler's file boundary.
       if (upd.expectedVersion !== undefined) {
         const stats = existing["_stats"] as Record<string, unknown> | undefined;
-        const currentVersion = stats?.["version"] as number | undefined;
-        if (currentVersion !== undefined && currentVersion !== upd.expectedVersion) {
+        const rawVersion = stats?.["version"];
+        const currentVersion = typeof rawVersion === "number" ? rawVersion : 0;
+        if (currentVersion !== upd.expectedVersion) {
           return ackError("STALE_WRITE", "Document has been modified since last read");
         }
       }
@@ -993,6 +1092,13 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { documentType, ids, parent } = payload;
+
+    // Types the chat handlers own. A ChatMessage is never deleted from the log:
+    // moderation of a single message is invalidation (REQ-CHT-005 /
+    // REQ-ACH-080), and REQ-ACH-090 says the check has to live HERE, not in the
+    // client that decides whether to draw the button.
+    const forbidden = rejectForbiddenDocumentType(documentType, parent?.type);
+    if (forbidden) return forbidden;
 
     // Embedded token deletion
     if (parent) {
