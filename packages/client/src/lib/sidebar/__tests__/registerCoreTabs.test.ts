@@ -46,6 +46,29 @@ function idsOf(tabs: readonly { id: string }[]): string[] {
   return tabs.map((tab) => tab.id);
 }
 
+function renderRail(activeTabId: string | null = "chat"): string {
+  return render(SidebarRail, {
+    props: { isGm: true, open: true, activeTabId, onSelect: () => {} },
+  }).body;
+}
+
+/**
+ * The text the counter badge of the Chat button actually draws.
+ *
+ * Both regexes are *delimited* on purpose. An open-ended search for the number
+ * (`data-badge-kind="counter"[^>]*>[\s\S]*?2`) walks past the badge into the next
+ * button, where every drawn icon carries `viewBox="0 0 24 24"` — so it matched a
+ * digit from an SVG and passed with any badge text at all. Anchoring on the
+ * badge's own `</span>`, inside the Chat button's own `</button>`, is what makes
+ * a wrong number fail.
+ */
+function drawnCounterOfChatButton(body: string): string | null {
+  const button = /<button[^>]*data-tab-id="chat"[\s\S]*?<\/button>/.exec(body);
+  if (!button) return null;
+  const badge = /<span[^>]*data-badge-kind="counter"[^>]*>([^<]*)<\/span>/.exec(button[0]);
+  return badge ? badge[1]! : null;
+}
+
 describe("the core tabs register through the public call (G016)", () => {
   beforeEach(() => {
     clearSidebarTabs();
@@ -213,15 +236,17 @@ describe("the core tabs register through the public call (G016)", () => {
       expect(typeof combatActiveBadge.value).toBe("boolean");
     });
 
-    it("REQ-GAV-021: the rail draws the counter in the corner of the icon", () => {
-      chatStore.unreadCount = 2;
-
-      const { body } = render(SidebarRail, {
-        props: { isGm: true, open: true, activeTabId: "chat", onSelect: () => {} },
-      });
-
+    it("REQ-GAV-021: the rail draws the counter, with the store's number, in the corner of the icon", () => {
       // Present even though Chat is the tab that is open right now.
-      expect(body).toMatch(/data-badge-kind="counter"[^>]*>[\s\S]*?2/);
+      chatStore.unreadCount = 2;
+      expect(drawnCounterOfChatButton(renderRail())).toBe("2");
+
+      // The drawn digits follow the store: a badge frozen on a literal fails here.
+      chatStore.unreadCount = 7;
+      expect(drawnCounterOfChatButton(renderRail())).toBe("7");
+
+      // And the counter belongs to Chat alone — no other tab draws one.
+      expect(renderRail().match(/data-badge-kind="counter"/g)).toHaveLength(1);
     });
 
     it("REQ-GAV-022: rendering the rail does not change any badge value", () => {
