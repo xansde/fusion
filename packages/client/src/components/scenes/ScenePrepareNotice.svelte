@@ -155,4 +155,58 @@
     flex-shrink: 0;
     gap: 0.35rem;
   }
+
+  /* Buttons (inline — Svelte scopes CSS per component and there is no global `.btn`;
+     same block the scene dialogs carry, on the same tokens). Without it the only two
+     ways out of a prepare (REQ-CEN-052/053) render as bare browser buttons. */
+  .btn {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--fusion-radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--fusion-font);
+    font-size: 0.875rem;
+    font-weight: 500;
+    justify-content: center;
+    padding: 0.45rem 1rem;
+    transition:
+      background-color var(--fusion-transition),
+      opacity var(--fusion-transition);
+    white-space: nowrap;
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
+  }
+
+  .btn--primary {
+    background: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .btn--primary:hover:not(:disabled) {
+    background: var(--fusion-accent-hover);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    border-color: var(--fusion-border);
+    color: var(--fusion-text-muted);
+  }
+
+  .btn--ghost:hover:not(:disabled) {
+    border-color: var(--fusion-text-muted);
+    color: var(--fusion-text);
+  }
+
+  .btn--sm {
+    padding: 0.3rem 0.6rem;
+  }
 </style>

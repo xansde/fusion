@@ -157,6 +157,23 @@ describe("ScenePrepareNotice — the persistent canvas warning (REQ-CEN-052)", (
     expect(source.match(/<button/g)).toHaveLength(2);
   });
 
+  it("REQ-CEN-052/053: both ways out are dressed by this component, not left as bare buttons", () => {
+    const html = renderNotice(ON_AIR._id);
+
+    // Svelte scopes CSS per component and stamps the scope class only on elements some
+    // selector in THIS file matches. So the scope class on a <button> is the proof that
+    // the button has a rule — a `.btn` markup class with no `.btn` rule here (there is no
+    // global one) would render the two only exits of a prepare as bare browser buttons.
+    const scope = /class="scene-prepare (svelte-[a-z0-9]+)"/.exec(html)?.[1];
+    expect(scope).toBeDefined();
+
+    const buttons = html.match(/<button[^>]*>/g) ?? [];
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) {
+      expect(button).toContain(scope);
+    }
+  });
+
   it("REQ-CEN-053 / RNF-CEN-03: leaving the prepare is the socket-free call", () => {
     const source = sourceOf("ScenePrepareNotice.svelte");
 
