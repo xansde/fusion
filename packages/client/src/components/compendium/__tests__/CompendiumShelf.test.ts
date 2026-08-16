@@ -200,7 +200,8 @@ describe("CompendiumShelf — packs by type, with the license always", () => {
     const html = renderShelf([SYSTEM_ITEMS]);
 
     expect(html).toContain("<svg");
-    // Pictographs are barred across the drawer (REQ-NPC-094 / DEC-ACH-04).
+    // Pictographs are barred across the drawer (DEC-ACH-04, spec 38 §12: the
+    // decision — not any one tab's requirement — is the drawer-wide principle).
     expect(html).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u);
   });
 });
