@@ -362,6 +362,12 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     return JSON.parse(row.data) as Record<string, unknown>;
   }
 
+  /** The `_stats.version` the store holds right now — T013 makes it mandatory for a player. */
+  function versionOf(actorId: string): number | undefined {
+    const stats = (readFromStore(actorId)["_stats"] ?? {}) as Record<string, unknown>;
+    return typeof stats["version"] === "number" ? stats["version"] : undefined;
+  }
+
   /** The world's characters, read the same way the server reads them. */
   function knowledgeSource(): ContactKnowledgeSource {
     return {
@@ -943,9 +949,17 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
   it("REQ-CTT-083: the ack echoed back to the player goes through the same module", async () => {
     // The player owns Fofurinha, so this update is allowed — and the ack echoes
     // an Actor batch straight back to them.
+    // T013: a non-privileged writer has to name the version it saw. The real client
+    // fills it from its DocumentMirror; here the store stands in for that mirror.
     const ack = await sendOp(playerASocket, "doc:update", {
       documentType: "Actor",
-      updates: [{ _id: charAId, diff: { name: "Fofurinha, a Corajosa" } }],
+      updates: [
+        {
+          _id: charAId,
+          diff: { name: "Fofurinha, a Corajosa" },
+          expectedVersion: versionOf(charAId),
+        },
+      ],
     });
     expect(ack["ok"]).toBe(true);
     const echoed = docsOf(ack)[0];
@@ -963,7 +977,13 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
   it("REQ-CTT-085/REQ-CTT-080: a player without OWNER cannot write a contact's title, and the owner can write their own", async () => {
     const denied = await sendOp(playerASocket, "doc:update", {
       documentType: "Actor",
-      updates: [{ _id: knownId, diff: { flags: { fusion: { title: "Título forjado" } } } }],
+      updates: [
+        {
+          _id: knownId,
+          diff: { flags: { fusion: { title: "Título forjado" } } },
+          expectedVersion: versionOf(knownId),
+        },
+      ],
     });
     expect(denied["ok"]).toBe(false);
     expect(denied["code"]).toBe("PERMISSION_DENIED");
@@ -973,7 +993,13 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     // The owner of the character may set its title; so may the GM.
     const allowed = await sendOp(playerASocket, "doc:update", {
       documentType: "Actor",
-      updates: [{ _id: charAId, diff: { flags: { fusion: { title: "Guardiã da Ponte" } } } }],
+      updates: [
+        {
+          _id: charAId,
+          diff: { flags: { fusion: { title: "Guardiã da Ponte" } } },
+          expectedVersion: versionOf(charAId),
+        },
+      ],
     });
     expect(allowed["ok"]).toBe(true);
     const ownFlags = readFromStore(charAId)["flags"] as Record<string, Record<string, unknown>>;

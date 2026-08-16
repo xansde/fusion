@@ -41,6 +41,8 @@ import {
 import type { SidebarPanelModule } from "../registry.js";
 import { formatSidebarBadge } from "../badges.svelte.js";
 import { chatStore } from "../../chat/chatStore.svelte.js";
+import { scenePrepareBadge, scenePrepareState } from "../../scenes/prepareState.svelte.js";
+import { activeSceneState } from "../../docs/activeScene.svelte.js";
 import SidebarRail from "../../../components/sidebar/SidebarRail.svelte";
 import "../../i18n/index.js";
 
@@ -76,6 +78,10 @@ describe("the core tabs register through the public call (G016)", () => {
     clearSidebarTabs();
     chatStore.unreadCount = 0;
     contactsStateDot.clear();
+    // Three tabs now own a badge (Chat, Contatos, Cenas) plus Combate's dot; a test that
+    // counts drawn dots only means something if every other store starts put out.
+    scenePrepareState.sceneId = null;
+    activeSceneState.id = null;
     registerCoreSidebarTabs();
   });
 
@@ -84,18 +90,18 @@ describe("the core tabs register through the public call (G016)", () => {
       expect(idsOf(listVisibleSidebarTabs(true))).toEqual([
         "chat",
         "contacts",
-        "actors",
         "combat",
         "compendium",
+        "actors",
         "scenes",
         "settings",
       ]);
       expect(CORE_SIDEBAR_TAB_IDS).toEqual([
         "chat",
         "contacts",
-        "actors",
         "combat",
         "compendium",
+        "actors",
         "scenes",
         "settings",
       ]);
@@ -129,7 +135,9 @@ describe("the core tabs register through the public call (G016)", () => {
     it("REQ-GAV-003: the GM rail is group all, then group gm, then Settings in the footer", () => {
       const visible = getVisibleSidebarTabs(true);
 
-      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "actors", "combat", "compendium"]);
+      // REQ-GAV-003 order of the "all" group, then the provisional Atores directory at
+      // the end of the group (REQ-GAV-031 position), which DEC-CTT-01 keeps until spec 42.
+      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "combat", "compendium", "actors"]);
       expect(idsOf(visible.gm)).toEqual(["scenes"]);
       expect(idsOf(visible.footer)).toEqual([SETTINGS_TAB_ID]);
     });
@@ -141,12 +149,12 @@ describe("the core tabs register through the public call (G016)", () => {
       expect(idsOf(player)).toEqual([
         "chat",
         "contacts",
-        "actors",
         "combat",
         "compendium",
+        "actors",
         "settings",
       ]);
-      for (const id of ["chat", "contacts", "actors", "combat", "compendium"]) {
+      for (const id of ["chat", "contacts", "combat", "compendium", "actors"]) {
         expect(idsOf(player).indexOf(id)).toBe(idsOf(gm).indexOf(id));
       }
       expect(idsOf(player).at(-1)).toBe("settings");
@@ -171,6 +179,17 @@ describe("the core tabs register through the public call (G016)", () => {
       // is the only UI that creates and deletes an Actor until the NPCs tab lands.
       expect(idsOf(listVisibleSidebarTabs(true))).toContain("actors");
       expect(contacts?.icon).not.toBe(getSidebarTab("actors")?.icon);
+    });
+
+    it('REQ-CBA-001: Combate is id "combat", group all, third of the group', () => {
+      const combat = getSidebarTab("combat");
+
+      expect(combat?.group).toBe("all");
+      expect(combat?.label).toBe("FUSION.Sidebar.Tabs.Combat");
+      // Third for every role: the provisional Atores directory sits at the end of the
+      // group precisely so it cannot push Combate out of the position REQ-CBA-001 names.
+      expect(idsOf(getVisibleSidebarTabs(false).all)[2]).toBe("combat");
+      expect(idsOf(getVisibleSidebarTabs(true).all)[2]).toBe("combat");
     });
 
     it('REQ-CFG-001: Configurações is id "settings", group all, anchored to the footer', () => {
@@ -220,11 +239,11 @@ describe("the core tabs register through the public call (G016)", () => {
       ["chat", () => import("../../../components/chat/ChatPanel.svelte")],
       // REQ-CTT-001: Contatos is spec 39's own panel, second in the group.
       ["contacts", () => import("../../../components/contacts/ContactsPanel.svelte")],
+      ["combat", () => import("../../../components/combat/CombatPanel.svelte")],
+      ["compendium", () => import("../../../components/compendium/CompendiumBrowser.svelte")],
       // DEC-CTT-01: the Atores directory stays until the NPCs tab takes authoring
       // over — it is still the only UI that creates and deletes an Actor.
       ["actors", () => import("../../../components/actors/ActorDirectory.svelte")],
-      ["combat", () => import("../../../components/combat/CombatPanel.svelte")],
-      ["compendium", () => import("../../../components/compendium/CompendiumBrowser.svelte")],
       // REQ-CEN-001: Cenas is the panel extracted from the pre-drawer sidebar.
       ["scenes", () => import("../../../components/scenes/ScenesTab.svelte")],
       // REQ-CFG-001: Configurações is the placeholder panel of spec 36 §7.4.
@@ -299,9 +318,10 @@ describe("the core tabs register through the public call (G016)", () => {
     });
 
     it("REQ-GAV-020: tabs with no news carry no badge at all", () => {
-      // "contacts" is absent from this list on purpose: spec 39 gives it a state dot
-      // of its own (REQ-CTT-002), asserted right below.
-      for (const id of ["actors", "compendium", "scenes", "settings"]) {
+      // "contacts" and "scenes" are absent from this list on purpose: spec 39 gives the
+      // first a state dot (REQ-CTT-002) and spec 44 the second (REQ-CEN-003), both
+      // asserted right below.
+      for (const id of ["actors", "compendium", "settings"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
     });
@@ -317,11 +337,31 @@ describe("the core tabs register through the public call (G016)", () => {
         kind: "dot",
         text: null,
       });
+      // Exactly one dot: neither Combate (no encounter) nor Cenas (no local prepare)
+      // is lit here, which the beforeEach guarantees.
       expect(renderRail().match(/data-badge-kind="dot"/g)).toHaveLength(1);
       expect(renderRail().match(/data-badge-kind="counter"/g)).toBeNull();
 
       contactsStateDot.clear();
       expect(formatSidebarBadge(getSidebarTab("contacts")?.badge?.value).kind).toBe("none");
+    });
+
+    it("REQ-CEN-003: Cenas brings a state dot of its own, lit by the local prepare", () => {
+      // Spec 44 gave the Cenas tab a badge (REQ-CEN-003/004), so it left the list above.
+      // Its rule is the scenes' own — a prepare that differs from the scene on air — and
+      // the rail only reads it (REQ-GAV-023).
+      const badge = getSidebarTab("scenes")?.badge;
+      expect(badge).toBe(scenePrepareBadge);
+      expect(typeof badge?.value).toBe("boolean");
+
+      scenePrepareState.sceneId = null;
+      expect(formatSidebarBadge(badge?.value).kind).toBe("none");
+
+      activeSceneState.id = "on-air";
+      scenePrepareState.sceneId = "being-prepared";
+      expect(formatSidebarBadge(badge?.value)).toEqual({ kind: "dot", text: null });
+
+      scenePrepareState.sceneId = null;
     });
   });
 });

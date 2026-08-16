@@ -27,7 +27,7 @@
  */
 
 import { chatStore } from "../chat/chatStore.svelte.js";
-import { combatStore } from "../combat/combatStore.svelte.js";
+import { combatBadgeLit, combatBadgeTone } from "../combat/combatBadge.svelte.js";
 import { contactsStateDot } from "../contacts/knowledgeBadge.js";
 import {
   chatIcon,
@@ -38,8 +38,9 @@ import {
   scenesIcon,
   settingsIcon,
 } from "../../components/sidebar/icons.js";
+import { scenePrepareBadge } from "../scenes/prepareState.svelte.js";
 import { getSidebarTab, registerSidebarTab } from "./registry.js";
-import type { SidebarBadgeStore, SidebarTabDefinition } from "./registry.js";
+import type { SidebarBadgeStore, SidebarBadgeTone, SidebarTabDefinition } from "./registry.js";
 
 /**
  * Chat's unread counter (REQ-GAV-020 counter type).
@@ -56,15 +57,24 @@ export const chatUnreadBadge: SidebarBadgeStore = {
 };
 
 /**
- * Combat's "something is happening" dot (REQ-GAV-020 state-dot type).
+ * Combat's "something is happening" dot (REQ-GAV-020 state-dot type, REQ-CBA-002).
  *
  * Whether a combat is running is spec 10's rule, kept in the combat store; this is
  * the same condition the legacy sidebar drew as a crossed-swords glyph — the glyph
  * is gone (REQ-NPC-094), the meaning is not.
+ *
+ * Both halves come from `lib/combat/combatBadge`, which is where DEC-CBA-07 lives:
+ * the dot is lit while there is a live encounter on the active scene, montagem
+ * included (REQ-CBA-003), and turns amber when the participant of the turn is this
+ * user's (REQ-CBA-004). Nothing is computed here, so opening or collapsing the drawer
+ * cannot move either one (REQ-GAV-022).
  */
 export const combatActiveBadge: SidebarBadgeStore = {
   get value(): boolean {
-    return combatStore.combat !== null;
+    return combatBadgeLit();
+  },
+  get tone(): SidebarBadgeTone {
+    return combatBadgeTone();
   },
 };
 
@@ -78,6 +88,16 @@ export const combatActiveBadge: SidebarBadgeStore = {
  * (REQ-GAV-022, REQ-GAV-023).
  */
 export const contactsKnowledgeBadge: SidebarBadgeStore = contactsStateDot;
+
+/**
+ * Cenas' "you are not looking at the table's scene" dot (REQ-CEN-003, state-dot type).
+ *
+ * Re-exported from the scenes' own module for the same reason as the two above: the rule
+ * that lights it — a local prepare that differs from the scene on air (REQ-CEN-004) —
+ * belongs to spec 44, not to the rail. Opening the tab does not put it out (REQ-CEN-005):
+ * unlike an unread counter, it describes a state that is still true after you look.
+ */
+export { scenePrepareBadge };
 
 /**
  * The core tabs, in the order of DEC-GAV-01: group "all" (Chat, Contatos, Combate,
@@ -106,19 +126,7 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     badge: contactsKnowledgeBadge,
   },
   {
-    // The old Atores directory, kept ALIVE on purpose (DEC-CTT-01): it is still the
-    // only UI in the client that creates and deletes an Actor, and spec 39 took both
-    // out of the player's list. Removing it before the NPCs tab (spec 42) exists
-    // would leave the table with no way to create an actor at all — the declared
-    // debt of DEC-CTT-01, which the NPCs phase pays. It borrows the NPCs icon so the
-    // rail does not show the same glyph twice.
-    id: "actors",
-    icon: npcsIcon,
-    label: "FUSION.Sidebar.Tabs.Actors",
-    group: "all",
-    component: () => import("../../components/actors/ActorDirectory.svelte"),
-  },
-  {
+    // REQ-CBA-001: id "combat", group "all", third of the group.
     id: "combat",
     icon: combatIcon,
     label: "FUSION.Sidebar.Tabs.Combat",
@@ -134,6 +142,23 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     component: () => import("../../components/compendium/CompendiumBrowser.svelte"),
   },
   {
+    // The old Atores directory, kept ALIVE on purpose (DEC-CTT-01): it is still the
+    // only UI in the client that creates and deletes an Actor, and spec 39 took both
+    // out of the player's list. Removing it before the NPCs tab (spec 42) exists
+    // would leave the table with no way to create an actor at all — the declared
+    // debt of DEC-CTT-01, which the NPCs phase pays. It borrows the NPCs icon so the
+    // rail does not show the same glyph twice.
+    //
+    // It sits at the END of the "all" group, where REQ-GAV-031 puts a tab that is not
+    // one of the four of REQ-GAV-003 — so Contatos stays second (REQ-CTT-001) and
+    // Combate stays third (REQ-CBA-001) instead of being pushed down by a placeholder.
+    id: "actors",
+    icon: npcsIcon,
+    label: "FUSION.Sidebar.Tabs.Actors",
+    group: "all",
+    component: () => import("../../components/actors/ActorDirectory.svelte"),
+  },
+  {
     // REQ-CEN-001: id "scenes", group "gm", in the middle block; it is also the
     // first-access tab of a privileged seat (REQ-CEN-002 / REQ-GAV-015), which the
     // preferences module already knows.
@@ -142,6 +167,7 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     label: "FUSION.Sidebar.Tabs.Scenes",
     group: "gm",
     component: () => import("../../components/scenes/ScenesTab.svelte"),
+    badge: scenePrepareBadge,
   },
   {
     // REQ-CFG-001: id "settings", group "all"; the registry anchors this one id to

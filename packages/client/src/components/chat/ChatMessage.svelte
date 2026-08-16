@@ -9,6 +9,24 @@
    *
    * REQ-CHT-007..015: message types and their visual treatment.
    * REQ-CHT-024..028: chat cards, buttons, no arbitrary HTML.
+   *
+   * REQ-ACH-021: the formula, the value of EACH die and the applied modifier are
+   * part of the first paint — there is no expander gating them, because a roll a
+   * player has to click to read is a roll nobody reads.
+   * REQ-ACH-022/023: the nested child rolls and every target's saving throw get
+   * the same breakdown treatment, formatted by lib/chat/rollDisplay.ts.
+   * REQ-ACH-024: at most four save lines, with a control that expands to all.
+   * REQ-ACH-070/071: when the server graded the roll against a target, the card
+   * names that target beside the degree of success. Without a target there is
+   * no degree to paint — the card stops at the total, and this component never
+   * invents a grade the server did not compute.
+   * REQ-ACH-025: `continuesPrevious` drops the repeated header of a run of
+   * consecutive messages by the same author (the run is computed by
+   * lib/chat/chatGrouping.ts — cards, whispers and invalidated never join one).
+   * REQ-ACH-081: an invalidated message keeps its place in the log, reads
+   * attenuated with its value struck through, and carries the stamp of who
+   * voided it. Nothing is removed from the markup — invalidation is an
+   * annotation on the log, never a deletion (REQ-ACH-080/085).
    */
 
   import type { Socket } from "socket.io-client";
@@ -27,6 +45,10 @@
     type FormattedRoll,
   } from "../../lib/chat/messageFormatter.js";
   import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
+  import { buildRollDisplay, type RollDisplay } from "../../lib/chat/rollDisplay.js";
+  import { isInvalidMessage } from "../../lib/chat/chatGrouping.js";
+  import { resolveInvalidatorLabel } from "../../lib/chat/invalidationDisplay.js";
+  import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
   import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
   import AbilityCard from "./pf2e/AbilityCard.svelte";
@@ -34,6 +56,7 @@
   const {
     message,
     children = [],
+    continuesPrevious = false,
     socket,
     isGm = false,
     userId = "",
@@ -47,6 +70,14 @@
      * so one card shows the whole conjuration instead of loose messages.
      */
     children?: ChatMessageType[];
+    /**
+     * True when this row continues the previous one (same author, neither a
+     * card, a whisper nor invalidated) — the header is then not repeated
+     * (REQ-ACH-025). The run is decided by `collectContinuations` in
+     * lib/chat/chatGrouping.ts, which the log passes down; this component never
+     * guesses it, because it cannot see its neighbours.
+     */
+    continuesPrevious?: boolean;
     /** Optional — only required to render system cards with actionable buttons (e.g. Etmos ConjuracaoCard). */
     socket?: Socket;
     isGm?: boolean;
@@ -126,27 +157,54 @@
     return raw?.["kind"] === "save" && raw["basicSave"] === true;
   });
 
-  // Expanded state per roll index
-  let expandedRolls = $state<boolean[]>([]);
+  // REQ-ACH-021: one display per roll, computed up front — the breakdown is
+  // never conditional on a click.
+  const rollDisplays = $derived<RollDisplay[]>(
+    message.rolls ? message.rolls.map(buildRollDisplay) : [],
+  );
 
-  function toggleRollExpanded(idx: number): void {
-    expandedRolls[idx] = !expandedRolls[idx];
-  }
+  // REQ-ACH-081: the message stands voided. Read structurally (chatGrouping's
+  // predicate, the same one the log groups by) so there is no second notion of
+  // "invalidated" in the client.
+  const invalidated = $derived(isInvalidMessage(message));
+  // Who voided it. The only user directory the client has is the presence list;
+  // an id that resolves to nobody is printed as the id (see invalidationDisplay).
+  const invalidatedBy = $derived(resolveInvalidatorLabel(message, presenceState.onlineUsers));
 </script>
 
-<div class="msg {meta.typeClass}" role="listitem">
-  <!-- ---- Header ---- -->
-  <div class="msg__header">
-    <span class="msg__time" title={new Date(message.timestamp).toLocaleString()}>{meta.timeStr}</span>
-    <span class="msg__alias">{meta.alias}</span>
-    {#if meta.isWhisper}
-      <span class="msg__badge msg__badge--whisper"
-        title="Whisper to {message.whisper.join(', ')}">whisper</span>
-    {/if}
-    {#if meta.isBlind}
-      <span class="msg__badge msg__badge--blind">blind</span>
-    {/if}
-  </div>
+<div
+  class="msg {meta.typeClass}"
+  class:msg--continued={continuesPrevious}
+  class:msg--invalid={invalidated}
+  role="listitem"
+>
+  <!-- ---- Header (omitted on a continuation — REQ-ACH-025) ---- -->
+  {#if !continuesPrevious}
+    <div class="msg__header">
+      <span class="msg__time" title={new Date(message.timestamp).toLocaleString()}
+        >{meta.timeStr}</span
+      >
+      <span class="msg__alias">{meta.alias}</span>
+      {#if meta.isWhisper}
+        <span class="msg__badge msg__badge--whisper"
+          title="Whisper to {message.whisper.join(', ')}">whisper</span>
+      {/if}
+      {#if meta.isBlind}
+        <span class="msg__badge msg__badge--blind">blind</span>
+      {/if}
+      {#if invalidated}
+        <span class="msg__badge msg__badge--invalid">{t("FUSION.Chat.Invalidated.Badge")}</span>
+      {/if}
+    </div>
+  {/if}
+
+  <!--
+    REQ-ACH-081: the stamp of who voided it, on the row itself. It is the only
+    thing invalidation ADDS to the log — nothing is taken away (REQ-ACH-080).
+  -->
+  {#if invalidated && invalidatedBy}
+    <p class="msg__voided">{t("FUSION.Chat.Invalidated.By", { who: invalidatedBy })}</p>
+  {/if}
 
   <!-- ---- Body ---- -->
   {#if message.type === "emote"}
@@ -160,6 +218,13 @@
     {/if}
     {#each formattedRolls as roll, idx (roll.rollId)}
       {@const totalClass = getRollTotalClass(roll)}
+      {@const display = rollDisplays[idx]}
+      <!--
+        REQ-ACH-070: the portrait the server graded this roll against. Read from
+        the raw roll (the formatter carries only what it formats), and painted
+        only when it is there — REQ-ACH-071 keeps a targetless roll at its total.
+      -->
+      {@const target = message.rolls?.[idx]?.target}
       <div class="roll-card">
         <!-- Roll header -->
         <div class="roll-card__header">
@@ -172,20 +237,58 @@
           {#if roll.rollMode !== "public"}
             <span class="roll-card__mode">{roll.rollMode}</span>
           {/if}
-          <button
-            class="roll-card__expand-btn"
-            onclick={() => toggleRollExpanded(idx)}
-            aria-expanded={expandedRolls[idx] ?? false}
-            aria-label="Toggle roll breakdown"
-          >
-            {expandedRolls[idx] ? "▲" : "▼"}
-          </button>
         </div>
+
+        <!--
+          REQ-ACH-021: every die and the applied modifier, on the first paint.
+          The aria-label carries the same reading as one sentence, so a screen
+          reader gets the roll without walking chip by chip.
+        -->
+        {#if display}
+          <div class="roll-card__breakdown" role="group" aria-label={display.summary}>
+            {#each display.segments as segment, si (si)}
+              {#if segment.kind === "dice"}
+                <span class="roll-term__dice">
+                  {#each segment.dice as die, di (di)}
+                    <span
+                      class="die
+                        {die.crit ? 'die--crit' : ''}
+                        {die.fumble ? 'die--fumble' : ''}
+                        {die.discarded ? 'die--discarded' : ''}
+                        {die.exploded ? 'die--exploded' : ''}
+                        {die.success ? 'die--success' : ''}
+                        {die.failure ? 'die--failure' : ''}"
+                    >
+                      {die.value}
+                    </span>
+                  {/each}
+                </span>
+                {#if segment.flavor}
+                  <span class="roll-term__flavor">{segment.flavor}</span>
+                {/if}
+              {:else}
+                <span class="roll-term__value">{segment.text}</span>
+              {/if}
+            {/each}
+          </div>
+        {/if}
 
         <!-- Total -->
         <div class="roll-card__total roll-card__total--{totalClass || 'normal'}">
           {roll.total}
         </div>
+
+        <!--
+          Target (REQ-ACH-070) — the name of who the roll was aimed at, right
+          above the degree it produced, so the two read as one sentence. The AC
+          is never printed: it does not even reach a player's payload
+          (REQ-ACH-073).
+        -->
+        {#if target}
+          <div class="roll-card__target">
+            {t("FUSION.Chat.Target.Label", { name: target.name })}
+          </div>
+        {/if}
 
         <!-- Degree of success (r17.1) — localized badge + basic-save damage hint -->
         {#if roll.degreeOfSuccess}
@@ -205,41 +308,6 @@
           <p class="roll-card__warning">{warning}</p>
         {/each}
 
-        <!-- Expandable breakdown -->
-        {#if expandedRolls[idx]}
-          <div class="roll-card__breakdown" role="table" aria-label="Roll breakdown">
-            {#each roll.terms as term}
-              {#if term.type !== "operator"}
-                <div class="roll-term">
-                  <span class="roll-term__expr">{term.expression}</span>
-                  {#if term.dice}
-                    <span class="roll-term__dice">
-                      {#each term.dice as die}
-                        <span
-                          class="die
-                            {die.isCrit ? 'die--crit' : ''}
-                            {die.isFumble ? 'die--fumble' : ''}
-                            {die.discarded ? 'die--discarded' : ''}
-                            {die.exploded ? 'die--exploded' : ''}
-                            {die.isSuccess ? 'die--success' : ''}
-                            {die.isFailure ? 'die--failure' : ''}"
-                          title="{die.discarded ? 'discarded' : ''}{die.exploded ? ' exploded' : ''}"
-                        >
-                          {die.value}
-                        </span>
-                      {/each}
-                    </span>
-                  {:else}
-                    <span class="roll-term__value">{term.total}</span>
-                  {/if}
-                  {#if term.flavor}
-                    <span class="roll-term__flavor">{term.flavor}</span>
-                  {/if}
-                </div>
-              {/if}
-            {/each}
-          </div>
-        {/if}
       </div>
     {/each}
   {:else if message.type === "system" && conjuracaoCard}
@@ -269,11 +337,21 @@
   -->
   {#if nested.rolls.length > 0 || nested.saves.length > 0}
     <div class="nested" role="group" aria-label={t("FUSION.Chat.SpellCard.Title")}>
+      <!--
+        REQ-ACH-022: a child roll inside the card is not a poorer citizen — it
+        shows its dice and its modifier, and its degree when the server graded it.
+      -->
       {#each nested.rolls as line (line.messageId)}
         <div class="nested-roll">
           <span class="nested-roll__label">
             {line.flavor ?? line.formula}
           </span>
+          <span class="nested-roll__breakdown">{line.breakdown}</span>
+          {#if line.degree}
+            <span class="nested-roll__badge {degreeCssClass(line.degree)}"
+              >{t(degreeLabelKey(line.degree))}</span
+            >
+          {/if}
           <span class="nested-roll__total nested-roll__total--{line.totalClass || 'normal'}">
             {line.total}
           </span>
@@ -287,6 +365,8 @@
             {@const dk = save.degree}
             <div class="nested-save">
               <span class="nested-save__alias">{save.alias}</span>
+              <!-- REQ-ACH-023: the dice of the test, on the target's own line. -->
+              <span class="nested-save__breakdown">{save.breakdown}</span>
               <span class="nested-save__total">{save.total}</span>
               {#if dk}
                 <span class="nested-save__badge {degreeCssClass(dk)}">{t(degreeLabelKey(dk))}</span>
@@ -325,6 +405,51 @@
 
   .msg:hover {
     background: var(--fusion-surface-alt);
+  }
+
+  /*
+    REQ-ACH-025: a continuation of the same author's run keeps the body aligned
+    with the message above it and drops the vertical breathing room the header
+    used to provide.
+  */
+  .msg--continued {
+    padding-top: 0;
+  }
+
+  /*
+    REQ-ACH-081: voided, not gone. The whole row is attenuated and every value
+    it announces — the text, the roll totals, the child lines — is struck
+    through, so a reader scanning the log cannot mistake it for something that
+    still counts. The stamp below stays at full contrast: it is the one part of
+    the row that is still true.
+  */
+  .msg--invalid {
+    opacity: 0.55;
+  }
+
+  .msg--invalid .msg__content,
+  .msg--invalid .roll-card__total,
+  .msg--invalid .roll-card__dos,
+  .msg--invalid .nested-roll__total,
+  .msg--invalid .nested-save__total {
+    text-decoration: line-through;
+  }
+
+  .msg--invalid .msg__voided {
+    text-decoration: none;
+    opacity: 1;
+  }
+
+  .msg__voided {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: var(--fusion-text-muted);
+    margin: 0 0 0.15rem;
+  }
+
+  .msg__badge--invalid {
+    background: rgba(255, 92, 92, 0.15);
+    color: var(--fusion-danger);
   }
 
   /* ---- Type variants ---- */
@@ -439,21 +564,6 @@
     letter-spacing: 0.04em;
   }
 
-  .roll-card__expand-btn {
-    background: none;
-    border: none;
-    color: var(--fusion-text-subtle);
-    cursor: pointer;
-    font-size: 0.65rem;
-    padding: 0;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  .roll-card__expand-btn:hover {
-    color: var(--fusion-text);
-  }
-
   .roll-card__total {
     text-align: center;
     font-size: 2.5rem;
@@ -471,6 +581,15 @@
   .roll-card__total--fumble {
     color: var(--fusion-danger);
     text-shadow: 0 0 16px rgba(255, 92, 92, 0.45);
+  }
+
+  /* REQ-ACH-070: the target, quieter than the degree it explains. */
+  .roll-card__target {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--fusion-text-muted);
+    padding: 0 0.6rem 0.2rem;
+    font-style: italic;
   }
 
   .roll-card__dos {
@@ -517,25 +636,14 @@
     margin: 0;
   }
 
-  /* ---- Breakdown ---- */
+  /* ---- Breakdown (always visible — REQ-ACH-021) ---- */
   .roll-card__breakdown {
-    padding: 0.4rem 0.6rem;
-    border-top: 1px solid var(--fusion-border);
-  }
-
-  .roll-term {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.3rem;
-    margin-bottom: 0.25rem;
+    padding: 0.4rem 0.6rem 0;
     font-size: 0.75rem;
-  }
-
-  .roll-term__expr {
-    font-family: var(--fusion-font-mono);
-    color: var(--fusion-text-muted);
-    min-width: 3rem;
   }
 
   .roll-term__dice {
@@ -626,6 +734,36 @@
     white-space: nowrap;
   }
 
+  /* REQ-ACH-022: the dice of the child roll, right beside its label. */
+  .nested-roll__breakdown {
+    font-family: var(--fusion-font-mono);
+    font-size: 0.72rem;
+    color: var(--fusion-text-subtle);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nested-roll__badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fusion-accent);
+    flex-shrink: 0;
+  }
+
+  .nested-roll__badge.dos--crit-success,
+  .nested-roll__badge.dos--success {
+    color: var(--fusion-success);
+  }
+
+  .nested-roll__badge.dos--failure,
+  .nested-roll__badge.dos--crit-failure {
+    color: var(--fusion-danger);
+  }
+
   .nested-roll__total {
     font-family: var(--fusion-font-mono);
     font-weight: 700;
@@ -672,6 +810,13 @@
   .nested-save__total {
     font-family: var(--fusion-font-mono);
     color: var(--fusion-text-muted);
+  }
+
+  /* REQ-ACH-023: the dice of the saving throw, on the target's own line. */
+  .nested-save__breakdown {
+    font-family: var(--fusion-font-mono);
+    font-size: 0.7rem;
+    color: var(--fusion-text-subtle);
   }
 
   .nested-save__badge {

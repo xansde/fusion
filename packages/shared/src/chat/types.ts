@@ -27,6 +27,33 @@ export const RollModeSchema = z.enum(["public", "gmroll", "blindroll", "selfroll
 export type RollMode = z.infer<typeof RollModeSchema>;
 
 // ---------------------------------------------------------------------------
+// RollTarget — REQ-ACH-070..074 (spec 38 §5.8, DEC-ACH-09)
+// ---------------------------------------------------------------------------
+
+/**
+ * A PORTRAIT of the target a roll was graded against — never a live reference
+ * to a token (REQ-ACH-072). The log has to keep telling the truth after the
+ * token dies, leaves the scene or is renamed, so only the values that were true
+ * at the instant of the roll are stored: the name shown, and the AC used.
+ *
+ * `ac` is PRIVILEGED data (REQ-ACH-073 / REQ-ACH-092 / REQ-SEC-020): the payload
+ * delivered to a user without a privileged role carries the name and the degree
+ * of success, and NOT the number. That is why the field is optional — a redacted
+ * message must still parse as a valid message on the client.
+ *
+ * The server never accepts an AC from the wire: `chat:send` takes a reference to
+ * a token/actor and resolves the number itself (see `ChatTargetRefSchema`).
+ */
+export const RollTargetSchema = z.object({
+  /** Display name at the instant of the roll (token name, or the actor's). */
+  name: z.string().min(1).max(200),
+  /** AC used to grade the roll. Absent in every non-privileged payload. */
+  ac: z.number().int().min(-50).max(100).optional(),
+});
+
+export type RollTarget = z.infer<typeof RollTargetSchema>;
+
+// ---------------------------------------------------------------------------
 // RollResultData — REQ-ROL-028..030
 // ---------------------------------------------------------------------------
 
@@ -99,6 +126,14 @@ export const RollResultDataSchema = z.object({
    * D7 (spec 08): this is a generic string, not a fixed enum.
    */
   degreeOfSuccess: z.string().optional(),
+  /**
+   * Portrait of the target this attack roll was graded against (REQ-ACH-070 /
+   * REQ-ACH-072). Present ONLY when the server could both resolve the target's
+   * AC and grade the roll: without a target there is no degree of success
+   * (REQ-ACH-071), and a degree without an AC would be a guess presented as a
+   * rule. The `ac` inside is stripped for non-privileged viewers (REQ-ACH-073).
+   */
+  target: RollTargetSchema.optional(),
 });
 
 export type RollResultData = z.infer<typeof RollResultDataSchema>;
@@ -450,6 +485,32 @@ export const ChatMessageSchema = BaseDocumentSchema.extend({
    * REQ-CHT-004 / D-CHT-02 / REQ-ROL-031.
    */
   blind: z.boolean().default(false),
+  /**
+   * Marked as void, but kept in the log at the same position (REQ-CHT-005,
+   * REQ-ACH-081). Absent on every message written before invalidation existed,
+   * which reads exactly the same as `false` — nothing was ever deleted.
+   */
+  invalid: z.boolean().optional(),
+  /**
+   * User ID of whoever performed the LAST invalidation. It is what decides who
+   * may revalidate (REQ-ACH-083: the GM always, the author only what he himself
+   * invalidated) and it SURVIVES revalidation as the record of that operation
+   * (REQ-ACH-084).
+   */
+  invalidatedBy: z.string().optional(),
+  /** Unix ms of the last invalidation — survives revalidation (REQ-ACH-084). */
+  invalidatedAt: z.number().int().nonnegative().optional(),
+  /**
+   * Portraits of the targets this message names (REQ-ACH-072, spec 38 §7: the
+   * target is written on the ChatMessage itself). An attack carries exactly one;
+   * a spell with a saving throw MAY carry several (REQ-ACH-074). Absent when the
+   * message names no target — and then no degree of success is shown for it
+   * (REQ-ACH-071).
+   *
+   * Same redaction as `rolls[].target`: the `ac` of each portrait is stripped
+   * from every payload delivered to a non-privileged viewer (REQ-ACH-073).
+   */
+  targets: z.array(RollTargetSchema).max(20).optional(),
   /** Roll results for type === 'roll'. REQ-CHT-018. */
   rolls: z.array(RollResultDataSchema).optional(),
   /** Declarative card for type === 'system'. REQ-CHT-024. */

@@ -190,10 +190,32 @@ describe("The contact title — REQ-CTT-085 over the real socket (G062)", () => 
     return fusion["title"];
   }
 
+  /** The `_stats.version` the store holds right now (T013 makes it mandatory below). */
+  function versionInStore(actorId: string): number | undefined {
+    const row = ctx.fusionDb.raw.prepare("SELECT data FROM actors WHERE id = ?").get(actorId) as
+      | { data: string }
+      | undefined;
+    if (!row) throw new Error(`Actor ${actorId} not found in world.db`);
+    const doc = JSON.parse(row.data) as Record<string, unknown>;
+    const stats = (doc["_stats"] ?? {}) as Record<string, unknown>;
+    return typeof stats["version"] === "number" ? stats["version"] : undefined;
+  }
+
+  /**
+   * T013: a NON-privileged writer must name the version it saw, or the primary
+   * `doc:update` path refuses the write. The real client fills it from its own mirror
+   * inside `sendOp.ts`; here the store stands in for that mirror.
+   */
   function setTitle(socket: ClientSocket, title: string): Promise<Record<string, unknown>> {
     return sendOp(socket, "doc:update", {
       documentType: "Actor",
-      updates: [{ _id: characterId, diff: { "flags.fusion.title": title } }],
+      updates: [
+        {
+          _id: characterId,
+          diff: { "flags.fusion.title": title },
+          expectedVersion: versionInStore(characterId),
+        },
+      ],
     });
   }
 

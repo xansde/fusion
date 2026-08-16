@@ -10,6 +10,8 @@
  *     system data, a contact that is HIDDEN is not delivered at all, and the
  *     knowledge map itself never reaches a non-privileged socket
  *     (REQ-CTT-081..084).
+ *   - The result of a blind roll must never reach a non-privileged socket — not
+ *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
  *
  * There are three emission paths that carry document bodies to clients, and all
  * three MUST funnel non-GM documents through this module:
@@ -28,8 +30,25 @@
  *   3. filterOpsForRole   (delta resync — replay of buffered ops)
  * plus the dispatcher-level ack net, {@link redactAckResultForNonPrivileged}.
  *
- * This module is the single source of truth so the paths can never drift out
- * of parity.
+ * This module is the single source of truth so the three paths can never
+ * drift out of parity.
+ *
+ * Combat bodies answer to the same discipline (REQ-CBA-082, REQ-CBT-031): a
+ * combatant with `hidden: true` must not reach a non-privileged user by ANY of
+ * the three paths. Two families of envelope carry a Combat:
+ *   - the dedicated `combat:*` ops, redacted by the combat handlers, which call
+ *     {@link stripHiddenCombatantsFromCombat} from here; and
+ *   - the GENERIC document path — a `doc:update` on a Combat, and every
+ *     embedded Combatant create/update/delete, which broadcast the whole parent
+ *     as `{ documentType: "Combat", documents: [combat] }`. Those funnel through
+ *     {@link redactCombatDocsForNonPrivileged}, the Combat counterpart of
+ *     {@link redactSceneDocsForNonPrivileged}.
+ * The ack echoed back to the requester is covered on top of both by
+ * {@link redactAckResultForNonPrivileged}.
+ *
+ * The same rule also governs the INBOUND direction: an op that names a scene id
+ * must not confirm that the scene exists to someone who could never have been
+ * told about it. That predicate is {@link sceneIsInvisibleToRole}.
  */
 
 import {
@@ -38,14 +57,192 @@ import {
   KNOWLEDGE_FLAG_NAMESPACE,
   KNOWLEDGE_FLAG_KEY,
 } from "@fusion/shared";
-import type { Ownership } from "@fusion/shared";
-import { OwnershipLevel, resolveOwnership } from "../documents/ownership.js";
+import type { ChatMessage, Ownership, RollTarget } from "@fusion/shared";
+import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
 import {
   PLAYER_CHARACTER_SUBTYPES,
   isCharacterActor,
   isNonPlayableActor,
 } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
+
+// ---------------------------------------------------------------------------
+// Chat target redaction (spec 38 — DEC-ACH-09, REQ-ACH-073 / REQ-ACH-092)
+// ---------------------------------------------------------------------------
+
+/**
+ * Return true when this chat message carries an AC anywhere in its target
+ * portraits — either on the message itself (`targets[]`) or on the target a
+ * roll was graded against (`rolls[].target`). Fast-path guard: when it is false
+ * the message can be forwarded as-is, with no allocation.
+ */
+export function chatMessageHasTargetAc(msg: ChatMessage): boolean {
+  if (msg.targets?.some((t) => t.ac !== undefined)) return true;
+  return msg.rolls?.some((r) => r.target?.ac !== undefined) ?? false;
+}
+
+/** Drop the AC from one portrait, keeping the name (REQ-ACH-073). */
+function targetWithoutAc(target: RollTarget): RollTarget {
+  if (target.ac === undefined) return target;
+  const { ac: _ac, ...rest } = target;
+  return rest;
+}
+
+/**
+ * The chat message a NON-PRIVILEGED viewer may receive: same message, with the
+ * target's AC removed from every portrait it carries.
+ *
+ * REQ-ACH-073 / REQ-ACH-092 / REQ-SEC-020: the degree of success — already
+ * computed on the server — goes to the player; the monster's AC is the Mestre's
+ * to give or withhold. Hiding the number on screen would hide nothing: whoever
+ * reads the socket reads the number.
+ *
+ * Returns the SAME reference when there is nothing to redact, so callers can
+ * cheaply detect "unchanged", and never mutates the original (the broadcast and
+ * op-buffer paths share it).
+ */
+export function redactChatTargetsForNonPrivileged(msg: ChatMessage): ChatMessage {
+  if (!chatMessageHasTargetAc(msg)) return msg;
+
+  const redacted: ChatMessage = { ...msg };
+  if (msg.targets) {
+    redacted.targets = msg.targets.map(targetWithoutAc);
+  }
+  if (msg.rolls) {
+    redacted.rolls = msg.rolls.map((roll) =>
+      roll.target === undefined ? roll : { ...roll, target: targetWithoutAc(roll.target) },
+    );
+  }
+  return redacted;
+}
+
+/**
+ * The text that stands in for a blind roll's result on a non-privileged screen
+ * (REQ-ROL-032). It is the WHOLE body such a viewer gets: the total lives in
+ * `content` as much as in `rolls[]`, so hiding only the dice would hide nothing.
+ */
+export const BLIND_ROLL_CONFIRMATION_CONTENT =
+  "(Você realizou uma rolagem cega — somente o GM pode ver o resultado.)";
+
+/**
+ * The blind-roll body a NON-PRIVILEGED viewer may receive: no roll terms, and no
+ * total in the text either.
+ *
+ * REQ-ROL-032 / REQ-ACH-092: `buildRollMessage` writes the result into
+ * `content` (`"<rótulo>: <total>"`), so a redaction that only dropped `rolls`
+ * would keep handing the number over — in the live broadcast, in the ack of
+ * `chat:send`, in `chat:history`, in `chat:search` and in `chat:context` alike.
+ * Every one of those paths funnels through here, so they cannot drift.
+ *
+ * The caller decides WHO is non-privileged and WHEN the message is blind; this
+ * function only builds the body.
+ */
+export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
+  return { ...msg, rolls: undefined, content: BLIND_ROLL_CONFIRMATION_CONTENT };
+}
+
+/**
+ * Structural counterpart of {@link redactChatTargetsForNonPrivileged}, used by
+ * the dispatcher-level ack safety net where the body is untyped. Applies to
+ * anything shaped like a chat message (a `targets` array and/or a `rolls` array
+ * whose entries carry a `target`).
+ */
+function stripTargetAcStructural(doc: Record<string, unknown>): Record<string, unknown> {
+  if (!docHasTargetAc(doc)) return doc;
+  const result: Record<string, unknown> = { ...doc };
+
+  const targets = doc["targets"];
+  if (Array.isArray(targets)) {
+    result["targets"] = (targets as Record<string, unknown>[]).map(stripAcKey);
+  }
+
+  const rolls = doc["rolls"];
+  if (Array.isArray(rolls)) {
+    result["rolls"] = (rolls as Record<string, unknown>[]).map((roll) => {
+      const target = roll["target"];
+      if (!target || typeof target !== "object") return roll;
+      return { ...roll, target: stripAcKey(target as Record<string, unknown>) };
+    });
+  }
+
+  return result;
+}
+
+function stripAcKey(target: Record<string, unknown>): Record<string, unknown> {
+  if (!("ac" in target)) return target;
+  const { ac: _ac, ...rest } = target;
+  return rest;
+}
+
+/**
+ * Keys of an ack body that carry ChatMessage(s): `chat:send`/`chat:invalidate`
+ * answer with `message`; `chat:history`/`chat:search` with `messages`;
+ * `chat:context` with `target` plus `before`/`after`.
+ */
+const CHAT_ACK_MESSAGE_KEYS = ["message", "target"] as const;
+const CHAT_ACK_MESSAGE_LIST_KEYS = ["messages", "before", "after"] as const;
+
+/**
+ * Strip the target AC out of every ChatMessage an ack body carries. Returns the
+ * SAME body reference when nothing needed redacting, so the caller can tell
+ * "unchanged" without comparing contents.
+ */
+function redactChatBodies(body: Record<string, unknown>): Record<string, unknown> {
+  let out: Record<string, unknown> | null = null;
+
+  for (const key of CHAT_ACK_MESSAGE_KEYS) {
+    const value = body[key];
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const redacted = stripTargetAcStructural(value as Record<string, unknown>);
+    if (redacted !== value) {
+      out ??= { ...body };
+      out[key] = redacted;
+    }
+  }
+
+  for (const key of CHAT_ACK_MESSAGE_LIST_KEYS) {
+    const value = body[key];
+    if (!Array.isArray(value)) continue;
+    const list = value as unknown[];
+    if (!list.some((entry) => docHasTargetAc(entry))) continue;
+    out ??= { ...body };
+    out[key] = list.map((entry) =>
+      entry && typeof entry === "object"
+        ? stripTargetAcStructural(entry as Record<string, unknown>)
+        : entry,
+    );
+  }
+
+  return out ?? body;
+}
+
+/** True when the value is an object carrying an `ac` key. */
+function hasAcKey(value: unknown): boolean {
+  return !!value && typeof value === "object" && "ac" in value;
+}
+
+/** Structural "does this doc carry a target AC anywhere?" guard. */
+function docHasTargetAc(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const obj = doc as Record<string, unknown>;
+
+  const targets = obj["targets"];
+  if (Array.isArray(targets)) {
+    for (const entry of targets as unknown[]) {
+      if (hasAcKey(entry)) return true;
+    }
+  }
+
+  const rolls = obj["rolls"];
+  if (Array.isArray(rolls)) {
+    for (const entry of rolls as unknown[]) {
+      if (!entry || typeof entry !== "object") continue;
+      if (hasAcKey((entry as Record<string, unknown>)["target"])) return true;
+    }
+  }
+
+  return false;
+}
 
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
@@ -152,6 +349,27 @@ export function sceneIsOnAir(doc: unknown): boolean {
 }
 
 /**
+ * True when this requester must be answered as if the scene did not exist.
+ *
+ * REQ-CEN-070 / REQ-CEN-071: a non-privileged user may only ever act inside the
+ * scene that is ON AIR (REQ-CEN-072) — it is the only one they can see, so it is
+ * the only one whose id they can legitimately hold. Every inbound op that takes
+ * a scene id from the client (`doc:*` on an embedded document, `token:move`,
+ * `scene:doorState`) must run this BEFORE it looks at the scene body, and answer
+ * with the same "scene not found" wording it would give for a made-up id.
+ * Anything more specific — a token/wall-level NOT_FOUND, a PERMISSION_DENIED, or
+ * an `ok:true` ack — confirms the scene exists and leaks the off-air roster
+ * (REQ-CEN-073).
+ *
+ * `isRolePrivileged` and {@link sceneIsOnAir} are the only predicates in play:
+ * exactly the pair the outbound emission paths above use.
+ */
+export function sceneIsInvisibleToRole(role: number, sceneDoc: unknown): boolean {
+  if (isRolePrivileged(role)) return false;
+  return !sceneIsOnAir(sceneDoc);
+}
+
+/**
  * The only Scene bodies a non-privileged viewer may ever receive.
  *
  * REQ-CEN-071 / REQ-CEN-073: the scene list is privileged data — the name of a
@@ -178,6 +396,20 @@ export function redactSceneDocsForNonPrivileged(
     result.push(redactSecretDoors(stripHiddenTokens(doc)));
   }
   return result;
+}
+
+/**
+ * Return true when a value looks like a whole Scene document.
+ *
+ * Structural, like every other detector in this module: a Scene is the only
+ * document that carries an `active` flag alongside a `tokens` collection
+ * (Actors carry `items`, Combats carry `combatants`). Used by the ack path,
+ * which sees a bare body with no `documentType` to trust.
+ */
+function isSceneShaped(doc: unknown): doc is Record<string, unknown> {
+  if (!doc || typeof doc !== "object") return false;
+  const d = doc as Record<string, unknown>;
+  return typeof d["active"] === "boolean" && Array.isArray(d["tokens"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -222,6 +454,32 @@ export function stripHiddenCombatantsFromCombat(
   if (!nothingRemoved) result["combatants"] = filtered;
   if (activeIsHidden) result["activeCombatantId"] = null;
   return result;
+}
+
+/**
+ * The only Combat bodies a non-privileged viewer may ever receive, for a
+ * `documents[]` batch travelling the GENERIC document path.
+ *
+ * REQ-CBA-082 / REQ-CBT-031: a `doc:update` on a Combat — and every embedded
+ * Combatant create/update/delete, which republishes the whole parent Combat —
+ * carries the full combatant roster. Before this, those envelopes took the
+ * cheap namespace-wide emit, so a hidden combatant reached every player the
+ * moment the GM touched the encounter through anything other than a `combat:*`
+ * op. The dedicated handlers were redacted; the generic door beside them was
+ * not, and an unlocked door beside a locked one is an unlocked door.
+ *
+ * Unlike scenes, the Combat document itself is NOT privileged: the encounter is
+ * shared world state that every player must see (REQ-CBT-031..033). Only the
+ * hidden combatants inside it are stripped, and the active pointer masked when
+ * it names one — exactly what {@link stripHiddenCombatantsFromCombat} does.
+ *
+ * Element references are preserved when nothing needed redacting, so callers
+ * can detect "nothing changed" and keep the cheap namespace-wide emit.
+ */
+export function redactCombatDocsForNonPrivileged(
+  documents: readonly Record<string, unknown>[],
+): Record<string, unknown>[] {
+  return documents.map((doc) => stripHiddenCombatantsFromCombat(doc));
 }
 
 /**
@@ -548,6 +806,10 @@ export function redactActorDocsForViewer(
  * Additionally applies combat redaction:
  *   3. {@link stripHiddenCombatantsFromCombat} — remove hidden combatants (M2-C)
  *
+ * …and the scene-list rule of spec 44:
+ *   4. {@link sceneIsOnAir} — a Scene body that is not on air is dropped from
+ *      `documents[]` and `parent` (REQ-CEN-072 / REQ-CEN-073)
+ *
  * Covered ack `result` shapes (the object under `ack.result`):
  *
  *   1. Primary Scene doc:create / doc:update
@@ -556,6 +818,9 @@ export function redactActorDocsForViewer(
  *   3. Embedded embedded update: { documentType: "Scene", documents: FullScene[] }
  *   4. Embedded embedded delete: { documentType, ids, parent: FullScene }
  *   5. Combat create/update ack: { combat: CombatDocument }
+ *   6. Generic doc path on a Combat (REQ-CBA-082)
+ *        { documentType: "Combat", documents: FullCombat[] }
+ *        { documentType: "Combatant", ids, parent: FullCombat }
  *
  * The detector is STRUCTURAL: walks `documents[]`, `parent`, and `combat`
  * and applies redactions to any element that is Scene-shaped (has `tokens` or
@@ -589,9 +854,29 @@ export function redactAckResultForNonPrivileged(
   if (!body || typeof body !== "object") return result;
   const bodyObj = body as Record<string, unknown>;
 
-  const documents = bodyObj["documents"];
-  const parent = bodyObj["parent"];
-  const combat = bodyObj["combat"];
+  // Chat acks (chat:send, chat:invalidate, chat:history, chat:search,
+  // chat:context) carry ChatMessages under their own keys. The target's AC must
+  // not ride out on ANY of them (REQ-ACH-073 / REQ-ACH-092) — the chat handler
+  // already redacts each message it emits, and this is the dispatcher-level net
+  // that covers a handler which forgets to.
+  const chatRedactedBody = redactChatBodies(bodyObj);
+
+  const documents = chatRedactedBody["documents"];
+  const parent = chatRedactedBody["parent"];
+  const combat = chatRedactedBody["combat"];
+
+  // REQ-CEN-073: an off-air Scene body must not come back in the ack either —
+  // the ack is a payload destined to a non-privileged user like any other. The
+  // handlers already refuse the ops that could produce one (a scene that is not
+  // on air answers as if it did not exist), so this is the dispatcher-level net
+  // that covers any handler, present or future, that echoes a Scene it loaded.
+  //
+  // REQ-CEN-072: the scene ON AIR is exactly what survives — it is the body the
+  // player's canvas renders.
+  const documentsCarryOffAirScene =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => isSceneShaped(d) && !sceneIsOnAir(d));
+  const parentIsOffAirScene = isSceneShaped(parent) && !sceneIsOnAir(parent);
 
   // Spec 39 §5.9: an ack echoes documents straight back to the requester, so it
   // is an emission path like any other and answers to the same funnel
@@ -611,8 +896,13 @@ export function redactAckResultForNonPrivileged(
     const changed =
       redactedActors.length !== documents.length ||
       redactedActors.some((doc, i) => doc !== documents[i]);
-    if (changed) {
-      return { ...ack, result: { ...bodyObj, documents: redactedActors } };
+    // The early return has to carry whatever the chat pass already removed, or an
+    // Actor-shaped ack body that also held messages would leave here unredacted.
+    if (changed || chatRedactedBody !== bodyObj) {
+      return {
+        ...ack,
+        result: { ...chatRedactedBody, documents: changed ? redactedActors : documents },
+      };
     }
     return result;
   }
@@ -642,31 +932,62 @@ export function redactAckResultForNonPrivileged(
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
-  const documentsNeedsRedaction =
-    documentsNeedHiddenTokenRedaction || documentsNeedSecretDoorRedaction;
-  const parentNeedsRedaction = parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction;
+  // REQ-CBA-082: a Combat body also travels the GENERIC document path, where it
+  // lands in `documents[]` (doc:update on a Combat, embedded Combatant update)
+  // or in `parent` (embedded Combatant create/delete) instead of under `combat`.
+  // The detector is structural precisely so those shapes are covered too.
+  const documentsNeedCombatRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => combatDocHasHiddenCombatants(d));
+  const parentNeedsCombatRedaction = combatDocHasHiddenCombatants(parent);
 
-  if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
+  const documentsNeedsRedaction =
+    documentsNeedHiddenTokenRedaction ||
+    documentsNeedSecretDoorRedaction ||
+    documentsNeedCombatRedaction;
+  const parentNeedsRedaction =
+    parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction || parentNeedsCombatRedaction;
+
+  if (
+    !documentsNeedsRedaction &&
+    !parentNeedsRedaction &&
+    !combatNeedsRedaction &&
+    !documentsCarryOffAirScene &&
+    !parentIsOffAirScene &&
+    chatRedactedBody === bodyObj
+  ) {
     // Nothing to redact — return the original ack untouched.
     return result;
   }
 
   // Build a redacted clone, never mutating the shared original.
-  const newBody: Record<string, unknown> = { ...bodyObj };
+  const newBody: Record<string, unknown> = { ...chatRedactedBody };
 
-  if (documentsNeedsRedaction) {
-    newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
-      let redacted = d;
-      if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
-      if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
-      return redacted;
-    });
+  if (documentsNeedsRedaction || documentsCarryOffAirScene) {
+    newBody["documents"] = (documents as Record<string, unknown>[])
+      .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
+      .map((d) => {
+        let redacted = d;
+        if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+        if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        if (Array.isArray(redacted["combatants"])) {
+          redacted = stripHiddenCombatantsFromCombat(redacted);
+        }
+        return redacted;
+      });
   }
 
-  if (parentNeedsRedaction) {
+  if (parentIsOffAirScene) {
+    // Dropped outright, not blanked: the shape a caller sees for a scene it may
+    // not know about is the shape of "there is nothing here".
+    newBody["parent"] = null;
+  } else if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsCombatRedaction) {
+      redactedParent = stripHiddenCombatantsFromCombat(redactedParent);
+    }
     newBody["parent"] = redactedParent;
   }
 

@@ -76,6 +76,9 @@ import {
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
+  buildChatSearchHandler,
+  buildChatContextHandler,
+  buildChatInvalidateHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
 import {
@@ -315,6 +318,16 @@ export class SocketManager {
     const chatDeps = { db, ns, seqStore, worldId };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
+    // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
+    // filters with the same visibility predicate chat:history uses.
+    registry.register("chat:search", buildChatSearchHandler(chatDeps));
+    // REQ-CHT-051 / REQ-ACH-013: ±N VISIBLE messages around one message; the
+    // count is per requester, and an invisible neighbour takes no slot.
+    registry.register("chat:context", buildChatContextHandler(chatDeps));
+    // REQ-CHT-005 / REQ-ACH-080..086: moderation of a single message is
+    // invalidation, never deletion — the GM or the author voids it, the log
+    // keeps it, and nothing outside the log is undone.
+    registry.register("chat:invalidate", buildChatInvalidateHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
     const visionDeps = { store, seqStore, opBuffer, ns };

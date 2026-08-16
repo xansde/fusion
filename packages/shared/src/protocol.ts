@@ -60,6 +60,12 @@ export const EnvelopeTypeSchema = z.union([
   // M1-D chat handlers
   z.literal("chat:send"),
   z.literal("chat:history"),
+  // Chat log search — REQ-CHT-050 (every role, history's visibility predicate)
+  z.literal("chat:search"),
+  // Context around one message — REQ-CHT-051 (±N VISIBLE, per requester)
+  z.literal("chat:context"),
+  // Invalidate/revalidate one message — REQ-CHT-005 (nothing is ever deleted)
+  z.literal("chat:invalidate"),
   // Spec 39 — contact knowledge (general rule + per-character exceptions).
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).

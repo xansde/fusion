@@ -95,6 +95,20 @@ export type SidebarPanelLoader = () => Promise<SidebarPanelModule>;
 export type SidebarBadgeValue = number | boolean | null;
 
 /**
+ * How loud a lit state dot is drawn — the *same* dot, at two intensities.
+ *
+ * Not a third badge kind: REQ-GAV-020 still allows a tab one badge, counter or dot.
+ * Spec 40's DEC-CBA-07 puts "a combat is running" and "it is your turn" on one dot
+ * on purpose ("o mesmo fato em intensidades diferentes"), and REQ-CBA-004 asks for
+ * the amber emphasis on the second. A counter has no tone.
+ *
+ * Like the value, the tone is the owning child's to move (REQ-GAV-023) — the rail
+ * reads it and draws it, and there is no timer or animation attached to a change of
+ * tone any more than to a change of value (REQ-GAV-024).
+ */
+export type SidebarBadgeTone = "default" | "amber";
+
+/**
  * Minimal reactive badge store: anything with a readable `value` (REQ-GAV-030).
  * A `$state` object or an object with a getter both satisfy it, so reading
  * `badge.value` inside a template tracks the dependency.
@@ -105,6 +119,11 @@ export type SidebarBadgeValue = number | boolean | null;
  */
 export interface SidebarBadgeStore {
   readonly value: SidebarBadgeValue;
+  /**
+   * Optional emphasis of a lit state dot (REQ-CBA-004). Absent means `"default"`,
+   * which is why every tab that never needed a tone keeps working untouched.
+   */
+  readonly tone?: SidebarBadgeTone;
 }
 
 /** The argument of `registerSidebarTab` (REQ-GAV-030). */
