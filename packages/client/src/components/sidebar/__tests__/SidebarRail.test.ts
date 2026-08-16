@@ -300,9 +300,12 @@ describe("SidebarRail", () => {
     it("REQ-GAV-005: the open drawer's tab is marked active and joined to the panel", () => {
       const html = renderRail({ isGm: true, open: true, activeTabId: "combat" });
 
-      expect(buttonOf(html, "combat")).toContain('aria-selected="true"');
+      // REQ-A11-010: the active state is an ARIA state on a toggle button — the one
+      // thing the rail's keyboard actually does (press to show, press again to
+      // collapse), and not the `aria-selected` of a tablist the rail is not.
+      expect(buttonOf(html, "combat")).toContain('aria-pressed="true"');
       expect(buttonOf(html, "combat")).toMatch(/class="[^"]*rail__button--active/);
-      expect(buttonOf(html, "chat")).toContain('aria-selected="false"');
+      expect(buttonOf(html, "chat")).toContain('aria-pressed="false"');
       expect(buttonOf(html, "chat")).not.toMatch(/class="[^"]*rail__button--active/);
     });
 
@@ -310,7 +313,7 @@ describe("SidebarRail", () => {
       const html = renderRail({ isGm: true, open: false, activeTabId: "combat" });
 
       expect(html).not.toContain("rail__button--active");
-      expect(html).not.toContain('aria-selected="true"');
+      expect(html).not.toContain('aria-pressed="true"');
       // The rail itself stays on screen and clickable while collapsed (REQ-GAV-013).
       expect(tabOrder(html)).toHaveLength(7);
     });

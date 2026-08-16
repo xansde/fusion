@@ -184,7 +184,7 @@ describe("Sidebar / SidebarDrawer", () => {
       const html = renderSidebar();
 
       expect(drawerTag(html)).toContain('data-active-tab="combat"');
-      expect(html).toMatch(/<button[^>]*data-tab-id="combat"[^>]*aria-selected="true"/);
+      expect(html).toMatch(/<button[^>]*data-tab-id="combat"[^>]*aria-pressed="true"/);
     });
 
     it("REQ-GAV-011: the only clickable controls in the sidebar are the rail's tabs", () => {
@@ -255,13 +255,13 @@ describe("Sidebar / SidebarDrawer", () => {
       seedPreferences(true, "chat");
       const open = renderSidebar();
       expect([...open.matchAll(/class="sidebar-drawer[^"]*"/g)]).toHaveLength(1);
-      expect([...open.matchAll(/role="tabpanel"/g)]).toHaveLength(1);
+      expect([...open.matchAll(/data-active-tab="/g)]).toHaveLength(1);
 
       localStorage.clear();
       seedPreferences(false, "chat");
       const collapsed = renderSidebar();
       expect(collapsed).not.toContain("sidebar-drawer");
-      expect(collapsed).not.toContain('role="tabpanel"');
+      expect(collapsed).not.toContain("data-active-tab=");
     });
 
     it("REQ-GAV-017: the resolved panel is really mounted inside the drawer, with its props", () => {

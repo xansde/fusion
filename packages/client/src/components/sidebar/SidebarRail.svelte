@@ -58,13 +58,20 @@
 
 {#snippet railButton(tab: SidebarTabEntry)}
   {@const hasBadge = isSidebarBadgeVisible(tab.badge?.value)}
+  <!-- A toggle button, NOT `role="tab"`: the ARIA tabs pattern promises arrow-key
+       navigation and a roving tabindex, which DEC-GAV-05 and REQ-GAV-041 deliberately
+       do not implement (the rail is Tab/Enter/Espaço and nothing else). Announcing a
+       pattern whose keyboard is absent strands the reader; `aria-pressed` says exactly
+       what the button does — one gesture that shows or collapses this tab's panel
+       (REQ-GAV-011) — and is a dynamic state a screen reader reads (REQ-A11-010).
+       The generic `Tabs` component of spec 11 ("Componentes base") is where the full
+       tablist pattern, arrow keys included, belongs; this rail is not it. -->
   <button
     type="button"
     class="sidebar-rail__button"
     class:sidebar-rail__button--active={isActive(tab.id)}
     data-tab-id={tab.id}
-    role="tab"
-    aria-selected={isActive(tab.id)}
+    aria-pressed={isActive(tab.id)}
     aria-label={t(tab.label)}
     aria-describedby={hasBadge ? badgeDescriptionId(tab.id) : undefined}
     onclick={() => onSelect(tab.id)}
@@ -83,14 +90,12 @@
   </button>
 {/snippet}
 
-<div
-  class="sidebar-rail"
-  role="tablist"
-  aria-orientation="vertical"
-  aria-label={t("FUSION.Sidebar.Rail.Label")}
->
+<!-- A named group of buttons, not a `role="tablist"`: the label still reaches assistive
+     technology, but nothing here announces the arrow-key navigation of the ARIA tabs
+     pattern, which this rail does not have (REQ-GAV-041, DEC-GAV-05). -->
+<div class="sidebar-rail" role="group" aria-label={t("FUSION.Sidebar.Rail.Label")}>
   <!-- Block 1 — every user (REQ-GAV-003) -->
-  <div class="sidebar-rail__group" data-rail-group="all" role="presentation">
+  <div class="sidebar-rail__group" data-rail-group="all">
     {#each tabs.all as tab (tab.id)}
       {@render railButton(tab)}
     {/each}
@@ -98,7 +103,7 @@
 
   <!-- Block 2 — GM group, separated by a rule; simply absent otherwise (REQ-GAV-004) -->
   {#if tabs.gm.length > 0}
-    <div class="sidebar-rail__group sidebar-rail__group--gm" data-rail-group="gm" role="presentation">
+    <div class="sidebar-rail__group sidebar-rail__group--gm" data-rail-group="gm">
       {#each tabs.gm as tab (tab.id)}
         {@render railButton(tab)}
       {/each}
@@ -107,7 +112,7 @@
 
   <!-- Block 3 — anchored to the foot of the rail, same position for every role (DEC-GAV-09) -->
   {#if tabs.footer.length > 0}
-    <div class="sidebar-rail__group sidebar-rail__group--footer" data-rail-group="footer" role="presentation">
+    <div class="sidebar-rail__group sidebar-rail__group--footer" data-rail-group="footer">
       {#each tabs.footer as tab (tab.id)}
         {@render railButton(tab)}
       {/each}

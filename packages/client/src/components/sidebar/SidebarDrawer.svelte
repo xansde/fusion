@@ -35,7 +35,13 @@
 </script>
 
 {#if open}
-  <div class="sidebar-drawer" data-active-tab={activeTabId} role="tabpanel" tabindex="-1">
+  <!-- Plain container, not `role="tabpanel"`: the rail is a group of toggle buttons and
+       not an ARIA tablist (REQ-GAV-041, DEC-GAV-05), so there is no tab for a panel to
+       belong to and nothing to point at with `aria-controls`. Claiming the role — and
+       the `tabindex="-1"` that goes with it — would promise a tab/panel relationship
+       that no markup here establishes. The panel's own heading is the tab's business
+       (spec 36 §7). -->
+  <div class="sidebar-drawer" data-active-tab={activeTabId}>
     {#if panel}
       <!-- REQ-GAV-017: exactly one panel is mounted; switching tabs destroys this
            subtree, so panel state that must survive lives in the tab's own store. -->

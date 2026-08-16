@@ -247,6 +247,29 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
       }
     });
 
+    it("REQ-GAV-041: the markup promises no keyboard the rail does not have", () => {
+      // The ARIA tabs pattern (`tablist`/`tab`/`tabpanel`) is a contract: a reader who
+      // hears "aba 1 de 6" presses an arrow key and expects the next tab. This rail
+      // answers only Tab/Enter/Espaço by design (DEC-GAV-05), and the guard below
+      // ("no global shortcut") forbids installing the key handler that would make the
+      // pattern true — so declaring it would strand the reader on a dead arrow key.
+      // The state is carried instead by a toggle button, which is what the rail is.
+      for (const isGm of [true, false]) {
+        seedPreferences(true, "chat");
+        const html = renderSidebar(isGm);
+
+        expect(html).not.toContain('role="tablist"');
+        expect(html).not.toContain('role="tab"');
+        expect(html).not.toContain('role="tabpanel"');
+        expect(html).not.toContain("aria-orientation=");
+        expect(html).not.toContain("aria-selected=");
+
+        // And the active tab is still identifiable to assistive tech.
+        expect(html).toMatch(/<button[^>]*data-tab-id="chat"[^>]*aria-pressed="true"/);
+        localStorage.clear();
+      }
+    });
+
     it("REQ-GAV-041: the focused tab is visible", () => {
       expect(codeOf("SidebarRail.svelte")).toMatch(
         /\.sidebar-rail__button:focus-visible\s*\{[^}]*outline:\s*(?!none)/,
