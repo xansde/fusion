@@ -26,7 +26,7 @@
  */
 
 import { chatStore } from "../chat/chatStore.svelte.js";
-import { combatStore } from "../combat/combatStore.svelte.js";
+import { combatBadgeLit, combatBadgeTone } from "../combat/combatBadge.svelte.js";
 import {
   chatIcon,
   combatIcon,
@@ -37,7 +37,7 @@ import {
 } from "../../components/sidebar/icons.js";
 import { scenePrepareBadge } from "../scenes/prepareState.svelte.js";
 import { getSidebarTab, registerSidebarTab } from "./registry.js";
-import type { SidebarBadgeStore, SidebarTabDefinition } from "./registry.js";
+import type { SidebarBadgeStore, SidebarBadgeTone, SidebarTabDefinition } from "./registry.js";
 
 /**
  * Chat's unread counter (REQ-GAV-020 counter type).
@@ -54,15 +54,24 @@ export const chatUnreadBadge: SidebarBadgeStore = {
 };
 
 /**
- * Combat's "something is happening" dot (REQ-GAV-020 state-dot type).
+ * Combat's "something is happening" dot (REQ-GAV-020 state-dot type, REQ-CBA-002).
  *
  * Whether a combat is running is spec 10's rule, kept in the combat store; this is
  * the same condition the legacy sidebar drew as a crossed-swords glyph — the glyph
  * is gone (REQ-NPC-094), the meaning is not.
+ *
+ * Both halves come from `lib/combat/combatBadge`, which is where DEC-CBA-07 lives:
+ * the dot is lit while there is a live encounter on the active scene, montagem
+ * included (REQ-CBA-003), and turns amber when the participant of the turn is this
+ * user's (REQ-CBA-004). Nothing is computed here, so opening or collapsing the drawer
+ * cannot move either one (REQ-GAV-022).
  */
 export const combatActiveBadge: SidebarBadgeStore = {
   get value(): boolean {
-    return combatStore.combat !== null;
+    return combatBadgeLit();
+  },
+  get tone(): SidebarBadgeTone {
+    return combatBadgeTone();
   },
 };
 

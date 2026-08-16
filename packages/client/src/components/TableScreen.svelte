@@ -27,6 +27,7 @@
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
@@ -64,6 +65,14 @@
   // drawer mounts because the drawer reads the registry to decide where this seat
   // opens (REQ-GAV-015/016), and it is idempotent, so a remount is harmless.
   registerCoreSidebarTabs();
+
+  // REQ-CBA-004: the Combate dot goes amber when the participant of the turn belongs
+  // to this user, so the badge has to know which seat this is. Who is logged in is the
+  // session's fact, and this is where the session meets the drawer — the rail itself
+  // stays ignorant of every badge rule (REQ-GAV-023).
+  $effect(() => {
+    setCombatBadgeViewer(session.user?.id ?? null);
+  });
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);

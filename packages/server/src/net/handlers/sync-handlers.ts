@@ -19,7 +19,11 @@ import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
-import { redactSceneDocsForNonPrivileged, stripHiddenCombatantsFromCombat } from "../redaction.js";
+import {
+  redactCombatDocsForNonPrivileged,
+  redactSceneDocsForNonPrivileged,
+  stripHiddenCombatantsFromCombat,
+} from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
@@ -163,25 +167,23 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
     if (!payload || typeof payload !== "object") return op;
 
     const documentType = payload["documentType"];
-    if (documentType !== "Scene" && documentType !== "Combat") return op;
+
+    // REQ-CBA-082 / REQ-CBT-031: the generic document path buffers Combat
+    // bodies too — a `doc:update` on a Combat, and every embedded Combatant op
+    // (which republishes the parent as `{ documentType: "Combat", documents:
+    // [...] }`, since T036 started broadcasting the document itself so the
+    // client's `_stats.version` can move). Replaying them raw would hand a
+    // reconnecting player exactly the hidden combatants the live path refused
+    // to send. Same redaction function the live path uses — the one in
+    // net/redaction.ts, never a second copy of the predicate.
+    if (documentType === "Combat") {
+      return filterCombatDocOpForRole(op, payload);
+    }
+
+    if (documentType !== "Scene") return op;
 
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
-
-    // Combat reaches this shape too, since T036 started broadcasting the
-    // document itself so the client's `_stats.version` can move. The live path
-    // redacts hidden combatants per socket; the replay has to do the same, or
-    // reconnecting inside the buffer window becomes the way to read what the
-    // GM hid (REQ-CBT-031). Same redaction function the live path uses — the
-    // one in net/redaction.ts, never a second copy of the predicate.
-    if (documentType === "Combat") {
-      const strippedCombats = (documents as Record<string, unknown>[]).map((doc) =>
-        stripHiddenCombatantsFromCombat(doc),
-      );
-      const combatChanged = strippedCombats.some((doc, i) => doc !== documents[i]);
-      if (!combatChanged) return op;
-      return { ...op, payload: { ...payload, documents: strippedCombats } };
-    }
 
     // Drop every scene that was not on air and redact the one that was
     // (REQ-CEN-071..073) — the same rule the live broadcast applies, so a
@@ -222,6 +224,30 @@ function filterSceneDeleteOpForRole(op: Envelope): Envelope {
   const ids = payload["ids"];
   if (!Array.isArray(ids) || ids.length === 0) return op;
   return { ...op, payload: { ...payload, ids: [] } };
+}
+
+/**
+ * Redact hidden combatants from a buffered `doc:create` / `doc:update` whose
+ * `documentType` is "Combat" — the generic-document counterpart of
+ * {@link filterCombatOpForRole}, which covers only the dedicated `combat:*`
+ * envelopes.
+ *
+ * Shape: `{ documentType: "Combat", documents: [fullCombat] }`, the same one
+ * `broadcastToWorld` redacts live, so a player who reconnects cannot read from
+ * the buffer what the live path refused to send (REQ-CBA-082, REQ-CBT-031).
+ *
+ * Never mutates the shared buffered envelope — clones only when stripping.
+ */
+function filterCombatDocOpForRole(op: Envelope, payload: Record<string, unknown>): Envelope {
+  const documents = payload["documents"];
+  if (!Array.isArray(documents)) return op;
+
+  const originals = documents as Record<string, unknown>[];
+  const redacted = redactCombatDocsForNonPrivileged(originals);
+  const changed = redacted.some((doc, i) => doc !== originals[i]);
+  if (!changed) return op;
+
+  return { ...op, payload: { ...payload, documents: redacted } };
 }
 
 /**

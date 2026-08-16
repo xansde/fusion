@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 385 | 21% |
-| Citados só por código de produção | 328 | 18% |
-| Sem nenhuma citação | 1129 | 61% |
+| Citados por algum teste | 445 | 24% |
+| Citados só por código de produção | 332 | 18% |
+| Sem nenhuma citação | 1065 | 58% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -26,15 +26,15 @@ porque ainda não foram prometidos para nenhum marco.
 | --- | ---: | ---: | ---: | ---: | ---: |
 | [00](00-visao-e-escopo.md) | 18 | 0 | 1 | 17 | 0% |
 | [01](01-arquitetura-geral.md) | 42 | 6 | 8 | 28 | 14% |
-| [02](02-modelo-de-dados.md) | 59 | 8 | 17 | 34 | 14% |
+| [02](02-modelo-de-dados.md) | 59 | 9 | 17 | 33 | 15% |
 | [03](03-persistencia-e-mundos.md) | 36 | 2 | 20 | 14 | 6% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
 | [05](05-usuarios-e-permissoes.md) | 40 | 0 | 19 | 21 | 0% |
-| [06](06-canvas-e-renderizacao.md) | 86 | 4 | 32 | 50 | 5% |
+| [06](06-canvas-e-renderizacao.md) | 86 | 5 | 32 | 49 | 6% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
 | [09](09-chat-e-mensagens.md) | 49 | 12 | 10 | 27 | 24% |
-| [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
+| [10](10-combate-e-iniciativa.md) | 45 | 14 | 30 | 1 | 31% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 8 | 17 | 37 | 13% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
@@ -60,8 +60,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
 | [37](37-configuracoes.md) | 40 | 1 | 0 | 39 | 3% |
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
-| [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
-| [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
+| [39](39-contatos.md) | 67 | 8 | 0 | 59 | 12% |
+| [40](40-aba-combate.md) | 59 | 50 | 3 | 6 | 85% |
 | [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
 | [43](43-aba-compendio.md) | 60 | 4 | 1 | 55 | 7% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |

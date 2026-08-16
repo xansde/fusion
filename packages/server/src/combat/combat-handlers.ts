@@ -20,7 +20,10 @@
  *
  * Privilege model:
  *   - GM (role ≥ ASSISTANT_GM) = full control
- *   - Player = can only roll initiative for combatants linked to an actor they own
+ *   - Player = can only roll initiative for combatants linked to an actor they own,
+ *     and can end their OWN turn through combat:nextTurn (REQ-CBA-072, REQ-CBA-081).
+ *     Going back a turn (combat:previousTurn) and ending the encounter
+ *     (combat:endCombat) stay privileged-only (REQ-CBA-071, REQ-CBA-073).
  *
  * Hidden combatant redaction:
  *   All payloads containing CombatDocument are routed through
@@ -1009,6 +1012,9 @@ export function buildCombatRollInitiativeHandler(deps: CombatHandlerDeps): Handl
           total: rollResult.total,
           statistic: rollResult.statistic ?? existing.initiativeStatistic,
           hidden: existing.hidden,
+          // REQ-CBA-067: a creature's initiative value must never reach a
+          // player — not in the panel column, not in the chat message.
+          hasPlayerOwner: existing.hasPlayerOwner,
         });
       }
     }
@@ -1151,6 +1157,13 @@ export function buildCombatResetInitiativeHandler(deps: CombatHandlerDeps): Hand
 // combat:next — advance to the next turn
 // REQ-CBT-004, REQ-CBT-021, REQ-CBT-023, REQ-CBT-026..028
 //
+// Also the single operation through which a non-privileged user ends their OWN
+// turn (REQ-CBA-072): same op, same state transition, no player-only shortcut.
+// The server is what decides (REQ-CBA-080) — the client hiding the control is
+// not the protection. Accepted only when the requester owns the combatant whose
+// turn it currently is (REQ-CBA-081); going back a turn and ending the encounter
+// remain privileged-only (REQ-CBA-071, REQ-CBA-073).
+//
 // Lifecycle order (REQ-CBT-026..028):
 //   1. Emit turnEnd for the current combatant
 //   2. If round changes: emit roundEnd for the ending round
@@ -1162,10 +1175,6 @@ export function buildCombatResetInitiativeHandler(deps: CombatHandlerDeps): Hand
 
 export function buildCombatNextHandler(deps: CombatHandlerDeps): HandlerFn {
   return (rawPayload, ctx: HandlerContext) => {
-    if (!isRolePrivileged(ctx.role)) {
-      return ackError("PERMISSION_DENIED", "Only GM/Assistant can advance combat turns");
-    }
-
     const parsed = CombatNextPayloadSchema.safeParse(rawPayload);
     if (!parsed.success) {
       return ackError("VALIDATION_FAILED", parsed.error.message);
@@ -1177,6 +1186,21 @@ export function buildCombatNextHandler(deps: CombatHandlerDeps): HandlerFn {
       combat = loadCombat(deps, combatId);
     } catch {
       return ackError("NOT_FOUND", `Combat not found: ${combatId}`);
+    }
+
+    // REQ-CBA-081: a non-privileged requester may advance ONLY when the
+    // combatant of the current turn is one of theirs. Ownership is resolved by
+    // the same helper used by combat:rollInitiative, so "owns this combatant"
+    // has a single definition. Checked before the started/ended validations so
+    // a player learns nothing about an encounter they cannot act on.
+    if (!isRolePrivileged(ctx.role)) {
+      const current = activeCombatant(combat.combatants, combat.turnIndex, combat.started);
+      if (!current || !isOwnedByPlayer(deps, current, ctx.userId)) {
+        return ackError(
+          "PERMISSION_DENIED",
+          "Only GM/Assistant can advance combat turns; a player may only end their own turn",
+        );
+      }
     }
 
     if (!combat.started) {
@@ -1241,6 +1265,10 @@ export function buildCombatNextHandler(deps: CombatHandlerDeps): HandlerFn {
 // ---------------------------------------------------------------------------
 // combat:previous — go back one turn
 // REQ-CBT-004, REQ-CBT-022
+//
+// Privileged-only, with no owner exception: rewinding the turn is a table-wide
+// correction, not something the owner of the current turn gets (REQ-CBA-071,
+// REQ-CBA-073).
 // ---------------------------------------------------------------------------
 
 export function buildCombatPreviousHandler(deps: CombatHandlerDeps): HandlerFn {
@@ -1532,6 +1560,10 @@ export function buildCombatReorderHandler(deps: CombatHandlerDeps): HandlerFn {
 // ---------------------------------------------------------------------------
 // combat:end — GM ends the encounter
 // REQ-CBT-004, REQ-CBT-006
+//
+// Privileged-only, with no owner exception: owning the combatant of the current
+// turn buys the right to end that turn, never the encounter (REQ-CBA-071,
+// REQ-CBA-073).
 // ---------------------------------------------------------------------------
 
 export function buildCombatEndHandler(deps: CombatHandlerDeps): HandlerFn {

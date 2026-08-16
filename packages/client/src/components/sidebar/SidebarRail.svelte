@@ -22,7 +22,7 @@
 
   import { getVisibleSidebarTabs } from "../../lib/sidebar/registry.js";
   import type { SidebarTabEntry } from "../../lib/sidebar/registry.js";
-  import { isSidebarBadgeVisible } from "../../lib/sidebar/badges.svelte.js";
+  import { isSidebarBadgeVisible, readSidebarBadgeTone } from "../../lib/sidebar/badges.svelte.js";
   import SidebarBadge from "./SidebarBadge.svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
@@ -90,8 +90,14 @@
          active, open tab included. Reading `.value` here is the only thing the rail
          ever does with a badge; it never writes one (REQ-GAV-022, REQ-GAV-023).
          `descriptionId` gives the badge's hidden wording an anchor for the button's
-         aria-describedby, so the state survives for a screen reader (REQ-A11-010). -->
-    <SidebarBadge value={tab.badge?.value ?? null} descriptionId={badgeDescriptionId(tab.id)} />
+         aria-describedby, so the state survives for a screen reader (REQ-A11-010).
+         `tone` is the second thing the store may say — how loud a lit dot is drawn
+         (REQ-CBA-004) — and is read exactly like the value: read, never written. -->
+    <SidebarBadge
+      value={tab.badge?.value ?? null}
+      tone={readSidebarBadgeTone(tab.badge)}
+      descriptionId={badgeDescriptionId(tab.id)}
+    />
   </button>
 {/snippet}
 

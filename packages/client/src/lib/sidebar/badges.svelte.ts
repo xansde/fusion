@@ -13,6 +13,9 @@
  *  - `formatSidebarBadge` / `readSidebarBadge` — the pure rendering decision the
  *    rail asks for. It takes the value and nothing else, so an open, collapsed or
  *    active drawer literally cannot change what is drawn (REQ-GAV-021);
+ *  - `resolveSidebarBadgeTone` / `readSidebarBadgeTone` — how loud a lit dot is
+ *    drawn. A dot has two intensities and a counter has none; which one is asked
+ *    for is, again, the owning child's call (REQ-CBA-004 is the first caller);
  *  - `createCounterBadge` / `createDotBadge` — reactive stores a child tab owns,
  *    satisfying `SidebarBadgeStore` from `registry.ts` so they can be handed
  *    straight to `registerSidebarTab({ badge })` (REQ-GAV-030).
@@ -30,7 +33,9 @@
  * `lib/windows/dialogs.svelte.ts`). Importers use `./badges.svelte.js`.
  */
 
-import type { SidebarBadgeStore, SidebarBadgeValue } from "./registry.js";
+import type { SidebarBadgeStore, SidebarBadgeTone, SidebarBadgeValue } from "./registry.js";
+
+export type { SidebarBadgeTone } from "./registry.js";
 
 // ---------------------------------------------------------------------------
 // Formatting (pure)
@@ -87,6 +92,42 @@ export function formatSidebarBadge(value: SidebarBadgeValue | undefined): Sideba
 /** Whether a value draws anything at all (REQ-GAV-021). */
 export function isSidebarBadgeVisible(value: SidebarBadgeValue | undefined): boolean {
   return formatSidebarBadge(value).kind !== "none";
+}
+
+/** Emphasis of a dot that carries none — the answer for almost every badge. */
+export const SIDEBAR_BADGE_DEFAULT_TONE: SidebarBadgeTone = "default";
+
+/**
+ * Which emphasis a lit **state dot** is drawn with (REQ-CBA-004).
+ *
+ * Pure in the value and the declared tone, for the same reason `formatSidebarBadge`
+ * is pure in the value alone: an open, collapsed or active drawer cannot change it
+ * (REQ-GAV-021, REQ-GAV-022). Two things fall out of that and are deliberate:
+ *
+ *  - a **counter** never has a tone. A tone is an intensity of the dot, and the two
+ *    kinds do not mix (REQ-GAV-020) — asking for one on a number is answered with
+ *    the default rather than with a throw;
+ *  - a badge that draws nothing has the default tone too, so "amber" can never be
+ *    the reason something appears. Appearing is the value's business.
+ *
+ * Changing tone is a redraw and nothing else: no blink, no animation, no sound
+ * (REQ-GAV-024) — there is no timer behind this function.
+ */
+export function resolveSidebarBadgeTone(
+  value: SidebarBadgeValue | undefined,
+  tone: SidebarBadgeTone | undefined,
+): SidebarBadgeTone {
+  if (formatSidebarBadge(value).kind !== "dot") return SIDEBAR_BADGE_DEFAULT_TONE;
+  return tone ?? SIDEBAR_BADGE_DEFAULT_TONE;
+}
+
+/**
+ * The rail's entry point for emphasis: read a tab's optional badge store and decide
+ * how loud its dot is. Reading `.tone` here is what registers the reactive
+ * dependency, exactly as `readSidebarBadge` does for the value.
+ */
+export function readSidebarBadgeTone(badge: SidebarBadgeStore | undefined): SidebarBadgeTone {
+  return resolveSidebarBadgeTone(badge?.value, badge?.tone);
 }
 
 /**

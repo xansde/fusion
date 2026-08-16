@@ -213,7 +213,6 @@ describe("Combat keys coverage", () => {
     "FUSION.Combat.RemoveFromCombat",
     "FUSION.Combat.RollInitiative",
     "FUSION.Combat.RollMyInitiative",
-    "FUSION.Combat.TargetToken",
     "FUSION.Combat.TurnOrder",
     "FUSION.Combat.ActiveTurn",
   ];
