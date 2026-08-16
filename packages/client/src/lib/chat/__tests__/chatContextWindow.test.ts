@@ -17,22 +17,23 @@
  * servidor (isso seria teste circular); ele existe para que a janela tenha de quem
  * receber uma resposta honesta.
  *
- * A suíte do cliente roda em ambiente node, sem DOM: o que só existe dentro de
- * `ChatContextWindow.svelte` (onde o alvo é destacado, quais controles existem e
- * que ele não toca no log) é lido da fonte do componente — a mesma armadilha que
- * `chatUnreadMarker.test.ts` usa.
+ * O que só existe dentro de `ChatContextWindow.svelte` (o destaque do alvo, quais
+ * controles existem e que ele não toca no log) é provado RENDERIZANDO o componente
+ * com `render()` de `svelte/server`: a suíte do cliente roda em ambiente node sem
+ * DOM, mas o componente não toca em DOM no setup, então a primeira pintura já
+ * carrega tudo que estes requisitos pedem — e uma asserção sobre markup não passa
+ * com o bloco dentro de um `{#if false}`, como uma asserção sobre a fonte passaria.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { beforeEach, describe, expect, it } from "vitest";
+import { render } from "svelte/server";
 import type { Socket } from "socket.io-client";
 import type { ChatMessage } from "@fusion/shared";
 
-// The window carries a Svelte component; the registry only stores the constructor,
-// so a stand-in keeps this test about the window contract and not about compiling
-// a component the node environment could never mount anyway.
-vi.mock("../../../components/chat/ChatContextWindow.svelte", () => ({ default: {} }));
+import ChatContextWindow from "../../../components/chat/ChatContextWindow.svelte";
+// Importing the barrel pre-loads the pt-BR/en bundles, so `t()` resolves real labels.
+import "../../i18n/index.js";
+import { t } from "../../i18n/i18n.js";
 
 import {
   CHAT_CONTEXT_PAGE,
@@ -407,36 +408,139 @@ describe("REQ-ACH-014: uma janela de contexto por vez", () => {
 });
 
 // ---------------------------------------------------------------------------
-// O componente (lido da fonte — o ambiente de teste não monta DOM)
+// O componente — renderizado de verdade (`svelte/server`), não lido da fonte
 // ---------------------------------------------------------------------------
 
+/** Pictographs — the exact class of character the drawer bans. */
+const PICTOGRAPH = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+
+/** Svelte appends a scope hash to every styled class, so match the class as a token. */
+function countClass(body: string, className: string): number {
+  return (body.match(new RegExp(`class="[^"]*\\b${className}[ "]`, "g")) ?? []).length;
+}
+
+/** The `data-message-id` of every row the window painted, in reading order. */
+function renderedIds(body: string): string[] {
+  return [...body.matchAll(/data-message-id="([^"]+)"/g)].map((m) => m[1] as string);
+}
+
+/**
+ * A render of the window with the props the window manager really hands it.
+ *
+ * `onDestroy` is the one lifecycle hook that also runs on the server, so each
+ * render ends by closing the context — every case reloads before rendering.
+ */
+function renderWindow(): string {
+  const { body } = render(ChatContextWindow, {
+    props: { socket: {} as unknown as Socket, worldId: "world1", isGm: false, userId: "user1" },
+  });
+  return body;
+}
+
 describe("ChatContextWindow.svelte", () => {
-  const source = readFileSync(
-    fileURLToPath(new URL("../../../components/chat/ChatContextWindow.svelte", import.meta.url)),
-    "utf8",
-  );
+  it("REQ-ACH-013: pinta o alvo destacado no meio, com os visíveis de cada lado e nada mais", async () => {
+    const server = fakeServer(visibleLog(21));
+    await loadChatContext(server.socket, "world1", "v10");
 
-  it("REQ-ACH-014: a janela lê o estado do módulo, não as props — senão o alvo seria para sempre o do primeiro resultado", () => {
-    expect(source).toContain("chatContext");
-    expect(source).toContain("../../lib/chat/chatContext.svelte.js");
-    // O window manager foca o singleton existente SEM reaplicar componentProps
-    // (ver WindowManager.open), então um alvo que viajasse por prop nunca mudaria.
-    expect(source).not.toMatch(/targetId\s*[,=}]?\s*}\s*:\s*{/);
+    const body = renderWindow();
+
+    // Um único destaque, e é o alvo — não a primeira nem a última linha.
+    expect(countClass(body, "chat-context__row--target")).toBe(1);
+    const target = body.slice(body.indexOf("chat-context__row--target"));
+    expect(target.slice(0, 200)).toContain('data-message-id="v10"');
+    // E a janela pintou exatamente a sequência que recebeu, na ordem de leitura.
+    expect(renderedIds(body)).toEqual([
+      "v5",
+      "v6",
+      "v7",
+      "v8",
+      "v9",
+      "v10",
+      "v11",
+      "v12",
+      "v13",
+      "v14",
+      "v15",
+    ]);
   });
 
-  it("REQ-ACH-013: destaca o alvo e oferece um “mais 5” para cada lado", () => {
-    expect(source).toContain("chat-context__row--target");
-    expect(source).toContain('expandChatContext("before")');
-    expect(source).toContain('expandChatContext("after")');
-    expect(source).toContain("FUSION.Chat.Context.MoreBefore");
-    expect(source).toContain("FUSION.Chat.Context.MoreAfter");
-    // Ícones desenhados, nunca emoji.
-    expect(source).toContain("<svg");
+  it("REQ-ACH-013: oferece um “mais 5” por lado, e some no lado que acabou", async () => {
+    const wide = fakeServer(visibleLog(41));
+    await loadChatContext(wide.socket, "world1", "v20");
+    const both = renderWindow();
+
+    expect(countClass(both, "chat-context__more")).toBe(2);
+    expect(both).toContain(t("FUSION.Chat.Context.MoreBefore", { count: CHAT_CONTEXT_PAGE }));
+    expect(both).toContain(t("FUSION.Chat.Context.MoreAfter", { count: CHAT_CONTEXT_PAGE }));
+
+    // Alvo em v2 de um log de 9: atrás dele não sobrou nada, à frente sobrou.
+    const narrow = fakeServer(visibleLog(9));
+    await loadChatContext(narrow.socket, "world1", "v2");
+    const onlyAfter = renderWindow();
+
+    expect(countClass(onlyAfter, "chat-context__more")).toBe(1);
+    expect(onlyAfter).not.toContain(
+      t("FUSION.Chat.Context.MoreBefore", { count: CHAT_CONTEXT_PAGE }),
+    );
+    expect(onlyAfter).toContain(t("FUSION.Chat.Context.MoreAfter", { count: CHAT_CONTEXT_PAGE }));
   });
 
-  it("REQ-ACH-014: a janela não toca no log ao vivo", () => {
-    expect(source).not.toContain("chatStore");
-    expect(source).not.toContain("chatSession");
-    expect(source).not.toContain("loadMoreHistory");
+  it("REQ-ACH-013: os controles têm ícone desenhado, nunca pictograma", async () => {
+    const server = fakeServer(visibleLog(41));
+    await loadChatContext(server.socket, "world1", "v20");
+
+    const body = renderWindow();
+    const controls = body.match(/<button[\s\S]*?<\/button>/g) ?? [];
+
+    expect(controls).toHaveLength(2);
+    for (const control of controls) {
+      expect(control).toContain("<svg");
+      expect(control).not.toMatch(PICTOGRAPH);
+    }
+  });
+
+  it("REQ-ACH-014: a janela reaproveitada pinta o NOVO alvo — o estado manda, não as props", async () => {
+    // As props são as mesmas nas duas pinturas (o window manager não reaplica
+    // `componentProps` ao focar o singleton), então só o estado pode mudar o alvo.
+    const server = fakeServer(visibleLog(41));
+
+    await loadChatContext(server.socket, "world1", "v10");
+    const first = renderWindow();
+    await loadChatContext(server.socket, "world1", "v30");
+    const second = renderWindow();
+
+    expect(
+      first.slice(
+        first.indexOf("chat-context__row--target"),
+        200 + first.indexOf("chat-context__row--target"),
+      ),
+    ).toContain('data-message-id="v10"');
+    expect(
+      second.slice(
+        second.indexOf("chat-context__row--target"),
+        200 + second.indexOf("chat-context__row--target"),
+      ),
+    ).toContain('data-message-id="v30"');
+    expect(renderedIds(second)).not.toContain("v10");
+  });
+
+  it("REQ-ACH-014: pintar a janela não mexe no log ao vivo nem mostra o que está nele", async () => {
+    const live = [makeMessage("live1", "conversa ao vivo", 10), makeMessage("live2", "b", 20)];
+    chatStore.messages = [...live];
+    chatSession.scrollTop = 137;
+    const marker = { firstUnreadId: "live2", count: 1 };
+    chatStore.unreadMarker = marker;
+
+    const server = fakeServer(visibleLog(41));
+    await loadChatContext(server.socket, "world1", "v20");
+    const body = renderWindow();
+
+    // Nada do log ao vivo entrou na janela…
+    expect(renderedIds(body)).not.toContain("live1");
+    expect(body).not.toContain("conversa ao vivo");
+    // …e o log continua exatamente onde o leitor o deixou.
+    expect(ids(chatStore.messages)).toEqual(["live1", "live2"]);
+    expect(chatSession.scrollTop).toBe(137);
+    expect(chatStore.unreadMarker).toEqual(marker);
   });
 });
