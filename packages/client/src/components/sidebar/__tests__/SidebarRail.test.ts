@@ -8,8 +8,8 @@
  * all of it is structural. Click behaviour (open/switch/collapse) belongs to the
  * drawer (G012) and is tested as a module there.
  *
- * Covers REQ-GAV-001, REQ-GAV-002, REQ-GAV-003, REQ-GAV-004, REQ-GAV-005 and
- * REQ-NPC-094.
+ * Covers REQ-GAV-001, REQ-GAV-002, REQ-GAV-003, REQ-GAV-004, REQ-GAV-005,
+ * REQ-GAV-021, REQ-A11-010 and REQ-NPC-094.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -18,6 +18,7 @@ import { render } from "svelte/server";
 import SidebarRail from "../SidebarRail.svelte";
 import { sidebarIcons } from "../icons.js";
 import { clearSidebarTabs, registerSidebarTab } from "../../../lib/sidebar/registry.js";
+import { createCounterBadge, createDotBadge } from "../../../lib/sidebar/badges.svelte.js";
 // Importing the barrel pre-loads the pt-BR/en bundles, so `t()` resolves real
 // labels instead of raw keys — which is what makes the "no visible text" and
 // "the name is only in aria-label/tooltip" assertions meaningful.
@@ -221,6 +222,56 @@ describe("SidebarRail", () => {
       const bodyText = withoutTooltips.replace(/<[^>]*>/g, "");
       for (const tab of CORE_TABS) {
         expect(bodyText).not.toContain(t(tab.label));
+      }
+    });
+  });
+
+  describe("the badge reaches a screen reader too (REQ-A11-010, REQ-GAV-021)", () => {
+    it("REQ-A11-010: a aba com contador descreve o botão com o texto do badge", () => {
+      clearSidebarTabs();
+      registerSidebarTab({
+        id: "chat",
+        icon: sidebarIcons["chat"]!,
+        label: "FUSION.Sidebar.Tabs.Chat",
+        group: "all",
+        component: neverLoaded,
+        badge: createCounterBadge(2),
+      });
+
+      const button = buttonOf(renderRail({ isGm: false }), "chat");
+
+      // The name is still the tab name alone (REQ-GAV-002); the count arrives as a
+      // description, so "2 unread" is no longer invisible to assistive tech.
+      expect(button).toContain(`aria-label="${t("FUSION.Sidebar.Tabs.Chat")}"`);
+      const described = /aria-describedby="([^"]+)"/.exec(button);
+      expect(described, "the badged button describes nothing").not.toBeNull();
+      expect(button).toContain(`id="${described![1]!}"`);
+      expect(button).toContain(t("FUSION.Sidebar.Badge.CounterMany", { count: 2 }));
+    });
+
+    it("REQ-A11-010: o ponto de estado é descrito com a gaveta recolhida", () => {
+      clearSidebarTabs();
+      const dot = createDotBadge(true);
+      registerSidebarTab({
+        id: "combat",
+        icon: sidebarIcons["combat"] ?? sidebarIcons["chat"]!,
+        label: "FUSION.Sidebar.Tabs.Combat",
+        group: "all",
+        component: neverLoaded,
+        badge: dot,
+      });
+
+      // REQ-GAV-021: collapsed is exactly the state in which the badge is the only
+      // carrier of "a combat is running" — so that is where it must still be said.
+      const button = buttonOf(renderRail({ isGm: false, open: false }), "combat");
+      expect(button).toContain("aria-describedby=");
+      expect(button).toContain(t("FUSION.Sidebar.Badge.Dot"));
+    });
+
+    it("REQ-A11-010: aba sem badge não descreve nada — nenhuma referência pendurada", () => {
+      const html = renderRail({ isGm: true });
+      for (const tab of CORE_TABS) {
+        expect(buttonOf(html, tab.id)).not.toContain("aria-describedby");
       }
     });
   });

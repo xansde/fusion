@@ -22,6 +22,7 @@
 
   import { getVisibleSidebarTabs } from "../../lib/sidebar/registry.js";
   import type { SidebarTabEntry } from "../../lib/sidebar/registry.js";
+  import { isSidebarBadgeVisible } from "../../lib/sidebar/badges.svelte.js";
   import SidebarBadge from "./SidebarBadge.svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
@@ -44,9 +45,19 @@
   function isActive(id: string): boolean {
     return open && activeTabId === id;
   }
+
+  /**
+   * Id of the badge's hidden textual equivalent, so the button can describe
+   * itself with it (REQ-A11-010). Reading the value to decide whether the badge
+   * exists is still only reading — the rail writes no badge (REQ-GAV-022).
+   */
+  function badgeDescriptionId(tabId: string): string {
+    return `sidebar-badge-desc-${tabId}`;
+  }
 </script>
 
 {#snippet railButton(tab: SidebarTabEntry)}
+  {@const hasBadge = isSidebarBadgeVisible(tab.badge?.value)}
   <button
     type="button"
     class="sidebar-rail__button"
@@ -55,6 +66,7 @@
     role="tab"
     aria-selected={isActive(tab.id)}
     aria-label={t(tab.label)}
+    aria-describedby={hasBadge ? badgeDescriptionId(tab.id) : undefined}
     onclick={() => onSelect(tab.id)}
   >
     <!-- Drawn icon (REQ-NPC-094): inline SVG authored in ./icons.ts, never a glyph. -->
@@ -64,8 +76,10 @@
     <span class="sidebar-rail__tooltip" aria-hidden="true">{t(tab.label)}</span>
     <!-- REQ-GAV-021: the badge is drawn whenever the tab's store has a value — the
          active, open tab included. Reading `.value` here is the only thing the rail
-         ever does with a badge; it never writes one (REQ-GAV-022, REQ-GAV-023). -->
-    <SidebarBadge value={tab.badge?.value ?? null} />
+         ever does with a badge; it never writes one (REQ-GAV-022, REQ-GAV-023).
+         `descriptionId` gives the badge's hidden wording an anchor for the button's
+         aria-describedby, so the state survives for a screen reader (REQ-A11-010). -->
+    <SidebarBadge value={tab.badge?.value ?? null} descriptionId={badgeDescriptionId(tab.id)} />
   </button>
 {/snippet}
 

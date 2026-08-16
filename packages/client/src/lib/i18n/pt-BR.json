@@ -9,6 +9,10 @@
   "FUSION.Sidebar.Tabs.Compendium": "Compêndio",
   "FUSION.Sidebar.Tabs.Settings": "Configurações",
 
+  "FUSION.Sidebar.Badge.CounterOne": "1 novidade",
+  "FUSION.Sidebar.Badge.CounterMany": "{{count}} novidades",
+  "FUSION.Sidebar.Badge.Dot": "algo em andamento",
+
   "FUSION.Sidebar.Actors.Title": "Atores",
   "FUSION.Sidebar.Actors.Create": "+ Novo",
   "FUSION.Sidebar.Actors.NewActorName": "Novo Ator",
