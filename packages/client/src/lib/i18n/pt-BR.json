@@ -9,6 +9,15 @@
   "FUSION.Sidebar.Tabs.Compendium": "Compêndio",
   "FUSION.Sidebar.Tabs.Settings": "Configurações",
 
+  "FUSION.Conditions.Tone.Benefit": "benefício",
+  "FUSION.Conditions.Tone.Harm": "penalidade",
+  "FUSION.Conditions.Tone.Special": "situação",
+  "FUSION.Conditions.Critical": "crítica",
+  "FUSION.Conditions.More": "+{{count}}",
+  "FUSION.Conditions.ShowMoreOne": "Mostrar mais 1 condição",
+  "FUSION.Conditions.ShowMoreMany": "Mostrar mais {{count}} condições",
+  "FUSION.Conditions.ShowLess": "Mostrar menos condições",
+
   "FUSION.Sidebar.Badge.CounterOne": "1 novidade",
   "FUSION.Sidebar.Badge.CounterMany": "{{count}} novidades",
   "FUSION.Sidebar.Badge.Dot": "algo em andamento",

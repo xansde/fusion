@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 267 | 14% |
-| Citados só por código de produção | 335 | 18% |
-| Sem nenhuma citação | 1240 | 67% |
+| Citados por algum teste | 292 | 16% |
+| Citados só por código de produção | 342 | 19% |
+| Sem nenhuma citação | 1208 | 66% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -39,7 +39,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 62 | 15 | 31 | 16 | 24% |
+| [15](15-api-de-sistemas.md) | 62 | 16 | 30 | 16 | 26% |
 | [16](16-compendiums-e-importacao.md) | 56 | 15 | 17 | 24 | 27% |
 | [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
@@ -60,8 +60,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
 | [37](37-configuracoes.md) | 40 | 1 | 0 | 39 | 3% |
 | [38](38-aba-chat.md) | 56 | 0 | 1 | 55 | 0% |
-| [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
-| [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
-| [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
+| [39](39-contatos.md) | 67 | 24 | 6 | 37 | 36% |
+| [40](40-aba-combate.md) | 59 | 0 | 1 | 58 | 0% |
+| [42](42-aba-npcs.md) | 59 | 1 | 1 | 57 | 2% |
 | [43](43-aba-compendio.md) | 60 | 4 | 1 | 55 | 7% |
 | [44](44-aba-cenas.md) | 58 | 6 | 2 | 50 | 10% |

@@ -9,6 +9,15 @@
   "FUSION.Sidebar.Tabs.Compendium": "Compendium",
   "FUSION.Sidebar.Tabs.Settings": "Settings",
 
+  "FUSION.Conditions.Tone.Benefit": "benefit",
+  "FUSION.Conditions.Tone.Harm": "penalty",
+  "FUSION.Conditions.Tone.Special": "situation",
+  "FUSION.Conditions.Critical": "critical",
+  "FUSION.Conditions.More": "+{{count}}",
+  "FUSION.Conditions.ShowMoreOne": "Show 1 more condition",
+  "FUSION.Conditions.ShowMoreMany": "Show {{count}} more conditions",
+  "FUSION.Conditions.ShowLess": "Show fewer conditions",
+
   "FUSION.Sidebar.Badge.CounterOne": "1 new item",
   "FUSION.Sidebar.Badge.CounterMany": "{{count}} new items",
   "FUSION.Sidebar.Badge.Dot": "something is happening",

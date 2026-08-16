@@ -27,6 +27,7 @@ import {
   buildDocUpdateHandler,
   buildDocDeleteHandler,
 } from "./handlers/doc-handlers.js";
+import { buildActorSetKnowledgeHandler } from "./handlers/knowledge-handlers.js";
 import {
   buildWallCreateHandler,
   buildWallUpdateHandler,
@@ -84,7 +85,12 @@ import {
   registerReacaoResetOnTurnStart,
   buildProgressaoConfirmarHandler,
 } from "../etmos/index.js";
-import { redactAckResultForNonPrivileged } from "./redaction.js";
+import {
+  redactAckResultForNonPrivileged,
+  registerContactKnowledgeSource,
+  getContactKnowledgeSource,
+  contactKnowledgeSourceFromStore,
+} from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
@@ -247,6 +253,12 @@ export class SocketManager {
     const store = new DocumentStore({ db, coreVersion: FUSION_VERSION });
     const registry = new HandlerRegistry();
 
+    // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
+    // contact redaction reads from. Registered here, once, so EVERY emission
+    // path that goes through `broadcastToWorld` — present or future, in any
+    // handler module — is covered without having to thread a store handle.
+    registerContactKnowledgeSource(ns, contactKnowledgeSourceFromStore(store));
+
     // REQ-NET-040/071: ephemeral rate limiters shared across all sockets in this namespace
     // cursor: ~20/s max = 50 ms minimum interval
     const cursorRateLimiter = new EphemeralRateLimiter(50);
@@ -281,6 +293,10 @@ export class SocketManager {
     registry.register("doc:create", buildDocCreateHandler(syncDeps));
     registry.register("doc:update", buildDocUpdateHandler(syncDeps));
     registry.register("doc:delete", buildDocDeleteHandler(syncDeps));
+
+    // Spec 39 §5.8: contact knowledge is a field of the contact's own Actor,
+    // but doc:update refuses the flag path — this is the one way in.
+    registry.register("actor:setKnowledge", buildActorSetKnowledgeHandler(syncDeps));
 
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
@@ -738,9 +754,18 @@ export class SocketManager {
           // (GM / ASSISTANT) receive the unredacted result.  redactAckResult*
           // clones before stripping and never mutates the shared object that
           // the live-broadcast / op-buffer paths also reference.
+          //
+          // Spec 39 §5.9: the same net also carries the contact-knowledge rule
+          // (REQ-CTT-081..084) — an ack echoing an Actor back to a player is an
+          // emission path like any other, and must not be the one that escapes
+          // the module.
           const acked = isRolePrivileged(data.role)
             ? result
-            : redactAckResultForNonPrivileged(result);
+            : redactAckResultForNonPrivileged(result, {
+                source: getContactKnowledgeSource(ns),
+                userId: data.userId,
+                role: data.role,
+              });
 
           // REQ-NET-011: echo requestId back in ack (M0-C pendência)
           if (

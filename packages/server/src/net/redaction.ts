@@ -1,28 +1,47 @@
 /**
  * Canonical redaction for non-GM clients.
  *
- * Invariants (specs 04/05/07/44):
+ * Invariants (specs 04/05/07/39/44):
  *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path.
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
  *   - The scene LIST itself is privileged: only the scene on air may reach a
  *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
+ *   - A contact the viewer only GLIMPSED carries no name, title, portrait or
+ *     system data, a contact that is HIDDEN is not delivered at all, and the
+ *     knowledge map itself never reaches a non-privileged socket
+ *     (REQ-CTT-081..084).
  *
- * There are three emission paths that carry Scene bodies to clients, and all
- * three MUST funnel non-GM Scene documents through
- *   {@link redactSceneDocsForNonPrivileged}
- * which composes the whole rule:
- *   {@link sceneIsOnAir}        — drops every scene that is not on air
- *   {@link stripHiddenTokens}   — removes hidden tokens
- *   {@link redactSecretDoors}   — masks secret doors as plain walls
+ * There are three emission paths that carry document bodies to clients, and all
+ * three MUST funnel non-GM documents through this module:
+ *   - Scene → {@link redactSceneDocsForNonPrivileged}, which composes
+ *       {@link sceneIsOnAir}        — drops every scene that is not on air
+ *       {@link stripHiddenTokens}   — removes hidden tokens
+ *       {@link redactSecretDoors}   — masks secret doors as plain walls
+ *   - Actor → {@link redactActorDocsForViewer}, which composes
+ *       {@link actorIsSubjectToKnowledge} — contacts only, never what you own
+ *       {@link glimpsedContactView}       — the allow-listed glimpsed payload
+ *       {@link stripKnowledgeMap}         — REQ-CTT-084, on EVERY actor
  *
  * Emission paths:
  *   1. buildSnapshot      (full snapshot on join / seq-out-of-buffer resync)
  *   2. broadcastToWorld   (live per-socket emit of doc:create / doc:update)
  *   3. filterOpsForRole   (delta resync — replay of buffered ops)
+ * plus the dispatcher-level ack net, {@link redactAckResultForNonPrivileged}.
  *
- * This module is the single source of truth so the three paths can never
- * drift out of parity.
+ * This module is the single source of truth so the paths can never drift out
+ * of parity.
  */
+
+import {
+  KnowledgeState,
+  resolveUserKnowledge,
+  KNOWLEDGE_FLAG_NAMESPACE,
+  KNOWLEDGE_FLAG_KEY,
+} from "@fusion/shared";
+import type { Ownership } from "@fusion/shared";
+import { OwnershipLevel, resolveOwnership } from "../documents/ownership.js";
+import { CHARACTER_SUBTYPE } from "../documents/knowledge.js";
+import type { DocumentStore } from "../documents/store.js";
 
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
@@ -219,6 +238,221 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Contact knowledge redaction (spec 39 §5.9 — REQ-CTT-080..085)
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything the funnel needs to know about who is receiving a payload.
+ *
+ * `ownedCharacterIds` is the set of player-character Actors this user OWNS —
+ * knowledge is a property of the CHARACTER, never of the user (DEC-CTT-03), so
+ * the user's effective state is the maximum over their characters
+ * (REQ-CTT-071, `resolveUserKnowledge`).
+ */
+export interface ContactViewer {
+  userId: string;
+  role: number;
+  ownedCharacterIds: readonly string[];
+}
+
+/** One player character, reduced to what deciding ownership needs. */
+export interface CharacterOwnershipRow {
+  id: string;
+  ownership: unknown;
+}
+
+/**
+ * Where the funnel reads the world's player characters from.
+ *
+ * An interface rather than a store handle so the redaction rule stays testable
+ * on its own, and so every emission path can share ONE read per broadcast
+ * instead of one read per socket.
+ */
+export interface ContactKnowledgeSource {
+  listCharacterOwnership(): readonly CharacterOwnershipRow[];
+}
+
+/** The canonical source: the world's own Actor table. */
+export function contactKnowledgeSourceFromStore(store: DocumentStore): ContactKnowledgeSource {
+  return {
+    listCharacterOwnership(): readonly CharacterOwnershipRow[] {
+      const rows: CharacterOwnershipRow[] = [];
+      for (const doc of store.getAll("actors", { type: CHARACTER_SUBTYPE })) {
+        const id = doc["_id"];
+        if (typeof id === "string") rows.push({ id, ownership: doc["ownership"] });
+      }
+      return rows;
+    },
+  };
+}
+
+/**
+ * Per-namespace registry of the knowledge source.
+ *
+ * `broadcastToWorld` receives a namespace and an envelope and nothing else, and
+ * it is called from a dozen sites across four modules. Threading a store handle
+ * through every one of them would mean a future call site could forget it and
+ * silently open a hole — exactly what REQ-CTT-083 forbids. Registering the
+ * source once per world namespace keeps the rule where the emission is.
+ */
+const contactSources = new WeakMap<object, ContactKnowledgeSource>();
+
+/** Bind a world namespace to the Actor table its sockets read contacts from. */
+export function registerContactKnowledgeSource(
+  namespace: object,
+  source: ContactKnowledgeSource,
+): void {
+  contactSources.set(namespace, source);
+}
+
+/** The source bound to a namespace, when one was registered. */
+export function getContactKnowledgeSource(namespace: object): ContactKnowledgeSource | undefined {
+  return contactSources.get(namespace);
+}
+
+/**
+ * Resolve a viewer.
+ *
+ * With no source the viewer owns no character, which reads the general rule and
+ * nothing better (`resolveUserKnowledge` on an empty list) — the conservative
+ * side: a missing source can only ever show LESS than the truth, never more.
+ */
+export function buildContactViewer(
+  source: ContactKnowledgeSource | undefined,
+  userId: string,
+  role: number,
+): ContactViewer {
+  const ownedCharacterIds: string[] = [];
+  for (const row of source?.listCharacterOwnership() ?? []) {
+    const ownership = isPlainObject(row.ownership)
+      ? (row.ownership as Ownership)
+      : ({ default: OwnershipLevel.NONE } as Ownership);
+    if (resolveOwnership(ownership, userId, role) >= OwnershipLevel.OWNER) {
+      ownedCharacterIds.push(row.id);
+    }
+  }
+  return { userId, role, ownedCharacterIds };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Whether the knowledge filter has anything to say about this Actor.
+ *
+ * Two carve-outs, both of them required by the model rather than convenient:
+ *
+ *   1. A player CHARACTER is not a contact. Spec 39 splits the panel in two:
+ *      "Na mesa" lists the characters (gated by `ownership`, REQ-CTT-014/020)
+ *      and "Conhecidos" lists the non-players (REQ-CTT-040). The window that
+ *      edits knowledge is contacts × characters — two disjoint sets. Running
+ *      the filter over characters would hide the whole table from every player,
+ *      since a fresh map reads `hidden`.
+ *   2. Nobody is a stranger to a document they OWN. A player's companion is an
+ *      Actor of type "familiar" whose ownership is forced to the master's
+ *      (r17-P1); knowledge must not take it away from its owner.
+ *
+ * Both are restrictions on the FILTER, never grants: an actor that escapes the
+ * filter is still gated by `ownership` exactly as before (REQ-CTT-074).
+ */
+export function actorIsSubjectToKnowledge(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): boolean {
+  if (doc["type"] === CHARACTER_SUBTYPE) return false;
+  const ownership = isPlainObject(doc["ownership"])
+    ? (doc["ownership"] as Ownership)
+    : ({ default: OwnershipLevel.NONE } as Ownership);
+  return resolveOwnership(ownership, viewer.userId, viewer.role) < OwnershipLevel.OWNER;
+}
+
+/**
+ * Remove the knowledge map from a document (REQ-CTT-084).
+ *
+ * The map says which characters know this contact and which merely glimpsed it
+ * — i.e. what the OTHER players' characters have learned. It is privileged
+ * data, and it rides on the very document a player is allowed to see, so it has
+ * to come off every Actor a non-privileged socket receives, not only off the
+ * contacts. Returns the original reference when there is nothing to strip.
+ */
+export function stripKnowledgeMap(doc: Record<string, unknown>): Record<string, unknown> {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return doc;
+  const namespace = flags[KNOWLEDGE_FLAG_NAMESPACE];
+  if (!isPlainObject(namespace)) return doc;
+  if (!(KNOWLEDGE_FLAG_KEY in namespace)) return doc;
+
+  const nextNamespace: Record<string, unknown> = { ...namespace };
+  Reflect.deleteProperty(nextNamespace, KNOWLEDGE_FLAG_KEY);
+  return { ...doc, flags: { ...flags, [KNOWLEDGE_FLAG_NAMESPACE]: nextNamespace } };
+}
+
+/**
+ * The payload of a contact the viewer has only GLIMPSED (REQ-CTT-081).
+ *
+ * An ALLOW-list, deliberately: a deny-list would leak every field a future
+ * milestone adds to Actor, and "no name, no title, no portrait, no system data"
+ * is a promise about the whole document, not about four keys. What survives
+ * identifies nothing:
+ *   - `_id`    — the client mirror is keyed by it, and it is already the key
+ *                the GM's ops travel under;
+ *   - `type`   — "an unidentified someone", not who;
+ *   - `_stats` — the mirror gates upserts on `_stats.version`; without it the
+ *                document would look permanently stale and never settle.
+ * `ownership` is dropped on purpose: a glimpsed contact offers no sheet
+ * (REQ-CTT-042), and an absent map resolves to NONE on the client too.
+ *
+ * REQ-CTT-013 falls out of this and is not separate code: a contact with no
+ * name in the payload cannot be found by name in the client's search.
+ */
+export function glimpsedContactView(doc: Record<string, unknown>): Record<string, unknown> {
+  const view: Record<string, unknown> = { _id: doc["_id"] };
+  if (typeof doc["type"] === "string") view["type"] = doc["type"];
+  if (isPlainObject(doc["_stats"])) view["_stats"] = doc["_stats"];
+  // An explicit marker so the panel can draw "não identificado" without having
+  // to infer it from an absence (REQ-CTT-041).
+  view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { glimpsed: true } };
+  return view;
+}
+
+/**
+ * The only Actor bodies a non-privileged viewer may ever receive.
+ *
+ * REQ-CTT-082: a contact whose effective state is `hidden` is dropped from the
+ * batch — not blanked, not flagged: absent, in snapshot, broadcast and replay
+ * alike.
+ * REQ-CTT-081: a contact that was `glimpsed` is reduced to
+ * {@link glimpsedContactView}.
+ * REQ-CTT-084: every surviving Actor loses its knowledge map.
+ *
+ * May return an EMPTY array. Callers on a live/replay path must still emit the
+ * envelope with those empty `documents`: the client mirror gates ops on a
+ * contiguous seq and fires its gap detector on a jump, so a swallowed envelope
+ * would put the player into a resync loop.
+ */
+export function redactActorDocsForViewer(
+  documents: readonly Record<string, unknown>[],
+  viewer: ContactViewer,
+): Record<string, unknown>[] {
+  const result: Record<string, unknown>[] = [];
+  for (const doc of documents) {
+    if (!actorIsSubjectToKnowledge(doc, viewer)) {
+      result.push(stripKnowledgeMap(doc));
+      continue;
+    }
+    const state = resolveUserKnowledge(doc, viewer.ownedCharacterIds);
+    if (state === KnowledgeState.Hidden) continue;
+    if (state === KnowledgeState.Glimpsed) {
+      result.push(glimpsedContactView(doc));
+      continue;
+    }
+    result.push(stripKnowledgeMap(doc));
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 
 /**
  * Redact sensitive data from an op ACK *result* destined for a non-privileged
@@ -249,8 +483,22 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  *
  * Cloning discipline: never mutates in place — returns fresh clones only when
  * something actually needs redacting.
+ *
+ * `contactCtx` carries the viewer for the contact-knowledge rule (spec 39). It
+ * is optional so the pure Scene/Combat behaviour stays testable on its own;
+ * when it is absent the Actor branch degrades to stripping the knowledge map
+ * (REQ-CTT-084), which needs no viewer.
  */
-export function redactAckResultForNonPrivileged(result: unknown): unknown {
+export interface AckContactContext {
+  source?: ContactKnowledgeSource | undefined;
+  userId: string;
+  role: number;
+}
+
+export function redactAckResultForNonPrivileged(
+  result: unknown,
+  contactCtx?: AckContactContext,
+): unknown {
   if (!result || typeof result !== "object") return result;
   const ack = result as Record<string, unknown>;
 
@@ -264,6 +512,41 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   const documents = bodyObj["documents"];
   const parent = bodyObj["parent"];
   const combat = bodyObj["combat"];
+
+  // Spec 39 §5.9: an ack echoes documents straight back to the requester, so it
+  // is an emission path like any other and answers to the same funnel
+  // (REQ-CTT-081..084). Handled before the Scene/Combat branches because the
+  // Actor batch may vanish entirely, and the viewer is resolved lazily so an
+  // ordinary Scene ack never touches the Actor table.
+  if (bodyObj["documentType"] === "Actor" && Array.isArray(documents)) {
+    const viewer = contactCtx
+      ? buildContactViewer(contactCtx.source, contactCtx.userId, contactCtx.role)
+      : { userId: "", role: 0, ownedCharacterIds: [] as readonly string[] };
+    const redactedActors = contactCtx
+      ? redactActorDocsForViewer(documents as Record<string, unknown>[], viewer)
+      : (documents as Record<string, unknown>[]).map((d) => stripKnowledgeMap(d));
+    const changed =
+      redactedActors.length !== documents.length ||
+      redactedActors.some((doc, i) => doc !== documents[i]);
+    if (changed) {
+      return { ...ack, result: { ...bodyObj, documents: redactedActors } };
+    }
+    return result;
+  }
+
+  // An embedded ack (Item under Actor) carries the parent Actor whole — the
+  // knowledge map has to come off it too (REQ-CTT-084). The parent can never be
+  // a contact the viewer merely glimpsed: writing an embedded document requires
+  // OWNER, and OWNER escapes the knowledge filter by construction.
+  if (isPlainObject(parent)) {
+    const strippedParent = stripKnowledgeMap(parent);
+    if (strippedParent !== parent) {
+      return redactAckResultForNonPrivileged(
+        { ...ack, result: { ...bodyObj, parent: strippedParent } },
+        contactCtx,
+      );
+    }
+  }
 
   const documentsNeedHiddenTokenRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));

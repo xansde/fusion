@@ -113,7 +113,44 @@ export interface ConditionDefinition {
    * (e.g., "unconscious" overrides "dying" in PF2e).
    */
   readonly overrides?: string[];
+
+  // -------------------------------------------------------------------------
+  // Display contract (REQ-SYS-043, DEC-SYS-10 / DEC-CTT-11)
+  //
+  // The UI knows no condition: it paints what the system declared. All three
+  // fields are OPTIONAL so an already-registered system stays valid, and their
+  // absence degrades the display instead of hiding the condition
+  // (REQ-CTT-035): no `tone` → drawn as a situation; no `help` → drawn with no
+  // tooltip; no `critical` → drawn without the filled emphasis.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Effect on whoever carries the condition — never a severity judgement.
+   * `"benefit"` helps, `"harm"` hinders, `"special"` is a situation
+   * (detection, attitude, control). Absent ⇒ treated as `"special"`.
+   */
+  readonly tone?: ConditionTone;
+
+  /**
+   * Short help text, already translated by the system, shown in the UI's own
+   * drawn tooltip. Absent ⇒ no tooltip.
+   */
+  readonly help?: string;
+
+  /**
+   * The condition takes the character out of the scene (dying, unconscious…).
+   * Drawn as filled emphasis of the tone's own color — never a fourth color.
+   */
+  readonly critical?: boolean;
 }
+
+/**
+ * Effect of a condition on whoever carries it (REQ-SYS-043).
+ *
+ * Deliberately NOT a severity scale: severity is a judgement no declared datum
+ * supports, so the contract only carries direction.
+ */
+export type ConditionTone = "benefit" | "harm" | "special";
 
 // ---------------------------------------------------------------------------
 // Declarative actions (REQ-SYS-045)

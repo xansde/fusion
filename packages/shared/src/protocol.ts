@@ -55,6 +55,10 @@ export const EnvelopeTypeSchema = z.union([
   // M1-D chat handlers
   z.literal("chat:send"),
   z.literal("chat:history"),
+  // Spec 39 — contact knowledge (general rule + per-character exceptions).
+  // The one way in: doc:update refuses the flag path outright, so knowledge
+  // never rides an ordinary document write (REQ-CTT-070/072/080).
+  z.literal("actor:setKnowledge"),
   // M2-A: vision — walls, lights, door state
   z.literal("wall:create"),
   z.literal("wall:update"),
