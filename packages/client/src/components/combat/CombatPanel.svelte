@@ -2,7 +2,7 @@
   /**
    * CombatPanel.svelte — Combat tracker sidebar panel.
    *
-   * Rendered as the "Combat" tab inside AppSidebar.
+   * Rendered as the "Combat" tab inside the side drawer (spec 36).
    * All logic is delegated to combatStore and combatTracker.ts (pure functions).
    *
    * Supports:

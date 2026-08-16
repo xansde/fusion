@@ -18,13 +18,18 @@
  * REQ-NET-025: embedded doc ops must update the parent document and broadcast
  * the parent's new state with a fresh seq.
  *
- * M1-C hidden-token broadcast filtering (REQ-CNV hidden token):
+ * Scene broadcast filtering (M1-C hidden tokens, M2-A secret doors, spec 44
+ * scene list):
  *
- * When a Scene update touches hidden tokens, we emit per-socket payloads
- * instead of a single namespace-wide emit.  The filtering semantics are:
+ * EVERY Scene envelope is emitted per socket — never namespace-wide — because
+ * for a Scene even the list of documents is privileged (REQ-CEN-071). The
+ * filtering semantics are:
  *
- *   - GM/ASSISTANT sockets receive the full Scene including all hidden tokens.
- *   - Player sockets receive the Scene with hidden tokens stripped out.
+ *   - GM/ASSISTANT sockets receive the full Scene, every scene, all hidden
+ *     tokens and real secret doors included.
+ *   - Player sockets receive only the scene ON AIR, with hidden tokens stripped
+ *     and secret doors masked as plain walls; any other scene is dropped from
+ *     the batch, leaving an envelope that only advances their seq.
  *
  * From a player's perspective this produces naturally correct event semantics:
  *   - Token created as hidden     → player receives nothing about that token
@@ -70,12 +75,7 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
-import {
-  stripHiddenTokens,
-  scenePayloadHasHiddenTokens,
-  redactSecretDoors,
-  scenePayloadHasSecretDoors,
-} from "../redaction.js";
+import { redactSceneDocsForNonPrivileged, sceneIsOnAir } from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
   AUGMENTATION_SLOT_LIMIT,
@@ -991,6 +991,21 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
       }
     }
 
+    // REQ-CEN-071: which scenes were on air must be read BEFORE the rows go —
+    // after the delete the `active` mirror is gone with the document, and the
+    // broadcast would have no way to tell the scene the players already knew
+    // from the ones whose very existence is privileged.
+    const onAirSceneIds = new Set<string>();
+    if (documentType === "Scene") {
+      for (const id of ids) {
+        try {
+          if (sceneIsOnAir(deps.store.get("scenes", id))) onAirSceneIds.add(id);
+        } catch {
+          // Missing document — the delete loop below reports NOT_FOUND.
+        }
+      }
+    }
+
     const deletedIds: string[] = [];
     try {
       for (const id of ids) {
@@ -1009,8 +1024,9 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     const envelope = buildBroadcastEnvelope("doc:delete", broadcastPayload, seq);
     deps.opBuffer.push(envelope);
 
-    // Broadcast delete to all clients (no ownership filter for deletes — everyone must remove)
-    deps.ns.emit("op", envelope);
+    // Broadcast delete to all clients (no ownership filter for deletes — everyone
+    // must remove). Scene deletes go per-socket: see broadcastToWorld.
+    broadcastToWorld(deps.ns, envelope, documentType, onAirSceneIds);
 
     return ackOk({ documentType, ids: deletedIds }, seq);
   };
@@ -1478,59 +1494,78 @@ function socketIsPrivileged(socket: Socket): boolean {
 }
 
 /**
+ * Emit one envelope per socket, choosing by role.
+ *
+ * `isRolePrivileged` (via {@link socketIsPrivileged}) is the ONLY predicate that
+ * decides which of the two envelopes a socket gets — never a duplicated
+ * role comparison.
+ */
+function emitByRole(ns: Namespace, privilegedEnvelope: Envelope, playerEnvelope: Envelope): void {
+  for (const [, socket] of ns.sockets) {
+    socket.emit("op", socketIsPrivileged(socket) ? privilegedEnvelope : playerEnvelope);
+  }
+}
+
+/**
  * Broadcast a doc op envelope to all sockets in the world namespace.
  *
- * For Scene updates (doc:create / doc:update) that may contain sensitive data
- * (hidden tokens or secret doors), we iterate sockets and send per-socket payloads:
+ * Scene envelopes ALWAYS go per-socket, because for a Scene the very list of
+ * documents is privileged data (spec 44):
  *   - privileged sockets (GM / ASSISTANT) → full payload
- *   - player sockets → payload with:
- *       • hidden tokens stripped
- *       • secret doors redacted as plain walls
+ *   - player sockets → only the scene on air, with hidden tokens stripped and
+ *     secret doors masked as plain walls (`redactSceneDocsForNonPrivileged`)
  *
- * For all other document types or Scene updates without sensitive data,
- * we use the cheap namespace-wide emit (no per-socket iteration cost).
+ * REQ-CEN-071 / REQ-CEN-073: before this, a Scene create/update with neither a
+ * hidden token nor a secret door took the cheap namespace-wide emit, so every
+ * player received the full document — name included — of every scene the GM
+ * touched during the session. The rail hiding the tab was the only barrier,
+ * which REQ-GAV-034 and DEC-CEN-11 say explicitly is not one.
  *
- * doc:delete envelopes are always namespace-wide: deletes carry only IDs.
+ * The player envelope is emitted even when nothing survives redaction (empty
+ * `documents` / `ids`): the client mirror requires a contiguous seq and fires
+ * its gap detector on a jump, so swallowing the envelope would put every player
+ * into a resync loop. An empty batch is a no-op upsert that only advances seq.
+ *
+ * Scene doc:delete needs `onAirSceneIds` — the ids that were on air at the
+ * moment of deletion, captured by the caller BEFORE the rows were removed,
+ * since the document (and its `active` mirror) is gone by broadcast time.
+ *
+ * All other document types keep the cheap namespace-wide emit.
  */
-function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: string): void {
-  // Only Scene doc:create / doc:update need redaction filtering.
-  if (
-    documentType === "Scene" &&
-    (envelope.type === "doc:create" || envelope.type === "doc:update")
-  ) {
-    const payload = envelope.payload as {
-      documentType: string;
-      documents: Record<string, unknown>[];
-    };
-
-    const hasHiddenTokens = scenePayloadHasHiddenTokens(payload.documents);
-    const hasSecretDoors = scenePayloadHasSecretDoors(payload.documents);
-
-    if (hasHiddenTokens || hasSecretDoors) {
-      // Build the player-visible payload once (shared across all player sockets).
-      const filteredDocs = payload.documents.map((d) => {
-        let redacted = d;
-        if (hasHiddenTokens && Array.isArray(d["tokens"])) {
-          redacted = stripHiddenTokens(redacted);
-        }
-        if (hasSecretDoors && Array.isArray(redacted["walls"])) {
-          redacted = redactSecretDoors(redacted);
-        }
-        return redacted;
-      });
+function broadcastToWorld(
+  ns: Namespace,
+  envelope: Envelope,
+  documentType?: string,
+  onAirSceneIds?: ReadonlySet<string>,
+): void {
+  if (documentType === "Scene") {
+    if (envelope.type === "doc:create" || envelope.type === "doc:update") {
+      const payload = envelope.payload as {
+        documentType: string;
+        documents: Record<string, unknown>[];
+      };
       const playerEnvelope: Envelope = {
         ...envelope,
-        payload: { ...payload, documents: filteredDocs },
+        payload: {
+          ...payload,
+          documents: redactSceneDocsForNonPrivileged(payload.documents),
+        },
       };
+      emitByRole(ns, envelope, playerEnvelope);
+      return;
+    }
 
-      // Iterate all connected sockets in the namespace.
-      for (const [, socket] of ns.sockets) {
-        if (socketIsPrivileged(socket)) {
-          socket.emit("op", envelope);
-        } else {
-          socket.emit("op", playerEnvelope);
-        }
-      }
+    if (envelope.type === "doc:delete") {
+      const payload = envelope.payload as { documentType: string; ids: string[] };
+      // A player only ever learned about the scene on air, so only its removal
+      // is news to them; the removal of any other scene would be the first time
+      // they hear that scene existed at all (REQ-CEN-071).
+      const visibleIds = payload.ids.filter((id) => onAirSceneIds?.has(id) === true);
+      const playerEnvelope: Envelope = {
+        ...envelope,
+        payload: { ...payload, ids: visibleIds },
+      };
+      emitByRole(ns, envelope, playerEnvelope);
       return;
     }
   }
@@ -1538,6 +1573,8 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
   // Fast path: no redaction concern — namespace-wide emit.
   ns.emit("op", envelope);
 }
+
+export { broadcastToWorld };
 
 // ---------------------------------------------------------------------------
 // WIRING-DERIVE: strip client-supplied system.derived from an Actor diff

@@ -50,7 +50,7 @@ import {
   wallsBlockingMovement,
   moveBlocked,
 } from "@fusion/shared";
-import { redactSecretDoors, sceneHasSecretDoors } from "../redaction.js";
+import { broadcastToWorld } from "./doc-handlers.js";
 
 // ---------------------------------------------------------------------------
 // Handler context shape (same deps pattern as doc-handlers.ts)
@@ -232,7 +232,7 @@ export function buildWallDeleteHandler(deps: VisionHandlerDeps): HandlerFn {
       seq,
     );
     deps.opBuffer.push(envelope);
-    broadcastSceneWithSecretDoorRedaction(deps.ns, envelope);
+    broadcastToWorld(deps.ns, envelope, "Scene");
 
     return ackOk({ documentType: "Wall", ids, parent: updatedParent }, seq);
   };
@@ -350,7 +350,7 @@ export function buildLightDeleteHandler(deps: VisionHandlerDeps): HandlerFn {
       seq,
     );
     deps.opBuffer.push(envelope);
-    broadcastSceneWithSecretDoorRedaction(deps.ns, envelope);
+    broadcastToWorld(deps.ns, envelope, "Scene");
 
     return ackOk({ documentType: "Light", ids, parent: updatedParent }, seq);
   };
@@ -446,7 +446,7 @@ export function buildDoorStateHandler(deps: VisionHandlerDeps): HandlerFn {
     deps.opBuffer.push(envelope);
 
     // Broadcast per-socket with secret-door redaction
-    broadcastSceneWithSecretDoorRedaction(deps.ns, envelope);
+    broadcastToWorld(deps.ns, envelope, "Scene");
 
     return ackOk({ sceneId, wallId, state }, seq);
   };
@@ -570,53 +570,21 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
       seq,
     );
     deps.opBuffer.push(envelope);
-    deps.ns.emit("op", envelope);
+    // A token move rewrites the whole Scene body — name included — so it takes
+    // the same per-socket funnel as every other Scene emission (REQ-CEN-071).
+    // It used to be a bare `ns.emit`, which handed every player the document of
+    // whatever scene the GM happened to be arranging.
+    broadcastToWorld(deps.ns, envelope, "Scene");
 
     return ackOk({ sceneId, tokenId, x, y }, seq);
   };
 }
 
-// ---------------------------------------------------------------------------
-// Broadcast helper — per-socket secret-door redaction
-// REQ-VIS-005: secret doors appear as plain walls for non-GM clients
-// ---------------------------------------------------------------------------
-
-/**
- * Broadcast a scene update envelope, redacting secret doors for non-GM sockets.
- *
- * For GM/ASSISTANT sockets → full scene (secret doors visible as doors).
- * For player sockets → secret doors become plain walls (doorType:"none").
- */
-function broadcastSceneWithSecretDoorRedaction(ns: Namespace, envelope: Envelope): void {
-  const payload = envelope.payload as {
-    documentType: string;
-    documents: Record<string, unknown>[];
-  };
-
-  const hasSecretDoors = payload.documents.some((d) => sceneHasSecretDoors(d));
-
-  if (!hasSecretDoors) {
-    ns.emit("op", envelope);
-    return;
-  }
-
-  // Build player-visible payload with secret doors redacted
-  const redactedDocs = payload.documents.map(redactSecretDoors);
-  const playerEnvelope: Envelope = {
-    ...envelope,
-    payload: { ...payload, documents: redactedDocs },
-  };
-
-  for (const [, socket] of ns.sockets) {
-    const data = socket.data as Record<string, unknown> | null | undefined;
-    const role = typeof data?.["role"] === "number" ? data["role"] : 0;
-    if (isRolePrivileged(role)) {
-      socket.emit("op", envelope);
-    } else {
-      socket.emit("op", playerEnvelope);
-    }
-  }
-}
+// The local `broadcastSceneWithSecretDoorRedaction` that used to live here was
+// a second, parallel implementation of the same per-socket Scene emission —
+// with its own inline role read and only the secret-door half of the redaction.
+// It is now `broadcastToWorld` (doc-handlers.ts) for every caller, so there is a
+// single funnel: `isRolePrivileged` decides, `net/redaction.ts` redacts.
 
 // ---------------------------------------------------------------------------
 // Payload parsing helpers (for the embedded op patterns)
@@ -796,14 +764,15 @@ function persistAndBroadcast(
 
   const seq = deps.seqStore.next();
 
-  // For scenes we use broadcastSceneWithSecretDoorRedaction to handle secret doors
+  // Scene bodies always go per-socket (broadcastToWorld): off-air scenes are
+  // dropped for players and secret doors are masked (REQ-CEN-071, REQ-VIS-005).
   const envelope = buildEnvelope(
     "doc:update",
     { documentType: "Scene", documents: [updatedParent] },
     seq,
   );
   deps.opBuffer.push(envelope);
-  broadcastSceneWithSecretDoorRedaction(deps.ns, envelope);
+  broadcastToWorld(deps.ns, envelope, "Scene");
 
   if (created !== null) {
     return {

@@ -16,6 +16,7 @@
   import {
     chatStore,
     sendChatMessage,
+    setChatTabVisible,
     setRollAnimator,
   } from "../../lib/chat/chatStore.svelte.js";
   import { session } from "../../lib/session.svelte.js";
@@ -55,10 +56,18 @@
     setRollAnimator((roll) => {
       if (diceEnabled) void animateRoll(roll);
     });
+    // The chat tab is visible exactly while this panel is mounted: the drawer keeps
+    // only the active tab's panel alive and drops it on switch or collapse
+    // (REQ-GAV-017), so mount/unmount IS the visibility signal. Zeroing the unread
+    // counter on open is the chat's own rule (REQ-CHT-039 / REQ-ACH-004) — the rail
+    // never touches a badge (REQ-GAV-022). Before the drawer existed this lived in
+    // the sidebar container, which had to watch `activeTab` because the panel could not.
+    setChatTabVisible(true);
   });
 
   onDestroy(() => {
     setRollAnimator(null);
+    setChatTabVisible(false);
   });
 
   // ---- Send ----

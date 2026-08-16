@@ -227,10 +227,15 @@ describe("M1-B — doc:create broadcast", () => {
     await teardown(ctx);
   });
 
-  it("GM creates a Scene → player receives broadcast with seq", async () => {
-    // Set up listener on player before GM sends
+  // The listener used to sit on the PLAYER socket and assert the scene name
+  // arrived there — which is precisely the leak REQ-CEN-071/REQ-CEN-073 forbid
+  // (see scene-list-redaction.test.ts, which now asserts the opposite). What
+  // this test is actually about — the broadcast carrying the ack's seq — is
+  // unchanged; it just has to be observed on a socket entitled to the body.
+  it("GM creates a Scene → privileged socket receives broadcast with seq", async () => {
+    // Set up listener on the GM before GM sends
     const broadcastPromise = new Promise<Record<string, unknown>>((resolve) => {
-      playerSocket.on("op", (envelope: Record<string, unknown>) => {
+      gmSocket.on("op", (envelope: Record<string, unknown>) => {
         if (
           (envelope as Record<string, unknown>)["type"] === "doc:create" &&
           ((envelope as Record<string, unknown>)["payload"] as Record<string, unknown>)[
@@ -2082,6 +2087,14 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
     sceneId = (
       (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
     )[0]?.["_id"] as string;
+
+    // The scene has to be ON AIR for a player to receive its body at all: only
+    // the active scene crosses to a non-privileged socket (REQ-CEN-071,
+    // REQ-CEN-072). Off air, every assertion below would be measuring the
+    // scene-list boundary instead of the hidden-token redaction it is about.
+    const activateAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(activateAck["ok"]).toBe(true);
+
     // Drain initial broadcast events
     await new Promise((r) => setTimeout(r, 80));
   });

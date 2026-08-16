@@ -1,4 +1,5 @@
 {
+  "FUSION.Sidebar.Rail.Label": "Abas da gaveta",
   "FUSION.Sidebar.Tabs.Scenes": "Cenas",
   "FUSION.Sidebar.Tabs.Chat": "Chat",
   "FUSION.Sidebar.Tabs.Combat": "Combate",
@@ -7,6 +8,10 @@
   "FUSION.Sidebar.Tabs.Journal": "Diário",
   "FUSION.Sidebar.Tabs.Compendium": "Compêndio",
   "FUSION.Sidebar.Tabs.Settings": "Configurações",
+
+  "FUSION.Sidebar.Badge.CounterOne": "1 novidade",
+  "FUSION.Sidebar.Badge.CounterMany": "{{count}} novidades",
+  "FUSION.Sidebar.Badge.Dot": "algo em andamento",
 
   "FUSION.Sidebar.Actors.Title": "Atores",
   "FUSION.Sidebar.Actors.Create": "+ Novo",
@@ -25,6 +30,9 @@
   "FUSION.Sidebar.Scenes.Empty": "Nenhuma cena criada. Crie uma para começar.",
   "FUSION.Sidebar.Scenes.ActiveScene": "Cena ativa",
   "FUSION.Sidebar.Scenes.InactiveScene": "Inativa",
+
+  "FUSION.Sidebar.Settings.Title": "Configurações",
+  "FUSION.Sidebar.Settings.Empty": "Nenhuma configuração disponível ainda.",
 
   "FUSION.Actors.Types.character": "Personagem",
   "FUSION.Actors.Types.npc": "NPC",

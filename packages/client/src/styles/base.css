@@ -12,70 +12,73 @@
 --------------------------------------------------------------------------- */
 :root {
   /* Surface colors */
-  --fusion-bg:           #0e0e12;
-  --fusion-surface:      #18181f;
-  --fusion-surface-alt:  #1f1f2a;
-  --fusion-border:       #2e2e3d;
+  --fusion-bg: #0e0e12;
+  --fusion-surface: #18181f;
+  --fusion-surface-alt: #1f1f2a;
+  --fusion-border: #2e2e3d;
 
   /* Text */
-  --fusion-text:         #e8e8f0;
-  --fusion-text-muted:   #8888a0;
-  --fusion-text-subtle:  #55556a;
+  --fusion-text: #e8e8f0;
+  --fusion-text-muted: #8888a0;
+  --fusion-text-subtle: #55556a;
 
   /* Accent — primary interactive elements */
-  --fusion-accent:       #7c5cfc;
+  --fusion-accent: #7c5cfc;
   --fusion-accent-hover: #9b7ffe;
-  --fusion-accent-dim:   rgba(124, 92, 252, 0.15);
+  --fusion-accent-dim: rgba(124, 92, 252, 0.15);
 
   /* Semantic */
-  --fusion-success:      #3ddc84;
-  --fusion-warning:      #ffc857;
-  --fusion-danger:       #ff5c5c;
+  --fusion-success: #3ddc84;
+  --fusion-warning: #ffc857;
+  --fusion-danger: #ff5c5c;
 
   /* Semantic washes — subtle tinted fills for badges / states */
-  --fusion-success-dim:  rgba(61, 220, 132, 0.14);
-  --fusion-warning-dim:  rgba(255, 200, 87, 0.14);
-  --fusion-danger-dim:   rgba(255, 92, 92, 0.14);
+  --fusion-success-dim: rgba(61, 220, 132, 0.14);
+  --fusion-warning-dim: rgba(255, 200, 87, 0.14);
+  --fusion-danger-dim: rgba(255, 92, 92, 0.14);
 
   /* On-accent text (buttons filled with --fusion-accent) */
-  --fusion-on-accent:    #ffffff;
+  --fusion-on-accent: #ffffff;
 
   /* Elevation shadow (windows, modals) */
   --fusion-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
 
-  /* Layout */
-  --fusion-sidebar-width: 280px;
-  --fusion-header-height:  48px;
-  --fusion-radius-sm:      4px;
-  --fusion-radius:         8px;
-  --fusion-radius-lg:      12px;
-  --fusion-radius-pill:    999px;
+  /* Layout.
+     The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
+     300px of panel plus a 44px rail, and no user resize — a tab that needs more
+     room opens a floating window instead of stretching the drawer. */
+  --fusion-sidebar-width: 300px;
+  --fusion-sidebar-rail-width: 44px;
+  --fusion-header-height: 48px;
+  --fusion-radius-sm: 4px;
+  --fusion-radius: 8px;
+  --fusion-radius-lg: 12px;
+  --fusion-radius-pill: 999px;
 
   /* Proficiency (TEML) — Pathfinder 2e rank system.
      U=Destreinado, T=Treinado, E=Expert, M=Mestre, L=Lendário. */
-  --fusion-prof-u:        var(--fusion-text-subtle);
-  --fusion-prof-t:        var(--fusion-accent);
-  --fusion-prof-e:        var(--fusion-success);
-  --fusion-prof-m:        var(--fusion-warning);
-  --fusion-prof-l:        var(--fusion-danger);
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-accent);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-warning);
+  --fusion-prof-l: var(--fusion-danger);
 
-  --fusion-prof-u-bg:     rgba(85, 85, 106, 0.18);
-  --fusion-prof-t-bg:     var(--fusion-accent-dim);
-  --fusion-prof-e-bg:     var(--fusion-success-dim);
-  --fusion-prof-m-bg:     var(--fusion-warning-dim);
-  --fusion-prof-l-bg:     var(--fusion-danger-dim);
+  --fusion-prof-u-bg: rgba(85, 85, 106, 0.18);
+  --fusion-prof-t-bg: var(--fusion-accent-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-warning-dim);
+  --fusion-prof-l-bg: var(--fusion-danger-dim);
 
   --fusion-prof-u-border: var(--fusion-border);
-  --fusion-prof-t-border: rgba(124, 92, 252, 0.40);
-  --fusion-prof-e-border: rgba(61, 220, 132, 0.40);
-  --fusion-prof-m-border: rgba(255, 200, 87, 0.40);
-  --fusion-prof-l-border: rgba(255, 92, 92, 0.40);
+  --fusion-prof-t-border: rgba(124, 92, 252, 0.4);
+  --fusion-prof-e-border: rgba(61, 220, 132, 0.4);
+  --fusion-prof-m-border: rgba(255, 200, 87, 0.4);
+  --fusion-prof-l-border: rgba(255, 92, 92, 0.4);
 
   /* Typography */
-  --fusion-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                 Roboto, Helvetica, Arial, sans-serif;
-  --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro",
-                      Menlo, Consolas, monospace;
+  --fusion-font:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
 
   /* Motion */
   --fusion-transition: 150ms ease;
@@ -117,7 +120,12 @@ body {
 /* ---------------------------------------------------------------------------
    Typography helpers
 --------------------------------------------------------------------------- */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   line-height: 1.25;
   color: var(--fusion-text);

@@ -1,12 +1,17 @@
 /**
  * Canonical redaction for non-GM clients.
  *
- * Invariants (specs 04/05/07):
+ * Invariants (specs 04/05/07/44):
  *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path.
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
+ *   - The scene LIST itself is privileged: only the scene on air may reach a
+ *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
  *
  * There are three emission paths that carry Scene bodies to clients, and all
- * three MUST funnel non-GM Scene documents through both:
+ * three MUST funnel non-GM Scene documents through
+ *   {@link redactSceneDocsForNonPrivileged}
+ * which composes the whole rule:
+ *   {@link sceneIsOnAir}        — drops every scene that is not on air
  *   {@link stripHiddenTokens}   — removes hidden tokens
  *   {@link redactSecretDoors}   — masks secret doors as plain walls
  *
@@ -43,18 +48,6 @@ export function stripHiddenTokens(scene: Record<string, unknown>): Record<string
   // Only allocate a new object when something was actually removed.
   if (filtered.length === rawTokens.length) return scene;
   return { ...scene, tokens: filtered };
-}
-
-/**
- * Return true when any Scene doc in the batch carries at least one hidden
- * token.  Used as a fast-path guard so callers can skip per-socket iteration
- * when there is nothing to redact.
- */
-export function scenePayloadHasHiddenTokens(documents: Record<string, unknown>[]): boolean {
-  for (const doc of documents) {
-    if (sceneDocHasHiddenTokens(doc)) return true;
-  }
-  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -103,13 +96,6 @@ export function sceneHasSecretDoors(doc: unknown): boolean {
 }
 
 /**
- * Return true when any Scene doc in the batch carries at least one secret door.
- */
-export function scenePayloadHasSecretDoors(documents: Record<string, unknown>[]): boolean {
-  return documents.some((d) => sceneHasSecretDoors(d));
-}
-
-/**
  * Return true when a single Scene-shaped doc carries at least one hidden token.
  * A "Scene-shaped doc" is any object with a `tokens` array; non-Scene docs (no
  * `tokens` array) trivially have nothing to redact.
@@ -122,6 +108,53 @@ function sceneDocHasHiddenTokens(doc: unknown): boolean {
     if (t["hidden"] === true) return true;
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Scene-list visibility (spec 44 — REQ-CEN-071 / REQ-CEN-072 / REQ-CEN-073)
+// ---------------------------------------------------------------------------
+
+/**
+ * Return true when a Scene document is the one currently on air.
+ *
+ * The `active` field is a mirror of `settings["_meta:activeScene"]` written in
+ * exactly ONE place — the `world:activeScene` handler, which reconciles every
+ * scene against the setting. A client can never write it: `doc:update` refuses
+ * the field outright (`rejectUnwritableField`). So reading it here is reading
+ * server state, not a client-supplied claim.
+ */
+export function sceneIsOnAir(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  return (doc as Record<string, unknown>)["active"] === true;
+}
+
+/**
+ * The only Scene bodies a non-privileged viewer may ever receive.
+ *
+ * REQ-CEN-071 / REQ-CEN-073: the scene list is privileged data — the name of a
+ * scene that is not on air must not appear in ANY payload destined to a
+ * non-privileged user, and the refusal must be indistinguishable from the scene
+ * not existing. Hence: silently dropped from the batch, never an error and
+ * never a placeholder.
+ * REQ-CEN-072: the scene that IS on air keeps flowing, carrying the
+ * hidden-token and secret-door redactions this module already owns, so the
+ * player can still render the map.
+ *
+ * May return an EMPTY array. Callers on a live/replay path must still emit the
+ * envelope with those empty `documents` instead of skipping it: the client
+ * mirror gates ops on a contiguous seq and fires its gap detector on a jump,
+ * so a swallowed envelope would trigger a resync loop for every player whenever
+ * the GM edits a scene that is off air.
+ */
+export function redactSceneDocsForNonPrivileged(
+  documents: Record<string, unknown>[],
+): Record<string, unknown>[] {
+  const result: Record<string, unknown>[] = [];
+  for (const doc of documents) {
+    if (!sceneIsOnAir(doc)) continue;
+    result.push(redactSecretDoors(stripHiddenTokens(doc)));
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------

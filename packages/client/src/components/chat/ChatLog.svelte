@@ -60,10 +60,10 @@
   });
 
   // ---- React to new messages ----
-  // NOTE: unread-count visibility tracking (setChatTabVisible) now lives in
-  // AppSidebar.svelte, which owns activeTab and can observe every tab value —
-  // including the initial default — even though ChatLog only mounts while
-  // the chat tab is the active one (see AppSidebar's BUG #1 FIX comment).
+  // NOTE: unread-count visibility tracking (setChatTabVisible) lives in
+  // ChatPanel's onMount/onDestroy: the drawer keeps only the active tab's panel
+  // mounted (REQ-GAV-017), so the panel's own lifecycle IS the visibility signal.
+  // ChatLog must not own it — it also unmounts when the log is replaced.
 
   let _prevMsgCount = 0;
 

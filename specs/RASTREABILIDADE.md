@@ -15,16 +15,16 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 232 | 13% |
-| Citados só por código de produção | 330 | 18% |
-| Sem nenhuma citação | 1280 | 69% |
+| Citados por algum teste | 267 | 14% |
+| Citados só por código de produção | 335 | 18% |
+| Sem nenhuma citação | 1240 | 67% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
 
 | Spec | [MVP] | Com teste | Só código | Sem citação | Cobertura |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| [00](00-visao-e-escopo.md) | 18 | 0 | 0 | 18 | 0% |
+| [00](00-visao-e-escopo.md) | 18 | 0 | 1 | 17 | 0% |
 | [01](01-arquitetura-geral.md) | 42 | 6 | 8 | 28 | 14% |
 | [02](02-modelo-de-dados.md) | 59 | 8 | 17 | 34 | 14% |
 | [03](03-persistencia-e-mundos.md) | 36 | 2 | 20 | 14 | 6% |
@@ -33,9 +33,9 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 86 | 3 | 33 | 50 | 3% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 12 | 24 | 20 | 21% |
 | [08](08-motor-de-rolagens.md) | 49 | 11 | 12 | 26 | 22% |
-| [09](09-chat-e-mensagens.md) | 49 | 5 | 9 | 35 | 10% |
+| [09](09-chat-e-mensagens.md) | 49 | 6 | 9 | 34 | 12% |
 | [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
-| [11](11-ui-framework-e-fichas.md) | 62 | 6 | 17 | 39 | 10% |
+| [11](11-ui-framework-e-fichas.md) | 62 | 7 | 18 | 37 | 11% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
@@ -47,7 +47,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 8 | 12 | 24 | 18% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
-| [23](23-acessibilidade-e-dispositivos.md) | 45 | 0 | 0 | 45 | 0% |
+| [23](23-acessibilidade-e-dispositivos.md) | 45 | 1 | 0 | 44 | 2% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
@@ -57,11 +57,11 @@ porque ainda não foram prometidos para nenhum marco.
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
-| [36](36-gaveta-lateral.md) | 24 | 0 | 0 | 24 | 0% |
-| [37](37-configuracoes.md) | 40 | 0 | 0 | 40 | 0% |
-| [38](38-aba-chat.md) | 56 | 0 | 0 | 56 | 0% |
+| [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
+| [37](37-configuracoes.md) | 40 | 1 | 0 | 39 | 3% |
+| [38](38-aba-chat.md) | 56 | 0 | 1 | 55 | 0% |
 | [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
-| [42](42-aba-npcs.md) | 59 | 0 | 0 | 59 | 0% |
+| [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
 | [43](43-aba-compendio.md) | 60 | 4 | 1 | 55 | 7% |
-| [44](44-aba-cenas.md) | 58 | 0 | 0 | 58 | 0% |
+| [44](44-aba-cenas.md) | 58 | 6 | 2 | 50 | 10% |

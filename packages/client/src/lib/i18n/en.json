@@ -1,4 +1,5 @@
 {
+  "FUSION.Sidebar.Rail.Label": "Drawer tabs",
   "FUSION.Sidebar.Tabs.Scenes": "Scenes",
   "FUSION.Sidebar.Tabs.Chat": "Chat",
   "FUSION.Sidebar.Tabs.Combat": "Combat",
@@ -7,6 +8,10 @@
   "FUSION.Sidebar.Tabs.Journal": "Journal",
   "FUSION.Sidebar.Tabs.Compendium": "Compendium",
   "FUSION.Sidebar.Tabs.Settings": "Settings",
+
+  "FUSION.Sidebar.Badge.CounterOne": "1 new item",
+  "FUSION.Sidebar.Badge.CounterMany": "{{count}} new items",
+  "FUSION.Sidebar.Badge.Dot": "something is happening",
 
   "FUSION.Sidebar.Actors.Title": "Actors",
   "FUSION.Sidebar.Actors.Create": "+ New",
@@ -25,6 +30,9 @@
   "FUSION.Sidebar.Scenes.Empty": "No scenes yet. Create one to get started.",
   "FUSION.Sidebar.Scenes.ActiveScene": "Active scene",
   "FUSION.Sidebar.Scenes.InactiveScene": "Inactive",
+
+  "FUSION.Sidebar.Settings.Title": "Settings",
+  "FUSION.Sidebar.Settings.Empty": "No settings available yet.",
 
   "FUSION.Actors.Types.character": "Character",
   "FUSION.Actors.Types.npc": "NPC",
