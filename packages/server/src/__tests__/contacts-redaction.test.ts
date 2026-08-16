@@ -215,7 +215,58 @@ function recordEnvelopes(socket: ClientSocket): Record<string, unknown>[] {
   return received;
 }
 
-const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 200));
+const POLL_INTERVAL_MS = 25;
+const WAIT_TIMEOUT_MS = 8000;
+
+/** Poll until a condition holds — never a fixed sleep. */
+async function waitFor(check: () => boolean, what: string): Promise<void> {
+  const deadline = Date.now() + WAIT_TIMEOUT_MS;
+  for (;;) {
+    if (check()) return;
+    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+}
+
+/**
+ * The join batch a freshly connected socket receives — `resync:full`, or
+ * `resync:delta` when it reconnects with a `lastSeq` still inside the buffer.
+ *
+ * Every assertion of ABSENCE below waits on this first, and states a positive
+ * anchor next: an empty `traffic` proves nothing, so a fixed sleep would turn a
+ * loaded box into a silently green leak test.
+ */
+function waitForJoinBatch(traffic: Record<string, unknown>[]): Promise<void> {
+  return waitFor(
+    () => traffic.some((e) => e["type"] === "resync:full" || e["type"] === "resync:delta"),
+    "the join batch (resync:full/resync:delta)",
+  );
+}
+
+/** The envelope carrying the seq an ack named — the broadcast of that very op. */
+function waitForSeq(traffic: Record<string, unknown>[], seq: number, what: string): Promise<void> {
+  return waitFor(() => traffic.some((e) => e["seq"] === seq), `${what} (seq ${String(seq)})`);
+}
+
+/** The seq an ack reports, so a wait can name the envelope it produced. */
+function seqOf(ack: Record<string, unknown>): number {
+  const seq = ack["seq"];
+  if (typeof seq !== "number") throw new Error("ack carried no seq");
+  return seq;
+}
+
+/** The seq the join snapshot stands at — where a later delta replay starts. */
+function snapshotSeq(traffic: Record<string, unknown>[]): number {
+  for (const env of traffic) {
+    if (env["type"] !== "resync:full") continue;
+    const snap = (env["payload"] as Record<string, unknown>)["snapshot"] as Record<
+      string,
+      unknown
+    > | null;
+    if (snap) return snap["seq"] as number;
+  }
+  throw new Error("no resync:full snapshot in the recorded traffic");
+}
 
 /** Every Actor document carried by any envelope, whatever path it arrived by. */
 function actorDocsIn(envelopes: Record<string, unknown>[]): Record<string, unknown>[] {
@@ -284,12 +335,22 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
   let knownId: string;
   let deniedId: string;
 
+  /** The broadcast seq of each Actor this suite created, so a wait can name it. */
+  const createSeq = new Map<string, number>();
+
   async function createActor(payload: Record<string, unknown>): Promise<string> {
     const ack = await sendOp(gmSocket, "doc:create", { documentType: "Actor", data: [payload] });
     expect(ack["ok"]).toBe(true);
     const id = docsOf(ack)[0]?.["_id"];
     if (typeof id !== "string") throw new Error("Actor create returned no _id");
+    createSeq.set(id, seqOf(ack));
     return id;
+  }
+
+  function seqOfCreate(actorId: string): number {
+    const seq = createSeq.get(actorId);
+    if (seq === undefined) throw new Error(`no create seq recorded for ${actorId}`);
+    return seq;
   }
 
   /** The document exactly as world.db holds it — the unredacted truth. */
@@ -333,10 +394,18 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
   }
 
   beforeEach(async () => {
+    createSeq.clear();
     ctx = await buildTestContext();
     gmSocket = connectClient(ctx, ctx.gmToken);
     playerASocket = connectClient(ctx, ctx.playerAToken);
     playerBSocket = connectClient(ctx, ctx.playerBToken);
+    // Recorders BEFORE `connect()`: the join batch is emitted server-side as
+    // soon as the handshake is authenticated, so a listener attached afterwards
+    // can miss it — and a missed batch is exactly what makes a "did not leak"
+    // assertion vacuous.
+    const gmJoin = recordEnvelopes(gmSocket);
+    const aJoin = recordEnvelopes(playerASocket);
+    const bJoin = recordEnvelopes(playerBSocket);
     gmSocket.connect();
     playerASocket.connect();
     playerBSocket.connect();
@@ -345,7 +414,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       waitForConnect(playerASocket),
       waitForConnect(playerBSocket),
     ]);
-    await settle();
+    await Promise.all([waitForJoinBatch(gmJoin), waitForJoinBatch(aJoin), waitForJoinBatch(bJoin)]);
 
     charAId = await createActor({
       name: "Fofurinha",
@@ -392,7 +461,14 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       ...contactBody(DENIED_NAME, KnowledgeState.Known, "Sem Nome", "assets/x/negado.webp"),
       ownership: { default: 0 },
     });
-    await settle();
+    // Both players must have RECEIVED the last create before any test reads
+    // their live traffic. Every Actor `doc:create` reaches every socket (the
+    // per-user redaction only decides which body), so the seq of the last one
+    // is a condition that actually holds — never a guess at how long 200 ms is.
+    await Promise.all([
+      waitForSeq(aJoin, seqOfCreate(deniedId), "player A's copy of the last create"),
+      waitForSeq(bJoin, seqOfCreate(deniedId), "player B's copy of the last create"),
+    ]);
   }, 40000);
 
   afterEach(async () => {
@@ -411,7 +487,12 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
+
+    // Anchor first: the snapshot really carried contacts to this player. Without
+    // it, "the hidden one is not here" would also be true of a snapshot that
+    // never arrived — a leak test that passes on empty traffic proves nothing.
+    expect(actorDocsIn(traffic).some((doc) => doc["_id"] === knownId)).toBe(true);
 
     expect(JSON.stringify(traffic)).not.toContain(HIDDEN_NAME);
     expect(JSON.stringify(traffic)).not.toContain(hiddenId);
@@ -433,13 +514,12 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       img: "assets/x/bau.webp",
       ownership: { default: 2 },
     });
-    await settle();
 
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
 
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === stashId);
     expect(doc).toBeDefined();
@@ -451,7 +531,10 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       type: "loot",
       ownership: { default: 0 },
     });
-    await settle();
+    // The envelope of that very create reaches this socket (with an empty
+    // batch): waiting on it is what makes the absence below a verdict rather
+    // than a race the test happened to win.
+    await waitForSeq(traffic, seqOfCreate(privateStashId), "the private stash create");
     expect(actorDocsIn(traffic).some((d) => d["_id"] === privateStashId)).toBe(false);
     expect(JSON.stringify(traffic)).not.toContain("Cofre do Mestre");
     joiner.disconnect();
@@ -462,7 +545,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
 
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === glimpsedId);
     expect(doc).toBeDefined();
@@ -482,7 +565,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
 
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === knownId);
     expect(doc?.["name"]).toBe(KNOWN_NAME);
@@ -495,7 +578,11 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
+
+    // Anchor: the batch that should have carried the denied contact did arrive
+    // and did carry contacts — what is missing is the one ownership shuts out.
+    expect(actorDocsIn(traffic).some((doc) => doc["_id"] === knownId)).toBe(true);
 
     expect(JSON.stringify(traffic)).not.toContain(DENIED_NAME);
     expect(actorDocsIn(traffic).some((doc) => doc["_id"] === deniedId)).toBe(false);
@@ -512,7 +599,11 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
+
+    // Anchor: player C's snapshot was delivered. The list below is empty of
+    // contacts because the funnel closed it, not because nothing arrived.
+    expect(traffic.some((e) => e["type"] === "resync:full")).toBe(true);
 
     const ids = actorDocsIn(traffic).map((doc) => doc["_id"]);
     expect(ids).not.toContain(knownId);
@@ -530,7 +621,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const trafficA = recordEnvelopes(withCharacter);
     withCharacter.connect();
     await waitForConnect(withCharacter);
-    await settle();
+    await waitForJoinBatch(trafficA);
     expect(actorDocsIn(trafficA).some((doc) => doc["_id"] === knownId)).toBe(true);
     withCharacter.disconnect();
   });
@@ -540,7 +631,11 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
+
+    // Anchor: there ARE Actor documents in this player's traffic to inspect —
+    // a loop over an empty list would satisfy the check without proving it.
+    expect(actorDocsIn(traffic).length).toBeGreaterThan(0);
 
     for (const doc of actorDocsIn(traffic)) {
       const flags = doc["flags"] as Record<string, unknown> | undefined;
@@ -550,10 +645,10 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     // The GM, on the same world, still gets it: the redaction is scoped by
     // role, not a blanket strip.
     const gmTraffic = recordEnvelopes(gmSocket);
-    await sendOp(gmSocket, "actor:setKnowledge", {
+    const gmAck = await sendOp(gmSocket, "actor:setKnowledge", {
       updates: [{ actorId: knownId, general: KnowledgeState.Glimpsed }],
     });
-    await settle();
+    await waitForSeq(gmTraffic, seqOf(gmAck), "the GM's copy of the knowledge update");
     const gmDoc = actorDocsIn(gmTraffic).find((d) => d["_id"] === knownId);
     expect((gmDoc?.["flags"] as Record<string, Record<string, unknown>>)["fusion"]).toHaveProperty(
       "knowledge",
@@ -591,13 +686,12 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       ],
     });
     expect(ack["ok"]).toBe(true);
-    await settle();
 
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
 
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === knownId);
     expect(doc?.["name"]).toBe(KNOWN_NAME);
@@ -608,7 +702,10 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const otherTraffic = recordEnvelopes(other);
     other.connect();
     await waitForConnect(other);
-    await settle();
+    await waitForJoinBatch(otherTraffic);
+    // Anchor: player B's snapshot arrived and carried their own character, so
+    // the missing contact below is a refusal and not an unfinished delivery.
+    expect(actorDocsIn(otherTraffic).some((d) => d["_id"] === charBId)).toBe(true);
     expect(actorDocsIn(otherTraffic).some((d) => d["_id"] === knownId)).toBe(false);
 
     joiner.disconnect();
@@ -625,13 +722,12 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       type: "orador",
       ownership: { default: 2, [ctx.playerBId]: 3 },
     });
-    await settle();
 
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(traffic);
 
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === oradorId);
     expect(doc).toBeDefined();
@@ -652,7 +748,10 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       updates: [{ actorId: glimpsedId, exceptions: { [charAId]: KnowledgeState.Known } }],
     });
     expect(ack["ok"]).toBe(true);
-    await settle();
+    await Promise.all([
+      waitForSeq(aTraffic, seqOf(ack), "player A's copy of the knowledge update"),
+      waitForSeq(bTraffic, seqOf(ack), "player B's copy of the knowledge update"),
+    ]);
 
     const aDoc = actorDocsIn(aTraffic).find((d) => d["_id"] === glimpsedId);
     const bDoc = actorDocsIn(bTraffic).find((d) => d["_id"] === glimpsedId);
@@ -670,7 +769,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       updates: [{ actorId: knownId, general: KnowledgeState.Hidden }],
     });
     expect(ack["ok"]).toBe(true);
-    await settle();
+    await waitForSeq(aTraffic, seqOf(ack), "player A's copy of the knowledge update");
 
     // The envelope still arrives, with an empty batch: swallowing it would jump
     // the client mirror's seq and put every player into a resync loop.
@@ -698,7 +797,11 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       updates: [{ actorId: knownId, general: KnowledgeState.Hidden }],
     });
     expect(ack["ok"]).toBe(true);
-    await settle();
+    await Promise.all([
+      waitForSeq(aTraffic, seqOf(ack), "player A's copy of the knowledge update"),
+      waitForSeq(bTraffic, seqOf(ack), "player B's copy of the knowledge update"),
+      waitForSeq(gmTraffic, seqOf(ack), "the GM's copy of the knowledge update"),
+    ]);
 
     for (const [label, traffic] of [
       ["player A", aTraffic],
@@ -728,7 +831,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       updates: [{ actorId: knownId, general: KnowledgeState.Glimpsed }],
     });
     expect(ack["ok"]).toBe(true);
-    await settle();
+    await waitForSeq(aTraffic, seqOf(ack), "player A's copy of the knowledge update");
 
     const payload = aPayloadAtSeq(aTraffic, ack["seq"] as number);
     // Still delivered, just stripped (REQ-CTT-081) — removing it from the
@@ -740,34 +843,30 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
 
   it("REQ-CTT-075/REQ-CTT-083: the delta replay carries the removal too, not only the live broadcast", async () => {
     // Where the player stands before the change, so the replay has a start.
-    let lastSeq = 0;
     const probe = connectClient(ctx, ctx.playerAToken);
-    probe.on("op", (env: Record<string, unknown>) => {
-      if (env["type"] === "resync:full") {
-        const snap = (env["payload"] as Record<string, unknown>)["snapshot"] as Record<
-          string,
-          unknown
-        > | null;
-        if (snap) lastSeq = snap["seq"] as number;
-      }
-    });
+    const probeTraffic = recordEnvelopes(probe);
     probe.connect();
     await waitForConnect(probe);
-    await settle();
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
     probe.disconnect();
 
     const ack = await sendOp(gmSocket, "actor:setKnowledge", {
       updates: [{ actorId: knownId, general: KnowledgeState.Hidden }],
     });
     expect(ack["ok"]).toBe(true);
-    await settle();
 
     // Reconnecting inside the buffer window replays the op out of the OpBuffer.
     const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
     const replayTraffic = recordEnvelopes(replayer);
     replayer.connect();
     await waitForConnect(replayer);
-    await settle();
+    // The wait IS the anchor: the replayed op must be there before anything is
+    // read off it, so "no name in the traffic" cannot mean "no traffic".
+    await waitFor(
+      () => replayedOps(replayTraffic).some((op) => op["seq"] === ack["seq"]),
+      "the replayed knowledge op in the delta",
+    );
 
     const replayed = replayedOps(replayTraffic).find((op) => op["seq"] === ack["seq"]);
     expect(replayed).toBeDefined();
@@ -785,46 +884,41 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
 
   it("REQ-CTT-083: snapshot, live broadcast and delta replay all yield exactly what the redaction module yields", async () => {
     // 1. Where the player stands right now, so the replay has a starting seq.
-    let lastSeq = 0;
     const probe = connectClient(ctx, ctx.playerAToken);
-    probe.on("op", (env: Record<string, unknown>) => {
-      if (env["type"] === "resync:full") {
-        const snap = (env["payload"] as Record<string, unknown>)["snapshot"] as Record<
-          string,
-          unknown
-        > | null;
-        if (snap) lastSeq = snap["seq"] as number;
-      }
-    });
+    const probeTraffic = recordEnvelopes(probe);
     probe.connect();
     await waitForConnect(probe);
-    await settle();
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
     probe.disconnect();
 
     // 2. LIVE BROADCAST — the GM touches all three contacts at once.
     const liveTraffic = recordEnvelopes(playerASocket);
-    await sendOp(gmSocket, "actor:setKnowledge", {
+    const liveAck = await sendOp(gmSocket, "actor:setKnowledge", {
       updates: [
         { actorId: hiddenId, exceptions: { [charBId]: KnowledgeState.Known } },
         { actorId: glimpsedId, exceptions: { [charBId]: KnowledgeState.Known } },
         { actorId: knownId, exceptions: { [charBId]: KnowledgeState.Glimpsed } },
       ],
     });
-    await settle();
+    await waitForSeq(liveTraffic, seqOf(liveAck), "player A's copy of the live broadcast");
 
     // 3. JOIN SNAPSHOT — a fresh socket for the same user.
     const joiner = connectClient(ctx, ctx.playerAToken);
     const snapshotTraffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
-    await settle();
+    await waitForJoinBatch(snapshotTraffic);
 
     // 4. DELTA REPLAY — the same user reconnecting inside the buffer window.
     const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
     const replayTraffic = recordEnvelopes(replayer);
     replayer.connect();
     await waitForConnect(replayer);
-    await settle();
+    await waitFor(
+      () => replayedOps(replayTraffic).some((op) => op["seq"] === liveAck["seq"]),
+      "the replayed knowledge op in the delta",
+    );
 
     for (const [label, actorId] of [
       ["hidden", hiddenId],
