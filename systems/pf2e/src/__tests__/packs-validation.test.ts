@@ -503,24 +503,49 @@ describe("packs-validation: r10 domain invariants", () => {
   // ---------------------------------------------------------------------------
 
   /**
-   * Packs the system publishes for the GM alone. The bestiary is here because a
-   * creature pack read by a player is the monster manual open on the table
-   * (REQ-CPD-072, REQ-PF2-141). No hazard pack is generated yet, so REQ-PF2-142
-   * has nothing to name today — when the first one appears it belongs here too.
+   * Which packs the system publishes for the GM alone is read from what each
+   * pack CONTAINS, never from a list of slugs. A creature pack read by a player
+   * is the monster manual open on the table (REQ-CPD-072, REQ-PF2-141), and that
+   * requirement binds "qualquer pack de criaturas que o sistema venha a publicar
+   * depois"; REQ-PF2-142 likewise forbids deciding a hazard pack's audience case
+   * by case at generation time. A literal slug set satisfies neither — a
+   * `bestiary-2` published as "all" would be a leak these assertions never
+   * looked at, while the same pack published correctly as "gm" would FAIL the
+   * REQ-PF2-143 assertion below. Same rule the generator applies
+   * (tools/importer-pf2e/src/pack-audience.mjs).
    */
-  const GM_ONLY_SLUGS = new Set(["bestiary-core"]);
+  const packsContaining = (type: string): string[] =>
+    listPackSlugs().filter((slug) => loadDocuments(slug).some((doc) => doc.type === type));
 
-  it("REQ-CPD-072 / REQ-PF2-141: the creature pack is published with audience 'gm'", () => {
-    const parsed = PackManifestSchema.parse(loadPackJson("bestiary-core"));
-    expect(parsed.id).toBe("pf2e.bestiary-core");
-    expect(parsed.documentType).toBe("Actor");
-    expect(parsed.audience).toBe("gm");
+  const creaturePacks = packsContaining("npc");
+  const hazardPacks = packsContaining("hazard");
+  const gmOnlySlugs = new Set([...creaturePacks, ...hazardPacks]);
+
+  it("REQ-CPD-072 / REQ-PF2-141: every pack carrying creatures is published with audience 'gm'", () => {
+    // Non-vacuity guard: the detector must actually be finding the bestiary,
+    // otherwise an empty `creaturePacks` would make the loop below pass for free.
+    expect(creaturePacks, "no creature pack found — the content detector is broken").toContain(
+      "bestiary-core",
+    );
+
+    const offenders: string[] = [];
+    for (const slug of creaturePacks) {
+      const parsed = PackManifestSchema.parse(loadPackJson(slug));
+      if (parsed.documentType !== "Actor") {
+        offenders.push(`[${slug}] carries creatures but documentType is "${parsed.documentType}"`);
+      }
+      if (parsed.audience !== "gm") {
+        offenders.push(`[${slug}] audience is "${parsed.audience}", expected "gm"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+    expect(PackManifestSchema.parse(loadPackJson("bestiary-core")).id).toBe("pf2e.bestiary-core");
   });
 
-  it("REQ-PF2-143: every non-creature pack is published with audience 'all'", () => {
+  it("REQ-PF2-143: every pack without creatures or hazards is published with audience 'all'", () => {
     const offenders: string[] = [];
     for (const slug of listPackSlugs()) {
-      if (GM_ONLY_SLUGS.has(slug)) continue;
+      if (gmOnlySlugs.has(slug)) continue;
       const parsed = PackManifestSchema.parse(loadPackJson(slug));
       if (parsed.audience !== "all") {
         offenders.push(`[${slug}] audience is "${parsed.audience}", expected "all"`);
@@ -536,13 +561,12 @@ describe("packs-validation: r10 domain invariants", () => {
     expect(missing, `packs without a declared audience: ${missing.join(", ")}`).toEqual([]);
   });
 
-  it("REQ-PF2-142: no hazard pack is published yet, so none is missing a 'gm' audience", () => {
-    // The requirement is prospective: it binds the moment the first hazard pack
-    // (Actor subtype "hazard") is generated. This test is the tripwire — the day
-    // hazards ship, it fails until the pack is published as "gm".
-    const hazardPacks = listPackSlugs().filter((slug) =>
-      loadDocuments(slug).some((doc) => doc.type === "hazard"),
-    );
+  it("REQ-PF2-142: every pack carrying hazards is published with audience 'gm'", () => {
+    // The requirement is prospective: no hazard pack is generated today, so this
+    // list is empty and the assertion is vacuously true. It is the tripwire — the
+    // day hazards ship it fails until the pack is published as "gm", and the
+    // REQ-PF2-143 assertion above stops demanding "all" of that same pack at the
+    // same moment, because both read the same content.
     const wrongAudience = hazardPacks.filter(
       (slug) => PackManifestSchema.parse(loadPackJson(slug)).audience !== "gm",
     );
