@@ -29,6 +29,7 @@ import {
   AbilityCardSchema,
 } from "@fusion/shared";
 import { i18n } from "../../../i18n/index.js";
+import { setRollMode } from "../../../chat/rollModeState.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -3039,5 +3040,54 @@ describe("CharacterSheetVM — skill rank from derived (C2) and Lore labels (C4)
     const lore = vmFor(doc).skills.find((s) => s.slug === "lore")!;
     expect(lore.isLore).toBe(true);
     expect(lore.label).toBe("Lore");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Roll mode — the chat tab's selector rules the sheet too
+// Spec 38 (specs/38-aba-chat.md) §5.5, DEC-ACH-04.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — a plateia da rolagem vem do seletor do chat", () => {
+  afterEach(() => {
+    // The selector is a module-global store; leave it where the app starts.
+    setRollMode("world-001", "user-gm", "public");
+  });
+
+  it("REQ-ACH-042: com o seletor em 'cega', os botões de rolagem da ficha saem blindroll", () => {
+    setRollMode("world-001", "user-gm", "blindroll");
+    const vm = makeVM();
+
+    expect(vm.rollStrike("item-longsword", 0).rollMode).toBe("blindroll");
+    expect(vm.rollPerception().rollMode).toBe("blindroll");
+    expect(vm.rollSave("fortitude").rollMode).toBe("blindroll");
+    expect(vm.rollSkill("athletics").rollMode).toBe("blindroll");
+  });
+
+  it("REQ-ACH-042: a rolagem de ataque de um card da ficha também segue o seletor", () => {
+    setRollMode("world-001", "user-gm", "gmroll");
+    const built = makeVM().strikeCard("item-longsword", 0);
+
+    expect(built).not.toBeNull();
+    expect(built!.attack.rollMode).toBe("gmroll");
+  });
+
+  it("REQ-ACH-045: o anúncio do card é texto e não recebe o modo do seletor", () => {
+    setRollMode("world-001", "user-gm", "blindroll");
+    const built = makeVM().strikeCard("item-longsword", 0);
+
+    // No roll command in the announcement's content, so the payload stays silent
+    // and the server keeps it public — the selector never whispers text.
+    expect(built!.announcement.content).toBe("Longsword (MAP 0)");
+    expect(built!.announcement.rollMode).toBeUndefined();
+  });
+
+  it("REQ-ACH-042: mudar o seletor de volta para público volta a publicar", () => {
+    setRollMode("world-001", "user-gm", "selfroll");
+    const vm = makeVM();
+    expect(vm.rollPerception().rollMode).toBe("selfroll");
+
+    setRollMode("world-001", "user-gm", "public");
+    expect(vm.rollPerception().rollMode).toBe("public");
   });
 });
