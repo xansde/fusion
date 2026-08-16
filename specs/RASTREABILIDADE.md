@@ -15,8 +15,8 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 247 | 14% |
-| Citados só por código de produção | 335 | 18% |
+| Citados por algum teste | 246 | 13% |
+| Citados só por código de produção | 336 | 18% |
 | Sem nenhuma citação | 1242 | 68% |
 | **Total [MVP]** | **1824** | |
 
@@ -33,7 +33,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 85 | 3 | 33 | 49 | 4% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 12 | 24 | 20 | 21% |
 | [08](08-motor-de-rolagens.md) | 49 | 11 | 12 | 26 | 22% |
-| [09](09-chat-e-mensagens.md) | 49 | 6 | 9 | 34 | 12% |
+| [09](09-chat-e-mensagens.md) | 49 | 5 | 10 | 34 | 10% |
 | [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 7 | 18 | 37 | 11% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |

@@ -8,6 +8,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import * as badgesModule from "../badges.svelte.js";
 import {
@@ -72,6 +74,11 @@ function fakeDrawer(isGm: boolean): {
     },
   };
   return drawer;
+}
+
+/** Raw source of a file in `lib/sidebar/`, for the citation guard below. */
+function source(file: string): string {
+  return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
 }
 
 function snapshotBadges(isGm: boolean): Record<string, unknown> {
@@ -328,12 +335,33 @@ describe("REQ-GAV-023 — o valor é da aba, o contêiner não tem regra de neg�
 
   it("REQ-GAV-023: o módulo de badges não conhece chat, combate nem qualquer regra de aba", () => {
     // No import of a feature store here: the helpers are generic on purpose, so
-    // the unread rule (REQ-CHT-039) and the active-combat rule stay in their
-    // own specs.
+    // the unread rule (spec 09, proved by the Chat tab's own tests) and the
+    // active-combat rule (spec 10) stay in their own specs.
     const counter = createCounterBadge();
     const dot = createDotBadge();
     expect(Object.keys(counter).sort()).toEqual(["clear", "increment", "set", "value"]);
     expect(Object.keys(dot).sort()).toEqual(["clear", "light", "set", "value"]);
+
+    // ...and no export of this module is named after a feature either: a helper
+    // called `chatUnread`/`combatActive` would be the rule leaking into the rail.
+    const featureNamed = /chat|combat|unread|scene|actor|compendium|npc|contact/i;
+    expect(Object.keys(badgesModule).filter((name) => featureNamed.test(name))).toEqual([]);
+  });
+
+  it("claims the unread rule where it is honoured, not here", () => {
+    // `tools/spec-lint` counts ANY requirement id spelled inside `__tests__` as covered
+    // by a test, and the coverage floor never goes back down. The unread-counter rule of
+    // spec 09 says the badge counts unseen messages and is cleared when the panel is
+    // opened or focused — nothing in this file exercises either half, and spec 36 §5.3
+    // puts that rule explicitly outside the rail. Its id must therefore not appear here;
+    // the Chat tab (spec 38, phase 3) is what will prove it. The id is assembled from
+    // parts so that writing this guard does not itself make the claim it guards against.
+    const unreadRuleId = ["REQ", "CHT", "039"].join("-");
+
+    expect(source("__tests__/badges.test.ts")).not.toContain(unreadRuleId);
+    // It stays cited in production code, where the badge value is actually wired to the
+    // rule — which the trace reports as "cited only by production code".
+    expect(source("badges.svelte.ts")).toContain(unreadRuleId);
   });
 });
 
