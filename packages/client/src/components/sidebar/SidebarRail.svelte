@@ -76,7 +76,12 @@
     aria-describedby={hasBadge ? badgeDescriptionId(tab.id) : undefined}
     onclick={() => onSelect(tab.id)}
   >
-    <!-- Drawn icon (REQ-NPC-094): inline SVG authored in ./icons.ts, never a glyph. -->
+    <!-- Drawn icon (REQ-NPC-094): inline SVG authored in ./icons.ts, never a glyph.
+         `{@html}` is only defensible because nothing reaches `tab.icon` without
+         passing the allowlist in `lib/sidebar/iconMarkup.ts` at registration time —
+         shape elements and presentation attributes only, so no handler, script, URL
+         attribute or second root element can be here. Never render markup from any
+         other source in this rail. -->
     <span class="sidebar-rail__icon" aria-hidden="true">{@html tab.icon}</span>
     <!-- REQ-GAV-002: the tooltip is the only text in the rail; the accessible name
          is carried by aria-label, so the tooltip itself is hidden from a11y. -->
