@@ -47,7 +47,7 @@ describe("a janela compõe o QUE se rola (REQ-ACH-060)", () => {
     expect(buildRollFormula(spec({ count: 4, faces: 6, keepHighest: 3 }))).toBe("4d6kh3");
   });
 
-  it("explodes (REQ-ROL-006) before the keep modifier, which is the order the engine parses", () => {
+  it("explodes before the keep modifier, which is the order the engine parses", () => {
     expect(buildRollFormula(spec({ count: 3, faces: 6, explode: true }))).toBe("3d6!");
     expect(buildRollFormula(spec({ count: 4, faces: 6, explode: true, keepHighest: 3 }))).toBe(
       "4d6!kh3",
@@ -57,16 +57,42 @@ describe("a janela compõe o QUE se rola (REQ-ACH-060)", () => {
   // REQ-ROL-006 spells exploding `x`/`xo`; the builder emits `!`. That is not the builder
   // disagreeing with the spec on a whim — the parser the server actually runs refuses the
   // spec's own examples. The amendment spec 08 owes is registered in `specs/38-aba-chat.md`
-  // §12, and the two assertions below are its evidence: without them the amendment would be
-  // an assertion about the engine that nothing checks.
+  // §12, and this is the only place that checks it. So it checks the whole amendment, claim
+  // by claim: what the engine refuses, what it accepts instead, and where the notation the
+  // amendment names is still out of reach. A requirement whose divergence is pinned by test
+  // is covered; one whose name merely appears is not.
   it("emits `!` because the shipped engine rejects the `x` of REQ-ROL-006", () => {
-    for (const rejected of ["3d6x", "6d10xo10"]) {
-      expect(checkFavoriteFormula(rejected), rejected).not.toEqual({ valid: true });
+    // The refusal has to come from the PARSER, not from the favourite validator's word
+    // filter — `x` and `xo` are spelled in that filter's notation vocabulary on purpose, so
+    // a `syntax` verdict is the engine's own. Asserting only "not valid" would pass even if
+    // the validator were the one saying no, and the amendment's premise would go unproven.
+    for (const rejected of ["3d6x", "6d10xo10", "3d6x>=5"]) {
+      expect(checkFavoriteFormula(rejected), rejected).toMatchObject({
+        valid: false,
+        problem: "syntax",
+      });
     }
-    expect(checkFavoriteFormula("3d6!")).toEqual({ valid: true });
+
+    // What the engine takes in its place, including the comparator form — and the one shape
+    // it still refuses, a bare number after `!`.
+    for (const accepted of ["3d6!", "3d6!!", "3d6!>=5", "4d6!kh3"]) {
+      expect(checkFavoriteFormula(accepted), accepted).toEqual({ valid: true });
+    }
+    expect(checkFavoriteFormula("3d6!5")).toMatchObject({ valid: false, problem: "syntax" });
+
     expect(
       checkFavoriteFormula(buildRollFormula(spec({ count: 3, faces: 6, explode: true }))),
     ).toEqual({ valid: true });
+  });
+
+  // Known gap, asserted so it cannot be forgotten: the amendment lists `!p` (penetrating)
+  // among the notations the engine accepts, and the parser does know it — the error message
+  // for `3d6!5` offers `p` as a continuation. What refuses `!p` is the favourite validator's
+  // letter-run check, which has no `p` in its vocabulary, so a rollable formula is reported
+  // as an attribute reference. The builder never composes `!p`, so nothing is broken today;
+  // when the vocabulary is fixed this assertion flips and says so out loud.
+  it("still cannot save the penetrating form of REQ-ROL-006 as a favourite", () => {
+    expect(checkFavoriteFormula("3d6!p")).toMatchObject({ valid: false, problem: "attribute" });
   });
 
   it("appends the label as a roll note (REQ-ROL-013)", () => {
