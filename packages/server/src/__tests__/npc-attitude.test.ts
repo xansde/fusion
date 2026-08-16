@@ -479,6 +479,24 @@ describe("spec 42 §5.5/§5.10 — attitude is one per actor, and privileged (G0
     expect(attitudeOf(readFromStore(ownedNpcId))).toBe("ally");
   });
 
+  it("REQ-NPC-082: the embedded ack's parent (Item under Actor) carries no attitude either", async () => {
+    // Player A owns ownedNpcId outright, so embedding an Item under it
+    // succeeds — and the ack echoes the whole parent Actor back under
+    // `result.parent`, a second emission path distinct from `result.documents`
+    // (net/redaction.ts:961).
+    const ack = await sendOp(playerASocket, "doc:create", {
+      documentType: "Item",
+      data: [{ name: "Coleira", type: "gear" }],
+      parent: { type: "Actor", id: ownedNpcId },
+    });
+    expect(ack["ok"]).toBe(true);
+    const parent = (ack["result"] as { parent?: Record<string, unknown> } | undefined)?.parent;
+    expect(parent?.["_id"]).toBe(ownedNpcId);
+    expect(attitudeOf(parent)).toBeUndefined();
+    // The stored document kept it: only the payload lost it.
+    expect(attitudeOf(readFromStore(ownedNpcId))).toBe("ally");
+  });
+
   it("REQ-NPC-082: no envelope a player ever received mentions the attitude key", async () => {
     const seq = seqOf(await setAttitude(gmSocket, smithId, "ally"));
     await Promise.all([
