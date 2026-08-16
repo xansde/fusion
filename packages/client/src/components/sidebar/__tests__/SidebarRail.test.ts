@@ -94,12 +94,14 @@ function buttonOf(html: string, id: string): string {
 
 /**
  * Text that a sighted user reads in the rail, i.e. everything left after removing
- * the drawn tooltips (the only text REQ-GAV-002 allows), SSR comments and every
- * tag — which also drops `aria-label`, since attributes live inside tags.
+ * the drawn tooltips (the only text REQ-GAV-002 allows), the badge in the corner of
+ * the icon (a count, not a label — REQ-GAV-021), SSR comments and every tag — which
+ * also drops `aria-label`, since attributes live inside tags.
  */
 function visibleTextOutsideTooltips(html: string): string {
   return html
-    .replace(/<span[^>]*class="[^"]*rail__tooltip[^"]*"[^>]*>[\s\S]*?<\/span>/g, "")
+    .replace(/<span[^>]*class="[^"]*rail__tooltip[^"]*"[^>]*>[\s\S]*?<\/span\s*>/g, "")
+    .replace(/<span[^>]*class="[^"]*sidebar-badge[^"]*"[^>]*>[\s\S]*?<\/span\s*>/g, "")
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/<[^>]*>/g, "")
     .replace(/\s+/g, "")

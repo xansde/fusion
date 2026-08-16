@@ -9,7 +9,9 @@
    * M1-B (SCENE-UI): GM sidebar with Scenes tab. Players see no sidebar but
    * receive the NoSceneOverlay while waiting for the GM to activate a scene.
    *
-   * M1-D (CHAT): AppSidebar replaces ScenesSidebar; adds Chat tab for all users.
+   * Spec 36 (gaveta lateral): the side drawer replaces AppSidebar — an icon-only
+   * rail plus the panel of the active tab, with the core tabs registered through
+   * `registerCoreSidebarTabs` (REQ-GAV-030).
    *
    * REQ-CNV-001: WebGPU with automatic WebGL fallback.
    * REQ-CNV-006: Render group for camera transform.
@@ -26,7 +28,8 @@
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
-  import AppSidebar from "./chat/AppSidebar.svelte";
+  import Sidebar from "./sidebar/Sidebar.svelte";
+  import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import WindowHost from "./windows/WindowHost.svelte";
@@ -47,6 +50,12 @@
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
+
+  // The seven core tabs enter the drawer through the public registration call, not
+  // through an `{#if}` inside it (DEC-GAV-07 / REQ-GAV-030). It runs before the
+  // drawer mounts because the drawer reads the registry to decide where this seat
+  // opens (REQ-GAV-015/016), and it is idempotent, so a remount is harmless.
+  registerCoreSidebarTabs();
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -563,11 +572,13 @@
   </header>
 
   <!-- -------------------------------------------------------------------- -->
-  <!-- App sidebar — Scenes tab (GM) + Chat tab (all users)                 -->
+  <!-- Side drawer — icon rail plus the panel of the active tab (spec 36).  -->
+  <!-- The rail is the same for every role; the GM group is simply absent    -->
+  <!-- for a player (REQ-GAV-003, REQ-GAV-004).                              -->
   <!-- -------------------------------------------------------------------- -->
   {#if getSocket()}
     {@const sock = getSocket()!}
-    <AppSidebar
+    <Sidebar
       socket={sock}
       worldId={session.worldInfo?.id ?? ""}
       activeSceneId={activeSceneState.id}

@@ -22,6 +22,7 @@
 
   import { getVisibleSidebarTabs } from "../../lib/sidebar/registry.js";
   import type { SidebarTabEntry } from "../../lib/sidebar/registry.js";
+  import SidebarBadge from "./SidebarBadge.svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
   interface Props {
@@ -61,6 +62,10 @@
     <!-- REQ-GAV-002: the tooltip is the only text in the rail; the accessible name
          is carried by aria-label, so the tooltip itself is hidden from a11y. -->
     <span class="sidebar-rail__tooltip" aria-hidden="true">{t(tab.label)}</span>
+    <!-- REQ-GAV-021: the badge is drawn whenever the tab's store has a value — the
+         active, open tab included. Reading `.value` here is the only thing the rail
+         ever does with a badge; it never writes one (REQ-GAV-022, REQ-GAV-023). -->
+    <SidebarBadge value={tab.badge?.value ?? null} />
   </button>
 {/snippet}
 

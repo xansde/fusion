@@ -27,6 +27,9 @@
   "FUSION.Sidebar.Scenes.ActiveScene": "Active scene",
   "FUSION.Sidebar.Scenes.InactiveScene": "Inactive",
 
+  "FUSION.Sidebar.Settings.Title": "Settings",
+  "FUSION.Sidebar.Settings.Empty": "No settings available yet.",
+
   "FUSION.Actors.Types.character": "Character",
   "FUSION.Actors.Types.npc": "NPC",
   "FUSION.Actors.Types.familiar": "Familiar",
