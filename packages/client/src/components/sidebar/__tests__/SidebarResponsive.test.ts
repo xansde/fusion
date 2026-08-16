@@ -190,8 +190,13 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
 
     it("REQ-GAV-040: no FAB and no swipe stands in for the gesture on a narrow screen", () => {
       // A narrow screen is served by the SAME markup: no width is read in script, so
-      // there is no second, touch-only way in or out of the drawer (it replaces the
-      // FAB/swipe of REQ-UIF-062 for the drawer).
+      // there is no second, touch-only way in or out of the drawer — this is what stands
+      // in, for the drawer, for the FAB/swipe that the player mode of spec 11
+      // ("Responsividade / tablet") and spec 23 foresaw for the sidebar. That requirement
+      // covers a great deal more than the drawer (maximised canvas, hidden GM scene
+      // controls, sheets as bottom drawers), none of which is exercised here, so it is
+      // cited where it is honoured — `Sidebar.svelte` — and deliberately NOT named here:
+      // naming it would claim test coverage this file does not provide.
       for (const file of SIDEBAR_FILES) {
         const code = codeOf(file);
         expect(code, `${file} branches on the viewport`).not.toMatch(
@@ -210,6 +215,21 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
         expect(tag).toContain("data-tab-id=");
       }
       expect(html.toLowerCase()).not.toContain("fab");
+    });
+
+    it("claims spec 11's player mode where it is honoured, not here", () => {
+      // `tools/spec-lint` counts ANY requirement id spelled inside `__tests__` as covered
+      // by a test, and the coverage floor never goes back down. Spec 11's player mode is
+      // far wider than the drawer — maximised canvas, hidden GM scene controls, sheets as
+      // bottom drawers — and nothing in this file exercises any of it, so its id must not
+      // appear here. The id is assembled from parts so that writing this guard does not
+      // itself make the claim it is guarding against.
+      const playerModeId = ["REQ", "UIF", "062"].join("-");
+
+      expect(source("__tests__/SidebarResponsive.test.ts")).not.toContain(playerModeId);
+      // It stays cited in production code, where the drawer actually answers it — which
+      // the trace reports as "cited only by production code".
+      expect(source("Sidebar.svelte")).toContain(playerModeId);
     });
   });
 
