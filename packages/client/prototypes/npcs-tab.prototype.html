@@ -2,92 +2,81 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <title>PROTOTYPE — Aba NPCs (grill rodada 1: três variantes)</title>
+    <title>PROTOTYPE — Aba NPCs (rodada 2: diretório com pastas fixadas)</title>
     <!--
-  PROTOTYPE — descartável. Rodada 1 do grill da aba NPCs. Não é código de
-  produção; não importar nada daqui.
+  PROTOTYPE — descartável. Rodada 2 do grill. Não é código de produção.
+  A rodada 1 (três variantes: diretório · elenco · bancada) está no histórico
+  do arquivo — commit "aba NPCs - 3 variantes para o grill (rodada 1)".
 
   ════════════════════════════════════════════════════════════════════════════
-  POR QUE ESTA ABA EXISTE (e por que ela nasce devendo)
+  O QUE O ALEXANDRE DECIDIU NA RODADA 1 (2026-08-16)
   ════════════════════════════════════════════════════════════════════════════
-  A spec 39 (Contatos) tirou "+Novo" e "excluir" da aba do jogador e escreveu a
-  dívida com todas as letras (DEC-CTT-01): o cliente fica SEM NENHUMA forma de
-  criar ou excluir ator até esta aba existir. A 39 §2.2 também transferiu para
-  cá, nominalmente: o diretório completo de não-jogadores, PASTAS, AUTORIA,
-  SUBTIPOS e IMPORTAÇÃO.
-  Ou seja: esta aba não é "a Contatos do Mestre". É o lugar da autoria.
+   1. DIRETÓRIO (variante A) é o desenho — com duas exigências novas: o Mestre
+      CRIA pastas, e pode FIXAR pastas de interesse no topo.
+   2. MOVER ATOR por drag-and-drop entre pastas, ALÉM do botão "mudar de pasta".
+      (as duas formas, não uma ou outra)
+   3. PERSONAGEM NÃO NASCE AQUI. "A aba é de NPC, ou seja, personagens NÃO
+      jogáveis. Aqui não é a casa de personagens." Personagem nasce colado ao
+      player: TODO PLAYER CRIADO NASCE COM UM PERSONAGEM EM BRANCO associado.
+      → Vira emenda na spec 37 (seção Usuários) e na 05, não requisito daqui.
+      → E deixa uma ponta solta: EXCLUIR personagem continua sem endereço
+        nenhum no app (ver N9 abaixo).
+   4. VEÍCULO SAIU da criação; PERIGO fica. (a lista de subtipos não é mais
+      "tudo que o sistema declara" — ver N4)
+   5. CRIAR NPC tem DOIS CAMINHOS: puxar do bestiário (browser aqui dentro) ou
+      criar a própria besta do zero. A ideia da variante C sobreviveu — mas
+      DENTRO da criação, não como espinha do painel.
+   6. VIDA NÃO APARECE nesta aba. Botão removido, questão encerrada.
+   7. NOVO: TIPOS DE NPC (ex.: mercador) — um NPC tem um papel que muda o que
+      ele é na mesa. Está no protótipo como campo "papel", e é a pergunta mais
+      aberta da rodada (N2).
+   8. NOVO: BAÚ DIRETO NA CENA, por botão específico — está no rodapé (N3).
+   9. Ficha de NPC será MUITO mais maleável que a de personagem, e ganha SPEC
+      PRÓPRIA no futuro. Esta spec não define ficha de NPC — só cita.
 
   ════════════════════════════════════════════════════════════════════════════
-  O QUE JÁ VEM DECIDIDO DA 39 (tratei como não-negociável — confira)
+  HERDADO DA SPEC 39 (não se rediscute aqui)
   ════════════════════════════════════════════════════════════════════════════
-   · CONDIÇÃO por contrato (DEC-CTT-11): cor por tom (verde ajuda / vermelho
-     atrapalha / roxo situação), `critical` PREENCHE o chip (não é 4ª cor),
-     valor colado ao rótulo em tabular, ajuda em tooltip desenhado, ordem
-     crítica→penalidade→situação→benefício, teto 2 + "+N", SEM ÍCONE.
-   · SUB-PERSONAGEM encapsulado no dono (DEC-CTT-06) — o corvo Nix aparece
-     dentro da Vess, nunca solto. Aqui vale para NPC também.
-   · TÍTULO livre sob o nome (DEC-CTT-07). A Q-CTT-05 perguntava se vale para
-     não-jogador; este protótipo APOSTA QUE SIM e deixa o Mestre editar aqui.
-   · CONHECIMENTO se edita NUM LUGAR SÓ (DEC-CTT-05), a janela "Quem conhece
-     quem". Aqui ela é a MESMA janela, alcançável pelo mesmo rodapé fixo; o
-     cartão mostra o estado só em LEITURA (✓2 ◐1). Nenhum controle de estado
-     no cartão — se isso te incomodar na hora de revelar, é exatamente o
-     feedback que a rodada 2 precisa.
-   · REDAÇÃO no servidor (REQ-CTT-081..083): esconder no cliente não esconde.
+   · Condição por contrato (DEC-CTT-11): tom, crítica preenchida, valor colado,
+     tooltip desenhado, ordem, teto 2 + "+N", sem ícone.
+   · Sub-personagem encapsulado no dono (DEC-CTT-06) — Nix dentro da Vess.
+   · Título livre sob o nome (DEC-CTT-07) — aqui vale para NPC (fecha Q-CTT-05).
+   · Conhecimento se edita num lugar só (DEC-CTT-05): no cartão é LEITURA.
+   · Redação no servidor (REQ-CTT-081..083).
 
   ════════════════════════════════════════════════════════════════════════════
-  AS TRÊS VARIANTES — cada uma aposta em uma coisa diferente
+  O QUE ESTA RODADA PÕE NA MESA (as perguntas que sobraram)
   ════════════════════════════════════════════════════════════════════════════
-  A · DIRETÓRIO   — pastas de verdade (documento Folder, servidor), aninhadas,
-                    árvore. É o ActorDirectory de hoje, feito direito. Aposta:
-                    o Mestre quer um gerenciador de arquivos, e o bestiário
-                    inteiro mora aqui dentro.
-  B · ELENCO      — organiza por PAPEL NA FICÇÃO: "Em cena" (quem está na cena
-                    ativa agora), "Elenco" (recorrentes, com nome), "Avulsos"
-                    (bestiário, recolhido, só chega por busca). Pasta vira
-                    detalhe secundário. Aposta: durante o jogo o Mestre não
-                    quer árvore, quer quem importa agora.
-  C · BANCADA     — uma busca só que atravessa MUNDO e COMPÊNDIO. O resultado
-                    vem em duas faixas: "no mundo" e "nos compêndios (importar)".
-                    Aposta: a pergunta real do Mestre é "me dá um goblin", e
-                    ele não quer saber se já está no mundo ou não.
-                    (A REQ-CMP-018 já manda o drop de ator de pack importar
-                    antes de criar o token — C é levar isso a sério.)
-
-  ════════════════════════════════════════════════════════════════════════════
-  O QUE O PROTÓTIPO PÕE NA MESA DE PROPÓSITO (é aqui que quero seu feedback)
-  ════════════════════════════════════════════════════════════════════════════
-   Q1 — CRIAR: a janela "Novo" oferece TODOS os subtipos do sistema, inclusive
-        Personagem — e diz que o Personagem criado aqui vai APARECER NA ABA
-        CONTATOS, não nesta lista. É a proposta de pagar a dívida da DEC-CTT-01
-        inteira: criar é autoria (é daqui), listar é por plateia (é de lá).
-        Alternativa: esta aba só cria não-jogador, e criar PC vira gesto da
-        seção Usuários da 37.
-   Q2 — ESCALA: ligue "bestiário importado" no switcher. São 492 atores no
-        mundo. A variante A vira uma árvore com uma pasta gigante; a B empurra
-        para "Avulsos" recolhido; a C dilui na busca. A 39 pôde assumir
-        "dezenas" (RNF-CTT-02); aqui não dá.
-   Q3 — REVELAR: o cartão só LÊ o estado (✓2 ◐1). Revelar exige abrir a janela.
-        É o preço da DEC-CTT-05. Vale a pena?
-   Q4 — VIDA: botão "vida" no switcher. Argumento para NÃO mostrar, mais forte
-        que o da 39: com token desvinculado (REQ-DOC-033) a vida do ator-base é
-        MOLDE, não valor vivo — os 3 goblins na cena têm cada um a sua. Exibir
-        "a vida do ator" aqui é exibir um número que não descreve ninguém.
-   Q5 — VÍNCULO DO TOKEN: arrastar goblin para o mapa cria token DESVINCULADO
-        (cada um com sua vida); arrastar um NPC nomeado cria VINCULADO. O
-        protótipo mostra o default vindo do subtipo, com o modificador para
-        inverter (Alt). Hoje o código cria sempre vinculado.
-   Q6 — EXCLUIR: a janela de exclusão mostra o que vai junto — N tokens em M
-        cenas, combate ativo (que RECUSA a exclusão), e o conhecimento que
-        será apagado. A REQ-CTT-076 só cobriu o caso espelho (excluir
-        personagem); excluir contato não está em spec nenhuma.
-   Q7 — PERIGO/VEÍCULO: "Armadilha de Fosso" é subtipo `hazard`. Ator que não é
-        gente cabe numa aba chamada "NPCs"? (o trilho da 36 já batizou assim)
-
-  NOTA DE VOCABULÁRIO — o mesmo problema que a aba Combate encontrou: TOKEN
-  ainda não tem spec fechada. Aqui a palavra aparece só onde é inevitável
-  (contagem de presença no mapa) e a spec vai ter que pendurar isso na spec de
-  Token que ainda será escrita.
+   N1 FIXAR PASTA — "Goblinoides" está fixada e SAIU de dentro de "Bestiário"
+      (aparece no topo com o caminho). É isso, ou fixar só devia subir a pasta
+      entre as irmãs dela, sem tirar da árvore? E o favorito é do APARELHO
+      (como as categorias da 39, DEC-CTT-08) ou do documento Folder (e então
+      todo Mestre vê o mesmo)?
+   N2 PAPEL DO NPC — "mercador", "baú", "montaria" aparecem como campo na
+      criação e como etiqueta na linha. Mas o que é isso?
+        (a) PRESET — pré-preenche a ficha e some (não fica gravado); ou
+        (b) CAPACIDADE — fica no ator e muda o que ele faz (mercador tem
+            estoque, baú tem conteúdo saqueável).
+      E quem declara a lista: o SISTEMA (como as condições) ou o MESTRE cria
+      os tipos dele no mundo?
+   N3 BAÚ NA CENA — o botão do rodapé põe um baú direto na cena ativa. Esse
+      baú vira ator do mundo, listado aqui? Ou é coisa só da cena, que esta
+      aba nunca vê? (esbarra na spec 41 — Token — que ainda não existe)
+   N4 QUEM CORTA O VEÍCULO — o sistema pf2e declara `vehicle`. Tirar da tela é
+      lista branca desta aba, ou o sistema é que passa a declarar quais
+      subtipos são criáveis aqui?
+   N5 IMPORTAR DO BESTIÁRIO — vai para qual pasta? E o ator importado guarda
+      vínculo com o pack de origem (para atualizar depois) ou vira cópia solta?
+   N6 EXCLUIR — a janela ainda recusa quando há combate ativo e avisa o que cai
+      junto. Não foi comentado: continua assim?
+   N7 REVELAR — o cartão só lê o estado; revelar exige o rodapé. Não foi
+      comentado: continua assim?
+   N8 ARRASTE PARA O MAPA — goblin nasce desvinculado, Aldric vinculado. Não
+      foi comentado, e agora depende da spec 41 (Token).
+   N9 EXCLUIR PERSONAGEM — se PC nasce com o player, PC morre com o player?
+      Hoje não há tela nenhuma que exclua personagem: a dívida da DEC-CTT-01
+      ficou só metade paga.
+   N10 O NOME DA ABA — com perigo e baú dentro, "NPCs" ainda descreve a aba?
 -->
     <style>
       :root {
@@ -105,6 +94,7 @@
         --warn: #e5b83b;
         --ok: #3ddc84;
         --special: #b98cff;
+        --pin: #f5a623;
         --radius-sm: 4px;
         --radius: 8px;
         --radius-lg: 12px;
@@ -227,7 +217,7 @@
       }
       .stage .drop {
         position: absolute;
-        left: calc(50% - 15vh);
+        left: calc(50% - 16vh);
         top: calc(50% + 7vh);
         border: 2px dashed var(--accent);
         border-radius: 6px;
@@ -237,9 +227,14 @@
         background: rgba(11, 11, 15, 0.85);
         text-align: center;
         line-height: 1.5;
+        min-width: 32vh;
       }
       .stage .drop b {
         color: var(--warn);
+      }
+      .stage .drop.hot {
+        border-color: var(--ok);
+        color: var(--ok);
       }
       .stage .scenepill {
         position: absolute;
@@ -254,6 +249,19 @@
       }
       .stage .scenepill b {
         color: var(--ok);
+      }
+      .stage .chest {
+        position: absolute;
+        left: calc(50% + 9vh);
+        top: calc(50% - 4vh);
+        font-size: 1.6rem;
+        filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.6));
+      }
+      .stage .chest small {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--pin);
+        text-align: center;
       }
 
       /* ---------- Chassi C (spec 36) ---------- */
@@ -441,7 +449,6 @@
         background: var(--surface-alt);
         border-radius: 99px;
       }
-      /* rodapé FIXO do painel — o mesmo gesto da 39 (DEC-CTT-05) */
       .panel-foot {
         flex: 0 0 auto;
         border-top: 1px solid var(--border);
@@ -515,6 +522,14 @@
         color: var(--accent-hover);
         background: var(--accent-dim);
       }
+      .hbtn.chestb {
+        border-color: rgba(245, 166, 35, 0.5);
+        color: var(--pin);
+      }
+      .hbtn.chestb:hover {
+        background: rgba(245, 166, 35, 0.1);
+        border-color: var(--pin);
+      }
       .hbtn .icon {
         width: 14px;
         height: 14px;
@@ -537,11 +552,8 @@
         text-transform: uppercase;
         color: var(--subtle);
       }
-      .sec.click {
-        cursor: pointer;
-      }
-      .sec.click:hover .lbl {
-        color: var(--muted);
+      .sec.pinned .lbl {
+        color: var(--pin);
       }
       .sec .cnt {
         font-size: 0.66rem;
@@ -555,14 +567,25 @@
         height: 1px;
         background: var(--border);
       }
-      .sec .chev {
+      .sec .add {
+        background: none;
+        border: 0;
         color: var(--subtle);
+        cursor: pointer;
+        font: inherit;
         font-size: 0.7rem;
-        width: 0.8rem;
-        text-align: center;
+        padding: 0 0.15rem;
+      }
+      .sec .add:hover {
+        color: var(--accent-hover);
+      }
+      .sec.drop-ok {
+        outline: 1px dashed var(--accent);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
       }
 
-      /* ---------- Árvore de pastas (variante A) ---------- */
+      /* ---------- Árvore de pastas ---------- */
       .fold {
         display: flex;
         align-items: center;
@@ -575,6 +598,11 @@
       }
       .fold:hover {
         background: var(--surface-alt);
+        color: var(--text);
+      }
+      .fold.drop-ok {
+        background: var(--accent-dim);
+        box-shadow: inset 0 0 0 1px var(--accent);
         color: var(--text);
       }
       .fold .chev {
@@ -590,6 +618,12 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      .fold .path {
+        font-size: 0.6rem;
+        color: var(--subtle);
+        font-weight: 400;
+        flex: 0 0 auto;
+      }
       .fold .cnt {
         font-size: 0.64rem;
         color: var(--subtle);
@@ -597,25 +631,51 @@
         flex: 0 0 auto;
       }
       .fold .tools {
-        display: flex;
+        display: none;
         gap: 0.1rem;
-        opacity: 0;
-        transition: opacity 0.12s;
         flex: 0 0 auto;
+        margin-left: auto;
       }
       .fold:hover .tools {
-        opacity: 1;
+        display: flex;
+      }
+      .fold:hover .cnt {
+        display: none;
       }
       .fold .tools button {
         background: none;
         border: 0;
         color: var(--subtle);
         cursor: pointer;
-        font-size: 0.7rem;
-        padding: 0 0.1rem;
+        font-size: 0.72rem;
+        padding: 0 0.12rem;
+        line-height: 1;
       }
       .fold .tools button:hover {
         color: var(--accent-hover);
+      }
+      .fold .tools button.del:hover {
+        color: var(--danger);
+      }
+      .fold .tools button.pinb.on,
+      .fold .pinmark {
+        color: var(--pin);
+      }
+      .fold .pinmark {
+        font-size: 0.7rem;
+        flex: 0 0 auto;
+      }
+      .fold input {
+        background: #0b0b0f;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.74rem;
+        padding: 0.05rem 0.3rem;
+        outline: none;
+        flex: 1;
+        min-width: 0;
       }
       .kids {
         margin-left: 0.55rem;
@@ -640,6 +700,9 @@
         background: var(--accent-dim);
         box-shadow: inset 0 0 0 1px var(--accent);
       }
+      .act.dragging {
+        opacity: 0.4;
+      }
       .act .av {
         width: 26px;
         height: 26px;
@@ -662,9 +725,25 @@
       .act .nm {
         font-size: 0.8rem;
         color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+      .act .nm > span {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      .role {
+        font-size: 0.58rem;
+        border-radius: 999px;
+        padding: 0 0.32rem;
+        border: 1px solid rgba(245, 166, 35, 0.45);
+        color: var(--pin);
+        background: rgba(245, 166, 35, 0.08);
+        flex: 0 0 auto;
+        cursor: default;
       }
       .act .ttl {
         font-size: 0.68rem;
@@ -747,11 +826,6 @@
         border-radius: var(--radius-sm);
         padding: 0 0.25rem;
       }
-      .hp {
-        font-size: 0.62rem;
-        color: var(--warn);
-        font-variant-numeric: tabular-nums;
-      }
       .tok {
         font-size: 0.62rem;
         color: var(--muted);
@@ -772,6 +846,37 @@
       }
       .know .k0 {
         color: var(--subtle);
+      }
+
+      /* menu de mover para pasta (o botão 🗀 — convive com o arraste) */
+      .movemenu {
+        margin: 0.1rem 0 0.35rem 2.05rem;
+        padding: 0.35rem 0.4rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-alt);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+      .movemenu button {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.64rem;
+        padding: 0.05rem 0.45rem;
+        cursor: pointer;
+      }
+      .movemenu button:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .movemenu button.on {
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        background: var(--accent-dim);
       }
 
       /* --- condições (contrato herdado da 39) --- */
@@ -853,59 +958,6 @@
         margin-left: auto;
       }
 
-      /* faixa de compêndio (variante C) */
-      .band {
-        margin: 0.55rem 0 0.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.25rem 0.3rem;
-        border-radius: var(--radius-sm);
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-      }
-      .band.pack {
-        border-style: dashed;
-        border-color: rgba(124, 92, 252, 0.45);
-        background: rgba(124, 92, 252, 0.06);
-      }
-      .band .lbl {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-      .band .cnt {
-        font-size: 0.65rem;
-        color: var(--subtle);
-        margin-left: auto;
-        font-variant-numeric: tabular-nums;
-      }
-      .act.frompack .nm {
-        color: var(--muted);
-      }
-      .act.frompack .av {
-        opacity: 0.65;
-      }
-      .imp {
-        background: none;
-        border: 1px solid rgba(124, 92, 252, 0.5);
-        color: var(--accent-hover);
-        border-radius: 999px;
-        font: inherit;
-        font-size: 0.6rem;
-        padding: 0.02rem 0.4rem;
-        cursor: pointer;
-      }
-      .imp:hover {
-        background: var(--accent-dim);
-      }
-      .packsrc {
-        font-size: 0.6rem;
-        color: var(--subtle);
-      }
-
       .vazio {
         border: 1px dashed var(--border);
         border-radius: var(--radius);
@@ -955,7 +1007,7 @@
       #tip {
         position: fixed;
         z-index: 9998;
-        max-width: 230px;
+        max-width: 235px;
         background: #0b0b0f;
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
@@ -981,7 +1033,7 @@
       /* janela (spec 11) */
       .win {
         position: fixed;
-        top: 90px;
+        top: 84px;
         left: calc(50% - 300px);
         width: 600px;
         background: var(--surface);
@@ -1017,7 +1069,7 @@
         color: var(--muted);
         font-size: 0.8rem;
         line-height: 1.5;
-        max-height: 64vh;
+        max-height: 62vh;
         overflow: auto;
       }
       .win .wb b {
@@ -1043,7 +1095,7 @@
         margin: 0.5rem 0;
       }
       .field > label {
-        width: 80px;
+        width: 74px;
         color: var(--subtle);
         font-size: 0.74rem;
         flex: 0 0 auto;
@@ -1064,13 +1116,13 @@
       .field select:focus {
         border-color: var(--accent);
       }
-      .subtypes {
+      .pills {
         display: flex;
         flex-wrap: wrap;
         gap: 0.3rem;
         flex: 1;
       }
-      .subtypes button {
+      .pills button {
         background: var(--surface-alt);
         border: 1px solid var(--border);
         color: var(--muted);
@@ -1080,15 +1132,87 @@
         padding: 0.1rem 0.6rem;
         cursor: pointer;
       }
-      .subtypes button:hover {
+      .pills button:hover {
         color: var(--text);
         border-color: var(--accent);
       }
-      .subtypes button.on {
+      .pills button.on {
         background: var(--accent-dim);
         border-color: var(--accent);
         color: var(--accent-hover);
         font-weight: 600;
+      }
+      /* abas da janela de criação: do bestiário × do zero */
+      .wtabs {
+        display: flex;
+        gap: 0.35rem;
+        border-bottom: 1px solid var(--border);
+        padding: 0 0.8rem;
+        background: var(--surface-alt);
+      }
+      .wtabs button {
+        background: none;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.78rem;
+        padding: 0.4rem 0.5rem;
+        cursor: pointer;
+      }
+      .wtabs button:hover {
+        color: var(--text);
+      }
+      .wtabs button.on {
+        color: var(--accent-hover);
+        border-bottom-color: var(--accent);
+        font-weight: 600;
+      }
+      .browser {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        max-height: 200px;
+        overflow: auto;
+        margin-top: 0.4rem;
+      }
+      .brow {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.28rem 0.45rem;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+      }
+      .brow:last-child {
+        border-bottom: 0;
+      }
+      .brow:hover {
+        background: var(--surface-alt);
+      }
+      .brow.on {
+        background: var(--accent-dim);
+        box-shadow: inset 2px 0 0 var(--accent);
+      }
+      .brow .av {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #0b0b0f;
+        flex: 0 0 auto;
+      }
+      .brow .bn {
+        color: var(--text);
+        font-size: 0.78rem;
+        flex: 1;
+        min-width: 0;
+      }
+      .brow .bs {
+        font-size: 0.66rem;
+        color: var(--subtle);
       }
       .warnbox {
         margin-top: 0.6rem;
@@ -1142,7 +1266,6 @@
         background: var(--danger);
         border: 1px solid var(--danger);
         color: #160608;
-        font-weight: 700;
         border-radius: var(--radius-sm);
         padding: 0.25rem 0.7rem;
         font: inherit;
@@ -1292,9 +1415,6 @@
       .switcher button.alt {
         background: #5a4bd6;
       }
-      .switcher button.var {
-        background: #0a7d5a;
-      }
       .legend {
         position: fixed;
         left: 16px;
@@ -1306,7 +1426,7 @@
         padding: 0.6rem 0.7rem;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
         font-size: 0.72rem;
-        max-width: 410px;
+        max-width: 415px;
         line-height: 1.45;
       }
       .legend h4 {
@@ -1353,10 +1473,9 @@
       <div class="art">
         <div class="house"><div class="star">★</div></div>
       </div>
+      <div class="chest" id="chestmark" style="display: none">🧰<small>baú</small></div>
       <div class="drop" id="dropzone">
-        arraste um ator para cá → vira presença no mapa<br /><b id="droplink"
-          >goblin: desvinculado (cada um com sua vida)</b
-        >
+        arraste um ator para cá → vira presença no mapa<br /><b id="droplink"></b>
       </div>
     </div>
 
@@ -1365,10 +1484,8 @@
     <div id="tip"></div>
 
     <div class="switcher">
-      <button id="variant" class="var">variante</button>
       <button id="role">papel</button>
       <button id="bestiary" class="alt">bestiário</button>
-      <button id="hp" class="alt">vida</button>
       <button id="state">estado</button>
     </div>
     <div class="legend" id="legend"></div>
@@ -1421,12 +1538,14 @@
         chat: `<div class="row"><span class="name">Fofurinha</span><span class="sub2">21:14</span></div>`,
         contacts: `<div class="row"><span class="name">Tobias</span><span class="sub2">você</span></div>
     <div class="row"><span class="name">Fofurinha</span><span class="sub2">na mesa</span></div>
-    <p class="hint">A aba do jogador. Não cria nem exclui ator (DEC-CTT-01) —<br/>é esta aba aqui que paga essa dívida.</p>`,
+    <p class="hint">A aba do jogador (spec 39).<br/>Personagem aparece aqui — mas nasce junto com o player,<br/>em Configurações › Usuários.</p>`,
         combat: `<p class="empty">Nenhum combate ativo.</p>`,
         compendium: `<div class="row"><span class="name">Bestiário 1</span><span class="sub2">492</span></div>
     <div class="row"><span class="name">Talentos</span><span class="sub2">1.812</span></div>`,
         scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
-        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">›</span></div>`,
+        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">›</span></div>
+    <div class="row"><span class="name">Usuários</span><span class="sub2">›</span></div>
+    <p class="hint">É aqui que nasce personagem:<br/>criar um player cria o personagem em branco dele.</p>`,
       };
 
       /* ================= condições (contrato herdado da 39) ================= */
@@ -1485,44 +1604,56 @@
         );
 
       /* ================= mundo mock ================= */
-      /* subtipos declarados pelo sistema (systems/pf2e — REQ-DOC-023) */
+      /* VEÍCULO SAIU (rodada 1) e PERSONAGEM não nasce aqui */
       const SUBTYPES = [
-        { id: "character", lb: "Personagem", pc: true },
         { id: "npc", lb: "NPC" },
         { id: "hazard", lb: "Perigo" },
-        { id: "vehicle", lb: "Veículo" },
       ];
+      /* "tipos de NPC" — o conceito novo da rodada 1 (N2) */
+      const ROLES = [
+        { id: "", lb: "— nenhum" },
+        { id: "mercador", lb: "Mercador" },
+        { id: "container", lb: "Baú / contêiner" },
+        { id: "montaria", lb: "Montaria" },
+        { id: "chefe", lb: "Chefe" },
+      ];
+      const ROLE_LB = Object.fromEntries(ROLES.map((r) => [r.id, r.lb]));
 
       const PCS = [
-        { id: "tobias", name: "Tobias", color: "#7c5cfc" },
-        { id: "fofurinha", name: "Fofurinha", color: "#3ddc84" },
-        { id: "rurik", name: "Rurik", color: "#e5b83b" },
+        { id: "tobias", name: "Tobias" },
+        { id: "fofurinha", name: "Fofurinha" },
+        { id: "rurik", name: "Rurik" },
       ];
 
-      /* pastas (documento Folder — servidor) */
+      /* pastas — documento Folder (servidor). pin = fixada no topo (N1) */
       const FOLDERS = [
-        { id: "f-vila", name: "Vila de Pedra Alta", parent: null },
-        { id: "f-corvo", name: "O Círculo do Corvo", parent: null },
-        { id: "f-best", name: "Bestiário", parent: null },
-        { id: "f-gob", name: "Goblinoides", parent: "f-best" },
-        { id: "f-mortos", name: "Mortos-vivos", parent: "f-best" },
+        { id: "f-vila", name: "Vila de Pedra Alta", parent: null, pin: true },
+        { id: "f-corvo", name: "O Círculo do Corvo", parent: null, pin: false },
+        { id: "f-best", name: "Bestiário", parent: null, pin: false },
+        { id: "f-gob", name: "Goblinoides", parent: "f-best", pin: true },
+        { id: "f-mortos", name: "Mortos-vivos", parent: "f-best", pin: false },
       ];
+      const folderById = (id) => FOLDERS.find((f) => f.id === id);
+      function folderPath(f) {
+        const parts = [];
+        let cur = f.parent ? folderById(f.parent) : null;
+        while (cur) {
+          parts.unshift(cur.name);
+          cur = cur.parent ? folderById(cur.parent) : null;
+        }
+        return parts.join(" › ");
+      }
+      const pinnedIds = () => FOLDERS.filter((f) => f.pin).map((f) => f.id);
 
-      /* atores não-jogadores do mundo.
-         cast  = recorrente/nomeado (variante B: "Elenco")
-         tok   = presenças no mapa, por cena
-         link  = default de vínculo ao arrastar (Q5)
-         know  = { pcId: 0|1|2 } estado do par (leitura; edição só na janela) */
       const NPCS = [
         {
           id: "aldric",
           name: "Mestre Aldric",
           title: "A Voz do Bosque",
           type: "npc",
+          role: "",
           lvl: 5,
-          hp: "68/68",
           folder: "f-vila",
-          cast: true,
           color: "#c98b5e",
           link: true,
           tok: {},
@@ -1533,10 +1664,9 @@
           name: "Ferreiro Bram",
           title: "",
           type: "npc",
+          role: "mercador",
           lvl: 3,
-          hp: "45/45",
           folder: "f-vila",
-          cast: true,
           color: "#8a8f98",
           link: true,
           tok: {},
@@ -1547,10 +1677,9 @@
           name: "Irmã Yara",
           title: "",
           type: "npc",
+          role: "mercador",
           lvl: 4,
-          hp: "52/52",
           folder: "f-vila",
-          cast: true,
           color: "#d6b3e8",
           link: true,
           tok: {},
@@ -1561,10 +1690,9 @@
           name: "Vess, a Corvo",
           title: "Quem paga, some",
           type: "npc",
+          role: "chefe",
           lvl: 8,
-          hp: "115/115",
           folder: "f-corvo",
-          cast: true,
           color: "#5b6b8c",
           link: true,
           tok: { Fortaleza: 1 },
@@ -1577,10 +1705,9 @@
           name: "O Encapuzado",
           title: "",
           type: "npc",
+          role: "",
           lvl: 6,
-          hp: "84/84",
           folder: "f-corvo",
-          cast: true,
           color: "#3a3a4d",
           link: true,
           tok: {},
@@ -1591,8 +1718,8 @@
           name: "Goblin Guerreiro",
           title: "",
           type: "npc",
+          role: "",
           lvl: -1,
-          hp: "6/6",
           folder: "f-gob",
           color: "#6a9a3f",
           link: false,
@@ -1611,8 +1738,8 @@
           name: "Goblin Comando",
           title: "",
           type: "npc",
+          role: "",
           lvl: 1,
-          hp: "18/18",
           folder: "f-gob",
           color: "#4f7a2e",
           link: false,
@@ -1625,8 +1752,8 @@
           name: "Hobgoblin Soldado",
           title: "",
           type: "npc",
+          role: "",
           lvl: 1,
-          hp: "22/22",
           folder: "f-gob",
           color: "#9a5f3f",
           link: false,
@@ -1638,8 +1765,8 @@
           name: "Zumbi Devorador",
           title: "",
           type: "npc",
+          role: "",
           lvl: 1,
-          hp: "30/30",
           folder: "f-mortos",
           color: "#6b7a5e",
           link: false,
@@ -1651,8 +1778,8 @@
           name: "Esqueleto Guardião",
           title: "",
           type: "npc",
+          role: "",
           lvl: 2,
-          hp: "24/24",
           folder: "f-mortos",
           color: "#c9c4b5",
           link: false,
@@ -1660,12 +1787,12 @@
           know: { tobias: 0, fofurinha: 0, rurik: 0 },
         },
         {
-          id: "cavalo",
-          name: "Cavalo de Carga",
+          id: "mula",
+          name: "Mula de Carga",
           title: "",
           type: "npc",
+          role: "montaria",
           lvl: 0,
-          hp: "20/20",
           folder: null,
           color: "#a07c4f",
           link: false,
@@ -1677,8 +1804,8 @@
           name: "Armadilha de Fosso",
           title: "",
           type: "hazard",
+          role: "",
           lvl: 1,
-          hp: "—",
           folder: null,
           color: "#8a6b3f",
           link: false,
@@ -1687,7 +1814,6 @@
         },
       ];
 
-      /* enxurrada do bestiário — só entra quando o switcher liga (Q2) */
       const FLOOD_NAMES = [
         "Aranha Gigante",
         "Basilisco",
@@ -1714,48 +1840,54 @@
         "Zumbi Bruto",
         "Ettin",
       ];
-      function floodActors() {
-        return FLOOD_NAMES.map((n, i) => ({
-          id: "fl-" + i,
-          name: n,
-          title: "",
-          type: "npc",
-          lvl: (i % 12) - 1,
-          hp: 10 + i * 3 + "/" + (10 + i * 3),
-          folder: i % 2 ? "f-gob" : "f-mortos",
-          color: ["#6a9a3f", "#8a5f9a", "#9a5f3f", "#5f7a9a"][i % 4],
-          link: false,
-          tok: {},
-          know: { tobias: 0, fofurinha: 0, rurik: 0 },
-          flood: true,
-        }));
-      }
+      const FLOOD = FLOOD_NAMES.map((n, i) => ({
+        id: "fl-" + i,
+        name: n,
+        title: "",
+        type: "npc",
+        role: "",
+        lvl: (i % 12) - 1,
+        folder: i % 2 ? "f-gob" : "f-mortos",
+        color: ["#6a9a3f", "#8a5f9a", "#9a5f3f", "#5f7a9a"][i % 4],
+        link: false,
+        tok: {},
+        know: { tobias: 0, fofurinha: 0, rurik: 0 },
+        flood: true,
+      }));
 
-      /* compêndios (variante C) */
+      /* bestiário (compêndio) — o browser dentro da criação */
       const PACK = [
         { id: "p1", name: "Goblin Piromaníaco", lvl: 1, pack: "Bestiário 1", color: "#6a9a3f" },
         { id: "p2", name: "Goblin Chefe de Guerra", lvl: 2, pack: "Bestiário 1", color: "#4f7a2e" },
         { id: "p3", name: "Cão Goblin", lvl: 1, pack: "Bestiário 1", color: "#7a6a3f" },
-        { id: "p4", name: "Goblin Comando", lvl: 1, pack: "Bestiário 1", color: "#4f7a2e" },
-        { id: "p5", name: "Esqueleto Arqueiro", lvl: 1, pack: "Bestiário 1", color: "#c9c4b5" },
-        { id: "p6", name: "Zumbi Rastejante", lvl: 0, pack: "Bestiário 2", color: "#6b7a5e" },
+        { id: "p4", name: "Esqueleto Arqueiro", lvl: 1, pack: "Bestiário 1", color: "#c9c4b5" },
+        { id: "p5", name: "Zumbi Rastejante", lvl: 0, pack: "Bestiário 2", color: "#6b7a5e" },
+        { id: "p6", name: "Ogro Guerreiro", lvl: 3, pack: "Bestiário 1", color: "#9a7a5f" },
+        { id: "p7", name: "Lobo Comum", lvl: 1, pack: "Bestiário 1", color: "#7a7a8a" },
+        { id: "p8", name: "Bandido Veterano", lvl: 2, pack: "Bestiário 1", color: "#8a5f4f" },
       ];
 
       /* ================= estado ================= */
       const url = new URL(location);
-      let variant = (url.searchParams.get("v") || "A").toUpperCase();
       let role = url.searchParams.get("role") === "player" ? "player" : "gm";
       let flood = url.searchParams.get("flood") === "1";
-      let showHp = url.searchParams.get("hp") === "1";
       let empty = url.searchParams.get("state") === "empty";
       let open = true;
       let active = "npcs";
       let query = "";
       let sel = null;
-      let win = null; /* null | "new" | "delete" | "matrix" | "sheet" */
+      let win = null;
+      let newMode = "pack";
       let newType = "npc";
+      let newRole = "";
+      let packQuery = "";
+      let packPick = null;
       let delTarget = null;
       let editTitle = null;
+      let newFolderIn = undefined;
+      let renameFolder = null;
+      let moveFor = null;
+      let chestOnScene = false;
       let expanded = {
         "f-vila": true,
         "f-corvo": true,
@@ -1763,17 +1895,13 @@
         "f-gob": true,
         "f-mortos": false,
       };
-      let bandOpen = { world: true, pack: true, loose: false };
       let expandConds = {};
-      let dragLinked = null;
+      let dragActor = null;
 
-      /* conhecimento: regra geral + exceções (mesmo modelo da 39) */
       const rule = {};
       const ex = {};
       function seedKnowledge() {
-        allNpcs(true).forEach((n) => {
-          /* a regra geral é o estado mais comum entre os personagens;
-             o que destoar dela vira exceção (mesmo modelo da 39) */
+        [...NPCS, ...FLOOD].forEach((n) => {
           const vals = PCS.map((p) => (n.know ? (n.know[p.id] ?? 0) : 0));
           const tally = [0, 0, 0];
           vals.forEach((v) => tally[v]++);
@@ -1792,16 +1920,18 @@
       }
 
       /* ================= helpers ================= */
-      function allNpcs(includeFlood) {
-        return includeFlood || flood ? [...NPCS, ...floodActors()] : [...NPCS];
-      }
+      const allNpcs = () => (flood ? [...NPCS, ...FLOOD] : [...NPCS]);
+      const findActor = (id) => [...NPCS, ...FLOOD].find((x) => x.id === id);
       function visible() {
         if (empty) return [];
         const list = allNpcs();
         if (!query.trim()) return list;
         const q = query.trim().toLowerCase();
         return list.filter(
-          (n) => n.name.toLowerCase().includes(q) || (n.title || "").toLowerCase().includes(q),
+          (n) =>
+            n.name.toLowerCase().includes(q) ||
+            (n.title || "").toLowerCase().includes(q) ||
+            (ROLE_LB[n.role] || "").toLowerCase().includes(q),
         );
       }
       const byName = (a, b) => a.name.localeCompare(b.name, "pt-BR");
@@ -1829,7 +1959,7 @@
             t: "Quem conhece " + n.name,
             h:
               `<b>${k2}</b> conhece(m) · <b>${k1}</b> entreviu/entreviram · <b>${k0}</b> não vê(em).<br><br>` +
-              `Aqui é <b>leitura</b>. Mudar isso é só na janela <b>Quem conhece quem</b>, pelo rodapé — é a DEC-CTT-05 da spec 39.`,
+              `Aqui é <b>leitura</b>. Mudar é só na janela <b>Quem conhece quem</b>, pelo rodapé (DEC-CTT-05 da spec 39). <b>N7</b>: continua assim?`,
             tone: "conhecimento (par contato × personagem)",
           }),
         );
@@ -1839,8 +1969,8 @@
       function condsHtml(n) {
         if (!n.conds || !n.conds.length) return "";
         const sorted = sortConds(n.conds);
-        const expandedNow = !!expandConds[n.id];
-        const shown = expandedNow ? sorted : sorted.slice(0, 2);
+        const isExp = !!expandConds[n.id];
+        const shown = isExp ? sorted : sorted.slice(0, 2);
         const rest = sorted.length - shown.length;
         const chips = shown
           .map((c) => {
@@ -1862,8 +1992,19 @@
         return `<div class="conds">${chips}${more}</div>`;
       }
 
-      function actorRow(n, opts = {}) {
-        const sub = n.type === "hazard" ? "hz" : "";
+      function moveMenu(n) {
+        if (moveFor !== n.id) return "";
+        const opts = [{ id: null, name: "(sem pasta)" }, ...FOLDERS];
+        return `<div class="movemenu">${opts
+          .map(
+            (f) =>
+              `<button class="${(n.folder ?? null) === (f.id ?? null) ? "on" : ""}" data-moveto="${n.id}::${f.id ?? ""}">${f.name}</button>`,
+          )
+          .join("")}</div>`;
+      }
+
+      function actorRow(n) {
+        const hz = n.type === "hazard" ? "hz" : "";
         const t = n.title;
         const titleLine =
           editTitle === n.id
@@ -1881,19 +2022,28 @@
                   .join("<br>")
               : "não está em cena nenhuma",
             tone: n.link
-              ? "arrasta VINCULADO (um só, vida compartilhada)"
-              : "arrasta DESVINCULADO (cada um com sua vida)",
+              ? "N8 · arrasta VINCULADO (um só, vida compartilhada)"
+              : "N8 · arrasta DESVINCULADO (cada um com sua vida)",
           }),
         );
+        const roleHelp = encodeURIComponent(
+          JSON.stringify({
+            t: "Papel: " + (ROLE_LB[n.role] || "—"),
+            h: "<b>N2</b> — isto é um <b>preset</b> que só pré-preencheu a ficha, ou uma <b>capacidade</b> que fica no ator (mercador tem estoque, baú tem conteúdo)? E quem declara a lista: o sistema, ou o Mestre?",
+            tone: "conceito novo desta rodada",
+          }),
+        );
+        const roleTag = n.role
+          ? `<span class="role" data-help="${roleHelp}">${ROLE_LB[n.role]}</span>`
+          : "";
         const meta = `<span class="meta hide-on-hover">
-        ${showHp ? `<span class="hp">${n.hp}</span>` : ""}
         <span class="lvl">${n.lvl}</span>
         ${tk ? `<span class="tok" data-help="${tkHelp}">⬡${tk}</span>` : ""}
         ${knowSummary(n)}
       </span>`;
         const tools = `<span class="tools">
         <button data-sheet="${n.id}" title="abrir ficha">▤</button>
-        <button data-move="${n.id}" title="mover de pasta">🗀</button>
+        <button data-move="${n.id}" title="mudar de pasta">🗀</button>
         <button class="del" data-del="${n.id}" title="excluir ator">✕</button>
       </span>`;
         const subs = (n.subs || [])
@@ -1902,152 +2052,155 @@
               `<div class="sub"><span class="nm">${s.name}</span><span class="sb">${s.kind}</span></div>`,
           )
           .join("");
-        return `<div class="act ${sel === n.id ? "sel" : ""} ${opts.pack ? "frompack" : ""}" data-act="${n.id}" draggable="true">
-        <span class="av ${sub}" style="background:${n.color}">${initials(n.name)}</span>
-        <span class="idt"><span class="nm">${n.name}</span>${titleLine}</span>
+        return `<div class="act ${sel === n.id ? "sel" : ""} ${dragActor === n.id ? "dragging" : ""}" data-act="${n.id}" draggable="true">
+        <span class="av ${hz}" style="background:${n.color}">${initials(n.name)}</span>
+        <span class="idt"><span class="nm"><span>${n.name}</span>${roleTag}</span>${titleLine}</span>
         ${meta}${tools}
-      </div>${condsHtml(n)}${subs}`;
+      </div>${condsHtml(n)}${moveMenu(n)}${subs}`;
       }
 
-      /* ================= variante A — diretório ================= */
-      function folderNode(f, list, depth) {
-        const kids = FOLDERS.filter((x) => x.parent === f.id);
+      /* ---------- árvore ---------- */
+      function subtreeCount(fid, list) {
+        const kids = FOLDERS.filter((x) => x.parent === fid);
+        return (
+          list.filter((n) => n.folder === fid).length +
+          kids.reduce((a, k) => a + subtreeCount(k.id, list), 0)
+        );
+      }
+      function newFolderInput() {
+        return `<div class="fold"><span class="chev">▸</span>
+        <input id="newfolderinput" placeholder="nome da pasta"/></div>`;
+      }
+      function folderNode(f, list, opts) {
+        const o = opts || {};
+        const pins = pinnedIds();
+        /* pasta fixada sai do lugar dela na árvore e sobe para o topo (N1) */
+        const kids = FOLDERS.filter((x) => x.parent === f.id && !pins.includes(x.id));
         const mine = list.filter((n) => n.folder === f.id).sort(byName);
-        const deepCount =
-          mine.length + kids.reduce((a, k) => a + list.filter((n) => n.folder === k.id).length, 0);
-        if (query.trim() && deepCount === 0) return "";
+        const total = subtreeCount(f.id, list);
+        if (query.trim() && total === 0) return "";
         const isOpen = expanded[f.id] || !!query.trim();
+        const renaming = renameFolder === f.id;
+        const newHere = newFolderIn === f.id;
         const inner = isOpen
-          ? `<div class="kids">${kids.map((k) => folderNode(k, list, depth + 1)).join("")}${mine
-              .map((n) => actorRow(n))
-              .join("")}</div>`
+          ? `<div class="kids">${newHere ? newFolderInput() : ""}${kids
+              .map((k) => folderNode(k, list, o))
+              .join("")}${mine.map((n) => actorRow(n)).join("")}</div>`
           : "";
-        return `<div class="fold" data-fold="${f.id}">
+        const path = o.showPath && f.parent ? `<span class="path">${folderPath(f)} ›</span>` : "";
+        return `<div class="fold" data-fold="${f.id}" data-dropfolder="${f.id}">
         <span class="chev">${isOpen ? "▾" : "▸"}</span>
-        <span class="fn">${f.name}</span>
-        <span class="cnt">${deepCount}</span>
-        <span class="tools"><button data-newin="${f.id}" title="novo ator aqui">＋</button><button title="renomear">✎</button><button title="excluir pasta">✕</button></span>
+        ${f.pin ? '<span class="pinmark">★</span>' : ""}
+        ${path}
+        ${renaming ? `<input id="renameinput" value="${f.name}"/>` : `<span class="fn">${f.name}</span>`}
+        <span class="cnt">${total}</span>
+        <span class="tools">
+          <button class="pinb ${f.pin ? "on" : ""}" data-pin="${f.id}" title="${f.pin ? "desafixar" : "fixar no topo"}">${f.pin ? "★" : "☆"}</button>
+          <button data-newfolder="${f.id}" title="nova subpasta">🗀+</button>
+          <button data-newin="${f.id}" title="novo NPC aqui">＋</button>
+          <button data-rename="${f.id}" title="renomear">✎</button>
+          <button class="del" data-delfolder="${f.id}" title="excluir pasta">✕</button>
+        </span>
       </div>${inner}`;
       }
-      function bodyA() {
+
+      function npcsBody() {
         const list = visible();
         if (!list.length) return emptyState();
-        const roots = FOLDERS.filter((f) => !f.parent);
+        const pinned = FOLDERS.filter((f) => f.pin);
+        const roots = FOLDERS.filter((f) => !f.parent && !f.pin);
         const loose = list.filter((n) => !n.folder).sort(byName);
-        return (
-          roots.map((f) => folderNode(f, list, 0)).join("") +
-          (loose.length
-            ? `<div class="sec"><span class="lbl">sem pasta</span><span class="cnt">${loose.length}</span><span class="line"></span></div>${loose
-                .map((n) => actorRow(n))
-                .join("")}`
-            : "")
-        );
-      }
-
-      /* ================= variante B — elenco ================= */
-      function bodyB() {
-        const list = visible();
-        if (!list.length) return emptyState();
-        const inScene = list.filter((n) => tokCount(n) > 0).sort(byName);
-        const cast = list.filter((n) => n.cast && tokCount(n) === 0).sort(byName);
-        const loose = list.filter((n) => !n.cast && tokCount(n) === 0).sort(byName);
-        const looseOpen = bandOpen.loose || !!query.trim();
-        const sec = (id, lbl, arr, clickable) =>
-          arr.length
-            ? `<div class="sec ${clickable ? "click" : ""}" ${clickable ? `data-band="${id}"` : ""}>
-          ${clickable ? `<span class="chev">${looseOpen ? "▾" : "▸"}</span>` : ""}
-          <span class="lbl">${lbl}</span><span class="cnt">${arr.length}</span><span class="line"></span></div>`
-            : "";
-        return (
-          sec("scene", "em cena · Fortaleza", inScene) +
-          inScene.map((n) => actorRow(n)).join("") +
-          sec("cast", "elenco", cast) +
-          cast.map((n) => actorRow(n)).join("") +
-          sec("loose", "avulsos", loose, true) +
-          (looseOpen ? loose.map((n) => actorRow(n)).join("") : "") +
-          (loose.length && !looseOpen
-            ? `<p class="hint">${loose.length} atores sem papel na história.<br/>Abra, ou ache pela busca.</p>`
-            : "")
-        );
-      }
-
-      /* ================= variante C — bancada ================= */
-      function bodyC() {
-        const list = visible().sort(byName);
-        const q = query.trim().toLowerCase();
-        const packHits = q
-          ? PACK.filter((p) => p.name.toLowerCase().includes(q))
-          : PACK.slice(0, 3);
-        const worldPart = list.length
-          ? list.map((n) => actorRow(n)).join("")
-          : `<p class="hint">${
-              empty ? "Nenhum ator no mundo ainda." : "Nada no mundo com esse nome."
-            }<br/>Olhe a faixa de compêndio abaixo.</p>`;
-        const packPart = packHits
-          .map(
-            (p) => `<div class="act frompack" draggable="true">
-        <span class="av" style="background:${p.color}">${initials(p.name)}</span>
-        <span class="idt"><span class="nm">${p.name}</span>
-          <span class="ttl fallback"><span class="packsrc">${p.pack} · nível ${p.lvl}</span></span></span>
-        <span class="meta"><button class="imp" data-import="${p.id}">importar</button></span>
-      </div>`,
-          )
-          .join("");
-        return `<div class="band"><span class="lbl">no mundo</span><span class="cnt">${
-          empty ? 0 : allNpcs().length
-        }</span></div>${worldPart}
-      <div class="band pack"><span class="lbl">nos compêndios</span><span class="cnt">${
-        q ? packHits.length + " de 492" : "492"
-      }</span></div>${packPart}
-      <p class="hint">Arrastar de qualquer uma das duas faixas cria presença no mapa.<br/>Da faixa de baixo, o ator é <b>importado antes</b> (REQ-CMP-018).</p>`;
+        const pinnedBlock = pinned.length
+          ? `<div class="sec pinned"><span class="lbl">★ fixadas</span><span class="cnt">${pinned.length}</span><span class="line"></span></div>` +
+            pinned.map((f) => folderNode(f, list, { showPath: true })).join("")
+          : "";
+        const treeBlock =
+          `<div class="sec"><span class="lbl">pastas</span><span class="line"></span>
+            <button class="add" data-newfolder="">🗀+ nova</button></div>` +
+          (newFolderIn === null ? newFolderInput() : "") +
+          roots.map((f) => folderNode(f, list)).join("");
+        const looseBlock =
+          `<div class="sec" data-dropfolder=""><span class="lbl">sem pasta</span><span class="cnt">${loose.length}</span><span class="line"></span></div>` +
+          loose.map((n) => actorRow(n)).join("");
+        return pinnedBlock + treeBlock + looseBlock;
       }
 
       function emptyState() {
         if (empty)
-          return `<div class="vazio"><b>Nenhum ator neste mundo ainda.</b><br/>
-        Crie o primeiro, ou traga um do compêndio.<br/><br/>
-        <button class="hbtn pri" id="newempty">＋ Novo ator</button></div>`;
+          return `<div class="vazio"><b>Nenhum NPC neste mundo ainda.</b><br/>
+        Crie do zero, ou puxe um do bestiário.<br/><br/>
+        <button class="hbtn pri" id="newempty">＋ Novo NPC</button></div>
+        <p class="hint">Personagem de jogador não aparece aqui —<br/>ele nasce com o player, em Configurações › Usuários.</p>`;
         return `<div class="vazio">Nada encontrado para <b>"${query}"</b>.</div>`;
       }
 
       /* ================= janelas (spec 11) ================= */
       function newWinHtml() {
-        const st = SUBTYPES.find((s) => s.id === newType);
-        return `<div class="win" style="width:480px;left:calc(50% - 240px)">
-      <div class="wh">${UI_ICON.plus} Novo ator<button class="x" data-winclose>✕</button></div>
+        const hits = packQuery.trim()
+          ? PACK.filter((p) => p.name.toLowerCase().includes(packQuery.trim().toLowerCase()))
+          : PACK;
+        const picked = PACK.find((p) => p.id === packPick);
+        const body =
+          newMode === "pack"
+            ? `<div class="field"><label>Buscar</label>
+            <input id="packq" value="${packQuery}" placeholder="goblin, esqueleto, ogro…"/></div>
+          <div class="browser">${
+            hits.length
+              ? hits
+                  .map(
+                    (p) => `<div class="brow ${p.id === packPick ? "on" : ""}" data-pack="${p.id}">
+              <span class="av" style="background:${p.color}">${initials(p.name)}</span>
+              <span class="bn">${p.name}</span><span class="bs">${p.pack} · nv ${p.lvl}</span></div>`,
+                  )
+                  .join("")
+              : '<div class="brow"><span class="bs">nada no bestiário com esse nome</span></div>'
+          }</div>
+          ${
+            picked
+              ? `<div class="note"><b>${picked.name}</b> vem de <b>${picked.pack}</b>.
+            <br/><b>N5</b> — importar copia para o mundo (REQ-CMP-021). Vai para qual pasta: a
+            escolhida abaixo, uma pasta "Importados", ou a que espelha o pack? E o ator guarda
+            vínculo com a origem, para atualizar quando o pack mudar, ou vira cópia solta?</div>`
+              : ""
+          }`
+            : `<div class="field"><label>Tipo</label>
+            <div class="pills">${SUBTYPES.map(
+              (s) =>
+                `<button class="${s.id === newType ? "on" : ""}" data-st="${s.id}">${s.lb}</button>`,
+            ).join("")}</div></div>
+          <div class="field"><label>Nome</label><input placeholder="nome do NPC"/></div>`;
+        return `<div class="win" style="width:520px;left:calc(50% - 260px)">
+      <div class="wh">${UI_ICON.plus} Novo NPC<button class="x" data-winclose>✕</button></div>
+      <div class="wtabs">
+        <button class="${newMode === "pack" ? "on" : ""}" data-mode="pack">Do bestiário</button>
+        <button class="${newMode === "scratch" ? "on" : ""}" data-mode="scratch">Criar do zero</button>
+      </div>
       <div class="wb">
-        <div class="field"><label>Tipo</label>
-          <div class="subtypes">${SUBTYPES.map(
-            (s) =>
-              `<button class="${s.id === newType ? "on" : ""}" data-st="${s.id}">${s.lb}</button>`,
-          ).join("")}</div>
-        </div>
-        <div class="field"><label>Nome</label><input placeholder="${
-          st.pc ? "nome do personagem" : "nome do ator"
-        }" /></div>
+        ${body}
+        <div class="field"><label>Papel</label>
+          <div class="pills">${ROLES.map(
+            (r) =>
+              `<button class="${r.id === newRole ? "on" : ""}" data-role="${r.id}">${r.lb}</button>`,
+          ).join("")}</div></div>
         <div class="field"><label>Pasta</label>
           <select>${["(sem pasta)", ...FOLDERS.map((f) => f.name)]
             .map((n) => `<option>${n}</option>`)
             .join("")}</select></div>
-        ${
-          st.pc
-            ? `<div class="warnbox"><b>Q1 — a proposta que este protótipo faz.</b><br/>
-        Personagem é criado <b>aqui</b> (autoria), mas aparece na aba <b>Contatos</b>, não nesta lista:
-        criar é desta aba, listar é por plateia. É assim que a dívida da DEC-CTT-01 é paga por inteiro —
-        senão criar um PC continua não tendo endereço em lugar nenhum do app.<br/><br/>
-        <b>Alternativa a discutir:</b> esta aba só cria não-jogador, e criar PC vira gesto da
-        seção <b>Usuários</b> da spec 37 (o PC nasce colado ao usuário dele).</div>`
-            : `<div class="note">Os tipos vêm do <b>sistema ativo</b> (pf2e), não desta aba —
-        mesmo princípio da DEC-CTT-11: a UI pinta o que o sistema declarou.
-        <br/><b>Q7:</b> "Perigo" e "Veículo" não são gente. Cabem numa aba chamada <b>NPCs</b>?</div>`
-        }
+        <div class="warnbox"><b>N2 — a pergunta desta rodada.</b> "Papel" é o seu "tipos de NPC".
+          Ele é um <b>preset</b> (pré-preenche a ficha e some) ou uma <b>capacidade</b> que fica no ator
+          e muda o que ele faz — mercador com estoque, baú com conteúdo saqueável? E quem declara a
+          lista: o <b>sistema</b> (como as condições, DEC-CTT-11) ou o <b>Mestre</b> cria os tipos do
+          mundo dele?</div>
+        <div class="note"><b>Personagem não está aqui</b> — a aba é de não-jogáveis. Personagem nasce
+          com o player, em Configurações › Usuários. <b>Veículo saiu</b> na rodada 1, e a <b>N4</b>
+          pergunta quem manda nisso: lista branca da aba, ou o sistema declarando o que é criável aqui.</div>
       </div>
       <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
-        <button class="hbtn pri">Criar</button></div></div>`;
+        <button class="hbtn pri">${newMode === "pack" ? "Importar e criar" : "Criar"}</button></div></div>`;
       }
 
       function deleteWinHtml() {
-        const n = allNpcs(true).find((x) => x.id === delTarget);
+        const n = findActor(delTarget);
         if (!n) return "";
         const tk = tokCount(n);
         const scenes = Object.entries(n.tok || {});
@@ -2080,10 +2233,9 @@
           n.inCombat
             ? `<div class="stopbox"><b>Recusado:</b> este ator está em um <b>combate ativo</b>.
           Encerre o combate, ou tire-o dele, antes de excluir.<br/>
-          <b>Q6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem apaga as exceções que o citam).
-          Excluir <i>contato</i> não está em spec nenhuma: cascata silenciosa, recusa, ou aviso?</div>`
-            : `<div class="warnbox"><b>Q6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem
-          apaga as exceções que o citam). Excluir <i>contato</i> não está em spec nenhuma.</div>`
+          <b>N6</b> — não foi comentado na rodada 1: recusar é o certo, ou é atrapalhar o Mestre?</div>`
+            : `<div class="warnbox"><b>N6</b> — a REQ-CTT-076 só cobriu o caso espelho (excluir personagem
+          apaga as exceções que o citam). Excluir NPC não está em spec nenhuma.</div>`
         }
       </div>
       <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
@@ -2099,11 +2251,11 @@
         return `<div class="win"><div class="wh">${UI_ICON.grid} Quem conhece quem
       <button class="x" data-winclose>✕</button></div>
     <div class="wb">
-      A <b>mesma janela</b> da aba Contatos (spec 39, REQ-CTT-061). Ela é alcançável pelas duas abas
-      porque o conhecimento se edita <b>num lugar só</b> — DEC-CTT-05.
+      A <b>mesma janela</b> da aba Contatos (spec 39, REQ-CTT-061), alcançável pelas duas abas porque o
+      conhecimento se edita <b>num lugar só</b> — DEC-CTT-05.
       <div class="keys"><span><i class="k0">·</i>oculto</span><span><i class="k1">◐</i>entrevisto</span>
         <span><i class="k2">✓</i>conhecido</span><span><i>__</i>sublinhado = exceção</span></div>
-      <table class="matrix"><thead><tr><th>contato</th>
+      <table class="matrix"><thead><tr><th>NPC</th>
         ${PCS.map((p) => `<th data-col="${p.id}">${p.name}<small>coluna inteira</small></th>`).join("")}
       </tr></thead><tbody>
       ${list
@@ -2118,18 +2270,20 @@
         )
         .join("")}
       </tbody></table>
-      <div class="note"><b>Q3</b> — na aba NPCs o cartão só <b>lê</b> o estado (✓2 ◐1). Revelar exige vir até aqui.
-        É o preço da DEC-CTT-05: um lugar só de edição. O gesto real do Mestre é
-        "criei o NPC → a mesa encontrou → revelo" — vale a pena o desvio?</div>
+      <div class="note"><b>N7</b> — na aba NPCs o cartão só <b>lê</b> o estado. Revelar exige vir até aqui.
+        O gesto real do Mestre é "criei o NPC → a mesa encontrou → revelo": vale o desvio, ou o cartão
+        precisa de um "revelar a todos"?</div>
     </div></div>`;
       }
 
       function sheetWinHtml() {
-        const n = allNpcs(true).find((x) => x.id === win.replace("sheet:", ""));
-        return `<div class="win" style="width:460px;left:calc(50% - 230px)">
+        const n = findActor(win.replace("sheet:", ""));
+        return `<div class="win" style="width:470px;left:calc(50% - 235px)">
       <div class="wh">${UI_ICON.sheet} Ficha — ${n ? n.name : "?"}<button class="x" data-winclose>✕</button></div>
-      <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11) —
-      §7.5 do contrato da spec-mãe. Duplo-clique na linha faz o mesmo (DEC-CTT-13).</div></div>`;
+      <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11).
+      <div class="note">A ficha de NPC vai ser <b>muito mais maleável</b> que a de personagem, e ganha
+      <b>spec própria</b> (decisão da rodada 1). Esta spec não a define: só diz que a aba abre a ficha
+      que a spec dela definir.</div></div></div>`;
       }
 
       function winHtml() {
@@ -2145,8 +2299,8 @@
       function npcsHead() {
         return `<div class="panel-head">
       <div class="search"><span class="mag">${UI_ICON.search}</span>
-        <input id="q" placeholder="Procurar ator" value="${query}"/></div>
-      <button class="hbtn pri" id="new" title="novo ator ou pasta">${UI_ICON.plus}</button>
+        <input id="q" placeholder="Procurar NPC" value="${query}"/></div>
+      <button class="hbtn pri" id="new" title="novo NPC">${UI_ICON.plus}</button>
     </div>`;
       }
       function tabButton(t) {
@@ -2166,12 +2320,11 @@
         const head = isNpcs
           ? npcsHead()
           : `<div class="panel-head"><span class="panel-title">${TITLE[active]}</span></div>`;
-        const body = isNpcs
-          ? `<div class="panel-body">${variant === "A" ? bodyA() : variant === "B" ? bodyB() : bodyC()}</div>`
-          : `<div class="panel-body">${OTHER[active] || ""}</div>`;
-        /* rodapé fixo — o mesmo da aba Contatos (DEC-CTT-05/REQ-CTT-060) */
+        const body = `<div class="panel-body">${isNpcs ? npcsBody() : OTHER[active] || ""}</div>`;
         const footer = isNpcs
-          ? `<div class="panel-foot"><button class="hbtn wide" id="matrix">${UI_ICON.grid} Quem conhece quem</button></div>`
+          ? `<div class="panel-foot">
+          <button class="hbtn chestb" id="chest" title="põe um baú direto na cena ativa">🧰 Baú na cena</button>
+          <button class="hbtn wide" id="matrix">${UI_ICON.grid} Quem conhece</button></div>`
           : "";
 
         document.getElementById("root").innerHTML = `
@@ -2191,21 +2344,20 @@
           ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
           : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha) — não vê esta aba</span>';
 
-        const dl = document.getElementById("droplink");
-        dl.textContent = dragLinked
-          ? dragLinked.link
-            ? `${dragLinked.name}: VINCULADO (um só; a vida é a do ator)`
-            : `${dragLinked.name}: DESVINCULADO (cada um com sua vida)`
-          : "goblin: desvinculado · Aldric: vinculado — Alt inverte (Q5)";
+        const n = dragActor ? findActor(dragActor) : null;
+        document.getElementById("droplink").textContent = n
+          ? n.link
+            ? `${n.name}: VINCULADO (um só; a vida é a do ator)`
+            : `${n.name}: DESVINCULADO (cada um com sua vida)`
+          : "goblin desvinculado · Aldric vinculado — N8 em aberto";
+        document.getElementById("chestmark").style.display = chestOnScene ? "block" : "none";
 
         hideTip();
         wire();
         paintSwitcher();
         const u = new URL(location);
-        u.searchParams.set("v", variant);
         u.searchParams.set("role", role);
         u.searchParams.set("flood", flood ? "1" : "0");
-        u.searchParams.set("hp", showHp ? "1" : "0");
         u.searchParams.set("state", empty ? "empty" : "full");
         history.replaceState(null, "", u);
       }
@@ -2246,36 +2398,104 @@
                 active = id;
                 open = true;
               }
-              editTitle = null;
+              editTitle = moveFor = renameFolder = null;
+              newFolderIn = undefined;
               render();
             }),
         );
 
+        /* --- pastas --- */
         root.querySelectorAll("[data-fold]").forEach(
           (f) =>
             (f.onclick = (e) => {
-              if (e.target.closest("button")) return;
+              if (e.target.closest("button") || e.target.tagName === "INPUT") return;
               const id = f.dataset.fold;
               expanded[id] = !expanded[id];
               render();
             }),
         );
-        root.querySelectorAll("[data-band]").forEach(
-          (s) =>
-            (s.onclick = () => {
-              bandOpen.loose = !bandOpen.loose;
+        root.querySelectorAll("[data-pin]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const f = folderById(b.dataset.pin);
+              if (f) f.pin = !f.pin;
               render();
             }),
         );
-        root.querySelectorAll("[data-more]").forEach(
-          (m) =>
-            (m.onclick = (e) => {
+        root.querySelectorAll("[data-newfolder]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
               e.stopPropagation();
-              expandConds[m.dataset.more] = !expandConds[m.dataset.more];
+              const p = b.dataset.newfolder;
+              newFolderIn = p === "" ? null : p;
+              if (p) expanded[p] = true;
+              render();
+              const i = document.getElementById("newfolderinput");
+              if (i) i.focus();
+            }),
+        );
+        const nf = document.getElementById("newfolderinput");
+        if (nf)
+          nf.onkeydown = (e) => {
+            if (e.key === "Enter" && nf.value.trim()) {
+              FOLDERS.push({
+                id: "f-" + FOLDERS.length + "-" + nf.value.trim().length,
+                name: nf.value.trim(),
+                parent: newFolderIn ?? null,
+                pin: false,
+              });
+              newFolderIn = undefined;
+              render();
+            }
+            if (e.key === "Escape") {
+              newFolderIn = undefined;
+              render();
+            }
+          };
+        root.querySelectorAll("[data-rename]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              renameFolder = b.dataset.rename;
+              render();
+              const i = document.getElementById("renameinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const rn = document.getElementById("renameinput");
+        if (rn)
+          rn.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const f = folderById(renameFolder);
+              if (f && rn.value.trim()) f.name = rn.value.trim();
+              renameFolder = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              renameFolder = null;
+              render();
+            }
+          };
+        root.querySelectorAll("[data-delfolder]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const id = b.dataset.delfolder;
+              [...NPCS, ...FLOOD].forEach((n) => {
+                if (n.folder === id) n.folder = null;
+              });
+              FOLDERS.filter((f) => f.parent === id).forEach((f) => (f.parent = null));
+              const i = FOLDERS.findIndex((f) => f.id === id);
+              if (i >= 0) FOLDERS.splice(i, 1);
               render();
             }),
         );
 
+        /* --- atores --- */
         root.querySelectorAll("[data-act]").forEach((a) => {
           a.onclick = (e) => {
             if (e.target.closest("button") || e.target.closest(".pen")) return;
@@ -2286,17 +2506,41 @@
             win = "sheet:" + a.dataset.act;
             render();
           };
-          a.ondragstart = () => {
-            const n = allNpcs(true).find((x) => x.id === a.dataset.act);
-            dragLinked = n;
+          a.ondragstart = (ev) => {
+            dragActor = a.dataset.act;
+            ev.dataTransfer.effectAllowed = "move";
+            try {
+              ev.dataTransfer.setData("text/plain", dragActor);
+            } catch (err) {
+              /* alguns navegadores exigem, outros não */
+            }
+            const n2 = findActor(dragActor);
             const dl = document.getElementById("droplink");
-            if (dl && n)
-              dl.textContent = n.link
-                ? `${n.name}: VINCULADO (um só; a vida é a do ator)`
-                : `${n.name}: DESVINCULADO (cada um com sua vida)`;
+            if (dl && n2)
+              dl.textContent = n2.link
+                ? `${n2.name}: VINCULADO (um só; a vida é a do ator)`
+                : `${n2.name}: DESVINCULADO (cada um com sua vida)`;
           };
           a.ondragend = () => {
-            dragLinked = null;
+            dragActor = null;
+            render();
+          };
+        });
+
+        /* --- drop de ator em pasta (e em "sem pasta") --- */
+        root.querySelectorAll("[data-dropfolder]").forEach((el) => {
+          el.ondragover = (ev) => {
+            if (!dragActor) return;
+            ev.preventDefault();
+            el.classList.add("drop-ok");
+          };
+          el.ondragleave = () => el.classList.remove("drop-ok");
+          el.ondrop = (ev) => {
+            ev.preventDefault();
+            el.classList.remove("drop-ok");
+            const n2 = findActor(dragActor);
+            if (n2) n2.folder = el.dataset.dropfolder === "" ? null : el.dataset.dropfolder;
+            dragActor = null;
             render();
           };
         });
@@ -2318,10 +2562,8 @@
         if (ti)
           ti.onkeydown = (e) => {
             if (e.key === "Enter") {
-              const n = allNpcs(true).find((x) => x.id === editTitle);
-              const real = NPCS.find((x) => x.id === editTitle);
-              if (real) real.title = ti.value.trim();
-              else if (n) n.title = ti.value.trim();
+              const n2 = findActor(editTitle);
+              if (n2) n2.title = ti.value.trim();
               editTitle = null;
               render();
             }
@@ -2331,6 +2573,25 @@
             }
           };
 
+        root.querySelectorAll("[data-move]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveFor = moveFor === b.dataset.move ? null : b.dataset.move;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-moveto]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const parts = b.dataset.moveto.split("::");
+              const n2 = findActor(parts[0]);
+              if (n2) n2.folder = parts[1] === "" ? null : parts[1];
+              moveFor = null;
+              render();
+            }),
+        );
         root.querySelectorAll("[data-sheet]").forEach(
           (b) =>
             (b.onclick = (e) => {
@@ -2348,6 +2609,14 @@
               render();
             }),
         );
+        root.querySelectorAll("[data-more]").forEach(
+          (m) =>
+            (m.onclick = (e) => {
+              e.stopPropagation();
+              expandConds[m.dataset.more] = !expandConds[m.dataset.more];
+              render();
+            }),
+        );
         root.querySelectorAll("[data-newin]").forEach(
           (b) =>
             (b.onclick = (e) => {
@@ -2356,6 +2625,7 @@
               render();
             }),
         );
+
         const nb = document.getElementById("new");
         if (nb)
           nb.onclick = () => {
@@ -2374,11 +2644,25 @@
             win = "matrix";
             render();
           };
+        const ch = document.getElementById("chest");
+        if (ch)
+          ch.onclick = () => {
+            chestOnScene = !chestOnScene;
+            render();
+          };
 
+        /* --- janelas --- */
         float.querySelectorAll("[data-winclose]").forEach(
           (b) =>
             (b.onclick = () => {
               win = null;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-mode]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newMode = b.dataset.mode;
               render();
             }),
         );
@@ -2389,11 +2673,36 @@
               render();
             }),
         );
+        float.querySelectorAll("[data-role]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              newRole = b.dataset.role;
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-pack]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              packPick = b.dataset.pack;
+              render();
+            }),
+        );
+        const pq = document.getElementById("packq");
+        if (pq)
+          pq.oninput = () => {
+            packQuery = pq.value;
+            render();
+            const el = document.getElementById("packq");
+            if (el) {
+              el.focus();
+              el.setSelectionRange(packQuery.length, packQuery.length);
+            }
+          };
         float.querySelectorAll("[data-mx]").forEach(
           (b) =>
             (b.onclick = () => {
-              const [npc, pc] = b.dataset.mx.split("::");
-              setKnow(npc, pc, (know(npc, pc) + 1) % 3);
+              const parts = b.dataset.mx.split("::");
+              setKnow(parts[0], parts[1], (know(parts[0], parts[1]) + 1) % 3);
               render();
             }),
         );
@@ -2410,11 +2719,11 @@
           (th) =>
             (th.onclick = () => {
               const pc = th.dataset.col;
-              const list = allNpcs().filter((n) => !n.flood);
-              const vals = list.map((n) => know(n.id, pc));
+              const list = allNpcs().filter((n2) => !n2.flood);
+              const vals = list.map((n2) => know(n2.id, pc));
               const uniform = vals.every((v) => v === vals[0]) ? vals[0] : -1;
               const next = uniform === -1 ? 2 : (uniform + 1) % 3;
-              list.forEach((n) => setKnow(n.id, pc, next));
+              list.forEach((n2) => setKnow(n2.id, pc, next));
               render();
             }),
         );
@@ -2437,63 +2746,58 @@
           };
       }
 
+      /* arraste para o mapa */
+      const dz = document.getElementById("dropzone");
+      dz.ondragover = (e) => {
+        if (!dragActor) return;
+        e.preventDefault();
+        dz.classList.add("hot");
+      };
+      dz.ondragleave = () => dz.classList.remove("hot");
+      dz.ondrop = (e) => {
+        e.preventDefault();
+        dz.classList.remove("hot");
+        const n = findActor(dragActor);
+        if (n) n.tok = Object.assign({}, n.tok, { Fortaleza: ((n.tok || {}).Fortaleza || 0) + 1 });
+        dragActor = null;
+        render();
+      };
+
       /* ================= switcher / legenda ================= */
-      const VAR_LB = {
-        A: "A · diretório (pastas)",
-        B: "B · elenco (ficção)",
-        C: "C · bancada (mundo+pack)",
-      };
-      const VAR_NOTE = {
-        A: `<tr><td>aposta</td><td><b>árvore de pastas de verdade</b> (documento Folder, servidor, aninhada).
-          É o ActorDirectory de hoje feito direito. O bestiário inteiro mora aqui.</td></tr>
-        <tr><td>custo</td><td>com 492 atores vira gerenciador de arquivos no meio da sessão — ligue <b>bestiário</b>.</td></tr>`,
-        B: `<tr><td>aposta</td><td>organiza por <b>papel na ficção</b>: em cena agora · elenco recorrente ·
-          avulsos (recolhido, só por busca). Pasta vira detalhe.</td></tr>
-        <tr><td>custo</td><td>"elenco" e "avulso" são julgamento de quem escreve, não dado. Quem marca?</td></tr>`,
-        C: `<tr><td>aposta</td><td>uma busca só atravessa <b>mundo e compêndio</b>. A pergunta do Mestre é
-          "me dá um goblin" — não "já importei?".</td></tr>
-        <tr><td>custo</td><td>invade a aba Compêndio (spec 16) e cria dois lugares de importar.</td></tr>`,
-      };
       function paintSwitcher() {
-        document.getElementById("variant").textContent = VAR_LB[variant];
         document.getElementById("role").textContent =
           role === "gm" ? "ver como jogador" : "ver como Mestre";
         document.getElementById("bestiary").textContent = flood
           ? "bestiário: importado (36)"
           : "bestiário: mundo enxuto";
-        document.getElementById("hp").textContent = showHp ? "vida: mostrando" : "vida: oculta";
         document.getElementById("state").textContent = empty
           ? "estado: vazio"
           : "estado: com conteúdo";
 
         document.getElementById("legend").innerHTML = `
-      <h4>Aba NPCs — rodada 1 · variante ${VAR_LB[variant]}</h4>
+      <h4>Aba NPCs — rodada 2 · diretório com pastas fixadas</h4>
       <table>
-        ${VAR_NOTE[variant]}
-        <tr><td>o que é só daqui</td><td><b>criar · excluir · pastas · subtipos · importar</b> — a 39 §2.2
-          transferiu tudo isso para cá, e a DEC-CTT-01 deixou o cliente sem criar/excluir até esta aba existir.</td></tr>
-        <tr><td>conhecimento</td><td>no cartão é <b>leitura</b> (<span style="color:#2a8">✓</span>conhecem
-          <span style="color:#a80">◐</span>entreviram <span style="color:#888">·</span>não veem).
-          Editar só no rodapé — DEC-CTT-05.</td></tr>
+        <tr><td>fechado</td><td>diretório de pastas · o Mestre cria pasta · <b>★ fixa no topo</b> ·
+          arrastar OU 🗀 move de pasta · sem vida · <b>personagem não nasce aqui</b> ·
+          veículo fora, perigo dentro · criar tem <b>bestiário + do zero</b></td></tr>
+        <tr><td>★ fixadas</td><td>"Goblinoides" saiu de dentro de "Bestiário" e subiu com o caminho —
+          <b>N1</b>: é isso, ou fixar só devia ordenar entre irmãs? e o favorito é do aparelho ou da pasta?</td></tr>
+        <tr><td>papel</td><td>a etiqueta laranja (mercador, chefe, montaria) é o seu "tipos de NPC" —
+          <b>N2</b>: preset ou capacidade? quem declara a lista?</td></tr>
+        <tr><td>🧰 baú</td><td>botão do rodapé põe direto na cena — <b>N3</b>: vira ator listado aqui,
+          ou é coisa só da cena? (depende da spec 41, Token)</td></tr>
         <tr><td>condição</td><td><span class="sw" style="background:#ff5c5c"></span>penalidade
           <span class="sw" style="background:#3ddc84"></span>benefício
           <span class="sw" style="background:#b98cff"></span>situação · preenchido = tira da cena</td></tr>
-        <tr><td>⬡ n</td><td>presenças no mapa. Passe o mouse: mostra em que cena, e se o arraste
-          nasce vinculado ou não (<b>Q5</b>).</td></tr>
       </table>
-      <div class="q"><b>experimente:</b> ＋ no cabeçalho → escolha <b>Personagem</b> e leia a proposta da <b>Q1</b> ·
-        ✕ no <b>Goblin Guerreiro</b> → exclusão <b>recusada</b> por combate ativo (<b>Q6</b>) ·
-        arraste o goblin e depois o Aldric para o mapa e veja o vínculo mudar (<b>Q5</b>) ·
-        ligue <b>vida</b> (<b>Q4</b>) e <b>bestiário</b> (<b>Q2</b>) · ✎ edita o título de um NPC (<b>Q-CTT-05</b>).</div>
-      <div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>1/2/3</b> variante ·
-        <b>p</b> papel · <b>b</b> bestiário · <b>h</b> vida · <b>v</b> vazio</div>`;
+      <div class="q"><b>experimente:</b> ☆/★ numa pasta e veja ela subir para "fixadas" ·
+        <b>🗀+ nova</b> cria pasta (Enter confirma) · arraste o <b>Zumbi</b> para "Vila de Pedra Alta" ·
+        ＋ abre a criação com <b>Do bestiário</b> e <b>Criar do zero</b> ·
+        🧰 põe o baú na cena · ✕ no <b>Goblin Guerreiro</b> ainda recusa por combate ativo.</div>
+      <div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>p</b> papel ·
+        <b>b</b> bestiário · <b>v</b> vazio · <b>Esc</b> fecha janela</div>`;
       }
 
-      document.getElementById("variant").onclick = () => {
-        variant = variant === "A" ? "B" : variant === "B" ? "C" : "A";
-        win = null;
-        render();
-      };
       document.getElementById("role").onclick = () => {
         role = role === "gm" ? "player" : "gm";
         win = null;
@@ -2501,11 +2805,6 @@
       };
       document.getElementById("bestiary").onclick = () => {
         flood = !flood;
-        seedKnowledge();
-        render();
-      };
-      document.getElementById("hp").onclick = () => {
-        showHp = !showHp;
         render();
       };
       document.getElementById("state").onclick = () => {
@@ -2515,18 +2814,17 @@
 
       document.addEventListener("keydown", (e) => {
         if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
-        if (e.key === "1") variant = "A";
-        if (e.key === "2") variant = "B";
-        if (e.key === "3") variant = "C";
-        if (e.key === "p") role = role === "gm" ? "player" : "gm";
+        if (e.key === "p") {
+          role = role === "gm" ? "player" : "gm";
+          win = null;
+          render();
+        }
         if (e.key === "b") {
           flood = !flood;
-          seedKnowledge();
+          render();
         }
-        if (e.key === "h") showHp = !showHp;
-        if (e.key === "v") empty = !empty;
-        if (["1", "2", "3", "p", "b", "h", "v"].includes(e.key)) {
-          if (["1", "2", "3", "p"].includes(e.key)) win = null;
+        if (e.key === "v") {
+          empty = !empty;
           render();
         }
         if (e.key === "Escape" && win) {
