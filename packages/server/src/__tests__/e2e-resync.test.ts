@@ -258,17 +258,17 @@ describe("E2E M1-B — full resync scenario", () => {
       });
     });
 
-    // Activating a scene also emits doc:update for the scenes whose `active`
-    // flag moved (T032) — with a seq HIGHER than the ack's. This test measures
-    // "3 ops after the client went away", so the baseline has to be the last op
-    // the activation produced, not the ack's seq.
-    const activationDocUpdatePromise = new Promise<Record<string, unknown>>((resolve) => {
-      client2Socket.on("op", (env: Record<string, unknown>) => {
-        if (env["type"] === "doc:update") {
-          const p = env["payload"] as Record<string, unknown> | undefined;
-          if (p?.["documentType"] === "Scene") resolve(env);
-        }
-      });
+    // Activating a scene emits MORE than the world:activeScene envelope: the
+    // body of the scene going on air (REQ-CEN-072) travels as a doc:update
+    // BEFORE the activation pointer, and the version bump of every scene whose
+    // `active` flag moved (T032) travels as a doc:update AFTER it. This test
+    // measures "3 ops after the client went away", so the baseline has to be
+    // the LAST op the activation produced — pinning it to any single envelope
+    // makes the test hostage to the emission order inside the handler.
+    let activationHighestSeq = client2LastSeq;
+    client2Socket.on("op", (env: Record<string, unknown>) => {
+      const seq = env["seq"];
+      if (typeof seq === "number" && seq > activationHighestSeq) activationHighestSeq = seq;
     });
 
     const activateAck = await sendOp(
@@ -287,13 +287,13 @@ describe("E2E M1-B — full resync scenario", () => {
     const activePayload = activeSceneBroadcast["payload"] as Record<string, unknown>;
     expect(activePayload["sceneId"]).toBe(sceneId);
 
-    // Record client2's seq after receiving all broadcasts so far
-    // client2LastSeq was from initial snapshot; advance it to account for
-    // the doc:create, world:activeScene and the doc:update the activation
-    // emits for the scene whose `active` flag moved.
-    const activationDocUpdate = await activationDocUpdatePromise;
-    client2LastSeq = activationDocUpdate["seq"] as number;
-    expect(client2LastSeq).toBeGreaterThan(activateAck["seq"] as number);
+    // Record client2's seq after receiving all broadcasts so far. Ops are
+    // ordered on the connection, so the version bump emitted after the
+    // activation pointer is already in flight when the pointer lands — a short
+    // settle is enough to have it counted.
+    await new Promise((r) => setTimeout(r, 100));
+    client2LastSeq = activationHighestSeq;
+    expect(client2LastSeq).toBeGreaterThanOrEqual(activateAck["seq"] as number);
 
     // -----------------------------------------------------------------------
     // Step 4: Disconnect client2

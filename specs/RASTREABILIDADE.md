@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 266 | 14% |
+| Citados por algum teste | 330 | 18% |
 | Citados só por código de produção | 336 | 18% |
-| Sem nenhuma citação | 1240 | 67% |
+| Sem nenhuma citação | 1176 | 64% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -32,8 +32,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [05](05-usuarios-e-permissoes.md) | 40 | 0 | 19 | 21 | 0% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 3 | 33 | 50 | 3% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 12 | 24 | 20 | 21% |
-| [08](08-motor-de-rolagens.md) | 49 | 11 | 12 | 26 | 22% |
-| [09](09-chat-e-mensagens.md) | 49 | 6 | 9 | 34 | 12% |
+| [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
+| [09](09-chat-e-mensagens.md) | 49 | 12 | 10 | 27 | 24% |
 | [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 7 | 18 | 37 | 11% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
@@ -59,7 +59,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
 | [37](37-configuracoes.md) | 40 | 1 | 0 | 39 | 3% |
-| [38](38-aba-chat.md) | 56 | 0 | 1 | 55 | 0% |
+| [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
 | [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
