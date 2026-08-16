@@ -650,13 +650,36 @@ o `world delete` já usa.
 
 ## Fase 3 — Assets como cidadãos de primeira classe
 
-### T020 — Tabela `assets`
+### T020 — Tabela `assets` (em andamento)
 
-Nova migration `008_assets.ts`: nome, hash do conteúdo, bytes, mime, quem subiu, quando.
+Nova migration: nome, hash do conteúdo, bytes, mime, quem subiu, quando.
 
-### T021 — Registro no upload
+**A migration é a 009, não a 008.** O enunciado dizia `008_assets.ts`, mas a 008 já existe
+(`008_scene_active`, entregue na Fase 1). Uma migration com número já usado seria **pulada em
+silêncio** por `applyMigrations` — exatamente o defeito que a guarda de schema da Fase 0 existe
+para impedir.
 
-`packages/server/src/assets/routes.ts` (~194) grava a linha ao aceitar o arquivo.
+`name` é a chave primária, não `digest`: o nome já é content-addressed e a dedup do upload
+garante um arquivo por digest em disco antes do INSERT. `digest` fica indexado, mas **não**
+único — fingir unicidade ali seria prometer uma garantia que a varredura por prefixo de 8 hex
+não dá.
+
+### T021 — Registro no upload (em andamento)
+
+`packages/server/src/assets/routes.ts` grava a linha ao aceitar o arquivo.
+
+Falha de registro **não** vira erro HTTP: o arquivo já está em disco e é servível, então
+reportar erro ali seria pior que a lacuna — que é a mesma em que todo asset pré-existente já
+começa, e que a T022 fecha.
+
+**No ramo de dedup, o metadado vem do arquivo em disco, nunca do upload que casou com ele.**
+`findExistingByDigest` casa por um trecho de 8 hex **dentro** do nome: 32 bits, e substring, não
+sufixo. Um casamento é indício de duplicata, não prova de que os bytes são iguais — descrever o
+arquivo guardado com o digest, o tamanho e o mime do arquivo recebido seria gravar uma mentira
+plausível no registro, e o upsert sobrescreveria uma linha que estava certa.
+
+`uploaded_by` e `created_at` são preservados no re-registro: os dois respondem "quem pôs esse
+arquivo aqui, e quando", e nenhum dos dois muda porque alguém reenviou os mesmos bytes.
 
 ### T022 — Reconciliação
 
@@ -672,7 +695,7 @@ sem arquivo) num mundo real.
 
 Remoção só depois do relatório e com confirmação. Nunca automática.
 
-### T024 — Backup do mundo inclui assets (D4)
+### T024 — Backup do mundo inclui assets (D4) — em andamento
 
 `packages/server/src/worlds/world-manager.ts` (`backup`, `backupPreUpdate`, restauração)
 
@@ -681,6 +704,27 @@ apontando para arquivos que podem não existir. Copiar por hash: arquivo já pre
 repositório de backup não é copiado de novo.
 
 **Pronto quando:** backup → apaga assets → restaura → todas as referências resolvem.
+
+Entregue como repositório de blobs endereçado por conteúdo + manifesto por backup. Quatro coisas
+que a revisão obrigou a mudar, e que valem para quem mexer aqui depois:
+
+1. **O caminho de assets é assíncrono.** `backup()` é async e usa a API de backup online do
+   SQLite justamente para não travar o servidor com o mundo aberto; uma cópia de assets síncrona
+   desfazia essa garantia. Medido com um asset de 80 MB: a versão síncrona serviu **zero** ticks
+   do event loop durante toda a operação; a assíncrona serve ~90% dos ticks esperados. O hash é
+   calculado em streaming — um áudio de centenas de MB não pode virar um Buffer só para ser
+   hasheado.
+2. **Restaurar valida antes de tocar no banco.** A troca do `world.db` acontecia antes de
+   conferir os blobs, então um blob faltando deixava o mundo num estado que não é nem o antes nem
+   o depois: banco novo, `assets/` vazio. Agora a varredura de existência roda primeiro, e falha
+   não altera nada — nem o banco, nem os assets, nem cria backup pré-restauração.
+3. **Manifesto corrompido grita.** Antes, o JSON inválido era engolido e a restauração devolvia o
+   banco **sem** os assets, em silêncio — literalmente o pior resultado do enunciado. Hoje se
+   distingue "este backup não tem manifesto" (legítimo, backups anteriores a esta mudança) de
+   "tem e está corrompido" (aborta antes de tocar no banco).
+4. **Existe caminho de produto:** `fusion world restore <slug> --backup <arquivo>`. Prévia por
+   padrão, recusa com `world.lock` vivo, e exige `--confirm-restore` repetindo o nome do arquivo.
+   Funcionalidade que só o vitest alcança não conta como entregue.
 
 ### T025 — SEGURANÇA: autorização por documento na rota de assets
 

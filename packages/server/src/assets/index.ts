@@ -14,3 +14,5 @@ export type { DetectedType } from "./magic-bytes.js";
 export { sanitizeSvg, svgHasXssVectors } from "./svg-sanitize.js";
 export { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
 export { buildSafeFilename, sha256Hex, slugifyBasename, randomHex16 } from "./slug.js";
+export { recordAsset, getAssetRecord, listAssetRecords, deleteAssetRecord } from "./asset-store.js";
+export type { AssetRecord, RecordAssetInput } from "./asset-store.js";
