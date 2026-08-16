@@ -57,16 +57,16 @@ matou.
 
 ## 3. Conceitos e terminologia
 
-| Conceito             | Definição                                                                                                                     |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Não-jogável**      | Ator que não é personagem de jogador: `npc` ou `hazard`. É o que esta aba lista.                                              |
-| **Pasta**            | Document `Folder` (REQ-DOC-018), hierárquico por `parentId`. Organização de autoria, do mundo — não é a categoria do jogador. |
-| **Pasta fixada**     | Pasta que o usuário mandou subir para o topo do painel. Fixar é estado de exibição, não muda a pasta.                         |
-| **Preset**           | Escolha feita **na criação** que pré-preenche a ficha do novo ator e não fica gravada nele (mercador, montaria, chefe).       |
-| **Atitude**          | Postura do não-jogável diante dos jogadores: `inimigo`, `neutro` ou `aliado`. Vale para a **party inteira**.                  |
-| **Baú**              | Recipiente posto direto na cena como atalho de narração. **Não é ator** e não aparece nesta aba.                              |
-| **Presença na cena** | A manifestação de um ator numa cena. O termo evita "token", cujo conceito só será definido pela spec `41`.                    |
-| **Sub-personagem**   | Ator vinculado a outro por `masterActorId` (REQ-PET-002), exibido dentro da linha do dono.                                    |
+| Conceito             | Definição                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Não-jogável**      | ~~Ator que não é personagem de jogador.~~ Termo **retirado** pela `45` (DEC-ATR-06). Esta aba lista os atores com a faceta `creature` ou `hazard`.                 |
+| **Pasta**            | Document `Folder` (REQ-DOC-018), hierárquico por `parentId`. Organização de autoria, do mundo — não é a categoria do jogador.                                      |
+| **Pasta fixada**     | Pasta que o usuário mandou subir para o topo do painel. Fixar é estado de exibição, não muda a pasta.                                                              |
+| **Preset**           | Escolha feita **na criação** que pré-preenche a ficha do novo ator e não fica gravada nele (mercador, montaria, chefe).                                            |
+| **Atitude**          | Postura do não-jogável diante dos jogadores: `inimigo`, `neutro` ou `aliado`. Vale para a **party inteira**.                                                       |
+| **Baú**              | Recipiente posto direto na cena como atalho de narração. **É ator** com a faceta `container` (`ver 45-atores.md`, DEC-ATR-09) e continua não aparecendo nesta aba. |
+| **Presença na cena** | A manifestação de um ator numa cena. O termo evita "token", cujo conceito só será definido pela spec `41`.                                                         |
+| **Sub-personagem**   | Ator vinculado a outro por `masterActorId` (REQ-PET-002), exibido dentro da linha do dono.                                                                         |
 
 ## 4. Decisões
 
@@ -160,18 +160,22 @@ e **não ficam gravados** nele.
 - **Os presets ainda não existem, e vão existir.** Esta spec fixa o **conceito** e o
   **ponto de extensão** (REQ-NPC-048), não o catálogo. Quem declara o catálogo é Q-NPC-02.
 
-### DEC-NPC-08 — Baú é ferramenta de narração, não ator
+### DEC-NPC-08 — Baú é ferramenta de narração, e não entra no diretório
 
-O rodapé oferece pôr um **baú** direto na cena ativa. O baú **não é ator**: não aparece
-no diretório, na busca, em contagem alguma nem na janela de conhecimento.
+O rodapé oferece pôr um **baú** direto na cena ativa. O baú não aparece no diretório, na
+busca, em contagem alguma nem na janela de conhecimento.
+
+> **Emendada pela `45`** (DEC-ATR-09): o baú **é ator**, com a faceta `container`. O que
+> esta decisão recusou — e continua recusando — é o baú **no diretório**, com o cerimonial
+> de autoria descrito abaixo. Ausência de aba não é ausência de registro.
 
 - **Racional:** "é uma ferramenta para ajudar na agilidade do GM narrar". Um baú que
   virasse ator entraria na árvore de pastas, pediria pasta, atitude e conhecimento — todo
   o cerimonial de autoria — para uma coisa cuja vida útil é a cena em que foi posta.
-- **Ponta solta registrada:** o pf2e declara o subtipo `loot`, que é exatamente o
-  recipiente. Com o baú fora de ator, `loot` ou fica sem consumidor, ou é usado por baixo
-  sem nunca ser listado — Q-NPC-04. E **onde vive o conteúdo do baú** é da spec de
-  Token/Cenas, não desta (Q-NPC-05).
+- **Ponta solta, resolvida:** o pf2e declara o subtipo `loot`, que é exatamente o
+  recipiente — ele é o subtype de faceta `container` (Q-NPC-04, fechada). O conteúdo do baú
+  vive em `items`, como o de qualquer ator (Q-NPC-05, fechada). Quem pode **abrir** um
+  recipiente é da spec `46`, não desta.
 
 ### DEC-NPC-09 — Atitude é atributo do ator e vale para a party inteira
 
@@ -329,9 +333,11 @@ A aba abre a ficha em janela flutuante e não diz nada sobre o conteúdo dela.
   de ator disponíveis (REQ-CMP-013) e importar o escolhido pelo mecanismo da spec 16
   (REQ-CMP-016, REQ-CMP-021); esta aba NÃO DEVE implementar um segundo importador.
 - **REQ-NPC-043** [MVP] O caminho do zero DEVE pedir subtipo e nome.
-- **REQ-NPC-044** [MVP] Os subtipos oferecidos DEVEM ser apenas `npc` e `hazard`;
-  `character`, `familiar` e `loot` NÃO DEVEM ser oferecidos por esta aba (DEC-NPC-02,
-  DEC-NPC-05, DEC-NPC-08).
+- **REQ-NPC-044** [MVP] Os subtipos oferecidos DEVEM ser os que o sistema ativo declara
+  com a faceta `creature` ou `hazard` (`ver 45-atores.md`, REQ-ATR-014) — o que inclui
+  `familiar`, que **passa a ser oferecido e listado** (DEC-ATR-18). Subtipos de faceta
+  `player` ou apenas `container` NÃO DEVEM ser oferecidos por esta aba (DEC-NPC-02,
+  DEC-NPC-08).
 - **REQ-NPC-045** [MVP] A criação PODE oferecer um **preset**, que pré-preenche a ficha do
   ator criado e NÃO DEVE ser gravado nele (DEC-NPC-07).
 - **REQ-NPC-046** [MVP] Nenhuma tela DEVE exibir o preset de um ator já criado, nem
@@ -490,26 +496,26 @@ A aba abre a ficha em janela flutuante e não diz nada sobre o conteúdo dela.
 
 ## 10. Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CA-NPC-001 | O Mestre abre a aba e vê a árvore de pastas do mundo; o jogador não vê a aba no trilho, e a gaveta dele não abre nela nem com a preferência salva apontando para ela.     |
-| CA-NPC-002 | O Mestre cria a pasta "Taverna", arrasta um NPC para dentro dela e o mesmo NPC muda de pasta pelo controle da linha; os dois caminhos funcionam e a lista não recarrega.  |
-| CA-NPC-003 | O Mestre fixa "Goblinoides": ela sobe para o bloco do topo com o caminho da pasta-mãe. Ao desafixar, ela volta exatamente para onde estaria se nunca tivesse sido fixada. |
-| CA-NPC-004 | Outro Mestre entra no mesmo mundo em outro aparelho e **não** vê as pastas fixadas do primeiro; o document `Folder` está inalterado.                                      |
-| CA-NPC-005 | Excluir a pasta "Taverna" com dois NPCs devolve os dois para "Sem pasta" e não remove ator algum; uma subpasta dela sobe para o nível da pasta excluída.                  |
-| CA-NPC-006 | A janela de criação oferece "do bestiário" e "do zero"; a busca do bestiário acha "Goblin Piromaníaco" e importá-lo cria o ator no mundo pelo mesmo caminho da spec 16.   |
-| CA-NPC-007 | A criação oferece apenas NPC e Perigo: não há opção de criar personagem, familiar, recipiente nem veículo em tela alguma da aba.                                          |
-| CA-NPC-008 | Criar um NPC com o preset "Mercador" pré-preenche a ficha; a linha criada **não** exibe "mercador" em lugar nenhum, e não há como filtrar por preset.                     |
-| CA-NPC-009 | A atitude do Ferreiro Bram cicla aliado → neutro → inimigo com um acionamento cada, também por teclado; o valor é o mesmo para todos os personagens da party.             |
-| CA-NPC-010 | Um Perigo não exibe indicação de atitude alguma, e não há como atribuir uma a ele.                                                                                        |
-| CA-NPC-011 | O payload recebido por um jogador não contém a atitude de NPC algum, nem mesmo dos que ele conhece.                                                                       |
-| CA-NPC-012 | Nenhuma linha exibe pontos de vida, em nenhum formato; o mesmo NPC aberto na aba Combate mostra a vida para o Mestre.                                                     |
-| CA-NPC-013 | Excluir um NPC lista antes as presenças em cena, quem o conhece e a ficha; confirmado, as presenças somem das cenas e o conhecimento sobre ele deixa de existir.          |
-| CA-NPC-014 | Excluir um NPC que está num combate ativo é recusado, com a mensagem dizendo como destravar; encerrado o combate, a mesma exclusão passa.                                 |
-| CA-NPC-015 | A linha mostra "2 conhecem, 1 entreviu" e não oferece nenhum controle para mudar isso; o rodapé abre a mesma janela que o rodapé da aba Contatos abre.                    |
-| CA-NPC-016 | O botão do rodapé põe um baú na cena ativa, e esse baú não aparece na árvore, na busca, em contagem de pasta nem na janela "Quem conhece quem".                           |
-| CA-NPC-017 | Com o bestiário completo importado, buscar por "goblin" filtra a árvore sem travar, e as pastas sem resultado desaparecem enquanto durar a busca.                         |
-| CA-NPC-018 | Nenhum ícone da aba é um caractere emoji; todos são desenhados e mudam de cor com o tema.                                                                                 |
+| ID         | Critério                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CA-NPC-001 | O Mestre abre a aba e vê a árvore de pastas do mundo; o jogador não vê a aba no trilho, e a gaveta dele não abre nela nem com a preferência salva apontando para ela.           |
+| CA-NPC-002 | O Mestre cria a pasta "Taverna", arrasta um NPC para dentro dela e o mesmo NPC muda de pasta pelo controle da linha; os dois caminhos funcionam e a lista não recarrega.        |
+| CA-NPC-003 | O Mestre fixa "Goblinoides": ela sobe para o bloco do topo com o caminho da pasta-mãe. Ao desafixar, ela volta exatamente para onde estaria se nunca tivesse sido fixada.       |
+| CA-NPC-004 | Outro Mestre entra no mesmo mundo em outro aparelho e **não** vê as pastas fixadas do primeiro; o document `Folder` está inalterado.                                            |
+| CA-NPC-005 | Excluir a pasta "Taverna" com dois NPCs devolve os dois para "Sem pasta" e não remove ator algum; uma subpasta dela sobe para o nível da pasta excluída.                        |
+| CA-NPC-006 | A janela de criação oferece "do bestiário" e "do zero"; a busca do bestiário acha "Goblin Piromaníaco" e importá-lo cria o ator no mundo pelo mesmo caminho da spec 16.         |
+| CA-NPC-007 | A criação oferece os subtipos de faceta `creature` ou `hazard` do sistema ativo — incluindo familiar (DEC-ATR-18) — e nenhuma opção de criar personagem, recipiente ou veículo. |
+| CA-NPC-008 | Criar um NPC com o preset "Mercador" pré-preenche a ficha; a linha criada **não** exibe "mercador" em lugar nenhum, e não há como filtrar por preset.                           |
+| CA-NPC-009 | A atitude do Ferreiro Bram cicla aliado → neutro → inimigo com um acionamento cada, também por teclado; o valor é o mesmo para todos os personagens da party.                   |
+| CA-NPC-010 | Um Perigo não exibe indicação de atitude alguma, e não há como atribuir uma a ele.                                                                                              |
+| CA-NPC-011 | O payload recebido por um jogador não contém a atitude de NPC algum, nem mesmo dos que ele conhece.                                                                             |
+| CA-NPC-012 | Nenhuma linha exibe pontos de vida, em nenhum formato; o mesmo NPC aberto na aba Combate mostra a vida para o Mestre.                                                           |
+| CA-NPC-013 | Excluir um NPC lista antes as presenças em cena, quem o conhece e a ficha; confirmado, as presenças somem das cenas e o conhecimento sobre ele deixa de existir.                |
+| CA-NPC-014 | Excluir um NPC que está num combate ativo é recusado, com a mensagem dizendo como destravar; encerrado o combate, a mesma exclusão passa.                                       |
+| CA-NPC-015 | A linha mostra "2 conhecem, 1 entreviu" e não oferece nenhum controle para mudar isso; o rodapé abre a mesma janela que o rodapé da aba Contatos abre.                          |
+| CA-NPC-016 | O botão do rodapé põe um baú na cena ativa, e esse baú não aparece na árvore, na busca, em contagem de pasta nem na janela "Quem conhece quem".                                 |
+| CA-NPC-017 | Com o bestiário completo importado, buscar por "goblin" filtra a árvore sem travar, e as pastas sem resultado desaparecem enquanto durar a busca.                               |
+| CA-NPC-018 | Nenhum ícone da aba é um caractere emoji; todos são desenhados e mudam de cor com o tema.                                                                                       |
 
 ## 11. Questões em aberto
 
@@ -523,13 +529,13 @@ A aba abre a ficha em janela flutuante e não diz nada sobre o conteúdo dela.
   **desvinculada** do ator? Depende da spec `41` (Token) e não se decide antes dela.
 - **Q-NPC-04** — ~~O subtipo `loot`, declarado pelo pf2e, fica **sem consumidor** com o baú
   fora de ator (DEC-NPC-08). Ele é usado por baixo do baú sem nunca ser listado, ou sai da
-  declaração do sistema?~~ **Fechada pela `45`** (DEC-ATR-07): `loot` é a natureza
+  declaração do sistema?~~ **Fechada pela `45`** (DEC-ATR-09): `loot` é o subtype de faceta
   `container`. O baú é ator, e continua fora desta aba exatamente como a DEC-NPC-08 exigiu
   — o que ela recusou foi o baú no diretório, não o baú como registro.
 - **Q-NPC-05** — ~~Onde vive o **conteúdo do baú** (os itens saqueáveis), já que ele não é
   ator? É assunto da spec de Token/Cenas, e esta spec não o antecipa.~~ **Fechada pela `45`**
-  (DEC-ATR-07): vive em `items`, como o conteúdo de qualquer ator (REQ-DOC-020). Com
-  presença desvinculada, o conteúdo vivo é o da presença, pela regra geral (DEC-ATR-11).
+  (DEC-ATR-09): vive em `items`, como o conteúdo de qualquer ator (REQ-DOC-020). Com
+  presença desvinculada, o conteúdo vivo é o da presença, pela regra geral (DEC-ATR-14).
 - **Q-NPC-06** — **Excluir personagem de jogador** não tem tela em lugar nenhum do app.
   Aceito por ora (decisão de 2026-08-16). Quando o mundo precisar, o gesto é da seção
   Usuários da 37 — apagando a ficha junto com o usuário — ou de uma tela nova?

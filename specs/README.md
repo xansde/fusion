@@ -65,7 +65,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 42  | [Aba NPCs](42-aba-npcs.md)                                           | Aba da gaveta: pastas, autoria, atitude, baú     |
 | 43  | [Aba Compêndio](43-aba-compendio.md)                                 | Aba da gaveta: estante, busca no acervo, trazer  |
 | 44  | [Aba Cenas](44-aba-cenas.md)                                         | Aba da gaveta: o que está no ar, acervo, preparo |
-| 45  | [Atores](45-atores.md)                                               | O que é um ator, naturezas, ciclo de vida, posse |
+| 45  | [Atores](45-atores.md)                                               | O que é um ator, facetas, ciclo de vida, posse   |
 
 ## Níveis
 
@@ -130,7 +130,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-NPC-`  | [42](42-aba-npcs.md)                      | Aba NPCs (painel da gaveta)        |
 | `REQ-CPD-`  | [43](43-aba-compendio.md)                 | Aba Compêndio (painel da gaveta)   |
 | `REQ-CEN-`  | [44](44-aba-cenas.md)                     | Aba Cenas (painel da gaveta)       |
-| `REQ-ATR-`  | [45](45-atores.md)                        | Atores (conceito, natureza, posse) |
+| `REQ-ATR-`  | [45](45-atores.md)                        | Atores (conceito, facetas, posse)  |
 
 <!-- prefixos:end -->
 
@@ -143,7 +143,10 @@ Números reservados e ainda não escritos:
   obrigou a spec `40` a evitar a palavra (DEC-CBA-06). O registro de prefixos só
   ganha a linha quando a spec existir (regra `registro-de-prefixos`).
   A `45` entregou a metade que dependia de ator: o que a presença **herda** já está
-  decidido (REQ-ATR-060, REQ-ATR-061), e sobra à `41` dizer o que a presença **é**.
+  decidido (REQ-ATR-070, REQ-ATR-071), e sobra à `41` dizer o que a presença **é**.
+- **46** — **Recipientes**. Reservada pela `45` (DEC-ATR-13, DEC-ATR-17): dona do saque, do
+  comércio e de quem pode abrir um recipiente. A `45` define a faceta `container` e como se
+  ganha e se perde; o que se **faz** com ela é desta spec.
 
 ## Stack fixada
 

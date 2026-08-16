@@ -332,9 +332,10 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
 SystemDataModelSpec)` que registra um `SystemDataModel` para um
   `(documentType, subtype)`, contendo: `schema` (Zod), `migrations?`,
   `defaults?` e — **obrigatoriamente quando `documentType === "Actor"`, e proibido
-  nos demais** — `nature`, com valor em `{ player, creature, hazard, container }`
-  (`ver 45-atores.md`, REQ-ATR-010; a semântica de cada natureza é de lá, não desta
-  spec).
+  nos demais** — `facets`, uma lista **não-vazia** com valores em
+  `{ player, creature, hazard, container }` (`ver 45-atores.md`, REQ-ATR-010; um ator
+  exerce mais de um papel ao mesmo tempo, e a semântica de cada faceta é de lá, não
+  desta spec).
 - **REQ-SYS-011** [MVP] Todo subtype declarado em `manifest.documentTypes` DEVE
   ter um `SystemDataModel` correspondente registrado; subtype sem model OU model
   sem subtype declarado DEVE falhar no contract test (REQ-SYS-030).
@@ -660,8 +661,8 @@ interface SystemDataModelSpec<S extends ZodType = ZodType> {
   schema: S; // valida APENAS o campo `system`
   defaults?: Partial<z.infer<S>>;
   migrations?: MigrationDefinition[];
-  // obrigatório se documentType === "Actor", proibido nos demais (REQ-ATR-010)
-  nature?: "player" | "creature" | "hazard" | "container";
+  // obrigatório e não-vazio se documentType === "Actor", proibido nos demais (REQ-ATR-010)
+  facets?: readonly ("player" | "creature" | "hazard" | "container")[];
 }
 
 interface MigrationDefinition {

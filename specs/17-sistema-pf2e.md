@@ -53,8 +53,8 @@ explicitamente **[V2]**.
   e SF2e (degrees of success, modifier stacking de 7 tipos, TEML, condições base,
   dying/wounded, apply damage/IWR, MAP).
 - **Actor types**: `character`, `npc`, `hazard`, `loot`, `familiar` [MVP]. Schemas
-  resumidos de cada um, cada um com a sua natureza (`ver 45-atores.md`, DEC-ATR-03).
-  `party` e `vehicle` **não existem** e saíram do plano (DEC-ATR-08).
+  resumidos de cada um, cada um com as suas facetas (`ver 45-atores.md`, DEC-ATR-04).
+  `party` e `vehicle` **não existem** e saíram do plano (DEC-ATR-10).
 - **Item types**: lista completa da pesquisa 10 com schemas resumidos; subconjunto
   que entra no MVP marcado.
 - **Automação MVP**: cálculo de atributos/perícias derivados (TEML+nível), strikes
@@ -668,19 +668,23 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
 
 ### Tipos de Actor
 
-A coluna **Natureza** é o valor declarado em `defineModel` (`ver 45-atores.md`,
-REQ-ATR-010); ela é o que engine e cliente consultam, nunca o nome do subtype.
+A coluna **Facetas de nascença** é a lista declarada em `defineModel` (`ver 45-atores.md`,
+REQ-ATR-010); é o que engine e cliente consultam, nunca o nome do subtype. Um ator pode
+**ganhar** facetas em jogo (DEC-ATR-05) — a coluna diz com o que ele nasce, não o teto.
 
-| Subtype     | MVP?   | Natureza    | Descrição                                                                 |
-| ----------- | ------ | ----------- | ------------------------------------------------------------------------- |
-| `character` | ✅ MVP | `player`    | Personagem jogador (PC) com ABC, feats, skills, spellcasting, inventário. |
-| `npc`       | ✅ MVP | `creature`  | Criatura/NPC com statblock completo (AC, saves, HP, strikes, skills).     |
-| `hazard`    | ✅ MVP | `hazard`    | Armadilha/perigo: subset do NPC, geralmente sem ações ativas.             |
-| `loot`      | ✅ MVP | `container` | Container de itens sem statblock. É o baú da `42` (DEC-ATR-07).           |
-| `familiar`  | ✅ MVP | `creature`  | Familiar; habilidades derivadas do PC mestre (`ver 29-...md`).            |
+| Subtype     | MVP?   | Facetas de nascença | Descrição                                                                 |
+| ----------- | ------ | ------------------- | ------------------------------------------------------------------------- |
+| `character` | ✅ MVP | `player`            | Personagem jogador (PC) com ABC, feats, skills, spellcasting, inventário. |
+| `npc`       | ✅ MVP | `creature`          | Criatura/NPC com statblock completo (AC, saves, HP, strikes, skills).     |
+| `hazard`    | ✅ MVP | `hazard`            | Armadilha/perigo: subset do NPC, geralmente sem ações ativas.             |
+| `loot`      | ✅ MVP | `container`         | Container de itens sem statblock. É o baú da `42` (DEC-ATR-09).           |
+| `familiar`  | ✅ MVP | `creature`          | Familiar; habilidades derivadas do mestre (`ver 29-...md`).               |
+
+Um `npc` que morre e passa a ser saqueável ganha `container` sem trocar de subtype nem de
+ficha (DEC-ATR-05); um mercador PODE ser declarado com `["creature", "container"]`.
 
 `party` e `vehicle` saíram desta tabela: não são actor types do Fusion e não estão no
-plano (`ver 45-atores.md`, DEC-ATR-08).
+plano (`ver 45-atores.md`, DEC-ATR-10).
 
 ### Tipos de Item
 
