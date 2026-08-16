@@ -8,9 +8,11 @@
  *
  *   - authoring a non-playable → the NPCs tab (spec 42, REQ-NPC-040/041);
  *   - deleting a non-playable → the NPCs tab (REQ-NPC-050);
- *   - creating a player's character → spec 37's Usuários (REQ-CFG-051, task G105),
- *     with a fenced-off temporary control here until it lands — SCAFFOLDING, and the
- *     second block of this file is what proves it is really on the screen;
+ *   - creating a player's character → NO screen in this tab, in any form, ever
+ *     (REQ-NPC-044, DEC-NPC-02, §2.2): its real address is spec 37's Usuários
+ *     section (REQ-CFG-051, task G105), and until that lands there is deliberately
+ *     no trigger for it anywhere in this tab — the second block of this file pins
+ *     that absence, mirroring the precedent Q-NPC-06 already set for deletion;
  *   - deleting a player's character → NO screen at all, accepted in Q-NPC-06, which
  *     the third block pins so the absence stays deliberate instead of accidental.
  *
@@ -125,21 +127,22 @@ describe("G078: what the buried directory did, the NPCs tab does", () => {
   });
 });
 
-describe("SCAFFOLDING (G078 → G105): creating a character still has a trigger on screen", () => {
+describe("REQ-NPC-044 / DEC-NPC-02: creating a character has no trigger in this tab", () => {
   /**
-   * REQ-CFG-051 gives creating a character its real address — spec 37's Usuários
-   * section, task G105. Burying the directory before that lands would leave the table
-   * with no way to create a character at all, so the gesture stays here, fenced off
-   * and named as temporary. These assertions exist to fail loudly if the control is
-   * dropped before its replacement exists.
+   * §2.2 sends "criar personagem de jogador" to spec 37's Usuários section
+   * (REQ-CFG-051, task G105), and DEC-NPC-02 is unconditional: "esta aba não
+   * oferece criar personagem em lugar nenhum". No fenced-off, temporary or
+   * secondary control earns an exception — a document created here would be
+   * exactly the ownerless orphan DEC-NPC-02 exists to prevent, with no screen
+   * anywhere to delete it (Q-NPC-06). These assertions fail loudly if such a
+   * control is reintroduced before G105 gives it its real address.
    */
-  it("REQ-CFG-051: the temporary control is drawn, and marked as scaffolding", () => {
+  it("REQ-NPC-044: the window renders no character-creation block, scaffolded or otherwise", () => {
     const body = renderDialog();
 
-    expect(body).toContain('data-block="character-scaffolding"');
-    expect(body).toContain('data-scaffolding="true"');
-    expect(body).toContain('data-input="scaffolding-character-name"');
-    expect(body).toContain('data-action="create-character-scaffolding"');
+    expect(body).not.toContain('data-block="character-scaffolding"');
+    expect(body).not.toContain("data-scaffolding");
+    expect(body).not.toContain('data-action="create-character-scaffolding"');
   });
 
   it("REQ-NPC-044: it is not a third subtype of the tab's own door", () => {
@@ -151,14 +154,11 @@ describe("SCAFFOLDING (G078 → G105): creating a character still has a trigger 
       (match) => match[1],
     );
     expect(values).toEqual(["npc", "hazard"]);
-    // The window as a whole still offers no `character` value anywhere — the temporary
-    // control is a name field and a button, not an entry in a subtype list.
+    // The window as a whole offers no `character` value anywhere.
     expect(body).not.toContain('value="character"');
   });
 
-  it("REQ-NPC-090: the window still says a player's character is not born of this tab", () => {
-    // The temporary control must not turn into a claim that this IS where a character
-    // belongs: the sentence that names its real address stays.
+  it("REQ-NPC-090: the window says a player's character is not born of this tab", () => {
     expect(renderDialog()).toContain("Configurações");
   });
 });

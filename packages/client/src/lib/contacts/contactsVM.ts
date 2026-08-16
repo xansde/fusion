@@ -62,11 +62,9 @@ export interface ContactActorDoc {
  * Actor subtypes that stand for a player's own character — the population of the
  * "Na mesa" section.
  *
- * Mirrors the first (playable) entry of each system manifest's `documentTypes.Actor`,
- * the same table `lib/npcs/createCharacterScaffolding.ts` keeps for its temporary
- * create-a-character control (G078 → G105): pf2e/sf2e call
- * it `character`, etmos calls it `orador`. The client package may not import a system
- * package (arch boundary), so the list is mirrored by hand here as well.
+ * Mirrors the first (playable) entry of each system manifest's `documentTypes.Actor`:
+ * pf2e/sf2e call it `character`, etmos calls it `orador`. The client package may not
+ * import a system package (arch boundary), so the list is mirrored by hand here.
  */
 export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character", "orador"]);
 
