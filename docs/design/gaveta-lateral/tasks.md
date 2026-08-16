@@ -18,6 +18,15 @@ ato humano.
 `main` são a linha geral, paralela desde `ab4966f` (02/08), sem convergência planejada —
 nada daqui chega lá sozinho.
 
+**Escopo de frente — banco de dados fica de fora.** Schema, migrations e caminho de escrita
+do `world.db` são outra frente, tocada em paralelo. **Nenhuma tarefa deste plano cria
+migration nem altera schema**, e isso não é uma restrição inventada: as próprias specs dizem
+onde cada dado mora, e tudo o que elas pedem cabe no que já existe — conhecimento, título e
+atitude são **campos do próprio documento do ator** (`39` §7, `42` §7), setting de mundo é
+`Setting` (REQ-DOC-018, já existe), plateia de pack é **manifesto**, e todo o resto é
+ergonomia local no aparelho (G-2). Se alguma tarefa parecer precisar de coluna nova, é sinal
+de que ela está lendo a spec errado — pare e confira, não escreva migration.
+
 ---
 
 ## O que muda no produto, em uma frase
@@ -52,8 +61,8 @@ sua metade de servidor.
 
 ## Como ler estas tarefas
 
-- `G###` — id estável. Não renumerar; tarefa cancelada vira `~~G###~~` com o motivo.
-  (O prefixo é `G` de gaveta para não colidir com o `T###` do plano de banco de dados.)
+- `G###` — id estável (`G` de gaveta). Não renumerar; tarefa cancelada vira `~~G###~~` com
+  o motivo.
 - `[P]` — pode ser feita em paralelo com as outras `[P]` da mesma fase.
 - **Pronto quando** — critério verificável. Sem comando ou teste que prove, a tarefa não fecha.
 - **Cobre** — os requisitos que a tarefa entrega. O teste **DEVE citar esses ids**: é assim
@@ -535,7 +544,9 @@ personagem. É a fase mais pesada de servidor, e a que abre a dívida que a Fase
 
 ### G060 — Modelo de conhecimento: regra geral + exceções
 
-`packages/server/src/documents/` · migration nova (a próxima livre é a **009**)
+`packages/server/src/documents/` · **campo do próprio documento do ator** — a `39` §7 grava
+"no próprio contato, no `world.db`", e a `42` §7 repete. **Sem tabela nova, sem migration**
+(ver Escopo de frente): documento é JSON no store, e é onde regra geral e exceções cabem.
 
 Três estados ordenados por contato × personagem: `oculto` (0), `entrevisto` (1),
 `conhecido` (2). Cada contato tem uma **regra geral** e um conjunto de **exceções** por
@@ -786,9 +797,10 @@ Evento dedicado, restrito a papel privilegiado, que grava a fonte única e trans
 **Sem confirmação.** Aplica a initial view da cena de destino. Falha aparece como mensagem,
 sem deixar a cabeça divergente do servidor.
 
-A recusa de `active` pelo caminho genérico de `doc:update` **já existe** (migration 008 /
-T010 do plano de banco) — mas vivia só num comentário. O que falta é o **teste que a cita
-como requisito**: regra que só existe no código é regra que a próxima refatoração desfaz.
+A recusa de `active` pelo caminho genérico de `doc:update` **já existe no servidor** — mas
+vivia só num comentário, e é isso que DEC-CEN-02 promove a normativo. O que falta aqui é o
+**teste que a cita como requisito**: regra que só existe no código é regra que a próxima
+refatoração desfaz. Esta tarefa **não** toca a guarda; só a amarra ao requisito.
 
 **Cobre:** REQ-CEN-040..046.
 **Pronto quando:** teste forja um `doc:update` alterando `active` e prova a recusa, citando
@@ -956,7 +968,8 @@ aparece no código dela.
 
 ### G103 — Regra variante vira setting de mundo, e sai da ficha
 
-`systems/pf2e/` (declaração das settings) · ficha de personagem · migração no servidor
+`systems/pf2e/` (declaração das settings) · ficha de personagem · migração **de dado dos
+atores** no servidor (documento, não schema — não é migration)
 
 Arquétipo livre e multiclasse por nível deixam de morar em `system.build` do personagem e
 viram **settings de mundo**, operadas só nesta aba — dois personagens da mesma mesa não
