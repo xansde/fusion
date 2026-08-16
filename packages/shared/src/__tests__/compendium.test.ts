@@ -307,6 +307,58 @@ describe("PackManifestSchema", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Pack audience — REQ-CMP-004a (spec 16), REQ-CPD-070 (spec 43)
+// ---------------------------------------------------------------------------
+
+describe("PackManifestSchema audience", () => {
+  /** A manifest without the `audience` field — a pack.json written before it existed. */
+  function manifestWithout(audience?: unknown): Record<string, unknown> {
+    const manifest: Record<string, unknown> = {
+      id: "pf2e.conditions",
+      label: "PF2e Conditions",
+      documentType: "Item",
+      systemId: "pf2e",
+      indexFields: ["system.group"],
+      license: { license: "ORC", attribution: "Paizo", reservedNotice: "" },
+      source: { repo: "github.com/foundryvtt/pf2e", version: "v14-dev", importerVersion: "0.1.0" },
+      documentCount: 43,
+      generatedAt: "2026-01-01T00:00:00.000Z",
+      schemaVersion: 1,
+    };
+    if (audience !== undefined) manifest["audience"] = audience;
+    return manifest;
+  }
+
+  it("REQ-CMP-004a: an absent audience parses as 'all' — an old pack stays visible to everyone", () => {
+    const result = PackManifestSchema.safeParse(manifestWithout());
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.audience).toBe("all");
+  });
+
+  it("REQ-CPD-070: a manifest may declare audience 'gm' and it survives parsing", () => {
+    const result = PackManifestSchema.safeParse(manifestWithout("gm"));
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.audience).toBe("gm");
+  });
+
+  it("REQ-CPD-070: declaring audience 'all' is accepted and kept", () => {
+    const result = PackManifestSchema.safeParse(manifestWithout("all"));
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.audience).toBe("all");
+  });
+
+  it("REQ-CMP-004a: rejects an audience outside the two declared values", () => {
+    for (const bogus of ["player", "trusted", "GM", "", null, 4]) {
+      const result = PackManifestSchema.safeParse(manifestWithout(bogus));
+      expect(result.success, `audience ${JSON.stringify(bogus)} must not parse`).toBe(false);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // PackIndexEntrySchema
 // ---------------------------------------------------------------------------
 

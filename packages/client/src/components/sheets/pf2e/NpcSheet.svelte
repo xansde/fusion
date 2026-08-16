@@ -12,8 +12,13 @@
    * Spec: 17-sistema-pf2e.md §DEC-PF2-09.
    */
 
-  import { NpcSheetVM } from "$lib/sheets/pf2e/npcSheetVM.js";
-  import type { DocUpdatePayload, RollCheckPayload } from "$lib/sheets/pf2e/npcSheetVM.js";
+  import { NpcSheetVM, SCAFFOLDING_CONDITION_CATALOG } from "$lib/sheets/pf2e/npcSheetVM.js";
+  import type {
+    DocUpdatePayload,
+    DocCreateEmbeddedPayload,
+    DocDeleteEmbeddedPayload,
+    RollCheckPayload,
+  } from "$lib/sheets/pf2e/npcSheetVM.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import { t } from "$lib/i18n/i18n.js";
   import ActorPortrait from "../../common/ActorPortrait.svelte";
@@ -28,7 +33,9 @@
     ownership: number;
     isGm: boolean;
     worldId?: string;
-    sendOpFn?: (op: RollCheckPayload | DocUpdatePayload) => void;
+    sendOpFn?: (
+      op: RollCheckPayload | DocUpdatePayload | DocCreateEmbeddedPayload | DocDeleteEmbeddedPayload,
+    ) => void;
   }
 
   let {
@@ -108,6 +115,21 @@
   function toggleCondition(slug: string): void {
     const op = vm.toggleCondition(slug);
     if (op) sendOpFn(op);
+  }
+
+  // SCAFFOLDING (T034): conditions not already active, for the "+ Condition"
+  // add picker below (see SCAFFOLDING_CONDITION_CATALOG docstring).
+  const availableConditions = $derived(
+    SCAFFOLDING_CONDITION_CATALOG.filter(
+      (c) => !vm.conditions.some((active) => active.slug === c.slug),
+    ),
+  );
+
+  function handleAddCondition(e: Event): void {
+    const select = e.currentTarget as HTMLSelectElement;
+    const slug = select.value;
+    select.value = "";
+    if (slug) toggleCondition(slug);
   }
 
   function handleHpInput(e: Event): void {
@@ -221,7 +243,7 @@
   {/if}
 
   <!-- ---- Conditions ---- -->
-  {#if vm.conditions.length > 0}
+  {#if vm.conditions.length > 0 || vm.editable}
     <div class="conditions-bar" role="list" aria-label="Active Conditions">
       {#each vm.conditions as cond (cond.itemId)}
         <button
@@ -233,6 +255,23 @@
           <span aria-hidden="true"> ✕</span>
         </button>
       {/each}
+      {#if vm.editable && availableConditions.length > 0}
+        <!--
+          SCAFFOLDING (T034): minimal add-condition control — makes
+          vm.toggleCondition's "add" branch reachable from the UI. See
+          SCAFFOLDING_CONDITION_CATALOG in characterSheetVM.ts.
+        -->
+        <select
+          class="condition-add-select"
+          aria-label="Add condition"
+          onchange={handleAddCondition}
+        >
+          <option value="">+ Condition…</option>
+          {#each availableConditions as c (c.slug)}
+            <option value={c.slug}>{c.label}</option>
+          {/each}
+        </select>
+      {/if}
     </div>
   {/if}
 
@@ -541,6 +580,17 @@
   .condition-chip:focus-visible {
     background: rgba(255, 120, 60, 0.35);
     outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  }
+
+  /* ---- Condition add picker (SCAFFOLDING, T034) ---- */
+  .condition-add-select {
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 10px;
+    background: var(--fusion-color-surface, #1a1a2e);
+    color: var(--fusion-color-text-secondary, #b0b0cc);
+    border: 1px dashed var(--fusion-color-border, #3a3a5c);
+    cursor: pointer;
   }
 
   /* ---- Sections (Strikes / Actions) ---- */

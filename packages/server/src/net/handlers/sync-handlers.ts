@@ -132,6 +132,15 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  * buffer itself).  We must never mutate it in place — when redaction removes a
  * token we emit a fresh cloned envelope and leave the buffered original intact.
  *
+ * Ownership is deliberately NOT filtered here, because the live broadcast does
+ * not filter it either (`broadcastToWorld` redacts a Scene per socket but
+ * delivers it to everyone). Filtering only the replay would make what a player
+ * sees depend on whether they were connected at the time. The snapshot DOES
+ * filter by ownership, so the two paths disagree — a real contradiction, with
+ * the table-facing consequences documented as a task in
+ * `docs/design/banco-de-dados/tasks.md`. Picking a side is a product decision,
+ * not something to settle inside an unrelated fix.
+ *
  * Returns a new array; each element is either the original op (nothing to
  * redact) or a redacted clone.
  */
@@ -512,6 +521,68 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
 }
 
 // ---------------------------------------------------------------------------
+// T032 — doc:update broadcast for scene version bumps
+// ---------------------------------------------------------------------------
+
+/**
+ * Broadcast a `doc:update` for one or more Scene documents whose `active`
+ * mirror was just written by `buildActiveSceneHandler`.
+ *
+ * Delivery matches doc-handlers.ts's `broadcastToWorld` exactly — the same
+ * per-socket walk, the same `stripHiddenTokens` + `redactSecretDoors`, and
+ * the same absence of an ownership-level check. That absence is deliberate
+ * here, and it is worth being explicit about why, because the codebase
+ * contradicts itself on this point: `buildSnapshot` (above) DOES drop a Scene
+ * a player may not see, while every live Scene broadcast delivers it redacted
+ * to everyone. Four of the five scenes in the real world on disk carry
+ * `ownership.default = NONE`, so the two rules disagree about the map the
+ * table is actually looking at.
+ *
+ * Making this one event stricter than every other Scene broadcast would not
+ * close that gap — it would only make what a player sees depend on which
+ * event delivered it. Which side is right is a product decision, tracked as a
+ * task in `docs/design/banco-de-dados/tasks.md`.
+ */
+function broadcastSceneVersionUpdates(
+  deps: SyncHandlerDeps,
+  scenes: Record<string, unknown>[],
+): void {
+  if (scenes.length === 0) return;
+
+  const seq = deps.seqStore.next();
+  const fullEnvelope: Envelope = {
+    type: "doc:update",
+    seq,
+    ts: Date.now(),
+    payload: { documentType: "Scene", documents: scenes },
+  };
+  // REQ-NET-062: push the GM-visible (full) envelope BEFORE emitting, same
+  // ordering as every other doc:update broadcast site — a resync:delta
+  // client must see this version bump even if it reconnects mid-emit.
+  deps.opBuffer.push(fullEnvelope);
+
+  for (const [, socket] of deps.ns.sockets) {
+    const data = socket.data as { role?: unknown } | null | undefined;
+    const role = typeof data?.role === "number" ? data.role : 0;
+
+    if (isPrivileged(role)) {
+      socket.emit("op", fullEnvelope);
+      continue;
+    }
+
+    const redacted = scenes.map((scene) => {
+      let r = stripHiddenTokens(scene);
+      r = redactSecretDoors(r);
+      return r;
+    });
+    socket.emit("op", {
+      ...fullEnvelope,
+      payload: { documentType: "Scene", documents: redacted },
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // world:activeScene handler factory (GM only)
 // ---------------------------------------------------------------------------
 
@@ -540,6 +611,7 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     // target, instead of trusting the mirror to say who is active today, also
     // repairs a world whose mirrors drifted apart in the past.
     const allScenes = deps.store.getAll("scenes");
+    const updatedScenes: Record<string, unknown>[] = [];
 
     for (const scene of allScenes) {
       const id = scene["_id"] as string;
@@ -547,7 +619,13 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
       const mirrorSaysActive = scene["active"] === true;
 
       if (shouldBeActive !== mirrorSaysActive) {
-        deps.store.update("scenes", id, { active: shouldBeActive }, { userId: ctx.userId });
+        const updated = deps.store.update(
+          "scenes",
+          id,
+          { active: shouldBeActive },
+          { userId: ctx.userId },
+        );
+        if (updated) updatedScenes.push(updated);
       }
     }
 
@@ -591,6 +669,18 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     };
     deps.opBuffer.push(broadcastEnvelope);
     deps.ns.emit("op", broadcastEnvelope);
+
+    // T032: the store.update() calls above bumped `_stats.version` on every
+    // affected scene without ever emitting a doc:update — a connected
+    // client's DocumentMirror would be stuck on the stale version forever
+    // (no doc:update ever arrives to trigger a resync). Broadcast the
+    // version bump too, filtered per recipient by the SAME ownership rule
+    // buildSnapshot uses for Scenes, since a scene may carry
+    // ownership.default = NONE (unrevealed map — the class of leak T025
+    // exists to close): a non-privileged client only receives the scenes it
+    // is entitled to see, hidden-token/secret-door redacted exactly like
+    // buildSnapshot redacts them for the join snapshot.
+    broadcastSceneVersionUpdates(deps, updatedScenes);
 
     // requestId injection is owned by the dispatcher (socket-manager.ts).
     // This handler must not set it — doing so would be inconsistent with all

@@ -82,3 +82,77 @@ describe.skipIf(!packsBuilt)("built packs validate against Zod schemas", () => {
     expect(counts["complemento"]).toBe(10);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Pack audience — REQ-CMP-004a, REQ-CMP-010a, REQ-CPD-071
+//
+// `antagonista` is the Etmos creature (REQ-ETM-002), and a shelf of creatures
+// read by a player is the monster manual open on the table. The manifest only
+// DECLARES the audience — an absent field parses as "all" (REQ-CMP-004a), so a
+// silent manifest is a manifest published to the players; the server-side read
+// API is what then keeps a `gm` pack out of listings, searches and document
+// reads (REQ-CMP-010a, REQ-CPD-071).
+//
+// Requirement ownership: spec 43 names PF2e in REQ-CPD-072 and spec 19 never got
+// the sibling amendment, so what binds Etmos today is the system-agnostic pair
+// REQ-CMP-004a + REQ-CPD-071. Registered as an open question.
+//
+// Read from what each pack CONTAINS, never from a list of slugs — same rule the
+// generator applies (systems/etmos/scripts/build-packs.mjs), so the next
+// antagonist pack is born `gm` without anyone editing a list here.
+// ---------------------------------------------------------------------------
+
+const GM_ONLY_DOCUMENT_TYPES = new Set(["antagonista"]);
+
+function loadPackJson(slug: string): Record<string, unknown> {
+  const path = join(PACKS_DIR, slug, "pack.json");
+  if (!existsSync(path)) return {};
+  return JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+}
+
+const PACK_SLUGS = ["particulas", "origens", "habilidades", "antagonistas"];
+
+describe.skipIf(!packsBuilt)("built packs declare a pack audience", () => {
+  const gmOnlySlugs = PACK_SLUGS.filter((slug) =>
+    loadDocs(slug).some((doc) => GM_ONLY_DOCUMENT_TYPES.has(String(doc["type"]))),
+  );
+
+  it("REQ-CMP-004a: every etmos pack.json declares an audience — silence would publish it to everyone", () => {
+    const missing = PACK_SLUGS.filter((slug) => loadPackJson(slug)["audience"] === undefined);
+    expect(missing, `packs without a declared audience: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("REQ-CPD-071 / REQ-CMP-010a: every etmos pack carrying antagonists is published with audience 'gm'", () => {
+    // Non-vacuity guard: the content detector must actually be finding the
+    // antagonist pack, otherwise the loop below would pass for free.
+    expect(gmOnlySlugs, "no antagonist pack found — the content detector is broken").toContain(
+      "antagonistas",
+    );
+
+    const offenders: string[] = [];
+    for (const slug of gmOnlySlugs) {
+      const packJson = loadPackJson(slug);
+      if (packJson["documentType"] !== "Actor") {
+        offenders.push(
+          `[${slug}] carries antagonists but documentType is "${String(packJson["documentType"])}"`,
+        );
+      }
+      if (packJson["audience"] !== "gm") {
+        offenders.push(`[${slug}] audience is "${String(packJson["audience"])}", expected "gm"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("REQ-CMP-004a: every etmos pack without antagonists is published with audience 'all'", () => {
+    const offenders: string[] = [];
+    for (const slug of PACK_SLUGS) {
+      if (gmOnlySlugs.includes(slug)) continue;
+      const packJson = loadPackJson(slug);
+      if (packJson["audience"] !== "all") {
+        offenders.push(`[${slug}] audience is "${String(packJson["audience"])}", expected "all"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+});

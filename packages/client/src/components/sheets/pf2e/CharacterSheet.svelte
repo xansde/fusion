@@ -24,7 +24,7 @@
    * componentProps is simply ignored.
    */
 
-  import { CharacterSheetVM, translatedStrikeDamageFormula } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import { CharacterSheetVM, translatedStrikeDamageFormula, SCAFFOLDING_CONDITION_CATALOG } from "$lib/sheets/pf2e/characterSheetVM.js";
   import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab, SpellHealResolver } from "$lib/sheets/pf2e/characterSheetVM.js";
   import { buildSpellHealResolver } from "$lib/sheets/pf2e/spellHeal.js";
   import { skillNamePt } from "$lib/sheets/pf2e/skillNames.js";
@@ -313,6 +313,21 @@
   function toggleCondition(slug: string): void {
     const op = vm.toggleCondition(slug);
     if (op) sendOpFn(op);
+  }
+
+  // SCAFFOLDING (T034): conditions not already active, for the "+ Condition"
+  // add picker below (see SCAFFOLDING_CONDITION_CATALOG docstring).
+  const availableConditions = $derived(
+    SCAFFOLDING_CONDITION_CATALOG.filter(
+      (c) => !vm.conditions.some((active) => active.slug === c.slug),
+    ),
+  );
+
+  function handleAddCondition(e: Event): void {
+    const select = e.currentTarget as HTMLSelectElement;
+    const slug = select.value;
+    select.value = "";
+    if (slug) toggleCondition(slug);
   }
 
   // ---------------------------------------------------------------------------
@@ -715,7 +730,7 @@
   </div>
 
   <!-- ---- Active Conditions ---- -->
-  {#if vm.conditions.length > 0}
+  {#if vm.conditions.length > 0 || vm.editable}
     <div class="conditions-bar" role="list" aria-label="Active Conditions">
       {#each vm.conditions as cond (cond.itemId)}
         <button
@@ -729,6 +744,24 @@
           <span class="condition-chip__remove" aria-hidden="true">✕</span>
         </button>
       {/each}
+      {#if vm.editable && availableConditions.length > 0}
+        <!--
+          SCAFFOLDING (T034): minimal add-condition control — makes
+          vm.toggleCondition's "add" branch reachable from the UI. Not a real
+          picker (no valued-condition value input, small hand-picked slug
+          list); see SCAFFOLDING_CONDITION_CATALOG in characterSheetVM.ts.
+        -->
+        <select
+          class="condition-add-select"
+          aria-label="Add condition"
+          onchange={handleAddCondition}
+        >
+          <option value="">+ Condition…</option>
+          {#each availableConditions as c (c.slug)}
+            <option value={c.slug}>{c.label}</option>
+          {/each}
+        </select>
+      {/if}
     </div>
   {/if}
 
@@ -1659,6 +1692,17 @@
   .condition-chip__remove {
     font-size: 9px;
     opacity: 0.7;
+  }
+
+  /* ---- Condition add picker (SCAFFOLDING, T034) ---- */
+  .condition-add-select {
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 10px;
+    background: var(--fusion-color-surface, #1a1a2e);
+    color: var(--fusion-color-text-secondary, #b0b0cc);
+    border: 1px dashed var(--fusion-color-border, #3a3a5c);
+    cursor: pointer;
   }
 
   /* ---- Tab bar ---- */

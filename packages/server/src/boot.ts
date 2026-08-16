@@ -28,6 +28,7 @@ import type { TunnelManager as TunnelManagerType } from "./tunnel/tunnel-manager
 import type { RegisterUpdateRoutesOptions } from "./update/routes.js";
 import type { UpdateCheckResult as UpdateCheckResultType } from "./update/update-checker.js";
 import type { SystemModule } from "@fusion/system-api";
+import { UserRole } from "./documents/ownership.js";
 // Import for side effect only: augments FastifyRequest with `cspNonce`.
 import "./spa/routes.js";
 
@@ -681,7 +682,14 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       if (packsDir !== null) {
         compendiumService.discoverPacks(packsDir, netContext.systemId);
         logger.info(
-          { systemId: netContext.systemId, packsDir, packs: compendiumService.listPacks().length },
+          {
+            systemId: netContext.systemId,
+            packsDir,
+            // Server-side startup log: count the whole shelf, GM audience —
+            // this never reaches a client (REQ-CMP-010a is enforced per-request
+            // in the handlers, from the socket's own role).
+            packs: compendiumService.listPacks(UserRole.GAMEMASTER).length,
+          },
           "Compendium packs discovered",
         );
       } else {

@@ -258,6 +258,19 @@ describe("E2E M1-B — full resync scenario", () => {
       });
     });
 
+    // Activating a scene also emits doc:update for the scenes whose `active`
+    // flag moved (T032) — with a seq HIGHER than the ack's. This test measures
+    // "3 ops after the client went away", so the baseline has to be the last op
+    // the activation produced, not the ack's seq.
+    const activationDocUpdatePromise = new Promise<Record<string, unknown>>((resolve) => {
+      client2Socket.on("op", (env: Record<string, unknown>) => {
+        if (env["type"] === "doc:update") {
+          const p = env["payload"] as Record<string, unknown> | undefined;
+          if (p?.["documentType"] === "Scene") resolve(env);
+        }
+      });
+    });
+
     const activateAck = await sendOp(
       gmSocket,
       "world:activeScene",
@@ -276,8 +289,11 @@ describe("E2E M1-B — full resync scenario", () => {
 
     // Record client2's seq after receiving all broadcasts so far
     // client2LastSeq was from initial snapshot; advance it to account for
-    // the doc:create and world:activeScene ops
-    client2LastSeq = activateAck["seq"] as number;
+    // the doc:create, world:activeScene and the doc:update the activation
+    // emits for the scene whose `active` flag moved.
+    const activationDocUpdate = await activationDocUpdatePromise;
+    client2LastSeq = activationDocUpdate["seq"] as number;
+    expect(client2LastSeq).toBeGreaterThan(activateAck["seq"] as number);
 
     // -----------------------------------------------------------------------
     // Step 4: Disconnect client2

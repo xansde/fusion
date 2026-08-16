@@ -448,7 +448,7 @@ esconderia a T034.
 que passa a ser recusada — e com teste de que `doc:create` e o caminho `embedded` seguem
 funcionando.
 
-### T034 — `items.+` / `items.-<id>` não existem no servidor (toggle de condição quebrado)
+### T034 — `items.+` / `items.-<id>` não existem no servidor (toggle de condição quebrado) — em andamento
 
 `packages/client/src/lib/sheets/pf2e/characterSheetVM.ts:2283-2313` ·
 `packages/client/src/lib/sheets/pf2e/npcSheetVM.ts:517-540` ·
@@ -465,12 +465,44 @@ Ou seja: **o toggle de condição não funciona hoje**, nas duas fichas, para qu
 Nenhum teste cobre o caminho — foi por isso que passou. Achado de passagem no recon da
 Fase 2; não é regressão desta leva, e a guarda de T031 foi escrita para não mascará-lo.
 
-**Pronto quando:** decidido se os operadores viram contrato de verdade (implementados no
-servidor, com teste de ida e volta) ou se as duas fichas passam a usar o caminho
-`embedded`, que é o que já funciona para Item. Marcar/desmarcar condição funciona na mesa,
-com teste que prova.
+**Decisão fechada (recon de 2026-08-16): as duas fichas migram para o caminho `embedded`.**
+Não implementar os operadores no servidor — fazê-los funcionar exigiria ensinar o caminho
+genérico a mutar coleção embutida, duplicando o ownership, a validação de schema e a
+re-derivação que `handleEmbeddedCreate/Update/Delete` já fazem. Duas semânticas para mexer
+em `items[]` é a classe de bug que este repo já pagou.
 
-### T032 — Broadcast das escritas que bumpam `_stats.version`
+O que sustenta a decisão, provado por execução:
+
+- **O caminho `embedded` já funciona para exatamente este caso.**
+  `embedded-item-actor.test.ts` passa 10/10 com um usuário `Role.PLAYER` puro, OWNER da
+  própria ficha — criar, atualizar e apagar Item embutido, validado contra o schema do
+  subtipo, com re-derivação do pai. É o cenário "jogador marca condição na própria ficha",
+  já testado, hoje.
+- **`toggleCondition` é a exceção no próprio arquivo.** Poucas centenas de linhas acima,
+  `addInventoryItem`, `removeInventoryItem` e `toggleEquipItem` já usam `parent`/`embedded`
+  corretamente. A correção é copiar o vizinho.
+- **Quebrado desde que nasceu.** `git log -S "toggleCondition"` acha um único commit,
+  `25ebf33` (26/06). Nunca funcionou.
+
+Três coisas que o recon achou junto, e que mudam o tamanho da tarefa:
+
+1. **Um segundo bug, mascarado pelo primeiro:** o payload monta `system: { value: null }`, e
+   `ConditionSystemSchema` usa `z.number().int().min(1).optional()`, que aceita `undefined`
+   e **recusa `null`**. Verificado por execução: `value: null` reprova, chave omitida passa.
+   Trocar só o caminho de rede deixaria o "marcar" quebrado do mesmo jeito.
+2. **Não existe UI para MARCAR condição.** Busca por qualquer picker em `packages/client/src`
+   não acha nada: as duas fichas só têm o clique para remover um chip que já está lá. O ramo
+   de adição é inalcançável — de rede e de tela. "Desmarcar" é o que dá para consertar sem
+   UI nova.
+3. **A checagem de imunidade (IWR) nunca foi ligada.** `systems/pf2e/src/actions/conditions-manager.ts`
+   existe, é completo e é exportado — e `packages/server/src` não o importa em lugar nenhum.
+   REQ-PF2-053 e DEC-PF2-07 estão na spec e não estão no código.
+
+**Pronto quando:** desmarcar condição funciona na mesa pelo caminho `embedded`, com teste
+que exercita o op que o VM produz (não um payload montado à mão), como PLAYER dono da ficha.
+Marcar depende da UI da lacuna 2; a imunidade, da lacuna 3 — as duas são entregas próprias.
+
+### T032 — Broadcast das escritas que bumpam `_stats.version` (em andamento)
 
 `packages/server/src/etmos/reacao-handler.ts:254-277/351` (`applyEstresseCost`) ·
 `packages/server/src/net/handlers/sync-handlers.ts:517/526-535` (cena ativa)
@@ -484,7 +516,56 @@ jogador afetado leva `STALE_WRITE` permanente na própria ficha).
 **Pronto quando:** as duas escritas emitem `doc:update` do documento afetado, com teste
 que prova que o mirror do cliente reflete a versão nova depois de cada uma.
 
-### T033 — Log diário passa a rotacionar por horário local
+**Fechamento parcial, declarado.** Estes dois pontos foram fechados; um terceiro, achado
+na revisão, **não**: `store.update("combats", ...)` em `reacao-handler.ts:174` e `:366` e
+em `combat/combat-handlers.ts:276` (`persistCombat`, o funil de toda mutação de combate)
+incrementa a versão do Combat e emite só `combat:updated`, cujo payload é
+`{combatId, diff, seq}` — **sem `_stats`**. Do lado do cliente,
+`DocumentMirror._handleCombatUpdated` faz `{...existing, ...diff}`, então o
+`_stats.version` local do Combat nunca avança. Combat está em `TYPE_TO_TABLE`, ou seja, é
+gravável por `doc:update` com `expectedVersion` — o mesmo alvo da T013. Ver **T036**.
+
+### T035 — Uma cena oculta é visível ou não? O código responde as duas coisas
+
+`packages/server/src/net/handlers/sync-handlers.ts` (`buildSnapshot`, `filterOpsForRole`) ·
+`packages/server/src/net/handlers/doc-handlers.ts` (`broadcastToWorld`)
+
+O snapshot de entrada **filtra** cenas por `resolveOwnership(...) >= LIMITED`. Todo
+broadcast ao vivo de Scene **não filtra**: redige token oculto e porta secreta, e entrega o
+documento inteiro a qualquer socket. O replay do buffer de resync segue o broadcast.
+
+Consequência prática: o que um jogador enxerga de uma cena depende de **quando** ele
+conectou, não do que ele pode ver. Entrou agora, com a cena em `ownership.default = NONE`:
+não recebe nada. Ficou conectado enquanto o GM mexeu num token dela: recebe o documento
+inteiro. No mundo real em disco, **quatro das cinco cenas do `teste_xande` estão em
+`default: 0`**, e a única em `default: 2` é a demo — então isso não é hipótese de borda, é
+o estado da mesa.
+
+Não dá para escolher um lado dentro de um conserto de outra coisa: apertar quebra a mesa
+(jogador para de ver o mapa que hoje vê), afrouxar oficializa o vazamento. É decisão de
+produto, e é irmã da T025 — quem decidir aqui decide metade do desenho de lá.
+
+**Pronto quando:** existe UMA regra de visibilidade de cena, aplicada igualmente no
+snapshot, no broadcast ao vivo e no replay do buffer, com teste que prova a paridade entre
+os três caminhos. Se a resposta for "jogador vê a cena", o `buildSnapshot` afrouxa; se for
+"não vê", o broadcast e o replay apertam **e** o fluxo de revelar cena passa a existir.
+
+### T036 — Escritas de Combat também bumpam versão sem `doc:update`
+
+`packages/server/src/combat/combat-handlers.ts:276` (`persistCombat`) ·
+`packages/server/src/etmos/reacao-handler.ts:174` e `:366`
+
+Mesmo defeito da T032, tabela diferente, achado na revisão dela. `combat:updated` carrega
+`{combatId, diff, seq}` e nunca `_stats`, e o cliente faz merge raso — o `_stats.version`
+local do Combat fica parado em 1 para sempre. Não foi consertado junto porque mexer no
+formato de `combat:updated` (ou somar um `doc:update` a cada mutação de combate) é mudança
+de protocolo com efeito em toda a UI de combate, e merecia caber num PR próprio.
+
+**Pronto quando:** o mirror do cliente reflete a versão nova do Combat depois de qualquer
+mutação, com teste; ou a decisão de que Combat não participa do controle otimista fica
+escrita, e a T013 exclui a tabela explicitamente.
+
+### T033 — Log diário passa a rotacionar por horário local (em andamento)
 
 `packages/server/src/logger.ts:25-28` (`dailyLogFilePath`), `:42-46`
 (`tryCreateFileDestination`), `:87` (chamada única em `createLogger`)
@@ -502,7 +583,7 @@ log por dia local, sem perder linhas nem duplicar.
 
 ## Fase 4 — Retenção e manutenção (antes da 3: barata e de efeito imediato)
 
-### T017 — GC no boot (D5)
+### T017 — GC no boot (D5) — em andamento
 
 `packages/server/src/auth/session-store.ts` (não existe um `DELETE` hoje) · roll-service · config
 
@@ -512,15 +593,58 @@ limites configuráveis. **Chat não é tocado.**
 **Pronto quando:** teste com dados sintéticos velhos prova o que sai e o que fica; log diz
 quantas linhas foram removidas.
 
-### T018 [P] — Manutenção do arquivo
+### T018 [P] — Manutenção do arquivo (em andamento — um dos três itens virou decisão sua)
 
 `PRAGMA optimize` no fechamento, `ANALYZE` periódico, vacuum incremental depois de GC grande.
 Nenhum dos três existe no código hoje.
 
-### T019 — Arquivamento manual de chat
+**Dos três itens do enunciado, só um sobreviveu à verificação.**
+
+**1. `PRAGMA optimize` no fechamento — feito.** Roda no `close()` de cada sessão de mundo e
+depois de um GC que removeu linhas. Vem com `analysis_limit=400`: o `optimize` é auto-limitado
+em _quais_ tabelas analisa, não em _quanto_ de cada uma, e o default `analysis_limit=0` significa
+"sem limite". Medido num `chat_messages` de 1 milhão de linhas com cache frio: **2,8 s** sem o
+limite contra **~120 ms** com ele. Essa diferença cairia inteira no momento em que você fecha o
+app — e `chat_messages` é justamente a tabela que D5 garante que cresce para sempre.
+
+**2. `ANALYZE` periódico — recusado, com evidência.** É redundante com o item 1: desde o SQLite
+3.46 a própria documentação chama o `PRAGMA optimize` de "a forma recomendada de rodar ANALYZE".
+Manter os dois seria a mesma atualização de estatística rodando duas vezes, com uma agenda extra
+para manter em sincronia. A conexão do Fusion é exatamente o caso "conexão de vida curta" que a
+documentação diz ser coberto pelo item 1 sozinho.
+
+**3. Vacuum incremental — bloqueado, e a decisão é sua.** `PRAGMA incremental_vacuum` só faz
+alguma coisa com `auto_vacuum = INCREMENTAL`. Verificado por execução: tanto uma cópia do
+`teste_xande` real quanto um banco recém-criado pelas migrations reportam `auto_vacuum = 0`
+(NONE, o default do SQLite) — nenhuma das oito migrations o define. Chamar o pragma hoje é
+no-op documentado.
+
+O problema que ele resolveria é real e foi medido: num banco de 126 MB, apagar 90% das linhas
+deixou o arquivo em 125,9 MB, com 28.336 páginas na freelist. Depois de um GC grande, o espaço
+não volta.
+
+Ligar não é adição pequena: o SQLite só aceita mudar `auto_vacuum` num banco **sem tabelas**, então
+habilitar nos mundos existentes exige um `VACUUM` completo — reescrita bloqueante do arquivo
+inteiro —, e habilitar só nos mundos novos deixaria todo mundo existente sem recuperar espaço
+para sempre. **As duas opções:** (a) pagar uma reescrita completa uma vez, em cada mundo que já
+existe; (b) aceitar o crescimento do arquivo como um dos custos de "chat nunca é apagado
+sozinho" (D5). Nenhuma das duas é escolha de implementação.
+
+### T019 — Arquivamento manual de chat — em andamento
 
 Comando de CLI que exporta um intervalo e só então remove, sob confirmação explícita.
 Chat só sai por ordem sua (D5).
+
+Entregue como `fusion chat archive`. A confirmação **não** é um `--yes`: é
+`--confirm-delete-count N`, e N tem que bater com a contagem do intervalo naquela execução —
+o número vem da prévia, que é o comportamento padrão do comando. Isso não se digita por acidente.
+
+A ordem é exportar, fechar, reler do disco, conferir campo a campo, e só então apagar. O apagamento
+casa `id`, `updated_at` **e** `data`: uma mensagem editada depois do instantâneo que alimentou a
+exportação simplesmente não é removida, em vez de ser arquivada numa versão e apagada em outra. Se a
+exportação falhar em qualquer ponto — inclusive depois do arquivo aberto —, o parcial é removido e
+nada sai do banco. E o comando recusa rodar num mundo com `world.lock` vivo, com a mesma checagem que
+o `world delete` já usa.
 
 ---
 
@@ -586,6 +710,33 @@ para asset **órfão** (sem documento algum referenciando — 25% dos arquivos d
 real disponível), e a janela de debounce entre escolha otimista no cliente e persistência
 no servidor.
 
+**Segunda rodada de desenho: também DERRUBADA (2026-08-16).** A proposta era "um asset herda
+a permissão mais restritiva entre os documentos que o referenciam" — que sobrevive ao ataque
+que matou a primeira, mas caiu em três pontos novos, todos reproduzidos por execução:
+
+1. **O mínimo não roda sobre o arquivo, roda sobre uma chave de string que o atacante
+   escolhe.** O jogador grava o caminho secreto no próprio Actor com uma barra a mais
+   (`/assets//mapa.png`); a canonicalização produz uma chave diferente da que a cena oculta
+   gerou, então o balde do mínimo passa a conter só o documento dele — e o `path.normalize`
+   da rota serve exatamente os mesmos bytes. Na máquina real (Windows) trocar a caixa de uma
+   letra tem o mesmo efeito. É o mesmo defeito da primeira rodada com outra roupa: o gate
+   volta a ler um dado que o atacante escreve.
+2. **O fail-closed ficou invertido.** As três saídas foram ordenadas ao contrário —
+   referenciado por documento oculto = negado; sem `ownership` resolvível = ASSISTANT_GM;
+   **órfão = TRUSTED**. Como qualquer grafia fora da canônica cai fora do índice e vira
+   "órfão", toda grafia torta é uma escada para baixo até o ramo mais permissivo. Menos
+   informação tem que dar menos acesso, não mais.
+3. **Amarrar o token ao caminho quebra o `FilePicker`.** Ele minta **um** token ao abrir e
+   reusa em todas as miniaturas do grid; com HMAC por caminho, o grid inteiro vira 401 — e é
+   a tela em que o GM escolhe mapa e retrato.
+
+Restrições que a terceira rodada herda, além das anteriores: `settings` tem escrita crua por
+`INSERT OR REPLACE` (fora do `DocumentStore`, então um hook no store não cobre); `ownership` é
+campo **gravável** do próprio documento e o store não o valida, então o jogador pode publicar
+um asset órfão para a mesa inteira setando `ownership.default = 2` na própria ficha; e o custo
+a medir é o número de emissões de token **por tela** (hoje `resolveAssetUrl` minta uma por
+imagem renderizada), não o custo de resolver ownership uma vez.
+
 PR próprio, fora das migrations. Pode subir de prioridade para logo depois da Fase 0 se o
 risco na mesa incomodar.
 
@@ -627,7 +778,8 @@ risco na mesa incomodar.
 | 5   | Fase 3 dados (T020–T024)      | PR 2                                   |
 | 6   | T025 (desenho novo)           | independente — pode vir logo após PR 1 |
 | 7   | Fase 5 (T026–T029)            | PR 2                                   |
-| —   | T032, T034                    | independentes, sem migration           |
+| 8   | T032, T033 (defeitos vivos)   | PR 3                                   |
+| —   | T034, T035, T036              | independentes, sem migration           |
 
 A Fase 2 rachou em três PRs porque o recon mostrou que T013 e T016 não estavam prontas
 para implementação: T013 depende de dois consertos que ela não previa (T030, T032) e T016

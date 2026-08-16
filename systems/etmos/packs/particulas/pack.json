@@ -15,6 +15,7 @@
     "attribution": "Etmos RPG © Editora Balde Galáctico (autor: Rafa Reis). Uso privado do grupo de jogo.",
     "reservedNotice": "Etmos RPG, Editora Balde Galáctico e seus respectivos logos são marcas de seus titulares. Não distribuir sem autorização — ver specs/26-licencas-e-legal.md."
   },
+  "audience": "all",
   "source": {
     "repo": null,
     "version": null,

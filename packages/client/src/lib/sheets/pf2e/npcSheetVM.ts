@@ -12,10 +12,10 @@
  */
 
 import type { NpcDerived, ModifierBreakdown } from "./derivedTypes.js";
-import { fmtMod } from "./characterSheetVM.js";
+import { fmtMod, SCAFFOLDING_CONDITION_CATALOG } from "./characterSheetVM.js";
 
 export type { NpcDerived };
-export { fmtMod };
+export { fmtMod, SCAFFOLDING_CONDITION_CATALOG };
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,6 +58,31 @@ export interface DocUpdatePayload {
   documentType: string;
   id: string;
   diff: Record<string, unknown>;
+}
+
+/**
+ * doc:create op targeting an embedded document (e.g. adding a condition Item
+ * to an Actor). Mirrors characterSheetVM.ts's DocCreateEmbeddedPayload —
+ * duplicated locally rather than imported to keep this VM self-contained
+ * (matches the existing DocUpdatePayload duplication above).
+ */
+export interface DocCreateEmbeddedPayload {
+  type: "doc:create";
+  documentType: string;
+  data: Record<string, unknown>;
+  parent: { type: string; id: string };
+}
+
+/**
+ * doc:delete op targeting a single embedded document (e.g. removing a
+ * condition Item from an Actor). Mirrors characterSheetVM.ts's
+ * DocDeleteEmbeddedPayload.
+ */
+export interface DocDeleteEmbeddedPayload {
+  type: "doc:delete";
+  documentType: string;
+  id: string;
+  parent: { type: string; id: string };
 }
 
 export interface RollCheckPayload {
@@ -517,28 +542,37 @@ export class NpcSheetVM {
     };
   }
 
-  toggleCondition(conditionSlug: string): DocUpdatePayload | null {
+  /**
+   * Toggle a condition on the actor: removes the embedded condition Item if
+   * present, creates one if absent. See CharacterSheetVM.toggleCondition
+   * (characterSheetVM.ts) for the full rationale — this VM had the identical
+   * bug (broken dot-path diff) and the identical fix (embedded item CRUD).
+   */
+  toggleCondition(
+    conditionSlug: string,
+  ): DocCreateEmbeddedPayload | DocDeleteEmbeddedPayload | null {
     if (!this.editable) return null;
+
     const existing = this.conditions.find((c) => c.slug === conditionSlug);
     if (existing) {
       return {
-        type: "doc:update",
-        documentType: "Actor",
-        id: this._actorId,
-        diff: { [`items.-${existing.itemId}`]: true },
+        type: "doc:delete",
+        documentType: "Item",
+        id: existing.itemId,
+        parent: { type: "Actor", id: this._actorId },
       };
     }
+
+    const label = SCAFFOLDING_CONDITION_CATALOG.find((c) => c.slug === conditionSlug)?.label;
     return {
-      type: "doc:update",
-      documentType: "Actor",
-      id: this._actorId,
-      diff: {
-        "items.+": {
-          type: "condition",
-          name: conditionSlug,
-          system: { slug: conditionSlug, value: null },
-        },
+      type: "doc:create",
+      documentType: "Item",
+      data: {
+        type: "condition",
+        name: label ?? conditionSlug,
+        system: { slug: conditionSlug },
       },
+      parent: { type: "Actor", id: this._actorId },
     };
   }
 

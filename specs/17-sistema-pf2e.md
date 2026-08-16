@@ -598,6 +598,37 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
 - **REQ-PF2-131** [V2] Runas de **propriedade** com efeitos automatizados
   (flaming, frost, etc.) e seus limites por potência; transferência de runas.
 
+### Plateia dos packs publicados
+
+> **Emenda de 2026-08-16**, obrigada pela `43` §12 (DEC-CPD-04, REQ-CPD-072). É
+> mudança de **publicação**, não de conteúdo: nenhum documento dos packs muda, só o
+> manifesto que os acompanha. A plateia declarada aqui é _declaração_; quem a
+> **impõe** é o servidor (`ver 16-compendiums-e-importacao.md`, REQ-CMP-010a).
+
+- **REQ-PF2-140** [MVP] Todo pack publicado por `systems/pf2e` DEVE declarar
+  `audience` no seu manifesto, ao lado de `license` (REQ-CMP-004a). A ausência do
+  campo DEVE ser lida como `"all"` e NÃO DEVE impedir o carregamento de um pack já
+  publicado.
+- **REQ-PF2-141** [MVP] Os packs de **criaturas** (bestiário) DEVEM ser publicados
+  com `audience: "gm"` (REQ-CPD-072) — hoje `pf2e.bestiary-core`, e qualquer pack de
+  criaturas que o sistema venha a publicar depois.
+- **REQ-PF2-142** [MVP] Os packs de **perigos** (Actor subtype `hazard`) DEVEM ser
+  publicados com `audience: "gm"`. O sistema ainda não publica nenhum: o requisito é
+  prospectivo e DEVE ser satisfeito no momento em que o primeiro pack de perigos for
+  gerado; a plateia NÃO DEVE ser decidida caso a caso na geração.
+- **REQ-PF2-143** [MVP] Os demais packs do sistema — equipamento, armas, magias,
+  feats, ancestralidades, heranças, antecedentes, classes, características de classe,
+  ações e condições — DEVEM ser publicados com `audience: "all"`: são as regras que o
+  jogador precisa consultar para jogar.
+- **REQ-PF2-144** [MVP] O sistema NÃO DEVE compensar a plateia mexendo no conteúdo:
+  é proibido omitir, truncar ou redigir documento de um pack `gm` na geração — o
+  bestiário publicado permanece íntegro para quem satisfaz `isRolePrivileged`
+  (REQ-CPD-071, REQ-CPD-074).
+- **REQ-PF2-145** [MVP] Alterar a plateia de um pack NÃO DEVE exigir regerar seus
+  documentos: é edição de manifesto. A reabertura de um pack `gm` para os jogadores
+  por configuração de mundo (REQ-CPD-075 [V2], `ver 37-configuracoes.md`) NÃO DEVE
+  alterar o manifesto publicado.
+
 ---
 
 ## Requisitos não-funcionais
@@ -873,6 +904,7 @@ interface EffectSystem {
 | `18-sistema-sf2e.md`             | Consome o mesmo `systems/engine-2e` que esta spec define.                                                                 |
 | `09-chat-e-mensagens.md`         | Renderização dos chat cards de check/strike/damage e dos inline enrichers.                                                |
 | `21-seguranca.md`                | Determinação autoritativa no servidor (anti-cheat).                                                                       |
+| `43-aba-compendio.md`            | Consome os packs deste sistema no painel de compêndio e obriga a plateia dos packs de criaturas e perigos (REQ-CPD-072).  |
 
 ---
 
@@ -916,6 +948,10 @@ interface EffectSystem {
 11. **Determinismo e localização no servidor** — `prepareDerived` produz o mesmo
     resultado no cliente e no servidor; toda determinação canônica (degree, IWR,
     slot) ocorre no servidor (REQ-PF2-200, 202, 203).
+12. **Plateia dos packs** — O manifesto de todo pack publicado declara `audience`; o
+    pack de bestiário declara `"gm"` e os packs de regras jogáveis declaram `"all"`,
+    sem que nenhum documento tenha sido alterado para isso (REQ-PF2-140..145,
+    REQ-CPD-072).
 
 ---
 
