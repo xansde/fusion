@@ -40,7 +40,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
-import { PROTOCOL_VERSION, KnowledgeState } from "@fusion/shared";
+import { PROTOCOL_VERSION, KnowledgeState, cycleAttitude } from "@fusion/shared";
 import { listeningPort } from "./helpers/ports.js";
 
 // ---------------------------------------------------------------------------
@@ -581,14 +581,26 @@ describe("spec 42 §5.5/§5.10 — attitude is one per actor, and privileged (G0
   // REQ-NPC-038 / REQ-NPC-039 — the cycle, and one value for the whole party
   // -------------------------------------------------------------------------
 
-  it("REQ-NPC-038: three successive writes walk ally → neutral → enemy (CA-NPC-009)", async () => {
+  it("REQ-NPC-038: three activations driven by cycleAttitude walk ally → neutral → enemy and a fourth returns to ally (CA-NPC-009)", async () => {
+    // Starts at "enemy" (the beforeEach fixture) and, unlike a hand-written
+    // list of the three literals, each step is DERIVED from the real cycle
+    // function the client calls on activation — this is what would break if
+    // ATTITUDE_CYCLE's order ever changed, which a hard-coded sequence would not.
     const seen: unknown[] = [];
-    for (const value of ["ally", "neutral", "enemy"]) {
-      const ack = await setAttitude(gmSocket, smithId, value);
+    for (let i = 0; i < 3; i += 1) {
+      const current = attitudeOf(readFromStore(smithId));
+      const next = cycleAttitude(current);
+      const ack = await setAttitude(gmSocket, smithId, next);
       expect(ack["ok"]).toBe(true);
       seen.push(attitudeOf(readFromStore(smithId)));
     }
     expect(seen).toEqual(["ally", "neutral", "enemy"]);
+
+    // A fourth activation closes the loop back to the start (CA-NPC-009).
+    const fourth = cycleAttitude(attitudeOf(readFromStore(smithId)));
+    const ack = await setAttitude(gmSocket, smithId, fourth);
+    expect(ack["ok"]).toBe(true);
+    expect(attitudeOf(readFromStore(smithId))).toBe("ally");
   });
 
   it("REQ-NPC-039: the value is one for the party — two players are owed the same nothing", async () => {
