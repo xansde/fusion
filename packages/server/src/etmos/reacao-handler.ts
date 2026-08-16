@@ -242,6 +242,12 @@ function isOwnerOfActor(store: DocumentStore, actorId: string, userId: string): 
  * `system.estresse.atual` + recomputed `system.fadiga.estado` — so the two
  * Estresse-application call sites never diverge on shape.
  *
+ * Returns the updated document (or `null` if `store.update` returned null)
+ * so the caller can broadcast it — see T032/broadcastActorUpdate below: this
+ * write bumps `_stats.version` and MUST be paired with a `doc:update`
+ * broadcast or a connected client's DocumentMirror is stuck on the stale
+ * version forever.
+ *
  * Cross-reference (M5-E audit FIX 6): conjuracao-handlers.ts's
  * buildConjuracaoResolverHandler has the exact inline equivalent of this
  * function (REQ-ETM-024's Estresse-on-resolver cost) — see the
@@ -256,14 +262,14 @@ function applyEstresseCost(
   actorId: string,
   delta: number,
   userId: string,
-): void {
+): Record<string, unknown> | null {
   const actor = store.get("actors", actorId);
   const sys = (actor["system"] as Record<string, unknown> | undefined) ?? {};
   const estresse = (sys["estresse"] as Record<string, unknown> | undefined) ?? {};
   const atual = typeof estresse["atual"] === "number" ? estresse["atual"] : 0;
   const limite = typeof estresse["limite"] === "number" ? estresse["limite"] : 0;
   const novoAtual = atual + delta;
-  store.update(
+  return store.update(
     "actors",
     actorId,
     {
@@ -274,6 +280,34 @@ function applyEstresseCost(
     },
     { userId },
   );
+}
+
+/**
+ * Broadcast an updated Actor document via the standard doc:update envelope
+ * (T032) — same shape and namespace-wide emission conjuracao-handlers.ts's
+ * broadcastActorUpdate uses for the identical Estresse-cost write, so every
+ * connected client's DocumentMirror reflects the Estresse/Fadiga change (and
+ * the bumped `_stats.version`) immediately. Not filtered by ownership: the
+ * regular doc:update broadcast path (doc-handlers.ts's broadcastToWorld)
+ * does not filter Actor documents by ownership either — this follows that
+ * SAME established precedent rather than inventing a stricter one here.
+ */
+function broadcastActorUpdate(deps: ReacaoHandlerDeps, actor: Record<string, unknown>): void {
+  const seq = deps.seqStore.next();
+  const envelope: Envelope = {
+    type: "doc:update",
+    seq,
+    ts: Date.now(),
+    payload: {
+      documentType: "Actor",
+      documents: [actor],
+    },
+  };
+  // REQ-NET-062: push BEFORE emitting — same ordering as every other
+  // doc:update broadcast site (doc-handlers.ts, combat-handlers.ts,
+  // conjuracao-handlers.ts's broadcastActorUpdate).
+  deps.opBuffer.push(envelope);
+  deps.ns.emit("op", envelope);
 }
 
 export function buildReacaoUsarHandler(deps: ReacaoHandlerDeps): HandlerFn {
@@ -348,7 +382,10 @@ export function buildReacaoUsarHandler(deps: ReacaoHandlerDeps): HandlerFn {
     // caminho de aplicação de custo do M5-C (conjuracao-handlers.ts resolver).
     if (result.segundaReacaoComCusto && combatant.actorId !== null) {
       try {
-        applyEstresseCost(deps.store, combatant.actorId, 3, ctx.userId);
+        const updatedActor = applyEstresseCost(deps.store, combatant.actorId, 3, ctx.userId);
+        if (updatedActor) {
+          broadcastActorUpdate(deps, updatedActor);
+        }
       } catch {
         // Actor may have been deleted concurrently — the Reação spend itself
         // still succeeded; the cost is best-effort and non-fatal here.

@@ -143,6 +143,13 @@ export async function runServe(args: ServeArgs): Promise<void> {
   const worldManager = new WorldManager({
     dataDir: config.dataDir,
     validSystemIds: registry,
+    // Retention has to travel from the loaded config to the only place that
+    // opens a world, or the operator who sets FUSION_GC_SESSION_RETENTION_DAYS=0
+    // to turn collection OFF is ignored and loses the rows anyway (T017).
+    gcOptions: {
+      sessionRetentionDays: config.gcSessionRetentionDays,
+      auditRetentionMonths: config.gcAuditRetentionMonths,
+    },
     ...(args.forceSchema === true ? { forceSchema: true } : {}),
   });
 

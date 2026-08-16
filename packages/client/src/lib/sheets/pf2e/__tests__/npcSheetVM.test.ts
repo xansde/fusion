@@ -271,18 +271,33 @@ describe("NpcSheetVM — conditions", () => {
     expect(frightened.itemId).toBe("cond-frightened");
   });
 
-  it("toggleCondition removes existing condition", () => {
+  // T034: same migration as characterSheetVM — the dot-path operators these
+  // used to assert were never implemented server-side.
+  it("toggleCondition removes existing condition via embedded delete", () => {
     const vm = makeVM();
     const op = vm.toggleCondition("frightened");
     expect(op).not.toBeNull();
-    expect(op!.diff["items.-cond-frightened"]).toBe(true);
+    expect(op).toMatchObject({
+      type: "doc:delete",
+      documentType: "Item",
+      id: "cond-frightened",
+      parent: { type: "Actor" },
+    });
   });
 
-  it("toggleCondition adds new condition", () => {
+  it("toggleCondition adds new condition via embedded create", () => {
     const vm = makeVM();
     const op = vm.toggleCondition("prone");
     expect(op).not.toBeNull();
-    expect(op!.diff["items.+"]).toMatchObject({ type: "condition", name: "prone" });
+    expect(op).toMatchObject({
+      type: "doc:create",
+      documentType: "Item",
+      data: { type: "condition", system: { slug: "prone" } },
+      parent: { type: "Actor" },
+    });
+    if (op?.type !== "doc:create") throw new Error("expected a doc:create op");
+    const system = op.data["system"] as Record<string, unknown>;
+    expect("value" in system).toBe(false);
   });
 
   it("toggleCondition returns null when not editable", () => {

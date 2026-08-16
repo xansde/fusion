@@ -3,7 +3,8 @@
  *
  * Opens a better-sqlite3 database with all required PRAGMAs (REQ-PER-004, DEC-PER-04),
  * runs PRAGMA integrity_check on open (REQ-PER-005, REQ-PER-038),
- * and performs WAL checkpoint on close (DEC-PER-06 — question 10 answer).
+ * refreshes query-planner statistics and performs a WAL checkpoint on close
+ * (DEC-PER-06 — question 10 answer; stats refresh is T018, see maintenance.ts).
  *
  * API is intentionally synchronous — better-sqlite3 is sync by design and
  * the server uses a single-writer model (REQ-PER-017).
@@ -13,6 +14,7 @@ import type BetterSqlite3Ctor from "better-sqlite3";
 import type { Database as Db } from "better-sqlite3";
 import { existsSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
+import { runOptimize } from "./maintenance.js";
 
 // ---------------------------------------------------------------------------
 // Native addon load (M6/B3 — SEA compatibility, see runtime/native-loader.ts)
@@ -150,6 +152,7 @@ export interface FusionDatabase {
  *      Throws DatabaseCorruptionError if the check fails.
  *
  * On close:
+ *   - Refreshes query-planner statistics via PRAGMA optimize (T018, best-effort).
  *   - Runs wal_checkpoint(TRUNCATE) to merge WAL into the main file (Question 10).
  *   - Closes the underlying SQLite connection.
  */
@@ -207,6 +210,10 @@ export function openDatabase(options: OpenDatabaseOptions): FusionDatabase {
     close(): void {
       if (!db.open) return;
       if (!readonly) {
+        // Refresh query-planner statistics (T018) BEFORE the checkpoint below,
+        // so any sqlite_stat1 write it makes rides along in that same
+        // checkpoint instead of forcing a second one.
+        runOptimize(db);
         // Checkpoint WAL into main db file before closing (REQ-PER-039 strategy,
         // Q10 answer: flush WAL on graceful shutdown for fast next-open).
         try {

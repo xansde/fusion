@@ -23,6 +23,9 @@ import {
 import { join } from "node:path";
 import { openDatabase, applyMigrations, DatabaseCorruptionError } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
+import { runGc, formatGcReport } from "../db/gc.js";
+import type { GcOptions } from "../db/gc.js";
+import { DEFAULT_GC_SESSION_RETENTION_DAYS, DEFAULT_GC_AUDIT_RETENTION_MONTHS } from "../config.js";
 import {
   FUSION_VERSION,
   MINIMUM_FUSION_DATA_FORMAT,
@@ -118,7 +121,7 @@ function worldDir(dataDir: string, slug: string): string {
   return join(dataDir, "worlds", slug);
 }
 
-function lockPath(dataDir: string, slug: string): string {
+export function lockPath(dataDir: string, slug: string): string {
   return join(worldDir(dataDir, slug), "world.lock");
 }
 
@@ -150,7 +153,7 @@ function writeManifest(dataDir: string, slug: string, manifest: WorldManifest): 
  * Check whether a process with the given PID is running on this OS.
  * Returns false if the process is not found (stale lock).
  */
-function isProcessAlive(pid: number): boolean {
+export function isProcessAlive(pid: number): boolean {
   try {
     // signal 0 — does not kill but checks whether the process exists
     process.kill(pid, 0);
@@ -164,7 +167,7 @@ function isProcessAlive(pid: number): boolean {
  * Read and validate the world.lock file.
  * Returns the lock content or null if the file does not exist.
  */
-function readLock(lockFilePath: string): WorldLock | null {
+export function readLock(lockFilePath: string): WorldLock | null {
   if (!existsSync(lockFilePath)) return null;
   try {
     const raw = readFileSync(lockFilePath, "utf8");
@@ -243,6 +246,18 @@ export interface WorldManagerOptions {
    * refusing (D6 escape hatch — `fusion serve --force-schema`).
    */
   forceSchema?: boolean;
+  /**
+   * Retention window for the boot-time GC (T017, D5), run once per
+   * `open()` right after migrations succeed. Omit either field (or the
+   * whole option) to use the same defaults `ServerConfig` ships with
+   * (`config.ts`'s `DEFAULT_GC_SESSION_RETENTION_DAYS` /
+   * `DEFAULT_GC_AUDIT_RETENTION_MONTHS`) — this mirrors `backupRetention`
+   * above: a per-instance override that falls back to the product default
+   * when the caller does not have a loaded `ServerConfig` to thread through
+   * (see `db/gc.ts` for what `0`/`null` mean: disable that target, not
+   * "collect everything").
+   */
+  gcOptions?: Pick<GcOptions, "sessionRetentionDays" | "auditRetentionMonths">;
 }
 
 export class WorldManager {
@@ -250,6 +265,7 @@ export class WorldManager {
   private readonly validSystemIds: { has(id: string): boolean } | undefined;
   private readonly backupRetention: BackupRetention;
   private readonly forceSchema: boolean;
+  private readonly gcOptions: Pick<GcOptions, "sessionRetentionDays" | "auditRetentionMonths">;
 
   /** Map of slug → open world state (in-process). */
   private readonly openWorlds = new Map<string, OpenWorld>();
@@ -262,6 +278,12 @@ export class WorldManager {
       ...DEFAULT_BACKUP_RETENTION,
       ...(options.maxAutoBackups !== undefined ? { auto: options.maxAutoBackups } : {}),
       ...options.backupRetention,
+    };
+    this.gcOptions = {
+      sessionRetentionDays:
+        options.gcOptions?.sessionRetentionDays ?? DEFAULT_GC_SESSION_RETENTION_DAYS,
+      auditRetentionMonths:
+        options.gcOptions?.auditRetentionMonths ?? DEFAULT_GC_AUDIT_RETENTION_MONTHS,
     };
 
     // Ensure base directories exist
@@ -417,6 +439,26 @@ export class WorldManager {
       } else {
         throw err;
       }
+    }
+
+    // Boot-time GC (T017, D5) — expired sessions and stale roll-audit-log
+    // rows, run once per open, strictly AFTER migrations have succeeded
+    // above (never before: GC assumes the schema the current build expects).
+    // Best-effort: a GC failure must not prevent the world from opening —
+    // there is no scenario where refusing to let the GM play is the right
+    // response to a cleanup pass failing.
+    try {
+      const report = runGc(fusionDb.raw, this.gcOptions);
+      const line = formatGcReport(report);
+      if (line !== null) {
+        // stderr, like every other diagnostic in this file: stdout carries
+        // command output, and a maintenance line has no business in it.
+        process.stderr.write(`${line} (world "${slug}")\n`);
+      }
+    } catch (err) {
+      process.stderr.write(
+        `[fusion:world-manager] GC failed for world "${slug}" — continuing without it. ${String(err)}\n`,
+      );
     }
 
     // Pre-migration backups are written by the migration framework, which knows
