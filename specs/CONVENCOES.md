@@ -49,11 +49,17 @@ Consequências práticas:
 
 Estão todos na mesma pasta e usam a mesma numeração, mas não são a mesma coisa:
 
-| Nível       | Quais      | Papel                                                                                              |
-| ----------- | ---------- | -------------------------------------------------------------------------------------------------- |
-| **Charter** | `00`, `27` | Por quê, para quem, linhas vermelhas (`00`); fases e ordem de entrega (`27`). Não decide mecânica. |
-| **Área**    | `01`–`26`  | O sistema fatiado por subsistema. É o nível default.                                               |
-| **Recorte** | `28`+      | Feature que atravessa várias áreas (Hub, multiclasse, pets, minimapa, mapa de região).             |
+| Nível       | Exemplos        | Papel                                                                                              |
+| ----------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| **Charter** | `00`, `27`      | Por quê, para quem, linhas vermelhas (`00`); fases e ordem de entrega (`27`). Não decide mecânica. |
+| **Área**    | `01`–`26`, `45` | O sistema fatiado por subsistema. É o nível default.                                               |
+| **Recorte** | `28`–`44`       | Feature que atravessa várias áreas (Hub, multiclasse, pets, minimapa, mapa de região).             |
+
+**A faixa de número é sinal histórico, não critério.** Até a `44` ela coincidia com o
+nível porque as áreas nasceram primeiro; a `45` (Atores) é área e tem número alto, e
+qualquer área futura terá. **O nível é declarado no cabeçalho da spec** e o teste de corte
+do §1 é quem decide qual é — não a numeração. _(emenda obrigada por `45-atores.md`,
+DEC-ATR-01)_
 
 Uma spec de **recorte** deve declarar, na seção Dependências, quais áreas ela atravessa e
 quais decisões dessas áreas ela **não pode contrariar**. Ela nunca redefine um requisito de

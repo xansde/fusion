@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Atores — facetas, e onde elas batem</title>
+    <style>
+      :root {
+        --ground: #f7f6f9;
+        --panel: #ffffff;
+        --panel-2: #f0eef4;
+        --line: #dedae6;
+        --ink: #1b1725;
+        --ink-2: #4a4358;
+        --ink-3: #7b7389;
+        --accent: #4b3ecb;
+        --accent-soft: #e8e5fb;
+        --ok: #1f7a4d;
+        --ok-soft: #e2f2ea;
+        --warn: #9a6207;
+        --warn-soft: #fbf0dc;
+        --crit: #a52449;
+        --crit-soft: #fbe4ec;
+        --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", monospace;
+        --sans: "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+        --display:
+          "Segoe UI Variable Display", "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+        --radius: 4px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --ground: #131119;
+          --panel: #1b1824;
+          --panel-2: #221e2e;
+          --line: #322c42;
+          --ink: #ece9f3;
+          --ink-2: #b6afc6;
+          --ink-3: #837b96;
+          --accent: #a49bff;
+          --accent-soft: #262046;
+          --ok: #5fc794;
+          --ok-soft: #17301f;
+          --warn: #e0ac52;
+          --warn-soft: #33260f;
+          --crit: #ff8fae;
+          --crit-soft: #37151f;
+        }
+      }
+
+      :root[data-theme="dark"] {
+        --ground: #131119;
+        --panel: #1b1824;
+        --panel-2: #221e2e;
+        --line: #322c42;
+        --ink: #ece9f3;
+        --ink-2: #b6afc6;
+        --ink-3: #837b96;
+        --accent: #a49bff;
+        --accent-soft: #262046;
+        --ok: #5fc794;
+        --ok-soft: #17301f;
+        --warn: #e0ac52;
+        --warn-soft: #33260f;
+        --crit: #ff8fae;
+        --crit-soft: #37151f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1.5rem;
+      }
+      body {
+        margin: 0;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      code,
+      .mono {
+        font-family: var(--mono);
+        font-size: 0.87em;
+      }
+      code {
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 0.05em 0.3em;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+        gap: 2.5rem;
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 2.5rem 1.75rem 6rem;
+      }
+
+      nav {
+        position: sticky;
+        top: 2.5rem;
+        align-self: start;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        font-size: 13.5px;
+      }
+      nav .navtitle {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 0.6rem;
+      }
+      nav a {
+        color: var(--ink-2);
+        text-decoration: none;
+        padding: 0.28rem 0.55rem;
+        border-left: 2px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      nav a:hover {
+        color: var(--ink);
+        border-left-color: var(--accent);
+        background: var(--panel);
+      }
+      nav a span {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      nav .navfoot {
+        margin-top: 1.25rem;
+        padding: 0.7rem 0.6rem;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        color: var(--ink-3);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      header {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 1.75rem;
+        margin-bottom: 2.5rem;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 {
+        font-family: var(--display);
+        font-size: clamp(2rem, 4.2vw, 2.9rem);
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        margin: 0.5rem 0 0.6rem;
+        text-wrap: balance;
+        font-weight: 600;
+      }
+      .lede {
+        color: var(--ink-2);
+        max-width: 64ch;
+        margin: 0;
+        font-size: 16px;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.5rem;
+        margin-top: 1.25rem;
+      }
+      .chip {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--ink-2);
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+      }
+      .chip.on {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      section {
+        margin-bottom: 3.25rem;
+        scroll-margin-top: 1.5rem;
+      }
+      h2 {
+        font-family: var(--display);
+        font-size: 1.35rem;
+        letter-spacing: -0.01em;
+        margin: 0 0 0.35rem;
+        font-weight: 600;
+        display: flex;
+        align-items: baseline;
+        gap: 0.65rem;
+      }
+      h2 .num {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--ink-3);
+        font-weight: 400;
+      }
+      .sub {
+        color: var(--ink-3);
+        margin: 0 0 1.35rem;
+        max-width: 72ch;
+        font-size: 14px;
+      }
+      h3 {
+        font-family: var(--display);
+        font-size: 1rem;
+        margin: 2rem 0 0.7rem;
+        font-weight: 600;
+      }
+
+      .natures {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+        gap: 0.85rem;
+      }
+      .nat {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--accent);
+        border-radius: var(--radius);
+        padding: 0.9rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .nat .k {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .nat .n {
+        font-family: var(--display);
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      .nat p {
+        margin: 0;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .nat dl {
+        margin: 0.35rem 0 0;
+        padding-top: 0.55rem;
+        border-top: 1px dashed var(--line);
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.15rem 0.6rem;
+        font-size: 12.5px;
+      }
+      .nat dt {
+        color: var(--ink-3);
+        font-family: var(--mono);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding-top: 0.1rem;
+      }
+      .nat dd {
+        margin: 0;
+        color: var(--ink-2);
+      }
+
+      .tablewrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.85rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      thead th {
+        background: var(--panel-2);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: var(--panel-2);
+      }
+      td.path {
+        font-family: var(--mono);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 0.05em;
+        padding: 0.1rem 0.4rem;
+        border-radius: 3px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .t-p {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .t-m {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .t-x {
+        background: var(--crit-soft);
+        color: var(--crit);
+      }
+      .t-new {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .decs {
+        display: grid;
+        gap: 0.5rem;
+      }
+      .dec {
+        display: grid;
+        grid-template-columns: 108px minmax(0, 1fr);
+        gap: 0 1rem;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 0.7rem 0.95rem;
+      }
+      .dec.hot {
+        border-color: var(--accent);
+      }
+      .dec .id {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--accent);
+        padding-top: 0.15rem;
+      }
+      .dec .title {
+        font-weight: 600;
+        font-size: 14.5px;
+      }
+      .dec .body {
+        color: var(--ink-2);
+        font-size: 13.5px;
+        margin-top: 0.15rem;
+      }
+      .dec .hit {
+        margin-top: 0.4rem;
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .dec .hit b {
+        color: var(--ink-2);
+        font-weight: 600;
+      }
+
+      .flaws {
+        display: grid;
+        gap: 0.55rem;
+      }
+      .flaw {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--ok);
+        border-radius: var(--radius);
+        background: var(--panel);
+        padding: 0.75rem 1rem;
+      }
+      .flaw.open {
+        border-left-color: var(--warn);
+      }
+      .flaw h4 {
+        margin: 0 0 0.25rem;
+        font-size: 14.5px;
+        font-family: var(--display);
+        font-weight: 600;
+        display: flex;
+        gap: 0.6rem;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      .flaw h4 .fid {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .sev {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        padding: 0.08rem 0.4rem;
+        border-radius: 3px;
+      }
+      .sev.ok {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .sev.open {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .flaw p {
+        margin: 0.2rem 0 0;
+        color: var(--ink-2);
+        font-size: 13.5px;
+      }
+
+      ol.calls {
+        counter-reset: c;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 0.5rem;
+      }
+      ol.calls li {
+        counter-increment: c;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 0.7rem 1rem 0.7rem 2.9rem;
+        position: relative;
+        color: var(--ink-2);
+        font-size: 13.5px;
+      }
+      ol.calls li::before {
+        content: counter(c, decimal-leading-zero);
+        position: absolute;
+        left: 0.9rem;
+        top: 0.72rem;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+      }
+      ol.calls li b {
+        color: var(--ink);
+      }
+
+      .note {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--accent);
+        background: var(--panel);
+        border-radius: var(--radius);
+        padding: 0.75rem 1rem;
+        color: var(--ink-2);
+        font-size: 13.5px;
+        margin: 1.1rem 0 0;
+      }
+
+      pre.code {
+        margin: 1.1rem 0 0;
+        padding: 0.9rem 1rem;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--ink-2);
+      }
+      pre.code b {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      ul.plain {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--ink-2);
+        font-size: 13.5px;
+      }
+      ul.plain li {
+        margin-bottom: 0.3rem;
+      }
+
+      footer {
+        border-top: 1px solid var(--line);
+        padding-top: 1.25rem;
+        color: var(--ink-3);
+        font-size: 12.5px;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+          padding: 1.75rem 1.1rem 4rem;
+        }
+        nav {
+          position: static;
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+        nav a {
+          border-left: none;
+          border-bottom: 2px solid var(--line);
+        }
+        nav .navtitle,
+        nav .navfoot {
+          display: none;
+        }
+        .dec {
+          grid-template-columns: 1fr;
+          gap: 0.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <nav>
+        <div class="navtitle">Guia</div>
+        <a href="#facetas">As quatro facetas <span>§1</span></a>
+        <a href="#como">Como se ganha uma faceta <span>§2</span></a>
+        <a href="#mapa">Subtype → facetas <span>§3</span></a>
+        <a href="#decisoes">As 18 decisões <span>§4</span></a>
+        <a href="#requisitos">O que passa a ser exigido <span>§5</span></a>
+        <a href="#codigo">Onde bate no código <span>§6</span></a>
+        <a href="#telas">Telas e specs <span>§7</span></a>
+        <a href="#falhas">As 10 falhas, agora <span>§8</span></a>
+        <a href="#v2">O que mudou da v0.1 <span>§9</span></a>
+        <div class="navfoot">
+          Fonte: <code>specs/45-atores.md</code> (draft v0.2). Nenhum código foi alterado no
+          PR&nbsp;#159 — tudo aqui é o que a spec <em>passa a cobrar</em>.
+        </div>
+      </nav>
+
+      <main>
+        <header>
+          <div class="eyebrow">Spec 45 · Área · draft v0.2 · PR #159 → alfa/app</div>
+          <h1>Atores</h1>
+          <p class="lede">
+            O ator é <strong>o objeto raiz de tudo que tem vida no jogo</strong>: toda ficha é ficha
+            de um ator, toda presença numa cena é presença de um ator. O que varia é o papel — e um
+            mesmo ator <strong>acumula vários</strong>. Um mercador é criatura e recipiente; um NPC
+            morto vira saqueável sem deixar de ser a criatura que era.
+          </p>
+          <div class="meta">
+            <span class="chip on">18 decisões</span>
+            <span class="chip">51 requisitos · 49 MVP</span>
+            <span class="chip">3 RNF</span>
+            <span class="chip">16 critérios de aceitação</span>
+            <span class="chip">6 questões abertas</span>
+            <span class="chip">11 specs emendadas</span>
+            <span class="chip">spec-lint 29/29</span>
+          </div>
+        </header>
+
+        <!-- 1 -->
+        <section id="facetas">
+          <h2><span class="num">§1</span> As quatro facetas</h2>
+          <p class="sub">
+            Enum fechado da engine. Um ator tem um <strong>conjunto não-vazio</strong> delas — não
+            uma só. Acrescentar um quinto valor exige emenda nesta spec e no contract test
+            (RNF-ATR-02); sem isso, cada spec de aba inventa a sua.
+          </p>
+          <div class="natures">
+            <article class="nat">
+              <span class="k">player</span>
+              <span class="n">Personagem</span>
+              <p>
+                O ator que representa um jogador na mesa. Única faceta que concede posse de
+                nascença.
+              </p>
+              <dl>
+                <dt>Porta</dt>
+                <dd>Nasce junto com o usuário (spec 37)</dd>
+                <dt>Posse</dt>
+                <dd><code>default: none</code> + usuário como <code>owner</code></dd>
+              </dl>
+            </article>
+            <article class="nat">
+              <span class="k">creature</span>
+              <span class="n">Criatura</span>
+              <p>
+                Age, tem vida, entra em combate. Familiar é criatura — inclusive o familiar sem
+                dono.
+              </p>
+              <dl>
+                <dt>Porta</dt>
+                <dd>Aba NPCs: bestiário ou do zero</dd>
+                <dt>Posse</dt>
+                <dd><code>default: none</code></dd>
+              </dl>
+            </article>
+            <article class="nat">
+              <span class="k">hazard</span>
+              <span class="n">Perigo</span>
+              <p>Ameaça sem intenção própria.</p>
+              <dl>
+                <dt>Porta</dt>
+                <dd>Aba NPCs, mesma janela</dd>
+                <dt>Posse</dt>
+                <dd><code>default: none</code></dd>
+              </dl>
+            </article>
+            <article class="nat">
+              <span class="k">container</span>
+              <span class="n">Recipiente</span>
+              <p>
+                Guarda itens que outro ator pode retirar. O baú é um; o mercador também. O saque é
+                da spec 46.
+              </p>
+              <dl>
+                <dt>Porta</dt>
+                <dd>Gesto que põe direto na cena</dd>
+                <dt>Posse</dt>
+                <dd><code>default: none</code> — abrir é gesto de cena, não ownership</dd>
+              </dl>
+            </article>
+          </div>
+          <p class="note">
+            <strong>"Não-jogável" saiu do vocabulário.</strong> Não é faceta, não é derivação, não é
+            filtro. A aba NPCs passa a dizer o que sempre quis dizer: ela lista quem tem
+            <code>creature</code> ou <code>hazard</code>.
+          </p>
+        </section>
+
+        <!-- 2 -->
+        <section id="como">
+          <h2><span class="num">§2</span> Como um ator ganha e perde uma faceta</h2>
+          <p class="sub">
+            Parte vem do sistema de jogo, parte acontece na mesa. As duas se combinam numa função
+            pura — sem I/O, porque tanto o registro do sistema quanto o ator já estão em memória.
+          </p>
+          <pre
+            class="code"
+          ><b>facetsOf(actor)</b> = ( declaradas(subtype) ∪ flags.fusion.facets.granted ) − flags.fusion.facets.revoked
+
+  declaradas   ← o sistema, em defineModel({ facets: ["creature"] })      não é gravado
+  granted      ← ganhas em jogo: o corpo que morreu vira saqueável        gravado em flags
+  revoked      ← retiradas pelo Mestre: este aqui não se saqueia          gravado em flags
+
+  o resultado precisa continuar <b>não-vazio</b> — o servidor recusa a escrita que esvazia</pre>
+          <p class="note">
+            <strong>Nenhum campo novo no <code>Actor</code>.</strong> O delta vive em
+            <code>flags.fusion.facets</code>, dentro do namespace validável que a <code>02</code> já
+            prevê (REQ-DOC-009/010) e que a identidade já usa. A forma do documento fica intocada —
+            e só o delta é persistido, não o conjunto inteiro.
+          </p>
+          <p class="note">
+            <strong><code>revoked</code> existe para não travar a mesa.</strong> Se o sistema
+            declara <code>container</code> num subtype e o Mestre não quer aquele ator saqueável,
+            ele tira. Faceta declarada não é dogma.
+          </p>
+        </section>
+
+        <!-- 3 -->
+        <section id="mapa">
+          <h2><span class="num">§3</span> Subtype → facetas de nascença</h2>
+          <p class="sub">
+            Estado real conferido em <code>systems/*/src/index.ts</code> na branch
+            <code>alfa/app</code>. A coluna diz com o que o ator <em>nasce</em>, não o teto do que
+            ele pode vir a ser.
+          </p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sistema</th>
+                  <th>Subtype</th>
+                  <th>Facetas de nascença</th>
+                  <th>Observação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>pf2e</td>
+                  <td class="path">character</td>
+                  <td><span class="tag t-new">player</span></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>pf2e</td>
+                  <td class="path">npc</td>
+                  <td><span class="tag t-new">creature</span></td>
+                  <td>ganha <code>container</code> ao morrer (regra da spec 46)</td>
+                </tr>
+                <tr>
+                  <td>pf2e</td>
+                  <td class="path">hazard</td>
+                  <td><span class="tag t-new">hazard</span></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>pf2e</td>
+                  <td class="path">loot</td>
+                  <td><span class="tag t-new">container</span></td>
+                  <td>é o baú — ganhou consumidor (fecha Q-NPC-04)</td>
+                </tr>
+                <tr>
+                  <td>pf2e</td>
+                  <td class="path">familiar</td>
+                  <td><span class="tag t-new">creature</span></td>
+                  <td>passou de ⏳V2 para ✅MVP; agora aparece na aba NPCs</td>
+                </tr>
+                <tr>
+                  <td>sf2e</td>
+                  <td class="path">character</td>
+                  <td><span class="tag t-new">player</span></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>sf2e</td>
+                  <td class="path">npc</td>
+                  <td><span class="tag t-new">creature</span></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>sf2e</td>
+                  <td class="path">hazard</td>
+                  <td><span class="tag t-new">hazard</span></td>
+                  <td>estava faltando na v0.1 — corrigido</td>
+                </tr>
+                <tr>
+                  <td>sf2e</td>
+                  <td class="path">loot</td>
+                  <td><span class="tag t-new">container</span></td>
+                  <td>estava faltando na v0.1 — corrigido</td>
+                </tr>
+                <tr>
+                  <td>etmos</td>
+                  <td class="path">orador</td>
+                  <td><span class="tag t-new">player</span></td>
+                  <td>o hardcode de PF2e nunca o alcançou</td>
+                </tr>
+                <tr>
+                  <td>etmos</td>
+                  <td class="path">antagonista</td>
+                  <td><span class="tag t-new">creature</span></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>stub</td>
+                  <td class="path">dummy</td>
+                  <td><span class="tag t-x">a declarar</span></td>
+                  <td>duplo de teste — declara <code>["creature"]</code> na implementação</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">
+            <strong>Um mercador</strong> seria declarado com
+            <code>facets: ["creature", "container"]</code> — aparece na aba NPCs, entra em combate e
+            tem estoque, sem caso especial em nenhuma das três telas (CA-ATR-003).
+          </p>
+          <p class="note">
+            <strong>Removidos do plano:</strong> <code>vehicle</code> e <code>party</code> não
+            existem e saíram da spec 17 e do marco M6 da 27. Com facetas ficou barato voltar atrás:
+            um veículo seria um subtype com as facetas que ele exercer, sem mudar nada aqui.
+          </p>
+        </section>
+
+        <!-- 4 -->
+        <section id="decisoes">
+          <h2><span class="num">§4</span> As 18 decisões</h2>
+          <p class="sub">Em destaque, as cinco que carregam o modelo novo.</p>
+          <div class="decs">
+            <div class="dec">
+              <div class="id">DEC-ATR-01</div>
+              <div>
+                <div class="title">Ator é área, apesar do número 45</div>
+                <div class="body">
+                  Define, não só combina. O nível passa a ser declarado no cabeçalho da spec.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> <code>CONVENCOES.md</code> §3 — faixa de número vira sinal
+                  histórico.
+                </div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-02</div>
+              <div>
+                <div class="title">Ator é o objeto raiz do que tem vida no jogo</div>
+                <div class="body">
+                  Tudo se pendura nele: ficha, presença, alvo de regra. A <code>02</code> dava a
+                  forma; faltava o que é.
+                </div>
+                <div class="hit"><b>Bate em:</b> a fronteira que sustenta as outras 17.</div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-03</div>
+              <div>
+                <div class="title">Ator tem um <em>conjunto</em> de facetas, não uma natureza</div>
+                <div class="body">
+                  Um valor por ator só descreveria o caso mais pobre. Rejeitados: "papel primário"
+                  (cada tela escolheria diferente) e derivar de <code>ownership</code>.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> o modelo inteiro — é a decisão que substituiu a v0.1.
+                </div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-04</div>
+              <div>
+                <div class="title">O sistema declara as facetas de nascença</div>
+                <div class="body">
+                  <code>facets</code> em <code>defineModel</code>, lista não-vazia. Rejeitado: campo
+                  de engine no <code>Actor</code> — seria dado duplicado do subtype nos 492
+                  registros do bestiário.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> <code>system-module.ts</code>, os 4 pacotes de sistema, os 3
+                  hardcodes do cliente.
+                </div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-05</div>
+              <div>
+                <div class="title">Facetas também se ganham e se perdem em jogo</div>
+                <div class="body">
+                  O delta vai em <code>flags.fusion.facets</code>. Sem isso, "quando pode saquear"
+                  ficaria espalhado em cada tela com um critério diferente, e o Mestre não poderia
+                  inventar casos.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> validação de flags no servidor; regra de leitura da presença
+                  desvinculada.
+                </div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-06</div>
+              <div>
+                <div class="title">Um vocabulário só; "não-jogável" deixa de existir</div>
+                <div class="body">
+                  Quatro palavras, que são as quatro facetas. Derivar o termo não resolvia:
+                  produziria um conjunto mais largo que o da aba.
+                </div>
+                <div class="hit"><b>Bate em:</b> texto das specs 39, 40 e 42.</div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-07</div>
+              <div>
+                <div class="title">A ficha é do subtype, nunca da faceta</div>
+                <div class="body">
+                  Fichas diferentes são fichas diferentes. Ligar ficha a faceta obrigaria um ator de
+                  duas facetas a ter duas fichas.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> nada — confirma o <code>sheet(spec)</code> que a
+                  <code>15</code> já tem.
+                </div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-08</div>
+              <div>
+                <div class="title">A porta de criação é do subtype</div>
+                <div class="body">
+                  Não há porta por faceta: um subtype de duas facetas nasceria por duas portas com
+                  dois defaults. Importar não é porta a mais.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> criação de usuário, aba NPCs, gesto de baú na cena.
+                </div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-09</div>
+              <div>
+                <div class="title">Recipiente é ator</div>
+                <div class="body">
+                  Tem <code>items</code>, <code>ownership</code> e presença como qualquer ator — e
+                  nenhuma aba o lista. Ausência de aba ≠ ausência de registro.
+                </div>
+                <div class="hit"><b>Bate em:</b> fecha Q-NPC-04 e Q-NPC-05; emenda DEC-NPC-08.</div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-10</div>
+              <div>
+                <div class="title">Veículo e <code>party</code> não existem</div>
+                <div class="body">Saem do catálogo e do plano; comitiva já é o painel do Hub.</div>
+                <div class="hit"><b>Bate em:</b> specs 17 e 27. <em>Já aplicado.</em></div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-11</div>
+              <div>
+                <div class="title">Identidade é <code>sourceId</code>, nunca o nome</div>
+                <div class="body">
+                  Homônimo é o padrão do PF2e. Ator criado do zero também recebe
+                  <code>sourceId</code>.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> criação do zero (hoje só a importação grava) e a migração.
+                </div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-12</div>
+              <div>
+                <div class="title">Ownership nasce pelas facetas</div>
+                <div class="body">
+                  Regra de conflito trivial: <code>player</code> é a única faceta que concede posse.
+                  Contém <code>player</code> → nasce com dono; senão, fechado.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> <code>auth/service.ts</code> e <code>routes.ts</code>.
+                </div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-13</div>
+              <div>
+                <div class="title">Faceta descreve papel, nunca mecânica — e nunca autoriza</div>
+                <div class="body">
+                  O teste: se a resposta muda conforme <em>quem olha</em>, é regra de mesa (pode).
+                  Se muda conforme a regra do sistema, é jogo (não pode).
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> guarda-corpo. "Quem pode abrir este baú" é permissão da
+                  <code>46</code>, não faceta.
+                </div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-14</div>
+              <div>
+                <div class="title">Ator-base é molde quando a presença é desvinculada</div>
+                <div class="body">
+                  Um dos cinco goblins morre e vira saqueável; os outros quatro não. Lista exibe
+                  identidade e facetas de nascença, nunca estado vivo.
+                </div>
+                <div class="hit"><b>Bate em:</b> toda lista — diretório, contatos, busca.</div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-15</div>
+              <div>
+                <div class="title">Excluir mostra o que cai junto; combate ativo recusa</div>
+                <div class="body">
+                  Presenças, vinculados, conhecimento e participações antes do confirmar.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> <code>doc-handlers.ts</code> (<code>doc:delete</code>) + diálogo
+                  no cliente.
+                </div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-16</div>
+              <div>
+                <div class="title">O vínculo entre atores é livre</div>
+                <div class="body">
+                  Qualquer ator aponta para qualquer ator. Travar o alvo transformaria cada invenção
+                  da mesa num pedido de mudança de engine. A derivação do mestre continua sendo do
+                  sistema.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> emenda REQ-PET-002 da <code>29</code>; mata a validação que a v0.1
+                  pedia.
+                </div>
+              </div>
+            </div>
+            <div class="dec hot">
+              <div class="id">DEC-ATR-17</div>
+              <div>
+                <div class="title">Esta spec fixa o mecanismo; cada área declara o conteúdo</div>
+                <div class="body">
+                  Se a resposta muda ao trocar de sistema ou de aba, não é da 45. "Criatura morta
+                  vira saqueável" e "mercador" são da <code>46</code>.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> impede a 45 de crescer até decidir regra de cada aba — e cada aba
+                  de inventar faceta própria.
+                </div>
+              </div>
+            </div>
+            <div class="dec">
+              <div class="id">DEC-ATR-18</div>
+              <div>
+                <div class="title">"Jogável" é posse, não faceta</div>
+                <div class="body">
+                  Familiar vinculado a um personagem é controlado pelo jogador porque tem ownership
+                  — e continua sendo criatura. As ações próprias dele vêm do subtype e da ficha.
+                </div>
+                <div class="hit">
+                  <b>Bate em:</b> familiar passa a aparecer na aba NPCs (emenda REQ-NPC-044 e
+                  CA-NPC-007).
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5 -->
+        <section id="requisitos">
+          <h2><span class="num">§5</span> O que passa a ser exigido</h2>
+          <p class="sub">51 requisitos em nove blocos, sob o prefixo <code>REQ-ATR-</code>.</p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bloco</th>
+                  <th>Faixa</th>
+                  <th>A exigência em uma linha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Definição e facetas</td>
+                  <td class="path">001–008</td>
+                  <td>
+                    Conjunto não-vazio; <code>facetsOf</code>/<code>hasFacet</code> são a única
+                    rota; faceta não decide mecânica nem autoriza; ficha vem do subtype.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Declaração pelo sistema</td>
+                  <td class="path">010–015</td>
+                  <td>
+                    <code>facets</code> obrigatório em <code>Actor</code>; contract test reprova
+                    vazio, fora do enum e repetido;
+                    <b>o servidor entrega o mapa ao cliente antes de qualquer listagem</b>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Facetas adquiridas</td>
+                  <td class="path">020–026</td>
+                  <td>
+                    Delta em <code>flags.fusion.facets</code>; servidor valida e recusa
+                    esvaziamento; ganhar faceta não muda subtype, ficha, identidade nem posse.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Criação</td>
+                  <td class="path">030–036</td>
+                  <td>
+                    Uma porta por subtype; usuário e personagem no mesmo gesto;
+                    <b
+                      >o <code>doc:create</code> genérico passa a recusar <code>player</code>, com
+                      migração antes</b
+                    >.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Exclusão</td>
+                  <td class="path">040–045</td>
+                  <td>
+                    Mostrar o que cai junto; recusar com combate ativo; limpar presenças; não
+                    excluir vinculados; não reescrever chat.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Identidade</td>
+                  <td class="path">050–054</td>
+                  <td>
+                    <code>sourceId</code> em todo ator; nome nunca é identidade;
+                    <b>mundos antigos são migrados e a migração relata o que corrigiu</b>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Posse</td>
+                  <td class="path">060–063</td>
+                  <td>
+                    Ownership de nascimento pelas facetas; conceder ownership não muda faceta; ator
+                    sem dono é estado legítimo.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Ator e presença</td>
+                  <td class="path">070–073</td>
+                  <td>
+                    Presença herda as facetas; base desvinculado não é exibido como estado vivo;
+                    ator sem presença é normal.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Vínculo</td>
+                  <td class="path">080–083</td>
+                  <td>Alvo livre; soft reference; derivação é do sistema; sem ciclos.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 6 -->
+        <section id="codigo">
+          <h2><span class="num">§6</span> Onde bate no código</h2>
+          <p class="sub">
+            Nada foi implementado no PR #159. Inventário conferido arquivo por arquivo na
+            <code>alfa/app</code>.
+          </p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Onde</th>
+                  <th>O que muda</th>
+                  <th>Porte</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="path">packages/system-api/src/system-module.ts</td>
+                  <td>
+                    <code>SystemDataModelSpec.facets</code> + validação no registro (52–63, 113,
+                    341)
+                  </td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">systems/pf2e/src/index.ts</td>
+                  <td>5 models ganham <code>facets</code></td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">systems/sf2e/src/index.ts</td>
+                  <td>4 models</td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">systems/etmos/src/index.ts</td>
+                  <td>2 models</td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">systems/stub/src/index.ts</td>
+                  <td>declara <code>["creature"]</code> com comentário de que é arbitrário</td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">contract test da system API</td>
+                  <td>4 casos novos: sem <code>facets</code>, vazio, fora do enum, repetido</td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">novo — facetsOf / hasFacet / actorSubtypes</td>
+                  <td>não existe</td>
+                  <td><span class="tag t-m">médio</span></td>
+                </tr>
+                <tr>
+                  <td class="path">novo — mapa subtype→facetas no payload do mundo</td>
+                  <td>REQ-ATR-015; hoje o cliente só recebe <code>systemId</code></td>
+                  <td><span class="tag t-m">médio</span></td>
+                </tr>
+                <tr>
+                  <td class="path">novo — validação de flags.fusion.facets</td>
+                  <td>enum + recusa de conjunto vazio, no servidor</td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">client/…/sheets/pf2e/spellCastCardVM.ts:88</td>
+                  <td><code>t === "character" || t === "npc"</code> → <code>hasFacet</code></td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">client/…/compendium/compendiumBrowser.ts:518</td>
+                  <td><code>subtype === "npc" || "hazard"</code> → <code>hasFacet</code></td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">client/…/actors/ActorDirectory.svelte:39–53</td>
+                  <td>tabela <code>DEFAULT_ACTOR_SUBTYPE</code> → <code>actorSubtypes()</code></td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">server/src/auth/{service,routes}.ts</td>
+                  <td>criar o personagem junto do usuário, com ownership dele</td>
+                  <td><span class="tag t-m">médio</span></td>
+                </tr>
+                <tr>
+                  <td class="path">server/…/doc-handlers.ts (doc:delete, ~1112)</td>
+                  <td>aviso do que cai junto + recusa com combate ativo</td>
+                  <td><span class="tag t-m">médio</span></td>
+                </tr>
+                <tr>
+                  <td class="path">server/…/doc-handlers.ts (doc:create)</td>
+                  <td>
+                    recusar subtype de faceta <code>player</code> —
+                    <b>depois da migração da criação</b>
+                  </td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">criação do zero</td>
+                  <td>passar a gravar <code>sourceId</code></td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+                <tr>
+                  <td class="path">migration nova (spec 03)</td>
+                  <td><code>sourceId</code> ausente + conferência de ownership, com relatório</td>
+                  <td><span class="tag t-m">médio</span></td>
+                </tr>
+                <tr>
+                  <td class="path">tools/boundary-test</td>
+                  <td>regra que reprova comparação de subtype contra literal (CA-ATR-016)</td>
+                  <td><span class="tag t-m">médio</span></td>
+                </tr>
+                <tr>
+                  <td class="path">validação de masterActorId</td>
+                  <td><b>nada a fazer</b> — o vínculo ficou livre; só recusar ciclo</td>
+                  <td><span class="tag t-p">pequeno</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">
+            <strong>Leitura:</strong> a maior parte continua pequena e mecânica. O trabalho real
+            está em quatro lugares — o <em>mapa até o cliente</em>, a
+            <em>criação de personagem colada ao usuário</em>, a <em>exclusão com aviso</em> e a
+            <em>migração dos mundos existentes</em>.
+          </p>
+        </section>
+
+        <!-- 7 -->
+        <section id="telas">
+          <h2><span class="num">§7</span> Telas e specs</h2>
+          <h3>Nenhuma tela muda de aparência — muda de onde ela tira a resposta</h3>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tela</th>
+                  <th>Hoje decide por</th>
+                  <th>Passa a decidir por</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Contatos (39)</td>
+                  <td class="path">string de PF2e</td>
+                  <td><code>hasFacet(a, "player")</code> monta "na mesa"</td>
+                </tr>
+                <tr>
+                  <td>NPCs (42)</td>
+                  <td class="path">string de PF2e</td>
+                  <td>
+                    lista quem tem <code>creature</code> ou <code>hazard</code> — familiar incluído
+                  </td>
+                </tr>
+                <tr>
+                  <td>Combate (40)</td>
+                  <td class="path">definição local de "criatura"</td>
+                  <td><code>hasFacet(a, "creature")</code> esconde a vida</td>
+                </tr>
+                <tr>
+                  <td>Compêndio (43)</td>
+                  <td class="path"><code>npc</code> || <code>hazard</code></td>
+                  <td>ícone por faceta</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Specs emendadas no PR #159</h3>
+          <ul class="plain">
+            <li><code>CONVENCOES.md</code> §3 — nível deixa de ser faixa de número.</li>
+            <li>
+              <code>15</code> — REQ-SYS-010 e a interface: <code>nature</code> →
+              <code>facets</code> (lista não-vazia).
+            </li>
+            <li>
+              <code>17</code> — tabela de actor types com coluna <b>Facetas de nascença</b>,
+              <code>familiar</code> em MVP, sem <code>party</code>/<code>vehicle</code>.
+            </li>
+            <li><code>27</code> — marco M6 sem os actor types enterrados.</li>
+            <li>
+              <code>29</code> —
+              <b>REQ-PET-002 deixa de exigir que o mestre seja um <code>character</code></b
+              >; órfão vira estado legítimo.
+            </li>
+            <li><code>40</code> — glossário: "criatura" é a faceta.</li>
+            <li>
+              <code>42</code> — "não-jogável" retirado; baú passa a ser ator;
+              <b>REQ-NPC-044 e CA-NPC-007 passam a oferecer familiar</b>; Q-NPC-04 e Q-NPC-05
+              fechadas.
+            </li>
+            <li><code>39</code> e <code>02</code> — registro sem mudança de comportamento.</li>
+            <li><code>05</code> — nada muda: REQ-USR-025a já era exatamente esta regra.</li>
+            <li>
+              <code>README</code> — índice, prefixos, nota do <code>41</code> e
+              <b>reserva do número <code>46</code> (Recipientes)</b>.
+            </li>
+          </ul>
+        </section>
+
+        <!-- 8 -->
+        <section id="falhas">
+          <h2><span class="num">§8</span> As 10 falhas acusadas, e o que aconteceu com elas</h2>
+          <p class="sub">Nove fechadas na v0.2; uma virou tarefa de implementação.</p>
+          <div class="flaws">
+            <article class="flaw">
+              <h4>
+                <span class="fid">F1</span> "Não-jogável derivado" contrariava a 42
+                <span class="sev ok">DISSOLVIDA</span>
+              </h4>
+              <p>
+                Com facetas, o termo deixou de ser necessário: a aba lista quem tem
+                <code>creature</code> ou <code>hazard</code> — exatamente o que a 42 sempre quis
+                dizer. DEC-ATR-06 retira a palavra.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F2</span> Sem canal para o mapa chegar ao cliente
+                <span class="sev ok">FECHADA</span>
+              </h4>
+              <p>
+                REQ-ATR-015 exige que o servidor entregue o mapa
+                <code>subtype → facetas</code> junto da informação do mundo, antes de qualquer
+                listagem.
+              </p>
+            </article>
+            <article class="flaw open">
+              <h4>
+                <span class="fid">F3</span> O <code>systems/stub</code> quebra o contract test
+                <span class="sev open">IMPLEMENTAÇÃO</span>
+              </h4>
+              <p>
+                Não virou exceção na spec — exceção em requisito é porta que fica aberta. O stub
+                declara <code>["creature"]</code> com comentário de que é arbitrário, na hora de
+                implementar.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F4</span> Tabela de mapeamento incompleta
+                <span class="sev ok">CORRIGIDA</span>
+              </h4>
+              <p>SF2e agora aparece com os quatro subtypes que declara.</p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F5</span> Quebrava o caminho de criação atual
+                <span class="sev ok">FECHADA</span>
+              </h4>
+              <p>
+                Sua decisão: [MVP]. REQ-ATR-035 escreve a transição — a criação migra para a porta
+                da administração de usuários <em>antes</em> de a recusa entrar em vigor.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F6</span> Nada sobre os mundos existentes
+                <span class="sev ok">FECHADA</span>
+              </h4>
+              <p>
+                Sua decisão: migrar. REQ-ATR-054 exige a migração e o relatório do que foi corrigido
+                — que é onde as quebras aparecem.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F7</span> Proibição sem verificador
+                <span class="sev ok">FECHADA</span>
+              </h4>
+              <p>
+                CA-ATR-016 põe a regra no <code>tools/boundary-test</code>, que já reprova fronteira
+                de import no CI. Deixou de ser um grep.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F8</span> Vazamento de vida não fechado
+                <span class="sev ok">DELIMITADA</span>
+              </h4>
+              <p>
+                Q-ATR-06 declara explicitamente: a política de redação é da
+                <code>21</code> (REQ-SEC-020); esta spec entrega o predicado
+                <code>hasFacet(a, "creature")</code> e não a política.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F9</span> "Regra de mesa × regra de jogo" sem critério
+                <span class="sev ok">FECHADA</span>
+              </h4>
+              <p>
+                DEC-ATR-13 ganhou o teste operacional e um caso de cada lado: muda conforme quem
+                olha → mesa; muda conforme a regra do sistema → jogo.
+              </p>
+            </article>
+            <article class="flaw">
+              <h4>
+                <span class="fid">F10</span> Baú nascendo invisível
+                <span class="sev ok">FECHADA</span>
+              </h4>
+              <p>
+                Sua decisão: abrir é gesto de cena, com permissionamento próprio — e isso criou a
+                spec <code>46</code> (Recipientes), reservada por esta.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <!-- 9 -->
+        <section id="v2">
+          <h2><span class="num">§9</span> O que mudou da v0.1 para a v0.2</h2>
+          <ol class="calls">
+            <li>
+              <b>Natureza única virou conjunto de facetas.</b> Um mercador é criatura e recipiente;
+              um corpo vira saqueável sem deixar de ser criatura.
+            </li>
+            <li>
+              <b>Facetas passaram a ser adquiríveis em jogo</b>, com delta em
+              <code>flags.fusion.facets</code> — o que a v0.1 não previa de forma alguma.
+            </li>
+            <li>
+              <b>O vínculo entre atores ficou livre.</b> A v0.1 exigia que o alvo de
+              <code>masterActorId</code> fosse um personagem; isso quebrava familiar de NPC e
+              familiar sem dono.
+            </li>
+            <li>
+              <b>Ficha ficou explicitamente atrelada ao subtype</b>, nunca à faceta — o que permite
+              ficha de criatura diferente da de personagem.
+            </li>
+            <li>
+              <b>"Não-jogável" foi retirado do vocabulário</b> em vez de virar termo derivado.
+            </li>
+            <li>
+              <b>Nasceu a divisão de escopo</b> (DEC-ATR-17): a 45 fixa o mecanismo, cada área
+              declara o conteúdo. E com ela a reserva da spec <code>46</code>.
+            </li>
+          </ol>
+        </section>
+
+        <footer>
+          Gerado em 2026-08-16 a partir de <code>specs/45-atores.md</code> (draft v0.2, PR #159
+          contra <code>alfa/app</code>). Gate mecânico no momento da geração: spec-lint 29/29,
+          <code>spec:report</code> regenerado, <code>prettier --check specs/</code> limpo.
+          Referências de código conferidas na branch <code>alfa/app</code>.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

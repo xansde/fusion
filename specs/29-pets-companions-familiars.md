@@ -443,8 +443,10 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
   campo `companionKind` discriminando `familiar`/`pet`/`animalCompanion`),
   nunca como item embutido no Actor do mestre.
 - **REQ-PET-002** [MVP] Todo companion DEVE ter um campo `masterActorId`
-  apontando para o Actor `character` que o possui; um companion sem mestre
-  válido é considerado órfão e a sheet DEVE sinalizar isso ao GM.
+  apontando para o Actor que o possui — **qualquer** ator, sem restrição de
+  subtype ou faceta (`ver 45-atores.md`, DEC-ATR-16); um companion sem mestre
+  válido é considerado órfão e a sheet DEVE sinalizar isso ao GM, e é um estado
+  legítimo, não um erro.
 - **REQ-PET-003** [MVP] O `prepareData` do companion DEVE derivar HP, AC e
   saves lendo o nível (e, quando aplicável, outros campos) do Actor mestre
   via `masterActorId`, nunca aceitando esses valores como entrada manual
