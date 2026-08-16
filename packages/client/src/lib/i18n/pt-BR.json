@@ -799,6 +799,7 @@
   "FUSION.Chat.Context.Loading": "Carregando contexto…",
   "FUSION.Chat.Context.Empty": "Nada para mostrar aqui.",
   "FUSION.Chat.Context.TargetLabel": "Mensagem do resultado",
+  "FUSION.Chat.Target.Label": "contra {{name}}",
   "FUSION.Chat.Invalidated.Badge": "invalidada",
   "FUSION.Chat.Invalidated.By": "Invalidada por {{who}}",
   "FUSION.Chat.SpellCard.Title": "Magia lançada",

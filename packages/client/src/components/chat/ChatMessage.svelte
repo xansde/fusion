@@ -16,6 +16,10 @@
    * REQ-ACH-022/023: the nested child rolls and every target's saving throw get
    * the same breakdown treatment, formatted by lib/chat/rollDisplay.ts.
    * REQ-ACH-024: at most four save lines, with a control that expands to all.
+   * REQ-ACH-070/071: when the server graded the roll against a target, the card
+   * names that target beside the degree of success. Without a target there is
+   * no degree to paint — the card stops at the total, and this component never
+   * invents a grade the server did not compute.
    * REQ-ACH-025: `continuesPrevious` drops the repeated header of a run of
    * consecutive messages by the same author (the run is computed by
    * lib/chat/chatGrouping.ts — cards, whispers and invalidated never join one).
@@ -215,6 +219,12 @@
     {#each formattedRolls as roll, idx (roll.rollId)}
       {@const totalClass = getRollTotalClass(roll)}
       {@const display = rollDisplays[idx]}
+      <!--
+        REQ-ACH-070: the portrait the server graded this roll against. Read from
+        the raw roll (the formatter carries only what it formats), and painted
+        only when it is there — REQ-ACH-071 keeps a targetless roll at its total.
+      -->
+      {@const target = message.rolls?.[idx]?.target}
       <div class="roll-card">
         <!-- Roll header -->
         <div class="roll-card__header">
@@ -267,6 +277,18 @@
         <div class="roll-card__total roll-card__total--{totalClass || 'normal'}">
           {roll.total}
         </div>
+
+        <!--
+          Target (REQ-ACH-070) — the name of who the roll was aimed at, right
+          above the degree it produced, so the two read as one sentence. The AC
+          is never printed: it does not even reach a player's payload
+          (REQ-ACH-073).
+        -->
+        {#if target}
+          <div class="roll-card__target">
+            {t("FUSION.Chat.Target.Label", { name: target.name })}
+          </div>
+        {/if}
 
         <!-- Degree of success (r17.1) — localized badge + basic-save damage hint -->
         {#if roll.degreeOfSuccess}
@@ -559,6 +581,15 @@
   .roll-card__total--fumble {
     color: var(--fusion-danger);
     text-shadow: 0 0 16px rgba(255, 92, 92, 0.45);
+  }
+
+  /* REQ-ACH-070: the target, quieter than the degree it explains. */
+  .roll-card__target {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--fusion-text-muted);
+    padding: 0 0.6rem 0.2rem;
+    font-style: italic;
   }
 
   .roll-card__dos {

@@ -7,7 +7,8 @@
  * only appears after a click simply is not in this string — which is the whole point of
  * REQ-ACH-021 ("sem exigir interação").
  *
- * Covers REQ-ACH-021, REQ-ACH-022, REQ-ACH-023, REQ-ACH-024 and REQ-ACH-025.
+ * Covers REQ-ACH-021, REQ-ACH-022, REQ-ACH-023, REQ-ACH-024, REQ-ACH-025,
+ * REQ-ACH-070 and REQ-ACH-071.
  */
 
 import { describe, expect, it } from "vitest";
@@ -262,6 +263,66 @@ describe("REQ-ACH-024 — at most four save lines, with a control for the rest",
     const body = renderMsg(parent, { children: six.slice(0, 4) });
     expect(saveLines(body)).toBe(4);
     expect(body).not.toContain(t("FUSION.Chat.SpellCard.ShowAllSaves", { count: "4" }));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-ACH-070 / REQ-ACH-071 — the target is named, and only then is it graded
+// ---------------------------------------------------------------------------
+
+describe("REQ-ACH-070 — an attack against a target shows the name and the degree", () => {
+  const attackOnTarget = msg("m-tgt", {
+    type: "roll",
+    content: "",
+    rolls: [
+      rollData({
+        rollId: "r-tgt",
+        formula: "1d20+9",
+        expandedFormula: "1d20+9",
+        total: 22,
+        degreeOfSuccess: "success",
+        // The portrait the server wrote (REQ-ACH-072); `ac` only reaches a
+        // privileged viewer (REQ-ACH-073).
+        target: { name: "Goblin Guerreiro", ac: 16 },
+        terms: [
+          diceTerm("1d20", 20, [13]),
+          { type: "operator", expression: "+", total: 0 },
+          { type: "numeric", expression: "9", total: 9 },
+        ],
+      }),
+    ],
+  });
+
+  it("names the target on the roll card", () => {
+    const body = renderMsg(attackOnTarget);
+    expect(body).toContain(escaped(t("FUSION.Chat.Target.Label", { name: "Goblin Guerreiro" })));
+  });
+
+  it("shows the degree of success beside it", () => {
+    const body = renderMsg(attackOnTarget);
+    expect(body).toContain(t("FUSION.Chat.Degree.success"));
+    expect(body).toContain("roll-card__dos");
+  });
+});
+
+describe("REQ-ACH-071 — without a target the card stops at the total", () => {
+  const plainRoll = msg("m-plain", { type: "roll", content: "", rolls: [rollData()] });
+
+  it("prints the total", () => {
+    expect(renderMsg(plainRoll)).toContain(">9<");
+  });
+
+  it("presents no degree of success at all", () => {
+    const body = renderMsg(plainRoll);
+    expect(body).not.toContain("roll-card__dos");
+    for (const degree of ["criticalSuccess", "success", "failure", "criticalFailure"]) {
+      expect(body).not.toContain(t(`FUSION.Chat.Degree.${degree}`));
+    }
+  });
+
+  it("names no target", () => {
+    const body = renderMsg(plainRoll);
+    expect(body).not.toContain("roll-card__target");
   });
 });
 
