@@ -54,6 +54,16 @@ const ICON = '<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z" /></svg>';
 /** Every loader call is recorded — this is what proves RNF-GAV-02. */
 let loadCalls: string[] = [];
 
+/**
+ * Resolvers of the loads still in flight, by tab id, in deferred mode.
+ *
+ * The default fixture hands back `Promise.resolve(...)`, which always settles in call
+ * order — so it can never produce the race REQ-GAV-017 exists for. Deferred mode holds
+ * each loader open until `resolvePanel(id)` is called, which is what lets a test resolve
+ * the *second* tab before the first and see whether the late one still lands.
+ */
+let pendingLoads = new Map<string, (module: { default: string }) => void>();
+
 const CORE_TABS = [
   { id: "chat", group: "all" as const },
   { id: "combat", group: "all" as const },
@@ -63,7 +73,7 @@ const CORE_TABS = [
   { id: "settings", group: "all" as const },
 ];
 
-function registerCoreTabs(): void {
+function registerCoreTabs(options: { deferred?: boolean } = {}): void {
   for (const tab of CORE_TABS) {
     registerSidebarTab({
       id: tab.id,
@@ -72,10 +82,29 @@ function registerCoreTabs(): void {
       group: tab.group,
       component: () => {
         loadCalls.push(tab.id);
-        return Promise.resolve({ default: `panel:${tab.id}` });
+        if (options.deferred !== true) return Promise.resolve({ default: `panel:${tab.id}` });
+        return new Promise<{ default: string }>((resolve) => {
+          pendingLoads.set(tab.id, resolve);
+        });
       },
     });
   }
+}
+
+/** Re-register the same tabs with loaders the test resolves by hand. */
+function useDeferredPanels(): void {
+  clearSidebarTabs();
+  loadCalls = [];
+  pendingLoads = new Map();
+  registerCoreTabs({ deferred: true });
+}
+
+/** Let one in-flight deferred load land. The ORDER of these calls is the point. */
+function resolvePanel(id: string): void {
+  const resolve = pendingLoads.get(id);
+  expect(resolve, `no deferred load is in flight for "${id}"`).toBeDefined();
+  pendingLoads.delete(id);
+  resolve!({ default: `panel:${id}` });
 }
 
 interface DrawerOptions {
@@ -106,6 +135,7 @@ describe("SidebarDrawerState", () => {
     localStorage.clear();
     clearSidebarTabs();
     loadCalls = [];
+    pendingLoads = new Map();
     registerCoreTabs();
   });
 
@@ -207,13 +237,43 @@ describe("SidebarDrawerState", () => {
     });
 
     it("REQ-GAV-017: a late-resolving panel never lands on a tab the user already left", async () => {
-      const drawer = makeDrawer();
+      useDeferredPanels();
+
+      const drawer = makeDrawer(); // opens on "scenes"; that import stays in flight
       drawer.select("chat");
+      const chatLoad = drawer.settled();
       drawer.select("combat");
-      await drawer.settled();
+      const combatLoad = drawer.settled();
+
+      // The tab the user is actually on resolves first...
+      resolvePanel("combat");
+      await combatLoad;
+      expect(drawer.panel).toBe("panel:combat");
+
+      // ...and only then does the import of the tab they left come back. It is late,
+      // so it must be dropped instead of overwriting what is on screen.
+      resolvePanel("chat");
+      await chatLoad;
 
       expect(drawer.activeTabId).toBe("combat");
       expect(drawer.panel).toBe("panel:combat");
+    });
+
+    it("REQ-GAV-017: a panel that resolves after the drawer collapsed is never mounted", async () => {
+      useDeferredPanels();
+
+      const drawer = makeDrawer();
+      drawer.select("chat");
+      const chatLoad = drawer.settled();
+
+      drawer.select("chat"); // collapse (REQ-GAV-011) with the import still in flight
+      expect(drawer.open).toBe(false);
+
+      resolvePanel("chat");
+      await chatLoad;
+
+      expect(drawer.open).toBe(false);
+      expect(drawer.panel).toBeNull(); // nothing mounts behind a closed drawer
     });
   });
 

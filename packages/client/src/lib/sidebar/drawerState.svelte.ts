@@ -55,8 +55,6 @@ export class SidebarDrawerState {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   #panel = $state<SidebarPanelComponent>(null);
 
-  /** Guards against a slow import landing on a tab the user already left. */
-  #loadSeq = 0;
   /** In-flight panel import, exposed through `settled()` for tests and callers. */
   #pending: Promise<void> = Promise.resolve();
 
@@ -118,7 +116,6 @@ export class SidebarDrawerState {
     if (this.#open && this.#activeTabId === tabId) {
       this.#open = false;
       this.#panel = null; // REQ-GAV-017: nothing stays mounted behind a closed drawer
-      this.#loadSeq += 1; // any in-flight import is now stale
       this.#persist();
       return;
     }
@@ -150,12 +147,18 @@ export class SidebarDrawerState {
    */
   #loadActivePanel(): void {
     const tabId = this.#activeTabId;
-    const token = ++this.#loadSeq;
 
     this.#pending = loadSidebarPanel(tabId)
       .then((component: SidebarPanelComponent) => {
-        // Stale import: the user switched or collapsed while it was in flight.
-        if (token !== this.#loadSeq) return;
+        // The single staleness guard (REQ-GAV-017): an import only mounts if, by the
+        // time it lands, the drawer is still open on the very tab it was started for.
+        // A switch or a collapse in the meantime drops it on the floor.
+        //
+        // This is checked against live state rather than a sequence token on purpose.
+        // A token would be a second, redundant guard — the registry memoises panels
+        // per tab id, so a superseded load for the *same* tab resolves to the exact
+        // component the current load will produce. Two guards that shadow each other
+        // are two guards no test can pin down individually.
         if (!this.#open || this.#activeTabId !== tabId) return;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         this.#panel = component;
