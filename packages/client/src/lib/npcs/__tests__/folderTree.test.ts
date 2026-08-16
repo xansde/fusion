@@ -155,15 +155,22 @@ describe("REQ-NPC-023 / REQ-NPC-024: pinning is a view, and unpinning restores n
     expect(folderPath(tree, "fld-taverna")).toEqual(["Aldeia"]);
   });
 
-  it("REQ-NPC-023: the pinned folder stays in its own place in the tree as well", () => {
+  it("REQ-NPC-023: a pinned folder leaves its place in the tree — the whole subtree goes with it", () => {
     const tree = buildFolderTree(FOLDERS, ACTORS, "Actor");
-    const pinned = new Set(["fld-porao"]);
+    const pinned = new Set(["fld-taverna"]);
     const rows = flattenTree(tree, new Set(), pinned);
 
-    const porao = rows.find((row) => row.node.id === "fld-porao");
-    expect(porao).toBeDefined();
-    expect(porao!.node.depth).toBe(2);
-    expect(porao!.pinned).toBe(true);
+    // Taverna itself is gone from the main tree ("fora da posição delas na
+    // árvore", REQ-NPC-023/DEC-NPC-03) — it lives in the pinned block instead.
+    expect(rows.find((row) => row.node.id === "fld-taverna")).toBeUndefined();
+    // Its child Porão travels with it: the subtree is not left behind to be
+    // reparented into the main tree.
+    expect(rows.find((row) => row.node.id === "fld-porao")).toBeUndefined();
+    // What did not get pinned stays exactly where it always was.
+    expect(names(rows.map((row) => row.node))).toEqual(["Aldeia", "Bosque"]);
+    // A row that does survive the walk is never the pinned one — the field only
+    // exists so callers do not have to re-check the pinned set themselves.
+    expect(rows.every((row) => row.pinned === false)).toBe(true);
   });
 
   it("REQ-NPC-024: unpinning gives back exactly the tree of before — nothing was remembered", () => {
@@ -175,8 +182,12 @@ describe("REQ-NPC-023 / REQ-NPC-024: pinning is a view, and unpinning restores n
     );
     const after = flattenTree(tree, new Set(), new Set()).map((row) => row.node.id);
 
-    // Pinning never moved the folder, so unpinning has nothing to put back.
-    expect(whilePinned).toEqual(before);
+    // While pinned, Porão is genuinely missing from the tree — proving the
+    // citation below is not comparing a walk against itself.
+    expect(whilePinned).not.toEqual(before);
+    expect(whilePinned).toEqual(before.filter((id) => id !== "fld-porao"));
+    // Unpinning gives back exactly the tree of before: nothing was remembered,
+    // there was nothing TO remember.
     expect(after).toEqual(before);
     expect(pinnedFolders(tree, new Set()).length).toBe(0);
   });

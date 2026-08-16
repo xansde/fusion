@@ -230,8 +230,10 @@ describe("REQ-NPC-023 / REQ-NPC-025: the pinned block, and whose device it belon
     expect(body).toContain("Aldeia");
     // The block sits ABOVE the tree, outside the folder's own position.
     expect(body.indexOf("data-npc-pinned-block")).toBeLessThan(body.indexOf("data-npc-tree"));
-    // And the folder is still drawn in its own place (REQ-NPC-023).
-    expect(folderRow(body, "fld-taverna000001")).toContain('data-pinned="true"');
+    // And the folder is gone from its own place in the tree (REQ-NPC-023/
+    // DEC-NPC-03: "fora da posição delas na árvore") — the pinned block above is
+    // where it lives now, not an extra way in.
+    expect(folderRow(body, "fld-taverna000001")).toBeNull();
   });
 
   it("REQ-NPC-025: a second Mestre, in the same world, sees no pinned block at all", () => {

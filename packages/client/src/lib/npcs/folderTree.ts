@@ -223,7 +223,12 @@ export function pinnedFolders(tree: FolderTree, pinned: ReadonlySet<string>): Pi
 export interface FolderRow {
   readonly node: FolderTreeNode;
   readonly collapsed: boolean;
-  /** True when the folder is also shown in the pinned block (REQ-NPC-023). */
+  /**
+   * Always `false`: a pinned folder never reaches `flattenTree`'s output at all
+   * (REQ-NPC-023/DEC-NPC-03 — it moves to the pinned block instead of staying
+   * here). Kept in the shape for callers that still want to say "this row is
+   * never the pinned one" without reading `pinned.has(node.id)` themselves.
+   */
   readonly pinned: boolean;
 }
 
@@ -231,9 +236,13 @@ export interface FolderRow {
  * Flatten the tree into the rows to draw, skipping everything under a collapsed
  * folder (REQ-NPC-027).
  *
- * A pinned folder is NOT removed from its place in the tree: the block at the top
- * is an extra way in, not a move — which is the same reason unpinning has nothing
- * to restore (REQ-NPC-024).
+ * A pinned folder is removed from its place in the tree, along with everything
+ * under it: REQ-NPC-023 puts the pinned block "fora da posição delas na árvore",
+ * and DEC-NPC-03 repeats it — the block at the top is where the folder lives now,
+ * not an extra way in. The whole subtree travels with it (the decided design of
+ * §13's prototype: a pinned folder's own children are never walked from here
+ * either), which is also why unpinning has nothing to restore (REQ-NPC-024) — no
+ * position was ever kept, because the folder never had two positions at once.
  */
 export function flattenTree(
   tree: FolderTree,
@@ -243,8 +252,14 @@ export function flattenTree(
   const rows: FolderRow[] = [];
   const walk = (branch: readonly FolderTreeNode[]): void => {
     for (const node of branch) {
+      // REQ-NPC-023/DEC-NPC-03: a pinned folder and its whole subtree move to
+      // the pinned block, so this walk neither draws a row for it nor descends
+      // into its children from here — the same loop check covers roots and
+      // nested folders alike.
+      if (pinned.has(node.id)) continue;
       const isCollapsed = collapsed.has(node.id);
-      rows.push({ node, collapsed: isCollapsed, pinned: pinned.has(node.id) });
+      // Past the guard above, a row reaching this line is never pinned.
+      rows.push({ node, collapsed: isCollapsed, pinned: false });
       if (!isCollapsed) walk(node.children);
     }
   };

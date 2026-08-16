@@ -816,9 +816,11 @@
     />
   {/if}
 
-  <!-- REQ-NPC-023: the pinned block sits at the TOP, outside the folder's place in
-       the tree, and shows the mother's path so two folders with the same name are
-       still tellable apart. The folder is NOT removed from the tree below. -->
+  <!-- REQ-NPC-023/DEC-NPC-03: the pinned block sits at the TOP, outside the
+       folder's place in the tree, and shows the mother's path so two folders with
+       the same name are still tellable apart. The folder (and its whole subtree)
+       IS removed from the tree below — `flattenTree` never draws it there while
+       it is pinned (see folderTree.ts). -->
   {#if pinnedBlock.length > 0}
     <section
       class="npcs-panel__pinned"
