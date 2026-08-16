@@ -56,6 +56,7 @@
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
+  import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
@@ -92,6 +93,13 @@
   // true only once init() has resolved; the $effect is gated on it so no
   // loadSceneDocument call can reach the canvas before its layers exist.
   let canvasReady = $state(false);
+
+  // ---- Refused drop over the scene (REQ-CPD-063) ----
+  // A compendium entry with no destination on the map must be refused WITH a
+  // message and without importing anything. "Nothing happened" is not a
+  // message, so the refusal is shown here and fades on its own.
+  let dropRefusal = $state<string | null>(null);
+  const DROP_REFUSAL_MS = 4000;
 
   // ---- What THIS canvas draws (spec 44 §5.6, DEC-CEN-03) ----
   // Normally the scene on air. While this Master is preparing a scene, it is the
@@ -336,12 +344,26 @@
     }
 
     const compPayload = _getCompendiumDragPayload(event);
-    if (compPayload && compPayload.kind === "compendium-actor") {
+    // REQ-CPD-062/063: decide BEFORE importing. Only an actor has a destination
+    // on the map; anything else is refused with a message and nothing is
+    // brought to the world — a refusal that imported first would be a lie.
+    const decision = decideSceneDrop(compPayload);
+    if (decision && !decision.accepted) {
       event.preventDefault();
+      dropRefusal = t(decision.reasonKey);
+      window.setTimeout(() => {
+        dropRefusal = null;
+      }, DROP_REFUSAL_MS);
+      return;
+    }
+    if (decision?.accepted) {
+      event.preventDefault();
+      dropRefusal = null;
+      const accepted = decision.payload;
       // Import the actor to world, then create a token at the drop location.
       void (async () => {
         try {
-          const result = await compendiumImportToWorld(sock, [compPayload.uuid]);
+          const result = await compendiumImportToWorld(sock, [accepted.uuid]);
           const createdId = result.created[0];
           if (!createdId) return;
           const gridSize = scene.grid?.size ?? 100;
@@ -350,9 +372,9 @@
             kind: "actor",
             uuid: createdId,
             documentType: "Actor",
-            subtype: compPayload.subtype ?? "npc",
-            name: compPayload.name,
-            img: compPayload.img,
+            subtype: accepted.subtype ?? "npc",
+            name: accepted.name,
+            img: accepted.img,
             origin: "sidebar",
           };
           const fields = buildTokenFromActorFields({
@@ -574,6 +596,11 @@
     <NoSceneOverlay isGm={isGm()} />
   {/if}
 
+  <!-- REQ-CPD-063: a compendium drop the map has no place for says so. -->
+  {#if dropRefusal}
+    <p class="drop-refusal" role="status">{dropRefusal}</p>
+  {/if}
+
   <!-- REQ-CEN-052: while a prepare lasts, the canvas keeps a persistent notice naming
        the scene the TABLE is watching, with the two ways out. -->
   {#if prepareNotice}
@@ -657,6 +684,27 @@
 </div>
 
 <style>
+  /*
+   * The refused-drop message (REQ-CPD-063). Sits above the canvas, below the
+   * header, and never takes the pointer — it reports, it does not block.
+   */
+  .drop-refusal {
+    position: absolute;
+    top: calc(var(--fusion-header-height, 48px) + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 120;
+    margin: 0;
+    max-width: min(90vw, 32rem);
+    padding: 0.4rem 0.75rem;
+    background: var(--fusion-surface, #1e1e1e);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+
   .table-shell {
     position: relative;
     width: 100%;

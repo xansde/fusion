@@ -1,174 +1,752 @@
 <script lang="ts">
   /**
-   * CompendiumBrowser.svelte — Compendium tab panel.
+   * CompendiumBrowser.svelte — the Compendium tab of the side drawer.
    *
-   * Displays available packs grouped by documentType, allows searching and
-   * filtering entries, previewing documents, importing to the world, and
-   * drag-and-drop to canvas or sheet.
+   * Spec 43 (`specs/43-aba-compendio.md`) §5.2, DEC-CPD-01: one panel, two
+   * bodies — the **shelf** and the **search result** — and the body is derived
+   * from the scope plus what is typed (REQ-CPD-010). There is no mode switch to
+   * press: at root with an empty search you get the shelf (REQ-CPD-011); type
+   * anything, or set a facet, and the same panel answers over the whole visible
+   * collection (REQ-CPD-012); open a pack and the body is that pack's index,
+   * with the search confined to it and an explicit way to widen the same text
+   * back to everything (REQ-CPD-013/014).
    *
-   * REQ-CMP-012..018, REQ-CMP-021
-   * Spec: 16-compendiums-e-importacao.md §Compendium browser (UI)
+   * The decision itself lives in `lib/compendium/browserScope.ts` as pure
+   * transitions — this file holds one `$state` of that shape and renders it.
+   *
+   * The header always names the scope and offers the way back (REQ-CPD-015),
+   * and the search bar sits OUTSIDE the single scrolling area so it never
+   * scrolls away in either body (REQ-CPD-016). Nothing here sets a width: the
+   * drawer owns it, so switching body cannot move it (REQ-CPD-017, REQ-GAV-012).
+   *
+   * The facets of §5.4 live in that same header (REQ-CPD-033): document type,
+   * rarity, level range and — once the answer spans more than one pack — source,
+   * each of them said out loud as a removable chip (REQ-CPD-034). They are drawn
+   * where they are visible in BOTH scopes on purpose: a facet the reader cannot
+   * see is a facet he cannot take off. `lib/compendium/aggregatedFacets.ts` owns
+   * the choices, the chips, and the two facets the server's payload has no field
+   * for.
+   *
+   * Typing is not one request per key, and a late answer never repaints over a
+   * newer one — both halves of RNF-CPD-02, both in
+   * `lib/compendium/searchScheduler.ts`.
+   *
+   * Failure has THREE channels here, and they are separate because they mean
+   * different things (REQ-CPD-091): `error` is a body that could not be built
+   * (listing packs, opening a pack) and carries the retry of the very call that
+   * failed; `searchError` is an answer that did not come and carries its own new
+   * attempt; `importError`/`importSuccess` are the visible return of bringing an
+   * entry over (REQ-CPD-060), which must never destroy the list underneath.
+   *
+   * The shelf body itself is `CompendiumShelf.svelte` (G092): packs grouped by
+   * document type, collapsible, each row showing its license (REQ-CPD-020..025).
+   * This file owns what surrounds it — the loading, the scope, and the collapse
+   * state it persists per world and user.
+   *
+   * Every line of either body is `CompendiumResultLine.svelte` (G093), built by
+   * `lib/compendium/resultLine.ts`: two names, the fields the pack declared, the
+   * matched run marked, and the in-world seal (REQ-CPD-040..046). This file
+   * supplies what the entry cannot know — the reader's role, the open pack's
+   * declared index fields, and the world's origin index.
+   *
+   * Previewing does NOT happen in this panel (G094, DEC-CPD-03): it opens a
+   * floating window through `lib/compendium/previewWindow.ts`, so the list stays
+   * where it was and two documents can be compared side by side (REQ-CPD-050,
+   * REQ-CPD-054). This file therefore holds no preview state at all — the blade
+   * that used to replace the list here is gone.
+   *
+   * Bringing an entry over (G095, DEC-CPD-05) has TWO destinations and one
+   * gesture: the world, which stays privileged (REQ-CPD-060), and a SHEET the
+   * seat owns, which is open to a player because the predicate is `OWNER` of
+   * the destination and it is checked on the server (REQ-CPD-061/073). The
+   * destination is chosen once, in the header, and the per-line action follows
+   * it — the seal never blocks it, so bringing the same entry twice is two
+   * documents (REQ-CPD-064). The batch runs through `lib/compendium/
+   * batchImport.ts`, with progress and a cancel that reports what already
+   * landed instead of pretending nothing did (REQ-CPD-065).
+   *
+   * What this panel does NOT do (REQ-CPD-066): create a document from scratch,
+   * or edit a pack document. Authoring is spec 42's.
+   *
+   * REQ-CMP-012..018, REQ-CMP-021.
    */
 
   import type { Socket } from "socket.io-client";
   import type { PackManifest, PackIndexEntry } from "@fusion/shared";
   import {
-    groupPacksByType,
     filterEntries,
     buildSearchQuery,
     buildCompendiumDragPayload,
     sortEntries,
-    buildDocumentPreview,
-    highlightMatch,
-    isKnownPlaceholderImg,
-    fallbackIcon,
-    entryDisplayName,
-    entrySecondaryName,
-    type BrowserFilterState,
-    type PackGroup,
+    buildSearchAllPayload,
+    documentTypeLabelKey,
+    normalizeAggregatedSearchResult,
+    type AggregatedSearchResult,
     type SortField,
     type CompendiumDragPayload,
   } from "../../lib/compendium/compendiumBrowser.js";
   import {
+    buildResultLine,
+    buildWorldOriginIndex,
+    EMPTY_WORLD_ORIGIN_INDEX,
+    type ResultLine,
+    type WorldOriginIndex,
+  } from "../../lib/compendium/resultLine.js";
+  import { openCompendiumPreviewWindow } from "../../lib/compendium/previewWindow.js";
+  import CompendiumResultLine from "./CompendiumResultLine.svelte";
+  import { worldMirror } from "../../lib/docs/index.js";
+  import {
+    backToShelf,
+    bodyMode,
+    buildScopedSearchQuery,
+    canWidenToWholeCollection,
+    describeScope,
+    initialBrowserScope,
+    openPack,
+    setFacet,
+    clearFacet,
+    setSearch,
+    widenToWholeCollection,
+    type ScopedSearchQuery,
+  } from "../../lib/compendium/browserScope.js";
+  import {
+    applyAggregatedFacets,
+    describeActiveFacets,
+    documentTypeChoices,
+    rarityChoices,
+    sourceChoices,
+    type FacetChip,
+    type FacetChoice,
+  } from "../../lib/compendium/aggregatedFacets.js";
+  import { createSearchScheduler } from "../../lib/compendium/searchScheduler.js";
+  import CompendiumShelf from "./CompendiumShelf.svelte";
+  import {
+    buildShelfGroups,
+    loadCollapsedGroups,
+    saveCollapsedGroups,
+    toggleCollapsedGroup,
+  } from "../../lib/compendium/compendiumShelf.js";
+  import CompendiumMarks from "./CompendiumMarks.svelte";
+  import {
+    filterByVisiblePacks,
+    isEntryPinned,
+    loadBrowserView,
+    loadPinnedEntries,
+    loadRecentEntries,
+    reconcileBrowserView,
+    recordRecentEntry,
+    saveBrowserView,
+    savePinnedEntries,
+    saveRecentEntries,
+    togglePinnedEntry,
+    type CompendiumEntryRef,
+    type CompendiumRecentEntry,
+    type CompendiumRecentReason,
+  } from "../../lib/compendium/compendiumPrefs.js";
+  import {
     listPacks,
     getPackIndex,
-    getDocument,
     importToWorld,
+    importToActor,
+    searchAllPacks,
   } from "../../lib/compendium/compendiumApi.js";
-  import { i18n } from "../../lib/i18n/i18n.js";
+  import {
+    buildSheetTargets,
+    canBringToSheet,
+    canBringToWorld,
+    type SheetTarget,
+  } from "../../lib/compendium/importTargets.js";
+  import {
+    batchOutcomeMessage,
+    runBatchImport,
+    type BatchImportProgress,
+    type BatchImportRun,
+  } from "../../lib/compendium/batchImport.js";
+  import {
+    finishCompendiumBatchImport,
+    startCompendiumBatchImport,
+  } from "../../lib/compendium/importActivity.js";
+  import { i18n, t } from "../../lib/i18n/i18n.js";
 
-  const { socket, isGm }: { socket: Socket; isGm: boolean } = $props();
+  /**
+   * The drawer hands every panel the same bag (`SidebarPanelProps`).
+   * `worldId`/`userId` scope what this panel keeps on the device — today the
+   * collapsed shelf groups (REQ-CPD-023); G096 adds the scope and the pinned
+   * packs to the same scoping.
+   */
+  interface Props {
+    socket: Socket;
+    isGm?: boolean;
+    worldId?: string;
+    userId?: string;
+    activeSceneId?: string | null;
+  }
 
-  // ---- State ----
+  const { socket, isGm = false, worldId = "", userId = "" }: Props = $props();
 
-  let groups = $state<PackGroup[]>([]);
-  let selectedPack = $state<PackManifest | null>(null);
-  let packEntries = $state<PackIndexEntry[]>([]);
+  // ---- Scope (REQ-CPD-010..015) ----
+
+  let scopeState = $state(initialBrowserScope());
+
+  const mode = $derived(bodyMode(scopeState));
+  const scopeInfo = $derived(describeScope(scopeState));
+  const canWiden = $derived(canWidenToWholeCollection(scopeState));
+  const openPackId = $derived(scopeState.scope.kind === "pack" ? scopeState.scope.packId : null);
+
+  // ---- Shelf state ----
+
+  let packs = $state<PackManifest[]>([]);
   let loading = $state(false);
+  /**
+   * Failure of the two calls that BUILD a body — listing packs and opening a
+   * pack. It replaces the body, so it must never carry a failure that did not
+   * destroy the body (an import that was refused, for instance: that one has its
+   * own channel below, REQ-CPD-060).
+   */
   let error = $state<string | null>(null);
-  let importingUuids = $state<Set<string>>(new Set());
-  let importSuccess = $state<string | null>(null);
+  /**
+   * What "try again" retries. REQ-CPD-091 asks for a new attempt, and a button
+   * that always re-lists the packs is not one when what failed was opening a
+   * pack — it clears the message and leaves an empty list, which is the silent
+   * empty list the same requirement forbids. So the failing call stores ITSELF
+   * here.
+   */
+  let retryAction = $state<(() => void) | null>(null);
 
-  // Preview state
-  let previewDoc = $state<Record<string, unknown> | null>(null);
-  let previewLoading = $state(false);
-  let previewImgBroken = $state(false);
-  /** Set when the preview FETCH failed, or when its RENDER threw (via the
-   * <svelte:boundary> below). A render error must not leave the spinner
-   * spinning forever (lesson r10) — it surfaces here as a visible error with
-   * a retry affordance. */
-  let previewError = $state<string | null>(null);
-  /** Last previewed entry, kept so the retry button can re-run the fetch. */
-  let lastPreviewEntry = $state<PackIndexEntry | null>(null);
+  const selectedPack = $derived(packs.find((pack) => pack.id === openPackId) ?? null);
 
-  // Filter state
-  let filterState = $state<BrowserFilterState>({ text: "" });
+  /**
+   * Which shelf groups are collapsed (REQ-CPD-023). Read from the device for
+   * this world and user, and written back on every toggle — spec 43 §7 keeps it
+   * local because it is ergonomics, not world state (DEC-UIF-10).
+   */
+  let collapsedGroups = $state<ReadonlySet<string>>(new Set<string>());
+
+  $effect(() => {
+    collapsedGroups = loadCollapsedGroups(worldId, userId);
+  });
+
+  const shelfGroups = $derived(
+    buildShelfGroups(packs, { viewerIsPrivileged: isGm, collapsed: collapsedGroups }),
+  );
+
+  // ---- What survives a tab switch, and the marks (REQ-CPD-080..084) ----
+
+  /**
+   * The drawer unmounts this panel when the user goes to Chat (REQ-GAV-017), so
+   * the scope, the text and the facets are read back from the browser session on
+   * the way in (REQ-CPD-080) and written on every change. `sessionStorage` is
+   * the whole expiry rule: closing the browser tab starts clean (DEC-CPD-09).
+   */
+  let viewRestored = false;
+
+  $effect(() => {
+    if (viewRestored) return;
+    viewRestored = true;
+    scopeState = loadBrowserView(worldId, userId);
+  });
+
+  $effect(() => {
+    if (!viewRestored) return;
+    saveBrowserView(worldId, userId, scopeState);
+  });
+
+  /** Pinned entries and the recently used block — on the device (REQ-CPD-082/083). */
+  let pinnedEntries = $state<readonly CompendiumEntryRef[]>([]);
+  let recentEntries = $state<readonly CompendiumRecentEntry[]>([]);
+
+  $effect(() => {
+    pinnedEntries = loadPinnedEntries(worldId, userId);
+    recentEntries = loadRecentEntries(worldId, userId);
+  });
+
+  const visiblePackIds = $derived(packs.map((pack) => pack.id));
+
+  /**
+   * REQ-CPD-084: a mark whose pack the seat can no longer see is simply not
+   * drawn — no error, nothing else removed, and nothing deleted from the device.
+   */
+  const drawnPinned = $derived(filterByVisiblePacks(pinnedEntries, visiblePackIds));
+  const drawnRecent = $derived(filterByVisiblePacks(recentEntries, visiblePackIds));
+
+  // ---- Pack index state (scope = one pack) ----
+
+  let packEntries = $state<PackIndexEntry[]>([]);
+  let loadedPackId = $state<string | null>(null);
+  /** System-declared filters of the open pack (REQ-CPD-035) — pack-local. */
+  let packFilters = $state<{ subtype?: string; trait?: string }>({});
   let sortField = $state<SortField>("name");
   let sortAsc = $state(true);
 
-  // ---- Derived ----
+  // ---- Aggregated result state (scope = root, something asked for) ----
 
-  const filteredEntries = $derived.by(() => {
-    if (!selectedPack) return [];
-    const query = buildSearchQuery(selectedPack.id, filterState);
-    const filtered = filterEntries(packEntries, query);
-    return sortEntries(filtered, sortField, sortAsc);
+  let aggregated = $state<AggregatedSearchResult | null>(null);
+  let searching = $state(false);
+  let searchError = $state<string | null>(null);
+
+  /**
+   * RNF-CPD-02, both halves, and neither of them here: typing must not be one
+   * request per key, and a slow answer must not overwrite a newer one. The rule
+   * lives in `lib/compendium/searchScheduler.ts`, where it is tested with fake
+   * timers and out-of-order answers; this panel only says what to run and where
+   * to put the result.
+   */
+  const searchScheduler = createSearchScheduler<ScopedSearchQuery, unknown>({
+    run: (query) => searchAllPacks(socket, buildSearchAllPayload(query)),
+    onStart: () => {
+      searching = true;
+      searchError = null;
+    },
+    onResult: (raw) => {
+      aggregated = normalizeAggregatedSearchResult(raw);
+      searching = false;
+    },
+    onError: (err) => {
+      aggregated = null;
+      searchError = err instanceof Error ? err.message : t("FUSION.Compendium.SearchFailed");
+      searching = false;
+    },
   });
 
-  const previewData = $derived(previewDoc ? buildDocumentPreview(previewDoc, i18n.locale) : null);
+  /** REQ-CPD-091: the new attempt a failed search must offer, un-grouped. */
+  function retrySearch(): void {
+    searchScheduler.runNow(buildScopedSearchQuery(scopeState));
+  }
+
+  // ---- The world's origin index, for the in-world seal (REQ-CPD-043) ----
+
+  /**
+   * Which entries already produced a document in the world. Read off the world
+   * mirror's Actors and Items — the import preserves `flags.fusion`, which is
+   * the only identity that survives the clone (DEC-CPD-12) — and refreshed
+   * whenever either type changes, so bringing an entry over lights its own seal.
+   */
+  let worldOrigins = $state<WorldOriginIndex>(EMPTY_WORLD_ORIGIN_INDEX);
+  /** The world's actors, for the sheet destinations of §5.7 (REQ-CPD-061). */
+  let worldActors = $state<unknown[]>([]);
+
+  $effect(() => {
+    const refresh = (): void => {
+      const actors = worldMirror.getByType<unknown>("Actor");
+      worldActors = [...actors];
+      worldOrigins = buildWorldOriginIndex([...actors, ...worldMirror.getByType<unknown>("Item")]);
+    };
+    refresh();
+    const offActors = worldMirror.subscribe<unknown>("Actor", refresh);
+    const offItems = worldMirror.subscribe<unknown>("Item", refresh);
+    return () => {
+      offActors();
+      offItems();
+    };
+  });
+
+  // ---- Bringing entries over (G095, DEC-CPD-05) ----
+
+  let importingUuids = $state<Set<string>>(new Set());
+  /**
+   * REQ-CPD-060 asks for a visible return of success AND of failure. Both live
+   * on their own channel, next to the destination picker, and NEITHER goes
+   * through `error`: a refused import (the PERMISSION_DENIED of REQ-CPD-073, say)
+   * must not tear down the list the reader is standing in and offer him a
+   * "try again" that would re-list the packs instead of retrying the import.
+   */
+  let importSuccess = $state<string | null>(null);
+  let importError = $state<string | null>(null);
+
+  const viewer = $derived({ userId, isPrivileged: isGm });
+
+  /**
+   * The sheets this seat may fill (REQ-CPD-061). Computed here only to avoid
+   * offering a door the server would slam — the server re-reads the
+   * destination's ownership on every call (REQ-CPD-074).
+   */
+  const sheetTargets = $derived<SheetTarget[]>(buildSheetTargets(worldActors, viewer));
+
+  /** `"world"` or an actor `_id`. The whole panel brings to one place at a time. */
+  let destination = $state<string>("world");
+
+  /**
+   * The destination actually in force. A player has no world door, so the
+   * stored `"world"` collapses to his first sheet; a seat that lost the sheet
+   * it had chosen falls back the same way instead of pointing at nothing.
+   */
+  const activeDestination = $derived.by<{ kind: "world" } | { kind: "sheet"; target: SheetTarget }>(
+    () => {
+      if (destination !== "world") {
+        const target = sheetTargets.find((s) => s.actorId === destination);
+        if (target) return { kind: "sheet", target };
+      }
+      if (canBringToWorld(viewer)) return { kind: "world" };
+      const first = sheetTargets[0];
+      return first ? { kind: "sheet", target: first } : { kind: "world" };
+    },
+  );
+
+  /** Whether a line of this document type can be brought to the destination. */
+  function canBring(documentType: string): boolean {
+    return activeDestination.kind === "world"
+      ? canBringToWorld(viewer)
+      : canBringToSheet(documentType, sheetTargets);
+  }
+
+  // ---- Batch import (REQ-CPD-065) ----
+
+  let batchRun: BatchImportRun | null = null;
+  let batchProgress = $state<BatchImportProgress | null>(null);
+  /** What the last run left behind — including the partial-state warning. */
+  let batchNotice = $state<string | null>(null);
+
+  // ---- Derived bodies ----
+
+  const filteredEntries = $derived.by(() => {
+    if (!openPackId) return [];
+    const query = buildSearchQuery(openPackId, {
+      text: scopeState.search,
+      ...(packFilters.subtype !== undefined ? { subtype: packFilters.subtype } : {}),
+      ...(packFilters.trait !== undefined ? { trait: packFilters.trait } : {}),
+      ...(scopeState.facets.minLevel !== undefined
+        ? { minLevel: scopeState.facets.minLevel }
+        : {}),
+      ...(scopeState.facets.maxLevel !== undefined
+        ? { maxLevel: scopeState.facets.maxLevel }
+        : {}),
+      // A facet set at root keeps meaning the same thing inside a pack
+      // (REQ-CPD-034) — otherwise opening a pack would silently widen it back.
+      ...(scopeState.facets.rarity !== undefined ? { rarity: scopeState.facets.rarity } : {}),
+    });
+    return sortEntries(filterEntries(packEntries, query), sortField, sortAsc);
+  });
+
+  /**
+   * The aggregated body as it is actually drawn: the server answered text,
+   * level and rarity; document type and source are applied here, because the
+   * `compendium:searchAll` payload has no field for either (see
+   * `aggregatedFacets.ts`).
+   */
+  const visibleAggregated = $derived<AggregatedSearchResult | null>(
+    aggregated ? applyAggregatedFacets(aggregated, scopeState.facets) : null,
+  );
 
   // ---- Lifecycle ----
 
   $effect(() => {
-    loadPacks();
+    void loadPacks();
+  });
+
+  /** Load the index of the open pack, once per pack (RNF-CPD-04: never eagerly). */
+  $effect(() => {
+    const packId = openPackId;
+    if (packId === null || packId === loadedPackId) return;
+    void loadPackIndex(packId);
+  });
+
+  /**
+   * The aggregated body: ONE server query over every visible pack
+   * (REQ-CPD-012, DEC-CPD-02), re-run whenever the question changes.
+   */
+  $effect(() => {
+    const state = scopeState;
+    if (state.scope.kind !== "root" || bodyMode(state) !== "results") {
+      searchScheduler.cancel();
+      aggregated = null;
+      searchError = null;
+      searching = false;
+      return;
+    }
+    // Grouped, not per keystroke (RNF-CPD-02).
+    searchScheduler.schedule(buildScopedSearchQuery(state));
   });
 
   async function loadPacks(): Promise<void> {
     loading = true;
     error = null;
+    retryAction = null;
     try {
       const result = await listPacks(socket);
-      groups = groupPacksByType(result.packs);
+      packs = result.packs;
+      // A restored scope pointing at a pack this seat no longer sees lands back
+      // on the root instead of asking the server for it (REQ-CPD-084).
+      scopeState = reconcileBrowserView(
+        scopeState,
+        packs.map((pack) => pack.id),
+      );
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to load compendium packs";
+      error = err instanceof Error ? err.message : t("FUSION.Compendium.LoadFailed");
+      retryAction = () => void loadPacks();
     } finally {
       loading = false;
     }
   }
 
-  async function selectPack(pack: PackManifest): Promise<void> {
-    selectedPack = pack;
-    packEntries = [];
-    filterState = { text: "" };
-    previewDoc = null;
+  async function loadPackIndex(packId: string): Promise<void> {
     loading = true;
     error = null;
+    retryAction = null;
+    packEntries = [];
     try {
-      const result = await getPackIndex(socket, pack.id);
+      const result = await getPackIndex(socket, packId);
       packEntries = result.entries;
+      loadedPackId = packId;
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to load pack index";
+      error = err instanceof Error ? err.message : t("FUSION.Compendium.LoadFailed");
+      // The new attempt is THIS pack's index, not the pack list (REQ-CPD-091).
+      retryAction = () => void loadPackIndex(packId);
     } finally {
       loading = false;
     }
   }
 
-  function backToPacks(): void {
-    selectedPack = null;
+  // ---- Scope gestures ----
+
+  function selectPack(pack: { id: string; label: string }): void {
+    scopeState = openPack(scopeState, { id: pack.id, label: pack.label });
+    error = null;
+    retryAction = null;
+  }
+
+  /** Collapse/expand one shelf group and remember it on the device (REQ-CPD-023). */
+  function toggleGroup(documentType: string): void {
+    const next = toggleCollapsedGroup(collapsedGroups, documentType);
+    collapsedGroups = next;
+    saveCollapsedGroups(worldId, userId, next);
+  }
+
+  /** REQ-CPD-015: the way back the header always offers. */
+  function goBackToShelf(): void {
+    scopeState = backToShelf(scopeState);
     packEntries = [];
-    previewDoc = null;
+    loadedPackId = null;
+    packFilters = {};
     error = null;
+    retryAction = null;
   }
 
-  async function previewEntry(entry: PackIndexEntry): Promise<void> {
-    lastPreviewEntry = entry;
-    previewLoading = true;
-    previewDoc = null;
-    previewImgBroken = false;
-    previewError = null;
-    try {
-      const result = await getDocument(socket, entry.uuid);
-      previewDoc = result.document;
-    } catch (err) {
-      previewError = err instanceof Error ? err.message : "Falha ao carregar documento";
-    } finally {
-      previewLoading = false;
-    }
+  /** REQ-CPD-014: same text, whole collection. */
+  function widenSearch(): void {
+    scopeState = widenToWholeCollection(scopeState);
+    packEntries = [];
+    loadedPackId = null;
+    packFilters = {};
   }
 
-  /** Re-run the preview for the last entry (fetch or render error recovery). */
-  function retryPreview(): void {
-    if (lastPreviewEntry) void previewEntry(lastPreviewEntry);
+  function onSearchInput(event: Event): void {
+    const value = (event.currentTarget as HTMLInputElement).value;
+    scopeState = setSearch(scopeState, value);
   }
 
-  /** Dismiss the preview entirely (also used to clear an error panel). */
-  function closePreview(): void {
-    previewDoc = null;
-    previewError = null;
+  function onLevelInput(bound: "minLevel" | "maxLevel", event: Event): void {
+    const raw = (event.currentTarget as HTMLInputElement).value;
+    const value = Number.parseInt(raw, 10);
+    scopeState = Number.isFinite(value)
+      ? setFacet(scopeState, bound, value)
+      : clearFacet(scopeState, bound);
   }
 
-  async function importEntry(entry: PackIndexEntry): Promise<void> {
-    if (!isGm) return;
-    importingUuids = new Set([...importingUuids, entry.uuid]);
+  // ---- Facets of §5.4 (REQ-CPD-033/034) ----
+
+  /**
+   * The facets live in the HEADER, outside the scrolling area, and are drawn in
+   * both bodies. Keeping them in the open pack's body only — as this panel used
+   * to — meant that widening a search to the whole collection carried a level
+   * range the reader could no longer see, and therefore could no longer remove.
+   */
+  function onSelectFacet(key: "documentType" | "rarity" | "packId", event: Event): void {
+    const value = (event.currentTarget as HTMLSelectElement).value;
+    scopeState = value === "" ? clearFacet(scopeState, key) : setFacet(scopeState, key, value);
+  }
+
+  /** REQ-CPD-034: one facet off, the others untouched. */
+  function removeFacet(key: FacetChip["facet"]): void {
+    scopeState = clearFacet(scopeState, key);
+  }
+
+  const typeChoices = $derived<FacetChoice[]>(documentTypeChoices(packs));
+  const rarityOptions = $derived<FacetChoice[]>(rarityChoices());
+  /** REQ-CPD-033: source only exists once the answer spans more than one pack. */
+  const packChoices = $derived<FacetChoice[]>(sourceChoices(aggregated));
+  const activeFacetChips = $derived<FacetChip[]>(
+    describeActiveFacets(scopeState.facets, { sources: packChoices }),
+  );
+
+  /** A chip's text, resolved: a translated word, a number, or a pack's label. */
+  function chipLabel(chip: FacetChip): string {
+    const value = chip.valueKey !== undefined ? t(chip.valueKey) : (chip.valueText ?? "");
+    return t(chip.labelKey, { value });
+  }
+
+  /** Open the pack a truncated group points at (REQ-CPD-032, from the result). */
+  function openPackById(packId: string, packLabel: string): void {
+    scopeState = openPack(scopeState, { id: packId, label: packLabel });
+  }
+
+  // ---- Marks: pinning and recording a use (REQ-CPD-082/083) ----
+
+  /** Open the pack a pinned or recent row came from (REQ-CPD-013). */
+  function openPackOfEntry(entry: CompendiumEntryRef): void {
+    openPackById(entry.packId, manifestOf(entry.packId)?.label ?? entry.packId);
+  }
+
+  function togglePin(entry: CompendiumEntryRef): void {
+    const next = togglePinnedEntry(pinnedEntries, entry);
+    pinnedEntries = next;
+    savePinnedEntries(worldId, userId, next);
+  }
+
+  /** Previewing and bringing over are what feed the recent block (REQ-CPD-083). */
+  function noteUse(entry: CompendiumEntryRef, reason: CompendiumRecentReason): void {
+    const next = recordRecentEntry(recentEntries, entry, reason);
+    recentEntries = next;
+    saveRecentEntries(worldId, userId, next);
+  }
+
+  /** The mark of one drawn line — what a pin or a recent row needs to be listed. */
+  function entryRefOf(line: ResultLine): CompendiumEntryRef {
+    return {
+      uuid: line.uuid,
+      packId: line.packId,
+      name: line.nameText,
+      documentType: line.documentType,
+    };
+  }
+
+  // ---- Preview (G094) ----
+
+  /**
+   * Preview leaves the drawer (REQ-CPD-050, DEC-CPD-03): a window of the window
+   * manager opens, keyed by the document's uuid, and this panel keeps drawing
+   * the very same list behind it. Pressing preview twice on one line focuses
+   * the window already open; two different lines are two windows (REQ-CPD-054).
+   * Closing the drawer closes none of them — they are not mounted here.
+   */
+  function openPreview(line: ResultLine, manifest: PackManifest | null): void {
+    noteUse(entryRefOf(line), "preview");
+    openCompendiumPreviewWindow(
+      {
+        uuid: line.uuid,
+        name: line.nameText,
+        documentType: line.documentType,
+        packId: line.packId,
+        packLabel: manifest?.label ?? line.packLabel,
+        packLicense: manifest?.license ?? null,
+        // REQ-CPD-053: the window inherits the line's permission AND its
+        // destination, never widens either. A sheet is handed over only when
+        // the line itself could have brought this type into it (REQ-CPD-061).
+        canImport: activeDestination.kind === "world" && canBringToWorld(viewer),
+        sheetTarget:
+          activeDestination.kind === "sheet" && canBring(line.documentType)
+            ? {
+                actorId: activeDestination.target.actorId,
+                name: activeDestination.target.name,
+              }
+            : null,
+      },
+      t("FUSION.Compendium.Preview.Title"),
+    );
+  }
+
+  // ---- Bringing one entry over (G095) ----
+
+  /**
+   * Send one entry to the destination in force. The two doors of §5.7 are one
+   * gesture here on purpose: the panel never asks the user which permission he
+   * has, it asks WHERE, and the server answers whether that where is his
+   * (REQ-CPD-060, REQ-CPD-061, REQ-CPD-073).
+   *
+   * Nothing consults the in-world seal: bringing an entry that is already in
+   * the world is allowed and makes a second document (REQ-CPD-064).
+   */
+  async function bringOver(line: ResultLine): Promise<void> {
+    const target = activeDestination;
+    if (!canBring(line.documentType)) return;
+
+    importingUuids = new Set([...importingUuids, line.uuid]);
     importSuccess = null;
-    error = null;
+    importError = null;
     try {
-      await importToWorld(socket, [entry.uuid]);
-      importSuccess = `"${entry.name}" importado para o world.`;
+      if (target.kind === "world") {
+        await importToWorld(socket, [line.uuid]);
+        importSuccess = t("FUSION.Compendium.Import.ToWorldDone", { name: line.nameText });
+      } else {
+        await importToActor(socket, [line.uuid], target.target.actorId);
+        importSuccess = t("FUSION.Compendium.Import.ToSheetDone", {
+          name: line.nameText,
+          sheet: target.target.name,
+        });
+      }
+      // Bringing an entry over is a use, like previewing it (REQ-CPD-083).
+      noteUse(entryRefOf(line), "import");
     } catch (err) {
-      error = err instanceof Error ? err.message : "Falha ao importar documento";
+      importError = err instanceof Error ? err.message : t("FUSION.Compendium.Import.Failed");
     } finally {
       const next = new Set(importingUuids);
-      next.delete(entry.uuid);
+      next.delete(line.uuid);
       importingUuids = next;
     }
   }
 
+  // ---- Bringing the whole list over (REQ-CPD-065) ----
+
+  /** The uuids the body is showing right now — what a batch acts on. */
+  const listedUuids = $derived.by<string[]>(() => {
+    if (openPackId !== null) return filteredEntries.map((entry) => entry.uuid);
+    if (!visibleAggregated) return [];
+    return visibleAggregated.groups.flatMap((group) =>
+      group.lines.map((line) => line.entry.uuid),
+    );
+  });
+
+  /**
+   * Batch import (spec 43 §8.3, REQ-CPD-065). The header offers it to a
+   * privileged seat, over whatever the body currently lists.
+   *
+   * The dot on the tab is lit for the whole run and put out on EVERY exit —
+   * finished, failed or cancelled (REQ-CPD-003) — which is why the badge calls
+   * are a try/finally around the await and not a happy-path pair.
+   */
+  function startBatchImport(): void {
+    if (batchRun || listedUuids.length === 0 || activeDestination.kind !== "world") return;
+
+    const runId = `compendium-batch-${String(Date.now())}`;
+    batchNotice = null;
+    startCompendiumBatchImport(runId);
+
+    const run = runBatchImport({
+      uuids: listedUuids,
+      importChunk: async (uuids) => {
+        const result = await importToWorld(socket, [...uuids]);
+        return { created: result.created, failed: result.failed };
+      },
+      onProgress: (progress) => {
+        batchProgress = progress;
+      },
+    });
+    batchRun = run;
+
+    void (async () => {
+      try {
+        const outcome = await run.promise;
+        // The warning REQ-CPD-065 demands: a cancelled run that already brought
+        // documents over says so, with the count, instead of going quiet. The
+        // choice of message lives in `batchOutcomeMessage`, where it is tested.
+        const message = batchOutcomeMessage(outcome);
+        batchNotice = t(message.key, message.vars);
+      } finally {
+        finishCompendiumBatchImport(runId);
+        batchRun = null;
+        batchProgress = null;
+      }
+    })();
+  }
+
+  function cancelBatchImport(): void {
+    batchRun?.cancel();
+  }
+
   // ---- Drag and drop ----
 
-  function handleDragStart(event: DragEvent, entry: PackIndexEntry): void {
-    if (!selectedPack || !event.dataTransfer) return;
-    const payload: CompendiumDragPayload = buildCompendiumDragPayload(entry, selectedPack);
+  function handleDragStart(event: DragEvent, entry: PackIndexEntry, manifest: PackManifest): void {
+    if (!event.dataTransfer) return;
+    const payload: CompendiumDragPayload = buildCompendiumDragPayload(entry, manifest);
     event.dataTransfer.setData("text/plain", JSON.stringify(payload));
     event.dataTransfer.effectAllowed = "copy";
   }
@@ -189,309 +767,709 @@
     return sortAsc ? " ▲" : " ▼";
   }
 
-  // ---- Image fallback ----
-  // Entries store known-placeholder paths (e.g. "icons/placeholder/npc.svg")
-  // that were never populated with a real asset and have no serving route.
-  // Skip fetching them entirely and render a per-type emoji placeholder
-  // instead of a broken-image icon. Real paths that still 404 fall back the
-  // same way via onerror.
+  // ---- Image fallback (REQ-CPD-045) ----
 
+  /** Uuids whose `<img>` failed here, so the line draws its type icon instead. */
   let brokenImgUuids = $state<Set<string>>(new Set());
 
   function handleImgError(uuid: string): void {
     brokenImgUuids = new Set(brokenImgUuids).add(uuid);
   }
 
-  function shouldShowImg(entry: PackIndexEntry): boolean {
-    return !isKnownPlaceholderImg(entry.img) && !brokenImgUuids.has(entry.uuid);
+  // ---- Result lines (REQ-CPD-040..046) ----
+
+  /**
+   * Build one line. Everything the entry cannot know comes from here: the
+   * reader's role (which decides whether a creature statistic may be drawn at
+   * all, REQ-CPD-046), the fields the owning pack declared (REQ-CPD-041), the
+   * world's origin index, and the live set of broken images.
+   */
+  function lineFor(
+    entry: PackIndexEntry,
+    source: { documentType: string; packId: string; packLabel: string | null },
+    indexFields: readonly string[],
+  ): ReturnType<typeof buildResultLine> {
+    return buildResultLine(entry, {
+      documentType: source.documentType,
+      packId: source.packId,
+      packLabel: source.packLabel,
+      indexFields,
+      locale: i18n.locale,
+      search: scopeState.search,
+      viewerIsPrivileged: isGm,
+      worldOrigins,
+      brokenImages: brokenImgUuids,
+    });
+  }
+
+  /** The manifest of a pack named by an aggregated line, when it is loaded. */
+  function manifestOf(packId: string): PackManifest | null {
+    return packs.find((pack) => pack.id === packId) ?? null;
   }
 </script>
 
 <div class="compendium-browser">
-  {#if loading && groups.length === 0 && !selectedPack}
-    <p class="compendium-browser__loading" role="status">Carregando compêndios…</p>
-  {:else if error}
-    <p class="compendium-browser__error" role="alert">{error}</p>
-    <button class="btn btn--sm" onclick={loadPacks}>Tentar novamente</button>
-  {:else if !selectedPack}
-    <!-- Pack list view -->
-    <div class="compendium-browser__packs">
-      {#if groups.length === 0}
-        <p class="compendium-browser__empty">Nenhum compêndio disponível.</p>
-      {:else}
-        {#each groups as group (group.documentType)}
-          <div class="pack-group">
-            <h3 class="pack-group__heading">{group.documentType}</h3>
-            <ul class="pack-group__list" role="list">
-              {#each group.packs as pack (pack.id)}
-                <li class="pack-group__item" role="listitem">
-                  <button
-                    class="pack-btn"
-                    onclick={() => selectPack(pack)}
-                    title={pack.label}
-                  >
-                    <span class="pack-btn__label">{pack.label}</span>
-                    <span class="pack-btn__count">{pack.documentCount}</span>
-                  </button>
-                </li>
-              {/each}
-            </ul>
-          </div>
-        {/each}
-      {/if}
-    </div>
-  {:else}
-    <!-- Entry browser view -->
-    <div class="compendium-browser__entries">
-      <!-- Header with back button -->
-      <div class="entries-header">
-        <button class="btn btn--sm btn--ghost" onclick={backToPacks} aria-label="Voltar aos compêndios">
-          &#x2190; Voltar
-        </button>
-        <span class="entries-header__title">{selectedPack.label}</span>
-      </div>
-
-      <!-- Search + filters -->
-      <div class="entries-filter">
-        <input
-          class="entries-filter__input"
-          type="search"
-          placeholder="Buscar…"
-          bind:value={filterState.text}
-          aria-label="Buscar no compêndio"
-        />
-        {#if selectedPack.documentType === "Item"}
-          <input
-            class="entries-filter__input entries-filter__input--sm"
-            type="text"
-            placeholder="Subtipo (ex: weapon)"
-            bind:value={filterState.subtype}
-            aria-label="Filtrar por subtipo"
-          />
-          <input
-            class="entries-filter__input entries-filter__input--sm"
-            type="text"
-            placeholder="Trait"
-            bind:value={filterState.trait}
-            aria-label="Filtrar por trait"
-          />
-          <div class="entries-filter__row">
-            <input
-              class="entries-filter__input entries-filter__input--sm"
-              type="number"
-              placeholder="Nível mín."
-              min={0}
-              max={20}
-              bind:value={filterState.minLevel}
-              aria-label="Nível mínimo"
-            />
-            <input
-              class="entries-filter__input entries-filter__input--sm"
-              type="number"
-              placeholder="Nível máx."
-              min={0}
-              max={20}
-              bind:value={filterState.maxLevel}
-              aria-label="Nível máximo"
-            />
-          </div>
-        {/if}
-      </div>
-
-      {#if loading}
-        <p class="compendium-browser__loading" role="status">Carregando…</p>
-      {:else}
-        <!-- Sort bar -->
-        <div class="entries-sort" role="toolbar" aria-label="Ordenar por">
-          <button class="sort-btn" onclick={() => toggleSort("name")}>
-            Nome{sortArrow("name")}
-          </button>
-          {#if selectedPack.indexFields.includes("system.level.value")}
-            <button class="sort-btn" onclick={() => toggleSort("level")}>
-              Nível{sortArrow("level")}
-            </button>
-          {/if}
-          <button class="sort-btn" onclick={() => toggleSort("type")}>
-            Tipo{sortArrow("type")}
-          </button>
-        </div>
-
-        <!-- Entry list -->
-        <ul class="entry-list" role="list" aria-label="Entradas do compêndio">
-          {#if filteredEntries.length === 0}
-            <li class="entry-list__empty">Nenhum resultado.</li>
-          {:else}
-            {#each filteredEntries as entry (entry._id)}
-              {@const isImporting = importingUuids.has(entry.uuid)}
-              {@const displayName = entryDisplayName(entry, i18n.locale)}
-              {@const secondaryName = entrySecondaryName(entry, i18n.locale)}
-              <li
-                class="entry-row"
-                role="listitem"
-                draggable="true"
-                ondragstart={(e) => handleDragStart(e, entry)}
-                title={`Arraste para o canvas ou ficha. UUID: ${entry.uuid}`}
-              >
-                {#if shouldShowImg(entry)}
-                  <img
-                    class="entry-row__img"
-                    src={entry.img}
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    onerror={() => handleImgError(entry.uuid)}
-                  />
-                {:else}
-                  <span
-                    class="entry-row__img entry-row__img--placeholder"
-                    aria-hidden="true"
-                    title={entry.type ?? selectedPack.documentType}
-                  >{fallbackIcon(selectedPack.documentType, entry.type)}</span>
-                {/if}
-
-                <div class="entry-row__info">
-                  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-                  <span class="entry-row__name">{@html highlightMatch(displayName, filterState.text)}</span>
-                  {#if secondaryName}
-                    <span class="entry-row__name-en" title={secondaryName}>{secondaryName}</span>
-                  {/if}
-                  {#if entry.type}
-                    <span class="entry-row__type">{entry.type}</span>
-                  {/if}
-                  {#if typeof entry.index["system.level.value"] === "number"}
-                    <span class="entry-row__level">Nv {entry.index["system.level.value"]}</span>
-                  {/if}
-                </div>
-
-                <div class="entry-row__actions">
-                  <button
-                    class="action-btn action-btn--preview"
-                    onclick={() => previewEntry(entry)}
-                    aria-label="Pré-visualizar {displayName}"
-                    title="Pré-visualizar"
-                  >&#x1F441;</button>
-                  {#if isGm}
-                    <button
-                      class="action-btn action-btn--import"
-                      onclick={() => importEntry(entry)}
-                      disabled={isImporting}
-                      aria-label="Importar {entry.name} para o world"
-                      title="Importar para o world"
-                    >
-                      {isImporting ? "…" : "⬇"}
-                    </button>
-                  {/if}
-                </div>
-              </li>
-            {/each}
-          {/if}
-        </ul>
-
-        {#if importSuccess}
-          <p class="compendium-browser__success" role="status">{importSuccess}</p>
-        {/if}
-      {/if}
-    </div>
-
-    <!-- Preview panel -->
-    {#if previewLoading}
-      <div class="preview-panel preview-panel--loading" role="status">Carregando pré-visualização…</div>
-    {:else if previewError}
-      <!-- FETCH error: visible message + retry, never an endless spinner. -->
-      <div class="preview-panel preview-panel--error" role="alert">
-        <p class="preview-panel__error-msg">Falha ao carregar a pré-visualização.</p>
-        <div class="preview-panel__error-actions">
-          <button class="btn btn--sm" onclick={retryPreview}>Tentar novamente</button>
-          <button class="btn btn--sm btn--ghost" onclick={closePreview}>Fechar</button>
-        </div>
-      </div>
-    {:else if previewData}
-      <!--
-        RENDER-error boundary (lesson r10): if building/rendering the preview
-        ever throws (e.g. a future duplicate each-key), the boundary swaps in a
-        visible error + retry instead of tearing the tree down and stranding the
-        user on the spinner. The specific each_key_duplicate is already fixed by
-        the unique field.key below; this is defense in depth.
-      -->
-      <svelte:boundary>
-        <div class="preview-panel" role="complementary" aria-label="Pré-visualização">
-          <div class="preview-panel__header">
-            {#if !isKnownPlaceholderImg(previewData.img) && !previewImgBroken}
-              <img
-                class="preview-panel__img"
-                src={previewData.img}
-                alt=""
-                aria-hidden="true"
-                onerror={() => { previewImgBroken = true; }}
-              />
-            {:else}
-              <span class="preview-panel__img preview-panel__img--placeholder" aria-hidden="true">
-                {fallbackIcon(selectedPack?.documentType ?? "", previewData.type)}
-              </span>
-            {/if}
-            <div>
-              <h4 class="preview-panel__name">{previewData.name}</h4>
-              {#if previewData.nameSecondary}
-                <span class="preview-panel__name-en" title={previewData.nameSecondary}>
-                  {previewData.nameSecondary}
-                </span>
-              {/if}
-              {#if previewData.type}
-                <span class="preview-panel__type">{previewData.type}</span>
-              {/if}
-              <span class="preview-panel__license">{previewData.licenseLabel}</span>
-            </div>
-          </div>
-          {#if previewData.description}
-            <p class="preview-panel__description">{previewData.description}</p>
-          {/if}
-          <dl class="preview-panel__fields">
-            {#each previewData.fields as field (field.key)}
-              <div class="preview-panel__field">
-                <dt class="preview-panel__field-label">{field.label}</dt>
-                <dd class="preview-panel__field-value">{field.value}</dd>
-              </div>
-            {/each}
-          </dl>
-          <button
-            class="preview-panel__close btn btn--sm btn--ghost"
-            onclick={closePreview}
-            aria-label="Fechar pré-visualização"
-          >
-            Fechar
-          </button>
-        </div>
-
-        {#snippet failed(_error, reset)}
-          <div class="preview-panel preview-panel--error" role="alert">
-            <p class="preview-panel__error-msg">
-              Não foi possível exibir esta pré-visualização.
-            </p>
-            <div class="preview-panel__error-actions">
-              <button
-                class="btn btn--sm"
-                onclick={() => { reset(); retryPreview(); }}
-              >
-                Tentar novamente
-              </button>
-              <button class="btn btn--sm btn--ghost" onclick={closePreview}>Fechar</button>
-            </div>
-          </div>
-        {/snippet}
-      </svelte:boundary>
+  <!--
+    Header and search bar are OUTSIDE `.compendium-browser__scroll`, the panel's
+    only scrolling area: both stay visible in either body and in any scope
+    (REQ-CPD-015, REQ-CPD-016).
+  -->
+  <div class="compendium-browser__scope" data-mode={mode}>
+    <span class="compendium-browser__scope-label">
+      {scopeInfo.packLabel === null
+        ? t(scopeInfo.labelKey)
+        : t(scopeInfo.labelKey, { pack: scopeInfo.packLabel })}
+    </span>
+    {#if scopeInfo.canGoBack}
+      <button class="btn btn--sm btn--ghost compendium-browser__back" onclick={goBackToShelf}>
+        {t("FUSION.Compendium.BackToShelf")}
+      </button>
     {/if}
+  </div>
+
+  <!--
+    Where things go (REQ-CPD-060/061). The picker only appears when there is a
+    real choice: a player with one sheet and no world door has nothing to pick,
+    and a seat with no destination at all sees no import affordance anywhere.
+  -->
+  {#if sheetTargets.length > 0 || canBringToWorld(viewer)}
+    <div class="compendium-browser__import">
+      {#if sheetTargets.length > 0 && (canBringToWorld(viewer) || sheetTargets.length > 1)}
+        <label class="compendium-browser__destination">
+          <span class="compendium-browser__destination-label">
+            {t("FUSION.Compendium.Import.Destination")}
+          </span>
+          <select bind:value={destination} class="compendium-browser__destination-select">
+            {#if canBringToWorld(viewer)}
+              <option value="world">{t("FUSION.Compendium.Import.DestinationWorld")}</option>
+            {/if}
+            {#each sheetTargets as target (target.actorId)}
+              <option value={target.actorId}>{target.name}</option>
+            {/each}
+          </select>
+        </label>
+      {/if}
+
+      <!--
+        Batch import, offered to a privileged seat over what the body lists
+        (spec 43 §8.3). While it runs the button becomes progress plus a way
+        out, and the result — including the partial-state warning — is written
+        under it (REQ-CPD-065).
+      -->
+      {#if canBringToWorld(viewer) && activeDestination.kind === "world"}
+        {#if batchProgress}
+          <div class="compendium-browser__batch" role="status">
+            <span class="compendium-browser__batch-progress">
+              {batchProgress.cancelling
+                ? t("FUSION.Compendium.Import.BatchCancelling")
+                : t("FUSION.Compendium.Import.BatchProgress", {
+                    done: batchProgress.done,
+                    total: batchProgress.total,
+                  })}
+            </span>
+            <progress
+              class="compendium-browser__batch-bar"
+              max={batchProgress.total}
+              value={batchProgress.done}
+            ></progress>
+            <button
+              class="btn btn--sm btn--ghost"
+              onclick={cancelBatchImport}
+              disabled={batchProgress.cancelling}
+            >
+              {t("FUSION.Compendium.Import.BatchCancel")}
+            </button>
+          </div>
+        {:else if listedUuids.length > 0}
+          <button class="btn btn--sm compendium-browser__batch-start" onclick={startBatchImport}>
+            {t("FUSION.Compendium.Import.Batch", { count: listedUuids.length })}
+          </button>
+        {/if}
+      {/if}
+
+      {#if batchNotice}
+        <p class="compendium-browser__batch-notice" role="status">{batchNotice}</p>
+      {/if}
+
+      <!--
+        REQ-CPD-060: the visible return of bringing ONE entry over, success and
+        failure alike, in both bodies and outside the scrolling area. It is not
+        the `error` of the body on purpose — a refused import leaves the list
+        exactly where it was.
+      -->
+      {#if importSuccess}
+        <p class="compendium-browser__success" role="status">{importSuccess}</p>
+      {/if}
+      {#if importError}
+        <p class="compendium-browser__error" role="alert">{importError}</p>
+      {/if}
+    </div>
   {/if}
+
+  <div class="compendium-browser__search">
+    <input
+      class="compendium-browser__search-input"
+      type="search"
+      value={scopeState.search}
+      oninput={onSearchInput}
+      placeholder={scopeInfo.packLabel === null
+        ? t("FUSION.Compendium.SearchAll")
+        : t("FUSION.Compendium.SearchInPack", { pack: scopeInfo.packLabel })}
+      aria-label={t("FUSION.Compendium.SearchLabel")}
+    />
+    {#if canWiden}
+      <!-- REQ-CPD-014: same text, root scope — an explicit action, never implicit. -->
+      <button class="btn btn--sm compendium-browser__widen" onclick={widenSearch}>
+        {t("FUSION.Compendium.WidenSearch")}
+      </button>
+    {/if}
+  </div>
+
+  <!--
+    The facets of §5.4 (REQ-CPD-033), in the header with the search bar: they are
+    the other half of the same question, so they must be visible wherever the
+    question is — in either body and in either scope (REQ-CPD-016). Document type
+    and source only make sense over the whole collection; opening a pack already
+    fixes both, and `openPack` drops them so nothing invisible survives.
+  -->
+  <div class="compendium-browser__facets">
+    {#if openPackId === null}
+      <label class="compendium-browser__facet">
+        <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.DocumentType")}</span>
+        <select
+          class="compendium-browser__facet-select"
+          value={scopeState.facets.documentType ?? ""}
+          onchange={(e) => onSelectFacet("documentType", e)}
+        >
+          <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
+          {#each typeChoices as choice (choice.value)}
+            <option value={choice.value}>{t(choice.labelKey ?? choice.value)}</option>
+          {/each}
+        </select>
+      </label>
+    {/if}
+
+    <label class="compendium-browser__facet">
+      <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.Rarity")}</span>
+      <select
+        class="compendium-browser__facet-select"
+        value={scopeState.facets.rarity ?? ""}
+        onchange={(e) => onSelectFacet("rarity", e)}
+      >
+        <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
+        {#each rarityOptions as choice (choice.value)}
+          <option value={choice.value}>{t(choice.labelKey ?? choice.value)}</option>
+        {/each}
+      </select>
+    </label>
+
+    <div class="compendium-browser__facet-row">
+      <input
+        class="compendium-browser__facet-level"
+        type="number"
+        placeholder={t("FUSION.Compendium.FilterMinLevel")}
+        min={0}
+        max={30}
+        value={scopeState.facets.minLevel ?? ""}
+        oninput={(e) => onLevelInput("minLevel", e)}
+        aria-label={t("FUSION.Compendium.FilterMinLevel")}
+      />
+      <input
+        class="compendium-browser__facet-level"
+        type="number"
+        placeholder={t("FUSION.Compendium.FilterMaxLevel")}
+        min={0}
+        max={30}
+        value={scopeState.facets.maxLevel ?? ""}
+        oninput={(e) => onLevelInput("maxLevel", e)}
+        aria-label={t("FUSION.Compendium.FilterMaxLevel")}
+      />
+    </div>
+
+    <!-- REQ-CPD-033: the source facet exists only once the answer spans packs. -->
+    {#if openPackId === null && packChoices.length > 1}
+      <label class="compendium-browser__facet">
+        <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.Source")}</span>
+        <select
+          class="compendium-browser__facet-select"
+          value={scopeState.facets.packId ?? ""}
+          onchange={(e) => onSelectFacet("packId", e)}
+        >
+          <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
+          {#each packChoices as choice (choice.value)}
+            <option value={choice.value}>{choice.label ?? choice.value}</option>
+          {/each}
+        </select>
+      </label>
+    {/if}
+  </div>
+
+  <!--
+    REQ-CPD-034: every facet in force, each removable ON ITS OWN — the two ends
+    of a level range are two chips, because they are two decisions.
+  -->
+  {#if activeFacetChips.length > 0}
+    <ul
+      class="compendium-browser__chips"
+      role="list"
+      aria-label={t("FUSION.Compendium.Facet.ActiveLabel")}
+    >
+      {#each activeFacetChips as chip (chip.facet)}
+        <li>
+          <button
+            type="button"
+            class="compendium-browser__chip"
+            onclick={() => removeFacet(chip.facet)}
+            aria-label={t("FUSION.Compendium.Facet.Remove", { facet: chipLabel(chip) })}
+          >
+            <span>{chipLabel(chip)}</span>
+            <!-- Drawn, not typed: an emoji or a bare "x" is not an icon. -->
+            <svg class="compendium-browser__chip-x" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M3 3 L9 9 M9 3 L3 9" stroke="currentColor" stroke-width="1.6" fill="none" />
+            </svg>
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  <div class="compendium-browser__scroll">
+    {#if error}
+      <!--
+        REQ-CPD-091: the new attempt retries WHAT FAILED. `retryAction` is set by
+        the call that failed, so a pack whose index would not load is asked for
+        again — never the pack list, which would clear the message and leave the
+        silent empty list the requirement is about.
+      -->
+      <p class="compendium-browser__error" role="alert">{error}</p>
+      <button class="btn btn--sm" onclick={() => retryAction?.()}>
+        {t("FUSION.Compendium.Retry")}
+      </button>
+    {:else if mode === "shelf"}
+      <!--
+        Shelf: every visible pack, grouped by document type (REQ-CPD-011,
+        REQ-CPD-020). It is a branch of the same `{#if}` as the result body, so
+        the two can never be on screen together (REQ-CPD-024).
+      -->
+      <div class="compendium-browser__shelf">
+        {#if loading && packs.length === 0}
+          <p class="compendium-browser__loading" role="status">
+            {t("FUSION.Compendium.Loading")}
+          </p>
+        {:else if shelfGroups.length === 0}
+          <!--
+            REQ-CPD-090: it says the world has no compendium available TO THIS
+            SEAT — a `gm` pack the player cannot see must read as "there is
+            none", never as "there is one you may not open" (REQ-CPD-071) — and
+            it offers no action, because there is none he could take.
+          -->
+          <p class="compendium-browser__empty">{t("FUSION.Compendium.NoPacksForRole")}</p>
+        {:else}
+          <!--
+            Pinned first, then the short recently used block, then the packs
+            (REQ-CPD-082, REQ-CPD-083). Both lists arrive already filtered by
+            what this seat may see (REQ-CPD-084).
+          -->
+          <CompendiumMarks
+            pinned={drawnPinned}
+            recent={drawnRecent}
+            onOpenPack={openPackOfEntry}
+            onUnpin={togglePin}
+          />
+          <CompendiumShelf
+            groups={shelfGroups}
+            onOpenPack={selectPack}
+            onToggleGroup={toggleGroup}
+          />
+        {/if}
+      </div>
+    {:else if openPackId === null}
+      <!-- Aggregated result over the whole visible collection (REQ-CPD-012). -->
+      <div class="compendium-browser__results compendium-browser__results--all">
+        {#if searching}
+          <p class="compendium-browser__loading" role="status">
+            {t("FUSION.Compendium.Searching")}
+          </p>
+        {:else if searchError}
+          <!-- REQ-CPD-091: failing to SEARCH also owes a new attempt. -->
+          <p class="compendium-browser__error" role="alert">{searchError}</p>
+          <button class="btn btn--sm compendium-browser__retry-search" onclick={retrySearch}>
+            {t("FUSION.Compendium.Retry")}
+          </button>
+        {:else if !visibleAggregated || visibleAggregated.groups.length === 0}
+          <p class="compendium-browser__empty">
+            {t("FUSION.Compendium.NoResultsInScope", {
+              query: scopeState.search,
+              scope: t("FUSION.Compendium.Scope.All"),
+            })}
+          </p>
+        {:else}
+          {#each visibleAggregated.groups as group (group.documentType)}
+            <div class="result-group">
+              <!--
+                REQ-CPD-093: the count is announceable — the heading says the
+                number in words for a screen reader instead of leaving a bare
+                digit next to a noun.
+              -->
+              <h3
+                class="result-group__heading"
+                aria-label={t("FUSION.Compendium.GroupCountLabel", {
+                  type: t(documentTypeLabelKey(group.documentType)),
+                  count: group.total,
+                })}
+              >
+                {t(documentTypeLabelKey(group.documentType))}
+                <span class="result-group__count">{group.total}</span>
+              </h3>
+              <ul class="entry-list" role="list">
+                {#each group.lines as line (line.entry.uuid)}
+                  {@const manifest = manifestOf(line.packId)}
+                  {@const built = lineFor(
+                    line.entry,
+                    {
+                      documentType: line.documentType,
+                      packId: line.packId,
+                      packLabel: line.packLabel,
+                    },
+                    manifest?.indexFields ?? [],
+                  )}
+                  <CompendiumResultLine
+                    line={built}
+                    onPreview={() => openPreview(built, manifest)}
+                    onImport={canBring(built.documentType) ? () => bringOver(built) : undefined}
+                    importDestination={activeDestination.kind}
+                    importing={importingUuids.has(built.uuid)}
+                    onTogglePin={() => togglePin(entryRefOf(built))}
+                    pinned={isEntryPinned(pinnedEntries, built.uuid)}
+                    onDragStart={(event) => {
+                      if (manifest) handleDragStart(event, line.entry, manifest);
+                    }}
+                    onImageError={() => handleImgError(line.entry.uuid)}
+                  />
+                {/each}
+              </ul>
+              {#if group.omitted > 0}
+                <!--
+                  REQ-CPD-032: the truncated group says how many it left out AND
+                  offers opening the pack they are in — the count alone leaves
+                  the reader with no way to reach the rest.
+                -->
+                <p class="result-group__omitted">
+                  {t("FUSION.Compendium.Omitted", { count: group.omitted })}
+                </p>
+                {#if group.packs.length > 0}
+                  <ul
+                    class="result-group__packs"
+                    role="list"
+                    aria-label={t("FUSION.Compendium.OmittedOpenLabel")}
+                  >
+                    {#each group.packs as tally (tally.packId)}
+                      <li>
+                        <button
+                          type="button"
+                          class="result-group__open-pack"
+                          onclick={() => openPackById(tally.packId, tally.label)}
+                        >
+                          {t("FUSION.Compendium.OpenPackWithMatches", {
+                            pack: tally.label,
+                            count: tally.matched,
+                          })}
+                        </button>
+                      </li>
+                    {/each}
+                  </ul>
+                {/if}
+              {/if}
+            </div>
+          {/each}
+        {/if}
+      </div>
+    {:else}
+      <!-- The open pack's own index; the search above filters only it (REQ-CPD-013/014). -->
+      <div class="compendium-browser__results compendium-browser__results--pack">
+        <!--
+          Only what the SYSTEM declares (REQ-CPD-035) lives in the pack's body.
+          The generic facets of REQ-CPD-033 — type, rarity, level range, source —
+          moved to the header, where they are visible in both scopes; drawing the
+          level range twice would have been two controls for one state.
+        -->
+        {#if selectedPack && selectedPack.documentType === "Item"}
+          <div class="entries-filter">
+            <input
+              class="entries-filter__input entries-filter__input--sm"
+              type="text"
+              placeholder={t("FUSION.Compendium.FilterSubtype")}
+              bind:value={packFilters.subtype}
+              aria-label={t("FUSION.Compendium.FilterSubtype")}
+            />
+            <input
+              class="entries-filter__input entries-filter__input--sm"
+              type="text"
+              placeholder={t("FUSION.Compendium.FilterTrait")}
+              bind:value={packFilters.trait}
+              aria-label={t("FUSION.Compendium.FilterTrait")}
+            />
+          </div>
+        {/if}
+
+        {#if loading}
+          <p class="compendium-browser__loading" role="status">{t("FUSION.Compendium.Loading")}</p>
+        {:else if selectedPack}
+          <div class="entries-sort" role="toolbar" aria-label={t("FUSION.Compendium.SortBy")}>
+            <button class="sort-btn" onclick={() => toggleSort("name")}>
+              {t("FUSION.Compendium.SortName")}{sortArrow("name")}
+            </button>
+            {#if selectedPack.indexFields.includes("system.level.value")}
+              <button class="sort-btn" onclick={() => toggleSort("level")}>
+                {t("FUSION.Compendium.SortLevel")}{sortArrow("level")}
+              </button>
+            {/if}
+            <button class="sort-btn" onclick={() => toggleSort("type")}>
+              {t("FUSION.Compendium.SortType")}{sortArrow("type")}
+            </button>
+          </div>
+
+          <ul class="entry-list" role="list" aria-label={t("FUSION.Compendium.EntriesLabel")}>
+            {#if filteredEntries.length === 0}
+              <li class="entry-list__empty">
+                {t("FUSION.Compendium.NoResultsInScope", {
+                  query: scopeState.search,
+                  scope: selectedPack.label,
+                })}
+                {#if canWiden}
+                  <button class="btn btn--sm btn--ghost" onclick={widenSearch}>
+                    {t("FUSION.Compendium.WidenSearch")}
+                  </button>
+                {/if}
+              </li>
+            {:else}
+              {#each filteredEntries as entry (entry._id)}
+                {@const built = lineFor(
+                  entry,
+                  {
+                    documentType: selectedPack.documentType,
+                    packId: selectedPack.id,
+                    packLabel: null,
+                  },
+                  selectedPack.indexFields,
+                )}
+                <CompendiumResultLine
+                  line={built}
+                  onPreview={() => openPreview(built, selectedPack)}
+                  onImport={canBring(built.documentType) ? () => bringOver(built) : undefined}
+                  importDestination={activeDestination.kind}
+                  onTogglePin={() => togglePin(entryRefOf(built))}
+                  pinned={isEntryPinned(pinnedEntries, built.uuid)}
+                  importing={importingUuids.has(entry.uuid)}
+                  onDragStart={(event) => handleDragStart(event, entry, selectedPack)}
+                  onImageError={() => handleImgError(entry.uuid)}
+                />
+              {/each}
+            {/if}
+          </ul>
+        {/if}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
+  /*
+   * The panel declares no width of its own, and neither body does: the drawer
+   * owns the one fixed width (REQ-GAV-012), so switching between shelf and
+   * result cannot move it (REQ-CPD-017). Wide content is clipped by the scroll
+   * area instead of pushing the column. Layout is a fixed head (scope + search)
+   * over ONE scrolling area (REQ-CPD-016).
+   */
   .compendium-browser {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.4rem;
     height: 100%;
     overflow: hidden;
     padding: 0.5rem;
     font-size: 0.85rem;
+  }
+
+  .compendium-browser__scope {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__scope-label {
+    font-weight: 600;
+    color: var(--fusion-text, #eee);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .compendium-browser__search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  /*
+   * The import bar lives with the header, outside the scrolling area: a batch
+   * that is running must stay visible while the user keeps reading the list
+   * (REQ-CPD-016, REQ-CPD-065). Like everything else here it declares no width.
+   */
+  .compendium-browser__import {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__destination {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--fusion-text-muted, #aaa);
+  }
+
+  .compendium-browser__destination-select {
+    flex: 1;
+    min-width: 0;
+    padding: 0.2rem 0.3rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    font-size: 0.75rem;
+  }
+
+  .compendium-browser__batch {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--fusion-text-muted, #aaa);
+  }
+
+  .compendium-browser__batch-bar {
+    flex: 1;
+    min-width: 0;
+    height: 0.5rem;
+  }
+
+  /*
+   * The partial-state warning must be readable in full — it names how many
+   * documents are already in the world (REQ-CPD-065), so it wraps and is never
+   * truncated.
+   */
+  .compendium-browser__batch-notice {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--fusion-text-muted, #aaa);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .compendium-browser__search-input,
+  .entries-filter__input {
+    /* Stretches to whatever the drawer gives it — never asks for a size. */
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.3rem 0.5rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    font-size: 0.8rem;
+  }
+
+  /*
+   * The facets sit with the search bar, above the scroller and outside it
+   * (REQ-CPD-016): a filter you cannot see is a filter you cannot remove
+   * (REQ-CPD-034). No width is declared here either — the drawer owns it.
+   */
+  .compendium-browser__facets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__facet {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--fusion-text-muted, #aaa);
+  }
+
+  .compendium-browser__facet-label {
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__facet-select,
+  .compendium-browser__facet-level {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.15rem 0.3rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    font-size: 0.7rem;
+  }
+
+  .compendium-browser__facet-row {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .compendium-browser__chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  /*
+   * A chip carries its own text AND a drawn cross: REQ-CPD-094 — nothing here
+   * is told by colour alone, and the removal is a real button, focusable by
+   * keyboard (REQ-CPD-092).
+   */
+  .compendium-browser__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font: inherit;
+    font-size: 0.65rem;
+    color: var(--fusion-text, #eee);
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: 9999px;
+    padding: 0.1rem 0.4rem;
+    cursor: pointer;
+  }
+
+  .compendium-browser__chip:hover {
+    border-color: var(--fusion-accent, #6aa9ff);
+  }
+
+  .compendium-browser__chip-x {
+    width: 0.6rem;
+    height: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .compendium-browser__loading,
@@ -503,18 +1481,23 @@
     color: var(--fusion-text-muted, #888);
   }
 
-  .compendium-browser__error { color: var(--fusion-danger, #e74c3c); }
-  .compendium-browser__success { color: var(--fusion-success, #27ae60); }
-
-  /* ---- Pack list ---- */
-  .compendium-browser__packs {
-    overflow-y: auto;
-    flex: 1;
+  .compendium-browser__error {
+    color: var(--fusion-danger, #e74c3c);
+  }
+  .compendium-browser__success {
+    color: var(--fusion-success, #27ae60);
   }
 
-  .pack-group { margin-bottom: 0.75rem; }
+  /* ---- Bodies: same box, different content (REQ-CPD-010, REQ-CPD-017) ---- */
+  .compendium-browser__shelf,
+  .compendium-browser__results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
 
-  .pack-group__heading {
+  /* The shelf's own rules live in CompendiumShelf.svelte, which draws it. */
+  .result-group__heading {
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -522,35 +1505,12 @@
     color: var(--fusion-text-muted, #888);
     margin: 0 0 0.25rem;
     padding: 0 0.25rem;
-  }
-
-  .pack-group__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .pack-btn {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
-    width: 100%;
-    padding: 0.35rem 0.5rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    cursor: pointer;
-    color: var(--fusion-text, #eee);
-    text-align: left;
-    transition: background 0.15s;
+    gap: 0.4rem;
   }
 
-  .pack-btn:hover { background: var(--fusion-border, #444); }
-
-  .pack-btn__count {
+  .result-group__count {
     font-size: 0.7rem;
     color: var(--fusion-text-muted, #888);
     background: var(--fusion-surface, #222);
@@ -558,53 +1518,54 @@
     padding: 0.1rem 0.4rem;
   }
 
-  /* ---- Entry browser ---- */
-  .compendium-browser__entries {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    height: 100%;
-    overflow: hidden;
+  /* ---- Results (both scopes) ---- */
+  .result-group {
+    margin-bottom: 0.75rem;
   }
 
-  .entries-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .result-group__omitted {
+    font-size: 0.7rem;
+    color: var(--fusion-text-muted, #888);
+    margin: 0.2rem 0 0;
+    padding: 0 0.25rem;
   }
 
-  .entries-header__title {
-    font-weight: 600;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .result-group__packs {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.15rem 0 0;
+    padding: 0 0.25rem;
+  }
+
+  .result-group__open-pack {
+    font: inherit;
+    font-size: 0.7rem;
+    color: var(--fusion-accent, #6aa9ff);
+    background: none;
+    border: 1px solid var(--fusion-border, #333);
+    border-radius: var(--fusion-radius-sm, 3px);
+    padding: 0.1rem 0.35rem;
+    cursor: pointer;
+  }
+
+  .result-group__open-pack:hover {
+    color: var(--fusion-accent-hover, #8cc0ff);
+    border-color: var(--fusion-accent, #6aa9ff);
   }
 
   .entries-filter {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    margin-bottom: 0.3rem;
   }
 
-  .entries-filter__input {
-    width: 100%;
-    padding: 0.3rem 0.5rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    font-size: 0.8rem;
+  .entries-filter__input--sm {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
   }
-
-  .entries-filter__input--sm { font-size: 0.75rem; padding: 0.2rem 0.4rem; }
-
-  .entries-filter__row {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .entries-filter__row .entries-filter__input { flex: 1; }
 
   .entries-sort {
     display: flex;
@@ -622,15 +1583,14 @@
     font-size: 0.7rem;
   }
 
-  .sort-btn:hover { background: var(--fusion-surface-alt, #2a2a2a); }
+  .sort-btn:hover {
+    background: var(--fusion-surface-alt, #2a2a2a);
+  }
 
-  /* ---- Entry list ---- */
   .entry-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    overflow-y: auto;
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
@@ -643,202 +1603,20 @@
     font-size: 0.8rem;
   }
 
-  .entry-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.4rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    cursor: grab;
-  }
+  /*
+   * The line's own rules live in CompendiumResultLine.svelte, which draws it
+   * (G093). What stays here is the list that holds the lines.
+   */
 
-  .entry-row:hover { background: var(--fusion-border, #444); }
-  .entry-row:active { cursor: grabbing; }
+  /*
+   * Preview is not drawn here at all (G094, DEC-CPD-03): it opens in a
+   * window of the window manager, so this panel has no rule for it — and no
+   * way for it to push the list aside.
+   */
 
-  .entry-row__img {
-    width: 1.8rem;
-    height: 1.8rem;
-    border-radius: 3px;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  .entry-row__img--placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--fusion-surface, #222);
-    color: var(--fusion-text-muted, #888);
-    font-size: 0.9rem;
-    border-radius: 3px;
-  }
-
-  .entry-row__info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .entry-row__name {
-    font-size: 0.82rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--fusion-text, #eee);
-  }
-
-  .entry-row__name-en {
-    font-size: 0.68rem;
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--fusion-text-muted, #888);
-  }
-
-  .entry-row__type,
-  .entry-row__level {
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #888);
-  }
-
-  .entry-row__actions {
-    display: flex;
-    gap: 0.25rem;
-    flex-shrink: 0;
-  }
-
-  .action-btn {
-    background: none;
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text-muted, #888);
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 0.15rem 0.3rem;
-    line-height: 1;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .action-btn:hover { background: var(--fusion-surface, #222); color: var(--fusion-text, #eee); }
-  .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* ---- Preview panel ---- */
-  .preview-panel {
-    background: var(--fusion-surface, #222);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    padding: 0.5rem;
-    margin-top: 0.25rem;
-    flex-shrink: 0;
-  }
-
-  .preview-panel--loading {
-    color: var(--fusion-text-muted, #888);
-    text-align: center;
-  }
-
-  .preview-panel__header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .preview-panel__img {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 4px;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  .preview-panel__img--placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--fusion-surface, #222);
-    color: var(--fusion-text-muted, #888);
-    font-size: 1.3rem;
-  }
-
-  .preview-panel__name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin: 0 0 0.1rem;
-  }
-
-  .preview-panel__name-en {
-    display: block;
-    font-size: 0.7rem;
-    font-style: italic;
-    color: var(--fusion-text-muted, #888);
-    margin-bottom: 0.1rem;
-  }
-
-  .preview-panel__description {
-    font-size: 0.78rem;
-    color: var(--fusion-text, #eee);
-    margin: 0 0 0.4rem;
-    line-height: 1.35;
-    white-space: pre-wrap;
-  }
-
-  .preview-panel__type,
-  .preview-panel__license {
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #888);
-    margin-right: 0.4rem;
-  }
-
-  .preview-panel--error {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    align-items: center;
-    text-align: center;
-  }
-
-  .preview-panel__error-msg {
-    margin: 0;
-    color: var(--fusion-danger, #e74c3c);
-    font-size: 0.8rem;
-  }
-
-  .preview-panel__error-actions {
-    display: flex;
-    gap: 0.4rem;
-  }
-
-  .preview-panel__fields {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.15rem 0.5rem;
-    margin: 0 0 0.4rem;
-    font-size: 0.78rem;
-  }
-
-  .preview-panel__field { display: contents; }
-
-  .preview-panel__field-label {
-    color: var(--fusion-text-muted, #888);
-    font-style: italic;
-  }
-
-  .preview-panel__field-value { color: var(--fusion-text, #eee); }
-
-  .preview-panel__close {
-    margin-top: 0.25rem;
-  }
-
-  /* Highlight from search */
-  :global(.compendium-browser mark) {
-    background: var(--fusion-accent, #c0a060);
-    color: var(--fusion-surface, #222);
-    border-radius: 2px;
-    padding: 0 1px;
-  }
+  /*
+   * The search highlight is drawn by the line itself
+   * (`.result-line__match` in CompendiumResultLine.svelte), so this panel no
+   * longer reaches into its children to style a `<mark>`.
+   */
 </style>

@@ -13,7 +13,10 @@ import type {
   PackManifest,
   PackIndexEntry,
   CompendiumSearchPayload,
+  CompendiumSearchAllPayload,
+  CompendiumSearchAllResult,
   CompendiumImportResult,
+  CompendiumImportToActorResult,
 } from "@fusion/shared";
 import { sendOp } from "../docs/sendOp.js";
 
@@ -138,6 +141,27 @@ export function searchPack(
   return sendQuery<SearchPackResult>(socket, "compendium:search", query);
 }
 
+/**
+ * Name of the aggregated-search query (spec 43, DEC-CPD-02 / REQ-CPD-030).
+ * The server owns the index of every pack visible to the caller and answers
+ * already limited — this is NOT N `compendium:search` calls stitched together
+ * on the client, which would mean downloading the whole collection to search it.
+ */
+export const COMPENDIUM_SEARCH_ALL_QUERY = "compendium:searchAll";
+
+/**
+ * Search every pack visible to the caller, grouped by document type.
+ * REQ-CPD-030..032. The panel reads the answer through
+ * `normalizeAggregatedSearchResult`, which tolerates a shape it did not expect
+ * instead of throwing inside the render.
+ */
+export function searchAllPacks(
+  socket: Socket,
+  payload: CompendiumSearchAllPayload,
+): Promise<CompendiumSearchAllResult> {
+  return sendQuery<CompendiumSearchAllResult>(socket, COMPENDIUM_SEARCH_ALL_QUERY, payload);
+}
+
 export interface GetDocumentResult {
   document: Record<string, unknown>;
 }
@@ -163,5 +187,26 @@ export function importToWorld(
   return sendOp<CompendiumImportResult>(socket, {
     type: "compendium:import",
     payload: { uuids, folderId: options?.folderId },
+  });
+}
+
+/**
+ * Bring pack document(s) into ONE actor's sheet.
+ * Spec 43 §5.7, DEC-CPD-05 — REQ-CPD-061, REQ-CPD-073.
+ *
+ * The OTHER door of §5.7, and deliberately not a flag on `importToWorld`: this
+ * one is open to a player, because what protects it is `OWNER` of the
+ * DESTINATION actor rather than the caller's role. The server re-checks that
+ * ownership on every call — this function sends no role and no ownership of its
+ * own, only the destination it is asking for.
+ */
+export function importToActor(
+  socket: Socket,
+  uuids: string[],
+  actorId: string,
+): Promise<CompendiumImportToActorResult> {
+  return sendOp<CompendiumImportToActorResult>(socket, {
+    type: "compendium:importToActor",
+    payload: { uuids, actorId },
   });
 }
