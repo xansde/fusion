@@ -32,6 +32,8 @@ import {
   buildDocDeleteHandler,
 } from "./handlers/doc-handlers.js";
 import { buildActorSetKnowledgeHandler } from "./handlers/knowledge-handlers.js";
+import { buildFolderDeleteHandler } from "./handlers/folder-handlers.js";
+import { buildActorDeletePreviewHandler } from "./handlers/actor-delete-handlers.js";
 import {
   buildWallCreateHandler,
   buildWallUpdateHandler,
@@ -324,6 +326,16 @@ export class SocketManager {
     // Spec 39 §5.8: contact knowledge is a field of the contact's own Actor,
     // but doc:update refuses the flag path — this is the one way in.
     registry.register("actor:setKnowledge", buildActorSetKnowledgeHandler(syncDeps));
+
+    // Spec 42 §5.3 (REQ-NPC-022): removing a folder must not remove an actor —
+    // the generic doc:delete path cannot lift subfolders nor release contents,
+    // so folder removal is a composed operation of its own.
+    registry.register("folder:delete", buildFolderDeleteHandler(syncDeps));
+
+    // Spec 42 §5.7 (REQ-NPC-051): the confirmation of a delete must state what
+    // falls with the actor, and two of the three answers are not in the client's
+    // mirror to count — a scene it never received, and knowledge it never gets.
+    registry.register("actor:deletePreview", buildActorDeletePreviewHandler(syncDeps));
 
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));

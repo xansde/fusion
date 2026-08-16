@@ -10,6 +10,9 @@
  *     system data, a contact that is HIDDEN is not delivered at all, and the
  *     knowledge map itself never reaches a non-privileged socket
  *     (REQ-CTT-081..084).
+ *   - The ATTITUDE of an actor towards the party never reaches a socket without
+ *     a privileged role (REQ-NPC-082): learning that the smith is hostile
+ *     before the scene says so is metagame.
  *   - The result of a blind roll must never reach a non-privileged socket — not
  *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
  *
@@ -23,6 +26,7 @@
  *       {@link actorIsSubjectToKnowledge} — contacts only, never what you own
  *       {@link glimpsedContactView}       — the allow-listed glimpsed payload
  *       {@link stripKnowledgeMap}         — REQ-CTT-084, on EVERY actor
+ *       {@link stripAttitude}             — REQ-NPC-082, on EVERY actor
  *
  * Emission paths:
  *   1. buildSnapshot      (full snapshot on join / seq-out-of-buffer resync)
@@ -56,6 +60,8 @@ import {
   resolveUserKnowledge,
   KNOWLEDGE_FLAG_NAMESPACE,
   KNOWLEDGE_FLAG_KEY,
+  ATTITUDE_FLAG_NAMESPACE,
+  ATTITUDE_FLAG_KEY,
 } from "@fusion/shared";
 import type { ChatMessage, Ownership, RollTarget } from "@fusion/shared";
 import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
@@ -690,6 +696,44 @@ export function stripKnowledgeMap(doc: Record<string, unknown>): Record<string, 
 }
 
 /**
+ * Remove the attitude from a document (spec 42 §5.10 — REQ-NPC-082).
+ *
+ * The attitude says whether this actor is `enemy`, `neutral` or `ally` towards
+ * the party (REQ-NPC-037). It is the GM's note about a stance the fiction has
+ * not revealed yet, and it rides on the very Actor document a player is allowed
+ * to see — so it comes off EVERY Actor a non-privileged socket receives, not
+ * only off the contacts: a player who owns a companion, or reaches a chest
+ * through `ownership`, travels the same emission paths.
+ *
+ * Returns the original reference when there is nothing to strip, so callers can
+ * cheaply detect "unchanged".
+ */
+export function stripAttitude(doc: Record<string, unknown>): Record<string, unknown> {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return doc;
+  const namespace = flags[ATTITUDE_FLAG_NAMESPACE];
+  if (!isPlainObject(namespace)) return doc;
+  if (!(ATTITUDE_FLAG_KEY in namespace)) return doc;
+
+  const nextNamespace: Record<string, unknown> = { ...namespace };
+  Reflect.deleteProperty(nextNamespace, ATTITUDE_FLAG_KEY);
+  return { ...doc, flags: { ...flags, [ATTITUDE_FLAG_NAMESPACE]: nextNamespace } };
+}
+
+/**
+ * Everything an Actor document loses on its way to a NON-PRIVILEGED socket,
+ * whatever the emission path and whatever the viewer's knowledge of it:
+ * the knowledge map (REQ-CTT-084) and the attitude (REQ-NPC-082).
+ *
+ * One function rather than two calls at each site, so a future third
+ * privileged field is added in ONE place and cannot reach a path someone forgot
+ * to update. Returns the original reference when nothing was stripped.
+ */
+export function stripPrivilegedActorFields(doc: Record<string, unknown>): Record<string, unknown> {
+  return stripAttitude(stripKnowledgeMap(doc));
+}
+
+/**
  * The payload of a contact the viewer has only GLIMPSED (REQ-CTT-081).
  *
  * An ALLOW-list, deliberately: a deny-list would leak every field a future
@@ -746,6 +790,7 @@ export interface RedactedActorBatch {
  * REQ-CTT-081: a contact that was `glimpsed` is reduced to
  * {@link glimpsedContactView}.
  * REQ-CTT-084: every surviving Actor loses its knowledge map.
+ * REQ-NPC-082: every surviving Actor loses its attitude.
  * REQ-CTT-074: an Actor the knowledge filter says nothing about — a character, a
  *              chest, a companion — is gated by `ownership` alone, so escaping
  *              the filter never turns into a grant.
@@ -772,7 +817,7 @@ export function redactActorDocsForViewer(
         if (typeof id === "string") removedIds.push(id);
         continue;
       }
-      result.push(stripKnowledgeMap(doc));
+      result.push(stripPrivilegedActorFields(doc));
       continue;
     }
     const state = resolveUserKnowledge(doc, viewer.ownedCharacterIds);
@@ -785,7 +830,7 @@ export function redactActorDocsForViewer(
       result.push(glimpsedContactView(doc));
       continue;
     }
-    result.push(stripKnowledgeMap(doc));
+    result.push(stripPrivilegedActorFields(doc));
   }
   return { documents: result, removedIds };
 }
@@ -892,7 +937,7 @@ export function redactAckResultForNonPrivileged(
     // concept and belongs to the broadcast/replay paths (REQ-CTT-075).
     const redactedActors = contactCtx
       ? redactActorDocsForViewer(documents as Record<string, unknown>[], viewer).documents
-      : (documents as Record<string, unknown>[]).map((d) => stripKnowledgeMap(d));
+      : (documents as Record<string, unknown>[]).map((d) => stripPrivilegedActorFields(d));
     const changed =
       redactedActors.length !== documents.length ||
       redactedActors.some((doc, i) => doc !== documents[i]);
@@ -908,11 +953,12 @@ export function redactAckResultForNonPrivileged(
   }
 
   // An embedded ack (Item under Actor) carries the parent Actor whole — the
-  // knowledge map has to come off it too (REQ-CTT-084). The parent can never be
-  // a contact the viewer merely glimpsed: writing an embedded document requires
-  // OWNER, and OWNER escapes the knowledge filter by construction.
+  // knowledge map (REQ-CTT-084) and the attitude (REQ-NPC-082) have to come off
+  // it too. The parent can never be a contact the viewer merely glimpsed:
+  // writing an embedded document requires OWNER, and OWNER escapes the
+  // knowledge filter by construction.
   if (isPlainObject(parent)) {
-    const strippedParent = stripKnowledgeMap(parent);
+    const strippedParent = stripPrivilegedActorFields(parent);
     if (strippedParent !== parent) {
       return redactAckResultForNonPrivileged(
         { ...ack, result: { ...bodyObj, parent: strippedParent } },

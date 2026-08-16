@@ -1,6 +1,12 @@
 /**
- * "+Novo" Actor button — regression test for two real bugs found in
- * ActorDirectory.svelte's create handler (client bug report, M6 follow-up):
+ * Minimal Actor create — regression test for two real bugs found in the client's
+ * create-an-actor handler (client bug report, M6 follow-up).
+ *
+ * The panel that hosted the original "+Novo" button (the legacy Actors directory)
+ * was buried in G078; the SERVER contract it exercised is unchanged and is still
+ * the one the NPCs tab's creation window rides on (spec 42 §5.6), including its
+ * temporary create-a-character control (client `lib/npcs/createCharacterScaffolding.ts`,
+ * G078 → G105). The two bugs:
  *
  *   1. WRONG WIRE KEY: the button sent `payload.documents` but
  *      DocCreatePayloadSchema (packages/shared/src/protocol.ts) requires
@@ -10,7 +16,7 @@
  *      mismatch.
  *   2. NO ACK HANDLING: the op was fire-and-forget (no callback), so the
  *      VALIDATION_FAILED rejection was invisible — "clicking does nothing".
- *      The fix (ActorDirectory.svelte createActor()) now awaits sendOp()
+ *      The fix (the client's create handler) now awaits sendOp()
  *      and surfaces failures. This file proves the SERVER side of the
  *      contract: a correctly-shaped minimal Actor (name + subtype +
  *      ownership + flags, NO `system`) is accepted, persisted, and
@@ -151,7 +157,7 @@ function sendOp(
   });
 }
 
-/** The exact minimal document ActorDirectory.svelte's createActor() sends. */
+/** The exact minimal document the client's create-an-actor handler sends. */
 function minimalActorData(name: string, subtype: string): Record<string, unknown> {
   return {
     name,
@@ -233,7 +239,7 @@ describe("doc:create Actor — minimal '+Novo' button payload (pf2e)", () => {
 
     // The GM's own socket also receives the doc:create broadcast — this is
     // the event worldMirror.subscribe("Actor", ...) listens to client-side
-    // to update ActorDirectory's list (directory.total increments).
+    // to update whichever panel lists actors.
     const broadcast = await broadcastReceived;
     expect(broadcast["type"]).toBe("doc:create");
     const broadcastPayload = broadcast["payload"] as {
