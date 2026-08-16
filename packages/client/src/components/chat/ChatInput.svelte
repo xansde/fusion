@@ -5,33 +5,51 @@
    * Features:
    * - Arrow ↑↓ for input history navigation.
    * - Inline formula validity indicator on /roll commands.
-   * - Roll mode selector (persisted to localStorage).
+   * - Roll mode selector (drawn icons, persisted per world + user — REQ-ACH-040/041).
    * - Enter to send, Shift+Enter for newline.
    *
    * REQ-CHT-013..015: command parsing on client for UX preview.
    * REQ-ROL-021..023: formula validation without RNG.
+   * REQ-ACH-042..045 / REQ-CHT-017: who sees a roll is decided in ONE place —
+   * `lib/chat/resolveRollMode.ts` — and this component only feeds it the typed line and
+   * the selector's value. It never sets `rollMode` on the payload by hand.
    */
 
-  import { parseChatCommand, validateFormulaWithLimits } from "@fusion/shared";
+  import { validateFormulaWithLimits, parseChatCommand } from "@fusion/shared";
   import { InputHistory } from "../../lib/chat/inputHistory.js";
-  import { loadRollMode, saveRollMode } from "../../lib/chat/rollModePreference.js";
+  import { initRollMode, rollModeState, setRollMode } from "../../lib/chat/rollModeState.svelte.js";
+  import { buildChatSendPayload } from "../../lib/chat/resolveRollMode.js";
+  import { session } from "../../lib/session.svelte.js";
+  import RollModeSelector from "./RollModeSelector.svelte";
   import type { RollMode, ChatSendPayload } from "@fusion/shared";
 
   const {
     worldId,
     onSend,
     disabled = false,
+    userId = session.user?.id ?? "",
   }: {
     worldId: string;
     onSend: (payload: ChatSendPayload) => Promise<void>;
     disabled?: boolean;
+    /**
+     * Owner of the roll mode preference on this device (REQ-ACH-041). Defaults to the
+     * logged-in user so the panel does not have to thread it down.
+     */
+    userId?: string;
   } = $props();
 
   // ---- State ----
 
   let inputText = $state("");
   let sending = $state(false);
-  let rollMode = $state<RollMode>(loadRollMode());
+  // Restored per world + user: a shared browser never hands the GM's mode to a player,
+  // and switching worlds does not carry it over (REQ-ACH-041). The value lives in a
+  // session-scoped store because sheets, cards and the roll builder read it too
+  // (REQ-ACH-042) and this panel unmounts on every drawer tab switch.
+  $effect(() => {
+    initRollMode(worldId, userId);
+  });
   const history = new InputHistory();
 
   // ---- Formula validation preview ----
@@ -59,10 +77,8 @@
 
   // ---- Roll mode ----
 
-  function handleRollModeChange(e: Event): void {
-    const val = (e.target as HTMLSelectElement).value as RollMode;
-    rollMode = val;
-    saveRollMode(val);
+  function handleRollModeSelect(mode: RollMode): void {
+    setRollMode(worldId, userId, mode);
   }
 
   // ---- Send ----
@@ -73,11 +89,14 @@
 
     sending = true;
     try {
-      const payload: ChatSendPayload = {
+      // Precedence lives in resolveRollMode: a command that names the mode beats the
+      // selector and the payload stays silent so the server's own parse wins
+      // (REQ-ACH-043); plain text is never touched by the selector (REQ-ACH-045).
+      const payload = buildChatSendPayload({
         content: text,
         worldId,
-        rollMode,
-      };
+        selectorMode: rollModeState.mode,
+      });
       await onSend(payload);
       history.push(text);
       inputText = "";
@@ -117,19 +136,8 @@
 </script>
 
 <div class="chat-input">
-  <!-- Roll mode selector -->
-  <select
-    class="chat-input__mode-select"
-    value={rollMode}
-    onchange={handleRollModeChange}
-    aria-label="Roll mode"
-    title="Roll mode"
-  >
-    <option value="public">Public</option>
-    <option value="gmroll">GM roll</option>
-    <option value="blindroll">Blind</option>
-    <option value="selfroll">Self</option>
-  </select>
+  <!-- Roll mode selector — four drawn icons, never emoji (REQ-ACH-040) -->
+  <RollModeSelector mode={rollModeState.mode} onSelect={handleRollModeSelect} {disabled} />
 
   <!-- Input area -->
   <div class="chat-input__field-wrap">
@@ -177,25 +185,6 @@
     border-top: 1px solid var(--fusion-border);
     background: var(--fusion-surface);
     flex-shrink: 0;
-  }
-
-  .chat-input__mode-select {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text-muted);
-    font-family: var(--fusion-font);
-    font-size: 0.7rem;
-    padding: 0.3rem 0.4rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    min-width: 4.5rem;
-    align-self: center;
-  }
-
-  .chat-input__mode-select:focus {
-    outline: none;
-    border-color: var(--fusion-accent);
   }
 
   .chat-input__field-wrap {

@@ -13,12 +13,19 @@
    * com renderização completa (virtual scroll é melhoria futura).
    */
 
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import type { Socket } from "socket.io-client";
   import type { ChatMessage } from "@fusion/shared";
-  import { chatStore, loadMoreHistory } from "../../lib/chat/chatStore.svelte.js";
-  import { ScrollStateManager } from "../../lib/chat/scrollState.js";
+  import {
+    chatSession,
+    chatStore,
+    dismissUnreadMarker,
+    loadMoreHistory,
+    resolveUnreadAnchorIndex,
+  } from "../../lib/chat/chatStore.svelte.js";
+  import { ScrollStateManager, resolveMarkerAnchorId } from "../../lib/chat/scrollState.js";
   import { groupChatMessages } from "../../lib/chat/chatGrouping.js";
+  import { t } from "../../lib/i18n/i18n.js";
   import ChatMessageComponent from "./ChatMessage.svelte";
 
   const {
@@ -38,6 +45,8 @@
 
   let logEl: HTMLElement | null = $state(null);
   let showIndicator = $state(false);
+  /** How many messages piled up below the viewport — the number the notice spells out. */
+  let pendingBelow = $state(0);
 
   // ---- Nested-roll grouping (r18-N1) ----
   // Spell-cast rolls (attack/damage/save) carry flags.fusion.parentMessageId;
@@ -48,14 +57,33 @@
   // which are unchanged and count/animate every incoming message).
   const grouped = $derived(groupChatMessages(chatStore.messages));
 
+  // ---- Unread divider (REQ-ACH-004/005) ----
+  //
+  // The row the "N novas" divider sits above. Null when there is no divider, or
+  // when its anchor is no longer in the loaded page (RNF-ACH-02: we do not page
+  // back through history to find it).
+  const markerAnchorId = $derived(
+    resolveMarkerAnchorId(
+      chatStore.messages.map((m) => m._id),
+      grouped.topLevel.map((m) => m._id),
+      chatStore.unreadMarker?.firstUnreadId,
+    ),
+  );
+  const markerCount = $derived(chatStore.unreadMarker?.count ?? 0);
+
   // ---- Scroll state machine ----
 
   const scrollManager = new ScrollStateManager({
     scrollToBottom: () => {
       if (logEl) logEl.scrollTop = logEl.scrollHeight;
     },
-    setIndicatorVisible: (v) => {
-      showIndicator = v;
+    setIndicatorVisible: (visible, count) => {
+      showIndicator = visible;
+      pendingBelow = count;
+    },
+    // Reaching the end is the only thing that retires the divider (REQ-ACH-005).
+    reachedEnd: () => {
+      dismissUnreadMarker();
     },
   });
 
@@ -66,9 +94,21 @@
   // ChatLog must not own it — it also unmounts when the log is replaced.
 
   let _prevMsgCount = 0;
+  /**
+   * The first pass only records how much was already there. Messages already in
+   * the store when the panel mounts are not arrivals — counting them would open
+   * the log with a "N novas" notice for messages that are simply the log
+   * (REQ-ACH-006 is about what arrives *while* the reader is looking).
+   */
+  let _seeded = false;
 
   $effect(() => {
     const count = chatStore.messages.length;
+    if (!_seeded) {
+      _seeded = true;
+      _prevMsgCount = count;
+      return;
+    }
     if (count > _prevMsgCount) {
       const diff = count - _prevMsgCount;
       for (let i = 0; i < diff; i++) {
@@ -78,11 +118,49 @@
     }
   });
 
-  // ---- Initial scroll to bottom after mount ----
+  // ---- Where the log opens (REQ-ACH-004, REQ-ACH-026, RNF-ACH-02) ----
+  //
+  // Three cases, in order of who has the strongest claim on the viewport:
+  //  1. there is a "N novas" divider → land on it, not on the end. Landing on the
+  //     end would lose exactly the messages the badge promised (REQ-ACH-004);
+  //  2. the reader had scrolled somewhere and switched tabs → put them back
+  //     (REQ-ACH-026: the log position survives the switch);
+  //  3. otherwise → the end, as always.
 
   onMount(() => {
+    if (positionAtUnreadMarker()) return;
+
+    const saved = chatSession.scrollTop;
+    if (saved !== null && logEl) {
+      logEl.scrollTop = saved;
+      scrollManager.onScroll(logEl.scrollTop, logEl.scrollHeight, logEl.clientHeight);
+      return;
+    }
+
     scrollManager.forceScrollToBottom();
   });
+
+  onDestroy(() => {
+    // Hand the position to the session before the component goes (REQ-ACH-026).
+    if (logEl) chatSession.scrollTop = logEl.scrollTop;
+  });
+
+  /**
+   * Bring the first unread into view. Returns false when there is nothing to
+   * land on — no divider, or an anchor that aged out of the loaded page.
+   */
+  function positionAtUnreadMarker(): boolean {
+    if (resolveUnreadAnchorIndex() < 0) return false;
+    const anchorId = markerAnchorId;
+    if (anchorId === null || !logEl) return false;
+
+    const row = logEl.querySelector<HTMLElement>(`[data-message-id="${anchorId}"]`);
+    if (!row) return false;
+
+    logEl.scrollTop = row.offsetTop - logEl.offsetTop;
+    scrollManager.positionAtAnchor();
+    return true;
+  }
 
   // ---- Scroll event handler ----
 
@@ -129,14 +207,24 @@
       <p class="chat-log__empty">No messages yet. Say something!</p>
     {:else}
       {#each grouped.topLevel as msg (msg._id)}
-        <ChatMessageComponent
-          message={msg}
-          children={grouped.childrenByParent.get(msg._id) ?? []}
-          {socket}
-          {isGm}
-          {userId}
-          {worldId}
-        />
+        {#if markerAnchorId === msg._id}
+          <!-- REQ-ACH-004: "N novas" sits immediately above the first unread. -->
+          <div class="chat-log__unread-marker" role="separator">
+            <span class="chat-log__unread-marker-label"
+              >{t("FUSION.Chat.Log.UnreadMarker", { count: markerCount })}</span
+            >
+          </div>
+        {/if}
+        <div class="chat-log__row" data-message-id={msg._id}>
+          <ChatMessageComponent
+            message={msg}
+            children={grouped.childrenByParent.get(msg._id) ?? []}
+            {socket}
+            {isGm}
+            {userId}
+            {worldId}
+          />
+        </div>
       {/each}
     {/if}
 
@@ -145,14 +233,28 @@
     {/if}
   </div>
 
-  <!-- New messages indicator -->
+  <!--
+    REQ-ACH-006: away from the end, a new message does not move the log — it
+    piles up behind this notice, which counts what is waiting and, when pressed,
+    is the way to the end.
+  -->
   {#if showIndicator}
     <button
       class="chat-log__new-indicator"
       onclick={jumpToBottom}
-      aria-label="New messages — click to jump to bottom"
+      aria-label={t("FUSION.Chat.Log.NewBelowHint", { count: pendingBelow })}
     >
-      New messages ▼
+      <svg class="chat-log__new-arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+        <path
+          d="M6 1.5v7.5M2.5 6.5 6 10l3.5-3.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      {t("FUSION.Chat.Log.NewBelow", { count: pendingBelow })}
     </button>
   {/if}
 </div>
@@ -204,6 +306,32 @@
     color: var(--fusion-text-subtle);
   }
 
+  /* Unread divider (REQ-ACH-004) */
+  .chat-log__unread-marker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .chat-log__unread-marker::before,
+  .chat-log__unread-marker::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--fusion-accent);
+    opacity: 0.55;
+  }
+
+  .chat-log__unread-marker-label {
+    color: var(--fusion-accent);
+    font-family: var(--fusion-font);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
   /* New messages indicator */
   .chat-log__new-indicator {
     position: absolute;
@@ -227,6 +355,13 @@
 
   .chat-log__new-indicator:hover {
     background: var(--fusion-accent-hover);
+  }
+
+  .chat-log__new-arrow {
+    width: 0.75rem;
+    height: 0.75rem;
+    vertical-align: -0.1em;
+    margin-right: 0.25rem;
   }
 
   @keyframes slide-up {
