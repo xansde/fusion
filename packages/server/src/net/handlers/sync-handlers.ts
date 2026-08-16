@@ -664,13 +664,15 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     // affected scene without ever emitting a doc:update — a connected
     // client's DocumentMirror would be stuck on the stale version forever
     // (no doc:update ever arrives to trigger a resync). Broadcast the
-    // version bump too, filtered per recipient by the SAME ownership rule
-    // buildSnapshot uses for Scenes, since a scene may carry
-    // ownership.default = NONE (unrevealed map — the class of leak T025
-    // exists to close): a non-privileged client only receives the scenes it
-    // is entitled to see, hidden-token/secret-door redacted exactly like
-    // buildSnapshot redacts them for the join snapshot.
-    broadcastSceneVersionUpdates(deps, updatedScenes);
+    // version bump for the scenes that LEFT the air; the scene that went on
+    // air already travelled above (body before pointer, REQ-CEN-072), with
+    // its bumped version, so emitting it again here would only duplicate the
+    // envelope. Non-privileged sockets receive the envelope with the off-air
+    // scenes dropped (REQ-CEN-071), through the single redaction funnel.
+    broadcastSceneVersionUpdates(
+      deps,
+      updatedScenes.filter((scene) => scene["_id"] !== sceneId),
+    );
 
     // requestId injection is owned by the dispatcher (socket-manager.ts).
     // This handler must not set it — doing so would be inconsistent with all
