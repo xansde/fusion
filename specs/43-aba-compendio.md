@@ -283,11 +283,11 @@ selo NÃO promete que os dois estejam iguais: importar clona com `_id` novo
   documento do mundo originado daquela entrada, com a ressalva de DEC-CPD-12
   disponível ao apontar.
 - **REQ-CPD-044** [MVP] A linha DEVE ser arrastável quando o tipo do documento tiver
-  destino definido (§5.6), e NÃO DEVE ser arrastável quando não tiver.
+  destino definido (§5.7), e NÃO DEVE ser arrastável quando não tiver.
 - **REQ-CPD-045** [MVP] Imagem quebrada ou placeholder conhecido DEVE cair para ícone
   de tipo sem deixar espaço vazio nem quebrar o alinhamento da lista.
 - **REQ-CPD-046** [MVP] A linha NÃO DEVE exibir vida, CA ou qualquer estatística de
-  criatura no papel não privilegiado — o que a plateia do pack já garante (§5.7), e
+  criatura no papel não privilegiado — o que a plateia do pack já garante (§5.8), e
   que aqui é reafirmado como regra de tela.
 
 ### 5.6 Pré-visualização
@@ -300,7 +300,7 @@ selo NÃO promete que os dois estejam iguais: importar clona com `_id` novo
 - **REQ-CPD-052** [MVP] A janela DEVE exibir bloco de licença com a licença do pack e
   o override do documento quando houver (DEC-CPD-07).
 - **REQ-CPD-053** [MVP] A janela DEVE oferecer as mesmas ações de trazer da linha
-  (§5.6), respeitando as mesmas permissões.
+  (§5.7), respeitando as mesmas permissões.
 - **REQ-CPD-054** [MVP] Mais de uma janela de pré-visualização PODE ficar aberta ao
   mesmo tempo; fechar a gaveta NÃO DEVE fechá-las.
 - **REQ-CPD-055** [V2] A janela PODE oferecer navegação para o documento seguinte do
