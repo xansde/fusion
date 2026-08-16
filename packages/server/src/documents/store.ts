@@ -35,6 +35,8 @@ import {
 import type { DocumentTable, DocumentStats } from "@fusion/shared";
 import { getDocumentSchema } from "./types.js";
 import { deepMerge, computeDiff } from "./merge.js";
+import { embeddedCollectionKeys, semanticDeltaBytes } from "./write-metrics.js";
+import type { WriteMetricsCollector } from "./write-metrics.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -283,6 +285,44 @@ export interface DocumentStoreOptions {
   defaultAuthor?: AuthorContext;
   /** Engine version to embed in _stats. */
   coreVersion?: string;
+  /**
+   * Optional write-metrics collector (T016). Left out, every write is
+   * unobserved and costs nothing — which is what the ~15 test call sites that
+   * build a bare `new DocumentStore({ db })` rely on. The live server wires
+   * one per world in SocketManager.registerWorldNamespace.
+   */
+  metrics?: WriteMetricsCollector;
+}
+
+/**
+ * One write that HAS run its SQL but whose transaction has not committed yet
+ * (T016).
+ *
+ * Metrics are buffered in this shape instead of being reported on the spot
+ * for two reasons, both about the transaction boundary:
+ *
+ *  - a batch rolls the whole transaction back on any failure (REQ-PER-020),
+ *    so a write reported from inside it would be a phantom in the report —
+ *    counted, with row bytes and latency, having never existed in the
+ *    database;
+ *  - reporting is arithmetic over strings and objects, and doing it inside an
+ *    IMMEDIATE transaction puts it under the database-wide write lock, where
+ *    a throw would also roll back a legitimate game write.
+ *
+ * So only the raw material is captured here (no serialisation, no byte
+ * counting); everything else happens in `drainMetrics`, after the commit.
+ */
+interface PendingWrite {
+  op: "create" | "update";
+  table: DocumentTable;
+  patchKeys: readonly string[];
+  /** The row body exactly as written — already serialised for the SQL. */
+  dataJson: string;
+  /** Update only: the row as it was, for the array-element comparison. */
+  existing: Record<string, unknown> | null;
+  /** Update only: the store's minimal diff. */
+  diff: Record<string, unknown> | null;
+  latencyNs: bigint;
 }
 
 /**
@@ -295,11 +335,66 @@ export class DocumentStore {
   private readonly db: Db;
   private readonly coreVersion: string;
   private readonly defaultAuthor: AuthorContext;
+  /**
+   * T016 write instrumentation. It lives on the store — not around the
+   * handlers — because `updateBatch`/`createBatch` call `_updateInTxn`/
+   * `_createInTxn` directly, so anything wrapped around the PUBLIC
+   * `update()`/`create()` is blind to every batched write.
+   */
+  private readonly metrics: WriteMetricsCollector | undefined;
+  /** Writes of the transaction currently open — see PendingWrite. */
+  private readonly pendingMetrics: PendingWrite[] = [];
 
   constructor(options: DocumentStoreOptions) {
     this.db = options.db;
     this.coreVersion = options.coreVersion ?? FUSION_VERSION;
     this.defaultAuthor = options.defaultAuthor ?? { userId: null };
+    this.metrics = options.metrics;
+  }
+
+  /**
+   * Run `fn` in an IMMEDIATE transaction and report its writes ONLY if that
+   * transaction committed. A rollback leaves the buffer to be discarded.
+   */
+  private inTxn<T>(fn: () => T): T {
+    try {
+      const result = this.db.transaction(fn).immediate();
+      this.drainMetrics();
+      return result;
+    } finally {
+      // Covers the rollback path (and a half-drained buffer): nothing may
+      // survive into the next transaction.
+      this.pendingMetrics.length = 0;
+    }
+  }
+
+  /** Report the committed writes of the transaction that just ended. */
+  private drainMetrics(): void {
+    const metrics = this.metrics;
+    if (metrics === undefined || this.pendingMetrics.length === 0) return;
+
+    try {
+      for (const pending of this.pendingMetrics) {
+        const rowBytes = Buffer.byteLength(pending.dataJson, "utf8");
+        metrics.record({
+          op: pending.op,
+          table: pending.table,
+          patchKeys: pending.patchKeys,
+          rowBytes,
+          // A create's payload IS the whole row, so its amplification is 1 by
+          // construction; only an update has a delta worth narrowing.
+          deltaBytes:
+            pending.existing === null || pending.diff === null
+              ? rowBytes
+              : semanticDeltaBytes(pending.existing, pending.diff),
+          latencyNs: pending.latencyNs,
+        });
+      }
+    } catch {
+      // The write is already committed and its result is already on its way
+      // back to the caller. A diagnostic that fails must not turn a
+      // successful game action into an error the player sees.
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -339,7 +434,7 @@ export class DocumentStore {
     // open on this connection — better-sqlite3 falls back to a SAVEPOINT and
     // silently ignores the requested mode otherwise. No store method is
     // currently called from inside another transaction; keep it that way.
-    return this.db.transaction(() => this._createInTxn(table, input, auth)).immediate();
+    return this.inTxn(() => this._createInTxn(table, input, auth));
   }
 
   // --------------------------------------------------------------------------
@@ -491,7 +586,7 @@ export class DocumentStore {
     // change land between the read and the write and get silently overwritten
     // (lost update) — reproduced with two connections against the same
     // world.db.
-    return this.db.transaction(() => this._updateInTxn(table, id, patch, auth)).immediate();
+    return this.inTxn(() => this._updateInTxn(table, id, patch, auth));
   }
 
   // --------------------------------------------------------------------------
@@ -545,14 +640,12 @@ export class DocumentStore {
     // item under concurrency can hit SQLITE_BUSY_SNAPSHOT, which busy_timeout
     // does NOT retry — the whole batch fails instantly instead of waiting for
     // the lock (reproduced with two connections against the same world.db).
-    this.db
-      .transaction(() => {
-        for (const input of inputs) {
-          const result = this._createInTxn(table, input, auth);
-          results.push(result);
-        }
-      })
-      .immediate();
+    this.inTxn(() => {
+      for (const input of inputs) {
+        const result = this._createInTxn(table, input, auth);
+        results.push(result);
+      }
+    });
 
     return results;
   }
@@ -574,15 +667,13 @@ export class DocumentStore {
     const results: Array<Record<string, unknown> | null> = [];
 
     // IMMEDIATE (T012) — see createBatch's comment for why.
-    this.db
-      .transaction(() => {
-        for (const patch of patches) {
-          const { _id, ...rest } = patch;
-          const result = this._updateInTxn(table, _id, rest, auth);
-          results.push(result);
-        }
-      })
-      .immediate();
+    this.inTxn(() => {
+      for (const patch of patches) {
+        const { _id, ...rest } = patch;
+        const result = this._updateInTxn(table, _id, rest, auth);
+        results.push(result);
+      }
+    });
 
     return results;
   }
@@ -645,7 +736,25 @@ export class DocumentStore {
     const now = Date.now();
     const dataJson = JSON.stringify(validated);
     const { sql, params } = buildInsertSql(table, id, dataJson, cols, now);
+
+    // T016: time the SQL statement itself; everything else about the write is
+    // buffered and measured after the commit (see PendingWrite). `dataJson`
+    // is reused rather than re-serialised, so nothing is stringified twice.
+    // With no collector wired the whole block costs one boolean check.
+    const startNs = this.metrics === undefined ? 0n : process.hrtime.bigint();
     this.db.prepare(sql).run(...params);
+    if (this.metrics !== undefined) {
+      const endNs = process.hrtime.bigint();
+      this.pendingMetrics.push({
+        op: "create",
+        table,
+        patchKeys: embeddedCollectionKeys(validated),
+        dataJson,
+        existing: null,
+        diff: null,
+        latencyNs: endNs - startNs,
+      });
+    }
 
     return validated;
   }
@@ -688,7 +797,33 @@ export class DocumentStore {
     const now = Date.now();
     const dataJson = JSON.stringify(validated);
     const { sql, params } = buildUpdateSql(table, id, dataJson, cols, now);
+
+    // T016: instrumented HERE, after the no-op early return above (a patch
+    // that changes nothing writes nothing and must count as nothing) and
+    // after `dataJson` exists, so the bytes actually written are measured
+    // rather than re-serialised. `rowBytes` is the whole row SQLite rewrites;
+    // the delta it is compared against is computed from `existingData`+`diff`
+    // after the commit — NOT from `cleanPatch`, which for every embedded
+    // collection is the entire array resent (see write-metrics.ts).
+    //
+    // The attribution keys come from the diff, not from the patch: a handler
+    // that resends `{ tokens, walls }` with only the walls changed is wall
+    // pressure, and crediting `tokens` would blur the very split the report
+    // exists to show.
+    const startNs = this.metrics === undefined ? 0n : process.hrtime.bigint();
     this.db.prepare(sql).run(...params);
+    if (this.metrics !== undefined) {
+      const endNs = process.hrtime.bigint();
+      this.pendingMetrics.push({
+        op: "update",
+        table,
+        patchKeys: Object.keys(diff),
+        dataJson,
+        existing: existingData,
+        diff,
+        latencyNs: endNs - startNs,
+      });
+    }
 
     return validated;
   }
