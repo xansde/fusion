@@ -169,8 +169,17 @@ export class ScrollStateManager {
  * The log renders one row per *top-level* message: a nested roll (attack, damage,
  * save) is drawn inside its parent card and has no row of its own. So the first
  * unread may well be a message that is not itself drawable — the divider then
- * belongs above the first row that is at or after it, which is the row the reader
- * has to look at to see what they missed.
+ * belongs above the row that DRAWS it, which is its parent card. The parent
+ * always precedes the child in chronological order, so "the first row at or after
+ * the anchor" would push the divider BELOW the very message it announces
+ * (REQ-ACH-004 asks for it immediately *before*); the container is what is
+ * resolved here instead.
+ *
+ * `containerByChildId` maps a nested message to the top-level row that renders
+ * it (invert `GroupedChat.childrenByParent`). Without it — or when the container
+ * itself is not a rendered row — the nearest row at or before the anchor is the
+ * closest the divider can get, falling forward only when the anchor sits above
+ * every row in the loaded page.
  *
  * Returns `null` when the anchor is not in the loaded page at all. That is the
  * RNF-ACH-02 half: the anchor is resolved against what pagination has already
@@ -183,15 +192,28 @@ export function resolveMarkerAnchorId(
   orderedIds: readonly string[],
   topLevelIds: readonly string[],
   anchorId: string | null | undefined,
+  containerByChildId?: ReadonlyMap<string, string>,
 ): string | null {
   if (!anchorId) return null;
 
   const anchorIndex = orderedIds.indexOf(anchorId);
   if (anchorIndex < 0) return null;
 
-  const atOrAfter = new Set(orderedIds.slice(anchorIndex));
-  for (const id of topLevelIds) {
-    if (atOrAfter.has(id)) return id;
+  const rows = new Set(topLevelIds);
+  // The anchor has a row of its own — the divider goes above it.
+  if (rows.has(anchorId)) return anchorId;
+
+  // Nested: the row the reader has to look at is the card that draws it.
+  const container = containerByChildId?.get(anchorId);
+  if (container !== undefined && rows.has(container)) return container;
+
+  for (let i = anchorIndex - 1; i >= 0; i -= 1) {
+    const id = orderedIds[i];
+    if (id !== undefined && rows.has(id)) return id;
+  }
+  for (let i = anchorIndex + 1; i < orderedIds.length; i += 1) {
+    const id = orderedIds[i];
+    if (id !== undefined && rows.has(id)) return id;
   }
   return null;
 }

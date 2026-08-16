@@ -19,15 +19,19 @@
  *  - draft, log position and ↑↓ history live outside the panel component, which
  *    the drawer unmounts on every tab switch (REQ-ACH-026, REQ-GAV-017).
  *
- * The client suite runs in a node environment with no DOM, so the two facts that
- * only exist inside `ChatLog.svelte` (where the divider is drawn, and that the
- * position is handed to the session before the component goes) are read from its
- * source — the same trap `chatUnread.test.ts` uses for the panel pair.
+ * The client suite runs in a node environment with no DOM. What `ChatLog.svelte`
+ * DRAWS — the divider, its count, and the row it sits above — is asserted on the
+ * markup of `render()` from `svelte/server`; what only its LIFECYCLE does (handing
+ * the position to the session before the component goes, feeding the real metrics
+ * after landing on the anchor) is read from its source, the same trap
+ * `chatUnread.test.ts` uses for the panel pair.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { render } from "svelte/server";
+import type { Socket } from "socket.io-client";
 import type { ChatMessage } from "@fusion/shared";
 
 import {
@@ -43,6 +47,10 @@ import {
 import { ScrollStateManager, resolveMarkerAnchorId } from "../scrollState.js";
 import { chatUnreadBadge } from "../../sidebar/registerCoreTabs.js";
 import { formatSidebarBadge } from "../../sidebar/badges.svelte.js";
+import ChatLog from "../../../components/chat/ChatLog.svelte";
+// Importing the barrel pre-loads the pt-BR/en bundles, so `t()` resolves real labels.
+import "../../i18n/index.js";
+import { t } from "../../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -118,12 +126,63 @@ function source(relative: string): string {
   return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8");
 }
 
+// --- Server-rendered markup of the log -------------------------------------
+//
+// The client project runs Vitest in a node environment with no DOM, so what the
+// log DRAWS is read from `render()` of `svelte/server` — the same instrument the
+// panel pair uses (`components/chat/__tests__/ChatPanel.test.ts`). Lifecycle
+// (onMount/$effect) does not run in a server render; the divider is pure markup
+// derived from the store, which is exactly what is asserted here.
+
+/** The log never touches the socket during a server render. */
+const socket = {} as unknown as Socket;
+
+function renderLog(): string {
+  const { body } = render(ChatLog, {
+    props: { socket, worldId: "world1", userId: "user1", isGm: false },
+  });
+  return body;
+}
+
+/** Put `n` plain messages in the log, bypassing the unread bookkeeping. */
+function seedLog(n: number): ChatMessage[] {
+  const messages = Array.from({ length: n }, () => makeTextMessage());
+  chatStore.messages = messages;
+  return messages;
+}
+
+/** Where the row of `id` starts in the rendered markup. */
+function rowIndex(body: string, id: string | undefined): number {
+  const at = body.indexOf(`data-message-id="${id ?? ""}"`);
+  expect(at).toBeGreaterThan(-1);
+  return at;
+}
+
+/**
+ * The divider element in the markup. Svelte appends its scoping hash to the
+ * class list, so the match stops at the class boundary — and never swallows
+ * `chat-log__unread-marker-label`, the span inside it.
+ */
+const DIVIDER = /class="chat-log__unread-marker[\s"]/;
+
+/** Where the divider starts in the rendered markup, or -1 when it is absent. */
+function dividerIndex(body: string): number {
+  return body.search(DIVIDER);
+}
+
+function dividerCount(body: string): number {
+  return body.match(new RegExp(DIVIDER, "g"))?.length ?? 0;
+}
+
 beforeEach(() => {
   setChatTabVisible(false);
   chatStore.messages = [];
   chatStore.unreadCount = 0;
   chatStore.hasMore = false;
   chatStore.nextCursor = null;
+  chatStore.loadingInitial = false;
+  chatStore.loadingMore = false;
+  chatStore.error = null;
   dismissUnreadMarker();
   resetChatSession();
 });
@@ -211,17 +270,81 @@ describe("REQ-ACH-004 — abrir zera o contador e marca a primeira não lida", (
   it("REQ-ACH-004: rolagem filha não é linha do log — o marcador cai na linha do card que a contém", () => {
     // The first unread is a nested roll: it is drawn inside its parent's card and
     // has no row of its own, so the divider goes above the row the reader has to
-    // look at — the parent card.
+    // look at — the parent card, which comes BEFORE the child in the log. Landing
+    // on the next row ("b") would put the divider AFTER the message it announces.
     const orderedIds = ["a", "card", "childRoll", "b"];
     const topLevelIds = ["a", "card", "b"];
 
-    expect(resolveMarkerAnchorId(orderedIds, topLevelIds, "childRoll")).toBe("b");
+    expect(
+      resolveMarkerAnchorId(orderedIds, topLevelIds, "childRoll", new Map([["childRoll", "card"]])),
+    ).toBe("card");
+    // Without the container map the nearest row before the anchor is the same card.
+    expect(resolveMarkerAnchorId(orderedIds, topLevelIds, "childRoll")).toBe("card");
+  });
+
+  it("REQ-ACH-004: com uma linha solta entre o card e a filha, o marcador segue o card que a desenha", () => {
+    // Someone typed while the conjuration was still resolving: the loose line sits
+    // between parent and child in time, but the child is drawn inside the card —
+    // above the loose line. Only the container map can tell the divider that.
+    const orderedIds = ["card", "loose", "childRoll"];
+    const topLevelIds = ["card", "loose"];
+
+    expect(
+      resolveMarkerAnchorId(orderedIds, topLevelIds, "childRoll", new Map([["childRoll", "card"]])),
+    ).toBe("card");
   });
 
   it("REQ-ACH-004: abrir sem nada não lido não inventa marcador", () => {
     setChatTabVisible(true);
 
     expect(chatStore.unreadMarker).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The divider on screen (REQ-ACH-004)
+// ---------------------------------------------------------------------------
+
+describe("REQ-ACH-004 — o log desenha o divisor 'N novas' antes da primeira não lida", () => {
+  it("REQ-ACH-004: o divisor aparece uma vez, com a contagem, imediatamente antes da linha da primeira não lida", () => {
+    const [, second, third] = seedLog(4);
+    chatStore.unreadMarker = { firstUnreadId: third?._id ?? "", count: 2 };
+
+    const body = renderLog();
+
+    expect(dividerCount(body)).toBe(1);
+    expect(body).toContain(t("FUSION.Chat.Log.UnreadMarker", { count: 2 }));
+
+    const divider = dividerIndex(body);
+    expect(divider).toBeGreaterThan(rowIndex(body, second?._id));
+    expect(divider).toBeLessThan(rowIndex(body, third?._id));
+  });
+
+  it("REQ-ACH-004: sem marcador declarado o log não desenha divisor nenhum", () => {
+    seedLog(3);
+    chatStore.unreadMarker = null;
+
+    const body = renderLog();
+
+    expect(body).not.toContain("chat-log__unread-marker");
+  });
+
+  it("REQ-ACH-004: primeira não lida aninhada — o divisor fica antes do card que a desenha", () => {
+    // The unread is a nested roll drawn inside the parent card, so the row the
+    // reader has to look at is the card — the divider belongs above it, never
+    // above the line that comes after it.
+    const parent = makeTextMessage();
+    const child = makeTextMessage({ flags: { fusion: { parentMessageId: parent._id } } });
+    const after = makeTextMessage();
+    chatStore.messages = [parent, child, after];
+    chatStore.unreadMarker = { firstUnreadId: child._id, count: 1 };
+
+    const body = renderLog();
+
+    const divider = dividerIndex(body);
+    expect(divider).toBeGreaterThan(-1);
+    expect(divider).toBeLessThan(rowIndex(body, parent._id));
+    expect(dividerCount(body)).toBe(1);
   });
 });
 

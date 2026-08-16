@@ -63,11 +63,22 @@
   // The row the "N novas" divider sits above. Null when there is no divider, or
   // when its anchor is no longer in the loaded page (RNF-ACH-02: we do not page
   // back through history to find it).
+  // A nested roll has no row of its own: the row that draws it is its parent card,
+  // and that is where the divider belongs (REQ-ACH-004 — immediately BEFORE the
+  // first unread, never after the card that already showed it).
+  const containerByChildId = $derived(
+    new Map<string, string>(
+      [...grouped.childrenByParent].flatMap(([parentId, children]) =>
+        children.map((child): [string, string] => [child._id, parentId]),
+      ),
+    ),
+  );
   const markerAnchorId = $derived(
     resolveMarkerAnchorId(
       chatStore.messages.map((m) => m._id),
       grouped.topLevel.map((m) => m._id),
       chatStore.unreadMarker?.firstUnreadId,
+      containerByChildId,
     ),
   );
   const markerCount = $derived(chatStore.unreadMarker?.count ?? 0);
