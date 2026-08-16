@@ -16,6 +16,12 @@
  * (REQ-CTT-072), and a state outside the three is rejected by the payload
  * schema before anything is read.
  *
+ * A batch is all-or-nothing: every edit is judged in a pre-flight pass before
+ * the first row is written (REQ-CTT-070). The window's own caller sends one
+ * edit per contact when a column is cycled, so a refusal halfway through would
+ * otherwise persist part of the column, skip the broadcast and still ack
+ * `ok:false` — the divergence `buildDocUpdateHandler` pre-flights against.
+ *
  * The broadcast goes out as a `doc:update` envelope for the Actor. That is
  * deliberate: the delta then travels the same pipe — same `seq`, same
  * `OpBuffer` replay, same redaction funnel — as any other document change, so
@@ -55,31 +61,39 @@ export function buildActorSetKnowledgeHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", parsed.error.message);
     }
 
-    const author = { userId: ctx.userId };
-    const updated: Record<string, unknown>[] = [];
-
+    // Pre-flight: the whole batch is judged before a single row is written.
+    // The write loop below persists as it goes, so a guard that fired mid-loop
+    // would leave the earlier contacts written, skip the broadcast entirely and
+    // still ack `ok:false` — server and clients diverging in silence until the
+    // next resync (the same trap `buildDocUpdateHandler` pre-flights against).
+    // This is not a hypothetical batch: `columnCycleEdits` sends one edit PER
+    // CONTACT, so one stale id among them would half-write the whole column.
+    const knownCharacters = new Set<string>();
     for (const edit of parsed.data.updates) {
-      let existing: Record<string, unknown>;
-      try {
-        existing = deps.store.get("actors", edit.actorId);
-      } catch (err) {
-        if (err instanceof DocumentNotFoundError) {
-          return ackError("NOT_FOUND", `Document not found: Actor/${edit.actorId}`);
-        }
-        throw err;
-      }
+      const missing = ensureActorExists(deps, edit.actorId);
+      if (missing) return missing;
 
       // An exception is keyed by a character Actor's id (spec 39 §5.8). A key
       // that names nothing would sit in the map for good, unreachable from the
       // window's grid — so it is refused on the way in. Removal (`null`) is
       // always allowed: it is how a stale key is cleaned up.
       for (const [characterId, state] of Object.entries(edit.exceptions ?? {})) {
-        if (state === null) continue;
+        if (state === null || knownCharacters.has(characterId)) continue;
         const invalid = notACharacter(deps, characterId);
         if (invalid) return invalid;
+        knownCharacters.add(characterId);
       }
+    }
 
-      const plan = planKnowledgeEdit(existing, edit);
+    const author = { userId: ctx.userId };
+    const updated: Record<string, unknown>[] = [];
+
+    for (const edit of parsed.data.updates) {
+      // Read inside the write loop, not in the pre-flight: two edits may name
+      // the same contact, and the second has to plan against what the first
+      // just wrote. Existence was settled above and nothing here deletes, so
+      // this read cannot come up empty.
+      const plan = planKnowledgeEdit(deps.store.get("actors", edit.actorId), edit);
       if (!plan) continue;
 
       const result = deps.store.update("actors", edit.actorId, plan.patch, author);
@@ -99,6 +113,19 @@ export function buildActorSetKnowledgeHandler(deps: DocHandlerDeps): HandlerFn {
 
     return ackOk(payload, seq);
   };
+}
+
+/** `NOT_FOUND` if the batch names a contact the world no longer holds. */
+function ensureActorExists(deps: DocHandlerDeps, actorId: string): Ack<never> | null {
+  try {
+    deps.store.get("actors", actorId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) {
+      return ackError("NOT_FOUND", `Document not found: Actor/${actorId}`);
+    }
+    throw err;
+  }
+  return null;
 }
 
 function notACharacter(deps: DocHandlerDeps, characterId: string): Ack<never> | null {

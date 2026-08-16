@@ -187,7 +187,12 @@ function sendOp(
 interface OpEnvelope {
   type: string;
   seq?: number;
-  payload: { documentType?: string; documents?: Record<string, unknown>[]; ids?: string[] };
+  payload: {
+    documentType?: string;
+    documents?: Record<string, unknown>[];
+    ids?: string[];
+    removedIds?: string[];
+  };
 }
 
 /** Every `op` envelope the socket receives, in arrival order. */
@@ -232,6 +237,7 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
   let playerB: ClientSocket;
   let gmOps: OpEnvelope[];
   let playerAOps: OpEnvelope[];
+  let playerBOps: OpEnvelope[];
 
   let charAId: string;
   let charBId: string;
@@ -265,6 +271,7 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     await Promise.all([waitForConnect(gm), waitForConnect(playerA), waitForConnect(playerB)]);
     gmOps = collectOps(gm);
     playerAOps = collectOps(playerA);
+    playerBOps = collectOps(playerB);
 
     charAId = await createActor({
       name: "Character A",
@@ -544,6 +551,129 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     expect(cleanup["ok"]).toBe(true);
   });
 
+  // -------------------------------------------------------------------------
+  // REQ-CTT-070 — a refused batch writes NOTHING
+  //
+  // The window cycles a whole column with ONE op carrying one edit per contact
+  // (`columnCycleEdits`). If the handler persisted as it looped and only then
+  // hit a bad edit, the contacts before it would already be written while the
+  // ack said `ok:false` and no broadcast ever left — server and clients
+  // diverging in silence until the next resync. The batch is all-or-nothing.
+  // -------------------------------------------------------------------------
+
+  describe("REQ-CTT-070: a batch refused halfway writes nothing at all", () => {
+    let firstContact: string;
+    let secondContact: string;
+
+    beforeAll(async () => {
+      firstContact = await createActor({
+        name: "Batch Contact One",
+        type: "npc",
+        ownership: { default: 0 },
+      });
+      secondContact = await createActor({
+        name: "Batch Contact Two",
+        type: "npc",
+        ownership: { default: 0 },
+      });
+    }, 20000);
+
+    /** Every knowledge state on both contacts, as world.db holds it right now. */
+    function snapshot(): [KnowledgeMap, KnowledgeMap] {
+      return [mapOf(readFromStore(firstContact)), mapOf(readFromStore(secondContact))];
+    }
+
+    /** True when any op after `from` carried one of the two contacts. */
+    function broadcastTouchedContacts(from: number): boolean {
+      return gmOps
+        .slice(from)
+        .some((envelope) =>
+          (envelope.payload.documents ?? []).some(
+            (doc) => doc["_id"] === firstContact || doc["_id"] === secondContact,
+          ),
+        );
+    }
+
+    it("REQ-CTT-070: an edit naming an actor that no longer exists rolls the whole batch back", async () => {
+      // Give the first contact a state worth losing, so a partial write would
+      // be visible rather than coincidentally equal to the default.
+      const seed = await sendOp(gm, "actor:setKnowledge", {
+        updates: [{ actorId: firstContact, general: KnowledgeState.Hidden }],
+      });
+      expect(seed["ok"]).toBe(true);
+      const before = snapshot();
+      const opsBefore = gmOps.length;
+
+      // Edit 0 is perfectly valid and comes FIRST; edit 1 names a contact the
+      // world does not have. The order is the whole point: a handler that
+      // writes as it loops has already committed edit 0 when edit 1 is refused.
+      const ack = await sendOp(gm, "actor:setKnowledge", {
+        updates: [
+          { actorId: firstContact, general: KnowledgeState.Known },
+          { actorId: "does-not-exist01", general: KnowledgeState.Known },
+        ],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("NOT_FOUND");
+
+      // The valid edit did NOT land: world.db is byte-identical to before.
+      expect(snapshot()).toEqual(before);
+      expect(mapOf(readFromStore(firstContact)).general).toBe(KnowledgeState.Hidden);
+      // And nothing was broadcast either — no client was told a half-truth.
+      expect(broadcastTouchedContacts(opsBefore)).toBe(false);
+    });
+
+    it("REQ-CTT-070/REQ-CTT-072: an exception naming a non-character rolls the whole batch back", async () => {
+      const before = snapshot();
+      const opsBefore = gmOps.length;
+      // Edit 0 has to be a REAL change, or a handler that writes as it loops
+      // would pass this by coincidence: a no-op leaves the store untouched for
+      // the wrong reason. `Glimpsed` differs from whatever sits there now.
+      expect(before[0].general).not.toBe(KnowledgeState.Glimpsed);
+
+      // Same shape, refused by the other guard: edit 0 is valid, edit 1 keys an
+      // exception on a contact (an `npc`), which is not a character.
+      const ack = await sendOp(gm, "actor:setKnowledge", {
+        updates: [
+          { actorId: firstContact, general: KnowledgeState.Glimpsed },
+          { actorId: secondContact, exceptions: { [secondContact]: KnowledgeState.Known } },
+        ],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("VALIDATION_FAILED");
+
+      expect(snapshot()).toEqual(before);
+      expect(broadcastTouchedContacts(opsBefore)).toBe(false);
+    });
+
+    it("REQ-CTT-070/REQ-CTT-075: the same batch with every edit valid lands in one delta", async () => {
+      // The counter-proof: the rollback above is the guard firing, not the
+      // batch path being broken. Both contacts move, on ONE seq.
+      const ack = await sendOp(gm, "actor:setKnowledge", {
+        updates: [
+          { actorId: firstContact, general: KnowledgeState.Known },
+          { actorId: secondContact, general: KnowledgeState.Glimpsed },
+        ],
+      });
+      expect(ack["ok"]).toBe(true);
+      const seq = ack["seq"] as number;
+
+      expect(snapshot()).toEqual([
+        { general: KnowledgeState.Known, exceptions: {} },
+        { general: KnowledgeState.Glimpsed, exceptions: {} },
+      ]);
+
+      const envelope = await waitForOp(
+        gmOps,
+        (e) => e.type === "doc:update" && e.seq === seq,
+        "the batched knowledge delta",
+      );
+      expect((envelope.payload.documents ?? []).map((d) => d["_id"])).toEqual(
+        expect.arrayContaining([firstContact, secondContact]),
+      );
+    });
+  });
+
   it("REQ-CTT-070/REQ-CTT-076: an etmos `orador` is a character — the exception is accepted, and deleting it sweeps", async () => {
     // The playable Actor subtype is the system's word: pf2e/sf2e say
     // "character", etmos says "orador" (`documentTypes.Actor`). Refusing the
@@ -576,14 +706,57 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     });
   });
 
-  it("REQ-CTT-071: a user's effective state is the highest among the characters they own", async () => {
-    // charB is player B's; a second character of player B sits at Hidden.
+  it("REQ-CTT-071: the payload a user receives follows the HIGHEST state among the characters they own", async () => {
+    // Player B owns two characters. The general rule stays `oculto` throughout,
+    // so the ONLY thing that can put this contact on player B's socket is a
+    // single exception on ONE of the two — which is exactly the maximum the
+    // requirement asks for. The verdict is read off the envelope player B's
+    // socket actually received, never recomputed here.
     const secondCharB = await createActor({
       name: "Character B2",
       type: "character",
       ownership: { default: 0, [ctx.playerBId]: 3 },
     });
-    const ack = await sendOp(gm, "actor:setKnowledge", {
+
+    /** The `doc:update` player B received for the op the ack names. */
+    async function envelopeFor(ack: Record<string, unknown>, what: string): Promise<OpEnvelope> {
+      expect(ack["ok"]).toBe(true);
+      const seq = ack["seq"] as number;
+      return waitForOp(
+        playerBOps,
+        (e) => e.type === "doc:update" && e.seq === seq,
+        `${what} on player B's socket`,
+      );
+    }
+
+    // (1) The exception sits on the character created LAST. A rule that read
+    // the general rule, the minimum, or the first character would leave player
+    // B at `oculto` and the contact would never arrive.
+    const onSecond = await sendOp(gm, "actor:setKnowledge", {
+      updates: [
+        {
+          actorId: contactId,
+          general: KnowledgeState.Hidden,
+          clearExceptions: true,
+          exceptions: { [secondCharB]: KnowledgeState.Known },
+        },
+      ],
+    });
+    const stored = mapOf(readFromStore(contactId));
+    expect(stored).toEqual({
+      general: KnowledgeState.Hidden,
+      exceptions: { [secondCharB]: KnowledgeState.Known },
+    });
+
+    const first = await envelopeFor(onSecond, "the contact raised on the second character");
+    const asKnown = (first.payload.documents ?? []).find((d) => d["_id"] === contactId);
+    // Whole: name and all — a `glimpsed` or `hidden` verdict could not produce it.
+    expect(asKnown?.["name"]).toBe("Innkeeper");
+    expect(first.payload.removedIds ?? []).not.toContain(contactId);
+
+    // (2) The same exception moved to the OTHER character keeps the contact
+    // whole: no character slot is privileged, the maximum is over all of them.
+    const onFirst = await sendOp(gm, "actor:setKnowledge", {
       updates: [
         {
           actorId: contactId,
@@ -593,16 +766,22 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
         },
       ],
     });
-    expect(ack["ok"]).toBe(true);
+    const second = await envelopeFor(onFirst, "the contact raised on the first character");
+    expect((second.payload.documents ?? []).find((d) => d["_id"] === contactId)?.["name"]).toBe(
+      "Innkeeper",
+    );
+    expect(second.payload.removedIds ?? []).not.toContain(contactId);
 
-    const stored = mapOf(readFromStore(contactId));
-    // The pair-by-pair states the server persisted: one Known, one Hidden.
-    expect(stored.exceptions[charBId]).toBe(KnowledgeState.Known);
-    expect(stored.exceptions[secondCharB]).toBeUndefined();
-    expect(stored.general).toBe(KnowledgeState.Hidden);
-    // Player B therefore sits at Known for this contact: the maximum wins.
-    const states = [charBId, secondCharB].map((id) => stored.exceptions[id] ?? stored.general);
-    expect(Math.max(...states)).toBe(KnowledgeState.Known);
+    // (3) Drop the last exception and BOTH characters fall back to `oculto`:
+    // the maximum is now `oculto` too, so the body leaves the batch and the id
+    // travels as a removal (REQ-CTT-075/REQ-CTT-082).
+    const dropped = await sendOp(gm, "actor:setKnowledge", {
+      updates: [{ actorId: contactId, general: KnowledgeState.Hidden, clearExceptions: true }],
+    });
+    const third = await envelopeFor(dropped, "the contact dropping back to hidden");
+    expect((third.payload.documents ?? []).some((d) => d["_id"] === contactId)).toBe(false);
+    expect(third.payload.removedIds ?? []).toContain(contactId);
+    expect(JSON.stringify(third)).not.toContain("Innkeeper");
   });
 
   // -------------------------------------------------------------------------
