@@ -791,6 +791,19 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // discard on read-back).  The same expansion is already applied in the
       // embedded path via applyDotPathDiff in handleEmbeddedUpdate.
       let expandedDiff = applyDotPathDiff({}, upd.diff);
+
+      // T010: which scene is active is world state, not a field of a document.
+      // Letting it through here wrote the flag without updating
+      // settings['_meta:activeScene'], without deactivating the previous scene
+      // and without broadcasting — the second writer that made the two records
+      // disagree. `world:activeScene` is the one way in.
+      if (documentType === "Scene" && "active" in expandedDiff) {
+        return ackError(
+          "VALIDATION_FAILED",
+          "Scene.active is not writable through doc:update — use the world:activeScene operation",
+        );
+      }
+
       // WIRING-DERIVE: system.derived is server-computed only — strip any
       // client-supplied value so a stale/forged autosave payload can never
       // overwrite it (recomputeDerivedIfNeeded below is the sole writer).

@@ -540,10 +540,16 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
 
     it("GM activates the scene", async () => {
       expect(shared.sceneId).toBeTruthy();
-      const ack = await sendOp(gm, "doc:update", {
+
+      // Activating through doc:update used to work, and was the second writer
+      // that let scenes.active and settings['_meta:activeScene'] disagree (T010).
+      const refused = await sendOp(gm, "doc:update", {
         documentType: "Scene",
         updates: [{ _id: shared.sceneId, diff: { active: true } }],
       });
+      expect(refused["ok"]).toBe(false);
+
+      const ack = await sendOp(gm, "world:activeScene", { sceneId: shared.sceneId });
       expect(ack["ok"]).toBe(true);
     });
 

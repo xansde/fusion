@@ -39,6 +39,8 @@ import { migration003 } from "./migrations/003_fog_exploration.js";
 import { migration004 } from "./migrations/004_region_maps.js";
 import { migration005 } from "./migrations/005_roll_audit_log.js";
 import { migration006 } from "./migrations/006_constraints.js";
+import { migration007 } from "./migrations/007_indexes.js";
+import { migration008 } from "./migrations/008_scene_active.js";
 
 registerMigrations([
   migration001,
@@ -47,4 +49,6 @@ registerMigrations([
   migration004,
   migration005,
   migration006,
+  migration007,
+  migration008,
 ]);
