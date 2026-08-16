@@ -18,6 +18,7 @@ import { printHelp } from "./help.js";
 import { runServe } from "./commands/serve.js";
 import { runWorldList, runWorldCreate, runWorldBackup } from "./commands/worlds.js";
 import { runUserAdd } from "./commands/users.js";
+import { runChatCommand } from "./commands/chat.js";
 
 // ---------------------------------------------------------------------------
 // Main
@@ -26,6 +27,15 @@ import { runUserAdd } from "./commands/users.js";
 async function main(): Promise<void> {
   // argv: [node, script, ...user args]
   const userArgs = process.argv.slice(2);
+
+  // `fusion chat …` (T019) owns its own sub-parser (commands/chat.ts) and is
+  // dispatched here, before the shared parseArgs() below, instead of being
+  // added to args.ts's ParsedArgs union — keeps that shared parser untouched
+  // while this destructive command's shape is still settling.
+  if (userArgs[0] === "chat") {
+    runChatCommand(userArgs.slice(1));
+    return;
+  }
 
   let parsed;
   try {

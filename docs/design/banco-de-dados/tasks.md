@@ -583,7 +583,7 @@ log por dia local, sem perder linhas nem duplicar.
 
 ## Fase 4 — Retenção e manutenção (antes da 3: barata e de efeito imediato)
 
-### T017 — GC no boot (D5)
+### T017 — GC no boot (D5) — em andamento
 
 `packages/server/src/auth/session-store.ts` (não existe um `DELETE` hoje) · roll-service · config
 
@@ -593,15 +593,58 @@ limites configuráveis. **Chat não é tocado.**
 **Pronto quando:** teste com dados sintéticos velhos prova o que sai e o que fica; log diz
 quantas linhas foram removidas.
 
-### T018 [P] — Manutenção do arquivo
+### T018 [P] — Manutenção do arquivo (em andamento — um dos três itens virou decisão sua)
 
 `PRAGMA optimize` no fechamento, `ANALYZE` periódico, vacuum incremental depois de GC grande.
 Nenhum dos três existe no código hoje.
 
-### T019 — Arquivamento manual de chat
+**Dos três itens do enunciado, só um sobreviveu à verificação.**
+
+**1. `PRAGMA optimize` no fechamento — feito.** Roda no `close()` de cada sessão de mundo e
+depois de um GC que removeu linhas. Vem com `analysis_limit=400`: o `optimize` é auto-limitado
+em _quais_ tabelas analisa, não em _quanto_ de cada uma, e o default `analysis_limit=0` significa
+"sem limite". Medido num `chat_messages` de 1 milhão de linhas com cache frio: **2,8 s** sem o
+limite contra **~120 ms** com ele. Essa diferença cairia inteira no momento em que você fecha o
+app — e `chat_messages` é justamente a tabela que D5 garante que cresce para sempre.
+
+**2. `ANALYZE` periódico — recusado, com evidência.** É redundante com o item 1: desde o SQLite
+3.46 a própria documentação chama o `PRAGMA optimize` de "a forma recomendada de rodar ANALYZE".
+Manter os dois seria a mesma atualização de estatística rodando duas vezes, com uma agenda extra
+para manter em sincronia. A conexão do Fusion é exatamente o caso "conexão de vida curta" que a
+documentação diz ser coberto pelo item 1 sozinho.
+
+**3. Vacuum incremental — bloqueado, e a decisão é sua.** `PRAGMA incremental_vacuum` só faz
+alguma coisa com `auto_vacuum = INCREMENTAL`. Verificado por execução: tanto uma cópia do
+`teste_xande` real quanto um banco recém-criado pelas migrations reportam `auto_vacuum = 0`
+(NONE, o default do SQLite) — nenhuma das oito migrations o define. Chamar o pragma hoje é
+no-op documentado.
+
+O problema que ele resolveria é real e foi medido: num banco de 126 MB, apagar 90% das linhas
+deixou o arquivo em 125,9 MB, com 28.336 páginas na freelist. Depois de um GC grande, o espaço
+não volta.
+
+Ligar não é adição pequena: o SQLite só aceita mudar `auto_vacuum` num banco **sem tabelas**, então
+habilitar nos mundos existentes exige um `VACUUM` completo — reescrita bloqueante do arquivo
+inteiro —, e habilitar só nos mundos novos deixaria todo mundo existente sem recuperar espaço
+para sempre. **As duas opções:** (a) pagar uma reescrita completa uma vez, em cada mundo que já
+existe; (b) aceitar o crescimento do arquivo como um dos custos de "chat nunca é apagado
+sozinho" (D5). Nenhuma das duas é escolha de implementação.
+
+### T019 — Arquivamento manual de chat — em andamento
 
 Comando de CLI que exporta um intervalo e só então remove, sob confirmação explícita.
 Chat só sai por ordem sua (D5).
+
+Entregue como `fusion chat archive`. A confirmação **não** é um `--yes`: é
+`--confirm-delete-count N`, e N tem que bater com a contagem do intervalo naquela execução —
+o número vem da prévia, que é o comportamento padrão do comando. Isso não se digita por acidente.
+
+A ordem é exportar, fechar, reler do disco, conferir campo a campo, e só então apagar. O apagamento
+casa `id`, `updated_at` **e** `data`: uma mensagem editada depois do instantâneo que alimentou a
+exportação simplesmente não é removida, em vez de ser arquivada numa versão e apagada em outra. Se a
+exportação falhar em qualquer ponto — inclusive depois do arquivo aberto —, o parcial é removido e
+nada sai do banco. E o comando recusa rodar num mundo com `world.lock` vivo, com a mesma checagem que
+o `world delete` já usa.
 
 ---
 

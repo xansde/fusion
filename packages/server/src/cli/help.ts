@@ -2,6 +2,7 @@
  * Help text for the fusion CLI.
  */
 
+import { printChatArchiveHelp } from "./commands/chat.js";
 import { FUSION_VERSION } from "@fusion/shared";
 
 const VERSION = FUSION_VERSION;
@@ -19,6 +20,7 @@ COMMANDS
   world backup <slug>    Create a manual backup of a world
   user add <world> <name>
                          Add a user to a world
+  chat archive <world>   Export a date range of chat to a file, then remove it
 
 OPTIONS
   --help, -h             Show help
@@ -188,6 +190,10 @@ export function printHelp(topic: string | undefined): void {
       break;
     case "user add":
       process.stdout.write(USAGE_USER_ADD);
+      break;
+    case "chat":
+    case "chat archive":
+      printChatArchiveHelp();
       break;
     case "version":
       process.stdout.write(`${VERSION}\n`);
