@@ -330,9 +330,11 @@ usuário como `OWNER` (REQ-USR-025a). Para papel privilegiado (`ASSISTANT`, `GAM
 personagem é criado.
 
 > **Emenda de 2026-08-16** — obrigada pela `42` §12 (DEC-NPC-02). Personagem de jogador não nasce em
-> aba nenhuma da gaveta: a aba NPCs recusa criá-lo em qualquer papel (REQ-NPC-055) e a aba Contatos
-> deixou de criar ator (DEC-CTT-01). Este é, portanto, o único endereço da criação de personagem — e
-> com isso a administração de usuários passa a ter consequência sobre Documents, o que ela não tinha.
+> aba nenhuma da gaveta: a aba NPCs não oferece o subtipo `character` na criação, em tela alguma dela
+> (REQ-NPC-044, CA-NPC-007), e a aba Contatos deixou de criar ator (DEC-CTT-01). (Quem trata de
+> **excluir** personagem de jogador é REQ-NPC-055, não a criação.) Este é, portanto, o único endereço
+> da criação de personagem — e com isso a administração de usuários passa a ter consequência sobre
+> Documents, o que ela não tinha.
 > Personagem sem dono seria documento órfão: nascer junto do usuário resolve criação e `ownership` no
 > mesmo gesto. A tela que executa esse gesto é a seção Usuários da `37` (REQ-CFG-051).
 
@@ -685,18 +687,18 @@ export const PERMISSIONS: Record<string, PermissionDefinition> = {
 
 ## Dependências (Specs Irmãs)
 
-| Spec                              | Dependência                                                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `01-arquitetura-geral.md`         | Estrutura de pacotes do monorepo; localização de `packages/shared` e `packages/server`                       |
-| `02-modelo-de-dados.md`           | Definição base de Document e campo `ownership`                                                               |
-| `03-persistencia-e-mundos.md`     | Tabelas SQLite `users`, `sessions`, `world_settings`; WAL mode                                               |
-| `04-rede-e-sincronizacao.md`      | Protocolo WebSocket; handshake `worldReady`; broadcast de eventos                                            |
-| `14-macros-e-automacao.md`        | Permission `MACRO_SCRIPT`; sandbox de execução de macros                                                     |
-| `20-assets-e-midia.md`            | Permission `FILES_BROWSE` / `FILES_UPLOAD`; diretórios por role                                              |
-| `21-seguranca.md`                 | Rate limiting de login/WebSocket; validação de Origin (CSWSH); TLS                                           |
-| `22-instalacao-e-distribuicao.md` | Admin Key; `fusion.json` (hostname, port, proxySSL); instruções de port-forwarding/túnel para URL de convite |
-| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054)                            |
-| `42-aba-npcs.md`                  | DEC-NPC-02: personagem de jogador nasce com o usuário, não na aba NPCs (REQ-NPC-055, REQ-NPC-055a)           |
+| Spec                              | Dependência                                                                                                                                                             |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `01-arquitetura-geral.md`         | Estrutura de pacotes do monorepo; localização de `packages/shared` e `packages/server`                                                                                  |
+| `02-modelo-de-dados.md`           | Definição base de Document e campo `ownership`                                                                                                                          |
+| `03-persistencia-e-mundos.md`     | Tabelas SQLite `users`, `sessions`, `world_settings`; WAL mode                                                                                                          |
+| `04-rede-e-sincronizacao.md`      | Protocolo WebSocket; handshake `worldReady`; broadcast de eventos                                                                                                       |
+| `14-macros-e-automacao.md`        | Permission `MACRO_SCRIPT`; sandbox de execução de macros                                                                                                                |
+| `20-assets-e-midia.md`            | Permission `FILES_BROWSE` / `FILES_UPLOAD`; diretórios por role                                                                                                         |
+| `21-seguranca.md`                 | Rate limiting de login/WebSocket; validação de Origin (CSWSH); TLS                                                                                                      |
+| `22-instalacao-e-distribuicao.md` | Admin Key; `fusion.json` (hostname, port, proxySSL); instruções de port-forwarding/túnel para URL de convite                                                            |
+| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054)                                                                                       |
+| `42-aba-npcs.md`                  | DEC-NPC-02: personagem de jogador nasce com o usuário, não na aba NPCs (REQ-NPC-044, REQ-NPC-055a); excluir personagem de jogador não é gesto daquela aba (REQ-NPC-055) |
 
 ---
 

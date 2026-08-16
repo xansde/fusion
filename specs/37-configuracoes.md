@@ -286,9 +286,10 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   REQ-USR-025a, DEC-NPC-02) — é um efeito da ação de criar, não um segundo gesto que o
   GM precise acionar.
 
-  > **Emenda de 2026-08-16** — obrigada pela `42` §12 (DEC-NPC-02). A aba NPCs recusa
-  > criar personagem (REQ-NPC-055) e a aba Contatos deixou de criar ator (DEC-CTT-01);
-  > esta seção é o único lugar do produto onde personagem de jogador nasce.
+  > **Emenda de 2026-08-16** — obrigada pela `42` §12 (DEC-NPC-02). A aba NPCs não oferece
+  > o subtipo `character` na criação (REQ-NPC-044, CA-NPC-007) e a aba Contatos deixou de
+  > criar ator (DEC-CTT-01); esta seção é o único lugar do produto onde personagem de
+  > jogador nasce.
 
 - **REQ-CFG-051a** [MVP] O personagem criado junto com o usuário NÃO DEVE abrir ficha nem
   janela flutuante e NÃO DEVE tirar o GM da gaveta (REQ-CFG-013); a seção DEVE apenas
@@ -388,8 +389,9 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 - `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-025a..025d (o
   personagem que nasce com o usuário), REQ-USR-030 (o limite de papel), REQ-USR-003 (o
   campo `preferences`, que segue sem UI).
-- `42` — DEC-NPC-02: a aba NPCs não cria personagem de jogador, e por isso a criação vive
-  na seção Usuários desta aba (REQ-NPC-055, REQ-NPC-055a).
+- `42` — DEC-NPC-02: a aba NPCs não cria personagem de jogador (REQ-NPC-044), e por isso a
+  criação vive na seção Usuários desta aba (REQ-NPC-055a); excluir personagem de jogador
+  segue sem tela em lugar nenhum (REQ-NPC-055, Q-NPC-06).
 - `15` — DEC-SYS-08 e REQ-SYS-047: a aba é a UI do motor de settings, não um segundo motor.
 - `13` — REQ-AUD-015/016 e DEC-AUD-02: os canais de volume e sua persistência local.
 - `11` — DEC-UIF-10 (fronteira de persistência), REQ-UIF-009 (janelas, que esta aba não
