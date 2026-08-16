@@ -276,6 +276,25 @@ describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050
     expect(body).not.toContain("title=");
   });
 
+  it("REQ-CTT-034 / REQ-CBA-093: the tipped chip stays a button, and the tip is wired to it", () => {
+    const { body } = render(ConditionChip, {
+      props: { label: "Amedrontado 2", tone: "harm", help: "Penalidade em tudo." },
+    });
+
+    // A tooltip trigger has to be reachable and announceable as a control (REQ-UIF-064).
+    // `role="note"` on this branch would override the button's implicit role and turn the
+    // tab stop into static prose.
+    expect(body).toContain("<button");
+    expect(body).not.toContain('role="note"');
+
+    // The drawn tip is the only carrier of the help and of the whole label (REQ-CTT-038),
+    // so it has to be pointed at by name, not merely displayed on hover.
+    const describedBy = /aria-describedby="([^"]+)"/.exec(body)?.[1];
+    expect(describedBy).toBeDefined();
+    expect(body).toContain(`id="${String(describedBy)}"`);
+    expect(body).toContain('role="tooltip"');
+  });
+
   it("REQ-CTT-035: no help means no tooltip, and the chip is still drawn", () => {
     const { body } = render(ConditionChip, { props: { label: "Enfeitiçado" } });
 
@@ -283,6 +302,11 @@ describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050
     expect(body).not.toContain('role="tooltip"');
     // No declared tone degrades to a situation instead of hiding the condition.
     expect(body).toContain("condition-chip--special");
+    // Inert text: no tab stop, nothing to describe — and `role="note"` is what lets the
+    // bare <span> carry its accessible name at all, which a role-less element cannot.
+    expect(body).not.toContain("<button");
+    expect(body).toContain('role="note"');
+    expect(body).not.toContain("aria-describedby");
   });
 
   it("REQ-CTT-033 / REQ-CTT-038: the value rides the label in tabular numerals, and truncation keeps it whole", () => {

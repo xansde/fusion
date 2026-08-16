@@ -22,7 +22,8 @@
    *  - **Fail open** (REQ-CTT-035): no `help` means no tooltip, no `tone` means a situation
    *    — the chip is still drawn.
    *  - **Truncation keeps the whole label reachable** (REQ-CTT-038): the visible text ends
-   *    in an ellipsis, and the tip repeats the label in full.
+   *    in an ellipsis, and the tip repeats the label in full — and the tip is wired to the
+   *    chip by `aria-describedby`, so what the pointer reads the reader reads too.
    */
 
   import type { ConditionTone } from "../../lib/conditions/conditionChip.js";
@@ -41,6 +42,10 @@
 
   const { label, tone = "special", critical = false, help = null }: Props = $props();
 
+  /** Ties the drawn tip to the chip (REQ-CTT-034/038); unique per instance, stable across SSR. */
+  const instanceId = $props.id();
+  const tipId = `condition-chip-tip-${instanceId}`;
+
   const toneWord = $derived(
     tone === "benefit"
       ? t("FUSION.Condition.Tone.Benefit")
@@ -58,22 +63,29 @@
 <!-- A chip with a declared help is a tooltip trigger, and a trigger has to be reachable
      without a pointer (REQ-CBA-093, REQ-UIF-064) — so it renders as a real button, which is
      focusable by itself. A chip with no help is inert text and renders as a span: giving a
-     non-interactive element a tab stop would put an empty stop in the tab order. -->
+     non-interactive element a tab stop would put an empty stop in the tab order.
+
+     `role="note"` belongs to the inert branch ONLY. It is what lets the bare <span> carry an
+     `aria-label` at all (a role-less element is not nameable), but on the <button> branch it
+     would override the implicit button role and announce the trigger as static prose —
+     exactly the tab stop that REQ-CBA-093 asks for, made unannounceable. -->
 <svelte:element
   this={help !== null ? "button" : "span"}
   type={help !== null ? "button" : undefined}
   class="condition-chip condition-chip--{tone}"
   class:condition-chip--critical={critical}
   class:condition-chip--tipped={help !== null}
-  role="note"
+  role={help !== null ? undefined : "note"}
   aria-label={accessibleName}
+  aria-describedby={help !== null ? tipId : undefined}
 >
   <span class="condition-chip__label">{label}</span>
 
   {#if help !== null}
     <!-- REQ-CTT-034: drawn, not `title`. REQ-CTT-038: the full label lives here, so a
-         truncated chip never hides what it says. -->
-    <span class="condition-chip__tip" role="tooltip">
+         truncated chip never hides what it says — and `aria-describedby` above carries both
+         to the reader, which the drawn tip alone would never do. -->
+    <span class="condition-chip__tip" id={tipId} role="tooltip">
       <span class="condition-chip__tip-label">{label}</span>
       <span class="condition-chip__tip-help">{help}</span>
     </span>
