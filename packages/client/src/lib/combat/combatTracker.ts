@@ -218,16 +218,20 @@ export function buildRotatedQueue(
 /**
  * How many turns stand between now and this user's next turn (REQ-CBA-074).
  *
- * The rotated queue is already the sequence of turns still to come — this round's
- * remainder first, then whoever acted (who acts again next round) — so the distance is
- * simply the position of the first entry the user owns, counting the current turn as
- * zero. The first entry of the queue is therefore `1`.
+ * The rotated queue is already the sequence of participants still to come — this round's
+ * remainder first, then whoever acted (who acts again next round) — but it is a list of
+ * ROWS, and REQ-CBA-074 asks for TURNS. The two only coincide when every row still takes
+ * a turn: a defeated participant stays in the queue (REQ-CBA-033) yet the server's advance
+ * walks straight past it while `skipDefeated` is on (DEC-CBT-07, mirrored from
+ * `nextTurnIndex` in `@fusion/shared`). Counting rows would then promise a longer wait
+ * than the encounter actually takes — so the count skips exactly what the advance skips.
  *
- * Returns `null` when no participant in the queue belongs to this user: there is no
- * number to say, and a panel that said "0" or "—" would be inventing an answer. It also
- * returns `null` when it is the user's OWN turn, because the participant of the turn is
- * the head and never sits in the queue — "your turn" is said there, in words
- * (REQ-CBA-024), and the notice this feeds is the other half of REQ-CBA-074.
+ * Returns `null` when no participant this user owns will ever get a turn: nobody of theirs
+ * in the queue, or the only ones there are defeated and being skipped. There is no number
+ * to say, and a panel that said "0" or "—" would be inventing an answer. It also returns
+ * `null` when it is the user's OWN turn, because the participant of the turn is the head
+ * and never sits in the queue — "your turn" is said there, in words (REQ-CBA-024), and the
+ * notice this feeds is the other half of REQ-CBA-074.
  *
  * Ownership is decided by the caller and handed in as a set of actor ids, resolved by
  * `ownedActorIdsOf` in `combatBadge.svelte.ts` — the same reading of `ownership` the
@@ -236,17 +240,24 @@ export function buildRotatedQueue(
  *
  * @param queue          The rotated queue, from {@link buildRotatedQueue}.
  * @param ownedActorIds  Actors this user owns.
+ * @param skipDefeated   The encounter's `skipDefeated`, i.e. whether the server's advance
+ *                       walks past defeated participants.
  */
 export function turnsUntilOwnTurn(
   queue: RotatedQueue,
   ownedActorIds: ReadonlySet<string>,
+  skipDefeated: boolean,
 ): number | null {
   if (!queue.rotated) return null;
 
-  const index = queue.entries.findIndex(
-    (entry) => entry.row.actorId !== null && ownedActorIds.has(entry.row.actorId),
-  );
-  return index === -1 ? null : index + 1;
+  let turns = 0;
+  for (const entry of queue.entries) {
+    // A row the advance never stops on costs no turn — it is drawn, not visited.
+    if (skipDefeated && entry.row.isDefeated) continue;
+    turns += 1;
+    if (entry.row.actorId !== null && ownedActorIds.has(entry.row.actorId)) return turns;
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------

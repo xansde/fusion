@@ -173,8 +173,14 @@
   /**
    * REQ-CBA-074: how many turns until this user's next one — `null` when they own nobody
    * in the encounter, or when the turn is already theirs (the head says so in words).
+   *
+   * `skipDefeated` comes from the encounter itself, because the count has to match the
+   * advance the server will actually perform (DEC-CBT-07): a defeated participant stays
+   * in the queue (REQ-CBA-033) but is walked past, so it costs no turn.
    */
-  const turnsUntilMine = $derived(isMyTurn ? null : turnsUntilOwnTurn(queue, ownedActorIds));
+  const turnsUntilMine = $derived(
+    isMyTurn ? null : turnsUntilOwnTurn(queue, ownedActorIds, combat?.skipDefeated ?? true),
+  );
 
   /** REQ-CBA-072: ending your own turn is the same advance, by the same server op. */
   const canEndOwnTurn = $derived(!gmControls && isMyTurn);

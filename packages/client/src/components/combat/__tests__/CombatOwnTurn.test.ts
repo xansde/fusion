@@ -197,7 +197,7 @@ describe("REQ-CBA-074 — aviso de vez", () => {
     const owned = ownedActorIdsOf(actorsOwnedBy("user-1", "a2"), "user-1");
 
     // Ring p0(vez) → p1 → p2: two turns away.
-    expect(turnsUntilOwnTurn(queueOf(combat), owned)).toBe(2);
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, combat.skipDefeated)).toBe(2);
   });
 
   it("REQ-CBA-074: quem já agiu nesta rodada é contado depois de quem ainda age", () => {
@@ -205,14 +205,14 @@ describe("REQ-CBA-074 — aviso de vez", () => {
     const owned = ownedActorIdsOf(actorsOwnedBy("user-1", "a1"), "user-1");
 
     // From p2: p3 still acts, then the round turns and p0, p1 act — p1 is three away.
-    expect(turnsUntilOwnTurn(queueOf(combat), owned)).toBe(3);
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, combat.skipDefeated)).toBe(3);
   });
 
   it("REQ-CBA-074: sem participante seu no encontro não há número a dizer", () => {
     const combat = makeLadder(0);
     const owned = ownedActorIdsOf(actorsOwnedBy("user-1"), "user-1");
 
-    expect(turnsUntilOwnTurn(queueOf(combat), owned)).toBeNull();
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, combat.skipDefeated)).toBeNull();
   });
 
   it("REQ-CBA-074: na montagem, sem turno em andamento, não há contagem", () => {
@@ -223,14 +223,37 @@ describe("REQ-CBA-074 — aviso de vez", () => {
     });
     const owned = ownedActorIdsOf(actorsOwnedBy("user-1", "a2"), "user-1");
 
-    expect(turnsUntilOwnTurn(queueOf(combat), owned)).toBeNull();
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, combat.skipDefeated)).toBeNull();
+  });
+
+  // The queue keeps a defeated participant (REQ-CBA-033) but the server's advance walks
+  // past it while skipDefeated is on (DEC-CBT-07). The number the player reads has to be
+  // the number of turns the encounter will actually take, not the number of rows drawn.
+  it("REQ-CBA-074: participante derrotado no caminho não conta turno, porque o servidor o pula", () => {
+    const combat = makeLadder(0);
+    combat.combatants[1] = { ...combat.combatants[1]!, defeated: true };
+    const owned = ownedActorIdsOf(actorsOwnedBy("user-1", "a2"), "user-1");
+
+    // Ring p0(vez) → [p1 derrotado, pulado] → p2: the encounter reaches p2 in ONE advance.
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, true)).toBe(1);
+    // With skipDefeated off, the same p1 does take a turn, and the distance is two.
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, false)).toBe(2);
+  });
+
+  it("REQ-CBA-074: participante derrotado do próprio usuário não gera contagem enquanto for pulado", () => {
+    const combat = makeLadder(0);
+    combat.combatants[2] = { ...combat.combatants[2]!, defeated: true };
+    const owned = ownedActorIdsOf(actorsOwnedBy("user-1", "a2"), "user-1");
+
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, true)).toBeNull();
+    expect(turnsUntilOwnTurn(queueOf(combat), owned, false)).toBe(2);
   });
 
   it("REQ-CBA-074: o painel só mostra a contagem a quem não tem papel privilegiado, e nunca na própria vez", () => {
     const source = panelSource();
 
     expect(source).toContain(
-      "const turnsUntilMine = $derived(isMyTurn ? null : turnsUntilOwnTurn(queue, ownedActorIds))",
+      "isMyTurn ? null : turnsUntilOwnTurn(queue, ownedActorIds, combat?.skipDefeated ?? true)",
     );
     expect(source).toContain("{#if showTurnHead && !gmControls && turnsUntilMine !== null}");
   });
