@@ -75,7 +75,11 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
-import { redactSceneDocsForNonPrivileged, sceneIsOnAir } from "../redaction.js";
+import {
+  redactSceneDocsForNonPrivileged,
+  sceneIsInvisibleToRole,
+  sceneIsOnAir,
+} from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
   AUGMENTATION_SLOT_LIMIT,
@@ -209,6 +213,24 @@ function resolveTable(documentType: string): string | null {
 
 function isPrivileged(role: number): boolean {
   return isRolePrivileged(role);
+}
+
+/**
+ * True when this requester must be answered as if the parent scene did not
+ * exist at all (REQ-CEN-071).
+ *
+ * Thin adapter over {@link sceneIsInvisibleToRole} (net/redaction.ts, the single
+ * source of truth for this rule) that adds only the "is the parent a Scene at
+ * all?" question the embedded paths need — `token:move` and `scene:doorState`
+ * already know their parent is a Scene and call the predicate directly.
+ */
+function sceneParentIsInvisible(
+  role: number,
+  parentType: string,
+  parentDoc: Record<string, unknown>,
+): boolean {
+  if (parentType !== "Scene") return false;
+  return sceneIsInvisibleToRole(role, parentDoc);
 }
 
 /**
@@ -730,6 +752,31 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
+    // REQ-CEN-065: creating a scene does NOT put it on air. `active` is a mirror of
+    // the single source of truth (`_meta:activeScene`, DEC-CEN-02) and only the
+    // dedicated `world:activeScene` operation may move it — the same rule
+    // `rejectUnwritableField` already enforces for doc:update (REQ-CEN-042). Without
+    // this the create path was a way in: a forged `active: true` produced a scene the
+    // pointer did not know about, which `sceneIsOnAir` (the redaction predicate) then
+    // treated as visible to every player.
+    //
+    // Only a TRUTHY `active` is refused: `active: false` is the value a new scene has
+    // anyway, and every existing caller spells it out.
+    if (documentType === "Scene") {
+      for (const item of data) {
+        if (
+          typeof item === "object" &&
+          item !== null &&
+          (item as Record<string, unknown>)["active"]
+        ) {
+          return ackError(
+            "VALIDATION_FAILED",
+            "Scene.active is not writable through doc:create — use the world:activeScene operation",
+          );
+        }
+      }
+    }
+
     // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT.
     //
     // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
@@ -876,6 +923,22 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     const table = resolveTable(documentType);
     if (!table) {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
+    }
+
+    // REQ-CEN-070: editing a Scene is an action of the GM's scene panel, and
+    // spec 44 §5.8 makes the role the gate — ownership of the Scene document is
+    // NOT a licence to write it (DEC-CEN-11: the boundary is the server, not
+    // the missing icon on the rail).
+    //
+    // REQ-CEN-071 / REQ-CEN-073: the refusal is worded exactly like the answer
+    // for an id that never existed, and is decided BEFORE the store lookup.
+    // Replying PERMISSION_DENIED for a scene that exists and NOT_FOUND for one
+    // that does not would turn this handler into an existence oracle over ids —
+    // and learning that a scene is there is the first half of learning where the
+    // campaign has not gone yet.
+    if (documentType === "Scene" && !isPrivileged(ctx.role) && updates.length > 0) {
+      const probed = updates[0]?._id ?? "";
+      return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
     }
 
     // Pre-flight: judge the whole batch before writing anything. The loop below
@@ -1110,6 +1173,22 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
           // Missing document — the delete loop below reports NOT_FOUND.
         }
       }
+
+      // REQ-CEN-064: the scene ON AIR is not deletable. The destructive operation
+      // cannot be the one that resolves the state (DEC-CEN-07) — without this guard
+      // one click of housekeeping drops the whole table onto the waiting screen, and
+      // nothing brings the scene back. The GM has to put another scene on air first
+      // (`world:activeScene`, the single writer of DEC-CEN-02).
+      //
+      // The refusal is atomic for the batch: a mixed list of an off-air scene and the
+      // one on air deletes NOTHING, so a partial delete never has to be undone.
+      if (onAirSceneIds.size > 0) {
+        const blocked = [...onAirSceneIds].join(", ");
+        return ackError(
+          "VALIDATION_FAILED",
+          `Scene is on air and cannot be deleted: ${blocked}. Put another scene on air first.`,
+        );
+      }
     }
 
     const deletedIds: string[] = [];
@@ -1177,6 +1256,11 @@ function handleEmbeddedCreate(
       return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
     }
     throw err;
+  }
+
+  // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+  if (sceneParentIsInvisible(ctx.role, parent.type, parentDoc)) {
+    return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
   }
 
   // Check parent ownership (must be able to edit the parent scene)
@@ -1337,6 +1421,11 @@ function handleEmbeddedUpdate(
         return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
       }
       throw err;
+    }
+
+    // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+    if (sceneParentIsInvisible(ctx.role, resolvedParentType, parentDoc)) {
+      return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
     }
 
     const collectionKey = embeddedType.toLowerCase() + "s"; // "tokens"
@@ -1504,6 +1593,11 @@ function handleEmbeddedDelete(
       return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
     }
     throw err;
+  }
+
+  // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+  if (sceneParentIsInvisible(ctx.role, parent.type, parentDoc)) {
+    return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
   }
 
   // Permission: GM/ASSISTANT or actor owner

@@ -24,8 +24,13 @@
  *
  * This module is the single source of truth so the three paths can never
  * drift out of parity.
+ *
+ * The same rule also governs the INBOUND direction: an op that names a scene id
+ * must not confirm that the scene exists to someone who could never have been
+ * told about it. That predicate is {@link sceneIsInvisibleToRole}.
  */
 
+import { isRolePrivileged } from "../documents/ownership.js";
 import type { ChatMessage, RollTarget } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -311,6 +316,27 @@ export function sceneIsOnAir(doc: unknown): boolean {
 }
 
 /**
+ * True when this requester must be answered as if the scene did not exist.
+ *
+ * REQ-CEN-070 / REQ-CEN-071: a non-privileged user may only ever act inside the
+ * scene that is ON AIR (REQ-CEN-072) — it is the only one they can see, so it is
+ * the only one whose id they can legitimately hold. Every inbound op that takes
+ * a scene id from the client (`doc:*` on an embedded document, `token:move`,
+ * `scene:doorState`) must run this BEFORE it looks at the scene body, and answer
+ * with the same "scene not found" wording it would give for a made-up id.
+ * Anything more specific — a token/wall-level NOT_FOUND, a PERMISSION_DENIED, or
+ * an `ok:true` ack — confirms the scene exists and leaks the off-air roster
+ * (REQ-CEN-073).
+ *
+ * `isRolePrivileged` and {@link sceneIsOnAir} are the only predicates in play:
+ * exactly the pair the outbound emission paths above use.
+ */
+export function sceneIsInvisibleToRole(role: number, sceneDoc: unknown): boolean {
+  if (isRolePrivileged(role)) return false;
+  return !sceneIsOnAir(sceneDoc);
+}
+
+/**
  * The only Scene bodies a non-privileged viewer may ever receive.
  *
  * REQ-CEN-071 / REQ-CEN-073: the scene list is privileged data — the name of a
@@ -337,6 +363,20 @@ export function redactSceneDocsForNonPrivileged(
     result.push(redactSecretDoors(stripHiddenTokens(doc)));
   }
   return result;
+}
+
+/**
+ * Return true when a value looks like a whole Scene document.
+ *
+ * Structural, like every other detector in this module: a Scene is the only
+ * document that carries an `active` flag alongside a `tokens` collection
+ * (Actors carry `items`, Combats carry `combatants`). Used by the ack path,
+ * which sees a bare body with no `documentType` to trust.
+ */
+function isSceneShaped(doc: unknown): doc is Record<string, unknown> {
+  if (!doc || typeof doc !== "object") return false;
+  const d = doc as Record<string, unknown>;
+  return typeof d["active"] === "boolean" && Array.isArray(d["tokens"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -416,6 +456,10 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  * Additionally applies combat redaction:
  *   3. {@link stripHiddenCombatantsFromCombat} — remove hidden combatants (M2-C)
  *
+ * …and the scene-list rule of spec 44:
+ *   4. {@link sceneIsOnAir} — a Scene body that is not on air is dropped from
+ *      `documents[]` and `parent` (REQ-CEN-072 / REQ-CEN-073)
+ *
  * Covered ack `result` shapes (the object under `ack.result`):
  *
  *   1. Primary Scene doc:create / doc:update
@@ -454,6 +498,19 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   const parent = chatRedactedBody["parent"];
   const combat = chatRedactedBody["combat"];
 
+  // REQ-CEN-073: an off-air Scene body must not come back in the ack either —
+  // the ack is a payload destined to a non-privileged user like any other. The
+  // handlers already refuse the ops that could produce one (a scene that is not
+  // on air answers as if it did not exist), so this is the dispatcher-level net
+  // that covers any handler, present or future, that echoes a Scene it loaded.
+  //
+  // REQ-CEN-072: the scene ON AIR is exactly what survives — it is the body the
+  // player's canvas renders.
+  const documentsCarryOffAirScene =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => isSceneShaped(d) && !sceneIsOnAir(d));
+  const parentIsOffAirScene = isSceneShaped(parent) && !sceneIsOnAir(parent);
+
   const documentsNeedHiddenTokenRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));
   const parentNeedsHiddenTokenRedaction = sceneDocHasHiddenTokens(parent);
@@ -473,6 +530,8 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     !documentsNeedsRedaction &&
     !parentNeedsRedaction &&
     !combatNeedsRedaction &&
+    !documentsCarryOffAirScene &&
+    !parentIsOffAirScene &&
     chatRedactedBody === bodyObj
   ) {
     // Nothing to redact — return the original ack untouched.
@@ -482,16 +541,22 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   // Build a redacted clone, never mutating the shared original.
   const newBody: Record<string, unknown> = { ...chatRedactedBody };
 
-  if (documentsNeedsRedaction) {
-    newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
-      let redacted = d;
-      if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
-      if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
-      return redacted;
-    });
+  if (documentsNeedsRedaction || documentsCarryOffAirScene) {
+    newBody["documents"] = (documents as Record<string, unknown>[])
+      .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
+      .map((d) => {
+        let redacted = d;
+        if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+        if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        return redacted;
+      });
   }
 
-  if (parentNeedsRedaction) {
+  if (parentIsOffAirScene) {
+    // Dropped outright, not blanked: the shape a caller sees for a scene it may
+    // not know about is the shape of "there is nothing here".
+    newBody["parent"] = null;
+  } else if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);

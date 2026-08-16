@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 332 | 18% |
-| Citados só por código de produção | 334 | 18% |
-| Sem nenhuma citação | 1176 | 64% |
+| Citados por algum teste | 385 | 21% |
+| Citados só por código de produção | 328 | 18% |
+| Sem nenhuma citação | 1129 | 61% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -30,12 +30,12 @@ porque ainda não foram prometidos para nenhum marco.
 | [03](03-persistencia-e-mundos.md) | 36 | 2 | 20 | 14 | 6% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
 | [05](05-usuarios-e-permissoes.md) | 40 | 0 | 19 | 21 | 0% |
-| [06](06-canvas-e-renderizacao.md) | 86 | 3 | 33 | 50 | 3% |
-| [07](07-visao-iluminacao-fog.md) | 56 | 12 | 24 | 20 | 21% |
+| [06](06-canvas-e-renderizacao.md) | 86 | 4 | 32 | 50 | 5% |
+| [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
 | [09](09-chat-e-mensagens.md) | 49 | 12 | 10 | 27 | 24% |
 | [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
-| [11](11-ui-framework-e-fichas.md) | 62 | 7 | 18 | 37 | 11% |
+| [11](11-ui-framework-e-fichas.md) | 62 | 8 | 17 | 37 | 13% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
@@ -64,4 +64,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
 | [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
 | [43](43-aba-compendio.md) | 60 | 4 | 1 | 55 | 7% |
-| [44](44-aba-cenas.md) | 58 | 6 | 2 | 50 | 10% |
+| [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |

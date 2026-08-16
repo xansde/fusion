@@ -50,6 +50,10 @@
   --fusion-sidebar-width: 300px;
   --fusion-sidebar-rail-width: 44px;
   --fusion-header-height: 48px;
+  /* The "no ar" head of the Cenas tab is one fixed height for every state
+     (REQ-CEN-010/013): a long scene name, a missing background image or the
+     environment row must never move the controls the GM presses all session. */
+  --fusion-scene-head-height: 132px;
   --fusion-radius-sm: 4px;
   --fusion-radius: 8px;
   --fusion-radius-lg: 12px;

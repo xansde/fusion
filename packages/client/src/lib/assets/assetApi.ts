@@ -302,3 +302,17 @@ const LOCAL_ASSET_PATH_RE = /^\/assets\//;
 function _isLocalAssetPath(path: string): boolean {
   return LOCAL_ASSET_PATH_RE.test(path);
 }
+
+/**
+ * Public form of the predicate above, for callers that must decide SYNCHRONOUSLY
+ * whether a stored path can be painted right away.
+ *
+ * `resolveAssetUrl()` is async because minting a query-token is a round-trip, but an
+ * external URL or a data URI needs no token at all — a caller that knows this can use
+ * the raw value immediately instead of flashing a placeholder for one tick. It delegates
+ * rather than re-testing the prefix so there is still exactly one definition of "this is
+ * our own /assets route".
+ */
+export function needsAssetQueryToken(path: string): boolean {
+  return _isLocalAssetPath(path);
+}
