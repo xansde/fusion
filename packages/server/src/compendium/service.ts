@@ -49,6 +49,7 @@ import type {
   DocMechanics,
 } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
+import type { WriteMetricsCollector } from "../documents/write-metrics.js";
 import { isRolePrivileged } from "../documents/ownership.js";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
@@ -460,13 +461,25 @@ export class CompendiumService {
        */
       systemModule?: SystemModule;
       logger?: Logger;
+      /**
+       * The world's write-metrics collector (T016). An import is a live
+       * session op writing full document rows under the same IMMEDIATE lock
+       * as everything else, so its writes belong in the world's report —
+       * this store is a SECOND instance of the funnel and would be blind
+       * without it. Optional: a service-level caller with no world attached
+       * simply goes unobserved.
+       */
+      metrics?: WriteMetricsCollector;
     },
   ): CompendiumImportResult {
     if (!isRolePrivileged(options.role)) {
       throw new PermissionDeniedError("Only GM/ASSISTANT can import from compendiums");
     }
 
-    const store = new DocumentStore({ db: options.db });
+    const store = new DocumentStore({
+      db: options.db,
+      ...(options.metrics !== undefined ? { metrics: options.metrics } : {}),
+    });
     const created: string[] = [];
     const failed: Array<{ uuid: string; reason: string }> = [];
 

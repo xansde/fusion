@@ -98,7 +98,7 @@ import {
   getContactKnowledgeSource,
   contactKnowledgeSourceFromStore,
 } from "./redaction.js";
-import { DocumentStore } from "../documents/index.js";
+import { DocumentStore, WriteMetricsCollector } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
 import type { SystemModule } from "@fusion/system-api";
@@ -205,6 +205,14 @@ export class SocketManager {
   readonly io: SocketIOServer;
   private readonly logger: Logger;
   private readonly namespaces = new Map<string, Namespace>();
+  /**
+   * T016 write-metrics collector per world. Kept beside `namespaces` (rather
+   * than only inside `registerWorldNamespace`'s closure) because the collector
+   * outlives every individual request: its periodic flush has to be stopped
+   * and its last partial window has to be logged when the world closes, and
+   * neither is reachable from a closure nobody holds.
+   */
+  private readonly writeMetrics = new Map<string, WriteMetricsCollector>();
 
   constructor(options: SocketManagerOptions) {
     this.logger = options.logger;
@@ -257,7 +265,12 @@ export class SocketManager {
     // Build per-world services
     const seqStore = new SeqStore(db);
     const opBuffer = new OpBuffer(opBufferSize);
-    const store = new DocumentStore({ db, coreVersion: FUSION_VERSION });
+    // T016: one collector per world, wired into the store so EVERY writer —
+    // doc/vision/combat handlers, batched or not — is accounted for at the
+    // single point they all converge on.
+    const writeMetrics = new WriteMetricsCollector({ logger: this.logger, worldId });
+    this.writeMetrics.set(worldId, writeMetrics);
+    const store = new DocumentStore({ db, coreVersion: FUSION_VERSION, metrics: writeMetrics });
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
@@ -411,6 +424,12 @@ export class SocketManager {
       db,
       ns,
       logger: this.logger,
+      // T016: `compendium:import` is a live session op — it writes rows of
+      // `actors`/`items` through a DocumentStore of its own, holding the very
+      // same IMMEDIATE lock. Without this the busiest minute of the evening
+      // (a GM pulling a dozen creatures mid-combat) would be missing from the
+      // report that exists to find busy minutes.
+      metrics: writeMetrics,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));
@@ -615,23 +634,51 @@ export class SocketManager {
    * Called on world close.
    */
   async removeWorldNamespace(worldId: string): Promise<void> {
-    const ns = this.namespaces.get(worldId);
-    if (!ns) return;
+    try {
+      const ns = this.namespaces.get(worldId);
+      if (ns) {
+        this.logger.info({ worldId }, "Removing world namespace, disconnecting sockets");
 
-    this.logger.info({ worldId }, "Removing world namespace, disconnecting sockets");
+        // Disconnect all connected sockets gracefully
+        const sockets = await ns.fetchSockets();
+        for (const s of sockets) {
+          s.disconnect(true);
+        }
 
-    // Disconnect all connected sockets gracefully
-    const sockets = await ns.fetchSockets();
-    for (const s of sockets) {
-      s.disconnect(true);
+        // Remove the namespace from the socket.io server
+        ns.removeAllListeners();
+        this.io._nsps.delete(`/world/${worldId}`);
+        this.namespaces.delete(worldId);
+
+        this.logger.info({ worldId }, "World namespace removed");
+      }
+    } finally {
+      // T016 final flush — AFTER the sockets are gone, so the tail of the
+      // session (anything written while they were being disconnected) is in
+      // the report instead of being dropped with the window. It runs even
+      // when the namespace is already absent (a registration that failed
+      // halfway leaves a collector behind) and even when the teardown above
+      // threw: an interval that survives its world keeps the process alive
+      // and the last window is lost either way, so the cleanup cannot be
+      // hostage to the disconnect path succeeding.
+      const metrics = this.writeMetrics.get(worldId);
+      if (metrics) {
+        metrics.flush();
+        metrics.stop();
+        this.writeMetrics.delete(worldId);
+      }
     }
+  }
 
-    // Remove the namespace from the socket.io server
-    ns.removeAllListeners();
-    this.io._nsps.delete(`/world/${worldId}`);
-    this.namespaces.delete(worldId);
-
-    this.logger.info({ worldId }, "World namespace removed");
+  /**
+   * The write-metrics collector of a registered world, if any (T016).
+   *
+   * Exposed so the metrics can be read without reaching into the namespace
+   * closure — tests assert on `snapshot()`, and it is the hook a diagnostic
+   * endpoint would use.
+   */
+  writeMetricsFor(worldId: string): WriteMetricsCollector | undefined {
+    return this.writeMetrics.get(worldId);
   }
 
   /**
@@ -653,7 +700,10 @@ export class SocketManager {
 
   /** Close all namespaces and the underlying socket.io server. */
   async close(): Promise<void> {
-    const worldIds = [...this.namespaces.keys()];
+    // Union of both maps: a world whose namespace is already gone can still
+    // hold a live metrics collector (see removeWorldNamespace), and closing
+    // the manager must leave no interval behind.
+    const worldIds = new Set([...this.namespaces.keys(), ...this.writeMetrics.keys()]);
     for (const id of worldIds) {
       await this.removeWorldNamespace(id);
     }
