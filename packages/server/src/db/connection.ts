@@ -190,7 +190,10 @@ export function openDatabase(options: OpenDatabaseOptions): FusionDatabase {
     }
   }
 
-  // Prepare a transaction helper
+  // Prepare a transaction helper. `.immediate()` makes this actually match
+  // what the FusionDatabase.transaction() docstring promises (T012) — the
+  // bare `transact(fn)` call used to run in better-sqlite3's default
+  // DEFERRED mode instead.
   const transact = db.transaction(<T>(fn: () => T) => fn());
 
   const fusionDb: FusionDatabase = {
@@ -198,7 +201,7 @@ export function openDatabase(options: OpenDatabaseOptions): FusionDatabase {
     path,
 
     transaction<T>(fn: () => T): T {
-      return transact(fn) as T;
+      return transact.immediate(fn) as T;
     },
 
     close(): void {

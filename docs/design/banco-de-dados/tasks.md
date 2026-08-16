@@ -285,7 +285,11 @@ desenhado para capturar.
 
 ## Fase 2 — Corrigir o caminho de escrita (sem migration)
 
-### T012 — Transação em volta do read-modify-write
+Recon adversarial rodado em 2026-08-16 sobre T012/T013/T016/T025 (T014/T015 falhou antes
+de produzir resultado — ver lacuna abaixo). Achados completos, provas por execução e o
+que muda de escopo em cada tarefa: `docs/design/banco-de-dados/recon-fase-2.md`.
+
+### T012 — Transação em volta do read-modify-write (em andamento)
 
 `packages/server/src/documents/store.ts` (`update` ~491, `create` ~317, `delete` ~560)
 · `packages/server/src/db/connection.ts:194`
@@ -295,8 +299,22 @@ processo Node isso é atômico por ser síncrono — mas o CLI e o importador ab
 `world.db` em WAL, e aí é lost update. Além disso `db.transaction()` é DEFERRED, apesar do
 comentário em `connection.ts:135` prometer "immediate".
 
-**Pronto quando:** leitura e escrita ocorrem na mesma transação `IMMEDIATE`, e um teste com
-duas conexões concorrentes prova que a segunda escrita não sobrescreve a primeira em silêncio.
+**Correção de escopo (recon-fase-2.md):** o esqueleto de código do plano original
+(`function () { this.get(...) }` chamado via `txn.immediate()`) **não roda** — dentro do
+callback, `this` é o objeto-função da transação, não a instância de `DocumentStore`
+(`TypeError: this.get is not a function`, provado por execução). Manter arrow functions,
+como o código já faz hoje. E os três batches (`createBatch`/`updateBatch`/`deleteBatch`,
+`store.ts:599/625/645`) **não estão "já corretos"**: leem e escrevem dentro de uma
+transação DEFERRED, que sob contenção real lança `SQLITE_BUSY_SNAPSHOT`
+**não-retentável** e aborta o lote inteiro (reproduzido por execução; `busy_timeout` não
+ajuda). Trocá-los para `.immediate()` deixa de ser opcional.
+
+**Pronto quando:** leitura e escrita ocorrem na mesma transação `IMMEDIATE` — em
+`create()`, `update()`, `delete()` **e nos três batches** —, e um teste com duas conexões
+concorrentes prova que a segunda escrita não sobrescreve a primeira em silêncio,
+cobrindo também a checagem de colisão de id em `create()` (`:354`), a de existência em
+`delete()` (`:568`) e o caminho de batch sob contenção real (onde o
+`SQLITE_BUSY_SNAPSHOT` foi reproduzido).
 
 ### T013 — `expectedVersion` deixa de ser opcional
 
@@ -306,31 +324,179 @@ duas conexões concorrentes prova que a segunda escrita não sobrescreve a prime
 Hoje o STALE_WRITE só é checado `if (upd.expectedVersion !== undefined)`. Cliente que omite
 ganha last-write-wins sem aviso.
 
-**Pronto quando:** update sem `expectedVersion` é recusado (ou tratado por política única e
-documentada), com teste dos dois caminhos.
+**Correção de escopo (recon-fase-2.md):** o gate proposto (recusar update sem
+`expectedVersion` para papel não-privilegiado, dentro do bloco 774-785) é **contornável**
+como estava desenhado: o roteamento `hasEmbedded` em `doc-handlers.ts:739` desvia o LOTE
+INTEIRO para `handleEmbeddedUpdate` assim que uma entry tem `embedded`, e esse handler
+descarta as entries primárias em silêncio com `ack.ok=true` (reproduzido por execução,
+inclusive com `expectedVersion` grosseiramente obsoleto). Esse fechamento específico virou
+item próprio desta leva — ver T030. Além disso, a premissa "o mirror do cliente já tem
+`_stats.version`, é trivial preencher" ignorava que o mirror pode ficar **permanentemente
+atrasado**: há escritas de servidor que incrementam a versão sem emitir `doc:update` (ver
+T032) — pré-requisito real da política, não risco lateral. O plano de teste original
+também não prova monotonicidade (nenhum caso reenvia uma versão já consumida).
 
-### T014 [P] — `LIMIT ?` com bind
+**Pronto quando:** update sem `expectedVersion` é recusado (ou tratado por política única e
+documentada), com teste dos dois caminhos **e** um caso que reenvia uma versão já
+consumida (prova que o contador é monotônico e o lock funciona, não só que o número certo
+é aceito uma vez). Depende de T030 (roteamento fechado) e, para rollout seguro em papel
+não-privilegiado, de T032 (mirror fresco).
+
+### T014 [P] — `LIMIT ?` com bind (em andamento)
 
 `packages/server/src/documents/store.ts:444` — hoje interpolado. Nenhum chamador passa valor
 do cliente hoje; é faca no chão.
 
-### T015 [P] — `_tableHasColumn` derivado do banco
+O recon dedicado a T014 **falhou antes de produzir resultado** (ver `recon-fase-2.md`,
+seção "Lacuna"); a verificação foi feita na implementação. Nenhum chamador de produção
+passa `limit` hoje, e nada vem de payload de socket ou query string — confirmado por
+varredura. A correção é endurecimento preventivo, e o teste que a acompanha fixa a **ordem
+dos parâmetros**, que é o que uma troca de interpolação para bind erra em silêncio quando
+há filtro junto.
+
+### T015 [P] — `_tableHasColumn` derivado do banco (em andamento)
 
 `packages/server/src/documents/store.ts:456` — lista manual de colunas é a **terceira** cópia
 do schema (DDL → `extractColumns` → `tableColumns`). Derivar de `PRAGMA table_info` uma vez
 no boot.
 
+O recon dedicado também falhou; a verificação veio na implementação, comparando a lista
+manual contra o `PRAGMA table_info` de um banco com as migrations 001–008 aplicadas. **A
+lista já estava divergente:** `users` ganhou `password_hash`, `color`, `avatar`, `active` e
+`preferences` nas migrations 002/006 e nenhuma delas entrou na lista; `id` e `data`
+faltavam em todas as tabelas.
+
 **Pronto quando:** adicionar coluna numa migration não exige tocar em `store.ts`.
+
+**Fechamento parcial, declarado:** isto vale para colunas que o store apenas consulta. A
+**segunda** cópia do schema — `extractColumns` (`store.ts:165-243`, um `switch (table)`
+escrito à mão) — continua manual, porque ela carrega o mapeamento campo-do-JSON → coluna,
+que o `PRAGMA` não conhece. Uma migration que adicione uma coluna **extraída** ainda exige
+editar `store.ts`. Das três cópias, caiu uma.
 
 ### T016 — Ponto único de escrita de token + instrumentação
 
 `packages/server/src/net/handlers/doc-handlers.ts` (`handleEmbeddedUpdate` / `handleEmbeddedCreate`)
+· `packages/server/src/net/handlers/vision-handlers.ts` (`buildTokenMoveHandler`)
 
 Não decide nada sobre a forma do token. Garante que **toda** persistência de token passe por
 uma função só, e instrumenta o caminho: escritas/min, bytes reescritos, latência.
 
-**Pronto quando:** existe um único ponto de escrita, e um relatório de sessão real mostra os
+**Desenho novo exigido (recon-fase-2.md — DERRUBA):** a proposta original
+(`persistSceneTokens(...)` substituindo 4 call sites, hardcodada para
+`store.update("scenes", ...)`) não é implementável como escrita — os 3 call sites de
+`doc-handlers.ts` que ela envolveria são **polimórficos**: os mesmos três servem
+Token↔Scene e Item↔Actor (`EMBEDDED_PARENT_MAP`), então hardcodar "scenes" roteia escrita
+de `Actor.items` para a tabela errada (reproduzido por execução). E a lista de "4 call
+sites" nunca foi exaustiva: o caminho **genérico** de `doc:update` (Scene sem `embedded`)
+grava `scene.tokens` livremente — só o campo `active` tem guarda —, e `doc:create` de uma
+Scene inteira grava `tokens` via `store.create`. São pelo menos 6 pontos de escrita, não 4. Quem retomar precisa mapear todos antes de desenhar a função única, e decidir se o
+"ponto único" bloqueia o caminho genérico (como T010 fez para `active`) ou instrumenta
+todos os caminhos. A instrumentação em log depende de T033 (rotação) para o "Pronto
+quando" abaixo fazer sentido numa sessão real.
+
+**Pronto quando:** existe um único ponto de escrita — cobrindo os ≥6 caminhos mapeados em
+`recon-fase-2.md`, não só os 4 originais —, e um relatório de sessão real mostra os
 números — que é o insumo da decisão adiada.
+
+### Defeitos vivos achados no recon (T030–T033)
+
+Nenhum destes era tarefa de ninguém — apareceram como efeito colateral dos recons de
+T012/T013/T016/T025. Detalhe e evidência em `recon-fase-2.md`, seção "Defeitos vivos".
+
+### T030 — Fechar o desvio de lote misto em `doc:update` (em andamento)
+
+`packages/server/src/net/handlers/doc-handlers.ts:739` (roteamento `hasEmbedded`), `:1118`
+
+Um lote com **uma** entry `embedded` desvia o LOTE INTEIRO para `handleEmbeddedUpdate`, que
+descarta as entries primárias em silêncio (`if (!upd.embedded) continue`) devolvendo
+`ack.ok=true` — mesmo que a entry primária tivesse `expectedVersion` grosseiramente
+obsoleto. É o achado que faz o gate de T013 não valer para lotes mistos.
+
+**Pronto quando:** um lote com entries primária + `embedded` aplica (ou recusa
+explicitamente, nunca descarta em silêncio) cada entry pelo seu próprio caminho, com teste
+que reproduz o `ack.ok=true`/entry-primária-ignorada de hoje e prova que deixou de
+acontecer.
+
+### T031 — Bloquear escrita de coleção embutida pelo caminho genérico de `doc:update` (em andamento)
+
+`packages/server/src/net/handlers/doc-handlers.ts` (caminho `hasEmbedded=false`, guarda de
+Scene ~linha 800)
+
+O caminho genérico de `doc:update` sobre Scene só guarda o campo `active` (T010). Um
+payload sem `embedded` grava `scene.tokens` livremente — token movido, `hidden` alterado,
+token novo injetado —, fora de qualquer handler dedicado. Mesmo padrão do que T010 já fez
+para `active`.
+
+**A fuga não é só de Scene, e a irmã é pior.** `Actor.items` tem exatamente a mesma
+abertura pelo mesmo caminho, e é a mais alcançável das duas: ser OWNER de uma Scene
+significa GM na prática, enquanto **todo jogador é OWNER da própria ficha**. Reproduzido:
+um `doc:update` de Actor com `items: [...]` substituiu a coleção inteira, apagando o que
+havia e gravando um item de `type` inexistente — passando por cima de
+`validateEmbeddedItemForSystem`, cuja própria docstring afirma ser "o único lugar que
+valida Items embutidos". `Combat.combatants` fecha o terceiro caso do
+`EMBEDDED_PARENT_MAP`. A guarda derivada do mapa cobre os três e cobre de graça qualquer
+tipo embutido que venha a ser registrado.
+
+**Recusa só o array.** É a única forma que chega ao banco por este caminho: qualquer outra
+forma já morre depois, porque o `deepMerge` substitui o array pelo objeto e o documento
+reprova na validação de schema. Recusar as outras trocaria uma rejeição por outra e
+esconderia a T034.
+
+**Pronto quando:** `doc:update` genérico (sem `embedded`) recusa a substituição em bloco de
+`tokens`, `items` e `combatants`, com teste que reproduz a escrita indevida de hoje e prova
+que passa a ser recusada — e com teste de que `doc:create` e o caminho `embedded` seguem
+funcionando.
+
+### T034 — `items.+` / `items.-<id>` não existem no servidor (toggle de condição quebrado)
+
+`packages/client/src/lib/sheets/pf2e/characterSheetVM.ts:2283-2313` ·
+`packages/client/src/lib/sheets/pf2e/npcSheetVM.ts:517-540` ·
+`packages/server/src/net/handlers/doc-handlers.ts` (`applyDotPathDiff`)
+
+Marcar e desmarcar condição na ficha (PC e NPC) envia `doc:update` de Actor com
+`diff: { "items.-<itemId>": true }` ou `diff: { "items.+": {...} }`. **O servidor não
+implementa esses operadores.** `applyDotPathDiff` expande o caminho literalmente, virando
+`{ items: { "-<itemId>": true } }`; o `deepMerge` substitui o array `items` por esse
+objeto; a validação de schema reprova. Reproduzido por execução contra o handler real: as
+duas formas voltam `VALIDATION_FAILED` e o documento fica intacto.
+
+Ou seja: **o toggle de condição não funciona hoje**, nas duas fichas, para qualquer papel.
+Nenhum teste cobre o caminho — foi por isso que passou. Achado de passagem no recon da
+Fase 2; não é regressão desta leva, e a guarda de T031 foi escrita para não mascará-lo.
+
+**Pronto quando:** decidido se os operadores viram contrato de verdade (implementados no
+servidor, com teste de ida e volta) ou se as duas fichas passam a usar o caminho
+`embedded`, que é o que já funciona para Item. Marcar/desmarcar condição funciona na mesa,
+com teste que prova.
+
+### T032 — Broadcast das escritas que bumpam `_stats.version`
+
+`packages/server/src/etmos/reacao-handler.ts:254-277/351` (`applyEstresseCost`) ·
+`packages/server/src/net/handlers/sync-handlers.ts:517/526-535` (cena ativa)
+
+Essas duas escritas incrementam `_stats.version` do documento via `store.update`, mas só
+emitem um evento próprio (`combat:updated`, `world:activeScene`) — nunca o `doc:update`
+correspondente. O mirror do cliente fica com a versão antiga do documento para sempre,
+sem gatilho de resync. Pré-requisito real de T013 para papel não-privilegiado (senão o
+jogador afetado leva `STALE_WRITE` permanente na própria ficha).
+
+**Pronto quando:** as duas escritas emitem `doc:update` do documento afetado, com teste
+que prova que o mirror do cliente reflete a versão nova depois de cada uma.
+
+### T033 — Log diário passa a rotacionar por horário local
+
+`packages/server/src/logger.ts:25-28` (`dailyLogFilePath`), `:42-46`
+(`tryCreateFileDestination`), `:87` (chamada única em `createLogger`)
+
+O nome do arquivo é calculado **uma vez**, com `Date.toISOString().slice(0,10)` (UTC), e
+fica congelado pela vida do processo — servidor que atravessa meia-noite UTC (21h no fuso
+local, UTC-3) continua escrevendo no arquivo do dia anterior. Reproduzido no log real da
+máquina (`fusion-2026-08-15.log` com linhas de duas datas UTC distintas). Bloqueia o
+"Pronto quando" de T016 (relatório de sessão real no log do dia).
+
+**Pronto quando:** uma sessão que atravessa meia-noite (local ou UTC) produz um arquivo de
+log por dia local, sem perder linhas nem duplicar.
 
 ---
 
@@ -400,6 +566,25 @@ Hoje a rota serve **qualquer arquivo do mundo a qualquer usuário autenticado** 
 PLAYER). Não há consulta ao `ownership` do documento que referencia o arquivo. O que protege
 um mapa não revelado é o nome ter 8 hex de hash do conteúdo — capability URL, não permissão;
 e assets semeados por script (ex.: `taverna-demo.jpg`) não têm nem isso.
+**Vulnerabilidade reproduzida por execução** (recon-fase-2.md): um PLAYER comum recebeu
+`HTTP 200` com os bytes de um asset referenciado só por uma Scene oculta.
+
+**Desenho novo exigido (recon-fase-2.md — DERRUBA):** o gate proposto
+(`JSON.stringify(doc).includes(path)`, amarrando o token ao documento que o requisitante
+apresenta) é **contornável pelo próprio atacante** — o jogador escolhe o documento e, em
+pelo menos um caso real (`Actor.img`, string livre sem validação), o conteúdo dele; basta
+gravar o path do asset secreto no próprio Actor para passar o gate. Além disso: (1) HMAC
+e `includes()` exigiriam representações diferentes do mesmo path (uma percent-decodificada
+sem prefixo, outra percent-codificada com `/assets/`) — quebra garantida com qualquer
+nome de arquivo com caractere especial; (2) `region_maps` não está na allowlist
+`DOCUMENT_TABLES` reaproveitada, então o único asset do mundo real citado como motivação
+(`taverna-demo.jpg`, via `region_maps`) não pode ser autorizado por esse desenho. Quem
+retomar precisa de uma prova de posse que o requisitante não controle sozinho, uma
+representação única do path, e também decidir: as 5 tabelas de documento sem `ownership`
+(`users`, `folders`, `chat_messages`, `combats`, `settings` — não só `combats`), a história
+para asset **órfão** (sem documento algum referenciando — 25% dos arquivos do único mundo
+real disponível), e a janela de debounce entre escolha otimista no cliente e persistência
+no servidor.
 
 PR próprio, fora das migrations. Pode subir de prioridade para logo depois da Fase 0 se o
 risco na mesa incomodar.
@@ -431,15 +616,22 @@ risco na mesa incomodar.
 
 ## Mapa de PRs
 
-| PR  | Conteúdo                   | Depende de                             |
-| --- | -------------------------- | -------------------------------------- |
-| 1   | Fase 0 (T001–T006) ✅      | —                                      |
-| 2   | Fase 1 (T007–T011) ✅      | PR 1                                   |
-| 3   | Fase 2 (T012–T016)         | PR 1                                   |
-| 4   | Fase 4 (T017–T019)         | PR 2                                   |
-| 5   | Fase 3 dados (T020–T024)   | PR 2                                   |
-| 6   | T025 (segurança de assets) | independente — pode vir logo após PR 1 |
-| 7   | Fase 5 (T026–T029)         | PR 2                                   |
+| PR  | Conteúdo                      | Depende de                             |
+| --- | ----------------------------- | -------------------------------------- |
+| 1   | Fase 0 (T001–T006) ✅         | —                                      |
+| 2   | Fase 1 (T007–T011) ✅         | PR 1                                   |
+| 3   | T012, T014, T015, T030, T031  | PR 2                                   |
+| 3b  | T013 (depende de T030 e T032) | PR 3                                   |
+| 3c  | T016 (desenho novo) + T033    | PR 3                                   |
+| 4   | Fase 4 (T017–T019)            | PR 2                                   |
+| 5   | Fase 3 dados (T020–T024)      | PR 2                                   |
+| 6   | T025 (desenho novo)           | independente — pode vir logo após PR 1 |
+| 7   | Fase 5 (T026–T029)            | PR 2                                   |
+| —   | T032, T034                    | independentes, sem migration           |
+
+A Fase 2 rachou em três PRs porque o recon mostrou que T013 e T016 não estavam prontas
+para implementação: T013 depende de dois consertos que ela não previa (T030, T032) e T016
+perdeu o desenho. O que estava maduro sai no PR 3; o resto espera desenho, não pressa.
 
 Se algo for cortado por tempo, corta-se **da 5 para trás**. A Fase 0 nunca é cortada: é o
 que impede que uma migration ruim vire perda de mundo.
@@ -462,3 +654,7 @@ que impede que uma migration ruim vire perda de mundo.
 | novo: assets sem registro/GC                                                                                                                                          | T020–T023                          |
 | novo: assets sem autorização por documento                                                                                                                            | T025                               |
 | novo: backup do mundo ignora assets                                                                                                                                   | T024                               |
+| novo (recon fase 2): lote misto de `doc:update` engole entries primárias em silêncio                                                                                  | T030                               |
+| novo (recon fase 2): caminho genérico de `doc:update` grava `scene.tokens` sem guarda                                                                                 | T031                               |
+| novo (recon fase 2): escritas que bumpam `_stats.version` sem `doc:update` (mirror atrasado)                                                                          | T032                               |
+| novo (recon fase 2): log diário não rotaciona (data UTC congelada)                                                                                                    | T033                               |

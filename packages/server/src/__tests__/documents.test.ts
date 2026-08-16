@@ -278,6 +278,28 @@ describe("DocumentStore.getAll / query", () => {
     const { store } = createStore();
     expect(store.getAll("actors")).toHaveLength(0);
   });
+
+  // T014: LIMIT is a bound parameter now, not interpolated. These cases pin the
+  // parameter ORDER, which is what an interpolated-to-bound change can get
+  // wrong silently: with a filter present, the limit has to arrive after the
+  // filter's value, or the WHERE clause binds the number.
+  it("honours limit on an unfiltered query", () => {
+    const { store } = createStore();
+    for (let i = 0; i < 5; i++) store.create("actors", { name: `A${String(i)}`, type: "npc" });
+
+    expect(store.query("actors", { limit: 2 })).toHaveLength(2);
+  });
+
+  it("honours limit alongside a filter", () => {
+    const { store } = createStore();
+    for (let i = 0; i < 4; i++)
+      store.create("actors", { name: `Goblin ${String(i)}`, type: "npc" });
+    store.create("actors", { name: "Hero", type: "pc" });
+
+    const results = store.query("actors", { nameLike: "%Goblin%", limit: 3 });
+    expect(results).toHaveLength(3);
+    for (const r of results) expect(String(r["name"])).toContain("Goblin");
+  });
 });
 
 // ---------------------------------------------------------------------------

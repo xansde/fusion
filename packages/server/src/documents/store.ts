@@ -327,48 +327,19 @@ export class DocumentStore {
 
     const auth = author ?? this.defaultAuthor;
 
-    // Strip client-supplied _stats
-    const cleaned = stripStats(input);
-
-    // Resolve _id
-    let id: string;
-    if (typeof cleaned["_id"] === "string" && cleaned["_id"].length > 0) {
-      if (!isValidDocumentId(cleaned["_id"])) {
-        throw new DocumentValidationError(table, [
-          { path: ["_id"], message: "must be exactly 16 chars from [A-Za-z0-9]" },
-        ]);
-      }
-      id = cleaned["_id"];
-    } else {
-      id = createDocumentId();
-      cleaned["_id"] = id;
-    }
-
-    // Set server-managed _stats
-    cleaned["_stats"] = buildCreateStats(auth);
-
-    // Validate against schema
-    const validated = validateDocument(table, cleaned);
-
-    // Check for id collision
-    const existing = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
-    if (existing) {
-      throw new DocumentIdCollisionError(table, id);
-    }
-
-    // Extract indexed columns
-    const cols = extractColumns(table, validated);
-    const now = Date.now();
-    const dataJson = JSON.stringify(validated);
-
-    const { sql, params } = buildInsertSql(table, id, dataJson, cols, now);
-
-    // Run inside a transaction
-    this.db.transaction(() => {
-      this.db.prepare(sql).run(...params);
-    })();
-
-    return validated;
+    // The id-collision check, validation and insert all run inside a single
+    // IMMEDIATE transaction (T012): checking-then-writing outside a
+    // transaction is a TOCTOU race under concurrent writers (reproduced with
+    // two better-sqlite3 connections against the same world.db in WAL mode).
+    // IMMEDIATE takes the write lock up front instead of on first write
+    // (better-sqlite3's default is DEFERRED), so a second writer blocks and
+    // retries (busy_timeout) instead of racing past the check.
+    //
+    // NOTE: .immediate() only takes effect when no transaction is already
+    // open on this connection — better-sqlite3 falls back to a SAVEPOINT and
+    // silently ignores the requested mode otherwise. No store method is
+    // currently called from inside another transaction; keep it that way.
+    return this.db.transaction(() => this._createInTxn(table, input, auth)).immediate();
   }
 
   // --------------------------------------------------------------------------
@@ -443,34 +414,46 @@ export class DocumentStore {
     const orderCol = options?.orderBy ?? "sort";
     // Validate orderBy to prevent injection
     const safeOrder = ["sort", "name", "updated_at"].includes(orderCol) ? orderCol : "sort";
-    const limitClause = options?.limit != null ? `LIMIT ${String(options.limit)}` : "";
 
     // Not all tables have all columns — use conditional ORDER BY
     const hasOrderCol = this._tableHasColumn(table, safeOrder);
     const orderClause = hasOrderCol ? `ORDER BY ${safeOrder}` : "";
-    const sql = `SELECT data FROM ${table} ${where} ${orderClause} ${limitClause}`.trim();
 
-    const rows = this.db.prepare(sql).all(...params) as Array<{ data: string }>;
+    // LIMIT is bound as a parameter (T014) rather than interpolated into the
+    // SQL string — SQLite accepts a bound parameter in LIMIT the same as
+    // anywhere else, so there is no reason to format it by hand.
+    const limitClause = options?.limit != null ? "LIMIT ?" : "";
+    const sql = `SELECT data FROM ${table} ${where} ${orderClause} ${limitClause}`.trim();
+    const allParams = options?.limit != null ? [...params, options.limit] : params;
+
+    const rows = this.db.prepare(sql).all(...allParams) as Array<{ data: string }>;
     return rows.map((r) => JSON.parse(r.data) as Record<string, unknown>);
   }
 
-  /** Check whether a table has a given extracted column (approximation). */
+  /** PRAGMA table_info(<table>) results, cached per table on first use (T015). */
+  private readonly columnCache = new Map<string, Set<string>>();
+
+  /**
+   * Check whether a table has a given column.
+   *
+   * Derived from PRAGMA table_info instead of a hand-maintained list (T015):
+   * a migration that adds or drops a column used to also need a matching
+   * edit here, and the two silently drifted apart (confirmed against a
+   * migrated database — the `users` table gained password_hash/color/avatar/
+   * active/preferences across migrations 002/006, none of which were ever
+   * added to the old list). Cached per table since the connection lives for
+   * the whole process and the schema does not change underneath it after
+   * boot. A table PRAGMA finds nothing for (e.g. a typo) simply yields an
+   * empty set rather than throwing.
+   */
   private _tableHasColumn(table: DocumentTable, col: string): boolean {
-    const tableColumns: Record<DocumentTable, string[]> = {
-      actors: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      items: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      scenes: ["name", "navigation", "folder_id", "sort", "created_at", "updated_at"],
-      journal_entries: ["name", "folder_id", "sort", "created_at", "updated_at"],
-      macros: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      roll_tables: ["name", "folder_id", "sort", "created_at", "updated_at"],
-      playlists: ["name", "folder_id", "sort", "created_at", "updated_at"],
-      chat_messages: ["timestamp", "author_id", "created_at", "updated_at"],
-      combats: ["scene_id", "active", "created_at", "updated_at"],
-      users: ["name", "role", "created_at", "updated_at"],
-      folders: ["name", "type", "parent_id", "sort", "created_at", "updated_at"],
-      settings: ["created_at", "updated_at"],
-    };
-    return tableColumns[table].includes(col);
+    let cols = this.columnCache.get(table);
+    if (!cols) {
+      const rows = this.db.pragma(`table_info(${table})`) as Array<{ name: string }>;
+      cols = new Set(rows.map((r) => r.name));
+      this.columnCache.set(table, cols);
+    }
+    return cols.has(col);
   }
 
   // --------------------------------------------------------------------------
@@ -502,51 +485,13 @@ export class DocumentStore {
 
     const auth = author ?? this.defaultAuthor;
 
-    // Load existing document
-    const existing = this.get(table, id);
-
-    // Strip _stats and _id from patch (server-managed / immutable)
-    const { _stats: _ignoredStats, _id: _ignoredId, ...cleanPatch } = patch;
-    void _ignoredStats;
-    void _ignoredId;
-
-    // Apply deep merge
-    const merged = deepMerge(existing, cleanPatch);
-
-    // Restore the server-managed fields
-    const existingStats = existing["_stats"] as DocumentStats;
-    const newStats = buildUpdateStats(existingStats, auth);
-    merged["_id"] = id;
-    merged["_stats"] = newStats;
-
-    // Compute diff (compare merged data without _stats and _id, which always change)
-    const { _stats: _s1, _id: _i1, ...existingData } = existing;
-    const { _stats: _s2, _id: _i2, ...mergedData } = merged;
-    void _s1;
-    void _i1;
-    void _s2;
-    void _i2;
-
-    const diff = computeDiff(existingData, mergedData);
-
-    // No-op: no actual data changes
-    if (diff === null) return null;
-
-    // Validate the merged result
-    const validated = validateDocument(table, merged);
-
-    // Persist
-    const cols = extractColumns(table, validated);
-    const now = Date.now();
-    const dataJson = JSON.stringify(validated);
-
-    const { sql, params } = buildUpdateSql(table, id, dataJson, cols, now);
-
-    this.db.transaction(() => {
-      this.db.prepare(sql).run(...params);
-    })();
-
-    return validated;
+    // Load, merge, diff and write all run inside a single IMMEDIATE
+    // transaction (T012) — see create()'s comment for why. Reading `existing`
+    // outside the transaction (the previous shape) let a concurrent writer's
+    // change land between the read and the write and get silently overwritten
+    // (lost update) — reproduced with two connections against the same
+    // world.db.
+    return this.db.transaction(() => this._updateInTxn(table, id, patch, auth)).immediate();
   }
 
   // --------------------------------------------------------------------------
@@ -564,16 +509,16 @@ export class DocumentStore {
       throw new Error(`Unknown document table: "${table}"`);
     }
 
-    // Verify existence
-    const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
-
-    if (!exists) throw new DocumentNotFoundError(table, id);
-
-    this.db.transaction(() => {
-      this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
-    })();
-
-    return id;
+    // Existence check and delete run inside a single IMMEDIATE transaction
+    // (T012) — see create()'s comment for why.
+    return this.db
+      .transaction(() => {
+        const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+        if (!exists) throw new DocumentNotFoundError(table, id);
+        this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+        return id;
+      })
+      .immediate();
   }
 
   // --------------------------------------------------------------------------
@@ -596,12 +541,18 @@ export class DocumentStore {
     const auth = author ?? this.defaultAuthor;
     const results: Record<string, unknown>[] = [];
 
-    this.db.transaction(() => {
-      for (const input of inputs) {
-        const result = this._createInTxn(table, input, auth);
-        results.push(result);
-      }
-    })();
+    // IMMEDIATE (T012): a DEFERRED transaction that reads-then-writes each
+    // item under concurrency can hit SQLITE_BUSY_SNAPSHOT, which busy_timeout
+    // does NOT retry — the whole batch fails instantly instead of waiting for
+    // the lock (reproduced with two connections against the same world.db).
+    this.db
+      .transaction(() => {
+        for (const input of inputs) {
+          const result = this._createInTxn(table, input, auth);
+          results.push(result);
+        }
+      })
+      .immediate();
 
     return results;
   }
@@ -622,13 +573,16 @@ export class DocumentStore {
     const auth = author ?? this.defaultAuthor;
     const results: Array<Record<string, unknown> | null> = [];
 
-    this.db.transaction(() => {
-      for (const patch of patches) {
-        const { _id, ...rest } = patch;
-        const result = this._updateInTxn(table, _id, rest, auth);
-        results.push(result);
-      }
-    })();
+    // IMMEDIATE (T012) — see createBatch's comment for why.
+    this.db
+      .transaction(() => {
+        for (const patch of patches) {
+          const { _id, ...rest } = patch;
+          const result = this._updateInTxn(table, _id, rest, auth);
+          results.push(result);
+        }
+      })
+      .immediate();
 
     return results;
   }
@@ -642,13 +596,16 @@ export class DocumentStore {
       throw new Error(`Unknown document table: "${table}"`);
     }
 
-    this.db.transaction(() => {
-      for (const id of ids) {
-        const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
-        if (!exists) throw new DocumentNotFoundError(table, id);
-        this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
-      }
-    })();
+    // IMMEDIATE (T012) — see createBatch's comment for why.
+    this.db
+      .transaction(() => {
+        for (const id of ids) {
+          const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+          if (!exists) throw new DocumentNotFoundError(table, id);
+          this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+        }
+      })
+      .immediate();
 
     return ids;
   }
