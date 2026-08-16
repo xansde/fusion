@@ -7,19 +7,24 @@ nas duas linhas, então nada aqui depende de qual delas você olha.
 Base de trabalho: `alfa/app`. Uma fase = um PR. Promoção `alfa → beta → stable` é
 sempre ato humano.
 
+**Escopo de linha:** este plano vale para a linha `alfa`/`beta`/`stable` e só para ela.
+`build/app` e `main` são a linha geral do projeto, paralela desde `ab4966f` (02/08), e
+não há convergência planejada entre as duas — nenhuma migration daqui precisa aplicar
+limpo lá, e nenhuma correção daqui chega lá sozinha.
+
 ---
 
 ## Decisões fechadas (não reabrir sem motivo novo)
 
-| #   | Decisão                                                                                        | Consequência                                                                                                     |
-| --- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| D1  | `stable`/`alfa` adotam a `004_region_maps` de `build/app`; migrations novas começam em **005** | `teste_xande` já está gravado em schema v4; uma 004 diferente seria **pulada em silêncio** por `applyMigrations` |
-| D2  | Mundo enxuto: regras ficam no compêndio. **Sons e imagens vivem no mundo**                     | `world.db` fica pequeno; quem cresce é `assets/`. Rebaixa a urgência de snapshot magro e normalização            |
-| D3  | Registro leve de assets no banco (sem tabela de referências no write path)                     | Habilita GC de órfãos e, depois, permissão por asset — sem congelar o modelo de documentos                       |
-| D4  | Backup do mundo = banco **+ assets deduplicados por hash**                                     | O nome do arquivo já é o hash do conteúdo: arquivo nunca muda, backup incremental sai de graça                   |
-| D5  | Retenção mista: chat nunca some sozinho; sessão expirada (>30d) e auditoria (>12m) somem       | Distingue memória da mesa de sobra de implementação                                                              |
-| D6  | Schema divergente do código = **falha fechada** no boot, com `--force` de escape               | A divergência que temos hoje foi silenciosa; seguir em frente calado foi o que a produziu                        |
-| D7  | Trabalho entra por PR em `alfa/app`                                                            | A linha em que se joga não é a linha em que migration estreia                                                    |
+| #   | Decisão                                                                                  | Consequência                                                                                                                                                                         |
+| --- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1  | Esta linha adota a `004_region_maps`; migrations novas começam em **005**                | `teste_xande` já está gravado em schema v4: uma 004 diferente seria **pulada em silêncio** por `applyMigrations`, e o mundo já tem 2 mapas com 7 pins gravados que a tabela preserva |
+| D2  | Mundo enxuto: regras ficam no compêndio. **Sons e imagens vivem no mundo**               | `world.db` fica pequeno; quem cresce é `assets/`. Rebaixa a urgência de snapshot magro e normalização                                                                                |
+| D3  | Registro leve de assets no banco (sem tabela de referências no write path)               | Habilita GC de órfãos e, depois, permissão por asset — sem congelar o modelo de documentos                                                                                           |
+| D4  | Backup do mundo = banco **+ assets deduplicados por hash**                               | O nome do arquivo já é o hash do conteúdo: arquivo nunca muda, backup incremental sai de graça                                                                                       |
+| D5  | Retenção mista: chat nunca some sozinho; sessão expirada (>30d) e auditoria (>12m) somem | Distingue memória da mesa de sobra de implementação                                                                                                                                  |
+| D6  | Schema divergente do código = **falha fechada** no boot, com `--force` de escape         | A divergência que temos hoje foi silenciosa; seguir em frente calado foi o que a produziu                                                                                            |
+| D7  | Trabalho entra por PR em `alfa/app`                                                      | A linha em que se joga não é a linha em que migration estreia                                                                                                                        |
 
 **Princípio que rege o plano:** decisão irreversível só onde o conceito está fechado.
 Onde não está — token, forma do estado quente —, faz-se o reversível e prepara-se o
@@ -74,6 +79,11 @@ Editar: `packages/server/src/db/index.ts:33` (`registerMigrations([...])`)
 
 Só a tabela e os dois índices. Nenhuma UI, nenhum handler, nenhum tipo de documento novo
 nesta tarefa — `region_maps` fica como tabela existente e não usada nesta linha.
+
+A cópia precisa ser **fiel ao shape que o `teste_xande` já tem gravado** (o mundo carrega 2
+mapas com 7 pins, criados quando passou pela outra linha). Não é questão de merge futuro —
+as linhas não convergem —, é que a tabela precisa casar com o dado que já está lá, senão
+a guarda de T004 acusa divergência no primeiro boot.
 
 **Pronto quando:** banco novo nasce em v4; banco v3 sobe para v4; `teste_xande` (v4) abre
 sem nada pendente.
