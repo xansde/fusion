@@ -325,11 +325,11 @@ gesto de recolher ou persistência de `open`/`activeTab`, que são desta spec:
 | Aba           | Spec-filha                | Área dona do conteúdo citada          |
 | ------------- | ------------------------- | ------------------------------------- |
 | Chat          | [38](38-aba-chat.md)      | 09 (rolagens: 08)                     |
-| Contatos      | _a criar_                 | 02/05/11                              |
+| Contatos      | [39](39-contatos.md)      | 02/05/11                              |
 | Combate       | [40](40-aba-combate.md)   | 10                                    |
-| Compêndio     | _a criar_                 | 16                                    |
+| Compêndio     | [43](43-aba-compendio.md) | 16                                    |
 | NPCs          | [42](42-aba-npcs.md)      | 02/05/11 (compêndio: 16)              |
-| Cenas         | _a criar_                 | 06/11                                 |
+| Cenas         | [44](44-aba-cenas.md)     | 06/11 (ambiente: 07)                  |
 | Configurações | [37](37-configuracoes.md) | 05/15/13 (mods: [V2] por REQ-ESC-012) |
 
 ## 9. Dependências (specs irmãs)
