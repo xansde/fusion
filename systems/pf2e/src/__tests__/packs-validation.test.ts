@@ -499,7 +499,7 @@ describe("packs-validation: r10 domain invariants", () => {
 
   // ---------------------------------------------------------------------------
   // 2g. published audience of every pack
-  // REQ-CPD-072, REQ-PF2-140/141/142/143
+  // REQ-CPD-072, REQ-PF2-140, REQ-PF2-141, REQ-PF2-143
   // ---------------------------------------------------------------------------
 
   /**
@@ -507,12 +507,19 @@ describe("packs-validation: r10 domain invariants", () => {
    * pack CONTAINS, never from a list of slugs. A creature pack read by a player
    * is the monster manual open on the table (REQ-CPD-072, REQ-PF2-141), and that
    * requirement binds "qualquer pack de criaturas que o sistema venha a publicar
-   * depois"; REQ-PF2-142 likewise forbids deciding a hazard pack's audience case
-   * by case at generation time. A literal slug set satisfies neither — a
-   * `bestiary-2` published as "all" would be a leak these assertions never
-   * looked at, while the same pack published correctly as "gm" would FAIL the
-   * REQ-PF2-143 assertion below. Same rule the generator applies
-   * (tools/importer-pf2e/src/pack-audience.mjs).
+   * depois". A literal slug set does not satisfy it — a `bestiary-2` published as
+   * "all" would be a leak these assertions never looked at, while the same pack
+   * published correctly as "gm" would FAIL the REQ-PF2-143 assertion below. Same
+   * rule the generator applies (tools/importer-pf2e/src/pack-audience.mjs).
+   *
+   * The sibling requirement about hazard packs (spec 17, "Plateia dos packs
+   * publicados") is deliberately NOT claimed by this file: no committed pack
+   * carries a `hazard` document, so any assertion here about them is vacuously
+   * true and would pass with the whole rule deleted. It is proved with real
+   * mutation power against the generator's rule, over hazard packs that do not
+   * exist yet, in tools/importer-pf2e/src/__tests__/pack-audience.test.mjs.
+   * Do not re-add that requirement id to this file: the tripwire below is a
+   * guard over committed packs, not a proof.
    */
   const packsContaining = (type: string): string[] =>
     listPackSlugs().filter((slug) => loadDocuments(slug).some((doc) => doc.type === type));
@@ -561,12 +568,14 @@ describe("packs-validation: r10 domain invariants", () => {
     expect(missing, `packs without a declared audience: ${missing.join(", ")}`).toEqual([]);
   });
 
-  it("REQ-PF2-142: every pack carrying hazards is published with audience 'gm'", () => {
-    // The requirement is prospective: no hazard pack is generated today, so this
-    // list is empty and the assertion is vacuously true. It is the tripwire — the
-    // day hazards ship it fails until the pack is published as "gm", and the
-    // REQ-PF2-143 assertion above stops demanding "all" of that same pack at the
-    // same moment, because both read the same content.
+  it("tripwire (no coverage claim): a committed pack carrying hazards is published with audience 'gm'", () => {
+    // Vacuous by construction today — no committed pack carries a hazard, so
+    // this list is empty and the assertion cannot fail; deleting the generator's
+    // entire audience rule leaves it green. That is why it claims no requirement
+    // id (see the note above the detector). Its job is to catch the day hazards
+    // actually ship in a committed pack: it fails until that pack is published
+    // as "gm", and the REQ-PF2-143 assertion above stops demanding "all" of the
+    // same pack at the same moment, because both read the same content.
     const wrongAudience = hazardPacks.filter(
       (slug) => PackManifestSchema.parse(loadPackJson(slug)).audience !== "gm",
     );

@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 230 | 12% |
+| Citados por algum teste | 231 | 13% |
 | Citados só por código de produção | 331 | 18% |
-| Sem nenhuma citação | 1281 | 70% |
+| Sem nenhuma citação | 1280 | 69% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -41,7 +41,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 62 | 15 | 31 | 16 | 24% |
 | [16](16-compendiums-e-importacao.md) | 56 | 15 | 17 | 24 | 27% |
-| [17](17-sistema-pf2e.md) | 72 | 41 | 14 | 17 | 57% |
+| [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
