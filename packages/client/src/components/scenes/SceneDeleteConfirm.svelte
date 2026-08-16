@@ -18,7 +18,7 @@
   import type { Socket } from "socket.io-client";
   import type { SceneDocument } from "@fusion/shared";
   import { deleteScene, OpError } from "../../lib/scenes/sceneController.js";
-  import { buildSceneDeleteVM } from "../../lib/scenes/sceneDelete.js";
+  import { buildSceneDeleteVM, requestSceneDelete } from "../../lib/scenes/sceneDelete.js";
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
 
@@ -40,13 +40,17 @@
   let serverError = $state<string | null>(null);
 
   async function handleDelete(): Promise<void> {
-    // REQ-CEN-064: the refused case never reaches the wire.
-    if (vm.blocked || deleting) return;
+    if (deleting) return;
     deleting = true;
     serverError = null;
     try {
-      await deleteScene(socket, scene._id);
-      onSuccess();
+      // REQ-CEN-064: `requestSceneDelete` is what decides whether anything is sent —
+      // the refused scene leaves `deleteScene` untouched (`lib/scenes/sceneDelete.ts`).
+      const sent = await requestSceneDelete({
+        vm,
+        send: (sceneId) => deleteScene(socket, sceneId),
+      });
+      if (sent) onSuccess();
     } catch (err) {
       if (err instanceof OpError) {
         serverError = err.message;

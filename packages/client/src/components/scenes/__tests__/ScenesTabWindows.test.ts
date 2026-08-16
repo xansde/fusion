@@ -3,15 +3,18 @@
  * draw them (plan G085, spec 44 §5.7).
  *
  * The RULE — which window opens, one per what, and what the delete confirmation says
- * — is asserted in `lib/scenes/__tests__/sceneWindows.test.ts`. What only markup can
- * answer is here: that the panel's verbs reach the openers instead of mounting a modal
- * inside a 300px drawer, that no dialog paints a frame of its own any more (the window
- * owns it), that the configuration form really carries REQ-CEN-061's six fields, and
- * that the confirmation prints the cascade and the refusal.
+ * — is asserted in `lib/scenes/__tests__/sceneWindows.test.ts`, against the real
+ * `windowManager`. What only markup can answer is here: that the panel OFFERS the three
+ * verbs and mounts no form of its own inside a 300px drawer, that no dialog paints a
+ * frame of its own any more (the window owns it), that the configuration form really
+ * carries REQ-CEN-061's six fields, and that the confirmation prints the cascade and
+ * the refusal.
  *
- * The client's Vitest runs in a node environment (no DOM), so the assertions are on
- * server-rendered markup and on the components' own source — the technique
- * `ScenesTabHead.test.ts` established.
+ * The client's Vitest runs in a node environment (no DOM), so what a click DOES is
+ * never asserted from the markup: the openers are named module functions
+ * (`lib/scenes/sceneWindows.ts`) and the refusal is a named module function
+ * (`lib/scenes/sceneDelete.ts`), both exercised as functions. What is asserted from the
+ * markup is only that the control exists, by its accessible name.
  *
  * Covers REQ-CEN-060, REQ-CEN-061, REQ-CEN-062, REQ-CEN-063, REQ-CEN-064, REQ-CEN-067.
  */
@@ -29,7 +32,11 @@ import ScenePerceptionDialog from "../ScenePerceptionDialog.svelte";
 import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import { activeSceneState } from "../../../lib/docs/activeScene.svelte.js";
 import { SCENE_WINDOW_KEYS } from "../../../lib/scenes/sceneWindows.js";
-import { SCENE_DELETE_KEYS } from "../../../lib/scenes/sceneDelete.js";
+import {
+  SCENE_DELETE_KEYS,
+  buildSceneDeleteVM,
+  requestSceneDelete,
+} from "../../../lib/scenes/sceneDelete.js";
 import { SCENE_SHELF_KEYS } from "../../../lib/scenes/sceneShelf.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
@@ -87,28 +94,26 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("ScenesTab — the verbs open windows (REQ-CEN-060, REQ-CEN-061, REQ-CEN-063)", () => {
-  it("REQ-CEN-060/061/063: create, configure and delete are wired to the window openers", () => {
-    const source = sourceOf("ScenesTab.svelte");
-
-    expect(source).toContain("openSceneCreateWindow(socket)");
-    expect(source).toContain("openSceneConfigWindow(socket, scene)");
-    expect(source).toContain("openSceneDeleteWindow(socket, scene)");
-  });
-
-  it("REQ-CEN-061: no dialog is mounted inside the drawer any more", () => {
-    const source = sourceOf("ScenesTab.svelte");
-
-    // The old inline mounting is gone, flags and all: a form does not fit in 300px
-    // and the drawer never widens (DEC-GAV-04, REQ-GAV-012).
-    expect(source).not.toContain("<SceneCreateDialog");
-    expect(source).not.toContain("<SceneDeleteConfirm");
-    expect(source).not.toMatch(/showCreateDialog|editTarget|deleteTarget/);
-  });
-
-  it("REQ-CEN-060: the panel still offers creating a scene", () => {
+  it("REQ-CEN-060/061/063: the panel offers the three verbs, each one named", () => {
     const html = renderTab(ON_AIR._id);
 
+    // The scene on air lives in the head, so the archive below holds the other scene
+    // — and it is that line that carries the per-scene verbs.
     expect(html).toContain(t("FUSION.Sidebar.Scenes.Create"));
+    expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} ${OTHER.name}`);
+    expect(html).toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} ${OTHER.name}`);
+  });
+
+  it("REQ-CEN-061: none of the dialogs is drawn inside the drawer", () => {
+    const html = renderTab(ON_AIR._id);
+
+    // What each verb opens is a window of the manager (asserted against the real
+    // `windowManager` in `lib/scenes/__tests__/sceneWindows.test.ts`); the panel itself
+    // draws no form, because a form does not fit in 300px and the drawer never widens
+    // (DEC-GAV-04, REQ-GAV-012). None of the three dialog bodies is in this markup:
+    expect(html).not.toContain(t("FUSION.Scene.Dialog.GridSize"));
+    expect(html).not.toContain(t("FUSION.Scene.Perception.TokenVision"));
+    expect(html).not.toContain(t(SCENE_DELETE_KEYS.cascadeTitle));
   });
 
   it("REQ-CEN-067: the panel header carries no close control and no width control", () => {
@@ -206,8 +211,9 @@ describe("ScenesTab head — the perception door (REQ-CEN-062)", () => {
     const html = renderTab(ON_AIR._id);
 
     expect(html).toContain("scene-head__perception");
-    expect(html).toContain(t(SCENE_WINDOW_KEYS.headPerception));
-    expect(sourceOf("ScenesTab.svelte")).toContain("openScenePerceptionWindow(socket, scene)");
+    // The control is there and it is named; that pressing it produces the perception
+    // window is `openScenePerceptionWindow`'s own test (sceneWindows.test.ts).
+    expect(html).toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
   });
 
   it("REQ-CEN-062: with nothing on air there is no scene to tune, and no door", () => {
@@ -265,11 +271,31 @@ describe("SceneDeleteConfirm — what it says (REQ-CEN-063) and what it refuses 
     expect(html).not.toContain(t(SCENE_DELETE_KEYS.cascadeTitle));
   });
 
-  it("REQ-CEN-064: the refused delete never reaches the wire", () => {
-    const source = sourceOf("SceneDeleteConfirm.svelte");
+  it("REQ-CEN-064: the refused delete never reaches the wire", async () => {
+    // The send is spied in place of the socket: what proves the requirement is that
+    // nothing was written, not how the guard is spelled.
+    const sent: string[] = [];
+    const send = (sceneId: string): Promise<void> => {
+      sent.push(sceneId);
+      return Promise.resolve();
+    };
 
-    const handler = /async function handleDelete[\s\S]*?\n  }/.exec(source)?.[0] ?? "";
-    expect(handler).toContain("if (vm.blocked");
-    expect(handler).toMatch(/if \(vm\.blocked[^)]*\) return;/);
+    const refused = await requestSceneDelete({
+      vm: buildSceneDeleteVM({ scene: ON_AIR, activeSceneId: ON_AIR._id }),
+      send,
+    });
+
+    expect(refused).toBe(false);
+    expect(sent).toEqual([]);
+
+    // And any other scene does reach it, with its own id — otherwise the test above
+    // would pass with a delete that never works at all.
+    const deleted = await requestSceneDelete({
+      vm: buildSceneDeleteVM({ scene: OTHER, activeSceneId: ON_AIR._id }),
+      send,
+    });
+
+    expect(deleted).toBe(true);
+    expect(sent).toEqual([OTHER._id]);
   });
 });

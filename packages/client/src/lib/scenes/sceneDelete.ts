@@ -78,3 +78,25 @@ export function buildSceneDeleteVM(input: SceneDeleteInput): SceneDeleteVM {
     keptKey: SCENE_DELETE_KEYS.kept,
   };
 }
+
+export interface SceneDeleteRequest {
+  /** The projection of the moment — `blocked` is the whole decision (REQ-CEN-064). */
+  vm: SceneDeleteVM;
+  /** What actually writes. The confirmation hands `deleteScene(socket, id)`. */
+  send: (sceneId: string) => Promise<unknown>;
+}
+
+/**
+ * REQ-CEN-064: the refused deletion never reaches the wire.
+ *
+ * The decision lives here, and not inside the confirmation component, so it can be
+ * proven with a spy in place of the socket: a blocked scene must leave `send`
+ * untouched. Returns whether the deletion was actually sent — the caller uses it to
+ * decide if there is a success to report. Errors from `send` are the caller's (the
+ * component turns `OpError` into a message).
+ */
+export async function requestSceneDelete(request: SceneDeleteRequest): Promise<boolean> {
+  if (request.vm.blocked) return false;
+  await request.send(request.vm.sceneId);
+  return true;
+}
