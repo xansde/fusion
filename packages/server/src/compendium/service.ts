@@ -196,16 +196,66 @@ export class CompendiumService {
   }
 
   // ---------------------------------------------------------------------------
+  // Public API — audience gate (REQ-CMP-004a/010a, REQ-CPD-070/071/074)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Is this pack visible to a viewer holding `viewerRole`?
+   *
+   * The ONE place the pack audience is evaluated (REQ-CPD-074: the decision
+   * lives on the server, never only in the UI). A pack whose manifest declares
+   * `audience: "gm"` exists only for roles satisfying `isRolePrivileged`
+   * (documents/ownership.ts — the single role predicate, never duplicated).
+   *
+   * `manifest.audience` is ALWAYS resolved by `PackManifestSchema` (it defaults
+   * to `"all"` on parse), so a pack.json without the field is visible to
+   * everyone — REQ-CMP-004a: an old pack stays valid and stays public.
+   *
+   * @returns false when the pack is unknown OR hidden from this role — the two
+   *   are deliberately the same answer (REQ-SEC-020: refusal must be
+   *   indistinguishable from non-existence).
+   */
+  visibleTo(packId: string, viewerRole: number): boolean {
+    const loaded = this.packs.get(packId);
+    if (!loaded) return false;
+    return this._isPackVisible(loaded, viewerRole);
+  }
+
+  /**
+   * Resolve a pack for a viewer, or `null` when it does not exist FOR THAT
+   * VIEWER. Every read path below funnels through this so an invisible pack
+   * takes exactly the same code path — and produces exactly the same ack — as
+   * a packId that was never published (REQ-CPD-071, REQ-CMP-010a).
+   */
+  private _packFor(packId: string, viewerRole: number): LoadedPack | null {
+    const loaded = this.packs.get(packId);
+    if (!loaded) return null;
+    return this._isPackVisible(loaded, viewerRole) ? loaded : null;
+  }
+
+  private _isPackVisible(loaded: LoadedPack, viewerRole: number): boolean {
+    if (loaded.manifest.audience !== "gm") return true;
+    return isRolePrivileged(viewerRole);
+  }
+
+  // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
   /**
-   * List all registered pack manifests.
+   * List the pack manifests visible to `viewerRole`.
    * REQ-CMP-012: filter by systemId and/or documentType.
+   * REQ-CMP-010a / REQ-CPD-071: a `gm` pack is not listed to a non-privileged
+   * viewer — it is simply absent, as if it did not exist.
    */
-  listPacks(filter?: { systemId?: string; documentType?: string }): PackManifest[] {
+  listPacks(
+    viewerRole: number,
+    filter?: { systemId?: string; documentType?: string },
+  ): PackManifest[] {
     const packs: PackManifest[] = [];
-    for (const { manifest } of this.packs.values()) {
+    for (const loaded of this.packs.values()) {
+      if (!this._isPackVisible(loaded, viewerRole)) continue;
+      const { manifest } = loaded;
       if (filter?.systemId !== undefined && manifest.systemId !== filter.systemId) continue;
       if (filter?.documentType !== undefined && manifest.documentType !== filter.documentType)
         continue;
@@ -215,12 +265,12 @@ export class CompendiumService {
   }
 
   /**
-   * Get the index for a pack.
+   * Get the index for a pack, as seen by `viewerRole`.
    * Lazy-builds from documents.json or index.json on first call.
-   * REQ-CMP-007, REQ-CMP-049.
+   * REQ-CMP-007, REQ-CMP-049; audience gate per REQ-CMP-010a / REQ-CPD-071.
    */
-  getPackIndex(packId: string): PackIndex | null {
-    const loaded = this.packs.get(packId);
+  getPackIndex(viewerRole: number, packId: string): PackIndex | null {
+    const loaded = this._packFor(packId, viewerRole);
     if (!loaded) return null;
 
     if (!loaded._index) {
@@ -238,24 +288,33 @@ export class CompendiumService {
   }
 
   /**
-   * Search/filter a pack's index.
-   * REQ-CMP-013, REQ-CMP-014.
+   * Search/filter a pack's index, as seen by `viewerRole`.
+   * REQ-CMP-013, REQ-CMP-014; audience gate per REQ-CMP-010a / REQ-CPD-071 —
+   * a `gm` pack yields `null` (unknown pack) instead of entries.
    */
-  searchPack(packId: string, query: CompendiumSearchPayload): PackIndexEntry[] | null {
-    const packIndex = this.getPackIndex(packId);
+  searchPack(
+    viewerRole: number,
+    packId: string,
+    query: CompendiumSearchPayload,
+  ): PackIndexEntry[] | null {
+    const packIndex = this.getPackIndex(viewerRole, packId);
     if (!packIndex) return null;
     return searchPackIndex(packIndex.entries, query);
   }
 
   /**
-   * Get the full document for a Compendium UUID.
+   * Get the full document for a Compendium UUID, as seen by `viewerRole`.
    * REQ-CMP-009, REQ-CMP-050.
+   *
+   * A uuid that names a `gm` pack resolves to `null` for a non-privileged
+   * viewer — the SAME answer a made-up uuid gets, so knowing the uuid teaches
+   * nothing about whether the document exists (REQ-CPD-071, REQ-SEC-020).
    */
-  getDocument(uuid: string): Record<string, unknown> | null {
+  getDocument(viewerRole: number, uuid: string): Record<string, unknown> | null {
     const parsed = parsePackDocUuid(uuid);
     if (!parsed) return null;
 
-    const loaded = this.packs.get(parsed.packId);
+    const loaded = this._packFor(parsed.packId, viewerRole);
     if (!loaded) return null;
 
     try {
@@ -331,17 +390,26 @@ export class CompendiumService {
    * whose `sourceHash` no longer matches the live EN doc is treated exactly
    * like "no translation" here too (falls through to `null` → EN fallback).
    *
-   * @returns the localized pt-BR fields, or `null` when no loaded pack has a
-   *   doc matching that `(packName, sourceId)` pair, or the overlay entry for
-   *   it is missing/stale.
+   * AUDIENCE GATE (REQ-CMP-010a, REQ-CPD-071): this is a document read like
+   * `getDocument`, so it obeys the same pack audience — a ref resolving into a
+   * `gm` pack yields `null` for a non-privileged viewer, which is already this
+   * method's normal "no translation" answer. Without this gate the overlay
+   * would be a side door leaking creature names out of a hidden bestiary.
+   *
+   * @returns the localized pt-BR fields, or `null` when no pack VISIBLE TO THE
+   *   VIEWER has a doc matching that `(packName, sourceId)` pair, or the
+   *   overlay entry for it is missing/stale.
    */
-  getI18nBySourceRef(ref: { packName: string; sourceId: string }): DocI18n | null {
+  getI18nBySourceRef(
+    viewerRole: number,
+    ref: { packName: string; sourceId: string },
+  ): DocI18n | null {
     const index = this._getSourceRefIndex();
     const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
     if (!hit) return null;
 
-    const loaded = this.packs.get(hit.packId);
-    if (!loaded) return null; // defensive — pack was loaded when the index was built
+    const loaded = this._packFor(hit.packId, viewerRole);
+    if (!loaded) return null; // unknown, or hidden from this role — same answer
 
     return this._getI18nPtBR(loaded).get(hit.docId) ?? null;
   }
@@ -403,7 +471,9 @@ export class CompendiumService {
 
     for (const uuid of uuids) {
       try {
-        const doc = this.getDocument(uuid);
+        // Read as the importer's own role: privileged by the guard above, so a
+        // `gm` pack is legitimately readable here (REQ-CPD-073).
+        const doc = this.getDocument(options.role, uuid);
         if (!doc) {
           failed.push({ uuid, reason: "Document not found in compendium" });
           continue;

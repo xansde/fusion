@@ -41,6 +41,7 @@ import {
   parseConsumableSystem,
   parseContainerSystem,
 } from "../schemas/item-equipment.js";
+import { PackManifestSchema } from "@fusion/shared";
 import { spellSlotsForLevel } from "../derivations/build.js";
 import type { ClassSystem } from "../schemas/item-equipment.js";
 
@@ -71,6 +72,8 @@ interface PackJson {
     sourceRepo?: string;
     sourceVersion?: string;
   };
+  /** Pack audience, next to `license` (REQ-CMP-004a). Absent reads as "all". */
+  audience?: string;
   [key: string]: unknown;
 }
 
@@ -492,6 +495,71 @@ describe("packs-validation: r10 domain invariants", () => {
       }
     }
     expect(failures, failures.join("\n")).toEqual([]);
+  });
+
+  // ---------------------------------------------------------------------------
+  // 2g. published audience of every pack
+  // REQ-CPD-072, REQ-PF2-140/141/142/143
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Packs the system publishes for the GM alone. The bestiary is here because a
+   * creature pack read by a player is the monster manual open on the table
+   * (REQ-CPD-072, REQ-PF2-141). No hazard pack is generated yet, so REQ-PF2-142
+   * has nothing to name today — when the first one appears it belongs here too.
+   */
+  const GM_ONLY_SLUGS = new Set(["bestiary-core"]);
+
+  it("REQ-CPD-072 / REQ-PF2-141: the creature pack is published with audience 'gm'", () => {
+    const parsed = PackManifestSchema.parse(loadPackJson("bestiary-core"));
+    expect(parsed.id).toBe("pf2e.bestiary-core");
+    expect(parsed.documentType).toBe("Actor");
+    expect(parsed.audience).toBe("gm");
+  });
+
+  it("REQ-PF2-143: every non-creature pack is published with audience 'all'", () => {
+    const offenders: string[] = [];
+    for (const slug of listPackSlugs()) {
+      if (GM_ONLY_SLUGS.has(slug)) continue;
+      const parsed = PackManifestSchema.parse(loadPackJson(slug));
+      if (parsed.audience !== "all") {
+        offenders.push(`[${slug}] audience is "${parsed.audience}", expected "all"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("REQ-PF2-140: every published pack declares audience in its manifest", () => {
+    const missing = listPackSlugs().filter(
+      (slug) => typeof loadPackJson(slug).audience !== "string",
+    );
+    expect(missing, `packs without a declared audience: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("REQ-PF2-142: no hazard pack is published yet, so none is missing a 'gm' audience", () => {
+    // The requirement is prospective: it binds the moment the first hazard pack
+    // (Actor subtype "hazard") is generated. This test is the tripwire — the day
+    // hazards ship, it fails until the pack is published as "gm".
+    const hazardPacks = listPackSlugs().filter((slug) =>
+      loadDocuments(slug).some((doc) => doc.type === "hazard"),
+    );
+    const wrongAudience = hazardPacks.filter(
+      (slug) => PackManifestSchema.parse(loadPackJson(slug)).audience !== "gm",
+    );
+    expect(
+      wrongAudience,
+      `hazard packs not published as "gm": ${wrongAudience.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  it("REQ-PF2-144: the GM-only pack keeps its documents intact — audience is not redaction", () => {
+    const docs = loadDocuments("bestiary-core");
+    expect(docs.length).toBeGreaterThan(0);
+    expect(docs.length).toBe(PackManifestSchema.parse(loadPackJson("bestiary-core")).documentCount);
+    for (const doc of docs) {
+      expect(doc.name.length, `${doc._id} has an empty name`).toBeGreaterThan(0);
+      expect(doc.system, `${doc.name} lost its system block`).toBeTruthy();
+    }
   });
 });
 
