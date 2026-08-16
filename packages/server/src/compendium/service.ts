@@ -196,12 +196,35 @@ export class CompendiumService {
   }
 
   // ---------------------------------------------------------------------------
-  // Public API — audience gate (REQ-CMP-004a/010a, REQ-CPD-070/071/074)
+  // Audience gate (REQ-CMP-004a/010a, REQ-CPD-070/071/074) — private on
+  // purpose: the gate is reached only THROUGH a read, so no caller can ask
+  // "does this hidden pack exist?" without also asking for its content.
   // ---------------------------------------------------------------------------
 
   /**
-   * Is this pack visible to a viewer holding `viewerRole`?
+   * Resolve a pack for a viewer, or `null` when it does not exist FOR THAT
+   * VIEWER. Every read path below funnels through this so an invisible pack
+   * takes exactly the same code path — and produces exactly the same ack — as
+   * a packId that was never published (REQ-CPD-071, REQ-CMP-010a).
    *
+   * `null` therefore means "unknown OR hidden from this role" — the two are
+   * deliberately the same answer (REQ-SEC-020: refusal must be
+   * indistinguishable from non-existence). There is no public predicate that
+   * separates them, and adding one would hand a caller the very distinction
+   * this method exists to erase.
+   *
+   * The viewer's role comes FIRST here, as in every public read below
+   * (`listPacks`, `getPackIndex`, `searchPack`, `getDocument`,
+   * `getI18nBySourceRef`) — one argument order for the whole audience-aware
+   * surface, so a new read path cannot silently swap role and packId.
+   */
+  private _packFor(packId: string, viewerRole: number): LoadedPack | null {
+    const loaded = this.packs.get(packId);
+    if (!loaded) return null;
+    return this._isPackVisible(loaded, viewerRole) ? loaded : null;
+  }
+
+  /**
    * The ONE place the pack audience is evaluated (REQ-CPD-074: the decision
    * lives on the server, never only in the UI). A pack whose manifest declares
    * `audience: "gm"` exists only for roles satisfying `isRolePrivileged`
@@ -210,29 +233,7 @@ export class CompendiumService {
    * `manifest.audience` is ALWAYS resolved by `PackManifestSchema` (it defaults
    * to `"all"` on parse), so a pack.json without the field is visible to
    * everyone — REQ-CMP-004a: an old pack stays valid and stays public.
-   *
-   * @returns false when the pack is unknown OR hidden from this role — the two
-   *   are deliberately the same answer (REQ-SEC-020: refusal must be
-   *   indistinguishable from non-existence).
    */
-  visibleTo(packId: string, viewerRole: number): boolean {
-    const loaded = this.packs.get(packId);
-    if (!loaded) return false;
-    return this._isPackVisible(loaded, viewerRole);
-  }
-
-  /**
-   * Resolve a pack for a viewer, or `null` when it does not exist FOR THAT
-   * VIEWER. Every read path below funnels through this so an invisible pack
-   * takes exactly the same code path — and produces exactly the same ack — as
-   * a packId that was never published (REQ-CPD-071, REQ-CMP-010a).
-   */
-  private _packFor(packId: string, viewerRole: number): LoadedPack | null {
-    const loaded = this.packs.get(packId);
-    if (!loaded) return null;
-    return this._isPackVisible(loaded, viewerRole) ? loaded : null;
-  }
-
   private _isPackVisible(loaded: LoadedPack, viewerRole: number): boolean {
     if (loaded.manifest.audience !== "gm") return true;
     return isRolePrivileged(viewerRole);
