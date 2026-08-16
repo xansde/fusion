@@ -74,7 +74,15 @@ function isPrivileged(role: number): boolean {
   return isRolePrivileged(role);
 }
 
-function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
+/**
+ * The document's ownership map, or a closed default when it has none.
+ *
+ * Exported (T025) so the asset-grant mint can gate on the SAME map the join
+ * snapshot gates on. Two readings of "what ownership does this document
+ * declare?" would be two chances to drift, and the one that drifts open is a
+ * file served to someone the snapshot would never have shown the document to.
+ */
+export function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
   if (
     doc["ownership"] &&
     typeof doc["ownership"] === "object" &&

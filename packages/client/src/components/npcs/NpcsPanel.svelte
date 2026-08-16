@@ -595,7 +595,12 @@
     ondblclick={() => openSheet(row)}
   >
     <div class="npcs-row__head">
-      <ActorPortrait img={row.img} name={row.name} size={28} />
+      <ActorPortrait
+        img={row.img}
+        docRef={{ table: "actors", id: row.id }}
+        name={row.name}
+        size={28}
+      />
 
       <div class="npcs-row__identity">
         <span class="npcs-row__name-line">
@@ -765,7 +770,12 @@
       <ul class="npcs-row__subs">
         {#each row.subCharacters as sub (sub.id)}
           <li class="npcs-row__sub" data-sub-of={row.id} data-sub-id={sub.id}>
-            <ActorPortrait img={sub.img} name={sub.name} size={20} />
+            <ActorPortrait
+              img={sub.img}
+              docRef={{ table: "actors", id: sub.id }}
+              name={sub.name}
+              size={20}
+            />
             <span class="npcs-row__sub-name">{sub.name}</span>
             <span class="npcs-row__sub-kind">{companionKindLabel(sub.kind)}</span>
             <ConditionChips conditions={sub.conditions} idPrefix={`npc-sub-${sub.id}`} />

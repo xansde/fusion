@@ -83,6 +83,15 @@ export class TokenSprite {
   private _doc: TokenDocument;
   private _gridSize: number;
   private _isGm: boolean;
+  /**
+   * The scene this token is embedded in (T025).
+   *
+   * A token is not a document of its own: its texture is a field of the SCENE
+   * row, so the grant that opens the art is the scene's grant. Holding the id
+   * here is what lets `_loadArt` hit the cache `sceneLoader` already filled
+   * instead of minting once per sprite.
+   */
+  private _sceneId: string;
 
   // Sub-containers / graphics
   private _artContainer: Container;
@@ -116,10 +125,11 @@ export class TokenSprite {
   private _renderX: number;
   private _renderY: number;
 
-  constructor(doc: TokenDocument, gridSize: number, isGm: boolean) {
+  constructor(doc: TokenDocument, gridSize: number, isGm: boolean, sceneId: string) {
     this._doc = doc;
     this._gridSize = gridSize;
     this._isGm = isGm;
+    this._sceneId = sceneId;
 
     this.container = new Container();
     this.container.label = `token:${doc._id}`;
@@ -406,13 +416,21 @@ export class TokenSprite {
     if (doc.texture) {
       try {
         // BUG A FIX: doc.texture is a clean "/assets/<name>" path (no query
-        // token — see resolveAssetUrl()'s doc comment in assetApi.ts). Mint a
-        // fresh token right before loading, otherwise the server 401s.
+        // token — see resolveAssetUrl()'s doc comment in assetApi.ts). Obtain a
+        // fresh credential right before loading, otherwise the server 401s.
+        //
+        // T025: the docRef is the SCENE, not the token — a token is embedded in
+        // the scene row, so its texture is signed by the scene's grant. No mint
+        // happens here in practice: `sceneLoader` filled that cache entry
+        // before any sprite existed.
         const accessToken = fusionApi.getToken();
         const userId = session.user?.id;
         const loadUrl =
           accessToken && userId
-            ? await resolveAssetUrl(doc.texture, accessToken, userId)
+            ? await resolveAssetUrl(doc.texture, accessToken, userId, {
+                table: "scenes",
+                id: this._sceneId,
+              })
             : doc.texture;
         const texture = await Assets.load<Texture>(loadUrl);
         const sprite = new Sprite(texture);

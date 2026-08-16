@@ -300,9 +300,19 @@ describe("buildDocumentPreview", () => {
     };
     const preview = buildDocumentPreview(doc);
     expect(preview.name).toBe("Goblin");
-    expect(preview.fields.find((f) => f.label === "HP")?.value).toBe("6");
-    expect(preview.fields.find((f) => f.label === "CA")?.value).toBe("14");
-    expect(preview.fields.find((f) => f.label === "Traits")?.value).toContain("goblin");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.attributes.hp.max")
+        ?.value,
+    ).toBe("6");
+    expect(
+      preview.fields.find(
+        (f) => f.labelKey === "FUSION.Compendium.Field.system.attributes.ac.value",
+      )?.value,
+    ).toBe("14");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.traits.value")
+        ?.value,
+    ).toContain("goblin");
   });
 
   it("extracts level for spells", () => {
@@ -317,8 +327,14 @@ describe("buildDocumentPreview", () => {
       },
     };
     const preview = buildDocumentPreview(doc);
-    expect(preview.fields.find((f) => f.label === "Nível")?.value).toBe("3");
-    expect(preview.fields.find((f) => f.label === "Tradições")?.value).toContain("arcane");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.level.value")
+        ?.value,
+    ).toBe("3");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.traditions.value")
+        ?.value,
+    ).toContain("arcane");
   });
 
   it("extracts damage for weapons", () => {
@@ -332,7 +348,9 @@ describe("buildDocumentPreview", () => {
       },
     };
     const preview = buildDocumentPreview(doc);
-    expect(preview.fields.find((f) => f.label === "Dano")?.value).toContain("1d8");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.damage")?.value,
+    ).toContain("1d8");
   });
 
   it("extracts readable fields from system.rules[] (e.g. Blinded condition)", () => {
@@ -351,12 +369,17 @@ describe("buildDocumentPreview", () => {
     expect(
       preview.fields.some(
         (f) =>
-          f.label === "Modificador" && f.value.includes("perception") && f.value.includes("-4"),
+          f.labelKey === "FUSION.Compendium.Preview.Rule.Modifier" &&
+          f.value.includes("perception") &&
+          f.value.includes("-4"),
       ),
     ).toBe(true);
-    expect(preview.fields.some((f) => f.label === "Imunidade" && f.value.includes("visual"))).toBe(
-      true,
-    );
+    expect(
+      preview.fields.some(
+        (f) =>
+          f.labelKey === "FUSION.Compendium.Preview.Rule.Immunity" && f.value.includes("visual"),
+      ),
+    ).toBe(true);
   });
 
   it("falls back to a generic label for unmapped rule kinds", () => {
@@ -513,11 +536,13 @@ describe("buildDocumentPreview — unique field keys (each_key_duplicate fix)", 
     const preview = buildDocumentPreview(confusedDoc, "pt-BR");
     // The two roll-options and grant-item collapse to the generic "Regra"
     // label — the collision that used to break keying.
-    const regraCount = preview.fields.filter((f) => f.label === "Regra").length;
+    const regraCount = preview.fields.filter(
+      (f) => f.labelKey === "FUSION.Compendium.Preview.Rule.Generic",
+    ).length;
     expect(regraCount).toBeGreaterThanOrEqual(2);
     // Every field still carries a label and a key.
     for (const f of preview.fields) {
-      expect(f.label.length).toBeGreaterThan(0);
+      expect(f.fallbackLabel.length).toBeGreaterThan(0);
       expect(f.key.length).toBeGreaterThan(0);
     }
   });

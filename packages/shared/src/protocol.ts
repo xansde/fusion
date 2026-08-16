@@ -112,8 +112,13 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("compendium:list"),
   z.literal("compendium:index"),
   z.literal("compendium:search"),
+  // One search over every pack the CALLER can see — REQ-CPD-030, REQ-CMP-013a
+  z.literal("compendium:searchAll"),
   z.literal("compendium:get"),
   z.literal("compendium:import"),
+  // Bring pack document(s) into ONE actor's sheet — the destination's OWNER is
+  // the predicate, not the caller's role (DEC-CPD-05, REQ-CPD-061/073).
+  z.literal("compendium:importToActor"),
   // server → client compendium events
   z.literal("compendium:imported"),
   z.literal("combat:updated"),

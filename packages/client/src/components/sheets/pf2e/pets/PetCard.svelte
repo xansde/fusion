@@ -111,7 +111,14 @@
 <div class="pet-card" class:pet-card--orphan={familiar.orphaned}>
   <header class="pet-card__header">
     <div class="pet-card__ident">
-      <ActorPortrait {img} name={familiar.name} size={40} />
+      <!-- The companion IS an Actor row of its own (PetsTab reads its `img` off
+           that row), so `familiar.id` is the actor id the grant is asked for. -->
+      <ActorPortrait
+        {img}
+        docRef={{ table: "actors", id: familiar.id }}
+        name={familiar.name}
+        size={40}
+      />
       <div class="pet-card__title">
       {#if editingName && editable}
         <!-- svelte-ignore a11y_autofocus -->

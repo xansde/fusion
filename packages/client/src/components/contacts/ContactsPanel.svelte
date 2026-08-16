@@ -458,7 +458,12 @@
               ondblclick={() => openSheet(card.id)}
             >
               <div class="contact-card__head">
-                <ActorPortrait img={card.img} name={card.name} size={34} />
+                <ActorPortrait
+                  img={card.img}
+                  docRef={{ table: "actors", id: card.id }}
+                  name={card.name}
+                  size={34}
+                />
 
                 <div class="contact-card__identity">
                   <span class="contact-card__name-line">
@@ -560,7 +565,12 @@
               <!-- REQ-CTT-025: the sub-character lives inside this card, never loose. -->
               {#each subCharactersOf(card) as sub (sub.id)}
                 <div class="contact-card__sub" data-sub-of={card.id} data-sub-id={sub.id}>
-                  <ActorPortrait img={sub.img} name={sub.name} size={22} />
+                  <ActorPortrait
+                    img={sub.img}
+                    docRef={{ table: "actors", id: sub.id }}
+                    name={sub.name}
+                    size={22}
+                  />
                   <span class="contact-card__sub-name">{sub.name}</span>
                   <span class="contact-card__sub-kind">{companionKindLabel(sub.kind)}</span>
                   {#if sub.conditions.length > 0}
@@ -750,7 +760,12 @@
               >
                 <div class="contact-card__head">
                   {#if card.identified}
-                    <ActorPortrait img={card.img} name={card.name} size={30} />
+                    <ActorPortrait
+                      img={card.img}
+                      docRef={{ table: "actors", id: card.id }}
+                      name={card.name}
+                      size={30}
+                    />
                   {:else}
                     <!-- REQ-CTT-041: no portrait to show, so a drawn silhouette
                          stands in — it identifies nobody. -->

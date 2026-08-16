@@ -517,7 +517,12 @@
           title={t("FUSION.Sheet.Portrait.Change")}
           aria-label={t("FUSION.Sheet.Portrait.Change")}
         >
-          <ActorPortrait img={vm.img} name={vm.name} size={56} />
+          <ActorPortrait
+            img={vm.img}
+            docRef={{ table: "actors", id: actorId }}
+            name={vm.name}
+            size={56}
+          />
           <span class="sheet-portrait-edit__overlay" aria-hidden="true">✎</span>
         </button>
         {#if !isPortraitPlaceholder(vm.img)}
@@ -532,6 +537,7 @@
       {:else}
         <ActorPortrait
           img={vm.img}
+          docRef={{ table: "actors", id: actorId }}
           name={vm.name}
           size={56}
           label={t("FUSION.Sheet.Portrait.Alt", { name: vm.name })}
