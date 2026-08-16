@@ -41,6 +41,7 @@ import {
   parseConsumableSystem,
   parseContainerSystem,
 } from "../schemas/item-equipment.js";
+import { PackManifestSchema } from "@fusion/shared";
 import { spellSlotsForLevel } from "../derivations/build.js";
 import type { ClassSystem } from "../schemas/item-equipment.js";
 
@@ -71,6 +72,8 @@ interface PackJson {
     sourceRepo?: string;
     sourceVersion?: string;
   };
+  /** Pack audience, next to `license` (REQ-CMP-004a). Absent reads as "all". */
+  audience?: string;
   [key: string]: unknown;
 }
 
@@ -492,6 +495,182 @@ describe("packs-validation: r10 domain invariants", () => {
       }
     }
     expect(failures, failures.join("\n")).toEqual([]);
+  });
+
+  // ---------------------------------------------------------------------------
+  // 2g. published audience of every pack
+  // REQ-CPD-072, REQ-PF2-140, REQ-PF2-141, REQ-PF2-143
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Which packs the system publishes for the GM alone is read from what each
+   * pack CONTAINS, never from a list of slugs. A creature pack read by a player
+   * is the monster manual open on the table (REQ-CPD-072, REQ-PF2-141), and that
+   * requirement binds "qualquer pack de criaturas que o sistema venha a publicar
+   * depois". A literal slug set does not satisfy it — a `bestiary-2` published as
+   * "all" would be a leak these assertions never looked at, while the same pack
+   * published correctly as "gm" would FAIL the REQ-PF2-143 assertion below. Same
+   * rule the generator applies (tools/importer-pf2e/src/pack-audience.mjs).
+   *
+   * The sibling requirement about hazard packs (spec 17, "Plateia dos packs
+   * publicados") is deliberately NOT claimed by this file: no committed pack
+   * carries a `hazard` document, so any assertion here about them is vacuously
+   * true and would pass with the whole rule deleted. It is proved with real
+   * mutation power against the generator's rule, over hazard packs that do not
+   * exist yet, in tools/importer-pf2e/src/__tests__/pack-audience.test.mjs.
+   * Do not re-add that requirement id to this file: the tripwire below is a
+   * guard over committed packs, not a proof.
+   */
+  const packsContaining = (type: string): string[] =>
+    listPackSlugs().filter((slug) => loadDocuments(slug).some((doc) => doc.type === type));
+
+  const creaturePacks = packsContaining("npc");
+  const hazardPacks = packsContaining("hazard");
+  const gmOnlySlugs = new Set([...creaturePacks, ...hazardPacks]);
+
+  it("REQ-CPD-072 / REQ-PF2-141: every pack carrying creatures is published with audience 'gm'", () => {
+    // Non-vacuity guard: the detector must actually be finding the bestiary,
+    // otherwise an empty `creaturePacks` would make the loop below pass for free.
+    expect(creaturePacks, "no creature pack found — the content detector is broken").toContain(
+      "bestiary-core",
+    );
+
+    const offenders: string[] = [];
+    for (const slug of creaturePacks) {
+      const parsed = PackManifestSchema.parse(loadPackJson(slug));
+      if (parsed.documentType !== "Actor") {
+        offenders.push(`[${slug}] carries creatures but documentType is "${parsed.documentType}"`);
+      }
+      if (parsed.audience !== "gm") {
+        offenders.push(`[${slug}] audience is "${parsed.audience}", expected "gm"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+    expect(PackManifestSchema.parse(loadPackJson("bestiary-core")).id).toBe("pf2e.bestiary-core");
+  });
+
+  it("REQ-PF2-143: every pack without creatures or hazards is published with audience 'all'", () => {
+    const offenders: string[] = [];
+    for (const slug of listPackSlugs()) {
+      if (gmOnlySlugs.has(slug)) continue;
+      const parsed = PackManifestSchema.parse(loadPackJson(slug));
+      if (parsed.audience !== "all") {
+        offenders.push(`[${slug}] audience is "${parsed.audience}", expected "all"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("REQ-PF2-140: every published pack declares audience in its manifest", () => {
+    const missing = listPackSlugs().filter(
+      (slug) => typeof loadPackJson(slug).audience !== "string",
+    );
+    expect(missing, `packs without a declared audience: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("tripwire (no coverage claim): a committed pack carrying hazards is published with audience 'gm'", () => {
+    // Vacuous by construction today — no committed pack carries a hazard, so
+    // this list is empty and the assertion cannot fail; deleting the generator's
+    // entire audience rule leaves it green. That is why it claims no requirement
+    // id (see the note above the detector). Its job is to catch the day hazards
+    // actually ship in a committed pack: it fails until that pack is published
+    // as "gm", and the REQ-PF2-143 assertion above stops demanding "all" of the
+    // same pack at the same moment, because both read the same content.
+    const wrongAudience = hazardPacks.filter(
+      (slug) => PackManifestSchema.parse(loadPackJson(slug)).audience !== "gm",
+    );
+    expect(
+      wrongAudience,
+      `hazard packs not published as "gm": ${wrongAudience.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  /**
+   * The committed roster of pf2e.bestiary-core, written down BY HAND here.
+   *
+   * This list is the anchor that makes the REQ-PF2-144 assertions below able to
+   * fail. Comparing `documents.json` against the manifest's `documentCount`
+   * would prove nothing: `writePack` derives BOTH from the same in-memory array
+   * in the same run (tools/importer-pf2e/src/build-mvp-subset.mjs — the manifest
+   * gets `documentCount: docs.length` right next to the `JSON.stringify(docs)`
+   * that becomes documents.json), so a generation that truncated the bestiary
+   * from ten creatures to one would move both numbers together and stay green.
+   * REQ-PF2-144 forbids precisely "omitir, truncar ou redigir documento de um
+   * pack `gm` na geração", so the guard has to be anchored outside the
+   * generator's own bookkeeping.
+   *
+   * A vendor bump that ADDS creatures is fine (the assertions are containment +
+   * floor, not equality); dropping any of these is the regression being caught.
+   */
+  const COMMITTED_BESTIARY_CREATURES = [
+    "Eagle",
+    "Giant Rat",
+    "Goblin Warrior",
+    "Guard Dog",
+    "Hryngar Sharpshooter",
+    "Kobold Warrior",
+    "Leaf Leshy",
+    "Orc Scrapper",
+    "Skeleton Guard",
+    "Zombie Shambler",
+  ];
+
+  it("REQ-PF2-144: the GM-only pack omits no creature — every committed one is still published", () => {
+    const docs = loadDocuments("bestiary-core");
+    const names = docs.map((doc) => doc.name);
+    const missing = COMMITTED_BESTIARY_CREATURES.filter((name) => !names.includes(name));
+    expect(missing, `bestiary-core lost creatures: ${missing.join(", ")}`).toEqual([]);
+    expect(docs.length).toBeGreaterThanOrEqual(COMMITTED_BESTIARY_CREATURES.length);
+  });
+
+  it("REQ-PF2-144: no creature of the GM-only pack is truncated or redacted", () => {
+    const offenders: string[] = [];
+    for (const doc of loadDocuments("bestiary-core")) {
+      const label = `[bestiary-core] "${doc.name}" (${doc._id})`;
+      if (doc.name.length === 0) offenders.push(`${label}: empty name`);
+      if (!doc.system) {
+        offenders.push(`${label}: lost its system block`);
+        continue;
+      }
+      // The mechanical content a "redacted for players" copy would blank out.
+      // A creature the GM cannot run is a creature that was redacted, whatever
+      // the document count says.
+      const system = doc.system as {
+        attributes?: { hp?: { max?: unknown }; ac?: { value?: unknown } };
+        details?: { level?: { value?: unknown } };
+        traits?: { value?: unknown };
+      };
+      const hp = system.attributes?.hp?.max;
+      const ac = system.attributes?.ac?.value;
+      const level = system.details?.level?.value;
+      const traits = system.traits?.value;
+      const items = (doc as { items?: unknown }).items;
+      if (typeof hp !== "number" || hp <= 0) offenders.push(`${label}: system.attributes.hp.max`);
+      if (typeof ac !== "number" || ac <= 0) offenders.push(`${label}: system.attributes.ac.value`);
+      if (typeof level !== "number") offenders.push(`${label}: system.details.level.value`);
+      if (!Array.isArray(traits) || traits.length === 0) offenders.push(`${label}: traits`);
+      if (!Array.isArray(items) || items.length === 0) {
+        offenders.push(`${label}: no embedded items (attacks/abilities stripped)`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("REQ-PF2-144: the GM-only pack's index.json publishes the same documents, none dropped", () => {
+    // index.json is a SEPARATE committed artifact from documents.json. Set
+    // equality on both keys — the storage id and the identity the project
+    // treats as canonical (flags.fusion.sourceId) — means an omission on
+    // either side denounces itself instead of cancelling out.
+    const docs = loadDocuments("bestiary-core");
+    const index = loadIndexJson("bestiary-core");
+    expect(index, "bestiary-core/index.json is missing").not.toBeNull();
+
+    expect(new Set(index!.map((entry) => entry._id))).toEqual(new Set(docs.map((doc) => doc._id)));
+
+    const docSourceIds = new Set(docs.map((doc) => readDotPath(doc, SOURCE_ID_FIELD)));
+    const indexSourceIds = new Set(index!.map((entry) => entry.index?.[SOURCE_ID_FIELD]));
+    expect(docSourceIds.has(undefined), "a bestiary document lost its sourceId").toBe(false);
+    expect(indexSourceIds).toEqual(docSourceIds);
   });
 });
 

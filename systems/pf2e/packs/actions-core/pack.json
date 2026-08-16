@@ -20,6 +20,7 @@
     "sourceVersion": "v14-dev",
     "textAttribution": "Item/spell/feat/class descriptions in this pack are reproduced from Paizo rules text under the license declared in each document's system.publication.license (\"ORC\" or \"OGL\" only — see the Paizo Community Use Policy for the relevant license); documents without an ORC/OGL publication keep an empty description. The importer pipeline itself is derived from github.com/foundryvtt/pf2e (Apache License 2.0)."
   },
+  "audience": "all",
   "source": {
     "repo": "github.com/foundryvtt/pf2e",
     "version": "v14-dev",

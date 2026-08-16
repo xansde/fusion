@@ -44,6 +44,7 @@ import { fileURLToPath } from "node:url";
 // r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
 import { acharDuplicatas, formatarErroDeDuplicata } from "./curation/duplicata.mjs";
+import { withResolvedAudience } from "./pack-audience.mjs";
 import {
   applyPrerequisiteFixes,
   assertAllPrerequisiteFixesApplied,
@@ -83,7 +84,7 @@ const TEXT_ATTRIBUTION =
   "pipeline itself is derived from github.com/foundryvtt/pf2e (Apache License 2.0).";
 
 // ---------------------------------------------------------------------------
-// Pack manifests (REQ-CMP-003/004/040)
+// Pack manifests (REQ-CMP-003/004/004a/040)
 // ---------------------------------------------------------------------------
 
 /** @type {Record<string, import('../types.js').PackManifest>} */
@@ -1166,9 +1167,15 @@ function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
   const packDir = join(packsOutDir, slug);
   mkdirSync(packDir, { recursive: true });
 
-  // Finalize manifest with counts
+  // Finalize manifest with counts and audience.
+  // Audience (REQ-CMP-004a, REQ-CPD-072, REQ-PF2-140..143) comes from ONE rule
+  // for every pack — see pack-audience.mjs. It reads the pack's CONTENT, so a
+  // creature or hazard pack that does not exist yet is still born `gm`; a slug
+  // list would only have covered the packs someone remembered to enumerate.
+  // The caller's manifest does NOT get to declare its own audience: that is the
+  // case-by-case decision REQ-PF2-142 forbids, so the rule overrides it here.
   const finalManifest = {
-    ...manifest,
+    ...withResolvedAudience(manifest, slug, docs),
     documentCount: docs.length,
     generatedAt: new Date().toISOString(),
   };

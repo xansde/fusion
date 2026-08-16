@@ -91,6 +91,29 @@ function nowIso() {
 }
 
 /**
+ * Actor subtypes whose presence makes the whole pack GM-only.
+ *
+ * `antagonista` is the Etmos creature (spec 19, REQ-ETM-002): a shelf of them
+ * read by a player is the monster manual open on the table — the same leak
+ * REQ-CPD-071 closes and REQ-CMP-004a lets the manifest declare. The rule reads
+ * the pack's CONTENT, never its slug, so the next antagonist pack is born `gm`
+ * without anyone remembering to edit a list. Same shape as the pf2e/sf2e rule
+ * in tools/importer-pf2e/src/pack-audience.mjs (which owns `npc`/`hazard`);
+ * these are two generators for two systems, so each carries its own subtypes.
+ */
+const GM_ONLY_DOCUMENT_TYPES = new Set(["antagonista"]);
+
+/**
+ * Audience of a pack (REQ-CMP-004a): `"gm"` when it carries creatures, `"all"`
+ * otherwise. Declaring it is not enforcing it — the server-side read API is what
+ * keeps a `gm` pack out of listings, searches and document reads
+ * (REQ-CMP-010a, REQ-CPD-071).
+ */
+function resolvePackAudience(docs) {
+  return docs.some((doc) => GM_ONLY_DOCUMENT_TYPES.has(doc?.type)) ? "gm" : "all";
+}
+
+/**
  * Writes pack.json + documents.json + index.json to packs/<slug>/.
  */
 function writePack(slug, documentType, docs, indexFields) {
@@ -104,6 +127,7 @@ function writePack(slug, documentType, docs, indexFields) {
     systemId: SYSTEM_ID,
     indexFields,
     license: EDITORIAL_LICENSE,
+    audience: resolvePackAudience(docs),
     source: EDITORIAL_SOURCE,
     documentCount: docs.length,
     generatedAt: nowIso(),

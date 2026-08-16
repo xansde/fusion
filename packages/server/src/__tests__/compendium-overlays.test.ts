@@ -30,6 +30,15 @@ import { tmpdir } from "node:os";
 import { CompendiumService, computeI18nSourceHash } from "../compendium/index.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import { Role } from "../auth/user-store.js";
+import { UserRole } from "../documents/ownership.js";
+
+/**
+ * Viewer role used by the service-level calls below. These synthetic packs
+ * declare no `audience`, so `PackManifestSchema` resolves them to `"all"` and
+ * every role sees them (REQ-CMP-004a); the pack-audience gate itself is proved
+ * in compendium-audience.test.ts.
+ */
+const GM_VIEWER = UserRole.GAMEMASTER;
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -165,7 +174,7 @@ describe("CompendiumService — i18n overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     expect(doc).not.toBeNull();
     // EN source untouched
     expect(doc!["name"]).toBe("Basic Concoction");
@@ -187,7 +196,7 @@ describe("CompendiumService — i18n overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const idx = svc.getPackIndex(PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, PACK_ID);
     expect(idx).not.toBeNull();
     const basic = idx!.entries.find((e) => e._id === DOC_BASIC._id);
     const plain = idx!.entries.find((e) => e._id === DOC_PLAIN._id);
@@ -208,11 +217,11 @@ describe("CompendiumService — i18n overlay", () => {
     svc.discoverPacks(packsRoot, "pf2e");
 
     // Search by the pt-BR name (accent-insensitive: "concoccao" hits "Concocção")
-    const ptHits = svc.searchPack(PACK_ID, { packId: PACK_ID, text: "concoccao" });
+    const ptHits = svc.searchPack(GM_VIEWER, PACK_ID, { packId: PACK_ID, text: "concoccao" });
     expect(ptHits!.map((e) => e._id)).toEqual([DOC_BASIC._id]);
 
     // Search by the EN name still works
-    const enHits = svc.searchPack(PACK_ID, { packId: PACK_ID, text: "basic" });
+    const enHits = svc.searchPack(GM_VIEWER, PACK_ID, { packId: PACK_ID, text: "basic" });
     expect(enHits!.map((e) => e._id)).toEqual([DOC_BASIC._id]);
 
     rmSync(packsRoot, { recursive: true, force: true });
@@ -238,11 +247,11 @@ describe("CompendiumService — i18n overlay", () => {
     svc.discoverPacks(packsRoot, "pf2e");
 
     // getDocument: no i18n attached (stale dropped)
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     expect(doc!["i18n"]).toBeUndefined();
 
     // index: no namePt / i18n either
-    const idx = svc.getPackIndex(PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, PACK_ID);
     const basic = idx!.entries.find((e) => e._id === DOC_BASIC._id);
     expect(basic?.namePt).toBeUndefined();
     expect(basic?.i18n).toBeUndefined();
@@ -268,7 +277,7 @@ describe("CompendiumService — i18n overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     const i18n = doc!["i18n"] as { ptBR?: { name?: string; description?: string } };
     expect(i18n.ptBR?.name).toBe("Concocção Básica");
     expect(i18n.ptBR?.description).toBeUndefined();
@@ -281,7 +290,7 @@ describe("CompendiumService — i18n overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     expect(doc).not.toBeNull();
     expect(doc!["i18n"]).toBeUndefined();
     expect(doc!["name"]).toBe("Basic Concoction");
@@ -300,7 +309,7 @@ describe("CompendiumService — no overlay (backward compatibility)", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     expect(doc).not.toBeNull();
     expect(doc!["i18n"]).toBeUndefined();
     expect(doc!["mechanics"]).toBeUndefined();
@@ -315,7 +324,7 @@ describe("CompendiumService — no overlay (backward compatibility)", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const idx = svc.getPackIndex(PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, PACK_ID);
     for (const entry of idx!.entries) {
       expect(entry.i18n).toBeUndefined();
       expect(entry.namePt).toBeUndefined();
@@ -337,7 +346,7 @@ describe("CompendiumService — mechanics overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     const mechanics = doc!["mechanics"] as {
       grants: Array<Record<string, unknown>>;
       unlocks: unknown[];
@@ -358,7 +367,7 @@ describe("CompendiumService — mechanics overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_PLAIN);
+    const doc = svc.getDocument(GM_VIEWER, UUID_PLAIN);
     expect(doc!["mechanics"]).toBeUndefined();
 
     rmSync(packsRoot, { recursive: true, force: true });
@@ -391,7 +400,7 @@ describe("CompendiumService — mechanics overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     const mechanics = doc!["mechanics"] as { grants: Array<Record<string, unknown>> };
     expect(mechanics.grants).toHaveLength(1);
     expect(mechanics.grants[0]["kind"]).toBe("fixed-item");
@@ -406,7 +415,7 @@ describe("CompendiumService — mechanics overlay", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const doc = svc.getDocument(UUID_BASIC);
+    const doc = svc.getDocument(GM_VIEWER, UUID_BASIC);
     expect(doc).not.toBeNull();
     expect(doc!["mechanics"]).toBeUndefined();
 

@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 218 | 12% |
-| Citados só por código de produção | 330 | 18% |
-| Sem nenhuma citação | 1294 | 70% |
+| Citados por algum teste | 231 | 13% |
+| Citados só por código de produção | 331 | 18% |
+| Sem nenhuma citação | 1280 | 69% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -40,12 +40,12 @@ porque ainda não foram prometidos para nenhum marco.
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 62 | 15 | 31 | 16 | 24% |
-| [16](16-compendiums-e-importacao.md) | 56 | 13 | 17 | 26 | 23% |
-| [17](17-sistema-pf2e.md) | 72 | 36 | 14 | 22 | 50% |
+| [16](16-compendiums-e-importacao.md) | 56 | 15 | 17 | 24 | 27% |
+| [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
-| [21](21-seguranca.md) | 44 | 6 | 13 | 25 | 14% |
+| [21](21-seguranca.md) | 44 | 7 | 13 | 24 | 16% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
 | [23](23-acessibilidade-e-dispositivos.md) | 45 | 0 | 0 | 45 | 0% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
@@ -63,5 +63,5 @@ porque ainda não foram prometidos para nenhum marco.
 | [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
 | [42](42-aba-npcs.md) | 59 | 0 | 0 | 59 | 0% |
-| [43](43-aba-compendio.md) | 60 | 0 | 0 | 60 | 0% |
+| [43](43-aba-compendio.md) | 60 | 4 | 1 | 55 | 7% |
 | [44](44-aba-cenas.md) | 58 | 0 | 0 | 58 | 0% |

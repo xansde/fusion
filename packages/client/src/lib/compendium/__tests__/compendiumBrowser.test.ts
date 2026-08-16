@@ -44,6 +44,8 @@ function makeManifest(
       attribution: "Test",
       reservedNotice: "",
     },
+    // Parsed manifests always carry a resolved audience (REQ-CMP-004a).
+    audience: "all",
     source: { repo: null, version: null, importerVersion: "0.1.0" },
     documentCount: 0,
     generatedAt: "2026-01-01T00:00:00.000Z",
