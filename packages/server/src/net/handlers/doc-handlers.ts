@@ -75,7 +75,11 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
-import { redactSceneDocsForNonPrivileged, sceneIsOnAir } from "../redaction.js";
+import {
+  redactCombatDocsForNonPrivileged,
+  redactSceneDocsForNonPrivileged,
+  sceneIsOnAir,
+} from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
   AUGMENTATION_SLOT_LIMIT,
@@ -1567,6 +1571,43 @@ function broadcastToWorld(
       };
       emitByRole(ns, envelope, playerEnvelope);
       return;
+    }
+  }
+
+  // REQ-CBA-082 / REQ-CBT-031: a Combat body reaching clients through the
+  // GENERIC document path carries the whole combatant roster — a `doc:update`
+  // on the Combat itself, and every embedded Combatant create/update/delete,
+  // which republishes the parent Combat as `{ documentType: "Combat",
+  // documents: [combat] }`. The `combat:*` handlers redact their own
+  // broadcasts; without this branch the generic door beside them stayed open
+  // and a hidden combatant reached every player the moment the GM touched the
+  // encounter by anything other than a combat op.
+  //
+  // The Combat document itself is NOT privileged (the encounter is shared world
+  // state, REQ-CBT-031..033) — only the hidden combatants inside it are
+  // stripped, so `doc:delete` (ids only, no bodies) needs no branch here.
+  if (
+    documentType === "Combat" &&
+    (envelope.type === "doc:create" || envelope.type === "doc:update")
+  ) {
+    const payload = envelope.payload as {
+      documentType: string;
+      documents?: Record<string, unknown>[];
+    };
+    if (Array.isArray(payload.documents)) {
+      const documents = payload.documents;
+      const redacted = redactCombatDocsForNonPrivileged(documents);
+      // Reference equality: the redaction returns the original body when there
+      // was nothing hidden, so an untouched batch keeps the cheap emit.
+      const changed = redacted.some((doc, i) => doc !== documents[i]);
+      if (changed) {
+        const playerEnvelope: Envelope = {
+          ...envelope,
+          payload: { ...payload, documents: redacted },
+        };
+        emitByRole(ns, envelope, playerEnvelope);
+        return;
+      }
     }
   }
 

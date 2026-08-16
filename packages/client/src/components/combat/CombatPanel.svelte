@@ -20,13 +20,29 @@
   import type { Socket } from "socket.io-client";
   import { combatStore, combatActions, getSortedCombatants } from "../../lib/combat/combatStore.svelte.js";
   import {
+    buildRotatedQueue,
     buildTrackerRows,
     controlsState,
     canPlayerRollInitiative,
-    addableTokens,
   } from "../../lib/combat/combatTracker.js";
   import { viewerRole, redactCombatForViewer, canUseGmControls } from "../../lib/combat/combatVisibility.js";
+  import { buildCombatVitals } from "../../lib/combat/combatVitals.js";
+  import {
+    assemblySummary,
+    buildInitiativeCells,
+    combatPhase,
+    creatureCombatantIds,
+    encounterCandidates,
+    initiativeRollOptions,
+    initiativeStatisticOptions,
+  } from "../../lib/combat/combatSetup.js";
+  import type { InitiativeStatisticOption } from "../../lib/combat/combatSetup.js";
+  import { turnHeadState, turnKeyOf } from "../../lib/combat/turnHead.svelte.js";
+  import { worldMirror } from "../../lib/docs/worldSync.js";
+  import TurnHead from "./TurnHead.svelte";
+  import CombatQueue from "./CombatQueue.svelte";
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
+  import { untrack } from "svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
   const {
@@ -74,62 +90,130 @@
     ),
   );
 
-  // ---- Inline initiative edit state ----
-  let editingInitiativeId = $state<string | null>(null);
-  let editingInitiativeValue = $state<string>("");
+  // ---- Health and conditions (spec 40 §5.5/§5.6, REQ-CBA-040..043 / REQ-CBA-050..054) ----
+  //
+  // Both are read off the Actor documents the mirror holds, which is also what makes
+  // REQ-CBA-054 true: a condition added to an actor arrives as a normal doc:update, the
+  // subscription fires, and the head and the queue redraw without the tab being reopened.
+  //
+  // Q-CBA-02 / REQ-CBA-083: what `buildCombatVitals` does for a player — refusing creature
+  // health — is a rule of THIS SCREEN. The same numbers can already be on the player's
+  // machine, drawn by the token's own resource bars (REQ-CNV-090); closing that is the
+  // Token area's decision, at the server's single redaction module, not another filter
+  // here. A player's mirror also simply lacks the creature Actor (the snapshot is
+  // ownership-filtered), so most of the time there is nothing to resolve either way — the
+  // rule is what makes the answer the same whether or not the document happens to be there.
+  let actorDocs = $state<Record<string, unknown>[]>([]);
 
-  function startEditInitiative(combatantId: string, current: number | null): void {
-    editingInitiativeId = combatantId;
-    editingInitiativeValue = current !== null ? current.toString() : "";
-  }
+  $effect(() => {
+    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
+      actorDocs = docs;
+    });
+    actorDocs = worldMirror.getByType<Record<string, unknown>>("Actor");
+    return unsub;
+  });
 
-  async function commitEditInitiative(combatantId: string): Promise<void> {
-    if (!combat) return;
-    editingInitiativeId = null;
-    const raw = editingInitiativeValue.trim();
-    const value = raw === "" ? null : parseFloat(raw);
-    if (raw !== "" && (isNaN(value as number) || !isFinite(value as number))) return;
-    await combatActions.setInitiative(socket, combat._id, combatantId, value);
-  }
+  const actorsById = $derived(
+    new Map(
+      actorDocs
+        .filter((doc) => typeof doc["_id"] === "string")
+        .map((doc) => [doc["_id"] as string, doc] as const),
+    ),
+  );
 
-  function cancelEditInitiative(): void {
-    editingInitiativeId = null;
-  }
+  /** Health and conditions per combatant id, resolved for this viewer's role. */
+  const vitals = $derived(buildCombatVitals(role, viewCombat?.combatants ?? [], actorsById));
 
-  // ---- Drag-and-drop reorder state ----
-  let dragSourceId = $state<string | null>(null);
+  // ---- Turn head (spec 40 §5.3, DEC-CBA-02) ----
+  //
+  // In "em andamento" the participant of the turn leaves the scrollable list and gets a
+  // fixed-height block at the top of the panel (REQ-CBA-020), with the advance control
+  // anchored to its footer (REQ-CBA-021). The head only exists while the encounter is
+  // running: montagem and the empty state have no turn to head.
+  const inProgress = $derived(combat !== null && combat.started && !combat.ended);
+  const activeRow = $derived(rows.find((row) => row.isActive) ?? null);
+  const showTurnHead = $derived(inProgress && activeRow !== null);
 
-  function handleDragStart(combatantId: string): void {
-    dragSourceId = combatantId;
-  }
+  // REQ-CBA-023: advancing or rewinding drops the expansion the previous turn had. The
+  // turn key (round + active participant) is what changes on both gestures, so the head
+  // does not need to know which of the two happened. `untrack` keeps the effect
+  // depending on the combat alone — reading the state it writes would re-run it.
+  $effect(() => {
+    const key = turnKeyOf(combat);
+    untrack(() => {
+      turnHeadState.syncTurn(key);
+    });
+  });
 
-  async function handleDrop(targetId: string): Promise<void> {
-    if (!combat || !dragSourceId || dragSourceId === targetId) {
-      dragSourceId = null;
-      return;
-    }
+  // ---- The queue below the head (spec 40 §5.4, REQ-CBA-030/031/034) ----
+  //
+  // The list is not the raw initiative order: it is that order rotated from the current
+  // turn, with the participant of the turn removed (it is the head) and whoever already
+  // acted kept in a labelled group of its own. `gmControls` doubles as the hidden filter
+  // the queue applies on top of the server's redaction (REQ-CBA-034).
+  const queue = $derived(buildRotatedQueue(rows, gmControls));
 
-    // Build a new order: move dragSourceId to just before targetId
-    const currentOrder = getSortedCombatants(combat).map((c) => c._id);
-    const srcIdx = currentOrder.indexOf(dragSourceId);
-    const tgtIdx = currentOrder.indexOf(targetId);
-    if (srcIdx === -1 || tgtIdx === -1) {
-      dragSourceId = null;
-      return;
-    }
+  /** The turn order the reorder gestures rewrite — the ring, not the rotated reading. */
+  const turnOrder = $derived(combat ? getSortedCombatants(combat).map((c) => c._id) : []);
 
-    const newOrder = [...currentOrder];
-    newOrder.splice(srcIdx, 1);
-    const insertAt = newOrder.indexOf(targetId);
-    newOrder.splice(insertAt, 0, dragSourceId);
+  /** Which combatants this player may roll initiative for (REQ-CBT-034). */
+  const rollableByPlayer = $derived(
+    gmControls || !combat
+      ? new Set<string>()
+      : new Set(
+          combat.combatants
+            .filter((c) =>
+              canPlayerRollInitiative(c, combat, userId, playerOwnedActorIds, false),
+            )
+            .map((c) => c._id),
+        ),
+  );
 
-    dragSourceId = null;
-    await combatActions.reorder(socket, combat._id, newOrder);
-  }
+  // ---- Assembly (spec 40 §5.7, DEC-CBA-12) ----
+  //
+  // Creating the encounter, choosing who enters it and rolling initiative all happen INSIDE
+  // the drawer, in this same panel: no floating window, no change of width (REQ-CBA-061).
+  // Assembling is a list operation and the drawer is good at lists; a window would make the
+  // GM switch context at exactly the moment they are looking at the map to decide who is in.
+  const phase = $derived(combatPhase(combat));
+  const isAssembling = $derived(phase === "assembly");
 
-  function handleDragEnd(): void {
-    dragSourceId = null;
-  }
+  /** REQ-CBA-011: what the header counts while assembling — over what this viewer can see. */
+  const summary = $derived(assemblySummary(viewCombat?.combatants ?? []));
+
+  /**
+   * REQ-CBA-064/067/070 — what each initiative cell may say, decided once here and handed
+   * to the queue. The queue draws; it does not decide who reads what.
+   */
+  const initiativeCells = $derived(buildInitiativeCells(phase, role, viewCombat?.combatants ?? []));
+
+  /** REQ-CBA-063: the creatures a bulk roll would cover, without touching the players'. */
+  const creatureIds = $derived(creatureCombatantIds(combat?.combatants ?? []));
+
+  // ---- The candidate list (REQ-CBA-060/061, DEC-CBA-06) ----
+  //
+  // DEC-CBA-06: nothing on this screen says "token" (REQ-CBA-062), because there is no spec
+  // that owns the concept — it is split across `02`, `04` and `06`, and none of them defines
+  // it as a document with an owner. So the list is defined for now as "what the active scene
+  // offers"; the reserved spec `41`, when it exists, is what will say what that is. The
+  // gesture below does not change when it does — only where `encounterCandidates()` reads
+  // from. It is a collapsible block of this panel, never a popup (REQ-CBA-061).
+  let candidatesOpen = $state(false);
+
+  const candidates = $derived(encounterCandidates(activeSceneState.scene?.tokens ?? [], combat));
+
+  /**
+   * Statistics each participant could roll initiative with (REQ-CBA-066, Q-CBA-03), read
+   * off the actor the mirror already holds. An actor the viewer cannot see yields no menu.
+   */
+  const statisticOptions = $derived(
+    new Map<string, readonly InitiativeStatisticOption[]>(
+      (viewCombat?.combatants ?? []).map((c) => [
+        c._id,
+        c.actorId ? initiativeStatisticOptions(actorsById.get(c.actorId)) : [],
+      ]),
+    ),
+  );
 
   // ---- GM: create combat ----
   async function handleCreateCombat(): Promise<void> {
@@ -138,38 +222,55 @@
     await combatActions.create(socket, sceneId);
   }
 
-  // ---- GM: add combatants (BUG D FIX) ----
-  //
-  // Root cause: combat:create + combat:beginCombat already worked, and both
-  // the server handler (combat:addCombatant) and the client action
-  // (combatActions.addCombatant) already existed — but nothing in the UI
-  // ever called it, so a GM had no way to populate a combat, making it look
-  // like combat couldn't be started. This wires a simple "Add tokens" popover
-  // listing the active scene's tokens that aren't combatants yet. If no
-  // combat exists yet, the button creates one first (GM flow: activate a
-  // scene → Add tokens → Begin).
-  let showAddCombatants = $state(false);
-
-  const addable = $derived(
-    addableTokens(activeSceneState.scene?.tokens ?? [], combat),
-  );
-
-  async function handleOpenAddCombatants(): Promise<void> {
+  /**
+   * Open the candidate list, creating the encounter first when there is none.
+   *
+   * The GM's flow is "activate a scene → add participants → begin", and making them press
+   * "create" before the list can even be opened is a step that carries no decision.
+   */
+  async function handleToggleCandidates(): Promise<void> {
+    if (candidatesOpen) {
+      candidatesOpen = false;
+      return;
+    }
     if (!combat) {
       const sceneId = activeSceneState.id;
       if (!sceneId) return;
       await combatActions.create(socket, sceneId);
     }
-    showAddCombatants = true;
+    candidatesOpen = true;
   }
 
-  async function handleAddToken(tokenId: string, actorId: string | null): Promise<void> {
+  async function handleAddCandidate(candidateId: string, actorId: string | null): Promise<void> {
     if (!combat) return;
-    await combatActions.addCombatant(socket, combat._id, tokenId, actorId ?? undefined);
+    await combatActions.addCombatant(socket, combat._id, candidateId, actorId ?? undefined);
+  }
+
+  /** REQ-CBA-063: roll only the creatures, leaving the players their own gesture. */
+  async function handleRollCreatures(): Promise<void> {
+    if (!combat || creatureIds.length === 0) return;
+    await combatActions.rollInitiative(socket, combat._id, creatureIds);
+  }
+
+  /**
+   * Roll one participant's initiative, carrying the statistic chosen in the same gesture
+   * (REQ-CBA-066). `null` means no choice was made and the system's own formula applies.
+   */
+  async function handleRollOne(combatantId: string, statistic: string | null): Promise<void> {
+    if (!combat) return;
+    await combatActions.rollInitiative(
+      socket,
+      combat._id,
+      [combatantId],
+      initiativeRollOptions(statistic),
+    );
   }
 </script>
 
-<div class="combat-panel">
+<!-- REQ-CBA-010: exactly three states — vazio, montagem, em andamento. The phase is on the
+     node itself, not only implied by which branch rendered, so the panel can be reasoned
+     about (and tested) as the state machine the requirement describes. -->
+<div class="combat-panel" data-phase={phase}>
 
   <!-- ---- Error banner ----
     BUG FIX: previously nested inside the {:else} branch below (only rendered
@@ -182,8 +283,10 @@
     <div class="combat-panel__error" role="alert">{error}</div>
   {/if}
 
-  {#if !combat}
-    <!-- ---- Empty state ---- -->
+  {#if !combat || phase === "empty"}
+    <!-- ---- Empty state (REQ-CBA-090/091) ----
+      A privileged role gets the two gestures that start an encounter; everyone else gets
+      the sentence and nothing to press. -->
     <div class="combat-panel__empty">
       <p class="combat-panel__empty-text">{t("FUSION.Combat.Empty")}</p>
       {#if isGm}
@@ -198,29 +301,49 @@
           </button>
           <button
             class="btn btn--ghost btn--sm"
-            onclick={handleOpenAddCombatants}
+            onclick={handleToggleCandidates}
             disabled={busy || !activeSceneState.id}
-            aria-label={t("FUSION.Combat.AddCombatants")}
-            title={t("FUSION.Combat.AddCombatantsTitle")}
+            aria-label={t("FUSION.Combat.Setup.Candidates")}
+            title={t("FUSION.Combat.Setup.CandidatesHint")}
           >
-            {t("FUSION.Combat.AddCombatants")}
+            {t("FUSION.Combat.Setup.Candidates")}
           </button>
         </div>
+        {#if !activeSceneState.id}
+          <p class="combat-panel__empty-text">{t("FUSION.Combat.Setup.CandidatesNoScene")}</p>
+        {/if}
       {/if}
     </div>
 
   {:else}
-    <!-- ---- Header: round + controls ---- -->
+    <!-- ---- Header (REQ-CBA-011/012/013) ----
+      In andamento it carries the round number; in montagem it carries the two numbers that
+      say whether the encounter can start — how many are in, and how many still have no
+      initiative. It carries no ✕ and no width control (REQ-CBA-012): closing the drawer and
+      sizing it belong to the drawer, not to a tab inside it. -->
     <div class="combat-panel__header">
       <span class="combat-panel__round">
-        {#if combat.started && !combat.ended}
-          {t("FUSION.Combat.Started", { round: combat.round })}
-        {:else if combat.ended}
-          {t("FUSION.Combat.Ended")}
-        {:else}
+        {#if isAssembling}
           {t("FUSION.Combat.NotStarted")}
+        {:else}
+          {t("FUSION.Combat.Started", { round: combat.round })}
         {/if}
       </span>
+
+      {#if isAssembling}
+        <span class="combat-panel__count">
+          {#if summary.total === 0}
+            {t("FUSION.Combat.Setup.CountEmpty")}
+          {:else if summary.withoutInitiative === 0}
+            {t("FUSION.Combat.Setup.CountReady", { total: summary.total })}
+          {:else}
+            {t("FUSION.Combat.Setup.Count", {
+              total: summary.total,
+              pending: summary.withoutInitiative,
+            })}
+          {/if}
+        </span>
+      {/if}
 
       {#if isGm && controls}
         <div class="combat-panel__header-btns">
@@ -233,7 +356,11 @@
             >{t("FUSION.Combat.Begin")}</button>
           {/if}
 
-          {#if controls.canPrevious}
+          <!-- DEC-CBA-02: while the turn head is up, advancing and rewinding belong to
+               it and to nowhere else — a second "next" somewhere in the header is a
+               second place for the most repeated gesture to be, which is exactly what
+               REQ-CBA-021 is against. -->
+          {#if controls.canPrevious && !showTurnHead}
             <button
               class="btn btn--ghost btn--xs"
               onclick={() => combatActions.previousTurn(socket, combat._id)}
@@ -243,7 +370,7 @@
             >&#x276E;</button>
           {/if}
 
-          {#if controls.canNext}
+          {#if controls.canNext && !showTurnHead}
             <button
               class="btn btn--accent btn--xs"
               onclick={() => combatActions.nextTurn(socket, combat._id)}
@@ -266,15 +393,19 @@
       {/if}
     </div>
 
-    <!-- ---- GM sub-controls row ---- -->
-    {#if isGm && controls}
+    <!-- ---- Assembly sub-controls (REQ-CBA-060/063) ----
+      Only while assembling: once the encounter is running the number is gone for everyone
+      (REQ-CBA-070), so a bulk roll would be a gesture with no visible result. -->
+    {#if isGm && controls && isAssembling}
       <div class="combat-panel__subcontrols">
         <button
           class="btn btn--ghost btn--xs"
-          onclick={handleOpenAddCombatants}
+          onclick={handleToggleCandidates}
           disabled={busy || !activeSceneState.id}
-          title={t("FUSION.Combat.AddCombatantsTitle")}
-        >{t("FUSION.Combat.AddCombatants")}</button>
+          aria-expanded={candidatesOpen}
+          aria-controls="combat-candidates"
+          title={t("FUSION.Combat.Setup.CandidatesHint")}
+        >{t("FUSION.Combat.Setup.Candidates")}</button>
         {#if controls.canRollAll}
           <button
             class="btn btn--ghost btn--xs"
@@ -282,44 +413,61 @@
             disabled={busy}
             title={t("FUSION.Combat.RollAll")}
           >{t("FUSION.Combat.RollAll")}</button>
+          <!-- REQ-CBA-063: the opposition rolls without rolling over the players, who have
+               their own gesture on their own rows (REQ-CBA-065). -->
+          <button
+            class="btn btn--ghost btn--xs"
+            onclick={handleRollCreatures}
+            disabled={busy || creatureIds.length === 0}
+            title={t("FUSION.Combat.Setup.RollCreaturesTitle")}
+          >{t("FUSION.Combat.Setup.RollCreatures")}</button>
         {/if}
         {#if controls.canReset}
           <button
             class="btn btn--ghost btn--xs"
             onclick={() => combatActions.resetInitiative(socket, combat._id)}
             disabled={busy}
-            title={t("FUSION.Combat.ResetInit")}
-          >{t("FUSION.Combat.ResetInit")}</button>
+            title={t("FUSION.Combat.Setup.ClearInitiative")}
+          >{t("FUSION.Combat.Setup.ClearInitiative")}</button>
         {/if}
       </div>
     {/if}
 
-    <!-- ---- Add combatants popover (BUG D FIX) ---- -->
-    {#if isGm && showAddCombatants}
-      <div class="add-combatants" role="region" aria-label={t("FUSION.Combat.AddCombatantsTitle")}>
-        <div class="add-combatants__header">
-          <span class="add-combatants__title">{t("FUSION.Combat.AddCombatantsTitle")}</span>
+    <!-- ---- Candidates the active scene offers (REQ-CBA-060/061, DEC-CBA-06) ----
+      A collapsible block of this very panel — no floating window, no change of width
+      (DEC-CBA-12). It never says "token" (REQ-CBA-062): the word has no owning spec, and
+      the aba calls what the scene offers a candidate until `41` says otherwise. -->
+    {#if isGm && candidatesOpen}
+      <div
+        class="candidates"
+        id="combat-candidates"
+        role="region"
+        aria-label={t("FUSION.Combat.Setup.Candidates")}
+      >
+        <div class="candidates__header">
+          <span class="candidates__title">{t("FUSION.Combat.Setup.CandidatesHint")}</span>
           <button
-            class="btn btn--icon"
-            onclick={() => { showAddCombatants = false; }}
-            aria-label={t("FUSION.Combat.CloseAddCombatants")}
+            class="btn btn--ghost btn--xs"
+            onclick={() => { candidatesOpen = false; }}
+            aria-expanded="true"
+            aria-controls="combat-candidates"
             type="button"
-          >&#x2715;</button>
+          >{t("FUSION.Combat.Setup.Collapse")}</button>
         </div>
-        {#if addable.length === 0}
-          <p class="add-combatants__empty">{t("FUSION.Combat.AddCombatantsEmpty")}</p>
+        {#if candidates.length === 0}
+          <p class="candidates__empty">{t("FUSION.Combat.Setup.CandidatesEmpty")}</p>
         {:else}
-          <ul class="add-combatants__list" role="list">
-            {#each addable as token (token.id)}
-              <li class="add-combatants__item">
-                <span class="add-combatants__name" title={token.name}>{token.name}</span>
+          <ul class="candidates__list" role="list">
+            {#each candidates as candidate (candidate.id)}
+              <li class="candidates__item">
+                <span class="candidates__name" title={candidate.name}>{candidate.name}</span>
                 <button
                   class="btn btn--primary btn--xs"
-                  onclick={() => void handleAddToken(token.id, token.actorId)}
+                  onclick={() => void handleAddCandidate(candidate.id, candidate.actorId)}
                   disabled={busy}
-                  aria-label={t("FUSION.Combat.AddToken", { name: token.name })}
+                  aria-label={t("FUSION.Combat.Setup.AddCandidate", { name: candidate.name })}
                   type="button"
-                >{t("FUSION.Combat.AddCombatants")}</button>
+                >{t("FUSION.Combat.Setup.Add")}</button>
               </li>
             {/each}
           </ul>
@@ -327,191 +475,60 @@
       </div>
     {/if}
 
-    <!-- ---- Combatant list ---- -->
-    <div
-      class="combat-panel__list"
-      role="list"
-      aria-label={t("FUSION.Combat.TurnOrder")}
-    >
+    <!-- ---- Turn head (REQ-CBA-020) ----
+      Above the list and OUTSIDE it: the list below is the element that scrolls
+      (REQ-CBA-036), and the head must not travel with it. Health arrives already decided
+      by role (REQ-CBA-040/041) and is `null` whenever it is not this viewer's to read or
+      not resolvable, which the head omits rather than drawing an empty bar (REQ-CBA-043);
+      conditions arrive ordered by the system's declared contract (REQ-CBA-050/051) and do
+      not consult the health rule (REQ-CBA-053). -->
+    {#if showTurnHead && activeRow}
+      {@const row = activeRow}
+      <TurnHead
+        name={row.name}
+        img={row.img}
+        isYours={!isGm && row.hasPlayerOwner}
+        defeated={row.isDefeated}
+        health={vitals.get(row.id)?.health ?? null}
+        conditions={vitals.get(row.id)?.conditions ?? []}
+        canAdvance={gmControls}
+        canPrevious={gmControls && (controls?.canPrevious ?? false)}
+        busy={busy}
+        onAdvance={() => void combatActions.nextTurn(socket, combat._id)}
+        onPrevious={() => void combatActions.previousTurn(socket, combat._id)}
+      />
+    {/if}
+
+    <!-- ---- The queue (REQ-CBA-030..036) ----
+      This div is the panel's only scroller: the head above it stays put while twenty
+      participants roll past (REQ-CBA-036). What scrolls inside is CombatQueue, which
+      owns the rotation's two groups, the marks and the reorder gestures. -->
+    <div class="combat-panel__list" aria-label={t("FUSION.Combat.TurnOrder")}>
       {#if rows.length === 0}
         <p class="combat-panel__empty-text">
           {isGm ? t("FUSION.Combat.NoCombatantsGm") : t("FUSION.Combat.NoCombatants")}
         </p>
       {:else}
-        {#each rows as row (row.id)}
-          <div
-            class="combatant-row"
-            class:combatant-row--active={row.isActive}
-            class:combatant-row--defeated={row.isDefeated}
-            class:combatant-row--hidden={row.isHidden}
-            class:combatant-row--drag-over={dragSourceId !== null && dragSourceId !== row.id}
-            role="listitem"
-            aria-label="{row.name} {t('FUSION.Combat.Initiative', { value: row.initiativeLabel })}{row.isActive ? ` (${t('FUSION.Combat.ActiveTurn')})` : ''}{row.isDefeated ? ` (${t('FUSION.Combat.Defeated')})` : ''}"
-            draggable={isGm}
-            ondragstart={() => handleDragStart(row.id)}
-            ondragover={(e) => { e.preventDefault(); }}
-            ondrop={() => handleDrop(row.id)}
-            ondragend={handleDragEnd}
-          >
-            <!-- Portrait -->
-            <div class="combatant-row__portrait" aria-hidden="true">
-              {#if row.img}
-                <img
-                  src={row.img}
-                  alt={row.name}
-                  class="combatant-row__img"
-                  loading="lazy"
-                  onerror={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-              {:else}
-                <span class="combatant-row__img-placeholder">
-                  {row.name.charAt(0).toUpperCase()}
-                </span>
-              {/if}
-
-              {#if row.isDefeated}
-                <span class="combatant-row__defeated-icon" aria-hidden="true" title={t("FUSION.Combat.Defeated")}>&#x2620;</span>
-              {/if}
-            </div>
-
-            <!-- Name + status icons -->
-            <div class="combatant-row__info">
-              <span
-                class="combatant-row__name"
-                class:combatant-row__name--defeated={row.isDefeated}
-                title={row.name}
-              >{row.name}</span>
-
-              {#if row.isHidden}
-                <span class="combatant-row__hidden-badge" title={t("FUSION.Combat.HiddenFromPlayers")} aria-label={t("FUSION.Combat.HiddenFromPlayers")}>&#x1F441;</span>
-              {/if}
-
-              {#if row.isActive}
-                <span class="combatant-row__active-badge" aria-label={t("FUSION.Combat.ActiveTurn")}>&#x25B6;</span>
-              {/if}
-            </div>
-
-            <!-- Tracked resource (REQ-CBT-047): shown alongside initiative -->
-            {#if row.trackedResource}
-              <div
-                class="combatant-row__resource"
-                title="{row.trackedResource.label}: {row.trackedResource.value}/{row.trackedResource.max}"
-                aria-label="{row.trackedResource.label} {row.trackedResource.value} of {row.trackedResource.max}"
-              >
-                <span class="combatant-row__resource-value">{row.trackedResource.value}</span><span class="combatant-row__resource-sep">/</span><span class="combatant-row__resource-max">{row.trackedResource.max}</span>
-              </div>
-            {/if}
-
-            <!-- Initiative value / edit -->
-            <div class="combatant-row__initiative">
-              {#if gmControls && editingInitiativeId === row.id}
-                <!-- Inline edit input -->
-                <input
-                  class="combatant-row__init-input"
-                  type="number"
-                  value={editingInitiativeValue}
-                  oninput={(e) => { editingInitiativeValue = (e.target as HTMLInputElement).value; }}
-                  onblur={() => commitEditInitiative(row.id)}
-                  onkeydown={(e) => {
-                    if (e.key === 'Enter') void commitEditInitiative(row.id);
-                    if (e.key === 'Escape') cancelEditInitiative();
-                  }}
-                  aria-label="{t('FUSION.Combat.RollInitiative')} {row.name}"
-                  autofocus
-                />
-              {:else}
-                <button
-                  class="combatant-row__init-btn"
-                  onclick={() => {
-                    if (gmControls) startEditInitiative(row.id, row.initiative);
-                  }}
-                  title={gmControls ? t("FUSION.Combat.SetInitiativeManually") : t("FUSION.Combat.Initiative", { value: row.initiativeLabel })}
-                  aria-label="{t('FUSION.Combat.Initiative', { value: row.initiativeLabel })}"
-                  disabled={!gmControls}
-                  type="button"
-                >
-                  {row.initiativeLabel}
-                </button>
-              {/if}
-            </div>
-
-            <!-- Action buttons -->
-            <div class="combatant-row__actions">
-              <!-- Target toggle: any user may target a token (server scopes by
-                   userId). Shown when the row's combatant has a token. -->
-              {#if row.tokenId}
-                {@const tokenId = row.tokenId}
-                <button
-                  class="action-btn"
-                  onclick={() => combatActions.target(socket, tokenId, true)}
-                  disabled={busy}
-                  title={t("FUSION.Combat.TargetToken")}
-                  aria-label="{t('FUSION.Combat.TargetToken')} {row.name}"
-                >&#x25CE;</button>
-              {/if}
-
-              {#if gmControls}
-                <!-- Roll initiative for this combatant -->
-                {#if !combat.ended}
-                  <button
-                    class="action-btn"
-                    onclick={() => combatActions.rollInitiative(socket, combat._id, [row.id])}
-                    disabled={busy}
-                    title={t("FUSION.Combat.RollInitiative")}
-                    aria-label="{t('FUSION.Combat.RollInitiative')} {row.name}"
-                  >&#x2685;</button>
-                {/if}
-
-                <!-- Toggle defeated -->
-                <button
-                  class="action-btn"
-                  class:action-btn--active={row.isDefeated}
-                  onclick={() => combatActions.toggleDefeated(socket, combat._id, row.id, !row.isDefeated)}
-                  disabled={busy}
-                  title={row.isDefeated ? t("FUSION.Combat.UnmarkDefeated") : t("FUSION.Combat.MarkDefeated")}
-                  aria-label={row.isDefeated ? t("FUSION.Combat.UnmarkDefeated") : t("FUSION.Combat.MarkDefeated")}
-                >&#x2620;</button>
-
-                <!-- Toggle hidden -->
-                <button
-                  class="action-btn"
-                  class:action-btn--active={row.isHidden}
-                  onclick={() => combatActions.setHidden(socket, combat._id, row.id, !row.isHidden)}
-                  disabled={busy}
-                  title={row.isHidden ? t("FUSION.Combat.RevealCombatant") : t("FUSION.Combat.HiddenFromPlayers")}
-                  aria-label={row.isHidden ? t("FUSION.Combat.RevealCombatant") : t("FUSION.Combat.HiddenFromPlayers")}
-                >&#x1F441;</button>
-
-                <!-- Remove combatant -->
-                <button
-                  class="action-btn action-btn--danger"
-                  onclick={() => combatActions.removeCombatant(socket, combat._id, row.id)}
-                  disabled={busy}
-                  title={t("FUSION.Combat.RemoveFromCombat")}
-                  aria-label="{t('FUSION.Combat.RemoveFromCombat')} {row.name}"
-                >&#x2715;</button>
-
-              {:else}
-                <!-- Player: show "Roll" button on own combatant if initiative is null -->
-                {@const rowCombatant = combat.combatants.find((c) => c._id === row.id)}
-                {#if rowCombatant && canPlayerRollInitiative(
-                  rowCombatant,
-                  combat,
-                  userId,
-                  playerOwnedActorIds,
-                  false,
-                )}
-                  <button
-                    class="btn btn--primary btn--xs"
-                    onclick={() => combatActions.rollInitiative(socket, combat._id, [row.id])}
-                    disabled={busy}
-                    aria-label={t("FUSION.Combat.RollMyInitiative")}
-                  >{t("FUSION.Combat.RollMyInitiative")}</button>
-                {/if}
-              {/if}
-            </div>
-          </div>
-        {/each}
+        <CombatQueue
+          {queue}
+          {vitals}
+          {initiativeCells}
+          {statisticOptions}
+          {gmControls}
+          {busy}
+          order={turnOrder}
+          rollable={rollableByPlayer}
+          onReorder={(order) => void combatActions.reorder(socket, combat._id, order)}
+          onTarget={(tokenId) => void combatActions.target(socket, tokenId, true)}
+          onRollInitiative={(id, statistic) => void handleRollOne(id, statistic)}
+          onToggleDefeated={(id, defeated) =>
+            void combatActions.toggleDefeated(socket, combat._id, id, defeated)}
+          onToggleHidden={(id, hidden) =>
+            void combatActions.setHidden(socket, combat._id, id, hidden)}
+          onRemove={(id) => void combatActions.removeCombatant(socket, combat._id, id)}
+          onSetInitiative={(id, value) =>
+            void combatActions.setInitiative(socket, combat._id, id, value)}
+        />
       {/if}
     </div>
   {/if}
@@ -547,21 +564,24 @@
     gap: 0.5rem;
   }
 
-  /* ---- Add combatants popover (BUG D FIX) ---- */
-  .add-combatants {
+  /* ---- Candidates block (REQ-CBA-060/061) ----
+     A block of the panel, bounded in height so a crowded scene cannot push the queue off
+     the bottom — and never a floating window, and never wider than the drawer. */
+  .candidates {
     border-bottom: 1px solid var(--fusion-border);
     flex-shrink: 0;
     padding: 0.5rem 0.75rem;
   }
 
-  .add-combatants__header {
+  .candidates__header {
     align-items: center;
     display: flex;
+    gap: 0.5rem;
     justify-content: space-between;
     margin-bottom: 0.4rem;
   }
 
-  .add-combatants__title {
+  .candidates__title {
     color: var(--fusion-text);
     font-size: 0.75rem;
     font-weight: 600;
@@ -569,13 +589,13 @@
     text-transform: uppercase;
   }
 
-  .add-combatants__empty {
+  .candidates__empty {
     color: var(--fusion-text-subtle);
     font-size: 0.75rem;
     padding: 0.4rem 0;
   }
 
-  .add-combatants__list {
+  .candidates__list {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -584,7 +604,7 @@
     overflow-y: auto;
   }
 
-  .add-combatants__item {
+  .candidates__item {
     align-items: center;
     background: var(--fusion-surface-alt);
     border-radius: var(--fusion-radius-sm);
@@ -594,7 +614,7 @@
     padding: 0.25rem 0.4rem;
   }
 
-  .add-combatants__name {
+  .candidates__name {
     color: var(--fusion-text);
     font-size: 0.75rem;
     overflow: hidden;
@@ -619,6 +639,18 @@
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  /* REQ-CBA-011: the montagem count, next to the state, in the same header. */
+  .combat-panel__count {
+    color: var(--fusion-text-muted);
+    flex: 1;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .combat-panel__header-btns {
@@ -647,237 +679,6 @@
     flex: 1;
     overflow-y: auto;
     padding: 0.25rem 0;
-  }
-
-  /* ---- Combatant row ---- */
-  .combatant-row {
-    align-items: center;
-    border-left: 3px solid transparent;
-    cursor: default;
-    display: flex;
-    gap: 0.4rem;
-    padding: 0.3rem 0.5rem 0.3rem 0.6rem;
-    transition: background-color var(--fusion-transition);
-    user-select: none;
-  }
-
-  .combatant-row:hover {
-    background: var(--fusion-surface-alt);
-  }
-
-  .combatant-row--active {
-    background: rgba(255, 215, 0, 0.06);
-    border-left-color: #ffd700;
-  }
-
-  .combatant-row--defeated {
-    opacity: 0.55;
-  }
-
-  .combatant-row--hidden {
-    background: rgba(124, 92, 252, 0.04);
-  }
-
-  /* Drag-over highlight */
-  .combatant-row--drag-over {
-    border-top: 2px solid var(--fusion-accent);
-  }
-
-  /* ---- Portrait ---- */
-  .combatant-row__portrait {
-    position: relative;
-    flex-shrink: 0;
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .combatant-row__img {
-    border-radius: var(--fusion-radius-sm);
-    display: block;
-    height: 2rem;
-    object-fit: cover;
-    width: 2rem;
-  }
-
-  .combatant-row__img-placeholder {
-    align-items: center;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text-muted);
-    display: flex;
-    font-size: 0.875rem;
-    font-weight: 600;
-    height: 2rem;
-    justify-content: center;
-    width: 2rem;
-  }
-
-  .combatant-row__defeated-icon {
-    bottom: -0.25rem;
-    font-size: 0.75rem;
-    position: absolute;
-    right: -0.25rem;
-  }
-
-  /* ---- Info ---- */
-  .combatant-row__info {
-    align-items: center;
-    display: flex;
-    flex: 1;
-    gap: 0.2rem;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .combatant-row__name {
-    color: var(--fusion-text);
-    font-size: 0.8125rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .combatant-row__name--defeated {
-    text-decoration: line-through;
-    color: var(--fusion-text-subtle);
-  }
-
-  .combatant-row__hidden-badge,
-  .combatant-row__active-badge {
-    flex-shrink: 0;
-    font-size: 0.7rem;
-  }
-
-  .combatant-row__active-badge {
-    color: #ffd700;
-  }
-
-  .combatant-row__hidden-badge {
-    color: var(--fusion-text-subtle);
-  }
-
-  /* ---- Tracked resource (REQ-CBT-047) ---- */
-  .combatant-row__resource {
-    align-items: baseline;
-    color: var(--fusion-text-muted);
-    display: flex;
-    flex-shrink: 0;
-    font-family: var(--fusion-font-mono);
-    font-size: 0.7rem;
-    gap: 0.05rem;
-    min-width: 2.5rem;
-    justify-content: flex-end;
-  }
-
-  .combatant-row__resource-value {
-    color: var(--fusion-text);
-    font-weight: 600;
-  }
-
-  .combatant-row__resource-sep,
-  .combatant-row__resource-max {
-    color: var(--fusion-text-subtle);
-  }
-
-  /* ---- Initiative ---- */
-  .combatant-row__initiative {
-    flex-shrink: 0;
-    min-width: 2.25rem;
-    text-align: right;
-  }
-
-  .combatant-row__init-btn {
-    background: none;
-    border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text);
-    cursor: pointer;
-    font-family: var(--fusion-font-mono);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    min-width: 2rem;
-    padding: 0.1rem 0.25rem;
-    text-align: right;
-    transition: border-color var(--fusion-transition), background-color var(--fusion-transition);
-  }
-
-  .combatant-row__init-btn:not(:disabled):hover {
-    background: var(--fusion-surface-alt);
-    border-color: var(--fusion-border);
-  }
-
-  .combatant-row__init-btn:disabled {
-    cursor: default;
-    opacity: 1;
-  }
-
-  .combatant-row__init-input {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-accent);
-    border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text);
-    font-family: var(--fusion-font-mono);
-    font-size: 0.8125rem;
-    padding: 0.1rem 0.2rem;
-    text-align: right;
-    width: 3rem;
-    -moz-appearance: textfield;
-  }
-
-  .combatant-row__init-input::-webkit-inner-spin-button,
-  .combatant-row__init-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /* ---- Actions ---- */
-  .combatant-row__actions {
-    align-items: center;
-    display: flex;
-    flex-shrink: 0;
-    gap: 0.15rem;
-    opacity: 0;
-    transition: opacity var(--fusion-transition);
-  }
-
-  .combatant-row:hover .combatant-row__actions {
-    opacity: 1;
-  }
-
-  .action-btn {
-    align-items: center;
-    background: none;
-    border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text-subtle);
-    cursor: pointer;
-    display: flex;
-    font-size: 0.7rem;
-    height: 1.4rem;
-    justify-content: center;
-    padding: 0;
-    transition: background-color var(--fusion-transition), color var(--fusion-transition);
-    width: 1.4rem;
-  }
-
-  .action-btn:not(:disabled):hover {
-    background: var(--fusion-surface-alt);
-    color: var(--fusion-text);
-  }
-
-  .action-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.3;
-  }
-
-  .action-btn--active {
-    color: var(--fusion-accent);
-  }
-
-  .action-btn--danger:not(:disabled):hover {
-    background: rgba(255, 92, 92, 0.1);
-    color: var(--fusion-danger);
   }
 
   /* ---- Buttons ---- */
@@ -949,9 +750,5 @@
   .btn--xs {
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
-  }
-
-  .btn--icon {
-    padding: 0.25rem 0.4rem;
   }
 </style>

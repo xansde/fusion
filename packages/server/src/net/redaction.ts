@@ -22,6 +22,19 @@
  *
  * This module is the single source of truth so the three paths can never
  * drift out of parity.
+ *
+ * Combat bodies answer to the same discipline (REQ-CBA-082, REQ-CBT-031): a
+ * combatant with `hidden: true` must not reach a non-privileged user by ANY of
+ * the three paths. Two families of envelope carry a Combat:
+ *   - the dedicated `combat:*` ops, redacted by the combat handlers, which call
+ *     {@link stripHiddenCombatantsFromCombat} from here; and
+ *   - the GENERIC document path — a `doc:update` on a Combat, and every
+ *     embedded Combatant create/update/delete, which broadcast the whole parent
+ *     as `{ documentType: "Combat", documents: [combat] }`. Those funnel through
+ *     {@link redactCombatDocsForNonPrivileged}, the Combat counterpart of
+ *     {@link redactSceneDocsForNonPrivileged}.
+ * The ack echoed back to the requester is covered on top of both by
+ * {@link redactAckResultForNonPrivileged}.
  */
 
 /**
@@ -202,6 +215,32 @@ export function stripHiddenCombatantsFromCombat(
 }
 
 /**
+ * The only Combat bodies a non-privileged viewer may ever receive, for a
+ * `documents[]` batch travelling the GENERIC document path.
+ *
+ * REQ-CBA-082 / REQ-CBT-031: a `doc:update` on a Combat — and every embedded
+ * Combatant create/update/delete, which republishes the whole parent Combat —
+ * carries the full combatant roster. Before this, those envelopes took the
+ * cheap namespace-wide emit, so a hidden combatant reached every player the
+ * moment the GM touched the encounter through anything other than a `combat:*`
+ * op. The dedicated handlers were redacted; the generic door beside them was
+ * not, and an unlocked door beside a locked one is an unlocked door.
+ *
+ * Unlike scenes, the Combat document itself is NOT privileged: the encounter is
+ * shared world state that every player must see (REQ-CBT-031..033). Only the
+ * hidden combatants inside it are stripped, and the active pointer masked when
+ * it names one — exactly what {@link stripHiddenCombatantsFromCombat} does.
+ *
+ * Element references are preserved when nothing needed redacting, so callers
+ * can detect "nothing changed" and keep the cheap namespace-wide emit.
+ */
+export function redactCombatDocsForNonPrivileged(
+  documents: readonly Record<string, unknown>[],
+): Record<string, unknown>[] {
+  return documents.map((doc) => stripHiddenCombatantsFromCombat(doc));
+}
+
+/**
  * Return true if the value appears to be a CombatDocument-shaped object
  * (has a `combatants` array).
  */
@@ -242,6 +281,9 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  *   3. Embedded embedded update: { documentType: "Scene", documents: FullScene[] }
  *   4. Embedded embedded delete: { documentType, ids, parent: FullScene }
  *   5. Combat create/update ack: { combat: CombatDocument }
+ *   6. Generic doc path on a Combat (REQ-CBA-082)
+ *        { documentType: "Combat", documents: FullCombat[] }
+ *        { documentType: "Combatant", ids, parent: FullCombat }
  *
  * The detector is STRUCTURAL: walks `documents[]`, `parent`, and `combat`
  * and applies redactions to any element that is Scene-shaped (has `tokens` or
@@ -276,9 +318,21 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
+  // REQ-CBA-082: a Combat body also travels the GENERIC document path, where it
+  // lands in `documents[]` (doc:update on a Combat, embedded Combatant update)
+  // or in `parent` (embedded Combatant create/delete) instead of under `combat`.
+  // The detector is structural precisely so those shapes are covered too.
+  const documentsNeedCombatRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => combatDocHasHiddenCombatants(d));
+  const parentNeedsCombatRedaction = combatDocHasHiddenCombatants(parent);
+
   const documentsNeedsRedaction =
-    documentsNeedHiddenTokenRedaction || documentsNeedSecretDoorRedaction;
-  const parentNeedsRedaction = parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction;
+    documentsNeedHiddenTokenRedaction ||
+    documentsNeedSecretDoorRedaction ||
+    documentsNeedCombatRedaction;
+  const parentNeedsRedaction =
+    parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction || parentNeedsCombatRedaction;
 
   if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
     // Nothing to redact — return the original ack untouched.
@@ -293,6 +347,9 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
       let redacted = d;
       if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
       if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+      if (Array.isArray(redacted["combatants"])) {
+        redacted = stripHiddenCombatantsFromCombat(redacted);
+      }
       return redacted;
     });
   }
@@ -301,6 +358,9 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsCombatRedaction) {
+      redactedParent = stripHiddenCombatantsFromCombat(redactedParent);
+    }
     newBody["parent"] = redactedParent;
   }
 

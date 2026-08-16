@@ -7,6 +7,8 @@
  * Exports:
  *   - TrackerRow: shape of a single row in the tracker UI
  *   - buildTrackerRows(): produce display rows from a CombatDocument
+ *   - buildRotatedQueue(): rotate those rows from the current turn (spec 40 §5.4)
+ *   - moveCombatantInOrder()/moveCombatantBefore(): the two reorder gestures
  *   - controlsState(): derive which GM controls are enabled/disabled
  *   - formatInitiative(): format an initiative value for display
  *   - canPlayerRollInitiative(): derive if a player can roll a given combatant
@@ -117,6 +119,152 @@ export function buildTrackerRows(combat: CombatDocument): TrackerRow[] {
     turnIndex: idx,
     trackedResource: resolveTrackedResource(combat, c),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// The queue below the turn head (spec 40 §5.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Which half of the round an entry belongs to.
+ *
+ * `"upcoming"` still acts this round; `"acted"` already did. The distinction exists
+ * because REQ-CBA-031 forbids dropping the second group: someone who already acted is
+ * still in the encounter, still carries conditions, and is still the person the GM points
+ * at — hiding them to make the list shorter loses the round's shape.
+ */
+export type QueueGroup = "upcoming" | "acted";
+
+/** One participant's place in the rotated queue. */
+export interface QueueEntry {
+  /** The row to draw. */
+  readonly row: TrackerRow;
+  /** Which group the row was sorted into (REQ-CBA-031). */
+  readonly group: QueueGroup;
+  /** Position in the rotated queue, counted across both groups (0-based). */
+  readonly queueIndex: number;
+}
+
+/** The queue the panel draws under the turn head. */
+export interface RotatedQueue {
+  /** Whoever still acts this round, in turn order. */
+  readonly upcoming: readonly QueueEntry[];
+  /** Whoever already acted this round, in turn order — kept, never omitted. */
+  readonly acted: readonly QueueEntry[];
+  /** `upcoming` followed by `acted`; the reading order of the panel. */
+  readonly entries: readonly QueueEntry[];
+  /** Whether a turn was actually in progress, i.e. whether a rotation happened. */
+  readonly rotated: boolean;
+}
+
+/**
+ * Build the queue shown below the turn head (REQ-CBA-030).
+ *
+ * The initiative order is a ring, and the panel enters it at the current turn: what a
+ * player wants to know is how many participants stand between them and their own turn, and
+ * a list that always starts at the highest initiative makes that a counting exercise. So
+ * the order is **rotated from the participant of the turn** — first who still acts this
+ * round, then who already acted (REQ-CBA-030), with the second half kept as its own,
+ * labelled group (REQ-CBA-031).
+ *
+ * The participant of the turn is not in the queue at all: it is the head (REQ-CBA-020),
+ * and REQ-CBA-030 lists "os demais".
+ *
+ * The active participant is resolved by `TrackerRow.isActive` — which `buildTrackerRows`
+ * derives from `activeCombatantId`, not from `turnIndex`, so the rotation is stable under
+ * redaction (a player's array is missing rows the GM's has).
+ *
+ * `canSeeHidden` is the same defense in depth `redactCombatForViewer` applies (REQ-CBA-034,
+ * REQ-CBT-031..033): the server already strips hidden combatants from a non-privileged
+ * payload, and the queue refuses to draw one anyway. Filtering happens **before** the
+ * rotation, so a hidden participant sitting between two visible ones does not leave a gap
+ * or shift the split.
+ *
+ * @param rows         Rows in turn order, from {@link buildTrackerRows}.
+ * @param canSeeHidden Whether the viewer's role may see hidden participants.
+ */
+export function buildRotatedQueue(
+  rows: readonly TrackerRow[],
+  canSeeHidden: boolean,
+): RotatedQueue {
+  const visible = canSeeHidden ? rows : rows.filter((row) => !row.isHidden);
+  const activeIndex = visible.findIndex((row) => row.isActive);
+
+  if (activeIndex === -1) {
+    // No turn in progress (montagem, or an active participant this viewer cannot see):
+    // there is nothing to rotate around, and nobody has acted yet.
+    const entries = visible.map<QueueEntry>((row, index) => ({
+      row,
+      group: "upcoming",
+      queueIndex: index,
+    }));
+    return { upcoming: entries, acted: [], entries, rotated: false };
+  }
+
+  const upcoming = visible.slice(activeIndex + 1).map<QueueEntry>((row, index) => ({
+    row,
+    group: "upcoming",
+    queueIndex: index,
+  }));
+  const acted = visible.slice(0, activeIndex).map<QueueEntry>((row, index) => ({
+    row,
+    group: "acted",
+    queueIndex: upcoming.length + index,
+  }));
+
+  return { upcoming, acted, entries: [...upcoming, ...acted], rotated: true };
+}
+
+// ---------------------------------------------------------------------------
+// Reordering the queue (REQ-CBA-035)
+// ---------------------------------------------------------------------------
+
+/**
+ * Move one participant `delta` places in the turn order — the keyboard alternative to
+ * dragging (REQ-CBA-035, REQ-CBA-093).
+ *
+ * Operates on the **underlying** turn order, not on the rotated view: rotation is a way of
+ * reading the ring, while the order sent to the server is the ring itself.
+ *
+ * Returns `null` when nothing would change — unknown id, zero delta, or a move off either
+ * end. A caller that gets `null` must not emit `combat:reorder`: re-sending the order that
+ * is already stored is a write with no reader.
+ */
+export function moveCombatantInOrder(
+  order: readonly string[],
+  id: string,
+  delta: number,
+): string[] | null {
+  const from = order.indexOf(id);
+  if (from === -1 || delta === 0) return null;
+
+  const to = from + delta;
+  if (to < 0 || to >= order.length) return null;
+
+  const next = [...order];
+  next.splice(from, 1);
+  next.splice(to, 0, id);
+  return next;
+}
+
+/**
+ * Move `sourceId` to sit immediately before `targetId` — what dropping one row onto
+ * another means (REQ-CBA-035).
+ *
+ * Returns `null` when the gesture is not a reorder: dropping a row onto itself, or either
+ * id missing from the order.
+ */
+export function moveCombatantBefore(
+  order: readonly string[],
+  sourceId: string,
+  targetId: string,
+): string[] | null {
+  if (sourceId === targetId) return null;
+  if (!order.includes(sourceId) || !order.includes(targetId)) return null;
+
+  const next = order.filter((id) => id !== sourceId);
+  next.splice(next.indexOf(targetId), 0, sourceId);
+  return next;
 }
 
 // ---------------------------------------------------------------------------

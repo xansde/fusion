@@ -18,7 +18,11 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
-import { redactSceneDocsForNonPrivileged, stripHiddenCombatantsFromCombat } from "../redaction.js";
+import {
+  redactCombatDocsForNonPrivileged,
+  redactSceneDocsForNonPrivileged,
+  stripHiddenCombatantsFromCombat,
+} from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
@@ -160,6 +164,16 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
 
     const payload = op.payload as Record<string, unknown> | null | undefined;
     if (!payload || typeof payload !== "object") return op;
+
+    // REQ-CBA-082: the generic document path buffers Combat bodies too — a
+    // `doc:update` on a Combat, and every embedded Combatant op (which
+    // republishes the parent as `{ documentType: "Combat", documents: [...] }`).
+    // Replaying them raw would hand a reconnecting player exactly the hidden
+    // combatants the live path refused to send.
+    if (payload["documentType"] === "Combat") {
+      return filterCombatDocOpForRole(op, payload);
+    }
+
     if (payload["documentType"] !== "Scene") return op;
 
     const documents = payload["documents"];
@@ -204,6 +218,30 @@ function filterSceneDeleteOpForRole(op: Envelope): Envelope {
   const ids = payload["ids"];
   if (!Array.isArray(ids) || ids.length === 0) return op;
   return { ...op, payload: { ...payload, ids: [] } };
+}
+
+/**
+ * Redact hidden combatants from a buffered `doc:create` / `doc:update` whose
+ * `documentType` is "Combat" — the generic-document counterpart of
+ * {@link filterCombatOpForRole}, which covers only the dedicated `combat:*`
+ * envelopes.
+ *
+ * Shape: `{ documentType: "Combat", documents: [fullCombat] }`, the same one
+ * `broadcastToWorld` redacts live, so a player who reconnects cannot read from
+ * the buffer what the live path refused to send (REQ-CBA-082, REQ-CBT-031).
+ *
+ * Never mutates the shared buffered envelope — clones only when stripping.
+ */
+function filterCombatDocOpForRole(op: Envelope, payload: Record<string, unknown>): Envelope {
+  const documents = payload["documents"];
+  if (!Array.isArray(documents)) return op;
+
+  const originals = documents as Record<string, unknown>[];
+  const redacted = redactCombatDocsForNonPrivileged(originals);
+  const changed = redacted.some((doc, i) => doc !== originals[i]);
+  if (!changed) return op;
+
+  return { ...op, payload: { ...payload, documents: redacted } };
 }
 
 /**
