@@ -19,6 +19,10 @@
    * REQ-ACH-025: `continuesPrevious` drops the repeated header of a run of
    * consecutive messages by the same author (the run is computed by
    * lib/chat/chatGrouping.ts — cards, whispers and invalidated never join one).
+   * REQ-ACH-081: an invalidated message keeps its place in the log, reads
+   * attenuated with its value struck through, and carries the stamp of who
+   * voided it. Nothing is removed from the markup — invalidation is an
+   * annotation on the log, never a deletion (REQ-ACH-080/085).
    */
 
   import type { Socket } from "socket.io-client";
@@ -38,6 +42,9 @@
   } from "../../lib/chat/messageFormatter.js";
   import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
   import { buildRollDisplay, type RollDisplay } from "../../lib/chat/rollDisplay.js";
+  import { isInvalidMessage } from "../../lib/chat/chatGrouping.js";
+  import { resolveInvalidatorLabel } from "../../lib/chat/invalidationDisplay.js";
+  import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
   import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
   import AbilityCard from "./pf2e/AbilityCard.svelte";
@@ -151,9 +158,22 @@
   const rollDisplays = $derived<RollDisplay[]>(
     message.rolls ? message.rolls.map(buildRollDisplay) : [],
   );
+
+  // REQ-ACH-081: the message stands voided. Read structurally (chatGrouping's
+  // predicate, the same one the log groups by) so there is no second notion of
+  // "invalidated" in the client.
+  const invalidated = $derived(isInvalidMessage(message));
+  // Who voided it. The only user directory the client has is the presence list;
+  // an id that resolves to nobody is printed as the id (see invalidationDisplay).
+  const invalidatedBy = $derived(resolveInvalidatorLabel(message, presenceState.onlineUsers));
 </script>
 
-<div class="msg {meta.typeClass}" class:msg--continued={continuesPrevious} role="listitem">
+<div
+  class="msg {meta.typeClass}"
+  class:msg--continued={continuesPrevious}
+  class:msg--invalid={invalidated}
+  role="listitem"
+>
   <!-- ---- Header (omitted on a continuation — REQ-ACH-025) ---- -->
   {#if !continuesPrevious}
     <div class="msg__header">
@@ -168,7 +188,18 @@
       {#if meta.isBlind}
         <span class="msg__badge msg__badge--blind">blind</span>
       {/if}
+      {#if invalidated}
+        <span class="msg__badge msg__badge--invalid">{t("FUSION.Chat.Invalidated.Badge")}</span>
+      {/if}
     </div>
+  {/if}
+
+  <!--
+    REQ-ACH-081: the stamp of who voided it, on the row itself. It is the only
+    thing invalidation ADDS to the log — nothing is taken away (REQ-ACH-080).
+  -->
+  {#if invalidated && invalidatedBy}
+    <p class="msg__voided">{t("FUSION.Chat.Invalidated.By", { who: invalidatedBy })}</p>
   {/if}
 
   <!-- ---- Body ---- -->
@@ -361,6 +392,42 @@
   */
   .msg--continued {
     padding-top: 0;
+  }
+
+  /*
+    REQ-ACH-081: voided, not gone. The whole row is attenuated and every value
+    it announces — the text, the roll totals, the child lines — is struck
+    through, so a reader scanning the log cannot mistake it for something that
+    still counts. The stamp below stays at full contrast: it is the one part of
+    the row that is still true.
+  */
+  .msg--invalid {
+    opacity: 0.55;
+  }
+
+  .msg--invalid .msg__content,
+  .msg--invalid .roll-card__total,
+  .msg--invalid .roll-card__dos,
+  .msg--invalid .nested-roll__total,
+  .msg--invalid .nested-save__total {
+    text-decoration: line-through;
+  }
+
+  .msg--invalid .msg__voided {
+    text-decoration: none;
+    opacity: 1;
+  }
+
+  .msg__voided {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: var(--fusion-text-muted);
+    margin: 0 0 0.15rem;
+  }
+
+  .msg__badge--invalid {
+    background: rgba(255, 92, 92, 0.15);
+    color: var(--fusion-danger);
   }
 
   /* ---- Type variants ---- */

@@ -799,6 +799,8 @@
   "FUSION.Chat.Context.Loading": "Carregando contexto…",
   "FUSION.Chat.Context.Empty": "Nada para mostrar aqui.",
   "FUSION.Chat.Context.TargetLabel": "Mensagem do resultado",
+  "FUSION.Chat.Invalidated.Badge": "invalidada",
+  "FUSION.Chat.Invalidated.By": "Invalidada por {{who}}",
   "FUSION.Chat.SpellCard.Title": "Magia lançada",
   "FUSION.Chat.SpellCard.Rank": "nível {{rank}}",
   "FUSION.Chat.SpellCard.RollSave": "Fazer teste de resistência",

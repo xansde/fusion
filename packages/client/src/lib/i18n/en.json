@@ -799,6 +799,8 @@
   "FUSION.Chat.Context.Loading": "Loading context…",
   "FUSION.Chat.Context.Empty": "Nothing to show here.",
   "FUSION.Chat.Context.TargetLabel": "Result message",
+  "FUSION.Chat.Invalidated.Badge": "voided",
+  "FUSION.Chat.Invalidated.By": "Voided by {{who}}",
   "FUSION.Chat.SpellCard.Title": "Spell cast",
   "FUSION.Chat.SpellCard.Rank": "rank {{rank}}",
   "FUSION.Chat.SpellCard.RollSave": "Roll saving throw",

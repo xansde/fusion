@@ -268,6 +268,25 @@ export function handleIncomingMessage(msg: ChatMessage): void {
   }
 }
 
+/**
+ * Apply a server-side change to a message ALREADY in the log — today only
+ * invalidation and revalidation (REQ-ACH-086).
+ *
+ * Replaces the entry at the very same index: REQ-ACH-081 requires the voided
+ * message to stay in the log "na mesma posição", so this must never re-sort,
+ * re-insert or append. It is also not a new message, so the unread counter and
+ * the "N novas" anchor are deliberately left alone (REQ-ACH-003).
+ *
+ * An update for a message that is not in the loaded window (aged out of the
+ * pagination, or never visible to this user) is a no-op — inserting it here
+ * would materialise, out of nowhere, a message this client never received.
+ */
+export function applyMessageUpdate(msg: ChatMessage): void {
+  const index = chatStore.messages.findIndex((m) => m._id === msg._id);
+  if (index === -1) return;
+  chatStore.messages[index] = msg;
+}
+
 // ---------------------------------------------------------------------------
 // Socket-dependent actions
 // ---------------------------------------------------------------------------
@@ -477,6 +496,7 @@ export function setRollAnimator(fn: ((roll: RollResultData) => void) | null): vo
 export function attachChatMessageSync(socket: OpEmitter): () => void {
   return attachChatOpListener(socket, {
     handleIncomingMessage,
+    applyMessageUpdate,
     getRollAnimator: () => _rollAnimator,
   });
 }
