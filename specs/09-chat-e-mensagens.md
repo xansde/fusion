@@ -211,7 +211,7 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 
 **REQ-CHT-004** [MVP] O servidor DEVE aplicar as regras de visibilidade (campo `whisper`, `blind`) ao fazer broadcast: mensagens com `whisper` são enviadas apenas aos sockets dos User IDs listados; se `blind=true`, o payload de rolagem é omitido do broadcast para clientes não-GM.
 
-**REQ-CHT-005** [MVP] O GM DEVE poder deletar mensagens individuais do log; a deleção é propagada a todos os clientes via `document:delete`.
+**REQ-CHT-005** [MVP] Mensagens individuais NÃO DEVEM ser deletadas do log: elas são **invalidadas** — marcadas como sem efeito e mantidas na mesma posição, com registro de quem invalidou e quando. Podem invalidar o GM e o **autor** da mensagem; revalidar é do GM sempre, e do autor apenas quando a invalidação foi dele. A invalidação é anotação no log, não desfazimento de efeito, e é propagada como atualização do documento. Regra completa e apresentação em `38-aba-chat.md` (DEC-ACH-08, REQ-ACH-080..086). O flush do log inteiro (REQ-CHT-006) não é afetado. _(Esta redação substitui a anterior, em que o GM deletava mensagens individuais via `document:delete`.)_
 
 **REQ-CHT-006** [MVP] O GM DEVE poder fazer flush (limpeza total) do log de chat do mundo; a operação trunca a tabela principal e a FTS5, e emite evento `chat:flush` para todos os clientes limparem o painel.
 
@@ -250,7 +250,7 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 
 **REQ-CHT-016** [MVP] A `SystemAPI` DEVE expor `registerChatCommand(prefix: string, handler: ServerChatCommandHandler)` para sistemas registrarem comandos adicionais (ver `15-api-de-sistemas.md`).
 
-**REQ-CHT-017** [MVP] O roll mode padrão para rolagens automatizadas (via sistema, macro) DEVE ser configurável por usuário (dropdown no painel de chat); rolagens digitadas manualmente com `/roll` SEMPRE produzem roll público, independentemente do dropdown.
+**REQ-CHT-017** [MVP] O roll mode DEVE ser escolhido em um seletor do painel de chat, persistido por usuário e mundo no cliente, e DEVE ser aplicado a **todas** as rolagens — automatizadas (sistema, macro, card, ficha) e digitadas, **inclusive `/roll`**. Apenas um comando que **nomeia** o modo (`/gmroll`, `/blindroll`, `/selfroll`) prevalece sobre o seletor, e só na mensagem em que foi digitado; um dado favorito com modo travado também prevalece (`38-aba-chat.md`, DEC-ACH-04). _(Esta redação substitui a anterior, em que `/roll` produzia sempre roll público independentemente do seletor.)_
 
 ### Rolagens e inline rolls
 
@@ -298,7 +298,7 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 
 **REQ-CHT-035** [MVP] O cliente DEVE usar virtual scroll (DOM apenas das mensagens visíveis) para suportar histórico extenso sem degradação de performance.
 
-**REQ-CHT-036** [MVP] O GM DEVE poder buscar mensagens por texto livre via campo de busca no painel de chat. A busca DEVE ser executada no servidor (SQLite FTS5), retornando no máximo 50 resultados paginados.
+**REQ-CHT-036** [MVP] O usuário DEVE poder buscar mensagens por texto livre via campo de busca no painel de chat. A busca DEVE ser executada no servidor (SQLite FTS5), retornando no máximo 50 resultados paginados.
 
 **REQ-CHT-037** [MVP] O GM DEVE poder exportar o log de chat do mundo em formato JSON (estrutura completa dos documentos) e texto plano (somente `timestamp | speaker.alias | content`).
 
@@ -333,6 +333,12 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 **REQ-CHT-048** [MVP] Um usuário sem papel privilegiado NÃO DEVE conseguir revelar mensagem alguma: o servidor DEVE responder com erro de permissão e a mensagem DEVE permanecer privada, inclusive no histórico. Revelar uma mensagem que já é pública NÃO DEVE alterar o documento nem gerar broadcast.
 
 **REQ-CHT-049** [MVP] Revelar NÃO DEVE reexecutar a rolagem nem expor a semente do RNG: o payload emitido é exatamente o resultado persistido no momento da rolagem, e o `seed` permanece restrito ao log de auditoria (ver `08-motor-de-rolagens.md`, REQ-ROL-049). Em particular, o autor de uma `blindroll` revelada DEVE passar a receber o resultado real no lugar do texto substituto de confirmação previsto em REQ-ROL-032.
+
+### Busca para todos e leitura de contexto
+
+**REQ-CHT-050** [MVP] A busca de REQ-CHT-036 DEVE estar disponível a **qualquer papel**, e o servidor DEVE aplicar aos resultados o mesmo predicado de visibilidade do broadcast e do histórico (REQ-CHT-004, DEC-CHT-02): ninguém encontra sussurro alheio nem rolagem cega de terceiro. NÃO DEVE existir um segundo predicado de visibilidade para busca.
+
+**REQ-CHT-051** [MVP] O servidor DEVE oferecer uma consulta de **contexto** ao redor de uma mensagem: dados o `_id` de uma mensagem visível ao solicitante e um limite `N`, retorna as `N` mensagens **visíveis** imediatamente anteriores e as `N` posteriores. A contagem DEVE considerar apenas mensagens visíveis ao solicitante — mensagem invisível não ocupa lugar na contagem nem é sinalizada de nenhuma forma (apresentação em `38-aba-chat.md`, REQ-ACH-013).
 
 ---
 
@@ -450,6 +456,12 @@ export interface ChatMessage {
   revealedAt?: number;
   /** User ID de quem revelou; ausente = nunca foi revelada (REQ-CHT-047) */
   revealedBy?: string;
+  /** Marcada como sem efeito, mantida no log (REQ-CHT-005) */
+  invalid?: boolean;
+  /** User ID de quem invalidou por último — decide quem pode revalidar (REQ-ACH-083) */
+  invalidatedBy?: string;
+  /** Unix ms da última invalidação */
+  invalidatedAt?: number;
   /** Rolls avaliados (para type === 'roll') */
   rolls?: RollData[];
   /** Chat card declarativo (para type === 'system' com card) */
@@ -491,30 +503,31 @@ export type ServerChatCommandHandler = (
 
 ### Eventos socket.io (cliente → servidor)
 
-| Evento                   | Payload                | Descrição                                                                    |
-| ------------------------ | ---------------------- | ---------------------------------------------------------------------------- |
-| `document:create` (chat) | `Partial<ChatMessage>` | Enviar nova mensagem. O servidor valida, sanitiza, persiste e faz broadcast. |
-| `document:delete` (chat) | `{ _id: string }`      | GM deleta mensagem.                                                          |
-| `chat:card-action`       | `CardActionRequest`    | Clique em botão de card.                                                     |
-| `chat:flush` (request)   | `{}`                   | GM solicita limpeza do log.                                                  |
-| `chat:reveal`            | `ChatRevealPayload`    | GM revela mensagem privada já enviada (REQ-CHT-045).                         |
+| Evento                   | Payload                             | Descrição                                                                    |
+| ------------------------ | ----------------------------------- | ---------------------------------------------------------------------------- |
+| `document:create` (chat) | `Partial<ChatMessage>`              | Enviar nova mensagem. O servidor valida, sanitiza, persiste e faz broadcast. |
+| `chat:invalidate`        | `{ _id: string, invalid: boolean }` | GM ou autor invalida/revalida a mensagem (REQ-CHT-005).                      |
+| `chat:card-action`       | `CardActionRequest`                 | Clique em botão de card.                                                     |
+| `chat:flush` (request)   | `{}`                                | GM solicita limpeza do log.                                                  |
+| `chat:reveal`            | `ChatRevealPayload`                 | GM revela mensagem privada já enviada (REQ-CHT-045).                         |
 
 ### Eventos socket.io (servidor → clientes)
 
-| Evento                   | Destinatários      | Payload                        | Descrição                                       |
-| ------------------------ | ------------------ | ------------------------------ | ----------------------------------------------- |
-| `document:create` (chat) | Clientes elegíveis | `ChatMessage`                  | Nova mensagem; roll payload omitido para blind. |
-| `document:update` (chat) | Clientes elegíveis | `Partial<ChatMessage>` + `_id` | Atualização (ex.: `card.buttons[n].disabled`).  |
-| `document:delete` (chat) | Todos              | `{ _id: string }`              | Mensagem deletada.                              |
-| `chat:flush`             | Todos              | `{}`                           | Log limpo; cliente limpa painel.                |
+| Evento                   | Destinatários      | Payload                                          | Descrição                                        |
+| ------------------------ | ------------------ | ------------------------------------------------ | ------------------------------------------------ |
+| `document:create` (chat) | Clientes elegíveis | `ChatMessage`                                    | Nova mensagem; roll payload omitido para blind.  |
+| `document:update` (chat) | Clientes elegíveis | `Partial<ChatMessage>` + `_id`                   | Atualização (ex.: `card.buttons[n].disabled`).   |
+| `document:update` (chat) | Clientes elegíveis | `{ _id, invalid, invalidatedBy, invalidatedAt }` | Mensagem invalidada ou revalidada (REQ-CHT-005). |
+| `chat:flush`             | Todos              | `{}`                                             | Log limpo; cliente limpa painel.                 |
 
 ### REST (HTTP Fastify)
 
-| Método | Rota                           | Auth | Descrição                                                                                      |
-| ------ | ------------------------------ | ---- | ---------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/worlds/:wid/chat`        | User | Busca paginada por cursor. Query params: `before` (cursor \_id), `limit` (padrão 50, máx 100). |
-| `GET`  | `/api/worlds/:wid/chat/search` | User | Busca FTS5. Query params: `q` (texto), `limit`, `page`.                                        |
-| `GET`  | `/api/worlds/:wid/chat/export` | GM   | Export em `?format=json` ou `?format=txt`.                                                     |
+| Método | Rota                            | Auth | Descrição                                                                                                            |
+| ------ | ------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/worlds/:wid/chat`         | User | Busca paginada por cursor. Query params: `before` (cursor \_id), `limit` (padrão 50, máx 100).                       |
+| `GET`  | `/api/worlds/:wid/chat/search`  | User | Busca FTS5, filtrada pela visibilidade do solicitante (REQ-CHT-050). Query params: `q` (texto), `limit`, `page`.     |
+| `GET`  | `/api/worlds/:wid/chat/context` | User | Contexto ao redor de uma mensagem (REQ-CHT-051). Query params: `id` (`_id` da mensagem), `limit` (padrão 5, máx 50). |
+| `GET`  | `/api/worlds/:wid/chat/export`  | GM   | Export em `?format=json` ou `?format=txt`.                                                                           |
 
 ---
 
