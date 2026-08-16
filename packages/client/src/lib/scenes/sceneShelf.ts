@@ -35,8 +35,19 @@ export const SCENE_SHELF_KEYS = {
   /** Accessible name of the search field (REQ-CEN-034). */
   search: "FUSION.Scene.Shelf.Search",
   searchPlaceholder: "FUSION.Scene.Shelf.SearchPlaceholder",
-  /** A search that matched nothing — said out loud, never a blank panel. */
+  /** A search that matched nothing — said out loud, never a blank panel (REQ-CEN-081). */
   noResults: "FUSION.Scene.Shelf.NoResults",
+  /**
+   * A world with NO scene at all: the invitation to create the first (REQ-CEN-080).
+   *
+   * Distinct from {@link SCENE_SHELF_KEYS.onlyOnAir} on purpose — "no scene exists" and
+   * "the only scene of the world is the one the head is already showing" are two
+   * different worlds, and saying the first when the second is true contradicts the head
+   * on the same screen (REQ-CEN-036).
+   */
+  empty: "FUSION.Sidebar.Scenes.Empty",
+  /** The archive is empty because the world's only scene is on air (REQ-CEN-036). */
+  onlyOnAir: "FUSION.Scene.Shelf.OnlyOnAir",
   /** The footer line that points the region map at the Hub (REQ-CEN-039). */
   regionMap: "FUSION.Scene.Shelf.RegionMap",
   collapse: "FUSION.Scene.Shelf.Collapse",
@@ -146,7 +157,15 @@ export interface SceneShelfVM {
   readonly hasResults: boolean;
   /** How many scenes the archive holds — the one on air excluded (REQ-CEN-036). */
   readonly total: number;
-  /** What to say when there is no line to draw: "no result" vs. "no scene". */
+  /**
+   * What to say when there is no line to draw — `null` only while there IS one.
+   *
+   * Three different emptinesses, three different sentences (REQ-CEN-080, REQ-CEN-081):
+   * a search that matched nothing, a world with no scene at all, and a world whose only
+   * scene is the one the head is showing (REQ-CEN-036). Collapsing them into one
+   * sentence is how a panel ends up telling the Master "no scene created" while the head
+   * right above it names the scene on air.
+   */
   readonly emptyKey: string | null;
   /** The line pointing the region map at the Hub (REQ-CEN-039, DEC-CEN-10). */
   readonly footer: SceneShelfLine;
@@ -243,6 +262,23 @@ function entryOf(scene: SceneDocument, preparingSceneId: string | null): SceneSh
 }
 
 /**
+ * Which emptiness the archive is in (REQ-CEN-080, REQ-CEN-081, REQ-CEN-036).
+ *
+ * Pure and separate so the three cases are one readable table instead of a nested
+ * ternary: the panel must never answer "no scene created" for a world that has one — it
+ * is on air, and the head above is naming it.
+ */
+function emptyKeyFor(state: {
+  readonly hasResults: boolean;
+  readonly searching: boolean;
+  readonly worldIsEmpty: boolean;
+}): string | null {
+  if (state.hasResults) return null;
+  if (state.searching) return SCENE_SHELF_KEYS.noResults;
+  return state.worldIsEmpty ? SCENE_SHELF_KEYS.empty : SCENE_SHELF_KEYS.onlyOnAir;
+}
+
+/**
  * Project the archive of the Cenas tab.
  *
  * Pure: the same world, the same search and the same device preferences always yield the
@@ -314,7 +350,7 @@ export function buildSceneShelfVM(input: SceneShelfInput): SceneShelfVM {
     query,
     hasResults,
     total: archived.length,
-    emptyKey: hasResults ? null : searching ? SCENE_SHELF_KEYS.noResults : null,
+    emptyKey: emptyKeyFor({ hasResults, searching, worldIsEmpty: scenes.length === 0 }),
     footer: { key: SCENE_SHELF_KEYS.regionMap },
   };
 }
@@ -437,6 +473,23 @@ export function reorderWithinGroup(
   next.splice(clamped, 0, moved);
 
   return next.map((entry, index) => ({ sceneId: entry.sceneId, sort: index }));
+}
+
+/**
+ * Which position a key press asks a line to move to (REQ-CEN-090, REQ-CEN-037).
+ *
+ * REQ-CEN-037 names the drag, and a drag is a pointer gesture: REQ-CEN-090 requires
+ * every action of the LINE — reordering included — to be reachable from the keyboard.
+ * This is the same move expressed as a key, so both gestures end in the very same
+ * {@link reorderWithinGroup} + {@link persistSceneOrder} pair and cannot drift apart.
+ *
+ * Returns `null` for any key that is not a reorder, so the handler leaves it alone (a
+ * Tab or an Enter must keep doing what the browser does with it).
+ */
+export function reorderTargetIndexForKey(key: string, index: number): number | null {
+  if (key === "ArrowUp") return index - 1;
+  if (key === "ArrowDown") return index + 1;
+  return null;
 }
 
 /**

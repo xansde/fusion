@@ -105,11 +105,25 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
     expect(html).toContain(t("FUSION.Sidebar.Scenes.Create"));
   });
 
-  it("spec 36 §7.4: a world with no scene shows the invitation to create the first", () => {
+  it("spec 36 §7.4 / REQ-CEN-080: a world with no scene shows the invitation to create the first", () => {
     const html = renderTab(null);
 
     expect(html).toContain(t("FUSION.Sidebar.Scenes.Empty"));
     expect(html).not.toContain("scene-row__name");
+  });
+
+  it("REQ-CEN-080 / REQ-CEN-036: with the world's only scene on air, the panel does not claim there is none", () => {
+    // The archive is empty because the scene lives in the head (REQ-CEN-036) — and the
+    // head is naming it right above. "Nenhuma cena criada" here would be the panel
+    // contradicting itself on the same screen; REQ-CEN-080 reserves that sentence for a
+    // world with no scene at all.
+    sceneListState.scenes = [makeScene("s1", "Taverna")];
+
+    const html = renderTab("s1");
+
+    expect(html).toContain("Taverna");
+    expect(html).not.toContain(t("FUSION.Sidebar.Scenes.Empty"));
+    expect(html).toContain(t("FUSION.Scene.Shelf.OnlyOnAir"));
   });
 
   it("REQ-GAV-011: the panel carries no collapse control of its own", () => {
@@ -171,6 +185,33 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
 
     it("REQ-CEN-090: the focused row action draws a visible ring", () => {
       expect(styleOfScenesTab()).toMatch(/\.action-btn:focus-visible\s*\{[^}]*outline:\s*(?!none)/);
+    });
+
+    it("REQ-CEN-090 / REQ-CEN-037: reordering is reachable without a mouse — the grip is a button", () => {
+      // REQ-CEN-037 names the drag, which is a pointer gesture; REQ-CEN-090 requires
+      // EVERY action of the line, reordering included, to be reachable from the
+      // keyboard. A decorative `aria-hidden` handle is unreachable by definition.
+      sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
+
+      const html = renderTab(null);
+
+      const grips = [...html.matchAll(/<button[^>]*class="scene-row__grip[^>]*>/g)].map(
+        (match) => match[0],
+      );
+      expect(grips).toHaveLength(2);
+      for (const grip of grips) {
+        expect(grip).not.toMatch(/aria-hidden="true"/);
+        expect(grip).not.toMatch(/tabindex="-1"/);
+        // It names the scene it moves, like every other action of the line.
+        expect(grip).toMatch(/aria-label="/);
+      }
+      expect(html).toContain(`${t("FUSION.Scene.Shelf.Reorder")}: Taverna`);
+    });
+
+    it("REQ-CEN-090: the focused grip draws a visible ring too", () => {
+      expect(styleOfScenesTab()).toMatch(
+        /\.scene-row__grip:focus-visible\s*\{[^}]*outline:\s*(?!none)/,
+      );
     });
   });
 });

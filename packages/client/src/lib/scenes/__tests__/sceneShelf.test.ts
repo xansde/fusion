@@ -7,7 +7,8 @@
  * what the search hides, and what a reorder writes.
  *
  * Covers REQ-CEN-030, REQ-CEN-031, REQ-CEN-032, REQ-CEN-033, REQ-CEN-034, REQ-CEN-035,
- * REQ-CEN-036, REQ-CEN-037, REQ-CEN-039.
+ * REQ-CEN-036, REQ-CEN-037, REQ-CEN-039, plus the empty states of REQ-CEN-080/081 and
+ * the keyboard half of the reorder (REQ-CEN-090).
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -22,6 +23,7 @@ import {
   loadCollapsedSceneFolders,
   nextSortInFolder,
   persistSceneOrder,
+  reorderTargetIndexForKey,
   reorderWithinGroup,
   saveCollapsedSceneFolders,
   sceneShelfCollapsedKey,
@@ -391,6 +393,60 @@ describe("search over the archive (REQ-CEN-034)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Which emptiness the archive is in (REQ-CEN-080, REQ-CEN-081, REQ-CEN-036)
+// ---------------------------------------------------------------------------
+
+describe("an empty archive says WHICH emptiness it is (REQ-CEN-080)", () => {
+  it("REQ-CEN-080: a world with no scene at all invites creating the first", () => {
+    const vm = buildSceneShelfVM({ scenes: [], activeSceneId: null });
+
+    expect(vm.total).toBe(0);
+    expect(vm.hasResults).toBe(false);
+    expect(vm.emptyKey).toBe(SCENE_SHELF_KEYS.empty);
+  });
+
+  it("REQ-CEN-080 / REQ-CEN-036: a world whose ONLY scene is on air does not claim there is none", () => {
+    // The archive is empty for the reason REQ-CEN-036 gives — the scene lives in the
+    // head — and the head is naming it on the same screen. Saying "no scene created"
+    // here would contradict the head two lines above it.
+    const vm = buildSceneShelfVM({
+      scenes: [makeScene({ _id: "s1", name: "Taverna" })],
+      activeSceneId: "s1",
+    });
+
+    expect(vm.total).toBe(0);
+    expect(vm.hasResults).toBe(false);
+    expect(vm.emptyKey).toBe(SCENE_SHELF_KEYS.onlyOnAir);
+    expect(vm.emptyKey).not.toBe(SCENE_SHELF_KEYS.empty);
+  });
+
+  it("REQ-CEN-081: a search with no result is a third sentence, not either of the other two", () => {
+    const vm = buildSceneShelfVM({
+      scenes: [makeScene({ _id: "s1", name: "Taverna" })],
+      activeSceneId: null,
+      query: "zzz",
+    });
+
+    expect(vm.emptyKey).toBe(SCENE_SHELF_KEYS.noResults);
+  });
+
+  it("REQ-CEN-080: with a line to draw there is no empty sentence at all", () => {
+    const vm = buildSceneShelfVM({
+      scenes: [makeScene({ _id: "s1" }), makeScene({ _id: "s2" })],
+      activeSceneId: "s1",
+    });
+
+    expect(vm.hasResults).toBe(true);
+    expect(vm.emptyKey).toBeNull();
+  });
+
+  it("REQ-CEN-080 / REQ-CEN-081: the three sentences are three distinct keys", () => {
+    const keys = [SCENE_SHELF_KEYS.empty, SCENE_SHELF_KEYS.onlyOnAir, SCENE_SHELF_KEYS.noResults];
+    expect(new Set(keys).size).toBe(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Collapsed groups, on this device (REQ-CEN-033)
 // ---------------------------------------------------------------------------
 
@@ -506,6 +562,39 @@ describe("reordering inside a group writes the document (REQ-CEN-037)", () => {
     await persistSceneOrder(socket, []);
 
     expect(sent).toEqual([]);
+  });
+
+  // REQ-CEN-090: the drag of REQ-CEN-037 is a pointer gesture, and every action of the
+  // line has to be reachable from the keyboard too. These pin the key → position rule
+  // the panel's grip uses, so the two gestures end in the same reorder.
+  it("REQ-CEN-090 / REQ-CEN-037: the arrows walk a scene one position through its group", () => {
+    expect(reorderTargetIndexForKey("ArrowUp", 2)).toBe(1);
+    expect(reorderTargetIndexForKey("ArrowDown", 0)).toBe(1);
+  });
+
+  it("REQ-CEN-090: a key that is not a reorder is left alone", () => {
+    for (const key of ["Tab", "Enter", " ", "ArrowLeft", "ArrowRight", "Escape"]) {
+      expect(reorderTargetIndexForKey(key, 1)).toBeNull();
+    }
+  });
+
+  it("REQ-CEN-090 / REQ-CEN-037: the keyboard move produces the very same order a drag would", () => {
+    const byKey = reorderWithinGroup(entries, "s3", reorderTargetIndexForKey("ArrowUp", 2) ?? 2);
+    const byDrag = reorderWithinGroup(entries, "s3", 1);
+
+    expect(byKey).toEqual(byDrag);
+    expect(byKey.map((update) => update.sceneId)).toEqual(["s1", "s3", "s2"]);
+  });
+
+  it("REQ-CEN-090: pressing up on the first line, or down on the last, writes nothing", () => {
+    // `reorderWithinGroup` clamps, and a clamped move that lands where the scene already
+    // is returns no update — so the edge of the group is a no-op, not a bogus write.
+    expect(reorderWithinGroup(entries, "s1", reorderTargetIndexForKey("ArrowUp", 0) ?? 0)).toEqual(
+      [],
+    );
+    expect(
+      reorderWithinGroup(entries, "s3", reorderTargetIndexForKey("ArrowDown", 2) ?? 2),
+    ).toEqual([]);
   });
 });
 

@@ -71,6 +71,7 @@
     buildSceneShelfVM,
     loadCollapsedSceneFolders,
     persistSceneOrder,
+    reorderTargetIndexForKey,
     reorderWithinGroup,
     saveCollapsedSceneFolders,
     toggleCollapsedSceneFolder,
@@ -301,12 +302,33 @@
     }
   }
 
-  // --- Reordering by drag (REQ-CEN-037) ----------------------------------------
+  // --- Reordering: by drag and by keyboard (REQ-CEN-037, REQ-CEN-090) -----------
   // Inside a group only: moving a scene to ANOTHER folder is a change of folder, and
   // that is the configuration window's business (DEC-CEN-05, REQ-CEN-061). A drop that
   // lands outside the dragged scene's own group simply computes no update.
+  //
+  // The drag is the gesture REQ-CEN-037 names, and it is a POINTER gesture: REQ-CEN-090
+  // requires every action of the line to be reachable from the keyboard too, so the grip
+  // is a real button and ↑/↓ on it walk the scene through its group. Both paths end in
+  // `applyReorder`, so they cannot compute different orders.
 
   let draggingSceneId = $state<string | null>(null);
+
+  async function applyReorder(
+    group: SceneShelfGroupVM,
+    movedSceneId: string,
+    targetIndex: number,
+  ): Promise<void> {
+    const updates = reorderWithinGroup(group.entries, movedSceneId, targetIndex);
+    if (updates.length === 0) return;
+
+    shelfError = null;
+    try {
+      await persistSceneOrder(socket, updates);
+    } catch (err) {
+      shelfError = err instanceof OpError ? err.message : t(SCENE_SHELF_KEYS.reorderFailed);
+    }
+  }
 
   function handleDragStart(event: DragEvent, sceneId: string): void {
     draggingSceneId = sceneId;
@@ -334,15 +356,22 @@
     draggingSceneId = null;
     if (moved === null) return;
 
-    const updates = reorderWithinGroup(group.entries, moved, targetIndex);
-    if (updates.length === 0) return;
+    await applyReorder(group, moved, targetIndex);
+  }
 
-    shelfError = null;
-    try {
-      await persistSceneOrder(socket, updates);
-    } catch (err) {
-      shelfError = err instanceof OpError ? err.message : t(SCENE_SHELF_KEYS.reorderFailed);
-    }
+  /**
+   * The same reorder from the keyboard (REQ-CEN-090): ↑/↓ on the grip move the line one
+   * position inside its group. Any other key is left to the browser — the grip is also
+   * the row's first tab stop.
+   */
+  function handleGripKeydown(event: KeyboardEvent, group: SceneShelfGroupVM, index: number): void {
+    const target = reorderTargetIndexForKey(event.key, index);
+    if (target === null) return;
+    const entry = group.entries[index];
+    if (entry === undefined) return;
+    // The arrows would otherwise scroll the archive out from under the moving line.
+    event.preventDefault();
+    void applyReorder(group, entry.sceneId, target);
   }
 </script>
 
@@ -529,12 +558,13 @@
   <!-- `tabindex="-1"` is the landing spot for the head's offer (REQ-CEN-014): it is a
        programmatic focus target only, never a tab stop of its own. -->
   <div class="scenes-tab__body" tabindex="-1" bind:this={archiveEl}>
-    {#if shelf.total === 0}
-      <!-- Spec 36 §7.4: the empty state of the tab — a world whose only scene is the one
-           on air, or no scene at all. -->
-      <p class="scenes-tab__empty">{t("FUSION.Sidebar.Scenes.Empty")}</p>
-    {:else if !shelf.hasResults}
-      <!-- REQ-CEN-034: a search that matched nothing says so; the head stays put. -->
+    {#if !shelf.hasResults}
+      <!-- Spec 36 §7.4: the empty state of the tab — and WHICH emptiness it is comes
+           from the VM, never from a bare "the archive is empty". A world with no scene
+           gets the invitation to create the first (REQ-CEN-080); a world whose only
+           scene is on air says exactly that, because the head above is naming it
+           (REQ-CEN-036); a search that matched nothing says so with the head still in
+           place (REQ-CEN-081). -->
       <p class="scenes-tab__empty">{t(shelf.emptyKey ?? SCENE_SHELF_KEYS.noResults)}</p>
     {:else}
       {#each shelf.groups as group (group.key)}
@@ -591,7 +621,16 @@
                   ondrop={(event) => handleDrop(event, group, index)}
                   ondragend={handleDragEnd}
                 >
-                  <span class="scene-row__grip" aria-hidden="true" title={t(SCENE_SHELF_KEYS.reorder)}>
+                  <!-- REQ-CEN-090: the grip is a real button, not decoration — reordering
+                       is an action of the line, so it has to be focusable and operable
+                       without a mouse (↑/↓, REQ-CEN-037). -->
+                  <button
+                    class="scene-row__grip"
+                    type="button"
+                    title={t(SCENE_SHELF_KEYS.reorder)}
+                    aria-label="{t(SCENE_SHELF_KEYS.reorder)}: {entry.name}"
+                    onkeydown={(event) => handleGripKeydown(event, group, index)}
+                  >
                     <svg
                       viewBox="0 0 16 16"
                       width="10"
@@ -607,7 +646,7 @@
                       <circle cx="6" cy="12" r="1.1" />
                       <circle cx="10" cy="12" r="1.1" />
                     </svg>
-                  </span>
+                  </button>
                   <!-- REQ-CEN-035: name, dimensions and the environment marks that are
                        on — written out, never carried by colour alone (REQ-CEN-091). -->
                   <span class="scene-row__text">
@@ -1105,12 +1144,24 @@
     box-shadow: inset 2px 0 0 var(--fusion-accent);
   }
 
+  /* REQ-CEN-090: a button, so it takes focus and the arrows reach it — styled back down
+     to the bare grip it looks like. */
   .scene-row__grip {
     align-items: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-subtle);
     cursor: grab;
     display: flex;
     flex-shrink: 0;
+    padding: 0;
+  }
+
+  /* Same visible ring as every other control of the panel (REQ-CEN-090 / REQ-UIF-064). */
+  .scene-row__grip:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: -1px;
   }
 
   .scene-row__text {
