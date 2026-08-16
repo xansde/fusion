@@ -22,7 +22,8 @@
  *     he cannot see (hidden, or on a scene that is off air — REQ-CEN-071).
  *
  * Everything is asserted on the PAYLOAD the socket receives (broadcast, ack,
- * history and join snapshot) and on the database itself — never on a screen.
+ * history, search, context window, invalidation ack and join snapshot) and on
+ * the database itself — never on a screen.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -610,6 +611,88 @@ describe("alvo da rolagem — retrato do momento, e a CA fora do payload do joga
     } finally {
       fresh.disconnect();
     }
+  }, 20_000);
+
+  it("REQ-ACH-091/092: busca, janela de contexto e ack de invalidação redigem a CA como o log", async () => {
+    // A roll with a flavour, so the stored content is searchable by term.
+    const gmSeen = nextChatMessage(gmSocket);
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/roll 1d20+7 # investida",
+      worldId: ctx.worldId,
+      target: { tokenId: TARGET_TOKEN_ID },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const messageId = String((ack["result"] as { message: ChatMessageLike }).message._id);
+    await gmSeen;
+    await sleep(20);
+
+    // Search — the player finds his own roll, and the number is not in it.
+    const playerSearch = await sendQuery(playerSocket, "chat:search", {
+      worldId: ctx.worldId,
+      q: "investida",
+    });
+    expect(playerSearch["ok"], JSON.stringify(playerSearch)).toBe(true);
+    const playerHits = (playerSearch["result"] as { messages: ChatMessageLike[] }).messages;
+    const playerHit = playerHits.find((m) => m._id === messageId);
+    expect(playerHit, JSON.stringify(playerHits)).toBeDefined();
+    expect(playerHit?.rolls?.[0]?.target?.name).toBe(TARGET_TOKEN_NAME);
+    expect(playerHit?.rolls?.[0]?.degreeOfSuccess).toBeDefined();
+    expect(JSON.stringify(playerHits)).not.toContain(`"ac"`);
+
+    // The Mestre searches the same term and reads the AC.
+    const gmSearch = await sendQuery(gmSocket, "chat:search", {
+      worldId: ctx.worldId,
+      q: "investida",
+    });
+    const gmHits = (gmSearch["result"] as { messages: ChatMessageLike[] }).messages;
+    expect(gmHits.find((m) => m._id === messageId)?.rolls?.[0]?.target?.ac).toBe(TARGET_AC);
+
+    // Context window — same redaction, on the anchor and on both sides.
+    const playerContext = await sendQuery(playerSocket, "chat:context", {
+      worldId: ctx.worldId,
+      id: messageId,
+      limit: 5,
+    });
+    expect(playerContext["ok"], JSON.stringify(playerContext)).toBe(true);
+    const contextResult = playerContext["result"] as {
+      target: ChatMessageLike;
+      before: ChatMessageLike[];
+      after: ChatMessageLike[];
+    };
+    expect(contextResult.target.rolls?.[0]?.target?.name).toBe(TARGET_TOKEN_NAME);
+    expect(contextResult.target.rolls?.[0]?.degreeOfSuccess).toBeDefined();
+    expect(JSON.stringify(contextResult)).not.toContain(`"ac"`);
+
+    // The Mestre asks for the same window and the number is there.
+    const gmContext = await sendQuery(gmSocket, "chat:context", {
+      worldId: ctx.worldId,
+      id: messageId,
+      limit: 5,
+    });
+    const gmTarget = (gmContext["result"] as { target: ChatMessageLike }).target;
+    expect(gmTarget.rolls?.[0]?.target?.ac).toBe(TARGET_AC);
+
+    // Invalidation ack — the author voids his own message and the echo that
+    // comes back is redacted exactly like every other read path.
+    const invalidated = await sendOp(playerSocket, "chat:invalidate", {
+      worldId: ctx.worldId,
+      _id: messageId,
+      invalid: true,
+    });
+    expect(invalidated["ok"], JSON.stringify(invalidated)).toBe(true);
+    const echoed = (invalidated["result"] as { message: ChatMessageLike }).message;
+    expect(echoed.rolls?.[0]?.target?.name).toBe(TARGET_TOKEN_NAME);
+    expect(JSON.stringify(echoed)).not.toContain(`"ac"`);
+
+    // And the Mestre's own invalidation ack still carries it.
+    const gmInvalidated = await sendOp(gmSocket, "chat:invalidate", {
+      worldId: ctx.worldId,
+      _id: messageId,
+      invalid: false,
+    });
+    expect(gmInvalidated["ok"], JSON.stringify(gmInvalidated)).toBe(true);
+    const gmEchoed = (gmInvalidated["result"] as { message: ChatMessageLike }).message;
+    expect(gmEchoed.rolls?.[0]?.target?.ac).toBe(TARGET_AC);
   }, 20_000);
 
   // -------------------------------------------------------------------------
