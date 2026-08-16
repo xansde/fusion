@@ -88,6 +88,10 @@ character_level)` vai para `systems/engine-2e` e o SF2e pode adotá-la depois
 
 ### DEC-MCL-01 — Regra variante ligável, default desligada, sem migração
 
+> **Substituída por DEC-MCL-09** (2026-08-15) quanto ao **lugar** do toggle: ele deixa
+> de morar no ator e passa a ser setting de mundo. O resto desta decisão — variante
+> ligável, default desligada, derivação idêntica com ela desligada — continua valendo.
+
 **Decisão:** a variante é um toggle em `system.build.variantRules.classLevels`
 (default `false`), no mesmo lugar e com a mesma natureza de
 `build.freeArchetype`. Com o toggle desligado, **toda a derivação é a de hoje** —
@@ -210,6 +214,29 @@ os automatiza.
 **Racional:** critério explícito e reusável — _quando o custo de modelar supera o
 custo de um mestre dizer "não", não modela_.
 
+### DEC-MCL-09 — O toggle é setting de mundo, não campo do ator
+
+**Decisão:** a variante deixa de ser `system.build.variantRules.classLevels` no
+personagem e passa a ser uma **setting de escopo `world`**, declarada pelo sistema PF2e
+(REQ-SYS-047) e operada apenas na aba Configurações (spec 37, DEC-CFG-08). O mesmo vale
+para **arquétipo livre** (`system.build.freeArchetype`). A ficha deixa de ter qualquer
+controle de regra variante, e o campo sai do `CharacterBuildSchema`.
+
+**Migração:** ao abrir um mundo pela primeira vez depois da mudança, se **qualquer** ator
+tiver a regra ligada, a setting de mundo nasce ligada; depois disso o campo é removido
+dos atores (REQ-CFG-034). Nenhuma build montada fica ilegítima pela migração.
+
+**Racional:** regra variante é decisão de campanha. Com o toggle no ator, dois
+personagens da mesma mesa podiam derivar sob regras diferentes — e quem ligava era o
+jogador, dono da própria ficha, não o mestre, dono da campanha.
+
+**O que esta decisão aceita perder:** DEC-MCL-01 rejeitou "flag por mundo" porque _a
+ficha precisa ser interpretável isolada — é exportada, importada e lida por outro
+mundo_. Isso continua verdade e passa a ser o custo assumido: uma ficha montada com
+arquétipo livre, aberta num mundo sem a regra, tem talentos que aquele mundo não
+concederia. O aviso disso é trabalho de quem implementar importação de ator
+(`ver 16-compendiums-e-importacao.md`), não desta variante.
+
 ---
 
 ## 5. Modelo de dados
@@ -219,16 +246,14 @@ custo de um mestre dizer "não", não modela_.
 ```typescript
 // systems/pf2e/src/schemas/actor-character.ts (delta)
 
-const VariantRulesSchema = z
-  .object({
-    /** Free Archetype (já existia como build.freeArchetype — mantido lá por compat). */
-    /** Multiclasse por divisão de níveis de classe (spec 30). */
-    classLevels: z.boolean().default(false),
-  })
-  .default({});
-
-// CharacterBuildSchema ganha:
-//   variantRules: VariantRulesSchema
+// DEC-MCL-09 (2026-08-15): o toggle NÃO mora mais no ator. As duas regras variantes
+// são settings de escopo `world` declaradas pelo sistema pf2e (REQ-SYS-047):
+//   "pf2e.variantRules.classLevels"   (boolean, default false) — spec 30
+//   "pf2e.variantRules.freeArchetype" (boolean, default false) — regra do GMG
+// `CharacterBuildSchema` NÃO ganha `variantRules` e PERDE `freeArchetype`; a derivação
+// lê o valor do mundo. O bloco abaixo é o formato anterior, mantido só como rastro:
+//
+// const VariantRulesSchema = z.object({ classLevels: z.boolean().default(false) })
 //
 // BuildChoiceSchema NÃO muda de forma: a divisão usa o `type` aberto.
 //   { level: 3, slot: "classLevel-3", type: "classLevel", ref: "<uuid da classe>" }
@@ -278,9 +303,10 @@ interface DerivedClassLevels {
 
 ### 6.1 Toggle e compatibilidade
 
-- **REQ-MCL-001** [MC] O sistema DEVE expor `system.build.variantRules.classLevels`
-  (boolean, default `false`) e só aplicar qualquer regra desta spec quando ele for
-  `true`.
+- **REQ-MCL-001** [MC] O sistema DEVE declarar a variante como setting de escopo
+  `world` (boolean, default `false`, REQ-SYS-047) e só aplicar qualquer regra desta
+  spec quando ela for `true` no mundo aberto (DEC-MCL-09). O ator NÃO DEVE carregar o
+  toggle em `system.build`.
 - **REQ-MCL-002** [MC] Com o toggle `false`, a derivação de um ator DEVE produzir
   resultado **idêntico** ao produzido antes desta spec. Critério verificável: para
   o conjunto de fichas-fixture existentes (Tobias, Finn), o objeto `derived` é
@@ -289,8 +315,10 @@ interface DerivedClassLevels {
   escolhas: as escolhas existentes são interpretadas como "todos os níveis na
   classe atual" e o ator continua derivando o mesmo resultado até que uma entrada
   `classLevel` diferente seja gravada.
-- **REQ-MCL-004** [MC] O toggle DEVE aparecer na ficha ao lado do toggle de
-  Arquétipo Livre, com rótulo pt-BR e subtítulo EN (regra r14 de i18n).
+- **REQ-MCL-004** [MC] O toggle DEVE aparecer na seção Mundo da aba Configurações
+  (REQ-CFG-030/032), ao lado do de Arquétipo Livre, com rótulo pt-BR e subtítulo EN
+  (regra r14 de i18n). NÃO DEVE existir controle de regra variante na ficha de
+  personagem (REQ-CFG-033).
 
 ### 6.2 Estrutura de níveis
 
@@ -472,18 +500,18 @@ interface DerivedClassLevels {
 Levantado contra o código real (`docs/research/16-…` §4.2). Nenhum item é
 reescrita; são quatro trocas de conceito propagadas.
 
-| Alvo                                            | Arquivo                                         | Mudança                                                     |
-| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
-| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                   |
-| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto   |
-| `stepCharBuildHp`                               | `build.ts`                                      | soma por nível (REQ-MCL-033) em vez de multiplicar          |
-| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                         |
-| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                 |
-| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo              |
-| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                    |
-| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)              |
-| `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | `variantRules` (REQ-MCL-001)                                |
-| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022) |
+| Alvo                                            | Arquivo                                         | Mudança                                                                 |
+| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------- |
+| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                               |
+| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto               |
+| `stepCharBuildHp`                               | `build.ts`                                      | soma por nível (REQ-MCL-033) em vez de multiplicar                      |
+| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                     |
+| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                             |
+| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                          |
+| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                                |
+| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)                          |
+| `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | perde `freeArchetype`; nada de `variantRules` (REQ-MCL-001, DEC-MCL-09) |
+| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022)             |
 
 ---
 

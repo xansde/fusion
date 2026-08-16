@@ -199,7 +199,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 
 ### Canais de volume
 
-- **REQ-AUD-015** [MVP] O sistema DEVE manter três canais de volume: `music`, `environment` e `interface`, cada um com slider de 0% a 100% na sidebar de áudio.
+- **REQ-AUD-015** [MVP] O sistema DEVE manter três canais de volume: `music`, `environment` e `interface`, cada um com slider de 0% a 100%. Os sliders vivem na seção **Minhas preferências** da aba Configurações (`ver 37-configuracoes.md`, REQ-CFG-020) — não há "sidebar de áudio" no trilho de abas de `ver 36-gaveta-lateral.md`.
 - **REQ-AUD-016** [MVP] O volume de cada canal DEVE ser armazenado exclusivamente no `localStorage` do browser do cliente (`fusion.audio.volume.music`, etc.) e NUNCA ser enviado ao servidor.
 - **REQ-AUD-017** [MVP] O volume final ouvido por um cliente DEVE ser o produto: `canal.volume × playlist.volume × faixa.volume`.
 - **REQ-AUD-018** [MVP] O GM DEVE poder ajustar `playlist.volume` e `faixa.volume` via UI; essa mudança DEVE ser propagada a todos os clientes via socket e persistida no documento.

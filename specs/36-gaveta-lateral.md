@@ -52,16 +52,21 @@ com o painel escolhido e se move junto com ela.
 
 ## 4. Decisões
 
-### DEC-GAV-01 — Sete abas no MVP, em dois grupos por papel
+### DEC-GAV-01 — Sete abas no MVP, agrupadas por papel
+
+> **Emendada por DEC-GAV-09** (2026-08-15): Configurações saiu do grupo GM e virou um
+> terceiro bloco, ancorado no rodapé. A lista abaixo já reflete a emenda.
 
 As abas do MVP são, na ordem do trilho (de cima para baixo):
 
 - **Todos os usuários:** Chat, Contatos, Combate, Compêndio.
-- **Grupo GM** (só papel privilegiado — `isRolePrivileged`, spec 05): NPCs, Cenas, Configurações.
+- **Grupo GM** (só papel privilegiado — `isRolePrivileged`, spec 05): NPCs, Cenas.
+- **Rodapé do trilho** (todos os usuários): Configurações.
 
 - **Racional:** o jogador vê só o que opera; o GM vê o mesmo trilho do jogador mais o
   seu grupo, então a posição de cada ícone é a mesma nas duas telas (memória motora
-  compartilhada na mesa). "Atores" vira **Contatos** para o jogador porque a lista dele
+  compartilhada na mesa) — e é por isso que Configurações, que os dois papéis usam,
+  não podia ficar no grupo GM. "Atores" vira **Contatos** para o jogador porque a lista dele
   não é o diretório de documentos — é quem ele conhece; o diretório completo de
   não-jogadores é aba própria do GM (**NPCs**).
 - **O que isso muda na spec 11:** REQ-UIF-002 lista Items, Journal e Settings como abas MVP.
@@ -164,6 +169,23 @@ group: "all" | "gm", component, badge })`). As 7 abas do jogo base (DEC-GAV-01) 
 - **Racional:** um mecanismo só; em tela pequena a escolha é binária — ou mapa, ou
   painel.
 
+### DEC-GAV-09 — Configurações é de todos e mora no rodapé do trilho
+
+Substitui, em DEC-GAV-01, a classificação de **Configurações** como aba do grupo GM: ela
+passa ao grupo `all` e é ancorada no **rodapé** do trilho, separada visualmente dos dois
+grupos. O conteúdo varia por papel — o jogador vê apenas as próprias preferências, e o
+GM vê também mundo, permissões, usuários e mods (spec 37).
+
+- **Racional:** o jogador precisa de um lugar para o próprio som e para o que os mods
+  ativos expuserem a ele; com a aba no grupo GM, "onde eu configuro" teria dois
+  endereços diferentes conforme o papel. O rodapé mantém a posição idêntica nas duas
+  telas — o princípio de DEC-GAV-01 — sem empurrar o grupo GM para baixo, e é o lugar
+  onde a engrenagem é procurada.
+- **Alternativa rejeitada:** _manter a aba só-GM e pôr as preferências do jogador num
+  menu do usuário no header_ — preserva esta spec intacta, ao custo de espalhar
+  configuração por dois lugares e de o GM ter as próprias preferências separadas das
+  do mundo.
+
 ## 5. Requisitos funcionais
 
 > Blocos de dezena por tema: 001–009 trilho e abas; 010–019 gaveta e estado; 020–029
@@ -179,12 +201,13 @@ group: "all" | "gm", component, badge })`). As 7 abas do jogo base (DEC-GAV-01) 
 - **REQ-GAV-002** [MVP] Cada botão do trilho DEVE expor o nome da aba por `aria-label`
   e por tooltip ao passar o ponteiro/focar; o tooltip é o único texto do trilho.
 - **REQ-GAV-003** [MVP] O trilho DEVE renderizar as abas do usuário na ordem de
-  DEC-GAV-01: primeiro o grupo de todos (Chat, Contatos, Combate, Compêndio), depois,
-  separado visualmente e ancorado no rodapé do trilho, o grupo GM (NPCs, Cenas,
-  Configurações). Abas registradas por mods (REQ-GAV-031) entram ao fim do seu grupo.
+  DEC-GAV-01, em três blocos: primeiro o grupo de todos (Chat, Contatos, Combate,
+  Compêndio); em seguida, separado visualmente, o grupo GM (NPCs, Cenas); e ancorada no
+  rodapé do trilho, a aba Configurações (DEC-GAV-09). Abas registradas por mods
+  (REQ-GAV-031) entram ao fim do seu grupo, nunca no rodapé.
 - **REQ-GAV-004** [MVP] Abas do grupo GM NÃO DEVEM ser renderizadas para usuário cujo
   papel não seja privilegiado (`isRolePrivileged`, spec 05); a posição das abas do
-  grupo de todos DEVE ser a mesma para qualquer papel.
+  grupo de todos e da aba de rodapé DEVE ser a mesma para qualquer papel.
 - **REQ-GAV-005** [MVP] A aba ativa com a gaveta aberta DEVE ser visualmente contínua
   com o painel (sem borda entre o botão e a gaveta — a "aba física" do protótipo C);
   com a gaveta recolhida nenhuma aba é exibida como ativa.
@@ -287,7 +310,7 @@ gesto de recolher ou persistência de `open`/`activeTab`, que são desta spec:
 
 | ID         | Critério                                                                                                                                                                                                                                     |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CA-GAV-001 | Jogador logado vê no trilho exatamente Chat, Contatos, Combate, Compêndio, nessa ordem, sem texto; GM vê os mesmos quatro na mesma posição mais NPCs, Cenas, Configurações no rodapé do trilho.                                              |
+| CA-GAV-001 | Jogador logado vê no trilho exatamente Chat, Contatos, Combate e Compêndio nessa ordem, sem texto, mais Configurações ancorada no rodapé; GM vê os mesmos na mesma posição, com NPCs e Cenas no bloco intermediário.                         |
 | CA-GAV-002 | Primeiro acesso sem preferência: jogador abre em Chat, GM abre em Cenas; após trocar para Compêndio e recarregar, a gaveta volta aberta em Compêndio; recolher e recarregar volta recolhida.                                                 |
 | CA-GAV-003 | GM salva `activeTab = "scenes"` no dispositivo; usuário sem papel privilegiado entra no mesmo navegador: a gaveta abre em Chat, sem erro.                                                                                                    |
 | CA-GAV-004 | Com a gaveta aberta em Chat, clicar em Combate troca o painel sem mudar a largura; clicar em Combate de novo recolhe; `Esc` não recolhe; não existe chevron nem ✕.                                                                           |
@@ -298,15 +321,15 @@ gesto de recolher ou persistência de `open`/`activeTab`, que são desta spec:
 
 ## 8. Specs-filhas (uma por aba)
 
-| Aba           | Spec-filha | Área dona do conteúdo citada       |
-| ------------- | ---------- | ---------------------------------- |
-| Chat          | _a criar_  | 09                                 |
-| Contatos      | _a criar_  | 02/05/11                           |
-| Combate       | _a criar_  | 10                                 |
-| Compêndio     | _a criar_  | 16                                 |
-| NPCs          | _a criar_  | 02/05/11                           |
-| Cenas         | _a criar_  | 06/11                              |
-| Configurações | _a criar_  | 02/15 (mods: [V2] por REQ-ESC-012) |
+| Aba           | Spec-filha                | Área dona do conteúdo citada          |
+| ------------- | ------------------------- | ------------------------------------- |
+| Chat          | _a criar_                 | 09                                    |
+| Contatos      | _a criar_                 | 02/05/11                              |
+| Combate       | _a criar_                 | 10                                    |
+| Compêndio     | _a criar_                 | 16                                    |
+| NPCs          | _a criar_                 | 02/05/11                              |
+| Cenas         | _a criar_                 | 06/11                                 |
+| Configurações | [37](37-configuracoes.md) | 05/15/13 (mods: [V2] por REQ-ESC-012) |
 
 ## 9. Dependências (specs irmãs)
 
