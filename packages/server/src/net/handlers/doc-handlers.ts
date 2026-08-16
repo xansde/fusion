@@ -138,6 +138,49 @@ const GM_ONLY_CREATE_DELETE = new Set([
 ]);
 
 /**
+ * Document types the generic doc:create / doc:update / doc:delete path must
+ * never touch, mapped to the refusal message that names the operation that
+ * owns them instead.
+ *
+ * `ChatMessage` (REQ-CHT-005, detailed by REQ-ACH-080..086): a message is never
+ * deleted from the log — moderation of a single message IS invalidation, and
+ * `chat:invalidate` is its one door. Posting is `chat:send`, which authors the
+ * message server-side, resolves the speaker, runs the roll and redacts the
+ * broadcast per recipient (REQ-CHT-004). The generic path does none of that: it
+ * hands the client's payload to DocumentStore and broadcasts it namespace-wide.
+ *
+ * Leaving it open left the whole rule resting on a client that chose to obey
+ * it, which REQ-ACH-090 says explicitly is not protection — verified by
+ * execution before this guard existed: a GM emitting
+ * `doc:delete {documentType: "ChatMessage", ids: [id]}` got `ok: true` and the
+ * line was gone from the next `chat:history`.
+ *
+ * The refusal is by TYPE, not by field, on purpose. A field list (`invalid`,
+ * `invalidatedBy`, `content`, ...) would still leave `whisper` writable, and
+ * widening `whisper` on a stored message hands a private line to everyone the
+ * next time `chat:history` reads the row — the same leak by another key. There
+ * is no field of a ChatMessage this path is supposed to write, so the whole
+ * type is refused and the chat handlers stay the single writer of
+ * `chat_messages`.
+ */
+const GENERIC_PATH_FORBIDDEN_TYPES: Record<string, string> = {
+  ChatMessage:
+    "ChatMessage is not writable through doc:create/doc:update/doc:delete — use chat:send to post and chat:invalidate to moderate (REQ-CHT-005 / REQ-ACH-080)",
+};
+
+/**
+ * Refuse an operation aimed at a document type the generic path does not own.
+ * Checked against the payload's `documentType` AND the parent's type, so the
+ * embedded routes cannot be used as a way around it.
+ */
+function rejectForbiddenDocumentType(documentType: string, parentType?: string): Ack<never> | null {
+  const message =
+    GENERIC_PATH_FORBIDDEN_TYPES[documentType] ??
+    (parentType === undefined ? undefined : GENERIC_PATH_FORBIDDEN_TYPES[parentType]);
+  return message === undefined ? null : ackError("PERMISSION_DENIED", message);
+}
+
+/**
  * Embedded collection names → their parent's documentType.
  *
  * Combatant is embedded in Combat (M2-C); the collection key is derived as
@@ -672,6 +715,10 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     const payload = parsed.data;
     const { documentType, data, parent } = payload;
 
+    // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
+    const forbidden = rejectForbiddenDocumentType(documentType, parent?.type);
+    if (forbidden) return forbidden;
+
     // Embedded token creation (tokens inside a Scene)
     if (parent) {
       return handleEmbeddedCreate(deps, ctx, documentType, data, parent);
@@ -796,6 +843,16 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { documentType, updates } = payload;
+
+    // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
+    // Checked against every embedded type in the batch as well, so an
+    // `updates[].embedded` entry cannot smuggle one past the top-level type.
+    const forbidden = rejectForbiddenDocumentType(documentType);
+    if (forbidden) return forbidden;
+    for (const upd of updates) {
+      const forbiddenEmbedded = rejectForbiddenDocumentType(upd.embedded?.type ?? documentType);
+      if (forbiddenEmbedded) return forbiddenEmbedded;
+    }
 
     // Check for embedded updates (tokens inside scenes)
     const hasEmbedded = updates.some((u) => u.embedded);
@@ -972,6 +1029,13 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { documentType, ids, parent } = payload;
+
+    // Types the chat handlers own. A ChatMessage is never deleted from the log:
+    // moderation of a single message is invalidation (REQ-CHT-005 /
+    // REQ-ACH-080), and REQ-ACH-090 says the check has to live HERE, not in the
+    // client that decides whether to draw the button.
+    const forbidden = rejectForbiddenDocumentType(documentType, parent?.type);
+    if (forbidden) return forbidden;
 
     // Embedded token deletion
     if (parent) {

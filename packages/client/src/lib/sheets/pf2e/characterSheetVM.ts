@@ -1,8 +1,11 @@
 /**
  * characterSheetVM.ts — Pure view-model for the PF2e Character Sheet.
  *
- * This module is 100% testable TypeScript — no PIXI, no Svelte, no browser APIs.
+ * This module is 100% testable TypeScript — no PIXI, no component, no browser APIs.
  * The Svelte component (CharacterSheet.svelte) imports this and stays thin.
+ * (It does read one headless rune store, `lib/chat/rollModeState.svelte.ts`, to
+ * learn the current roll mode — see {@link ChatRollPayload.rollMode}. That store
+ * is plain state with no DOM, so the VM stays unit-testable in a node env.)
  *
  * Responsibilities:
  *   - Read the server-derived document (system.derived populated by M3-B steps)
@@ -25,7 +28,9 @@ import type {
   ArchetypeClassDC,
   ClassDCEntry,
 } from "./derivedTypes.js";
-import type { SpellSaveType, ChatSendFlags, AbilityCard } from "@fusion/shared";
+import type { SpellSaveType, ChatSendFlags, AbilityCard, RollMode } from "@fusion/shared";
+import { buildChatSendPayload } from "../../chat/resolveRollMode.js";
+import { currentRollMode } from "../../chat/rollModeState.svelte.js";
 import { t, i18n } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
 import { isLoreSlug, loreSubject } from "./loreSlug.js";
@@ -623,7 +628,22 @@ export interface ChatRollPayload {
   type: "chat:send";
   content: string;
   worldId: string;
-  rollMode: "public";
+  /**
+   * Audience of this roll (REQ-ACH-042, DEC-ACH-04): the roll mode selector of
+   * the chat tab rules EVERY roll this user starts — the chat box, the favorites
+   * row, the builder window, AND a sheet or card button. It is therefore NOT the
+   * literal `"public"` it used to be: a sheet that always shouted "public" would
+   * publish a strike to the whole table while the selector said "blind", which is
+   * exactly the leak DEC-ACH-04 exists to prevent.
+   *
+   * OPTIONAL, and the absence is meaningful: the server resolves
+   * `payload.rollMode ?? command.mode` (`packages/server/src/chat/chat-handler.ts`),
+   * so a payload whose content NAMES the mode (`/gmroll …`) must stay silent here
+   * or it would overrule the very command it should obey (REQ-ACH-043). Never set
+   * this by hand — `buildChatSendPayload` (`lib/chat/resolveRollMode.ts`) is the
+   * one place that decides.
+   */
+  rollMode?: RollMode;
   speakerActorId: string;
   /**
    * Optional namespaced flags to attach to the resulting ChatMessage
@@ -1213,14 +1233,7 @@ export class CharacterSheetVM {
     if (blast.damageType) card.damageType = blast.damageType;
 
     const content = t("FUSION.Sheet.Chat.BlastMap", { label: cardName, map: mapIndex });
-    const announcement: ChatRollPayload = {
-      type: "chat:send",
-      content,
-      worldId: this._worldId,
-      rollMode: "public",
-      speakerActorId: this._actorId,
-      flags: { pf2e: { abilityCard: card } },
-    };
+    const announcement = this._chatOp(content, { pf2e: { abilityCard: card } });
     return { announcement, attack };
   }
 
@@ -1884,14 +1897,7 @@ export class CharacterSheetVM {
     // stays for old clients; new clients render buttons from this flag.
     const card = this._buildSpellCastCard(sys, entryId, eff, glyphs, name, spellItemId);
 
-    const announcement: ChatRollPayload = {
-      type: "chat:send",
-      content,
-      worldId: this._worldId,
-      rollMode: "public",
-      speakerActorId: this._actorId,
-      flags: { pf2e: { abilityCard: card } },
-    };
+    const announcement = this._chatOp(content, { pf2e: { abilityCard: card } });
 
     const attack = spellSystemHasAttack(sys) ? this.rollSpellAttack(entryId) : null;
     return { announcement, attack };
@@ -2273,14 +2279,7 @@ export class CharacterSheetVM {
     if (strike.traits.length > 0) card.traits = [...strike.traits];
 
     const content = t("FUSION.Sheet.Chat.StrikeMap", { label: strike.label, map: mapIndex });
-    const announcement: ChatRollPayload = {
-      type: "chat:send",
-      content,
-      worldId: this._worldId,
-      rollMode: "public",
-      speakerActorId: this._actorId,
-      flags: { pf2e: { abilityCard: card } },
-    };
+    const announcement = this._chatOp(content, { pf2e: { abilityCard: card } });
     return { announcement, attack };
   }
 
@@ -2302,15 +2301,41 @@ export class CharacterSheetVM {
     );
   }
 
-  /** Build the wire chat:send payload: "/r <formula> # <flavor>". */
-  private _buildChatRoll(formula: string, flavor: string): ChatRollPayload {
-    return {
-      type: "chat:send",
-      content: `/r ${formula} # ${flavor}`,
+  /**
+   * Build ANY chat:send op this sheet emits, with the audience already decided by
+   * the single authority (REQ-ACH-042 / DEC-ACH-04).
+   *
+   * Every roll button on this sheet funnels through here instead of writing
+   * `rollMode` by hand, so the sheet cannot quietly disagree with the chat tab's
+   * selector: pick "cega" in the chat tab, click a strike, and the roll is blind.
+   * `buildChatSendPayload` also decides when to stay silent — content that names
+   * the mode (`/gmroll …`) omits the key so the server's own parse wins
+   * (REQ-ACH-043), and a plain-text announcement carries no roll at all
+   * (REQ-ACH-045).
+   */
+  private _chatOp(content: string, flags?: ChatSendFlags): ChatRollPayload {
+    const payload = buildChatSendPayload({
+      content,
       worldId: this._worldId,
-      rollMode: "public",
+      selectorMode: currentRollMode(),
+      speakerActorId: this._actorId,
+      ...(flags !== undefined ? { flags } : {}),
+    });
+
+    const op: ChatRollPayload = {
+      type: "chat:send",
+      content: payload.content,
+      worldId: payload.worldId,
       speakerActorId: this._actorId,
     };
+    if (payload.rollMode !== undefined) op.rollMode = payload.rollMode;
+    if (payload.flags !== undefined) op.flags = payload.flags;
+    return op;
+  }
+
+  /** Build the wire chat:send payload: "/r <formula> # <flavor>". */
+  private _buildChatRoll(formula: string, flavor: string): ChatRollPayload {
+    return this._chatOp(`/r ${formula} # ${flavor}`);
   }
 
   /**
@@ -2809,13 +2834,7 @@ export class CharacterSheetVM {
       hpRecovered > 0
         ? t("FUSION.Sheet.Rest.SummaryHp", { name: this.name, hp: String(hpRecovered) })
         : t("FUSION.Sheet.Rest.Summary", { name: this.name });
-    return {
-      type: "chat:send",
-      content,
-      worldId: this._worldId,
-      rollMode: "public",
-      speakerActorId: this._actorId,
-    };
+    return this._chatOp(content);
   }
 }
 
