@@ -250,6 +250,19 @@ export function listRegisteredSidebarTabs(): SidebarTabEntry[] {
 }
 
 /**
+ * Whether one registered tab is visible to a role (REQ-GAV-004).
+ *
+ * The single predicate behind every query in this module. It exists so the rail
+ * query and the id check can never disagree about the same tab: the footer is a
+ * *position* (DEC-GAV-09), never an exemption from the group filter, so a tab
+ * declared `{ id: "settings", group: "gm" }` is as invisible to a player as any
+ * other "gm" tab instead of slipping in through the footer block.
+ */
+function isVisibleTo(tab: SidebarTabEntry, isPrivileged: boolean): boolean {
+  return tab.group !== "gm" || isPrivileged;
+}
+
+/**
  * The rail's three blocks for a role (REQ-GAV-003, REQ-GAV-004, DEC-GAV-09):
  * group "all" → group "gm" → the footer-anchored Settings tab.
  *
@@ -262,12 +275,13 @@ export function getVisibleSidebarTabs(isPrivileged: boolean): VisibleSidebarTabs
   const footer: SidebarTabEntry[] = [];
 
   for (const tab of tabs.values()) {
+    if (!isVisibleTo(tab, isPrivileged)) continue;
     if (tab.id === SETTINGS_TAB_ID) {
       footer.push(tab);
       continue;
     }
     if (tab.group === "gm") {
-      if (isPrivileged) gm.push(tab);
+      gm.push(tab);
       continue;
     }
     all.push(tab);
@@ -291,7 +305,7 @@ export function listVisibleSidebarTabs(isPrivileged: boolean): SidebarTabEntry[]
 export function isSidebarTabVisible(id: string, isPrivileged: boolean): boolean {
   const tab = tabs.get(id);
   if (tab === undefined) return false;
-  return tab.group === "all" || isPrivileged;
+  return isVisibleTo(tab, isPrivileged);
 }
 
 // ---------------------------------------------------------------------------

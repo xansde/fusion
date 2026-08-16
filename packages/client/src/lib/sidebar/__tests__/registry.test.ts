@@ -4,6 +4,8 @@
  * Covers:
  *  - REQ-GAV-030 [MVP] the `registerSidebarTab({ id, icon, label, group, component, badge? })`
  *    shape and the rail query (group "all" → group "gm" → footer, DEC-GAV-09).
+ *  - REQ-GAV-004 [MVP] a "gm" tab never reaches a non-privileged role — footer included,
+ *    and with both queries of the module agreeing about the same tab.
  *  - REQ-GAV-032 [MVP] game systems do not register tabs in the MVP.
  *  - REQ-GAV-033 [MVP] registering a duplicate id fails loudly and never replaces.
  *  - REQ-GAV-031 [V2] mods registering tabs — declared only, out of the MVP.
@@ -220,6 +222,46 @@ describe("REQ-GAV-030 — consulta do trilho por papel", () => {
     registerSidebarTab(tabDef({ id: "chat" }));
     expect(getVisibleSidebarTabs(false).footer).toEqual([]);
     expect(listVisibleSidebarTabs(false).map((t) => t.id)).toEqual(["chat"]);
+  });
+
+  it("REQ-GAV-004: aba de rodapé declarada no grupo 'gm' some para o jogador — o rodapé não é exceção ao filtro", () => {
+    // O rodapé é uma POSIÇÃO (DEC-GAV-09), não uma isenção: se a aba de Configurações
+    // for registrada no grupo "gm", ela tem que desaparecer do trilho do jogador como
+    // qualquer outra aba de GM (REQ-GAV-004).
+    registerSidebarTab(tabDef({ id: "chat", group: "all" }));
+    registerSidebarTab(tabDef({ id: SETTINGS_TAB_ID, group: "gm" }));
+
+    expect(getVisibleSidebarTabs(false).footer).toEqual([]);
+    expect(listVisibleSidebarTabs(false).map((t) => t.id)).toEqual(["chat"]);
+
+    // E o GM continua vendo-a ancorada no rodapé.
+    expect(getVisibleSidebarTabs(true).footer.map((t) => t.id)).toEqual([SETTINGS_TAB_ID]);
+    expect(getVisibleSidebarTabs(true).gm).toEqual([]);
+  });
+
+  it("REQ-GAV-004: as duas consultas concordam sobre a mesma aba, para qualquer papel", () => {
+    // `listVisibleSidebarTabs` alimenta o `visibleTabIds` da gaveta (o guarda de
+    // `select`), enquanto `isSidebarTabVisible` decide a restauração da aba salva.
+    // Divergirem significaria um painel montável por um clique que o trilho nega.
+    registerSidebarTab(tabDef({ id: "chat", group: "all" }));
+    registerSidebarTab(tabDef({ id: "scenes", group: "gm" }));
+    registerSidebarTab(tabDef({ id: "mod-tab", group: "gm" }));
+    // A aba do rodapé entra no grupo "gm": é exatamente aqui que as duas consultas
+    // divergiam — o rodapé escapava do filtro, a consulta por id não.
+    registerSidebarTab(tabDef({ id: SETTINGS_TAB_ID, group: "gm" }));
+
+    for (const isPrivileged of [false, true]) {
+      const listed = new Set(listVisibleSidebarTabs(isPrivileged).map((t) => t.id));
+      for (const tab of listRegisteredSidebarTabs()) {
+        expect(isSidebarTabVisible(tab.id, isPrivileged)).toBe(listed.has(tab.id));
+      }
+    }
+  });
+
+  it("REQ-GAV-004: a aba de rodapé no grupo 'gm' não escapa nem pela consulta por id", () => {
+    registerSidebarTab(tabDef({ id: SETTINGS_TAB_ID, group: "gm" }));
+    expect(isSidebarTabVisible(SETTINGS_TAB_ID, false)).toBe(false);
+    expect(isSidebarTabVisible(SETTINGS_TAB_ID, true)).toBe(true);
   });
 });
 
