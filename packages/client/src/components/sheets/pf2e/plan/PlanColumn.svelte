@@ -125,9 +125,17 @@
   const ctx = $derived(planContext(doc));
   const opCtx = $derived<PlanOpBuilderContext>({ actorId, doc, editable });
 
+  // T013 (redesign): dispatch every op as-is — sendOp.ts's funnel now
+  // serializes primary doc:update writes per document _id and retries once
+  // on STALE_WRITE (see sendOp.ts's enqueuePrimaryWrite/sendPrimaryDocUpdate),
+  // so a builder returning more than one primary doc:update for this SAME
+  // Actor (applyBackground, removeChoice, levelUp, ...) no longer needs to be
+  // pre-merged here — the funnel fixes it for every call site, including
+  // handleAbilityBoostsConfirm below, which never went through this function.
   function sendAll(ops: DocOpPayload | DocOpPayload[] | null): void {
     if (!ops) return;
-    for (const op of Array.isArray(ops) ? ops : [ops]) sendOpFn(op);
+    const list = Array.isArray(ops) ? ops : [ops];
+    for (const op of list) sendOpFn(op);
   }
 
   // ---------------------------------------------------------------------------

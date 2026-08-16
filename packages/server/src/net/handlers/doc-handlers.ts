@@ -821,20 +821,17 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
-    // Pre-flight: reject the whole batch before writing anything. The loop
-    // below persists as it goes, so a guard that fires mid-loop would leave
-    // the earlier entries written, skip the broadcast and still ack ok:false —
+    // Pre-flight: judge the whole batch before writing anything. The loop below
+    // persists as it goes, so a rejection fired mid-loop would leave the
+    // earlier entries written, skip the broadcast, and still ack ok:false —
     // server and clients diverging in silence until the next resync.
+    //
+    // The order of the checks is the order of the answers the caller deserves:
+    // "that document is not there", then "it is not yours", then "you did not
+    // say which version you saw". Telling someone without access that a field
+    // is missing would also confirm the document exists.
+    const loaded = new Map<string, Record<string, unknown>>();
     for (const upd of updates) {
-      const rejection = rejectUnwritableField(documentType, applyDotPathDiff({}, upd.diff));
-      if (rejection) return rejection;
-    }
-
-    const authorCtx = { userId: ctx.userId };
-    const updated: Record<string, unknown>[] = [];
-
-    for (const upd of updates) {
-      // Load existing document for ownership check
       let existing: Record<string, unknown>;
       try {
         existing = deps.store.get(table as never, upd._id);
@@ -844,8 +841,9 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         }
         throw err;
       }
+      loaded.set(upd._id, existing);
 
-      // Permission check: must be GM/ASSISTANT or OWNER of the document
+      // Must be GM/ASSISTANT or OWNER of the document.
       if (!isPrivileged(ctx.role)) {
         const ownership = getOwnershipFromDoc(existing);
         const level = resolveOwnership(ownership, ctx.userId, ctx.role);
@@ -854,15 +852,59 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         }
       }
 
+      // T013: expectedVersion is mandatory on the primary path for a
+      // non-privileged writer. GM/ASSISTANT keep the opt-in behaviour — several
+      // server-side writers still bump `_stats.version` without ever setting
+      // the field, and that traffic is not client-authored.
+      //
+      // Every player write funnels through sendOp.ts, which fills the field
+      // from the client's DocumentMirror before the op leaves the browser. One
+      // that still arrives without it is either hand-built or comes from a
+      // client whose mirror never held the document — neither should be able to
+      // last-write-win over another player's edit in silence.
+      if (!isPrivileged(ctx.role) && upd.expectedVersion === undefined) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `expectedVersion is required for ${documentType}/${upd._id} — reload the document and retry`,
+        );
+      }
+
+      const rejection = rejectUnwritableField(documentType, applyDotPathDiff({}, upd.diff));
+      if (rejection) return rejection;
+    }
+
+    const authorCtx = { userId: ctx.userId };
+    const updated: Record<string, unknown>[] = [];
+
+    for (const upd of updates) {
+      // Loaded during pre-flight, where NOT_FOUND and PERMISSION_DENIED were
+      // already answered for every entry in the batch.
+      const existing = loaded.get(upd._id) as Record<string, unknown>;
+
       // STALE_WRITE check: expectedVersion must match _stats.version (monotonic
       // write counter, starts at 1 and increments on every successful update).
       // Do NOT compare against modifiedTime — it is a wall-clock timestamp
       // which lives in a different numeric space and is not monotonically
       // reliable for concurrent-write detection.
+      //
+      // T013: the comparison no longer short-circuits when the STORED
+      // document has no _stats.version. Before, ANY expectedVersion the
+      // client sent was silently accepted whenever the server-side value was
+      // missing/undefined — defeating the whole point of an optimistic-
+      // concurrency check. Treating "no stored version" as 0 closes that
+      // silent bypass. A document actually missing _stats.version (a
+      // hand-seeded/legacy document that never went through the normal
+      // create path — buildCreateStats always sets version:1) is a separate,
+      // pre-existing bug in documents/store.ts's buildUpdateStats (it computes
+      // `existing.version + 1` = NaN, which then fails schema validation on
+      // every subsequent write) — out of scope for this file; reported
+      // separately rather than fixed here since the fix lives outside this
+      // handler's file boundary.
       if (upd.expectedVersion !== undefined) {
         const stats = existing["_stats"] as Record<string, unknown> | undefined;
-        const currentVersion = stats?.["version"] as number | undefined;
-        if (currentVersion !== undefined && currentVersion !== upd.expectedVersion) {
+        const rawVersion = stats?.["version"];
+        const currentVersion = typeof rawVersion === "number" ? rawVersion : 0;
+        if (currentVersion !== upd.expectedVersion) {
           return ackError("STALE_WRITE", "Document has been modified since last read");
         }
       }

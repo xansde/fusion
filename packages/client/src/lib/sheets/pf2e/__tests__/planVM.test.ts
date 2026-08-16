@@ -2152,16 +2152,19 @@ describe("applyBackground", () => {
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
 
     // Fireworks Performer's boosts are ["free","free"] (no fixed boosts) — the
-    // abilities op still fires (reset/seed backgroundFree), plus the lore-entry
-    // op AND the build-choices op: 4 ops total (r20-X4 added the lore branch).
+    // abilities reset/seed, the lore-entry stamp AND the build-choices append
+    // are each their OWN primary doc:update, in this order: [create,
+    // abilities, loreEntries, choices]. sendOp.ts's per-document write queue
+    // (T013 redesign) is what keeps a burst of primary updates to the same
+    // Actor from self-STALE_WRITEing — this VM never merges them.
     expect(ops).toHaveLength(4);
     const abilitiesOp = ops[1]!;
     if (abilitiesOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(abilitiesOp.diff["system.build.abilities.backgroundBoosts"]).toEqual([]);
     expect(abilitiesOp.diff["system.build.abilities.backgroundFree"]).toEqual([]);
 
-    // The lore-entry op stamps the custom Lore skill (lore:true) so the
-    // derivation treats it as an INT-based Lore.
+    // The lore-entry stamps the custom Lore skill (lore:true) so the
+    // derivation treats it as an INT-based Lore — its own diff, third op.
     const loreEntryOp = ops[2]!;
     if (loreEntryOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(loreEntryOp.diff["system.skills.lore-fireworks"]).toMatchObject({
