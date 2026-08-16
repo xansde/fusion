@@ -18,11 +18,15 @@
  *
  * Reversing 3 with 1/2 would leave a window in which the folder is gone and its
  * contents still name it — a crash between the two writes and the world keeps a
- * dangling reference for good.
+ * dangling reference for good. The three writes run inside one
+ * `DocumentStore.transaction()` call (see there), so a failure on any step — a
+ * legacy document that no longer validates, most concretely — rolls all of
+ * them back instead of committing a prefix of the triad with no broadcast.
  *
- * Each step broadcasts its own delta through `broadcastToWorld`, on the same
- * `seq`/`OpBuffer`/redaction pipe every other document change travels, so every
- * client redraws the tree without reloading (RNF-NPC-04).
+ * Each step broadcasts its own delta through `broadcastToWorld`, ONLY once the
+ * whole triad has committed, on the same `seq`/`OpBuffer`/redaction pipe every
+ * other document change travels, so every client redraws the tree without
+ * reloading (RNF-NPC-04).
  *
  * The gate is `isRolePrivileged` and nothing else (REQ-NPC-080, REQ-GAV-034):
  * the tab is not rendered for a player, and hiding is not protection.
@@ -32,7 +36,7 @@ import type { Ack, Envelope, FolderDeleteResult } from "@fusion/shared";
 import { FolderDeletePayloadSchema } from "@fusion/shared";
 import type { HandlerFn } from "../handler-registry.js";
 import { isRolePrivileged } from "../../documents/ownership.js";
-import { DocumentNotFoundError } from "../../documents/store.js";
+import { DocumentNotFoundError, DocumentValidationError } from "../../documents/store.js";
 import type { DocHandlerDeps } from "./doc-handlers.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 
@@ -117,33 +121,52 @@ export function buildFolderDeleteHandler(deps: DocHandlerDeps): HandlerFn {
 
     const author = { userId: ctx.userId };
 
-    // 1. Subfolders rise one level (REQ-NPC-022). Read every folder rather than
-    //    querying by `parent_id`: `store.query` filters `folder_id`, which the
-    //    folders table does not have — a filter that would silently match nothing.
-    const reparented: Record<string, unknown>[] = [];
-    for (const candidate of deps.store.getAll("folders")) {
-      if (candidate["parentId"] !== folderId) continue;
-      const childId = idOf(candidate);
-      if (childId === "") continue;
-      const updated = deps.store.update("folders", childId, { parentId: grandParentId }, author);
-      if (updated !== null) reparented.push(updated);
-    }
-
-    // 2. The documents inside go to "Sem pasta" — moved, never deleted.
-    const released: Record<string, unknown>[] = [];
-    for (const doc of deps.store.query(contentTable as never, { folderId })) {
-      const docId = idOf(doc);
-      if (docId === "") continue;
-      const updated = deps.store.update(contentTable as never, docId, { folder: null }, author);
-      if (updated !== null) released.push(updated);
-    }
-
-    // 3. Only now is the folder gone.
+    // The three steps below run inside ONE transaction (REQ-NPC-022): the old
+    // shape opened one IMMEDIATE transaction PER `store.update`/`store.delete`
+    // call, so a `DocumentValidationError` raised while releasing a document
+    // (e.g. a legacy row a prior pack/migration wrote that no longer matches
+    // the current schema) would leave step 1's reparenting already committed
+    // — with no broadcast to tell any client — while the ack still came back
+    // ok:false. `DocumentStore.transaction()` makes the triad atomic: any
+    // throw here rolls back every write this call made, so the ack describes
+    // a world that is provably untouched.
+    let reparented: Record<string, unknown>[];
+    let released: Record<string, unknown>[];
     try {
-      deps.store.delete("folders", folderId);
+      ({ reparented, released } = deps.store.transaction((txn) => {
+        // 1. Subfolders rise one level (REQ-NPC-022). Read every folder rather
+        //    than querying by `parent_id`: `store.query` filters `folder_id`,
+        //    which the folders table does not have — a filter that would
+        //    silently match nothing.
+        const liftedFolders: Record<string, unknown>[] = [];
+        for (const candidate of deps.store.getAll("folders")) {
+          if (candidate["parentId"] !== folderId) continue;
+          const childId = idOf(candidate);
+          if (childId === "") continue;
+          const updated = txn.update("folders", childId, { parentId: grandParentId }, author);
+          if (updated !== null) liftedFolders.push(updated);
+        }
+
+        // 2. The documents inside go to "Sem pasta" — moved, never deleted.
+        const releasedDocs: Record<string, unknown>[] = [];
+        for (const doc of deps.store.query(contentTable as never, { folderId })) {
+          const docId = idOf(doc);
+          if (docId === "") continue;
+          const updated = txn.update(contentTable as never, docId, { folder: null }, author);
+          if (updated !== null) releasedDocs.push(updated);
+        }
+
+        // 3. Only now is the folder gone.
+        txn.delete("folders", folderId);
+
+        return { reparented: liftedFolders, released: releasedDocs };
+      }));
     } catch (err) {
+      if (err instanceof DocumentValidationError) {
+        return ackError("VALIDATION_FAILED", err.message);
+      }
       if (err instanceof DocumentNotFoundError) {
-        return ackError("NOT_FOUND", `Document not found: Folder/${folderId}`);
+        return ackError("NOT_FOUND", err.message);
       }
       throw err;
     }

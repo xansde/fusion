@@ -28,7 +28,7 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
-import { PROTOCOL_VERSION } from "@fusion/shared";
+import { PROTOCOL_VERSION, createDocumentId } from "@fusion/shared";
 import { reserveFreePort } from "./helpers/ports.js";
 
 // ---------------------------------------------------------------------------
@@ -139,6 +139,47 @@ async function createNpc(name: string, folderId: string | null): Promise<string>
   const result = ack["result"] as Record<string, unknown>;
   const docs = result["documents"] as Record<string, unknown>[];
   return docs[0]!["_id"] as string;
+}
+
+/**
+ * Insert an actor row DIRECTLY into SQLite, bypassing `DocumentStore.create`
+ * (and its validation) entirely — the only way to reproduce, in a test, the
+ * "legacy row a prior pack/migration wrote that no longer matches the current
+ * schema" scenario the atomicity fix targets. `_stats` deliberately omits
+ * `version`: `buildUpdateStats` (documents/store.ts) then computes
+ * `existing.version + 1` = NaN on the next update, which fails
+ * `DocumentStatsSchema`'s `z.number()` check for `version` — a
+ * `DocumentValidationError` raised mid-cascade, not before it (the row reads
+ * back fine via `store.get`/`store.query`, which never validate).
+ */
+function insertLegacyActor(name: string, folderId: string): string {
+  const id = createDocumentId();
+  const now = Date.now();
+  const data = {
+    _id: id,
+    _stats: {
+      createdTime: now,
+      modifiedTime: now,
+      lastModifiedBy: null,
+      createdBy: null,
+      coreVersion: "0.0.0-legacy",
+      systemId: null,
+      systemVersion: null,
+      // `version` intentionally absent.
+    },
+    name,
+    type: "npc",
+    folder: folderId,
+    ownership: { default: 0 },
+    flags: {},
+  };
+  ctx.fusionDb.raw
+    .prepare(
+      `INSERT INTO actors (id, data, name, type, folder_id, sort, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(id, JSON.stringify(data), name, "npc", folderId, 0, now, now);
+  return id;
 }
 
 beforeAll(async () => {
@@ -345,6 +386,54 @@ describe("REQ-NPC-022: deleting a folder deletes no actor", () => {
 
     expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("NOT_FOUND");
+  });
+});
+
+describe("REQ-NPC-022: the reparent+release+delete triad is atomic", () => {
+  it("REQ-NPC-022: a validation failure on the release step rolls back the reparent step too", async () => {
+    const raiz = await createFolder("Raiz Atomica", null);
+    const meio = await createFolder("Meio Atomico", raiz);
+    // A subfolder of `meio` — step 1 (reparent) would lift it to `raiz`.
+    const netinha = await createFolder("Netinha", meio);
+    // A normal, releasable actor — step 2 would move it to "Sem pasta".
+    const bom = await createNpc("Bom", meio);
+    // A legacy row that fails schema validation on write — the one that
+    // makes step 2 throw partway through.
+    const legado = insertLegacyActor("Legado", meio);
+
+    const seen: Record<string, unknown>[] = [];
+    const listener = (env: Record<string, unknown>): void => {
+      seen.push(env);
+    };
+    gmSocket.on("op", listener);
+
+    const ack = await sendOp(gmSocket, "folder:delete", { folderId: meio });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    gmSocket.off("op", listener);
+
+    // The ack must NOT claim success over a world it left half-changed, and
+    // must name the real cause instead of crashing the handler.
+    expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+
+    // No delta of ANY kind reached the socket — the old three-transactions
+    // shape could commit step 1 (reparent) and step 2's first item and still
+    // broadcast nothing, leaving clients silently stale until a resync.
+    expect(seen).toEqual([]);
+
+    const world = await readWorld(ctx.gmToken);
+    const folders = world["Folder"] ?? [];
+    const actors = world["Actor"] ?? [];
+
+    // The folder itself is still there ...
+    expect(folders.some((doc) => doc["_id"] === meio)).toBe(true);
+    // ... its subfolder was NOT lifted — step 1 rolled back together with
+    // step 2's failure, because the whole triad shares one transaction now ...
+    expect(folders.find((doc) => doc["_id"] === netinha)?.["parentId"]).toBe(meio);
+    // ... and neither actor was released — not even the one that would have
+    // validated fine on its own.
+    expect(actors.find((doc) => doc["_id"] === bom)?.["folder"]).toBe(meio);
+    expect(actors.find((doc) => doc["_id"] === legado)?.["folder"]).toBe(meio);
   });
 });
 
