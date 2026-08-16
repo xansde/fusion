@@ -423,6 +423,26 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
 }
 
 /**
+ * What a non-privileged viewer is owed for a batch of Actor documents.
+ *
+ * Two halves, because dropping a document is only half of the delta:
+ *   - `documents` — the bodies that may be delivered;
+ *   - `removedIds` — the ids that were dropped BY THE KNOWLEDGE RULE for this
+ *     viewer, i.e. what the viewer must now forget.
+ *
+ * REQ-CTT-075 is why `removedIds` exists at all: lowering a contact to `hidden`
+ * has to reach the affected user as a removal "sem depender de recarregar a
+ * página". The client mirror is an upsert store — a document simply missing
+ * from a `doc:update` batch leaves the previous copy on screen forever, so
+ * "absent" (REQ-CTT-082) has to travel as an explicit id, on the very same
+ * envelope, or the redaction only holds until the next reload.
+ */
+export interface RedactedActorBatch {
+  documents: Record<string, unknown>[];
+  removedIds: string[];
+}
+
+/**
  * The only Actor bodies a non-privileged viewer may ever receive.
  *
  * REQ-CTT-082: a contact whose effective state is `hidden` is dropped from the
@@ -431,8 +451,10 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
  * REQ-CTT-081: a contact that was `glimpsed` is reduced to
  * {@link glimpsedContactView}.
  * REQ-CTT-084: every surviving Actor loses its knowledge map.
+ * REQ-CTT-075: every id dropped by the rule above comes back in `removedIds`,
+ * so a live/replay caller can carry the removal in the same envelope.
  *
- * May return an EMPTY array. Callers on a live/replay path must still emit the
+ * `documents` may be EMPTY. Callers on a live/replay path must still emit the
  * envelope with those empty `documents`: the client mirror gates ops on a
  * contiguous seq and fires its gap detector on a jump, so a swallowed envelope
  * would put the player into a resync loop.
@@ -440,22 +462,27 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
 export function redactActorDocsForViewer(
   documents: readonly Record<string, unknown>[],
   viewer: ContactViewer,
-): Record<string, unknown>[] {
+): RedactedActorBatch {
   const result: Record<string, unknown>[] = [];
+  const removedIds: string[] = [];
   for (const doc of documents) {
     if (!actorIsSubjectToKnowledge(doc, viewer)) {
       result.push(stripKnowledgeMap(doc));
       continue;
     }
     const state = resolveUserKnowledge(doc, viewer.ownedCharacterIds);
-    if (state === KnowledgeState.Hidden) continue;
+    if (state === KnowledgeState.Hidden) {
+      const id = doc["_id"];
+      if (typeof id === "string") removedIds.push(id);
+      continue;
+    }
     if (state === KnowledgeState.Glimpsed) {
       result.push(glimpsedContactView(doc));
       continue;
     }
     result.push(stripKnowledgeMap(doc));
   }
-  return result;
+  return { documents: result, removedIds };
 }
 
 // ---------------------------------------------------------------------------
@@ -528,8 +555,11 @@ export function redactAckResultForNonPrivileged(
     const viewer = contactCtx
       ? buildContactViewer(contactCtx.source, contactCtx.userId, contactCtx.role)
       : { userId: "", role: 0, ownedCharacterIds: [] as readonly string[] };
+    // The ack goes back to the WRITER, who is looking at a result rather than
+    // at a mirror, so only the bodies matter here — `removedIds` is a delta
+    // concept and belongs to the broadcast/replay paths (REQ-CTT-075).
     const redactedActors = contactCtx
-      ? redactActorDocsForViewer(documents as Record<string, unknown>[], viewer)
+      ? redactActorDocsForViewer(documents as Record<string, unknown>[], viewer).documents
       : (documents as Record<string, unknown>[]).map((d) => stripKnowledgeMap(d));
     const changed =
       redactedActors.length !== documents.length ||

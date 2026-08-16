@@ -1670,9 +1670,19 @@ function broadcastToWorld(
         let playerEnvelope = byUser.get(userId);
         if (!playerEnvelope) {
           const viewer = buildContactViewer(source, userId, role);
+          const redacted = redactActorDocsForViewer(documents, viewer);
+          // REQ-CTT-075: dropping the body is only half of the delta. The
+          // client mirror upserts, so a contact lowered to `hidden` would stay
+          // on the player's screen until a reload unless the very same
+          // envelope names it as gone. Carried on the ordinary op — never a
+          // second envelope — because the mirror gates on a contiguous seq.
           playerEnvelope = {
             ...envelope,
-            payload: { ...payload, documents: redactActorDocsForViewer(documents, viewer) },
+            payload: {
+              ...payload,
+              documents: redacted.documents,
+              ...(redacted.removedIds.length > 0 ? { removedIds: redacted.removedIds } : {}),
+            },
           };
           byUser.set(userId, playerEnvelope);
         }

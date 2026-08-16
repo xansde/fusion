@@ -181,15 +181,24 @@ function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
     // snapshot use — reconnecting inside the buffer window must not become the
     // way to read a contact the GM keeps hidden (REQ-CTT-082, REQ-CTT-083).
     if (documentType === "Actor") {
-      const redactedActors = redactActorDocsForViewer(
-        documents as Record<string, unknown>[],
-        viewer,
-      );
+      const redacted = redactActorDocsForViewer(documents as Record<string, unknown>[], viewer);
+      const redactedActors = redacted.documents;
       const actorsChanged =
         redactedActors.length !== documents.length ||
         redactedActors.some((doc, i) => doc !== documents[i]);
       if (!actorsChanged) return op;
-      return { ...op, payload: { ...payload, documents: redactedActors } };
+      // REQ-CTT-075: the replay carries the removal exactly like the live
+      // broadcast does — a player who reconnects inside the buffer window
+      // learns that the contact went away, instead of re-applying the last op
+      // that still knew nothing about it.
+      return {
+        ...op,
+        payload: {
+          ...payload,
+          documents: redactedActors,
+          ...(redacted.removedIds.length > 0 ? { removedIds: redacted.removedIds } : {}),
+        },
+      };
     }
 
     // Combat reaches this shape too, since T036 started broadcasting the
@@ -411,8 +420,11 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       // stripping is the only order that guarantees `system.derived` never
       // slips back in behind the redaction. Ownership above is still the gate
       // — this only ever removes more (REQ-CTT-074).
+      // A snapshot REPLACES the mirror wholesale, so an absent contact is
+      // already forgotten — `removedIds` is a delta concept and has no meaning
+      // here (REQ-CTT-075 is served by the broadcast and replay paths).
       if (docType === "Actor" && viewer) {
-        visible = redactActorDocsForViewer(visible, viewer);
+        visible = redactActorDocsForViewer(visible, viewer).documents;
       }
 
       documents[docType] = visible;

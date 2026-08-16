@@ -8,6 +8,10 @@
  *              name, no title, no portrait and no system data.
  * REQ-CTT-082: the payload of a HIDDEN contact is not delivered at all — not in
  *              the snapshot, not in the broadcast, not in the replay.
+ * REQ-CTT-075: changing knowledge propagates the DELTA to each affected user —
+ *              including the removal of a contact that dropped to `oculto`, on
+ *              the same envelope, so nobody has to reload the page to stop
+ *              seeing it.
  * REQ-CTT-083: all of it happens in `net/redaction.ts`, the same module that
  *              redacts hidden tokens and the scene list, and no emission path
  *              bypasses it.
@@ -225,6 +229,28 @@ function docsOf(ack: Record<string, unknown>): Record<string, unknown>[] {
   return result?.documents ?? [];
 }
 
+/**
+ * The payload of the op a socket received at a given seq — the unit REQ-CTT-075
+ * is written about: one user, one envelope, both halves of the delta on it.
+ */
+function aPayloadAtSeq(envelopes: Record<string, unknown>[], seq: number): Record<string, unknown> {
+  const env = envelopes.find((e) => e["seq"] === seq);
+  if (!env) throw new Error(`no envelope with seq ${String(seq)} in the recorded traffic`);
+  return env["payload"] as Record<string, unknown>;
+}
+
+/** The ops a `resync:delta` replayed out of the OpBuffer, flattened. */
+function replayedOps(envelopes: Record<string, unknown>[]): Record<string, unknown>[] {
+  const ops: Record<string, unknown>[] = [];
+  for (const env of envelopes) {
+    const payload = env["payload"] as Record<string, unknown> | undefined;
+    if (payload && Array.isArray(payload["ops"])) {
+      ops.push(...(payload["ops"] as Record<string, unknown>[]));
+    }
+  }
+  return ops;
+}
+
 // ---------------------------------------------------------------------------
 
 describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061)", () => {
@@ -285,7 +311,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
    */
   function expectedFor(actorId: string, userId: string): Record<string, unknown> | undefined {
     const viewer = buildContactViewer(knowledgeSource(), userId, Role.PLAYER);
-    return redactActorDocsForViewer([readFromStore(actorId)], viewer)[0];
+    return redactActorDocsForViewer([readFromStore(actorId)], viewer).documents[0];
   }
 
   beforeEach(async () => {
@@ -563,6 +589,105 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     expect(envelope).toBeDefined();
     expect((envelope?.["payload"] as Record<string, unknown>)["documents"]).toEqual([]);
     expect(JSON.stringify(aTraffic)).not.toContain(KNOWN_NAME);
+  });
+
+  // -------------------------------------------------------------------------
+  // REQ-CTT-075 — the removal is part of the delta, not of the next reload
+  //
+  // An empty batch says "here is nothing new about anybody"; it does NOT say
+  // "forget the taverner". The client mirror only upserts, so without an
+  // explicit id the contact would keep its name, portrait and title on the
+  // player's screen — and keep matching the search — until F5.
+  // -------------------------------------------------------------------------
+
+  it("REQ-CTT-075/REQ-CTT-082: lowering a contact to hidden names it as removed in the very same envelope", async () => {
+    const aTraffic = recordEnvelopes(playerASocket);
+    const bTraffic = recordEnvelopes(playerBSocket);
+    const gmTraffic = recordEnvelopes(gmSocket);
+
+    const ack = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [{ actorId: knownId, general: KnowledgeState.Hidden }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await settle();
+
+    for (const [label, traffic] of [
+      ["player A", aTraffic],
+      ["player B", bTraffic],
+    ] as const) {
+      const payload = aPayloadAtSeq(traffic, ack["seq"] as number);
+      expect({ label, documents: payload["documents"] }).toEqual({ label, documents: [] });
+      // The id, on the same op — a second envelope would break the mirror's
+      // contiguous seq, and a later one would arrive after the stale render.
+      expect({ label, removedIds: payload["removedIds"] }).toEqual({
+        label,
+        removedIds: [knownId],
+      });
+    }
+
+    // The GM is told nothing of the sort: for a privileged socket the contact
+    // never left, so `removedIds` must not appear at all (REQ-CTT-084 keeps the
+    // map privileged; this keeps the *delta* honest for whoever can still see).
+    const gmPayload = aPayloadAtSeq(gmTraffic, ack["seq"] as number);
+    expect(gmPayload).not.toHaveProperty("removedIds");
+    expect((gmPayload["documents"] as Record<string, unknown>[])[0]?.["name"]).toBe(KNOWN_NAME);
+  });
+
+  it("REQ-CTT-075: a contact that only went DOWN to glimpsed is not announced as removed", async () => {
+    const aTraffic = recordEnvelopes(playerASocket);
+    const ack = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [{ actorId: knownId, general: KnowledgeState.Glimpsed }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await settle();
+
+    const payload = aPayloadAtSeq(aTraffic, ack["seq"] as number);
+    // Still delivered, just stripped (REQ-CTT-081) — removing it from the
+    // mirror would be a different lie: the contact is still on the panel, as
+    // "não identificado".
+    expect((payload["documents"] as Record<string, unknown>[])[0]?.["_id"]).toBe(knownId);
+    expect(payload).not.toHaveProperty("removedIds");
+  });
+
+  it("REQ-CTT-075/REQ-CTT-083: the delta replay carries the removal too, not only the live broadcast", async () => {
+    // Where the player stands before the change, so the replay has a start.
+    let lastSeq = 0;
+    const probe = connectClient(ctx, ctx.playerAToken);
+    probe.on("op", (env: Record<string, unknown>) => {
+      if (env["type"] === "resync:full") {
+        const snap = (env["payload"] as Record<string, unknown>)["snapshot"] as Record<
+          string,
+          unknown
+        > | null;
+        if (snap) lastSeq = snap["seq"] as number;
+      }
+    });
+    probe.connect();
+    await waitForConnect(probe);
+    await settle();
+    probe.disconnect();
+
+    const ack = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [{ actorId: knownId, general: KnowledgeState.Hidden }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await settle();
+
+    // Reconnecting inside the buffer window replays the op out of the OpBuffer.
+    const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
+    const replayTraffic = recordEnvelopes(replayer);
+    replayer.connect();
+    await waitForConnect(replayer);
+    await settle();
+
+    const replayed = replayedOps(replayTraffic).find((op) => op["seq"] === ack["seq"]);
+    expect(replayed).toBeDefined();
+    const payload = replayed?.["payload"] as Record<string, unknown>;
+    expect(payload["documents"]).toEqual([]);
+    expect(payload["removedIds"]).toEqual([knownId]);
+    expect(JSON.stringify(replayTraffic)).not.toContain(KNOWN_NAME);
+
+    replayer.disconnect();
   });
 
   // -------------------------------------------------------------------------
