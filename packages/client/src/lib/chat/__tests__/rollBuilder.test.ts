@@ -54,6 +54,21 @@ describe("a janela compõe o QUE se rola (REQ-ACH-060)", () => {
     );
   });
 
+  // REQ-ROL-006 spells exploding `x`/`xo`; the builder emits `!`. That is not the builder
+  // disagreeing with the spec on a whim — the parser the server actually runs refuses the
+  // spec's own examples. The amendment spec 08 owes is registered in `specs/38-aba-chat.md`
+  // §12, and the two assertions below are its evidence: without them the amendment would be
+  // an assertion about the engine that nothing checks.
+  it("emits `!` because the shipped engine rejects the `x` of REQ-ROL-006", () => {
+    for (const rejected of ["3d6x", "6d10xo10"]) {
+      expect(checkFavoriteFormula(rejected), rejected).not.toEqual({ valid: true });
+    }
+    expect(checkFavoriteFormula("3d6!")).toEqual({ valid: true });
+    expect(
+      checkFavoriteFormula(buildRollFormula(spec({ count: 3, faces: 6, explode: true }))),
+    ).toEqual({ valid: true });
+  });
+
   it("appends the label as a roll note (REQ-ROL-013)", () => {
     expect(buildRollFormula(spec({ modifier: 5, label: "Ataque" }))).toBe("1d20+5 # Ataque");
     expect(buildRollFormula(spec({ label: "   " }))).toBe("1d20");

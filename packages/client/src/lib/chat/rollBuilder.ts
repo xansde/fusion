@@ -7,12 +7,14 @@
  * places deciding the audience is where every leak starts, so the window only reports what
  * the selector says (REQ-ACH-061) and this module never touches a `RollMode`.
  *
- * Notation note (divergence recorded, not invented here)
- * ------------------------------------------------------
- * REQ-ROL-006 writes exploding as `x`, but the roller actually shipped
- * (`@dice-roller/rpg-dice-roller`, the same parser `validateFormula` uses and the server
- * executes) accepts `!` and rejects `x`. Composing `3d6x` would produce a favourite the
- * engine refuses, so the builder emits `3d6!`. Registered as an open question for spec 08.
+ * Notation note (amendment registered, not invented here)
+ * -------------------------------------------------------
+ * REQ-ROL-006 writes exploding as `x`/`xo`, but the roller actually shipped
+ * (`@dice-roller/rpg-dice-roller` 5.5.x, the same parser `checkFavoriteFormula` uses and the
+ * server executes) rejects both and accepts `!` instead. Composing `3d6x` would produce a
+ * favourite the engine refuses, so the builder emits `3d6!`. The amendment that spec 08 owes
+ * is written down in `specs/38-aba-chat.md` §12, and the rejection is asserted by the tests —
+ * this comment is the pointer, not the record.
  *
  * Pure: same spec in, same string out — no storage, no socket, no DOM.
  */
