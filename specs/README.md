@@ -60,6 +60,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 36  | [Gaveta Lateral](36-gaveta-lateral.md)                               | Trilho só-ícone, gaveta, registro de abas (mãe)  |
 | 37  | [Configurações](37-configuracoes.md)                                 | Aba da gaveta: preferências, mundo, usuários     |
 | 38  | [Aba Chat](38-aba-chat.md)                                           | Aba da gaveta: log, dados favoritos, invalidação |
+| 39  | [Contatos](39-contatos.md)                                           | Aba da gaveta: mesa, conhecidos, quem conhece    |
 
 ## Níveis
 
@@ -119,6 +120,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-GAV-`  | [36](36-gaveta-lateral.md)                | Gaveta lateral (spec-mãe das abas) |
 | `REQ-CFG-`  | [37](37-configuracoes.md)                 | Configurações (aba da gaveta)      |
 | `REQ-ACH-`  | [38](38-aba-chat.md)                      | Aba Chat (painel da gaveta)        |
+| `REQ-CTT-`  | [39](39-contatos.md)                      | Contatos (aba da gaveta)           |
 
 <!-- prefixos:end -->
 
