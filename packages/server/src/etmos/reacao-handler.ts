@@ -49,6 +49,7 @@ import {
 } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
 import type { CombatEventBus } from "../combat/combat-event-bus.js";
+import { broadcastCombatVersionUpdate, broadcastCombatUpdate } from "../combat/combat-handlers.js";
 import { estadoFadiga } from "@fusion/system-etmos";
 
 const FLAG_NAMESPACE = "etmos";
@@ -134,7 +135,10 @@ export interface ReacaoResetDeps {
  * To guarantee the client actually sees the reset Reação, this handler
  * broadcasts its OWN follow-up `combat:updated` diff after persisting,
  * exactly like combat-handlers.ts's buildCombatSetHiddenHandler does for its
- * own out-of-band per-combatant patch.
+ * own out-of-band per-combatant patch. T036: it also follows up with
+ * `broadcastCombatVersionUpdate` (combat-handlers.ts) so the `_stats.version`
+ * this `store.update` call just bumped reaches every client's
+ * DocumentMirror — combat:updated's payload never carries `_stats`.
  */
 export function registerReacaoResetOnTurnStart(
   eventBus: CombatEventBus,
@@ -184,7 +188,15 @@ export function registerReacaoResetOnTurnStart(
     }
     if (!updated) return;
 
-    broadcastCombatantsPatch(deps, combat._id, updatedCombatants);
+    broadcastCombatantsPatch(deps, combat._id, updatedCombatants, updated);
+
+    // T036: this write bumps Combat's `_stats.version` (store.update above)
+    // but broadcastCombatantsPatch only ever emitted combat:updated, whose
+    // {combatId, diff, seq} payload never carries `_stats` — see
+    // broadcastCombatVersionUpdate's docstring (combat-handlers.ts) for why
+    // that leaves DocumentMirror._stats.version permanently stale without
+    // this companion doc:update.
+    broadcastCombatVersionUpdate(deps, updated);
   });
 }
 
@@ -192,6 +204,7 @@ function broadcastCombatantsPatch(
   deps: { seqStore: SeqStore; opBuffer: OpBuffer; ns: Namespace },
   combatId: string,
   combatants: CombatantDocument[],
+  combatDoc: Record<string, unknown>,
 ): void {
   const seq = deps.seqStore.next();
   const envelope: Envelope = {
@@ -201,7 +214,12 @@ function broadcastCombatantsPatch(
     payload: { combatId, diff: { combatants }, seq },
   };
   deps.opBuffer.push(envelope);
-  deps.ns.emit("op", envelope);
+  // `diff.combatants` is the FULL combatant list, hidden ones included. Sending
+  // it namespace-wide handed every player the combatants the GM had hidden —
+  // the same leak REQ-CBT-031 closes elsewhere, on a path that had been missed.
+  // `broadcastCombatUpdate` is the per-socket split the rest of the combat code
+  // already uses; the predicate is not duplicated here.
+  broadcastCombatUpdate(deps.ns, envelope, combatDoc);
 }
 
 // ---------------------------------------------------------------------------
@@ -401,6 +419,11 @@ export function buildReacaoUsarHandler(deps: ReacaoHandlerDeps): HandlerFn {
     };
     deps.opBuffer.push(envelope);
     deps.ns.emit("op", envelope);
+
+    // T036: see broadcastCombatVersionUpdate's docstring (combat-handlers.ts)
+    // — the store.update() above bumped Combat's `_stats.version`, and the
+    // combat:updated envelope just built/emitted never carries `_stats`.
+    broadcastCombatVersionUpdate(deps, updated);
 
     return ackOk({ state: result.state, segundaReacaoComCusto: result.segundaReacaoComCusto }, seq);
   };

@@ -24,6 +24,7 @@ import {
 } from "./commands/worlds.js";
 import { runUserAdd } from "./commands/users.js";
 import { runChatCommand } from "./commands/chat.js";
+import { runAssetsCommand } from "./commands/assets.js";
 
 // ---------------------------------------------------------------------------
 // Main
@@ -39,6 +40,13 @@ async function main(): Promise<void> {
   // while this destructive command's shape is still settling.
   if (userArgs[0] === "chat") {
     runChatCommand(userArgs.slice(1));
+    return;
+  }
+
+  // `fusion assets reconcile|gc` (T022/T023) owns its own sub-parser
+  // (commands/assets.ts) for the same reason `chat` does above.
+  if (userArgs[0] === "assets") {
+    runAssetsCommand(userArgs.slice(1));
     return;
   }
 
