@@ -10,8 +10,10 @@
  * REQ-CPD-041 (the fields the pack declared), REQ-CPD-042 (the matched run
  * marked), REQ-CPD-043 (the in-world seal with the DEC-CPD-12 caveat within
  * reach), REQ-CPD-044 (draggable only where §5.7 gives a destination),
- * REQ-CPD-045 (the fallback keeps the row's alignment) and REQ-CPD-046 (no
- * creature statistic on an unprivileged line).
+ * REQ-CPD-045 (the fallback keeps the row's alignment), REQ-CPD-046 (no
+ * creature statistic on an unprivileged line) and the label of the bring action
+ * — REQ-CPD-060 for the world door, REQ-CPD-061 for the sheet one, REQ-CPD-053
+ * for saying the same thing the preview window says.
  */
 
 import { describe, expect, it } from "vitest";
@@ -69,7 +71,7 @@ function renderLine(
     ...ctx,
   });
   const { body } = render(CompendiumResultLine, {
-    props: { line, onPreview: () => undefined, ...props },
+    props: { line, onPreview: () => undefined, importDestination: "world", ...props },
   });
   return body;
 }
@@ -168,6 +170,26 @@ describe("CompendiumResultLine — two names, the fields, and a seal that promis
 
     expect(html).toContain(t("FUSION.Compendium.Line.ImportShort"));
     expect(html).not.toContain("disabled");
+  });
+
+  it("REQ-CPD-060: pointed at the world, the line says so on the bring action", () => {
+    const html = renderLine(SPELL, {}, { onImport: () => undefined, importDestination: "world" });
+
+    expect(html).toContain(t("FUSION.Compendium.Line.ImportShort"));
+    expect(html).toContain(t("FUSION.Compendium.Line.Import", { name: "Bola de Fogo" }));
+  });
+
+  it("REQ-CPD-061/053: pointed at a sheet, the line says sheet — never 'para o mundo'", () => {
+    const html = renderLine(SPELL, {}, { onImport: () => undefined, importDestination: "sheet" });
+
+    // The same pair of labels the preview window uses, so the two agree
+    // (REQ-CPD-053).
+    expect(html).toContain(t("FUSION.Compendium.Line.ImportToSheetShort"));
+    expect(html).toContain(t("FUSION.Compendium.Line.ImportToSheet", { name: "Bola de Fogo" }));
+    // CA-CPD-009: a seat writing on a sheet is never told it writes on the
+    // world — the player has no world door anywhere in this tab.
+    expect(html).not.toContain(t("FUSION.Compendium.Line.ImportShort"));
+    expect(html).not.toContain("para o mundo");
   });
 
   it("REQ-CPD-044: a line with a destination is draggable, one without is not", () => {

@@ -869,6 +869,7 @@
                     line={built}
                     onPreview={() => openPreview(built, manifest)}
                     onImport={canBring(built.documentType) ? () => bringOver(built) : undefined}
+                    importDestination={activeDestination.kind}
                     importing={importingUuids.has(built.uuid)}
                     onTogglePin={() => togglePin(entryRefOf(built))}
                     pinned={isEntryPinned(pinnedEntries, built.uuid)}
@@ -977,6 +978,7 @@
                   line={built}
                   onPreview={() => openPreview(built, selectedPack)}
                   onImport={canBring(built.documentType) ? () => bringOver(built) : undefined}
+                  importDestination={activeDestination.kind}
                   onTogglePin={() => togglePin(entryRefOf(built))}
                   pinned={isEntryPinned(pinnedEntries, built.uuid)}
                   importing={importingUuids.has(entry.uuid)}

@@ -134,7 +134,9 @@ describe("REQ-CPD-082: the pin gesture on a result line", () => {
       viewerIsPrivileged: false,
     });
     return render(CompendiumResultLine, {
-      props: { line, onTogglePin: () => {}, pinned },
+      // Unprivileged reader: whatever he could bring lands on a sheet, never on
+      // the world (REQ-CPD-061).
+      props: { line, onTogglePin: () => {}, pinned, importDestination: "sheet" },
     }).body;
   }
 
@@ -163,7 +165,9 @@ describe("REQ-CPD-082: the pin gesture on a result line", () => {
       viewerIsPrivileged: false,
     });
 
-    const markup = render(CompendiumResultLine, { props: { line } }).body;
+    const markup = render(CompendiumResultLine, {
+      props: { line, importDestination: "sheet" },
+    }).body;
 
     expect(markup).not.toContain("aria-pressed");
   });

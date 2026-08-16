@@ -25,6 +25,11 @@
    * are inline SVG, never pictographs — an emoji changes shape per operating
    * system and ignores the theme.
    *
+   * The bring action names its own destination (`importDestination`): the world
+   * (REQ-CPD-060) or the sheet in force (REQ-CPD-061). A player has no world
+   * door, so a fixed "into the world" label would be an action the tab is not
+   * allowed to offer him at all (CA-CPD-009).
+   *
    * Nothing here decides who may see what: the fields already arrive filtered
    * for the reader's role (REQ-CPD-046) and the pack audience is enforced on the
    * server (REQ-CPD-074).
@@ -41,6 +46,15 @@
     onPreview?: (() => void) | undefined;
     /** Bring it over; absent when this reader has no destination (REQ-CPD-060). */
     onImport?: (() => void) | undefined;
+    /**
+     * Where that gesture lands (REQ-CPD-060 × REQ-CPD-061): the world, or the
+     * sheet the panel is pointing at. The line does not choose the destination
+     * — it only tells the truth about the one in force, so a player, who has no
+     * world door at all, never reads "trazer para o mundo" over an action that
+     * writes on a sheet (CA-CPD-009). Required on purpose: a default here would
+     * be a label that lies every time a caller forgets to pass it.
+     */
+    importDestination: "world" | "sheet";
     /** True while this line's import is in flight. */
     importing?: boolean | undefined;
     /** Start of a drag; only ever called on a line with a destination. */
@@ -61,12 +75,29 @@
     line,
     onPreview,
     onImport,
+    importDestination,
     importing = false,
     onDragStart,
     onImageError,
     onTogglePin,
     pinned = false,
   }: Props = $props();
+
+  /**
+   * The two labels of the bring action, chosen by the destination in force —
+   * the same pair the preview window uses, which is what keeps line and window
+   * saying the same thing (REQ-CPD-053).
+   */
+  const importLabelKey = $derived(
+    importDestination === "world"
+      ? "FUSION.Compendium.Line.Import"
+      : "FUSION.Compendium.Line.ImportToSheet",
+  );
+  const importTitleKey = $derived(
+    importDestination === "world"
+      ? "FUSION.Compendium.Line.ImportShort"
+      : "FUSION.Compendium.Line.ImportToSheetShort",
+  );
 
   /**
    * Path data per icon, drawn on a 24×24 grid. Simple silhouettes on purpose:
@@ -226,8 +257,8 @@
         type="button"
         onclick={() => onImport()}
         disabled={importing}
-        aria-label={t("FUSION.Compendium.Line.Import", { name: line.nameText })}
-        title={t("FUSION.Compendium.Line.ImportShort")}
+        aria-label={t(importLabelKey, { name: line.nameText })}
+        title={t(importTitleKey)}
       >
         <svg
           viewBox="0 0 24 24"

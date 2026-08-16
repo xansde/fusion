@@ -69,6 +69,21 @@ describe("where the panel can bring an entry (REQ-CPD-060, REQ-CPD-061)", () => 
     expect(src).toMatch(/importToActor\(socket, \[line\.uuid\], target\.target\.actorId\)/);
   });
 
+  it("REQ-CPD-060/061: every line is told which door it opens, so none can mislabel it", () => {
+    const src = source();
+    const importLines = src.split("\n").filter((line) => line.includes("onImport="));
+
+    expect(importLines.length).toBeGreaterThan(0);
+    // CA-CPD-009: the label follows the destination in force. A player has no
+    // world door, so a line that never learns the destination would offer him
+    // "trazer para o mundo" — the one action this tab must not show him.
+    const destinationLines = src.split("\n").filter((line) => line.includes("importDestination="));
+    expect(destinationLines).toHaveLength(importLines.length);
+    for (const line of destinationLines) {
+      expect(line).toContain("activeDestination.kind");
+    }
+  });
+
   it("REQ-CPD-061: the destinations come from the shared ownership rule, not a local guess", () => {
     const src = source();
 
