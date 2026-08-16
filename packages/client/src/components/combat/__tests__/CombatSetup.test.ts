@@ -410,6 +410,10 @@ describe("escolher a estatística no mesmo gesto de rolar (REQ-CBA-066)", () => 
     expect(body).toContain(t("FUSION.Combat.RollMyInitiative"));
   });
 
+  // The panel's half of REQ-CBA-066: the menu's choice reaches the roll gesture and no
+  // second operation is invented for it. The other half — that the choice actually rides
+  // the roll's PAYLOAD to the server — is proved against a fake socket in
+  // `lib/combat/__tests__/combatInitiativeOp.test.ts`, because source text cannot show it.
   it("a escolha viaja na mesma operação de rolar, sem operação nova", () => {
     const source = panelSource();
 
