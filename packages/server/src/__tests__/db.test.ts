@@ -26,6 +26,7 @@ import {
   applyMigrations,
   getSchemaVersion,
   registerMigrations,
+  MigrationError,
 } from "../db/index.js";
 import { migration001 } from "../db/migrations/001_initial_schema.js";
 import type { FusionMigration } from "../db/index.js";
@@ -356,9 +357,12 @@ describe("applyMigrations", () => {
         throw new Error("deliberate migration failure");
       },
     };
-    registerMigrations([badMigration]);
+    // Keep 001 registered: the schema guard would otherwise reject the database
+    // for carrying a migration this "build" does not know, and we would never
+    // reach the rollback this test is about.
+    registerMigrations([migration001, badMigration]);
 
-    expect(() => applyMigrations(fdb.raw, path)).toThrow();
+    expect(() => applyMigrations(fdb.raw, path)).toThrow(MigrationError);
 
     // The table should NOT have been created (rollback)
     const row = fdb.raw
