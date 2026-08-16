@@ -8,7 +8,7 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1824 requisitos [MVP]** definidos nas 43 specs. Os [V2] ficam de fora
+Escopo: os **1842 requisitos [MVP]** definidos nas 43 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
@@ -17,8 +17,8 @@ porque ainda não foram prometidos para nenhum marco.
 | --- | ---: | ---: |
 | Citados por algum teste | 218 | 12% |
 | Citados só por código de produção | 330 | 18% |
-| Sem nenhuma citação | 1276 | 70% |
-| **Total [MVP]** | **1824** | |
+| Sem nenhuma citação | 1294 | 70% |
+| **Total [MVP]** | **1842** | |
 
 ## Por spec
 
@@ -29,8 +29,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 8 | 17 | 34 | 14% |
 | [03](03-persistencia-e-mundos.md) | 36 | 2 | 20 | 14 | 6% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
-| [05](05-usuarios-e-permissoes.md) | 36 | 0 | 19 | 17 | 0% |
-| [06](06-canvas-e-renderizacao.md) | 85 | 3 | 33 | 49 | 4% |
+| [05](05-usuarios-e-permissoes.md) | 40 | 0 | 19 | 21 | 0% |
+| [06](06-canvas-e-renderizacao.md) | 86 | 3 | 33 | 50 | 3% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 12 | 24 | 20 | 21% |
 | [08](08-motor-de-rolagens.md) | 49 | 11 | 12 | 26 | 22% |
 | [09](09-chat-e-mensagens.md) | 49 | 5 | 9 | 35 | 10% |
@@ -40,8 +40,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 62 | 15 | 31 | 16 | 24% |
-| [16](16-compendiums-e-importacao.md) | 50 | 13 | 17 | 20 | 26% |
-| [17](17-sistema-pf2e.md) | 66 | 36 | 14 | 16 | 55% |
+| [16](16-compendiums-e-importacao.md) | 56 | 13 | 17 | 26 | 23% |
+| [17](17-sistema-pf2e.md) | 72 | 36 | 14 | 22 | 50% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
@@ -58,7 +58,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 0 | 0 | 24 | 0% |
-| [37](37-configuracoes.md) | 39 | 0 | 0 | 39 | 0% |
+| [37](37-configuracoes.md) | 40 | 0 | 0 | 40 | 0% |
 | [38](38-aba-chat.md) | 56 | 0 | 0 | 56 | 0% |
 | [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |

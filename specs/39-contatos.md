@@ -205,8 +205,8 @@ a aba Configurações faz com a seção Mundo (REQ-SYS-047).
 - **Falha aberta:** declaração incompleta degrada a exibição, nunca esconde a condição.
 - **Sem ícone nesta aba:** o `img` do registro aponta para arte do sistema, e arte da Paizo
   é proibida no projeto.
-- **Emenda que isso obriga:** `ConditionDefinition` (REQ-SYS-043) ganha `tone`, `help` e
-  `critical` — ver §12.
+- **Emenda que isso obriga:** `ConditionDefinition` (REQ-SYS-043) ganhou `tone`, `help` e
+  `critical`, aplicados em `15-api-de-sistemas.md` em 2026-08-16 — ver §12.
 
 ### DEC-CTT-12 — Só o Mestre arrasta um contato para o mapa
 
@@ -513,17 +513,20 @@ botão de ficha alcançável por teclado e por toque.
 - **Q-CTT-05** — O título (DEC-CTT-07) vale também para não-jogadores, editável pelo Mestre,
   ou só para personagens de jogador? O protótipo mostra o título do contato vindo do próprio
   ator, o que sugere valer para os dois.
+  > **Fechada em 2026-08-16 pela spec 42** (`42-aba-npcs.md`, REQ-NPC-032 e §12): o título
+  > vale também para não-jogador e é editável pelo Mestre. Mantida aqui como registro da
+  > pergunta e de onde ela foi respondida, não como decisão pendente.
 
 ## 12. Emendas que esta spec obriga
 
 Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio (`CONVENCOES.md` §2):
 
-| Spec | O que muda                                                                                                                                                                                                                                                                                          |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `15` | **REQ-SYS-043** passa a exigir, em `ConditionDefinition`, os campos `tone` (`"benefit" \| "harm" \| "special"`), `help` (texto curto, traduzido pelo sistema) e `critical?` (booleano). São opcionais no schema e têm degradação definida em REQ-CTT-035, para não invalidar sistema já registrado. |
-| `11` | **REQ-UIF-002** cita uma aba "Actors" na sidebar. A aba passa a ser **Contatos**, e perde criação e exclusão de ator (DEC-CTT-01) — que não migram para cá nem para lugar nenhum até a aba NPCs existir. A lista efetiva de abas continua sendo a da DEC-GAV-01.                                    |
-| `02` | Nada muda no modelo; registra-se que a redação de REQ-DOC-058 passa a ter um segundo consumidor além de Notes e tokens ocultos: o conhecimento de contato (REQ-CTT-083).                                                                                                                            |
-| `05` | Nada muda, e é preciso dizer por quê: a questão em aberto da `05` sobre o nível `LIMITED` cobrir "identificado pelo nome, sem stats" **continua aberta** — esta spec não a responde, porque conhecimento é por personagem e ownership é por usuário (DEC-CTT-03).                                   |
+| Spec | O que muda                                                                                                                                                                                                                                                                                                                                                                                |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `15` | **REQ-SYS-043** já ganhou, em `ConditionDefinition`, os campos `tone` (`"benefit" \| "harm" \| "special"`), `help` (texto curto, traduzido pelo sistema) e `critical?` (booleano) — emenda aplicada na `15` em 2026-08-16, junto de DEC-SYS-10 e do bloco de modelo de dados. São opcionais no schema e têm degradação definida em REQ-CTT-035, para não invalidar sistema já registrado. |
+| `11` | **REQ-UIF-002** já teve sua lista de abas substituída pela DEC-GAV-01, na nota que a `36` deixou sob o requisito: a aba "Actors" é a aba **Contatos**, e perde criação e exclusão de ator (DEC-CTT-01) — que não migram para cá nem para lugar nenhum até a aba NPCs existir.                                                                                                             |
+| `02` | Nada muda no modelo; registra-se que a redação de REQ-DOC-058 passa a ter um segundo consumidor além de Notes e tokens ocultos: o conhecimento de contato (REQ-CTT-083).                                                                                                                                                                                                                  |
+| `05` | Nada muda, e é preciso dizer por quê: a questão em aberto da `05` sobre o nível `LIMITED` cobrir "identificado pelo nome, sem stats" **continua aberta** — esta spec não a responde, porque conhecimento é por personagem e ownership é por usuário (DEC-CTT-03).                                                                                                                         |
 
 ## 13. Referências
 

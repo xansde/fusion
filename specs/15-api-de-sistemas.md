@@ -281,6 +281,12 @@ sistema fornece os dados e, opcionalmente, effects.
   (PF2e ~40; Etmos punhado).
 - **Racional:** registro declarativo reusa o motor de effects (DEC-SYS-04); condições
   numeradas (frightened N, Fadiga) viram `value` + effect parametrizado.
+- **A exibição também é dado declarado, não julgamento da UI.** Além da mecânica, a
+  `ConditionDefinition` carrega tom, ajuda e criticidade (REQ-SYS-043) — o mesmo
+  princípio da DEC-CTT-11 (`39-contatos.md`): a aba não conhece condição nenhuma,
+  pinta o que o sistema declarou. Os três campos são opcionais e degradam abertos,
+  porque a engine não pode invalidar sistema já registrado nem esconder uma condição
+  ativa por falta de metadado.
 
 ---
 
@@ -389,8 +395,35 @@ SystemDataModelSpec)` que registra um `SystemDataModel` para um
   ordena a fila usando esse desempate (`ver 10-` REQ-CBT-013).
 - **REQ-SYS-043** [MVP] `registrar.condition(def: ConditionDefinition)` DEVE
   registrar uma condição `{ slug, label, img, valued?: boolean, effects?:
-EffectRule[], overrides?: string[] }`. A engine DEVE fornecer aplicação/remoção
-  e exibição de badge no token (`ver 06-`, `ver 10-`).
+EffectRule[], overrides?: string[], tone?: "benefit" | "harm" | "special", help?:
+string, critical?: boolean }`. A engine DEVE fornecer aplicação/remoção e exibição
+  de badge no token (`ver 06-`, `ver 10-`). Os três últimos campos formam o
+  **contrato de exibição** da condição, são todos opcionais e NÃO DEVEM ser
+  condição de aceitação do registro — sistema já registrado continua válido sem
+  declarar nenhum deles:
+  - `tone` DEVE declarar o efeito da condição **sobre quem a carrega**, e não sua
+    gravidade: `"benefit"` ajuda, `"harm"` atrapalha, `"special"` é situação
+    (detecção, atitude, controle). A UI que consome o registro DEVE derivar a cor da
+    etiqueta desse campo, e NÃO DEVE inferir tom a partir de `effects`.
+  - `help` DEVE ser um texto curto de ajuda, já traduzido pelo sistema
+    (REQ-SYS-048/049), destinado à ajuda sob demanda da UI.
+  - `critical` DEVE marcar a condição que tira o personagem da cena. É **ênfase**
+    sobre o `tone` declarado, nunca um quarto tom, e NÃO DEVE alterar a cor da
+    etiqueta.
+
+  A degradação DEVE falhar aberta, nos termos de `39-contatos.md` (REQ-CTT-035):
+  condição sem `tone` DEVE ser tratada como `"special"`; condição sem `help` DEVE
+  ser exibida sem ajuda; declaração incompleta NUNCA DEVE ocultar a condição nem
+  abortar o carregamento do sistema.
+
+  > **Emenda obrigada pela spec 39** (`39-contatos.md`, DEC-CTT-11 e §12,
+  > 2026-08-16): `tone`, `help` e `critical` existem para dar contrato declarado às
+  > etiquetas de condição consumidas por REQ-CTT-030..038 (`39-contatos.md`),
+  > REQ-CBA-050 (`40-aba-combate.md`) e REQ-NPC-033 (`42-aba-npcs.md`), que não
+  > conhecem condição nenhuma e só pintam o que o sistema declarou. _(Esta redação
+  > acrescenta os três campos opcionais; nenhum campo anterior de
+  > `ConditionDefinition` mudou de forma ou de obrigatoriedade.)_
+
 - **REQ-SYS-044** [MVP] A engine DEVE expor à API do sistema operações de
   condição em um Actor: `increaseCondition(slug)`, `decreaseCondition(slug)`,
   `toggleCondition(slug)`, `setCondition(slug, value)` (semântica de research 10
@@ -743,6 +776,10 @@ interface ConditionDefinition {
   valued?: boolean;
   effects?: EffectRule[];
   overrides?: string[];
+  // Contrato de exibição (REQ-SYS-043) — opcionais; ausência degrada, não invalida
+  tone?: "benefit" | "harm" | "special"; // efeito sobre quem carrega; ausente ⇒ "special"
+  help?: string; // ajuda curta, já traduzida pelo sistema; ausente ⇒ sem ajuda
+  critical?: boolean; // tira o personagem da cena; ênfase, não um quarto tom
 }
 interface ActionDefinition {
   slug: string;
@@ -854,6 +891,10 @@ Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat
   concreto que consome esta API (schemas, effects, sheets, condições).
 - `21-seguranca.md` — sanitização, ausência de `eval`, descarte de campos do
   cliente, validação autoritativa.
+- `39-contatos.md`, `40-aba-combate.md`, `42-aba-npcs.md` — consumidores do
+  contrato de exibição de condição (REQ-SYS-043): `tone`, `help` e `critical`
+  nasceram da DEC-CTT-11 e são lidos por REQ-CTT-030..038, REQ-CBA-050 e
+  REQ-NPC-033.
 - `24-operacao-backups-telemetria.md` — backup pré-migração, relatório de
   migração, telemetria.
 - `25-testes-e-qualidade.md` — gate de contract test no CI.

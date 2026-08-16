@@ -189,6 +189,12 @@ default do pack.
 - **Racional:** granularidade adequada ao risco legal; o compendium browser exibe a
   licença e o importer propaga o notice para o mundo (`ver 26-licencas-e-legal.md`).
 
+> **Emendada por `43-aba-compendio.md`** (DEC-CPD-04, 2026-08-16): pelo mesmo motivo de
+> granularidade, o `pack.json` passa a carregar também a **plateia** do pack (`audience`,
+> REQ-CMP-004a), ao lado de `license`. Plateia é visibilidade de acervo — quem enxerga o
+> pack — e não ownership de documento (`ver 02-modelo-de-dados.md`); decidi-la documento a
+> documento seria um segundo sistema de permissão.
+
 ### DEC-CMP-04 — Importador é uma ferramenta **offline** (`tools/importer-pf2e`), não runtime
 
 A conversão pf2e→Fusion roda **fora do servidor de jogo**, como CLI em
@@ -322,6 +328,12 @@ de Foundry.
   `license` (`"ORC" | "OGL-1.0a" | "CC-BY-3.0" | "CC0" | "proprietary" | "custom"`),
   `attribution` (texto), `reservedNotice` (texto), e `sourceRepo`/`sourceVersion`
   quando importado (`ver 26-licencas-e-legal.md`).
+- **REQ-CMP-004a** [MVP] O `pack.json` DEVE poder declarar `audience` com valor `"all"` ou
+  `"gm"`, ao lado do bloco `license`, e a **ausência do campo DEVE ser tratada como
+  `"all"`** — pack antigo continua válido e continua visível a todos. `audience` declara a
+  **plateia** do pack (quem pode vê-lo), não permissão de escrita, e vale para o pack
+  inteiro (DEC-CMP-03). Emenda obrigada por `43-aba-compendio.md` (DEC-CPD-04,
+  REQ-CPD-070).
 - **REQ-CMP-005** [MVP] Quando um documento individual tiver licença distinta da do
   pack (campo `system.publication` preservado da origem), essa licença do documento
   DEVE prevalecer sobre o default do pack na exibição e na propagação de notices.
@@ -332,6 +344,12 @@ de Foundry.
   `_id`, `name`, `img`, `type`, o `uuid` de compendium computado, e os campos
   declarados em `pack.json.indexFields`; o índice DEVE ser construível via
   `json_extract` sobre a coluna `data`.
+- **REQ-CMP-007a** [MVP] Quando houver overlay de tradução para o pack
+  (`ver 31-base-canonica-de-conteudo.md`), o índice DEVE carregar, por documento, **os dois
+  nomes**: o nome traduzido para o locale ativo e o nome original do pack. Sem overlay, o
+  índice DEVE degradar para um nome só — o original — sem campo vazio e sem duplicar a
+  mesma cadeia. O overlay é dado de exibição e de busca (REQ-CMP-012a, REQ-CMP-013b), nunca
+  reescreve o documento do pack. Emenda obrigada por `43-aba-compendio.md` (DEC-CPD-06).
 - **REQ-CMP-008** [V2] O índice PODE ser materializado e persistido como tabela
   `pack_index` dentro do `pack.db` (com `PRAGMA user_version` controlando
   invalidação), para acelerar a primeira abertura de packs muito grandes.
@@ -345,6 +363,12 @@ de Foundry.
 - **REQ-CMP-010** [MVP] O servidor DEVE expor uma API de leitura de packs (índice e
   documento completo por id/UUID) consumível pelo compendium browser; a leitura de
   pack NÃO requer transação de escrita.
+- **REQ-CMP-010a** [MVP] A API de leitura de packs (REQ-CMP-010) DEVE impor **no servidor**
+  a plateia declarada em `audience` (REQ-CMP-004a): pack de plateia `"gm"` NÃO DEVE ser
+  listado, NÃO DEVE entrar em busca alguma e NÃO DEVE ter documento entregue a usuário que
+  não satisfaça o predicado de papel privilegiado (`ver 05-usuarios-e-permissoes.md`), e a
+  recusa DEVE ser indistinguível de "não existe" (`ver 21-seguranca.md`, REQ-SEC-020).
+  Filtrar apenas na UI NÃO satisfaz este requisito (REQ-CPD-071, REQ-CPD-074).
 - **REQ-CMP-011** [MVP] Links inline `@UUID[Compendium.<packId>.<Type>.<id>]{Label}`
   presentes em textos importados (`docs/research/10-...md` §9.3) DEVEM ser
   preservados e resolvíveis; quando o alvo não existir, a UI DEVE degradar para o
@@ -355,8 +379,25 @@ de Foundry.
 - **REQ-CMP-012** [MVP] O compendium browser DEVE listar os packs disponíveis
   (sistema + mundo) agrupados por `documentType`, exibindo `label`, contagem de
   documentos e a licença do pack.
+- **REQ-CMP-012a** [MVP] Onde o browser exibir uma entrada de pack, ele DEVE exibir o
+  **nome traduzido** em destaque e o **nome original** junto dele quando os dois existirem
+  (REQ-CMP-007a); o nome original NÃO DEVE ser suprimido, porque é ele que permite conferir
+  a entrada contra o material de origem. Emenda obrigada por `43-aba-compendio.md`
+  (DEC-CPD-06, REQ-CPD-040).
 - **REQ-CMP-013** [MVP] O browser DEVE oferecer **busca textual** por `name` (case e
   acento-insensível, pt-BR/en) sobre o índice, com resultados incrementais.
+- **REQ-CMP-013a** [MVP] Além da busca dentro de um pack (REQ-CMP-013), o servidor DEVE
+  oferecer **busca sobre todos os packs visíveis ao solicitante** — plateia aplicada
+  conforme REQ-CMP-010a —, respondendo com um resultado já agregado e limitado, em que cada
+  entrada nomeia o `packId` de origem. Essa busca NÃO DEVE ser implementada como N buscas
+  do cliente sobre índices baixados: o dono do índice é o servidor (DEC-CMP-02,
+  REQ-CMP-006/007), e baixar o acervo inteiro para buscar contraria o carregamento _lazy_.
+  O orçamento de tempo é o de REQ-CMP-049 estendido ao conjunto (RNF-CPD-01). Emenda
+  obrigada por `43-aba-compendio.md` (DEC-CPD-02, REQ-CPD-030).
+- **REQ-CMP-013b** [MVP] A busca textual — tanto a de um pack (REQ-CMP-013) quanto a
+  agregada (REQ-CMP-013a) — DEVE casar contra **os dois nomes** do índice (REQ-CMP-007a),
+  sem acento e sem caixa: digitar o nome original ou o traduzido DEVE encontrar a mesma
+  entrada. Emenda obrigada por `43-aba-compendio.md` (DEC-CPD-06).
 - **REQ-CMP-014** [MVP] O browser DEVE oferecer **filtros** sobre campos do índice;
   para packs PF2e, no mínimo: **tipo** (subtype do document, ex.: `weapon`/`spell`/
   `feat`), **traits** (`system.traits.value`) e **level/rank**
@@ -563,6 +604,9 @@ export interface PackLicense {
   sourceVersion?: string; // ex.: "v8.2.0"
 }
 
+/** Plateia do pack: quem enxerga o acervo (REQ-CMP-004a). Não é ownership. */
+export type PackAudience = "all" | "gm";
+
 export interface PackSource {
   repo: string | null; // null para packs editoriais (Etmos)
   version: string | null; // release de origem
@@ -577,6 +621,7 @@ export interface PackManifest {
   systemId: string; // "pf2e" | "sf2e" | "etmos"
   indexFields: string[]; // caminhos extras p/ o índice (ex.: "system.level.value")
   license: PackLicense;
+  audience?: PackAudience; // ausente = "all" (REQ-CMP-004a)
   source: PackSource;
   documentCount: number;
   generatedAt: string; // ISO 8601
@@ -590,7 +635,8 @@ export interface PackManifest {
 export interface PackIndexEntry {
   _id: DocumentId;
   uuid: Uuid; // "Compendium.<packId>.<DocType>.<docId>"
-  name: string;
+  name: string; // nome exibido: o traduzido quando houver overlay (REQ-CMP-007a)
+  nameOriginal: string | null; // nome do pack quando `name` veio de overlay; null se não houver
   img: string | null; // já mapeado para placeholder livre
   type: string | null; // subtype do document (ex.: "weapon")
   // campos declarados em PackManifest.indexFields, achatados:
@@ -694,13 +740,21 @@ export interface ImportReport {
 ### Leitura de packs (servidor → browser)
 
 ```ts
-// Listagem e índice (lazy)
+// Listagem e índice (lazy). Toda leitura já vem filtrada pela plateia do pack
+// (REQ-CMP-004a/010a): pack "gm" não existe para quem não é papel privilegiado.
 listPacks(filter?: { systemId?: string; documentType?: string }): PackManifest[];
 getPackIndex(packId: string): PackIndex;                 // só o índice
 searchPack(packId: string, query: {
-  text?: string;
+  text?: string;                                         // casa contra os dois nomes (REQ-CMP-013b)
   filters?: Record<string /*indexField*/, Json>;         // ex.: { "system.level.value": { lte: 3 } }
 }): PackIndexEntry[];
+
+// Busca sobre todos os packs visíveis ao solicitante (REQ-CMP-013a)
+searchAllPacks(query: {
+  text?: string;
+  filters?: Record<string /*indexField*/, Json>;
+  limitPerType?: number;                                 // teto por tipo de documento
+}): Array<PackIndexEntry & { packId: string; truncated?: boolean }>;
 
 // Documento completo sob demanda
 getPackDocument(uuid: Uuid): Promise<Json | null>;       // resolve Compendium.<...>
@@ -767,6 +821,11 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   report, metas de performance de índice/busca.
 - `26-licencas-e-legal.md` — texto dos notices ORC/OGL/CUP, regra de arte
   proprietária, atribuição consolidada no mundo.
+- `31-base-canonica-de-conteudo.md` — overlay de tradução que alimenta os dois nomes do
+  índice (REQ-CMP-007a).
+- `43-aba-compendio.md` — painel que consome esta área na gaveta lateral; origem das
+  emendas de plateia (REQ-CMP-004a/010a), busca agregada (REQ-CMP-013a) e nome traduzido
+  (REQ-CMP-007a/012a/013b).
 
 ## Critérios de aceitação
 
@@ -812,6 +871,15 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
 - **CA-CMP-13** Cada `pack.json` carrega o bloco `license` por pack e
   `source.version`/`importer.version`; um documento com `system.publication` OGL num
   pack ORC tem sua licença individual exibida no browser (REQ-CMP-003, 004, 005, 040).
+- **CA-CMP-14** Um pack publicado com `audience: "gm"` não aparece em `listPacks`, não
+  devolve entrada em `searchAllPacks` e responde a `getPackDocument` de um uuid conhecido
+  como se o documento não existisse, para um usuário sem papel privilegiado; para o papel
+  privilegiado, as três chamadas funcionam. Um pack sem o campo `audience` continua visível
+  a todos (REQ-CMP-004a, 010a, 013a).
+- **CA-CMP-15** Com o overlay pt-BR carregado, buscar `fireball` e buscar `bola de fogo`
+  devolvem a mesma entrada, e a entrada devolvida traz os dois nomes; num pack sem overlay,
+  a mesma busca funciona com o nome original e `nameOriginal` vem nulo (REQ-CMP-007a, 012a,
+  013b).
 
 ## Questões em aberto
 
