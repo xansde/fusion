@@ -581,7 +581,7 @@ describe("spec 44 §5.8 — every scene action is gated server-side (REQ-CEN-070
     joiner.disconnect();
   });
 
-  it("REQ-CEN-072/REQ-CEN-073: the ack of a token move carries the scene on air, and no scene at all when it is off air", async () => {
+  it("REQ-CEN-070/REQ-CEN-072/REQ-CEN-073: a token move lands in the scene on air and is REFUSED in the one off air, body and all", async () => {
     // An actor the player OWNS, with a token of it in each of two scenes.
     const actorAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Actor",
@@ -629,16 +629,37 @@ describe("spec 44 §5.8 — every scene action is gated server-side (REQ-CEN-070
     expect(onAirBodies.every((doc) => doc["_id"] === onAirId)).toBe(true);
     expect(JSON.stringify(onAirMove)).toContain(ON_AIR_NAME);
 
-    // Off air: the ack must not hand back a scene the player is not allowed to
-    // know exists — not its body, not its name (REQ-CEN-073).
+    // Off air: the op itself must be REFUSED (REQ-CEN-070) — silence in the ack
+    // is not enough. The refusal wears the same "parent not found" wording the
+    // ghost scene gets, so it says nothing about the scene existing.
     const offAirMove = await sendOp(playerSocket, "doc:update", {
       documentType: "Token",
       updates: [
         { _id: offAirTokenId, diff: { x: 333, y: 444 }, embedded: { type: "Token", id: offAirId } },
       ],
     });
+    expect(offAirMove["ok"]).toBe(false);
+    expect(offAirMove["code"]).toBe("NOT_FOUND");
+    // …and the ack hands back no scene the player is not allowed to know
+    // exists — not its body, not its name (REQ-CEN-073).
     expect(JSON.stringify(offAirMove)).not.toContain(OFF_AIR_NAME);
     expect(sceneBodiesInAck(offAirMove)).toHaveLength(0);
+
+    // The write never happened either: the GM reads the token back at the
+    // coordinates it was placed with. Without this, stripping the scene from the
+    // ack while still persisting the move would look identical from here.
+    const gmRead = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: offAirId, diff: { "grid.size": 155 } }],
+    });
+    expect(gmRead["ok"]).toBe(true);
+    const offAirScene = (
+      (gmRead["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0];
+    const offAirTokens = offAirScene?.["tokens"] as Record<string, unknown>[];
+    const untouched = offAirTokens.find((tok) => tok["_id"] === offAirTokenId);
+    expect(untouched?.["x"]).toBe(10);
+    expect(untouched?.["y"]).toBe(20);
   });
 
   it("REQ-CEN-071/REQ-CEN-073: probing an off-air scene through the embedded path answers like a scene that never existed", async () => {
