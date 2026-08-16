@@ -1,6 +1,8 @@
 /**
  * The scene LIST is privileged data — spec 44, §5.8.
  *
+ * REQ-CEN-070: every scene ACTION requires `isRolePrivileged` server-side, not
+ *              merely the absence of the icon on the rail (REQ-GAV-034).
  * REQ-CEN-071: the server must not hand the scene list to a non-privileged user,
  *              and the refusal must be indistinguishable from the scene not existing.
  * REQ-CEN-072: the scene ON AIR keeps flowing, so the player can still render it.
@@ -10,8 +12,9 @@
  *              every datum a panel draws is protected server-side (DEC-CEN-11).
  *
  * These tests read the PAYLOAD the player's socket receives — never the screen —
- * across all three emission paths that can carry a Scene body: the live
- * broadcast, the join snapshot, and the delta-resync replay from the OpBuffer.
+ * across every channel that can carry a Scene body: the live broadcast, the join
+ * snapshot, the delta-resync replay from the OpBuffer, and the ACK of the
+ * player's own op.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -50,6 +53,7 @@ interface TestContext {
   worldId: string;
   gmToken: string;
   playerToken: string;
+  playerUserId: string;
 }
 
 function makeTempDir(): string {
@@ -110,6 +114,7 @@ async function buildTestContext(): Promise<TestContext> {
     worldId,
     gmToken: gmLogin.accessToken,
     playerToken: playerLogin.accessToken,
+    playerUserId: player.id,
   };
 }
 
@@ -185,6 +190,36 @@ function sceneDocsIn(envelopes: Record<string, unknown>[]): Record<string, unkno
     }
   }
   return docs;
+}
+
+/**
+ * The observable signature of a refusal: code plus message with the probed id
+ * blanked out. Two refusals are "indistinguishable" (REQ-CEN-071) when their
+ * signatures are equal — the id itself is the only thing the caller already
+ * knew, so it may differ.
+ */
+function refusalSignature(ack: Record<string, unknown>, probedId: string): string {
+  const code = String(ack["code"] ?? "");
+  const message = String(ack["message"] ?? "")
+    .split(probedId)
+    .join("<id>");
+  return `${String(ack["ok"])}|${code}|${message}`;
+}
+
+/** Every Scene-shaped body an ack carries, across `documents[]` and `parent`. */
+function sceneBodiesInAck(ack: Record<string, unknown>): Record<string, unknown>[] {
+  const result = ack["result"] as Record<string, unknown> | undefined;
+  if (!result) return [];
+  const bodies: Record<string, unknown>[] = [];
+  const documents = result["documents"];
+  if (Array.isArray(documents)) {
+    for (const doc of documents as Record<string, unknown>[]) {
+      if (Array.isArray(doc["tokens"])) bodies.push(doc);
+    }
+  }
+  const parent = result["parent"] as Record<string, unknown> | undefined;
+  if (parent && Array.isArray(parent["tokens"])) bodies.push(parent);
+  return bodies;
 }
 
 async function createScene(gmSocket: ClientSocket, name: string): Promise<string> {
@@ -390,5 +425,239 @@ describe("spec 44 §5.8 — the scene list is server-side privileged (REQ-GAV-03
     await sendOp(gmSocket, "doc:delete", { documentType: "Scene", ids: [secondId] });
     await settle();
     expect(JSON.stringify(gmTraffic)).toContain(secondId);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Every scene ACTION is gated by role, and the refusal says nothing
+// ---------------------------------------------------------------------------
+
+describe("spec 44 §5.8 — every scene action is gated server-side (REQ-CEN-070)", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  /** An id shaped like a document id that was never minted. */
+  const GHOST_ID = "ghostghostghost1";
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx, ctx.gmToken);
+    playerSocket = connectClient(ctx, ctx.playerToken);
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+    await settle();
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("REQ-CEN-070/REQ-CEN-071: a player editing an off-air scene gets the same answer as editing an id that never existed", async () => {
+    const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
+
+    const onReal = await sendOp(playerSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: offAirId, diff: { name: "Invadida" } }],
+    });
+    const onGhost = await sendOp(playerSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: GHOST_ID, diff: { name: "Invadida" } }],
+    });
+
+    expect(onReal["ok"]).toBe(false);
+    // Byte-identical once the probed id is blanked: a refusal that said
+    // PERMISSION_DENIED for the scene that exists would be an existence oracle
+    // over ids, and knowing a scene is there is the first half of REQ-CEN-073.
+    expect(refusalSignature(onReal, offAirId)).toBe(refusalSignature(onGhost, GHOST_ID));
+
+    // …and nothing was written: the GM still reads the original name.
+    const gmTraffic = recordEnvelopes(gmSocket);
+    await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: offAirId, diff: { "grid.size": 111 } }],
+    });
+    await settle();
+    const seen = sceneDocsIn(gmTraffic).find((doc) => doc["_id"] === offAirId);
+    expect(seen?.["name"]).toBe(OFF_AIR_NAME);
+  });
+
+  it("REQ-CEN-070: ownership of the Scene document does not open the door — only the role does", async () => {
+    // The GM hands the player OWNER on the scene document itself. The generic
+    // document path would take that as a licence to write; spec 44 says the
+    // gate is isRolePrivileged, full stop (DEC-CEN-11).
+    const sceneId = await createScene(gmSocket, OFF_AIR_NAME);
+    const grant = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: sceneId, diff: { ownership: { default: 0, [ctx.playerUserId]: 3 } } }],
+    });
+    expect(grant["ok"]).toBe(true);
+
+    const attempt = await sendOp(playerSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: sceneId, diff: { name: "Invadida" } }],
+    });
+    expect(attempt["ok"]).toBe(false);
+    const ghost = await sendOp(playerSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: GHOST_ID, diff: { name: "Invadida" } }],
+    });
+    expect(refusalSignature(attempt, sceneId)).toBe(refusalSignature(ghost, GHOST_ID));
+  });
+
+  it("REQ-CEN-070: the very same edit from the privileged socket goes through", async () => {
+    const sceneId = await createScene(gmSocket, OFF_AIR_NAME);
+    const ack = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: sceneId, diff: { name: "Renomeada pelo Mestre" } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    const docs = (ack["result"] as Record<string, unknown>)["documents"] as Record<
+      string,
+      unknown
+    >[];
+    expect(docs[0]?.["name"]).toBe("Renomeada pelo Mestre");
+  });
+
+  it("REQ-CEN-070: a player cannot create a scene, and none is minted", async () => {
+    const ack = await sendOp(playerSocket, "doc:create", {
+      documentType: "Scene",
+      data: [{ name: "Cena do Jogador" }],
+    });
+    expect(ack["ok"]).toBe(false);
+
+    // Nothing reached the world: a joining GM sees no scene at all.
+    const gmJoiner = connectClient(ctx, ctx.gmToken);
+    const gmTraffic = recordEnvelopes(gmJoiner);
+    gmJoiner.connect();
+    await waitForConnect(gmJoiner);
+    await settle();
+    expect(sceneDocsIn(gmTraffic)).toHaveLength(0);
+    gmJoiner.disconnect();
+  });
+
+  it("REQ-CEN-070/REQ-CEN-071: a player deleting an off-air scene gets the same answer as deleting a ghost, and the scene survives", async () => {
+    const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
+
+    const onReal = await sendOp(playerSocket, "doc:delete", {
+      documentType: "Scene",
+      ids: [offAirId],
+    });
+    const onGhost = await sendOp(playerSocket, "doc:delete", {
+      documentType: "Scene",
+      ids: [GHOST_ID],
+    });
+    expect(onReal["ok"]).toBe(false);
+    expect(refusalSignature(onReal, offAirId)).toBe(refusalSignature(onGhost, GHOST_ID));
+
+    // Still there for the GM.
+    const alive = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: offAirId, diff: { "grid.size": 123 } }],
+    });
+    expect(alive["ok"]).toBe(true);
+  });
+
+  it("REQ-CEN-070: putting a scene on air and resetting its fog are both refused to the player", async () => {
+    const sceneId = await createScene(gmSocket, ON_AIR_NAME);
+
+    const activate = await sendOp(playerSocket, "world:activeScene", { sceneId });
+    expect(activate["ok"]).toBe(false);
+
+    // Environment shortcut of the head (REQ-VIS-086) — same gate.
+    const reset = await sendOp(playerSocket, "fog:reset", { sceneId, target: "all" });
+    expect(reset["ok"]).toBe(false);
+
+    // The pointer never moved: a joining player still sees nothing on air.
+    const joiner = connectClient(ctx, ctx.playerToken);
+    const joinerTraffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await settle();
+    expect(JSON.stringify(joinerTraffic)).not.toContain(ON_AIR_NAME);
+    joiner.disconnect();
+  });
+
+  it("REQ-CEN-072/REQ-CEN-073: the ack of a token move carries the scene on air, and no scene at all when it is off air", async () => {
+    // An actor the player OWNS, with a token of it in each of two scenes.
+    const actorAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Actor",
+      data: [{ name: "Personagem", type: "pc", ownership: { default: 0, [ctx.playerUserId]: 3 } }],
+    });
+    expect(actorAck["ok"]).toBe(true);
+    const actorId = (
+      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    const onAirId = await createScene(gmSocket, ON_AIR_NAME);
+    const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
+
+    async function placeToken(sceneId: string): Promise<string> {
+      const ack = await sendOp(gmSocket, "doc:create", {
+        documentType: "Token",
+        data: [{ name: "Ficha", actorId, x: 10, y: 20, hidden: false }],
+        parent: { type: "Scene", id: sceneId },
+      });
+      expect(ack["ok"]).toBe(true);
+      const parent = (ack["result"] as Record<string, unknown>)["parent"] as Record<
+        string,
+        unknown
+      >;
+      const tokens = parent["tokens"] as Record<string, unknown>[];
+      return tokens[tokens.length - 1]?.["_id"] as string;
+    }
+
+    const onAirTokenId = await placeToken(onAirId);
+    const offAirTokenId = await placeToken(offAirId);
+    await sendOp(gmSocket, "world:activeScene", { sceneId: onAirId });
+    await settle();
+
+    // On air: the player moves their token and gets the scene back — that body
+    // is what the canvas renders (REQ-CEN-072).
+    const onAirMove = await sendOp(playerSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        { _id: onAirTokenId, diff: { x: 111, y: 222 }, embedded: { type: "Token", id: onAirId } },
+      ],
+    });
+    expect(onAirMove["ok"]).toBe(true);
+    const onAirBodies = sceneBodiesInAck(onAirMove);
+    expect(onAirBodies.length).toBeGreaterThan(0);
+    expect(onAirBodies.every((doc) => doc["_id"] === onAirId)).toBe(true);
+    expect(JSON.stringify(onAirMove)).toContain(ON_AIR_NAME);
+
+    // Off air: the ack must not hand back a scene the player is not allowed to
+    // know exists — not its body, not its name (REQ-CEN-073).
+    const offAirMove = await sendOp(playerSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        { _id: offAirTokenId, diff: { x: 333, y: 444 }, embedded: { type: "Token", id: offAirId } },
+      ],
+    });
+    expect(JSON.stringify(offAirMove)).not.toContain(OFF_AIR_NAME);
+    expect(sceneBodiesInAck(offAirMove)).toHaveLength(0);
+  });
+
+  it("REQ-CEN-071/REQ-CEN-073: probing an off-air scene through the embedded path answers like a scene that never existed", async () => {
+    const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
+
+    const onReal = await sendOp(playerSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        { _id: "tokenghost000001", diff: { x: 1 }, embedded: { type: "Token", id: offAirId } },
+      ],
+    });
+    const onGhost = await sendOp(playerSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        { _id: "tokenghost000001", diff: { x: 1 }, embedded: { type: "Token", id: GHOST_ID } },
+      ],
+    });
+
+    expect(onReal["ok"]).toBe(false);
+    expect(refusalSignature(onReal, offAirId)).toBe(refusalSignature(onGhost, GHOST_ID));
   });
 });

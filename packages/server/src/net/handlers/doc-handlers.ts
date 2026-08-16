@@ -169,6 +169,31 @@ function isPrivileged(role: number): boolean {
 }
 
 /**
+ * True when this requester must be answered as if the parent scene did not
+ * exist at all (REQ-CEN-071).
+ *
+ * A non-privileged user may only ever act inside the scene that is ON AIR
+ * (REQ-CEN-072): it is the only one they can see, so it is the only one whose
+ * ids they can legitimately hold. For every other scene the embedded paths must
+ * answer with their own "parent not found" wording — anything more specific
+ * (a token-level NOT_FOUND, a PERMISSION_DENIED) confirms the scene exists, and
+ * the ack of a successful op would hand back the whole parent body, name
+ * included (REQ-CEN-073).
+ *
+ * `isRolePrivileged` (via {@link isPrivileged}) and `sceneIsOnAir` are the only
+ * predicates in play — the same pair the emission paths use in redaction.ts.
+ */
+function sceneParentIsInvisible(
+  role: number,
+  parentType: string,
+  parentDoc: Record<string, unknown>,
+): boolean {
+  if (parentType !== "Scene") return false;
+  if (isPrivileged(role)) return false;
+  return !sceneIsOnAir(parentDoc);
+}
+
+/**
  * Parent document type → the collection key its embedded documents live under,
  * derived from EMBEDDED_PARENT_MAP so a new embedded type is covered the day it
  * is registered there. Same convention the embedded handlers use to build
@@ -821,6 +846,22 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
+    // REQ-CEN-070: editing a Scene is an action of the GM's scene panel, and
+    // spec 44 §5.8 makes the role the gate — ownership of the Scene document is
+    // NOT a licence to write it (DEC-CEN-11: the boundary is the server, not
+    // the missing icon on the rail).
+    //
+    // REQ-CEN-071 / REQ-CEN-073: the refusal is worded exactly like the answer
+    // for an id that never existed, and is decided BEFORE the store lookup.
+    // Replying PERMISSION_DENIED for a scene that exists and NOT_FOUND for one
+    // that does not would turn this handler into an existence oracle over ids —
+    // and learning that a scene is there is the first half of learning where the
+    // campaign has not gone yet.
+    if (documentType === "Scene" && !isPrivileged(ctx.role) && updates.length > 0) {
+      const probed = updates[0]?._id ?? "";
+      return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
+    }
+
     // Pre-flight: reject the whole batch before writing anything. The loop
     // below persists as it goes, so a guard that fires mid-loop would leave
     // the earlier entries written, skip the broadcast and still ack ok:false —
@@ -1073,6 +1114,11 @@ function handleEmbeddedCreate(
     throw err;
   }
 
+  // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+  if (sceneParentIsInvisible(ctx.role, parent.type, parentDoc)) {
+    return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
+  }
+
   // Check parent ownership (must be able to edit the parent scene)
   if (!isPrivileged(ctx.role)) {
     const ownership = getOwnershipFromDoc(parentDoc);
@@ -1231,6 +1277,11 @@ function handleEmbeddedUpdate(
         return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
       }
       throw err;
+    }
+
+    // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+    if (sceneParentIsInvisible(ctx.role, resolvedParentType, parentDoc)) {
+      return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
     }
 
     const collectionKey = embeddedType.toLowerCase() + "s"; // "tokens"
@@ -1398,6 +1449,11 @@ function handleEmbeddedDelete(
       return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
     }
     throw err;
+  }
+
+  // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+  if (sceneParentIsInvisible(ctx.role, parent.type, parentDoc)) {
+    return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
   }
 
   // Permission: GM/ASSISTANT or actor owner

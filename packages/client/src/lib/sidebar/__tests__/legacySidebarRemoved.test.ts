@@ -72,7 +72,9 @@ describe("the pre-drawer sidebar is buried (G017)", () => {
     expect(typeof scenesState.refreshSceneList).toBe("function");
     expect(typeof scenesState.attachSceneListSync).toBe("function");
     expect(Array.isArray(scenesState.sceneListState.scenes)).toBe(true);
-    // The state that stayed is ONLY the list.
-    expect(Object.keys(scenesState.sceneListState)).toEqual(["scenes"]);
+    // What stayed is world data only — the scenes and, since REQ-CEN-030, the folders
+    // the archive groups them by. No drawer state came back in with them.
+    expect(Object.keys(scenesState.sceneListState)).toEqual(["scenes", "folders"]);
+    expect(Array.isArray(scenesState.sceneListState.folders)).toBe(true);
   });
 });

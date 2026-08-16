@@ -14,6 +14,7 @@
 import type { SceneDocument } from "@fusion/shared";
 import { worldMirror } from "../docs/worldSync.js";
 import { listScenes } from "./sceneController.js";
+import type { SceneShelfFolder } from "./sceneShelf.js";
 
 // ---------------------------------------------------------------------------
 // Reactive state
@@ -22,8 +23,16 @@ import { listScenes } from "./sceneController.js";
 export const sceneListState: {
   /** Live list of scenes from the mirror, sorted by name. */
   scenes: SceneDocument[];
+  /**
+   * Live list of `Folder` documents, for the archive's grouping (REQ-CEN-030).
+   *
+   * They are world data like the scenes and travel in the same snapshot; the archive
+   * needs them to name a group with the folder's name instead of its id.
+   */
+  folders: SceneShelfFolder[];
 } = $state({
   scenes: [],
+  folders: [],
 });
 
 // ---------------------------------------------------------------------------
@@ -32,6 +41,10 @@ export const sceneListState: {
 
 export function refreshSceneList(): void {
   sceneListState.scenes = listScenes(worldMirror);
+}
+
+export function refreshFolderList(): void {
+  sceneListState.folders = worldMirror.getByType<SceneShelfFolder>("Folder");
 }
 
 // ---------------------------------------------------------------------------
@@ -44,9 +57,17 @@ export function refreshSceneList(): void {
  * Called once from the root app after worldSync is active.
  */
 export function attachSceneListSync(): () => void {
-  // Prime the list immediately
+  // Prime both lists immediately
   refreshSceneList();
-  return worldMirror.subscribe<SceneDocument>("Scene", () => {
+  refreshFolderList();
+  const unsubscribeScenes = worldMirror.subscribe<SceneDocument>("Scene", () => {
     refreshSceneList();
   });
+  const unsubscribeFolders = worldMirror.subscribe<SceneShelfFolder>("Folder", () => {
+    refreshFolderList();
+  });
+  return () => {
+    unsubscribeScenes();
+    unsubscribeFolders();
+  };
 }

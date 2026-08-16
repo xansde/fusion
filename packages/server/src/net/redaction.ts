@@ -157,6 +157,20 @@ export function redactSceneDocsForNonPrivileged(
   return result;
 }
 
+/**
+ * Return true when a value looks like a whole Scene document.
+ *
+ * Structural, like every other detector in this module: a Scene is the only
+ * document that carries an `active` flag alongside a `tokens` collection
+ * (Actors carry `items`, Combats carry `combatants`). Used by the ack path,
+ * which sees a bare body with no `documentType` to trust.
+ */
+function isSceneShaped(doc: unknown): doc is Record<string, unknown> {
+  if (!doc || typeof doc !== "object") return false;
+  const d = doc as Record<string, unknown>;
+  return typeof d["active"] === "boolean" && Array.isArray(d["tokens"]);
+}
+
 // ---------------------------------------------------------------------------
 // Combat hidden-combatant redaction (M2-C, REQ-CBT-031)
 // ---------------------------------------------------------------------------
@@ -234,6 +248,10 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  * Additionally applies combat redaction:
  *   3. {@link stripHiddenCombatantsFromCombat} — remove hidden combatants (M2-C)
  *
+ * …and the scene-list rule of spec 44:
+ *   4. {@link sceneIsOnAir} — a Scene body that is not on air is dropped from
+ *      `documents[]` and `parent` (REQ-CEN-072 / REQ-CEN-073)
+ *
  * Covered ack `result` shapes (the object under `ack.result`):
  *
  *   1. Primary Scene doc:create / doc:update
@@ -265,6 +283,19 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   const parent = bodyObj["parent"];
   const combat = bodyObj["combat"];
 
+  // REQ-CEN-073: an off-air Scene body must not come back in the ack either —
+  // the ack is a payload destined to a non-privileged user like any other. The
+  // handlers already refuse the ops that could produce one (a scene that is not
+  // on air answers as if it did not exist), so this is the dispatcher-level net
+  // that covers any handler, present or future, that echoes a Scene it loaded.
+  //
+  // REQ-CEN-072: the scene ON AIR is exactly what survives — it is the body the
+  // player's canvas renders.
+  const documentsCarryOffAirScene =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => isSceneShaped(d) && !sceneIsOnAir(d));
+  const parentIsOffAirScene = isSceneShaped(parent) && !sceneIsOnAir(parent);
+
   const documentsNeedHiddenTokenRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));
   const parentNeedsHiddenTokenRedaction = sceneDocHasHiddenTokens(parent);
@@ -280,7 +311,13 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     documentsNeedHiddenTokenRedaction || documentsNeedSecretDoorRedaction;
   const parentNeedsRedaction = parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction;
 
-  if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
+  if (
+    !documentsNeedsRedaction &&
+    !parentNeedsRedaction &&
+    !combatNeedsRedaction &&
+    !documentsCarryOffAirScene &&
+    !parentIsOffAirScene
+  ) {
     // Nothing to redact — return the original ack untouched.
     return result;
   }
@@ -288,16 +325,22 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   // Build a redacted clone, never mutating the shared original.
   const newBody: Record<string, unknown> = { ...bodyObj };
 
-  if (documentsNeedsRedaction) {
-    newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
-      let redacted = d;
-      if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
-      if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
-      return redacted;
-    });
+  if (documentsNeedsRedaction || documentsCarryOffAirScene) {
+    newBody["documents"] = (documents as Record<string, unknown>[])
+      .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
+      .map((d) => {
+        let redacted = d;
+        if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+        if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        return redacted;
+      });
   }
 
-  if (parentNeedsRedaction) {
+  if (parentIsOffAirScene) {
+    // Dropped outright, not blanked: the shape a caller sees for a scene it may
+    // not know about is the shape of "there is nothing here".
+    newBody["parent"] = null;
+  } else if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);

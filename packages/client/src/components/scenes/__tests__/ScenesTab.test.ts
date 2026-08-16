@@ -73,30 +73,34 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
     sceneListState.scenes = [];
   });
 
-  it("REQ-CEN-001: lists every scene of the world and marks the one on air", () => {
+  it("REQ-CEN-001 / REQ-CEN-036: lists the scenes of the world, and the one on air only in the head", () => {
     sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
 
+    // Both scenes are named by the panel...
     expect(html).toContain("Taverna");
     expect(html).toContain("Cripta");
-    // The dot of the active scene, and only of it.
-    expect([...html.matchAll(/scene-row__dot--on/g)]).toHaveLength(1);
-    expect(html).toContain(t("FUSION.Sidebar.Scenes.ActiveScene"));
+    // ...but the one on air is named by the HEAD, and is not a line of the archive
+    // (REQ-CEN-036) — which is why the "active row" marker of the old sidebar is gone.
+    expect(html).not.toContain("scene-row__dot--on");
+    const archive = html.slice(html.indexOf('class="scenes-tab__body'));
+    expect(archive).toContain("Taverna");
+    expect(archive).not.toContain("Cripta");
   });
 
-  it("REQ-CEN-001: every scene keeps its activate, edit and delete actions", () => {
+  it("REQ-CEN-001 / REQ-CEN-036: every scene of the archive keeps its activate, edit and delete actions", () => {
     sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
 
-    // Activate is offered for the scene that is NOT on air, and not for the one that is.
+    // The scene NOT on air keeps the three verbs of the row...
     expect(html).toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Taverna`);
+    expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} Taverna`);
+    expect(html).toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} Taverna`);
+    // ...and the one on air has no row at all, so it offers none of them here.
     expect(html).not.toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Cripta`);
-    for (const name of ["Taverna", "Cripta"]) {
-      expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} ${name}`);
-      expect(html).toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} ${name}`);
-    }
+    expect(html).not.toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
     // And the header still offers creating one.
     expect(html).toContain(t("FUSION.Sidebar.Scenes.Create"));
   });
@@ -114,14 +118,18 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
     const html = renderTab("s1");
 
     // No ✕ and no chevron: the rail's active tab is the only way to collapse.
-    expect(html).not.toMatch(/[✕✖×❯☰]/);
+    // `×` (U+00D7) is deliberately NOT in this set: since REQ-CEN-011 the head writes
+    // the scene's dimensions as "4200 × 2800 px", where the multiplication sign is
+    // typography, not a close control.
+    expect(html).not.toMatch(/[✕✖❯☰]/);
     expect(html.toLowerCase()).not.toContain("collapse");
   });
 
   it("REQ-NPC-094: the row actions are drawn icons, never a glyph", () => {
+    // Nothing on air, so both scenes are lines of the archive (REQ-CEN-036).
     sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
-    const html = renderTab("s2");
+    const html = renderTab(null);
 
     const actionButtons = [...html.matchAll(/<button[^>]*class="action-btn[\s\S]*?<\/button>/g)];
     expect(actionButtons.length).toBeGreaterThanOrEqual(5);
@@ -133,9 +141,10 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
 
   describe("keyboard (REQ-CEN-090)", () => {
     it("REQ-CEN-090: the row actions are real buttons in the natural focus order", () => {
+      // Nothing on air, so both scenes are lines of the archive (REQ-CEN-036).
       sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
-      const html = renderTab("s2");
+      const html = renderTab(null);
 
       const actionTags = [...html.matchAll(/<button[^>]*class="action-btn[^>]*>/g)].map(
         (match) => match[0],

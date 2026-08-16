@@ -17,6 +17,7 @@ import type { HandlerFn } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
+import { DocumentNotFoundError } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
 import { redactSceneDocsForNonPrivileged, stripHiddenCombatantsFromCombat } from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
@@ -593,6 +594,28 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { sceneId } = payload;
+
+    // REQ-CEN-045: a target that does not exist is a FAILURE, not a silent
+    // divergence. Without this, the reconcile below took every scene off the
+    // air, wrote a pointer naming nothing and broadcast it: the source of
+    // truth would name a scene with no body behind it, every client would
+    // render an empty canvas, and no resync would ever repair it (the snapshot
+    // reads the same broken pointer). Refuse before writing anything.
+    // `sceneId: null` stays legal — that is how "nothing on air" is expressed.
+    if (sceneId !== null) {
+      try {
+        deps.store.get("scenes", sceneId);
+      } catch (err) {
+        if (err instanceof DocumentNotFoundError) {
+          return {
+            ok: false,
+            code: "NOT_FOUND" as const,
+            message: `Scene not found: ${sceneId}`,
+          };
+        }
+        throw err;
+      }
+    }
 
     // T010: settings['_meta:activeScene'] is the source of truth — it is what
     // the join snapshot reads and what survives a restart. The `active` field

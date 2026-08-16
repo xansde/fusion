@@ -12,8 +12,20 @@
    *    the rail is the only gesture, so there is no ✕ and no chevron here);
    *  - the drawer's width (REQ-GAV-012) — the panel simply fills what it is given.
    *
-   * Everything else spec 44 asks for (the "no ar / em preparo" head, the state dot of
-   * REQ-CEN-003..005, the scene count in the header) arrives with that spec's own PR.
+   * What spec 44 has already added on top of that move:
+   *  - the "no ar" head (REQ-CEN-010..015): the top of the panel, outside the scroll,
+   *    answering "what is the table looking at right now" before "which scenes exist"
+   *    (DEC-CEN-01). Its rule lives in `lib/scenes/scenesTabVM.ts`; what is here is
+   *    markup and the asset-token dance the VM deliberately does not do.
+   *  - the environment shortcuts of the head (REQ-CEN-020..025), from
+   *    `lib/scenes/sceneEnvironment.ts`;
+   *  - the archive (REQ-CEN-030..037, REQ-CEN-039): the other scenes of the world,
+   *    grouped by folder in the manual order of the document, from
+   *    `lib/scenes/sceneShelf.ts`. The scene on air is NOT repeated here — it lives in
+   *    the head (REQ-CEN-036).
+   *
+   * Still to come with the rest of spec 44: the state dot of REQ-CEN-003..005 and the
+   * local "preparo" of REQ-CEN-050..056.
    *
    * Content permission: the whole tab is group "gm" in the rail, but that is
    * ergonomics, not a boundary (REQ-GAV-034, DEC-CEN-11). Both halves are closed
@@ -35,15 +47,215 @@
   import SceneCreateDialog from "./SceneCreateDialog.svelte";
   import SceneDeleteConfirm from "./SceneDeleteConfirm.svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import { buildSceneHeadVM } from "../../lib/scenes/scenesTabVM.js";
+  import {
+    SCENE_ENV_KEYS,
+    buildSceneEnvironmentVM,
+    createDarknessMemory,
+    resetSceneFog,
+    toggleSceneDarkness,
+    toggleSceneFog,
+  } from "../../lib/scenes/sceneEnvironment.js";
+  import { confirm as confirmDialog } from "../../lib/windows/dialogs.svelte.js";
+  import {
+    SCENE_SHELF_KEYS,
+    buildSceneShelfVM,
+    loadCollapsedSceneFolders,
+    persistSceneOrder,
+    reorderWithinGroup,
+    saveCollapsedSceneFolders,
+    toggleCollapsedSceneFolder,
+    type SceneShelfGroupVM,
+  } from "../../lib/scenes/sceneShelf.js";
+  import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
+  import { fusionApi } from "../../lib/api.js";
 
   /** The contract the drawer hands every panel (registry, REQ-GAV-030). */
-  const { socket, activeSceneId }: SidebarPanelProps = $props();
+  const { socket, activeSceneId, userId, worldId }: SidebarPanelProps = $props();
+
+  // --- The "no ar" head (REQ-CEN-010..015) -------------------------------------
+  // A pure projection of the world: recomputing is how the head follows a change of
+  // scene on air from ANY origin, with no reload and no local copy (REQ-CEN-015).
+  const head = $derived(
+    buildSceneHeadVM({ scenes: sceneListState.scenes, activeSceneId: activeSceneId }),
+  );
+
+  /**
+   * The head's image once it is fetchable. Our `/assets/*` route needs a freshly minted
+   * short-lived query-token and an `<img>` cannot send an Authorization header, so the
+   * URL is resolved here (the r5 pattern of `ActorPortrait.svelte`). While it is in
+   * flight the scene's own background colour is already painted underneath, so the head
+   * never flashes empty and never changes height (REQ-CEN-012/013).
+   */
+  let resolvedBackground = $state<string | null>(null);
+
+  /** An external URL or data URI needs no token — paint it without waiting a tick. */
+  const immediateBackground = $derived(
+    head.kind === "on-air" &&
+      head.background.kind === "image" &&
+      !needsAssetQueryToken(head.background.src)
+      ? head.background.src
+      : null,
+  );
+
+  const backgroundSrc = $derived(resolvedBackground ?? immediateBackground);
+
+  $effect(() => {
+    const background = head.kind === "on-air" ? head.background : null;
+    if (background === null || background.kind !== "image") {
+      resolvedBackground = null;
+      return;
+    }
+    const raw = background.src;
+    if (!needsAssetQueryToken(raw)) {
+      resolvedBackground = raw;
+      return;
+    }
+    const token = fusionApi.getToken();
+    if (!token || !userId) {
+      // No session to mint a token with → the colour box is the honest fallback.
+      resolvedBackground = null;
+      return;
+    }
+    let cancelled = false;
+    void resolveAssetUrl(raw, token, userId)
+      .then((url) => {
+        if (!cancelled) resolvedBackground = url;
+      })
+      .catch(() => {
+        if (!cancelled) resolvedBackground = null;
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  // --- The environment shortcuts (REQ-CEN-020..025) ----------------------------
+  // The three mid-session gestures over the scene ON AIR (DEC-CEN-06). Like the head
+  // itself they are a `$derived` projection of the document: pressed comes from the
+  // server and from nowhere else, so a refused write or a change made by another GM
+  // never leaves the control saying the opposite of the table (REQ-CEN-023). With no
+  // scene on air the VM is null and nothing is drawn (REQ-CEN-024).
+  const environment = $derived(
+    buildSceneEnvironmentVM({ scenes: sceneListState.scenes, activeSceneId: activeSceneId }),
+  );
+
+  /**
+   * The darkness level a scene had before the GM zeroed it, so the toggle can put it
+   * back (REQ-CEN-020). Session memory of a gesture — never a second opinion about what
+   * is on air, which is why it is not `$state` and nothing reads it to render.
+   */
+  const darknessMemory = createDarknessMemory();
+
+  /** Which gesture is in flight — disables the row instead of faking its new state. */
+  let envBusy = $state<"darkness" | "fog" | "fogReset" | null>(null);
+  let envError = $state<string | null>(null);
+
+  /** The document of the scene on air, straight from the world mirror. */
+  function sceneOnAir(): SceneDocument | null {
+    const id = environment?.sceneId;
+    if (id === undefined) return null;
+    return sceneListState.scenes.find((scene) => scene._id === id) ?? null;
+  }
+
+  async function runEnvGesture(
+    gesture: "darkness" | "fog" | "fogReset",
+    run: () => Promise<unknown>,
+  ): Promise<void> {
+    if (envBusy !== null) return;
+    envBusy = gesture;
+    envError = null;
+    try {
+      await run();
+    } catch (err) {
+      envError = err instanceof OpError ? err.message : t(SCENE_ENV_KEYS.failed);
+    } finally {
+      envBusy = null;
+    }
+  }
+
+  async function handleToggleDarkness(): Promise<void> {
+    const scene = sceneOnAir();
+    if (scene === null) return;
+    await runEnvGesture("darkness", () => toggleSceneDarkness(socket, scene, darknessMemory));
+  }
+
+  async function handleToggleFog(): Promise<void> {
+    const scene = sceneOnAir();
+    if (scene === null) return;
+    await runEnvGesture("fog", () => toggleSceneFog(socket, scene));
+  }
+
+  /** REQ-CEN-022: irreversible, so it asks first — and a refusal sends nothing. */
+  async function handleResetFog(): Promise<void> {
+    const scene = sceneOnAir();
+    if (scene === null) return;
+    await runEnvGesture("fogReset", () =>
+      resetSceneFog(socket, scene._id, () =>
+        confirmDialog(t(SCENE_ENV_KEYS.fogResetConfirm), {
+          confirmLabel: t(SCENE_ENV_KEYS.fogResetConfirmLabel),
+        }),
+      ),
+    );
+  }
+
+  /**
+   * The offer of REQ-CEN-014 with no scene on air. Putting a scene on air is a choice
+   * of WHICH scene, and this tab already draws that list right below — so the offer
+   * moves the keyboard to the archive instead of picking a scene on the GM's behalf.
+   */
+  let archiveEl = $state<HTMLElement | null>(null);
+  function focusArchive(): void {
+    archiveEl?.focus();
+  }
+
+  // --- The archive (REQ-CEN-030..037, REQ-CEN-039) ------------------------------
+  // Everything below the head: the OTHER scenes of the world, grouped by the folder of
+  // each document and ordered by the document's manual `sort` (DEC-CEN-05). The rule
+  // lives in `lib/scenes/sceneShelf.ts`; here there is markup, the device preference and
+  // the drag wiring.
+
+  /**
+   * What this user collapsed on THIS device, in THIS world (REQ-CEN-033, DEC-UIF-10).
+   *
+   * Read once, on mount: the world and the user of a mounted panel do not change without
+   * a new session, and re-reading storage on every keystroke would fight the toggles.
+   */
+  // svelte-ignore state_referenced_locally
+  let collapsedGroups = $state<string[]>(loadCollapsedSceneFolders(worldId, userId));
+  /** What the GM typed in the search field (REQ-CEN-034). */
+  let searchQuery = $state("");
+
+  const shelf = $derived(
+    buildSceneShelfVM({
+      scenes: sceneListState.scenes,
+      activeSceneId: activeSceneId,
+      folders: sceneListState.folders,
+      collapsedFolderIds: collapsedGroups,
+      query: searchQuery,
+    }),
+  );
+
+  function toggleGroup(groupKey: string): void {
+    collapsedGroups = toggleCollapsedSceneFolder(collapsedGroups, groupKey);
+    saveCollapsedSceneFolders(worldId, userId, collapsedGroups);
+  }
+
+  function groupLabel(group: SceneShelfGroupVM): string {
+    return group.label ?? t(group.labelKey ?? SCENE_SHELF_KEYS.noFolder);
+  }
+
+  /** The document behind a line — the dialogs and the activation want the whole thing. */
+  function sceneById(sceneId: string): SceneDocument | null {
+    return sceneListState.scenes.find((scene) => scene._id === sceneId) ?? null;
+  }
 
   let showCreateDialog = $state(false);
   let editTarget = $state<SceneDocument | null>(null);
   let deleteTarget = $state<SceneDocument | null>(null);
   let activatingId = $state<string | null>(null);
   let activateError = $state<string | null>(null);
+  let shelfError = $state<string | null>(null);
 
   async function handleActivate(scene: SceneDocument): Promise<void> {
     if (activatingId !== null) return;
@@ -57,112 +269,393 @@
       activatingId = null;
     }
   }
+
+  // --- Reordering by drag (REQ-CEN-037) ----------------------------------------
+  // Inside a group only: moving a scene to ANOTHER folder is a change of folder, and
+  // that is the configuration window's business (DEC-CEN-05, REQ-CEN-061). A drop that
+  // lands outside the dragged scene's own group simply computes no update.
+
+  let draggingSceneId = $state<string | null>(null);
+
+  function handleDragStart(event: DragEvent, sceneId: string): void {
+    draggingSceneId = sceneId;
+    event.dataTransfer?.setData("text/plain", sceneId);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(event: DragEvent): void {
+    if (draggingSceneId === null) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+  }
+
+  function handleDragEnd(): void {
+    draggingSceneId = null;
+  }
+
+  async function handleDrop(
+    event: DragEvent,
+    group: SceneShelfGroupVM,
+    targetIndex: number,
+  ): Promise<void> {
+    event.preventDefault();
+    const moved = draggingSceneId;
+    draggingSceneId = null;
+    if (moved === null) return;
+
+    const updates = reorderWithinGroup(group.entries, moved, targetIndex);
+    if (updates.length === 0) return;
+
+    shelfError = null;
+    try {
+      await persistSceneOrder(socket, updates);
+    } catch (err) {
+      shelfError = err instanceof OpError ? err.message : t(SCENE_SHELF_KEYS.reorderFailed);
+    }
+  }
 </script>
 
 <div class="scenes-tab">
+  <!-- The scene on air (REQ-CEN-010): top of the panel, outside the scrolling archive,
+       at the one height the theme token fixes — nothing inside it may change that
+       height (REQ-CEN-013). -->
+  <section class="scene-head" aria-label={t("FUSION.Scene.Head.OnAir")}>
+    {#if head.kind === "on-air"}
+      {@const bg = head.background}
+      <!-- REQ-CEN-011/012: the scene's background image, scaled into the fixed box, over
+           the scene's own background colour — which is all a scene without an image
+           shows, at exactly the same height. -->
+      <div class="scene-head__canvas" style="background-color: {bg.color};">
+        {#if backgroundSrc}
+          <img
+            class="scene-head__image"
+            src={backgroundSrc}
+            sizes={bg.kind === "image" ? bg.sizes : undefined}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+          />
+        {/if}
+      </div>
+      {#if environment !== null}
+        {@const env = environment}
+        <!-- REQ-CEN-020/021/022: the three mid-session gestures, floating over the fixed
+             box so they cannot add a pixel of height to it (REQ-CEN-013). They exist only
+             while a scene is on air (REQ-CEN-024), and they only ACTION spec 07 —
+             darkness (REQ-VIS-044), the fog flag (REQ-VIS-085) and the reset
+             (REQ-VIS-086); values are tuned in the perception window (REQ-CEN-025). -->
+        <div class="scene-head__env" role="group" aria-label={t(env.groupKey)}>
+          <button
+            class="scene-head__env-btn"
+            class:scene-head__env-btn--on={env.darkness.pressed}
+            aria-pressed={env.darkness.pressed}
+            title={t(env.darkness.actionKey)}
+            aria-label={t(env.darkness.actionKey)}
+            disabled={envBusy !== null}
+            onclick={handleToggleDarkness}
+          >
+            <!-- Drawn glyphs only (REQ-NPC-094): a crescent for darkness, a bank of
+                 fog, and a circular arrow for the reset. -->
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+              <path
+                d="M11.6 10.4A5 5 0 0 1 5.6 4.4a5 5 0 1 0 6 6z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+          <button
+            class="scene-head__env-btn"
+            class:scene-head__env-btn--on={env.fog.pressed}
+            aria-pressed={env.fog.pressed}
+            title={t(env.fog.actionKey)}
+            aria-label={t(env.fog.actionKey)}
+            disabled={envBusy !== null}
+            onclick={handleToggleFog}
+          >
+            <svg
+              viewBox="0 0 16 16"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M2.5 6h11" />
+              <path d="M4 9h8.5" />
+              <path d="M3 12h7" />
+            </svg>
+          </button>
+          <button
+            class="scene-head__env-btn scene-head__env-btn--reset"
+            title={t(env.fogReset.actionKey)}
+            aria-label={t(env.fogReset.actionKey)}
+            disabled={envBusy !== null}
+            onclick={handleResetFog}
+          >
+            <svg
+              viewBox="0 0 16 16"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M13 8a5 5 0 1 1-1.6-3.7" />
+              <path d="M13 2.5V5h-2.5" />
+            </svg>
+          </button>
+        </div>
+      {/if}
+      <div class="scene-head__info">
+        <span class="scene-head__flag">{t("FUSION.Scene.Head.OnAir")}</span>
+        <span class="scene-head__name" title={head.name}>{head.name}</span>
+        <span class="scene-head__meta">
+          {t(head.dimensions.key, head.dimensions.vars)} · {t(head.grid.key, head.grid.vars)}
+        </span>
+      </div>
+    {:else if head.kind === "pending"}
+      <!-- The world says something is on air, this client has not received it yet. -->
+      <div class="scene-head__state">
+        <span class="scene-head__title">{t(head.title.key)}</span>
+      </div>
+    {:else}
+      <!-- REQ-CEN-014: says it plainly, says where that leaves the players, and offers
+           to fix it. -->
+      <div class="scene-head__state">
+        <span class="scene-head__title">{t(head.title.key)}</span>
+        <span class="scene-head__notice">{t(head.notice.key)}</span>
+        {#if head.action}
+          <button class="btn btn--sm scene-head__action" onclick={focusArchive}>
+            {t(head.action.key)}
+          </button>
+        {/if}
+      </div>
+    {/if}
+  </section>
+
   <header class="scenes-tab__header">
-    <span class="scenes-tab__title">{t("FUSION.Sidebar.Scenes.Title")}</span>
-    <button
-      class="btn btn--primary btn--sm"
-      onclick={() => {
-        showCreateDialog = true;
-      }}
-      aria-label={t("FUSION.Sidebar.Scenes.Create")}
-    >
-      {t("FUSION.Sidebar.Scenes.Create")}
-    </button>
+    <div class="scenes-tab__header-row">
+      <span class="scenes-tab__title">{t("FUSION.Sidebar.Scenes.Title")}</span>
+      <button
+        class="btn btn--primary btn--sm"
+        onclick={() => {
+          showCreateDialog = true;
+        }}
+        aria-label={t("FUSION.Sidebar.Scenes.Create")}
+      >
+        {t("FUSION.Sidebar.Scenes.Create")}
+      </button>
+    </div>
+    <!-- REQ-CEN-034: the search only appears once the archive is bigger than the panel
+         can show at once — a field over four scenes is furniture, not help. -->
+    {#if shelf.searchable}
+      <input
+        class="scenes-tab__search"
+        type="search"
+        bind:value={searchQuery}
+        aria-label={t(SCENE_SHELF_KEYS.search)}
+        placeholder={t(SCENE_SHELF_KEYS.searchPlaceholder)}
+      />
+    {/if}
   </header>
 
-  <div class="scenes-tab__body" role="list" aria-label={t("FUSION.Sidebar.Scenes.Title")}>
-    {#if sceneListState.scenes.length === 0}
-      <!-- Spec 36 §7.4: the empty state of the tab — a world with no scene yet. -->
+  <!-- `tabindex="-1"` is the landing spot for the head's offer (REQ-CEN-014): it is a
+       programmatic focus target only, never a tab stop of its own. -->
+  <div class="scenes-tab__body" tabindex="-1" bind:this={archiveEl}>
+    {#if shelf.total === 0}
+      <!-- Spec 36 §7.4: the empty state of the tab — a world whose only scene is the one
+           on air, or no scene at all. -->
       <p class="scenes-tab__empty">{t("FUSION.Sidebar.Scenes.Empty")}</p>
+    {:else if !shelf.hasResults}
+      <!-- REQ-CEN-034: a search that matched nothing says so; the head stays put. -->
+      <p class="scenes-tab__empty">{t(shelf.emptyKey ?? SCENE_SHELF_KEYS.noResults)}</p>
     {:else}
-      {#each sceneListState.scenes as scene (scene._id)}
-        {@const isActive = scene._id === activeSceneId}
-        <div class="scene-row" class:scene-row--active={isActive} role="listitem">
-          <span
-            class="scene-row__dot"
-            class:scene-row__dot--on={isActive}
-            aria-hidden="true"
-            title={isActive
-              ? t("FUSION.Sidebar.Scenes.ActiveScene")
-              : t("FUSION.Sidebar.Scenes.InactiveScene")}
-          ></span>
-          <span class="scene-row__name" title={scene.name}>{scene.name}</span>
-          <div class="scene-row__actions">
-            {#if !isActive}
-              <button
-                class="action-btn action-btn--activate"
-                onclick={() => handleActivate(scene)}
-                disabled={activatingId !== null}
-                title={t("FUSION.Scene.Dialog.ActivateScene")}
-                aria-label="{t('FUSION.Scene.Dialog.ActivateScene')} {scene.name}"
-              >
-                <!-- Drawn glyphs only (REQ-NPC-094): a play triangle, an angled pen
-                     and a bin, in the same 16px box as the rail's icon set. -->
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-                  <path d="M5 3.5 12 8l-7 4.5z" fill="currentColor" />
-                </svg>
-              </button>
-            {/if}
-            <button
-              class="action-btn action-btn--edit"
-              onclick={() => {
-                editTarget = scene;
-              }}
-              title={t("FUSION.Scene.Dialog.EditScene")}
-              aria-label="{t('FUSION.Scene.Dialog.EditScene')} {scene.name}"
+      {#each shelf.groups as group (group.key)}
+        <!-- REQ-CEN-030/032: one section per folder, the scenes with no folder last. -->
+        <section class="scene-group">
+          <button
+            class="scene-group__header"
+            aria-expanded={!group.collapsed}
+            aria-label="{group.collapsed
+              ? t(SCENE_SHELF_KEYS.expand)
+              : t(SCENE_SHELF_KEYS.collapse)}: {groupLabel(group)}"
+            onclick={() => toggleGroup(group.key)}
+          >
+            <!-- Drawn glyph (REQ-NPC-094): a chevron that points down when open. -->
+            <svg
+              class="scene-group__chevron"
+              class:scene-group__chevron--collapsed={group.collapsed}
+              viewBox="0 0 16 16"
+              width="12"
+              height="12"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
             >
-              <svg
-                viewBox="0 0 16 16"
-                width="14"
-                height="14"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
-                <path d="M9.2 4.3l2.5 2.5" />
-              </svg>
-            </button>
-            <button
-              class="action-btn action-btn--delete"
-              onclick={() => {
-                deleteTarget = scene;
-              }}
-              title={t("FUSION.Scene.Dialog.DeleteScene")}
-              aria-label="{t('FUSION.Scene.Dialog.DeleteScene')} {scene.name}"
-            >
-              <svg
-                viewBox="0 0 16 16"
-                width="14"
-                height="14"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path d="M3 4.5h10" />
-                <path d="M6.5 4.5V3h3v1.5" />
-                <path d="M4.5 4.5 5 13h6l.5-8.5" />
-              </svg>
-            </button>
-          </div>
-        </div>
+              <path d="m4 6 4 4 4-4" />
+            </svg>
+            <span class="scene-group__name" title={groupLabel(group)}>{groupLabel(group)}</span>
+            <span class="scene-group__count">{group.entries.length}</span>
+          </button>
+
+          {#if !group.collapsed}
+            <div class="scene-group__items" role="list" aria-label={groupLabel(group)}>
+              {#each group.entries as entry, index (entry.sceneId)}
+                {@const scene = sceneById(entry.sceneId)}
+                <!-- REQ-CEN-037: a line is draggable, and a drop inside its own group
+                     writes the new `sort` to the documents. -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                  class="scene-row"
+                  class:scene-row--dragging={draggingSceneId === entry.sceneId}
+                  role="listitem"
+                  draggable="true"
+                  ondragstart={(event) => handleDragStart(event, entry.sceneId)}
+                  ondragover={handleDragOver}
+                  ondrop={(event) => handleDrop(event, group, index)}
+                  ondragend={handleDragEnd}
+                >
+                  <span class="scene-row__grip" aria-hidden="true" title={t(SCENE_SHELF_KEYS.reorder)}>
+                    <svg
+                      viewBox="0 0 16 16"
+                      width="10"
+                      height="14"
+                      fill="currentColor"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <circle cx="6" cy="4" r="1.1" />
+                      <circle cx="10" cy="4" r="1.1" />
+                      <circle cx="6" cy="8" r="1.1" />
+                      <circle cx="10" cy="8" r="1.1" />
+                      <circle cx="6" cy="12" r="1.1" />
+                      <circle cx="10" cy="12" r="1.1" />
+                    </svg>
+                  </span>
+                  <!-- REQ-CEN-035: name, dimensions and the environment marks that are
+                       on — written out, never carried by colour alone (REQ-CEN-091). -->
+                  <span class="scene-row__text">
+                    <span class="scene-row__name" title={entry.name}>{entry.name}</span>
+                    <span class="scene-row__meta">
+                      <span class="scene-row__dims"
+                        >{t(entry.dimensions.key, entry.dimensions.vars)}</span
+                      >
+                      {#each entry.marks as mark (mark.id)}
+                        <span class="scene-row__mark" title={t(mark.labelKey)}
+                          >{t(mark.labelKey)}</span
+                        >
+                      {/each}
+                    </span>
+                  </span>
+                  <div class="scene-row__actions">
+                    <button
+                      class="action-btn action-btn--activate"
+                      onclick={() => {
+                        if (scene) void handleActivate(scene);
+                      }}
+                      disabled={activatingId !== null}
+                      title={t("FUSION.Scene.Dialog.ActivateScene")}
+                      aria-label="{t('FUSION.Scene.Dialog.ActivateScene')} {entry.name}"
+                    >
+                      <!-- Drawn glyphs only (REQ-NPC-094): a play triangle, an angled pen
+                           and a bin, in the same 16px box as the rail's icon set. -->
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M5 3.5 12 8l-7 4.5z" fill="currentColor" />
+                      </svg>
+                    </button>
+                    <button
+                      class="action-btn action-btn--edit"
+                      onclick={() => {
+                        editTarget = scene;
+                      }}
+                      title={t("FUSION.Scene.Dialog.EditScene")}
+                      aria-label="{t('FUSION.Scene.Dialog.EditScene')} {entry.name}"
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
+                        <path d="M9.2 4.3l2.5 2.5" />
+                      </svg>
+                    </button>
+                    <button
+                      class="action-btn action-btn--delete"
+                      onclick={() => {
+                        deleteTarget = scene;
+                      }}
+                      title={t("FUSION.Scene.Dialog.DeleteScene")}
+                      aria-label="{t('FUSION.Scene.Dialog.DeleteScene')} {entry.name}"
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M3 4.5h10" />
+                        <path d="M6.5 4.5V3h3v1.5" />
+                        <path d="M4.5 4.5 5 13h6l.5-8.5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </section>
       {/each}
     {/if}
     {#if activateError}
       <p class="scenes-tab__error" role="alert">{activateError}</p>
     {/if}
+    <!-- REQ-CEN-023: a refused environment write becomes a message; the control keeps
+         showing what the server actually holds, never the state we asked for. -->
+    {#if envError}
+      <p class="scenes-tab__error" role="alert">{envError}</p>
+    {/if}
+    <!-- REQ-CEN-037: a refused reorder is a message too — the lines keep the order the
+         documents actually hold. -->
+    {#if shelfError}
+      <p class="scenes-tab__error" role="alert">{shelfError}</p>
+    {/if}
   </div>
+
+  <!-- REQ-CEN-039 / DEC-CEN-10: "o mapa" means two things at this table, so the panel
+       says out loud that the region map lives in the Hub. A note, not a door — this tab
+       offers no navigation into it. -->
+  <footer class="scenes-tab__footer">{t(shelf.footer.key)}</footer>
 </div>
 
 <!-- Scene dialogs — floating, outside the drawer (DEC-GAV-04: detail never widens
@@ -213,14 +706,186 @@
     overflow: hidden;
   }
 
-  .scenes-tab__header {
-    align-items: center;
+  /* REQ-CEN-010: ONE height, from the theme token, for every state of the head — a
+     fixed `height` and not a `min-height`, so a long name, a missing image or the
+     future environment row cannot grow it (REQ-CEN-013). `flex-shrink: 0` keeps it
+     out of the archive's scrolling area. */
+  .scene-head {
+    position: relative;
+    height: var(--fusion-scene-head-height);
+    flex-shrink: 0;
+    overflow: hidden;
     border-bottom: 1px solid var(--fusion-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .scene-head__canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* The image is scaled INTO the fixed box (DEC-CEN-04) — it never sizes the head. */
+  .scene-head__image {
+    display: block;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* REQ-CEN-020..022: the environment row floats in the corner of the head. It is taken
+     out of the flow on purpose — a control that participated in the layout could push
+     the identification down and change the head's height (REQ-CEN-013). */
+  .scene-head__env {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    display: flex;
+    gap: 0.2rem;
+    z-index: 1;
+  }
+
+  .scene-head__env-btn {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    height: 1.5rem;
+    justify-content: center;
+    padding: 0;
+    transition:
+      background-color var(--fusion-transition),
+      color var(--fusion-transition);
+    width: 1.5rem;
+  }
+
+  .scene-head__env-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  /* REQ-CEN-023: "on" is the state the server holds, and it is not carried by colour
+     alone — the pressed control also gets a ring, so it reads without hue. */
+  .scene-head__env-btn--on {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    box-shadow: 0 0 0 2px rgba(124, 92, 252, 0.35);
+    color: #fff;
+  }
+
+  .scene-head__env-btn--reset:not(:disabled):hover {
+    background: var(--fusion-danger);
+    border-color: var(--fusion-danger);
+    color: #fff;
+  }
+
+  /* Same visible ring as every other control of the panel (REQ-CEN-090 / REQ-UIF-064). */
+  .scene-head__env-btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
+  }
+
+  .scene-head__info {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
+  }
+
+  .scene-head__flag {
+    color: var(--fusion-success);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* REQ-CEN-013: what does not fit is truncated legibly — the whole name stays in the
+     `title` tooltip, and the line never wraps into a second one. */
+  .scene-head__name {
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-head__meta {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-head__state {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .scene-head__title {
+    color: var(--fusion-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .scene-head__notice {
+    color: var(--fusion-text-muted);
+    font-size: 0.75rem;
+  }
+
+  /* Same visible ring the row actions use (REQ-CEN-090 / REQ-UIF-064). */
+  .scene-head__action:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
+  }
+
+  .scenes-tab__header {
+    border-bottom: 1px solid var(--fusion-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.6rem 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .scenes-tab__header-row {
+    align-items: center;
     display: flex;
     gap: 0.5rem;
     justify-content: space-between;
-    padding: 0.6rem 0.75rem;
-    flex-shrink: 0;
+  }
+
+  /* REQ-CEN-034: the search never widens the drawer — it fills the width it is given
+     (REQ-GAV-012, RNF-CEN-04). */
+  .scenes-tab__search {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    font-family: var(--fusion-font);
+    font-size: 0.8125rem;
+    min-width: 0;
+    padding: 0.3rem 0.5rem;
+    width: 100%;
+  }
+
+  .scenes-tab__search:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: -1px;
   }
 
   .scenes-tab__title {
@@ -250,6 +915,76 @@
     padding: 0.5rem 0.75rem;
   }
 
+  /* REQ-CEN-039: the region-map note, outside the scrolling archive so it is read once
+     and does not compete with the list. */
+  .scenes-tab__footer {
+    border-top: 1px solid var(--fusion-border);
+    color: var(--fusion-text-subtle);
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    padding: 0.45rem 0.75rem;
+  }
+
+  /* REQ-CEN-030/032: one section per folder. The header is sticky so the group a long
+     list is scrolling through stays named. */
+  .scene-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .scene-group__header {
+    align-items: center;
+    background: var(--fusion-surface);
+    border: none;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    display: flex;
+    font-family: var(--fusion-font);
+    font-size: 0.75rem;
+    font-weight: 600;
+    gap: 0.35rem;
+    letter-spacing: 0.03em;
+    padding: 0.35rem 0.75rem;
+    position: sticky;
+    text-align: left;
+    text-transform: uppercase;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+  }
+
+  .scene-group__header:hover {
+    color: var(--fusion-text);
+  }
+
+  .scene-group__header:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: -2px;
+  }
+
+  .scene-group__chevron {
+    flex-shrink: 0;
+    transition: transform var(--fusion-transition);
+  }
+
+  /* The state is in `aria-expanded` first; the rotation is the visual echo of it. */
+  .scene-group__chevron--collapsed {
+    transform: rotate(-90deg);
+  }
+
+  .scene-group__name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-group__count {
+    color: var(--fusion-text-subtle);
+    font-weight: 500;
+  }
+
   .scene-row {
     align-items: center;
     border-radius: var(--fusion-radius-sm);
@@ -263,31 +998,51 @@
     background: var(--fusion-surface-alt);
   }
 
-  .scene-row--active {
-    background: rgba(124, 92, 252, 0.06);
+  /* REQ-CEN-037: the line being dragged is dimmed while it travels. */
+  .scene-row--dragging {
+    opacity: 0.5;
   }
 
-  .scene-row__dot {
-    border-radius: 50%;
-    background: var(--fusion-border);
+  .scene-row__grip {
+    align-items: center;
+    color: var(--fusion-text-subtle);
+    cursor: grab;
+    display: flex;
     flex-shrink: 0;
-    height: 7px;
-    width: 7px;
-    transition: background-color var(--fusion-transition);
   }
 
-  .scene-row__dot--on {
-    background: var(--fusion-success);
-    box-shadow: 0 0 0 2px rgba(61, 220, 132, 0.2);
+  .scene-row__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
   }
 
   .scene-row__name {
     color: var(--fusion-text);
-    flex: 1;
     font-size: 0.8125rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* REQ-CEN-035: dimensions and marks, on one truncating line under the name. */
+  .scene-row__meta {
+    color: var(--fusion-text-subtle);
+    display: flex;
+    font-size: 0.6875rem;
+    gap: 0.3rem;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* REQ-CEN-091: a mark is a written word in a chip, never a coloured dot on its own. */
+  .scene-row__mark {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
+    padding: 0 0.25rem;
   }
 
   .scene-row__actions {
