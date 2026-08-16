@@ -66,6 +66,10 @@
   } from "../../lib/contacts/contactsVM.js";
   import { setContactsTabVisible } from "../../lib/contacts/knowledgeBadge.js";
   import {
+    conditionRegistry,
+    ensureConditionRegistry,
+  } from "../../lib/conditions/conditionRegistry.svelte.js";
+  import {
     assignContactToCategory,
     createCategory,
     deleteCategory,
@@ -119,6 +123,15 @@
     ]),
   );
 
+  /**
+   * The chips are painted from what the SYSTEM declared (REQ-CTT-031/032/034,
+   * DEC-CTT-11): tone gives the colour, `critical` the emphasis, `help` the
+   * tooltip. The client cannot import a game system, so the dictionary is
+   * fetched once per seat and read reactively from here — empty until it lands,
+   * which degrades the chip instead of hiding the condition (REQ-CTT-035).
+   */
+  const conditionDeclarations = $derived(conditionRegistry.declarations);
+
   const section = $derived(
     buildTableSection({
       actors,
@@ -126,6 +139,7 @@
       isPrivileged: isGm,
       query,
       onlineUserIds,
+      conditionDeclarations,
     }),
   );
 
@@ -149,6 +163,9 @@
    */
   onMount(() => {
     setContactsTabVisible(true);
+    // Fire and forget: the panel never waits on the dictionary (RNF-CTT-01), and
+    // the call is single-flight, so re-opening the tab does not ask again.
+    void ensureConditionRegistry(socket);
   });
 
   onDestroy(() => {
@@ -182,6 +199,7 @@
       isPrivileged: isGm,
       query,
       categories,
+      conditionDeclarations,
     }),
   );
 

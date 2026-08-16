@@ -21,7 +21,11 @@ import { verifyAccessToken } from "../auth/crypto.js";
 import { SeqStore } from "./seq-store.js";
 import { OpBuffer } from "./op-buffer.js";
 import { HandlerRegistry } from "./handler-registry.js";
-import { systemPingHandler, buildWhoAmIHandler } from "./handlers/system.js";
+import {
+  systemPingHandler,
+  buildWhoAmIHandler,
+  buildSystemConditionsHandler,
+} from "./handlers/system.js";
 import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
@@ -288,6 +292,11 @@ export class SocketManager {
       "system:whoami",
       buildWhoAmIHandler((id) => authService.getUser(id)),
     );
+    // Spec 15 REQ-SYS-043 / spec 39 DEC-CTT-11: the active system's condition
+    // dictionary. The chip's colour, emphasis and tooltip are declared data
+    // (REQ-CTT-031/032/034) and the client cannot import a game system, so the
+    // declaration reaches the drawer through here.
+    registry.register("system:conditions", buildSystemConditionsHandler(systemModule));
 
     // Register M1-B document CRUD handlers
     registry.register("doc:create", buildDocCreateHandler(syncDeps));

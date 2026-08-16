@@ -41,7 +41,7 @@ const FOFURINHA = {
   system: {
     details: { class: "Druida", level: 5 },
     // Present on purpose: REQ-CTT-021 only means something if there was something
-    // to leak. 37 and 52 must appear nowhere in the drawn panel.
+    // to leak. 37 and 52 must be readable nowhere in the drawn panel.
     attributes: { hp: { value: 37, max: 52 } },
   },
   items: [
@@ -117,6 +117,17 @@ function cardOf(body: string, id: string): string {
   return body.slice(from, next === -1 ? body.length : body.lastIndexOf("<div", next));
 }
 
+/**
+ * The markup a leak could hide in: everything except the `class` attributes, which
+ * carry Svelte's scoped-style hashes (`svelte-3qi37y`) and would make a plain
+ * substring search for a number meaningless. Text nodes AND the attributes a
+ * screen reader speaks (aria-label, title, alt) stay in, so a value smuggled into
+ * a label is still caught.
+ */
+function withoutStyleHashes(body: string): string {
+  return body.replace(/\sclass="[^"]*"/g, "");
+}
+
 function drawnOrder(body: string): string[] {
   return [...body.matchAll(/data-contact-id="([^"]+)"/g)].map((m) => m[1] ?? "");
 }
@@ -166,9 +177,11 @@ describe("what the card draws (REQ-CTT-020)", () => {
 
   it("REQ-CTT-021: no hit points anywhere, for either role", () => {
     for (const body of [renderPanel(), renderPanel({ isGm: true, userId: "user-gm-1" })]) {
-      expect(body).not.toContain("37");
-      expect(body).not.toContain("52");
-      expect(body).not.toMatch(/\bhp\b/i);
+      const drawn = withoutStyleHashes(body);
+      // Neither value on its own, nor the fraction or bar they would make.
+      expect(drawn).not.toMatch(/\b37\b/);
+      expect(drawn).not.toMatch(/\b52\b/);
+      expect(drawn).not.toMatch(/\bhp\b/i);
     }
     // And the panel never reaches for them: the view model cannot even carry them.
     expect(code()).not.toMatch(/\bhp\b/i);
