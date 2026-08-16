@@ -62,6 +62,12 @@ import type {
 } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
 import { isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
+import {
+  validateEmbeddedItemForSystem,
+  augmentationSlotLimitViolation,
+} from "../documents/embedded-item.js";
+import { recomputeDerivedIfNeeded } from "../documents/derive.js";
+import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
@@ -756,9 +762,21 @@ export class CompendiumService {
    * Scene fails per-uuid as a validation problem, not a permission one
    * (REQ-CPD-061, `isSheetImportableDocumentType`).
    *
-   * TWICE IS TWICE (REQ-CPD-064): nothing here looks at what the actor already
-   * carries. Each accepted uuid becomes a NEW embedded item with a fresh `_id`,
-   * exactly like `importToWorld` clones a new world document each call.
+   * TWICE IS TWICE (REQ-CPD-064): bringing the same entry again is never
+   * refused for being a repeat. Each accepted uuid becomes a NEW embedded item
+   * with a fresh `_id`, exactly like `importToWorld` clones a new world
+   * document each call.
+   *
+   * THE SAME SERVER RULES AS THE SHEET PICKER. DEC-CPD-05 lets a plain player
+   * through this door because it is the same gesture `doc:create` with
+   * `parent={type:"Actor"}` already performs — so the two rules that path
+   * imposes on an embedded Item impose themselves here too, from the SHARED
+   * `documents/embedded-item.ts`: the system's data model for the item's
+   * `type`/`system` (REQ-SYS-011), and SF2e's augmentation slot limit
+   * (REQ-SF2-024, CA-SF2-05 — the one rule that does consult what the actor
+   * already carries, and the reason a repeat can still fail: the limit, never
+   * the repetition). Either failure is a per-uuid `failed` entry, so one bad
+   * entry never sinks the batch.
    *
    * The write is ONE `store.update` of the parent actor at the end, mirroring
    * `handleEmbeddedCreate` in doc-handlers.ts: a partial batch never leaves
@@ -777,6 +795,13 @@ export class CompendiumService {
       actorId: string;
       userId: string;
       role: number;
+      /**
+       * The WORLD's game system id. Needed by the same cross-item business
+       * rules `doc:create` applies to an embedded Item — today SF2e's
+       * augmentation slot limit (REQ-SF2-024). Absent = no system-specific
+       * gate, exactly as on the doc:create path.
+       */
+      systemId?: string;
       /** Same role as importToWorld's: derives `system.derived` after the write. */
       systemModule?: SystemModule;
       logger?: Logger;
@@ -851,7 +876,39 @@ export class CompendiumService {
         delete embedded["i18n"];
         delete embedded["mechanics"];
 
-        addition.push(embedded);
+        // THE SAME SERVER RULES `doc:create` APPLIES TO AN EMBEDDED ITEM.
+        // DEC-CPD-05 opens this door to a plain PLAYER (the predicate is OWNER
+        // of the destination, not the role) precisely because it is the same
+        // gesture the sheet picker already performs — "proibir na aba criaria
+        // duas regras para o mesmo gesto". A door that skipped these checks
+        // would be the cheapest way around them: both predicates therefore
+        // come from documents/embedded-item.ts, shared with
+        // handleEmbeddedCreate, never re-implemented here.
+        //
+        // Order mirrors that handler: the cross-item business rule first
+        // (counted against `existing` PLUS everything accepted earlier in THIS
+        // batch), then the per-item shape. A uuid failing either is a `failed`
+        // entry, not an exception — one bad entry never sinks the batch.
+        const augViolation = augmentationSlotLimitViolation(
+          options.systemId,
+          [...existing, ...addition] as AugmentationLikeItem[],
+          embedded,
+        );
+        if (augViolation !== null) {
+          failed.push({ uuid, reason: augViolation });
+          continue;
+        }
+
+        const validation = validateEmbeddedItemForSystem(options.systemModule, embedded);
+        if (!validation.ok) {
+          failed.push({ uuid, reason: validation.message });
+          continue;
+        }
+
+        // `validation.doc` — the model-parsed `system` (defaults applied,
+        // unknown keys handled by the model's own schema), not the raw pack
+        // subtree. Same value handleEmbeddedCreate pushes.
+        addition.push(validation.doc);
         created.push(embeddedId);
       } catch (err) {
         const reason = err instanceof Error ? err.message : String(err);
@@ -882,24 +939,20 @@ export class CompendiumService {
 
     // New items change AC/saves/spell slots — derive before the caller
     // broadcasts, same reason doc-handlers.ts recomputes after an embedded
-    // create. A malformed document must not undo a write already committed.
-    if (options.systemModule) {
-      try {
-        runActorDerivation(updated, options.systemModule);
-        const rederived = store.update(
-          "actors",
-          options.actorId,
-          { system: updated["system"] ?? {} },
-          { userId: options.userId },
-        );
-        if (rederived) updated = rederived;
-      } catch (deriveErr) {
-        options.logger?.warn(
-          { err: deriveErr, actorId: options.actorId },
-          "Actor derivation failed after sheet import — keeping the items without derived",
-        );
-      }
-    }
+    // create. `recomputeDerivedIfNeeded` is that recompute, shared: it derives
+    // over a CLONE and persists only `system.derived` (several DeriveSteps
+    // also write cache fields outside `derived` that must never be persisted),
+    // it PRUNES the keys the recompute stopped producing (r24 S2 — otherwise
+    // `system.derived` only ever grows), and it swallows a derivation failure
+    // so a malformed document never undoes a write already committed.
+    const deriveDeps: {
+      store: DocumentStore;
+      systemModule?: SystemModule;
+      logger?: Logger;
+    } = { store };
+    if (options.systemModule !== undefined) deriveDeps.systemModule = options.systemModule;
+    if (options.logger !== undefined) deriveDeps.logger = options.logger;
+    updated = recomputeDerivedIfNeeded(deriveDeps, "Actor", updated, { userId: options.userId });
 
     return { actorId: options.actorId, created, failed, actor: updated };
   }

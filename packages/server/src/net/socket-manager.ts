@@ -392,6 +392,10 @@ export class SocketManager {
       // on the ordinary doc:update channel (REQ-CPD-061).
       seqStore,
       opBuffer,
+      // Same pair `syncDeps` carries: the sheet door runs the SAME embedded-Item
+      // validation `doc:create` runs (documents/embedded-item.ts), and the
+      // system-specific half of it needs the world's systemId.
+      ...(systemId !== undefined ? { systemId } : {}),
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));

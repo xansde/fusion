@@ -70,6 +70,14 @@ export interface CompendiumHandlerDeps {
    * system package loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * The world's game system id (e.g. "pf2e", "sf2e"), when known. Forwarded
+   * to `CompendiumService.importToActor` so the sheet door applies the SAME
+   * system-specific server rules `doc:create` applies to an embedded Item —
+   * today SF2e's augmentation slot limit (REQ-SF2-024). Same field, same
+   * meaning and same optionality as `DocHandlerDeps.systemId`.
+   */
+  systemId?: string;
   logger?: Logger;
   /**
    * Sequence + op buffer of the world namespace. Needed only by
@@ -404,6 +412,7 @@ export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps)
         actorId: string;
         userId: string;
         role: number;
+        systemId?: string;
         systemModule?: SystemModule;
         logger?: Logger;
       } = {
@@ -412,6 +421,7 @@ export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps)
         userId: ctx.userId,
         role: ctx.role,
       };
+      if (deps.systemId !== undefined) importOpts.systemId = deps.systemId;
       if (deps.systemModule !== undefined) importOpts.systemModule = deps.systemModule;
       if (deps.logger !== undefined) importOpts.logger = deps.logger;
 
