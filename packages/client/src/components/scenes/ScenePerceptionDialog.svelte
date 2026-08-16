@@ -1,8 +1,14 @@
 <script lang="ts">
   /**
-   * ScenePerceptionDialog.svelte — GM dialog for scene vision/fog/lighting settings.
+   * ScenePerceptionDialog.svelte — the body of the PERCEPTION window (REQ-CEN-062).
    *
-   * Spec: 07-visao-iluminacao-fog.md REQ-VIS-044/045, REQ-VIS-085
+   * Spec: 07-visao-iluminacao-fog.md REQ-VIS-044/045, REQ-VIS-085.
+   *
+   * This is where the VALUES of the environment are tuned — the head of the Cenas tab
+   * only toggles and resets (REQ-CEN-025, DEC-CEN-06). Reachable from the head and
+   * from the configuration window, both of which open it as a real floating window
+   * (`lib/scenes/sceneWindows.ts`, DEC-CEN-09); it no longer paints a backdrop and a
+   * modal element of its own.
    *
    * Fields:
    *   - tokenVision (bool)
@@ -17,6 +23,7 @@
   import type { Socket } from "socket.io-client";
   import type { SceneDocument } from "@fusion/shared";
   import { sendOp } from "../../lib/docs/sendOp.js";
+  import { t } from "../../lib/i18n/i18n.js";
 
   // ---- Props ----
 
@@ -34,20 +41,26 @@
 
   // ---- State ----
 
-  let tokenVision = $state<boolean>((scene as any).tokenVision ?? false);
-  let fogEnabled = $state<boolean>((scene as any).fogEnabled ?? false);
-  let darkness = $state<number>((scene as any).darkness ?? 0);
-  let globalLight = $state<boolean>((scene as any).globalLight ?? false);
-  let globalLightThreshold = $state<number>((scene as any).globalLightThreshold ?? 0.5);
+  // Seeded once from the scene the window was opened with: a slider that jumped while
+  // the GM dragged it would be worse than a stale one.
+  // svelte-ignore state_referenced_locally
+  let tokenVision = $state<boolean>(scene.tokenVision ?? false);
+  // svelte-ignore state_referenced_locally
+  let fogEnabled = $state<boolean>(scene.fogEnabled ?? false);
+  // svelte-ignore state_referenced_locally
+  let darkness = $state<number>(scene.darkness ?? 0);
+  // svelte-ignore state_referenced_locally
+  let globalLight = $state<boolean>(scene.globalLight ?? false);
+  // svelte-ignore state_referenced_locally
+  let globalLightThreshold = $state<number>(scene.globalLightThreshold ?? 0.5);
 
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
 
-  // ---- Handlers ----
+  const darknessPercent = $derived(Math.round(darkness * 100));
+  const thresholdPercent = $derived(Math.round(globalLightThreshold * 100));
 
-  function handleKeydown(e: KeyboardEvent): void {
-    if (e.key === "Escape") onClose();
-  }
+  // ---- Handlers ----
 
   async function handleSubmit(e: Event): Promise<void> {
     e.preventDefault();
@@ -75,172 +88,99 @@
       });
       onSuccess();
     } catch (err) {
-      serverError = err instanceof Error ? err.message : "An error occurred.";
+      serverError =
+        err instanceof Error ? err.message : t("FUSION.Scene.Perception.UnexpectedError");
     } finally {
       submitting = false;
     }
   }
 </script>
 
-<!-- Backdrop -->
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div
-  class="dialog-backdrop"
-  role="presentation"
-  onclick={onClose}
-  onkeydown={handleKeydown}
-></div>
+<form class="scene-perception" onsubmit={handleSubmit} novalidate>
+  <!-- ====== Vision / Fog ====== -->
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Scene.Perception.VisionSection")}</legend>
 
-<!-- Dialog -->
-<dialog
-  class="config-dialog"
-  open
-  aria-label="Scene perception settings"
-  onkeydown={handleKeydown}
->
-  <header class="dialog__header">
-    <h2 class="dialog__title">Scene Perception — {scene.name}</h2>
-    <button class="dialog__close" onclick={onClose} aria-label="Close">&#x2715;</button>
-  </header>
+    <label class="checkbox-row">
+      <input type="checkbox" bind:checked={tokenVision} disabled={submitting} />
+      <span>{t("FUSION.Scene.Perception.TokenVision")}</span>
+    </label>
 
-  <form class="dialog__body" onsubmit={handleSubmit} novalidate>
+    <label class="checkbox-row">
+      <input type="checkbox" bind:checked={fogEnabled} disabled={submitting} />
+      <span>{t("FUSION.Scene.Perception.Fog")}</span>
+    </label>
+  </fieldset>
 
-    <!-- ====== Vision / Fog ====== -->
-    <fieldset class="section">
-      <legend class="section__title">Vision &amp; Fog</legend>
+  <!-- ====== Lighting ====== -->
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Scene.Perception.LightingSection")}</legend>
 
-      <label class="checkbox-row">
-        <input type="checkbox" bind:checked={tokenVision} disabled={submitting} />
-        <span>Token vision enabled (players limited to what their tokens see)</span>
+    <div class="field">
+      <label class="field__label" for="scene-darkness">
+        {t("FUSION.Scene.Perception.Darkness", { percent: darknessPercent })}
+        <span class="field__hint">{t("FUSION.Scene.Perception.DarknessHint")}</span>
       </label>
+      <input
+        id="scene-darkness"
+        class="field__input"
+        type="range"
+        min="0"
+        max="1"
+        step="0.05"
+        bind:value={darkness}
+        disabled={submitting}
+      />
+    </div>
 
-      <label class="checkbox-row">
-        <input type="checkbox" bind:checked={fogEnabled} disabled={submitting} />
-        <span>Fog of war enabled</span>
-      </label>
-    </fieldset>
+    <label class="checkbox-row">
+      <input type="checkbox" bind:checked={globalLight} disabled={submitting} />
+      <span>{t("FUSION.Scene.Perception.GlobalLight")}</span>
+    </label>
 
-    <!-- ====== Lighting ====== -->
-    <fieldset class="section">
-      <legend class="section__title">Lighting</legend>
-
+    {#if globalLight}
       <div class="field">
-        <label class="field__label" for="scene-darkness">
-          Darkness level — {(darkness * 100).toFixed(0)}%
-          <span class="field__hint">(0 = bright day; 1 = pitch black)</span>
+        <label class="field__label" for="scene-gi-threshold">
+          {t("FUSION.Scene.Perception.Threshold", { percent: thresholdPercent })}
+          <span class="field__hint">{t("FUSION.Scene.Perception.ThresholdHint")}</span>
         </label>
         <input
-          id="scene-darkness"
+          id="scene-gi-threshold"
           class="field__input"
           type="range"
           min="0"
           max="1"
           step="0.05"
-          bind:value={darkness}
+          bind:value={globalLightThreshold}
           disabled={submitting}
         />
       </div>
-
-      <label class="checkbox-row">
-        <input type="checkbox" bind:checked={globalLight} disabled={submitting} />
-        <span>Global illumination (entire explored area is lit)</span>
-      </label>
-
-      {#if globalLight}
-        <div class="field">
-          <label class="field__label" for="scene-gi-threshold">
-            GI darkness threshold — {(globalLightThreshold * 100).toFixed(0)}%
-            <span class="field__hint">(GI is suppressed above this level)</span>
-          </label>
-          <input
-            id="scene-gi-threshold"
-            class="field__input"
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            bind:value={globalLightThreshold}
-            disabled={submitting}
-          />
-        </div>
-      {/if}
-    </fieldset>
-
-    {#if serverError}
-      <div class="server-error" role="alert">{serverError}</div>
     {/if}
+  </fieldset>
 
-    <footer class="dialog__footer">
-      <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
-        Cancel
-      </button>
-      <button type="submit" class="btn btn--primary" disabled={submitting}>
-        {submitting ? "Saving…" : "Save"}
-      </button>
-    </footer>
-  </form>
-</dialog>
+  {#if serverError}
+    <div class="server-error" role="alert">{serverError}</div>
+  {/if}
+
+  <footer class="dialog__footer">
+    <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
+      {t("FUSION.Scene.Dialog.Cancel")}
+    </button>
+    <button type="submit" class="btn btn--primary" disabled={submitting}>
+      {submitting ? t("FUSION.Scene.Dialog.Saving") : t("FUSION.Scene.Dialog.Save")}
+    </button>
+  </footer>
+</form>
 
 <style>
-  .dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 200;
-  }
-
-  .config-dialog {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 201;
-    background: var(--fusion-surface);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  /* The window owns the frame (Window.svelte); this is only its content. */
+  .scene-perception {
     color: var(--fusion-text);
-    font-family: var(--fusion-font);
-    padding: 0;
-    width: min(480px, 94vw);
-    max-height: 90dvh;
-    overflow-y: auto;
-  }
-
-  .config-dialog::backdrop {
-    background: transparent;
-  }
-
-  .dialog__header {
-    align-items: center;
-    border-bottom: 1px solid var(--fusion-border);
-    display: flex;
-    gap: 0.5rem;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-  }
-
-  .dialog__title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .dialog__close {
-    background: transparent;
-    border: none;
-    color: var(--fusion-text-muted);
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.25rem;
-    line-height: 1;
-  }
-
-  .dialog__body {
     display: flex;
     flex-direction: column;
+    font-family: var(--fusion-font);
     gap: 1.25rem;
-    padding: 1.25rem;
+    padding: 1rem 1.1rem;
   }
 
   .section {
@@ -304,6 +244,12 @@
     accent-color: var(--fusion-accent);
   }
 
+  .field__input:focus-visible,
+  .checkbox-row input:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 1px;
+  }
+
   .server-error {
     background: rgba(255, 92, 92, 0.12);
     border: 1px solid var(--fusion-danger);
@@ -318,7 +264,7 @@
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
-    padding: 1rem 1.25rem;
+    padding-top: 0.9rem;
   }
 
   .btn {
@@ -338,6 +284,11 @@
   .btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .btn--primary {

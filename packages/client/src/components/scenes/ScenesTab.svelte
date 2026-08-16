@@ -19,6 +19,10 @@
    *    markup and the asset-token dance the VM deliberately does not do.
    *  - the environment shortcuts of the head (REQ-CEN-020..025), from
    *    `lib/scenes/sceneEnvironment.ts`;
+   *  - the four dialogs as WINDOWS (REQ-CEN-060..064): creating, configuring,
+   *    perception and the delete confirmation open through
+   *    `lib/scenes/sceneWindows.ts` — a form does not fit in 300px and the drawer
+   *    never widens (DEC-CEN-09, DEC-GAV-04);
    *  - the archive (REQ-CEN-030..037, REQ-CEN-039): the other scenes of the world,
    *    grouped by folder in the manual order of the document, from
    *    `lib/scenes/sceneShelf.ts`. The scene on air is NOT repeated here — it lives in
@@ -44,8 +48,13 @@
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
-  import SceneCreateDialog from "./SceneCreateDialog.svelte";
-  import SceneDeleteConfirm from "./SceneDeleteConfirm.svelte";
+  import {
+    SCENE_WINDOW_KEYS,
+    openSceneConfigWindow,
+    openSceneCreateWindow,
+    openSceneDeleteWindow,
+    openScenePerceptionWindow,
+  } from "../../lib/scenes/sceneWindows.js";
   import { t } from "../../lib/i18n/i18n.js";
   import { buildSceneHeadVM } from "../../lib/scenes/scenesTabVM.js";
   import {
@@ -69,6 +78,11 @@
   } from "../../lib/scenes/sceneShelf.js";
   import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
+  import {
+    enterScenePrepare,
+    exitScenePrepare,
+    scenePrepareState,
+  } from "../../lib/scenes/prepareState.svelte.js";
 
   /** The contract the drawer hands every panel (registry, REQ-GAV-030). */
   const { socket, activeSceneId, userId, worldId }: SidebarPanelProps = $props();
@@ -233,8 +247,22 @@
       folders: sceneListState.folders,
       collapsedFolderIds: collapsedGroups,
       query: searchQuery,
+      // REQ-CEN-056: the archive marks the scene THIS Master is preparing.
+      preparingSceneId: scenePrepareState.sceneId,
     }),
   );
+
+  /**
+   * Open a scene in prepare, or leave it when it is already the prepared one
+   * (REQ-CEN-050, REQ-CEN-053).
+   *
+   * No socket in sight: the prepare is a value of this client and writing it to the
+   * server would be the bug the requirement exists to prevent (REQ-CEN-051, RNF-CEN-03).
+   */
+  function togglePrepare(sceneId: string): void {
+    if (scenePrepareState.sceneId === sceneId) exitScenePrepare();
+    else enterScenePrepare(sceneId, activeSceneId);
+  }
 
   function toggleGroup(groupKey: string): void {
     collapsedGroups = toggleCollapsedSceneFolder(collapsedGroups, groupKey);
@@ -250,9 +278,12 @@
     return sceneListState.scenes.find((scene) => scene._id === sceneId) ?? null;
   }
 
-  let showCreateDialog = $state(false);
-  let editTarget = $state<SceneDocument | null>(null);
-  let deleteTarget = $state<SceneDocument | null>(null);
+  // --- The four windows (REQ-CEN-060..064, DEC-CEN-09) -------------------------
+  // None of them lives inside the drawer: 300px is not a form, so each opens as a
+  // real window of the manager (`lib/scenes/sceneWindows.ts`, REQ-UIF-009). The tab
+  // keeps no `showDialog` flag — the manager's registry IS the state, which is what
+  // lets a window survive this panel being unmounted by a tab switch (REQ-GAV-017).
+
   let activatingId = $state<string | null>(null);
   let activateError = $state<string | null>(null);
   let shelfError = $state<string | null>(null);
@@ -339,6 +370,35 @@
       </div>
       {#if environment !== null}
         {@const env = environment}
+        <!-- REQ-CEN-062: the head's door into the perception window, where the VALUES
+             are tuned (REQ-CEN-025). Absolute, in the opposite corner from the
+             environment group, so neither can add a pixel to the fixed head
+             (REQ-CEN-013). -->
+        <button
+          class="scene-head__perception"
+          title={t(SCENE_WINDOW_KEYS.headPerception)}
+          aria-label={t(SCENE_WINDOW_KEYS.headPerception)}
+          onclick={() => {
+            const scene = sceneOnAir();
+            if (scene) openScenePerceptionWindow(socket, scene);
+          }}
+        >
+          <!-- Drawn glyph (REQ-NPC-094): a sun with rays, "how this scene is seen". -->
+          <svg
+            viewBox="0 0 16 16"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <circle cx="8" cy="8" r="2.6" />
+            <path d="M8 1.6v1.6M8 12.8v1.6M1.6 8h1.6M12.8 8h1.6M3.5 3.5l1.1 1.1M11.4 11.4l1.1 1.1M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1" />
+          </svg>
+        </button>
         <!-- REQ-CEN-020/021/022: the three mid-session gestures, floating over the fixed
              box so they cannot add a pixel of height to it (REQ-CEN-013). They exist only
              while a scene is on air (REQ-CEN-024), and they only ACTION spec 07 —
@@ -443,11 +503,11 @@
   <header class="scenes-tab__header">
     <div class="scenes-tab__header-row">
       <span class="scenes-tab__title">{t("FUSION.Sidebar.Scenes.Title")}</span>
+      <!-- REQ-CEN-060: creating opens a floating window; REQ-CEN-065: it does not put
+           the new scene on air. -->
       <button
         class="btn btn--primary btn--sm"
-        onclick={() => {
-          showCreateDialog = true;
-        }}
+        onclick={() => openSceneCreateWindow(socket)}
         aria-label={t("FUSION.Sidebar.Scenes.Create")}
       >
         {t("FUSION.Sidebar.Scenes.Create")}
@@ -516,9 +576,14 @@
                 <!-- REQ-CEN-037: a line is draggable, and a drop inside its own group
                      writes the new `sort` to the documents. -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <!-- REQ-CEN-056 / REQ-CEN-091: the prepared line is distinguished three
+                     ways that do not need colour — a written mark below the name, a
+                     left rule, and `aria-current` for a screen reader. -->
                 <div
                   class="scene-row"
                   class:scene-row--dragging={draggingSceneId === entry.sceneId}
+                  class:scene-row--preparing={entry.preparing}
+                  aria-current={entry.preparing ? "true" : undefined}
                   role="listitem"
                   draggable="true"
                   ondragstart={(event) => handleDragStart(event, entry.sceneId)}
@@ -580,10 +645,43 @@
                         <path d="M5 3.5 12 8l-7 4.5z" fill="currentColor" />
                       </svg>
                     </button>
+                    <!-- REQ-CEN-050: open this scene on THIS canvas without touching the
+                         one on air; pressed, the same control leaves the prepare
+                         (REQ-CEN-053). It writes nothing (RNF-CEN-03). -->
+                    <button
+                      class="action-btn action-btn--prepare"
+                      class:action-btn--prepare-on={entry.preparing}
+                      aria-pressed={entry.preparing}
+                      onclick={() => togglePrepare(entry.sceneId)}
+                      title={entry.preparing
+                        ? t(SCENE_SHELF_KEYS.prepareExit)
+                        : t(SCENE_SHELF_KEYS.prepare)}
+                      aria-label="{entry.preparing
+                        ? t(SCENE_SHELF_KEYS.prepareExit)
+                        : t(SCENE_SHELF_KEYS.prepare)}: {entry.name}"
+                    >
+                      <!-- Drawn glyph (REQ-NPC-094): an eye, "I am looking at this". -->
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M1.5 8S4 3.8 8 3.8 14.5 8 14.5 8 12 12.2 8 12.2 1.5 8 1.5 8z" />
+                        <circle cx="8" cy="8" r="1.8" />
+                      </svg>
+                    </button>
+                    <!-- REQ-CEN-061: configuring never happens inside the drawer. -->
                     <button
                       class="action-btn action-btn--edit"
                       onclick={() => {
-                        editTarget = scene;
+                        if (scene) openSceneConfigWindow(socket, scene);
                       }}
                       title={t("FUSION.Scene.Dialog.EditScene")}
                       aria-label="{t('FUSION.Scene.Dialog.EditScene')} {entry.name}"
@@ -604,10 +702,12 @@
                         <path d="M9.2 4.3l2.5 2.5" />
                       </svg>
                     </button>
+                    <!-- REQ-CEN-063/064: the confirmation names the cascade, and
+                         refuses outright for the scene on air. -->
                     <button
                       class="action-btn action-btn--delete"
                       onclick={() => {
-                        deleteTarget = scene;
+                        if (scene) openSceneDeleteWindow(socket, scene);
                       }}
                       title={t("FUSION.Scene.Dialog.DeleteScene")}
                       aria-label="{t('FUSION.Scene.Dialog.DeleteScene')} {entry.name}"
@@ -658,45 +758,10 @@
   <footer class="scenes-tab__footer">{t(shelf.footer.key)}</footer>
 </div>
 
-<!-- Scene dialogs — floating, outside the drawer (DEC-GAV-04: detail never widens
-     the panel). -->
-{#if showCreateDialog}
-  <SceneCreateDialog
-    mode="create"
-    {socket}
-    onClose={() => {
-      showCreateDialog = false;
-    }}
-    onSuccess={() => {
-      showCreateDialog = false;
-    }}
-  />
-{/if}
-{#if editTarget}
-  <SceneCreateDialog
-    mode="edit"
-    scene={editTarget}
-    {socket}
-    onClose={() => {
-      editTarget = null;
-    }}
-    onSuccess={() => {
-      editTarget = null;
-    }}
-  />
-{/if}
-{#if deleteTarget}
-  <SceneDeleteConfirm
-    scene={deleteTarget}
-    {socket}
-    onClose={() => {
-      deleteTarget = null;
-    }}
-    onSuccess={() => {
-      deleteTarget = null;
-    }}
-  />
-{/if}
+<!-- The four scene dialogs are NOT mounted here any more: they are windows of the
+     window manager, opened by `lib/scenes/sceneWindows.ts` and rendered once by
+     `WindowHost` (REQ-UIF-009, DEC-CEN-09). A form inside the drawer would either
+     widen it or be unusable at 300px (DEC-GAV-04). -->
 
 <style>
   .scenes-tab {
@@ -744,6 +809,35 @@
     display: flex;
     gap: 0.2rem;
     z-index: 1;
+  }
+
+  /* REQ-CEN-062: the perception door, in the opposite corner and equally out of the
+     flow — the head's height is the token's and nothing here may touch it. */
+  .scene-head__perception {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    left: 0.4rem;
+    padding: 0.2rem;
+    position: absolute;
+    top: 0.4rem;
+    z-index: 1;
+  }
+
+  .scene-head__perception:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .scene-head__perception:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .scene-head__env-btn {
@@ -1003,6 +1097,14 @@
     opacity: 0.5;
   }
 
+  /* REQ-CEN-056 / REQ-CEN-091: the prepared line carries a left rule and a tinted
+     ground ON TOP of the written "Em preparo" chip — the shape reads without colour,
+     which is exactly what the requirement asks. */
+  .scene-row--preparing {
+    background: rgba(124, 92, 252, 0.08);
+    box-shadow: inset 2px 0 0 var(--fusion-accent);
+  }
+
   .scene-row__grip {
     align-items: center;
     color: var(--fusion-text-subtle);
@@ -1093,6 +1195,20 @@
     background: rgba(61, 220, 132, 0.1);
     color: var(--fusion-success);
     border-color: var(--fusion-success);
+  }
+
+  /* REQ-CEN-056: the prepare toggle stays lit while it is the prepared scene, with a
+     ring so "pressed" is not carried by hue alone (REQ-CEN-091). */
+  .action-btn--prepare-on {
+    background: rgba(124, 92, 252, 0.16);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent);
+  }
+
+  .action-btn--prepare:not(:disabled):hover {
+    background: rgba(124, 92, 252, 0.1);
+    color: var(--fusion-accent);
+    border-color: var(--fusion-accent);
   }
 
   .action-btn--edit:not(:disabled):hover {

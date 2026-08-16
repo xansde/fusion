@@ -1,11 +1,25 @@
 <script lang="ts">
   /**
-   * SceneDeleteConfirm.svelte — confirmation dialog before deleting a Scene.
+   * SceneDeleteConfirm.svelte — the body of the DELETE window (spec 44 §5.7).
+   *
+   * Two requirements shape it:
+   *  - REQ-CEN-063: the confirmation NAMES what falls with the scene (its presences,
+   *    walls, lights, sounds and drawings — all embedded in the scene document,
+   *    DEC-PER-02) and what does not (the actors, which live on their own).
+   *  - REQ-CEN-064: deleting the scene ON AIR is refused, with the reason and the way
+   *    out. The refusal is read from the live pointer (`activeSceneState`, the single
+   *    source of DEC-CEN-02), so a scene that goes on air while this window is open
+   *    turns the confirmation into the refusal without a reopen.
+   *
+   * The refusal here is ergonomics; the boundary is the server, which refuses the same
+   * `doc:delete` (DEC-CEN-11) — see `scene-delete-guard.test.ts`.
    */
 
   import type { Socket } from "socket.io-client";
   import type { SceneDocument } from "@fusion/shared";
   import { deleteScene, OpError } from "../../lib/scenes/sceneController.js";
+  import { buildSceneDeleteVM } from "../../lib/scenes/sceneDelete.js";
+  import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
 
   const {
@@ -20,10 +34,14 @@
     socket: Socket;
   } = $props();
 
+  const vm = $derived(buildSceneDeleteVM({ scene, activeSceneId: activeSceneState.id }));
+
   let deleting = $state(false);
   let serverError = $state<string | null>(null);
 
   async function handleDelete(): Promise<void> {
+    // REQ-CEN-064: the refused case never reaches the wire.
+    if (vm.blocked || deleting) return;
     deleting = true;
     serverError = null;
     try {
@@ -39,103 +57,115 @@
       deleting = false;
     }
   }
-
-  function handleKeydown(e: KeyboardEvent): void {
-    if (e.key === "Escape") onClose();
-  }
 </script>
 
-<!-- Backdrop -->
-<div
-  class="dialog-backdrop"
-  role="presentation"
-  onclick={onClose}
-  onkeydown={handleKeydown}
-></div>
-
-<dialog
-  class="confirm-dialog"
-  open
-  aria-label={t("FUSION.Scene.Delete.Title")}
-  onkeydown={handleKeydown}
->
-  <header class="dialog__header">
-    <h2 class="dialog__title">{t("FUSION.Scene.Delete.Title")}</h2>
-  </header>
-
-  <div class="dialog__body">
-    <p class="dialog__message">
-      {t("FUSION.Scene.Delete.Confirm")} <strong>{scene.name}</strong>?
-      {t("FUSION.Scene.Delete.Cannot")}
+<div class="scene-delete">
+  {#if vm.blocked}
+    <!-- REQ-CEN-064: the reason first, then the way out — never a greyed button with
+         no explanation. -->
+    <div class="scene-delete__blocked" role="alert">
+      <p class="scene-delete__reason">{t(vm.reasonKey ?? "", { name: vm.name })}</p>
+      <p class="scene-delete__path">{t(vm.pathKey ?? "")}</p>
+    </div>
+  {:else}
+    <p class="scene-delete__question">
+      {t(vm.questionKey)} <strong>{vm.name}</strong>?
     </p>
 
-    {#if serverError}
-      <div class="server-error" role="alert">{serverError}</div>
-    {/if}
-  </div>
+    <!-- REQ-CEN-063: what goes with it, named one by one. -->
+    <p class="scene-delete__cascade-title">{t(vm.cascadeTitleKey)}</p>
+    <ul class="scene-delete__cascade">
+      {#each vm.cascadeKeys as key (key)}
+        <li>{t(key)}</li>
+      {/each}
+    </ul>
+    <!-- REQ-CEN-063: and what does not. -->
+    <p class="scene-delete__kept">{t(vm.keptKey)}</p>
+  {/if}
+
+  {#if serverError}
+    <div class="server-error" role="alert">{serverError}</div>
+  {/if}
 
   <footer class="dialog__footer">
     <button class="btn btn--ghost" onclick={onClose} disabled={deleting}>
       {t("FUSION.Scene.Delete.Cancel")}
     </button>
-    <button class="btn btn--danger" onclick={handleDelete} disabled={deleting}>
-      {deleting ? t("FUSION.Scene.Delete.Deleting") : t("FUSION.Scene.Delete.Delete")}
-    </button>
+    {#if !vm.blocked}
+      <button class="btn btn--danger" onclick={handleDelete} disabled={deleting}>
+        {deleting ? t("FUSION.Scene.Delete.Deleting") : t("FUSION.Scene.Delete.Delete")}
+      </button>
+    {/if}
   </footer>
-</dialog>
+</div>
 
 <style>
-  .dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 200;
-  }
-
-  .confirm-dialog {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 201;
-
-    background: var(--fusion-surface);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  /* The window owns the frame (Window.svelte); this is only its content. */
+  .scene-delete {
     color: var(--fusion-text);
+    display: flex;
+    flex-direction: column;
     font-family: var(--fusion-font);
-    padding: 0;
-    width: min(380px, 90vw);
+    gap: 0.6rem;
+    padding: 1rem 1.1rem;
   }
 
-  .confirm-dialog::backdrop {
-    background: transparent;
-  }
-
-  .dialog__header {
-    border-bottom: 1px solid var(--fusion-border);
-    padding: 1rem 1.25rem;
-  }
-
-  .dialog__title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .dialog__body {
-    padding: 1.25rem;
-  }
-
-  .dialog__message {
+  .scene-delete__question {
     color: var(--fusion-text-muted);
     font-size: 0.875rem;
     line-height: 1.5;
+    margin: 0;
   }
 
-  .dialog__message strong {
+  .scene-delete__question strong {
     color: var(--fusion-text);
+  }
+
+  .scene-delete__cascade-title {
+    color: var(--fusion-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin: 0.2rem 0 0;
+  }
+
+  .scene-delete__cascade {
+    color: var(--fusion-text-muted);
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8125rem;
+    gap: 0.15rem;
+    line-height: 1.4;
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  .scene-delete__kept {
+    color: var(--fusion-text-subtle);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    margin: 0.2rem 0 0;
+  }
+
+  /* REQ-CEN-064: the refusal is a message, not a disabled control with no words. */
+  .scene-delete__blocked {
+    background: rgba(255, 92, 92, 0.1);
+    border: 1px solid var(--fusion-danger);
+    border-radius: var(--fusion-radius-sm);
+    padding: 0.7rem 0.8rem;
+  }
+
+  .scene-delete__reason {
+    color: var(--fusion-text);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  .scene-delete__path {
+    color: var(--fusion-text-muted);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    margin: 0.35rem 0 0;
   }
 
   .server-error {
@@ -144,7 +174,6 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
     font-size: 0.8125rem;
-    margin-top: 0.75rem;
     padding: 0.6rem 0.75rem;
   }
 
@@ -153,7 +182,8 @@
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
-    padding: 1rem 1.25rem;
+    margin-top: 0.4rem;
+    padding-top: 0.9rem;
   }
 
   .btn {
@@ -167,12 +197,19 @@
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    transition:
+      background-color var(--fusion-transition),
+      opacity var(--fusion-transition);
   }
 
   .btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .btn--ghost {

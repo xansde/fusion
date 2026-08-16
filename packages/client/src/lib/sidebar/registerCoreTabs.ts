@@ -35,6 +35,7 @@ import {
   scenesIcon,
   settingsIcon,
 } from "../../components/sidebar/icons.js";
+import { scenePrepareBadge } from "../scenes/prepareState.svelte.js";
 import { getSidebarTab, registerSidebarTab } from "./registry.js";
 import type { SidebarBadgeStore, SidebarTabDefinition } from "./registry.js";
 
@@ -64,6 +65,16 @@ export const combatActiveBadge: SidebarBadgeStore = {
     return combatStore.combat !== null;
   },
 };
+
+/**
+ * Cenas' "you are not looking at the table's scene" dot (REQ-CEN-003, state-dot type).
+ *
+ * Re-exported from the scenes' own module for the same reason as the two above: the rule
+ * that lights it — a local prepare that differs from the scene on air (REQ-CEN-004) —
+ * belongs to spec 44, not to the rail. Opening the tab does not put it out (REQ-CEN-005):
+ * unlike an unread counter, it describes a state that is still true after you look.
+ */
+export { scenePrepareBadge };
 
 /**
  * The core tabs, in the order of DEC-GAV-01: group "all" (Chat, Contatos, Combate,
@@ -113,6 +124,7 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     label: "FUSION.Sidebar.Tabs.Scenes",
     group: "gm",
     component: () => import("../../components/scenes/ScenesTab.svelte"),
+    badge: scenePrepareBadge,
   },
   {
     // REQ-CFG-001: id "settings", group "all"; the registry anchors this one id to

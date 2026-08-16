@@ -43,6 +43,12 @@ export const SCENE_SHELF_KEYS = {
   expand: "FUSION.Scene.Shelf.Expand",
   markDarkness: "FUSION.Scene.Shelf.MarkDarkness",
   markFog: "FUSION.Scene.Shelf.MarkFog",
+  /** Written mark of the scene this Master is preparing (REQ-CEN-056). */
+  markPreparing: "FUSION.Scene.Prepare.Mark",
+  /** Verb of the line that opens a scene in prepare (REQ-CEN-050). */
+  prepare: "FUSION.Scene.Prepare.Start",
+  /** Verb of the same line while it IS the prepared scene (REQ-CEN-053). */
+  prepareExit: "FUSION.Scene.Prepare.Exit",
   /** Accessible name of the drag handle of a line (REQ-CEN-037). */
   reorder: "FUSION.Scene.Shelf.Reorder",
   reorderFailed: "FUSION.Scene.Shelf.ReorderFailed",
@@ -85,9 +91,15 @@ export interface SceneShelfFolder {
   readonly sort?: number | undefined;
 }
 
-/** One environment mark of a line — shown only while it is ON (REQ-CEN-035). */
+/**
+ * One mark of a line — shown only while it applies.
+ *
+ * Two of them are environment (REQ-CEN-035) and one is the local prepare (REQ-CEN-056);
+ * they share the shape because they share the requirement of being READ, not merely
+ * coloured (REQ-CEN-091).
+ */
 export interface SceneShelfMark {
-  readonly id: "darkness" | "fog";
+  readonly id: "darkness" | "fog" | "preparing";
   readonly labelKey: string;
 }
 
@@ -101,6 +113,14 @@ export interface SceneShelfEntryVM {
   readonly sort: number;
   readonly dimensions: SceneShelfLine;
   readonly marks: readonly SceneShelfMark[];
+  /**
+   * Whether THIS client is preparing this scene (REQ-CEN-056).
+   *
+   * Carried as its own flag on top of the written mark so the line can also take a
+   * structural treatment (a border, an `aria-current`) — the requirement is precisely
+   * that the distinction must not rest on colour alone (REQ-CEN-091).
+   */
+  readonly preparing: boolean;
 }
 
 /** One folder group of the archive (REQ-CEN-030, REQ-CEN-032). */
@@ -142,6 +162,13 @@ export interface SceneShelfInput {
   readonly collapsedFolderIds?: readonly string[] | undefined;
   /** What the GM typed in the search field (REQ-CEN-034). */
   readonly query?: string | undefined;
+  /**
+   * Id of the scene THIS client is preparing (REQ-CEN-056), or `null`.
+   *
+   * An input like any other: the archive marks it, and knows nothing about how the
+   * prepare started or ends — that is `prepareState.svelte.ts`'s business (DEC-CEN-03).
+   */
+  readonly preparingSceneId?: string | null | undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -183,8 +210,13 @@ function byManualOrder(a: SceneDocument, b: SceneDocument): number {
   return a._id.localeCompare(b._id);
 }
 
-function marksOf(scene: SceneDocument): SceneShelfMark[] {
+function marksOf(scene: SceneDocument, preparing: boolean): SceneShelfMark[] {
   const marks: SceneShelfMark[] = [];
+  // REQ-CEN-056: the prepare comes first — it is the state that explains why this
+  // Master's canvas is not showing what the table is showing.
+  if (preparing) {
+    marks.push({ id: "preparing", labelKey: SCENE_SHELF_KEYS.markPreparing });
+  }
   if (darknessOf(scene) > 0) {
     marks.push({ id: "darkness", labelKey: SCENE_SHELF_KEYS.markDarkness });
   }
@@ -194,8 +226,10 @@ function marksOf(scene: SceneDocument): SceneShelfMark[] {
   return marks;
 }
 
-function entryOf(scene: SceneDocument): SceneShelfEntryVM {
+function entryOf(scene: SceneDocument, preparingSceneId: string | null): SceneShelfEntryVM {
+  const preparing = preparingSceneId !== null && scene._id === preparingSceneId;
   return {
+    preparing,
     sceneId: scene._id,
     name: scene.name,
     folderId: folderOf(scene),
@@ -204,7 +238,7 @@ function entryOf(scene: SceneDocument): SceneShelfEntryVM {
       key: SCENE_HEAD_KEYS.dimensions,
       vars: { width: scene.width, height: scene.height },
     },
-    marks: marksOf(scene),
+    marks: marksOf(scene, preparing),
   };
 }
 
@@ -218,6 +252,7 @@ export function buildSceneShelfVM(input: SceneShelfInput): SceneShelfVM {
   const { scenes, activeSceneId } = input;
   const folders = input.folders ?? [];
   const collapsedKeys = new Set(input.collapsedFolderIds ?? []);
+  const preparingSceneId = input.preparingSceneId ?? null;
   const query = (input.query ?? "").trim().toLowerCase();
   const searching = query !== "";
 
@@ -258,7 +293,7 @@ export function buildSceneShelfVM(input: SceneShelfInput): SceneShelfVM {
       // A collapsed group would hide a hit, so a running search opens it (REQ-CEN-034);
       // the stored preference is untouched and comes back when the field is cleared.
       collapsed: !searching && collapsedKeys.has(folderId ?? UNFILED_GROUP_KEY),
-      entries: ordered.map(entryOf),
+      entries: ordered.map((scene) => entryOf(scene, preparingSceneId)),
     });
   }
 

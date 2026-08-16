@@ -708,6 +708,31 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
+    // REQ-CEN-065: creating a scene does NOT put it on air. `active` is a mirror of
+    // the single source of truth (`_meta:activeScene`, DEC-CEN-02) and only the
+    // dedicated `world:activeScene` operation may move it — the same rule
+    // `rejectUnwritableField` already enforces for doc:update (REQ-CEN-042). Without
+    // this the create path was a way in: a forged `active: true` produced a scene the
+    // pointer did not know about, which `sceneIsOnAir` (the redaction predicate) then
+    // treated as visible to every player.
+    //
+    // Only a TRUTHY `active` is refused: `active: false` is the value a new scene has
+    // anyway, and every existing caller spells it out.
+    if (documentType === "Scene") {
+      for (const item of data) {
+        if (
+          typeof item === "object" &&
+          item !== null &&
+          (item as Record<string, unknown>)["active"]
+        ) {
+          return ackError(
+            "VALIDATION_FAILED",
+            "Scene.active is not writable through doc:create — use the world:activeScene operation",
+          );
+        }
+      }
+    }
+
     // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT.
     //
     // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
@@ -1044,6 +1069,22 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
         } catch {
           // Missing document — the delete loop below reports NOT_FOUND.
         }
+      }
+
+      // REQ-CEN-064: the scene ON AIR is not deletable. The destructive operation
+      // cannot be the one that resolves the state (DEC-CEN-07) — without this guard
+      // one click of housekeeping drops the whole table onto the waiting screen, and
+      // nothing brings the scene back. The GM has to put another scene on air first
+      // (`world:activeScene`, the single writer of DEC-CEN-02).
+      //
+      // The refusal is atomic for the batch: a mixed list of an off-air scene and the
+      // one on air deletes NOTHING, so a partial delete never has to be undone.
+      if (onAirSceneIds.size > 0) {
+        const blocked = [...onAirSceneIds].join(", ");
+        return ackError(
+          "VALIDATION_FAILED",
+          `Scene is on air and cannot be deleted: ${blocked}. Put another scene on air first.`,
+        );
       }
     }
 
