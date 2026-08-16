@@ -40,6 +40,8 @@ import {
   buildPackDocUuid,
   parsePackDocUuid,
   COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP,
+  isSheetImportableDocumentType,
+  OwnershipLevel,
 } from "@fusion/shared";
 import type {
   PackManifest,
@@ -52,12 +54,14 @@ import type {
   CompendiumSearchAllGroup,
   CompendiumSearchAllPackTally,
   CompendiumImportResult,
+  CompendiumImportToActorResult,
+  Ownership,
   DocumentTable,
   DocI18n,
   DocMechanics,
 } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
-import { isRolePrivileged } from "../documents/ownership.js";
+import { isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
@@ -113,6 +117,16 @@ interface SearchAllRow {
   nameNorm: string;
   /** `normalizeSearchText(entry.namePt)`, or null when untranslated. */
   namePtNorm: string | null;
+}
+
+/**
+ * What `importToActor` gives its caller: the wire result (spec 43 §5.7) plus
+ * the persisted destination actor, which the handler needs in order to
+ * broadcast the `doc:update` and which has no business on the wire twice.
+ * `null` when nothing was written.
+ */
+export interface ImportToActorOutcome extends CompendiumImportToActorResult {
+  actor: Record<string, unknown> | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -718,6 +732,176 @@ export class CompendiumService {
     }
 
     return { created, failed };
+  }
+
+  /**
+   * Bring pack document(s) into ONE actor's sheet (spec 43 §5.7, DEC-CPD-05).
+   * REQ-CPD-061, REQ-CPD-073.
+   *
+   * THE PREDICATE IS THE DESTINATION, NOT THE CALLER. `importToWorld` above
+   * asks `isRolePrivileged` because the world is the Game Master's; a sheet is
+   * its owner's, so what is checked here is `OWNER` of the DESTINATION actor
+   * (REQ-DOC-027/028) through the same `resolveOwnership` every write path
+   * uses — never a second predicate of this module's own. A Game Master passes
+   * that check because `resolveOwnership` already answers OWNER for a
+   * privileged role, so there is no role branch here at all.
+   *
+   * THE AUDIENCE GATE STILL APPLIES. The pack document is read with the
+   * CALLER's role (`getDocument(role, uuid)`), so a player asking for a uuid
+   * inside a `gm` pack gets the very same "not found" a nonexistent uuid gets
+   * (REQ-CPD-071) — bringing to one's own sheet is not a side door into the
+   * bestiary.
+   *
+   * ONLY ITEMS. A sheet holds embedded Items; asking to embed an Actor or a
+   * Scene fails per-uuid as a validation problem, not a permission one
+   * (REQ-CPD-061, `isSheetImportableDocumentType`).
+   *
+   * TWICE IS TWICE (REQ-CPD-064): nothing here looks at what the actor already
+   * carries. Each accepted uuid becomes a NEW embedded item with a fresh `_id`,
+   * exactly like `importToWorld` clones a new world document each call.
+   *
+   * The write is ONE `store.update` of the parent actor at the end, mirroring
+   * `handleEmbeddedCreate` in doc-handlers.ts: a partial batch never leaves
+   * half the items persisted and half lost — either the whole surviving set is
+   * written or nothing is (REQ-CPD-065's server-side half).
+   *
+   * @returns the destination id, the embedded ids created, and one entry per
+   *   uuid that could not be brought (with the reason).
+   * @throws {DocumentNotFoundError} when the destination actor does not exist.
+   * @throws {PermissionDeniedError} when the caller is not OWNER of it.
+   */
+  importToActor(
+    uuids: string[],
+    options: {
+      db: Db;
+      actorId: string;
+      userId: string;
+      role: number;
+      /** Same role as importToWorld's: derives `system.derived` after the write. */
+      systemModule?: SystemModule;
+      logger?: Logger;
+    },
+  ): ImportToActorOutcome {
+    const store = new DocumentStore({ db: options.db });
+
+    // Throws DocumentNotFoundError — the handler maps it to NOT_FOUND.
+    const actor = store.get("actors", options.actorId);
+
+    const rawOwnership = actor["ownership"];
+    const ownership: Ownership =
+      rawOwnership && typeof rawOwnership === "object" && !Array.isArray(rawOwnership)
+        ? (rawOwnership as Ownership)
+        : { default: OwnershipLevel.NONE };
+
+    if (resolveOwnership(ownership, options.userId, options.role) < OwnershipLevel.OWNER) {
+      throw new PermissionDeniedError(`No OWNER access to destination actor ${options.actorId}`);
+    }
+
+    const created: string[] = [];
+    const failed: Array<{ uuid: string; reason: string }> = [];
+
+    const rawItems = actor["items"];
+    const existing = Array.isArray(rawItems) ? (rawItems as Record<string, unknown>[]) : [];
+    const usedIds = new Set<string>();
+    for (const item of existing) {
+      const id = item["_id"];
+      if (typeof id === "string") usedIds.add(id);
+    }
+
+    const addition: Record<string, unknown>[] = [];
+
+    for (const uuid of uuids) {
+      try {
+        // Read as the CALLER's role: a `gm` pack answers "not found" here.
+        const doc = this.getDocument(options.role, uuid);
+        if (!doc) {
+          failed.push({ uuid, reason: "Document not found in compendium" });
+          continue;
+        }
+
+        const parsed = parsePackDocUuid(uuid);
+        if (!packed(parsed)) {
+          failed.push({ uuid, reason: "Invalid UUID" });
+          continue;
+        }
+
+        const manifest = this.packs.get(parsed.packId)?.manifest;
+        if (!manifest) {
+          failed.push({ uuid, reason: "Pack not found" });
+          continue;
+        }
+
+        if (!isSheetImportableDocumentType(manifest.documentType)) {
+          failed.push({
+            uuid,
+            reason: `Document type ${manifest.documentType} cannot be brought to a sheet`,
+          });
+          continue;
+        }
+
+        let embeddedId = createDocumentId();
+        while (usedIds.has(embeddedId)) embeddedId = createDocumentId();
+        usedIds.add(embeddedId);
+
+        const embedded: Record<string, unknown> = { ...doc, _id: embeddedId };
+        // Same EN-pure strip importToWorld does: `uuid`/`i18n`/`mechanics` are
+        // pack-side projections, and `flags.fusion.{packName,sourceId}` — kept —
+        // is what points the copy back at its origin (issue #43, DEC-CPD-12).
+        delete embedded["uuid"];
+        delete embedded["i18n"];
+        delete embedded["mechanics"];
+
+        addition.push(embedded);
+        created.push(embeddedId);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        failed.push({ uuid, reason });
+        this.logger?.warn({ err, uuid }, "Failed to bring document to actor sheet");
+      }
+    }
+
+    if (addition.length === 0) {
+      return { actorId: options.actorId, created: [], failed, actor: null };
+    }
+
+    let updated = store.update(
+      "actors",
+      options.actorId,
+      { items: [...existing, ...addition] },
+      { userId: options.userId },
+    );
+
+    if (!updated) {
+      return {
+        actorId: options.actorId,
+        created: [],
+        failed: uuids.map((uuid) => ({ uuid, reason: "Failed to update destination actor" })),
+        actor: null,
+      };
+    }
+
+    // New items change AC/saves/spell slots — derive before the caller
+    // broadcasts, same reason doc-handlers.ts recomputes after an embedded
+    // create. A malformed document must not undo a write already committed.
+    if (options.systemModule) {
+      try {
+        runActorDerivation(updated, options.systemModule);
+        const rederived = store.update(
+          "actors",
+          options.actorId,
+          { system: updated["system"] ?? {} },
+          { userId: options.userId },
+        );
+        if (rederived) updated = rederived;
+      } catch (deriveErr) {
+        options.logger?.warn(
+          { err: deriveErr, actorId: options.actorId },
+          "Actor derivation failed after sheet import — keeping the items without derived",
+        );
+      }
+    }
+
+    return { actorId: options.actorId, created, failed, actor: updated };
   }
 
   // ---------------------------------------------------------------------------

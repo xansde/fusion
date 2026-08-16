@@ -105,6 +105,7 @@ import {
   buildCompendiumGetHandler,
   buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
+  buildCompendiumImportToActorHandler,
 } from "../compendium/index.js";
 
 // --------------------------------------------------------------------------
@@ -387,6 +388,10 @@ export class SocketManager {
       db,
       ns,
       logger: this.logger,
+      // Only `compendium:importToActor` writes a document, and it announces it
+      // on the ordinary doc:update channel (REQ-CPD-061).
+      seqStore,
+      opBuffer,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));
@@ -405,6 +410,9 @@ export class SocketManager {
       buildCompendiumI18nBySourceRefHandler(compDeps),
     );
     registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
+    // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
+    // by OWNER of the destination actor, inside the service.
+    registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
 
     // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).
     // Only meaningful when the active world system is "etmos" — registered

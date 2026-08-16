@@ -27,6 +27,7 @@
 
 import { chatStore } from "../chat/chatStore.svelte.js";
 import { combatStore } from "../combat/combatStore.svelte.js";
+import { compendiumImportBadge } from "../compendium/importActivity.js";
 import {
   chatIcon,
   combatIcon,
@@ -103,6 +104,10 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     label: "FUSION.Sidebar.Tabs.Compendium",
     group: "all",
     component: () => import("../../components/compendium/CompendiumBrowser.svelte"),
+    // REQ-CPD-002..005: a state dot, lit only while a batch import THIS user
+    // started is running. A compendium has no "new things you have not seen",
+    // so there is nothing here for a counter to count.
+    badge: compendiumImportBadge,
   },
   {
     // REQ-CEN-001: id "scenes", group "gm", in the middle block; it is also the

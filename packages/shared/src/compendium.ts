@@ -509,6 +509,49 @@ export interface CompendiumImportResult {
   failed: Array<{ uuid: string; reason: string }>;
 }
 
+/**
+ * compendium:importToActor — bring pack document(s) into ONE actor's sheet.
+ *
+ * Spec 43 §5.7, DEC-CPD-05 (REQ-CPD-061, REQ-CPD-073): bringing something to
+ * the WORLD is a privileged act; bringing it to a SHEET is not. What protects
+ * the sheet is `OWNER` of the DESTINATION actor (REQ-DOC-027/028), which is why
+ * this payload names an `actorId` and carries no role of its own — the server
+ * reads the role from the socket and the ownership from the destination.
+ */
+export const CompendiumImportToActorPayloadSchema = z.object({
+  /** List of Compendium UUIDs to bring into the sheet. */
+  uuids: z.array(z.string()).min(1),
+  /** World `_id` of the destination Actor. */
+  actorId: z.string().min(1),
+});
+
+export type CompendiumImportToActorPayload = z.infer<typeof CompendiumImportToActorPayloadSchema>;
+
+export interface CompendiumImportToActorResult {
+  /** The destination actor's world `_id`, echoed back. */
+  actorId: string;
+  /** `_id`s of the embedded items created inside the actor. */
+  created: string[];
+  /** Source uuids that failed (with reason). */
+  failed: Array<{ uuid: string; reason: string }>;
+}
+
+/**
+ * Document types a character sheet can receive (REQ-CPD-061: "entrada de tipo
+ * compatível"). A sheet holds embedded Items — spells, feats, gear; an Actor,
+ * a Scene or a JournalEntry has no place inside one, and asking for it is a
+ * validation failure, not a permission one.
+ *
+ * Exported so the client can gray the action out for the same reason the
+ * server refuses it, instead of guessing with a second list.
+ */
+export const SHEET_IMPORTABLE_DOCUMENT_TYPES: readonly string[] = ["Item"];
+
+/** Whether a pack of this document type can be brought into a sheet. */
+export function isSheetImportableDocumentType(documentType: string): boolean {
+  return SHEET_IMPORTABLE_DOCUMENT_TYPES.includes(documentType);
+}
+
 // ---------------------------------------------------------------------------
 // Pack UUID helpers (simpler than the full parseUuid in uuid.ts)
 // REQ-CMP-009

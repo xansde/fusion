@@ -39,6 +39,12 @@ import {
 import type { SidebarPanelModule } from "../registry.js";
 import { formatSidebarBadge } from "../badges.svelte.js";
 import { chatStore } from "../../chat/chatStore.svelte.js";
+import {
+  compendiumImportBadge,
+  finishCompendiumBatchImport,
+  resetCompendiumImportActivity,
+  startCompendiumBatchImport,
+} from "../../compendium/importActivity.js";
 import SidebarRail from "../../../components/sidebar/SidebarRail.svelte";
 import "../../i18n/index.js";
 
@@ -73,6 +79,7 @@ describe("the core tabs register through the public call (G016)", () => {
   beforeEach(() => {
     clearSidebarTabs();
     chatStore.unreadCount = 0;
+    resetCompendiumImportActivity();
     registerCoreSidebarTabs();
   });
 
@@ -270,9 +277,34 @@ describe("the core tabs register through the public call (G016)", () => {
     });
 
     it("REQ-GAV-020: tabs with no news carry no badge at all", () => {
-      for (const id of ["actors", "compendium", "scenes", "settings"]) {
+      for (const id of ["actors", "scenes", "settings"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
+    });
+
+    it("REQ-CPD-002/REQ-CPD-005: Compêndio brings a state dot, and it draws nothing at rest", () => {
+      // Spec 43 §5.1 gave this tab a badge where G016 had none: a dot for a
+      // running batch import of this user, never a counter, and off otherwise.
+      const badge = getSidebarTab("compendium")?.badge;
+
+      expect(badge).toBe(compendiumImportBadge);
+      expect(typeof badge?.value).toBe("boolean");
+      expect(formatSidebarBadge(badge?.value).kind).toBe("none");
+    });
+
+    it("REQ-CPD-003/REQ-CPD-004: the dot follows the import, and drawing the rail does not move it", () => {
+      startCompendiumBatchImport("run-1");
+
+      expect(formatSidebarBadge(getSidebarTab("compendium")?.badge?.value)).toEqual({
+        kind: "dot",
+        text: null,
+      });
+      // Opening, switching and collapsing the drawer leave it exactly as it was.
+      renderRail();
+      expect(compendiumImportBadge.value).toBe(true);
+
+      finishCompendiumBatchImport("run-1");
+      expect(formatSidebarBadge(getSidebarTab("compendium")?.badge?.value).kind).toBe("none");
     });
   });
 });

@@ -12,6 +12,8 @@
  *   compendium:get              — load full document (all roles)
  *   compendium:i18nBySourceRef  — resolve pt-BR overlay by origin ref (all roles)
  *   compendium:import           — import doc(s) to world (GM/ASSISTANT only)
+ *   compendium:importToActor    — bring doc(s) into ONE sheet; the predicate is
+ *                                 OWNER of the DESTINATION actor, not the role
  *
  * PACK AUDIENCE (REQ-CMP-004a/010a, REQ-CPD-070/071/074): "all roles" above
  * means "every role, over the packs that role can see". Each read handler
@@ -41,12 +43,16 @@ import {
   CompendiumGetPayloadSchema,
   CompendiumI18nBySourceRefPayloadSchema,
   CompendiumImportPayloadSchema,
+  CompendiumImportToActorPayloadSchema,
 } from "@fusion/shared";
-import type { Ack } from "@fusion/shared";
+import type { Ack, Envelope } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import type { CompendiumService } from "./service.js";
 import { PermissionDeniedError } from "./service.js";
 import { isRolePrivileged } from "../documents/ownership.js";
+import { DocumentNotFoundError } from "../documents/store.js";
+import type { SeqStore } from "../net/seq-store.js";
+import type { OpBuffer } from "../net/op-buffer.js";
 
 // ---------------------------------------------------------------------------
 // Handler deps
@@ -65,6 +71,16 @@ export interface CompendiumHandlerDeps {
    */
   systemModule?: SystemModule;
   logger?: Logger;
+  /**
+   * Sequence + op buffer of the world namespace. Needed only by
+   * `compendium:importToActor`, which mutates an Actor and therefore has to
+   * announce it on the SAME `doc:update` channel every other write uses —
+   * otherwise the sheet the player just filled would only appear after a
+   * reload, and a resyncing client would replay a gap. Optional so the read
+   * handlers keep building with nothing but the service.
+   */
+  seqStore?: SeqStore;
+  opBuffer?: OpBuffer;
 }
 
 // ---------------------------------------------------------------------------
@@ -342,5 +358,94 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
       }
       throw err;
     }
+  };
+}
+
+// ---------------------------------------------------------------------------
+// compendium:importToActor — bring pack doc(s) into ONE sheet
+// Spec 43 §5.7 — REQ-CPD-061, REQ-CPD-064, REQ-CPD-073
+// ---------------------------------------------------------------------------
+
+/**
+ * The sheet counterpart of `compendium:import`.
+ *
+ * THERE IS NO ROLE CHECK HERE, AND THAT IS THE POINT (DEC-CPD-05). Bringing
+ * something to the WORLD asks `isRolePrivileged` because the world is the Game
+ * Master's; bringing it to a SHEET asks `OWNER` of the DESTINATION actor,
+ * because the sheet is its owner's (REQ-CPD-073). That check lives in
+ * `CompendiumService.importToActor`, on top of the single `resolveOwnership`
+ * every write path in this server already uses — a player owning the actor
+ * passes, a player who does not own it is denied, and a Game Master passes
+ * because `resolveOwnership` already answers OWNER for a privileged role
+ * (REQ-CPD-060 keeps its own, separate door).
+ *
+ * The audience gate is not weakened by this door: the pack document is read
+ * with the CALLER's role, so a `gm` pack answers "not found" to a player here
+ * exactly as it does to `compendium:get` (REQ-CPD-071).
+ *
+ * Bringing the same entry twice is allowed and produces a SECOND embedded item
+ * (REQ-CPD-064) — nothing here consults what the actor already carries.
+ */
+export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps): HandlerFn {
+  return (payload, ctx): Ack => {
+    const parsed = CompendiumImportToActorPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Invalid compendium:importToActor payload",
+      };
+    }
+
+    let outcome;
+    try {
+      const importOpts: {
+        db: typeof deps.db;
+        actorId: string;
+        userId: string;
+        role: number;
+        systemModule?: SystemModule;
+        logger?: Logger;
+      } = {
+        db: deps.db,
+        actorId: parsed.data.actorId,
+        userId: ctx.userId,
+        role: ctx.role,
+      };
+      if (deps.systemModule !== undefined) importOpts.systemModule = deps.systemModule;
+      if (deps.logger !== undefined) importOpts.logger = deps.logger;
+
+      outcome = deps.compendium.importToActor(parsed.data.uuids, importOpts);
+    } catch (err) {
+      if (err instanceof PermissionDeniedError) {
+        return { ok: false, code: "PERMISSION_DENIED", message: err.message };
+      }
+      if (err instanceof DocumentNotFoundError) {
+        return { ok: false, code: "NOT_FOUND", message: err.message };
+      }
+      throw err;
+    }
+
+    const { actor, ...result } = outcome;
+
+    // Announce the changed sheet on the ordinary document channel, so every
+    // client's mirror (and the sheet already open on screen) sees the new items
+    // without a reload. Actor documents are not redacted on this path — the
+    // same precedent doc-handlers.ts and reacao-handler.ts follow.
+    if (actor && deps.seqStore && deps.opBuffer) {
+      const seq = deps.seqStore.next();
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq,
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [actor] },
+      };
+      // REQ-NET-062: push BEFORE emitting, like every other doc:update site.
+      deps.opBuffer.push(envelope);
+      deps.ns.emit("op", envelope);
+      return { ok: true, seq, result };
+    }
+
+    return { ok: true, result };
   };
 }

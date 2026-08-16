@@ -47,6 +47,14 @@
     onDragStart?: ((event: DragEvent) => void) | undefined;
     /** The `<img>` failed — the panel remembers, and the icon takes over. */
     onImageError?: (() => void) | undefined;
+    /**
+     * Pin or unpin this entry (REQ-CPD-082). Absent means the panel offers no
+     * pinning here — the line never invents the gesture, and the pinned list
+     * itself belongs to `lib/compendium/compendiumPrefs.ts`.
+     */
+    onTogglePin?: (() => void) | undefined;
+    /** Whether this entry is currently pinned; drawn as `aria-pressed`. */
+    pinned?: boolean | undefined;
   }
 
   const {
@@ -56,6 +64,8 @@
     importing = false,
     onDragStart,
     onImageError,
+    onTogglePin,
+    pinned = false,
   }: Props = $props();
 
   /**
@@ -154,6 +164,39 @@
   </div>
 
   <div class="result-line__actions">
+    {#if onTogglePin}
+      <!--
+        REQ-CPD-082: pinning is a two-state button, not two buttons — the state
+        travels in `aria-pressed` so it is never told by colour alone
+        (REQ-CPD-094), and the label says which way it goes.
+      -->
+      <button
+        class="result-line__action"
+        class:result-line__action--on={pinned}
+        type="button"
+        onclick={() => onTogglePin()}
+        aria-pressed={pinned}
+        aria-label={t(pinned ? "FUSION.Compendium.Line.Unpin" : "FUSION.Compendium.Line.Pin", {
+          name: line.nameText,
+        })}
+        title={t(pinned ? "FUSION.Compendium.Line.Unpin" : "FUSION.Compendium.Line.Pin", {
+          name: line.nameText,
+        })}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill={pinned ? "currentColor" : "none"}
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M9 3h6l-1 6 4 4H6l4-4-1-6Zm3 10v8" />
+        </svg>
+      </button>
+    {/if}
     {#if onPreview}
       <button
         class="result-line__action"
@@ -342,6 +385,15 @@
   .result-line__action:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /*
+   * Pinned: colour AND a filled glyph AND `aria-pressed` — three channels for
+   * one state, so the state is never told by colour alone (REQ-CPD-094).
+   */
+  .result-line__action--on {
+    color: var(--fusion-accent, #c0a060);
+    border-color: var(--fusion-accent, #c0a060);
   }
 
   .result-line__match {

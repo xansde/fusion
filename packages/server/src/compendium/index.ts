@@ -20,5 +20,7 @@ export {
   buildCompendiumGetHandler,
   buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
+  buildCompendiumImportToActorHandler,
 } from "./handlers.js";
 export type { CompendiumHandlerDeps } from "./handlers.js";
+export type { ImportToActorOutcome } from "./service.js";

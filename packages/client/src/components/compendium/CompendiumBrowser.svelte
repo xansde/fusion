@@ -30,9 +30,24 @@
    * supplies what the entry cannot know — the reader's role, the open pack's
    * declared index fields, and the world's origin index.
    *
-   * Still here from the pre-drawer browser and owned by other tasks of this
-   * phase: the preview — which moves to a floating window (G094) — and
-   * importing (G095).
+   * Previewing does NOT happen in this panel (G094, DEC-CPD-03): it opens a
+   * floating window through `lib/compendium/previewWindow.ts`, so the list stays
+   * where it was and two documents can be compared side by side (REQ-CPD-050,
+   * REQ-CPD-054). This file therefore holds no preview state at all — the blade
+   * that used to replace the list here is gone.
+   *
+   * Bringing an entry over (G095, DEC-CPD-05) has TWO destinations and one
+   * gesture: the world, which stays privileged (REQ-CPD-060), and a SHEET the
+   * seat owns, which is open to a player because the predicate is `OWNER` of
+   * the destination and it is checked on the server (REQ-CPD-061/073). The
+   * destination is chosen once, in the header, and the per-line action follows
+   * it — the seal never blocks it, so bringing the same entry twice is two
+   * documents (REQ-CPD-064). The batch runs through `lib/compendium/
+   * batchImport.ts`, with progress and a cancel that reports what already
+   * landed instead of pretending nothing did (REQ-CPD-065).
+   *
+   * What this panel does NOT do (REQ-CPD-066): create a document from scratch,
+   * or edit a pack document. Authoring is spec 42's.
    *
    * REQ-CMP-012..018, REQ-CMP-021.
    */
@@ -44,11 +59,8 @@
     buildSearchQuery,
     buildCompendiumDragPayload,
     sortEntries,
-    buildDocumentPreview,
     buildSearchAllPayload,
     documentTypeLabelKey,
-    isKnownPlaceholderImg,
-    fallbackIcon,
     normalizeAggregatedSearchResult,
     type AggregatedSearchResult,
     type SortField,
@@ -58,8 +70,10 @@
     buildResultLine,
     buildWorldOriginIndex,
     EMPTY_WORLD_ORIGIN_INDEX,
+    type ResultLine,
     type WorldOriginIndex,
   } from "../../lib/compendium/resultLine.js";
+  import { openCompendiumPreviewWindow } from "../../lib/compendium/previewWindow.js";
   import CompendiumResultLine from "./CompendiumResultLine.svelte";
   import { worldMirror } from "../../lib/docs/index.js";
   import {
@@ -83,13 +97,46 @@
     saveCollapsedGroups,
     toggleCollapsedGroup,
   } from "../../lib/compendium/compendiumShelf.js";
+  import CompendiumMarks from "./CompendiumMarks.svelte";
+  import {
+    filterByVisiblePacks,
+    isEntryPinned,
+    loadBrowserView,
+    loadPinnedEntries,
+    loadRecentEntries,
+    reconcileBrowserView,
+    recordRecentEntry,
+    saveBrowserView,
+    savePinnedEntries,
+    saveRecentEntries,
+    togglePinnedEntry,
+    type CompendiumEntryRef,
+    type CompendiumRecentEntry,
+    type CompendiumRecentReason,
+  } from "../../lib/compendium/compendiumPrefs.js";
   import {
     listPacks,
     getPackIndex,
-    getDocument,
     importToWorld,
+    importToActor,
     searchAllPacks,
   } from "../../lib/compendium/compendiumApi.js";
+  import {
+    buildSheetTargets,
+    canBringToSheet,
+    canBringToWorld,
+    type SheetTarget,
+  } from "../../lib/compendium/importTargets.js";
+  import {
+    batchOutcomeMessage,
+    runBatchImport,
+    type BatchImportProgress,
+    type BatchImportRun,
+  } from "../../lib/compendium/batchImport.js";
+  import {
+    finishCompendiumBatchImport,
+    startCompendiumBatchImport,
+  } from "../../lib/compendium/importActivity.js";
   import { i18n, t } from "../../lib/i18n/i18n.js";
 
   /**
@@ -140,6 +187,45 @@
     buildShelfGroups(packs, { viewerIsPrivileged: isGm, collapsed: collapsedGroups }),
   );
 
+  // ---- What survives a tab switch, and the marks (REQ-CPD-080..084) ----
+
+  /**
+   * The drawer unmounts this panel when the user goes to Chat (REQ-GAV-017), so
+   * the scope, the text and the facets are read back from the browser session on
+   * the way in (REQ-CPD-080) and written on every change. `sessionStorage` is
+   * the whole expiry rule: closing the browser tab starts clean (DEC-CPD-09).
+   */
+  let viewRestored = false;
+
+  $effect(() => {
+    if (viewRestored) return;
+    viewRestored = true;
+    scopeState = loadBrowserView(worldId, userId);
+  });
+
+  $effect(() => {
+    if (!viewRestored) return;
+    saveBrowserView(worldId, userId, scopeState);
+  });
+
+  /** Pinned entries and the recently used block — on the device (REQ-CPD-082/083). */
+  let pinnedEntries = $state<readonly CompendiumEntryRef[]>([]);
+  let recentEntries = $state<readonly CompendiumRecentEntry[]>([]);
+
+  $effect(() => {
+    pinnedEntries = loadPinnedEntries(worldId, userId);
+    recentEntries = loadRecentEntries(worldId, userId);
+  });
+
+  const visiblePackIds = $derived(packs.map((pack) => pack.id));
+
+  /**
+   * REQ-CPD-084: a mark whose pack the seat can no longer see is simply not
+   * drawn — no error, nothing else removed, and nothing deleted from the device.
+   */
+  const drawnPinned = $derived(filterByVisiblePacks(pinnedEntries, visiblePackIds));
+  const drawnRecent = $derived(filterByVisiblePacks(recentEntries, visiblePackIds));
+
   // ---- Pack index state (scope = one pack) ----
 
   let packEntries = $state<PackIndexEntry[]>([]);
@@ -166,13 +252,14 @@
    * whenever either type changes, so bringing an entry over lights its own seal.
    */
   let worldOrigins = $state<WorldOriginIndex>(EMPTY_WORLD_ORIGIN_INDEX);
+  /** The world's actors, for the sheet destinations of §5.7 (REQ-CPD-061). */
+  let worldActors = $state<unknown[]>([]);
 
   $effect(() => {
     const refresh = (): void => {
-      worldOrigins = buildWorldOriginIndex([
-        ...worldMirror.getByType<unknown>("Actor"),
-        ...worldMirror.getByType<unknown>("Item"),
-      ]);
+      const actors = worldMirror.getByType<unknown>("Actor");
+      worldActors = [...actors];
+      worldOrigins = buildWorldOriginIndex([...actors, ...worldMirror.getByType<unknown>("Item")]);
     };
     refresh();
     const offActors = worldMirror.subscribe<unknown>("Actor", refresh);
@@ -183,15 +270,53 @@
     };
   });
 
-  // ---- Import / preview (G094, G095 own these) ----
+  // ---- Bringing entries over (G095, DEC-CPD-05) ----
 
   let importingUuids = $state<Set<string>>(new Set());
   let importSuccess = $state<string | null>(null);
-  let previewDoc = $state<Record<string, unknown> | null>(null);
-  let previewLoading = $state(false);
-  let previewImgBroken = $state(false);
-  let previewError = $state<string | null>(null);
-  let lastPreviewEntry = $state<PackIndexEntry | null>(null);
+
+  const viewer = $derived({ userId, isPrivileged: isGm });
+
+  /**
+   * The sheets this seat may fill (REQ-CPD-061). Computed here only to avoid
+   * offering a door the server would slam — the server re-reads the
+   * destination's ownership on every call (REQ-CPD-074).
+   */
+  const sheetTargets = $derived<SheetTarget[]>(buildSheetTargets(worldActors, viewer));
+
+  /** `"world"` or an actor `_id`. The whole panel brings to one place at a time. */
+  let destination = $state<string>("world");
+
+  /**
+   * The destination actually in force. A player has no world door, so the
+   * stored `"world"` collapses to his first sheet; a seat that lost the sheet
+   * it had chosen falls back the same way instead of pointing at nothing.
+   */
+  const activeDestination = $derived.by<{ kind: "world" } | { kind: "sheet"; target: SheetTarget }>(
+    () => {
+      if (destination !== "world") {
+        const target = sheetTargets.find((s) => s.actorId === destination);
+        if (target) return { kind: "sheet", target };
+      }
+      if (canBringToWorld(viewer)) return { kind: "world" };
+      const first = sheetTargets[0];
+      return first ? { kind: "sheet", target: first } : { kind: "world" };
+    },
+  );
+
+  /** Whether a line of this document type can be brought to the destination. */
+  function canBring(documentType: string): boolean {
+    return activeDestination.kind === "world"
+      ? canBringToWorld(viewer)
+      : canBringToSheet(documentType, sheetTargets);
+  }
+
+  // ---- Batch import (REQ-CPD-065) ----
+
+  let batchRun: BatchImportRun | null = null;
+  let batchProgress = $state<BatchImportProgress | null>(null);
+  /** What the last run left behind — including the partial-state warning. */
+  let batchNotice = $state<string | null>(null);
 
   // ---- Derived bodies ----
 
@@ -210,8 +335,6 @@
     });
     return sortEntries(filterEntries(packEntries, query), sortField, sortAsc);
   });
-
-  const previewData = $derived(previewDoc ? buildDocumentPreview(previewDoc, i18n.locale) : null);
 
   // ---- Lifecycle ----
 
@@ -246,6 +369,12 @@
     try {
       const result = await listPacks(socket);
       packs = result.packs;
+      // A restored scope pointing at a pack this seat no longer sees lands back
+      // on the root instead of asking the server for it (REQ-CPD-084).
+      scopeState = reconcileBrowserView(
+        scopeState,
+        packs.map((pack) => pack.id),
+      );
     } catch (err) {
       error = err instanceof Error ? err.message : t("FUSION.Compendium.LoadFailed");
     } finally {
@@ -289,7 +418,6 @@
 
   function selectPack(pack: { id: string; label: string }): void {
     scopeState = openPack(scopeState, { id: pack.id, label: pack.label });
-    previewDoc = null;
     error = null;
   }
 
@@ -306,7 +434,6 @@
     packEntries = [];
     loadedPackId = null;
     packFilters = {};
-    previewDoc = null;
     error = null;
   }
 
@@ -336,48 +463,165 @@
     scopeState = openPack(scopeState, { id: packId, label: packLabel });
   }
 
-  // ---- Preview / import (owned by G094 / G095) ----
+  // ---- Marks: pinning and recording a use (REQ-CPD-082/083) ----
 
-  async function previewEntry(entry: PackIndexEntry): Promise<void> {
-    lastPreviewEntry = entry;
-    previewLoading = true;
-    previewDoc = null;
-    previewImgBroken = false;
-    previewError = null;
-    try {
-      const result = await getDocument(socket, entry.uuid);
-      previewDoc = result.document;
-    } catch (err) {
-      previewError = err instanceof Error ? err.message : "Falha ao carregar documento";
-    } finally {
-      previewLoading = false;
-    }
+  /** Open the pack a pinned or recent row came from (REQ-CPD-013). */
+  function openPackOfEntry(entry: CompendiumEntryRef): void {
+    openPackById(entry.packId, manifestOf(entry.packId)?.label ?? entry.packId);
   }
 
-  function retryPreview(): void {
-    if (lastPreviewEntry) void previewEntry(lastPreviewEntry);
+  function togglePin(entry: CompendiumEntryRef): void {
+    const next = togglePinnedEntry(pinnedEntries, entry);
+    pinnedEntries = next;
+    savePinnedEntries(worldId, userId, next);
   }
 
-  function closePreview(): void {
-    previewDoc = null;
-    previewError = null;
+  /** Previewing and bringing over are what feed the recent block (REQ-CPD-083). */
+  function noteUse(entry: CompendiumEntryRef, reason: CompendiumRecentReason): void {
+    const next = recordRecentEntry(recentEntries, entry, reason);
+    recentEntries = next;
+    saveRecentEntries(worldId, userId, next);
   }
 
-  async function importEntry(entry: PackIndexEntry): Promise<void> {
-    if (!isGm) return;
-    importingUuids = new Set([...importingUuids, entry.uuid]);
+  /** The mark of one drawn line — what a pin or a recent row needs to be listed. */
+  function entryRefOf(line: ResultLine): CompendiumEntryRef {
+    return {
+      uuid: line.uuid,
+      packId: line.packId,
+      name: line.nameText,
+      documentType: line.documentType,
+    };
+  }
+
+  // ---- Preview (G094) ----
+
+  /**
+   * Preview leaves the drawer (REQ-CPD-050, DEC-CPD-03): a window of the window
+   * manager opens, keyed by the document's uuid, and this panel keeps drawing
+   * the very same list behind it. Pressing preview twice on one line focuses
+   * the window already open; two different lines are two windows (REQ-CPD-054).
+   * Closing the drawer closes none of them — they are not mounted here.
+   */
+  function openPreview(line: ResultLine, manifest: PackManifest | null): void {
+    noteUse(entryRefOf(line), "preview");
+    openCompendiumPreviewWindow(
+      {
+        uuid: line.uuid,
+        name: line.nameText,
+        documentType: line.documentType,
+        packId: line.packId,
+        packLabel: manifest?.label ?? line.packLabel,
+        packLicense: manifest?.license ?? null,
+        // REQ-CPD-053: the window inherits the line's permission AND its
+        // destination, never widens either. A sheet is handed over only when
+        // the line itself could have brought this type into it (REQ-CPD-061).
+        canImport: activeDestination.kind === "world" && canBringToWorld(viewer),
+        sheetTarget:
+          activeDestination.kind === "sheet" && canBring(line.documentType)
+            ? {
+                actorId: activeDestination.target.actorId,
+                name: activeDestination.target.name,
+              }
+            : null,
+      },
+      t("FUSION.Compendium.Preview.Title"),
+    );
+  }
+
+  // ---- Bringing one entry over (G095) ----
+
+  /**
+   * Send one entry to the destination in force. The two doors of §5.7 are one
+   * gesture here on purpose: the panel never asks the user which permission he
+   * has, it asks WHERE, and the server answers whether that where is his
+   * (REQ-CPD-060, REQ-CPD-061, REQ-CPD-073).
+   *
+   * Nothing consults the in-world seal: bringing an entry that is already in
+   * the world is allowed and makes a second document (REQ-CPD-064).
+   */
+  async function bringOver(line: ResultLine): Promise<void> {
+    const target = activeDestination;
+    if (!canBring(line.documentType)) return;
+
+    importingUuids = new Set([...importingUuids, line.uuid]);
     importSuccess = null;
     error = null;
     try {
-      await importToWorld(socket, [entry.uuid]);
-      importSuccess = `"${entry.name}" importado para o world.`;
+      if (target.kind === "world") {
+        await importToWorld(socket, [line.uuid]);
+        importSuccess = t("FUSION.Compendium.Import.ToWorldDone", { name: line.nameText });
+      } else {
+        await importToActor(socket, [line.uuid], target.target.actorId);
+        importSuccess = t("FUSION.Compendium.Import.ToSheetDone", {
+          name: line.nameText,
+          sheet: target.target.name,
+        });
+      }
+      // Bringing an entry over is a use, like previewing it (REQ-CPD-083).
+      noteUse(entryRefOf(line), "import");
     } catch (err) {
-      error = err instanceof Error ? err.message : "Falha ao importar documento";
+      error = err instanceof Error ? err.message : t("FUSION.Compendium.Import.Failed");
     } finally {
       const next = new Set(importingUuids);
-      next.delete(entry.uuid);
+      next.delete(line.uuid);
       importingUuids = next;
     }
+  }
+
+  // ---- Bringing the whole list over (REQ-CPD-065) ----
+
+  /** The uuids the body is showing right now — what a batch acts on. */
+  const listedUuids = $derived.by<string[]>(() => {
+    if (openPackId !== null) return filteredEntries.map((entry) => entry.uuid);
+    if (!aggregated) return [];
+    return aggregated.groups.flatMap((group) => group.lines.map((line) => line.entry.uuid));
+  });
+
+  /**
+   * Batch import (spec 43 §8.3, REQ-CPD-065). The header offers it to a
+   * privileged seat, over whatever the body currently lists.
+   *
+   * The dot on the tab is lit for the whole run and put out on EVERY exit —
+   * finished, failed or cancelled (REQ-CPD-003) — which is why the badge calls
+   * are a try/finally around the await and not a happy-path pair.
+   */
+  function startBatchImport(): void {
+    if (batchRun || listedUuids.length === 0 || activeDestination.kind !== "world") return;
+
+    const runId = `compendium-batch-${String(Date.now())}`;
+    batchNotice = null;
+    startCompendiumBatchImport(runId);
+
+    const run = runBatchImport({
+      uuids: listedUuids,
+      importChunk: async (uuids) => {
+        const result = await importToWorld(socket, [...uuids]);
+        return { created: result.created, failed: result.failed };
+      },
+      onProgress: (progress) => {
+        batchProgress = progress;
+      },
+    });
+    batchRun = run;
+
+    void (async () => {
+      try {
+        const outcome = await run.promise;
+        // The warning REQ-CPD-065 demands: a cancelled run that already brought
+        // documents over says so, with the count, instead of going quiet. The
+        // choice of message lives in `batchOutcomeMessage`, where it is tested.
+        const message = batchOutcomeMessage(outcome);
+        batchNotice = t(message.key, message.vars);
+      } finally {
+        finishCompendiumBatchImport(runId);
+        batchRun = null;
+        batchProgress = null;
+      }
+    })();
+  }
+
+  function cancelBatchImport(): void {
+    batchRun?.cancel();
   }
 
   // ---- Drag and drop ----
@@ -465,6 +709,72 @@
     {/if}
   </div>
 
+  <!--
+    Where things go (REQ-CPD-060/061). The picker only appears when there is a
+    real choice: a player with one sheet and no world door has nothing to pick,
+    and a seat with no destination at all sees no import affordance anywhere.
+  -->
+  {#if sheetTargets.length > 0 || canBringToWorld(viewer)}
+    <div class="compendium-browser__import">
+      {#if sheetTargets.length > 0 && (canBringToWorld(viewer) || sheetTargets.length > 1)}
+        <label class="compendium-browser__destination">
+          <span class="compendium-browser__destination-label">
+            {t("FUSION.Compendium.Import.Destination")}
+          </span>
+          <select bind:value={destination} class="compendium-browser__destination-select">
+            {#if canBringToWorld(viewer)}
+              <option value="world">{t("FUSION.Compendium.Import.DestinationWorld")}</option>
+            {/if}
+            {#each sheetTargets as target (target.actorId)}
+              <option value={target.actorId}>{target.name}</option>
+            {/each}
+          </select>
+        </label>
+      {/if}
+
+      <!--
+        Batch import, offered to a privileged seat over what the body lists
+        (spec 43 §8.3). While it runs the button becomes progress plus a way
+        out, and the result — including the partial-state warning — is written
+        under it (REQ-CPD-065).
+      -->
+      {#if canBringToWorld(viewer) && activeDestination.kind === "world"}
+        {#if batchProgress}
+          <div class="compendium-browser__batch" role="status">
+            <span class="compendium-browser__batch-progress">
+              {batchProgress.cancelling
+                ? t("FUSION.Compendium.Import.BatchCancelling")
+                : t("FUSION.Compendium.Import.BatchProgress", {
+                    done: batchProgress.done,
+                    total: batchProgress.total,
+                  })}
+            </span>
+            <progress
+              class="compendium-browser__batch-bar"
+              max={batchProgress.total}
+              value={batchProgress.done}
+            ></progress>
+            <button
+              class="btn btn--sm btn--ghost"
+              onclick={cancelBatchImport}
+              disabled={batchProgress.cancelling}
+            >
+              {t("FUSION.Compendium.Import.BatchCancel")}
+            </button>
+          </div>
+        {:else if listedUuids.length > 0}
+          <button class="btn btn--sm compendium-browser__batch-start" onclick={startBatchImport}>
+            {t("FUSION.Compendium.Import.Batch", { count: listedUuids.length })}
+          </button>
+        {/if}
+      {/if}
+
+      {#if batchNotice}
+        <p class="compendium-browser__batch-notice" role="status">{batchNotice}</p>
+      {/if}
+    </div>
+  {/if}
+
   <div class="compendium-browser__search">
     <input
       class="compendium-browser__search-input"
@@ -502,6 +812,17 @@
         {:else if shelfGroups.length === 0}
           <p class="compendium-browser__empty">{t("FUSION.Compendium.Empty")}</p>
         {:else}
+          <!--
+            Pinned first, then the short recently used block, then the packs
+            (REQ-CPD-082, REQ-CPD-083). Both lists arrive already filtered by
+            what this seat may see (REQ-CPD-084).
+          -->
+          <CompendiumMarks
+            pinned={drawnPinned}
+            recent={drawnRecent}
+            onOpenPack={openPackOfEntry}
+            onUnpin={togglePin}
+          />
           <CompendiumShelf
             groups={shelfGroups}
             onOpenPack={selectPack}
@@ -535,17 +856,22 @@
               <ul class="entry-list" role="list">
                 {#each group.lines as line (line.entry.uuid)}
                   {@const manifest = manifestOf(line.packId)}
+                  {@const built = lineFor(
+                    line.entry,
+                    {
+                      documentType: line.documentType,
+                      packId: line.packId,
+                      packLabel: line.packLabel,
+                    },
+                    manifest?.indexFields ?? [],
+                  )}
                   <CompendiumResultLine
-                    line={lineFor(
-                      line.entry,
-                      {
-                        documentType: line.documentType,
-                        packId: line.packId,
-                        packLabel: line.packLabel,
-                      },
-                      manifest?.indexFields ?? [],
-                    )}
-                    onPreview={() => previewEntry(line.entry)}
+                    line={built}
+                    onPreview={() => openPreview(built, manifest)}
+                    onImport={canBring(built.documentType) ? () => bringOver(built) : undefined}
+                    importing={importingUuids.has(built.uuid)}
+                    onTogglePin={() => togglePin(entryRefOf(built))}
+                    pinned={isEntryPinned(pinnedEntries, built.uuid)}
                     onDragStart={(event) => {
                       if (manifest) handleDragStart(event, line.entry, manifest);
                     }}
@@ -638,18 +964,21 @@
               </li>
             {:else}
               {#each filteredEntries as entry (entry._id)}
+                {@const built = lineFor(
+                  entry,
+                  {
+                    documentType: selectedPack.documentType,
+                    packId: selectedPack.id,
+                    packLabel: null,
+                  },
+                  selectedPack.indexFields,
+                )}
                 <CompendiumResultLine
-                  line={lineFor(
-                    entry,
-                    {
-                      documentType: selectedPack.documentType,
-                      packId: selectedPack.id,
-                      packLabel: null,
-                    },
-                    selectedPack.indexFields,
-                  )}
-                  onPreview={() => previewEntry(entry)}
-                  onImport={isGm ? () => importEntry(entry) : undefined}
+                  line={built}
+                  onPreview={() => openPreview(built, selectedPack)}
+                  onImport={canBring(built.documentType) ? () => bringOver(built) : undefined}
+                  onTogglePin={() => togglePin(entryRefOf(built))}
+                  pinned={isEntryPinned(pinnedEntries, built.uuid)}
                   importing={importingUuids.has(entry.uuid)}
                   onDragStart={(event) => handleDragStart(event, entry, selectedPack)}
                   onImageError={() => handleImgError(entry.uuid)}
@@ -663,91 +992,6 @@
           {/if}
         {/if}
       </div>
-    {/if}
-
-    <!-- Preview panel — moves to a floating window in G094 (DEC-CPD-03). -->
-    {#if previewLoading}
-      <div class="preview-panel preview-panel--loading" role="status">
-        Carregando pré-visualização…
-      </div>
-    {:else if previewError}
-      <div class="preview-panel preview-panel--error" role="alert">
-        <p class="preview-panel__error-msg">Falha ao carregar a pré-visualização.</p>
-        <div class="preview-panel__error-actions">
-          <button class="btn btn--sm" onclick={retryPreview}>Tentar novamente</button>
-          <button class="btn btn--sm btn--ghost" onclick={closePreview}>Fechar</button>
-        </div>
-      </div>
-    {:else if previewData}
-      <svelte:boundary>
-        <div class="preview-panel" role="complementary" aria-label="Pré-visualização">
-          <div class="preview-panel__header">
-            {#if !isKnownPlaceholderImg(previewData.img) && !previewImgBroken}
-              <img
-                class="preview-panel__img"
-                src={previewData.img}
-                alt=""
-                aria-hidden="true"
-                onerror={() => {
-                  previewImgBroken = true;
-                }}
-              />
-            {:else}
-              <span class="preview-panel__img preview-panel__img--placeholder" aria-hidden="true">
-                {fallbackIcon(selectedPack?.documentType ?? "", previewData.type)}
-              </span>
-            {/if}
-            <div>
-              <h4 class="preview-panel__name">{previewData.name}</h4>
-              {#if previewData.nameSecondary}
-                <span class="preview-panel__name-en" title={previewData.nameSecondary}>
-                  {previewData.nameSecondary}
-                </span>
-              {/if}
-              {#if previewData.type}
-                <span class="preview-panel__type">{previewData.type}</span>
-              {/if}
-              <span class="preview-panel__license">{previewData.licenseLabel}</span>
-            </div>
-          </div>
-          {#if previewData.description}
-            <p class="preview-panel__description">{previewData.description}</p>
-          {/if}
-          <dl class="preview-panel__fields">
-            {#each previewData.fields as field (field.key)}
-              <div class="preview-panel__field">
-                <dt class="preview-panel__field-label">{field.label}</dt>
-                <dd class="preview-panel__field-value">{field.value}</dd>
-              </div>
-            {/each}
-          </dl>
-          <button
-            class="preview-panel__close btn btn--sm btn--ghost"
-            onclick={closePreview}
-            aria-label="Fechar pré-visualização"
-          >
-            Fechar
-          </button>
-        </div>
-
-        {#snippet failed(_error, reset)}
-          <div class="preview-panel preview-panel--error" role="alert">
-            <p class="preview-panel__error-msg">Não foi possível exibir esta pré-visualização.</p>
-            <div class="preview-panel__error-actions">
-              <button
-                class="btn btn--sm"
-                onclick={() => {
-                  reset();
-                  retryPreview();
-                }}
-              >
-                Tentar novamente
-              </button>
-              <button class="btn btn--sm btn--ghost" onclick={closePreview}>Fechar</button>
-            </div>
-          </div>
-        {/snippet}
-      </svelte:boundary>
     {/if}
   </div>
 </div>
@@ -791,6 +1035,64 @@
     flex-direction: column;
     gap: 0.25rem;
     flex-shrink: 0;
+  }
+
+  /*
+   * The import bar lives with the header, outside the scrolling area: a batch
+   * that is running must stay visible while the user keeps reading the list
+   * (REQ-CPD-016, REQ-CPD-065). Like everything else here it declares no width.
+   */
+  .compendium-browser__import {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__destination {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--fusion-text-muted, #aaa);
+  }
+
+  .compendium-browser__destination-select {
+    flex: 1;
+    min-width: 0;
+    padding: 0.2rem 0.3rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    font-size: 0.75rem;
+  }
+
+  .compendium-browser__batch {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--fusion-text-muted, #aaa);
+  }
+
+  .compendium-browser__batch-bar {
+    flex: 1;
+    min-width: 0;
+    height: 0.5rem;
+  }
+
+  /*
+   * The partial-state warning must be readable in full — it names how many
+   * documents are already in the world (REQ-CPD-065), so it wraps and is never
+   * truncated.
+   */
+  .compendium-browser__batch-notice {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--fusion-text-muted, #aaa);
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .compendium-browser__search-input,
@@ -932,117 +1234,11 @@
    * (G093). What stays here is the list that holds the lines.
    */
 
-  /* ---- Preview panel ---- */
-  .preview-panel {
-    background: var(--fusion-surface, #222);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    padding: 0.5rem;
-    margin-top: 0.25rem;
-    flex-shrink: 0;
-  }
-
-  .preview-panel--loading {
-    color: var(--fusion-text-muted, #888);
-    text-align: center;
-  }
-
-  .preview-panel__header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .preview-panel__img {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 4px;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  .preview-panel__img--placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--fusion-surface, #222);
-    color: var(--fusion-text-muted, #888);
-    font-size: 1.3rem;
-  }
-
-  .preview-panel__name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin: 0 0 0.1rem;
-  }
-
-  .preview-panel__name-en {
-    display: block;
-    font-size: 0.7rem;
-    font-style: italic;
-    color: var(--fusion-text-muted, #888);
-    margin-bottom: 0.1rem;
-  }
-
-  .preview-panel__description {
-    font-size: 0.78rem;
-    color: var(--fusion-text, #eee);
-    margin: 0 0 0.4rem;
-    line-height: 1.35;
-    white-space: pre-wrap;
-  }
-
-  .preview-panel__type,
-  .preview-panel__license {
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #888);
-    margin-right: 0.4rem;
-  }
-
-  .preview-panel--error {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    align-items: center;
-    text-align: center;
-  }
-
-  .preview-panel__error-msg {
-    margin: 0;
-    color: var(--fusion-danger, #e74c3c);
-    font-size: 0.8rem;
-  }
-
-  .preview-panel__error-actions {
-    display: flex;
-    gap: 0.4rem;
-  }
-
-  .preview-panel__fields {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.15rem 0.5rem;
-    margin: 0 0 0.4rem;
-    font-size: 0.78rem;
-  }
-
-  .preview-panel__field {
-    display: contents;
-  }
-
-  .preview-panel__field-label {
-    color: var(--fusion-text-muted, #888);
-    font-style: italic;
-  }
-
-  .preview-panel__field-value {
-    color: var(--fusion-text, #eee);
-  }
-
-  .preview-panel__close {
-    margin-top: 0.25rem;
-  }
+  /*
+   * Preview is not drawn here at all (G094, DEC-CPD-03): it opens in a
+   * window of the window manager, so this panel has no rule for it — and no
+   * way for it to push the list aside.
+   */
 
   /*
    * The search highlight is drawn by the line itself
