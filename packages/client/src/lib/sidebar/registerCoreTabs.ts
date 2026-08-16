@@ -18,9 +18,9 @@
  *    away with spec 39 and must not: it is the only UI that creates and deletes an
  *    Actor, which DEC-CTT-01 deliberately kept out of the Contatos list. It leaves
  *    when the NPCs tab (spec 42) takes authoring over.
- *  - **Configurações** is a placeholder panel with nothing but its empty state
- *    (spec 36 §7.4) until spec 37 lands; the tab itself already sits in the rail
- *    footer, which is what DEC-GAV-09/REQ-CFG-001 ask for.
+ *  - **Configurações** sits in the rail footer, which is what DEC-GAV-09/REQ-CFG-001
+ *    ask for; its index→section navigation is spec 37's own (G100), and each
+ *    section's content is filled in by its own task (G101..G106).
  *
  * Every `component` is a real `() => import(...)`: mounting the rail must not pull a
  * single panel module (RNF-GAV-02). Registration itself never calls a loader.

@@ -70,6 +70,7 @@ import {
   isRolePrivileged,
   testOwnership,
 } from "../../documents/ownership.js";
+import { resolvePermissionMinRole, type PermissionKey } from "../../documents/world-permissions.js";
 import { detectFamiliarGrant } from "@fusion/system-pf2e";
 import {
   DocCreatePayloadSchema,
@@ -152,6 +153,20 @@ const GM_ONLY_CREATE_DELETE = new Set([
 ]);
 
 /**
+ * `documentType` → the REQ-USR-008 Permission Key that gates its create path,
+ * for the subset of `GM_ONLY_CREATE_DELETE` types the Permissões section
+ * (REQ-CFG-040..042) can actually configure (world-permissions.ts). `Scene`,
+ * `Macro` and `Combat` are intentionally absent — REQ-USR-008 defines no
+ * corresponding key for them, and this map must never invent one.
+ */
+const CREATE_PERMISSION_KEY_BY_TYPE: Partial<Record<string, PermissionKey>> = {
+  Actor: "ACTOR_CREATE",
+  Item: "ITEM_CREATE",
+  RollTable: "TABLE_CREATE",
+  Playlist: "PLAYLIST_CREATE",
+};
+
+/**
  * Document types the generic doc:create / doc:update / doc:delete path must
  * never touch, mapped to the refusal message that names the operation that
  * owns them instead.
@@ -223,6 +238,24 @@ function resolveTable(documentType: string): string | null {
 
 function isPrivileged(role: number): boolean {
   return isRolePrivileged(role);
+}
+
+/**
+ * REQ-CFG-070/071: writes to Setting documents (world-scope config declared
+ * by the active system, REQ-SYS-047 — the persistence target for the
+ * Configurações aba's Mundo/Permissões/Mods sections, REQ-CFG-071) require
+ * `role === GAMEMASTER` STRICTLY — not the generic `isPrivileged`/
+ * `isRolePrivileged` threshold, which also admits ASSISTANT (role 3).
+ *
+ * ASSISTANT is a role slated for removal (issue #133, decided 2026-08-15,
+ * see specs/45-atores.md and the Fase 9 plan's G106) but the enum value
+ * still exists in `UserRole`/`Role`, so this guard spells out the strict
+ * check explicitly instead of reusing `isPrivileged` — the same shape as
+ * `requireGm` in `auth/routes.ts`, which already gates `/api/users` this way.
+ */
+function isGamemasterStrict(role: number): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+  return role === UserRole.GAMEMASTER;
 }
 
 /**
@@ -579,6 +612,14 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
+    // REQ-CFG-070/071: Setting writes require GAMEMASTER strictly, checked
+    // before ownership/TRUSTED-floor logic below — an ASSISTANT or a plain
+    // TRUSTED user (who would otherwise pass as OWNER of a Setting they just
+    // created) must never be able to create world config.
+    if (documentType === "Setting" && !isGamemasterStrict(ctx.role)) {
+      return ackError("PERMISSION_DENIED", "Only the Gamemaster can create Setting documents");
+    }
+
     // REQ-CEN-065: creating a scene does NOT put it on air. `active` is a mirror of
     // the single source of truth (`_meta:activeScene`, DEC-CEN-02) and only the
     // dedicated `world:activeScene` operation may move it — the same rule
@@ -604,7 +645,12 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       }
     }
 
-    // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT.
+    // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT —
+    // UNLESS the world's Permissões section (REQ-CFG-040..042, REQ-USR-009)
+    // has lowered this documentType's configured floor (CREATE_PERMISSION_
+    // KEY_BY_TYPE) to something this requester's role already meets, in which
+    // case they are authorized to create it directly, same as a privileged
+    // creator (`meetsConfiguredFloor` below).
     //
     // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
     // companions (familiars) linked to a master they own. Each item in the
@@ -612,42 +658,64 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // ownership map is captured so we can force it onto the created familiar
     // (never trusting a client-supplied ownership). Any non-companion Actor in
     // the batch, or a companion that fails a condition, falls back to the
-    // GM-only denial.
+    // GM-only denial. Not reached at all when the configured floor already
+    // authorized the batch.
     const forcedOwnership = new Map<number, Ownership>();
     // True once the batch is fully authorized as a player companion create —
     // it then bypasses the generic TRUSTED role floor below (the companion gate
     // is a strictly stronger check: OWNER of a granting master, no duplicate).
     let authorizedCompanionBatch = false;
+    // True once a configured Permissões override (or its matching default,
+    // REQ-CFG-041) has already authorized this create — also bypasses the
+    // generic TRUSTED role floor below, so a floor configured under TRUSTED
+    // is not silently re-blocked by it.
+    let authorizedByPermissionTable = false;
     if (GM_ONLY_CREATE_DELETE.has(documentType) && !isPrivileged(ctx.role)) {
-      if (documentType !== "Actor") {
+      const permissionKey = CREATE_PERMISSION_KEY_BY_TYPE[documentType];
+      const meetsConfiguredFloor =
+        permissionKey !== undefined &&
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+        ctx.role >= resolvePermissionMinRole(deps.store, permissionKey);
+
+      if (meetsConfiguredFloor) {
+        authorizedByPermissionTable = true;
+      } else if (documentType !== "Actor") {
         return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
-      }
-      // Every item must be an authorized companion, else deny the whole batch.
-      for (let i = 0; i < data.length; i++) {
-        const item = data[i] as Record<string, unknown>;
-        if (!isCompanionDoc(item)) {
-          return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+      } else {
+        // Every item must be an authorized companion, else deny the whole batch.
+        for (let i = 0; i < data.length; i++) {
+          const item = data[i] as Record<string, unknown>;
+          if (!isCompanionDoc(item)) {
+            return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+          }
+          const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+          if (!auth.ok) {
+            return ackError(auth.code, auth.message);
+          }
+          // Force the familiar's ownership to mirror the master's owners.
+          forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
         }
-        const auth = authorizePlayerCompanionCreate(deps, ctx, item);
-        if (!auth.ok) {
-          return ackError(auth.code, auth.message);
-        }
-        // Force the familiar's ownership to mirror the master's owners.
-        forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
+        authorizedCompanionBatch = data.length > 0;
       }
-      authorizedCompanionBatch = data.length > 0;
     }
 
     // Non-privileged users can create their own documents for allowed types
-    // (e.g., Actor requires ACTOR_CREATE permission — simplified here to
-    // TRUSTED+). Skipped for an already-authorized player companion batch
-    // (r17-P1): a plain PLAYER owning a granting master is authorized above.
-    if (
-      !authorizedCompanionBatch &&
-      !isPrivileged(ctx.role) && // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      ctx.role < UserRole.TRUSTED
-    ) {
-      return ackError("PERMISSION_DENIED", "Insufficient role to create documents");
+    // (REQ-USR-008; JournalEntry's key is JOURNAL_CREATE, configurable via
+    // world-permissions.ts — everything else reaching this point, e.g. User/
+    // Folder, keeps the historical TRUSTED+ floor since REQ-USR-008 defines no
+    // key for them). Skipped for an already-authorized player companion batch
+    // (r17-P1) or an already-authorized configured-permission batch: a plain
+    // PLAYER owning a granting master, or a role meeting a lowered configured
+    // floor, is authorized above.
+    if (!authorizedCompanionBatch && !authorizedByPermissionTable && !isPrivileged(ctx.role)) {
+      const minRole =
+        documentType === "JournalEntry"
+          ? resolvePermissionMinRole(deps.store, "JOURNAL_CREATE")
+          : UserRole.TRUSTED;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      if (ctx.role < minRole) {
+        return ackError("PERMISSION_DENIED", "Insufficient role to create documents");
+      }
     }
 
     const authorCtx = { userId: ctx.userId };
@@ -755,6 +823,15 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     const table = resolveTable(documentType);
     if (!table) {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
+    }
+
+    // REQ-CFG-070/071: Setting writes require GAMEMASTER strictly — decided
+    // before the generic per-item OWNER-or-privileged check below, the same
+    // way REQ-CEN-070 gates Scene here (ownership of a Setting document is
+    // NOT a licence to write it; the creator of a Setting is otherwise its
+    // OWNER and would sail through the ownership check unguarded).
+    if (documentType === "Setting" && !isGamemasterStrict(ctx.role)) {
+      return ackError("PERMISSION_DENIED", "Only the Gamemaster can update Setting documents");
     }
 
     // REQ-CEN-070: editing a Scene is an action of the GM's scene panel, and
@@ -942,6 +1019,15 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
+    // REQ-CFG-070/071: Setting writes require GAMEMASTER strictly — same
+    // rationale as the create/update guards above; Setting is not in
+    // GM_ONLY_CREATE_DELETE so without this an ASSISTANT or the OWNER of a
+    // self-created Setting could delete world config via the ownership path
+    // below.
+    if (documentType === "Setting" && !isGamemasterStrict(ctx.role)) {
+      return ackError("PERMISSION_DENIED", "Only the Gamemaster can delete Setting documents");
+    }
+
     // Permission check for delete: GM/ASSISTANT only for important types.
     //
     // EXCEPTION (r17-P1): a non-privileged PLAYER may delete their OWN
@@ -1103,17 +1189,23 @@ function handleEmbeddedCreate(
   }
 
   // Embedded create role floor: Scene tokens (and other non-Actor parents)
-  // require TRUSTED+ (TOKEN_CREATE permission, simplified). Actor-embedded
-  // Items are governed purely by the OWNER ownership check below — a PLAYER
-  // managing spells/gear on their own sheet is the intended path (r10-C,
-  // found in live verification: the blanket gate blocked every player from
-  // adding a spell to their own actor).
-  if (
-    parent.type !== "Actor" &&
-    !isPrivileged(ctx.role) && // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    ctx.role < UserRole.TRUSTED
-  ) {
-    return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
+  // require TOKEN_CREATE's configured floor (REQ-CFG-040..042, defaulting to
+  // TRUSTED+ — today's hardcoded behaviour, world-permissions.ts). Actor-
+  // embedded Items are governed purely by the OWNER ownership check below —
+  // a PLAYER managing spells/gear on their own sheet is the intended path
+  // (r10-C, found in live verification: the blanket gate blocked every
+  // player from adding a spell to their own actor). Non-Token embedded types
+  // (Combatant) have no REQ-USR-008 key, so they keep the historical
+  // TRUSTED+ floor unconditionally.
+  if (parent.type !== "Actor" && !isPrivileged(ctx.role)) {
+    const minRole =
+      embeddedType === "Token"
+        ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
+        : UserRole.TRUSTED;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (ctx.role < minRole) {
+      return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
+    }
   }
 
   // Load parent

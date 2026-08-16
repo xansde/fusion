@@ -26,6 +26,7 @@ import {
   buildWhoAmIHandler,
   buildSystemConditionsHandler,
 } from "./handlers/system.js";
+import { buildSettingsDeclarationsHandler } from "./handlers/settings-handlers.js";
 import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
@@ -315,6 +316,14 @@ export class SocketManager {
     // (REQ-CTT-031/032/034) and the client cannot import a game system, so the
     // declaration reaches the drawer through here.
     registry.register("system:conditions", buildSystemConditionsHandler(systemModule));
+    // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's
+    // Mundo section renders purely from what the active system declared —
+    // this is the door that declaration crosses (settings ENGINE already
+    // existed via REQ-SYS-047; this just answers the query).
+    registry.register(
+      "settings:declarations",
+      buildSettingsDeclarationsHandler(systemModule, store),
+    );
 
     // Register M1-B document CRUD handlers
     registry.register("doc:create", buildDocCreateHandler(syncDeps));

@@ -49,6 +49,11 @@ export const EnvelopeTypeSchema = z.union([
   // paints what the system declared — and the client cannot import a game
   // system package, so the dictionary travels over the wire.
   z.literal("system:conditions"),
+  // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's Mundo
+  // section renders purely from what the active system declared with escopo
+  // `world` — same "the client cannot import a game system" reasoning as
+  // system:conditions above, for settings instead of conditions.
+  z.literal("settings:declarations"),
   z.literal("resync:request"),
   z.literal("resync:delta"),
   z.literal("resync:full"),
