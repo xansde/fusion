@@ -22,7 +22,13 @@
  *
  * This module is the single source of truth so the three paths can never
  * drift out of parity.
+ *
+ * The same rule also governs the INBOUND direction: an op that names a scene id
+ * must not confirm that the scene exists to someone who could never have been
+ * told about it. That predicate is {@link sceneIsInvisibleToRole}.
  */
+
+import { isRolePrivileged } from "../documents/ownership.js";
 
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
@@ -126,6 +132,27 @@ function sceneDocHasHiddenTokens(doc: unknown): boolean {
 export function sceneIsOnAir(doc: unknown): boolean {
   if (!doc || typeof doc !== "object") return false;
   return (doc as Record<string, unknown>)["active"] === true;
+}
+
+/**
+ * True when this requester must be answered as if the scene did not exist.
+ *
+ * REQ-CEN-070 / REQ-CEN-071: a non-privileged user may only ever act inside the
+ * scene that is ON AIR (REQ-CEN-072) — it is the only one they can see, so it is
+ * the only one whose id they can legitimately hold. Every inbound op that takes
+ * a scene id from the client (`doc:*` on an embedded document, `token:move`,
+ * `scene:doorState`) must run this BEFORE it looks at the scene body, and answer
+ * with the same "scene not found" wording it would give for a made-up id.
+ * Anything more specific — a token/wall-level NOT_FOUND, a PERMISSION_DENIED, or
+ * an `ok:true` ack — confirms the scene exists and leaks the off-air roster
+ * (REQ-CEN-073).
+ *
+ * `isRolePrivileged` and {@link sceneIsOnAir} are the only predicates in play:
+ * exactly the pair the outbound emission paths above use.
+ */
+export function sceneIsInvisibleToRole(role: number, sceneDoc: unknown): boolean {
+  if (isRolePrivileged(role)) return false;
+  return !sceneIsOnAir(sceneDoc);
 }
 
 /**

@@ -75,7 +75,11 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
-import { redactSceneDocsForNonPrivileged, sceneIsOnAir } from "../redaction.js";
+import {
+  redactSceneDocsForNonPrivileged,
+  sceneIsInvisibleToRole,
+  sceneIsOnAir,
+} from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
   AUGMENTATION_SLOT_LIMIT,
@@ -172,16 +176,10 @@ function isPrivileged(role: number): boolean {
  * True when this requester must be answered as if the parent scene did not
  * exist at all (REQ-CEN-071).
  *
- * A non-privileged user may only ever act inside the scene that is ON AIR
- * (REQ-CEN-072): it is the only one they can see, so it is the only one whose
- * ids they can legitimately hold. For every other scene the embedded paths must
- * answer with their own "parent not found" wording — anything more specific
- * (a token-level NOT_FOUND, a PERMISSION_DENIED) confirms the scene exists, and
- * the ack of a successful op would hand back the whole parent body, name
- * included (REQ-CEN-073).
- *
- * `isRolePrivileged` (via {@link isPrivileged}) and `sceneIsOnAir` are the only
- * predicates in play — the same pair the emission paths use in redaction.ts.
+ * Thin adapter over {@link sceneIsInvisibleToRole} (net/redaction.ts, the single
+ * source of truth for this rule) that adds only the "is the parent a Scene at
+ * all?" question the embedded paths need — `token:move` and `scene:doorState`
+ * already know their parent is a Scene and call the predicate directly.
  */
 function sceneParentIsInvisible(
   role: number,
@@ -189,8 +187,7 @@ function sceneParentIsInvisible(
   parentDoc: Record<string, unknown>,
 ): boolean {
   if (parentType !== "Scene") return false;
-  if (isPrivileged(role)) return false;
-  return !sceneIsOnAir(parentDoc);
+  return sceneIsInvisibleToRole(role, parentDoc);
 }
 
 /**

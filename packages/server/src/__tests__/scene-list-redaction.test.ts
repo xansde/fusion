@@ -662,6 +662,168 @@ describe("spec 44 §5.8 — every scene action is gated server-side (REQ-CEN-070
     expect(untouched?.["y"]).toBe(20);
   });
 
+  it("REQ-CEN-070/REQ-CEN-071/REQ-CEN-073: the token:move op refuses the off-air scene exactly like a ghost id, and moves nothing", async () => {
+    // `token:move` is its own op (registered in socket-manager, reachable by any
+    // authenticated socket) — NOT the generic embedded doc:update path. It has
+    // to carry the same gate, or the player moves the scene the GM is preparing.
+    const actorAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Actor",
+      data: [{ name: "Personagem", type: "pc", ownership: { default: 0, [ctx.playerUserId]: 3 } }],
+    });
+    expect(actorAck["ok"]).toBe(true);
+    const actorId = (
+      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    const onAirId = await createScene(gmSocket, ON_AIR_NAME);
+    const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
+
+    async function placeToken(sceneId: string): Promise<string> {
+      const ack = await sendOp(gmSocket, "doc:create", {
+        documentType: "Token",
+        data: [{ name: "Ficha", actorId, x: 10, y: 20, hidden: false }],
+        parent: { type: "Scene", id: sceneId },
+      });
+      expect(ack["ok"]).toBe(true);
+      const parent = (ack["result"] as Record<string, unknown>)["parent"] as Record<
+        string,
+        unknown
+      >;
+      const tokens = parent["tokens"] as Record<string, unknown>[];
+      return tokens[tokens.length - 1]?.["_id"] as string;
+    }
+
+    const onAirTokenId = await placeToken(onAirId);
+    const offAirTokenId = await placeToken(offAirId);
+    await sendOp(gmSocket, "world:activeScene", { sceneId: onAirId });
+    await settle();
+
+    // On air: the same op from the same socket works — the gate is the scene, not
+    // the player (REQ-CEN-072).
+    const allowed = await sendOp(playerSocket, "token:move", {
+      sceneId: onAirId,
+      tokenId: onAirTokenId,
+      x: 111,
+      y: 222,
+    });
+    expect(allowed["ok"]).toBe(true);
+
+    // Off air, with a token of an actor the player OWNS: ownership must not be
+    // reached at all — the answer is the ghost-scene answer.
+    const onReal = await sendOp(playerSocket, "token:move", {
+      sceneId: offAirId,
+      tokenId: offAirTokenId,
+      x: 333,
+      y: 444,
+    });
+    const onGhost = await sendOp(playerSocket, "token:move", {
+      sceneId: GHOST_ID,
+      tokenId: offAirTokenId,
+      x: 333,
+      y: 444,
+    });
+    expect(onReal["ok"]).toBe(false);
+    expect(refusalSignature(onReal, offAirId)).toBe(refusalSignature(onGhost, GHOST_ID));
+    expect(JSON.stringify(onReal)).not.toContain(OFF_AIR_NAME);
+
+    // A made-up token id in the off-air scene must not answer "token not found"
+    // either — that wording alone proves the scene is there.
+    const ghostTokenInRealScene = await sendOp(playerSocket, "token:move", {
+      sceneId: offAirId,
+      tokenId: "tokenghost000001",
+      x: 1,
+      y: 1,
+    });
+    expect(refusalSignature(ghostTokenInRealScene, offAirId)).toBe(
+      refusalSignature(onGhost, GHOST_ID),
+    );
+
+    // And nothing moved: the GM reads the token back where it was placed.
+    const gmRead = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: offAirId, diff: { "grid.size": 155 } }],
+    });
+    expect(gmRead["ok"]).toBe(true);
+    const offAirScene = (
+      (gmRead["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0];
+    const untouched = (offAirScene?.["tokens"] as Record<string, unknown>[]).find(
+      (tok) => tok["_id"] === offAirTokenId,
+    );
+    expect(untouched?.["x"]).toBe(10);
+    expect(untouched?.["y"]).toBe(20);
+  });
+
+  it("REQ-CEN-070/REQ-CEN-071: the scene:doorState op refuses the off-air scene exactly like a ghost id, and the door does not budge", async () => {
+    const onAirId = await createScene(gmSocket, ON_AIR_NAME);
+    const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
+
+    async function placeDoor(sceneId: string): Promise<string> {
+      const ack = await sendOp(gmSocket, "wall:create", {
+        documentType: "Wall",
+        data: [{ a: { x: 0, y: 0 }, b: { x: 100, y: 0 }, doorType: "door", doorState: "closed" }],
+        parent: { type: "Scene", id: sceneId },
+      });
+      expect(ack["ok"]).toBe(true);
+      const docs = (ack["result"] as Record<string, unknown>)["documents"] as Record<
+        string,
+        unknown
+      >[];
+      return docs[0]?.["_id"] as string;
+    }
+
+    const onAirWallId = await placeDoor(onAirId);
+    const offAirWallId = await placeDoor(offAirId);
+    await sendOp(gmSocket, "world:activeScene", { sceneId: onAirId });
+    await settle();
+
+    // On air, an unlocked door is the player's to open (spec 07, REQ-VIS-004).
+    const allowed = await sendOp(playerSocket, "scene:doorState", {
+      sceneId: onAirId,
+      wallId: onAirWallId,
+      state: "open",
+    });
+    expect(allowed["ok"]).toBe(true);
+
+    // Off air: a legitimate wall id (the player could have kept one from when the
+    // scene WAS on air) must not operate the door…
+    const onReal = await sendOp(playerSocket, "scene:doorState", {
+      sceneId: offAirId,
+      wallId: offAirWallId,
+      state: "open",
+    });
+    const onGhost = await sendOp(playerSocket, "scene:doorState", {
+      sceneId: GHOST_ID,
+      wallId: offAirWallId,
+      state: "open",
+    });
+    expect(onReal["ok"]).toBe(false);
+    expect(refusalSignature(onReal, offAirId)).toBe(refusalSignature(onGhost, GHOST_ID));
+
+    // …and an invented wall id must not answer "wall not found in scene X",
+    // which would confirm the scene exists.
+    const ghostWall = await sendOp(playerSocket, "scene:doorState", {
+      sceneId: offAirId,
+      wallId: "wallghost0000001",
+      state: "open",
+    });
+    expect(refusalSignature(ghostWall, offAirId)).toBe(refusalSignature(onGhost, GHOST_ID));
+
+    // The door is still closed for the GM.
+    const gmRead = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: offAirId, diff: { "grid.size": 177 } }],
+    });
+    expect(gmRead["ok"]).toBe(true);
+    const offAirScene = (
+      (gmRead["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0];
+    const wall = (offAirScene?.["walls"] as Record<string, unknown>[]).find(
+      (w) => w["_id"] === offAirWallId,
+    );
+    expect(wall?.["doorState"]).toBe("closed");
+  });
+
   it("REQ-CEN-071/REQ-CEN-073: probing an off-air scene through the embedded path answers like a scene that never existed", async () => {
     const offAirId = await createScene(gmSocket, OFF_AIR_NAME);
 
