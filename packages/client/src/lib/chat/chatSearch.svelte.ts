@@ -17,13 +17,38 @@
  * The server decides what each user may find — same predicate as the history, no second
  * rule (REQ-ACH-012 / REQ-CHT-050). Nothing here filters, and nothing here must ever
  * start doing so.
+ *
+ * What the server says when it refuses, however, is NOT for the reader: an ack carries
+ * internal codes and, on a rejected payload, the raw Zod issue blob. `error` therefore
+ * holds an i18n KEY (see {@link ChatSearchErrorKey}), never a message — the whole panel
+ * speaks pt-BR through `t()`, and the search must not be the one hole in it.
  */
+
+import { CHAT_SEARCH_MAX_LIMIT, CHAT_SEARCH_MAX_TERM_LENGTH } from "@fusion/shared";
 
 import type { Socket } from "socket.io-client";
 import type { ChatMessage } from "@fusion/shared";
 
-/** Server cap (`CHAT_SEARCH_MAX_LIMIT` in the shared protocol). */
-export const CHAT_SEARCH_LIMIT = 50;
+/**
+ * Longest term the server accepts. Re-exported so the field can cap itself and the
+ * request never becomes a validation failure the reader has to read.
+ */
+export { CHAT_SEARCH_MAX_TERM_LENGTH };
+
+/** Server cap (`CHAT_SEARCH_MAX_LIMIT` in the shared protocol) — taken, not retyped. */
+export const CHAT_SEARCH_LIMIT = CHAT_SEARCH_MAX_LIMIT;
+
+/** The search did not come back in time. */
+export const CHAT_SEARCH_ERROR_TIMEOUT = "FUSION.Chat.Search.Error.Timeout";
+/** The server refused, for any reason it gave. The reason itself stays off the screen. */
+export const CHAT_SEARCH_ERROR_FAILED = "FUSION.Chat.Search.Error.Failed";
+
+/**
+ * The only two things the panel may render for a failed search — both i18n keys, resolved
+ * by `t()` at the view. Widening this to `string` would let server text back onto the
+ * screen, which is exactly what it exists to prevent.
+ */
+export type ChatSearchErrorKey = typeof CHAT_SEARCH_ERROR_TIMEOUT | typeof CHAT_SEARCH_ERROR_FAILED;
 
 /**
  * How long the field waits before asking. Long enough that typing a word is one query
@@ -43,7 +68,8 @@ export const chatSearch: {
   /** Results for the term that is on screen, newest first (server order). */
   results: ChatMessage[];
   loading: boolean;
-  error: string | null;
+  /** i18n key, never a message — see {@link ChatSearchErrorKey}. */
+  error: ChatSearchErrorKey | null;
   /** Whether the server says there is another page for this term. */
   hasMore: boolean;
   page: number;
@@ -132,6 +158,22 @@ function _reqId(): string {
   return `search-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * A failed search, carrying the key the panel will show and — separately — whatever the
+ * server actually said, which goes to the console and nowhere else. Splitting the two is
+ * the whole point: `ack.message` is an internal code (`CHT_MESSAGE_NOT_FOUND`) or, when
+ * the payload fails `ChatSearchRequestSchema`, the raw Zod issue blob.
+ */
+class ChatSearchFailure extends Error {
+  readonly key: ChatSearchErrorKey;
+
+  constructor(key: ChatSearchErrorKey, detail: string) {
+    super(detail);
+    this.name = "ChatSearchFailure";
+    this.key = key;
+  }
+}
+
 /** `chat:search` is a read, so it travels on the `query` channel. */
 function _emitSearch(
   socket: Socket,
@@ -139,7 +181,7 @@ function _emitSearch(
 ): Promise<{ messages: ChatMessage[]; page: number; hasMore: boolean }> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
-      reject(new Error("Search request timed out"));
+      reject(new ChatSearchFailure(CHAT_SEARCH_ERROR_TIMEOUT, "chat:search ack never arrived"));
     }, SEARCH_TIMEOUT_MS);
     socket.emit(
       "query",
@@ -153,7 +195,9 @@ function _emitSearch(
             hasMore: ack.result.hasMore,
           });
         } else {
-          reject(new Error(ack.message ?? "Search failed"));
+          reject(
+            new ChatSearchFailure(CHAT_SEARCH_ERROR_FAILED, ack.message ?? "chat:search refused"),
+          );
         }
       },
     );
@@ -198,8 +242,10 @@ export async function runChatSearch(
     chatSearch.page = res.page;
     chatSearch.hasMore = res.hasMore;
   } catch (err) {
+    // The detail is for whoever is debugging, not for whoever is reading the chat.
+    console.warn("[chatSearch] chat:search failed:", err);
     if (mySeq !== _seq) return;
-    chatSearch.error = err instanceof Error ? err.message : "Search failed";
+    chatSearch.error = err instanceof ChatSearchFailure ? err.key : CHAT_SEARCH_ERROR_FAILED;
     chatSearch.results = [];
     chatSearch.hasMore = false;
   } finally {

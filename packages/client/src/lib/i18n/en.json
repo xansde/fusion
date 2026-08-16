@@ -783,6 +783,8 @@
   "FUSION.Chat.Search.Empty": "No messages found.",
   "FUSION.Chat.Search.ResultsLabel": "Search results",
   "FUSION.Chat.Search.OpenContext": "Open in context",
+  "FUSION.Chat.Search.Error.Timeout": "The search took too long. Try again.",
+  "FUSION.Chat.Search.Error.Failed": "The search could not be run right now. Try again.",
   "FUSION.Chat.Menu.More": "More actions",
   "FUSION.Chat.Menu.Favorites": "Edit favourite dice",
   "FUSION.Chat.Menu.Export": "Export log",

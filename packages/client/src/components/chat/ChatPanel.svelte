@@ -42,6 +42,7 @@
   import type { ChatSendPayload, ChatMessage } from "@fusion/shared";
   import { sendChatMessage, setChatTabVisible } from "../../lib/chat/chatStore.svelte.js";
   import {
+    CHAT_SEARCH_MAX_TERM_LENGTH,
     chatSearch,
     clearChatSearch,
     highlightTerm,
@@ -176,6 +177,7 @@
         value={chatSearch.term}
         oninput={handleSearchInput}
         onkeydown={handleSearchKeydown}
+        maxlength={CHAT_SEARCH_MAX_TERM_LENGTH}
         placeholder={t("FUSION.Chat.Search.Placeholder")}
         aria-label={t("FUSION.Chat.Search.Label")}
       />
@@ -282,8 +284,13 @@
       {#if chatSearch.loading}
         <p class="chat-panel__results-note">{t("FUSION.Chat.Search.Loading")}</p>
       {:else if chatSearch.error}
+        <!--
+          `chatSearch.error` is an i18n KEY, not a message: the ack carries internal codes
+          and, on a rejected payload, the raw Zod issue blob. Rendering it directly is how
+          a Zod dump used to reach the drawer.
+        -->
         <p class="chat-panel__results-note chat-panel__results-note--error" role="alert">
-          {chatSearch.error}
+          {t(chatSearch.error)}
         </p>
       {:else if chatSearch.results.length === 0}
         <p class="chat-panel__results-note">{t("FUSION.Chat.Search.Empty")}</p>

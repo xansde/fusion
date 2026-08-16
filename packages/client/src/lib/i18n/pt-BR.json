@@ -783,6 +783,8 @@
   "FUSION.Chat.Search.Empty": "Nenhuma mensagem encontrada.",
   "FUSION.Chat.Search.ResultsLabel": "Resultados da pesquisa",
   "FUSION.Chat.Search.OpenContext": "Abrir no contexto",
+  "FUSION.Chat.Search.Error.Timeout": "A pesquisa demorou demais. Tente de novo.",
+  "FUSION.Chat.Search.Error.Failed": "Não foi possível pesquisar agora. Tente de novo.",
   "FUSION.Chat.Menu.More": "Mais ações",
   "FUSION.Chat.Menu.Favorites": "Editar dados favoritos",
   "FUSION.Chat.Menu.Export": "Exportar log",
