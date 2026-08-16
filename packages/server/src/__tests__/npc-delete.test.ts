@@ -447,6 +447,27 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
     expect(actorIds).toContain(preso);
   });
 
+  it("REQ-NPC-052: a consulta não responde sobre subtipo que a recusa não governa", async () => {
+    // A recusa de REQ-NPC-052 vale para o não-jogável desta aba. Se a consulta
+    // respondesse sobre um `familiar`, ela diria `deletable: false` para uma
+    // exclusão que o servidor faria assim mesmo — uma confirmação prometendo uma
+    // recusa que não vem. O domínio da consulta e o da recusa são o mesmo.
+    const arena = await createScene("Arena do Familiar");
+    const coruja = await createActor("Coruja Vigilante", "familiar");
+    const tokenId = await createToken(arena, "Coruja", coruja);
+
+    const combatAck = await sendOp(gmSocket, "combat:create", { sceneId: arena });
+    const combatId = (
+      (combatAck["result"] as Record<string, unknown>)["combat"] as Record<string, unknown>
+    )["_id"] as string;
+    await sendOp(gmSocket, "combat:addCombatant", { combatId, tokenId, actorId: coruja });
+
+    const previewAck = await previewDelete(gmSocket, coruja);
+    expect(previewAck["ok"]).toBe(false);
+    expect(previewAck["code"]).toBe("VALIDATION_FAILED");
+    expect(String(previewAck["message"])).toContain("non-playable");
+  });
+
   it("REQ-NPC-052: encerrado o combate, a mesma exclusão passa", async () => {
     const arena = await createScene("Arena Encerrada");
     const lobo = await createActor("Lobo Atroz", "npc");

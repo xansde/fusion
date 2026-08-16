@@ -21,7 +21,7 @@ import type { HandlerFn } from "../handler-registry.js";
 import { isRolePrivileged } from "../../documents/ownership.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
 import { buildActorDeletePreview } from "../../documents/actor-deletion.js";
-import { isCharacterActor } from "../../documents/knowledge.js";
+import { isCharacterActor, isNonPlayableActor } from "../../documents/knowledge.js";
 import type { DocHandlerDeps } from "./doc-handlers.js";
 
 function ackError(code: string, message: string): Ack<never> {
@@ -59,6 +59,20 @@ export function buildActorDeletePreviewHandler(deps: DocHandlerDeps): HandlerFn 
       return ackError(
         "VALIDATION_FAILED",
         `Actor/${actorId} is a player character — the NPCs tab does not delete characters`,
+      );
+    }
+
+    // REQ-NPC-052: the preview answers ONLY about the subtypes whose delete the
+    // refusal actually governs. `doc:delete` blocks an unfinished encounter for a
+    // non-playable and for nothing else, so answering about a `familiar` or a
+    // `loot` would let this query report `deletable: false` for a delete the
+    // server would then happily perform — a confirmation promising a refusal
+    // that never comes is worse than no confirmation at all. The domain of the
+    // query and the domain of the guard are the same set, on purpose.
+    if (!isNonPlayableActor(actor)) {
+      return ackError(
+        "VALIDATION_FAILED",
+        `Actor/${actorId} is not a non-playable — the NPCs tab previews npc/hazard deletions only`,
       );
     }
 
