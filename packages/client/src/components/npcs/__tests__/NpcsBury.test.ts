@@ -158,7 +158,7 @@ describe("REQ-NPC-044 / DEC-NPC-02: creating a character has no trigger in this 
     expect(body).not.toContain('value="character"');
   });
 
-  it("REQ-NPC-090: the window says a player's character is not born of this tab", () => {
+  it("REQ-NPC-044: the window says a player's character is not born of this tab", () => {
     expect(renderDialog()).toContain("Configurações");
   });
 });
