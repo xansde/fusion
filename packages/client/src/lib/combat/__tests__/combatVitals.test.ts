@@ -379,3 +379,61 @@ describe("condition chips follow the system's declaration (REQ-CBA-050, REQ-CTT-
     expect(readActorConditions(actor).map((c) => c.label)).toEqual(["Cego"]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The pipeline as the panel really runs it
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything above feeds `buildConditionChip`/`readActorConditions` a declaration, and so
+ * proves the CONTRACT of REQ-CTT-031/032/034: tone paints, critical emphasises, help travels.
+ * The contract has no producer on the client yet — `CombatPanel.svelte` calls
+ * `buildCombatVitals(role, combatants, actorsById)` with no fourth argument, because the
+ * client cannot import a game system's registry and no socket channel carries the
+ * registrations. What follows is therefore not a repetition: it is the ONLY test here that
+ * runs the pipeline exactly as the screen runs it, and it states what the table sees today.
+ */
+describe("the panel's real call — no declaration reaches the client yet (REQ-CBA-050, REQ-CTT-035)", () => {
+  const actorWithConditions = makeActor({
+    hp: { value: 12, max: 40 },
+    conditions: [
+      { name: "Inconsciente", slug: "unconscious" },
+      { name: "Amedrontado", slug: "frightened", value: 2 },
+    ],
+  });
+  const combatants = [{ _id: "c1", actorId: "actor-1", hasPlayerOwner: false }];
+  const actors = new Map<string, Record<string, unknown>>([["actor-1", actorWithConditions]]);
+
+  it("REQ-CTT-035 / REQ-CBA-050: with no lookup, every condition is still drawn — and every one degrades", () => {
+    const chips = buildCombatVitals("gm", combatants, actors).get("c1")?.conditions ?? [];
+
+    // Fail open, the half that holds: nothing is hidden, the labels and values survive whole
+    // (REQ-CTT-033), and the ordering still runs.
+    expect(chips.map((c) => c.label)).toEqual(["Amedrontado 2", "Inconsciente"]);
+
+    // Fail open, the half that costs: with nothing declared, every chip is a situation with
+    // no tooltip and no emphasis — including "Inconsciente", which the system declares
+    // critical and which this screen therefore does NOT emphasise today.
+    expect(chips.map((c) => c.tone)).toEqual(["special", "special"]);
+    expect(chips.map((c) => c.help)).toEqual([null, null]);
+    expect(chips.map((c) => c.critical)).toEqual([false, false]);
+  });
+
+  it("REQ-CTT-031 / REQ-CTT-032 / REQ-CTT-034: the same actor, fed a declaration, is a different drawing", () => {
+    // The gap measured against itself: one argument separates what the contract promises
+    // from what the screen shows. When the registry reaches the client, the assertions above
+    // are the ones that must fail — not these.
+    const declared: Record<string, ConditionDisplayContract> = {
+      unconscious: { label: "Inconsciente", tone: "harm", critical: true, help: "Fora de si." },
+      frightened: { label: "Amedrontado", tone: "harm", help: "Penalidade em tudo." },
+    };
+    const chips =
+      buildCombatVitals("gm", combatants, actors, (slug) => declared[slug]).get("c1")?.conditions ??
+      [];
+
+    expect(chips.map((c) => c.label)).toEqual(["Inconsciente", "Amedrontado 2"]);
+    expect(chips.map((c) => c.tone)).toEqual(["harm", "harm"]);
+    expect(chips.map((c) => c.critical)).toEqual([true, false]);
+    expect(chips.map((c) => c.help)).toEqual(["Fora de si.", "Penalidade em tudo."]);
+  });
+});

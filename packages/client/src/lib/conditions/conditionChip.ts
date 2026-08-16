@@ -49,8 +49,16 @@ export interface ConditionDisplayContract {
  * How a surface asks for a condition's declaration.
  *
  * The client has no access to the system registry today (the packages cannot import
- * `systems/pf2e`), so every caller passes `undefined` and every chip degrades openly. When
- * the registry does reach the client, only this lookup changes.
+ * `systems/pf2e`, and no socket channel carries the registrations), so every caller passes
+ * `undefined` and every chip degrades openly. When the registry does reach the client, only
+ * this lookup changes.
+ *
+ * That degradation is not a footnote: it is what the table sees TODAY, so it is pinned by a
+ * test rather than described here. `combatVitals.test.ts` runs the pipeline the way
+ * `CombatPanel.svelte` runs it — no lookup — and asserts the result: every chip lands on
+ * `"special"`, with no help and no emphasis (REQ-CTT-035, REQ-CBA-050). The tests that feed
+ * a declaration prove the CONTRACT, and the contract has no producer on this side yet; when
+ * one arrives, the pinning test is the one that must fail.
  */
 export type ConditionContractLookup = (slug: string) => ConditionDisplayContract | undefined;
 
