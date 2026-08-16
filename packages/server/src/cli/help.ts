@@ -45,6 +45,10 @@ OPTIONS
                          exposed at GET /admin/network.
   --no-open              Do not auto-open the setup wizard in the default
                          browser on first run (see AUTO-OPEN below).
+  --force-schema         Open the world even if its database schema does not
+                         match this build's migrations. Last resort: the
+                         server normally refuses, because applying migrations
+                         to an unexpected schema can damage the world.
   --help, -h             Show this help
 
 AUTO-OPEN

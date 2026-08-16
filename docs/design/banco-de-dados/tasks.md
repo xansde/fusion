@@ -44,12 +44,15 @@ Comandos do repo: `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm format
 
 ---
 
-## Fase 0 — Tornar migration segura, antes de escrever qualquer migration
+## Fase 0 — Tornar migration segura, antes de escrever qualquer migration ✅
 
 Pré-requisito de tudo. Enquanto o backup pré-migração for cópia de arquivo de um banco
 WAL aberto, nenhuma migration das fases seguintes é segura de rodar.
 
-### T001 — Backup pré-migração consistente
+**Concluída** (PR 1). T001–T006 entregues; a guarda de T004 foi verificada contra um
+snapshot do `teste_xande` real (v4, 2 mapas de região) e o aceita sem apontar nada.
+
+### T001 ✅ — Backup pré-migração consistente
 
 `packages/server/src/db/migrations.ts` (`backupBeforeMigration`, ~linha 75)
 
@@ -62,8 +65,10 @@ ponta a ponta.
 
 **Pronto quando:** teste gera backup com escrita concorrente pendente e o arquivo
 resultante passa em `PRAGMA integrity_check` e contém as mesmas linhas da origem.
+→ `__tests__/db-backup-restore.test.ts` ("captures writes still pending in the WAL":
+200 linhas no WAL, backup íntegro, com as 200, e ainda na versão anterior).
 
-### T002 [P] — Poda cobre todos os tipos de backup
+### T002 ✅ [P] — Poda cobre todos os tipos de backup
 
 `packages/server/src/worlds/world-manager.ts` (~linha 738)
 
@@ -71,8 +76,13 @@ resultante passa em `PRAGMA integrity_check` e contém as mesmas linhas da orige
 cópias integrais para sempre. Parametrizar limite por tipo.
 
 **Pronto quando:** teste com N+3 backups de cada tipo deixa exatamente o limite de cada um.
+→ `WorldManagerOptions.backupRetention` (auto 10, pre-migration 5, pre-update 5,
+pre-delete 3, pre-restore 3, **manual ilimitado** — backup que um humano pediu não some
+sozinho, mesma régua do chat em D5). `pruneBackups()` é público porque o backup
+pré-migração nasce no framework de migration, que não conhece retenção: quem o poda é o
+`open()`.
 
-### T003 — Portar `004_region_maps`
+### T003 ✅ — Portar `004_region_maps`
 
 Novo: `packages/server/src/db/migrations/004_region_maps.ts` (cópia fiel da de `build/app`)
 Editar: `packages/server/src/db/index.ts:33` (`registerMigrations([...])`)
@@ -86,9 +96,10 @@ as linhas não convergem —, é que a tabela precisa casar com o dado que já e
 a guarda de T004 acusa divergência no primeiro boot.
 
 **Pronto quando:** banco novo nasce em v4; banco v3 sobe para v4; `teste_xande` (v4) abre
-sem nada pendente.
+sem nada pendente. → `__tests__/db-schema-guard.test.ts`; o DDL foi conferido linha a linha
+contra o `sqlite_master` do `teste_xande` antes de portar, e bate.
 
-### T004 — Guarda de schema no boot (D6)
+### T004 ✅ — Guarda de schema no boot (D6)
 
 `packages/server/src/db/migrations.ts` · `packages/server/src/worlds/world-manager.ts` (`open`)
 · `packages/server/src/cli/commands/serve.ts` (flag `--force`)
@@ -96,25 +107,39 @@ sem nada pendente.
 Hoje `applyMigrations` calcula `MAX(version)` e aplica o que for maior — sem nome, sem
 checksum. Um banco que andou por outra linha faz o servidor pular migration **em silêncio**.
 
-1. Gravar nome e checksum de cada migration aplicada (coluna nova ou tabela lateral).
-2. No boot, comparar o registrado com o conjunto conhecido.
-3. Divergiu → **recusar abrir**, com mensagem que diga: o que esperava, o que achou, onde
-   está o backup, qual comando repara. `--force` segue mesmo assim.
-4. Lista explícita de tabelas legadas toleradas: `roll_audit_log` (nasce fora das migrations
+1. No boot, comparar o schema **real** do arquivo com o schema que as migrations
+   registradas produzem, na versão que o banco declara.
+2. Divergiu → **recusar abrir**, com mensagem que diga: o que esperava, o que achou, onde
+   está o backup, qual comando repara. `--force-schema` segue mesmo assim.
+3. Lista explícita de tabelas legadas toleradas: `roll_audit_log` (nasce fora das migrations
    até T007).
+
+**Mudança de abordagem, decidida na implementação:** o plano pedia _checksum do código de
+cada migration_. Isso tem dois defeitos que só aparecem quando você tenta escrever: um
+`prettier` ou um comentário reescrito muda o hash e o mundo **para de abrir** por nada; e um
+hash de código não vê drift nenhum que tenha nascido fora das migrations (`roll_audit_log`
+é exatamente esse caso). O que importa não é qual código rodou, é se o **schema no arquivo**
+é o que este build espera — então a guarda aplica as migrations registradas num banco
+`:memory:` e compara `sqlite_master` objeto a objeto, com o SQL normalizado (whitespace e
+espaço em volta de `(`, `)`, `,`). Não há segunda cópia do schema para manter em dia, e
+reindentar migration não acusa falso positivo — o que é matéria de teste.
 
 **Pronto quando:** testes cobrem os quatro casos — banco novo, banco v3, banco v4 vindo de
 outra linha, banco com migration faltando no meio — e o caso divergente falha com mensagem
-acionável, não com stack trace.
+acionável, não com stack trace. → `db-schema-guard.test.ts`, 9 casos (os quatro, mais versão
+desconhecida, `roll_audit_log` tolerado, `--force-schema` e reindentação).
 
-### T005 — Ensaio de restauração
+### T005 ✅ — Ensaio de restauração
 
 Teste de integração que restaura um backup gerado por T001 e abre o mundo restaurado.
 Um backup que nunca foi restaurado não é um backup.
 
 **Pronto quando:** `pnpm test` verde com o ciclo completo backup → restaura → abre → lê documento.
+→ `db-backup-restore.test.ts` ("backs up a world, loses it, restores it and reads the
+document back": cria mundo → grava ator → backup → `DELETE FROM actors` → restaura →
+`open()` → lê o ator de volta, com `integrity_check` ok).
 
-### T006 [P] — Este documento no repo
+### T006 ✅ [P] — Este documento no repo
 
 `docs/design/banco-de-dados/tasks.md` commitado, para o plano não viver só no chat.
 
@@ -336,7 +361,7 @@ risco na mesa incomodar.
 
 | PR  | Conteúdo                   | Depende de                             |
 | --- | -------------------------- | -------------------------------------- |
-| 1   | Fase 0 (T001–T006)         | —                                      |
+| 1   | Fase 0 (T001–T006) ✅      | —                                      |
 | 2   | Fase 1 (T007–T011)         | PR 1                                   |
 | 3   | Fase 2 (T012–T016)         | PR 1                                   |
 | 4   | Fase 4 (T017–T019)         | PR 2                                   |

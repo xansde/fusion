@@ -143,7 +143,15 @@ export async function runServe(args: ServeArgs): Promise<void> {
   const worldManager = new WorldManager({
     dataDir: config.dataDir,
     validSystemIds: registry,
+    ...(args.forceSchema === true ? { forceSchema: true } : {}),
   });
+
+  if (args.forceSchema === true) {
+    logger.warn(
+      "--force-schema: schema mismatches will not stop a world from opening. " +
+        "Migrations may be skipped or applied to a schema they were not written for.",
+    );
+  }
 
   // Phase 2.7 — open world if --world flag was passed (M0-C)
   const worldSlug: string | undefined = args.world;

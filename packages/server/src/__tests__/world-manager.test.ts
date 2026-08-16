@@ -629,6 +629,101 @@ describe("WorldManager corruption recovery", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Backup retention per type (T002)
+//
+// Only `auto` used to be pruned: pre-migration, pre-delete, pre-restore and
+// pre-update backups were full copies of the database kept forever.
+// ---------------------------------------------------------------------------
+
+describe("WorldManager backup retention by type", () => {
+  /** Drop a placeholder backup file with a canonical name and timestamp. */
+  function seedBackup(dataDir: string, slug: string, filename: string): void {
+    writeFileSync(join(dataDir, "worlds", slug, "backups", filename), "not-a-real-db", "utf8");
+  }
+
+  it("prunes every type down to its own limit, keeping the newest", () => {
+    const dataDir = newTempDir();
+    const retention = {
+      auto: 3,
+      "pre-migration": 2,
+      "pre-delete": 2,
+      "pre-restore": 1,
+      "pre-update": 2,
+    } as const;
+    const wm = new WorldManager({ dataDir, backupRetention: retention });
+    wm.create({ title: "Retention World", system: "pf2e", slug: "ret_bk" });
+
+    const base = 1_700_000_000_000;
+    const kinds = ["auto", "manual", "pre-migration", "pre-delete", "pre-restore"] as const;
+
+    // N+3 of each, with increasing timestamps so "newest" is well defined.
+    for (const kind of kinds) {
+      const limit = kind === "manual" ? 0 : retention[kind];
+      for (let i = 0; i < limit + 3; i++) {
+        seedBackup(dataDir, "ret_bk", `${kind}-${String(base + i)}.db`);
+      }
+    }
+    // pre-update has its own filename shape (REQ-DST-022).
+    for (let i = 0; i < retention["pre-update"] + 3; i++) {
+      const iso = new Date(base + i).toISOString().replace(/:/g, "-");
+      seedBackup(dataDir, "ret_bk", `pre-event-update-1.2.3-${iso}.db`);
+    }
+
+    wm.pruneBackups("ret_bk");
+
+    const countOf = (type: string): number =>
+      wm.listBackups("ret_bk").filter((b) => b.type === type).length;
+
+    expect(countOf("auto")).toBe(retention.auto);
+    expect(countOf("pre-migration")).toBe(retention["pre-migration"]);
+    expect(countOf("pre-delete")).toBe(retention["pre-delete"]);
+    expect(countOf("pre-restore")).toBe(retention["pre-restore"]);
+    expect(countOf("pre-update")).toBe(retention["pre-update"]);
+
+    // Manual backups were asked for by a human — they are never pruned.
+    expect(countOf("manual")).toBe(3);
+
+    // The survivors are the most recent ones.
+    const autos = wm
+      .listBackups("ret_bk")
+      .filter((b) => b.type === "auto")
+      .map((b) => b.timestamp);
+    expect(autos).toEqual([base + 3, base + 4, base + 5]);
+  });
+
+  it("prunes pre-migration backups on open", () => {
+    const dataDir = newTempDir();
+    const wm = new WorldManager({ dataDir, backupRetention: { "pre-migration": 2 } });
+    wm.create({ title: "Migration Backups", system: "pf2e", slug: "mig_bk" });
+
+    const base = 1_700_000_000_000;
+    for (let i = 0; i < 5; i++) {
+      seedBackup(dataDir, "mig_bk", `pre-migration-${String(base + i)}.db`);
+    }
+
+    wm.open("mig_bk");
+    wm.close("mig_bk");
+
+    const remaining = wm.listBackups("mig_bk").filter((b) => b.type === "pre-migration");
+    expect(remaining).toHaveLength(2);
+  });
+
+  it("keeps every backup when the limit is 0 (unlimited)", () => {
+    const dataDir = newTempDir();
+    const wm = new WorldManager({ dataDir, backupRetention: { auto: 0 } });
+    wm.create({ title: "Unlimited", system: "pf2e", slug: "unl_bk" });
+
+    const base = 1_700_000_000_000;
+    for (let i = 0; i < 6; i++) {
+      seedBackup(dataDir, "unl_bk", `auto-${String(base + i)}.db`);
+    }
+
+    expect(wm.pruneBackups("unl_bk")).toEqual([]);
+    expect(wm.listBackups("unl_bk").filter((b) => b.type === "auto")).toHaveLength(6);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // closeAll
 // ---------------------------------------------------------------------------
 

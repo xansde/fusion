@@ -195,6 +195,29 @@ function removeLock(lockFilePath: string): void {
 // WorldManager
 // ---------------------------------------------------------------------------
 
+/**
+ * How many backups of each kind to keep, per world.
+ *
+ * Only `auto` had a limit before: every pre-migration, pre-delete,
+ * pre-restore and pre-update backup was a full copy of the database kept
+ * forever. On a world that migrates often that is unbounded growth in a
+ * directory nobody looks at.
+ *
+ * `manual` is deliberately unlimited: a backup someone asked for by hand does
+ * not disappear on its own — same reasoning as chat in D5. Any value <= 0
+ * means "keep everything".
+ */
+export type BackupRetention = Record<BackupEntry["type"], number>;
+
+const DEFAULT_BACKUP_RETENTION: BackupRetention = {
+  auto: 10, // REQ-PER-025
+  manual: 0, // unlimited — human intent, never pruned automatically
+  "pre-migration": 5,
+  "pre-delete": 3,
+  "pre-restore": 3,
+  "pre-update": 5,
+};
+
 export interface WorldManagerOptions {
   /** Root data directory (the fusion-data/ equivalent). */
   dataDir: string;
@@ -206,14 +229,27 @@ export interface WorldManagerOptions {
   /**
    * Maximum number of automatic backups per world before pruning.
    * Default: 10 (REQ-PER-025).
+   *
+   * Shorthand for `backupRetention: { auto: n }`; the explicit map wins.
    */
   maxAutoBackups?: number;
+  /**
+   * Per-type backup retention. Merged over {@link DEFAULT_BACKUP_RETENTION},
+   * so passing `{ "pre-migration": 2 }` only changes that one.
+   */
+  backupRetention?: Partial<BackupRetention>;
+  /**
+   * Open worlds whose schema diverges from this build's migrations instead of
+   * refusing (D6 escape hatch — `fusion serve --force-schema`).
+   */
+  forceSchema?: boolean;
 }
 
 export class WorldManager {
   private readonly dataDir: string;
   private readonly validSystemIds: { has(id: string): boolean } | undefined;
-  private readonly maxAutoBackups: number;
+  private readonly backupRetention: BackupRetention;
+  private readonly forceSchema: boolean;
 
   /** Map of slug → open world state (in-process). */
   private readonly openWorlds = new Map<string, OpenWorld>();
@@ -221,7 +257,12 @@ export class WorldManager {
   constructor(options: WorldManagerOptions) {
     this.dataDir = options.dataDir;
     this.validSystemIds = options.validSystemIds;
-    this.maxAutoBackups = options.maxAutoBackups ?? 10;
+    this.forceSchema = options.forceSchema ?? false;
+    this.backupRetention = {
+      ...DEFAULT_BACKUP_RETENTION,
+      ...(options.maxAutoBackups !== undefined ? { auto: options.maxAutoBackups } : {}),
+      ...options.backupRetention,
+    };
 
     // Ensure base directories exist
     mkdirSync(join(this.dataDir, "worlds"), { recursive: true });
@@ -267,7 +308,7 @@ export class WorldManager {
     const fusionDb = openDatabase({ path: dbFilePath, skipIntegrityCheck: true });
 
     try {
-      applyMigrations(fusionDb.raw, dbFilePath);
+      applyMigrations(fusionDb.raw, dbFilePath, { force: this.forceSchema });
     } finally {
       fusionDb.close();
     }
@@ -352,7 +393,7 @@ export class WorldManager {
     let fusionDb: FusionDatabase;
     try {
       fusionDb = openDatabase({ path: dbFilePath });
-      applyMigrations(fusionDb.raw, dbFilePath);
+      applyMigrations(fusionDb.raw, dbFilePath, { force: this.forceSchema });
     } catch (err) {
       // Release lock on failure
       removeLock(lock);
@@ -365,7 +406,7 @@ export class WorldManager {
           writeLock(lock);
           try {
             fusionDb = openDatabase({ path: dbFilePath });
-            applyMigrations(fusionDb.raw, dbFilePath);
+            applyMigrations(fusionDb.raw, dbFilePath, { force: this.forceSchema });
           } catch (retryErr) {
             removeLock(lock);
             throw retryErr;
@@ -377,6 +418,10 @@ export class WorldManager {
         throw err;
       }
     }
+
+    // Pre-migration backups are written by the migration framework, which knows
+    // nothing about retention — this is the only place that can prune them.
+    this.pruneBackups(slug, ["pre-migration"]);
 
     // Read and update manifest (REQ-PER-011)
     const manifest = readManifest(this.dataDir, slug);
@@ -503,6 +548,9 @@ export class WorldManager {
       mkdirSync(bDir, { recursive: true });
       const ts = Date.now();
       copyFileSync(dbFilePath, join(bDir, `pre-delete-${String(ts)}.db`));
+      // Prune before the directory moves to trash, so the trashed copy does not
+      // carry every pre-delete backup this world ever accumulated.
+      this.pruneBackups(slug, ["pre-delete"]);
     }
 
     // Move to trash (non-destructive)
@@ -551,10 +599,8 @@ export class WorldManager {
       copyFileSync(srcPath, destPath);
     }
 
-    // Prune old auto backups (REQ-PER-025)
-    if (type === "auto") {
-      this._pruneAutoBackups(slug);
-    }
+    // Prune old backups of this kind (REQ-PER-025)
+    this.pruneBackups(slug, [type]);
 
     const stat = statSync(destPath);
     return {
@@ -609,6 +655,8 @@ export class WorldManager {
       }
       copyFileSync(srcPath, destPath);
     }
+
+    this.pruneBackups(slug, ["pre-update"]);
 
     const stat = statSync(destPath);
     return {
@@ -730,25 +778,39 @@ export class WorldManager {
     return true;
   }
 
-  private _pruneAutoBackups(slug: string): void {
+  /**
+   * Prune backups down to the configured retention.
+   *
+   * @param types Which kinds to prune. Omit to prune every kind — used after
+   *              open(), which is when pre-migration backups appear (they are
+   *              written by the migration framework, not by this class).
+   * @returns the filenames removed.
+   */
+  pruneBackups(slug: string, types?: readonly BackupEntry["type"][]): string[] {
     const bDir = backupsDir(this.dataDir, slug);
-    const allBackups = this.listBackups(slug);
-    const autoBackups = allBackups.filter((b) => b.type === "auto");
+    const all = this.listBackups(slug);
+    const kinds = types ?? (Object.keys(this.backupRetention) as BackupEntry["type"][]);
+    const removed: string[] = [];
 
-    if (autoBackups.length <= this.maxAutoBackups) return;
+    for (const type of kinds) {
+      const limit = this.backupRetention[type];
+      if (limit <= 0) continue; // unlimited
 
-    // Sort oldest first, remove the oldest
-    const toRemove = autoBackups
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(0, autoBackups.length - this.maxAutoBackups);
+      const ofType = all.filter((b) => b.type === type).sort((a, b) => a.timestamp - b.timestamp);
+      if (ofType.length <= limit) continue;
 
-    for (const entry of toRemove) {
-      try {
-        rmSync(join(bDir, entry.filename), { force: true });
-      } catch {
-        // Best-effort
+      // listBackups sorts oldest→newest; drop from the front.
+      for (const entry of ofType.slice(0, ofType.length - limit)) {
+        try {
+          rmSync(join(bDir, entry.filename), { force: true });
+          removed.push(entry.filename);
+        } catch {
+          // Best-effort
+        }
       }
     }
+
+    return removed;
   }
 
   private _backupType(filename: string): BackupEntry["type"] {
