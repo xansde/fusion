@@ -38,12 +38,28 @@ import type { ActorKnowledgeEdit, KnowledgeMap } from "@fusion/shared";
 import { prunedPatch } from "./merge.js";
 import type { DocumentStore, AuthorContext } from "./store.js";
 
-/** The Actor subtype whose ids may appear as exception keys (spec 39 §5.8). */
-export const CHARACTER_SUBTYPE = "character";
+/**
+ * The Actor subtypes whose ids may appear as exception keys (spec 39 §5.8).
+ *
+ * Spec 39 says "personagem", not "um subtipo chamado `character`": each system
+ * names its playable Actor itself, and the manifests disagree — pf2e and sf2e
+ * call it `character`, etmos calls it `orador`
+ * (`documentTypes.Actor` in `systems/etmos/src/index.ts`). Reading a single
+ * literal would leave an Etmos world with no characters at all: no exception
+ * would ever apply (REQ-CTT-071), every other player's character would be
+ * filtered out of the payload (REQ-CTT-014) and the grid could not be edited
+ * (REQ-CTT-064).
+ *
+ * The server package does not import a system package (arch boundary), so the
+ * playable subtypes are mirrored by hand here — the same mirror
+ * `packages/client/src/lib/contacts/contactsVM.ts` keeps for the panel.
+ */
+export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character", "orador"]);
 
-/** True for an Actor document that is a player character. */
+/** True for an Actor document that is a player character, in any system. */
 export function isCharacterActor(doc: Record<string, unknown>): boolean {
-  return doc["type"] === CHARACTER_SUBTYPE;
+  const type = doc["type"];
+  return typeof type === "string" && PLAYER_CHARACTER_SUBTYPES.has(type);
 }
 
 /** The raw flag value as stored, before any interpretation. */

@@ -40,7 +40,7 @@ import {
 } from "@fusion/shared";
 import type { Ownership } from "@fusion/shared";
 import { OwnershipLevel, resolveOwnership } from "../documents/ownership.js";
-import { CHARACTER_SUBTYPE } from "../documents/knowledge.js";
+import { PLAYER_CHARACTER_SUBTYPES, isCharacterActor } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
 
 /**
@@ -277,9 +277,15 @@ export function contactKnowledgeSourceFromStore(store: DocumentStore): ContactKn
   return {
     listCharacterOwnership(): readonly CharacterOwnershipRow[] {
       const rows: CharacterOwnershipRow[] = [];
-      for (const doc of store.getAll("actors", { type: CHARACTER_SUBTYPE })) {
-        const id = doc["_id"];
-        if (typeof id === "string") rows.push({ id, ownership: doc["ownership"] });
+      // One indexed read per playable subtype: which subtype is playable is the
+      // system's word, not the engine's (`PLAYER_CHARACTER_SUBTYPES`), so an
+      // Etmos world answers with its `orador`s exactly as a pf2e world answers
+      // with its `character`s.
+      for (const subtype of PLAYER_CHARACTER_SUBTYPES) {
+        for (const doc of store.getAll("actors", { type: subtype })) {
+          const id = doc["_id"];
+          if (typeof id === "string") rows.push({ id, ownership: doc["ownership"] });
+        }
       }
       return rows;
     },
@@ -360,7 +366,7 @@ export function actorIsSubjectToKnowledge(
   doc: Record<string, unknown>,
   viewer: ContactViewer,
 ): boolean {
-  if (doc["type"] === CHARACTER_SUBTYPE) return false;
+  if (isCharacterActor(doc)) return false;
   const ownership = isPlainObject(doc["ownership"])
     ? (doc["ownership"] as Ownership)
     : ({ default: OwnershipLevel.NONE } as Ownership);

@@ -535,6 +535,38 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     expect(cleanup["ok"]).toBe(true);
   });
 
+  it("REQ-CTT-070/REQ-CTT-076: an etmos `orador` is a character — the exception is accepted, and deleting it sweeps", async () => {
+    // The playable Actor subtype is the system's word: pf2e/sf2e say
+    // "character", etmos says "orador" (`documentTypes.Actor`). Refusing the
+    // exception here would leave the grid uneditable in every Etmos world.
+    const oradorId = await createActor({
+      name: "Voz do Bosque",
+      type: "orador",
+      ownership: { default: 0, [ctx.playerAId]: 3 },
+    });
+
+    const ack = await sendOp(gm, "actor:setKnowledge", {
+      updates: [
+        {
+          actorId: contactId,
+          general: KnowledgeState.Hidden,
+          clearExceptions: true,
+          exceptions: { [oradorId]: KnowledgeState.Known },
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    expect(mapOf(readFromStore(contactId)).exceptions[oradorId]).toBe(KnowledgeState.Known);
+
+    // REQ-CTT-076: and it sweeps like any other character when deleted.
+    const del = await sendOp(gm, "doc:delete", { documentType: "Actor", ids: [oradorId] });
+    expect(del["ok"]).toBe(true);
+    expect(mapOf(readFromStore(contactId))).toEqual({
+      general: KnowledgeState.Hidden,
+      exceptions: {},
+    });
+  });
+
   it("REQ-CTT-071: a user's effective state is the highest among the characters they own", async () => {
     // charB is player B's; a second character of player B sits at Hidden.
     const secondCharB = await createActor({
