@@ -22,8 +22,10 @@ import {
   closeSceneWindow,
   isSceneWindowOpen,
   sceneWindowKey,
+  SCENE_WINDOW_KEYS,
 } from "../sceneWindows.js";
 import { SCENE_DELETE_KEYS, buildSceneDeleteVM } from "../sceneDelete.js";
+import { t } from "../../i18n/i18n.js";
 import SceneCreateDialog from "../../../components/scenes/SceneCreateDialog.svelte";
 import ScenePerceptionDialog from "../../../components/scenes/ScenePerceptionDialog.svelte";
 import SceneDeleteConfirm from "../../../components/scenes/SceneDeleteConfirm.svelte";
@@ -175,5 +177,48 @@ describe("what the delete confirmation says and refuses", () => {
     expect(buildSceneDeleteVM({ scene: CRYPT, activeSceneId: null }).blocked).toBe(false);
     expect(buildSceneDeleteVM({ scene: CRYPT, activeSceneId: null }).reasonKey).toBeNull();
     expect(buildSceneDeleteVM({ scene: CRYPT, activeSceneId: null }).pathKey).toBeNull();
+  });
+});
+
+/**
+ * Everything above compares KEYS, which is exactly the blind spot that let six texts of
+ * this phase ship with a single-brace placeholder the resolver never substitutes: `t()`
+ * only replaces `{{var}}` (`i18n.ts`, `_applyInterpolation`), so `{name}` reached the
+ * screen literally. These assertions look at the RESOLVED string instead.
+ */
+describe("the texts these windows show are actually interpolated, not printed raw", () => {
+  /** No placeholder of either shape may survive resolution. */
+  function assertNoPlaceholderLeft(resolved: string): void {
+    expect(resolved).not.toMatch(/\{\{?\w+\}?\}/);
+  }
+
+  it("REQ-CEN-061/062/063: each window title carries the scene's real name", () => {
+    const titles = [
+      t(SCENE_WINDOW_KEYS.config, { name: CRYPT.name }),
+      t(SCENE_WINDOW_KEYS.perception, { name: CRYPT.name }),
+      t(SCENE_WINDOW_KEYS.delete, { name: CRYPT.name }),
+    ];
+    for (const title of titles) {
+      expect(title).toContain("Cripta");
+      assertNoPlaceholderLeft(title);
+    }
+  });
+
+  it("REQ-CEN-064: the refusal names the scene that is on air", () => {
+    const vm = buildSceneDeleteVM({ scene: TAVERN, activeSceneId: TAVERN._id });
+    const reason = t(vm.reasonKey ?? "", { name: vm.name });
+
+    expect(reason).toContain("Taverna");
+    assertNoPlaceholderLeft(reason);
+  });
+
+  it("REQ-CEN-062: the perception sliders show their number, not the variable's name", () => {
+    const darkness = t("FUSION.Scene.Perception.Darkness", { percent: 40 });
+    const threshold = t("FUSION.Scene.Perception.Threshold", { percent: 75 });
+
+    expect(darkness).toContain("40");
+    expect(threshold).toContain("75");
+    assertNoPlaceholderLeft(darkness);
+    assertNoPlaceholderLeft(threshold);
   });
 });
