@@ -1,20 +1,29 @@
 /**
- * actorDirectory.ts — Actor directory logic for the sidebar Actors tab.
+ * actorDirectory.ts — what survived the burial of the legacy Actors directory (G078).
  *
- * REQ-UIF-002 (Actors tab), REQ-UIF-044..046 (drag & drop).
+ * REQ-UIF-044..046 (drag & drop of an actor onto the canvas).
  *
- * Responsibilities:
- *   - Query actors from the DocumentMirror.
- *   - Filter by ownership (players see only their own; GMs see all).
- *   - Group by folder.
- *   - Filter by search query.
- *   - Build DragPayload for dragging an actor to the canvas (creates a Token).
+ * The panel this module was written for is gone: spec 39 took the player-facing
+ * list (Contatos), spec 42 took the authoring of non-playables (NPCs), and the old
+ * directory panel was deleted with them. What is left here is the ONE piece both
+ * of those tabs still consume, and nothing else:
+ *
+ *   - `buildActorDragPayload` — the payload an actor row puts on a drag, read by
+ *     `TableScreen.handleCanvasDrop` (Contatos uses it; the NPCs row builds the
+ *     same shape through `lib/npcs/moveActor.ts`, deliberately the same MIME).
+ *   - `buildTokenFromActorFields` — the pure transformation from that payload to
+ *     the presence created on the scene.
+ *
+ * The list/filter/group half (the builder that returned the grouped list, and the
+ * shapes it returned) went with the panel: ownership filtering is now
+ * `lib/contacts/contactsVM.ts`, and folder grouping is `lib/npcs/folderTree.ts`.
+ * Keeping a second, unused answer for either would be the exact duplication those
+ * two specs removed.
  *
  * This module is a pure TS module (no DOM/Svelte) for Vitest testability.
  */
 
-import type { BaseDocument, OwnershipLevel } from "@fusion/shared";
-import { getUserLevel } from "@fusion/shared";
+import type { BaseDocument } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Actor document type (minimal — full schema is in the system packages)
@@ -138,89 +147,4 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
     width: 1,
     height: 1,
   };
-}
-
-// ---------------------------------------------------------------------------
-// Actor list filtering and grouping
-// ---------------------------------------------------------------------------
-
-/**
- * Filtered and grouped actor list for display in the sidebar.
- */
-export interface ActorGroup {
-  /** Folder _id or null for actors without a folder. */
-  folderId: string | null;
-  folderName: string;
-  actors: ActorDocument[];
-}
-
-export interface ActorDirectoryState {
-  /** All actor groups ordered by folder name. */
-  groups: ActorGroup[];
-  /** Total actor count visible to this user. */
-  total: number;
-}
-
-/**
- * Filter and group actors for the sidebar directory.
- *
- * @param actors      All Actor documents from the DocumentMirror.
- * @param userId      Current user's ID.
- * @param isGm        Whether the current user is GM.
- * @param searchQuery Optional search string to filter by name.
- * @param minLevel    Minimum ownership level for non-GMs. Default OBSERVER (2).
- * @returns           Grouped and filtered actor state.
- */
-export function buildActorDirectory(
-  actors: ActorDocument[],
-  userId: string,
-  isGm: boolean,
-  searchQuery = "",
-  minLevel: OwnershipLevel = 2, // OBSERVER
-): ActorDirectoryState {
-  const q = searchQuery.trim().toLowerCase();
-
-  // Filter by permission and search
-  const visible = actors.filter((actor) => {
-    if (!isGm) {
-      const level = getUserLevel(actor.ownership, userId);
-      if (level < minLevel) return false;
-    }
-    if (q && !actor.name.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  // Sort by name
-  visible.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-
-  // Group by folder
-  const byFolder = new Map<string | null, ActorDocument[]>();
-  for (const actor of visible) {
-    const folderId = actor.folder ?? null;
-    const existing = byFolder.get(folderId);
-    if (existing) {
-      existing.push(actor);
-    } else {
-      byFolder.set(folderId, [actor]);
-    }
-  }
-
-  // Build groups sorted: null folder last
-  const groups: ActorGroup[] = [];
-  for (const [folderId, groupActors] of byFolder) {
-    groups.push({
-      folderId,
-      folderName: folderId ?? "", // caller resolves folder name via t()
-      actors: groupActors,
-    });
-  }
-
-  // Sort: actors without folder last
-  groups.sort((a, b) => {
-    if (a.folderId === null && b.folderId !== null) return 1;
-    if (a.folderId !== null && b.folderId === null) return -1;
-    return a.folderName.localeCompare(b.folderName, "pt-BR");
-  });
-
-  return { groups, total: visible.length };
 }

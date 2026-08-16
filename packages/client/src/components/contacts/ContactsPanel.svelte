@@ -90,7 +90,7 @@
 
   const { socket, worldId, userId, isGm }: SidebarPanelProps = $props();
 
-  /** Etmos subtypes route through their own opener (same table as ActorDirectory). */
+  /** Etmos subtypes route through their own opener (the sheet registry's table). */
   const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
 
   let query = $state("");

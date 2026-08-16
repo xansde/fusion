@@ -154,8 +154,8 @@ export type MirrorAccessor = DocumentMirror | (() => DocumentMirror | null);
  * Resolve a MirrorAccessor, defaulting to the app's real singleton
  * (worldSync.ts's `worldMirror`) when the caller passes nothing at all.
  *
- * T013: this default is what lets every EXISTING call site (ActorDirectory.
- * svelte, ActionsTab.svelte, FamiliarSheet.svelte, PetsTab.svelte — all
+ * T013: this default is what lets every EXISTING call site (ActionsTab.svelte,
+ * FamiliarSheet.svelte, PetsTab.svelte — all
  * outside this package's ownership for this task) start filling
  * `expectedVersion` automatically with zero changes on their end: they call
  * `makeSendOpFn(socket)` / `toEnvelope(op)` with a single argument today, and
@@ -456,7 +456,7 @@ async function sendPrimaryDocUpdate(
  * This adapter is the ONE place that bridges the two: split `type` from the
  * rest of the flat op and forward to `sendOp(socket, { type, payload })`.
  *
- * Callers that open a sheet/window (ActorDirectory.svelte, registerEtmosSheets.ts)
+ * Callers that open a sheet/window (ContactsPanel.svelte, registerEtmosSheets.ts)
  * should build `sendOpFn` via this helper instead of leaving the prop
  * unset — an unset `sendOpFn` silently no-ops (see each sheet's default),
  * which would make every button that only calls `sendOpFn(...)` (autosave,
@@ -477,7 +477,7 @@ async function sendPrimaryDocUpdate(
  * op. Sheet windows outlive socket reconnects (SocketManager.connect()
  * creates a brand-new Socket instance, so a captured reference goes stale
  * and its emits are silently buffered forever — see WindowHost's frozen
- * componentProps). Callers that open long-lived windows (ActorDirectory)
+ * componentProps). Callers that open long-lived windows (a sheet opener)
  * should pass `() => getSocket()` so ops always ride the LIVE socket. When
  * the accessor returns null/disconnected at op time, the op is dropped with
  * a console.error (the sheet's own UI feedback for that case lives in the

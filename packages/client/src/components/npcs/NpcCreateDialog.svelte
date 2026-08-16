@@ -45,6 +45,9 @@
     type NpcCreatableSubtype,
   } from "../../lib/npcs/createNpc.js";
   import type { PackManifest } from "@fusion/shared";
+  // SCAFFOLDING (G078 → G105): see the block at the bottom of this file.
+  import { createCharacterScaffolding } from "../../lib/npcs/createCharacterScaffolding.js";
+  import { session } from "../../lib/session.svelte.js";
 
   const {
     socket,
@@ -174,6 +177,41 @@
     if (event.key === "Enter") {
       event.preventDefault();
       void onCreate();
+    }
+  }
+
+  // ---- SCAFFOLDING (G078 → G105) ----
+  //
+  // The buried legacy Actors directory was the last gesture able to create a player's
+  // character; spec 37's Usuários section (G105) is where it really belongs
+  // (REQ-CFG-051). Until that lands, the gesture lives here, fenced off from both
+  // doors: it has its own state, its own handler and its own module, and it never
+  // goes through `createNpcFromScratch` — REQ-NPC-044 keeps refusing `character`.
+  // Delete this block, its markup section and
+  // `lib/npcs/createCharacterScaffolding.ts` together with G105.
+  let characterName = $state("");
+
+  async function onCreateCharacterScaffolding(): Promise<void> {
+    if (busy || characterName.trim().length === 0) return;
+    busy = true;
+    error = null;
+    try {
+      const created = await createCharacterScaffolding(socket, {
+        name: characterName,
+        systemId: session.worldInfo?.systemId,
+      });
+      if (created) onClose();
+    } catch (err) {
+      report(err);
+    } finally {
+      busy = false;
+    }
+  }
+
+  function onCharacterNameKeydown(event: KeyboardEvent): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void onCreateCharacterScaffolding();
     }
   }
 </script>
@@ -331,6 +369,38 @@
   <!-- REQ-NPC-090 lives in the panel; here it is only said once, as the reason the
        subtype list is short: a player's character is not born in this window. -->
   <p class="npc-create__note">{t("FUSION.Npcs.Create.CharacterElsewhere")}</p>
+
+  <!-- SCAFFOLDING (G078 → G105): the temporary door for a player's character.
+       Not a third door of REQ-NPC-041 — it is the burial of the legacy directory
+       leaving its one irreplaceable gesture on the screen until spec 37's
+       Usuários section (REQ-CFG-051) gives it its real address. Drawn apart,
+       named as temporary, and wired to its own module. Delete with G105. -->
+  <section class="npc-create__block npc-create__block--scaffolding" data-block="character-scaffolding" data-scaffolding="true">
+    <h3 class="npc-create__heading">{t("FUSION.Npcs.Create.Scaffolding.Heading")}</h3>
+    <p class="npc-create__hint">{t("FUSION.Npcs.Create.Scaffolding.Note")}</p>
+
+    <label class="npc-create__field">
+      <span>{t("FUSION.Npcs.Create.Scaffolding.Name")}</span>
+      <input
+        class="npc-create__input"
+        data-input="scaffolding-character-name"
+        bind:value={characterName}
+        onkeydown={onCharacterNameKeydown}
+      />
+    </label>
+
+    <div class="npc-create__row npc-create__row--end">
+      <button
+        class="npc-create__btn"
+        type="button"
+        data-action="create-character-scaffolding"
+        disabled={busy || characterName.trim().length === 0}
+        onclick={() => void onCreateCharacterScaffolding()}
+      >
+        {t("FUSION.Npcs.Create.Scaffolding.Confirm")}
+      </button>
+    </div>
+  </section>
 </div>
 
 <style>
@@ -350,6 +420,15 @@
     gap: 0.375rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--fusion-border);
+  }
+
+  /* SCAFFOLDING (G078 → G105): visually set apart so it never reads as a third
+     door of the tab. Goes away with the block above. */
+  .npc-create__block--scaffolding {
+    border-bottom: none;
+    border-top: 1px dashed var(--fusion-border);
+    padding-top: 0.5rem;
+    opacity: 0.85;
   }
 
   .npc-create__heading {

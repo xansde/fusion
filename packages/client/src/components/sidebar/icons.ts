@@ -66,21 +66,8 @@ export const npcsIcon: string = icon(
     '<path d="M18.8 15.4h.01"/>',
 );
 
-/**
- * The provisional Atores directory — a plain indexed list.
- *
- * It exists only until spec 42's NPCs tab takes authoring over (DEC-CTT-01, G078)
- * and then goes away with the panel. It gets a glyph of its own because the two
- * tabs are live at the same time during that window, and a rail that draws the
- * same shape twice is a rail the user cannot read.
- */
-export const actorsLegacyIcon: string = icon(
-  '<path d="M4 5.5h16v13H4z"/>' +
-    '<path d="M8 5.5v13"/>' +
-    '<path d="M11 9.5h6"/>' +
-    '<path d="M11 12.5h6"/>' +
-    '<path d="M11 15.5h4"/>',
-);
+/* The provisional Atores glyph was buried with its panel in G078: Contatos and
+   NPCs each carry their own, and the rail no longer has a third actor tab. */
 
 /** Scenes — a folded map. */
 export const scenesIcon: string = icon(

@@ -65,7 +65,7 @@
   // FUTURE changes (r16 verificação viva bug) — without the getByType seed a
   // familiar that already exists when the tab opens is invisible (the GM only
   // saw it because they created it live; a player reopening the tab saw just
-  // the CTA). Mirrors ActorDirectory's subscribe+getByType pattern.
+  // the CTA). Mirrors the sidebar panels' subscribe+getByType pattern.
   let allActors = $state<Array<Record<string, unknown>>>(
     worldMirror.getByType<Record<string, unknown>>("Actor"),
   );
