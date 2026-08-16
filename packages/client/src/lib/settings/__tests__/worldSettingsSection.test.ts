@@ -127,11 +127,18 @@ describe("buildSettingWriteOp — REQ-CFG-071: writes go through Setting, doc:cr
     });
   });
 
-  it("REQ-CFG-035: a setting write is an ordinary Setting doc:update — it rides the same broadcast/sync path every document write does, so re-derivation/propagation needs nothing bespoke here", () => {
+  it("a row from an already-persisted setting (variant-rule-shaped or not) writes the same generic doc:update op — no bespoke shape for any particular key", () => {
     // Nothing distinguishes a variant-rule row's write from any other boolean
-    // row's write — same op shape, same generic path (worldSettingsRegistry
-    // folds the ack back in; broadcastToWorld/worldMirror propagate it, same
-    // as every other doc:update in the app).
+    // row's write — same op shape, same generic path this describe block
+    // already covers (REQ-CFG-071). This does NOT prove the spec's
+    // re-derivation-and-propagation requirement for world settings (see
+    // specs/37-configuracoes.md §5.4, "Efeitos"): that is server-side
+    // behavior with no test here, and no production trigger wired yet either
+    // — buildSettingWriteOp only builds the op, it never sends it. Only cite
+    // that requirement's id once a test observes a derived actor changing
+    // and the write reaching a second client's socket (G103 scope) — do not
+    // reintroduce the literal id in this file before that exists, or
+    // spec-lint's citation scan will count it as covered again.
     const op = buildSettingWriteOp({ ...NEW_TOGGLE, id: "setting-abc" }, false);
     expect(op.type).toBe("doc:update");
     expect(op.payload["documentType"]).toBe("Setting");

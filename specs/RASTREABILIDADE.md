@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 604 | 32% |
-| Citados só por código de produção | 332 | 18% |
-| Sem nenhuma citação | 955 | 51% |
+| Citados por algum teste | 615 | 33% |
+| Citados só por código de produção | 328 | 17% |
+| Sem nenhuma citação | 948 | 50% |
 | **Total [MVP]** | **1891** | |
 
 ## Por spec
@@ -29,7 +29,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 10 | 16 | 33 | 17% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
-| [05](05-usuarios-e-permissoes.md) | 40 | 7 | 18 | 15 | 18% |
+| [05](05-usuarios-e-permissoes.md) | 40 | 13 | 14 | 13 | 33% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 5 | 32 | 49 | 6% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
@@ -58,7 +58,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
-| [37](37-configuracoes.md) | 40 | 30 | 2 | 8 | 75% |
+| [37](37-configuracoes.md) | 40 | 35 | 2 | 3 | 88% |
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
