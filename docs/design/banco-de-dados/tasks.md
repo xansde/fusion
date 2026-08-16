@@ -114,8 +114,8 @@ checksum. Um banco que andou por outra linha faz o servidor pular migration **em
 3. Lista explícita de tabelas legadas toleradas: `roll_audit_log` (nasce fora das migrations
    até T007).
 
-**Mudança de abordagem, decidida na implementação:** o plano pedia *checksum do código de
-cada migration*. Isso tem dois defeitos que só aparecem quando você tenta escrever: um
+**Mudança de abordagem, decidida na implementação:** o plano pedia _checksum do código de
+cada migration_. Isso tem dois defeitos que só aparecem quando você tenta escrever: um
 `prettier` ou um comentário reescrito muda o hash e o mundo **para de abrir** por nada; e um
 hash de código não vê drift nenhum que tenha nascido fora das migrations (`roll_audit_log`
 é exatamente esse caso). O que importa não é qual código rodou, é se o **schema no arquivo**
