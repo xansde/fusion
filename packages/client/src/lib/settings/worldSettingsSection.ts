@@ -35,6 +35,12 @@ export interface WorldSettingRow {
   readonly label: string;
   readonly hint?: string;
   readonly requiresReload?: boolean;
+  /**
+   * REQ-CFG-082/DEC-CFG-09: when true, turning this row OFF must be confirmed
+   * (showing how many actors are affected) before the write is sent; turning
+   * it ON never confirms. See `needsDisableConfirm` below.
+   */
+  readonly requiresConfirmOnDisable?: boolean;
   /** The stored value, or the declared default when nothing was written yet. */
   readonly value: unknown;
 }
@@ -102,4 +108,28 @@ export function buildSettingWriteOp(row: WorldSettingRow, nextValue: unknown): S
       updates: [{ _id: row.id, diff: { value: nextValue } }],
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Disable confirmation (REQ-CFG-082, DEC-CFG-09) — generic, no system knowledge
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether committing `nextValue` to `row` is the ONE gesture this tab ever
+ * confirms outside REQ-CFG-054's nominal actions (REQ-CFG-083): turning a
+ * `requiresConfirmOnDisable` boolean row from `true` to `false`.
+ *
+ * Reads only `row.kind`/`row.requiresConfirmOnDisable`/`row.value` and the
+ * candidate `nextValue` — never `row.key`, so this holds for any system's
+ * setting, pf2e included, with zero branches naming one (REQ-CFG-031).
+ * Turning a row ON, or writing a non-boolean row, never needs confirmation —
+ * "ligar nunca confirma" is structural here, not a caller's discipline.
+ */
+export function needsDisableConfirm(row: WorldSettingRow, nextValue: unknown): boolean {
+  return (
+    row.kind === "boolean" &&
+    row.requiresConfirmOnDisable === true &&
+    row.value === true &&
+    nextValue === false
+  );
 }

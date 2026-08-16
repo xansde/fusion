@@ -401,6 +401,8 @@ export function defineSystem(
         label: def.label,
         hint: def.hint,
         requiresReload: def.requiresReload,
+        requiresConfirmOnDisable: def.requiresConfirmOnDisable,
+        countAffectedActors: def.countAffectedActors?.bind(def),
         onChange:
           def.onChange !== undefined
             ? (value: unknown) => {

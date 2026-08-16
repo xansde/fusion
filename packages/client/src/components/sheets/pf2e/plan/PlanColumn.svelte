@@ -47,8 +47,6 @@
     type KineticGatePick,
     setAbilityBoosts,
     markAbilityBoostsChoice,
-    setFreeArchetype,
-    setClassLevelsVariant,
     getClassLevelsVariant,
     classOptionsAt,
     chooseClassLevel,
@@ -1068,19 +1066,15 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Free Archetype toggle + level up
-  // ---------------------------------------------------------------------------
-
-  function toggleFreeArchetype(): void {
-    const isOn = doc["system"] && typeof doc["system"] === "object"
-      ? Boolean(((doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown> | undefined)?.["freeArchetype"])
-      : false;
-    const op = setFreeArchetype(opCtx, !isOn);
-    if (op) sendOpFn(op);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Multiclass by class levels (specs/30)
+  // Free Archetype / multiclass by class levels — READ ONLY (specs/30).
+  //
+  // REQ-CFG-032/033 (spec 37 DEC-CFG-08, spec 30 DEC-MCL-09): the two variant
+  // rules are settings of MUNDO now, written only from the Configurações tab's
+  // Mundo section (WorldSection.svelte) — the ficha lost its own toggle and
+  // never writes `system.build.freeArchetype`/`system.build.variantRules.
+  // classLevels` again. `classLevelsOn` stays here as a READ of the actor's
+  // current derived state (it still drives the level-up flow's class-picking
+  // behaviour below), it is just no longer paired with a write.
   // ---------------------------------------------------------------------------
 
   const classLevelsOn = $derived(
@@ -1088,11 +1082,6 @@
       (doc["system"] as Record<string, unknown> | undefined) ?? {},
     ),
   );
-
-  function toggleClassLevels(): void {
-    const op = setClassLevelsVariant(opCtx, !classLevelsOn);
-    if (op) sendOpFn(op);
-  }
 
   /** The level whose "Nível de classe" slot is being picked, if any. */
   let classLevelPicker = $state<number | null>(null);
@@ -1121,14 +1110,6 @@
   function handleLevelUp(): void {
     sendAll(levelUp(opCtx));
   }
-
-  const freeArchetypeOn = $derived(
-    Boolean(
-      doc["system"] && typeof doc["system"] === "object"
-        ? ((doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown> | undefined)?.["freeArchetype"]
-        : false,
-    ),
-  );
 </script>
 
 <div class="plan-column">
@@ -1184,17 +1165,6 @@
       onClick={() => openAbcPicker("class")}
     />
   </div>
-
-  {#if editable}
-    <label class="plan-column__toggle">
-      <input type="checkbox" checked={freeArchetypeOn} onchange={toggleFreeArchetype} />
-      {t("FUSION.Sheet.Plan.FreeArchetypeToggle")}
-    </label>
-    <label class="plan-column__toggle">
-      <input type="checkbox" checked={classLevelsOn} onchange={toggleClassLevels} />
-      {t("FUSION.Sheet.Plan.ClassLevelsToggle")}
-    </label>
-  {/if}
 
   {#if plan.needsClass}
     <div class="plan-column__cta">
@@ -1382,16 +1352,6 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-  }
-
-  .plan-column__toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11.5px;
-    color: var(--fusion-text-muted);
-    padding: 2px 2px;
-    cursor: pointer;
   }
 
   .plan-column__cta {

@@ -18,11 +18,21 @@ import {
   resetWorldSettingsRegistry,
   seedWorldSettingsRegistry,
 } from "../../../lib/settings/worldSettingsRegistry.svelte.js";
+import {
+  resetPermissionsRegistry,
+  seedPermissionsRegistry,
+} from "../../../lib/settings/permissionsRegistry.svelte.js";
+import {
+  resetUsersRegistry,
+  seedUsersRegistry,
+} from "../../../lib/settings/usersRegistry.svelte.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
 beforeEach(() => {
   resetWorldSettingsRegistry();
+  resetPermissionsRegistry();
+  resetUsersRegistry();
 });
 
 function renderTab(isGm: boolean, nav?: SettingsNav): string {
@@ -154,5 +164,118 @@ describe("SettingsTab — Mundo (G102, REQ-CFG-030/031)", () => {
     const html = renderTab(true, nav);
 
     expect(html).toContain(t("FUSION.Settings.World.Empty"));
+  });
+});
+
+describe("SettingsTab — Permissões (G104, REQ-USR-008/009, REQ-CFG-040..042)", () => {
+  it("opening 'permissions' renders the real section, not the pending placeholder", () => {
+    seedPermissionsRegistry({
+      settingId: null,
+      permissions: [{ key: "JOURNAL_CREATE", minRole: 2, defaultMinRole: 2 }],
+    });
+    const nav = new SettingsNav();
+    nav.open("permissions");
+    const html = renderTab(true, nav);
+
+    expect(html).not.toContain(t("FUSION.Settings.SectionPending"));
+    expect(html).toContain(t("FUSION.Settings.Permissions.Keys.JOURNAL_CREATE"));
+  });
+
+  it("REQ-CFG-040: one row per permission, never a matrix — no <table> anywhere in the section", () => {
+    seedPermissionsRegistry({
+      settingId: null,
+      permissions: [
+        { key: "JOURNAL_CREATE", minRole: 2, defaultMinRole: 2 },
+        { key: "TOKEN_CREATE", minRole: 2, defaultMinRole: 2 },
+      ],
+    });
+    const nav = new SettingsNav();
+    nav.open("permissions");
+    const html = renderTab(true, nav);
+
+    expect(html).not.toContain("<table");
+  });
+});
+
+describe("SettingsTab — Usuários (G105, REQ-CFG-050..054)", () => {
+  it("opening 'users' renders the real section, not the pending placeholder", () => {
+    seedUsersRegistry([
+      { id: "u1", name: "Alice", role: 1, color: "#ff0000", avatar: null, active: true },
+    ]);
+    const nav = new SettingsNav();
+    nav.open("users");
+    const html = renderTab(true, nav);
+
+    expect(html).not.toContain(t("FUSION.Settings.SectionPending"));
+    expect(html).toContain("Alice");
+    expect(html).toContain(t("FUSION.Settings.Users.Actions.Edit"));
+  });
+});
+
+describe("SettingsTab — Mods (G106, REQ-CFG-060..064)", () => {
+  it("REQ-CFG-060: opening 'mods' renders the real section, not the pending placeholder", () => {
+    const nav = new SettingsNav();
+    nav.open("mods");
+    const html = renderTab(true, nav);
+
+    expect(html).not.toContain(t("FUSION.Settings.SectionPending"));
+    expect(html).toContain(t("FUSION.Settings.Mods.Empty"));
+  });
+
+  it("REQ-CFG-063: the install control is disabled with a legible reason", () => {
+    const nav = new SettingsNav();
+    nav.open("mods");
+    const html = renderTab(true, nav);
+
+    expect(html).toMatch(/<button[^>]*class="mods-section__install[^"]*"[^>]*disabled/);
+    expect(html).toContain(t("FUSION.Settings.Mods.InstallDisabledReason"));
+  });
+
+  it("REQ-CFG-061: a player never sees the Mods entry in the index, nor its content when injected directly", () => {
+    const indexHtml = renderTab(false);
+    expect(indexHtml).not.toContain(t("FUSION.Settings.Sections.Mods.Title"));
+
+    // Even if a nav were somehow forced open on "mods" for a non-privileged seat
+    // (bypassing the index click), SettingsTab's own isGm guard keeps
+    // ModsSection from mounting at all — "nem em leitura" holds structurally,
+    // not just because the index button is unclickable.
+    const nav = new SettingsNav();
+    nav.open("mods");
+    const forcedHtml = renderTab(false, nav);
+    expect(forcedHtml).not.toContain(t("FUSION.Settings.Mods.Empty"));
+    expect(forcedHtml).not.toContain(t("FUSION.Settings.Mods.InstallDisabledReason"));
+  });
+});
+
+describe("SettingsTab — Mundo section markup", () => {
+  it("REQ-CFG-032: a variant-rule-shaped row (requiresConfirmOnDisable) still renders through the same generic toggle — no separate markup for it", () => {
+    // Shaped exactly like PF2e's freeArchetype/classLevels world settings
+    // would arrive (REQ-CFG-032, REQ-MCL-001/004) — including the confirm
+    // metadata (REQ-CFG-082) — but declared here by a fake system, never
+    // pf2e, so this proves the render path carries zero PF2e knowledge
+    // (REQ-CFG-031). Interactivity (the confirm dialog itself) is exercised
+    // where it can be: worldSettingsSection.test.ts's needsDisableConfirm and
+    // worldSettingsImpact.test.ts's wire contract — svelte/server's render()
+    // never fires DOM events, so only the markup shape is asserted here.
+    seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [
+        {
+          id: "setting-fa-1",
+          key: "fake-system:freeArchetype",
+          kind: "boolean",
+          label: "Arquétipo Livre",
+          requiresConfirmOnDisable: true,
+          value: true,
+        },
+      ],
+    });
+    const nav = new SettingsNav();
+    nav.open("world");
+    const html = renderTab(true, nav);
+
+    expect(html).toContain("Arquétipo Livre");
+    expect(html).toContain('type="checkbox"');
+    expect(html).not.toContain(t("FUSION.Settings.World.Empty"));
   });
 });

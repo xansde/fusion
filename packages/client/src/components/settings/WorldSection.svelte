@@ -17,6 +17,15 @@
    * No optimistic update: the control only reflects a NEW value once the ack
    * confirms it (`applyWorldSettingWrite`), never before — a refusal simply
    * leaves the control showing the last value the server actually accepted.
+   *
+   * Turning a boolean row OFF goes through one more generic gate first
+   * (REQ-CFG-082, DEC-CFG-09): `needsDisableConfirm` (worldSettingsSection.ts)
+   * decides — from `row.requiresConfirmOnDisable`/`row.value` alone, never a
+   * key — whether this is the ONE gesture the tab confirms; if so,
+   * `querySettingDisableImpact` asks the server how many actors are affected
+   * and a native `confirm()` (same precedent as ActorDirectory's delete, not
+   * a floating window) shows the count before `commit` ever runs. Turning ON
+   * always skips straight to `commit`.
    */
 
   import type { Socket } from "socket.io-client";
@@ -30,8 +39,10 @@
   import {
     buildSettingWriteOp,
     controlForRow,
+    needsDisableConfirm,
     type WorldSettingRow,
   } from "../../lib/settings/worldSettingsSection.js";
+  import { querySettingDisableImpact } from "../../lib/settings/worldSettingsImpact.js";
 
   interface Props {
     socket: Socket;
@@ -58,6 +69,35 @@
       console.error(`[WorldSection] setting write failed for "${row.key}":`, err);
     }
   }
+
+  /**
+   * The gate every boolean row's checkbox goes through (REQ-CFG-082,
+   * DEC-CFG-09). Turning ON, or a row without `requiresConfirmOnDisable`,
+   * commits straight away — `needsDisableConfirm` is what decides, so
+   * nothing here branches on which setting this is (REQ-CFG-031). Only when
+   * it says yes does this ask the server "how many" and gate on a native
+   * confirm — the same `confirm()` precedent ActorDirectory's delete uses,
+   * not a floating window (REQ-CFG-013).
+   */
+  async function handleBooleanChange(row: WorldSettingRow, nextValue: boolean): Promise<void> {
+    if (!needsDisableConfirm(row, nextValue)) {
+      await commit(row, nextValue);
+      return;
+    }
+    let count = 0;
+    try {
+      count = (await querySettingDisableImpact(socket, row.key)).count;
+    } catch (err) {
+      console.error(`[WorldSection] impact query failed for "${row.key}":`, err);
+      // Unknown impact is not "no impact" — still confirm, with count 0 as
+      // the honest floor rather than silently skipping the gate.
+    }
+    if (confirm(t("FUSION.Settings.World.ConfirmDisable", { count }))) {
+      await commit(row, nextValue);
+    }
+    // Cancelled: nothing was ever applied optimistically, so there is
+    // nothing to revert — the control already reflects `row.value`.
+  }
 </script>
 
 <div class="world-section">
@@ -81,7 +121,7 @@
                 type="checkbox"
                 checked={control.checked}
                 onchange={(event) => {
-                  void commit(row, (event.currentTarget as HTMLInputElement).checked);
+                  void handleBooleanChange(row, (event.currentTarget as HTMLInputElement).checked);
                 }}
               />
             </label>

@@ -16,6 +16,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSettingWriteOp,
   controlForRow,
+  needsDisableConfirm,
   type WorldSettingRow,
 } from "../worldSettingsSection.js";
 
@@ -124,5 +125,75 @@ describe("buildSettingWriteOp — REQ-CFG-071: writes go through Setting, doc:cr
         updates: [{ _id: "setting-enum-1", diff: { value: "loud" } }],
       },
     });
+  });
+
+  it("REQ-CFG-035: a setting write is an ordinary Setting doc:update — it rides the same broadcast/sync path every document write does, so re-derivation/propagation needs nothing bespoke here", () => {
+    // Nothing distinguishes a variant-rule row's write from any other boolean
+    // row's write — same op shape, same generic path (worldSettingsRegistry
+    // folds the ack back in; broadcastToWorld/worldMirror propagate it, same
+    // as every other doc:update in the app).
+    const op = buildSettingWriteOp({ ...NEW_TOGGLE, id: "setting-abc" }, false);
+    expect(op.type).toBe("doc:update");
+    expect(op.payload["documentType"]).toBe("Setting");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// needsDisableConfirm — REQ-CFG-032/082, DEC-CFG-09: "ligar nunca confirma";
+// desligar confirma SÓ quando o sistema declarou requiresConfirmOnDisable.
+//
+// The two rows below are shaped exactly like PF2e's free-archetype/multiclass
+// variant rules would be declared (REQ-CFG-032, REQ-MCL-001/004) — including
+// the "pf2e:" namespace prefix — but `needsDisableConfirm` never reads `key`,
+// so this file still carries zero PF2e-specific knowledge (REQ-CFG-031): a
+// row from ANY system with the same shape decides identically (last test).
+// ---------------------------------------------------------------------------
+
+const FREE_ARCHETYPE_ON: WorldSettingRow = {
+  id: "setting-fa-1",
+  key: "pf2e:freeArchetype",
+  kind: "boolean",
+  label: "Arquétipo Livre",
+  requiresConfirmOnDisable: true,
+  value: true,
+};
+
+describe("needsDisableConfirm — REQ-CFG-082: desligar confirma, ligar nunca confirma", () => {
+  it("turning a requiresConfirmOnDisable row OFF (true -> false) needs confirmation", () => {
+    expect(needsDisableConfirm(FREE_ARCHETYPE_ON, false)).toBe(true);
+  });
+
+  it("REQ-CFG-082/DEC-CFG-09: turning the SAME row ON never needs confirmation, even starting from off", () => {
+    const off: WorldSettingRow = { ...FREE_ARCHETYPE_ON, value: false };
+    expect(needsDisableConfirm(off, true)).toBe(false);
+  });
+
+  it("a boolean row without requiresConfirmOnDisable never confirms on disable", () => {
+    const { requiresConfirmOnDisable: _drop, ...rest } = FREE_ARCHETYPE_ON;
+    const plain: WorldSettingRow = rest;
+    expect(needsDisableConfirm(plain, false)).toBe(false);
+  });
+
+  it("a requiresConfirmOnDisable row that is ALREADY off does not confirm a false->false write (no actual disable happening)", () => {
+    const off: WorldSettingRow = { ...FREE_ARCHETYPE_ON, value: false };
+    expect(needsDisableConfirm(off, false)).toBe(false);
+  });
+
+  it("requiresConfirmOnDisable is meaningless outside a boolean row — enum/number rows never confirm", () => {
+    expect(needsDisableConfirm({ ...NEW_ENUM, requiresConfirmOnDisable: true }, "quiet")).toBe(
+      false,
+    );
+    expect(needsDisableConfirm({ ...NEW_NUMBER, requiresConfirmOnDisable: true }, 0)).toBe(false);
+  });
+
+  it("REQ-CFG-031: identical shape from an unrelated system's key decides identically — nothing here branches on `key`", () => {
+    const fromAnotherSystem: WorldSettingRow = {
+      ...FREE_ARCHETYPE_ON,
+      key: "totally-different-system:someOtherToggle",
+      label: "Qualquer coisa",
+    };
+    expect(needsDisableConfirm(fromAnotherSystem, false)).toBe(
+      needsDisableConfirm(FREE_ARCHETYPE_ON, false),
+    );
   });
 });

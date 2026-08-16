@@ -26,7 +26,11 @@ import {
   buildWhoAmIHandler,
   buildSystemConditionsHandler,
 } from "./handlers/system.js";
-import { buildSettingsDeclarationsHandler } from "./handlers/settings-handlers.js";
+import {
+  buildSettingsDeclarationsHandler,
+  buildSettingsImpactHandler,
+  buildSettingsPermissionsHandler,
+} from "./handlers/settings-handlers.js";
 import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
@@ -324,6 +328,15 @@ export class SocketManager {
       "settings:declarations",
       buildSettingsDeclarationsHandler(systemModule, store),
     );
+    // REQ-CFG-082: the impact count the Mundo section's disable confirmation
+    // shows — computed on demand (Q-CFG-03), never eagerly.
+    registry.register("settings:impact", buildSettingsImpactHandler(systemModule, store));
+    // Spec 37 §5.5 (REQ-USR-008/009, REQ-CFG-040..042): the Permissões
+    // section's rows — one per configurable Permission, the effective floor
+    // (GM override or default) plus the shipped default so the tab can mark
+    // "alterado" (REQ-CFG-041). Write path stays the generic doc:create/
+    // doc:update of Setting, GAMEMASTER-strict-gated in doc-handlers.ts.
+    registry.register("settings:permissions", buildSettingsPermissionsHandler(store));
 
     // Register M1-B document CRUD handlers
     registry.register("doc:create", buildDocCreateHandler(syncDeps));

@@ -67,7 +67,12 @@ export const DEFAULT_PERMISSION_MIN_ROLE: Readonly<Record<PermissionKey, UserRol
   },
 );
 
-const PERMISSION_KEYS: readonly PermissionKey[] = Object.keys(
+/**
+ * The keys in table order — what the Permissões section (G104) lists, one row
+ * per key, straight from this array (REQ-CFG-040: never a matrix, never a
+ * hand-copied list that could drift from `DEFAULT_PERMISSION_MIN_ROLE`).
+ */
+export const PERMISSION_KEYS: readonly PermissionKey[] = Object.keys(
   DEFAULT_PERMISSION_MIN_ROLE,
 ) as PermissionKey[];
 
@@ -102,6 +107,23 @@ function loadOverrides(store: PermissionsStoreSource): Record<string, unknown> {
     return {};
   }
   return {};
+}
+
+/**
+ * Find the `_id` of the single `fusion.permissions` Setting document, if a GM
+ * has ever written one (G104: the Permissões section — `settings:permissions`
+ * in `net/handlers/settings-handlers.ts` — needs this to know whether the
+ * next write is a `doc:create` or a `doc:update`, same shape as
+ * `settings:declarations`' per-key `id`, except here every row shares the
+ * ONE document).
+ */
+export function findPermissionsSettingId(store: PermissionsStoreSource): string | null {
+  for (const doc of store.getAll("settings")) {
+    if (doc["key"] !== PERMISSIONS_SETTING_KEY) continue;
+    const id = doc["_id"];
+    return typeof id === "string" ? id : null;
+  }
+  return null;
 }
 
 /**

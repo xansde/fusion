@@ -15,10 +15,16 @@
    * renders inside `.settings-tab__body` and nowhere else.
    *
    * The section's *content* is each section's own task (G101 Minhas preferências,
-   * G102 Mundo, G104 Permissões, G105 Usuários, G106 Mods) — until then this shows a
-   * pending placeholder, the same honest-empty-state spirit spec 36 §7.4 already
-   * asked of this file before spec 37 existed. Mundo (G102) is wired in now: it
-   * renders purely from what the active system declared (REQ-CFG-030/031).
+   * G102 Mundo, G104 Permissões, G105 Usuários, G106 Mods) — all five are wired in
+   * now, so the `{#if}` chain below is exhaustive over `SettingsSectionId` and there
+   * is no pending-placeholder branch left. Mundo (G102) renders purely from what the
+   * active system declared (REQ-CFG-030/031). Permissões (G104): one row per
+   * configurable Permission (REQ-USR-008), never a matrix (REQ-CFG-040). Usuários
+   * (G105): list + create/edit/reset/deactivate/kick, all inside this same panel
+   * (REQ-CFG-050..054). Mods (G106): a static empty-state section — no mod can exist
+   * yet (REQ-CFG-064) — gated by an explicit `isGm` check on top of the index cut, so
+   * a `nav` forced open on "mods" for a non-privileged seat still renders nothing
+   * (REQ-CFG-061).
    *
    * The navigation machine itself is `lib/settings/settingsNav.svelte.ts`'s
    * `SettingsNav` — pure, tested on its own. `nav` is an injectable prop (mirrors
@@ -37,6 +43,9 @@
   } from "../../lib/settings/settingsNav.svelte.js";
   import PreferencesSection from "./PreferencesSection.svelte";
   import WorldSection from "./WorldSection.svelte";
+  import PermissionsSection from "./PermissionsSection.svelte";
+  import UsersSection from "./UsersSection.svelte";
+  import ModsSection from "./ModsSection.svelte";
 
   interface Props extends SidebarPanelProps {
     /** Injectable so tests own their own (mirrors `TurnHead.svelte`'s `state` prop). */
@@ -68,8 +77,17 @@
         <PreferencesSection {worldId} {userId} />
       {:else if activeSection.id === "world"}
         <WorldSection {socket} />
-      {:else}
-        <p class="settings-tab__pending">{t("FUSION.Settings.SectionPending")}</p>
+      {:else if activeSection.id === "permissions"}
+        <PermissionsSection {socket} />
+      {:else if activeSection.id === "users"}
+        <UsersSection />
+      {:else if activeSection.id === "mods" && isGm}
+        <!-- REQ-CFG-061: not shown to a non-privileged seat, not even in reading —
+             the index already cuts this entry (DEC-CFG-05), and this second `isGm`
+             check means a `nav` forced open on "mods" (bypassing the index click)
+             still renders nothing for a player, instead of relying solely on the
+             index button never being clicked. -->
+        <ModsSection />
       {/if}
     </div>
   {:else}
@@ -149,13 +167,6 @@
     flex: 1;
     overflow-y: auto;
     padding: 0.5rem 0;
-  }
-
-  .settings-tab__pending {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
-    padding: 1.5rem 1rem;
-    text-align: center;
   }
 
   .settings-tab__index {

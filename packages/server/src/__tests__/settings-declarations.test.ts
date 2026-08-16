@@ -175,6 +175,27 @@ describe("a fake system's brand-new setting reaches the tab untouched (RNF-CFG-0
     });
   });
 
+  it("REQ-CFG-082: requiresConfirmOnDisable, when the system declared it, rides along in the declaration", () => {
+    const withConfirm = fakeSystemWith("fake-system", [
+      {
+        key: "freeArchetype",
+        scope: "world",
+        schema: z.boolean(),
+        default: false,
+        label: "Free Archetype (fake)",
+        requiresConfirmOnDisable: true,
+      },
+    ]);
+
+    const entry = ask(withConfirm).settings.find((s) => s.key === "fake-system:freeArchetype");
+    expect(entry?.requiresConfirmOnDisable).toBe(true);
+  });
+
+  it("a setting that never declared requiresConfirmOnDisable omits the field, not `false`", () => {
+    const entry = ask(FAKE).settings.find((s) => s.key === "fake-system:neverSeenBeforeToggle");
+    expect(entry).not.toHaveProperty("requiresConfirmOnDisable");
+  });
+
   it("a setting outside world scope (user/client) is excluded from the Mundo section", () => {
     const withOtherScopes = fakeSystemWith("fake-system", [
       { key: "worldOne", scope: "world", schema: z.boolean(), default: true, label: "Um" },

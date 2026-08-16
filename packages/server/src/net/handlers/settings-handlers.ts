@@ -25,6 +25,13 @@
 
 import { z, type ZodTypeAny } from "zod";
 import type { HandlerFn } from "../handler-registry.js";
+import {
+  DEFAULT_PERMISSION_MIN_ROLE,
+  findPermissionsSettingId,
+  PERMISSION_KEYS,
+  resolvePermissionMinRole,
+  type PermissionsStoreSource,
+} from "../../documents/world-permissions.js";
 
 // ---------------------------------------------------------------------------
 // Schema → render-kind classification
@@ -81,6 +88,12 @@ export interface WorldSettingDeclaration {
   label: string;
   hint?: string;
   requiresReload?: boolean;
+  /**
+   * REQ-CFG-082: when true, the tab must ask "how many actors are affected"
+   * (via `settings:impact`) and confirm before turning this OFF; turning it
+   * on never confirms.
+   */
+  requiresConfirmOnDisable?: boolean;
   /** The stored value, or the declared default when nothing was written yet. */
   value: unknown;
 }
@@ -109,6 +122,9 @@ export interface ErasedSettingDefinitionLike {
   // shape (registries.ts) so the real SystemModule assigns here structurally.
   hint?: string | undefined;
   requiresReload?: boolean | undefined;
+  requiresConfirmOnDisable?: boolean | undefined;
+  /** REQ-CFG-082: server-only, never serialized — see `buildSettingsImpactHandler`. */
+  countAffectedActors?: ((actors: readonly Record<string, unknown>[]) => number) | undefined;
 }
 
 export interface SettingsRegistrySource {
@@ -121,6 +137,11 @@ export interface SettingsRegistrySource {
 /** Just enough of `DocumentStore` to read persisted `Setting` documents. */
 export interface SettingsStoreSource {
   getAll(table: "settings"): Record<string, unknown>[];
+}
+
+/** Just enough of `DocumentStore` to read persisted `Actor` documents. */
+export interface SettingsActorStoreSource {
+  getAll(table: "actors"): Record<string, unknown>[];
 }
 
 // ---------------------------------------------------------------------------
@@ -186,9 +207,119 @@ export function buildSettingsDeclarationsHandler(
       if (classification.options !== undefined) entry.options = classification.options;
       if (def.hint !== undefined) entry.hint = def.hint;
       if (def.requiresReload !== undefined) entry.requiresReload = def.requiresReload;
+      if (def.requiresConfirmOnDisable !== undefined) {
+        entry.requiresConfirmOnDisable = def.requiresConfirmOnDisable;
+      }
       settings.push(entry);
     }
 
     return { ok: true, result: { systemId: systemModule.manifest.id, settings } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// settings:impact (REQ-CFG-082) — how many actors a DISABLE would affect
+// ---------------------------------------------------------------------------
+
+const SettingsImpactPayloadSchema = z.object({
+  /** The namespaced key exactly as `settings:declarations` handed it out. */
+  key: z.string(),
+});
+
+export type SettingsImpactPayload = z.infer<typeof SettingsImpactPayloadSchema>;
+
+export interface SettingsImpactResult {
+  count: number;
+}
+
+/**
+ * `settings:impact` — answers REQ-CFG-082's "quantos são afetados" for the
+ * confirmation the Mundo section shows before turning a
+ * `requiresConfirmOnDisable` setting off (Q-CFG-03: this handler is the
+ * chosen answer to "quem conta" — computed on demand, only when the tab is
+ * about to disable one such setting, never eagerly on every section open).
+ *
+ * Genericity holds the same way `settings:declarations` does (REQ-CFG-031):
+ * this handler has no branch keyed on any setting's key or on any system id.
+ * It strips the `<systemId>:` namespace prefix, looks up the ONE declaration
+ * that key belongs to, and — only if that declaration registered its own
+ * `countAffectedActors` — hands it the world's Actor documents and reports
+ * back whatever number it returns. What "affected" means for a given setting
+ * is entirely the declaring system's business.
+ *
+ * Degrades to `{ count: 0 }` (never an error) when: no system is resolved,
+ * the key does not belong to this system, the key is not declared, or the
+ * declaration never registered a counter — an unconfirmable setting simply
+ * reports nothing to confirm.
+ */
+export function buildSettingsImpactHandler(
+  systemModule?: SettingsRegistrySource,
+  actorStore?: SettingsActorStoreSource,
+): HandlerFn<unknown, SettingsImpactResult> {
+  return (rawPayload) => {
+    if (!systemModule) return { ok: true, result: { count: 0 } };
+
+    const parsed = SettingsImpactPayloadSchema.safeParse(rawPayload);
+    if (!parsed.success) return { ok: true, result: { count: 0 } };
+    const { key } = parsed.data;
+
+    const prefix = `${systemModule.manifest.id}:`;
+    if (!key.startsWith(prefix)) return { ok: true, result: { count: 0 } };
+    const localKey = key.slice(prefix.length);
+
+    const def = systemModule.registries.settings.get(localKey);
+    if (!def?.countAffectedActors) return { ok: true, result: { count: 0 } };
+
+    const actors = actorStore ? actorStore.getAll("actors") : [];
+    return { ok: true, result: { count: def.countAffectedActors(actors) } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// settings:permissions (REQ-USR-008/009, REQ-CFG-040..042) — the door the
+// Configurações tab's Permissões section reads its rows through.
+// ---------------------------------------------------------------------------
+
+export interface SettingsPermissionRow {
+  key: string;
+  /** The floor actually enforced right now: a GM override, or the default. */
+  minRole: number;
+  /** The product's shipped default (REQ-CFG-041's "difere do default"). */
+  defaultMinRole: number;
+}
+
+export interface SettingsPermissionsResult {
+  /** `fusion.permissions` Setting document `_id`, or `null` — nothing written yet. */
+  settingId: string | null;
+  permissions: SettingsPermissionRow[];
+}
+
+export type SettingsPermissionsPayload = Record<string, never>;
+
+/**
+ * `settings:permissions` — REQ-CFG-040: one row per configurable Permission
+ * (REQ-USR-008), never a matrix. Every key in `world-permissions.ts`'s
+ * `PERMISSION_KEYS` becomes exactly one row; genericity here means this
+ * handler has no per-key branch — it maps the array, nothing else — so a key
+ * added to that module later shows up with zero lines touched here.
+ *
+ * No role gate, same reasoning as `settings:declarations`: this is a read of
+ * GM-written configuration, not the write itself — REQ-CFG-070/042's actual
+ * enforcement is the GAMEMASTER-strict guard on `Setting` writes in
+ * `doc-handlers.ts`. The tab hides the section from non-privileged seats at
+ * the index (REQ-CFG-005), which is ergonomics, not the boundary.
+ */
+export function buildSettingsPermissionsHandler(
+  store?: PermissionsStoreSource,
+): HandlerFn<SettingsPermissionsPayload, SettingsPermissionsResult> {
+  return () => {
+    const source: PermissionsStoreSource = store ?? { getAll: () => [] };
+    const settingId = findPermissionsSettingId(source);
+    const permissions: SettingsPermissionRow[] = PERMISSION_KEYS.map((key) => ({
+      key,
+      minRole: resolvePermissionMinRole(source, key),
+      defaultMinRole: DEFAULT_PERMISSION_MIN_ROLE[key],
+    }));
+    return { ok: true, result: { settingId, permissions } };
   };
 }
