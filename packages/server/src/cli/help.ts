@@ -4,6 +4,7 @@
 
 import { printChatArchiveHelp } from "./commands/chat.js";
 import { printWorldRestoreHelp } from "./commands/worlds.js";
+import { printAssetsReconcileHelp, printAssetsGcHelp } from "./commands/assets.js";
 import { FUSION_VERSION } from "@fusion/shared";
 
 const VERSION = FUSION_VERSION;
@@ -24,6 +25,10 @@ COMMANDS
   user add <world> <name>
                          Add a user to a world
   chat archive <world>   Export a date range of chat to a file, then remove it
+  assets reconcile <world>
+                         Report referenced/orphaned/broken assets (safe; no deletes)
+  assets gc <world>      Delete orphaned assets found by reconcile
+                         (destructive; needs --confirm-delete-count)
 
 OPTIONS
   --help, -h             Show help
@@ -202,6 +207,13 @@ export function printHelp(topic: string | undefined): void {
     case "chat":
     case "chat archive":
       printChatArchiveHelp();
+      break;
+    case "assets":
+    case "assets reconcile":
+      printAssetsReconcileHelp();
+      break;
+    case "assets gc":
+      printAssetsGcHelp();
       break;
     case "version":
       process.stdout.write(`${VERSION}\n`);
