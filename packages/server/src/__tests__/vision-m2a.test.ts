@@ -204,6 +204,13 @@ function drain(): Promise<void> {
 // Helper: create a Scene via GM (returns scene _id and full doc)
 // ---------------------------------------------------------------------------
 
+/**
+ * The scene is put ON AIR right away: a Scene body only crosses to a
+ * non-privileged socket while it is the active one (REQ-CEN-071, REQ-CEN-072),
+ * and every walls/lights/doors assertion below reads what the PLAYER received.
+ * Off air, those assertions would be measuring the scene-list boundary instead
+ * of the wall/light/secret-door behaviour they are about.
+ */
 async function createScene(
   gmSocket: ClientSocket,
   name = "Test Scene",
@@ -214,7 +221,12 @@ async function createScene(
   });
   expect(ack["ok"]).toBe(true);
   const docs = (ack["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[];
-  return docs[0]!;
+  const scene = docs[0]!;
+  const activateAck = await sendOp(gmSocket, "world:activeScene", {
+    sceneId: scene["_id"] as string,
+  });
+  expect(activateAck["ok"]).toBe(true);
+  return scene;
 }
 
 // ---------------------------------------------------------------------------

@@ -16,10 +16,16 @@
    * REQ-CEN-003..005, the scene count in the header) arrives with that spec's own PR.
    *
    * Content permission: the whole tab is group "gm" in the rail, but that is
-   * ergonomics, not a boundary (REQ-GAV-034) — creating, updating, deleting and
-   * activating a scene are all refused server-side for a non-privileged role by
-   * `isRolePrivileged` (`documents/ownership.ts`), used by `doc:create/update/delete`
-   * and by the `world:activeScene` handler.
+   * ergonomics, not a boundary (REQ-GAV-034, DEC-CEN-11). Both halves are closed
+   * server-side by `isRolePrivileged` (`documents/ownership.ts`):
+   *  - the WRITES — creating, updating, deleting and activating a scene are
+   *    refused for a non-privileged role by `doc:create/update/delete` and by the
+   *    `world:activeScene` handler;
+   *  - the READ — the list this panel draws (`sceneListState.scenes`) is fed by
+   *    the world mirror, and every emission path that carries a Scene body
+   *    (live broadcast, join snapshot, delta replay) funnels non-privileged
+   *    sockets through `redactSceneDocsForNonPrivileged` (`net/redaction.ts`), so
+   *    only the scene on air ever leaves the server (REQ-CEN-071..073).
    */
 
   import type { SceneDocument } from "@fusion/shared";

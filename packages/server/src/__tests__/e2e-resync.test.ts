@@ -237,9 +237,13 @@ describe("E2E M1-B — full resync scenario", () => {
     const sceneId = createdDocs[0]?.["_id"] as string;
     expect(typeof sceneId).toBe("string");
 
-    // Wait for client2 to receive the broadcast
+    // Wait for client2 to receive the broadcast. client2 is a PLAYER, so its
+    // copy carries an empty `documents` — the scene is not on air yet
+    // (REQ-CEN-071). The envelope itself still arrives, which is what this test
+    // is about: the seq the player's mirror advances on must stay contiguous.
     const broadcastEnvelope = await broadcastPromise;
     expect(broadcastEnvelope["seq"]).toBe(createAck["seq"]);
+    expect((broadcastEnvelope["payload"] as Record<string, unknown>)["documents"]).toEqual([]);
 
     // -----------------------------------------------------------------------
     // Step 3: GM activates the scene, client2 receives world:activeScene
@@ -685,6 +689,13 @@ describe("E2E M1-B — full resync scenario", () => {
         unknown
       >[]
     )[0]?.["_id"] as string;
+
+    // Put the scene ON AIR: a Scene body only crosses to a non-privileged
+    // socket while it is the active one (REQ-CEN-071/REQ-CEN-072), on the live
+    // path and on this replay path alike. Off air there would be no Scene op in
+    // the delta to look for the revealed token in.
+    const activateAck = await sendOp(gmSocket, "world:activeScene", { sceneId }, "reveal-activate");
+    expect(activateAck["ok"]).toBe(true);
 
     const addHiddenTokenAck = await sendOp(
       gmSocket,

@@ -18,11 +18,8 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
-import {
-  stripHiddenTokens,
-  redactSecretDoors,
-  stripHiddenCombatantsFromCombat,
-} from "../redaction.js";
+import { redactSceneDocsForNonPrivileged, stripHiddenCombatantsFromCombat } from "../redaction.js";
+import { broadcastToWorld } from "./doc-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
 
@@ -114,8 +111,10 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
 /**
  * Filter a list of buffered ops for delivery to a non-privileged client.
  *
- * Invariant (specs 04/05): a hidden token's position/existence must never
- * reach a non-GM socket — including via delta resync replay.
+ * Invariant (specs 04/05/44): a hidden token's position/existence — and the
+ * existence of any scene that is not on air — must never reach a non-GM socket,
+ * including via delta resync replay. A player who reconnects must not be able to
+ * read out of the buffer what the live path refused to send.
  *
  * The OpBuffer stores the SAME GM-visible envelopes that the live broadcast
  * path produces.  Every embedded token op (create / update / delete on a
@@ -123,8 +122,8 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  * `{ documentType: "Scene", documents: [fullScene] }` (see handleEmbedded*),
  * and primary Scene create/update ops use the same `{ documentType, documents }`
  * shape.  There is therefore exactly one shape to redact here, and it is the
- * same one `broadcastToWorld` redacts live: map each Scene doc through the
- * canonical `stripHiddenTokens`.
+ * same one `broadcastToWorld` redacts live: run the batch through the canonical
+ * `redactSceneDocsForNonPrivileged`.
  *
  * There is no separate "Token" branch and no `payload.updates` / `payload.data`
  * branch: those shapes are never buffered, so handling them would be dead code.
@@ -144,6 +143,10 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
       return filterCombatOpForRole(op);
     }
 
+    if (op.type === "doc:delete") {
+      return filterSceneDeleteOpForRole(op);
+    }
+
     if (op.type !== "doc:create" && op.type !== "doc:update") return op;
 
     const payload = op.payload as Record<string, unknown> | null | undefined;
@@ -153,19 +156,45 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
 
-    // Apply both hidden-token and secret-door redaction.
-    const stripped = (documents as Record<string, unknown>[]).map((doc) => {
-      let redacted = stripHiddenTokens(doc);
-      redacted = redactSecretDoors(redacted);
-      return redacted;
-    });
-    // If nothing changed (all same references), return the original op.
-    const changed = stripped.some((doc, i) => doc !== documents[i]);
+    // Drop every scene that was not on air and redact the one that was
+    // (REQ-CEN-071..073) — the same rule the live broadcast applies, so a
+    // player who reconnects cannot read from the buffer what the live path
+    // refused to send.
+    const stripped = redactSceneDocsForNonPrivileged(documents as Record<string, unknown>[]);
+    // If nothing changed (same length, all same references), return the original op.
+    const changed =
+      stripped.length !== documents.length || stripped.some((doc, i) => doc !== documents[i]);
     if (!changed) return op;
 
-    // Clone — never mutate the shared buffered envelope.
+    // Clone — never mutate the shared buffered envelope. The op itself is kept
+    // (possibly with an empty `documents`) so the replayed seq stays contiguous.
     return { ...op, payload: { ...payload, documents: stripped } };
   });
+}
+
+/**
+ * Blank the id list of a buffered Scene `doc:delete` for non-GM delta replay.
+ *
+ * REQ-CEN-071: a player only ever received the scene on air, so replaying the
+ * removal of any other scene would tell them, after the fact, that a scene they
+ * were never allowed to see existed. The live path can tell the two apart
+ * (`broadcastToWorld` gets the on-air ids captured before the rows went); the
+ * buffer cannot — the `active` mirror died with the document — so the whole id
+ * list is dropped here rather than guessed.
+ *
+ * The envelope itself is kept, with an empty `ids`, so the replayed seq stays
+ * contiguous. Consequence worth naming: a player offline while the GM deleted
+ * the scene ON AIR keeps a stale copy of it. That case is exactly what
+ * REQ-CEN-064 says must be refused server-side (deleting the scene on air) and
+ * is not implemented yet — the refusal is the fix, not a wider replay.
+ */
+function filterSceneDeleteOpForRole(op: Envelope): Envelope {
+  const payload = op.payload as Record<string, unknown> | null | undefined;
+  if (!payload || typeof payload !== "object") return op;
+  if (payload["documentType"] !== "Scene") return op;
+  const ids = payload["ids"];
+  if (!Array.isArray(ids) || ids.length === 0) return op;
+  return { ...op, payload: { ...payload, ids: [] } };
 }
 
 /**
@@ -237,7 +266,9 @@ function filterCombatOpForRole(op: Envelope): Envelope {
 /**
  * Build a world snapshot for a specific user.
  * Filters documents by ownership (REQ-NET-024).
- * For non-GM users, also strips hidden tokens from Scene documents (FIX-4).
+ * Two document types answer to a rule of their own instead of ownership:
+ * Combat (shared world state, REQ-CBT-031..033) and Scene (only the one on air
+ * reaches a player, REQ-CEN-071..073). Both carry their redaction.
  */
 function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): WorldSnapshotPayload {
   const documents: Record<string, unknown[]> = {};
@@ -256,22 +287,24 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         // every combat but strip hidden combatants for non-GM viewers
         // (REQ-CBT-031..033).
         visible = all.map((combat) => stripHiddenCombatantsFromCombat(combat));
+      } else if (docType === "Scene") {
+        // Spec 44 §5.8: for a player the scene list is not ownership-gated, it
+        // is ON-AIR-gated — the same shape as the Combat carve-out above, and
+        // for the same reason. Scenes carry the default ownership of NONE, so
+        // the LIMITED filter used to drop EVERY scene from a player's join
+        // snapshot, the scene on air included: a player joining mid-session
+        // got no map at all and only recovered when the GM happened to touch
+        // the scene and the live broadcast leaked it (REQ-CEN-072).
+        // The on-air rule is at once stricter — no off-air scene passes,
+        // whatever its ownership map claims (REQ-CEN-071, REQ-CEN-073) — and
+        // sufficient, and it carries the hidden-token / secret-door redaction.
+        visible = redactSceneDocsForNonPrivileged(all);
       } else {
         visible = all.filter((doc) => {
           const ownership = getOwnershipFromDoc(doc);
           const level = resolveOwnership(ownership, userId, role);
           return level >= OwnershipLevel.LIMITED;
         });
-
-        // Strip hidden tokens and redact secret doors from Scene documents
-        // for non-GM players (M1-C hidden tokens, M2-A secret doors).
-        if (docType === "Scene") {
-          visible = visible.map((scene) => {
-            let redacted = stripHiddenTokens(scene);
-            redacted = redactSecretDoors(redacted);
-            return redacted;
-          });
-        }
       }
 
       // WIRING-DERIVE: compute-on-read for Actor documents joining the
@@ -521,6 +554,32 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     // Persist active scene in settings via raw SQL (the meta key contains ":"
     // which fails the BaseDocument _id regex — we use direct SQL like SeqStore)
     persistActiveSceneId(deps.db, sceneId);
+
+    // REQ-CEN-072: a player's mirror only ever holds the scene on air
+    // (REQ-CEN-071), so the scene that just went on air has to be handed to
+    // them NOW — the activation broadcast below carries an id, not a body, and
+    // the canvas renders from the mirror. Emitted BEFORE world:activeScene so
+    // the document lands before the pointer that references it. Privileged
+    // sockets get the same envelope, which also repairs their `active` mirror.
+    if (sceneId !== null) {
+      let onAirScene: Record<string, unknown> | null = null;
+      try {
+        onAirScene = deps.store.get("scenes", sceneId);
+      } catch {
+        onAirScene = null; // scene vanished between reconcile and broadcast
+      }
+      if (onAirScene) {
+        const docSeq = deps.seqStore.next();
+        const docEnvelope: Envelope = {
+          type: "doc:update",
+          seq: docSeq,
+          ts: Date.now(),
+          payload: { documentType: "Scene", documents: [onAirScene] },
+        };
+        deps.opBuffer.push(docEnvelope);
+        broadcastToWorld(deps.ns, docEnvelope, "Scene");
+      }
+    }
 
     // Broadcast world:activeScene to all clients
     const seq = deps.seqStore.next();

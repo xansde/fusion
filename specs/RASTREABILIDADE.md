@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 249 | 14% |
+| Citados por algum teste | 253 | 14% |
 | Citados só por código de produção | 335 | 18% |
-| Sem nenhuma citação | 1240 | 68% |
+| Sem nenhuma citação | 1236 | 68% |
 | **Total [MVP]** | **1824** | |
 
 ## Por spec
@@ -57,11 +57,11 @@ porque ainda não foram prometidos para nenhum marco.
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
-| [36](36-gaveta-lateral.md) | 24 | 23 | 1 | 0 | 96% |
+| [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
 | [37](37-configuracoes.md) | 39 | 1 | 0 | 38 | 3% |
 | [38](38-aba-chat.md) | 56 | 0 | 1 | 55 | 0% |
 | [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
 | [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
 | [43](43-aba-compendio.md) | 60 | 0 | 0 | 60 | 0% |
-| [44](44-aba-cenas.md) | 58 | 3 | 1 | 54 | 5% |
+| [44](44-aba-cenas.md) | 58 | 6 | 2 | 50 | 10% |
