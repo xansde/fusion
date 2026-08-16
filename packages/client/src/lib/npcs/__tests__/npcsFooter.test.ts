@@ -1,21 +1,33 @@
 /**
  * npcsFooter.test.ts — the footer of the NPCs tab (spec 42 §5.8, G076).
  *
- * Covers REQ-NPC-060 (a control that puts a chest on the scene on air, and what it
- * does when there is no scene on air), REQ-NPC-061 (the chest is not an actor: it
- * reaches neither the directory, nor the search, nor a folder count, nor the
- * knowledge window) and REQ-NPC-072/REQ-NPC-073 (the footer opens the SAME "Quem
- * conhece quem" window the Contatos tab opens — one component, one singleton key,
- * one knowledge model).
+ * Covers REQ-NPC-060 (a control that puts a chest on the scene on air — the
+ * enable/disable rule AND the two ops that actually land one there), plus
+ * DEC-ATR-09 (`45`), which closed Q-NPC-04 and Q-NPC-05 by making the chest an
+ * actor. REQ-NPC-061 (the chest reaches neither the directory, nor the search,
+ * nor a folder count, nor the knowledge window — DEC-NPC-08, unchanged by
+ * DEC-ATR-09) and REQ-NPC-072/REQ-NPC-073 (the footer opens the SAME "Quem
+ * conhece quem" window the Contatos tab opens — one component, one singleton
+ * key, one knowledge model).
  *
- * The client runs Vitest in a node environment — no jsdom, no testing-library — so
- * the window assertions exercise the window manager itself and the "no op leaves
- * this footer" assertions read the sources.
+ * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a
+ * `doc:update` pushes a `Token` for it onto `Scene.tokens` — the very shape
+ * `TokenAddDialog.svelte` already sends, with `actorId` set (REQ-DOC-031). What
+ * is still open (Q-NPC-03, owned by the unwritten Token spec `41`) is whether a
+ * token is *linked* or *unlinked* to its actor (the `actorLink`/`actorDelta`
+ * pair spec 02's "Herança token→actor" section describes) — neither field
+ * exists on `TokenDocumentSchema` yet, so this module writes neither; it uses
+ * only the bare `actorId` reference that already does.
+ *
+ * The client runs Vitest in a node environment — no jsdom, no testing-library —
+ * so the wire assertions read what the fake socket recorded, and the "no op
+ * leaves this footer" assertions read the sources.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import type { Socket } from "socket.io-client";
 
 import KnowledgeGridWindow from "../../../components/contacts/KnowledgeGridWindow.svelte";
 import { windowManager } from "../../windows/window-manager.js";
@@ -29,9 +41,10 @@ import { buildFolderTree } from "../folderTree.js";
 import { buildNpcRows, toFolderedDocs } from "../npcRowVM.js";
 import {
   CHEST_ACTOR_SUBTYPE,
-  CHEST_WINDOW_KEY,
+  buildCreateChestActorOp,
+  buildPlaceChestTokenOp,
   chestControlState,
-  openChestWindow,
+  placeChest,
 } from "../npcsFooter.js";
 import "../../i18n/index.js";
 
@@ -58,6 +71,38 @@ Object.defineProperty(globalThis, "localStorage", {
 });
 
 const SOCKET = {} as never;
+
+// ---------------------------------------------------------------------------
+// Fake socket — records what went on the wire and acks it (createNpc.test.ts
+// pattern): the wire is what a test proving a `doc:create` must inspect.
+// ---------------------------------------------------------------------------
+
+interface Sent {
+  readonly event: string;
+  readonly type: string;
+  readonly payload: Record<string, unknown>;
+}
+
+/** The `_id`/`name` `fakeSocket` hands back for the `doc:create` half of `placeChest`. */
+const CREATED_CHEST = { _id: "act-bau0newlycreated1", name: "Baú" };
+
+function fakeSocket(sent: Sent[]): Socket {
+  return {
+    connected: true,
+    emit(
+      event: string,
+      envelope: { type: string; payload: Record<string, unknown> },
+      ack: (result: unknown) => void,
+    ): void {
+      sent.push({ event, type: envelope.type, payload: envelope.payload });
+      if (envelope.type === "doc:create") {
+        ack({ ok: true, result: { documentType: "Actor", documents: [CREATED_CHEST] } });
+        return;
+      }
+      ack({ ok: true, result: {} });
+    },
+  } as unknown as Socket;
+}
 
 /** Source with every comment removed, so prose about an op is never read as one. */
 function source(relative: string): string {
@@ -95,33 +140,79 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     }
   });
 
-  it("REQ-NPC-060: the control opens one chest window per table, however often it is used", () => {
-    openChestWindow("scn-clareira001");
-    openChestWindow("scn-clareira001");
+  it("REQ-NPC-060: the first write is exactly one `doc:create` of a loot Actor", () => {
+    const op = buildCreateChestActorOp();
 
-    const chests = [...windowManager.windows.values()].filter(
-      (entry) => entry.singletonKey === CHEST_WINDOW_KEY,
-    );
-    expect(chests).toHaveLength(1);
-    expect(windowManager.windows.size).toBe(1);
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Actor");
+    expect(op.payload.data).toHaveLength(1);
+    expect(op.payload.data[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
+  });
+
+  it("REQ-NPC-060: the second write pushes a Token for that actor onto the scene", () => {
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
+
+    expect(op.type).toBe("doc:update");
+    expect(op.payload.documentType).toBe("Scene");
+    expect(op.payload.updates).toHaveLength(1);
+    expect(op.payload.updates[0]?._id).toBe("scn-clareira001");
+    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
+      .$push;
+    expect(push["actorId"]).toBe("act-bau0newlycreated1");
+    expect(push["name"]).toBe("Baú");
+  });
+
+  it("REQ-NPC-060: activating it sends the create, then the token push, in order", async () => {
+    const sent: Sent[] = [];
+    await placeChest(fakeSocket(sent), "scn-clareira001");
+
+    expect(sent).toHaveLength(2);
+
+    expect(sent[0]?.type).toBe("doc:create");
+    expect(sent[0]?.payload["documentType"]).toBe("Actor");
+    const created = sent[0]?.payload["data"] as Record<string, unknown>[];
+    expect(created).toHaveLength(1);
+    expect(created[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
+
+    expect(sent[1]?.type).toBe("doc:update");
+    expect(sent[1]?.payload["documentType"]).toBe("Scene");
+    const updates = sent[1]?.payload["updates"] as { _id: string; diff: Record<string, unknown> }[];
+    expect(updates[0]?._id).toBe("scn-clareira001");
+    const push = (updates[0]?.diff["tokens"] as { $push: Record<string, unknown> }).$push;
+    // The actorId on the wire is the id `fakeSocket` handed back for the create
+    // above — the two writes are chained, not two independent guesses.
+    expect(push["actorId"]).toBe(CREATED_CHEST._id);
+  });
+
+  it("REQ-NPC-060 / Q-NPC-03: the token carries only actorId — no link/unlink field", () => {
+    // `actorLink`/`actorDelta` are Q-NPC-03, owned by `41`, and
+    // `TokenDocumentSchema` does not have them yet — so this module cannot
+    // write them, and does not pretend to.
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
+    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
+      .$push;
+
+    expect(push["actorId"]).toBe("act-bau0newlycreated1");
+    expect(push).not.toHaveProperty("actorLink");
+    expect(push).not.toHaveProperty("actorDelta");
   });
 });
 
 // ---------------------------------------------------------------------------
-// REQ-NPC-061 — the chest is not an actor
+// REQ-NPC-061 — the chest is never listed by this tab
 // ---------------------------------------------------------------------------
 
-describe("REQ-NPC-061: the chest is not an actor, and is nowhere the tab counts", () => {
+describe("REQ-NPC-061: the chest is nowhere the tab counts, even though it is an actor", () => {
   const ACTORS = [
     { _id: "act-lobo00000001", name: "Lobo", type: "npc", folder: "fld-bosque0000001" },
     { _id: "act-armadilha001", name: "Armadilha", type: "hazard", folder: null },
     { _id: "act-fofurinha01x", name: "Fofurinha", type: "character", folder: null },
-    // A container, if one had ever been created: the subtype pf2e declares for it.
+    // A container, exactly as `buildCreateChestActorOp` creates one: no folder.
     {
       _id: "act-bau000000001",
-      name: "Baú da taverna",
+      name: "Baú",
       type: CHEST_ACTOR_SUBTYPE,
-      folder: "fld-bosque0000001",
+      folder: null,
     },
   ];
 
@@ -153,16 +244,13 @@ describe("REQ-NPC-061: the chest is not an actor, and is nowhere the tab counts"
     expect(grid.rows.map((row) => row.id)).not.toContain("act-bau000000001");
   });
 
-  it("REQ-NPC-061: the footer creates no document at all — no actor to hide anywhere", () => {
-    const logic = source("../npcsFooter.ts");
-    const footer = source("../../../components/npcs/NpcsFooter.svelte");
-    const window_ = source("../../../components/npcs/ChestWindow.svelte");
+  it("REQ-NPC-061: the actor's `doc:create` writes no folder, no attitude and no knowledge", () => {
+    const op = buildCreateChestActorOp();
+    const doc = op.payload.data[0] as Record<string, unknown>;
 
-    for (const code of [logic, footer, window_]) {
-      expect(code).not.toContain("doc:create");
-      expect(code).not.toContain("sendOp");
-      expect(code).not.toContain("documentType");
-    }
+    expect(doc["folder"]).toBeNull();
+    expect(JSON.stringify(doc)).not.toContain("attitude");
+    expect(JSON.stringify(doc)).not.toContain("knowledge");
   });
 });
 

@@ -2,13 +2,20 @@
  * NpcsFooter.test.ts — the drawn footer of the NPCs tab (spec 42 §5.8, G076).
  *
  * Covers REQ-NPC-062 (a FIXED footer that holds the chest control and the door to
- * the knowledge window, and nothing else), REQ-NPC-060 (the chest control, and what
- * it looks like with no scene on air) and REQ-NPC-061 (nothing in it creates an
- * actor). REQ-NPC-094 is checked here too: the two glyphs are drawn, never emoji.
+ * the knowledge window, and nothing else), REQ-NPC-060 (the chest control, what it
+ * looks like with no scene on air, and that it delegates to `npcsFooter.ts`'s
+ * `placeChest` rather than building its own payload) and REQ-NPC-061 (the actor it
+ * asks for carries no folder and no attitude — `npcsFooter.test.ts` proves the
+ * `doc:create` itself; this file proves the component never writes a second one).
+ * REQ-NPC-094 is checked here too: the two glyphs are drawn, never emoji.
  *
  * The client runs Vitest in a node environment — no jsdom, no testing-library — so
  * the assertions read the server-rendered markup (`svelte/server`) and the
- * component's own source for what a rendered string cannot show.
+ * component's own source for what a rendered string cannot show (there is no click
+ * to simulate here). The wire-level proof that a click sends a `doc:create` lives
+ * in `lib/npcs/__tests__/npcsFooter.test.ts`, against the very `placeChest` this
+ * component imports and calls — a payload claim is proven at the socket, not read
+ * off a rendered string.
  */
 
 import { describe, expect, it } from "vitest";
@@ -77,12 +84,25 @@ describe("REQ-NPC-060: the chest control, and the scene it needs", () => {
   });
 });
 
-describe("REQ-NPC-061 / REQ-NPC-094: what the footer is not", () => {
-  it("REQ-NPC-061: no control here creates, deletes or writes any document", () => {
+describe("REQ-NPC-061 / REQ-NPC-094: what the footer does not build itself", () => {
+  it("REQ-NPC-060: the chest button delegates to npcsFooter.ts's placeChest, and builds no payload of its own", () => {
+    // The one write this footer causes goes through the tested module — this
+    // file never spells `doc:create`, `documentType` or the chest's subtype:
+    // if it did, there would be a SECOND place constructing the same op.
+    expect(SOURCE).toContain("placeChest as sendPlaceChest");
     expect(SOURCE).not.toContain("doc:create");
+    expect(SOURCE).not.toContain("documentType");
+    expect(SOURCE).not.toContain("loot");
+  });
+
+  it("REQ-NPC-061: the component writes no folder or attitude of its own", () => {
+    expect(SOURCE).not.toContain("folder");
+    expect(SOURCE).not.toContain("attitude");
+  });
+
+  it("REQ-NPC-061 / REQ-NPC-094: the component alters no document directly, and deletes nothing", () => {
     expect(SOURCE).not.toContain("doc:delete");
     expect(SOURCE).not.toContain("doc:update");
-    expect(SOURCE).not.toContain("sendOp");
   });
 
   it("REQ-NPC-094: both glyphs are drawn, and neither is an emoji", () => {

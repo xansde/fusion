@@ -4,11 +4,13 @@
    *
    * It holds exactly the two controls REQ-NPC-062 names, and nothing else:
    *
-   *  - **The chest** (REQ-NPC-060), which lands on the scene on air. The chest is
-   *    not an actor (REQ-NPC-061, DEC-NPC-08): this file has no `doc:create`, no
-   *    op of any kind, so nothing it does can reach the folder tree, the search, a
-   *    folder count or the knowledge window. Where the chest's content lives is
-   *    Q-NPC-05, pending on spec `41`, so the control opens a window that says so.
+   *  - **The chest** (REQ-NPC-060), which lands on the scene on air: clicking it
+   *    runs `npcsFooter.ts`'s `placeChest` — a `doc:create` of the actor, then a
+   *    `doc:update` that pushes a token for it onto the active scene. The chest
+   *    is an actor (DEC-ATR-09), but never one this tab lists — no folder, no
+   *    attitude, no row (REQ-NPC-061, DEC-NPC-08): the actor `placeChest`
+   *    creates carries none of those fields, and this tab's own predicates do
+   *    not admit its subtype.
    *  - **"Quem conhece quem"** (REQ-NPC-072), which is the SAME window the Contatos
    *    tab opens — same component, same singleton key, same op — because the open
    *    call lives once, in `lib/contacts/knowledgeWindow.ts`. A second door, not a
@@ -28,16 +30,25 @@
   import type { Socket } from "socket.io-client";
 
   import { t } from "../../lib/i18n/i18n.js";
+  import { OpError } from "../../lib/docs/sendOp.js";
   import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
-  import { chestControlState, openChestWindow } from "../../lib/npcs/npcsFooter.js";
+  import { chestControlState, placeChest as sendPlaceChest } from "../../lib/npcs/npcsFooter.js";
 
   const { socket, activeSceneId }: { socket: Socket; activeSceneId: string | null } = $props();
 
   const chest = $derived(chestControlState(activeSceneId));
 
-  function placeChest(): void {
-    if (chest.sceneId === null) return;
-    openChestWindow(chest.sceneId);
+  let error = $state<string | null>(null);
+
+  async function placeChest(): Promise<void> {
+    const sceneId = chest.sceneId;
+    if (sceneId === null) return;
+    error = null;
+    try {
+      await sendPlaceChest(socket, sceneId);
+    } catch (err) {
+      error = err instanceof OpError ? err.message : String(err);
+    }
   }
 </script>
 
@@ -89,6 +100,9 @@
   <!-- REQ-NPC-093: why the chest is off is said in words, not only in shade. -->
   {#if !chest.enabled}
     <p class="npcs-footer__hint" data-chest-hint>{t("FUSION.Npcs.Chest.NoScene")}</p>
+  {/if}
+  {#if error !== null}
+    <p class="npcs-footer__hint npcs-footer__hint--error" data-chest-error>{error}</p>
   {/if}
 </footer>
 
@@ -150,5 +164,9 @@
     margin: 0;
     font-size: 0.7rem;
     color: var(--fusion-text-subtle);
+  }
+
+  .npcs-footer__hint--error {
+    color: var(--fusion-danger);
   }
 </style>
