@@ -161,10 +161,27 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
 
     const payload = op.payload as Record<string, unknown> | null | undefined;
     if (!payload || typeof payload !== "object") return op;
-    if (payload["documentType"] !== "Scene") return op;
+
+    const documentType = payload["documentType"];
+    if (documentType !== "Scene" && documentType !== "Combat") return op;
 
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
+
+    // Combat reaches this shape too, since T036 started broadcasting the
+    // document itself so the client's `_stats.version` can move. The live path
+    // redacts hidden combatants per socket; the replay has to do the same, or
+    // reconnecting inside the buffer window becomes the way to read what the
+    // GM hid (REQ-CBT-031). Same redaction function the live path uses — the
+    // one in net/redaction.ts, never a second copy of the predicate.
+    if (documentType === "Combat") {
+      const strippedCombats = (documents as Record<string, unknown>[]).map((doc) =>
+        stripHiddenCombatantsFromCombat(doc),
+      );
+      const combatChanged = strippedCombats.some((doc, i) => doc !== documents[i]);
+      if (!combatChanged) return op;
+      return { ...op, payload: { ...payload, documents: strippedCombats } };
+    }
 
     // Drop every scene that was not on air and redact the one that was
     // (REQ-CEN-071..073) — the same rule the live broadcast applies, so a

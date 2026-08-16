@@ -16,9 +16,15 @@
 import { parseArgs, ParseArgsError } from "./args.js";
 import { printHelp } from "./help.js";
 import { runServe } from "./commands/serve.js";
-import { runWorldList, runWorldCreate, runWorldBackup } from "./commands/worlds.js";
+import {
+  runWorldList,
+  runWorldCreate,
+  runWorldBackup,
+  runWorldRestoreCommand,
+} from "./commands/worlds.js";
 import { runUserAdd } from "./commands/users.js";
 import { runChatCommand } from "./commands/chat.js";
+import { runAssetsCommand } from "./commands/assets.js";
 
 // ---------------------------------------------------------------------------
 // Main
@@ -34,6 +40,22 @@ async function main(): Promise<void> {
   // while this destructive command's shape is still settling.
   if (userArgs[0] === "chat") {
     runChatCommand(userArgs.slice(1));
+    return;
+  }
+
+  // `fusion assets reconcile|gc` (T022/T023) owns its own sub-parser
+  // (commands/assets.ts) for the same reason `chat` does above.
+  if (userArgs[0] === "assets") {
+    runAssetsCommand(userArgs.slice(1));
+    return;
+  }
+
+  // `fusion world restore` (T024 review fix) owns its own sub-parser
+  // (commands/worlds.ts) for the same reason `chat` does above — its
+  // destructive preview/--confirm-restore flow doesn't fit args.ts's
+  // generic world:list/create/backup shape.
+  if (userArgs[0] === "world" && userArgs[1] === "restore") {
+    await runWorldRestoreCommand(userArgs.slice(2));
     return;
   }
 
