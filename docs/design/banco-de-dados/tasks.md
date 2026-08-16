@@ -880,6 +880,49 @@ imagem renderizada), não o custo de resolver ownership uma vez.
 PR próprio, fora das migrations. Pode subir de prioridade para logo depois da Fase 0 se o
 risco na mesa incomodar.
 
+#### Entregue (2026-08-16) — o mecanismo existe e foi provado; o portão está em sombra
+
+`POST /api/assets/grant` recebe `{table, id}`, roda o mesmo cálculo de visibilidade que
+entrega o documento, projeta os campos portadores de imagem e devolve um HMAC por nome.
+`GET /assets/*` passa a exigir esse grant. Novos: `assets/asset-name.ts` (uma
+canonicalização, usada pelo mint **e** pelo serve), `asset-grant.ts`, `asset-fields.ts`,
+`scripts/asset-grant-dryrun.ts`, `shared/asset-name-contract.ts`.
+
+**A revisão adversarial reprovou a primeira entrega** — três lentes, seis achados, todos
+factualmente corretos, três bloqueantes. Os que mudam o desenho:
+
+- **O mint era mais permissivo que a via que entrega o documento.** O ramo `actors`
+  decidia só por `resolveOwnership >= LIMITED`, sem a redação de conhecimento de contato.
+  Provado por execução: um contato _vislumbrado_ chega ao jogador sem nome e sem retrato
+  (REQ-CTT-081), e ele usava o `_id` recebido para mintar `{"grants":{"retrato-do-vilao.png":…}}`
+  — o **nome do arquivo** é canal de divulgação que não existia antes desta rota. Conserto:
+  o ramo `actors` passou a **ser** `redactActorDocsForViewer`.
+- **Recusar o documento inteiro por um nome sujo é o botão de negar a mesa.** `scenes.tokens[].texture`
+  é portador e é gravável por PLAYER num documento que ele não possui (`handleEmbeddedUpdate`
+  autoriza pelo ownership do **ator**). Um token envenenado derrubava o mint da cena no ar para
+  todos — e em silêncio, porque o Mestre cai no escopo `browse` e continua vendo tudo. É a
+  proposta `indice`, que morreu por isso, voltando por outra porta. Conserto: pula o **nome**,
+  assina o resto.
+- **A projeção não cortava a amplificação.** As refs saíam de varredura de _texto_ sobre o
+  JSON projetado: 5.000 nomes separados por espaço num único `img` davam 5.000 grants e
+  398 KB numa requisição. Agora saem dos **valores**, casados inteiros — o teto virou
+  estrutural.
+
+**O portão sai DESLIGADO** (`ASSET_GRANT_ENFORCE=0`): loga a recusa e serve mesmo assim,
+como manda a §5 do desenho. Medido no smoke com a config default: Bearer puro de PLAYER
+baixa 579.956 bytes do fundo de uma cena fora do ar. **Este merge não fecha o defeito** —
+fechar é `ASSET_GRANT_ENFORCE=1`, uma linha, e é decisão de rollout.
+
+Dry-run contra os 8 mundos reais antes do merge: no `teste_xande`, o jogador mantém o fundo
+da cena no ar e o mapa de região, e perde dois fundos de cenas **fora do ar** que já não
+recebia. Dos 18 arquivos negados nos mundos arquivados, 17 são órfãos. 12 mutações
+aplicadas, 12 mortas.
+
+Achado que sobra: **`scenes.tiles[].texture` é portador vivo e está fora da projeção** — a
+spec 02:905 o descreve como objeto (`texture.src`), o dado real é string, os dois tiles reais
+são `hidden: true` e **não existe redação de tile em lugar nenhum**. Incluir como está
+assinaria a arte de um tile que o Mestre escondeu.
+
 ---
 
 ## Fase 5 — Higiene (sem pressa, sem risco)
