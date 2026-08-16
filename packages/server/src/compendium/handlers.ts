@@ -51,6 +51,7 @@ import type { CompendiumService } from "./service.js";
 import { PermissionDeniedError } from "./service.js";
 import { isRolePrivileged } from "../documents/ownership.js";
 import { DocumentNotFoundError } from "../documents/store.js";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
 
@@ -393,6 +394,12 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
  *
  * Bringing the same entry twice is allowed and produces a SECOND embedded item
  * (REQ-CPD-064) — nothing here consults what the actor already carries.
+ *
+ * THE REFUSAL DOES NOT DESCRIBE THE DESTINATION. For a non-privileged caller,
+ * "you do not own this sheet" and "there is no such sheet" collapse into one
+ * identical ack: otherwise the handler answers the question "does actor X
+ * exist?" for every id a player cares to try, which is exactly what REQ-SEC-021
+ * and REQ-CPD-071 forbid ("NONE é indistinguível de 'não existe'").
  */
 export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps): HandlerFn {
   return (payload, ctx): Ack => {
@@ -404,6 +411,12 @@ export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps)
         message: "Invalid compendium:importToActor payload",
       };
     }
+
+    // REQ-SEC-021 / REQ-CPD-071: the ONE answer a non-privileged caller gets
+    // for a destination he may not write. "Not yours" and "not there" have to
+    // be the same sentence, or probing actorIds turns the ack into a directory
+    // of the sheets he cannot see.
+    const destinationRefusal = `No OWNER access to destination actor ${parsed.data.actorId}`;
 
     let outcome;
     try {
@@ -427,11 +440,19 @@ export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps)
 
       outcome = deps.compendium.importToActor(parsed.data.uuids, importOpts);
     } catch (err) {
-      if (err instanceof PermissionDeniedError) {
-        return { ok: false, code: "PERMISSION_DENIED", message: err.message };
-      }
-      if (err instanceof DocumentNotFoundError) {
-        return { ok: false, code: "NOT_FOUND", message: err.message };
+      const refusedByOwnership = err instanceof PermissionDeniedError;
+      const destinationMissing = err instanceof DocumentNotFoundError;
+      if (refusedByOwnership || destinationMissing) {
+        // A caller who cannot see the world's actors gets one indistinguishable
+        // refusal for both outcomes (REQ-SEC-021, REQ-CPD-071). A privileged
+        // role sees every actor already, so telling it the destination is
+        // simply not there reveals nothing and keeps the diagnosis honest.
+        if (!isRolePrivileged(ctx.role)) {
+          return { ok: false, code: "PERMISSION_DENIED", message: destinationRefusal };
+        }
+        return refusedByOwnership
+          ? { ok: false, code: "PERMISSION_DENIED", message: err.message }
+          : { ok: false, code: "NOT_FOUND", message: err.message };
       }
       throw err;
     }
@@ -440,8 +461,14 @@ export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps)
 
     // Announce the changed sheet on the ordinary document channel, so every
     // client's mirror (and the sheet already open on screen) sees the new items
-    // without a reload. Actor documents are not redacted on this path — the
-    // same precedent doc-handlers.ts and reacao-handler.ts follow.
+    // without a reload.
+    //
+    // The emit goes through `broadcastToWorld` — the single funnel every other
+    // `doc:update` site uses — and NEVER through a bare `ns.emit` here. What an
+    // Actor envelope carries per role is a decision of that funnel (today: the
+    // namespace-wide fast path, the same one doc-handlers.ts takes for an
+    // Actor); building a second emit path would mean a redaction added there
+    // tomorrow would silently skip this door (REQ-SEC-020).
     if (actor && deps.seqStore && deps.opBuffer) {
       const seq = deps.seqStore.next();
       const envelope: Envelope = {
@@ -452,7 +479,7 @@ export function buildCompendiumImportToActorHandler(deps: CompendiumHandlerDeps)
       };
       // REQ-NET-062: push BEFORE emitting, like every other doc:update site.
       deps.opBuffer.push(envelope);
-      deps.ns.emit("op", envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
       return { ok: true, seq, result };
     }
 

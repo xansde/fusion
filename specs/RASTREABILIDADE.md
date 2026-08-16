@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 389 | 21% |
+| Citados por algum teste | 390 | 21% |
 | Citados só por código de produção | 333 | 18% |
-| Sem nenhuma citação | 1120 | 61% |
+| Sem nenhuma citação | 1119 | 61% |
 | **Total [MVP]** | **1842** | |
 
 ## Por spec
@@ -45,7 +45,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
-| [21](21-seguranca.md) | 44 | 8 | 12 | 24 | 18% |
+| [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
 | [23](23-acessibilidade-e-dispositivos.md) | 45 | 1 | 0 | 44 | 2% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |

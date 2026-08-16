@@ -8,6 +8,11 @@
  * allowed and produces a second document) and REQ-CPD-073 (world needs
  * `isRolePrivileged`; sheet needs `OWNER` of the destination).
  *
+ * AND WHAT THE REFUSAL MAY NOT SAY: REQ-SEC-021 (repeated for this tab by
+ * REQ-CPD-071) forbids the recusa from revealing that a Document the caller
+ * cannot see exists at all, so a player probing actorIds must get one identical
+ * answer for "not yours" and for "not there".
+ *
  * WHY THE PAYLOAD, NOT THE SCREEN: every assertion below reads the ack — or the
  * broadcast — the PLAYER's own socket receives. A disabled button would satisfy
  * nothing here: the point of DEC-CPD-05 is that the predicate is enforced by the
@@ -347,6 +352,31 @@ describe("bringing a compendium entry to a sheet (REQ-CPD-061, REQ-CPD-073)", ()
     expect(readActorItems(ctx, foreignActorId)).toHaveLength(before);
   });
 
+  it("REQ-SEC-021 / REQ-CPD-071: for a player, a sheet he cannot see and a sheet that is not there answer the SAME", async () => {
+    // The probe: two ids, one naming a real actor with `default: NONE` and no
+    // entry for this player, the other naming nothing at all. If the two acks
+    // differ in ANY field, the handler has just told the player which of his
+    // guesses named a real sheet — REQ-SEC-021's "NONE é indistinguível de
+    // 'não existe'", repeated for this tab by REQ-CPD-071.
+    const foreign = await send(player, "op", "compendium:importToActor", {
+      uuids: [itemUuid],
+      actorId: foreignActorId,
+    });
+    const nonexistent = await send(player, "op", "compendium:importToActor", {
+      uuids: [itemUuid],
+      actorId: "no-such-actor-id",
+    });
+
+    expect(foreign["ok"]).toBe(false);
+    expect(nonexistent["ok"]).toBe(false);
+    // Same code AND same message — the id echoed back is the one the player
+    // himself sent, so it discloses nothing he did not already know.
+    expect(nonexistent["code"]).toBe(foreign["code"]);
+    expect(String(nonexistent["message"]).replace("no-such-actor-id", "<id>")).toBe(
+      String(foreign["message"]).replace(foreignActorId, "<id>"),
+    );
+  });
+
   it("REQ-CPD-060 / REQ-CPD-073: the GM brings to any sheet, owning it by role", async () => {
     const before = readActorItems(ctx, foreignActorId).length;
 
@@ -434,8 +464,11 @@ describe("bringing a compendium entry to a sheet (REQ-CPD-061, REQ-CPD-073)", ()
     expect(readActorItems(ctx, ownedActorId)).toHaveLength(before + 2);
   });
 
-  it("REQ-CPD-061: a destination that does not exist answers NOT_FOUND", async () => {
-    const ack = await send(player, "op", "compendium:importToActor", {
+  it("REQ-CPD-061 / REQ-SEC-021: a destination that does not exist answers NOT_FOUND to a privileged role", async () => {
+    // The GM already sees every actor in the world, so naming the absence back
+    // to him hides nothing — the collapse of the two refusals is owed to the
+    // caller who CANNOT see them (covered above).
+    const ack = await send(gm, "op", "compendium:importToActor", {
       uuids: [itemUuid],
       actorId: "no-such-actor-id",
     });
