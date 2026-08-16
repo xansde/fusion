@@ -335,8 +335,26 @@ describe("REQ-GAV-032 — sistemas de jogo não registram abas no MVP", () => {
 // ---------------------------------------------------------------------------
 
 describe("REQ-GAV-031 — abas de mod", () => {
-  // REQ-GAV-031 é [V2]: carregar mod está fora do MVP (REQ-ESC-012). O registro já
-  // aceita a mesma chamada e coloca a aba ao fim do grupo declarado — o que falta é
-  // o carregador de mods, assunto da spec-filha de Configurações/Mods.
+  // REQ-GAV-031 é [V2]: carregar mod está fora do MVP — a spec 00 veta carregamento
+  // dinâmico de plugin de terceiros. O registro já aceita a mesma chamada e coloca a
+  // aba ao fim do grupo declarado — o que falta é o carregador de mods, assunto da
+  // spec-filha de Configurações/Mods.
   it.todo("REQ-GAV-031 [V2]: um mod carregado registra aba pela mesma chamada");
+
+  it("claims spec 00's compiled-systems rule where it is honoured, not here", () => {
+    // `tools/spec-lint` counts ANY requirement id spelled inside `__tests__` as covered by
+    // a test, and the coverage floor never goes back down. The [MVP] clause of spec 00 —
+    // game systems are packages compiled into the monorepo, with no dynamic third-party
+    // plugin loading — is not exercised anywhere in this file: the block above holds a
+    // single `it.todo`, which asserts nothing. So that id must not be spelled here. It is
+    // assembled from parts so this guard does not itself make the claim it guards against.
+    const compiledSystemsId = ["REQ", "ESC", "012"].join("-");
+
+    expect(readFileSync(fileURLToPath(import.meta.url), "utf8")).not.toContain(compiledSystemsId);
+    // It stays cited in the registry, the production module that documents the restriction —
+    // which the trace then reports as "cited only by production code".
+    expect(
+      readFileSync(fileURLToPath(new URL("../registry.ts", import.meta.url)), "utf8"),
+    ).toContain(compiledSystemsId);
+  });
 });

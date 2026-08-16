@@ -15,8 +15,8 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 248 | 14% |
-| Citados só por código de produção | 334 | 18% |
+| Citados por algum teste | 247 | 14% |
+| Citados só por código de produção | 335 | 18% |
 | Sem nenhuma citação | 1242 | 68% |
 | **Total [MVP]** | **1824** | |
 
@@ -24,7 +24,7 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Spec | [MVP] | Com teste | Só código | Sem citação | Cobertura |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| [00](00-visao-e-escopo.md) | 18 | 1 | 0 | 17 | 6% |
+| [00](00-visao-e-escopo.md) | 18 | 0 | 1 | 17 | 0% |
 | [01](01-arquitetura-geral.md) | 42 | 6 | 8 | 28 | 14% |
 | [02](02-modelo-de-dados.md) | 59 | 8 | 17 | 34 | 14% |
 | [03](03-persistencia-e-mundos.md) | 36 | 2 | 20 | 14 | 6% |
