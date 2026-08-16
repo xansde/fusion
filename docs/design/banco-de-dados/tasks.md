@@ -316,10 +316,43 @@ cobrindo também a checagem de colisão de id em `create()` (`:354`), a de exist
 `delete()` (`:568`) e o caminho de batch sob contenção real (onde o
 `SQLITE_BUSY_SNAPSHOT` foi reproduzido).
 
-### T013 — `expectedVersion` deixa de ser opcional
+### T013 — `expectedVersion` deixa de ser opcional (em andamento)
 
 `packages/server/src/net/handlers/doc-handlers.ts:774-790` · protocolo em `packages/shared`
 · emissores no client
+
+**Como ficou:** o campo continua opcional no zod (torná-lo obrigatório no schema recusaria
+tráfego que a política precisa aceitar). A política vive no handler: `doc:update` primário sem
+`expectedVersion` é recusado para papel **não privilegiado**; privilegiado mantém o
+comportamento anterior, porque vários escritores de servidor incrementam a versão sem nunca
+setar o campo e esse tráfego não é escrito pelo cliente.
+
+**A primeira tentativa de resolver o lado do cliente estava errada, e vale registrar por quê.**
+O preenchimento automático lê a versão do espelho no instante do envio. Quando um fluxo dispara
+vários `doc:update` do mesmo documento no mesmo tick, sem esperar o ack, todos leem a mesma
+versão: o primeiro entra, os demais voltam `STALE_WRITE` e somem no `console.error`. A saída
+tentada foi **coalescer** os diffs nos construtores do `planVM`. Isso protege só os pontos que
+alguém auditou — e a revisão achou dois que escaparam, os dois em uso real: as **Dádivas de
+Atributo** (dispara um update por grupo de boost, fora do caminho protegido) e o **descanso**
+(cura de HP e recarga de Foco saem juntas; a segunda seria recusada). O `CharacterSheet.svelte`
+nem estava na lista auditada.
+
+Caçar ponto de disparo é jogo que não termina. A correção certa é no **funil**, que é por onde
+toda VM já passa: fila por `_id` de documento (enquanto uma escrita daquele documento está em
+voo, a próxima espera e lê a versão que a anterior produziu) e **uma** nova tentativa em
+`STALE_WRITE`. Conserta todos os pontos de disparo de uma vez, inclusive os que ninguém auditou,
+e permitiu **remover** a coalescência em vez de acrescentar superfície. A fila é por documento:
+escritas de documentos diferentes seguem em paralelo.
+
+**O pré-voo do handler passou a julgar o lote inteiro** — não encontrado, sem permissão, sem
+versão, campo não gravável — antes de escrever qualquer coisa, e nessa ordem. Antes, só a guarda
+de campo era pré-voo: um lote em que a segunda entrada não tinha permissão gravava a primeira e
+respondia `ok:false`. A ordem também importa para o que o autor da chamada ouve: dizer a quem não
+tem acesso que falta um campo confirmaria que o documento existe.
+
+**Pronto quando** (adicional ao enunciado original): existe teste de monotonicidade — ler V,
+atualizar uma vez, reenviar V, esperar `STALE_WRITE`. Sem ele, um servidor com versão constante
+passa em todos os outros casos.
 
 Hoje o STALE_WRITE só é checado `if (upd.expectedVersion !== undefined)`. Cliente que omite
 ganha last-write-wins sem aviso.
@@ -788,14 +821,202 @@ risco na mesa incomodar.
 
 ## Fase 5 — Higiene (sem pressa, sem risco)
 
-- **T026** — remover `roll_audit_log.world_id` e `chat_messages.data.worldId`: coluna
-  multi-tenant num banco que já é de um mundo só.
-- **T027** — `settings` guarda a chave duas vezes (`id` + `data.key`) e exige SQL cru para
-  `_meta:*` porque o `:` não passa no regex de `_id`. Dar um caminho oficial.
-- **T028** — unificar as duas definições de `login_attempts` (migration 002 e
-  `admin/lockout-db.ts:57`).
-- **T029** — `world.json.schemaVersion` é gravado como `1` e nunca acompanha as migrations.
-  Refletir a verdade ou remover o campo.
+Rodada de verificação em 2026-08-16. **Nenhuma migration nova nesta rodada** — os quatro
+itens, um a um, acabaram exigindo mudança de código fora dos arquivos desta leva
+(`chat/roll-service.ts`, `shared/src/document.ts` + `shared/src/chat/types.ts`,
+`admin/lockout-db.ts`, `worlds/world-manager.ts`), nunca só a migration. O que sobreviveu
+foi o diagnóstico — com patch exato pronto pra quem pegar cada arquivo — e, onde dava para
+provar algo sem tocar em arquivo alheio, um teste. `docs/design/banco-de-dados/tasks.md` e
+`__tests__/db-hygiene.test.ts` (novo, 1 caso, verde) são as únicas mudanças desta rodada.
+
+### T026 — dois campos, dois vereditos diferentes
+
+**Metade `roll_audit_log.world_id`: morta, mas a remoção não é só migration.**
+Varredura completa de leituras: `chat/roll-service.ts:89-105` (`persistAudit`) é o único
+escritor, e nenhum caminho de produção faz `SELECT` filtrando por `world_id` — o único
+`WHERE world_id = ?` do repo é um helper de teste
+(`__tests__/npc-import-initiative.test.ts:204-209`), que funcionaria igual filtrando só por
+`actor_id` já que o banco é de um mundo só (D2). A coluna é peso morto.
+
+Mas dropá-la exige tocar em `roll-service.ts`, fora desta leva: a query de INSERT lista as
+9 colunas por posição, então uma migration que remove `world_id` sem esse ajuste quebra
+**toda rolagem de dado** no primeiro boot (`no such column: world_id`). Patch exato, não
+aplicado:
+
+```ts
+// packages/server/src/chat/roll-service.ts
+// 1. persistAudit(): remover a coluna e o bind
+   db.prepare(`
+     INSERT INTO roll_audit_log
+-      (roll_id, world_id, user_id, actor_id, formula, expanded_formula, total, seed, created_at)
+-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
++      (roll_id, user_id, actor_id, formula, expanded_formula, total, seed, created_at)
++    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+   `).run(
+     entry.rollId,
+-    entry.worldId,
+     entry.userId,
+     ...
+   );
+// 2. remover `worldId` do parâmetro de `persistAudit` e do destructuring em `roll()`
+//    (RollRequest.worldId pode continuar existindo — chat-handler.ts ainda o envia —
+//    só deixa de ser lido aqui).
+```
+
+Migration companion (viraria a `010`, não escrita — depende do patch acima ir junto):
+`DROP INDEX idx_roll_audit_world_user` (nenhuma query real usa esse índice — nem o
+`WHERE world_id = ? AND actor_id = ?` do teste acima, que não tem `actor_id` na chave) →
+recriar tabela sem `world_id` (SQLite exige recriação para `DROP COLUMN` quando há índice
+cobrindo a coluna) → `CREATE INDEX idx_roll_audit_user ON roll_audit_log(user_id, created_at)`
+se algum caminho real vier a precisar (hoje nenhum precisa).
+
+**Metade `chat_messages.data.worldId`: recusada, sem patch.** `ChatMessageSchema.worldId`
+(`shared/src/chat/types.ts:470`) é campo **obrigatório** do schema, escrito em toda
+mensagem por `buildBaseMessage` (`chat/chat-handler.ts:1315-1341`) e comparado em 5 pontos
+do mesmo arquivo (`payload.worldId !== deps.worldId`, linhas 437/687/809/929/1106) como
+guarda anti-cliente-obsoleto — real, ativo, não é sobra. Os três arquivos que uma remoção
+tocaria (`chat-handler.ts`, `protocol.ts`, `types.ts`) são exatamente os que o orquestrador
+marcou como **de outro agente, em edição agora, sem commit** (spec 38, Aba Chat). Mexer
+neles seria colisão direta, e o campo em si não é dead code — é a request-side guard que
+está viva. Não proponho patch: o destino desse campo é de quem é dono da spec 38, não desta
+rodada de higiene.
+
+### T027 — `settings` duplicando a chave: é desenho, não migration
+
+Confirmado por leitura: `SettingSchema` (`shared/src/document.ts` via
+`documents/types.ts:260-263`) estende `BaseDocumentSchema`, herdando
+`_id: z.string().regex(/^[A-Za-z0-9]{16}$/)` — 16 chars alfanuméricos, sem `:`. É por isso
+que `net/seq-store.ts` (`_meta:worldSeq`) e `net/handlers/sync-handlers.ts`
+(`_meta:activeScene`) **não podem** passar por `DocumentStore` e escrevem SQL cru
+(`INSERT OR REPLACE INTO settings...`) cada um com sua própria cópia do upsert, cada um
+gravando a chave duas vezes (`id` = chave, e a mesma chave de novo dentro de `data`).
+
+**Não há mudança de schema SQL aqui** — a tabela `settings` (`id`, `data`, `created_at`,
+`updated_at`) já comporta o que qualquer uma das opções abaixo precisa; o gap é só na
+camada de validação/aplicação, em arquivos fora desta leva. Duas direções, sem eu escolher
+por quem não pediu escolha:
+
+- **Opção A** — `SettingSchema` ganha seu próprio `_id` (`.extend({ _id: z.string().min(1) })`,
+  sobrescrevendo o regex herdado), e as duas chaves `_meta:*` passam a nascer por
+  `store.create("settings", { _id: key, key, value })` como qualquer outro documento — some
+  a duplicação e as duas cópias de SQL cru. Maior: muda uma validação compartilhada por
+  todo tipo de documento (mesmo escopo, `_id` diferente só para Setting) e pede teste de
+  regressão para os dois call sites.
+- **Opção B** — mantém o desvio por SQL cru (não mexe no invariante de `_id` de mais
+  ninguém), mas fatora o upsert duplicado num helper único (ex.: `MetaSettingsStore`)
+  usado por `seq-store.ts` e `sync-handlers.ts`, e para de gravar a chave dentro de `data`
+  (só `value`/`seq` precisam ficar lá — `id` já é a chave). Menor, mas o `:` no `id`
+  continua sendo convenção não validada, não invariante.
+
+Nenhuma das duas é "higiene sem risco" — são decisão de arquitetura sobre um contrato
+compartilhado (`BaseDocumentSchema`) ou sobre o caminho de escrita de settings. Registro
+aqui para quem for desenhar, sem migration associada.
+
+### T028 — `login_attempts` duplicado: verificado, e não é o bug que parecia
+
+**Não são duas definições da mesma coisa — são dois arquivos `.sqlite` diferentes, de
+propósito.** `admin/lockout-db.ts:1-28` já documenta o motivo: o admin plane
+(`/admin/*`) não tem `world.db` (não há mundo aberto nessa rota), e amarrar seu contador de
+lockout ao framework de migrations de mundo corromperia a sequência de versão de **todo**
+mundo (`registerMigrations` é singleton global). A saída deliberada foi abrir um sqlite
+standalone (`Config/admin-lockout.sqlite`) fora do framework de migration, com o mesmo
+shape de tabela. Duas bases, um propósito cada, DDL replicado por necessidade — não por
+descuido.
+
+Comparado byte a byte (SQL normalizado como a guarda de schema faz — espaço em volta de
+`(`, `)`, `,`): **idêntico**, tabela e índice. Verificado por execução, não por leitura —
+`__tests__/db-hygiene.test.ts` builda um `world.db` real via `applyMigrations` (as 9
+migrations registradas) e um `admin-lockout.sqlite` real via `openAdminLockoutDb()`, lê o
+`sqlite_master` das duas e compara. Verde hoje.
+
+**"Unificar" não é migration.** Migrations só valem dentro de `world.db`; o arquivo do
+admin plane é deliberadamente fora do framework (motivo acima), então não há update
+mecânico que alcance as duas ao mesmo tempo. E `migration002` é história congelada (lição
+da Fase 1: mudar o DDL de uma migration já aplicada quebra todo mundo existente no boot) —
+mesmo que fosse migration, não seria ali que se mexe.
+
+O que dá pra fazer, e que não fiz por ficar fora desta leva (`admin/lockout-db.ts` não é
+meu arquivo): extrair a DDL para uma constante compartilhada, importada pelos dois lados —
+elimina a duplicação **textual** sem mudar o schema de nenhum dos dois bancos (a guarda de
+schema normaliza espaço, então trocar "onde a string mora" não muda o DDL resultante — é
+seguro tocar até em `migration002` para isso). Patch exato, não aplicado:
+
+```ts
+// packages/server/src/db/login-attempts-ddl.ts (novo)
+export const LOGIN_ATTEMPTS_DDL = `
+  CREATE TABLE IF NOT EXISTS login_attempts (
+    id          TEXT    PRIMARY KEY NOT NULL,
+    user_id     TEXT    NOT NULL,
+    ip          TEXT    NOT NULL,
+    attempted_at INTEGER NOT NULL,
+    success     INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_login_attempts_user_ip
+    ON login_attempts(user_id, ip, attempted_at);
+`;
+
+// migrations/002_users_sessions.ts — troca o literal inline por:
+db.exec(LOGIN_ATTEMPTS_DDL);
+
+// admin/lockout-db.ts:56-67 — mesma troca
+db.raw.exec(LOGIN_ATTEMPTS_DDL);
+```
+
+Até essa extração acontecer, `db-hygiene.test.ts` é a rede de segurança: se um dos dois
+lados divergir do outro no futuro, o teste — que lê as duas fontes reais, não uma cópia
+digitada à mão — acusa antes de virar bug de lockout em produção.
+
+**Pronto quando:** as duas definições vêm da mesma constante (ou o teste acima segue verde
+provando que não divergiram) — hoje o segundo já é verdade.
+→ `db-hygiene.test.ts`, 1 caso: `applyMigrations` real + `openAdminLockoutDb()` real,
+`sqlite_master` comparado tabela e índice.
+
+### T029 — `world.json.schemaVersion`: bug real, patch pronto, fora do meu arquivo
+
+Confirmado por execução: `WorldManager.create()` (`worlds/world-manager.ts:373`) grava
+`schemaVersion: 1` **hardcoded**, não o que `applyMigrations` acabou de produzir (hoje
+seria 9). `open()` (mesma classe, ~linha 496-500) atualiza `lastOpenedAt` e `fusionVersion`
+no manifesto depois de rodar `applyMigrations` — mas nunca `schemaVersion`. Resultado: todo
+`world.json` deste repo mostra `schemaVersion: 1` para sempre, banco em v9 incluído.
+
+Varredura de leitores: um único ponto lê o campo em produção —
+`cli/commands/worlds.ts:107`, a coluna `schemaVersion` de `fusion worlds list`. Puramente
+informativo para o humano; nenhuma lógica decide nada com base nele. Não há schema SQL
+envolvido — `world.json` é um arquivo irmão do banco, não parte dele — então **não há
+migration nenhuma para este item, em nenhum cenário**: é 100% código de aplicação, em
+`world-manager.ts`, fora dos arquivos desta leva.
+
+Dos quatro itens da Fase 5, este é o mais simples de fechar — sem ambiguidade de desenho,
+só reflete o que `getSchemaVersion()` (já exportado por `db/index.ts`) diz. Patch exato,
+não aplicado:
+
+```ts
+// packages/server/src/worlds/world-manager.ts
+// create(): antes do fusionDb.close(), capturar a versão real
+    applyMigrations(fusionDb.raw, dbFilePath, { force: this.forceSchema });
++   const appliedSchemaVersion = getSchemaVersion(fusionDb.raw);
+  } finally {
+    fusionDb.close();
+  }
+  ...
+-   schemaVersion: 1,
++   schemaVersion: appliedSchemaVersion,
+
+// open(): junto da atualização de fusionVersion, já depois de applyMigrations()
+    const manifest = readManifest(this.dataDir, slug);
+    manifest.lastOpenedAt = new Date().toISOString();
+    manifest.fusionVersion = FUSION_VERSION;
++   manifest.schemaVersion = getSchemaVersion(fusionDb.raw);
+    writeManifest(this.dataDir, slug, manifest);
+
+// import: getSchemaVersion já é export público de ../db/index.js
+```
+
+**Pronto quando:** um mundo criado e reaberto por várias sessões (cada uma com migrations
+novas) mostra em `world.json.schemaVersion` o mesmo número que `fusion worlds list` e que
+`PRAGMA user_version`/`schema_migrations` reportam no banco — não fiz esse teste por não
+poder tocar em `world-manager.ts` nesta leva.
 
 ---
 
@@ -811,19 +1032,19 @@ risco na mesa incomodar.
 
 ## Mapa de PRs
 
-| PR  | Conteúdo                      | Depende de                             |
-| --- | ----------------------------- | -------------------------------------- |
-| 1   | Fase 0 (T001–T006) ✅         | —                                      |
-| 2   | Fase 1 (T007–T011) ✅         | PR 1                                   |
-| 3   | T012, T014, T015, T030, T031  | PR 2                                   |
-| 3b  | T013 (depende de T030 e T032) | PR 3                                   |
-| 3c  | T016 (desenho novo) + T033    | PR 3                                   |
-| 4   | Fase 4 (T017–T019)            | PR 2                                   |
-| 5   | Fase 3 dados (T020–T024)      | PR 2                                   |
-| 6   | T025 (desenho novo)           | independente — pode vir logo após PR 1 |
-| 7   | Fase 5 (T026–T029)            | PR 2                                   |
-| 8   | T032, T033 (defeitos vivos)   | PR 3                                   |
-| —   | T034, T035, T036              | independentes, sem migration           |
+| PR  | Conteúdo                                                                                                                                      | Depende de                             |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| 1   | Fase 0 (T001–T006) ✅                                                                                                                         | —                                      |
+| 2   | Fase 1 (T007–T011) ✅                                                                                                                         | PR 1                                   |
+| 3   | T012, T014, T015, T030, T031                                                                                                                  | PR 2                                   |
+| 3b  | T013 (depende de T030 e T032)                                                                                                                 | PR 3                                   |
+| 3c  | T016 (desenho novo) + T033                                                                                                                    | PR 3                                   |
+| 4   | Fase 4 (T017–T019)                                                                                                                            | PR 2                                   |
+| 5   | Fase 3 dados (T020–T024)                                                                                                                      | PR 2                                   |
+| 6   | T025 (desenho novo)                                                                                                                           | independente — pode vir logo após PR 1 |
+| 7   | Fase 5 (T026–T029) — verificada 2026-08-16, sem migration; 4 patches de app-code documentados, nenhum aplicado (fora dos arquivos desta leva) | PR 2                                   |
+| 8   | T032, T033 (defeitos vivos)                                                                                                                   | PR 3                                   |
+| —   | T034, T035, T036                                                                                                                              | independentes, sem migration           |
 
 A Fase 2 rachou em três PRs porque o recon mostrou que T013 e T016 não estavam prontas
 para implementação: T013 depende de dois consertos que ela não previa (T030, T032) e T016

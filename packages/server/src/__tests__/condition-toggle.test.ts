@@ -345,9 +345,22 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
   // manually against a temporarily-reverted VM — see PR notes) that cases 1
   // and 2 above are NOT vacuous: swapping their op builders for the legacy
   // shape below turns them red.
+  //
+  // T013 NOTE: both ops below now carry `expectedVersion` (read off the
+  // Actor doc handed back by the preceding embedded op). Without it, T013's
+  // NEW "expectedVersion is mandatory for non-privileged writers" guard would
+  // fire FIRST and return VALIDATION_FAILED for a completely different
+  // reason (a missing field, not the legacy dot-path shape) — same code,
+  // same ok:false, so the assertions below would still go green while no
+  // longer proving what this block claims to prove. Supplying the correct
+  // version keeps these tests exercising the shape-validation bug they were
+  // written for.
   // -------------------------------------------------------------------------
 
   describe("regression: legacy dot-path diff (pre-T034) never mutates the Actor", () => {
+    /** Actor `_stats.version` after the last successful embedded op below. */
+    let actorVersion: number;
+
     it("legacy remove op ({ items.-<id>: true } diff) is rejected, not applied", async () => {
       // Re-add a condition to have something a legacy "remove" could target.
       const addAck = await sendOp(
@@ -356,7 +369,12 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
         buildAddConditionOpFixed(actorId, "blinded", "Blinded"),
       );
       expect(addAck["ok"]).toBe(true);
-      const addedId = (addAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+      const addResult = addAck["result"] as {
+        documents: Array<{ _id: string }>;
+        parent: Record<string, unknown>;
+      };
+      const addedId = addResult.documents[0]!._id;
+      actorVersion = (addResult.parent["_stats"] as Record<string, unknown>)["version"] as number;
 
       const legacyRemoveAck = await sendOp(ownerSocket, "doc:update", {
         documentType: "Actor",
@@ -364,6 +382,7 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
           {
             _id: actorId,
             diff: { [`items.-${addedId}`]: true },
+            expectedVersion: actorVersion,
           },
         ],
       });
@@ -377,9 +396,22 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
         buildRemoveConditionOpFixed(actorId, addedId),
       );
       expect(cleanupAck["ok"]).toBe(true);
+      const cleanupParent = (cleanupAck["result"] as { parent: Record<string, unknown> }).parent;
+      actorVersion = (cleanupParent["_stats"] as Record<string, unknown>)["version"] as number;
     });
 
     it("legacy add op ({ items.+: {...} } diff) is rejected, not applied", async () => {
+      // Read the current version here rather than inheriting it from the test
+      // above: with T013's mandatory field, a stale `undefined` would make the
+      // op fail on the missing field instead of on the legacy diff shape —
+      // green for the wrong reason, and only when run in isolation.
+      const row = ctx.fusionDb.raw.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as {
+        data: string;
+      };
+      const currentVersion = (
+        (JSON.parse(row.data) as Record<string, unknown>)["_stats"] as Record<string, unknown>
+      )["version"] as number;
+
       const legacyAddAck = await sendOp(ownerSocket, "doc:update", {
         documentType: "Actor",
         updates: [
@@ -392,6 +424,7 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
                 system: { slug: "stunned", value: null },
               },
             },
+            expectedVersion: currentVersion,
           },
         ],
       });
