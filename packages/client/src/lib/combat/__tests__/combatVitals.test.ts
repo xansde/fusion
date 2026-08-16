@@ -1,12 +1,22 @@
 /**
  * combatVitals.test.ts — health by role, conditions by contract (spec 40 §5.5/§5.6, G052).
  *
- * The asymmetry these tests exist for: the SAME creature, the SAME actor document, read by
- * a GM and by a player, must produce a health pair for one and nothing at all for the other
- * (REQ-CBA-040, REQ-CBA-041) — while the conditions of that same creature stay identical for
- * both (REQ-CBA-053). The player's "nothing" is the same `null` an unresolvable value
- * produces (REQ-CBA-043), so no shape in the panel distinguishes "not yours to read" from
+ * The asymmetry these tests exist for: the SAME participant, the SAME actor document, read
+ * by a GM and by a player, must produce a health pair for one and nothing at all for the
+ * other (REQ-CBA-040, REQ-CBA-041) — while its conditions stay identical for both
+ * (REQ-CBA-053). The player's "nothing" is the same `null` an unresolvable value produces
+ * (REQ-CBA-043), so no shape in the panel distinguishes "not yours to read" from
  * "not known".
+ *
+ * WHICH ACTOR A PLAYER ACTUALLY HAS. The REQ-CBA-053 fixtures below are the NPC the GM
+ * shared at OBSERVER/LIMITED: its document is in the player's mirror (the snapshot's
+ * ownership filter lets it through) while its combatant carries `hasPlayerOwner: false`,
+ * because the server only raises that flag for OWNER-level player ownership. That is the
+ * case where the requirement is a rule this module keeps, and it is provable end to end —
+ * `packages/server/src/__tests__/combat-conditions-payload.test.ts` asserts the same pair
+ * on the payload a player's socket receives. The ordinary creature is the OTHER half: its
+ * actor never reaches the player, so no client code can draw its conditions, and the
+ * `buildCombatVitals` test below pins that limit instead of pretending it away.
  *
  * Q-CBA-02 / REQ-CBA-083: the player branch is a rule of this screen, not a seal — creature
  * health reaches the player's client by the token's own resource bars (REQ-CNV-090).
@@ -64,6 +74,14 @@ function makeActor(options: ActorOptions = {}): Record<string, unknown> {
 
 const creature = { actorId: "actor-1", hasPlayerOwner: false };
 const playerCharacter = { actorId: "actor-1", hasPlayerOwner: true };
+
+/**
+ * The NPC the GM shared with the table at OBSERVER/LIMITED: not a player character — so
+ * `hasPlayerOwner` is false and the health rule refuses its numbers — yet its document IS
+ * in the player's mirror, so its conditions have a source. Same shape as `creature` on
+ * purpose: the health rule cannot tell the two apart, and that is the point.
+ */
+const sharedNpc = { actorId: "actor-1", hasPlayerOwner: false };
 
 // ---------------------------------------------------------------------------
 // Health by role
@@ -148,14 +166,16 @@ describe("resolveHpView — unresolvable health is omitted (REQ-CBA-043)", () =>
 // ---------------------------------------------------------------------------
 
 describe("conditions and health answer to opposite rules (REQ-CBA-053)", () => {
-  it("REQ-CBA-053: the creature whose health a player may not read still shows its conditions", () => {
+  it("REQ-CBA-053: the shared NPC whose health a player may not read still shows its conditions", () => {
+    // The actor a player's mirror really holds in this case: shared at OBSERVER, so the
+    // document is there; not owned, so `hasPlayerOwner` is false and the health rule bites.
     const actor = makeActor({
       hp: { value: 12, max: 40 },
       conditions: [{ name: "Amedrontado", slug: "frightened", value: 2 }],
     });
 
-    const gm = resolveCombatantVitals("gm", creature, actor);
-    const player = resolveCombatantVitals("player", creature, actor);
+    const gm = resolveCombatantVitals("gm", sharedNpc, actor);
+    const player = resolveCombatantVitals("player", sharedNpc, actor);
 
     expect(gm.health).toEqual({ current: 12, max: 40 });
     expect(player.health).toBeNull();
@@ -205,6 +225,38 @@ describe("buildCombatVitals — the whole encounter at once (REQ-CBA-040, REQ-CB
     expect(forGm.get("c2")?.health).toEqual({ current: 5, max: 90 });
     // REQ-CBA-043: a participant with no actor is omitted for the GM too.
     expect(forGm.get("c3")?.health).toBeNull();
+  });
+
+  it("REQ-CBA-053: fed a PLAYER's real mirror, the shared NPC keeps its tags and the plain creature has no source", () => {
+    // `actorsById` here is what the panel actually builds for a player: the mirror after the
+    // server's ownership filter. The shared NPC is in it; the goblin, whose ownership
+    // resolves to NONE, is not — no `undefined` entry, no empty document, simply absent.
+    const playerMirror = new Map<string, Record<string, unknown>>([
+      [
+        "shared-npc",
+        makeActor({
+          hp: { value: 12, max: 40 },
+          conditions: [{ name: "Amedrontado", slug: "frightened", value: 2 }],
+        }),
+      ],
+    ]);
+    const combatants = [
+      { _id: "c1", actorId: "shared-npc", hasPlayerOwner: false },
+      { _id: "c2", actorId: "goblin", hasPlayerOwner: false },
+    ];
+
+    const forPlayer = buildCombatVitals("player", combatants, playerMirror);
+
+    // The half REQ-CBA-053 is a rule about, and this module keeps it: no health, tag drawn.
+    expect(forPlayer.get("c1")?.health).toBeNull();
+    expect(forPlayer.get("c1")?.conditions.map((c) => c.label)).toEqual(["Amedrontado 2"]);
+
+    // The half that is a MISSING SOURCE, pinned here so nobody reads the empty list as a
+    // decision of this module: the goblin's document never reaches the player, so there is
+    // no condition to draw. Closing this is the server's, at the single redaction module —
+    // open question of this phase. When it is closed, THIS assertion is what should fail.
+    expect(forPlayer.get("c2")?.health).toBeNull();
+    expect(forPlayer.get("c2")?.conditions).toEqual([]);
   });
 });
 

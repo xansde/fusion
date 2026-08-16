@@ -10,7 +10,28 @@
  *    (REQ-CBA-043).
  *  - **A condition is fiction.** It keeps being drawn for a participant whose health this
  *    viewer may not read (REQ-CBA-053, DEC-CTT-11): the table watches a creature stagger
- *    without being told how many hit points that costs.
+ *    without being told how many hit points that costs. Nothing below ever lets the health
+ *    rule reach the conditions — but see how far that carries, next.
+ *
+ * REQ-CBA-053 has two halves, and only one of them is this module's to keep:
+ *
+ *  - **The half that is a rule, and this module keeps it.** An actor the viewer's mirror
+ *    HOLDS while the health rule refuses its numbers: an NPC the GM shared at OBSERVER or
+ *    LIMITED, whose combatant carries `hasPlayerOwner: false` — the server only raises that
+ *    flag for OWNER-level player ownership (`combat-handlers.ts`). There the tags are drawn
+ *    and the bar is not, which is REQ-CBA-053 exactly, and it is provable from the payload
+ *    the player's socket receives.
+ *  - **The half that is a missing source, and no client code can keep it.** The ordinary
+ *    creature: its Actor never reaches the player at all, because the join snapshot filters
+ *    Actor documents by ownership (REQ-NET-024, `sync-handlers.ts` `buildSnapshot`) and a
+ *    creature with the default ownership resolves to NONE. With no document there is
+ *    nothing to read — `readActorConditions(null)` is `[]` and the queue draws no tag. That
+ *    is a gap in the DATA, not a rule of this screen: closing it means the server sending a
+ *    redacted condition list for the visible participants, through the single redaction
+ *    module, and §7 of spec 40 today puts conditions on the actor, by the system API. It is
+ *    registered as an open question of this phase; until it is answered, REQ-CBA-053 holds
+ *    for the shared actor and is unfulfilled for the plain creature. Do NOT read this as a
+ *    deliberate omission and do NOT patch it with a second filter here.
  *
  * Q-CBA-02 — the honest scope of the health rule. Creature health already reaches the
  * player's client by another path: a token may draw its own resource bars (REQ-CNV-090),
@@ -130,8 +151,13 @@ export function resolveHpView(
  * Health and conditions of one participant, for one viewer.
  *
  * The two are resolved side by side on purpose: the conditions do not consult the health
- * rule, which is exactly REQ-CBA-053 — a creature whose hit points the player may not read
- * still shows "Amedrontado 2" to the whole table.
+ * rule, which is exactly REQ-CBA-053 — a participant whose hit points the player may not
+ * read still shows "Amedrontado 2" to the whole table.
+ *
+ * That holds for every participant whose actor this client HAS. For the participant whose
+ * actor it does not have — the ordinary creature, filtered out of a player's snapshot by
+ * ownership — `actor` is `null` and there is nothing to draw either way: see the module
+ * header for why that is a missing source rather than a decision taken here.
  */
 export function resolveCombatantVitals(
   role: ViewerRole,
@@ -151,7 +177,9 @@ export function resolveCombatantVitals(
  *
  * A participant whose actor is missing from `actorsById` (a creature absent from a player's
  * mirror, an actor deleted mid-encounter) resolves to no health and no conditions, which is
- * what both surfaces already omit.
+ * what both surfaces already omit. For the player that absence is the rule, not the
+ * exception — `actorsById` is built from the ownership-filtered mirror — and it is the
+ * reason REQ-CBA-053 stops at the actors the player actually has (module header).
  */
 export function buildCombatVitals(
   role: ViewerRole,
