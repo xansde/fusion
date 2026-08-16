@@ -249,7 +249,23 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 
 **REQ-CBT-040** [MVP] O tracker DEVE ser exibido como aba da sidebar, acessível durante e fora de combate.
 
-**REQ-CBT-041** [MVP] Cada linha do tracker DEVE exibir: imagem do token (miniatura), nome do Combatant (ou "???" se oculto), valor de iniciativa, HP atual/máximo (se disponível via system API), indicador de `defeated`, e controles contextuais.
+> **Concretizado pela spec 40** (`40-aba-combate.md`, §5 e DEC-GAV-01, 2026-08-16): a aba
+> é o painel de Combate da gaveta lateral, com os três estados de REQ-CBA-010 (vazio,
+> montagem, em andamento) e o cabeçalho de REQ-CBA-011..015. Este requisito segue valendo
+> para "a aba existe e é alcançável dentro e fora de combate"; a forma do painel, os
+> controles e a permissão de cada papel são definidos lá.
+
+**REQ-CBT-041** [MVP] Cada linha do tracker DEVE exibir: imagem do token (miniatura), nome do Combatant (ou "???" se oculto), indicador de `defeated` e controles contextuais. Iniciativa e vida NÃO DEVEM ser exibidas incondicionalmente em toda linha:
+
+- **Iniciativa** DEVE ser exibida apenas com o encontro em **montagem** (`started: false`), como o dado que explica e permite ajustar a ordem (REQ-CBA-064). Com o encontro **em andamento** (`started: true`), o valor NÃO DEVE ser exibido para papel algum — a ordem é comunicada pela posição na fila (DEC-CBA-04, REQ-CBA-070). Usuário sem papel privilegiado NÃO DEVE ver o valor de iniciativa de criatura em momento algum, nem na montagem (REQ-CBA-067).
+- **Vida** DEVE ser exibida conforme o papel (DEC-CBA-03): papel privilegiado DEVE ver, de todos os Combatants, barra e número (`atual/máximo`, REQ-CBA-040); usuário sem papel privilegiado DEVE ver a vida dos personagens de jogador e NÃO DEVE ver a de criatura em forma alguma — número, fração, barra, percentual ou degrau qualitativo (REQ-CBA-041). Quando o valor não for resolvível pela system API, a vida daquele Combatant DEVE ser **omitida**, NUNCA exibida como barra cheia ou como zero (REQ-CBA-043).
+
+> **Emenda obrigada pela spec 40** (`40-aba-combate.md`, DEC-CBA-03, DEC-CBA-04 e §12,
+> 2026-08-16): a redação anterior mandava toda linha exibir "valor de iniciativa, HP
+> atual/máximo", o que contraria as duas decisões acima — a iniciativa vira posição depois
+> de rolada, e vida de criatura não é informação de jogador. _(A redação acima substitui
+> essa exigência; a miniatura, o nome, o indicador de `defeated` e os controles contextuais
+> permanecem inalterados.)_
 
 **REQ-CBT-042** [MVP] O Combatant ativo (turno corrente) DEVE ser visualmente destacado no tracker (ex.: fundo colorido, borda ou indicador de turno).
 
@@ -276,6 +292,11 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 **REQ-CBT-054** [MVP] Tokens marcados como alvo DEVEM receber indicador visual no canvas (retícula ou anel colorido, diferente do turn marker).
 
 **REQ-CBT-055** [MVP] O targeting DEVE ser limpo automaticamente ao fim do turno do Combatant que realizou o targeting, salvo configuração de sistema contrária.
+
+> **Registro da emenda da spec 40** (`40-aba-combate.md`, DEC-CBA-05 e §12, 2026-08-16):
+> REQ-CBT-053, REQ-CBT-054 e REQ-CBT-055 continuam válidos e inalterados. O que a spec 40
+> fixa é o **lugar** do gesto: marcar e limpar alvo é operação do canvas, onde os alvos
+> estão, e o painel de Combate da gaveta NÃO DEVE oferecer esses controles (REQ-CBA-076).
 
 ---
 
@@ -456,19 +477,20 @@ interface CombatSystemHooks {
 
 ## Dependências (Specs Irmãs)
 
-| Spec                          | Dependência                                                                      |
-| ----------------------------- | -------------------------------------------------------------------------------- |
-| `02-modelo-de-dados.md`       | Estrutura base de Documents; campos `_id`, `flags`, `permission`, `folder`       |
-| `03-persistencia-e-mundos.md` | Persistência no `world.db`; WAL mode; transações ACID para transições de turno   |
-| `04-rede-e-sincronizacao.md`  | Protocolo socket.io; servidor autoritativo; namespace `/world`; broadcast        |
-| `05-usuarios-e-permissoes.md` | `PermissionMap`; quem pode controlar o tracker                                   |
-| `06-canvas-e-renderizacao.md` | Renderização do combat turn marker; targeting visual; integração com token layer |
-| `08-motor-de-rolagens.md`     | Execução da fórmula de iniciativa no servidor; resolução de `@atributos`         |
-| `09-chat-e-mensagens.md`      | Mensagens de resultado de iniciativa e avanço de turno no chat                   |
-| `15-api-de-sistemas.md`       | `InitiativeFormulaFn`; `CombatSystemHooks`; expiração de efeitos por turno       |
-| `17-sistema-pf2e.md`          | Implementação concreta da iniciativa PF2e (Perception/skill) e hooks de turno    |
-| `18-sistema-sf2e.md`          | Iniciativa SF2e por papel na nave (cinematic scenes)                             |
-| `19-sistema-etmos.md`         | Fórmula de iniciativa Etmos (2d6+Corpo)                                          |
+| Spec                          | Dependência                                                                                                                       |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `02-modelo-de-dados.md`       | Estrutura base de Documents; campos `_id`, `flags`, `permission`, `folder`                                                        |
+| `03-persistencia-e-mundos.md` | Persistência no `world.db`; WAL mode; transações ACID para transições de turno                                                    |
+| `04-rede-e-sincronizacao.md`  | Protocolo socket.io; servidor autoritativo; namespace `/world`; broadcast                                                         |
+| `05-usuarios-e-permissoes.md` | `PermissionMap`; quem pode controlar o tracker                                                                                    |
+| `06-canvas-e-renderizacao.md` | Renderização do combat turn marker; targeting visual; integração com token layer                                                  |
+| `08-motor-de-rolagens.md`     | Execução da fórmula de iniciativa no servidor; resolução de `@atributos`                                                          |
+| `09-chat-e-mensagens.md`      | Mensagens de resultado de iniciativa e avanço de turno no chat                                                                    |
+| `15-api-de-sistemas.md`       | `InitiativeFormulaFn`; `CombatSystemHooks`; expiração de efeitos por turno                                                        |
+| `17-sistema-pf2e.md`          | Implementação concreta da iniciativa PF2e (Perception/skill) e hooks de turno                                                     |
+| `18-sistema-sf2e.md`          | Iniciativa SF2e por papel na nave (cinematic scenes)                                                                              |
+| `19-sistema-etmos.md`         | Fórmula de iniciativa Etmos (2d6+Corpo)                                                                                           |
+| `40-aba-combate.md`           | Painel da gaveta que concretiza o tracker (REQ-CBT-040/041): estados, cabeça de turno, vida por papel e iniciativa só na montagem |
 
 ---
 

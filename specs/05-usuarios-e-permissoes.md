@@ -323,7 +323,38 @@ HTTP 403. (Ver `21-seguranca.md` — CSWSH.)
 
 **REQ-USR-025** [MVP] O GM deve poder criar novos usuários via painel de administração com os campos:
 `name` (obrigatório, único no World), `role` (obrigatório), `color` (sugerido automaticamente),
-`password` (opcional). O novo usuário é persistido e aparece imediatamente na tela de join.
+`password` (opcional). O novo usuário é persistido e aparece imediatamente na tela de join. Criar um
+usuário de papel **não privilegiado** (`PLAYER` ou `TRUSTED`, DEC-USR-01) DEVE criar, no mesmo gesto,
+um **personagem em branco** associado a ele — um Actor de subtipo `character` que nasce com o próprio
+usuário como `OWNER` (REQ-USR-025a). Para papel privilegiado (`ASSISTANT`, `GAMEMASTER`) nenhum
+personagem é criado.
+
+> **Emenda de 2026-08-16** — obrigada pela `42` §12 (DEC-NPC-02). Personagem de jogador não nasce em
+> aba nenhuma da gaveta: a aba NPCs recusa criá-lo em qualquer papel (REQ-NPC-055) e a aba Contatos
+> deixou de criar ator (DEC-CTT-01). Este é, portanto, o único endereço da criação de personagem — e
+> com isso a administração de usuários passa a ter consequência sobre Documents, o que ela não tinha.
+> Personagem sem dono seria documento órfão: nascer junto do usuário resolve criação e `ownership` no
+> mesmo gesto. A tela que executa esse gesto é a seção Usuários da `37` (REQ-CFG-051).
+
+**REQ-USR-025a** [MVP] O personagem criado por REQ-USR-025 DEVE nascer com `ownership.default = none`
+e `ownership.<userId do novo usuário> = owner` (REQ-DOC-027), mesmo tendo sido criado por um GM — é
+uma exceção declarada ao default de criação por GM de REQ-DOC-029, porque o dono pretendido não é o
+criador. O GM continua resolvendo `owner` pelo papel (REQ-DOC-028), sem entrada explícita no mapa.
+
+**REQ-USR-025b** [MVP] "Em branco" significa que o personagem nasce apenas com nome (derivado do
+nome do usuário) e subtipo `character`, sem preenchimento de sistema de jogo. A criação NÃO DEVE
+abrir ficha, janela flutuante nem qualquer tela além da que o GM já estava operando.
+
+**REQ-USR-025c** [MVP] Criar o usuário e criar o personagem DEVEM ser um único gesto atômico: se o
+personagem não puder ser criado, o servidor DEVE recusar a operação inteira e não persistir o
+usuário. NÃO DEVE existir usuário de papel não privilegiado criado por REQ-USR-025 sem personagem
+associado.
+
+**REQ-USR-025d** [MVP] Nenhuma outra ação de administração cria ou remove personagem: editar um
+usuário (REQ-USR-026, inclusive mudança de papel), resetar senha (REQ-USR-027), desativar
+(REQ-USR-028) e fazer kick (REQ-USR-029) NÃO DEVEM criar um segundo personagem nem excluir o
+existente. Dar um **segundo** personagem a um jogador que já tem um é [V2] e não é gesto desta tela
+(REQ-NPC-055a); excluir personagem de jogador segue sem tela em lugar nenhum do produto (Q-NPC-06).
 
 **REQ-USR-026** [MVP] O GM deve poder editar os campos `name`, `role`, `color`, `avatar` e `active`
 de qualquer usuário (inclusive outros GMs). Não é possível rebaixar o único GM ativo do World para
@@ -664,6 +695,8 @@ export const PERMISSIONS: Record<string, PermissionDefinition> = {
 | `20-assets-e-midia.md`            | Permission `FILES_BROWSE` / `FILES_UPLOAD`; diretórios por role                                              |
 | `21-seguranca.md`                 | Rate limiting de login/WebSocket; validação de Origin (CSWSH); TLS                                           |
 | `22-instalacao-e-distribuicao.md` | Admin Key; `fusion.json` (hostname, port, proxySSL); instruções de port-forwarding/túnel para URL de convite |
+| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054)                            |
+| `42-aba-npcs.md`                  | DEC-NPC-02: personagem de jogador nasce com o usuário, não na aba NPCs (REQ-NPC-055, REQ-NPC-055a)           |
 
 ---
 
@@ -701,6 +734,14 @@ configurados em `fusion.json` (não ao IP loopback), permitindo que jogadores ex
 **CA-USR-10** Um usuário com `active: false` não aparece na tela de join e não consegue fazer login
 mesmo com senha correta (HTTP 403).
 
+**CA-USR-11** O GM cria um usuário com role `PLAYER` e, sem abrir nenhuma outra tela, já existe um
+Actor de subtipo `character` cujo `ownership` dá `OWNER` a esse usuário e `default = none`; ao entrar
+no mundo, o jogador enxerga o personagem (REQ-USR-025, REQ-USR-025a).
+
+**CA-USR-12** O GM cria um usuário com role `GAMEMASTER`: nenhum personagem é criado. Em seguida ele
+desativa e faz kick de um jogador: o personagem desse jogador continua existindo, com o mesmo
+`ownership` (REQ-USR-025d).
+
 ---
 
 ## Questões em Aberto
@@ -731,6 +772,12 @@ mesmo com senha correta (HTTP 403).
 6. **Convite de jogador sem conta prévia:** REQ-USR-039 [V2] propõe links de convite que criam
    usuários automaticamente. Qual o role padrão para usuários criados por convite? Deve ser
    configurável pelo GM que gerou o link?
+
+7. **Personagem automático e papel:** REQ-USR-025 cria o personagem só para papel não privilegiado,
+   lendo DEC-NPC-02 ("criar um _player_ cria um personagem") ao pé da letra. Um usuário criado como
+   `ASSISTANT` ou `GAMEMASTER` que também joga fica sem personagem, e promover/rebaixar um usuário
+   não muda isso (REQ-USR-025d). Se a mesa precisar do caso, o gesto de criar personagem para quem
+   já existe é o mesmo [V2] de REQ-NPC-055a — ou esta regra se estende a todo papel?
 
 ---
 

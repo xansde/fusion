@@ -281,7 +281,19 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   estado de conexão (REQ-USR-031), um por linha, em uma coluna.
 - **REQ-CFG-051** [MVP] A seção DEVE oferecer as ações de REQ-USR-025 a REQ-USR-029:
   criar usuário, editar (nome, papel, cor, avatar, ativo), resetar senha, desativar e
-  desconectar (kick).
+  desconectar (kick). Criar um usuário de papel não privilegiado DEVE criar junto um
+  **personagem em branco** associado a ele, com o usuário como `OWNER` (REQ-USR-025,
+  REQ-USR-025a, DEC-NPC-02) — é um efeito da ação de criar, não um segundo gesto que o
+  GM precise acionar.
+
+  > **Emenda de 2026-08-16** — obrigada pela `42` §12 (DEC-NPC-02). A aba NPCs recusa
+  > criar personagem (REQ-NPC-055) e a aba Contatos deixou de criar ator (DEC-CTT-01);
+  > esta seção é o único lugar do produto onde personagem de jogador nasce.
+
+- **REQ-CFG-051a** [MVP] O personagem criado junto com o usuário NÃO DEVE abrir ficha nem
+  janela flutuante e NÃO DEVE tirar o GM da gaveta (REQ-CFG-013); a seção DEVE apenas
+  confirmar a criação do usuário. A seção NÃO DEVE oferecer criar, editar ou excluir
+  personagem como ação própria — nem para quem já tem um (REQ-NPC-055a, Q-NPC-06).
 - **REQ-CFG-052** [MVP] Editar um usuário DEVE acontecer **dentro da gaveta**, como
   formulário de campos empilhados na própria seção, e não em janela flutuante.
 - **REQ-CFG-053** [MVP] A senha gerada por um reset (REQ-USR-027) DEVE ser exibida uma
@@ -350,6 +362,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 | Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08               |
 | Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009          |
 | Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031         |
+| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02 |
 | Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]         |
 
 Settings declaradas com escopo `user` (permitidas por REQ-SYS-047) **não têm casa nesta
@@ -372,8 +385,11 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 - `36` — contêiner, registro de abas (REQ-GAV-030), largura (REQ-GAV-012), gesto de
   recolher (DEC-GAV-03), badge (DEC-GAV-06), fronteira de segurança (REQ-GAV-034).
-- `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-030 (o
-  limite de papel), REQ-USR-003 (o campo `preferences`, que segue sem UI).
+- `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-025a..025d (o
+  personagem que nasce com o usuário), REQ-USR-030 (o limite de papel), REQ-USR-003 (o
+  campo `preferences`, que segue sem UI).
+- `42` — DEC-NPC-02: a aba NPCs não cria personagem de jogador, e por isso a criação vive
+  na seção Usuários desta aba (REQ-NPC-055, REQ-NPC-055a).
 - `15` — DEC-SYS-08 e REQ-SYS-047: a aba é a UI do motor de settings, não um segundo motor.
 - `13` — REQ-AUD-015/016 e DEC-AUD-02: os canais de volume e sua persistência local.
 - `11` — DEC-UIF-10 (fronteira de persistência), REQ-UIF-009 (janelas, que esta aba não
@@ -385,19 +401,20 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 ## 10. Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                                 |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                   |
-| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                       |
-| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                          |
-| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                         |
-| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.           |
-| CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar. |
-| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.           |
-| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                        |
-| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                     |
-| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                            |
-| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                 |
+| ID         | Critério                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                     |
+| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                         |
+| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                            |
+| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                           |
+| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.             |
+| CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar.   |
+| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.             |
+| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                          |
+| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                       |
+| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                              |
+| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                   |
+| CA-CFG-012 | O GM cria um usuário `PLAYER` na seção Usuários: nenhuma janela abre, o GM continua na gaveta, e o jogador entra no mundo já com um personagem em branco do qual é `OWNER` (REQ-USR-025a). |
 
 ## 11. Questões em aberto
 
