@@ -321,14 +321,14 @@ gesto de recolher ou persistência de `open`/`activeTab`, que são desta spec:
 
 ## 8. Specs-filhas (uma por aba)
 
-| Aba           | Spec-filha | Área dona do conteúdo citada       |
-| ------------- | ---------- | ---------------------------------- |
-| Chat          | _a criar_  | 09                                 |
-| Contatos      | _a criar_  | 02/05/11                           |
-| Combate       | _a criar_  | 10                                 |
-| Compêndio     | _a criar_  | 16                                 |
-| NPCs          | _a criar_  | 02/05/11                           |
-| Cenas         | _a criar_  | 06/11                              |
+| Aba           | Spec-filha                | Área dona do conteúdo citada          |
+| ------------- | ------------------------- | ------------------------------------- |
+| Chat          | _a criar_                 | 09                                    |
+| Contatos      | _a criar_                 | 02/05/11                              |
+| Combate       | _a criar_                 | 10                                    |
+| Compêndio     | _a criar_                 | 16                                    |
+| NPCs          | _a criar_                 | 02/05/11                              |
+| Cenas         | _a criar_                 | 06/11                                 |
 | Configurações | [37](37-configuracoes.md) | 05/15/13 (mods: [V2] por REQ-ESC-012) |
 
 ## 9. Dependências (specs irmãs)

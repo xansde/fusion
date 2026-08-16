@@ -50,14 +50,14 @@ variantes, permissões, usuários, mods).
 
 ## 3. Conceitos e terminologia
 
-| Conceito                | Definição                                                                                                                                          |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Seção**               | Um assunto configurável da aba (ex.: Mundo). Uma seção por tela: o painel mostra o índice ou uma seção, nunca as duas.                             |
-| **Índice**              | A tela inicial da aba: a lista das seções que o usuário pode abrir.                                                                                 |
-| **Setting declarada**   | Valor declarado por um sistema (e, no futuro, por um mod) com chave, escopo, schema e default — REQ-SYS-047. A aba renderiza; não conhece a chave.  |
-| **Preferência local**   | Valor que vive no dispositivo de quem joga e nunca vai ao servidor (DEC-UIF-10, DEC-AUD-02).                                                        |
-| **Regra variante**      | Regra opcional de campanha que muda a derivação de todos os personagens da mesa (arquétipo livre, multiclasse por nível).                           |
-| **Mod**                 | Pacote opcional, desligável por mundo, que acrescenta painéis, camadas ou regras. Definido pela spec futura da API de Mods; aqui só tem endereço.  |
+| Conceito              | Definição                                                                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Seção**             | Um assunto configurável da aba (ex.: Mundo). Uma seção por tela: o painel mostra o índice ou uma seção, nunca as duas.                             |
+| **Índice**            | A tela inicial da aba: a lista das seções que o usuário pode abrir.                                                                                |
+| **Setting declarada** | Valor declarado por um sistema (e, no futuro, por um mod) com chave, escopo, schema e default — REQ-SYS-047. A aba renderiza; não conhece a chave. |
+| **Preferência local** | Valor que vive no dispositivo de quem joga e nunca vai ao servidor (DEC-UIF-10, DEC-AUD-02).                                                       |
+| **Regra variante**    | Regra opcional de campanha que muda a derivação de todos os personagens da mesa (arquétipo livre, multiclasse por nível).                          |
+| **Mod**               | Pacote opcional, desligável por mundo, que acrescenta painéis, camadas ou regras. Definido pela spec futura da API de Mods; aqui só tem endereço.  |
 
 ## 4. Decisões
 
@@ -342,15 +342,15 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 
 ## 7. Onde cada coisa é gravada
 
-| O quê                                            | Onde                                   | Quem escreve | Referência              |
-| ------------------------------------------------ | -------------------------------------- | ------------ | ----------------------- |
-| Volume dos três canais                           | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02 |
-| Notificações (som de chat, aviso de turno)       | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10  |
-| Settings declaradas com escopo `world`           | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047 |
-| Regras variantes (arquétipo livre, multiclasse)  | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08              |
-| Permissões (papel mínimo por ação)               | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009         |
-| Usuários                                          | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031        |
-| Mods ligados/desligados                          | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]        |
+| O quê                                           | Onde                                   | Quem escreve | Referência               |
+| ----------------------------------------------- | -------------------------------------- | ------------ | ------------------------ |
+| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02  |
+| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10   |
+| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047 |
+| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08               |
+| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009          |
+| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031         |
+| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]         |
 
 Settings declaradas com escopo `user` (permitidas por REQ-SYS-047) **não têm casa nesta
 aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
@@ -385,19 +385,19 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 ## 10. Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                |
-| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                    |
-| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                       |
-| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                      |
-| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.        |
+| ID         | Critério                                                                                                                                                                                 |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                   |
+| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                       |
+| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                          |
+| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                         |
+| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.           |
 | CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar. |
-| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.        |
-| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                     |
-| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                  |
-| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                         |
-| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                              |
+| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.           |
+| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                        |
+| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                     |
+| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                            |
+| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                 |
 
 ## 11. Questões em aberto
 
@@ -417,12 +417,12 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 (`CONVENCOES.md` §2):
 
-| Spec | O que muda                                                                                                                                                              |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Spec | O que muda                                                                                                                                                                         |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec. |
-| `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.       |
-| `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                          |
-| `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira. |
+| `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                |
+| `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                    |
+| `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.          |
 
 ## 13. Referências
 

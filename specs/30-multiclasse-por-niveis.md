@@ -500,18 +500,18 @@ interface DerivedClassLevels {
 Levantado contra o código real (`docs/research/16-…` §4.2). Nenhum item é
 reescrita; são quatro trocas de conceito propagadas.
 
-| Alvo                                            | Arquivo                                         | Mudança                                                     |
-| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
-| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                   |
-| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto   |
-| `stepCharBuildHp`                               | `build.ts`                                      | soma por nível (REQ-MCL-033) em vez de multiplicar          |
-| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                         |
-| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                 |
-| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo              |
-| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                    |
-| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)              |
+| Alvo                                            | Arquivo                                         | Mudança                                                                 |
+| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------- |
+| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                               |
+| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto               |
+| `stepCharBuildHp`                               | `build.ts`                                      | soma por nível (REQ-MCL-033) em vez de multiplicar                      |
+| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                     |
+| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                             |
+| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                          |
+| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                                |
+| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)                          |
 | `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | perde `freeArchetype`; nada de `variantRules` (REQ-MCL-001, DEC-MCL-09) |
-| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022) |
+| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022)             |
 
 ---
 
