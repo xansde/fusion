@@ -58,7 +58,7 @@
     /** Whether this user may rewind the turn from here (REQ-CBA-071). */
     canPrevious?: boolean;
     /** Label of the advance control — "next turn" for the GM, "end my turn" for a player. */
-    advanceLabel?: string;
+    advanceLabel?: string | undefined;
     /** Fired by the anchored control. The server is what validates it (REQ-CBA-080). */
     onAdvance?: (() => void) | undefined;
     /** Fired by the rewind control. */

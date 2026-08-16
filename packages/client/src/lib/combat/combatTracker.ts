@@ -215,6 +215,40 @@ export function buildRotatedQueue(
   return { upcoming, acted, entries: [...upcoming, ...acted], rotated: true };
 }
 
+/**
+ * How many turns stand between now and this user's next turn (REQ-CBA-074).
+ *
+ * The rotated queue is already the sequence of turns still to come — this round's
+ * remainder first, then whoever acted (who acts again next round) — so the distance is
+ * simply the position of the first entry the user owns, counting the current turn as
+ * zero. The first entry of the queue is therefore `1`.
+ *
+ * Returns `null` when no participant in the queue belongs to this user: there is no
+ * number to say, and a panel that said "0" or "—" would be inventing an answer. It also
+ * returns `null` when it is the user's OWN turn, because the participant of the turn is
+ * the head and never sits in the queue — "your turn" is said there, in words
+ * (REQ-CBA-024), and the notice this feeds is the other half of REQ-CBA-074.
+ *
+ * Ownership is decided by the caller and handed in as a set of actor ids, resolved by
+ * `ownedActorIdsOf` in `combatBadge.svelte.ts` — the same reading of `ownership` the
+ * server applies when it decides whether the advance is allowed (REQ-CBA-081). This
+ * function never re-derives it, so there is one owner predicate on the client.
+ *
+ * @param queue          The rotated queue, from {@link buildRotatedQueue}.
+ * @param ownedActorIds  Actors this user owns.
+ */
+export function turnsUntilOwnTurn(
+  queue: RotatedQueue,
+  ownedActorIds: ReadonlySet<string>,
+): number | null {
+  if (!queue.rotated) return null;
+
+  const index = queue.entries.findIndex(
+    (entry) => entry.row.actorId !== null && ownedActorIds.has(entry.row.actorId),
+  );
+  return index === -1 ? null : index + 1;
+}
+
 // ---------------------------------------------------------------------------
 // Reordering the queue (REQ-CBA-035)
 // ---------------------------------------------------------------------------

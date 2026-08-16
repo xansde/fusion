@@ -246,6 +246,9 @@
   "FUSION.Combat.TurnHead.ExpandConditions": "Mostrar as {{count}} condições",
   "FUSION.Combat.TurnHead.CollapseConditions": "Mostrar menos condições",
   "FUSION.Combat.TurnHead.Health": "Vida {{current}} de {{max}}",
+  "FUSION.Combat.TurnHead.EndMyTurn": "Encerrar meu turno",
+  "FUSION.Combat.TurnNotice.Next": "Sua vez é a próxima",
+  "FUSION.Combat.TurnNotice.Waiting": "Faltam {{count}} turnos até a sua vez",
 
   "FUSION.Combat.Queue.Label": "Fila do encontro",
   "FUSION.Combat.Queue.Upcoming": "Ainda agem nesta rodada",

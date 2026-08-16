@@ -24,7 +24,12 @@
     buildTrackerRows,
     controlsState,
     canPlayerRollInitiative,
+    turnsUntilOwnTurn,
   } from "../../lib/combat/combatTracker.js";
+  import {
+    activeCombatantIsOwnedBy,
+    ownedActorIdsOf,
+  } from "../../lib/combat/combatBadge.svelte.js";
   import { viewerRole, redactCombatForViewer, canUseGmControls } from "../../lib/combat/combatVisibility.js";
   import { buildCombatVitals } from "../../lib/combat/combatVitals.js";
   import {
@@ -152,6 +157,27 @@
   // acted kept in a labelled group of its own. `gmControls` doubles as the hidden filter
   // the queue applies on top of the server's redaction (REQ-CBA-034).
   const queue = $derived(buildRotatedQueue(rows, gmControls));
+
+  // ---- Whose turn it is (spec 40 §5.8, REQ-CBA-072/073/074) ----
+  //
+  // "Mine" is decided by real ownership of the Actor, read by `ownedActorIdsOf` — the
+  // same reading of `ownership` the server does before it accepts the advance
+  // (REQ-CBA-081). It is NOT `hasPlayerOwner`, which only says "some player owns this":
+  // with that proxy every player would be told it is their turn whenever any player's
+  // character was up, and would be offered a control the server then refuses
+  // (REQ-CBA-073, REQ-CBA-080). The control still exists only as convenience — hiding it
+  // is not the protection; the server's refusal is.
+  const ownedActorIds = $derived(ownedActorIdsOf(actorDocs, userId));
+  const isMyTurn = $derived(activeCombatantIsOwnedBy(combat, ownedActorIds));
+
+  /**
+   * REQ-CBA-074: how many turns until this user's next one — `null` when they own nobody
+   * in the encounter, or when the turn is already theirs (the head says so in words).
+   */
+  const turnsUntilMine = $derived(isMyTurn ? null : turnsUntilOwnTurn(queue, ownedActorIds));
+
+  /** REQ-CBA-072: ending your own turn is the same advance, by the same server op. */
+  const canEndOwnTurn = $derived(!gmControls && isMyTurn);
 
   /** The turn order the reorder gestures rewrite — the ring, not the rotated reading. */
   const turnOrder = $derived(combat ? getSortedCombatants(combat).map((c) => c._id) : []);
@@ -487,16 +513,32 @@
       <TurnHead
         name={row.name}
         img={row.img}
-        isYours={!isGm && row.hasPlayerOwner}
+        isYours={isMyTurn}
         defeated={row.isDefeated}
         health={vitals.get(row.id)?.health ?? null}
         conditions={vitals.get(row.id)?.conditions ?? []}
-        canAdvance={gmControls}
+        canAdvance={gmControls || canEndOwnTurn}
         canPrevious={gmControls && (controls?.canPrevious ?? false)}
+        advanceLabel={canEndOwnTurn ? t("FUSION.Combat.TurnHead.EndMyTurn") : undefined}
         busy={busy}
         onAdvance={() => void combatActions.nextTurn(socket, combat._id)}
         onPrevious={() => void combatActions.previousTurn(socket, combat._id)}
       />
+    {/if}
+
+    <!-- ---- Turn notice (REQ-CBA-074) ----
+      The other half of the notice: when the turn is a participant of this user's, the head
+      already says so in words (REQ-CBA-024); when it is not, what the player needs is the
+      distance to their own, and the rotated queue is exactly that sequence. Nothing is said
+      when they own nobody here — there is no number, and inventing one is worse than
+      silence. It sits outside the scroller so it does not travel with the queue, and after
+      the head so the head's fixed height is untouched (REQ-CBA-021). -->
+    {#if showTurnHead && !gmControls && turnsUntilMine !== null}
+      <p class="combat-panel__turn-notice" role="status">
+        {turnsUntilMine === 1
+          ? t("FUSION.Combat.TurnNotice.Next")
+          : t("FUSION.Combat.TurnNotice.Waiting", { count: turnsUntilMine })}
+      </p>
     {/if}
 
     <!-- ---- The queue (REQ-CBA-030..036) ----
@@ -679,6 +721,19 @@
     flex: 1;
     overflow-y: auto;
     padding: 0.25rem 0;
+  }
+
+  /* REQ-CBA-074: outside the scroller, so the distance to your turn stays readable while
+     the queue scrolls. It is one line and never wraps into the list's space. */
+  .combat-panel__turn-notice {
+    color: var(--fusion-text-muted);
+    flex: none;
+    font-size: 0.75rem;
+    margin: 0;
+    overflow: hidden;
+    padding: 0.25rem 0.5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* ---- Buttons ---- */

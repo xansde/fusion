@@ -246,6 +246,9 @@
   "FUSION.Combat.TurnHead.ExpandConditions": "Show all {{count}} conditions",
   "FUSION.Combat.TurnHead.CollapseConditions": "Show fewer conditions",
   "FUSION.Combat.TurnHead.Health": "Health {{current}} of {{max}}",
+  "FUSION.Combat.TurnHead.EndMyTurn": "End my turn",
+  "FUSION.Combat.TurnNotice.Next": "Your turn is next",
+  "FUSION.Combat.TurnNotice.Waiting": "{{count}} turns until your turn",
 
   "FUSION.Combat.Queue.Label": "Encounter queue",
   "FUSION.Combat.Queue.Upcoming": "Still to act this round",
