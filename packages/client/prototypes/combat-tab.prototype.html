@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Combate (rodada 2: cabeça de turno)</title>
+<!--
+  PROTOTYPE — descartável. Não é código de produção; não importar nada daqui.
+  Rodada 1 (três variantes: fila clássica, cabeça de turno, cronograma) está no
+  histórico do arquivo — commit "aba Combate - 3 variantes para o grill".
+
+  O QUE O ALEXANDRE DECIDIU NESTA RODADA (2026-08-16)
+   1. CABEÇA DE TURNO (variante B) é o desenho. Quem age agora ocupa o topo;
+      a fila rotaciona embaixo.
+   2. ALTURA FIXA da cabeça: o botão de avançar fica SEMPRE no mesmo pixel,
+      para o Mestre passar vários turnos em sequência sem perseguir o botão.
+      A cabeça PODE crescer para mostrar tudo (expandir "+N" de condições),
+      mas VOLTA ao padrão ao avançar para o próximo da iniciativa.
+   3. VIDA: jogador NUNCA vê vida de criatura. O Mestre PRECISA ver, e vê
+      barra + número. O jogador VÊ a vida dos personagens de jogador (fechado
+      na rodada 3) — é a mesma vida que o painel de Comitiva do Hub já mostra.
+   4. INICIATIVA SEM NÚMERO em andamento: o número só importa para montar a
+      ordem, e some quando o combate começa. Na montagem ele aparece (é o que
+      define a fila); em andamento o Mestre reordena pela alça ⠿.
+   5. MARCAR ALVO SAIU da aba: targeting é assunto de outra spec.
+   6. Adicionar continua popover (Q5 fechada).
+   7. TOKEN NÃO EXISTE COMO CONCEITO DEFINIDO. "Token está muito mal definido e
+      precisa ser refeita TODA a spec. Nada definida ainda" (Alexandre, rodada
+      3). Consequência aqui: a aba fala em PARTICIPANTES e em "criaturas na
+      cena"; nunca em "token". De onde a lista de candidatos vem, e o que é a
+      coisa adicionada, ficam pendurados na spec de Token que ainda será
+      escrita — é a lacuna estrutural que mais justifica esta aba nascer WIP.
+
+  BADGE (Q1 fechada): ponto de estado enquanto o combate corre; ÂMBAR quando é
+  a sua vez. QUEM ENCERRA O TURNO (Q3 fechada): o jogador encerra o próprio.
+
+  A ABA NASCE WIP, E ISSO É PROPOSITAL
+  Fora do combate em andamento esta aba tem pouco a fazer; a régua real só
+  aparece quando a mesa jogar um encontro inteiro. A spec-filha registra o que
+  está decidido e deixa em Q- o que depende de rodar de verdade (economia de
+  ações, dano, efeitos de fim de turno, delay/ready — spec 10 e 15).
+
+  AINDA EM ABERTO (é o que o próximo grill fecha)
+   Q1 — Badge: ponto de estado enquanto o combate corre (DEC-GAV-06), ou muda
+        de cor quando é a sua vez? (aqui: âmbar = sua vez)
+   Q2 — Vida dos personagens de jogador para o jogador: aparece? (aqui: sim)
+   Q3 — O jogador encerra o próprio turno, ou só o Mestre avança? (aqui: sim)
+   Q6 — Combate encerrado: some da aba na hora ou vira resumo até fechar?
+   Q7 — Como a aba chama o que é adicionado: "token", "criatura da cena"?
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;--special:#b98cff;
+    --turn:#ffd700;--turn-dim:rgba(255,215,0,.10);
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+    --now-h:150px;               /* altura fixa da cabeça de turno (decisão 2) */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem;font-weight:600}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center;overflow:hidden}
+  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f;position:relative}
+  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+  .marker{position:absolute;width:56px;height:56px;border-radius:50%;border:3px solid var(--turn);box-shadow:0 0 18px rgba(255,215,0,.55);display:grid;place-items:center;font-size:1.4rem;background:rgba(0,0,0,.35)}
+  .marker small{position:absolute;bottom:-20px;font-size:.62rem;color:var(--turn);white-space:nowrap;letter-spacing:.04em}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.dot{min-width:9px;width:9px;height:9px;padding:0;background:var(--accent-hover)}
+  .tabbtn .badge.dot.turn{background:var(--turn);box-shadow:0 0 8px rgba(255,215,0,.8)}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .gm-tag{font-size:.6rem;color:var(--danger);border:1px solid var(--danger);border-radius:3px;padding:0 3px;margin-left:.4rem;letter-spacing:.05em}
+
+  .shell{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding-top:10px;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column;overflow:hidden}
+  .is-open .panel{display:flex}
+
+  /* ---------- Painel ---------- */
+  .phead{display:flex;align-items:center;gap:.4rem;padding:.45rem .6rem;border-bottom:1px solid var(--accent-dim);flex-shrink:0}
+  .phead .rd{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .phead .rd b{color:var(--text)}
+  .phead .grow{flex:1}
+  .pbody{flex:1;overflow:auto;padding:.2rem 0 .5rem}
+  .tools{display:flex;gap:.3rem;padding:.35rem .5rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+
+  .b{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.22rem .5rem;font:inherit;font-size:.74rem;cursor:pointer;white-space:nowrap}
+  .b:hover{border-color:var(--accent)}
+  .b.p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .b.t{background:rgba(255,215,0,.16);border-color:var(--turn);color:var(--turn);font-weight:700}
+  .b.t:hover{background:rgba(255,215,0,.26)}
+  .b.d{background:transparent;border-color:var(--danger);color:var(--danger)}
+  .b.g{background:transparent;color:var(--muted)}
+  .b.lg{padding:.4rem .7rem;font-size:.82rem}
+  .b:disabled{opacity:.4;cursor:not-allowed}
+  .ib{background:none;border:1px solid transparent;border-radius:var(--radius-sm);color:var(--subtle);cursor:pointer;width:22px;height:22px;display:grid;place-items:center;font-size:.72rem;padding:0}
+  .ib:hover{background:var(--surface);color:var(--text)}
+  .ib.on{color:var(--accent-hover)}
+  .ib.dg:hover{color:var(--danger)}
+
+  /* ---------- Cabeça de turno — ALTURA FIXA (decisão 2) ---------- */
+  .now{height:var(--now-h);display:flex;flex-direction:column;padding:.55rem .6rem .5rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--turn-dim),transparent);flex-shrink:0;overflow:hidden}
+  .now.exp{height:auto;overflow:visible}
+  .now .top{display:flex;gap:.55rem;align-items:center;flex-shrink:0}
+  .now .por{width:46px;height:46px;border-radius:var(--radius);background:var(--surface-alt);border:2px solid var(--turn);display:grid;place-items:center;font-size:1.5rem;flex-shrink:0;position:relative}
+  .now .por .sk{position:absolute;right:-5px;bottom:-5px;font-size:.8rem}
+  .now .lbl{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--turn);font-weight:700}
+  .now .nm{font-size:.98rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .now .meta{font-size:.68rem;color:var(--subtle);margin-top:.05rem;display:flex;align-items:center;gap:.35rem}
+  .now .hpwrap{margin-left:auto;text-align:right;flex-shrink:0}
+  .now .cbox{flex:1;min-height:0;overflow:hidden;margin-top:.35rem}
+  .now.exp .cbox{overflow:visible}
+  .now .ctl{display:flex;gap:.3rem;margin-top:auto;padding-top:.4rem;flex-shrink:0}
+  .now .ctl .grow{flex:1}
+  .you{font-size:.58rem;border:1px solid var(--ok);color:var(--ok);border-radius:3px;padding:0 3px;letter-spacing:.04em}
+
+  /* ---------- Fila ---------- */
+  .secl{font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:.5rem .6rem .15rem;display:flex;align-items:center;gap:.4rem}
+  .secl::after{content:"";flex:1;height:1px;background:var(--border)}
+  .cb{display:flex;align-items:center;gap:.4rem;padding:.26rem .5rem .26rem .55rem;border-left:3px solid transparent;position:relative}
+  .cb:hover{background:var(--surface-alt)}
+  .cb .grip{color:var(--subtle);cursor:grab;font-size:.7rem;width:10px;flex-shrink:0;opacity:0}
+  .cb:hover .grip{opacity:1}
+  .cb .por{width:26px;height:26px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-alt);border:1px solid var(--border);display:grid;place-items:center;font-size:.9rem;position:relative}
+  .cb .por .sk{position:absolute;right:-4px;bottom:-4px;font-size:.65rem}
+  .cb .mid{flex:1;min-width:0}
+  .cb .nm{display:flex;align-items:center;gap:.25rem;font-size:.78rem;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cb .nm .eye{color:var(--subtle);font-size:.68rem}
+  .cb .sub{font-size:.66rem;color:var(--subtle)}
+  .cb .init{flex-shrink:0;font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--text);min-width:1.9rem;text-align:right;background:none;border:1px solid transparent;border-radius:var(--radius-sm);padding:.05rem .2rem;cursor:pointer}
+  .cb .init:hover{border-color:var(--border);background:var(--surface)}
+  .cb .init.none{color:var(--subtle);font-weight:400}
+  .cb .init.hid{color:var(--subtle);font-weight:400;cursor:default}
+  .cb .acts{display:flex;gap:.1rem;flex-shrink:0;opacity:0;transition:opacity .12s}
+  .cb:hover .acts{opacity:1}
+  .cb.mine{border-left-color:var(--ok)}
+  .cb.gone{opacity:.45}
+  .cb.gone .nm{text-decoration:line-through}
+  .cb.veil{background:rgba(124,92,252,.05)}
+  .cb.done{opacity:.4}
+
+  /* ---------- Vida (Mestre: barra + número) ---------- */
+  .hp{display:flex;align-items:center;gap:.25rem;flex-shrink:0}
+  .hp .num{font-family:var(--mono);font-size:.66rem;color:var(--muted);white-space:nowrap}
+  .hp .num b{color:var(--text);font-weight:600}
+  .hp.low .num b{color:var(--danger)}
+  .bar{width:38px;height:5px;border-radius:3px;background:var(--surface-alt);border:1px solid var(--border);overflow:hidden;flex-shrink:0}
+  .bar i{display:block;height:100%;background:var(--ok)}
+  .hp.mid .bar i{background:var(--warn)}
+  .hp.low .bar i{background:var(--danger)}
+  .now .bar{width:64px;height:7px}
+  .now .hp .num{font-size:.74rem}
+
+  /* ---------- Condições (contrato da spec 39 / DEC-CTT-11) ---------- */
+  .conds{display:flex;gap:.2rem;flex-wrap:wrap}
+  .cb .conds{margin-top:.1rem}
+  .c{font-size:.62rem;line-height:1.55;border-radius:3px;padding:0 .25rem;border:1px solid;white-space:nowrap;cursor:help}
+  .c.harm{color:var(--danger);border-color:rgba(255,92,92,.45)}
+  .c.benefit{color:var(--ok);border-color:rgba(61,220,132,.45)}
+  .c.special{color:var(--special);border-color:rgba(185,140,255,.45)}
+  .c.crit{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:700}
+  .c .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .c.more{color:var(--subtle);border-color:var(--border);cursor:pointer}
+  .nocond{font-size:.66rem;color:var(--subtle)}
+
+  /* ---------- Avisos / estados ---------- */
+  .mine-bar{background:rgba(255,215,0,.14);border-bottom:1px solid var(--turn);color:var(--turn);font-size:.74rem;font-weight:700;padding:.35rem .6rem;display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+  .wait{font-size:.68rem;color:var(--subtle);padding:.3rem .6rem;border-bottom:1px solid var(--border);flex-shrink:0}
+  .empty{text-align:center;padding:1.6rem .8rem .8rem;color:var(--muted);font-size:.82rem}
+  .empty .hint{font-size:.72rem;color:var(--subtle);margin-top:.4rem;line-height:1.5}
+  .acts-c{display:flex;gap:.4rem;justify-content:center;margin-top:.7rem;flex-wrap:wrap}
+  .add{border-bottom:1px solid var(--border);background:var(--surface-alt);padding:.4rem .5rem;flex-shrink:0}
+  .add h5{margin:0 0 .3rem;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center}
+  .add h5 .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer}
+  .add .it{display:flex;align-items:center;gap:.4rem;padding:.15rem .2rem;font-size:.76rem}
+  .add .it .grow{flex:1;color:var(--text)}
+  .wip{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);border:1px solid rgba(229,184,59,.5);border-radius:3px;padding:0 .25rem}
+
+  #tip{position:fixed;z-index:9998;background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.3rem .45rem;border-radius:var(--radius-sm);font-size:.72rem;max-width:230px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.6);display:none;pointer-events:none}
+
+  /* ---------- Alternador + legenda (fora do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.4rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.8rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;padding:0 .7rem;border-radius:999px;cursor:pointer;font-size:.76rem;font-weight:600}
+  .switcher button.alt{background:#5a4bd6}
+  .switcher button.go{background:#b98800}
+  .legend{position:fixed;left:16px;bottom:16px;z-index:9999;background:rgba(255,255,255,.96);color:#111;border-radius:10px;padding:.6rem .7rem;box-shadow:0 8px 30px rgba(0,0,0,.55);font-size:.72rem;max-width:400px;line-height:1.45}
+  .legend h4{margin:0 0 .35rem;font-size:.78rem}
+  .legend table{border-collapse:collapse}
+  .legend td{padding:.1rem .25rem;vertical-align:top}
+  .legend td:first-child{color:#666;white-space:nowrap}
+  .legend b{color:#111}
+  .legend .q{margin-top:.45rem;padding-top:.4rem;border-top:1px solid #ddd;color:#444}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 Fortaleza</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+
+<div class="stage">
+  <div class="art">
+    <div class="house"><div class="star">★</div></div>
+    <div class="marker" id="marker"></div>
+  </div>
+</div>
+
+<div id="root"></div>
+<div id="tip"></div>
+
+<div class="switcher">
+  <button id="role">papel</button>
+  <button id="state" class="alt">estado</button>
+  <button id="flood" class="alt">encontro</button>
+  <button id="mine">minha vez</button>
+  <button id="turnbtn" class="go">próximo turno ❯</button>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ===================== chassi (spec 36) ===================== */
+const ICONS = {
+  chat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+const TABS = [
+  {id:'chat',label:'Chat',group:'all'},
+  {id:'contacts',label:'Contatos',group:'all'},
+  {id:'combat',label:'Combate',group:'all'},
+  {id:'compendium',label:'Compêndio',group:'all'},
+  {id:'npcs',label:'NPCs',group:'gm'},
+  {id:'scenes',label:'Cenas',group:'gm'},
+  {id:'settings',label:'Configurações',group:'all',foot:true},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  chat:'<div class="empty">o painel do Chat é a spec 38</div>',
+  contacts:'<div class="empty">o painel de Contatos é a spec 39</div>',
+  compendium:'<div class="empty">o painel do Compêndio é a spec-filha a escrever</div>',
+  npcs:'<div class="empty">o diretório de NPCs é a spec-filha a escrever</div>',
+  scenes:'<div class="empty">a lista de Cenas é a spec-filha a escrever</div>',
+  settings:'<div class="empty">o painel de Configurações é a spec 37</div>',
+};
+
+/* ===================== dados mock ===================== */
+const HELP = {
+  'Amedrontado':'Penalidade de circunstância em todas as jogadas e CDs, igual ao valor. Diminui 1 no fim de cada turno seu.',
+  'Abençoada':'Bônus de status +1 nas jogadas de ataque enquanto durar.',
+  'Encoberto':'Ataques contra a criatura sofrem 20% de chance de erro.',
+  'Enfraquecido':'Penalidade de status no dano e nas jogadas de Força, igual ao valor.',
+  'Morrendo':'Inconsciente e prestes a morrer. Faz uma jogada de recuperação no início do seu turno.',
+  'Lento':'Perde ações no início do turno, igual ao valor.',
+  'Enfeitiçado':'Trata quem enfeitiçou como amistoso; não age contra ele.',
+  'Agarrado':'Imobilizado e desprevenido; ação de manobra para se soltar.',
+  'Célere':'Ganha uma ação adicional no início do seu turno.',
+  'Inconsciente':'Caído, indefeso e sem ações.',
+  'Desprevenido':'Penalidade de -2 na CA.',
+  'Ensurdecido':'Falha automática em testes que dependem de audição.',
+};
+const c = (n,t,v,crit)=>({n,t,v:v??null,crit:!!crit});
+
+const BASE = [
+  {id:'n1',name:'Vess, a Corvo',emoji:'🐦',kind:'npc',init:22,hp:[38,38],conds:[c('Encoberto','special')]},
+  {id:'p1',name:'Fofurinha',emoji:'🧝',kind:'pc',mine:true,sub:'Druida 5',init:19,hp:[23,42],conds:[c('Amedrontado','harm',2),c('Abençoada','benefit'),c('Desprevenido','harm'),c('Ensurdecido','special')]},
+  {id:'n2',name:'Goblin Guerreiro',emoji:'👹',kind:'npc',init:17,hp:[9,24],conds:[c('Enfraquecido','harm',1)]},
+  {id:'p2',name:'Tobias',emoji:'🧔',kind:'pc',sub:'Guerreiro 5',init:14,hp:[55,62],conds:[]},
+  {id:'n3',name:'Goblin Arqueiro',emoji:'🏹',kind:'npc',init:11,hp:[18,18],hidden:true,conds:[]},
+  {id:'n4',name:'Lobo atroz',emoji:'🐺',kind:'npc',init:8,hp:[0,30],defeated:true,conds:[c('Morrendo','harm',1,true)]},
+];
+const EXTRA = [
+  {id:'x1',name:'Corvo espião',emoji:'🕊',kind:'npc',init:21,hp:[6,6],hidden:true,conds:[c('Encoberto','special')]},
+  {id:'x2',name:'Goblin Xamã',emoji:'🧙',kind:'npc',init:16,hp:[14,20],conds:[c('Enfeitiçado','special'),c('Lento','harm',1)]},
+  {id:'x3',name:'Mestre Aldric',emoji:'🧓',kind:'npc',init:13,hp:[30,30],conds:[c('Célere','benefit')]},
+  {id:'x4',name:'Guarda ferido',emoji:'💂',kind:'npc',init:10,hp:[3,28],conds:[c('Agarrado','harm')]},
+  {id:'x5',name:'Zumbi A',emoji:'🧟',kind:'npc',init:6,hp:[20,20],conds:[c('Lento','harm',1)]},
+  {id:'x6',name:'Zumbi B',emoji:'🧟',kind:'npc',init:6,hp:[20,20],conds:[c('Lento','harm',1)]},
+  {id:'x7',name:'Aranha gigante',emoji:'🕷',kind:'npc',init:4,hp:[0,26],defeated:true,conds:[c('Inconsciente','harm',null,true)]},
+];
+const CENE_TOKENS = ['Goblin Chefe','Rato atroz','Rato atroz (2)','Estátua animada'];
+
+/* ===================== estado ===================== */
+const params = new URLSearchParams(location.search);
+let role   = params.get('role') === 'player' ? 'player' : 'gm';
+let state  = ['empty','setup','running'].includes(params.get('state')) ? params.get('state') : 'running';
+let flood  = params.get('flood') === '1';
+const pcHp = true;   /* fechado: o jogador vê a vida dos personagens de jogador */
+let active = 'combat', open = true;
+let round = 3, turn = 0, showAdd = false;
+let rolled = new Set();
+let nowExpanded = false;                         /* "+N" da cabeça — zera ao avançar */
+
+const isGm = () => role === 'gm';
+const eInit = (p) => (state === 'setup' && !rolled.has(p.id)) ? null : p.init;
+const roster = () => {
+  const list = flood ? BASE.concat(EXTRA) : BASE.slice();
+  return list.sort((a,b)=>((eInit(b)??-99)-(eInit(a)??-99)));
+};
+const visible = () => roster().filter(x => isGm() || !x.hidden);
+const now = () => visible()[turn] || null;
+const myTurn = () => !!(now() && now().mine && !isGm() && state==='running');
+
+function setMine(){ const i = visible().findIndex(x=>x.mine); if(i>=0) turn = i; }
+/* avançar SEMPRE devolve a cabeça à altura padrão (decisão 2) */
+function step(d){
+  const n = visible().length; if(!n) return;
+  nowExpanded = false;
+  const t = turn + d;
+  if(t >= n){ turn = 0; round++; }
+  else if(t < 0){ turn = n-1; round = Math.max(1, round-1); }
+  else turn = t;
+}
+function untilMine(){
+  const v = visible(), n = v.length;
+  for(let k=1;k<=n;k++){ if(v[(turn+k)%n].mine) return k; }
+  return null;
+}
+
+/* ===================== peças ===================== */
+function tabButton(t){
+  const gm = t.group === 'gm';
+  let badge = '';
+  if(t.id === 'chat') badge = '<span class="badge">3</span>';
+  if(t.id === 'combat' && state !== 'empty')
+    badge = '<span class="badge dot' + (myTurn() ? ' turn' : '') + '"></span>';
+  return '<button class="tabbtn ' + (active===t.id && open ? 'is-active':'') + '" data-tab="'+t.id+'" aria-label="'+t.label+'">'
+    + ICONS[t.id] + badge
+    + '<span class="tip">'+t.label+(gm?'<span class="gm-tag">GM</span>':'')+'</span></button>';
+}
+
+function condChip(x){
+  const val = x.v!==null ? ' <span class="v">'+x.v+'</span>' : '';
+  return '<span class="c '+x.t+(x.crit?' crit':'')+'" data-help="'+(HELP[x.n]||'')+'">'+x.n+val+'</span>';
+}
+function sortConds(p){
+  const order = {crit:0, harm:1, special:2, benefit:3};
+  return (p.conds||[]).slice().sort(function(a,b){
+    const ka = a.crit?0:order[a.t], kb = b.crit?0:order[b.t];
+    return ka-kb || a.n.localeCompare(b.n,'pt-BR');
+  });
+}
+/* teto 2 + "+N" (DEC-CTT-11); na cabeça, o "+N" expande e a altura cresce */
+function condsBlock(p, cap, expandable){
+  const s = sortConds(p);
+  if(!s.length) return expandable ? '<div class="nocond">sem condições</div>' : '';
+  const openAll = expandable && nowExpanded;
+  const lim = openAll ? s.length : cap;
+  const shown = s.slice(0,lim).map(condChip).join('');
+  const rest = s.length - lim;
+  const more = rest>0 ? '<span class="c more" data-exp="1">+'+rest+'</span>'
+             : (openAll && s.length>cap ? '<span class="c more" data-exp="1">−</span>' : '');
+  return '<div class="conds">'+shown+more+'</div>';
+}
+
+/* vida: jogador NUNCA vê a de criatura; Mestre vê barra + número (decisão 3) */
+function canSeeHp(p){
+  if(isGm()) return true;
+  return p.kind === 'pc' && pcHp;
+}
+function hpOf(p){
+  if(!canSeeHp(p)) return '';
+  const v = p.hp[0], max = p.hp[1], pct = max ? Math.round(v/max*100) : 0;
+  const lvl = pct<=25 ? 'low' : pct<=60 ? 'mid' : 'hi';
+  return '<span class="hp '+lvl+'"><span class="bar"><i style="width:'+pct+'%"></i></span>'
+       + '<span class="num"><b>'+v+'</b>/'+max+'</span></span>';
+}
+
+/* iniciativa: número só na montagem (decisão 4) */
+function initCell(p){
+  if(state !== 'setup') return isGm() ? '<span class="grip" title="arraste para reordenar">⠿</span>' : '';
+  const iv = eInit(p);
+  if(iv===null) return isGm() ? '<button class="init none" data-init="'+p.id+'">—</button>' : '<span class="init none">—</span>';
+  if(!isGm() && p.kind==='npc') return '<span class="init hid" title="a ordem é o que importa">•</span>';
+  return '<button class="init" data-init="'+p.id+'">'+iv+'</button>';
+}
+
+function acts(p){
+  if(!isGm()){
+    if(p.mine && state==='setup' && eInit(p)===null) return '<button class="b p" data-roll="'+p.id+'">Rolar</button>';
+    return '';
+  }
+  return '<div class="acts">'
+    + (state==='setup' ? '<button class="ib" data-roll="'+p.id+'" title="Rolar iniciativa">⚄</button>' : '')
+    + '<button class="ib '+(p.defeated?'on':'')+'" data-def="'+p.id+'" title="Derrotado">☠</button>'
+    + '<button class="ib '+(p.hidden?'on':'')+'" data-hid="'+p.id+'" title="Oculto dos jogadores">👁</button>'
+    + '<button class="ib dg" data-rm="'+p.id+'" title="Tirar do combate">✕</button>'
+    + '</div>';
+}
+
+function row(p, opts){
+  opts = opts || {};
+  const cls = ['cb', p.mine?'mine':'', p.defeated?'gone':'', p.hidden?'veil':'', opts.done?'done':''].join(' ');
+  const grip = (isGm() && state!=='setup') ? '<span class="grip" title="arraste para reordenar">⠿</span>' : '';
+  const name = '<div class="nm">'+p.name
+    + (p.mine?'<span class="you">você</span>':'')
+    + (p.hidden?'<span class="eye" title="oculto dos jogadores">👁</span>':'')
+    + '</div>';
+  const sub = (state==='setup' && isGm() && p.sub) ? '<div class="sub">'+p.sub+'</div>' : '';
+  return '<div class="'+cls+'" data-cb="'+p.id+'">'
+    + grip
+    + '<div class="por">'+p.emoji+(p.defeated?'<span class="sk">☠</span>':'')+'</div>'
+    + '<div class="mid">'+name+sub+condsBlock(p,2,false)+'</div>'
+    + hpOf(p)
+    + (state==='setup' ? initCell(p) : '')
+    + acts(p)
+    + '</div>';
+}
+
+/* ---------- cabeça de turno ---------- */
+function nowHead(){
+  const cur = now(); if(!cur) return '';
+  const ctl = isGm()
+    ? '<div class="ctl"><button class="b" data-prev="1" title="Turno anterior">❮</button>'
+      + '<button class="b t grow" data-next="1">Próximo turno ❯</button>'
+      + '<button class="b g" data-endc="1" title="Encerrar combate">✕</button></div>'
+    : (cur.mine
+        ? '<div class="ctl"><button class="b t grow" data-end="1">Encerrar meu turno</button></div>'
+        : '<div class="ctl"><span class="wip" style="color:var(--subtle);border-color:var(--border)">aguardando o turno</span></div>');
+  return '<div class="now'+(nowExpanded?' exp':'')+'">'
+    + '<div class="top">'
+    +   '<div class="por">'+cur.emoji+(cur.defeated?'<span class="sk">☠</span>':'')+'</div>'
+    +   '<div style="min-width:0">'
+    +     '<div class="lbl">agora · rodada '+round+'</div>'
+    +     '<div class="nm">'+cur.name+(cur.mine?'<span class="you">você</span>':'')+(cur.hidden?'<span class="eye" title="oculto dos jogadores">👁</span>':'')+'</div>'
+    +     '<div class="meta">'+(isGm()&&cur.sub?cur.sub:(cur.kind==='pc'?'personagem de jogador':'criatura'))+'</div>'
+    +   '</div>'
+    +   '<div class="hpwrap">'+hpOf(cur)+'</div>'
+    + '</div>'
+    + '<div class="cbox">'+condsBlock(cur,2,true)+'</div>'
+    + ctl
+    + '</div>';
+}
+
+/* ---------- corpo ---------- */
+function queue(){
+  const v = visible(), n = v.length;
+  if(state!=='running') return v.map(function(p){ return row(p,{}); }).join('');
+  const after = [];
+  for(let k=1;k<n;k++) after.push({p:v[(turn+k)%n], done:(turn+k) >= n});
+  const next = after.filter(function(x){return !x.done;});
+  const done = after.filter(function(x){return x.done;});
+  let out = '';
+  if(next.length) out += '<div class="secl">a seguir</div>' + next.map(function(x){return row(x.p,{});}).join('');
+  if(done.length) out += '<div class="secl">já agiram · rodada '+round+'</div>' + done.map(function(x){return row(x.p,{done:true});}).join('');
+  return out;
+}
+
+function emptyState(){
+  if(isGm()) return '<div class="empty">Nenhum combate nesta cena.'
+    + '<div class="hint">O combate nasce da cena ativa: escolha quem entra e comece.</div>'
+    + '<div class="acts-c"><button class="b p lg" data-new="1">Criar combate</button>'
+    + '<button class="b lg" data-add="1">Adicionar ao combate</button></div></div>';
+  return '<div class="empty">Nenhum combate em andamento.'
+    + '<div class="hint">Quando o Mestre começar um encontro, a ordem aparece aqui — e o ícone da aba acende.</div></div>';
+}
+
+function addBlock(){
+  if(!showAdd || !isGm()) return '';
+  return '<div class="add"><h5>Na cena ativa <span class="wip">wip</span> <button class="x" data-add="0">✕</button></h5>'
+    + CENE_TOKENS.map(function(n){
+        return '<div class="it"><span>👹</span><span class="grow">'+n+'</span><button class="b" data-addtok="1">+</button></div>';
+      }).join('')
+    + '<div class="it" style="color:var(--subtle);font-size:.66rem;padding-top:.3rem;line-height:1.35">'
+    + 'de onde vem esta lista depende da spec de <b>Token</b>, que ainda será escrita — a aba nunca diz "token"</div></div>';
+}
+
+function toolbar(){
+  if(!isGm()) return '';
+  if(state==='setup') return '<div class="tools"><button class="b" data-add="1">Adicionar ao combate</button>'
+    + '<button class="b" data-rollall="1">Rolar todos</button><button class="b" data-rollnpc="1">Rolar NPCs</button>'
+    + '<button class="b g" data-reset="1">Zerar</button></div>';
+  return '<div class="tools"><button class="b" data-add="1">Adicionar ao combate</button>'
+    + '<button class="b g" data-reset="1">Refazer iniciativa</button></div>';
+}
+
+function header(){
+  const v = visible();
+  let left, ctl = '';
+  if(state==='setup'){
+    const falta = v.filter(function(p){return eInit(p)===null;}).length;
+    left = '<span class="rd">Montando · <b>'+v.length+'</b> na fila'+(falta?' · '+falta+' sem rolar':'')+'</span>';
+    if(isGm()) ctl = '<button class="b t" data-begin="1">Começar</button>';
+  } else {
+    left = '<span class="rd">Rodada <b>'+round+'</b></span>';
+  }
+  return '<div class="phead">'+left+'<span class="grow"></span>'+ctl+'</div>';
+}
+
+function mineBar(){
+  if(state!=='running' || isGm()) return '';
+  if(myTurn()) return '<div class="mine-bar">⚔ É a sua vez</div>';
+  const k = untilMine();
+  return k ? '<div class="wait">Sua vez em '+k+' '+(k===1?'turno':'turnos')+'.</div>' : '';
+}
+
+function panelCombat(){
+  if(state==='empty') return header() + '<div class="pbody">'+emptyState()+'</div>';
+  return header() + mineBar() + toolbar() + addBlock()
+    + (state==='running' ? nowHead() : '')
+    + '<div class="pbody">'+queue()+'</div>';
+}
+
+function panel(){
+  const inner = active==='combat'
+    ? panelCombat()
+    : '<div class="phead"><span class="rd">'+TITLE[active]+'</span></div><div class="pbody">'+OTHER[active]+'</div>';
+  return '<div class="panel">'+inner+'</div>';
+}
+
+/* ===================== render ===================== */
+function render(){
+  const all = TABS.filter(function(t){return t.group==='all' && !t.foot;});
+  const gms = TABS.filter(function(t){return t.group==='gm' && isGm();});
+  const foot = TABS.filter(function(t){return t.foot;});
+  document.getElementById('root').innerHTML =
+    '<div class="'+(open?'is-open':'')+'"><aside class="shell">'
+    + '<nav class="tabs"><div class="grp">'+all.map(tabButton).join('')+'</div>'
+    + '<div class="grp gm">'+gms.map(tabButton).join('')+'</div>'
+    + '<div class="foot">'+foot.map(tabButton).join('')+'</div></nav>'
+    + panel() + '</aside></div>';
+
+  const who = document.getElementById('who');
+  who.className = 'who ' + (isGm()?'':'player');
+  who.innerHTML = isGm()
+    ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+    : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha)</span>';
+
+  const mk = document.getElementById('marker'), cur = now();
+  if(state==='running' && cur && (isGm() || !cur.hidden)){
+    mk.style.display='grid';
+    mk.innerHTML = cur.emoji + '<small>' + (myTurn()?'SUA VEZ':cur.name.toUpperCase()) + '</small>';
+    mk.style.left = (18 + (turn*11)%60) + '%';
+    mk.style.top  = (22 + (turn*17)%50) + '%';
+  } else mk.style.display='none';
+
+  wire(); chrome();
+  const u = new URL(location);
+  u.searchParams.set('role',role); u.searchParams.set('state',state);
+  u.searchParams.set('flood',flood?'1':'0');
+  history.replaceState(null,'',u);
+}
+
+function wire(){
+  const root = document.getElementById('root');
+  const on = function(sel, fn){ root.querySelectorAll(sel).forEach(function(el){ el.onclick = function(e){ e.stopPropagation(); fn(el); }; }); };
+
+  on('[data-tab]', function(el){ const id=el.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render(); });
+  on('[data-next]', function(){ step(1); render(); });
+  on('[data-prev]', function(){ step(-1); render(); });
+  on('[data-end]',  function(){ step(1); render(); });
+  on('[data-begin]',function(){ state='running'; round=1; turn=0; nowExpanded=false; render(); });
+  on('[data-endc]', function(){ state='empty'; showAdd=false; rolled=new Set(); render(); });
+  on('[data-new]',  function(){ state='setup'; rolled=new Set(); render(); });
+  on('[data-add]',  function(el){ showAdd = el.dataset.add==='1'; if(showAdd && state==='empty'){ state='setup'; rolled=new Set(); } render(); });
+  on('[data-addtok]', function(){ render(); });
+  on('[data-rollall]',function(){ roster().forEach(function(p){ rolled.add(p.id); }); render(); });
+  on('[data-rollnpc]',function(){ roster().forEach(function(p){ if(p.kind==='npc') rolled.add(p.id); }); render(); });
+  on('[data-reset]', function(){ rolled = new Set(); state='setup'; render(); });
+  on('[data-roll]',  function(el){ rolled.add(el.dataset.roll); render(); });
+  on('[data-exp]',   function(){ nowExpanded = !nowExpanded; render(); });
+
+  const tip = document.getElementById('tip');
+  root.querySelectorAll('[data-help]').forEach(function(el){
+    el.onmouseenter = function(){
+      if(!el.dataset.help) return;
+      tip.textContent = el.dataset.help; tip.style.display='block';
+      const r = el.getBoundingClientRect();
+      tip.style.top = (r.top - 8) + 'px';
+      tip.style.left = Math.max(8, r.left - 240) + 'px';
+    };
+    el.onmouseleave = function(){ tip.style.display='none'; };
+  });
+}
+
+function chrome(){
+  document.getElementById('role').textContent  = isGm() ? 'papel: Mestre' : 'papel: jogador';
+  document.getElementById('state').textContent = 'estado: ' + ({empty:'vazio',setup:'montagem',running:'em andamento'})[state];
+  document.getElementById('flood').textContent = flood ? 'encontro: 13' : 'encontro: 6';
+  document.getElementById('mine').textContent  = myTurn() ? '✓ é a sua vez' : 'pôr na minha vez';
+
+  document.getElementById('legend').innerHTML =
+    '<h4>Aba Combate — cabeça de turno <span class="wip" style="color:#b98800;border-color:#b98800">wip</span></h4>'
+    + '<table>'
+    + '<tr><td>fixo</td><td><b>A cabeça tem altura fixa</b> — "Próximo turno" não sai do lugar entre turnos. Expandir "+N" cresce a cabeça; <b>avançar devolve ao padrão</b>.</td></tr>'
+    + '<tr><td>vida</td><td>jogador <b>nunca</b> vê vida de criatura; vê a dos personagens de jogador. Mestre vê <b>barra + número</b> de todos.</td></tr>'
+    + '<tr><td>iniciativa</td><td>número só na <b>montagem</b>; em andamento a ordem é a lista, e o Mestre reordena pela alça ⠿.</td></tr>'
+    + '<tr><td>badge</td><td>ponto enquanto o combate corre; <b>âmbar</b> quando é a sua vez.</td></tr>'
+    + '<tr><td>fora</td><td>marcar alvo saiu (outra spec). O jogador encerra o próprio turno.</td></tr>'
+    + '</table>'
+    + '<div class="q"><b>lacuna estrutural:</b> <b>Token não tem spec</b> e vai ser refeito do zero. '
+    + 'A aba fala em participantes e em "criaturas na cena", e a origem da lista fica pendurada nessa spec futura.</div>'
+    + '<div class="q"><b>ainda aberto:</b> <b>Q6</b> combate encerrado some na hora ou vira resumo · '
+    + '<b>Q8</b> o painel abre alguma coisa fora da gaveta (ficha do participante)?</div>'
+    + '<div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>n</b> próximo turno · <b>b</b> turno anterior · <b>p</b> papel · '
+    + '<b>e</b> estado · <b>f</b> encontro · <b>m</b> minha vez</div>';
+}
+
+/* ===================== alternador ===================== */
+document.getElementById('role').onclick = function(){ role = isGm()?'player':'gm'; turn = Math.min(turn, Math.max(visible().length-1,0)); nowExpanded=false; render(); };
+document.getElementById('state').onclick = function(){
+  state = state==='empty'?'setup':state==='setup'?'running':'empty';
+  if(state==='setup') rolled = new Set();
+  showAdd=false; turn=0; nowExpanded=false; render();
+};
+document.getElementById('flood').onclick = function(){ flood = !flood; turn = 0; nowExpanded=false; render(); };
+document.getElementById('mine').onclick  = function(){ if(state!=='running') state='running'; setMine(); nowExpanded=false; render(); };
+document.getElementById('turnbtn').onclick= function(){ if(state==='running'){ step(1); render(); } };
+
+document.addEventListener('keydown', function(e){
+  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if(e.key==='n'){ if(state==='running'){ step(1); render(); } }
+  else if(e.key==='b'){ if(state==='running'){ step(-1); render(); } }
+  else if(e.key==='p') document.getElementById('role').click();
+  else if(e.key==='e') document.getElementById('state').click();
+  else if(e.key==='f') document.getElementById('flood').click();
+  else if(e.key==='m') document.getElementById('mine').click();
+});
+
+if(params.get('mine')==='1'){ state='running'; setMine(); }
+render();
+</script>
+</body>
+</html>

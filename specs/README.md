@@ -61,6 +61,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 37  | [Configurações](37-configuracoes.md)                                 | Aba da gaveta: preferências, mundo, usuários     |
 | 38  | [Aba Chat](38-aba-chat.md)                                           | Aba da gaveta: log, dados favoritos, invalidação |
 | 39  | [Contatos](39-contatos.md)                                           | Aba da gaveta: mesa, conhecidos, quem conhece    |
+| 40  | [Aba Combate](40-aba-combate.md)                                     | Aba da gaveta: cabeça de turno, fila, montagem   |
 
 ## Níveis
 
@@ -121,10 +122,18 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-CFG-`  | [37](37-configuracoes.md)                 | Configurações (aba da gaveta)      |
 | `REQ-ACH-`  | [38](38-aba-chat.md)                      | Aba Chat (painel da gaveta)        |
 | `REQ-CTT-`  | [39](39-contatos.md)                      | Contatos (aba da gaveta)           |
+| `REQ-CBA-`  | [40](40-aba-combate.md)                   | Aba Combate (painel da gaveta)     |
 
 <!-- prefixos:end -->
 
-Número reservado e ainda não escrito: **33** (Motor de Campanha — relógios de missão, frentes, autoria).
+Números reservados e ainda não escritos:
+
+- **33** — Motor de Campanha (relógios de missão, frentes, autoria).
+- **41** — **Token**. Hoje o conceito é definido em pedaços por `02` (`actorLink`,
+  herança token→actor), `04` (movimento) e `06` (footprint, ring, barras, ícones de
+  status), e por nenhuma spec dona — o que já adiou uma decisão de banco de dados e
+  obrigou a spec `40` a evitar a palavra (DEC-CBA-06). O registro de prefixos só
+  ganha a linha quando a spec existir (regra `registro-de-prefixos`).
 
 ## Stack fixada
 

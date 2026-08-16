@@ -149,6 +149,13 @@ apagada sem rastro.
 - **`33` — Motor de Campanha**: reservada desde `docs/design/mapa-isekai.md` §C0 e citada
   pela issue #90. É a dona do relógio de missão, das frentes e da autoria de campanha —
   a spec `28` mostra o relógio, mas não o faz correr (DEC-HUB-08).
+- **`41` — Token**: reservada em 2026-08-16, quando a spec `40` precisou falar do que
+  entra num encontro e não encontrou dona. O conceito existe repartido em `02`
+  (REQ-DOC-031..034, `actorLink`), `04` (`token:move`) e `06` (REQ-CNV-025..033,
+  089/090) — três specs que o citam e nenhuma que o define, o oposto de
+  `prefixo-com-dono` (§4). A lacuna já cobrou preço fora das specs: a forma do estado
+  quente no banco foi adiada por não existir spec de Token, e a `40` teve de banir a
+  palavra da interface (DEC-CBA-06).
 - **API de Módulos/Mods**: sem número ainda. `00` (`REQ-ESC-012`) fixa sistemas como
   pacotes compilados e trata plugin dinâmico como [V2]; quando a extensão de terceiros
   virar trabalho, ela toma o próximo número livre (`35`).

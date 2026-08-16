@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1588 requisitos [MVP]** definidos nas 39 specs. Os [V2] ficam de fora
+Escopo: os **1647 requisitos [MVP]** definidos nas 40 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 218 | 14% |
-| Citados só por código de produção | 330 | 21% |
-| Sem nenhuma citação | 1040 | 65% |
-| **Total [MVP]** | **1588** | |
+| Citados por algum teste | 218 | 13% |
+| Citados só por código de produção | 330 | 20% |
+| Sem nenhuma citação | 1099 | 67% |
+| **Total [MVP]** | **1647** | |
 
 ## Por spec
 
@@ -61,3 +61,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [37](37-configuracoes.md) | 39 | 0 | 0 | 39 | 0% |
 | [38](38-aba-chat.md) | 56 | 0 | 0 | 56 | 0% |
 | [39](39-contatos.md) | 67 | 0 | 0 | 67 | 0% |
+| [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
