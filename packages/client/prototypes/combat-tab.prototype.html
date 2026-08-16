@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Combate (3 variantes; grill de 2026-08-16)</title>
+<!--
+  PROTOTYPE — descartável. Não é código de produção; não importar nada daqui.
+
+  PERGUNTA: como a aba Combate (filha da 36, conteúdo da spec 10) deve se
+  comportar dentro da gaveta de 300px, para os dois papéis?
+
+  O QUE JÁ ESTÁ DECIDIDO E NÃO SE DISCUTE AQUI (spec 36)
+   · trilho só-ícone, 300px + 44px, sem resize, sem ✕, sem atalho global;
+   · recolher = clicar no ícone da aba ativa;
+   · o badge existe mesmo com a aba aberta, e o trilho nunca o altera sozinho.
+
+  AS TRÊS VARIANTES (← → ou A/B/C) diferem em DUAS coisas ao mesmo tempo:
+  onde mora o "agora" e onde moram os controles de turno.
+
+   A — FILA CLÁSSICA. Uma lista só, ordem de iniciativa fixa, ativo destacado
+       no lugar. Controles de turno no CABEÇALHO. É a evolução do que o
+       CombatPanel.svelte já faz hoje.
+   B — CABEÇA DE TURNO. Um cartão grande "AGORA" no topo (retrato, condições
+       inteiras, vida) com os controles de turno DENTRO dele; embaixo, a fila
+       rotacionada ("a seguir") em linha fina, e os que já agiram no fim.
+   C — CRONOGRAMA DA RODADA. A lista é o relógio: quem já agiu fica esmaecido
+       acima, o marcador "agora" está na posição real, e o divisor da rodada
+       seguinte mostra quem abre a próxima. Controles no RODAPÉ fixo.
+
+  O QUE CADA BOTÃO DO ALTERNADOR TESTA (decisões de verdade, não enfeite)
+   · papel .......... GM x jogador — o jogador vê ordem, não vê oculto, e a
+                      única ação dele é a própria iniciativa (e talvez encerrar
+                      o próprio turno — Q3).
+   · estado ......... vazio → montagem (combate criado, sem começar) → em
+                      andamento. A montagem é a tela que hoje não existe.
+   · encontro ....... 6 x 13 combatentes: densidade, rolagem e teto de condição.
+   · vida ........... o QUE O JOGADOR VÊ DE UM NPC: nada / número / barra /
+                      degrau ("Ferido"). O GM sempre vê número; o próprio PC
+                      também. É a decisão que a spec 39 empurrou para cá:
+                      vida não aparece em Contatos, então ou aparece aqui, ou
+                      não aparece em lugar nenhum fora da ficha.
+   · minha vez ...... põe o turno na Fofurinha, para ver o aviso de vez, o
+                      badge do trilho e a contagem "sua vez em N".
+
+  QUESTÕES QUE O PROTÓTIPO EXISTE PARA FECHAR
+   Q1 — Badge: ponto de estado enquanto o combate corre (DEC-GAV-06), ou o
+        ponto muda de cor/peso quando é a sua vez? (aqui: âmbar = sua vez)
+   Q2 — O jogador vê o VALOR de iniciativa do NPC, ou só a posição na fila?
+        (aqui: valor do NPC oculto para o jogador — troque em Q2 na legenda)
+   Q3 — O jogador pode encerrar o próprio turno, ou só o GM avança?
+   Q4 — Condição no tracker: teto de 2 + "+N" como na aba Contatos, ou só as
+        críticas, ou nenhuma (o cartão vira só nome+iniciativa)?
+   Q5 — A montagem (adicionar tokens) é popover, seção do painel ou janela?
+   Q6 — Encontro encerrado: some da aba na hora, ou fica como resumo até o GM
+        fechar?
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;--special:#b98cff;
+    --turn:#ffd700;--turn-dim:rgba(255,215,0,.10);
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem;font-weight:600}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center;overflow:hidden}
+  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f;position:relative}
+  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+  /* token ativo no mapa (REQ-CBT-050) */
+  .marker{position:absolute;width:56px;height:56px;border-radius:50%;border:3px solid var(--turn);box-shadow:0 0 18px rgba(255,215,0,.55);display:grid;place-items:center;font-size:1.4rem;background:rgba(0,0,0,.35)}
+  .marker small{position:absolute;bottom:-20px;font-size:.62rem;color:var(--turn);white-space:nowrap;letter-spacing:.04em}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .icon.sm{width:14px;height:14px;stroke-width:2}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.dot{min-width:9px;width:9px;height:9px;padding:0;background:var(--accent-hover)}
+  .tabbtn .badge.dot.turn{background:var(--turn);box-shadow:0 0 8px rgba(255,215,0,.8)}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .gm-tag{font-size:.6rem;color:var(--danger);border:1px solid var(--danger);border-radius:3px;padding:0 3px;margin-left:.4rem;letter-spacing:.05em}
+
+  .shell{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding-top:10px;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column;overflow:hidden}
+  .is-open .panel{display:flex}
+
+  /* ---------- Painel: cabeçalho / corpo / rodapé ---------- */
+  .phead{display:flex;align-items:center;gap:.4rem;padding:.45rem .6rem;border-bottom:1px solid var(--accent-dim);flex-shrink:0}
+  .phead .rd{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .phead .rd b{color:var(--text)}
+  .phead .grow{flex:1}
+  .pbody{flex:1;overflow:auto;padding:.35rem 0}
+  .pfoot{flex-shrink:0;border-top:1px solid var(--border);background:var(--surface-alt);padding:.4rem .5rem;display:flex;gap:.3rem;align-items:center}
+  .tools{display:flex;gap:.3rem;padding:.35rem .5rem;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+
+  .b{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.22rem .5rem;font:inherit;font-size:.74rem;cursor:pointer;white-space:nowrap}
+  .b:hover{border-color:var(--accent)}
+  .b.p{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .b.t{background:rgba(255,215,0,.14);border-color:var(--turn);color:var(--turn);font-weight:600}
+  .b.d{background:transparent;border-color:var(--danger);color:var(--danger)}
+  .b.g{background:transparent;color:var(--muted)}
+  .b.lg{padding:.4rem .7rem;font-size:.82rem}
+  .b:disabled{opacity:.4;cursor:not-allowed}
+  .ib{background:none;border:1px solid transparent;border-radius:var(--radius-sm);color:var(--subtle);cursor:pointer;width:22px;height:22px;display:grid;place-items:center;font-size:.72rem;padding:0}
+  .ib:hover{background:var(--surface-alt);color:var(--text)}
+  .ib.on{color:var(--accent-hover)}
+  .ib.dg:hover{color:var(--danger)}
+
+  /* ---------- Linha de combatente ---------- */
+  .cb{display:flex;align-items:center;gap:.4rem;padding:.28rem .5rem .28rem .55rem;border-left:3px solid transparent;position:relative;cursor:default}
+  .cb:hover{background:var(--surface-alt)}
+  .cb .por{width:30px;height:30px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--surface-alt);border:1px solid var(--border);display:grid;place-items:center;font-size:1rem;position:relative}
+  .cb .por .sk{position:absolute;right:-4px;bottom:-4px;font-size:.7rem}
+  .cb .mid{flex:1;min-width:0}
+  .cb .nm{display:flex;align-items:center;gap:.25rem;font-size:.8rem;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cb .nm .you{font-size:.58rem;border:1px solid var(--ok);color:var(--ok);border-radius:3px;padding:0 3px;letter-spacing:.04em}
+  .cb .nm .eye{color:var(--subtle);font-size:.7rem}
+  .cb .sub{font-size:.68rem;color:var(--subtle);display:flex;gap:.25rem;align-items:center}
+  .cb .init{flex-shrink:0;font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--text);min-width:1.9rem;text-align:right;background:none;border:1px solid transparent;border-radius:var(--radius-sm);padding:.05rem .2rem;cursor:pointer}
+  .cb .init:hover{border-color:var(--border);background:var(--surface)}
+  .cb .init.none{color:var(--subtle);font-weight:400}
+  .cb .init.hid{color:var(--subtle);font-weight:400;cursor:default}
+  .cb .acts{display:flex;gap:.1rem;flex-shrink:0;opacity:0;transition:opacity .12s}
+  .cb:hover .acts{opacity:1}
+  .cb.is-now{background:var(--turn-dim);border-left-color:var(--turn)}
+  .cb.is-now .nm{color:var(--turn)}
+  .cb.is-mine{border-left-color:var(--ok)}
+  .cb.is-now.is-mine{border-left-color:var(--turn)}
+  .cb.gone{opacity:.45}
+  .cb.gone .nm{text-decoration:line-through}
+  .cb.veil{background:rgba(124,92,252,.05)}
+  .cb.done{opacity:.42}
+  .cb.thin{padding-top:.18rem;padding-bottom:.18rem}
+  .cb.thin .por{width:22px;height:22px;font-size:.8rem}
+  .cb.thin .nm{font-size:.76rem}
+
+  /* ---------- Vida ---------- */
+  .hp{font-family:var(--mono);font-size:.68rem;color:var(--muted);flex-shrink:0;white-space:nowrap}
+  .hp b{color:var(--text);font-weight:600}
+  .hp.lo b{color:var(--danger)}
+  .bar{width:44px;height:5px;border-radius:3px;background:var(--surface-alt);border:1px solid var(--border);overflow:hidden;flex-shrink:0}
+  .bar i{display:block;height:100%;background:var(--ok)}
+  .bar.mid i{background:var(--warn)}
+  .bar.low i{background:var(--danger)}
+  .deg{font-size:.66rem;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:0 .3rem;flex-shrink:0;white-space:nowrap}
+  .deg.mid{color:var(--warn);border-color:rgba(229,184,59,.5)}
+  .deg.low{color:var(--danger);border-color:rgba(255,92,92,.5)}
+
+  /* ---------- Condições (contrato da spec 39 / DEC-CTT-11) ---------- */
+  .conds{display:flex;gap:.2rem;flex-wrap:wrap;margin-top:.12rem}
+  .c{font-size:.62rem;line-height:1.5;border-radius:3px;padding:0 .25rem;border:1px solid;white-space:nowrap;cursor:help}
+  .c.harm{color:var(--danger);border-color:rgba(255,92,92,.45)}
+  .c.benefit{color:var(--ok);border-color:rgba(61,220,132,.45)}
+  .c.special{color:var(--special);border-color:rgba(185,140,255,.45)}
+  .c.crit{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:700}
+  .c .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .c.more{color:var(--subtle);border-color:var(--border);cursor:pointer}
+
+  /* ---------- Cabeça de turno (variante B) ---------- */
+  .now{padding:.55rem .6rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--turn-dim),transparent)}
+  .now .top{display:flex;gap:.55rem;align-items:center}
+  .now .por{width:46px;height:46px;border-radius:var(--radius);background:var(--surface-alt);border:2px solid var(--turn);display:grid;place-items:center;font-size:1.5rem;flex-shrink:0}
+  .now .nm{font-size:.98rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:.3rem}
+  .now .lbl{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--turn);font-weight:700}
+  .now .meta{font-size:.7rem;color:var(--subtle);display:flex;gap:.4rem;align-items:center;margin-top:.1rem}
+  .now .ctl{display:flex;gap:.3rem;margin-top:.5rem}
+  .now .ctl .b{flex:1;justify-content:center;text-align:center}
+  .secl{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:.45rem .6rem .2rem;display:flex;align-items:center;gap:.4rem}
+  .secl::after{content:"";flex:1;height:1px;background:var(--border)}
+
+  /* ---------- Cronograma (variante C) ---------- */
+  .rdiv{display:flex;align-items:center;gap:.4rem;padding:.4rem .6rem .25rem;font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle)}
+  .rdiv::after{content:"";flex:1;height:1px;background:var(--border)}
+  .rdiv.next{color:var(--accent-hover)}
+  .cursor{display:flex;align-items:center;gap:.35rem;padding:.1rem .6rem;color:var(--turn);font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .cursor::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,var(--turn),transparent)}
+
+  /* ---------- Avisos ---------- */
+  .mine-bar{background:rgba(255,215,0,.14);border-bottom:1px solid var(--turn);color:var(--turn);font-size:.74rem;font-weight:700;padding:.35rem .6rem;display:flex;align-items:center;gap:.4rem}
+  .wait{font-size:.68rem;color:var(--subtle);padding:.1rem .6rem .35rem}
+  .empty{text-align:center;padding:1.6rem .8rem .8rem;color:var(--muted);font-size:.82rem}
+  .empty .hint{font-size:.72rem;color:var(--subtle);margin-top:.4rem;line-height:1.5}
+  .acts-c{display:flex;gap:.4rem;justify-content:center;margin-top:.7rem;flex-wrap:wrap}
+
+  /* montagem: lista de tokens da cena (Q5) */
+  .add{border-bottom:1px solid var(--border);background:var(--surface-alt);padding:.4rem .5rem}
+  .add h5{margin:0 0 .3rem;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center}
+  .add h5 .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer}
+  .add .it{display:flex;align-items:center;gap:.4rem;padding:.15rem .2rem;font-size:.76rem}
+  .add .it .grow{flex:1;color:var(--text)}
+
+  /* ---------- tooltip desenhado ---------- */
+  #tip{position:fixed;z-index:9998;background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.3rem .45rem;border-radius:var(--radius-sm);font-size:.72rem;max-width:230px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.6);display:none;pointer-events:none}
+
+  /* ---------- Alternador + legenda (fora do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.4rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.8rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;padding:0 .7rem;border-radius:999px;cursor:pointer;font-size:.76rem;font-weight:600}
+  .switcher button.alt{background:#5a4bd6}
+  .switcher button.nav{width:28px;padding:0;font-size:1rem}
+  .switcher .lbl{min-width:230px;text-align:center;font-size:.78rem}
+  .switcher .lbl small{display:block;font-weight:400;color:#555;font-size:.68rem}
+  .legend{position:fixed;left:16px;bottom:16px;z-index:9999;background:rgba(255,255,255,.96);color:#111;border-radius:10px;padding:.6rem .7rem;box-shadow:0 8px 30px rgba(0,0,0,.55);font-size:.72rem;max-width:400px;line-height:1.45}
+  .legend h4{margin:0 0 .35rem;font-size:.78rem}
+  .legend table{border-collapse:collapse}
+  .legend td{padding:.1rem .25rem;vertical-align:top}
+  .legend td:first-child{color:#666;white-space:nowrap}
+  .legend b{color:#111}
+  .legend .q{margin-top:.45rem;padding-top:.4rem;border-top:1px solid #ddd;color:#444}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 Fortaleza</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+
+<div class="stage">
+  <div class="art">
+    <div class="house"><div class="star">★</div></div>
+    <div class="marker" id="marker"></div>
+  </div>
+</div>
+
+<div id="root"></div>
+<div id="tip"></div>
+
+<div class="switcher">
+  <button class="nav" id="prev" title="Variante anterior (←)">‹</button>
+  <span class="lbl" id="lbl"></span>
+  <button class="nav" id="next" title="Próxima variante (→)">›</button>
+  <button id="role">papel</button>
+  <button id="state" class="alt">estado</button>
+  <button id="flood" class="alt">encontro</button>
+  <button id="hp" class="alt">vida</button>
+  <button id="mine">minha vez</button>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ===================== chassi (spec 36) ===================== */
+const ICONS = {
+  chat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+const TABS = [
+  {id:'chat',label:'Chat',group:'all',badge:'3'},
+  {id:'contacts',label:'Contatos',group:'all'},
+  {id:'combat',label:'Combate',group:'all'},
+  {id:'compendium',label:'Compêndio',group:'all'},
+  {id:'npcs',label:'NPCs',group:'gm'},
+  {id:'scenes',label:'Cenas',group:'gm'},
+  {id:'settings',label:'Configurações',group:'all',foot:true},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  chat:'<div class="empty">o painel do Chat é a spec 38</div>',
+  contacts:'<div class="empty">o painel de Contatos é a spec 39</div>',
+  compendium:'<div class="empty">o painel do Compêndio é a spec-filha a escrever</div>',
+  npcs:'<div class="empty">o diretório de NPCs é a spec-filha a escrever</div>',
+  scenes:'<div class="empty">a lista de Cenas é a spec-filha a escrever</div>',
+  settings:'<div class="empty">o painel de Configurações é a spec 37</div>',
+};
+
+/* ===================== dados mock ===================== */
+/* tone: harm (vermelho) · benefit (verde) · special (roxo) · crit preenche (DEC-CTT-11) */
+const HELP = {
+  'Amedrontado':'Penalidade de circunstância em todas as jogadas e CDs, igual ao valor. Diminui 1 no fim de cada turno seu.',
+  'Abençoada':'Bônus de status +1 nas jogadas de ataque enquanto durar.',
+  'Encoberto':'Ataques contra a criatura sofrem 20% de chance de erro.',
+  'Enfraquecido':'Penalidade de status no dano e nas jogadas de Força, igual ao valor.',
+  'Morrendo':'Inconsciente e prestes a morrer. Faz uma jogada de recuperação no início do seu turno.',
+  'Lento':'Perde ações no início do turno, igual ao valor.',
+  'Enfeitiçado':'Trata quem enfeitiçou como amistoso; não age contra ele.',
+  'Agarrado':'Imobilizado e desprevenido; ação de manobra para se soltar.',
+  'Célere':'Ganha uma ação adicional no início do seu turno.',
+  'Inconsciente':'Caído, indefeso e sem ações.',
+};
+const c = (n,t,v,crit)=>({n,t,v:v??null,crit:!!crit});
+
+const BASE = [
+  {id:'n1',name:'Vess, a Corvo',emoji:'🐦',kind:'npc',init:22,hp:[38,38],conds:[c('Encoberto','special')]},
+  {id:'p1',name:'Fofurinha',emoji:'🧝',kind:'pc',mine:true,sub:'Druida 5',init:19,hp:[23,42],conds:[c('Amedrontado','harm',2),c('Abençoada','benefit')]},
+  {id:'n2',name:'Goblin Guerreiro',emoji:'👹',kind:'npc',init:17,hp:[9,24],conds:[c('Enfraquecido','harm',1)]},
+  {id:'p2',name:'Tobias',emoji:'🧔',kind:'pc',sub:'Guerreiro 5',init:14,hp:[55,62],conds:[]},
+  {id:'n3',name:'Goblin Arqueiro',emoji:'🏹',kind:'npc',init:11,hp:[18,18],hidden:true,conds:[]},
+  {id:'n4',name:'Lobo atroz',emoji:'🐺',kind:'npc',init:8,hp:[0,30],defeated:true,conds:[c('Morrendo','harm',1,true)]},
+];
+const EXTRA = [
+  {id:'x1',name:'Corvo espião',emoji:'🕊',kind:'npc',init:21,hp:[6,6],hidden:true,conds:[c('Encoberto','special')]},
+  {id:'x2',name:'Goblin Xamã',emoji:'🧙',kind:'npc',init:16,hp:[14,20],conds:[c('Enfeitiçado','special'),c('Lento','harm',1)]},
+  {id:'x3',name:'Mestre Aldric',emoji:'🧓',kind:'npc',init:13,hp:[30,30],conds:[c('Célere','benefit')]},
+  {id:'x4',name:'Guarda ferido',emoji:'💂',kind:'npc',init:10,hp:[3,28],conds:[c('Agarrado','harm')]},
+  {id:'x5',name:'Zumbi A',emoji:'🧟',kind:'npc',init:6,hp:[20,20],conds:[c('Lento','harm',1)]},
+  {id:'x6',name:'Zumbi B',emoji:'🧟',kind:'npc',init:6,hp:[20,20],conds:[c('Lento','harm',1)]},
+  {id:'x7',name:'Aranha gigante',emoji:'🕷',kind:'npc',init:4,hp:[0,26],defeated:true,conds:[c('Inconsciente','harm',null,true)]},
+];
+const CENE_TOKENS = ['Goblin Chefe','Rato atroz','Rato atroz (2)','Estátua animada'];
+
+/* ===================== estado ===================== */
+const params = new URLSearchParams(location.search);
+const VARIANTS = ['A','B','C'];
+const VNAME = {
+  A:'Fila clássica (controles no cabeçalho)',
+  B:'Cabeça de turno (controles no cartão AGORA)',
+  C:'Cronograma da rodada (controles no rodapé)',
+};
+const VHINT = {
+  A:'a ordem manda; o ativo é destacado no lugar',
+  B:'quem age agora ocupa o topo; a fila rotaciona',
+  C:'a lista é o relógio: quem já agiu, quem falta, quem abre a próxima',
+};
+const HPMODES = ['off','num','bar','deg'];
+const HPNAME = {off:'nada',num:'número',bar:'barra',deg:'degrau'};
+
+let variant = VARIANTS.includes(params.get('variant')) ? params.get('variant') : 'A';
+let role   = params.get('role') === 'player' ? 'player' : 'gm';
+let state  = ['empty','setup','running'].includes(params.get('state')) ? params.get('state') : 'running';
+let hpMode = HPMODES.includes(params.get('hp')) ? params.get('hp') : 'num';
+let flood  = params.get('flood') === '1';
+let active = 'combat', open = true;
+let round = 3, turn = 0, showAdd = false, expanded = {};
+/* na montagem, iniciativa só existe depois de rolada (é o que faz a tela de setup existir) */
+let rolled = new Set();
+
+const isGm = () => role === 'gm';
+/* iniciativa efetiva: em montagem, null até rolar */
+const eInit = (p) => (state === 'setup' && !rolled.has(p.id)) ? null : p.init;
+const roster = () => {
+  const list = flood ? [...BASE, ...EXTRA] : [...BASE];
+  return list.slice().sort((a,b)=>((eInit(b)??-99)-(eInit(a)??-99)));
+};
+/* o que este papel enxerga (REQ-CBT-031/033: oculto some para o jogador) */
+const visible = () => roster().filter(x => isGm() || !x.hidden);
+const now = () => visible()[turn % Math.max(visible().length,1)] || null;
+const myTurn = () => !!(now() && now().mine && !isGm());
+
+function setMine(){
+  const i = visible().findIndex(x=>x.mine);
+  if(i>=0) turn = i;
+}
+function step(d){
+  const n = visible().length; if(!n) return;
+  const t = turn + d;
+  if(t >= n){ turn = 0; round++; }
+  else if(t < 0){ turn = n-1; round = Math.max(1, round-1); }
+  else turn = t;
+}
+/* quantas passagens até o próximo personagem do jogador */
+function untilMine(){
+  const v = visible(); const n = v.length;
+  for(let k=1;k<=n;k++){ if(v[(turn+k)%n].mine) return k; }
+  return null;
+}
+
+/* ===================== peças ===================== */
+function tabButton(t){
+  const gm = t.group === 'gm';
+  let badge = '';
+  if(t.id === 'chat') badge = '<span class="badge">3</span>';
+  if(t.id === 'combat' && state !== 'empty'){
+    /* Q1: ponto de estado enquanto corre; âmbar quando é a sua vez */
+    badge = '<span class="badge dot' + (myTurn() ? ' turn' : '') + '"></span>';
+  }
+  return '<button class="tabbtn ' + (active===t.id && open ? 'is-active':'') + '" data-tab="'+t.id+'" aria-label="'+t.label+'">'
+    + ICONS[t.id] + badge
+    + '<span class="tip">'+t.label+(gm?'<span class="gm-tag">GM</span>':'')+'</span></button>';
+}
+
+function condChip(x, k){
+  const val = x.v!==null ? ' <span class="v">'+x.v+'</span>' : '';
+  const cls = 'c ' + x.t + (x.crit ? ' crit':'');
+  return '<span class="'+cls+'" data-help="'+(HELP[x.n]||'')+'">'+x.n+val+'</span>';
+}
+function condsOf(p, cap){
+  if(!p.conds || !p.conds.length) return '';
+  const order = {crit:0, harm:1, special:2, benefit:3};
+  const sorted = p.conds.slice().sort((a,b)=>{
+    const ka = a.crit?0:order[a.t], kb = b.crit?0:order[b.t];
+    return ka-kb || a.n.localeCompare(b.n,'pt-BR');
+  });
+  const isOpen = expanded[p.id];
+  const lim = (cap && !isOpen) ? cap : sorted.length;
+  const shown = sorted.slice(0,lim).map(condChip).join('');
+  const rest = sorted.length - lim;
+  const more = rest>0 ? '<span class="c more" data-exp="'+p.id+'">+'+rest+'</span>' : '';
+  return '<div class="conds">'+shown+more+'</div>';
+}
+
+/* vida — o modo decide SÓ o que o jogador vê de um NPC.
+   O Mestre sempre vê número; personagem de jogador também (é a comitiva). */
+function hpOf(p){
+  const [v,max] = p.hp; const pct = max ? Math.round(v/max*100) : 0;
+  const lvl = pct<=25 ? 'low' : pct<=60 ? 'mid' : 'hi';
+  const exact = '<span class="hp '+(lvl==='low'?'lo':'')+'"><b>'+v+'</b>/'+max+'</span>';
+  if(isGm() || p.kind==='pc') return exact;
+  if(hpMode === 'num') return exact;
+  if(hpMode === 'bar') return '<span class="bar '+(lvl==='hi'?'':lvl)+'"><i style="width:'+pct+'%"></i></span>';
+  if(hpMode === 'deg'){
+    const t = pct>=100?'Ileso':pct>60?'Arranhado':pct>25?'Ferido':pct>0?'Grave':'Caído';
+    return '<span class="deg '+(lvl==='hi'?'':lvl)+'">'+t+'</span>';
+  }
+  return '';
+}
+
+function initCell(p){
+  const iv = eInit(p);
+  if(iv===null||iv===undefined) return '<button class="init none" data-init="'+p.id+'">—</button>';
+  /* Q2: o jogador vê a posição, não o valor do NPC */
+  if(!isGm() && p.kind==='npc') return '<span class="init hid">•</span>';
+  return '<button class="init" data-init="'+p.id+'" title="'+(isGm()?'clique define a iniciativa à mão':'')+'">'+iv+'</button>';
+}
+
+function acts(p){
+  if(!isGm()){
+    if(p.mine && eInit(p)===null) return '<button class="b p" data-roll="'+p.id+'">Rolar</button>';
+    /* Q3: encerrar o próprio turno */
+    if(p.mine && now() && now().id===p.id && state==='running') return '<button class="b t" data-end="1">Encerrar meu turno</button>';
+    return '<div class="acts"><button class="ib" data-tgt="'+p.id+'" title="Marcar alvo">◎</button></div>';
+  }
+  return '<div class="acts">'
+    + '<button class="ib" data-tgt="'+p.id+'" title="Marcar alvo">◎</button>'
+    + '<button class="ib" data-roll="'+p.id+'" title="Rolar iniciativa">⚄</button>'
+    + '<button class="ib '+(p.defeated?'on':'')+'" data-def="'+p.id+'" title="Derrotado">☠</button>'
+    + '<button class="ib '+(p.hidden?'on':'')+'" data-hid="'+p.id+'" title="Oculto dos jogadores">👁</button>'
+    + '<button class="ib dg" data-rm="'+p.id+'" title="Tirar do combate">✕</button>'
+    + '</div>';
+}
+
+function row(p, opts){
+  opts = opts || {};
+  const isNow = !!opts.isNow, thin = !!opts.thin, done = !!opts.done;
+  const cls = ['cb', isNow?'is-now':'', p.mine?'is-mine':'', p.defeated?'gone':'', p.hidden?'veil':'', thin?'thin':'', done?'done':''].join(' ');
+  const cap = thin ? 1 : 2;
+  const name = '<div class="nm">' + p.name
+    + (p.mine ? '<span class="you">você</span>' : '')
+    + (p.hidden ? '<span class="eye" title="oculto dos jogadores">👁</span>' : '')
+    + '</div>';
+  const sub = (!thin && p.sub && isGm()) ? '<div class="sub">'+p.sub+'</div>' : '';
+  return '<div class="'+cls+'" data-cb="'+p.id+'">'
+    + '<div class="por">'+p.emoji+(p.defeated?'<span class="sk">☠</span>':'')+'</div>'
+    + '<div class="mid">'+name+sub+(thin?'':condsOf(p,cap))+'</div>'
+    + hpOf(p) + initCell(p) + acts(p)
+    + '</div>';
+}
+
+/* ===================== estados do painel ===================== */
+function emptyState(){
+  if(isGm()){
+    return '<div class="empty">Nenhum combate nesta cena.'
+      + '<div class="hint">O combate nasce da cena ativa: escolha os tokens e comece.</div>'
+      + '<div class="acts-c"><button class="b p lg" data-new="1">Criar combate</button>'
+      + '<button class="b lg" data-add="1">Adicionar tokens</button></div></div>';
+  }
+  return '<div class="empty">Nenhum combate em andamento.'
+    + '<div class="hint">Quando o Mestre começar um encontro, a ordem aparece aqui — e o ícone da aba acende.</div></div>';
+}
+
+function addBlock(){
+  if(!showAdd || !isGm()) return '';
+  return '<div class="add"><h5>Tokens da cena ativa <button class="x" data-add="0">✕</button></h5>'
+    + CENE_TOKENS.map(function(n){
+        return '<div class="it"><span>👹</span><span class="grow">'+n+'</span><button class="b" data-addtok="1">+</button></div>';
+      }).join('')
+    + '<div class="it" style="color:var(--subtle);font-size:.68rem;padding-top:.3rem">Q5: isto é popover, seção ou janela?</div></div>';
+}
+
+function toolbar(){
+  if(!isGm()) return '';
+  const rollAll = state==='setup' ? '<button class="b" data-rollall="1">Rolar todos</button><button class="b" data-rollnpc="1">Rolar NPCs</button>'
+                                  : '<button class="b" data-rollall="1">Rolar todos</button>';
+  return '<div class="tools"><button class="b" data-add="1">Adicionar tokens</button>'+rollAll+'<button class="b g" data-reset="1">Zerar</button></div>';
+}
+
+function header(){
+  const v = visible();
+  let left;
+  if(state==='setup'){
+    const falta = v.filter(function(p){return eInit(p)===null;}).length;
+    left = '<span class="rd">Montando · <b>'+v.length+'</b> na fila'+(falta?' · '+falta+' sem rolar':'')+'</span>';
+  }
+  else left = '<span class="rd">Rodada <b>'+round+'</b></span>';
+
+  let ctl = '';
+  if(isGm()){
+    if(state==='setup') ctl = '<button class="b t" data-begin="1">Começar</button>';
+    else ctl = '<button class="ib" data-prev="1" title="Turno anterior">❮</button>'
+             + '<button class="b t" data-next="1">Próximo ❯</button>'
+             + '<button class="ib dg" data-endc="1" title="Encerrar combate">✕</button>';
+  }
+  /* nas variantes B e C os controles não moram no cabeçalho */
+  if(variant!=='A' && state==='running') ctl = '';
+  return '<div class="phead">'+left+'<span class="grow"></span>'+ctl+'</div>';
+}
+
+function mineBar(){
+  if(state!=='running' || isGm()) return '';
+  if(myTurn()) return '<div class="mine-bar">⚔ É a sua vez — Fofurinha</div>';
+  const k = untilMine();
+  return k ? '<div class="wait">Sua vez em '+k+' '+(k===1?'turno':'turnos')+'.</div>' : '';
+}
+
+/* ---------- variante A ---------- */
+function bodyA(){
+  const v = visible();
+  return v.map(function(p,i){ return row(p,{isNow: state==='running' && i===turn}); }).join('');
+}
+
+/* ---------- variante B ---------- */
+function bodyB(){
+  const v = visible();
+  if(state!=='running') return bodyA();
+  const cur = v[turn];
+  const after = [], before = [];
+  for(let k=1;k<v.length;k++) after.push(v[(turn+k)%v.length]);
+  const ctl = isGm()
+    ? '<div class="ctl"><button class="b" data-prev="1">❮ Anterior</button><button class="b t" data-next="1">Próximo turno ❯</button></div>'
+    : (cur.mine ? '<div class="ctl"><button class="b t" data-end="1">Encerrar meu turno</button></div>' : '');
+  const head = '<div class="now"><div class="top"><div class="por">'+cur.emoji+'</div>'
+    + '<div style="min-width:0"><div class="lbl">agora · rodada '+round+'</div>'
+    + '<div class="nm">'+cur.name+(cur.mine?'<span class="you">você</span>':'')+'</div>'
+    + '<div class="meta">'+(isGm()&&cur.sub?cur.sub+' · ':'')+'iniciativa '+(isGm()||cur.kind==='pc'?cur.init:'—')+'</div>'
+    + '</div><span style="flex:1"></span>'+hpOf(cur)+'</div>'
+    + condsOf(cur) + ctl + '</div>';
+  const list = '<div class="secl">a seguir</div>' + after.filter(function(p,i){return i<v.length-1;})
+      .map(function(p){ return row(p,{thin:true}); }).join('');
+  return head + list;
+}
+
+/* ---------- variante C ---------- */
+function bodyC(){
+  const v = visible();
+  if(state!=='running') return bodyA();
+  let out = '<div class="rdiv">rodada '+round+'</div>';
+  v.forEach(function(p,i){
+    if(i===turn) out += '<div class="cursor">agora</div>';
+    out += row(p,{isNow:i===turn, done:i<turn});
+  });
+  out += '<div class="rdiv next">rodada '+(round+1)+'</div>';
+  out += v.slice(0,2).map(function(p){ return row(p,{thin:true, done:true}); }).join('');
+  return out;
+}
+
+function footer(){
+  if(variant!=='C' || state==='empty') return '';
+  if(isGm()){
+    if(state==='setup') return '<div class="pfoot"><button class="b t" data-begin="1">Começar combate</button><span style="flex:1"></span><button class="ib dg" data-endc="1" title="Descartar">✕</button></div>';
+    return '<div class="pfoot"><button class="b" data-prev="1">❮</button><button class="b t" style="flex:1" data-next="1">Próximo turno ❯</button><button class="ib dg" data-endc="1" title="Encerrar combate">✕</button></div>';
+  }
+  if(myTurn()) return '<div class="pfoot"><button class="b t" style="flex:1" data-end="1">Encerrar meu turno</button></div>';
+  return '';
+}
+
+function panelCombat(){
+  if(state==='empty') return header() + '<div class="pbody">'+emptyState()+'</div>';
+  const body = variant==='A' ? bodyA() : variant==='B' ? bodyB() : bodyC();
+  return header() + mineBar() + toolbar() + addBlock() + '<div class="pbody">'+body+'</div>' + footer();
+}
+
+function panel(){
+  const inner = active==='combat' ? panelCombat() : ('<div class="phead"><span class="rd">'+TITLE[active]+'</span></div><div class="pbody">'+OTHER[active]+'</div>');
+  return '<div class="panel">'+inner+'</div>';
+}
+
+/* ===================== render ===================== */
+function render(){
+  const all = TABS.filter(function(t){return t.group==='all' && !t.foot;});
+  const gms = TABS.filter(function(t){return t.group==='gm' && isGm();});
+  const foot = TABS.filter(function(t){return t.foot;});
+  document.getElementById('root').innerHTML =
+    '<div class="'+(open?'is-open':'')+'"><aside class="shell">'
+    + '<nav class="tabs"><div class="grp">'+all.map(tabButton).join('')+'</div>'
+    + '<div class="grp gm">'+gms.map(tabButton).join('')+'</div>'
+    + '<div class="foot">'+foot.map(tabButton).join('')+'</div></nav>'
+    + panel() + '</aside></div>';
+
+  document.getElementById('who').className = 'who ' + (isGm()?'':'player');
+  document.getElementById('who').innerHTML = isGm()
+    ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+    : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha)</span>';
+
+  /* marcador de turno no mapa (REQ-CBT-050) */
+  const mk = document.getElementById('marker');
+  const cur = now();
+  if(state==='running' && cur && (isGm() || !cur.hidden)){
+    mk.style.display='grid';
+    mk.innerHTML = cur.emoji + '<small>' + (myTurn()?'SUA VEZ':cur.name.toUpperCase()) + '</small>';
+    mk.style.left = (18 + (turn*11)%60) + '%';
+    mk.style.top  = (22 + (turn*17)%50) + '%';
+  } else mk.style.display='none';
+
+  wire();
+  chrome();
+  const u = new URL(location);
+  u.searchParams.set('variant',variant); u.searchParams.set('role',role);
+  u.searchParams.set('state',state); u.searchParams.set('hp',hpMode);
+  u.searchParams.set('flood',flood?'1':'0');
+  history.replaceState(null,'',u);
+}
+
+function wire(){
+  const root = document.getElementById('root');
+  const on = function(sel, fn){ root.querySelectorAll(sel).forEach(function(el){ el.onclick = function(e){ e.stopPropagation(); fn(el); }; }); };
+
+  on('[data-tab]', function(el){ const id=el.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render(); });
+  on('[data-next]', function(){ step(1); render(); });
+  on('[data-prev]', function(){ step(-1); render(); });
+  on('[data-end]',  function(){ step(1); render(); });
+  on('[data-begin]',function(){ state='running'; round=1; turn=0; render(); });
+  on('[data-endc]', function(){ state='empty'; showAdd=false; rolled=new Set(); render(); });
+  on('[data-new]',  function(){ state='setup'; rolled=new Set(); render(); });
+  on('[data-add]',  function(el){ showAdd = el.dataset.add==='1'; if(showAdd && state==='empty'){ state='setup'; rolled=new Set(); } render(); });
+  on('[data-addtok]', function(){ render(); });
+  on('[data-rollall]',function(){ roster().forEach(function(p){ rolled.add(p.id); }); render(); });
+  on('[data-rollnpc]',function(){ roster().forEach(function(p){ if(p.kind==='npc') rolled.add(p.id); }); render(); });
+  on('[data-reset]', function(){ rolled = new Set(); if(state==='running') state='setup'; render(); });
+  on('[data-roll]',  function(el){ rolled.add(el.dataset.roll); render(); });
+  on('[data-exp]',   function(el){ expanded[el.dataset.exp] = !expanded[el.dataset.exp]; render(); });
+
+  /* tooltip desenhado das condições (DEC-CTT-11 item 3) */
+  const tip = document.getElementById('tip');
+  root.querySelectorAll('[data-help]').forEach(function(el){
+    el.onmouseenter = function(){
+      if(!el.dataset.help) return;
+      tip.textContent = el.dataset.help; tip.style.display='block';
+      const r = el.getBoundingClientRect();
+      tip.style.top = (r.top - 8) + 'px';
+      tip.style.left = Math.max(8, r.left - 240) + 'px';
+    };
+    el.onmouseleave = function(){ tip.style.display='none'; };
+  });
+}
+
+function chrome(){
+  document.getElementById('lbl').innerHTML = variant + ' — ' + VNAME[variant] + '<small>' + VHINT[variant] + '</small>';
+  document.getElementById('role').textContent  = isGm() ? 'papel: Mestre' : 'papel: jogador';
+  document.getElementById('state').textContent = 'estado: ' + ({empty:'vazio',setup:'montagem',running:'em andamento'})[state];
+  document.getElementById('flood').textContent = flood ? 'encontro: 13' : 'encontro: 6';
+  document.getElementById('hp').textContent    = 'vida (NPC p/ jogador): ' + HPNAME[hpMode];
+  document.getElementById('mine').textContent  = myTurn() ? '✓ é a sua vez' : 'pôr na minha vez';
+
+  document.getElementById('legend').innerHTML =
+    '<h4>Aba Combate — 3 formas de mostrar a mesma fila</h4>'
+    + '<table>'
+    + '<tr><td>A</td><td><b>Fila clássica.</b> Ordem fixa, ativo destacado no lugar, controles no cabeçalho.</td></tr>'
+    + '<tr><td>B</td><td><b>Cabeça de turno.</b> Cartão grande do "agora" com condições inteiras e os controles; a fila rotaciona embaixo.</td></tr>'
+    + '<tr><td>C</td><td><b>Cronograma.</b> Quem já agiu esmaece, o cursor marca o agora e a próxima rodada aparece no fim; controles no rodapé.</td></tr>'
+    + '</table>'
+    + '<div class="q"><b>o que decidir aqui:</b> <b>Q1</b> badge — ponto enquanto corre, âmbar quando é sua vez? · '
+    + '<b>Q2</b> jogador vê o valor de iniciativa do NPC (hoje: <i>não</i>, só a posição) · '
+    + '<b>Q3</b> jogador encerra o próprio turno? · <b>Q4</b> condição no tracker (teto 2 + “+N”) · '
+    + '<b>Q5</b> montagem: popover, seção ou janela · <b>Q6</b> combate encerrado some ou vira resumo.</div>'
+    + '<div class="q" style="border:0;padding-top:.3rem;color:#666">teclas: <b>←/→</b> variante · <b>p</b> papel · <b>e</b> estado · '
+    + '<b>f</b> encontro · <b>v</b> vida · <b>m</b> minha vez · <b>n</b> próximo turno</div>';
+}
+
+/* ===================== alternador ===================== */
+function cycleVariant(d){ variant = VARIANTS[(VARIANTS.indexOf(variant)+d+3)%3]; render(); }
+document.getElementById('prev').onclick = function(){ cycleVariant(-1); };
+document.getElementById('next').onclick = function(){ cycleVariant(1); };
+document.getElementById('role').onclick = function(){ role = isGm()?'player':'gm'; turn = Math.min(turn, Math.max(visible().length-1,0)); render(); };
+document.getElementById('state').onclick = function(){
+  state = state==='empty'?'setup':state==='setup'?'running':'empty';
+  if(state==='setup') rolled = new Set();
+  showAdd=false; turn=0; render();
+};
+document.getElementById('flood').onclick = function(){ flood = !flood; turn = 0; render(); };
+document.getElementById('hp').onclick = function(){ hpMode = HPMODES[(HPMODES.indexOf(hpMode)+1)%HPMODES.length]; render(); };
+document.getElementById('mine').onclick = function(){ if(state!=='running') state='running'; setMine(); render(); };
+
+document.addEventListener('keydown', function(e){
+  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if(e.key==='ArrowLeft') cycleVariant(-1);
+  else if(e.key==='ArrowRight') cycleVariant(1);
+  else if(e.key==='p') document.getElementById('role').click();
+  else if(e.key==='e') document.getElementById('state').click();
+  else if(e.key==='f') document.getElementById('flood').click();
+  else if(e.key==='v') document.getElementById('hp').click();
+  else if(e.key==='m') document.getElementById('mine').click();
+  else if(e.key==='n'){ step(1); render(); }
+});
+
+if(params.get('mine')==='1'){ state='running'; setMine(); }
+render();
+</script>
+</body>
+</html>
