@@ -13,16 +13,26 @@
  * The empty state is spec 36 §7.4. The keyboard block covers REQ-CEN-090 — the row
  * actions must be reachable with visible focus, so the hover-only reveal they inherited
  * from the old sidebar gets a focus equivalent (REQ-UIF-064).
+ *
+ * The last block covers REQ-CEN-043: putting a scene on air must NOT ask first. That is
+ * client behaviour and nothing else — the server has no shape for a confirmation, so
+ * only here is there anything for the requirement to forbid. It matters in this phase
+ * precisely because the SAME panel gained a confirmation for the fog reset
+ * (REQ-CEN-022), which is what the assertions below use as their live contrast.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { SceneDocument } from "@fusion/shared";
+import type { Socket } from "socket.io-client";
+import type { Envelope, SceneDocument } from "@fusion/shared";
 
 import ScenesTab from "../ScenesTab.svelte";
 import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
+import { activateScene } from "../../../lib/scenes/sceneController.js";
+import { putPreparedSceneOnAir } from "../../../lib/scenes/prepareState.svelte.js";
+import { resetSceneFog } from "../../../lib/scenes/sceneEnvironment.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -39,6 +49,10 @@ function makeScene(id: string, name: string): SceneDocument {
   } as unknown as SceneDocument;
 }
 
+function sourceOfScenesTab(): string {
+  return readFileSync(fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)), "utf8");
+}
+
 /**
  * The component's own stylesheet. Vitest runs the client in a node environment — no
  * DOM, so no `:hover` to leave and no `:focus-visible` to trigger — and the rule under
@@ -46,10 +60,7 @@ function makeScene(id: string, name: string): SceneDocument {
  * (`SidebarResponsive.test.ts`).
  */
 function styleOfScenesTab(): string {
-  const source = readFileSync(
-    fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)),
-    "utf8",
-  );
+  const source = sourceOfScenesTab();
   const style = /<style>([\s\S]*)<\/style>/.exec(source)?.[1];
   if (style === undefined) throw new Error("ScenesTab.svelte has no <style> block");
   return style;
@@ -213,5 +224,74 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
         /\.scene-row__grip:focus-visible\s*\{[^}]*outline:\s*(?!none)/,
       );
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Putting a scene on air asks nothing first — REQ-CEN-043
+// ---------------------------------------------------------------------------
+
+/** A socket that records every envelope and acks it successfully. */
+function fakeSocket(): { socket: Socket; sent: Envelope[] } {
+  const sent: Envelope[] = [];
+  const socket = {
+    emit(_event: string, payload: Envelope, ack: (value: unknown) => void): void {
+      sent.push(payload);
+      ack({ ok: true, seq: 1, requestId: payload.requestId, result: {} });
+    },
+  } as unknown as Socket;
+  return { socket, sent };
+}
+
+function sourceOfPrepareNotice(): string {
+  return readFileSync(
+    fileURLToPath(new URL("../ScenePrepareNotice.svelte", import.meta.url)),
+    "utf8",
+  );
+}
+
+describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
+  it("REQ-CEN-043: the archive's activate action reaches the write with no confirmation in between", () => {
+    const source = sourceOfScenesTab();
+
+    const activate = /async function handleActivate[\s\S]*?\n  }/.exec(source)?.[0] ?? "";
+    expect(activate).toContain("activateScene(socket, scene._id)");
+    expect(activate).not.toMatch(/confirm/i);
+
+    // The live contrast, in the very same file: the one gesture of this panel that
+    // cannot be undone DOES ask first (REQ-CEN-022). So "no confirmation" above is a
+    // property of the activation path, not of a pattern that matches nothing here.
+    const resetFog = /async function handleResetFog[\s\S]*?\n  }/.exec(source)?.[0] ?? "";
+    expect(resetFog).toContain("confirmDialog(");
+  });
+
+  it("REQ-CEN-043: the prepare notice's put-on-air action reaches the write with no confirmation either", () => {
+    // The second door onto the same write (REQ-CEN-040): a confirmation added here
+    // would break the requirement just as surely as one added to the archive line.
+    const handler =
+      /async function handlePutOnAir[\s\S]*?\n  }/.exec(sourceOfPrepareNotice())?.[0] ?? "";
+
+    expect(handler).toContain("putPreparedSceneOnAir(socket, notice.preparedSceneId)");
+    expect(handler).not.toMatch(/confirm/i);
+  });
+
+  it("REQ-CEN-043: neither on-air writer can even express a confirmation, and one call is one write", async () => {
+    // Structural first, so no future edit slips a question in without changing a
+    // signature: the irreversible gesture of this phase takes the question as an
+    // argument, and both ways of putting a scene on air take a socket and an id.
+    expect(resetSceneFog).toHaveLength(3);
+    expect(activateScene).toHaveLength(2);
+    expect(putPreparedSceneOnAir).toHaveLength(2);
+
+    const { socket, sent } = fakeSocket();
+
+    await putPreparedSceneOnAir(socket, "s2");
+    expect(sent.map((envelope) => envelope.type)).toEqual(["world:activeScene"]);
+
+    // And the contrast behaviourally, on the same working socket: the gesture that
+    // DOES ask writes nothing at all while the answer is "no" — which is exactly the
+    // shape REQ-CEN-043 forbids for "pôr no ar".
+    await resetSceneFog(socket, "s2", () => Promise.resolve(false));
+    expect(sent.map((envelope) => envelope.type)).toEqual(["world:activeScene"]);
   });
 });

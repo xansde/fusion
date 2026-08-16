@@ -6,9 +6,6 @@
  *              source of truth, and is broadcast to every client.
  * REQ-CEN-042: the server refuses a change to `active` through the generic
  *              document update, from ANY origin (player or GM).
- * REQ-CEN-043: no confirmation step — the ack and the broadcast come out of the
- *              same operation, so every client learns of the change without
- *              asking for it.
  * REQ-CEN-045: a failed activation comes back as an error ack and leaves nothing
  *              divergent behind: the source of truth does not move and no client
  *              is told anything.
@@ -18,7 +15,11 @@
  * These tests read the PAYLOAD the sockets receive and the ROW the server wrote —
  * never the screen. Applying the initial view to the camera, showing the failure
  * message and ending a local "preparo" are client behaviour and live in the
- * client tests of this phase.
+ * client tests of this phase. So is REQ-CEN-043 ("pôr no ar não pede
+ * confirmação"): there is no server-side shape for a confirmation to have, so
+ * asserting its absence here could only ever assert the absence of something the
+ * protocol never had. It is proved where a confirmation could actually be added —
+ * `packages/client/src/components/scenes/__tests__/ScenesTab.test.ts`.
  *
  * NOTE ON ORDERING: activation emits the on-air scene body (doc:update) BEFORE
  * the world:activeScene pointer on purpose (REQ-CEN-072) — the body has to land
@@ -310,7 +311,7 @@ describe("spec 44 §5.5 — putting a scene on air has one writer (DEC-CEN-02)",
   });
 
   // -------------------------------------------------------------------------
-  // REQ-CEN-040 / 041 / 043 — the dedicated event
+  // REQ-CEN-040 / 041 — the dedicated event
   // -------------------------------------------------------------------------
 
   it("REQ-CEN-040/REQ-CEN-041: the privileged role puts a scene on air, the single source of truth is written and every client is told", async () => {
@@ -358,7 +359,7 @@ describe("spec 44 §5.5 — putting a scene on air has one writer (DEC-CEN-02)",
     expect((pointers[0]?.["payload"] as Record<string, unknown>)["sceneId"]).toBe(secondId);
   });
 
-  it("REQ-CEN-043: no confirmation step — one operation acks and broadcasts, and the client is never asked anything", async () => {
+  it("REQ-CEN-072: the player is handed the body of the scene going on air, and it lands BEFORE the pointer that names it", async () => {
     const sceneId = await createScene(gmSocket, { name: "Muralha" });
     await settle();
 
@@ -367,12 +368,21 @@ describe("spec 44 §5.5 — putting a scene on air has one writer (DEC-CEN-02)",
     await settle();
 
     expect(ack["ok"]).toBe(true);
-    // Everything the player needs arrived unprompted, in the same operation:
-    // the body of the scene AND the pointer to it.
-    expect(sceneDocsIn(playerTraffic).some((doc) => doc["_id"] === sceneId)).toBe(true);
+
+    // A player mirrors only the scene on air (REQ-CEN-071/073), so the body of the
+    // NEW one has to be handed over as part of this same activation — the player has
+    // no other way to ever obtain it, and no resync was asked for here.
+    const bodyIndex = playerTraffic.findIndex((env) =>
+      sceneDocsIn([env]).some((doc) => doc["_id"] === sceneId),
+    );
+    expect(bodyIndex).toBeGreaterThanOrEqual(0);
+
+    // ...and the ORDER is the whole point: a pointer that arrives first names a scene
+    // the player does not have yet, which is an empty canvas no resync would repair.
+    const pointerIndex = playerTraffic.findIndex((env) => env["type"] === "world:activeScene");
+    expect(pointerIndex).toBeGreaterThanOrEqual(0);
+    expect(bodyIndex).toBeLessThan(pointerIndex);
     expect(pointerEnvelopes(playerTraffic)).toHaveLength(1);
-    // No confirmation round-trip: the server asked the caller nothing back.
-    expect(playerTraffic.some((env) => env["type"] === "world:activeScene:confirm")).toBe(false);
   });
 
   // -------------------------------------------------------------------------
