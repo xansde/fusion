@@ -1,17 +1,18 @@
 /**
- * npc-delete.test.ts — excluir um não-jogável (spec 42 §5.7, G075), lado servidor.
+ * npc-delete.test.ts — deleting a non-playable (spec 42 §5.7, G075), server side.
  *
- * Cobre REQ-NPC-050 (só papel privilegiado exclui), REQ-NPC-051 (antes de excluir,
- * o que cai junto: presenças por cena, conhecimento e itens da ficha), REQ-NPC-052
- * (recusa enquanto o ator estiver num combate que não terminou, dizendo como
- * destravar), REQ-NPC-053 (excluído, as presenças somem de TODAS as cenas),
- * REQ-NPC-054 (o conhecimento gravado sobre ele deixa de existir) e REQ-NPC-055
- * (esta aba não exclui personagem de jogador, e a consulta dela não responde
- * sobre um).
+ * Covers REQ-NPC-050 (only a privileged role deletes), REQ-NPC-051 (before
+ * deleting, what comes with it: per-scene presences, knowledge and the sheet's
+ * items), REQ-NPC-052 (refuse while the actor sits in a combat that has not
+ * ended, saying how to unblock), REQ-NPC-053 (once deleted, presences vanish
+ * from EVERY scene), REQ-NPC-054 (the knowledge recorded about it stops
+ * existing) and REQ-NPC-055 (this tab never deletes a player character, and
+ * its preview never answers about one).
  *
- * Tudo é afirmado sobre o PAYLOAD que o socket carrega — o ack da operação e o
- * snapshot de um join novo —, nunca sobre uma visão do cliente: o que importa é o
- * que o servidor de fato persistiu e o que ele de fato entrega depois.
+ * Everything is asserted on the PAYLOAD the socket carries — the operation's
+ * ack and a fresh join's snapshot —, never on a client-side view: what matters
+ * is what the server actually persisted and what it actually hands out
+ * afterwards.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -279,11 +280,11 @@ afterAll(async () => {
 });
 
 // ---------------------------------------------------------------------------
-// REQ-NPC-050 / REQ-NPC-051 — o que cai junto, antes de cair
+// REQ-NPC-050 / REQ-NPC-051 — what comes with it, before it falls
 // ---------------------------------------------------------------------------
 
-describe("REQ-NPC-051: a consulta diz o que a exclusão leva junto", () => {
-  it("REQ-NPC-051: presenças por cena, conhecimento gravado e itens da ficha", async () => {
+describe("REQ-NPC-051: the preview says what the deletion takes along", () => {
+  it("REQ-NPC-051: per-scene presences, recorded knowledge and the sheet's items", async () => {
     const praca = await createScene("Praça do Mercado");
     const cripta = await createScene("Cripta");
     const bram = await createActor("Ferreiro Bram", "npc", {
@@ -310,7 +311,7 @@ describe("REQ-NPC-051: a consulta diz o que a exclusão leva junto", () => {
     expect(preview["name"]).toBe("Ferreiro Bram");
     expect(preview["type"]).toBe("npc");
 
-    // Quantas presenças, e em quais cenas — e nada da presença individual.
+    // How many presences, and in which scenes — nothing about the individual presence.
     expect(preview["presenceCount"]).toBe(3);
     const presences = preview["presences"] as Record<string, unknown>[];
     expect(presences).toHaveLength(2);
@@ -321,22 +322,22 @@ describe("REQ-NPC-051: a consulta diz o que a exclusão leva junto", () => {
     expect(naCripta?.["presenceCount"]).toBe(1);
     expect(JSON.stringify(presences)).not.toContain("tokenId");
 
-    // O conhecimento gravado sobre ele (REQ-CTT-070/072).
+    // The knowledge recorded about it (REQ-CTT-070/072).
     const knowledge = preview["knowledge"] as Record<string, unknown>;
     expect(knowledge["general"]).toBe(0);
     expect(knowledge["exceptionCount"]).toBe(1);
     expect(knowledge["knownBy"]).toBe(1);
     expect(knowledge["glimpsedBy"]).toBe(0);
 
-    // A ficha com seus itens embutidos.
+    // The sheet with its embedded items.
     expect(preview["itemCount"]).toBe(1);
 
-    // Nada bloqueia: não há combate no mundo ainda.
+    // Nothing blocks it: there is no combat in the world yet.
     expect(preview["blockingCombats"]).toEqual([]);
     expect(preview["deletable"]).toBe(true);
   });
 
-  it("REQ-NPC-050: o jogador não recebe a consulta nem consegue excluir", async () => {
+  it("REQ-NPC-050: the player gets neither the preview nor the delete", async () => {
     const rato = await createActor("Rato Gigante", "npc");
 
     const previewAck = await previewDelete(playerSocket, rato);
@@ -350,12 +351,12 @@ describe("REQ-NPC-051: a consulta diz o que a exclusão leva junto", () => {
     expect(deleteAck["ok"]).toBe(false);
     expect(deleteAck["code"]).toBe("PERMISSION_DENIED");
 
-    // E o ator continua lá.
+    // And the actor is still there.
     const world = await readWorld(ctx.gmToken);
     expect((world["Actor"] ?? []).some((doc) => doc["_id"] === rato)).toBe(true);
   });
 
-  it("REQ-NPC-055: a consulta desta aba não responde sobre personagem de jogador", async () => {
+  it("REQ-NPC-055: this tab's preview never answers about a player character", async () => {
     const pc = await createActor("Fofurinha", "character", {
       ownership: { default: 0, [ctx.playerUserId]: 3 },
     });
@@ -368,11 +369,11 @@ describe("REQ-NPC-051: a consulta diz o que a exclusão leva junto", () => {
 });
 
 // ---------------------------------------------------------------------------
-// REQ-NPC-052 — combate ativo recusa
+// REQ-NPC-052 — active combat refuses
 // ---------------------------------------------------------------------------
 
-describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
-  it("REQ-NPC-052: a recusa nomeia o encontro e diz como destravar", async () => {
+describe("REQ-NPC-052: a combat that has not ended refuses the deletion", () => {
+  it("REQ-NPC-052: the refusal names the encounter and says how to unblock", async () => {
     const arena = await createScene("Arena");
     const goblin = await createActor("Goblin Piromaníaco", "npc");
     const tokenId = await createToken(arena, "Goblin", goblin);
@@ -392,7 +393,7 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
     });
     expect(addAck["ok"], JSON.stringify(addAck)).toBe(true);
 
-    // A consulta já avisa antes de o Mestre confirmar (REQ-NPC-051).
+    // The preview already warns before the Game Master confirms (REQ-NPC-051).
     const previewAck = await previewDelete(gmSocket, goblin);
     expect(previewAck["ok"], JSON.stringify(previewAck)).toBe(true);
     const preview = previewAck["result"] as Record<string, unknown>;
@@ -404,7 +405,7 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
     expect(blocking[0]!["sceneName"]).toBe("Arena");
     expect(blocking[0]!["combatantCount"]).toBe(1);
 
-    // E o servidor recusa de verdade, não só na tela.
+    // And the server actually refuses it, not just the screen.
     const deleteAck = await sendOp(gmSocket, "doc:delete", {
       documentType: "Actor",
       ids: [goblin],
@@ -413,17 +414,17 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
     expect(deleteAck["code"]).toBe("VALIDATION_FAILED");
     const message = String(deleteAck["message"]);
     expect(message).toContain(combatId);
-    // A recusa diz o que fazer para destravar (REQ-CBT-003 / REQ-CBT-006).
+    // The refusal says what to do to unblock (REQ-CBT-003 / REQ-CBT-006).
     expect(message).toContain("combat:endCombat");
     expect(message).toContain("combat:removeCombatant");
 
-    // Nada foi excluído.
+    // Nothing was deleted.
     const world = await readWorld(ctx.gmToken);
     expect((world["Actor"] ?? []).some((doc) => doc["_id"] === goblin)).toBe(true);
     expect(presencesInWorld(world, goblin)).toBe(1);
   });
 
-  it("REQ-NPC-052: um lote com um NPC livre e um em combate não exclui nada", async () => {
+  it("REQ-NPC-052: a batch with one free NPC and one in combat deletes nothing", async () => {
     const arena = await createScene("Arena Dupla");
     const preso = await createActor("Ogro Preso", "npc");
     const livre = await createActor("Ogro Livre", "npc");
@@ -447,11 +448,12 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
     expect(actorIds).toContain(preso);
   });
 
-  it("REQ-NPC-052: a consulta não responde sobre subtipo que a recusa não governa", async () => {
-    // A recusa de REQ-NPC-052 vale para o não-jogável desta aba. Se a consulta
-    // respondesse sobre um `familiar`, ela diria `deletable: false` para uma
-    // exclusão que o servidor faria assim mesmo — uma confirmação prometendo uma
-    // recusa que não vem. O domínio da consulta e o da recusa são o mesmo.
+  it("REQ-NPC-052: the preview never answers about a subtype the refusal does not govern", async () => {
+    // REQ-NPC-052's refusal applies to this tab's non-playable. If the preview
+    // answered about a `familiar`, it would say `deletable: false` for a
+    // deletion the server would perform anyway — a confirmation promising a
+    // refusal that never comes. The preview's domain and the refusal's domain
+    // are the same.
     const arena = await createScene("Arena do Familiar");
     const coruja = await createActor("Coruja Vigilante", "familiar");
     const tokenId = await createToken(arena, "Coruja", coruja);
@@ -468,7 +470,7 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
     expect(String(previewAck["message"])).toContain("non-playable");
   });
 
-  it("REQ-NPC-052: encerrado o combate, a mesma exclusão passa", async () => {
+  it("REQ-NPC-052: once the combat has ended, the same deletion goes through", async () => {
     const arena = await createScene("Arena Encerrada");
     const lobo = await createActor("Lobo Atroz", "npc");
     const tokenId = await createToken(arena, "Lobo", lobo);
@@ -503,11 +505,11 @@ describe("REQ-NPC-052: combate que não terminou recusa a exclusão", () => {
 });
 
 // ---------------------------------------------------------------------------
-// REQ-NPC-053 / REQ-NPC-054 — o que some junto
+// REQ-NPC-053 / REQ-NPC-054 — what vanishes along with it
 // ---------------------------------------------------------------------------
 
-describe("REQ-NPC-053 / REQ-NPC-054: excluído, some de todas as cenas e o conhecimento acaba", () => {
-  it("REQ-NPC-053: as presenças somem de TODAS as cenas, com delta e sem recarregar", async () => {
+describe("REQ-NPC-053 / REQ-NPC-054: once deleted, it vanishes from every scene and the knowledge ends", () => {
+  it("REQ-NPC-053: presences vanish from EVERY scene, with a delta and no reload", async () => {
     const taverna = await createScene("Taverna");
     const porao = await createScene("Porão");
     const bandido = await createActor("Bandido Encapuzado", "npc");
@@ -515,7 +517,7 @@ describe("REQ-NPC-053 / REQ-NPC-054: excluído, some de todas as cenas e o conhe
     await createToken(taverna, "Bandido A", bandido);
     await createToken(taverna, "Bandido B", bandido);
     await createToken(porao, "Bandido C", bandido);
-    // Uma presença de OUTRO ator na mesma cena, que precisa sobreviver.
+    // A presence of ANOTHER actor in the same scene, which needs to survive.
     const gato = await createActor("Gato da Taverna", "npc");
     await createToken(taverna, "Gato", gato);
 
@@ -531,7 +533,7 @@ describe("REQ-NPC-053 / REQ-NPC-054: excluído, some de todas as cenas e o conhe
     await new Promise((resolve) => setTimeout(resolve, 250));
     collector.stop();
 
-    // O delta das cenas viaja no mesmo cano — ninguém precisa recarregar.
+    // The scene delta travels through the same pipe — no one needs to reload.
     const sceneUpdates = collector.ops.filter(
       (env) =>
         env["type"] === "doc:update" &&
@@ -546,11 +548,11 @@ describe("REQ-NPC-053 / REQ-NPC-054: excluído, some de todas as cenas e o conhe
 
     const world = await readWorld(ctx.gmToken);
     expect(presencesInWorld(world, bandido)).toBe(0);
-    // A presença do outro ator continua exatamente onde estava.
+    // The other actor's presence stays exactly where it was.
     expect(presencesInWorld(world, gato)).toBe(1);
   });
 
-  it("REQ-NPC-054: o conhecimento sobre ele deixa de existir, e nada mais o referencia", async () => {
+  it("REQ-NPC-054: the knowledge about it stops existing, and nothing else references it", async () => {
     const beco = await createScene("Beco");
     const informante = await createActor("Informante", "npc");
     const heroi = await createActor("Heroína Vex", "character", {
@@ -558,7 +560,7 @@ describe("REQ-NPC-053 / REQ-NPC-054: excluído, some de todas as cenas e o conhe
     });
     await createToken(beco, "Informante", informante);
 
-    // Regra geral + exceção: os dois lados do modelo (REQ-CTT-070/072).
+    // General rule + exception: both sides of the model (REQ-CTT-070/072).
     const knowledgeAck = await sendOp(gmSocket, "actor:setKnowledge", {
       updates: [{ actorId: informante, general: 1, exceptions: { [heroi]: 2 } }],
     });
@@ -574,14 +576,14 @@ describe("REQ-NPC-053 / REQ-NPC-054: excluído, some de todas as cenas e o conhe
     });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
 
-    // Nenhum documento que o mundo ainda entrega cita o ator excluído — nem um
-    // token, nem uma exceção de conhecimento, nem uma pasta.
+    // No document the world still hands out cites the deleted actor — not a
+    // token, not a knowledge exception, not a folder.
     const world = await readWorld(ctx.gmToken);
     for (const [documentType, documents] of Object.entries(world)) {
       for (const doc of documents) {
         expect(
           JSON.stringify(doc).includes(informante),
-          `${documentType}/${String(doc["_id"])} ainda cita o ator excluído`,
+          `${documentType}/${String(doc["_id"])} still cites the deleted actor`,
         ).toBe(false);
       }
     }
