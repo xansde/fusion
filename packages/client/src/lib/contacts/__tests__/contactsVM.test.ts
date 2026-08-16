@@ -18,6 +18,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { etmosSystem } from "@fusion/system-etmos";
 
 import {
   buildContactConditions,
@@ -28,6 +29,8 @@ import {
   CONTACT_TITLE_FLAG_PATH,
   isContactPresent,
   isGlimpsedContact,
+  isNonPlayableActor,
+  isPlayerCharacter,
   isSubCharacter,
   matchesContactQuery,
   orderContactCategories,
@@ -472,5 +475,44 @@ describe("the conditions a card shows (REQ-CTT-020)", () => {
 
     expect(views.map((view) => view.label)).toEqual(["Amedrontado 2", "Escondido"]);
     expect(views.every((view) => view.tone === "special")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The panel's mirror vs. the manifest it mirrors
+// ---------------------------------------------------------------------------
+
+/**
+ * `contactsVM.ts` mirrors by hand which Actor subtype is a player character and
+ * which one is a contact, because the client package may not import every
+ * system package. The server keeps the same mirror in
+ * `packages/server/src/documents/knowledge.ts` — and the two answering
+ * differently is the whole defect: the payload would be redacted by one table
+ * and drawn by another, so a card the server delivered would never reach "Na
+ * mesa" (REQ-CTT-014/REQ-CTT-020).
+ *
+ * Etmos is the system the client really can import, and the one whose names
+ * differ from pf2e's, so its manifest is read here as data — a third source
+ * both mirrors answer to, never the mirror compared to itself.
+ */
+describe("Actor subtype mirror vs. the etmos manifest (REQ-CTT-014, REQ-CTT-020)", () => {
+  const ETMOS_ACTOR_SUBTYPES = etmosSystem.manifest.documentTypes["Actor"] ?? [];
+
+  it("REQ-CTT-014: the playable Actor etmos declares first is read as a character, never as a contact", () => {
+    const playable = ETMOS_ACTOR_SUBTYPES[0] ?? "";
+    expect({
+      playable,
+      isCharacter: isPlayerCharacter({ _id: "a", type: playable }),
+      isContact: isNonPlayableActor({ _id: "a", type: playable }),
+    }).toEqual({ playable: "orador", isCharacter: true, isContact: false });
+  });
+
+  it("REQ-CTT-020: every Actor subtype etmos declares is classified — none falls through unnoticed", () => {
+    const unclassified = ETMOS_ACTOR_SUBTYPES.filter(
+      (subtype) =>
+        !isPlayerCharacter({ _id: "a", type: subtype }) &&
+        !isNonPlayableActor({ _id: "a", type: subtype }),
+    );
+    expect(unclassified).toEqual([]);
   });
 });

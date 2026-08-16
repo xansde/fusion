@@ -32,6 +32,9 @@ import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION, KnowledgeState, readKnowledgeMap } from "@fusion/shared";
 import type { KnowledgeMap } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
+import { sf2eSystem } from "@fusion/system-sf2e";
+import { etmosSystem } from "@fusion/system-etmos";
+import { isCharacterActor, isNonPlayableActor } from "../documents/knowledge.js";
 import { reserveFreePort } from "./helpers/ports.js";
 
 // ---------------------------------------------------------------------------
@@ -594,5 +597,69 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     // Player B therefore sits at Known for this contact: the maximum wins.
     const states = [charBId, secondCharB].map((id) => stored.exceptions[id] ?? stored.general);
     expect(Math.max(...states)).toBe(KnowledgeState.Known);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The mirrors vs. the manifests they mirror
+// ---------------------------------------------------------------------------
+
+/**
+ * `documents/knowledge.ts` mirrors by hand which Actor subtype is a player
+ * character and which one is a contact, because the server package may not
+ * import a system package. A hand mirror rots in silence: the day a system
+ * declares a playable subtype nobody copied over, that world answers with NO
+ * characters — no exception ever applies (REQ-CTT-071), every other player's
+ * character is filtered out of the payload, and the grid refuses the write.
+ *
+ * So the mirror is checked against the manifests themselves — a different
+ * source, read here as data (`manifest.documentTypes.Actor`), never the
+ * mirror's own table compared to itself.
+ */
+describe("Actor subtype mirrors vs. the system manifests (REQ-CTT-071, REQ-CTT-074)", () => {
+  const SYSTEMS = [
+    { id: "pf2e", subtypes: pf2eSystem.manifest.documentTypes["Actor"] ?? [] },
+    { id: "sf2e", subtypes: sf2eSystem.manifest.documentTypes["Actor"] ?? [] },
+    { id: "etmos", subtypes: etmosSystem.manifest.documentTypes["Actor"] ?? [] },
+  ];
+
+  /**
+   * Subtypes deliberately classified as NEITHER a character nor a contact: the
+   * chest (`loot`, DEC-NPC-08) and a companion (`familiar`, DEC-CTT-06), both
+   * of which answer to `ownership` alone (REQ-CTT-074). Naming them here is the
+   * decision; what the test refuses is SILENCE about a subtype nobody decided.
+   */
+  const DECIDED_AS_NEITHER = new Set(["loot", "familiar"]);
+
+  it("REQ-CTT-071/REQ-CTT-074: every Actor subtype a system declares is classified — none falls through unnoticed", () => {
+    const unclassified: string[] = [];
+    for (const system of SYSTEMS) {
+      for (const subtype of system.subtypes) {
+        const doc = { type: subtype };
+        if (isCharacterActor(doc) || isNonPlayableActor(doc)) continue;
+        if (DECIDED_AS_NEITHER.has(subtype)) continue;
+        unclassified.push(`${system.id}:${subtype}`);
+      }
+    }
+    expect(unclassified).toEqual([]);
+  });
+
+  it("REQ-CTT-071: the playable Actor each system declares first is read as a character, never as a contact", () => {
+    // The manifests put the player's own Actor first: pf2e/sf2e `character`,
+    // etmos `orador`. Reading only one of those literals is the bug this guards.
+    const verdicts = SYSTEMS.map((system) => {
+      const playable = system.subtypes[0] ?? "";
+      return {
+        id: system.id,
+        playable,
+        isCharacter: isCharacterActor({ type: playable }),
+        isContact: isNonPlayableActor({ type: playable }),
+      };
+    });
+    expect(verdicts).toEqual([
+      { id: "pf2e", playable: "character", isCharacter: true, isContact: false },
+      { id: "sf2e", playable: "character", isCharacter: true, isContact: false },
+      { id: "etmos", playable: "orador", isCharacter: true, isContact: false },
+    ]);
   });
 });
