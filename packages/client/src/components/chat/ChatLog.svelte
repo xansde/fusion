@@ -168,6 +168,13 @@
 
     logEl.scrollTop = row.offsetTop - logEl.offsetTop;
     scrollManager.positionAtAnchor();
+    // A log that already fits the drawer has nothing left to scroll: landing on the
+    // anchor put the end of the log on screen too, and no scroll event will ever
+    // fire to say so. Handing the real metrics over closes that hole — the "N novas"
+    // divider retires now, as REQ-ACH-005 asks of a reader who reached the end,
+    // instead of standing forever; and the view re-pins, so the next arrival scrolls
+    // along instead of lighting a notice for a line already in view (REQ-ACH-006).
+    scrollManager.onScroll(logEl.scrollTop, logEl.scrollHeight, logEl.clientHeight);
     return true;
   }
 

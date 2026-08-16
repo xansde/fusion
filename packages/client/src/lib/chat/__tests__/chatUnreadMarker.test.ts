@@ -289,6 +289,52 @@ describe("REQ-ACH-005 — o marcador só some ao alcançar o fim do log", () => 
     expect(h.endReached).toBe(0);
     expect(h.manager.pinned).toBe(false);
   });
+
+  it("REQ-ACH-005 / REQ-ACH-006: log que cabe na tela já É o fim — a âncora não deixa o marcador de pé", () => {
+    // Sessão recém-começada: o log inteiro cabe na altura da gaveta, então não
+    // sobra rolagem nenhuma (scrollHeight === clientHeight) e nenhum evento de
+    // scroll vai acontecer depois da montagem. Pousar na âncora aqui é pousar no
+    // fim do log: o marcador tem que se retirar (REQ-ACH-005) e a vista tem que
+    // voltar a grudar, senão a próxima mensagem acende "↓ 1 nova" apontando para
+    // uma linha que já está à vista (REQ-ACH-006).
+    const h = makeScrollHarness();
+
+    h.manager.positionAtAnchor();
+    h.manager.onScroll(0, 300, 300);
+
+    expect(h.endReached).toBe(1);
+    expect(h.manager.pinned).toBe(true);
+
+    h.manager.onNewMessage();
+
+    expect(h.manager.pendingCount).toBe(0);
+    expect(h.notices.at(-1)).toEqual({ visible: false, count: 0 });
+  });
+
+  it("REQ-ACH-005: o log entrega as métricas reais depois de pousar na âncora", () => {
+    // Sem isso o caso "não há o que rolar" nunca chega ao gerenciador, e o
+    // marcador fica de pé para sempre — o defeito que este par de testes fecha.
+    const log = source("../../../components/chat/ChatLog.svelte")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+
+    expect(log).toMatch(
+      /positionAtAnchor\(\);\s*scrollManager\.onScroll\(\s*logEl\.scrollTop,\s*logEl\.scrollHeight,\s*logEl\.clientHeight,?\s*\);\s*return true;/,
+    );
+  });
+
+  it("REQ-ACH-005: âncora no meio de um log longo continua sem retirar o marcador", () => {
+    // A contraprova do teste acima: entregar as métricas não pode retirar o
+    // marcador de quem realmente parou no meio do log.
+    const h = makeScrollHarness();
+
+    h.manager.positionAtAnchor();
+    h.manager.onScroll(120, 2000, 300);
+
+    expect(h.endReached).toBe(0);
+    expect(h.manager.pinned).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
