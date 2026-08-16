@@ -448,7 +448,7 @@ esconderia a T034.
 que passa a ser recusada — e com teste de que `doc:create` e o caminho `embedded` seguem
 funcionando.
 
-### T034 — `items.+` / `items.-<id>` não existem no servidor (toggle de condição quebrado)
+### T034 — `items.+` / `items.-<id>` não existem no servidor (toggle de condição quebrado) — em andamento
 
 `packages/client/src/lib/sheets/pf2e/characterSheetVM.ts:2283-2313` ·
 `packages/client/src/lib/sheets/pf2e/npcSheetVM.ts:517-540` ·
@@ -666,6 +666,33 @@ representação única do path, e também decidir: as 5 tabelas de documento sem
 para asset **órfão** (sem documento algum referenciando — 25% dos arquivos do único mundo
 real disponível), e a janela de debounce entre escolha otimista no cliente e persistência
 no servidor.
+
+**Segunda rodada de desenho: também DERRUBADA (2026-08-16).** A proposta era "um asset herda
+a permissão mais restritiva entre os documentos que o referenciam" — que sobrevive ao ataque
+que matou a primeira, mas caiu em três pontos novos, todos reproduzidos por execução:
+
+1. **O mínimo não roda sobre o arquivo, roda sobre uma chave de string que o atacante
+   escolhe.** O jogador grava o caminho secreto no próprio Actor com uma barra a mais
+   (`/assets//mapa.png`); a canonicalização produz uma chave diferente da que a cena oculta
+   gerou, então o balde do mínimo passa a conter só o documento dele — e o `path.normalize`
+   da rota serve exatamente os mesmos bytes. Na máquina real (Windows) trocar a caixa de uma
+   letra tem o mesmo efeito. É o mesmo defeito da primeira rodada com outra roupa: o gate
+   volta a ler um dado que o atacante escreve.
+2. **O fail-closed ficou invertido.** As três saídas foram ordenadas ao contrário —
+   referenciado por documento oculto = negado; sem `ownership` resolvível = ASSISTANT_GM;
+   **órfão = TRUSTED**. Como qualquer grafia fora da canônica cai fora do índice e vira
+   "órfão", toda grafia torta é uma escada para baixo até o ramo mais permissivo. Menos
+   informação tem que dar menos acesso, não mais.
+3. **Amarrar o token ao caminho quebra o `FilePicker`.** Ele minta **um** token ao abrir e
+   reusa em todas as miniaturas do grid; com HMAC por caminho, o grid inteiro vira 401 — e é
+   a tela em que o GM escolhe mapa e retrato.
+
+Restrições que a terceira rodada herda, além das anteriores: `settings` tem escrita crua por
+`INSERT OR REPLACE` (fora do `DocumentStore`, então um hook no store não cobre); `ownership` é
+campo **gravável** do próprio documento e o store não o valida, então o jogador pode publicar
+um asset órfão para a mesa inteira setando `ownership.default = 2` na própria ficha; e o custo
+a medir é o número de emissões de token **por tela** (hoje `resolveAssetUrl` minta uma por
+imagem renderizada), não o custo de resolver ownership uma vez.
 
 PR próprio, fora das migrations. Pode subir de prioridade para logo depois da Fase 0 se o
 risco na mesa incomodar.
