@@ -160,13 +160,16 @@ export function setSearch(state: BrowserScopeState, search: string): BrowserScop
  * Open a pack: the scope becomes that pack and the typed text is cleared, so the
  * body is the pack's own index rather than a search carried in from elsewhere
  * (REQ-CPD-013). The **source** facet goes with it — naming a pack while a pack
- * is open would be a second, contradictory scope.
+ * is open would be a second, contradictory scope — and so does the **document
+ * type** facet: a pack has exactly one type, so keeping it would leave an active
+ * facet that the pack body neither draws nor applies, which is precisely the
+ * invisible, irremovable filter REQ-CPD-034 forbids.
  */
 export function openPack(
   state: BrowserScopeState,
   pack: { readonly id: string; readonly label: string },
 ): BrowserScopeState {
-  const { packId: _dropped, ...rest } = state.facets;
+  const { packId: _droppedPack, documentType: _droppedType, ...rest } = state.facets;
   return {
     scope: { kind: "pack", packId: pack.id, packLabel: pack.label },
     search: "",

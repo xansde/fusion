@@ -19,6 +19,25 @@
    * scrolls away in either body (REQ-CPD-016). Nothing here sets a width: the
    * drawer owns it, so switching body cannot move it (REQ-CPD-017, REQ-GAV-012).
    *
+   * The facets of §5.4 live in that same header (REQ-CPD-033): document type,
+   * rarity, level range and — once the answer spans more than one pack — source,
+   * each of them said out loud as a removable chip (REQ-CPD-034). They are drawn
+   * where they are visible in BOTH scopes on purpose: a facet the reader cannot
+   * see is a facet he cannot take off. `lib/compendium/aggregatedFacets.ts` owns
+   * the choices, the chips, and the two facets the server's payload has no field
+   * for.
+   *
+   * Typing is not one request per key, and a late answer never repaints over a
+   * newer one — both halves of RNF-CPD-02, both in
+   * `lib/compendium/searchScheduler.ts`.
+   *
+   * Failure has THREE channels here, and they are separate because they mean
+   * different things (REQ-CPD-091): `error` is a body that could not be built
+   * (listing packs, opening a pack) and carries the retry of the very call that
+   * failed; `searchError` is an answer that did not come and carries its own new
+   * attempt; `importError`/`importSuccess` are the visible return of bringing an
+   * entry over (REQ-CPD-060), which must never destroy the list underneath.
+   *
    * The shelf body itself is `CompendiumShelf.svelte` (G092): packs grouped by
    * document type, collapsible, each row showing its license (REQ-CPD-020..025).
    * This file owns what surrounds it — the loading, the scope, and the collapse
@@ -90,6 +109,16 @@
     widenToWholeCollection,
     type ScopedSearchQuery,
   } from "../../lib/compendium/browserScope.js";
+  import {
+    applyAggregatedFacets,
+    describeActiveFacets,
+    documentTypeChoices,
+    rarityChoices,
+    sourceChoices,
+    type FacetChip,
+    type FacetChoice,
+  } from "../../lib/compendium/aggregatedFacets.js";
+  import { createSearchScheduler } from "../../lib/compendium/searchScheduler.js";
   import CompendiumShelf from "./CompendiumShelf.svelte";
   import {
     buildShelfGroups,
@@ -168,7 +197,21 @@
 
   let packs = $state<PackManifest[]>([]);
   let loading = $state(false);
+  /**
+   * Failure of the two calls that BUILD a body — listing packs and opening a
+   * pack. It replaces the body, so it must never carry a failure that did not
+   * destroy the body (an import that was refused, for instance: that one has its
+   * own channel below, REQ-CPD-060).
+   */
   let error = $state<string | null>(null);
+  /**
+   * What "try again" retries. REQ-CPD-091 asks for a new attempt, and a button
+   * that always re-lists the packs is not one when what failed was opening a
+   * pack — it clears the message and leaves an empty list, which is the silent
+   * empty list the same requirement forbids. So the failing call stores ITSELF
+   * here.
+   */
+  let retryAction = $state<(() => void) | null>(null);
 
   const selectedPack = $derived(packs.find((pack) => pack.id === openPackId) ?? null);
 
@@ -240,8 +283,35 @@
   let aggregated = $state<AggregatedSearchResult | null>(null);
   let searching = $state(false);
   let searchError = $state<string | null>(null);
-  /** Guards against an older answer landing after a newer one. */
-  let searchToken = 0;
+
+  /**
+   * RNF-CPD-02, both halves, and neither of them here: typing must not be one
+   * request per key, and a slow answer must not overwrite a newer one. The rule
+   * lives in `lib/compendium/searchScheduler.ts`, where it is tested with fake
+   * timers and out-of-order answers; this panel only says what to run and where
+   * to put the result.
+   */
+  const searchScheduler = createSearchScheduler<ScopedSearchQuery, unknown>({
+    run: (query) => searchAllPacks(socket, buildSearchAllPayload(query)),
+    onStart: () => {
+      searching = true;
+      searchError = null;
+    },
+    onResult: (raw) => {
+      aggregated = normalizeAggregatedSearchResult(raw);
+      searching = false;
+    },
+    onError: (err) => {
+      aggregated = null;
+      searchError = err instanceof Error ? err.message : t("FUSION.Compendium.SearchFailed");
+      searching = false;
+    },
+  });
+
+  /** REQ-CPD-091: the new attempt a failed search must offer, un-grouped. */
+  function retrySearch(): void {
+    searchScheduler.runNow(buildScopedSearchQuery(scopeState));
+  }
 
   // ---- The world's origin index, for the in-world seal (REQ-CPD-043) ----
 
@@ -273,7 +343,15 @@
   // ---- Bringing entries over (G095, DEC-CPD-05) ----
 
   let importingUuids = $state<Set<string>>(new Set());
+  /**
+   * REQ-CPD-060 asks for a visible return of success AND of failure. Both live
+   * on their own channel, next to the destination picker, and NEITHER goes
+   * through `error`: a refused import (the PERMISSION_DENIED of REQ-CPD-073, say)
+   * must not tear down the list the reader is standing in and offer him a
+   * "try again" that would re-list the packs instead of retrying the import.
+   */
   let importSuccess = $state<string | null>(null);
+  let importError = $state<string | null>(null);
 
   const viewer = $derived({ userId, isPrivileged: isGm });
 
@@ -332,9 +410,22 @@
       ...(scopeState.facets.maxLevel !== undefined
         ? { maxLevel: scopeState.facets.maxLevel }
         : {}),
+      // A facet set at root keeps meaning the same thing inside a pack
+      // (REQ-CPD-034) — otherwise opening a pack would silently widen it back.
+      ...(scopeState.facets.rarity !== undefined ? { rarity: scopeState.facets.rarity } : {}),
     });
     return sortEntries(filterEntries(packEntries, query), sortField, sortAsc);
   });
+
+  /**
+   * The aggregated body as it is actually drawn: the server answered text,
+   * level and rarity; document type and source are applied here, because the
+   * `compendium:searchAll` payload has no field for either (see
+   * `aggregatedFacets.ts`).
+   */
+  const visibleAggregated = $derived<AggregatedSearchResult | null>(
+    aggregated ? applyAggregatedFacets(aggregated, scopeState.facets) : null,
+  );
 
   // ---- Lifecycle ----
 
@@ -356,16 +447,20 @@
   $effect(() => {
     const state = scopeState;
     if (state.scope.kind !== "root" || bodyMode(state) !== "results") {
+      searchScheduler.cancel();
       aggregated = null;
       searchError = null;
+      searching = false;
       return;
     }
-    void runAggregatedSearch(buildScopedSearchQuery(state));
+    // Grouped, not per keystroke (RNF-CPD-02).
+    searchScheduler.schedule(buildScopedSearchQuery(state));
   });
 
   async function loadPacks(): Promise<void> {
     loading = true;
     error = null;
+    retryAction = null;
     try {
       const result = await listPacks(socket);
       packs = result.packs;
@@ -377,6 +472,7 @@
       );
     } catch (err) {
       error = err instanceof Error ? err.message : t("FUSION.Compendium.LoadFailed");
+      retryAction = () => void loadPacks();
     } finally {
       loading = false;
     }
@@ -385,6 +481,7 @@
   async function loadPackIndex(packId: string): Promise<void> {
     loading = true;
     error = null;
+    retryAction = null;
     packEntries = [];
     try {
       const result = await getPackIndex(socket, packId);
@@ -392,25 +489,10 @@
       loadedPackId = packId;
     } catch (err) {
       error = err instanceof Error ? err.message : t("FUSION.Compendium.LoadFailed");
+      // The new attempt is THIS pack's index, not the pack list (REQ-CPD-091).
+      retryAction = () => void loadPackIndex(packId);
     } finally {
       loading = false;
-    }
-  }
-
-  async function runAggregatedSearch(query: ScopedSearchQuery): Promise<void> {
-    const token = ++searchToken;
-    searching = true;
-    searchError = null;
-    try {
-      const raw = await searchAllPacks(socket, buildSearchAllPayload(query));
-      if (token !== searchToken) return;
-      aggregated = normalizeAggregatedSearchResult(raw);
-    } catch (err) {
-      if (token !== searchToken) return;
-      aggregated = null;
-      searchError = err instanceof Error ? err.message : t("FUSION.Compendium.SearchFailed");
-    } finally {
-      if (token === searchToken) searching = false;
     }
   }
 
@@ -419,6 +501,7 @@
   function selectPack(pack: { id: string; label: string }): void {
     scopeState = openPack(scopeState, { id: pack.id, label: pack.label });
     error = null;
+    retryAction = null;
   }
 
   /** Collapse/expand one shelf group and remember it on the device (REQ-CPD-023). */
@@ -435,6 +518,7 @@
     loadedPackId = null;
     packFilters = {};
     error = null;
+    retryAction = null;
   }
 
   /** REQ-CPD-014: same text, whole collection. */
@@ -456,6 +540,38 @@
     scopeState = Number.isFinite(value)
       ? setFacet(scopeState, bound, value)
       : clearFacet(scopeState, bound);
+  }
+
+  // ---- Facets of §5.4 (REQ-CPD-033/034) ----
+
+  /**
+   * The facets live in the HEADER, outside the scrolling area, and are drawn in
+   * both bodies. Keeping them in the open pack's body only — as this panel used
+   * to — meant that widening a search to the whole collection carried a level
+   * range the reader could no longer see, and therefore could no longer remove.
+   */
+  function onSelectFacet(key: "documentType" | "rarity" | "packId", event: Event): void {
+    const value = (event.currentTarget as HTMLSelectElement).value;
+    scopeState = value === "" ? clearFacet(scopeState, key) : setFacet(scopeState, key, value);
+  }
+
+  /** REQ-CPD-034: one facet off, the others untouched. */
+  function removeFacet(key: FacetChip["facet"]): void {
+    scopeState = clearFacet(scopeState, key);
+  }
+
+  const typeChoices = $derived<FacetChoice[]>(documentTypeChoices(packs));
+  const rarityOptions = $derived<FacetChoice[]>(rarityChoices());
+  /** REQ-CPD-033: source only exists once the answer spans more than one pack. */
+  const packChoices = $derived<FacetChoice[]>(sourceChoices(aggregated));
+  const activeFacetChips = $derived<FacetChip[]>(
+    describeActiveFacets(scopeState.facets, { sources: packChoices }),
+  );
+
+  /** A chip's text, resolved: a translated word, a number, or a pack's label. */
+  function chipLabel(chip: FacetChip): string {
+    const value = chip.valueKey !== undefined ? t(chip.valueKey) : (chip.valueText ?? "");
+    return t(chip.labelKey, { value });
   }
 
   /** Open the pack a truncated group points at (REQ-CPD-032, from the result). */
@@ -545,7 +661,7 @@
 
     importingUuids = new Set([...importingUuids, line.uuid]);
     importSuccess = null;
-    error = null;
+    importError = null;
     try {
       if (target.kind === "world") {
         await importToWorld(socket, [line.uuid]);
@@ -560,7 +676,7 @@
       // Bringing an entry over is a use, like previewing it (REQ-CPD-083).
       noteUse(entryRefOf(line), "import");
     } catch (err) {
-      error = err instanceof Error ? err.message : t("FUSION.Compendium.Import.Failed");
+      importError = err instanceof Error ? err.message : t("FUSION.Compendium.Import.Failed");
     } finally {
       const next = new Set(importingUuids);
       next.delete(line.uuid);
@@ -573,8 +689,10 @@
   /** The uuids the body is showing right now — what a batch acts on. */
   const listedUuids = $derived.by<string[]>(() => {
     if (openPackId !== null) return filteredEntries.map((entry) => entry.uuid);
-    if (!aggregated) return [];
-    return aggregated.groups.flatMap((group) => group.lines.map((line) => line.entry.uuid));
+    if (!visibleAggregated) return [];
+    return visibleAggregated.groups.flatMap((group) =>
+      group.lines.map((line) => line.entry.uuid),
+    );
   });
 
   /**
@@ -772,6 +890,19 @@
       {#if batchNotice}
         <p class="compendium-browser__batch-notice" role="status">{batchNotice}</p>
       {/if}
+
+      <!--
+        REQ-CPD-060: the visible return of bringing ONE entry over, success and
+        failure alike, in both bodies and outside the scrolling area. It is not
+        the `error` of the body on purpose — a refused import leaves the list
+        exactly where it was.
+      -->
+      {#if importSuccess}
+        <p class="compendium-browser__success" role="status">{importSuccess}</p>
+      {/if}
+      {#if importError}
+        <p class="compendium-browser__error" role="alert">{importError}</p>
+      {/if}
     </div>
   {/if}
 
@@ -794,10 +925,126 @@
     {/if}
   </div>
 
+  <!--
+    The facets of §5.4 (REQ-CPD-033), in the header with the search bar: they are
+    the other half of the same question, so they must be visible wherever the
+    question is — in either body and in either scope (REQ-CPD-016). Document type
+    and source only make sense over the whole collection; opening a pack already
+    fixes both, and `openPack` drops them so nothing invisible survives.
+  -->
+  <div class="compendium-browser__facets">
+    {#if openPackId === null}
+      <label class="compendium-browser__facet">
+        <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.DocumentType")}</span>
+        <select
+          class="compendium-browser__facet-select"
+          value={scopeState.facets.documentType ?? ""}
+          onchange={(e) => onSelectFacet("documentType", e)}
+        >
+          <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
+          {#each typeChoices as choice (choice.value)}
+            <option value={choice.value}>{t(choice.labelKey ?? choice.value)}</option>
+          {/each}
+        </select>
+      </label>
+    {/if}
+
+    <label class="compendium-browser__facet">
+      <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.Rarity")}</span>
+      <select
+        class="compendium-browser__facet-select"
+        value={scopeState.facets.rarity ?? ""}
+        onchange={(e) => onSelectFacet("rarity", e)}
+      >
+        <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
+        {#each rarityOptions as choice (choice.value)}
+          <option value={choice.value}>{t(choice.labelKey ?? choice.value)}</option>
+        {/each}
+      </select>
+    </label>
+
+    <div class="compendium-browser__facet-row">
+      <input
+        class="compendium-browser__facet-level"
+        type="number"
+        placeholder={t("FUSION.Compendium.FilterMinLevel")}
+        min={0}
+        max={30}
+        value={scopeState.facets.minLevel ?? ""}
+        oninput={(e) => onLevelInput("minLevel", e)}
+        aria-label={t("FUSION.Compendium.FilterMinLevel")}
+      />
+      <input
+        class="compendium-browser__facet-level"
+        type="number"
+        placeholder={t("FUSION.Compendium.FilterMaxLevel")}
+        min={0}
+        max={30}
+        value={scopeState.facets.maxLevel ?? ""}
+        oninput={(e) => onLevelInput("maxLevel", e)}
+        aria-label={t("FUSION.Compendium.FilterMaxLevel")}
+      />
+    </div>
+
+    <!-- REQ-CPD-033: the source facet exists only once the answer spans packs. -->
+    {#if openPackId === null && packChoices.length > 1}
+      <label class="compendium-browser__facet">
+        <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.Source")}</span>
+        <select
+          class="compendium-browser__facet-select"
+          value={scopeState.facets.packId ?? ""}
+          onchange={(e) => onSelectFacet("packId", e)}
+        >
+          <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
+          {#each packChoices as choice (choice.value)}
+            <option value={choice.value}>{choice.label ?? choice.value}</option>
+          {/each}
+        </select>
+      </label>
+    {/if}
+  </div>
+
+  <!--
+    REQ-CPD-034: every facet in force, each removable ON ITS OWN — the two ends
+    of a level range are two chips, because they are two decisions.
+  -->
+  {#if activeFacetChips.length > 0}
+    <ul
+      class="compendium-browser__chips"
+      role="list"
+      aria-label={t("FUSION.Compendium.Facet.ActiveLabel")}
+    >
+      {#each activeFacetChips as chip (chip.facet)}
+        <li>
+          <button
+            type="button"
+            class="compendium-browser__chip"
+            onclick={() => removeFacet(chip.facet)}
+            aria-label={t("FUSION.Compendium.Facet.Remove", { facet: chipLabel(chip) })}
+          >
+            <span>{chipLabel(chip)}</span>
+            <!-- Drawn, not typed: an emoji or a bare "x" is not an icon. -->
+            <svg class="compendium-browser__chip-x" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M3 3 L9 9 M9 3 L3 9" stroke="currentColor" stroke-width="1.6" fill="none" />
+            </svg>
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
   <div class="compendium-browser__scroll">
     {#if error}
+      <!--
+        REQ-CPD-091: the new attempt retries WHAT FAILED. `retryAction` is set by
+        the call that failed, so a pack whose index would not load is asked for
+        again — never the pack list, which would clear the message and leave the
+        silent empty list the requirement is about.
+      -->
       <p class="compendium-browser__error" role="alert">{error}</p>
-      <button class="btn btn--sm" onclick={loadPacks}>{t("FUSION.Compendium.Retry")}</button>
+      <button class="btn btn--sm" onclick={() => retryAction?.()}>
+        {t("FUSION.Compendium.Retry")}
+      </button>
     {:else if mode === "shelf"}
       <!--
         Shelf: every visible pack, grouped by document type (REQ-CPD-011,
@@ -810,7 +1057,13 @@
             {t("FUSION.Compendium.Loading")}
           </p>
         {:else if shelfGroups.length === 0}
-          <p class="compendium-browser__empty">{t("FUSION.Compendium.Empty")}</p>
+          <!--
+            REQ-CPD-090: it says the world has no compendium available TO THIS
+            SEAT — a `gm` pack the player cannot see must read as "there is
+            none", never as "there is one you may not open" (REQ-CPD-071) — and
+            it offers no action, because there is none he could take.
+          -->
+          <p class="compendium-browser__empty">{t("FUSION.Compendium.NoPacksForRole")}</p>
         {:else}
           <!--
             Pinned first, then the short recently used block, then the packs
@@ -838,8 +1091,12 @@
             {t("FUSION.Compendium.Searching")}
           </p>
         {:else if searchError}
+          <!-- REQ-CPD-091: failing to SEARCH also owes a new attempt. -->
           <p class="compendium-browser__error" role="alert">{searchError}</p>
-        {:else if !aggregated || aggregated.groups.length === 0}
+          <button class="btn btn--sm compendium-browser__retry-search" onclick={retrySearch}>
+            {t("FUSION.Compendium.Retry")}
+          </button>
+        {:else if !visibleAggregated || visibleAggregated.groups.length === 0}
           <p class="compendium-browser__empty">
             {t("FUSION.Compendium.NoResultsInScope", {
               query: scopeState.search,
@@ -847,9 +1104,20 @@
             })}
           </p>
         {:else}
-          {#each aggregated.groups as group (group.documentType)}
+          {#each visibleAggregated.groups as group (group.documentType)}
             <div class="result-group">
-              <h3 class="result-group__heading">
+              <!--
+                REQ-CPD-093: the count is announceable — the heading says the
+                number in words for a screen reader instead of leaving a bare
+                digit next to a noun.
+              -->
+              <h3
+                class="result-group__heading"
+                aria-label={t("FUSION.Compendium.GroupCountLabel", {
+                  type: t(documentTypeLabelKey(group.documentType)),
+                  count: group.total,
+                })}
+              >
                 {t(documentTypeLabelKey(group.documentType))}
                 <span class="result-group__count">{group.total}</span>
               </h3>
@@ -919,6 +1187,12 @@
     {:else}
       <!-- The open pack's own index; the search above filters only it (REQ-CPD-013/014). -->
       <div class="compendium-browser__results compendium-browser__results--pack">
+        <!--
+          Only what the SYSTEM declares (REQ-CPD-035) lives in the pack's body.
+          The generic facets of REQ-CPD-033 — type, rarity, level range, source —
+          moved to the header, where they are visible in both scopes; drawing the
+          level range twice would have been two controls for one state.
+        -->
         {#if selectedPack && selectedPack.documentType === "Item"}
           <div class="entries-filter">
             <input
@@ -935,28 +1209,6 @@
               bind:value={packFilters.trait}
               aria-label={t("FUSION.Compendium.FilterTrait")}
             />
-            <div class="entries-filter__row">
-              <input
-                class="entries-filter__input entries-filter__input--sm"
-                type="number"
-                placeholder={t("FUSION.Compendium.FilterMinLevel")}
-                min={0}
-                max={20}
-                value={scopeState.facets.minLevel ?? ""}
-                oninput={(e) => onLevelInput("minLevel", e)}
-                aria-label={t("FUSION.Compendium.FilterMinLevel")}
-              />
-              <input
-                class="entries-filter__input entries-filter__input--sm"
-                type="number"
-                placeholder={t("FUSION.Compendium.FilterMaxLevel")}
-                min={0}
-                max={20}
-                value={scopeState.facets.maxLevel ?? ""}
-                oninput={(e) => onLevelInput("maxLevel", e)}
-                aria-label={t("FUSION.Compendium.FilterMaxLevel")}
-              />
-            </div>
           </div>
         {/if}
 
@@ -1015,10 +1267,6 @@
               {/each}
             {/if}
           </ul>
-
-          {#if importSuccess}
-            <p class="compendium-browser__success" role="status">{importSuccess}</p>
-          {/if}
         {/if}
       </div>
     {/if}
@@ -1137,6 +1385,87 @@
     font-size: 0.8rem;
   }
 
+  /*
+   * The facets sit with the search bar, above the scroller and outside it
+   * (REQ-CPD-016): a filter you cannot see is a filter you cannot remove
+   * (REQ-CPD-034). No width is declared here either — the drawer owns it.
+   */
+  .compendium-browser__facets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__facet {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--fusion-text-muted, #aaa);
+  }
+
+  .compendium-browser__facet-label {
+    flex-shrink: 0;
+  }
+
+  .compendium-browser__facet-select,
+  .compendium-browser__facet-level {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.15rem 0.3rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    font-size: 0.7rem;
+  }
+
+  .compendium-browser__facet-row {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .compendium-browser__chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  /*
+   * A chip carries its own text AND a drawn cross: REQ-CPD-094 — nothing here
+   * is told by colour alone, and the removal is a real button, focusable by
+   * keyboard (REQ-CPD-092).
+   */
+  .compendium-browser__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font: inherit;
+    font-size: 0.65rem;
+    color: var(--fusion-text, #eee);
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: 9999px;
+    padding: 0.1rem 0.4rem;
+    cursor: pointer;
+  }
+
+  .compendium-browser__chip:hover {
+    border-color: var(--fusion-accent, #6aa9ff);
+  }
+
+  .compendium-browser__chip-x {
+    width: 0.6rem;
+    height: 0.6rem;
+    flex-shrink: 0;
+  }
+
   .compendium-browser__scroll {
     flex: 1;
     overflow-y: auto;
@@ -1236,15 +1565,6 @@
   .entries-filter__input--sm {
     font-size: 0.75rem;
     padding: 0.2rem 0.4rem;
-  }
-
-  .entries-filter__row {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .entries-filter__row .entries-filter__input {
-    flex: 1;
   }
 
   .entries-sort {

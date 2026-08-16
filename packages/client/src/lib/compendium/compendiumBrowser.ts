@@ -143,6 +143,13 @@ export interface BrowserFilterState {
   maxLevel?: number;
   /** Min level filter (system.level.value >= minLevel). */
   minLevel?: number;
+  /**
+   * Rarity facet (REQ-CPD-033), mapped to the same index field the aggregated
+   * payload uses. It is here so a facet means ONE thing in both scopes: set
+   * "rare" at root, open a pack, and the same documents are excluded
+   * (REQ-CPD-034).
+   */
+  rarity?: string;
 }
 
 /**
@@ -162,6 +169,12 @@ export function buildSearchQuery(
   if (state.trait) {
     // traits are stored in system.traits.value[]
     filters["system.traits.value"] = { contains: state.trait };
+  }
+
+  if (state.rarity) {
+    // Same field `buildSearchAllPayload` uses, so the facet does not change
+    // meaning when the scope narrows to one pack (REQ-CPD-034).
+    filters["system.traits.rarity"] = state.rarity;
   }
 
   if (state.maxLevel !== undefined) {
@@ -290,6 +303,15 @@ const RULE_FALLBACK_LABEL: Readonly<Record<RuleLabel, string>> = {
  * per-pack search uses — a facet must not mean one thing in one scope and
  * another in the other (REQ-CPD-034). A scope confined to a pack never reaches
  * here: that search is answered by the pack's own index (REQ-CPD-014).
+ *
+ * The `documentType` and `packId` facets are deliberately ABSENT from this
+ * payload: `CompendiumSearchAllPayloadSchema` filters `indexFields`, and neither
+ * of those is one — both are properties of the PACK, and the schema drops
+ * `packId` on purpose so the scope of an aggregated search is always "everything
+ * this role can see". They are applied to the ANSWER, exactly, by
+ * `applyAggregatedFacets` in `aggregatedFacets.ts`, which reads the server's own
+ * per-group total and per-pack tally instead of recounting what survived
+ * truncation.
  */
 export function buildSearchAllPayload(query: ScopedSearchQuery): CompendiumSearchAllPayload {
   const filters: CompendiumSearchFilters = {};

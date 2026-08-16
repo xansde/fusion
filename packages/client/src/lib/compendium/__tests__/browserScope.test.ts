@@ -100,6 +100,18 @@ describe("browserScope — the mode is derived, never chosen", () => {
     expect(opened.facets.packId).toBeUndefined();
   });
 
+  it("REQ-CPD-034: opening a pack drops the document-type facet too, and keeps the rest", () => {
+    // A pack has exactly one document type, and the pack body draws no type
+    // facet — keeping it would leave a filter in force that the reader can
+    // neither see nor take off, which is what REQ-CPD-034 is about.
+    let state = setFacet(initialBrowserScope(), "documentType", "Actor");
+    state = setFacet(state, "minLevel", 5);
+    const opened = openPack(state, SPELLS);
+
+    expect(opened.facets.documentType).toBeUndefined();
+    expect(opened.facets.minLevel).toBe(5);
+  });
+
   it("REQ-CPD-014: with a pack open, the search is confined to that pack", () => {
     const inPack = setSearch(openPack(initialBrowserScope(), SPELLS), "fogo");
 
