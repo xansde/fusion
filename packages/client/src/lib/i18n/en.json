@@ -9,6 +9,7 @@
   "FUSION.Sidebar.Tabs.Journal": "Journal",
   "FUSION.Sidebar.Tabs.Compendium": "Compendium",
   "FUSION.Sidebar.Tabs.Settings": "Settings",
+  "FUSION.Sidebar.Tabs.Npcs": "NPCs",
 
   "FUSION.Conditions.Tone.Benefit": "benefit",
   "FUSION.Conditions.Tone.Harm": "penalty",
@@ -1086,5 +1087,38 @@
   "FUSION.Setup.Done.CreatingShortcut": "Creating…",
   "FUSION.Setup.Done.GoToFusion": "Go to Fusion",
   "FUSION.Setup.Error.Generic": "Could not complete the setup wizard.",
-  "FUSION.Setup.Error.ReconfigAuth": "Could not verify the Admin Key."
+  "FUSION.Setup.Error.ReconfigAuth": "Could not verify the Admin Key.",
+  "FUSION.Npcs.Folder.New": "New folder",
+  "FUSION.Npcs.Folder.NewChild": "New folder inside {{name}}",
+  "FUSION.Npcs.Folder.Name": "Folder name",
+  "FUSION.Npcs.Folder.Rename": "Rename the folder {{name}}",
+  "FUSION.Npcs.Folder.Delete": "Delete the folder {{name}}",
+  "FUSION.Npcs.Folder.DeleteConfirm": "Delete the folder “{{name}}”? No actor is deleted: its {{count}} non-playables go to “No folder” and its subfolders rise one level.",
+  "FUSION.Npcs.Folder.DeleteConfirmLabel": "Delete the folder",
+  "FUSION.Npcs.Folder.Pin": "Pin the folder {{name}} to the top",
+  "FUSION.Npcs.Folder.Unpin": "Unpin the folder {{name}}",
+  "FUSION.Npcs.Folder.Collapse": "Collapse the folder {{name}}",
+  "FUSION.Npcs.Folder.Expand": "Expand the folder {{name}}",
+  "FUSION.Npcs.Folder.Unfiled": "No folder",
+  "FUSION.Npcs.Folder.PinnedBlock": "Pinned folders",
+  "FUSION.Npcs.Move.Label": "Move {{name}} to another folder",
+  "FUSION.Npcs.Search": "Search by name or title…",
+  "FUSION.Npcs.Level": "level {{level}}",
+  "FUSION.Npcs.Subtype.npc": "Creature",
+  "FUSION.Npcs.Subtype.hazard": "Hazard",
+  "FUSION.Npcs.Attitude.enemy": "Enemy",
+  "FUSION.Npcs.Attitude.neutral": "Neutral",
+  "FUSION.Npcs.Attitude.ally": "Ally",
+  "FUSION.Npcs.Title.Label": "Title of {{name}}",
+  "FUSION.Npcs.Title.Placeholder": "a free title, under the name",
+  "FUSION.Npcs.Title.Edit": "Edit the title of {{name}}",
+  "FUSION.Npcs.Sheet.Open": "Open {{name}}'s sheet",
+  "FUSION.Npcs.Presence.Count": {
+    "1": "1 presence in a scene",
+    "other": "{{count}} presences in scenes"
+  },
+  "FUSION.Npcs.Presence.InScene": {
+    "1": "1 in {{scene}}",
+    "other": "{{count}} in {{scene}}"
+  }
 }

@@ -30,6 +30,7 @@ import {
   WallDocumentSchema,
   AmbientLightDocumentSchema,
   CombatDocumentSchema,
+  FolderDocumentSchema,
   InitialViewSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
@@ -253,15 +254,13 @@ export const UserSchema = BaseDocumentSchema.extend({
 
 /**
  * Folder — organizes other documents.
+ *
+ * The shape is the canonical one from `@fusion/shared` (spec 42 / REQ-NPC-020
+ * gave the client a real folder tree, so the client needs the same definition).
+ * Re-exported rather than re-declared: two copies of a document schema drift,
+ * and the one that drifts silently is always the one nobody validates against.
  */
-export const FolderSchema = BaseDocumentSchema.extend({
-  name: z.string().min(1),
-  type: z.string(),
-  parentId: z.string().nullable().optional(),
-  sort: z.number().int().default(0),
-  sorting: z.enum(["a", "m"]).default("m"),
-  color: z.string().nullable().optional(),
-});
+export const FolderSchema = FolderDocumentSchema;
 
 /**
  * Setting — key-value store for world/user settings.

@@ -30,6 +30,7 @@ import { chatStore } from "../chat/chatStore.svelte.js";
 import { combatBadgeLit, combatBadgeTone } from "../combat/combatBadge.svelte.js";
 import { contactsStateDot } from "../contacts/knowledgeBadge.js";
 import {
+  actorsLegacyIcon,
   chatIcon,
   combatIcon,
   compendiumIcon,
@@ -146,17 +147,28 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     // only UI in the client that creates and deletes an Actor, and spec 39 took both
     // out of the player's list. Removing it before the NPCs tab (spec 42) exists
     // would leave the table with no way to create an actor at all — the declared
-    // debt of DEC-CTT-01, which the NPCs phase pays. It borrows the NPCs icon so the
-    // rail does not show the same glyph twice.
+    // debt of DEC-CTT-01, which the NPCs phase pays. It carries a glyph of its own
+    // (`actorsLegacyIcon`) now that the real NPCs tab is registered: the two sit in
+    // the rail at the same time until G078, and the same shape twice is unreadable.
     //
     // It sits at the END of the "all" group, where REQ-GAV-031 puts a tab that is not
     // one of the four of REQ-GAV-003 — so Contatos stays second (REQ-CTT-001) and
     // Combate stays third (REQ-CBA-001) instead of being pushed down by a placeholder.
     id: "actors",
-    icon: npcsIcon,
+    icon: actorsLegacyIcon,
     label: "FUSION.Sidebar.Tabs.Actors",
     group: "all",
     component: () => import("../../components/actors/ActorDirectory.svelte"),
+  },
+  {
+    // REQ-NPC-001: id "npcs", group "gm", FIRST of the group, with its own drawn
+    // icon and an i18n label. REQ-NPC-002: no badge of any kind — nothing happens
+    // in this tab that was not the Mestre himself.
+    id: "npcs",
+    icon: npcsIcon,
+    label: "FUSION.Sidebar.Tabs.Npcs",
+    group: "gm",
+    component: () => import("../../components/npcs/NpcsPanel.svelte"),
   },
   {
     // REQ-CEN-001: id "scenes", group "gm", in the middle block; it is also the

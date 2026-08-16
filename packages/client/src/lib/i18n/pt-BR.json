@@ -9,6 +9,7 @@
   "FUSION.Sidebar.Tabs.Journal": "Diário",
   "FUSION.Sidebar.Tabs.Compendium": "Compêndio",
   "FUSION.Sidebar.Tabs.Settings": "Configurações",
+  "FUSION.Sidebar.Tabs.Npcs": "NPCs",
 
   "FUSION.Conditions.Tone.Benefit": "benefício",
   "FUSION.Conditions.Tone.Harm": "penalidade",
@@ -1086,5 +1087,38 @@
   "FUSION.Setup.Done.CreatingShortcut": "Criando…",
   "FUSION.Setup.Done.GoToFusion": "Ir para o Fusion",
   "FUSION.Setup.Error.Generic": "Não foi possível concluir o assistente de configuração.",
-  "FUSION.Setup.Error.ReconfigAuth": "Não foi possível verificar a Admin Key."
+  "FUSION.Setup.Error.ReconfigAuth": "Não foi possível verificar a Admin Key.",
+  "FUSION.Npcs.Folder.New": "Nova pasta",
+  "FUSION.Npcs.Folder.NewChild": "Nova pasta dentro de {{name}}",
+  "FUSION.Npcs.Folder.Name": "Nome da pasta",
+  "FUSION.Npcs.Folder.Rename": "Renomear a pasta {{name}}",
+  "FUSION.Npcs.Folder.Delete": "Excluir a pasta {{name}}",
+  "FUSION.Npcs.Folder.DeleteConfirm": "Excluir a pasta “{{name}}”? Nenhum ator é excluído: os {{count}} não-jogáveis dela vão para “Sem pasta” e as subpastas sobem um nível.",
+  "FUSION.Npcs.Folder.DeleteConfirmLabel": "Excluir a pasta",
+  "FUSION.Npcs.Folder.Pin": "Fixar a pasta {{name}} no topo",
+  "FUSION.Npcs.Folder.Unpin": "Desafixar a pasta {{name}}",
+  "FUSION.Npcs.Folder.Collapse": "Recolher a pasta {{name}}",
+  "FUSION.Npcs.Folder.Expand": "Expandir a pasta {{name}}",
+  "FUSION.Npcs.Folder.Unfiled": "Sem pasta",
+  "FUSION.Npcs.Folder.PinnedBlock": "Pastas fixadas",
+  "FUSION.Npcs.Move.Label": "Mover {{name}} para outra pasta",
+  "FUSION.Npcs.Search": "Buscar por nome ou título…",
+  "FUSION.Npcs.Level": "nível {{level}}",
+  "FUSION.Npcs.Subtype.npc": "Criatura",
+  "FUSION.Npcs.Subtype.hazard": "Perigo",
+  "FUSION.Npcs.Attitude.enemy": "Inimigo",
+  "FUSION.Npcs.Attitude.neutral": "Neutro",
+  "FUSION.Npcs.Attitude.ally": "Aliado",
+  "FUSION.Npcs.Title.Label": "Título de {{name}}",
+  "FUSION.Npcs.Title.Placeholder": "um título livre, sob o nome",
+  "FUSION.Npcs.Title.Edit": "Editar o título de {{name}}",
+  "FUSION.Npcs.Sheet.Open": "Abrir a ficha de {{name}}",
+  "FUSION.Npcs.Presence.Count": {
+    "1": "1 presença em cena",
+    "other": "{{count}} presenças em cena"
+  },
+  "FUSION.Npcs.Presence.InScene": {
+    "1": "1 em {{scene}}",
+    "other": "{{count}} em {{scene}}"
+  }
 }
