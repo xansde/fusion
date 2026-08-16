@@ -37,5 +37,6 @@ import { migration001 } from "./migrations/001_initial_schema.js";
 import { migration002 } from "./migrations/002_users_sessions.js";
 import { migration003 } from "./migrations/003_fog_exploration.js";
 import { migration004 } from "./migrations/004_region_maps.js";
+import { migration005 } from "./migrations/005_roll_audit_log.js";
 
-registerMigrations([migration001, migration002, migration003, migration004]);
+registerMigrations([migration001, migration002, migration003, migration004, migration005]);

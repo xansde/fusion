@@ -113,18 +113,27 @@ export interface SchemaReport {
 }
 
 /**
- * Objects that legitimately exist in real world databases without belonging to
- * any migration. Each entry is a known debt with an owner — not a place to
- * park new drift.
+ * Objects that existed in real world databases before any migration created
+ * them, mapped to the version that finally adopted each one.
  *
- * - `roll_audit_log` (+ its index) is created on demand by
- *   `chat/roll-service.ts` the first time a die is rolled, so a world's schema
- *   depends on whether anyone has played. T007 moves it into a migration and
- *   this exemption goes away with it.
+ * The value is what keeps this from being a permanent blind spot. An object is
+ * tolerated as "extra" only *below* its adopting version; from that version on
+ * the migrations produce it, so it is compared like everything else — and its
+ * absence becomes a real problem rather than a silent pass.
+ *
+ * Why a version and not simply a deletion: `checkSchema` judges a database at
+ * the version it declares, before anything is applied. A world sitting at
+ * version 4 is compared against migrations 001–004, which do not create
+ * `roll_audit_log`. Dropping the entry outright would therefore refuse to open
+ * every existing world *before* reaching the migration that adopts the table.
+ *
+ * - `roll_audit_log` (+ its index) was created on demand by
+ *   `chat/roll-service.ts`, so a world's schema depended on whether anyone had
+ *   ever rolled a die. Migration 005 (T007) adopts it.
  */
-const LEGACY_TOLERATED_OBJECTS: ReadonlySet<string> = new Set([
-  "roll_audit_log",
-  "idx_roll_audit_world_user",
+const LEGACY_TOLERATED_OBJECTS: ReadonlyMap<string, number> = new Map([
+  ["roll_audit_log", 5],
+  ["idx_roll_audit_world_user", 5],
 ]);
 
 // ---------------------------------------------------------------------------
@@ -382,7 +391,8 @@ export function checkSchema(db: Db): SchemaReport {
 
     for (const [name, act] of actual) {
       if (expected.has(name)) continue;
-      if (LEGACY_TOLERATED_OBJECTS.has(name)) continue;
+      const adoptedAt = LEGACY_TOLERATED_OBJECTS.get(name);
+      if (adoptedAt !== undefined && currentVersion < adoptedAt) continue;
       problems.push({
         kind: "object-extra",
         subject: `${act.type} ${name}`,
