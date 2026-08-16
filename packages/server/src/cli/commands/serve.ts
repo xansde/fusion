@@ -319,6 +319,10 @@ export async function runServe(args: ServeArgs): Promise<void> {
         authService: authSvc,
         assetsDir: pathJoin(config.dataDir, "worlds", worldSlug, "assets"),
         secret: authSecret,
+        // Without the handle the upload route has nowhere to record the file
+        // (T021), and the assets table would stay empty forever in the one
+        // place it matters — the running app.
+        db: openWorldDb,
       };
     }
 

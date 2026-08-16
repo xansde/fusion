@@ -160,10 +160,27 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
 
     const payload = op.payload as Record<string, unknown> | null | undefined;
     if (!payload || typeof payload !== "object") return op;
-    if (payload["documentType"] !== "Scene") return op;
+
+    const documentType = payload["documentType"];
+    if (documentType !== "Scene" && documentType !== "Combat") return op;
 
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
+
+    // Combat reaches this shape too, since T036 started broadcasting the
+    // document itself so the client's `_stats.version` can move. The live path
+    // redacts hidden combatants per socket; the replay has to do the same, or
+    // reconnecting inside the buffer window becomes the way to read what the
+    // GM hid (REQ-CBT-031). Same redaction function the live path uses — the
+    // one in net/redaction.ts, never a second copy of the predicate.
+    if (documentType === "Combat") {
+      const strippedCombats = (documents as Record<string, unknown>[]).map((doc) =>
+        stripHiddenCombatantsFromCombat(doc),
+      );
+      const combatChanged = strippedCombats.some((doc, i) => doc !== documents[i]);
+      if (!combatChanged) return op;
+      return { ...op, payload: { ...payload, documents: strippedCombats } };
+    }
 
     // Drop every scene that was not on air and redact the one that was
     // (REQ-CEN-071..073) — the same rule the live broadcast applies, so a
@@ -664,13 +681,15 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     // affected scene without ever emitting a doc:update — a connected
     // client's DocumentMirror would be stuck on the stale version forever
     // (no doc:update ever arrives to trigger a resync). Broadcast the
-    // version bump too, filtered per recipient by the SAME ownership rule
-    // buildSnapshot uses for Scenes, since a scene may carry
-    // ownership.default = NONE (unrevealed map — the class of leak T025
-    // exists to close): a non-privileged client only receives the scenes it
-    // is entitled to see, hidden-token/secret-door redacted exactly like
-    // buildSnapshot redacts them for the join snapshot.
-    broadcastSceneVersionUpdates(deps, updatedScenes);
+    // version bump for the scenes that LEFT the air; the scene that went on
+    // air already travelled above (body before pointer, REQ-CEN-072), with
+    // its bumped version, so emitting it again here would only duplicate the
+    // envelope. Non-privileged sockets receive the envelope with the off-air
+    // scenes dropped (REQ-CEN-071), through the single redaction funnel.
+    broadcastSceneVersionUpdates(
+      deps,
+      updatedScenes.filter((scene) => scene["_id"] !== sceneId),
+    );
 
     // requestId injection is owned by the dispatcher (socket-manager.ts).
     // This handler must not set it — doing so would be inconsistent with all

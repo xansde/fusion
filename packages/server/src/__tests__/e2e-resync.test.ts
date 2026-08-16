@@ -258,17 +258,18 @@ describe("E2E M1-B — full resync scenario", () => {
       });
     });
 
-    // Activating a scene emits MORE than the world:activeScene envelope: the
-    // body of the scene going on air (REQ-CEN-072) travels as a doc:update
-    // BEFORE the activation pointer, and the version bump of every scene whose
-    // `active` flag moved (T032) travels as a doc:update AFTER it. This test
-    // measures "3 ops after the client went away", so the baseline has to be
-    // the LAST op the activation produced — pinning it to any single envelope
-    // makes the test hostage to the emission order inside the handler.
-    let activationHighestSeq = client2LastSeq;
-    client2Socket.on("op", (env: Record<string, unknown>) => {
-      const seq = env["seq"];
-      if (typeof seq === "number" && seq > activationHighestSeq) activationHighestSeq = seq;
+    // Activating a scene also emits a doc:update carrying the scene that went
+    // on air (REQ-CEN-072, body BEFORE the world:activeScene pointer) and, for
+    // any scene that left the air, the T032 version bump. This test measures
+    // "3 ops after the client went away", so the baseline has to be the LAST
+    // op the activation produced — whichever envelope carried the highest seq.
+    const activationDocUpdatePromise = new Promise<Record<string, unknown>>((resolve) => {
+      client2Socket.on("op", (env: Record<string, unknown>) => {
+        if (env["type"] === "doc:update") {
+          const p = env["payload"] as Record<string, unknown> | undefined;
+          if (p?.["documentType"] === "Scene") resolve(env);
+        }
+      });
     });
 
     const activateAck = await sendOp(
@@ -287,13 +288,15 @@ describe("E2E M1-B — full resync scenario", () => {
     const activePayload = activeSceneBroadcast["payload"] as Record<string, unknown>;
     expect(activePayload["sceneId"]).toBe(sceneId);
 
-    // Record client2's seq after receiving all broadcasts so far. Ops are
-    // ordered on the connection, so the version bump emitted after the
-    // activation pointer is already in flight when the pointer lands — a short
-    // settle is enough to have it counted.
-    await new Promise((r) => setTimeout(r, 100));
-    client2LastSeq = activationHighestSeq;
-    expect(client2LastSeq).toBeGreaterThanOrEqual(activateAck["seq"] as number);
+    // Record client2's seq after receiving all broadcasts so far
+    // client2LastSeq was from initial snapshot; advance it to account for
+    // the doc:create, the doc:update carrying the scene that went on air and
+    // the world:activeScene pointer. The body travels before the pointer
+    // (REQ-CEN-072), so the pointer — whose seq the ack echoes — is the last
+    // op of the activation: that is the baseline for "3 ops after".
+    const activationDocUpdate = await activationDocUpdatePromise;
+    expect(activationDocUpdate["seq"]).toBeLessThan(activateAck["seq"] as number);
+    client2LastSeq = Math.max(activationDocUpdate["seq"] as number, activateAck["seq"] as number);
 
     // -----------------------------------------------------------------------
     // Step 4: Disconnect client2

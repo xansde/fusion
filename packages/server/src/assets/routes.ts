@@ -37,6 +37,11 @@
  *   assets directory for the first 8 chars of the SHA-256 hex digest in the
  *   filename (findExistingByDigest). This O(n) scan is acceptable for a world
  *   with ~hundreds of assets but does not scale to thousands or multi-scope.
+ *   PARTIALLY ADDRESSED (T020/T021, migration 009): a lightweight `assets`
+ *   table now records name/digest/bytes/mime/uploader for every accepted
+ *   upload, via `assets/asset-store.ts`. The *dedup lookup* above still scans
+ *   the directory, unchanged — the table is a registry, not (yet) the source
+ *   the upload route consults to decide whether a file already exists.
  *
  * DEBT-AST-03 (REQ-AST-019/DEC-AST-07): Serving URL uses a short 8-char hash
  *   suffix in the filename (`<slug>-<8hex>.<ext>`) rather than a full SHA-256
@@ -64,6 +69,7 @@ import {
   readFileSync,
 } from "node:fs";
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import type { Database } from "better-sqlite3";
 import multipart from "@fastify/multipart";
 import { Role } from "../auth/user-store.js";
 import type { UserPublic } from "../auth/user-store.js";
@@ -73,6 +79,7 @@ import { sanitizeSvg } from "./svg-sanitize.js";
 import { buildSafeFilename, sha256Hex } from "./slug.js";
 import { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
 import { issueAssetToken, verifyAssetToken } from "./asset-token.js";
+import { recordAsset, deleteAssetRecord, getAssetRecord } from "./asset-store.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -107,6 +114,16 @@ export interface RegisterAssetRoutesOptions {
 
   /** Maximum upload size in bytes. Default: 20 MB. */
   maxUploadBytes?: number;
+
+  /**
+   * World database — used to register each accepted upload in the `assets`
+   * table (T020/T021, migration 009). Optional: when omitted, uploads and
+   * serving work exactly as before, just without a registry row. This keeps
+   * the option backward-compatible for callers that do not (yet) pass a
+   * database — registry rows for files uploaded that way are backfilled by
+   * T022's reconciliation, the same as any other pre-existing file.
+   */
+  db?: Database;
 
   /**
    * World HMAC secret — used to sign short-lived asset query-tokens
@@ -171,10 +188,77 @@ async function assetPlugin(
   fastify: FastifyInstance,
   options: RegisterAssetRoutesOptions,
 ): Promise<void> {
-  const { authService, assetsDir, maxUploadBytes = DEFAULT_MAX_BYTES, secret } = options;
+  const { authService, assetsDir, maxUploadBytes = DEFAULT_MAX_BYTES, secret, db } = options;
 
   // Ensure assets directory exists (REQ-AST-001)
   mkdirSync(assetsDir, { recursive: true });
+
+  /**
+   * Register `name` in the `assets` table (T020/T021), best-effort.
+   *
+   * Never lets a registry failure turn into an error response: the file is
+   * already written to disk (the source of truth for serving) by the time
+   * this runs, so failing the request here would report an upload failure
+   * for a file that in fact exists and is servable — a worse, harder to
+   * debug state than "the file exists but T022's reconciliation has to pick
+   * up its registry row later", which is the same gap every pre-existing
+   * asset already starts in.
+   */
+  function registerUpload(
+    request: FastifyRequest,
+    name: string,
+    digest: string,
+    bytes: number,
+    mimeType: string,
+  ): void {
+    if (!db) return;
+    try {
+      recordAsset(db, {
+        name,
+        digest,
+        bytes,
+        mimeType,
+        uploadedBy: request.authUser?.id ?? null,
+      });
+    } catch (err) {
+      request.log.warn(
+        { err, name },
+        "Failed to register asset in the assets table; file is on disk and servable, " +
+          "registry row will be backfilled by reconciliation.",
+      );
+    }
+  }
+
+  /**
+   * Register a file that is already on disk, reading its metadata from the
+   * file itself. Used by the dedup branch of the upload route, where the
+   * request body is NOT evidence about the stored file (see the call site).
+   *
+   * Does nothing when the row already exists: the stored file has not changed,
+   * so there is nothing to learn, and re-reading it on every duplicate upload
+   * would spend I/O to confirm what is already recorded.
+   */
+  function registerExistingIfUnknown(request: FastifyRequest, name: string): void {
+    if (!db) return;
+    try {
+      if (getAssetRecord(db, name) !== undefined) return;
+      const filePath = joinPath(assetsDir, name);
+      const buf = readFileSync(filePath);
+      recordAsset(db, {
+        name,
+        digest: sha256Hex(buf),
+        bytes: buf.length,
+        mimeType: guessMime(name),
+        uploadedBy: null, // unknown: whoever wrote this file did not register it
+      });
+    } catch (err) {
+      request.log.warn(
+        { err, name },
+        "Failed to backfill the registry row for an already-stored asset; the file is " +
+          "servable and reconciliation will pick it up.",
+      );
+    }
+  }
 
   const { requireAuth, requireRole } = buildAuthHelpers(authService);
 
@@ -279,6 +363,17 @@ async function assetPlugin(
     // For MVP we scan by digest suffix in filename (first 8 chars of hash).
     const existing = findExistingByDigest(assetsDir, digest);
     if (existing) {
+      // Backfill a row for the matched file if it has none — a previous upload
+      // whose registration failed, or a file that predates the registry.
+      //
+      // The metadata comes from the file ON DISK, never from the upload that
+      // matched it. `findExistingByDigest` matches on an 8-hex substring of
+      // the name: 32 bits, and a substring rather than a suffix. A match is
+      // evidence of a likely duplicate, not proof the bytes are identical —
+      // so describing the stored file with the incoming file's digest, size
+      // and mime would be writing a plausible lie into the registry, and the
+      // upsert would overwrite a row that was right.
+      registerExistingIfUnknown(request, existing);
       return reply.code(200).send({
         ok: true,
         deduplicated: true,
@@ -291,6 +386,11 @@ async function assetPlugin(
 
     // Write file (REQ-SEC-040: new safe name, never original)
     writeFileSync(targetPath, finalBuf);
+
+    // T020/T021: register the row after the file is safely on disk — never
+    // before (see registerUpload's doc comment for why a registry failure
+    // must not turn into a reported upload failure).
+    registerUpload(request, safeFilename, digest, finalBuf.length, detected.mime);
 
     return reply.code(201).send({
       ok: true,
@@ -388,6 +488,22 @@ async function assetPlugin(
 
     // TODO (REQ-AST-038): check document usage before deletion
     unlinkSync(targetPath);
+
+    // T020/T021: drop the registry row along with the file. Best-effort, same
+    // reasoning as registerUpload — the file is already gone from disk by the
+    // time this runs, so a registry error here must not turn a successful
+    // deletion into a reported failure (that would tell the caller a file
+    // still exists when it does not).
+    if (db) {
+      try {
+        deleteAssetRecord(db, name);
+      } catch (err) {
+        request.log.warn(
+          { err, name },
+          "Failed to remove asset registry row after deleting the file from disk.",
+        );
+      }
+    }
 
     return reply.send({ ok: true });
   });

@@ -8,7 +8,8 @@
  *    and with both queries of the module agreeing about the same tab.
  *  - REQ-GAV-032 [MVP] game systems do not register tabs in the MVP.
  *  - REQ-GAV-033 [MVP] registering a duplicate id fails loudly and never replaces.
- *  - REQ-GAV-031 [V2] mods registering tabs — declared only, out of the MVP.
+ *  - REQ-GAV-031 [V2] mods registering tabs — declared only, out of the MVP; the icon
+ *    allowlist is what makes that same door safe, since the rail injects the markup.
  *  - RNF-GAV-02 [MVP] mounting the rail must not load panel code (dynamic import per tab).
  */
 
@@ -33,6 +34,7 @@ import {
   type SidebarPanelLoader,
   type SidebarTabDefinition,
 } from "../registry.js";
+import { sidebarIcons } from "../../../components/sidebar/icons.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -156,6 +158,71 @@ describe("REQ-GAV-030 — registro de abas no cliente", () => {
       SidebarTabRegistrationError,
     );
     expect(listRegisteredSidebarTabs()).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-GAV-030 / REQ-GAV-031 — o ícone é injetado no DOM pelo trilho ({@html}),
+// então o registro é a porta que precisa provar que ele é um SVG desenhado.
+// ---------------------------------------------------------------------------
+
+describe("REQ-GAV-030 — o ícone registrado é markup que o trilho pode injetar", () => {
+  it("REQ-GAV-030: recusa markup que contém '<svg' mas carrega script, handler ou segunda raiz", () => {
+    const hostile: readonly string[] = [
+      // Handler no próprio <svg> — o caso que passava por `includes("<svg")`.
+      '<svg onload="alert(1)"></svg>',
+      '<svg viewBox="0 0 24 24"><path d="M0 0h1v1H0z" onclick="alert(1)"/></svg>',
+      // Segundo elemento raiz colado depois do SVG.
+      '<svg></svg><img src="x" onerror="alert(1)">',
+      // Script embutido na árvore do SVG.
+      '<svg viewBox="0 0 24 24"><script>alert(1)</' + "script></svg>",
+      // Elementos que buscam ou executam recurso externo.
+      '<svg viewBox="0 0 24 24"><foreignObject><b>hi</b></foreignObject></svg>',
+      '<svg viewBox="0 0 24 24"><use href="data:image/svg+xml,x"/></svg>',
+      '<svg viewBox="0 0 24 24"><image href="javascript:alert(1)"/></svg>',
+      '<svg viewBox="0 0 24 24"><animate onbegin="alert(1)" attributeName="x"/></svg>',
+      // Atributos que carregam URL ou CSS.
+      '<svg viewBox="0 0 24 24"><path d="M0 0h1v1H0z" style="background:url(javascript:alert(1))"/></svg>',
+      '<svg viewBox="0 0 24 24"><a href="javascript:alert(1)"><path d="M0 0h1v1H0z"/></a></svg>',
+      // Comentário condicional / doctype antes da raiz.
+      "<!--<svg></svg>--><svg></svg>",
+      // Markup que nem começa por <svg>.
+      '<img src="x" onerror="alert(1)"><svg></svg>',
+      // Valor de atributo não fechado, que escaparia do parser ingênuo.
+      '<svg viewBox="0 0 24 24><path d="M0 0h1v1H0z"/></svg>',
+    ];
+
+    for (const icon of hostile) {
+      expect(
+        () => registerSidebarTab(tabDef({ id: `hostile-${icon.length}`, icon })),
+        icon,
+      ).toThrow(SidebarTabRegistrationError);
+    }
+    expect(listRegisteredSidebarTabs()).toHaveLength(0);
+  });
+
+  it("REQ-GAV-031: a mesma porta que um mod usará aceita o SVG desenhado das abas do núcleo", () => {
+    // Os ícones reais (não uma cópia deles) precisam atravessar o mesmo portão.
+    let registered = 0;
+    for (const [id, icon] of Object.entries(sidebarIcons)) {
+      registerSidebarTab(tabDef({ id, icon }));
+      expect(getSidebarTab(id)?.icon).toBe(icon);
+      registered += 1;
+    }
+    expect(registered).toBeGreaterThanOrEqual(7);
+
+    // E formas legítimas que um mod poderia desenhar continuam entrando.
+    registerSidebarTab(
+      tabDef({
+        id: "mod-tab",
+        icon:
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" ' +
+          'stroke="currentColor" stroke-width="1.75">\n  <g transform="translate(1 1)">' +
+          '<rect x="2" y="2" width="8" height="8" rx="1"/><polyline points="1,1 5,5"/>' +
+          "</g>\n</svg>",
+      }),
+    );
+    expect(getSidebarTab("mod-tab")).toBeDefined();
   });
 });
 

@@ -25,6 +25,7 @@
  */
 
 import type { Socket } from "socket.io-client";
+import { findIconMarkupViolation } from "./iconMarkup.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -110,7 +111,11 @@ export interface SidebarBadgeStore {
 export interface SidebarTabDefinition {
   /** Unique, stable id. Also the value persisted as `activeTab`. */
   readonly id: string;
-  /** Drawn icon: inline SVG markup. Never an emoji or a symbol character (REQ-NPC-094). */
+  /**
+   * Drawn icon: inline SVG markup, never an emoji or a symbol character
+   * (REQ-NPC-094). Validated against the allowlist in `./iconMarkup`, because the
+   * rail injects it verbatim.
+   */
   readonly icon: string;
   /** i18n key of the tab name — used for `aria-label` and tooltip (REQ-GAV-002). */
   readonly label: string;
@@ -153,9 +158,6 @@ const tabs = new Map<string, SidebarTabEntry>();
 /** Resolved panel components, so switching back to a tab does not re-await. */
 const loadedPanels = new Map<string, SidebarPanelComponent>();
 
-// Emoji / pictograph guard: icons are drawn SVG, never a character (REQ-NPC-094).
-const PICTOGRAPH = /\p{Extended_Pictographic}/u;
-
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new SidebarTabRegistrationError(message);
 }
@@ -177,13 +179,16 @@ function validate(def: SidebarTabDefinition): void {
     typeof def.component === "function",
     `Sidebar tab "${def.id}" needs a panel loader function, e.g. () => import("./Tab.svelte") (RNF-GAV-02).`,
   );
+  // The rail injects this markup verbatim (`{@html tab.icon}` in SidebarRail.svelte),
+  // so the icon has to be *proven* to be a drawn SVG, not merely to contain "<svg".
+  // `findIconMarkupViolation` is an allowlist of shape elements and presentation
+  // attributes: a handler, a <script>, a URL attribute or a second root element is
+  // rejected because it was never on the list. That is what makes the same call safe
+  // for a mod to use in [V2] (REQ-GAV-031) as it is for the core tabs (REQ-NPC-094).
+  const iconViolation = typeof def.icon === "string" ? findIconMarkupViolation(def.icon) : null;
   assert(
-    typeof def.icon === "string" && def.icon.includes("<svg"),
-    `Sidebar tab "${def.id}" needs a drawn icon as inline SVG markup (REQ-NPC-094).`,
-  );
-  assert(
-    !PICTOGRAPH.test(def.icon),
-    `Sidebar tab "${def.id}" uses an emoji as icon; icons are drawn SVG (REQ-NPC-094).`,
+    typeof def.icon === "string" && iconViolation === null,
+    `Sidebar tab "${def.id}" needs a drawn icon as inline SVG markup: ${iconViolation ?? "must be a string"} (REQ-NPC-094).`,
   );
 }
 

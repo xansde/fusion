@@ -244,7 +244,11 @@ describe("pack audience is imposed by the server (REQ-CPD-070, REQ-CPD-071, REQ-
     const publicIndex = await sendQuery(gm, "compendium:index", { packId: PUBLIC_PACK_ID });
     const publicEntries = (publicIndex["result"] as { entries: Array<{ uuid: string }> }).entries;
     publicPackUuid = publicEntries[0]!.uuid;
-  }, 30000);
+    // boot() discovers and indexes every committed pf2e pack (~12k documents)
+    // before the first query answers; on a loaded CI runner that alone has
+    // crossed the default 30 s hook ceiling. The ceiling is infra headroom, not
+    // a behaviour under test.
+  }, 120_000);
 
   afterAll(async () => {
     gm?.disconnect();
