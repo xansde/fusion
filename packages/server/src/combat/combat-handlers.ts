@@ -928,6 +928,9 @@ export function buildCombatRollInitiativeHandler(deps: CombatHandlerDeps): Handl
           total: rollResult.total,
           statistic: rollResult.statistic ?? existing.initiativeStatistic,
           hidden: existing.hidden,
+          // REQ-CBA-067: a creature's initiative value must never reach a
+          // player — not in the panel column, not in the chat message.
+          hasPlayerOwner: existing.hasPlayerOwner,
         });
       }
     }
