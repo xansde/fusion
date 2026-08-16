@@ -139,9 +139,16 @@ describe("REQ-CTT-071 — the user's state is the highest among their characters
     expect(resolveUserKnowledge(doc, [CAROL])).toBe(KnowledgeState.Hidden);
   });
 
-  it("REQ-CTT-071: a user with no character sits at the general rule", () => {
-    const doc = contactDoc({ general: KnowledgeState.Glimpsed, exceptions: {} });
-    expect(resolveUserKnowledge(doc, [])).toBe(KnowledgeState.Glimpsed);
+  it("REQ-CTT-071/REQ-CTT-082: a user with no character is hidden, not at the general rule", () => {
+    // The maximum over an empty set is the bottom of the order. A user who owns
+    // no character has nobody who could have met the contact, so the generous
+    // general rule is exactly what must NOT reach them — the funnel fails
+    // closed, and REQ-CTT-082 keeps the payload away altogether.
+    const glimpsedToAll = contactDoc({ general: KnowledgeState.Glimpsed, exceptions: {} });
+    expect(resolveUserKnowledge(glimpsedToAll, [])).toBe(KnowledgeState.Hidden);
+
+    const knownToAll = contactDoc({ general: KnowledgeState.Known, exceptions: {} });
+    expect(resolveUserKnowledge(knownToAll, [])).toBe(KnowledgeState.Hidden);
   });
 });
 

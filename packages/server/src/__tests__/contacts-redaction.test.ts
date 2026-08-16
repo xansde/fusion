@@ -74,6 +74,9 @@ interface TestContext {
   playerAId: string;
   playerBToken: string;
   playerBId: string;
+  /** A player who owns NO character at all — session zero (REQ-CTT-071). */
+  playerCToken: string;
+  playerCId: string;
 }
 
 function makeTempDir(): string {
@@ -105,6 +108,14 @@ async function buildTestContext(): Promise<TestContext> {
     role: Role.PLAYER,
     password: "player-b-pass",
   });
+  // Player C never receives a character: the session-zero case REQ-CTT-071 is
+  // written about ("o maior estado entre os personagens que ele possui" — over
+  // an empty set).
+  const { user: playerC } = await authService.createUser({
+    name: "Jogadora C",
+    role: Role.PLAYER,
+    password: "player-c-pass",
+  });
   const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
   const aLogin = await authService.login({
     userId: playerA.id,
@@ -114,6 +125,11 @@ async function buildTestContext(): Promise<TestContext> {
   const bLogin = await authService.login({
     userId: playerB.id,
     password: "player-b-pass",
+    ip: "127.0.0.1",
+  });
+  const cLogin = await authService.login({
+    userId: playerC.id,
+    password: "player-c-pass",
     ip: "127.0.0.1",
   });
 
@@ -147,6 +163,8 @@ async function buildTestContext(): Promise<TestContext> {
     playerAId: playerA.id,
     playerBToken: bLogin.accessToken,
     playerBId: playerB.id,
+    playerCToken: cLogin.accessToken,
+    playerCId: playerC.id,
   };
 }
 
@@ -444,6 +462,39 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     expect(JSON.stringify(traffic)).not.toContain(DENIED_NAME);
     expect(actorDocsIn(traffic).some((doc) => doc["_id"] === deniedId)).toBe(false);
     joiner.disconnect();
+  });
+
+  it("REQ-CTT-071/REQ-CTT-082: a player with no character receives no contact — the funnel fails closed", async () => {
+    // Session zero: player C exists, is connected, and owns no character. The
+    // two visible contacts have ownership OBSERVER for everybody, so ownership
+    // lets them through and only the knowledge rule can stop them. REQ-CTT-071
+    // is a maximum over the characters the user OWNS — over an empty set that
+    // is `oculto`, never the general rule the world wrote for characters.
+    const joiner = connectClient(ctx, ctx.playerCToken);
+    const traffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await settle();
+
+    const ids = actorDocsIn(traffic).map((doc) => doc["_id"]);
+    expect(ids).not.toContain(knownId);
+    expect(ids).not.toContain(glimpsedId);
+    expect(ids).not.toContain(hiddenId);
+    expect(JSON.stringify(traffic)).not.toContain(KNOWN_NAME);
+    expect(JSON.stringify(traffic)).not.toContain(KNOWN_TITLE);
+    expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_NAME);
+    joiner.disconnect();
+
+    // Not vacuous: the same world, the same contact, a player who DOES own a
+    // character — the known contact arrives whole. What changed is the viewer's
+    // characters, which is exactly what REQ-CTT-071 makes the state depend on.
+    const withCharacter = connectClient(ctx, ctx.playerAToken);
+    const trafficA = recordEnvelopes(withCharacter);
+    withCharacter.connect();
+    await waitForConnect(withCharacter);
+    await settle();
+    expect(actorDocsIn(trafficA).some((doc) => doc["_id"] === knownId)).toBe(true);
+    withCharacter.disconnect();
   });
 
   it("REQ-CTT-084: no payload a player receives carries the knowledge map", async () => {

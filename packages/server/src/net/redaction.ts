@@ -319,9 +319,10 @@ export function getContactKnowledgeSource(namespace: object): ContactKnowledgeSo
 /**
  * Resolve a viewer.
  *
- * With no source the viewer owns no character, which reads the general rule and
- * nothing better (`resolveUserKnowledge` on an empty list) — the conservative
- * side: a missing source can only ever show LESS than the truth, never more.
+ * With no source the viewer owns no character, and no character means `hidden`
+ * for every contact (`resolveUserKnowledge` on an empty list, REQ-CTT-071) —
+ * the conservative side: a missing source delivers nothing, it never delivers
+ * more than the viewer's characters had earned.
  */
 export function buildContactViewer(
   source: ContactKnowledgeSource | undefined,

@@ -197,17 +197,20 @@ export function resolveKnowledgeFromMap(map: KnowledgeMap, characterId: string):
  * The state of a contact for a USER: the highest state among the characters
  * the user owns (REQ-CTT-071).
  *
- * A user with no character sits at the general rule, not at hidden — the rule
- * is what the world says about the contact, and a user without a character has
- * nothing to override it with.
+ * A user with NO character is at `hidden`, not at the general rule: the maximum
+ * over an empty set is the bottom of the order, and the general rule is what
+ * the world says about a CHARACTER's knowledge — a user who has none has nobody
+ * to know anything on their behalf. The funnel therefore fails closed: a player
+ * still waiting for a character in session zero, or one whose character was
+ * deleted, receives no contact at all (REQ-CTT-082) instead of the whole
+ * "Conhecidos" section the general rule would hand over.
  */
 export function resolveUserKnowledge(
   actor: unknown,
   characterIds: readonly string[],
 ): KnowledgeState {
   const map = readKnowledgeMap(actor);
-  if (characterIds.length === 0) return map.general;
-  let best: KnowledgeState = KnowledgeState.Hidden;
+  let best: KnowledgeState = DEFAULT_KNOWLEDGE_STATE;
   for (const characterId of characterIds) {
     const state = resolveKnowledgeFromMap(map, characterId);
     if (state > best) best = state;
