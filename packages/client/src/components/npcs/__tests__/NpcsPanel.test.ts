@@ -107,6 +107,15 @@ const ACTORS = [
   },
   // A player's character: the Contatos tab's, never listed nor counted here.
   { _id: "act-fofurinha01x", name: "Fofurinha", type: "character", folder: "fld-bosque0000001" },
+  // A sub-character whose kind is NOT the default, to prove the label is translated
+  // and not the raw `system.companionKind` value (companion of spec 39's vocabulary).
+  {
+    _id: "act-urso-filho01",
+    name: "Ursinho",
+    type: "familiar",
+    folder: "fld-bosque0000001",
+    system: { masterActorId: "act-urso00000001", companionKind: "animalCompanion" },
+  },
 ];
 
 const SCENES = [
@@ -470,6 +479,15 @@ describe("REQ-NPC-033 / REQ-NPC-034 / REQ-NPC-035: chips, sub-characters and the
     // Not a row of its own — and therefore not a move control of its own either.
     expect(body).not.toContain('data-npc-id="act-filhote00001"');
     expect(body).not.toContain('data-npc-move="act-filhote00001"');
+  });
+
+  it("REQ-NPC-034: the sub-character's kind is drawn via i18n, not the raw system value", () => {
+    const row = npcRow(renderPanel(), "act-urso00000001");
+
+    // pt-BR label of spec 39's vocabulary (FUSION.Contacts.CompanionKind.animalCompanion) —
+    // the same key ContactsPanel.svelte already uses for the identical field.
+    expect(row).toContain("Companheiro animal");
+    expect(row).not.toContain("animalCompanion");
   });
 
   it("REQ-NPC-035: the sheet is reachable by double-click AND by a keyboard control", () => {

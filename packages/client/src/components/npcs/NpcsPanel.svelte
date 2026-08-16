@@ -178,6 +178,18 @@
     return label === key ? subtype : label;
   }
 
+  /**
+   * pt-BR name of a companion kind, degrading to the raw kind when undeclared.
+   * Reuses spec 39's vocabulary (`FUSION.Contacts.CompanionKind.*`) — the data is the
+   * same `system.companionKind` field ContactsPanel already owns; no parallel
+   * `FUSION.Npcs.CompanionKind.*` key is created for it.
+   */
+  function companionKindLabel(kind: string): string {
+    const key = `FUSION.Contacts.CompanionKind.${kind}`;
+    const label = t(key);
+    return label === key ? kind : label;
+  }
+
   const searching = $derived(query.trim().length > 0);
 
   /** Every line the panel draws, already filtered by the search (REQ-NPC-011). */
@@ -755,7 +767,7 @@
           <li class="npcs-row__sub" data-sub-of={row.id} data-sub-id={sub.id}>
             <ActorPortrait img={sub.img} name={sub.name} size={20} />
             <span class="npcs-row__sub-name">{sub.name}</span>
-            <span class="npcs-row__sub-kind">{sub.kind}</span>
+            <span class="npcs-row__sub-kind">{companionKindLabel(sub.kind)}</span>
             <ConditionChips conditions={sub.conditions} idPrefix={`npc-sub-${sub.id}`} />
           </li>
         {/each}
