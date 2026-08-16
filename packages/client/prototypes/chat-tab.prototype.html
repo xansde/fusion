@@ -22,6 +22,20 @@
       REQ-CHT-005 e REQ-CHT-045, também sem tela hoje).
    5. Transversal: quando o contador de não-lidas zera (botão "não-lido" no
       switcher alterna as duas regras candidatas).
+   6. Se os três casos pesados do PF2e cabem em 300px — golpe com dano,
+      magia resistida com uma salvaguarda por alvo, e cura.
+
+  OS TRÊS CASOS DE SISTEMA NO LOG (fiéis ao que o repo já tem, exceto a cura):
+   · Espada longa — AbilityCard kind:"strike": ataque + dano, com o botão de dano
+     visível só para quem controla o personagem (gate de ownership).
+   · Arco Elétrico — kind:"spell" com saveType/dcValue/basicSave: "Fazer teste de
+     resistência" para qualquer um (o ALVO rola com o ator dele) e "Rolar dano"
+     só do conjurador; as salvaguardas dos 5 alvos vêm aninhadas, cada uma com o
+     grau computado no servidor e a dica de save básico, colapsando acima de 4.
+   · Curar — NÃO EXISTE no modelo de hoje (o card só tem damageFormula/damageType,
+     não há tipo de cura nem ação de aplicar em alvo). Vai com selo "sem modelo
+     hoje" porque é decisão em aberto: cura é damageType próprio, rolagem de sinal
+     invertido, ou um kind novo? E aplicar dano/cura no alvo existe ou não?
 
   VARIANTES
    1 Enxuta      — o que existe hoje, arrumado: nenhuma ferramenta de log.
@@ -144,13 +158,37 @@
 
   /* card de sistema */
   .card{background:var(--surface-alt);border:1px solid #2f7fa8;border-radius:var(--radius-sm);padding:.4rem .45rem;margin-top:.15rem}
-  .card .ct{color:var(--text);font-weight:600;font-size:.82rem}
+  .card .ct{color:var(--text);font-weight:600;font-size:.82rem;display:flex;align-items:center;gap:.3rem}
   .card .cs{color:var(--subtle);font-size:.72rem;margin-bottom:.25rem}
   .card .cf{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);padding:.1rem 0}
   .card .cf b{color:var(--text)}
   .card .cb{display:flex;gap:.3rem;margin-top:.35rem;flex-wrap:wrap}
   .card .cb button{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .45rem;font:inherit;font-size:.72rem;cursor:pointer}
   .card .cb button:hover{border-color:var(--accent)}
+  .card .cb button.own{border-color:rgba(124,92,252,.5);color:var(--accent-hover)}
+  .card .cb button.heal{border-color:rgba(61,220,132,.5);color:var(--ok)}
+
+  /* rolagens filhas do card (r18-N1: ataque/dano/cura + salvaguardas) */
+  .kids{margin-top:.4rem;border-top:1px dashed var(--border);padding-top:.3rem}
+  .kid{display:flex;gap:.4rem;align-items:baseline;font-size:.75rem;padding:.05rem 0}
+  .kid .kl{color:var(--subtle);min-width:46px}
+  .kid .kf{color:var(--subtle);font-family:ui-monospace,monospace;font-size:.68rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kid .kt{font-weight:700;color:var(--accent-hover)}
+  .kid .kt.heal{color:var(--ok)}
+  .kid .kt.crit{color:var(--ok)}
+  .svs{margin-top:.35rem}
+  .svs .st{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--subtle);margin-bottom:.15rem}
+  .sv{display:flex;gap:.3rem;align-items:baseline;font-size:.74rem;padding:.08rem 0}
+  .sv .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+  .sv .tot{font-family:ui-monospace,monospace;color:var(--muted);font-size:.7rem}
+  .deg{font-size:.6rem;border:1px solid;border-radius:3px;padding:0 .25rem;white-space:nowrap}
+  .deg.criticalSuccess{color:var(--ok);border-color:var(--ok)}
+  .deg.success{color:#8fe3b0;border-color:#8fe3b0}
+  .deg.failure{color:var(--warn);border-color:var(--warn)}
+  .deg.criticalFailure{color:var(--danger);border-color:var(--danger)}
+  .svs .hint{color:var(--subtle);font-size:.66rem;padding-left:.1rem}
+  .svs .more{background:none;border:0;color:var(--accent-hover);cursor:pointer;font:inherit;font-size:.7rem;padding:.15rem 0}
+  .nomodel{font-size:.6rem;letter-spacing:.03em;border:1px dashed var(--warn);color:var(--warn);border-radius:3px;padding:0 .25rem;white-space:nowrap}
 
   /* ações no hover */
   .m .acts{position:absolute;top:-6px;right:2px;display:none;gap:.1rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.1rem}
@@ -328,11 +366,50 @@ const BASE = [
   {id:2,who:'Fofurinha',t:'21:05',type:'roll',flavor:'Percepção',formula:'1d20+7',total:19,brk:'1d20 [12] + 7'},
   {id:3,who:'Tobias',t:'21:05',type:'emote',text:'avança dois passos e ergue o escudo.'},
   {id:4,who:'Gamemaster',t:'21:06',type:'whisper',to:'Fofurinha',text:'Só você percebe: há uma alavanca atrás do trono, meio escondida pelo tapete.'},
-  {id:5,who:'Tobias',t:'21:07',type:'system',card:{title:'Golpe — Espada longa',sub:'Ação · agilidade',fields:[['Ataque','+11'],['Dano','1d8+4 cortante']],buttons:['Rolar dano','Crítico']}},
+
+  /* (a) GOLPE + DANO — AbilityCard kind:"strike": ataque, dano e dano crítico.
+         O botão de dano é do dono do ator (gate de ownership, shared/chat/types.ts). */
+  {id:5,who:'Tobias',t:'21:07',type:'ability',ability:{
+    kind:'strike',title:'Espada longa',sub:'Golpe · agilidade',
+    fields:[['Ataque','+11'],['Dano','1d8+4 cortante']],
+    buttons:[{l:'Rolar dano',own:true},{l:'Rolar dano crítico',own:true}],
+    rolls:[
+      {lbl:'Ataque',formula:'1d20+11',total:24,deg:'criticalSuccess'},
+      {lbl:'Dano',formula:'(1d8+4)×2',total:22,type:'cortante'},
+    ]}},
+
   {id:6,who:'Gamemaster',t:'21:08',type:'roll',flavor:'Furtividade do goblin',formula:'1d20+9',total:23,brk:'1d20 [14] + 9',blind:true},
-  {id:7,who:'Fofurinha',t:'21:09',type:'text',text:'Eu chuto o tapete pra ver o que tem embaixo.'},
-  {id:8,who:'Gamemaster',t:'21:10',type:'roll',flavor:'Reflexos (revelada)',formula:'1d20+5',total:8,brk:'1d20 [3] + 5',revealed:true},
-  {id:9,who:'Gamemaster',t:'21:11',type:'text',text:'A porta atrás de vocês range. Rolem iniciativa.'},
+
+  /* (b) MAGIA RESISTIDA — AbilityCard kind:"spell" com saveType + dcValue +
+         basicSave: "Fazer teste de resistência" é de qualquer jogador (o ALVO rola
+         com o ator dele); o dano é do conjurador. As salvaguardas dos alvos vêm
+         aninhadas, cada uma com o grau computado no servidor (r17.1), e a seção
+         colapsa acima de 4 (SAVES_COLLAPSE_THRESHOLD). */
+  {id:7,who:'Fofurinha',t:'21:09',type:'ability',ability:{
+    kind:'spell',title:'Arco Elétrico',sub:'Magia lançada · nível 3 · ✳✳',
+    fields:[['CD','21'],['Resistência','Reflexos (básica)'],['Dano','2d4+4 elétrico']],
+    basicSave:true,
+    buttons:[{l:'Fazer teste de resistência'},{l:'Rolar dano',own:true}],
+    rolls:[{lbl:'Dano',formula:'2d4+4',total:9,type:'elétrico'}],
+    saves:[
+      {who:'Goblin Guerreiro',total:14,deg:'failure'},
+      {who:'Goblin Arqueiro', total:9, deg:'criticalFailure'},
+      {who:'Lobo atroz',      total:24,deg:'success'},
+      {who:'Goblin Chefe',    total:31,deg:'criticalSuccess'},
+      {who:'Goblin Sapador',  total:16,deg:'failure'},
+    ]}},
+
+  /* (c) CURA — não existe no modelo de hoje: AbilityCard só tem damageFormula/
+         damageType, não há tipo "cura" nem ação de aplicar em alvo. Está aqui
+         com o selo "sem modelo" porque é decisão que a spec 38/09 precisa tomar. */
+  {id:8,who:'Fofurinha',t:'21:10',type:'ability',ability:{
+    kind:'spell',title:'Curar',sub:'Magia lançada · nível 3 · ✳✳',noModel:true,
+    fields:[['Alvo','Tobias'],['Cura','3d8']],
+    buttons:[{l:'Rolar cura',own:true,heal:true},{l:'Aplicar em Tobias',own:true,heal:true}],
+    rolls:[{lbl:'Cura',formula:'3d8',total:17,type:'pontos de vida',heal:true}]}},
+
+  {id:9,who:'Gamemaster',t:'21:11',type:'roll',flavor:'Reflexos (revelada)',formula:'1d20+5',total:8,brk:'1d20 [3] + 5',revealed:true},
+  {id:10,who:'Gamemaster',t:'21:12',type:'text',text:'A porta atrás de vocês range. Rolem iniciativa.'},
 ];
 let msgs = BASE.slice();
 
@@ -353,14 +430,14 @@ function visible(m){
 }
 function matches(m){
   if(!query) return true;
-  const hay = ((m.text||'')+' '+(m.flavor||'')+' '+((m.card&&m.card.title)||'')+' '+m.who).toLowerCase();
+  const hay = ((m.text||'')+' '+(m.flavor||'')+' '+((m.card&&m.card.title)||'')+' '+((m.ability&&m.ability.title)||'')+' '+m.who).toLowerCase();
   return hay.includes(query.toLowerCase());
 }
 function passFilter(m){
   if(filter==='all') return true;
-  if(filter==='rolls') return m.type==='roll';
+  if(filter==='rolls') return m.type==='roll' || m.type==='ability';
   if(filter==='whispers') return m.type==='whisper' || m.blind;
-  if(filter==='system') return m.type==='system';
+  if(filter==='system') return m.type==='system' || m.type==='ability';
   return true;
 }
 function hl(s){
@@ -371,15 +448,55 @@ function hl(s){
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+/* ================= card de habilidade (AbilityCard + rolagens filhas) ================= */
+const DEG_LBL   = {criticalSuccess:'Sucesso Crítico',success:'Sucesso',failure:'Falha',criticalFailure:'Falha Crítica'};
+const BASIC_HINT= {criticalSuccess:'Nenhum dano',success:'Metade do dano',failure:'Dano integral',criticalFailure:'Dano dobrado'};
+const SAVES_COLLAPSE = 4;   /* mesmo limiar do ChatMessage.svelte */
+let savesOpen = {};
+
+function abilityHtml(m){
+  const a=m.ability;
+  const mine = (m.who===ME()) || role==='gm';    /* gate de ownership do botão de dano/cura */
+  const seloSemModelo = a.noModel ? '<span class="nomodel">sem modelo hoje</span>' : '';
+
+  const btns = a.buttons.filter(b=>!b.own || mine).map(b=>
+    `<button class="${b.own?'own':''} ${b.heal?'heal':''}" title="${b.own?'só quem controla o personagem':'qualquer um pode clicar — o alvo rola com o ator dele'}">${esc(b.l)}</button>`).join('');
+
+  const rolls = (a.rolls||[]).map(r=>
+    `<div class="kid"><span class="kl">${esc(r.lbl)}</span><span class="kf">${esc(r.formula)}${r.type?' · '+esc(r.type):''}</span>
+      <span class="kt ${r.heal?'heal':''} ${r.deg==='criticalSuccess'?'crit':''}">${r.total}</span>
+      ${r.deg?`<span class="deg ${r.deg}">${DEG_LBL[r.deg]}</span>`:''}</div>`).join('');
+
+  let saves='';
+  if(a.saves && a.saves.length){
+    const isOpen = !!savesOpen[m.id];
+    const list = (a.saves.length>SAVES_COLLAPSE && !isOpen) ? a.saves.slice(0,SAVES_COLLAPSE) : a.saves;
+    saves = `<div class="svs"><div class="st">Salvaguardas</div>
+      ${list.map(s=>`<div class="sv"><span class="nm">${esc(s.who)}</span><span class="tot">${s.total}</span>
+        <span class="deg ${s.deg}">${DEG_LBL[s.deg]}</span></div>
+        ${a.basicSave?`<div class="hint">${BASIC_HINT[s.deg]}</div>`:''}`).join('')}
+      ${a.saves.length>SAVES_COLLAPSE?`<button class="more" data-saves="${m.id}">${isOpen?'recolher':`ver todas (${a.saves.length})`}</button>`:''}</div>`;
+  }
+
+  return `<div class="card">
+    <div class="ct">${hl(a.title)}${seloSemModelo}</div>
+    <div class="cs">${esc(a.sub)}</div>
+    ${a.fields.map(f=>`<div class="cf"><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join('')}
+    <div class="cb">${btns}</div>
+    ${(rolls||saves)?`<div class="kids">${rolls}${saves}</div>`:''}
+  </div>`;
+}
+
 /* ================= mensagens ================= */
 function msgHtml(m, prev){
-  const cont = prev && prev.who===m.who && prev.type!=='system' && m.type!=='system' && m.type!=='whisper';
+  const isCard = m.type==='system' || m.type==='ability';
+  const cont = prev && prev.who===m.who && prev.type!=='system' && prev.type!=='ability' && !isCard && m.type!=='whisper';
   const cls = ['m'];
   if(cont) cls.push('m--cont');
   if(m.type==='emote') cls.push('m--emote');
   if(m.type==='whisper') cls.push('m--whisper');
   if(m.blind && !m.revealed) cls.push('m--blind');
-  if(m.type==='system') cls.push('m--sys');
+  if(isCard) cls.push('m--sys');
   if(query && matches(m) && (variant===4)) cls.push('m--hit');
 
   let seals='';
@@ -411,6 +528,7 @@ function msgHtml(m, prev){
       ${c.fields.map(f=>`<div class="cf"><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join('')}
       <div class="cb">${c.buttons.map(b=>`<button>${esc(b)}</button>`).join('')}</div></div>`;
   }
+  if(m.type==='ability') body = abilityHtml(m);
 
   const canReveal = role==='gm' && (m.type==='whisper' || (m.blind && !m.revealed));
   const acts = role==='gm'
@@ -636,6 +754,7 @@ function wire(){
   root.querySelectorAll('[data-inline2]').forEach(b=>b.onclick=()=>{inlineSearch=true;menu=false;render();});
   root.querySelectorAll('[data-clearq]').forEach(b=>b.onclick=()=>{query='';render();});
   root.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{const id=+b.dataset.exp;expanded[id]=!expanded[id];render();});
+  root.querySelectorAll('[data-saves]').forEach(b=>b.onclick=()=>{const id=+b.dataset.saves;savesOpen[id]=!savesOpen[id];render();});
 
   const menuBtn = root.querySelector('#askflush') || float.querySelector('#askflush');
   if(menuBtn) menuBtn.onclick=()=>{confirmFlush=true;menu=false;render();};
@@ -719,6 +838,9 @@ function paintSwitcher(){
       <tr><td>ações da mensagem</td><td><b>${e.acoes}</b></td></tr>
       <tr><td>não-lido</td><td><b>${unreadRule==='open'?'zera ao abrir a aba (REQ-CHT-039 de hoje)':'zera ao rolar até o fim (DEC-GAV-06 ao pé da letra)'}</b></td></tr>
     </table>
+    <div style="margin-top:.4rem;padding-top:.35rem;border-top:1px solid #ddd;color:#666">
+      no log: <b>golpe com dano</b>, <b>magia resistida</b> (5 salvaguardas, colapsa em 4) e <b>cura</b>.
+      A cura está marcada <b style="color:#a07800">sem modelo hoje</b> — o card do PF2e só conhece dano, e ninguém aplica nada em ninguém ainda.</div>
     <div style="margin-top:.4rem;color:#666">teclas: <b>1–4</b> variante · <b>p</b> papel · <b>n</b> chega mensagem · <b>u</b> regra do não-lido · <b>v</b> log vazio</div>`;
 }
 
