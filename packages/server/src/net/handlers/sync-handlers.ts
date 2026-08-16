@@ -529,19 +529,9 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
  * mirror was just written by `buildActiveSceneHandler`.
  *
  * Delivery matches doc-handlers.ts's `broadcastToWorld` exactly — the same
- * per-socket walk, the same `stripHiddenTokens` + `redactSecretDoors`, and
- * the same absence of an ownership-level check. That absence is deliberate
- * here, and it is worth being explicit about why, because the codebase
- * contradicts itself on this point: `buildSnapshot` (above) DOES drop a Scene
- * a player may not see, while every live Scene broadcast delivers it redacted
- * to everyone. Four of the five scenes in the real world on disk carry
- * `ownership.default = NONE`, so the two rules disagree about the map the
- * table is actually looking at.
- *
- * Making this one event stricter than every other Scene broadcast would not
- * close that gap — it would only make what a player sees depend on which
- * event delivered it. Which side is right is a product decision, tracked as a
- * task in `docs/design/banco-de-dados/tasks.md`.
+ * per-socket walk and the same single funnel (`redactSceneDocsForNonPrivileged`,
+ * REQ-CEN-071..073): a non-privileged socket only ever receives the scene that
+ * is on air, redacted; every other scene is dropped from its copy of the batch.
  */
 function broadcastSceneVersionUpdates(
   deps: SyncHandlerDeps,
@@ -570,11 +560,11 @@ function broadcastSceneVersionUpdates(
       continue;
     }
 
-    const redacted = scenes.map((scene) => {
-      let r = stripHiddenTokens(scene);
-      r = redactSecretDoors(r);
-      return r;
-    });
+    // REQ-CEN-071..073: same funnel as every other Scene emission — off-air
+    // scenes are dropped for the player (the envelope still goes out, possibly
+    // with empty `documents`, to keep the seq contiguous), the on-air scene
+    // keeps its hidden-token / secret-door redaction.
+    const redacted = redactSceneDocsForNonPrivileged(scenes);
     socket.emit("op", {
       ...fullEnvelope,
       payload: { documentType: "Scene", documents: redacted },
