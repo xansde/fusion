@@ -392,6 +392,10 @@ export function checkSchema(db: Db): SchemaReport {
     for (const [name, act] of actual) {
       if (expected.has(name)) continue;
       const adoptedAt = LEGACY_TOLERATED_OBJECTS.get(name);
+      // Strictly `<`: at the adopting version the object is already part of
+      // `expected`, so this branch cannot be reached for it — and if it ever
+      // is, the object is genuinely missing from what the migration produced,
+      // which is a problem to report rather than to excuse.
       if (adoptedAt !== undefined && currentVersion < adoptedAt) continue;
       problems.push({
         kind: "object-extra",

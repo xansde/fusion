@@ -13,9 +13,10 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { Database } from "better-sqlite3";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import {
   openDatabase,
   applyMigrations,
@@ -58,28 +59,22 @@ function seedDatabase(path: string, migrations: FusionMigration[]): void {
 }
 
 /**
- * The `roll_audit_log` exactly as `chat/roll-service.ts` used to create it —
- * and therefore exactly as it sits in every world on disk today. Migration 005
- * has to land on this same shape, so the copy is deliberate: if the two ever
- * drift apart, the schema guard refuses to open real worlds and these tests
- * are where that shows up first.
+ * The `roll_audit_log` as it exists in worlds that were played before migration
+ * 005 adopted it.
+ *
+ * The DDL is read from a fixture captured out of a real world database, not
+ * retyped here. That distinction is the whole test: `ensureAuditTable` is gone
+ * from `chat/roll-service.ts`, so a hand-copied "legacy" DDL in this file would
+ * be the same person writing the same statement twice — and would agree with a
+ * mistranscribed migration just as happily as with a correct one.
  */
+const LEGACY_AUDIT_DDL = readFileSync(
+  fileURLToPath(new URL("./fixtures/legacy-roll-audit-log.sql", import.meta.url)),
+  "utf8",
+);
+
 function seedLegacyAuditTable(db: Database): void {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS roll_audit_log (
-      roll_id          TEXT    PRIMARY KEY NOT NULL,
-      world_id         TEXT    NOT NULL,
-      user_id          TEXT    NOT NULL,
-      actor_id         TEXT,
-      formula          TEXT    NOT NULL,
-      expanded_formula TEXT    NOT NULL,
-      total            REAL    NOT NULL,
-      seed             INTEGER NOT NULL,
-      created_at       INTEGER NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_roll_audit_world_user
-      ON roll_audit_log(world_id, user_id, created_at);
-  `);
+  db.exec(LEGACY_AUDIT_DDL);
 }
 
 beforeEach(() => {
@@ -484,9 +479,11 @@ describe("migration 005 — roll_audit_log (T007)", () => {
     }
   });
 
-  it("lands on the same table an ad-hoc world already has", () => {
-    // The upgrade is a no-op for played worlds only if the shapes agree. Build
-    // the table both ways and compare what SQLite actually recorded.
+  it("lands on the same table a real played world already has", () => {
+    // The upgrade is a no-op for played worlds only if the shapes agree, so the
+    // comparison has to be against something this migration's author did not
+    // write: the fixture is the DDL as SQLite recorded it inside an actual
+    // world file (see fixtures/legacy-roll-audit-log.sql).
     const fresh = join(newTempDir(), "world.db");
     const legacy = join(newTempDir(), "world.db");
 

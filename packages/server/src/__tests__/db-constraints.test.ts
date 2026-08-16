@@ -409,4 +409,44 @@ describe("migration 006 — pre-flight refuses bad data with an actionable messa
       db.close();
     }
   });
+
+  it("counts sessions left pointing at a user that is gone", () => {
+    const path = join(newTempDir(), "world.db");
+    seedPopulatedWorld(path, [{ id: "u-gone", name: "Fantasma", role: 1 }], 2);
+
+    // No path in the app can produce this — foreign keys are on everywhere. It
+    // is the world we have not seen: a database somebody repaired by hand, or
+    // one that passed through a build without the constraint. Reproduce it the
+    // only way it can happen, with the enforcement off (allowed here because
+    // there is no transaction open).
+    registerMigrations(UP_TO_5);
+    const seeded = openDatabase({ path, skipIntegrityCheck: true });
+    seeded.raw.pragma("foreign_keys = OFF");
+    seeded.raw.prepare(`DELETE FROM users WHERE id = 'u-gone'`).run();
+    seeded.close();
+
+    registerMigrations(ALL);
+    const db = openDatabase({ path, skipIntegrityCheck: true });
+    try {
+      let thrown: unknown;
+      try {
+        applyMigrations(db.raw, path);
+      } catch (err) {
+        thrown = err;
+      }
+
+      expect(thrown).toBeInstanceOf(MigrationError);
+      const message = (thrown as Error).message;
+      // Without this check the copy into sessions_new dies on a bare
+      // "FOREIGN KEY constraint failed" — no count, no pointer to the backup.
+      expect(message).toContain("2 sessions point at a user that no longer exists");
+      expect(message).toContain("backups");
+
+      expect(getSchemaVersion(db.raw)).toBe(5);
+      const sessions = db.raw.prepare(`SELECT COUNT(*) AS c FROM sessions`).get() as { c: number };
+      expect(sessions.c).toBe(2);
+    } finally {
+      db.close();
+    }
+  });
 });

@@ -122,6 +122,21 @@ describe("migration 007 — indexes serve the queries the server runs (T009)", (
     }
   });
 
+  it("declares the chat index in the direction the pagination reads", () => {
+    const db = openMigratedWorld();
+    try {
+      // EXPLAIN alone would not catch a missing DESC: SQLite happily walks an
+      // ascending index backwards, so the plan looks the same either way. The
+      // declared direction is what keeps that from being luck.
+      const ddl = db.raw
+        .prepare(`SELECT sql FROM sqlite_master WHERE name='idx_chat_ts_id'`)
+        .get() as { sql: string };
+      expect(ddl.sql).toMatch(/timestamp\s+DESC\s*,\s*id\s+DESC/i);
+    } finally {
+      db.close();
+    }
+  });
+
   it("drops the indexes nothing queries", () => {
     const db = openMigratedWorld();
     try {
