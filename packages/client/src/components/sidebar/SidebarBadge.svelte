@@ -34,12 +34,18 @@
     SIDEBAR_BADGE_OVERFLOW_TEXT,
     formatSidebarBadge,
   } from "../../lib/sidebar/badges.svelte.js";
-  import type { SidebarBadgeValue } from "../../lib/sidebar/registry.js";
+  import type { SidebarBadgeTone, SidebarBadgeValue } from "../../lib/sidebar/registry.js";
   import { t } from "../../lib/i18n/i18n.js";
 
   interface Props {
     /** The badge store's current value; `null`/`false`/`0` draw nothing. */
     value: SidebarBadgeValue | undefined;
+    /**
+     * How loud a lit state dot is drawn (REQ-CBA-004). Already resolved by
+     * `readSidebarBadgeTone`, so a counter never arrives here as amber. Omitted
+     * means the common emphasis.
+     */
+    tone?: SidebarBadgeTone | undefined;
     /**
      * Id given to the hidden textual equivalent, so the owning button can point
      * at it with `aria-describedby` (REQ-A11-010). Omitted when the caller has
@@ -48,9 +54,12 @@
     descriptionId?: string | undefined;
   }
 
-  const { value, descriptionId }: Props = $props();
+  const { value, tone, descriptionId }: Props = $props();
 
   const display = $derived(formatSidebarBadge(value));
+
+  /** A dot drawn amber, and nothing else, gets the loud treatment (REQ-CBA-004). */
+  const amber = $derived(display.kind === "dot" && tone === "amber");
 
   /**
    * The counter as a word, for the hidden description. Unlike the drawn text it
@@ -70,7 +79,14 @@
         ? t("FUSION.Sidebar.Badge.CounterOne")
         : t("FUSION.Sidebar.Badge.CounterMany", { count: spokenCount });
     }
-    if (display.kind === "dot") return t("FUSION.Sidebar.Badge.Dot");
+    if (display.kind === "dot") {
+      // The amber emphasis is a state a sighted user reads off the colour alone, so
+      // the hidden equivalent has to say it in words too (REQ-A11-010, REQ-CBA-004).
+      // Both wordings are generic — "requires your attention", never "it is your turn
+      // in combat" — because the rail must not know what any badge means
+      // (REQ-GAV-023).
+      return amber ? t("FUSION.Sidebar.Badge.DotAttention") : t("FUSION.Sidebar.Badge.Dot");
+    }
     return "";
   });
 </script>
@@ -83,7 +99,13 @@
     >{display.text}</span
   >
 {:else if display.kind === "dot"}
-  <span class="sidebar-badge sidebar-badge--dot" data-badge-kind="dot" aria-hidden="true"></span>
+  <span
+    class="sidebar-badge sidebar-badge--dot"
+    class:sidebar-badge--amber={amber}
+    data-badge-kind="dot"
+    data-badge-tone={amber ? "amber" : "default"}
+    aria-hidden="true"
+  ></span>
 {/if}
 
 {#if display.kind !== "none"}
@@ -126,6 +148,16 @@
     height: 7px;
     border-radius: 50%;
     background: var(--fusion-accent);
+  }
+
+  /* REQ-CBA-004: the loud emphasis of a lit dot — `--fusion-warning` is the amber of
+     the palette. The static ring is a second, non-colour cue for the same state, and
+     the hidden description says it in words; there is no transition and no animation
+     here, because a badge only appears, disappears and changes tone (REQ-GAV-024,
+     REQ-CBA-005). */
+  .sidebar-badge--amber {
+    background: var(--fusion-warning);
+    box-shadow: 0 0 0 2px var(--fusion-warning-dim);
   }
 
   /* Reachable by assistive tech, invisible on screen and out of the layout — the

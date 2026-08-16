@@ -80,6 +80,7 @@ import {
 } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
 import { RollService, RollError } from "../chat/roll-service.js";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import type { RollServiceOptions } from "../chat/roll-service.js";
 import type { SystemModule } from "@fusion/system-api";
 
@@ -871,7 +872,10 @@ function broadcastActorUpdate(deps: ConjuracaoHandlerDeps, actor: Record<string,
   // Estresse/Fadiga patch even if it reconnects between this push and the
   // subsequent card-state broadcast.
   deps.opBuffer.push(envelope);
-  deps.ns.emit("op", envelope);
+  // REQ-CTT-083: an Actor body goes out through the single redaction funnel
+  // (`broadcastToWorld`), never a bare namespace emit — contact knowledge must
+  // not have a back door here.
+  broadcastToWorld(deps.ns, envelope, "Actor");
 }
 
 // ---------------------------------------------------------------------------

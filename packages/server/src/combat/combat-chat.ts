@@ -9,6 +9,12 @@
  * (whisper = [...gmUserIds]) so players never receive them, mirroring the
  * gmroll visibility rule used by the chat handler.
  *
+ * Creatures (REQ-CBA-067, CA-CBA-005): a combatant with no player owner gets
+ * the same GM-only treatment, hidden or not — the player must never see a
+ * creature's initiative value "em momento algum, nem na montagem". The combat
+ * panel conceals the number in its column; the chat panel is the same screen,
+ * so concealing one while publishing the other would be no redaction at all.
+ *
  * This module persists each message to chat_messages (so reconnecting clients
  * and chat:history see it) and broadcasts it per-socket honouring visibility.
  * It intentionally reuses the same persistence shape and broadcast event as
@@ -42,6 +48,12 @@ export interface InitiativeRollChatEntry {
   readonly statistic: string | null;
   /** Whether the combatant is hidden — GM-only message when true. */
   readonly hidden: boolean;
+  /**
+   * Whether the combatant's actor is owned by at least one player (the server's
+   * cached "is this a PC?" answer). False means creature — GM-only message
+   * (REQ-CBA-067).
+   */
+  readonly hasPlayerOwner: boolean;
 }
 
 /**
@@ -103,15 +115,20 @@ function persistChatMessage(db: Db, msg: ChatMessage): void {
 /**
  * Build an initiative chat message for a single combatant result.
  *
- * Hidden combatant → whisper to all GMs (players never receive it).
- * Visible combatant → public message.
+ * Hidden combatant (REQ-CBT-031) → whisper to all GMs.
+ * Creature, i.e. no player owner (REQ-CBA-067) → whisper to all GMs: the player
+ * must never read a creature's initiative value, and the chat log is the same
+ * screen as the combat panel. Hiding the number in the panel column while the
+ * very same number is published in the message next to it is not redaction.
+ * Player-owned combatant that is not hidden → public message.
  */
 function buildInitiativeMessage(deps: CombatChatDeps, entry: InitiativeRollChatEntry): ChatMessage {
   const stats = defaultStats();
   const statSuffix = entry.statistic ? ` (${entry.statistic})` : "";
   const content = `${entry.combatantName} rolls initiative${statSuffix}: ${String(entry.total)}`;
 
-  const whisper = entry.hidden ? getGmUserIds(deps.db) : [];
+  const gmOnly = entry.hidden || !entry.hasPlayerOwner;
+  const whisper = gmOnly ? getGmUserIds(deps.db) : [];
 
   const msg: ChatMessage = {
     _id: createDocumentId(),

@@ -23,5 +23,6 @@ export * from "./vision/index.js";
 export * from "./fog/index.js";
 export * from "./combat/index.js";
 export * from "./compendium.js";
+export * from "./knowledge.js";
 export * from "./mechanics.js";
 export * from "./etmos/index.js";

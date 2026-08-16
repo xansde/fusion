@@ -529,3 +529,92 @@ describe("DocumentMirror — combat lifecycle broadcasts", () => {
     expect(snapMirror.getByType("Combat")).toHaveLength(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Knowledge removals riding on doc:update (spec 39 §5.9)
+// ---------------------------------------------------------------------------
+
+/**
+ * A doc:update as the server's redaction hands it to a NON-privileged socket:
+ * the bodies that survived, plus the ids the knowledge rule dropped for this
+ * viewer (REQ-CTT-075 / REQ-CTT-082).
+ */
+function makeRedactedUpdateOp(
+  seq: number,
+  docType: string,
+  docs: Array<{ _id: string; [key: string]: unknown }>,
+  removedIds: string[],
+): Envelope<unknown> {
+  return {
+    type: "doc:update",
+    seq,
+    ts: Date.now(),
+    payload: { documentType: docType, documents: docs, removedIds },
+  };
+}
+
+describe("DocumentMirror — removals carried by a redacted doc:update (REQ-CTT-075)", () => {
+  let mirror: DocumentMirror;
+
+  beforeEach(() => {
+    mirror = new DocumentMirror();
+    mirror.applySnapshot(
+      makeSnapshot(1, {
+        Actor: [
+          { _id: "contact000000001", name: "Taverneiro Bartolomeu" },
+          { _id: "contact000000002", name: "Ferreiro da Vila" },
+        ],
+      }),
+    );
+  });
+
+  it("REQ-CTT-075: an id named in removedIds stops being held, with no resync", () => {
+    expect(mirror.getDoc("Actor", "contact000000001")).toBeDefined();
+
+    mirror.feedOp(makeRedactedUpdateOp(2, "Actor", [], ["contact000000001"]));
+
+    // Gone from the mirror — the panel that reads it can no longer draw the
+    // name, the portrait or the title, and the search cannot match it.
+    expect(mirror.getDoc("Actor", "contact000000001")).toBeUndefined();
+    expect(mirror.getByType("Actor")).toHaveLength(1);
+    // ...and the seq advanced normally: no gap, so no resync was needed.
+    expect(mirror.seq).toBe(2);
+  });
+
+  it("REQ-CTT-075: subscribers are notified of the removal", () => {
+    const cb = vi.fn();
+    mirror.subscribe("Actor", cb);
+    mirror.feedOp(makeRedactedUpdateOp(2, "Actor", [], ["contact000000001"]));
+    expect(cb).toHaveBeenCalledTimes(1);
+    const delivered = cb.mock.calls[0]?.[0] as Array<{ _id: string }>;
+    expect(delivered.map((d) => d._id)).toEqual(["contact000000002"]);
+  });
+
+  it("REQ-CTT-075: a batch that both removes one contact and updates another applies both", () => {
+    mirror.feedOp(
+      makeRedactedUpdateOp(
+        2,
+        "Actor",
+        [{ _id: "contact000000002", name: "Ferreiro da Vila", title: "Mestre da Forja" }],
+        ["contact000000001"],
+      ),
+    );
+    expect(mirror.getDoc("Actor", "contact000000001")).toBeUndefined();
+    expect(mirror.getDoc<{ title: string }>("Actor", "contact000000002")?.title).toBe(
+      "Mestre da Forja",
+    );
+  });
+
+  it("REQ-CTT-082: a doc:update without removedIds removes nothing — an empty batch is not a removal", () => {
+    mirror.feedOp(makeUpdateOp(2, "Actor", { _id: "contact000000002", name: "Ferreiro da Vila" }));
+    expect(mirror.getByType("Actor")).toHaveLength(2);
+  });
+
+  it("REQ-CTT-075: removedIds naming a document the mirror never held is a harmless no-op", () => {
+    const cb = vi.fn();
+    mirror.subscribe("Actor", cb);
+    mirror.feedOp(makeRedactedUpdateOp(2, "Actor", [], ["contact000000009"]));
+    expect(mirror.getByType("Actor")).toHaveLength(2);
+    expect(cb).not.toHaveBeenCalled();
+  });
+});

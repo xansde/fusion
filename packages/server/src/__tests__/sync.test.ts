@@ -366,7 +366,11 @@ describe("M1-B — permission enforcement", () => {
       updates: [{ _id: sceneId, diff: { name: "Hacked Room" } }],
     });
     expect(updateAck["ok"]).toBe(false);
-    expect(updateAck["code"]).toBe("PERMISSION_DENIED");
+    // REQ-CEN-070/REQ-CEN-071: the refusal is worded as inexistence, not as a
+    // denial — PERMISSION_DENIED would confirm the scene is there, and the
+    // existence of a scene the campaign has not shown is itself privileged.
+    // The refusal is what changed; that the player cannot write is unchanged.
+    expect(updateAck["code"]).toBe("NOT_FOUND");
   });
 
   it("player2 cannot update token owned by player1 (different actor ownership)", async () => {
@@ -413,6 +417,13 @@ describe("M1-B — permission enforcement", () => {
     >;
     const tokens = updatedParent["tokens"] as Record<string, unknown>[];
     const tokenId = tokens[0]?.["_id"] as string;
+
+    // The scene goes ON AIR before the player op: a scene that is not on air
+    // does not exist for a non-privileged socket (REQ-CEN-071/REQ-CEN-072), so
+    // off air the answer would be "no such parent" and this test would never
+    // reach the ownership rule it exists to prove.
+    const airAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(airAck["ok"]).toBe(true);
 
     // Player2 tries to update that token
     const p2UpdateAck = await sendOp(player2Socket, "doc:update", {
@@ -1042,6 +1053,13 @@ describe("M1-C — ack hidden-token redaction", () => {
       (hiddenAck["result"] as Record<string, unknown>)["parent"] as Record<string, unknown>
     )["tokens"] as Record<string, unknown>[];
     const hiddenTokenId = allTokens.find((t) => t["hidden"] === true)?.["_id"] as string;
+
+    // The scene goes ON AIR: it is the only scene a non-privileged socket may
+    // act in at all (REQ-CEN-071/REQ-CEN-072). Off air, the player's move would
+    // be answered as "no such parent" and the hidden-token rule under test here
+    // would never be exercised.
+    const airAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(airAck["ok"]).toBe(true);
 
     expect(typeof ownedTokenId).toBe("string");
     expect(typeof hiddenTokenId).toBe("string");
@@ -1919,6 +1937,13 @@ describe("FIX-5 — embedded token: _id strip and actorId protection", () => {
       unknown
     >;
     tokenId = (parent["tokens"] as Record<string, unknown>[])[0]?.["_id"] as string;
+
+    // …and puts the scene ON AIR. A non-privileged socket may only act inside
+    // the scene on air (REQ-CEN-071/REQ-CEN-072); off air, every player op
+    // below would be answered as "no such parent" before reaching the field
+    // rules this block is about.
+    const airAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(airAck["ok"]).toBe(true);
   });
 
   afterEach(async () => {

@@ -27,11 +27,20 @@
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
+  import ScenePrepareNotice from "./scenes/ScenePrepareNotice.svelte";
+  import { sceneListState } from "../lib/scenes/scenesState.svelte.js";
+  import {
+    buildScenePrepareNoticeVM,
+    reconcileScenePrepare,
+    resolveCanvasScene,
+    scenePrepareState,
+  } from "../lib/scenes/prepareState.svelte.js";
   import WindowHost from "./windows/WindowHost.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
@@ -58,6 +67,14 @@
   // opens (REQ-GAV-015/016), and it is idempotent, so a remount is harmless.
   registerCoreSidebarTabs();
 
+  // REQ-CBA-004: the Combate dot goes amber when the participant of the turn belongs
+  // to this user, so the badge has to know which seat this is. Who is logged in is the
+  // session's fact, and this is where the session meets the drawer — the rail itself
+  // stays ignorant of every badge rule (REQ-GAV-023).
+  $effect(() => {
+    setCombatBadgeViewer(session.user?.id ?? null);
+  });
+
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
@@ -83,6 +100,38 @@
   // message, so the refusal is shown here and fades on its own.
   let dropRefusal = $state<string | null>(null);
   const DROP_REFUSAL_MS = 4000;
+
+  // ---- What THIS canvas draws (spec 44 §5.6, DEC-CEN-03) ----
+  // Normally the scene on air. While this Master is preparing a scene, it is the
+  // prepared one instead — a local swap that changes nobody else's screen and writes
+  // nothing to the server (REQ-CEN-050/051, RNF-CEN-03). Everything below that used to
+  // read `activeSceneState.scene` for "what is under the cursor" reads this.
+  const canvasScene = $derived(
+    resolveCanvasScene({
+      activeScene: activeSceneState.scene,
+      scenes: sceneListState.scenes,
+      prepareSceneId: scenePrepareState.sceneId,
+    }),
+  );
+
+  /** The persistent notice of REQ-CEN-052 — `null` whenever there is no prepare. */
+  const prepareNotice = $derived(
+    buildScenePrepareNoticeVM({
+      scenes: sceneListState.scenes,
+      activeSceneId: activeSceneState.id,
+      prepareSceneId: scenePrepareState.sceneId,
+    }),
+  );
+
+  // REQ-CEN-054/055: a prepare stops meaning anything the moment its scene goes on air
+  // (from any origin) or is deleted. This is the one owner of that rule — it ends the
+  // prepare silently and the canvas falls back to the scene on air.
+  $effect(() => {
+    reconcileScenePrepare({
+      activeSceneId: activeSceneState.id,
+      sceneIds: sceneListState.scenes.map((scene) => scene._id),
+    });
+  });
 
   // ---- SceneOrchestrator lifecycle ----
   // One orchestrator per active scene. Created on scene activation, torn down on switch.
@@ -243,7 +292,9 @@
   function handleCanvasDragOver(event: DragEvent): void {
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
-    if (!activeSceneState.scene) return;
+    // The drop lands on the scene the Master is LOOKING at — the prepared one while a
+    // prepare lasts (REQ-CEN-050), never the one on air behind his back.
+    if (!canvasScene) return;
     const actorPayload = _getActorDragPayload(event);
     const compPayload = _getCompendiumDragPayload(event);
     if (!actorPayload && !compPayload) return;
@@ -253,7 +304,7 @@
 
   function handleCanvasDrop(event: DragEvent): void {
     if (!isGm()) return;
-    const scene = activeSceneState.scene;
+    const scene = canvasScene;
     if (!scene) return;
     const canvas = fusionCanvas;
     if (!canvas) return;
@@ -377,7 +428,8 @@
     // canLoadScene(true, ...) guarantees canvas !== null — narrow for TS.
     if (!canvas) return;
 
-    const scene = activeSceneState.scene;
+    // REQ-CEN-050/053: the prepared scene when there is one, the scene on air otherwise.
+    const scene = canvasScene;
 
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
@@ -537,14 +589,22 @@
     ondrop={handleCanvasDrop}
   ></div>
 
-  <!-- No-scene overlay: shown when no active scene -->
-  {#if !activeSceneState.scene}
+  <!-- No-scene overlay: shown when this canvas has nothing to draw. A prepare counts as
+       something to draw (REQ-CEN-050), so the Master preparing a scene with nothing on
+       air sees the scene, not the waiting card. -->
+  {#if !canvasScene}
     <NoSceneOverlay isGm={isGm()} />
   {/if}
 
   <!-- REQ-CPD-063: a compendium drop the map has no place for says so. -->
   {#if dropRefusal}
     <p class="drop-refusal" role="status">{dropRefusal}</p>
+  {/if}
+
+  <!-- REQ-CEN-052: while a prepare lasts, the canvas keeps a persistent notice naming
+       the scene the TABLE is watching, with the two ways out. -->
+  {#if prepareNotice}
+    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} />
   {/if}
 
   <!-- -------------------------------------------------------------------- -->

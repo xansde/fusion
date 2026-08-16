@@ -432,6 +432,69 @@ quando" abaixo fazer sentido numa sessão real.
 `recon-fase-2.md`, não só os 4 originais —, e um relatório de sessão real mostra os
 números — que é o insumo da decisão adiada.
 
+#### Entregue (2026-08-16) — o "ponto único" já existia; era achá-lo
+
+O desenho novo não criou função nenhuma. Os **11** pontos de chamada textuais (não 4, não 6)
+espalhados por `doc-handlers.ts`, `vision-handlers.ts` e `combat-handlers.ts` já convergem,
+sem exceção, para duas funções **privadas** de `store.ts`: `_createInTxn` e `_updateInTxn`.
+A instrumentação foi para dentro delas.
+
+Essa escolha é a tarefa inteira, e não é estética. `updateBatch`/`createBatch` **não chamam**
+os métodos públicos `update()`/`create()` — chamam as privadas direto, dentro da própria
+transação. Instrumentar em volta do público ficaria cego a todo lote. Provado por execução
+antes de escrever código (wrapper no público contou 1 onde houve 2), e provado de novo depois
+pela mutação **M6**: mover a métrica para o `update()` público deixa **6 dos 7 testes verdes** —
+só o caso de lote cai. Sem esse caso, a colocação errada passaria no review.
+
+**A revisão adversarial reprovou a primeira entrega, e estava certa.** Três lentes
+independentes (cegueira de cobertura, teste circular, regressão/vazamento) devolveram
+1 REPROVA e 2 APROVA_COM_RESSALVA, 13 achados, **todos** factualmente corretos e consertados.
+Os quatro que valem registro:
+
+1. **`amplificationRatio` media o inverso do fenômeno.** `patchBytes` contava a coleção que o
+   handler **reenviou**, não o que mudou. Como `token:move` passa `{ tokens: <array inteiro> }`,
+   o denominador crescia junto com o numerador: a razão reportada **caía** conforme a cena
+   engordava. Medido: um `token:move` com 1 token reportava `2,31×` quando a amplificação real
+   é ~58×; com 30 tokens o relatório convergiria para ~1,0 com a real perto de 1000×. Quem
+   lesse o log de uma sessão concluiria "não há amplificação, manter token embutido" — a
+   decisão errada, tomada com o número que esta tarefa existe para produzir. Conserto:
+   `semanticDeltaBytes` estreita arrays aos elementos que mudaram (casados por `_id`, fallback
+   por índice; elemento removido contribui 0). O campo mudou de nome (`patchBytes` →
+   `deltaBytes`) de propósito: manter o nome antigo convidaria a repetir a leitura errada.
+2. **Latência e bytes não tinham oráculo nenhum.** `patchBytes: 1` e `patchBytes * 3`
+   sobreviviam com 7/7 verde; `percentile()` retornando 0 e `latencyNs: 0n` também. O relatório
+   publicaria "escrita custa 0 ms", a conta de contenção daria zero, e a suíte ficaria verde.
+   É a lição #48 na forma exata: verde total convivendo com o número que decide a arquitetura.
+3. **Havia uma SEGUNDA instância do funil.** `compendium/service.ts:469` constrói o próprio
+   `new DocumentStore({ db })` sem `metrics` — e é o **único chamador de produção de
+   `createBatch` que existe hoje**, ou seja, a justificativa central do desenho estava, em
+   produção, exercitada só por teste. Provado por execução: banco registrou 3 escritas,
+   coletor contou 1. O Mestre importando 12 criaturas no meio da sessão sumiria do relatório
+   justamente no minuto de maior pressão.
+4. **O flush podia derrubar o servidor.** `setInterval(() => this.flush())` sem try/catch, e
+   `flush()` termina em `logger.info` sobre um destino `sync: true`. Os três elos foram
+   provados por execução: sonic-boom lança sincronamente em escrita inválida, pino
+   `multistream` propaga, e o processo morre com o stack apontando o timer. Disco do Mestre
+   enchendo no sábado à noite = todos os jogadores caem no meio do combate. Uma métrica de
+   diagnóstico havia ganhado poder que nenhum outro log do servidor tem.
+
+O `record()` também saiu de **dentro** da transação: agora é bufferizado e drenado após o
+commit. Isso mata duas coisas de uma vez — a escrita fantasma no relatório quando um lote dá
+rollback, e o trabalho de serialização que estava acontecendo com o lock `IMMEDIATE` tomado.
+
+**15 mutações aplicadas, 15 mortas**, harness com restauração verificada por SHA-256.
+
+**O que o instrumento NÃO mede, e está dito na própria linha de log** (campo `scope`):
+`writesPerMinute` é um **piso**, não um total. `SeqStore.next()` grava `settings` a cada
+broadcast — para cada escrita contada existe pelo menos uma não contada disparada pela mesma
+ação —, e `chat_messages`/`users` têm escritores em SQL cru. `delete`/`deleteBatch` seguem
+fora por decisão. E `byPatchKey` nunca produz o balde `doorState`: `scene:doorState` persiste
+com o patch `{ walls: [...] }`, então porta é indistinguível de geometria de parede — o
+exemplo da §3 do desenho prometia uma separação que o código não pode entregar.
+
+Falta só o que nenhum código produz: **uma sessão real de mesa**. O instrumento existe; os
+números que ele foi aberto para gerar, não.
+
 ### Defeitos vivos achados no recon (T030–T033)
 
 Nenhum destes era tarefa de ninguém — apareceram como efeito colateral dos recons de

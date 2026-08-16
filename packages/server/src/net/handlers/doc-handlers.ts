@@ -78,8 +78,24 @@ import {
   TokenDocumentSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
-import { createDocumentId } from "@fusion/shared";
-import { redactSceneDocsForNonPrivileged, sceneIsOnAir } from "../redaction.js";
+import { createDocumentId, touchesKnowledgeFlag, KNOWLEDGE_FLAG_PATH } from "@fusion/shared";
+import {
+  sweepCharactersFromKnowledge,
+  sanitizeKnowledgeOnCreate,
+  isCharacterActor,
+} from "../../documents/knowledge.js";
+import {
+  redactCombatDocsForNonPrivileged,
+  redactSceneDocsForNonPrivileged,
+  sceneIsInvisibleToRole,
+  sceneIsOnAir,
+  redactActorDocsForViewer,
+  buildContactViewer,
+  getContactKnowledgeSource,
+} from "../redaction.js";
+// The augmentation-slot rule itself moved to `documents/embedded-item.ts` (spec 43
+// §5.7, DEC-CPD-05) so `compendium:importToActor` runs the SAME predicate this file
+// runs — only the payload type is still read here.
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
 
@@ -210,6 +226,24 @@ function isPrivileged(role: number): boolean {
 }
 
 /**
+ * True when this requester must be answered as if the parent scene did not
+ * exist at all (REQ-CEN-071).
+ *
+ * Thin adapter over {@link sceneIsInvisibleToRole} (net/redaction.ts, the single
+ * source of truth for this rule) that adds only the "is the parent a Scene at
+ * all?" question the embedded paths need — `token:move` and `scene:doorState`
+ * already know their parent is a Scene and call the predicate directly.
+ */
+function sceneParentIsInvisible(
+  role: number,
+  parentType: string,
+  parentDoc: Record<string, unknown>,
+): boolean {
+  if (parentType !== "Scene") return false;
+  return sceneIsInvisibleToRole(role, parentDoc);
+}
+
+/**
  * Parent document type → the collection key its embedded documents live under,
  * derived from EMBEDDED_PARENT_MAP so a new embedded type is covered the day it
  * is registered there. Same convention the embedded handlers use to build
@@ -253,6 +287,20 @@ function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
 ): Ack<never> | null {
+  // `Actor.flags.fusion.knowledge` (spec 39 §5.8): contact knowledge is a
+  // field of the contact's own document, but this path authorizes on
+  // `ownership` — and a player who owns their own sheet would then be able to
+  // write who knows whom, which REQ-CTT-080 says the server must verify.
+  // `actor:setKnowledge` is the one way in: privileged-only, and it normalizes
+  // the map before writing (an exception equal to the general rule is removed,
+  // REQ-CTT-072) — a normalization the generic deep merge cannot perform.
+  if (documentType === "Actor" && touchesKnowledgeFlag(expandedDiff)) {
+    return ackError(
+      "VALIDATION_FAILED",
+      `${KNOWLEDGE_FLAG_PATH} is not writable through doc:update — use the actor:setKnowledge operation`,
+    );
+  }
+
   if (documentType === "Scene" && "active" in expandedDiff) {
     return ackError(
       "VALIDATION_FAILED",
@@ -531,6 +579,31 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
+    // REQ-CEN-065: creating a scene does NOT put it on air. `active` is a mirror of
+    // the single source of truth (`_meta:activeScene`, DEC-CEN-02) and only the
+    // dedicated `world:activeScene` operation may move it — the same rule
+    // `rejectUnwritableField` already enforces for doc:update (REQ-CEN-042). Without
+    // this the create path was a way in: a forged `active: true` produced a scene the
+    // pointer did not know about, which `sceneIsOnAir` (the redaction predicate) then
+    // treated as visible to every player.
+    //
+    // Only a TRUTHY `active` is refused: `active: false` is the value a new scene has
+    // anyway, and every existing caller spells it out.
+    if (documentType === "Scene") {
+      for (const item of data) {
+        if (
+          typeof item === "object" &&
+          item !== null &&
+          (item as Record<string, unknown>)["active"]
+        ) {
+          return ackError(
+            "VALIDATION_FAILED",
+            "Scene.active is not writable through doc:create — use the world:activeScene operation",
+          );
+        }
+      }
+    }
+
     // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT.
     //
     // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
@@ -597,6 +670,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         let item: Record<string, unknown> = rawItem as Record<string, unknown>;
         if (documentType === "Actor") {
           item = stripSystemDerived(item);
+          // REQ-CTT-072/080: knowledge arriving at creation is normalized for a
+          // privileged creator and dropped for anyone else — otherwise the
+          // player-companion path (r17-P1) would be a way to author knowledge
+          // that doc:update refuses.
+          item = sanitizeKnowledgeOnCreate(item, isPrivileged(ctx.role));
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -677,6 +755,22 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     const table = resolveTable(documentType);
     if (!table) {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
+    }
+
+    // REQ-CEN-070: editing a Scene is an action of the GM's scene panel, and
+    // spec 44 §5.8 makes the role the gate — ownership of the Scene document is
+    // NOT a licence to write it (DEC-CEN-11: the boundary is the server, not
+    // the missing icon on the rail).
+    //
+    // REQ-CEN-071 / REQ-CEN-073: the refusal is worded exactly like the answer
+    // for an id that never existed, and is decided BEFORE the store lookup.
+    // Replying PERMISSION_DENIED for a scene that exists and NOT_FOUND for one
+    // that does not would turn this handler into an existence oracle over ids —
+    // and learning that a scene is there is the first half of learning where the
+    // campaign has not gone yet.
+    if (documentType === "Scene" && !isPrivileged(ctx.role) && updates.length > 0) {
+      const probed = updates[0]?._id ?? "";
+      return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
     }
 
     // Pre-flight: judge the whole batch before writing anything. The loop below
@@ -902,6 +996,21 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // after the delete the `active` mirror is gone with the document, and the
     // broadcast would have no way to tell the scene the players already knew
     // from the ones whose very existence is privileged.
+    // REQ-CTT-076: which of the ids being deleted are player characters must
+    // also be read BEFORE the rows go — after the delete the subtype is gone
+    // with the document, and there would be no way to tell which contacts'
+    // exceptions have to be swept.
+    const deletedCharacterIds: string[] = [];
+    if (documentType === "Actor") {
+      for (const id of ids) {
+        try {
+          if (isCharacterActor(deps.store.get("actors", id))) deletedCharacterIds.push(id);
+        } catch {
+          // Missing document — the delete loop below reports NOT_FOUND.
+        }
+      }
+    }
+
     const onAirSceneIds = new Set<string>();
     if (documentType === "Scene") {
       for (const id of ids) {
@@ -910,6 +1019,22 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
         } catch {
           // Missing document — the delete loop below reports NOT_FOUND.
         }
+      }
+
+      // REQ-CEN-064: the scene ON AIR is not deletable. The destructive operation
+      // cannot be the one that resolves the state (DEC-CEN-07) — without this guard
+      // one click of housekeeping drops the whole table onto the waiting screen, and
+      // nothing brings the scene back. The GM has to put another scene on air first
+      // (`world:activeScene`, the single writer of DEC-CEN-02).
+      //
+      // The refusal is atomic for the batch: a mixed list of an off-air scene and the
+      // one on air deletes NOTHING, so a partial delete never has to be undone.
+      if (onAirSceneIds.size > 0) {
+        const blocked = [...onAirSceneIds].join(", ");
+        return ackError(
+          "VALIDATION_FAILED",
+          `Scene is on air and cannot be deleted: ${blocked}. Put another scene on air first.`,
+        );
       }
     }
 
@@ -934,6 +1059,28 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // Broadcast delete to all clients (no ownership filter for deletes — everyone
     // must remove). Scene deletes go per-socket: see broadcastToWorld.
     broadcastToWorld(deps.ns, envelope, documentType, onAirSceneIds);
+
+    // REQ-CTT-076: a deleted character leaves its exceptions behind in every
+    // contact that named it — rules about a character that no longer exists,
+    // which the "Quem conhece quem" grid could never reach again because the
+    // column is gone. Sweep them now, leaving every general rule as it was,
+    // and broadcast the resulting document changes as their own delta so no
+    // client has to reload to be rid of them (REQ-CTT-075).
+    if (deletedCharacterIds.length > 0) {
+      const swept = sweepCharactersFromKnowledge(deps.store, deletedCharacterIds, {
+        userId: ctx.userId,
+      });
+      if (swept.length > 0) {
+        const sweepSeq = deps.seqStore.next();
+        const sweepEnvelope = buildBroadcastEnvelope(
+          "doc:update",
+          { documentType: "Actor", documents: swept },
+          sweepSeq,
+        );
+        deps.opBuffer.push(sweepEnvelope);
+        broadcastToWorld(deps.ns, sweepEnvelope, "Actor");
+      }
+    }
 
     return ackOk({ documentType, ids: deletedIds }, seq);
   };
@@ -978,6 +1125,11 @@ function handleEmbeddedCreate(
       return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
     }
     throw err;
+  }
+
+  // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+  if (sceneParentIsInvisible(ctx.role, parent.type, parentDoc)) {
+    return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
   }
 
   // Check parent ownership (must be able to edit the parent scene)
@@ -1137,6 +1289,11 @@ function handleEmbeddedUpdate(
         return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
       }
       throw err;
+    }
+
+    // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+    if (sceneParentIsInvisible(ctx.role, resolvedParentType, parentDoc)) {
+      return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
     }
 
     const collectionKey = embeddedType.toLowerCase() + "s"; // "tokens"
@@ -1306,6 +1463,11 @@ function handleEmbeddedDelete(
     throw err;
   }
 
+  // REQ-CEN-071/073: a scene that is not on air does not exist for this caller.
+  if (sceneParentIsInvisible(ctx.role, parent.type, parentDoc)) {
+    return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
+  }
+
   // Permission: GM/ASSISTANT or actor owner
   //
   // Item (embedded directly in Actor, parent.type === "Actor") is checked
@@ -1473,6 +1635,98 @@ function broadcastToWorld(
       };
       emitByRole(ns, envelope, playerEnvelope);
       return;
+    }
+  }
+
+  // Actor envelopes ALSO go per-socket, and per USER rather than per role:
+  // contact knowledge is resolved over the characters each user owns
+  // (REQ-CTT-071), so two players on the same role can be owed different
+  // bodies of the same document. Everything is decided inside
+  // `redactActorDocsForViewer` — this site only chooses who gets which copy
+  // (REQ-CTT-083: no emission path may bypass the module).
+  if (
+    documentType === "Actor" &&
+    (envelope.type === "doc:create" || envelope.type === "doc:update")
+  ) {
+    const payload = envelope.payload as {
+      documentType: string;
+      documents?: Record<string, unknown>[];
+    };
+    if (Array.isArray(payload.documents)) {
+      const documents = payload.documents;
+      const source = getContactKnowledgeSource(ns);
+      // One redacted copy per USER, not per socket: the same person on two
+      // devices is owed the same body, and the Actor table is read once.
+      const byUser = new Map<string, Envelope>();
+      for (const [, socket] of ns.sockets) {
+        if (socketIsPrivileged(socket)) {
+          socket.emit("op", envelope);
+          continue;
+        }
+        const data = socket.data as Record<string, unknown> | null | undefined;
+        const rawUserId = data?.["userId"];
+        const rawRole = data?.["role"];
+        const userId = typeof rawUserId === "string" ? rawUserId : "";
+        const role = typeof rawRole === "number" ? rawRole : 0;
+        let playerEnvelope = byUser.get(userId);
+        if (!playerEnvelope) {
+          const viewer = buildContactViewer(source, userId, role);
+          const redacted = redactActorDocsForViewer(documents, viewer);
+          // REQ-CTT-075: dropping the body is only half of the delta. The
+          // client mirror upserts, so a contact lowered to `hidden` would stay
+          // on the player's screen until a reload unless the very same
+          // envelope names it as gone. Carried on the ordinary op — never a
+          // second envelope — because the mirror gates on a contiguous seq.
+          playerEnvelope = {
+            ...envelope,
+            payload: {
+              ...payload,
+              documents: redacted.documents,
+              ...(redacted.removedIds.length > 0 ? { removedIds: redacted.removedIds } : {}),
+            },
+          };
+          byUser.set(userId, playerEnvelope);
+        }
+        socket.emit("op", playerEnvelope);
+      }
+      return;
+    }
+  }
+
+  // REQ-CBA-082 / REQ-CBT-031: a Combat body reaching clients through the
+  // GENERIC document path carries the whole combatant roster — a `doc:update`
+  // on the Combat itself, and every embedded Combatant create/update/delete,
+  // which republishes the parent Combat as `{ documentType: "Combat",
+  // documents: [combat] }`. The `combat:*` handlers redact their own
+  // broadcasts; without this branch the generic door beside them stayed open
+  // and a hidden combatant reached every player the moment the GM touched the
+  // encounter by anything other than a combat op.
+  //
+  // The Combat document itself is NOT privileged (the encounter is shared world
+  // state, REQ-CBT-031..033) — only the hidden combatants inside it are
+  // stripped, so `doc:delete` (ids only, no bodies) needs no branch here.
+  if (
+    documentType === "Combat" &&
+    (envelope.type === "doc:create" || envelope.type === "doc:update")
+  ) {
+    const payload = envelope.payload as {
+      documentType: string;
+      documents?: Record<string, unknown>[];
+    };
+    if (Array.isArray(payload.documents)) {
+      const documents = payload.documents;
+      const redacted = redactCombatDocsForNonPrivileged(documents);
+      // Reference equality: the redaction returns the original body when there
+      // was nothing hidden, so an untouched batch keeps the cheap emit.
+      const changed = redacted.some((doc, i) => doc !== documents[i]);
+      if (changed) {
+        const playerEnvelope: Envelope = {
+          ...envelope,
+          payload: { ...payload, documents: redacted },
+        };
+        emitByRole(ns, envelope, playerEnvelope);
+        return;
+      }
     }
   }
 

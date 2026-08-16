@@ -48,6 +48,7 @@ import {
 import type { Ack, Envelope } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import type { CompendiumService } from "./service.js";
+import type { WriteMetricsCollector } from "../documents/write-metrics.js";
 import { PermissionDeniedError } from "./service.js";
 import { isRolePrivileged } from "../documents/ownership.js";
 import { DocumentNotFoundError } from "../documents/store.js";
@@ -90,6 +91,13 @@ export interface CompendiumHandlerDeps {
    */
   seqStore?: SeqStore;
   opBuffer?: OpBuffer;
+  /**
+   * The world's write-metrics collector (T016), forwarded to
+   * `importToWorld` so the rows an import writes are accounted for like any
+   * other session write. Optional — undefined leaves the import unobserved,
+   * which is what the service-level tests rely on.
+   */
+  metrics?: WriteMetricsCollector;
 }
 
 // ---------------------------------------------------------------------------
@@ -311,6 +319,7 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
         folderId?: string;
         systemModule?: SystemModule;
         logger?: Logger;
+        metrics?: WriteMetricsCollector;
       } = {
         db: deps.db,
         worldId: ctx.worldId,
@@ -325,6 +334,9 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
       }
       if (deps.logger !== undefined) {
         importOpts.logger = deps.logger;
+      }
+      if (deps.metrics !== undefined) {
+        importOpts.metrics = deps.metrics;
       }
       const result = deps.compendium.importToWorld(parsed.data.uuids, importOpts);
 

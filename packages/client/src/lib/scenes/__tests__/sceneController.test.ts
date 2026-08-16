@@ -9,6 +9,8 @@ import {
   isFormValid,
   defaultSceneFormData,
   listScenes,
+  createScene,
+  updateSceneConfig,
   type SceneFormData,
 } from "../sceneController.js";
 import { DocumentMirror } from "../../docs/DocumentMirror.js";
@@ -130,6 +132,72 @@ describe("defaultSceneFormData", () => {
     expect(form.height).toBe(4000);
     expect(form.gridSize).toBe(100);
     expect(form.background).toBe("");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Creating and configuring a scene — spec 44 §5.7
+// ---------------------------------------------------------------------------
+
+describe("createScene / updateSceneConfig (spec 44 §5.7)", () => {
+  interface SentOp {
+    type: string;
+    payload: Record<string, unknown>;
+  }
+
+  /** A socket that records what was emitted and acks whatever it is given. */
+  function fakeSocket(sent: SentOp[]): Parameters<typeof createScene>[0] {
+    return {
+      emit(_event: string, envelope: SentOp, ack: (r: unknown) => void): void {
+        sent.push(envelope);
+        ack({ ok: true, result: { documents: [{ _id: "new-scene" }] } });
+      },
+    } as unknown as Parameters<typeof createScene>[0];
+  }
+
+  function form(overrides: Partial<SceneFormData> = {}): SceneFormData {
+    return { ...defaultSceneFormData(), name: "Cripta", ...overrides };
+  }
+
+  it("REQ-CEN-065: creating a scene does not put it on air", async () => {
+    const sent: SentOp[] = [];
+    await createScene(fakeSocket(sent), form());
+
+    // One op, and it is the document creation — nothing activates anything.
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("doc:create");
+    expect(sent.some((op) => op.type === "world:activeScene")).toBe(false);
+
+    // And the document itself is born off air.
+    const data = (sent[0]?.payload["data"] as Record<string, unknown>[])[0];
+    expect(data?.["active"]).toBe(false);
+  });
+
+  it("REQ-CEN-061: the new scene carries its folder and lands at the end of that group", async () => {
+    const sent: SentOp[] = [];
+    await createScene(fakeSocket(sent), form({ folder: "f-1" }), 7);
+
+    const data = (sent[0]?.payload["data"] as Record<string, unknown>[])[0];
+    expect(data?.["folder"]).toBe("f-1");
+    expect(data?.["sort"]).toBe(7);
+  });
+
+  it("REQ-CEN-061: configuring writes the six fields, and never `active`", async () => {
+    const sent: SentOp[] = [];
+    await updateSceneConfig(
+      fakeSocket(sent),
+      "s-1",
+      form({ folder: "f-2", width: 1200, height: 900, gridSize: 120, backgroundColor: "#123456" }),
+    );
+
+    expect(sent[0]?.type).toBe("doc:update");
+    const updates = sent[0]?.payload["updates"] as { diff: Record<string, unknown> }[];
+    const diff = updates[0]?.diff ?? {};
+    expect(Object.keys(diff).sort()).toEqual(
+      ["background", "backgroundColor", "folder", "grid.size", "height", "name", "width"].sort(),
+    );
+    // REQ-CEN-042: `active` is refused by the server anyway; it is not even sent.
+    expect(diff["active"]).toBeUndefined();
   });
 });
 

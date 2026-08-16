@@ -1,32 +1,70 @@
 /**
  * Canonical redaction for non-GM clients.
  *
- * Invariants (specs 04/05/07/44):
+ * Invariants (specs 04/05/07/39/44):
  *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path.
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
  *   - The scene LIST itself is privileged: only the scene on air may reach a
  *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
+ *   - A contact the viewer only GLIMPSED carries no name, title, portrait or
+ *     system data, a contact that is HIDDEN is not delivered at all, and the
+ *     knowledge map itself never reaches a non-privileged socket
+ *     (REQ-CTT-081..084).
  *   - The result of a blind roll must never reach a non-privileged socket — not
  *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
  *
- * There are three emission paths that carry Scene bodies to clients, and all
- * three MUST funnel non-GM Scene documents through
- *   {@link redactSceneDocsForNonPrivileged}
- * which composes the whole rule:
- *   {@link sceneIsOnAir}        — drops every scene that is not on air
- *   {@link stripHiddenTokens}   — removes hidden tokens
- *   {@link redactSecretDoors}   — masks secret doors as plain walls
+ * There are three emission paths that carry document bodies to clients, and all
+ * three MUST funnel non-GM documents through this module:
+ *   - Scene → {@link redactSceneDocsForNonPrivileged}, which composes
+ *       {@link sceneIsOnAir}        — drops every scene that is not on air
+ *       {@link stripHiddenTokens}   — removes hidden tokens
+ *       {@link redactSecretDoors}   — masks secret doors as plain walls
+ *   - Actor → {@link redactActorDocsForViewer}, which composes
+ *       {@link actorIsSubjectToKnowledge} — contacts only, never what you own
+ *       {@link glimpsedContactView}       — the allow-listed glimpsed payload
+ *       {@link stripKnowledgeMap}         — REQ-CTT-084, on EVERY actor
  *
  * Emission paths:
  *   1. buildSnapshot      (full snapshot on join / seq-out-of-buffer resync)
  *   2. broadcastToWorld   (live per-socket emit of doc:create / doc:update)
  *   3. filterOpsForRole   (delta resync — replay of buffered ops)
+ * plus the dispatcher-level ack net, {@link redactAckResultForNonPrivileged}.
  *
  * This module is the single source of truth so the three paths can never
  * drift out of parity.
+ *
+ * Combat bodies answer to the same discipline (REQ-CBA-082, REQ-CBT-031): a
+ * combatant with `hidden: true` must not reach a non-privileged user by ANY of
+ * the three paths. Two families of envelope carry a Combat:
+ *   - the dedicated `combat:*` ops, redacted by the combat handlers, which call
+ *     {@link stripHiddenCombatantsFromCombat} from here; and
+ *   - the GENERIC document path — a `doc:update` on a Combat, and every
+ *     embedded Combatant create/update/delete, which broadcast the whole parent
+ *     as `{ documentType: "Combat", documents: [combat] }`. Those funnel through
+ *     {@link redactCombatDocsForNonPrivileged}, the Combat counterpart of
+ *     {@link redactSceneDocsForNonPrivileged}.
+ * The ack echoed back to the requester is covered on top of both by
+ * {@link redactAckResultForNonPrivileged}.
+ *
+ * The same rule also governs the INBOUND direction: an op that names a scene id
+ * must not confirm that the scene exists to someone who could never have been
+ * told about it. That predicate is {@link sceneIsInvisibleToRole}.
  */
 
-import type { ChatMessage, RollTarget } from "@fusion/shared";
+import {
+  KnowledgeState,
+  resolveUserKnowledge,
+  KNOWLEDGE_FLAG_NAMESPACE,
+  KNOWLEDGE_FLAG_KEY,
+} from "@fusion/shared";
+import type { ChatMessage, Ownership, RollTarget } from "@fusion/shared";
+import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
+import {
+  PLAYER_CHARACTER_SUBTYPES,
+  isCharacterActor,
+  isNonPlayableActor,
+} from "../documents/knowledge.js";
+import type { DocumentStore } from "../documents/store.js";
 
 // ---------------------------------------------------------------------------
 // Chat target redaction (spec 38 — DEC-ACH-09, REQ-ACH-073 / REQ-ACH-092)
@@ -311,6 +349,27 @@ export function sceneIsOnAir(doc: unknown): boolean {
 }
 
 /**
+ * True when this requester must be answered as if the scene did not exist.
+ *
+ * REQ-CEN-070 / REQ-CEN-071: a non-privileged user may only ever act inside the
+ * scene that is ON AIR (REQ-CEN-072) — it is the only one they can see, so it is
+ * the only one whose id they can legitimately hold. Every inbound op that takes
+ * a scene id from the client (`doc:*` on an embedded document, `token:move`,
+ * `scene:doorState`) must run this BEFORE it looks at the scene body, and answer
+ * with the same "scene not found" wording it would give for a made-up id.
+ * Anything more specific — a token/wall-level NOT_FOUND, a PERMISSION_DENIED, or
+ * an `ok:true` ack — confirms the scene exists and leaks the off-air roster
+ * (REQ-CEN-073).
+ *
+ * `isRolePrivileged` and {@link sceneIsOnAir} are the only predicates in play:
+ * exactly the pair the outbound emission paths above use.
+ */
+export function sceneIsInvisibleToRole(role: number, sceneDoc: unknown): boolean {
+  if (isRolePrivileged(role)) return false;
+  return !sceneIsOnAir(sceneDoc);
+}
+
+/**
  * The only Scene bodies a non-privileged viewer may ever receive.
  *
  * REQ-CEN-071 / REQ-CEN-073: the scene list is privileged data — the name of a
@@ -337,6 +396,20 @@ export function redactSceneDocsForNonPrivileged(
     result.push(redactSecretDoors(stripHiddenTokens(doc)));
   }
   return result;
+}
+
+/**
+ * Return true when a value looks like a whole Scene document.
+ *
+ * Structural, like every other detector in this module: a Scene is the only
+ * document that carries an `active` flag alongside a `tokens` collection
+ * (Actors carry `items`, Combats carry `combatants`). Used by the ack path,
+ * which sees a bare body with no `documentType` to trust.
+ */
+function isSceneShaped(doc: unknown): doc is Record<string, unknown> {
+  if (!doc || typeof doc !== "object") return false;
+  const d = doc as Record<string, unknown>;
+  return typeof d["active"] === "boolean" && Array.isArray(d["tokens"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -384,6 +457,32 @@ export function stripHiddenCombatantsFromCombat(
 }
 
 /**
+ * The only Combat bodies a non-privileged viewer may ever receive, for a
+ * `documents[]` batch travelling the GENERIC document path.
+ *
+ * REQ-CBA-082 / REQ-CBT-031: a `doc:update` on a Combat — and every embedded
+ * Combatant create/update/delete, which republishes the whole parent Combat —
+ * carries the full combatant roster. Before this, those envelopes took the
+ * cheap namespace-wide emit, so a hidden combatant reached every player the
+ * moment the GM touched the encounter through anything other than a `combat:*`
+ * op. The dedicated handlers were redacted; the generic door beside them was
+ * not, and an unlocked door beside a locked one is an unlocked door.
+ *
+ * Unlike scenes, the Combat document itself is NOT privileged: the encounter is
+ * shared world state that every player must see (REQ-CBT-031..033). Only the
+ * hidden combatants inside it are stripped, and the active pointer masked when
+ * it names one — exactly what {@link stripHiddenCombatantsFromCombat} does.
+ *
+ * Element references are preserved when nothing needed redacting, so callers
+ * can detect "nothing changed" and keep the cheap namespace-wide emit.
+ */
+export function redactCombatDocsForNonPrivileged(
+  documents: readonly Record<string, unknown>[],
+): Record<string, unknown>[] {
+  return documents.map((doc) => stripHiddenCombatantsFromCombat(doc));
+}
+
+/**
  * Return true if the value appears to be a CombatDocument-shaped object
  * (has a `combatants` array).
  */
@@ -398,6 +497,297 @@ function isCombatShaped(obj: unknown): obj is Record<string, unknown> {
 function combatDocHasHiddenCombatants(obj: unknown): boolean {
   if (!isCombatShaped(obj)) return false;
   return (obj["combatants"] as Record<string, unknown>[]).some((c) => c["hidden"] === true);
+}
+
+// ---------------------------------------------------------------------------
+// Contact knowledge redaction (spec 39 §5.9 — REQ-CTT-080..085)
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything the funnel needs to know about who is receiving a payload.
+ *
+ * `ownedCharacterIds` is the set of player-character Actors this user OWNS —
+ * knowledge is a property of the CHARACTER, never of the user (DEC-CTT-03), so
+ * the user's effective state is the maximum over their characters
+ * (REQ-CTT-071, `resolveUserKnowledge`).
+ */
+export interface ContactViewer {
+  userId: string;
+  role: number;
+  ownedCharacterIds: readonly string[];
+}
+
+/** One player character, reduced to what deciding ownership needs. */
+export interface CharacterOwnershipRow {
+  id: string;
+  ownership: unknown;
+}
+
+/**
+ * Where the funnel reads the world's player characters from.
+ *
+ * An interface rather than a store handle so the redaction rule stays testable
+ * on its own, and so every emission path can share ONE read per broadcast
+ * instead of one read per socket.
+ */
+export interface ContactKnowledgeSource {
+  listCharacterOwnership(): readonly CharacterOwnershipRow[];
+}
+
+/** The canonical source: the world's own Actor table. */
+export function contactKnowledgeSourceFromStore(store: DocumentStore): ContactKnowledgeSource {
+  return {
+    listCharacterOwnership(): readonly CharacterOwnershipRow[] {
+      const rows: CharacterOwnershipRow[] = [];
+      // One indexed read per playable subtype: which subtype is playable is the
+      // system's word, not the engine's (`PLAYER_CHARACTER_SUBTYPES`), so an
+      // Etmos world answers with its `orador`s exactly as a pf2e world answers
+      // with its `character`s.
+      for (const subtype of PLAYER_CHARACTER_SUBTYPES) {
+        for (const doc of store.getAll("actors", { type: subtype })) {
+          const id = doc["_id"];
+          if (typeof id === "string") rows.push({ id, ownership: doc["ownership"] });
+        }
+      }
+      return rows;
+    },
+  };
+}
+
+/**
+ * Per-namespace registry of the knowledge source.
+ *
+ * `broadcastToWorld` receives a namespace and an envelope and nothing else, and
+ * it is called from a dozen sites across four modules. Threading a store handle
+ * through every one of them would mean a future call site could forget it and
+ * silently open a hole — exactly what REQ-CTT-083 forbids. Registering the
+ * source once per world namespace keeps the rule where the emission is.
+ */
+const contactSources = new WeakMap<object, ContactKnowledgeSource>();
+
+/** Bind a world namespace to the Actor table its sockets read contacts from. */
+export function registerContactKnowledgeSource(
+  namespace: object,
+  source: ContactKnowledgeSource,
+): void {
+  contactSources.set(namespace, source);
+}
+
+/** The source bound to a namespace, when one was registered. */
+export function getContactKnowledgeSource(namespace: object): ContactKnowledgeSource | undefined {
+  return contactSources.get(namespace);
+}
+
+/**
+ * Resolve a viewer.
+ *
+ * With no source the viewer owns no character, and no character means `hidden`
+ * for every contact (`resolveUserKnowledge` on an empty list, REQ-CTT-071) —
+ * the conservative side: a missing source delivers nothing, it never delivers
+ * more than the viewer's characters had earned.
+ */
+export function buildContactViewer(
+  source: ContactKnowledgeSource | undefined,
+  userId: string,
+  role: number,
+): ContactViewer {
+  const ownedCharacterIds: string[] = [];
+  for (const row of source?.listCharacterOwnership() ?? []) {
+    const ownership = isPlainObject(row.ownership)
+      ? (row.ownership as Ownership)
+      : ({ default: OwnershipLevel.NONE } as Ownership);
+    if (resolveOwnership(ownership, userId, role) >= OwnershipLevel.OWNER) {
+      ownedCharacterIds.push(row.id);
+    }
+  }
+  return { userId, role, ownedCharacterIds };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Whether the knowledge filter has anything to say about this Actor.
+ *
+ * Two carve-outs, both of them required by the model rather than convenient:
+ *
+ *   1. Only a NON-PLAYABLE actor is a contact. Spec 39 splits the panel in two:
+ *      "Na mesa" lists the characters (gated by `ownership`, REQ-CTT-014/020)
+ *      and "Conhecidos" lists the non-players (REQ-CTT-040). The window that
+ *      edits knowledge is contacts × characters — two disjoint sets. Running
+ *      the filter over characters would hide the whole table from every player,
+ *      since a fresh map reads `hidden`; running it over everything ELSE the
+ *      manifests declare would do the same to the chest (`loot`, DEC-NPC-08)
+ *      and to a companion (`familiar`, DEC-CTT-06), neither of which knowledge
+ *      is about. Hence {@link isNonPlayableActor}, an allow-list, rather than
+ *      the complement of "is a character".
+ *   2. Nobody is a stranger to a document they OWN. A player's companion is an
+ *      Actor of type "familiar" whose ownership is forced to the master's
+ *      (r17-P1); knowledge must not take it away from its owner.
+ *
+ * Both are restrictions on the FILTER, never grants: an actor that escapes the
+ * filter is still gated by `ownership` exactly as before (REQ-CTT-074).
+ */
+export function actorIsSubjectToKnowledge(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): boolean {
+  if (!isNonPlayableActor(doc)) return false;
+  return ownershipLevelFor(doc, viewer) < OwnershipLevel.OWNER;
+}
+
+function ownershipLevelFor(doc: Record<string, unknown>, viewer: ContactViewer): OwnershipLevel {
+  const ownership = isPlainObject(doc["ownership"])
+    ? (doc["ownership"] as Ownership)
+    : ({ default: OwnershipLevel.NONE } as Ownership);
+  return resolveOwnership(ownership, viewer.userId, viewer.role);
+}
+
+/**
+ * Whether an Actor the knowledge filter has nothing to say about may still reach
+ * this viewer (REQ-CTT-074).
+ *
+ * The knowledge filter is a restriction, never a grant, so escaping it cannot be
+ * what makes a document visible. Two populations escape it:
+ *
+ *   - a player CHARACTER, which every player is meant to see: "Na mesa" lists the
+ *     whole table, the viewer's own first (REQ-CTT-014, REQ-CTT-020);
+ *   - everything the manifests declare that is neither playable nor a contact —
+ *     the chest (`loot`, DEC-NPC-08), a companion (`familiar`, DEC-CTT-06), and
+ *     whatever a future system adds. Those answer to `ownership` and to nothing
+ *     else, at the same LIMITED threshold the join snapshot uses (REQ-NET-024),
+ *     so the live broadcast and the replay cannot hand over a chest the snapshot
+ *     would have withheld.
+ */
+function actorEscapingKnowledgeIsVisible(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): boolean {
+  if (isCharacterActor(doc)) return true;
+  return ownershipLevelFor(doc, viewer) >= OwnershipLevel.LIMITED;
+}
+
+/**
+ * Remove the knowledge map from a document (REQ-CTT-084).
+ *
+ * The map says which characters know this contact and which merely glimpsed it
+ * — i.e. what the OTHER players' characters have learned. It is privileged
+ * data, and it rides on the very document a player is allowed to see, so it has
+ * to come off every Actor a non-privileged socket receives, not only off the
+ * contacts. Returns the original reference when there is nothing to strip.
+ */
+export function stripKnowledgeMap(doc: Record<string, unknown>): Record<string, unknown> {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return doc;
+  const namespace = flags[KNOWLEDGE_FLAG_NAMESPACE];
+  if (!isPlainObject(namespace)) return doc;
+  if (!(KNOWLEDGE_FLAG_KEY in namespace)) return doc;
+
+  const nextNamespace: Record<string, unknown> = { ...namespace };
+  Reflect.deleteProperty(nextNamespace, KNOWLEDGE_FLAG_KEY);
+  return { ...doc, flags: { ...flags, [KNOWLEDGE_FLAG_NAMESPACE]: nextNamespace } };
+}
+
+/**
+ * The payload of a contact the viewer has only GLIMPSED (REQ-CTT-081).
+ *
+ * An ALLOW-list, deliberately: a deny-list would leak every field a future
+ * milestone adds to Actor, and "no name, no title, no portrait, no system data"
+ * is a promise about the whole document, not about four keys. What survives
+ * identifies nothing:
+ *   - `_id`    — the client mirror is keyed by it, and it is already the key
+ *                the GM's ops travel under;
+ *   - `type`   — "an unidentified someone", not who;
+ *   - `_stats` — the mirror gates upserts on `_stats.version`; without it the
+ *                document would look permanently stale and never settle.
+ * `ownership` is dropped on purpose: a glimpsed contact offers no sheet
+ * (REQ-CTT-042), and an absent map resolves to NONE on the client too.
+ *
+ * REQ-CTT-013 falls out of this and is not separate code: a contact with no
+ * name in the payload cannot be found by name in the client's search.
+ */
+export function glimpsedContactView(doc: Record<string, unknown>): Record<string, unknown> {
+  const view: Record<string, unknown> = { _id: doc["_id"] };
+  if (typeof doc["type"] === "string") view["type"] = doc["type"];
+  if (isPlainObject(doc["_stats"])) view["_stats"] = doc["_stats"];
+  // An explicit marker so the panel can draw "não identificado" without having
+  // to infer it from an absence (REQ-CTT-041).
+  view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { glimpsed: true } };
+  return view;
+}
+
+/**
+ * What a non-privileged viewer is owed for a batch of Actor documents.
+ *
+ * Two halves, because dropping a document is only half of the delta:
+ *   - `documents` — the bodies that may be delivered;
+ *   - `removedIds` — the ids that were dropped BY THE KNOWLEDGE RULE for this
+ *     viewer, i.e. what the viewer must now forget.
+ *
+ * REQ-CTT-075 is why `removedIds` exists at all: lowering a contact to `hidden`
+ * has to reach the affected user as a removal "sem depender de recarregar a
+ * página". The client mirror is an upsert store — a document simply missing
+ * from a `doc:update` batch leaves the previous copy on screen forever, so
+ * "absent" (REQ-CTT-082) has to travel as an explicit id, on the very same
+ * envelope, or the redaction only holds until the next reload.
+ */
+export interface RedactedActorBatch {
+  documents: Record<string, unknown>[];
+  removedIds: string[];
+}
+
+/**
+ * The only Actor bodies a non-privileged viewer may ever receive.
+ *
+ * REQ-CTT-082: a contact whose effective state is `hidden` is dropped from the
+ * batch — not blanked, not flagged: absent, in snapshot, broadcast and replay
+ * alike.
+ * REQ-CTT-081: a contact that was `glimpsed` is reduced to
+ * {@link glimpsedContactView}.
+ * REQ-CTT-084: every surviving Actor loses its knowledge map.
+ * REQ-CTT-074: an Actor the knowledge filter says nothing about — a character, a
+ *              chest, a companion — is gated by `ownership` alone, so escaping
+ *              the filter never turns into a grant.
+ * REQ-CTT-075: every id dropped by the rule above comes back in `removedIds`,
+ * so a live/replay caller can carry the removal in the same envelope.
+ *
+ * `documents` may be EMPTY. Callers on a live/replay path must still emit the
+ * envelope with those empty `documents`: the client mirror gates ops on a
+ * contiguous seq and fires its gap detector on a jump, so a swallowed envelope
+ * would put the player into a resync loop.
+ */
+export function redactActorDocsForViewer(
+  documents: readonly Record<string, unknown>[],
+  viewer: ContactViewer,
+): RedactedActorBatch {
+  const result: Record<string, unknown>[] = [];
+  const removedIds: string[] = [];
+  for (const doc of documents) {
+    if (!actorIsSubjectToKnowledge(doc, viewer)) {
+      // REQ-CTT-074: escaping the knowledge filter is not a grant. What escapes
+      // it answers to `ownership`, at the snapshot's own threshold.
+      if (!actorEscapingKnowledgeIsVisible(doc, viewer)) {
+        const id = doc["_id"];
+        if (typeof id === "string") removedIds.push(id);
+        continue;
+      }
+      result.push(stripKnowledgeMap(doc));
+      continue;
+    }
+    const state = resolveUserKnowledge(doc, viewer.ownedCharacterIds);
+    if (state === KnowledgeState.Hidden) {
+      const id = doc["_id"];
+      if (typeof id === "string") removedIds.push(id);
+      continue;
+    }
+    if (state === KnowledgeState.Glimpsed) {
+      result.push(glimpsedContactView(doc));
+      continue;
+    }
+    result.push(stripKnowledgeMap(doc));
+  }
+  return { documents: result, removedIds };
 }
 
 // ---------------------------------------------------------------------------
@@ -416,6 +806,10 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  * Additionally applies combat redaction:
  *   3. {@link stripHiddenCombatantsFromCombat} — remove hidden combatants (M2-C)
  *
+ * …and the scene-list rule of spec 44:
+ *   4. {@link sceneIsOnAir} — a Scene body that is not on air is dropped from
+ *      `documents[]` and `parent` (REQ-CEN-072 / REQ-CEN-073)
+ *
  * Covered ack `result` shapes (the object under `ack.result`):
  *
  *   1. Primary Scene doc:create / doc:update
@@ -424,6 +818,9 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  *   3. Embedded embedded update: { documentType: "Scene", documents: FullScene[] }
  *   4. Embedded embedded delete: { documentType, ids, parent: FullScene }
  *   5. Combat create/update ack: { combat: CombatDocument }
+ *   6. Generic doc path on a Combat (REQ-CBA-082)
+ *        { documentType: "Combat", documents: FullCombat[] }
+ *        { documentType: "Combatant", ids, parent: FullCombat }
  *
  * The detector is STRUCTURAL: walks `documents[]`, `parent`, and `combat`
  * and applies redactions to any element that is Scene-shaped (has `tokens` or
@@ -431,8 +828,22 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  *
  * Cloning discipline: never mutates in place — returns fresh clones only when
  * something actually needs redacting.
+ *
+ * `contactCtx` carries the viewer for the contact-knowledge rule (spec 39). It
+ * is optional so the pure Scene/Combat behaviour stays testable on its own;
+ * when it is absent the Actor branch degrades to stripping the knowledge map
+ * (REQ-CTT-084), which needs no viewer.
  */
-export function redactAckResultForNonPrivileged(result: unknown): unknown {
+export interface AckContactContext {
+  source?: ContactKnowledgeSource | undefined;
+  userId: string;
+  role: number;
+}
+
+export function redactAckResultForNonPrivileged(
+  result: unknown,
+  contactCtx?: AckContactContext,
+): unknown {
   if (!result || typeof result !== "object") return result;
   const ack = result as Record<string, unknown>;
 
@@ -454,6 +865,62 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   const parent = chatRedactedBody["parent"];
   const combat = chatRedactedBody["combat"];
 
+  // REQ-CEN-073: an off-air Scene body must not come back in the ack either —
+  // the ack is a payload destined to a non-privileged user like any other. The
+  // handlers already refuse the ops that could produce one (a scene that is not
+  // on air answers as if it did not exist), so this is the dispatcher-level net
+  // that covers any handler, present or future, that echoes a Scene it loaded.
+  //
+  // REQ-CEN-072: the scene ON AIR is exactly what survives — it is the body the
+  // player's canvas renders.
+  const documentsCarryOffAirScene =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => isSceneShaped(d) && !sceneIsOnAir(d));
+  const parentIsOffAirScene = isSceneShaped(parent) && !sceneIsOnAir(parent);
+
+  // Spec 39 §5.9: an ack echoes documents straight back to the requester, so it
+  // is an emission path like any other and answers to the same funnel
+  // (REQ-CTT-081..084). Handled before the Scene/Combat branches because the
+  // Actor batch may vanish entirely, and the viewer is resolved lazily so an
+  // ordinary Scene ack never touches the Actor table.
+  if (bodyObj["documentType"] === "Actor" && Array.isArray(documents)) {
+    const viewer = contactCtx
+      ? buildContactViewer(contactCtx.source, contactCtx.userId, contactCtx.role)
+      : { userId: "", role: 0, ownedCharacterIds: [] as readonly string[] };
+    // The ack goes back to the WRITER, who is looking at a result rather than
+    // at a mirror, so only the bodies matter here — `removedIds` is a delta
+    // concept and belongs to the broadcast/replay paths (REQ-CTT-075).
+    const redactedActors = contactCtx
+      ? redactActorDocsForViewer(documents as Record<string, unknown>[], viewer).documents
+      : (documents as Record<string, unknown>[]).map((d) => stripKnowledgeMap(d));
+    const changed =
+      redactedActors.length !== documents.length ||
+      redactedActors.some((doc, i) => doc !== documents[i]);
+    // The early return has to carry whatever the chat pass already removed, or an
+    // Actor-shaped ack body that also held messages would leave here unredacted.
+    if (changed || chatRedactedBody !== bodyObj) {
+      return {
+        ...ack,
+        result: { ...chatRedactedBody, documents: changed ? redactedActors : documents },
+      };
+    }
+    return result;
+  }
+
+  // An embedded ack (Item under Actor) carries the parent Actor whole — the
+  // knowledge map has to come off it too (REQ-CTT-084). The parent can never be
+  // a contact the viewer merely glimpsed: writing an embedded document requires
+  // OWNER, and OWNER escapes the knowledge filter by construction.
+  if (isPlainObject(parent)) {
+    const strippedParent = stripKnowledgeMap(parent);
+    if (strippedParent !== parent) {
+      return redactAckResultForNonPrivileged(
+        { ...ack, result: { ...bodyObj, parent: strippedParent } },
+        contactCtx,
+      );
+    }
+  }
+
   const documentsNeedHiddenTokenRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));
   const parentNeedsHiddenTokenRedaction = sceneDocHasHiddenTokens(parent);
@@ -465,14 +932,28 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
+  // REQ-CBA-082: a Combat body also travels the GENERIC document path, where it
+  // lands in `documents[]` (doc:update on a Combat, embedded Combatant update)
+  // or in `parent` (embedded Combatant create/delete) instead of under `combat`.
+  // The detector is structural precisely so those shapes are covered too.
+  const documentsNeedCombatRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => combatDocHasHiddenCombatants(d));
+  const parentNeedsCombatRedaction = combatDocHasHiddenCombatants(parent);
+
   const documentsNeedsRedaction =
-    documentsNeedHiddenTokenRedaction || documentsNeedSecretDoorRedaction;
-  const parentNeedsRedaction = parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction;
+    documentsNeedHiddenTokenRedaction ||
+    documentsNeedSecretDoorRedaction ||
+    documentsNeedCombatRedaction;
+  const parentNeedsRedaction =
+    parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction || parentNeedsCombatRedaction;
 
   if (
     !documentsNeedsRedaction &&
     !parentNeedsRedaction &&
     !combatNeedsRedaction &&
+    !documentsCarryOffAirScene &&
+    !parentIsOffAirScene &&
     chatRedactedBody === bodyObj
   ) {
     // Nothing to redact — return the original ack untouched.
@@ -482,19 +963,31 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   // Build a redacted clone, never mutating the shared original.
   const newBody: Record<string, unknown> = { ...chatRedactedBody };
 
-  if (documentsNeedsRedaction) {
-    newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
-      let redacted = d;
-      if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
-      if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
-      return redacted;
-    });
+  if (documentsNeedsRedaction || documentsCarryOffAirScene) {
+    newBody["documents"] = (documents as Record<string, unknown>[])
+      .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
+      .map((d) => {
+        let redacted = d;
+        if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+        if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        if (Array.isArray(redacted["combatants"])) {
+          redacted = stripHiddenCombatantsFromCombat(redacted);
+        }
+        return redacted;
+      });
   }
 
-  if (parentNeedsRedaction) {
+  if (parentIsOffAirScene) {
+    // Dropped outright, not blanked: the shape a caller sees for a scene it may
+    // not know about is the shape of "there is nothing here".
+    newBody["parent"] = null;
+  } else if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsCombatRedaction) {
+      redactedParent = stripHiddenCombatantsFromCombat(redactedParent);
+    }
     newBody["parent"] = redactedParent;
   }
 

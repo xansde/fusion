@@ -51,6 +51,7 @@ import type { Ownership } from "../documents/ownership.js";
 import type { CombatEventBus } from "../combat/combat-event-bus.js";
 import { broadcastCombatVersionUpdate, broadcastCombatUpdate } from "../combat/combat-handlers.js";
 import { estadoFadiga } from "@fusion/system-etmos";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 
 const FLAG_NAMESPACE = "etmos";
 const FLAG_KEY = "reacoes";
@@ -325,7 +326,10 @@ function broadcastActorUpdate(deps: ReacaoHandlerDeps, actor: Record<string, unk
   // doc:update broadcast site (doc-handlers.ts, combat-handlers.ts,
   // conjuracao-handlers.ts's broadcastActorUpdate).
   deps.opBuffer.push(envelope);
-  deps.ns.emit("op", envelope);
+  // REQ-CTT-083: an Actor body goes out through the single redaction funnel
+  // (`broadcastToWorld`), never a bare namespace emit — contact knowledge must
+  // not have a back door here.
+  broadcastToWorld(deps.ns, envelope, "Actor");
 }
 
 export function buildReacaoUsarHandler(deps: ReacaoHandlerDeps): HandlerFn {

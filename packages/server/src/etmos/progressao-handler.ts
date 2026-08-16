@@ -55,6 +55,7 @@ import {
   OwnershipLevel,
 } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 
 // ---------------------------------------------------------------------------
 // Payload
@@ -309,7 +310,8 @@ export function buildProgressaoConfirmarHandler(deps: ProgressaoHandlerDeps): Ha
       payload: { documentType: "Actor", documents: [updated] },
     };
     deps.opBuffer.push(envelope);
-    deps.ns.emit("op", envelope);
+    // REQ-CTT-083: single redaction funnel, never a bare namespace emit.
+    broadcastToWorld(deps.ns, envelope, "Actor");
 
     return ackOk({ actor: updated, novoNivel: result.novoNivel }, seq);
   };

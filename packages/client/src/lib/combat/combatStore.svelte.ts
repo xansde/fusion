@@ -273,12 +273,22 @@ export const combatActions = {
   /**
    * Roll initiative for combatants.
    * If combatantIds is omitted, the server rolls all with null initiative.
+   *
+   * `options` is the bag the system's initiative formula reads (REQ-CBT-035): it is how the
+   * chosen statistic travels in the same gesture as the roll (REQ-CBA-066), without a new
+   * server operation. Omitted means "no choice" — the formula applies its own default, and
+   * the server writes the statistic it actually used onto the participant.
    */
-  async rollInitiative(socket: Socket, combatId: string, combatantIds?: string[]): Promise<void> {
+  async rollInitiative(
+    socket: Socket,
+    combatId: string,
+    combatantIds?: string[],
+    options?: Record<string, unknown>,
+  ): Promise<void> {
     await _runOp(socket, async () => {
       await sendOp(socket, {
         type: "combat:rollInitiative",
-        payload: { combatId, combatantIds },
+        payload: { combatId, combatantIds, options },
       });
     });
   },

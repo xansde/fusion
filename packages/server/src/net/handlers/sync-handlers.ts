@@ -17,8 +17,17 @@ import type { HandlerFn } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
+import { DocumentNotFoundError } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
-import { redactSceneDocsForNonPrivileged, stripHiddenCombatantsFromCombat } from "../redaction.js";
+import {
+  redactCombatDocsForNonPrivileged,
+  redactSceneDocsForNonPrivileged,
+  stripHiddenCombatantsFromCombat,
+  redactActorDocsForViewer,
+  buildContactViewer,
+  contactKnowledgeSourceFromStore,
+} from "../redaction.js";
+import type { ContactViewer } from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
@@ -144,7 +153,7 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  * Returns a new array; each element is either the original op (nothing to
  * redact) or a redacted clone.
  */
-function filterOpsForRole(ops: Envelope[]): Envelope[] {
+function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
   return ops.map((op) => {
     // M2-C: combat broadcasts may carry hidden combatants in their payload.
     // Strip them for non-GM delta replay (REQ-CBT-031).
@@ -162,24 +171,47 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
     if (!payload || typeof payload !== "object") return op;
 
     const documentType = payload["documentType"];
-    if (documentType !== "Scene" && documentType !== "Combat") return op;
+
+    // REQ-CBA-082 / REQ-CBT-031: the generic document path buffers Combat
+    // bodies too — a `doc:update` on a Combat, and every embedded Combatant op
+    // (which republishes the parent as `{ documentType: "Combat", documents:
+    // [...] }`, since T036 started broadcasting the document itself so the
+    // client's `_stats.version` can move). Replaying them raw would hand a
+    // reconnecting player exactly the hidden combatants the live path refused
+    // to send. Same redaction function the live path uses — the one in
+    // net/redaction.ts, never a second copy of the predicate.
+    if (documentType === "Combat") {
+      return filterCombatDocOpForRole(op, payload);
+    }
+
+    if (documentType !== "Scene" && documentType !== "Actor") return op;
 
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
 
-    // Combat reaches this shape too, since T036 started broadcasting the
-    // document itself so the client's `_stats.version` can move. The live path
-    // redacts hidden combatants per socket; the replay has to do the same, or
-    // reconnecting inside the buffer window becomes the way to read what the
-    // GM hid (REQ-CBT-031). Same redaction function the live path uses — the
-    // one in net/redaction.ts, never a second copy of the predicate.
-    if (documentType === "Combat") {
-      const strippedCombats = (documents as Record<string, unknown>[]).map((doc) =>
-        stripHiddenCombatantsFromCombat(doc),
-      );
-      const combatChanged = strippedCombats.some((doc, i) => doc !== documents[i]);
-      if (!combatChanged) return op;
-      return { ...op, payload: { ...payload, documents: strippedCombats } };
+    // Spec 39 §5.9: the replay is the third way an Actor body reaches a
+    // player, and it answers to the SAME funnel the live broadcast and the
+    // snapshot use — reconnecting inside the buffer window must not become the
+    // way to read a contact the GM keeps hidden (REQ-CTT-082, REQ-CTT-083).
+    if (documentType === "Actor") {
+      const redacted = redactActorDocsForViewer(documents as Record<string, unknown>[], viewer);
+      const redactedActors = redacted.documents;
+      const actorsChanged =
+        redactedActors.length !== documents.length ||
+        redactedActors.some((doc, i) => doc !== documents[i]);
+      if (!actorsChanged) return op;
+      // REQ-CTT-075: the replay carries the removal exactly like the live
+      // broadcast does — a player who reconnects inside the buffer window
+      // learns that the contact went away, instead of re-applying the last op
+      // that still knew nothing about it.
+      return {
+        ...op,
+        payload: {
+          ...payload,
+          documents: redactedActors,
+          ...(redacted.removedIds.length > 0 ? { removedIds: redacted.removedIds } : {}),
+        },
+      };
     }
 
     // Drop every scene that was not on air and redact the one that was
@@ -221,6 +253,30 @@ function filterSceneDeleteOpForRole(op: Envelope): Envelope {
   const ids = payload["ids"];
   if (!Array.isArray(ids) || ids.length === 0) return op;
   return { ...op, payload: { ...payload, ids: [] } };
+}
+
+/**
+ * Redact hidden combatants from a buffered `doc:create` / `doc:update` whose
+ * `documentType` is "Combat" — the generic-document counterpart of
+ * {@link filterCombatOpForRole}, which covers only the dedicated `combat:*`
+ * envelopes.
+ *
+ * Shape: `{ documentType: "Combat", documents: [fullCombat] }`, the same one
+ * `broadcastToWorld` redacts live, so a player who reconnects cannot read from
+ * the buffer what the live path refused to send (REQ-CBA-082, REQ-CBT-031).
+ *
+ * Never mutates the shared buffered envelope — clones only when stripping.
+ */
+function filterCombatDocOpForRole(op: Envelope, payload: Record<string, unknown>): Envelope {
+  const documents = payload["documents"];
+  if (!Array.isArray(documents)) return op;
+
+  const originals = documents as Record<string, unknown>[];
+  const redacted = redactCombatDocsForNonPrivileged(originals);
+  const changed = redacted.some((doc, i) => doc !== originals[i]);
+  if (!changed) return op;
+
+  return { ...op, payload: { ...payload, documents: redacted } };
 }
 
 /**
@@ -298,6 +354,12 @@ function filterCombatOpForRole(op: Envelope): Envelope {
  */
 function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): WorldSnapshotPayload {
   const documents: Record<string, unknown[]> = {};
+  // Resolved once per snapshot: the contact filter needs the characters this
+  // user owns (REQ-CTT-071), and reading them per document would rescan the
+  // Actor table for every row.
+  const viewer = isPrivileged(role)
+    ? null
+    : buildContactViewer(contactKnowledgeSourceFromStore(deps.store), userId, role);
 
   for (const { table, docType } of SNAPSHOT_TABLES) {
     try {
@@ -375,6 +437,18 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         });
       }
 
+      // Spec 39 §5.9, AFTER derivation on purpose: a glimpsed contact must
+      // carry no system data at all (REQ-CTT-081), and deriving first then
+      // stripping is the only order that guarantees `system.derived` never
+      // slips back in behind the redaction. Ownership above is still the gate
+      // — this only ever removes more (REQ-CTT-074).
+      // A snapshot REPLACES the mirror wholesale, so an absent contact is
+      // already forgotten — `removedIds` is a delta concept and has no meaning
+      // here (REQ-CTT-075 is served by the broadcast and replay paths).
+      if (docType === "Actor" && viewer) {
+        visible = redactActorDocsForViewer(visible, viewer).documents;
+      }
+
       documents[docType] = visible;
     } catch {
       documents[docType] = [];
@@ -445,7 +519,12 @@ export function sendJoinSnapshot(
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(role) ? rawDelta : filterOpsForRole(rawDelta);
+      const delta = isPrivileged(role)
+        ? rawDelta
+        : filterOpsForRole(
+            rawDelta,
+            buildContactViewer(contactKnowledgeSourceFromStore(deps.store), userId, role),
+          );
       // Client can catch up with delta
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
@@ -510,7 +589,12 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(ctx.role) ? rawDelta : filterOpsForRole(rawDelta);
+      const delta = isPrivileged(ctx.role)
+        ? rawDelta
+        : filterOpsForRole(
+            rawDelta,
+            buildContactViewer(contactKnowledgeSourceFromStore(deps.store), ctx.userId, ctx.role),
+          );
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
         toSeq: deps.seqStore.peek(),
@@ -610,6 +694,28 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { sceneId } = payload;
+
+    // REQ-CEN-045: a target that does not exist is a FAILURE, not a silent
+    // divergence. Without this, the reconcile below took every scene off the
+    // air, wrote a pointer naming nothing and broadcast it: the source of
+    // truth would name a scene with no body behind it, every client would
+    // render an empty canvas, and no resync would ever repair it (the snapshot
+    // reads the same broken pointer). Refuse before writing anything.
+    // `sceneId: null` stays legal — that is how "nothing on air" is expressed.
+    if (sceneId !== null) {
+      try {
+        deps.store.get("scenes", sceneId);
+      } catch (err) {
+        if (err instanceof DocumentNotFoundError) {
+          return {
+            ok: false,
+            code: "NOT_FOUND" as const,
+            message: `Scene not found: ${sceneId}`,
+          };
+        }
+        throw err;
+      }
+    }
 
     // T010: settings['_meta:activeScene'] is the source of truth — it is what
     // the join snapshot reads and what survives a restart. The `active` field
