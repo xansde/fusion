@@ -291,7 +291,11 @@
     transition: opacity var(--fusion-transition);
   }
 
-  .scene-row:hover .scene-row__actions {
+  /* REQ-CEN-090 / REQ-UIF-064: the actions may fade in on hover, but hover must not
+     be the ONLY way to reveal them — tabbing into any of them lights the whole group,
+     otherwise the keyboard user focuses a button drawn at `opacity: 0`. */
+  .scene-row:hover .scene-row__actions,
+  .scene-row:focus-within .scene-row__actions {
     opacity: 1;
   }
 
@@ -315,6 +319,13 @@
   .action-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+  }
+
+  /* REQ-CEN-090: same focus ring the rail uses (`SidebarRail.svelte`), so the row
+     action the keyboard landed on is unmistakable. */
+  .action-btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: -2px;
   }
 
   .action-btn--activate:not(:disabled):hover {

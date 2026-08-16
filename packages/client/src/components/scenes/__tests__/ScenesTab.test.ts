@@ -10,11 +10,15 @@
  * Covers REQ-GAV-011 (no collapse control inside the panel — the rail's active tab
  * is the only gesture), REQ-GAV-017 (nothing in the panel keeps state that must
  * survive the unmount) and REQ-CEN-001 (this is the panel behind tab "scenes").
- * The empty state is spec 36 §7.4.
+ * The empty state is spec 36 §7.4. The keyboard block covers REQ-CEN-090 — the row
+ * actions must be reachable with visible focus, so the hover-only reveal they inherited
+ * from the old sidebar gets a focus equivalent (REQ-UIF-064).
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import type { SceneDocument } from "@fusion/shared";
 
 import ScenesTab from "../ScenesTab.svelte";
@@ -33,6 +37,22 @@ function makeScene(id: string, name: string): SceneDocument {
     tokens: [],
     walls: [],
   } as unknown as SceneDocument;
+}
+
+/**
+ * The component's own stylesheet. Vitest runs the client in a node environment — no
+ * DOM, so no `:hover` to leave and no `:focus-visible` to trigger — and the rule under
+ * test IS declarative. Same technique the drawer's keyboard test uses
+ * (`SidebarResponsive.test.ts`).
+ */
+function styleOfScenesTab(): string {
+  const source = readFileSync(
+    fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)),
+    "utf8",
+  );
+  const style = /<style>([\s\S]*)<\/style>/.exec(source)?.[1];
+  if (style === undefined) throw new Error("ScenesTab.svelte has no <style> block");
+  return style;
 }
 
 function renderTab(activeSceneId: string | null): string {
@@ -109,5 +129,39 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
       expect(button).toContain("<svg");
       expect(button).not.toMatch(/\p{Extended_Pictographic}|[\u{2190}-\u{2BFF}]/u);
     }
+  });
+
+  describe("keyboard (REQ-CEN-090)", () => {
+    it("REQ-CEN-090: the row actions are real buttons in the natural focus order", () => {
+      sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
+
+      const html = renderTab("s2");
+
+      const actionTags = [...html.matchAll(/<button[^>]*class="action-btn[^>]*>/g)].map(
+        (match) => match[0],
+      );
+      expect(actionTags.length).toBeGreaterThanOrEqual(5);
+      for (const tag of actionTags) {
+        // Nothing removes them from the tab sequence, and each one names its scene.
+        expect(tag).not.toMatch(/tabindex="-1"/);
+        expect(tag).toMatch(/aria-label="/);
+      }
+    });
+
+    it("REQ-CEN-090 / REQ-UIF-064: focusing a row action reveals it — hover is not the only way", () => {
+      const css = styleOfScenesTab();
+
+      // The group starts hidden...
+      expect(css).toMatch(/\.scene-row__actions\s*\{[^}]*opacity:\s*0/);
+      // ...and hover is not the sole trigger that brings it back: keyboard focus
+      // anywhere in the row reveals it too, so no one tabs onto an invisible button.
+      expect(css).toMatch(
+        /\.scene-row:focus-within\s+\.scene-row__actions[^{]*\{[^}]*opacity:\s*1/,
+      );
+    });
+
+    it("REQ-CEN-090: the focused row action draws a visible ring", () => {
+      expect(styleOfScenesTab()).toMatch(/\.action-btn:focus-visible\s*\{[^}]*outline:\s*(?!none)/);
+    });
   });
 });

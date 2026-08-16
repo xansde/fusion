@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 246 | 13% |
+| Citados por algum teste | 248 | 14% |
 | Citados só por código de produção | 336 | 18% |
-| Sem nenhuma citação | 1242 | 68% |
+| Sem nenhuma citação | 1240 | 68% |
 | **Total [MVP]** | **1824** | |
 
 ## Por spec
@@ -47,7 +47,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 6 | 13 | 25 | 14% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
-| [23](23-acessibilidade-e-dispositivos.md) | 45 | 0 | 0 | 45 | 0% |
+| [23](23-acessibilidade-e-dispositivos.md) | 45 | 1 | 0 | 44 | 2% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
@@ -64,4 +64,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [40](40-aba-combate.md) | 59 | 0 | 0 | 59 | 0% |
 | [42](42-aba-npcs.md) | 59 | 1 | 0 | 58 | 2% |
 | [43](43-aba-compendio.md) | 60 | 0 | 0 | 60 | 0% |
-| [44](44-aba-cenas.md) | 58 | 2 | 1 | 55 | 3% |
+| [44](44-aba-cenas.md) | 58 | 3 | 1 | 54 | 5% |
