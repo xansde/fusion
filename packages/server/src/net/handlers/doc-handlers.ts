@@ -148,6 +148,20 @@ const TYPE_TO_TABLE: Record<string, string> = {
  * Combat is included (M2-C): the dedicated combat:* handlers are the normal
  * path, but the generic doc:create / doc:delete path must also reject non-GM
  * Combat creation/deletion as a defense-in-depth measure (DEC-CBT-06 + spec 05).
+ *
+ * Folder is included (REQ-NPC-021 / REQ-NPC-080): creating a folder is a
+ * privileged-only action, and there is no dedicated `folder:create` — it goes
+ * through this same generic `doc:create` path, so the gate has to live here.
+ * Before this, `documentType === "Folder"` fell through to the plain
+ * `role >= TRUSTED` floor a few lines below, and TRUSTED (role 2) is not
+ * privileged (`isRolePrivileged` is `>= ASSISTANT_GM`, role 3) — a TRUSTED
+ * socket could mint a Folder in the tree the NPCs tab draws, and could smuggle
+ * a self-`ownership: {OWNER}` into the payload while doing it, since nothing
+ * on the create path forces Folder's ownership the way r17-P1 forces a
+ * companion's. Delete is handled by the unconditional refusal in
+ * `buildDocDeleteHandler` below (REQ-NPC-022) — membership here still matters
+ * for delete because it is what stops a non-privileged role from reaching
+ * that far via the generic ownership-based delete rule.
  */
 const GM_ONLY_CREATE_DELETE = new Set([
   "Scene",
@@ -157,6 +171,7 @@ const GM_ONLY_CREATE_DELETE = new Set([
   "RollTable",
   "Playlist",
   "Combat",
+  "Folder",
 ]);
 
 /**
@@ -1179,6 +1194,25 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // client that decides whether to draw the button.
     const forbidden = rejectForbiddenDocumentType(documentType, parent?.type);
     if (forbidden) return forbidden;
+
+    // `Folder` (REQ-NPC-022 / REQ-NPC-080): deleting a folder is a composed
+    // operation — its subfolders lift to the deleted folder's own parent and
+    // its documents are released to "Sem pasta" BEFORE the row itself goes,
+    // so nothing is left pointing at an id that no longer exists.
+    // `folder:delete` (folder-handlers.ts) is the one door that does all
+    // three steps in order; this generic path only ever does the third one.
+    // Membership in GM_ONLY_CREATE_DELETE is not enough by itself here — that
+    // set still lets a *privileged* caller reach the ordinary OWNER/GM delete
+    // branch below, which would remove the row without reparenting anything.
+    // So Folder is refused unconditionally, for every role including
+    // privileged, the same way ChatMessage is refused above by type rather
+    // than by field.
+    if (documentType === "Folder") {
+      return ackError(
+        "PERMISSION_DENIED",
+        "Folder is not deletable through doc:delete — use folder:delete (REQ-NPC-022 / REQ-NPC-080)",
+      );
+    }
 
     // Embedded token deletion
     if (parent) {

@@ -52,6 +52,8 @@ interface Ctx {
   worldId: string;
   gmToken: string;
   playerToken: string;
+  trustedToken: string;
+  trustedUserId: string;
 }
 
 let ctx: Ctx;
@@ -161,6 +163,16 @@ beforeAll(async () => {
     password: "player-pass",
     ip: "127.0.0.1",
   });
+  const { user: trusted } = await authService.createUser({
+    name: "Escudeiro",
+    role: Role.TRUSTED,
+    password: "trusted-pass",
+  });
+  const trustedLogin = await authService.login({
+    userId: trusted.id,
+    password: "trusted-pass",
+    ip: "127.0.0.1",
+  });
 
   const port = await reserveFreePort();
   const config = loadConfig({
@@ -199,6 +211,8 @@ beforeAll(async () => {
     worldId,
     gmToken: gmLogin.accessToken,
     playerToken: playerLogin.accessToken,
+    trustedToken: trustedLogin.accessToken,
+    trustedUserId: trusted.id,
   };
 
   gmSocket = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
@@ -353,5 +367,85 @@ describe("REQ-NPC-080: the check is on the server, not on the tab that is not dr
     const world = await readWorld(ctx.gmToken);
     expect((world["Folder"] ?? []).some((doc) => doc["_id"] === pasta)).toBe(true);
     expect((world["Actor"] ?? []).find((doc) => doc["_id"] === dentro)?.["folder"]).toBe(pasta);
+  });
+
+  // REQ-NPC-080: "criar e excluir pasta" is one of the operations the requirement
+  // names for `isRolePrivileged`. TRUSTED (role 2) is a real, creatable seat that
+  // is NOT privileged (`isRolePrivileged` is `>= ASSISTANT_GM`, role 3) — the
+  // generic `doc:create`/`doc:delete` path used to fall through to the plain
+  // `role >= TRUSTED` floor for any documentType not in GM_ONLY_CREATE_DELETE,
+  // and Folder was missing from that set.
+  it("REQ-NPC-080 / REQ-NPC-021: a TRUSTED socket emitting doc:create for Folder is refused", async () => {
+    const trustedSocket = connectClient(ctx.port, ctx.worldId, ctx.trustedToken);
+    trustedSocket.connect();
+    await waitForConnect(trustedSocket);
+
+    const ack = await sendOp(trustedSocket, "doc:create", {
+      documentType: "Folder",
+      data: [{ name: "Pasta forjada", type: "Actor", parentId: null, sort: 0 }],
+    });
+    trustedSocket.disconnect();
+
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+
+    const world = await readWorld(ctx.gmToken);
+    expect((world["Folder"] ?? []).some((doc) => doc["name"] === "Pasta forjada")).toBe(false);
+  });
+
+  // REQ-NPC-022: `folder:delete` is the only door because it is a COMPOSED
+  // operation (subfolders lift, actors release, only then does the row go).
+  // Membership in GM_ONLY_CREATE_DELETE alone is not enough to protect that
+  // invariant: it still lets a privileged caller reach the plain OWNER/GM
+  // delete branch of the generic path, which removes the row without doing
+  // any of the reparenting. This must be refused for EVERY role, privileged
+  // included — the same way ChatMessage is refused by type on this path.
+  it("REQ-NPC-022 / REQ-NPC-080: doc:delete of a Folder is refused even for a privileged (GM) socket, naming folder:delete", async () => {
+    const raiz = await createFolder("Raiz Genérica", null);
+    const filha = await createFolder("Filha Genérica", raiz);
+    const dentro = await createNpc("Morador", raiz);
+
+    const ack = await sendOp(gmSocket, "doc:delete", {
+      documentType: "Folder",
+      ids: [raiz],
+    });
+
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+    expect(String(ack["message"])).toContain("folder:delete");
+
+    // Nothing moved: no reparenting happened because nothing was deleted.
+    const world = await readWorld(ctx.gmToken);
+    expect((world["Folder"] ?? []).some((doc) => doc["_id"] === raiz)).toBe(true);
+    expect((world["Folder"] ?? []).find((doc) => doc["_id"] === filha)?.["parentId"]).toBe(raiz);
+    expect((world["Actor"] ?? []).find((doc) => doc["_id"] === dentro)?.["folder"]).toBe(raiz);
+  });
+
+  // Same refusal, but for TRUSTED with a self-forged `ownership` — the exact
+  // path finding #14 traced: with Folder absent from GM_ONLY_CREATE_DELETE the
+  // generic delete branch used `resolveOwnership` against whatever `ownership`
+  // the create payload carried, and nothing forced it the way r17-P1 forces a
+  // companion's. Adding Folder to GM_ONLY_CREATE_DELETE closes create for
+  // TRUSTED outright (proven above), so this asserts the delete side is closed
+  // independently of that, for defense in depth.
+  it("REQ-NPC-022 / REQ-NPC-080: doc:delete of a Folder is refused for TRUSTED too, naming folder:delete", async () => {
+    const pasta = await createFolder("Alvo TRUSTED", null);
+
+    const trustedSocket = connectClient(ctx.port, ctx.worldId, ctx.trustedToken);
+    trustedSocket.connect();
+    await waitForConnect(trustedSocket);
+
+    const ack = await sendOp(trustedSocket, "doc:delete", {
+      documentType: "Folder",
+      ids: [pasta],
+    });
+    trustedSocket.disconnect();
+
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+    expect(String(ack["message"])).toContain("folder:delete");
+
+    const world = await readWorld(ctx.gmToken);
+    expect((world["Folder"] ?? []).some((doc) => doc["_id"] === pasta)).toBe(true);
   });
 });
