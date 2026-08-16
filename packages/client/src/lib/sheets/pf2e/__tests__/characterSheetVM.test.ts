@@ -758,18 +758,36 @@ describe("CharacterSheetVM — conditions", () => {
     expect(frightened.itemId).toBe("item-frightened");
   });
 
-  it("toggleCondition returns remove op when condition is active", () => {
+  // T034: these used to assert the dot-path diff form (`items.-<id>`,
+  // `items.+`). The server never implemented those operators, so every toggle
+  // came back VALIDATION_FAILED — the assertions passed while the feature did
+  // not work. They now assert the embedded item CRUD the sheet actually sends.
+  it("toggleCondition returns an embedded delete op when condition is active", () => {
     const vm = makeVM();
     const op = vm.toggleCondition("frightened");
     expect(op).not.toBeNull();
-    expect(op!.diff).toMatchObject({ "items.-item-frightened": true });
+    expect(op).toMatchObject({
+      type: "doc:delete",
+      documentType: "Item",
+      id: "item-frightened",
+      parent: { type: "Actor" },
+    });
   });
 
-  it("toggleCondition returns add op when condition is not active", () => {
+  it("toggleCondition returns an embedded create op when condition is not active", () => {
     const vm = makeVM();
-    const op = vm.toggleCondition("stunned");
+    const op = vm.toggleCondition("prone");
     expect(op).not.toBeNull();
-    expect(op!.diff["items.+"]).toMatchObject({ type: "condition", name: "stunned" });
+    expect(op).toMatchObject({
+      type: "doc:create",
+      documentType: "Item",
+      data: { type: "condition", system: { slug: "prone" } },
+      parent: { type: "Actor" },
+    });
+    // No `value` key at all: the schema takes `undefined` and rejects `null`.
+    if (op?.type !== "doc:create") throw new Error("expected a doc:create op");
+    const system = op.data["system"] as Record<string, unknown>;
+    expect("value" in system).toBe(false);
   });
 
   it("toggleCondition returns null when not editable", () => {
