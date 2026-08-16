@@ -11,8 +11,9 @@
  * Covers REQ-CBA-031 (the acted group is labelled and distinct), REQ-CBA-032 (portrait,
  * name and the row's contents), REQ-CBA-033 (defeat is marked explicitly, not only by
  * opacity, and the row stays), REQ-CBA-034 (hidden is marked for a privileged role and
- * absent for the rest), REQ-CBA-035 (drag handle plus a keyboard alternative),
- * REQ-CBA-036 (twenty participants scroll, the head does not travel with them),
+ * absent for the rest), REQ-CBA-035 (drag handle plus a keyboard alternative, acting
+ * on the underlying turn order the panel actually passes in — never on the rotated
+ * reading), REQ-CBA-036 (twenty participants scroll, the head does not travel with them),
  * REQ-CBA-068 (a privileged role removes a participant, in both phases; nobody else does)
  * and REQ-CBA-076 (the panel offers no way to mark a target, to any role).
  */
@@ -25,8 +26,14 @@ import type { CombatDocument, CombatantDocument } from "@fusion/shared";
 
 import CombatQueue from "../CombatQueue.svelte";
 import CombatPanelSourceMarker from "../CombatPanel.svelte";
-import { buildRotatedQueue, buildTrackerRows } from "../../../lib/combat/combatTracker.js";
+import {
+  buildRotatedQueue,
+  buildTrackerRows,
+  moveCombatantBefore,
+  moveCombatantInOrder,
+} from "../../../lib/combat/combatTracker.js";
 import type { RotatedQueue } from "../../../lib/combat/combatTracker.js";
+import { getSortedCombatants } from "../../../lib/combat/combatStore.svelte.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -105,13 +112,31 @@ function queueOf(combat: CombatDocument, canSeeHidden: boolean): RotatedQueue {
   return buildRotatedQueue(buildTrackerRows(combat), canSeeHidden);
 }
 
-function renderQueue(queue: RotatedQueue, gmControls: boolean): string {
+/**
+ * The **underlying** turn order, the way the panel builds it (`CombatPanel.svelte`:
+ * `getSortedCombatants(combat).map((c) => c._id)`): the whole ring, in initiative order,
+ * including whoever is taking the turn. It is deliberately NOT `queue.entries`, which is
+ * the rotated reading with the head removed — feeding that to the component would be
+ * feeding a shape the panel never produces, and the reorder gestures rewrite this prop.
+ */
+function orderOf(combat: CombatDocument, canSeeHidden: boolean): string[] {
+  // A non-privileged viewer's mirror never holds hidden combatants: the server strips them
+  // before the payload leaves (REQ-CBA-034), so the order it can rewrite has them gone too.
+  const combatants = canSeeHidden ? combat.combatants : combat.combatants.filter((c) => !c.hidden);
+  return getSortedCombatants({ ...combat, combatants }).map((c) => c._id);
+}
+
+function renderQueue(
+  combat: CombatDocument,
+  gmControls: boolean,
+  canSeeHidden: boolean = gmControls,
+): string {
   const { body } = render(CombatQueue, {
     props: {
-      queue,
+      queue: queueOf(combat, canSeeHidden),
       gmControls,
       busy: false,
-      order: queue.entries.map((entry) => entry.row.id),
+      order: orderOf(combat, canSeeHidden),
       rollable: new Set<string>(),
     },
   });
@@ -142,7 +167,7 @@ function combatPanelSource(): string {
 // ---------------------------------------------------------------------------
 
 describe("o grupo de quem já agiu é rotulado e distinto (REQ-CBA-031)", () => {
-  const body = renderQueue(queueOf(ladder(6, 3), true), true);
+  const body = renderQueue(ladder(6, 3), true);
 
   it("escreve o rótulo dos dois grupos, em palavras", () => {
     expect(body).toContain(t("FUSION.Combat.Queue.Acted"));
@@ -162,7 +187,7 @@ describe("o grupo de quem já agiu é rotulado e distinto (REQ-CBA-031)", () => 
   });
 
   it("sem ninguém que já agiu, não inventa um grupo vazio", () => {
-    const first = renderQueue(queueOf(ladder(4, 0), true), true);
+    const first = renderQueue(ladder(4, 0), true);
 
     expect(first).not.toContain("combat-queue__group--acted");
     expect(first).not.toContain(t("FUSION.Combat.Queue.Acted"));
@@ -175,7 +200,7 @@ describe("o grupo de quem já agiu é rotulado e distinto (REQ-CBA-031)", () => 
 
 describe("o que cada linha mostra (REQ-CBA-032)", () => {
   it("desenha retrato e nome de cada participante", () => {
-    const body = renderQueue(queueOf(ladder(3, 0), true), true);
+    const body = renderQueue(ladder(3, 0), true);
 
     expect(body).toContain("combatant-row__portrait");
     expect(body).toContain(">P1<");
@@ -185,7 +210,7 @@ describe("o que cada linha mostra (REQ-CBA-032)", () => {
 
 describe("derrotado (REQ-CBA-033)", () => {
   const combat = ladder(4, 0, (i) => (i === 2 ? { defeated: true } : {}));
-  const body = renderQueue(queueOf(combat, true), true);
+  const body = renderQueue(combat, true);
 
   it("permanece na fila", () => {
     expect(body).toContain(">P2<");
@@ -217,7 +242,7 @@ describe("participante oculto (REQ-CBA-034)", () => {
   const combat = ladder(4, 0, (i) => (i === 2 ? { name: "Espião", hidden: true } : {}));
 
   it("aparece para papel privilegiado com a palavra 'oculto'", () => {
-    const body = renderQueue(queueOf(combat, true), true);
+    const body = renderQueue(combat, true);
 
     expect(body).toContain(">Espião<");
     expect(body).toContain(t("FUSION.Combat.Queue.Hidden"));
@@ -225,7 +250,7 @@ describe("participante oculto (REQ-CBA-034)", () => {
   });
 
   it("não aparece de forma alguma para quem não tem papel privilegiado", () => {
-    const body = renderQueue(queueOf(combat, false), false);
+    const body = renderQueue(combat, false);
 
     expect(body).not.toContain("Espião");
     expect(body).not.toContain("combatant-row--hidden");
@@ -238,7 +263,7 @@ describe("participante oculto (REQ-CBA-034)", () => {
 
 describe("reordenar a fila (REQ-CBA-035)", () => {
   it("papel privilegiado recebe uma alça arrastável que também é botão de teclado", () => {
-    const body = renderQueue(queueOf(ladder(4, 0), true), true);
+    const body = renderQueue(ladder(4, 0), true);
 
     expect(body).toContain("combatant-row__handle");
     expect(body).toContain('draggable="true"');
@@ -256,10 +281,49 @@ describe("reordenar a fila (REQ-CBA-035)", () => {
   });
 
   it("quem não tem papel privilegiado não recebe alça nem linha arrastável", () => {
-    const body = renderQueue(queueOf(ladder(4, 0), true), false);
+    const body = renderQueue(ladder(4, 0), false, true);
 
     expect(body).not.toContain("combatant-row__handle");
     expect(body).not.toContain('draggable="true"');
+  });
+
+  it("o painel alimenta a fila com a ordem SUBJACENTE, não com a leitura rotacionada", () => {
+    // REQ-CBA-035: os dois gestos reescrevem a prop `order`, então a forma dela decide o
+    // que sai em `combat:reorder`. Se o painel passasse `queue.entries`, a ordem enviada
+    // ao servidor sairia rotacionada e sem o participante da vez — e nenhuma asserção
+    // sobre markup perceberia.
+    const source = combatPanelSource();
+
+    expect(source).toContain("order={turnOrder}");
+    expect(source).toContain("getSortedCombatants(combat).map((c) => c._id)");
+    expect(source).not.toContain("order={queue.entries");
+    // E o que a fila devolve vai para o servidor pela ação de reordenar, sem passar por
+    // nenhuma outra transformação no caminho.
+    expect(source).toContain(
+      "onReorder={(order) => void combatActions.reorder(socket, combat._id, order)}",
+    );
+  });
+
+  it("com o encontro em andamento, o gesto anda na ordem subjacente e não na rotacionada", () => {
+    // REQ-CBA-035: com a vez no meio da escada, as duas leituras discordam — a rotacionada
+    // começa em P4 e não tem P3. Um gesto que operasse sobre ela moveria o participante
+    // errado (ou recusaria mover), e um array plano de quatro ids não distinguiria os dois.
+    const combat = ladder(6, 3);
+    const order = orderOf(combat, true);
+    const rotated = queueOf(combat, true).entries.map((entry) => entry.row.id);
+
+    expect(order).toEqual(["p0", "p1", "p2", "p3", "p4", "p5"]);
+    expect(rotated).toEqual(["p4", "p5", "p0", "p1", "p2"]);
+
+    // Subir P4 uma posição é trocá-lo com o participante da vez, que só existe na ordem
+    // subjacente; na leitura rotacionada P4 é o primeiro e o gesto não teria para onde ir.
+    expect(moveCombatantInOrder(order, "p4", -1)).toEqual(["p0", "p1", "p2", "p4", "p3", "p5"]);
+    expect(moveCombatantInOrder(rotated, "p4", -1)).toBeNull();
+
+    // O mesmo vale para o arraste: soltar P0 sobre P4 mantém o participante da vez no
+    // lugar dele, coisa que a leitura rotacionada não sabe representar.
+    expect(moveCombatantBefore(order, "p0", "p4")).toEqual(["p1", "p2", "p3", "p0", "p4", "p5"]);
+    expect(moveCombatantBefore(rotated, "p0", "p4")).toEqual(["p0", "p4", "p5", "p1", "p2"]);
   });
 });
 
@@ -269,7 +333,7 @@ describe("reordenar a fila (REQ-CBA-035)", () => {
 
 describe("vinte participantes (REQ-CBA-036)", () => {
   it("desenha os dezenove que não estão na cabeça, na ordem rotacionada", () => {
-    const body = renderQueue(queueOf(ladder(20, 7), true), true);
+    const body = renderQueue(ladder(20, 7), true);
     const drawn = [...body.matchAll(/>(P\d+)</g)].map((m) => m[1]);
 
     const expected = [
@@ -307,21 +371,21 @@ describe("remover participante do encontro (REQ-CBA-068)", () => {
   const remove = t("FUSION.Combat.RemoveFromCombat");
 
   it("papel privilegiado tem o gesto na montagem", () => {
-    const body = renderQueue(queueOf(setup(4), true), true);
+    const body = renderQueue(setup(4), true);
 
     expect(body).toContain(remove);
     expect(body).toContain("action-btn--danger");
   });
 
   it("papel privilegiado tem o gesto com o encontro em andamento", () => {
-    const body = renderQueue(queueOf(ladder(4, 1), true), true);
+    const body = renderQueue(ladder(4, 1), true);
 
     expect(body).toContain(remove);
     expect(body).toContain("action-btn--danger");
   });
 
   it("o gesto existe uma vez por participante desenhado, não só na primeira linha", () => {
-    const body = renderQueue(queueOf(setup(4), true), true);
+    const body = renderQueue(setup(4), true);
     const occurrences = body.split(remove).length - 1;
 
     // title + aria-label por linha, nas quatro linhas da montagem.
@@ -330,7 +394,7 @@ describe("remover participante do encontro (REQ-CBA-068)", () => {
 
   it("quem não tem papel privilegiado não recebe o gesto, em fase nenhuma", () => {
     for (const combat of [setup(4), ladder(4, 1)]) {
-      const body = renderQueue(queueOf(combat, false), false);
+      const body = renderQueue(combat, false);
 
       expect(body).not.toContain(remove);
       expect(body).not.toContain("action-btn--danger");
@@ -348,7 +412,7 @@ describe("o painel não oferece marcar alvo (REQ-CBA-076)", () => {
   it("nenhuma linha desenha controle de alvo, em papel ou fase alguma", () => {
     for (const gmControls of [true, false]) {
       for (const combat of [setup(4), ladder(4, 1)]) {
-        const body = renderQueue(queueOf(combat, gmControls), gmControls);
+        const body = renderQueue(combat, gmControls);
 
         expect(body).not.toMatch(/alvo/i);
         expect(body).not.toMatch(/target/i);
