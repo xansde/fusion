@@ -61,9 +61,12 @@
     SCENE_ENV_KEYS,
     buildSceneEnvironmentVM,
     createDarknessMemory,
+    createSceneEnvironmentGestureRunner,
+    describeEnvironmentError,
     resetSceneFog,
     toggleSceneDarkness,
     toggleSceneFog,
+    type SceneEnvironmentGestureId,
   } from "../../lib/scenes/sceneEnvironment.js";
   import { confirm as confirmDialog } from "../../lib/windows/dialogs.svelte.js";
   import {
@@ -163,8 +166,25 @@
   const darknessMemory = createDarknessMemory();
 
   /** Which gesture is in flight — disables the row instead of faking its new state. */
-  let envBusy = $state<"darkness" | "fog" | "fogReset" | null>(null);
+  let envBusy = $state<SceneEnvironmentGestureId | null>(null);
   let envError = $state<string | null>(null);
+
+  /**
+   * The one-at-a-time guard of REQ-CEN-023, kept out of the component so it can be
+   * exercised without a DOM (`lib/scenes/sceneEnvironment.ts`). It reports only whether a
+   * write is on the wire; what the controls SHOW is always the document.
+   */
+  const envGestures = createSceneEnvironmentGestureRunner(
+    {
+      setBusy: (gesture) => {
+        envBusy = gesture;
+      },
+      setError: (message) => {
+        envError = message;
+      },
+    },
+    describeEnvironmentError,
+  );
 
   /** The document of the scene on air, straight from the world mirror. */
   function sceneOnAir(): SceneDocument | null {
@@ -174,19 +194,10 @@
   }
 
   async function runEnvGesture(
-    gesture: "darkness" | "fog" | "fogReset",
+    gesture: SceneEnvironmentGestureId,
     run: () => Promise<unknown>,
   ): Promise<void> {
-    if (envBusy !== null) return;
-    envBusy = gesture;
-    envError = null;
-    try {
-      await run();
-    } catch (err) {
-      envError = err instanceof OpError ? err.message : t(SCENE_ENV_KEYS.failed);
-    } finally {
-      envBusy = null;
-    }
+    await envGestures.run(gesture, run);
   }
 
   async function handleToggleDarkness(): Promise<void> {

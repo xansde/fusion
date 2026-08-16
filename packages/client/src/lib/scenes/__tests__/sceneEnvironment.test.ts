@@ -23,9 +23,11 @@ import {
   SCENE_ENV_KEYS,
   buildSceneEnvironmentVM,
   createDarknessMemory,
+  createSceneEnvironmentGestureRunner,
   resetSceneFog,
   toggleSceneDarkness,
   toggleSceneFog,
+  type SceneEnvironmentGestureId,
 } from "../sceneEnvironment.js";
 
 // ---------------------------------------------------------------------------
@@ -278,5 +280,106 @@ describe("resetting the fog of the scene on air (REQ-CEN-022)", () => {
 
     // One op, owned by 07 (REQ-VIS-086/087) — no doc:update pretending to clear fog.
     expect(sent.map((envelope) => envelope.type)).toEqual(["fog:reset"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// While the write is on the wire (REQ-CEN-023)
+// ---------------------------------------------------------------------------
+
+/**
+ * What the head does BETWEEN the click and the server's answer is the other half of
+ * REQ-CEN-023: it must not paint the state the write has not confirmed. The runner is the
+ * mechanism — it reports "a write is in flight" (which the head turns into a disabled
+ * row) and never reports a pressed state of its own.
+ */
+describe("running one environment gesture at a time (REQ-CEN-023)", () => {
+  /** A sink that records everything the runner reported, in order. */
+  function recorder(): {
+    readonly busy: (SceneEnvironmentGestureId | null)[];
+    readonly errors: (string | null)[];
+    readonly sink: Parameters<typeof createSceneEnvironmentGestureRunner>[0];
+  } {
+    const busy: (SceneEnvironmentGestureId | null)[] = [];
+    const errors: (string | null)[] = [];
+    return {
+      busy,
+      errors,
+      sink: {
+        setBusy: (gesture) => busy.push(gesture),
+        setError: (message) => errors.push(message),
+      },
+    };
+  }
+
+  /** A gesture whose write hangs until the test lets it answer. */
+  function pending(): { readonly work: () => Promise<void>; readonly settle: () => void } {
+    let release = (): void => {};
+    const promise = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    return { work: () => promise, settle: () => release() };
+  }
+
+  it("REQ-CEN-023: while the write is on the wire the row is busy, and the toggle still reads the document", async () => {
+    const scene = makeScene({ _id: "s1", darkness: 0, fogEnabled: false });
+    const rec = recorder();
+    const runner = createSceneEnvironmentGestureRunner(rec.sink, () => "failed");
+    const flight = pending();
+
+    const running = runner.run("darkness", flight.work);
+    await Promise.resolve();
+
+    // The head knows a write is in flight — that is what disables the row...
+    expect(rec.busy).toEqual(["darkness"]);
+    // ...and NOT what the environment is: that is still the document, untouched.
+    expect(
+      buildSceneEnvironmentVM({ scenes: [scene], activeSceneId: "s1" })?.darkness.pressed,
+    ).toBe(false);
+
+    flight.settle();
+    await running;
+    expect(rec.busy).toEqual(["darkness", null]);
+  });
+
+  it("REQ-CEN-023: a second gesture during the flight of the first is dropped, not raced", async () => {
+    const rec = recorder();
+    const runner = createSceneEnvironmentGestureRunner(rec.sink, () => "failed");
+    const flight = pending();
+    let secondRan = false;
+
+    const running = runner.run("darkness", flight.work);
+    await runner.run("fog", () => {
+      secondRan = true;
+      return Promise.resolve();
+    });
+
+    expect(secondRan).toBe(false);
+    expect(rec.busy).toEqual(["darkness"]);
+
+    flight.settle();
+    await running;
+
+    // Once the wire is free the next gesture goes through normally.
+    await runner.run("fog", () => Promise.resolve());
+    expect(rec.busy).toEqual(["darkness", null, "fog", null]);
+  });
+
+  it("REQ-CEN-023: a refused write becomes a message and leaves no state behind", async () => {
+    const scene = makeScene({ _id: "s1", darkness: 0, fogEnabled: false });
+    const rec = recorder();
+    const runner = createSceneEnvironmentGestureRunner(rec.sink, (err) =>
+      err instanceof Error ? err.message : "failed",
+    );
+
+    await runner.run("fog", () => Promise.reject(new Error("PERMISSION_DENIED")));
+
+    expect(rec.errors).toEqual([null, "PERMISSION_DENIED"]);
+    // The wire is free again, and the toggle reads exactly what the server still holds —
+    // the refusal did not leave a pressed fog behind.
+    expect(rec.busy).toEqual(["fog", null]);
+    expect(buildSceneEnvironmentVM({ scenes: [scene], activeSceneId: "s1" })?.fog.pressed).toBe(
+      false,
+    );
   });
 });

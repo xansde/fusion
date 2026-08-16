@@ -31,10 +31,14 @@ import type { Envelope, SceneDocument } from "@fusion/shared";
 import { activateScene, OpError } from "../../../lib/scenes/sceneController.js";
 import { buildSceneHeadVM } from "../../../lib/scenes/scenesTabVM.js";
 import {
+  SCENE_ENV_KEYS,
   buildSceneEnvironmentVM,
+  describeEnvironmentError,
   resetSceneFog,
   toggleSceneFog,
 } from "../../../lib/scenes/sceneEnvironment.js";
+import "../../../lib/i18n/index.js";
+import { t } from "../../../lib/i18n/i18n.js";
 import { persistSceneOrder, reorderWithinGroup } from "../../../lib/scenes/sceneShelf.js";
 
 // ---------------------------------------------------------------------------
@@ -176,10 +180,24 @@ describe("a refused environment write (REQ-CEN-023)", () => {
     );
   });
 
+  it("REQ-CEN-023: the refusal turns into the server's own words, and anything else into a failure message", () => {
+    // What the panel puts in its message region, exercised directly: the server's words
+    // when it said why, the generic failure otherwise — and never a state.
+    expect(
+      describeEnvironmentError(new OpError("PERMISSION_DENIED", "Refused by the server")),
+    ).toBe("Refused by the server");
+
+    const generic = describeEnvironmentError(new TypeError("socket exploded"));
+    expect(generic).toBe(t(SCENE_ENV_KEYS.failed));
+    expect(generic).not.toBe(SCENE_ENV_KEYS.failed);
+    expect(generic).not.toContain("socket exploded");
+  });
+
   it("REQ-CEN-023: the panel keeps a message region bound to the failed environment gesture", () => {
     const source = sourceOfScenesTab();
 
-    expect(source).toMatch(/envError = err instanceof OpError \? err\.message/);
+    // `envError` is null at server-render time, so the region itself can only be pinned
+    // in the template — the same technique the CSS rules use in `ScenesTab.test.ts`.
     expect(source).toMatch(
       /\{#if envError\}[\s\S]{0,200}class="scenes-tab__error"[\s\S]{0,80}role="alert"/,
     );

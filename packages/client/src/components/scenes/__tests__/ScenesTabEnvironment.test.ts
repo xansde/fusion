@@ -9,7 +9,9 @@
  *
  * The client's Vitest runs in a node environment (no DOM), so the assertions are on the
  * server-rendered markup and on the component's own stylesheet — the technique
- * `ScenesTabHead.test.ts` already uses here.
+ * `ScenesTabHead.test.ts` already uses here. What happens BETWEEN the click and the
+ * server's answer (REQ-CEN-023) needs a live gesture, so it is proven where it can be
+ * driven: `createSceneEnvironmentGestureRunner` in `lib/scenes/__tests__/`.
  *
  * Covers REQ-CEN-020, REQ-CEN-021, REQ-CEN-022, REQ-CEN-023, REQ-CEN-024.
  */
@@ -105,18 +107,27 @@ describe("ScenesTab — the environment shortcuts on the head", () => {
     sceneListState.scenes = [makeScene({ _id: "s1", darkness: 0, fogEnabled: false })];
     const lit = headOf(renderTab("s1"));
 
-    // Pressed follows the server's document in both directions...
+    // Pressed follows the server's document in both directions — the only thing that
+    // changed between the two renders is the document the mirror holds.
     expect(dark).toContain('aria-pressed="true"');
     expect(dark).toContain(t(SCENE_ENV_KEYS.darknessOff));
     expect(dark).toContain(t(SCENE_ENV_KEYS.fogOff));
     expect(lit).not.toContain('aria-pressed="true"');
     expect(lit).toContain(t(SCENE_ENV_KEYS.darknessOn));
+    expect(lit).toContain(t(SCENE_ENV_KEYS.fogOn));
+  });
 
-    // ...because it is a projection, not a `$state` mirror that a refused write or
-    // another GM's change would leave stale.
-    const source = sourceOfScenesTab();
-    expect(source).toMatch(/const environment = \$derived\(/);
-    expect(source).not.toMatch(/\$state[^;\n]*\b(darknessOn|fogOn|envPressed)\b/);
+  it("REQ-CEN-023: each toggle reads its own field, so the two never move together", () => {
+    // Fog on with the room still lit: one control pressed, the other not. A single local
+    // "pressed" flag — or a toggle reading the wrong field — cannot draw this head.
+    sceneListState.scenes = [makeScene({ _id: "s1", darkness: 0, fogEnabled: true })];
+
+    const head = headOf(renderTab("s1"));
+
+    expect(head).toContain(t(SCENE_ENV_KEYS.darknessOn));
+    expect(head).toContain(t(SCENE_ENV_KEYS.fogOff));
+    expect(head.match(/aria-pressed="true"/g) ?? []).toHaveLength(1);
+    expect(head.match(/aria-pressed="false"/g) ?? []).toHaveLength(1);
   });
 
   it("REQ-CEN-024: nothing on air, no environment controls", () => {
