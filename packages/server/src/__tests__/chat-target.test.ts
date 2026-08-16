@@ -18,7 +18,8 @@
  *   - REQ-ACH-091 — log, history and join snapshot derive visibility from the
  *     same fields, through the same redaction — there is no second rule.
  *   - REQ-ACH-092 — no payload delivered to a non-privileged user carries data
- *     the screen hides from him — the target's AC in particular.
+ *     the screen hides from him: the target's AC, and also the NAME of a token
+ *     he cannot see (hidden, or on a scene that is off air — REQ-CEN-071).
  *
  * Everything is asserted on the PAYLOAD the socket receives (broadcast, ack,
  * history and join snapshot) and on the database itself — never on a screen.
@@ -58,6 +59,14 @@ const TARGET_TOKEN_ID = "ogreToken00000a1";
 const TARGET_TOKEN_NAME = "Ogro Batedor";
 const TARGET_ACTOR_NAME = "Ogro";
 const SCENE_ID = "targetScene00001";
+/** A scene that is NOT on air, holding a token the Mestre has hidden. */
+const OFFAIR_SCENE_ID = "offairScene00001";
+const HIDDEN_TOKEN_ID = "hiddenToken0001a";
+const HIDDEN_TOKEN_NAME = "Assassino Oculto";
+const HIDDEN_ACTOR_ID = "assassinNpc0001a";
+/** A token that is on the scene ON AIR, but hidden by the Mestre. */
+const CLOAKED_TOKEN_ID = "cloakToken00001a";
+const CLOAKED_TOKEN_NAME = "Espreitador Invisivel";
 
 function makeTempDir(): string {
   const dir = join(
@@ -100,12 +109,21 @@ function seedTarget(db: FusionDatabase): void {
     )
     .run(TARGET_ACTOR_ID, JSON.stringify(actor), TARGET_ACTOR_NAME, "npc", now, now);
 
+  // `active` is written as a BOOLEAN by the only writer there is
+  // (`world:activeScene`), and that is what `sceneIsOnAir` reads.
   const scene = {
     _id: SCENE_ID,
     name: "Clareira",
-    active: 1,
+    active: true,
     tokens: [
       { _id: TARGET_TOKEN_ID, name: TARGET_TOKEN_NAME, actorId: TARGET_ACTOR_ID, hidden: false },
+      // Same scene, on air — but hidden by the Mestre.
+      {
+        _id: CLOAKED_TOKEN_ID,
+        name: CLOAKED_TOKEN_NAME,
+        actorId: HIDDEN_ACTOR_ID,
+        hidden: true,
+      },
     ],
   };
   db.raw
@@ -114,6 +132,37 @@ function seedTarget(db: FusionDatabase): void {
        VALUES (?, ?, ?, 1, 0, ?, ?)`,
     )
     .run(SCENE_ID, JSON.stringify(scene), "Clareira", now, now);
+
+  // The actor behind both hidden tokens — it has an AC, so nothing but the
+  // visibility check can stop a portrait from being built.
+  const hiddenActor = {
+    _id: HIDDEN_ACTOR_ID,
+    name: "Assassino",
+    type: "npc",
+    system: { attributes: { ac: { value: 19 } }, derived: { ac: { total: 19 } } },
+  };
+  db.raw
+    .prepare(
+      `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 0, ?, ?)`,
+    )
+    .run(HIDDEN_ACTOR_ID, JSON.stringify(hiddenActor), "Assassino", "npc", now, now);
+
+  // A scene that is NOT on air, with a hidden token inside it.
+  const offAir = {
+    _id: OFFAIR_SCENE_ID,
+    name: "Cova Secreta",
+    active: false,
+    tokens: [
+      { _id: HIDDEN_TOKEN_ID, name: HIDDEN_TOKEN_NAME, actorId: HIDDEN_ACTOR_ID, hidden: true },
+    ],
+  };
+  db.raw
+    .prepare(
+      `INSERT INTO scenes (id, data, name, navigation, sort, created_at, updated_at)
+       VALUES (?, ?, ?, 1, 0, ?, ?)`,
+    )
+    .run(OFFAIR_SCENE_ID, JSON.stringify(offAir), "Cova Secreta", now, now);
 }
 
 async function buildTestContext(): Promise<TestContext> {
@@ -562,4 +611,84 @@ describe("alvo da rolagem — retrato do momento, e a CA fora do payload do joga
       fresh.disconnect();
     }
   }, 20_000);
+
+  // -------------------------------------------------------------------------
+  // Visibility of the REFERENCE itself — the id is not a secret, the name is.
+  // -------------------------------------------------------------------------
+
+  it("REQ-ACH-072/REQ-ACH-092: o jogador que mira um token OCULTO da cena no ar não publica o nome dele", async () => {
+    const gmSeen = nextChatMessage(gmSocket);
+
+    // The id is not a secret: the player saw the token before the Mestre hid it.
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/roll 1d20+7",
+      worldId: ctx.worldId,
+      target: { tokenId: CLOAKED_TOKEN_ID },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+
+    const acked = (ack["result"] as { message: ChatMessageLike }).message;
+    expect(JSON.stringify(acked)).not.toContain(CLOAKED_TOKEN_NAME);
+    expect(acked.targets).toBeUndefined();
+    expect(acked.rolls?.[0]?.degreeOfSuccess).toBeUndefined();
+
+    // No portrait was built at all — not even the Mestre's copy carries one, and
+    // the roll goes out as a plain total (REQ-ACH-071).
+    const gmMsg = await gmSeen;
+    expect(firstRoll(gmMsg).target).toBeUndefined();
+    expect(gmMsg.targets).toBeUndefined();
+    expect(JSON.stringify(gmMsg)).not.toContain(CLOAKED_TOKEN_NAME);
+  });
+
+  it("REQ-ACH-092: token de cena FORA DO AR não vira retrato para o jogador (REQ-CEN-071)", async () => {
+    const gmSeen = nextChatMessage(gmSocket);
+
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/roll 1d20+7",
+      worldId: ctx.worldId,
+      target: { tokenId: HIDDEN_TOKEN_ID },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+
+    const acked = (ack["result"] as { message: ChatMessageLike }).message;
+    expect(JSON.stringify(acked)).not.toContain(HIDDEN_TOKEN_NAME);
+    expect(acked.targets).toBeUndefined();
+
+    const gmMsg = await gmSeen;
+    expect(firstRoll(gmMsg).target).toBeUndefined();
+    expect(JSON.stringify(gmMsg)).not.toContain(HIDDEN_TOKEN_NAME);
+  });
+
+  it("REQ-ACH-092: o jogador que nomeia um ator DIRETO, sem observá-lo, não recebe o nome de volta", async () => {
+    const gmSeen = nextChatMessage(gmSocket);
+
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/roll 1d20+7",
+      worldId: ctx.worldId,
+      target: { actorId: HIDDEN_ACTOR_ID },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+
+    const acked = (ack["result"] as { message: ChatMessageLike }).message;
+    expect(acked.targets).toBeUndefined();
+    expect(JSON.stringify(acked)).not.toContain("Assassino");
+
+    const gmMsg = await gmSeen;
+    expect(firstRoll(gmMsg).target).toBeUndefined();
+  });
+
+  it("REQ-ACH-070: o Mestre segue mirando o token oculto — a restrição é de visibilidade, não do alvo", async () => {
+    const gmSeen = nextChatMessage(gmSocket);
+    await sendOp(gmSocket, "chat:send", {
+      content: "/roll 1d20+7",
+      worldId: ctx.worldId,
+      target: { tokenId: HIDDEN_TOKEN_ID },
+    });
+
+    const gmMsg = await gmSeen;
+    const roll = firstRoll(gmMsg);
+    expect(roll.target?.name).toBe(HIDDEN_TOKEN_NAME);
+    expect(roll.target?.ac).toBe(19);
+    expect(roll.degreeOfSuccess).toBeDefined();
+  });
 });

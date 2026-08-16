@@ -6,6 +6,8 @@
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
  *   - The scene LIST itself is privileged: only the scene on air may reach a
  *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
+ *   - The result of a blind roll must never reach a non-privileged socket — not
+ *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
  *
  * There are three emission paths that carry Scene bodies to clients, and all
  * three MUST funnel non-GM Scene documents through
@@ -74,6 +76,31 @@ export function redactChatTargetsForNonPrivileged(msg: ChatMessage): ChatMessage
     );
   }
   return redacted;
+}
+
+/**
+ * The text that stands in for a blind roll's result on a non-privileged screen
+ * (REQ-ROL-032). It is the WHOLE body such a viewer gets: the total lives in
+ * `content` as much as in `rolls[]`, so hiding only the dice would hide nothing.
+ */
+export const BLIND_ROLL_CONFIRMATION_CONTENT =
+  "(Você realizou uma rolagem cega — somente o GM pode ver o resultado.)";
+
+/**
+ * The blind-roll body a NON-PRIVILEGED viewer may receive: no roll terms, and no
+ * total in the text either.
+ *
+ * REQ-ROL-032 / REQ-ACH-092: `buildRollMessage` writes the result into
+ * `content` (`"<rótulo>: <total>"`), so a redaction that only dropped `rolls`
+ * would keep handing the number over — in the live broadcast, in the ack of
+ * `chat:send`, in `chat:history`, in `chat:search` and in `chat:context` alike.
+ * Every one of those paths funnels through here, so they cannot drift.
+ *
+ * The caller decides WHO is non-privileged and WHEN the message is blind; this
+ * function only builds the body.
+ */
+export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
+  return { ...msg, rolls: undefined, content: BLIND_ROLL_CONFIRMATION_CONTENT };
 }
 
 /**

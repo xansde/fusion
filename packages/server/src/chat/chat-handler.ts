@@ -61,8 +61,18 @@ import type {
 
 import type { HandlerFn, HandlerContext } from "../net/handler-registry.js";
 import type { SeqStore } from "../net/seq-store.js";
-import { isRolePrivileged, UserRole } from "../documents/ownership.js";
-import { redactChatTargetsForNonPrivileged } from "../net/redaction.js";
+import {
+  isRolePrivileged,
+  testOwnership,
+  OwnershipLevel,
+  UserRole,
+} from "../documents/ownership.js";
+import type { Ownership } from "../documents/ownership.js";
+import {
+  redactBlindRollForNonPrivileged,
+  redactChatTargetsForNonPrivileged,
+  redactSceneDocsForNonPrivileged,
+} from "../net/redaction.js";
 import { RollService, RollError } from "./roll-service.js";
 import type { RollServiceOptions } from "./roll-service.js";
 
@@ -252,9 +262,10 @@ function buildPayloadForSocket(
   if (isPublic) {
     // public message — everyone gets it
     if (msg.blind) {
-      // blindroll: strip rolls from non-GMs (and from the author)
+      // blindroll: strip the result from non-GMs (and from the author) — the
+      // dice AND the total in the text (REQ-ROL-032 / REQ-ACH-092).
       if (!socketIsPrivileged) {
-        return { ...msg, rolls: undefined };
+        return redactBlindRollForNonPrivileged(msg);
       }
     }
     return msg;
@@ -289,7 +300,7 @@ function buildPayloadForSocket(
 
   // For blindroll: author sees a stripped version, GM sees full
   if (msg.blind && !socketIsPrivileged) {
-    return { ...msg, rolls: undefined };
+    return redactBlindRollForNonPrivileged(msg);
   }
 
   return msg;
@@ -314,31 +325,12 @@ function broadcastChatMessage(
 ): number {
   const seq = seqStore.next();
 
-  // Build a minimal blindroll-confirmation message for the author
-  // REQ-ROL-032: author of blindroll sees confirmation without the result
-  // This body is only ever handed to a NON-privileged author (see the branch
-  // below), so it is built already stripped of the target's AC (REQ-ACH-073).
-  const blindAuthorMsg: ChatMessage = msg.blind
-    ? {
-        ...redactChatTargetsForNonPrivileged(msg),
-        rolls: undefined,
-        content: "(Você realizou uma rolagem cega — somente o GM pode ver o resultado.)",
-      }
-    : msg;
-
   for (const [, socket] of ns.sockets) {
-    const socketData = socket.data as { userId?: string; role?: number } | undefined;
-    const socketUserId = socketData?.userId ?? "";
-    const isAuthor = socketUserId === authorId;
-
-    let payload: ChatMessage | null;
-
-    if (msg.blind && isAuthor && !isRolePrivileged(socketData?.role ?? 0)) {
-      // Author of blindroll — send stripped confirmation
-      payload = blindAuthorMsg;
-    } else {
-      payload = buildPayloadForSocket(socket, msg, authorId);
-    }
+    // ONE funnel: the blindroll confirmation that REQ-ROL-032 owes the author
+    // is built inside `buildPayloadForSocket`, like every other redaction. It
+    // used to be a second body assembled right here, which is exactly how the
+    // read paths (history/search/context/ack) ended up shipping the total.
+    const payload = buildPayloadForSocket(socket, msg, authorId);
 
     if (payload === null) continue;
 
@@ -503,7 +495,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // of a save is the caster's, not the target's AC.
       const targetPortrait =
         payload.target !== undefined && gradedSave === null
-          ? resolveTargetPortrait(deps.db, payload.target)
+          ? resolveTargetPortrait(deps.db, payload.target, ctx)
           : null;
       let messageTargets: RollTarget[] | undefined;
       if (targetPortrait !== null && targetPortrait.ac !== undefined) {
@@ -1258,9 +1250,10 @@ function redactForViewer(
   const isPublic = whisper.length === 0;
 
   if (isPublic) {
-    // Everyone sees public messages; GMs see full; non-GMs get rolls stripped for blind
+    // Everyone sees public messages; GMs see full; non-GMs get the blind result
+    // stripped — dice AND the total in the text (REQ-ROL-032 / REQ-ACH-092).
     if (msg.blind && !privileged) {
-      return { ...msg, rolls: undefined };
+      return redactBlindRollForNonPrivileged(msg);
     }
     return msg;
   }
@@ -1293,17 +1286,25 @@ function redactForViewer(
 
   // Blind roll — author sees stripped version
   if (msg.blind && isAuthor && !privileged) {
-    return { ...msg, rolls: undefined };
+    return redactBlindRollForNonPrivileged(msg);
   }
 
   return msg;
 }
 
-/** Redact for the message author (used in ack response). */
+/**
+ * Redact for the message author (used in the ack of `chat:send`).
+ *
+ * The ack is a payload like any other: the author of a blind roll gets the same
+ * confirmation body the broadcast hands him, never the total (REQ-ROL-032 /
+ * REQ-ACH-092). A privileged author keeps the full result — his own screen is
+ * allowed to show it.
+ */
 function redactForAuthor(msg: ChatMessage, authorId: string, privileged: boolean): ChatMessage {
-  const withoutAc = privileged ? msg : redactChatTargetsForNonPrivileged(msg);
+  if (privileged) return msg;
+  const withoutAc = redactChatTargetsForNonPrivileged(msg);
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
-    return { ...withoutAc, rolls: undefined };
+    return redactBlindRollForNonPrivileged(withoutAc);
   }
   return withoutAc;
 }
@@ -1493,8 +1494,20 @@ function readActorName(db: Db, actorId: string): string | null {
  * Find a token by `_id` across the scenes of the world. Tokens are embedded in
  * the Scene JSON (DEC-PER-02), so there is no table to index — the world has a
  * handful of scenes and this runs once per targeted roll.
+ *
+ * A NON-PRIVILEGED requester only ever searches the scenes as the redaction
+ * module hands them to him: `redactSceneDocsForNonPrivileged` drops every scene
+ * that is not on air (REQ-CEN-071/073) and every hidden token (REQ-VIS-005), so
+ * a token he cannot see on the canvas cannot be found here either — no second
+ * predicate is written, the canonical one is reused. The token id is not a
+ * secret (he saw the token before the Mestre hid it), so the id alone must not
+ * buy the name back.
  */
-function findTokenById(db: Db, tokenId: string): { name: string; actorId: string | null } | null {
+function findTokenById(
+  db: Db,
+  tokenId: string,
+  privileged: boolean,
+): { name: string; actorId: string | null } | null {
   let rows: { data: string }[];
   try {
     rows = db.prepare(`SELECT data FROM scenes`).all() as { data: string }[];
@@ -1503,21 +1516,50 @@ function findTokenById(db: Db, tokenId: string): { name: string; actorId: string
   }
 
   for (const row of rows) {
-    let scene: { tokens?: unknown };
+    let scene: Record<string, unknown>;
     try {
-      scene = JSON.parse(row.data) as { tokens?: unknown };
+      scene = JSON.parse(row.data) as Record<string, unknown>;
     } catch {
       continue;
     }
-    if (!Array.isArray(scene.tokens)) continue;
-    for (const raw of scene.tokens as Record<string, unknown>[]) {
-      if (raw["_id"] !== tokenId) continue;
-      const name = typeof raw["name"] === "string" ? raw["name"] : "";
-      const actorId = typeof raw["actorId"] === "string" ? raw["actorId"] : null;
-      return { name, actorId };
+
+    // What this requester is allowed to read of this scene — nothing at all for
+    // a player when the scene is off air.
+    const visibleScenes = privileged ? [scene] : redactSceneDocsForNonPrivileged([scene]);
+
+    for (const visible of visibleScenes) {
+      const tokens = visible["tokens"];
+      if (!Array.isArray(tokens)) continue;
+      for (const raw of tokens as Record<string, unknown>[]) {
+        if (raw["_id"] !== tokenId) continue;
+        const name = typeof raw["name"] === "string" ? raw["name"] : "";
+        const actorId = typeof raw["actorId"] === "string" ? raw["actorId"] : null;
+        return { name, actorId };
+      }
     }
   }
   return null;
+}
+
+/**
+ * Whether this requester may name an actor DIRECTLY (a target reference with no
+ * token). With a token the visibility comes from the canvas — he is looking at
+ * it. Without one, the only thing standing between a guessed id and an actor's
+ * name is ownership, so at least OBSERVER is required (REQ-ACH-092). Privileged
+ * roles bypass, as everywhere else.
+ */
+function mayNameActorDirectly(db: Db, actorId: string, ctx: HandlerContext): boolean {
+  if (isRolePrivileged(ctx.role)) return true;
+  try {
+    const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
+      | { data: string }
+      | undefined;
+    if (!row) return false;
+    const doc = JSON.parse(row.data) as { ownership?: Ownership };
+    return testOwnership(doc.ownership ?? {}, ctx.userId, ctx.role, OwnershipLevel.OBSERVER);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -1533,16 +1575,25 @@ function findTokenById(db: Db, tokenId: string): { name: string; actorId: string
  *
  * When a token is named, ITS actor decides the AC: a payload that pairs a token
  * with someone else's actorId cannot make the server read the softer defence.
+ *
+ * The reference is also resolved THROUGH the requester's own visibility: a
+ * player who names a hidden token, a token of a scene that is off air, or an
+ * actor he does not observe gets `null` — the same "no portrait, no degree"
+ * outcome as a dangling reference (REQ-ACH-092). The name of what the Mestre
+ * hid is not published by the chat.
  */
-function resolveTargetPortrait(db: Db, ref: ChatTargetRef): RollTarget | null {
+function resolveTargetPortrait(db: Db, ref: ChatTargetRef, ctx: HandlerContext): RollTarget | null {
+  const privileged = isRolePrivileged(ctx.role);
   let name = "";
   let actorId: string | null = ref.actorId ?? null;
 
   if (ref.tokenId !== undefined) {
-    const token = findTokenById(db, ref.tokenId);
+    const token = findTokenById(db, ref.tokenId, privileged);
     if (token === null) return null;
     name = token.name;
     actorId = token.actorId ?? ref.actorId ?? null;
+  } else if (actorId !== null && !mayNameActorDirectly(db, actorId, ctx)) {
+    return null;
   }
 
   if (actorId === null) return null;

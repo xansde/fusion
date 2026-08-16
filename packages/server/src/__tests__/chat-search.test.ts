@@ -8,6 +8,8 @@
  *   - REQ-ACH-011 — typing in the search box queries the SERVER and gets back
  *     results carrying author, time and the matched text.
  *   - REQ-ACH-012 — the search is available to every role.
+ *   - REQ-ACH-092 / REQ-ROL-032 — no read path (ack, history, search, context)
+ *     hands the author of a blind roll the result the screen hides from him.
  *
  * Everything is asserted on the ack PAYLOAD the socket receives, never on a
  * rendered screen.
@@ -330,6 +332,74 @@ describe("chat:search — busca do log com o predicado do histórico", () => {
     );
     expect(asGm.messages).toHaveLength(1);
     expect(Array.isArray(asGm.messages[0]?.["rolls"])).toBe(true);
+  }, 20_000);
+
+  it("REQ-ACH-092 / REQ-ROL-032: o AUTOR da própria cega não lê o total em ack, histórico, busca nem contexto", async () => {
+    // The player rolls blind. The result is the GM's to reveal — and the total
+    // lives in the message TEXT, not only in `rolls[]`.
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/blindroll 1d20 # sondagem",
+      worldId: ctx.worldId,
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const ackMsg = (ack["result"] as { message: Record<string, unknown> }).message;
+    const messageId = String(ackMsg["_id"]);
+    await new Promise((r) => setTimeout(r, 120));
+
+    // What was actually persisted — the wire cannot lie about this.
+    const row = ctx.fusionDb.raw
+      .prepare(`SELECT data FROM chat_messages WHERE id = ?`)
+      .get(messageId) as { data: string } | undefined;
+    const stored = JSON.parse(String(row?.data)) as {
+      content: string;
+      rolls?: { total: number }[];
+    };
+    const total = String(stored.rolls?.[0]?.total);
+    expect(stored.content).toBe(`sondagem: ${total}`);
+
+    // Every read path the author has, one by one.
+    const history = await sendQuery(playerSocket, "chat:history", {
+      worldId: ctx.worldId,
+      limit: 20,
+    });
+    const historyMsgs = (history["result"] as { messages: Record<string, unknown>[] }).messages;
+    const fromHistory = historyMsgs.find((m) => m["_id"] === messageId);
+
+    const search = searchResult(
+      await sendQuery(playerSocket, "chat:search", { worldId: ctx.worldId, q: "sondagem" }),
+    );
+    const fromSearch = search.messages.find((m) => m["_id"] === messageId);
+
+    const context = await sendQuery(playerSocket, "chat:context", {
+      worldId: ctx.worldId,
+      id: messageId,
+      limit: 5,
+    });
+    expect(context["ok"], JSON.stringify(context)).toBe(true);
+    const fromContext = (context["result"] as { target: Record<string, unknown> }).target;
+
+    // The search still FINDS the author's own message (the stored text matched);
+    // what comes back carries no result at all.
+    for (const [label, msg] of [
+      ["ack", ackMsg],
+      ["history", fromHistory],
+      ["search", fromSearch],
+      ["context", fromContext],
+    ] as const) {
+      expect(msg, `${label}: message missing`).toBeDefined();
+      expect(msg?.["rolls"], `${label}: rolls leaked`).toBeUndefined();
+      const content = String(msg?.["content"]);
+      expect(content, `${label}: total leaked in content`).not.toContain(total);
+      expect(content, `${label}: label+total leaked in content`).not.toContain("sondagem:");
+    }
+
+    // The Mestre, on the same paths, reads the real thing.
+    const gmSearch = searchResult(
+      await sendQuery(gmSocket, "chat:search", { worldId: ctx.worldId, q: "sondagem" }),
+    );
+    const gmMsg = gmSearch.messages.find((m) => m["_id"] === messageId);
+    expect(gmMsg?.["content"]).toBe(`sondagem: ${total}`);
+    expect(Array.isArray(gmMsg?.["rolls"])).toBe(true);
   }, 20_000);
 
   it("REQ-ACH-011: cada resultado vem do servidor com autor, hora e o trecho que casou", async () => {
