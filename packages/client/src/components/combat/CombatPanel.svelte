@@ -561,7 +561,6 @@
           order={turnOrder}
           rollable={rollableByPlayer}
           onReorder={(order) => void combatActions.reorder(socket, combat._id, order)}
-          onTarget={(tokenId) => void combatActions.target(socket, tokenId, true)}
           onRollInitiative={(id, statistic) => void handleRollOne(id, statistic)}
           onToggleDefeated={(id, defeated) =>
             void combatActions.toggleDefeated(socket, combat._id, id, defeated)}

@@ -11,8 +11,10 @@
  * Covers REQ-CBA-031 (the acted group is labelled and distinct), REQ-CBA-032 (portrait,
  * name and the row's contents), REQ-CBA-033 (defeat is marked explicitly, not only by
  * opacity, and the row stays), REQ-CBA-034 (hidden is marked for a privileged role and
- * absent for the rest), REQ-CBA-035 (drag handle plus a keyboard alternative) and
- * REQ-CBA-036 (twenty participants scroll, the head does not travel with them).
+ * absent for the rest), REQ-CBA-035 (drag handle plus a keyboard alternative),
+ * REQ-CBA-036 (twenty participants scroll, the head does not travel with them),
+ * REQ-CBA-068 (a privileged role removes a participant, in both phases; nobody else does)
+ * and REQ-CBA-076 (the panel offers no way to mark a target, to any role).
  */
 
 import { describe, expect, it } from "vitest";
@@ -91,6 +93,12 @@ function ladder(
     }),
   );
   return makeCombat(combatants, `p${String(activeIndex)}`);
+}
+
+/** The same ladder, before anyone has a turn: the montagem phase (no active participant). */
+function setup(count: number): CombatDocument {
+  const combat = ladder(count, 0);
+  return makeCombat(combat.combatants, null);
 }
 
 function queueOf(combat: CombatDocument, canSeeHidden: boolean): RotatedQueue {
@@ -288,5 +296,78 @@ describe("vinte participantes (REQ-CBA-036)", () => {
 
   it("o rótulo do grupo acompanha a rolagem em vez de sumir", () => {
     expect(ruleOf(styleOfQueue(), ".combat-queue__group-label")).toMatch(/position:\s*sticky/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-CBA-068 — remover participante
+// ---------------------------------------------------------------------------
+
+describe("remover participante do encontro (REQ-CBA-068)", () => {
+  const remove = t("FUSION.Combat.RemoveFromCombat");
+
+  it("papel privilegiado tem o gesto na montagem", () => {
+    const body = renderQueue(queueOf(setup(4), true), true);
+
+    expect(body).toContain(remove);
+    expect(body).toContain("action-btn--danger");
+  });
+
+  it("papel privilegiado tem o gesto com o encontro em andamento", () => {
+    const body = renderQueue(queueOf(ladder(4, 1), true), true);
+
+    expect(body).toContain(remove);
+    expect(body).toContain("action-btn--danger");
+  });
+
+  it("o gesto existe uma vez por participante desenhado, não só na primeira linha", () => {
+    const body = renderQueue(queueOf(setup(4), true), true);
+    const occurrences = body.split(remove).length - 1;
+
+    // title + aria-label por linha, nas quatro linhas da montagem.
+    expect(occurrences).toBe(8);
+  });
+
+  it("quem não tem papel privilegiado não recebe o gesto, em fase nenhuma", () => {
+    for (const combat of [setup(4), ladder(4, 1)]) {
+      const body = renderQueue(queueOf(combat, false), false);
+
+      expect(body).not.toContain(remove);
+      expect(body).not.toContain("action-btn--danger");
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-CBA-076 — marcar alvo não existe nesta aba, para papel nenhum
+// ---------------------------------------------------------------------------
+
+describe("o painel não oferece marcar alvo (REQ-CBA-076)", () => {
+  // DEC-CBA-05: mirar é gesto espacial e vive no canvas (REQ-CBT-053..055). O requisito é
+  // negativo, então a prova é a ausência — nos dois papéis e nas duas fases.
+  it("nenhuma linha desenha controle de alvo, em papel ou fase alguma", () => {
+    for (const gmControls of [true, false]) {
+      for (const combat of [setup(4), ladder(4, 1)]) {
+        const body = renderQueue(queueOf(combat, gmControls), gmControls);
+
+        expect(body).not.toMatch(/alvo/i);
+        expect(body).not.toMatch(/target/i);
+      }
+    }
+  });
+
+  it("a fila não expõe callback de alvo e o painel não liga nenhum ao servidor", () => {
+    const queueSource = readFileSync(
+      fileURLToPath(new URL("../CombatQueue.svelte", import.meta.url)),
+      "utf8",
+    );
+
+    expect(queueSource).not.toContain("onTarget");
+    expect(combatPanelSource()).not.toContain("combatActions.target");
+  });
+
+  it("não sobrou texto de alvo em bundle nenhum: a chave não resolve", () => {
+    // i18n devolve a própria chave quando nenhum bundle registrado a define.
+    expect(t("FUSION.Combat.TargetToken")).toBe("FUSION.Combat.TargetToken");
   });
 });

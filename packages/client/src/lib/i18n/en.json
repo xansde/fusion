@@ -215,7 +215,6 @@
   "FUSION.Combat.RemoveFromCombat": "Remove from combat",
   "FUSION.Combat.RollInitiative": "Roll initiative",
   "FUSION.Combat.RollMyInitiative": "Roll my initiative",
-  "FUSION.Combat.TargetToken": "Mark as target",
   "FUSION.Combat.SetInitiativeManually": "Click to set initiative manually",
   "FUSION.Combat.Initiative": "Initiative: {{value}}",
   "FUSION.Combat.TurnOrder": "Combat turn order",

@@ -76,7 +76,6 @@
     /** Ids the current user may roll initiative for (REQ-CBT-034). */
     rollable?: ReadonlySet<string>;
     onReorder?: ((order: string[]) => void) | undefined;
-    onTarget?: ((tokenId: string) => void) | undefined;
     /**
      * Roll one participant's initiative. The second argument is the statistic chosen in the
      * same gesture (REQ-CBA-066), or `null` for the system's default.
@@ -98,7 +97,6 @@
     order = [],
     rollable = new Set<string>(),
     onReorder,
-    onTarget,
     onRollInitiative,
     onToggleDefeated,
     onToggleHidden,
@@ -243,13 +241,6 @@
       <circle cx="4.4" cy="9.2" r="0.95" />
       <circle cx="7.6" cy="9.2" r="0.95" />
     </g>
-  </svg>
-{/snippet}
-
-{#snippet iconTarget()}
-  <svg class="icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-    <circle cx="6" cy="6" r="4.4" fill="none" stroke="currentColor" stroke-width="1.2" />
-    <circle cx="6" cy="6" r="1.3" fill="currentColor" />
   </svg>
 {/snippet}
 
@@ -501,24 +492,12 @@
       </button>
     {/if}
 
-    <div class="combatant-row__actions">
-      {#if row.tokenId}
-        {@const tokenId = row.tokenId}
-        <button
-          class="action-btn"
-          type="button"
-          disabled={busy}
-          title={t("FUSION.Combat.TargetToken")}
-          aria-label="{t('FUSION.Combat.TargetToken')} {row.name}"
-          onclick={() => {
-            onTarget?.(tokenId);
-          }}
-        >
-          {@render iconTarget()}
-        </button>
-      {/if}
-
-      {#if gmControls}
+    <!-- ---- The privileged strip (REQ-CBA-063, REQ-CBA-068, REQ-CBA-075) ----
+      Marking a target is deliberately absent here, for every role (REQ-CBA-076, DEC-CBA-05):
+      aiming is a spatial gesture and lives on the canvas (REQ-CBT-053..055). A list of names
+      is a second door to the same thing, with less information. -->
+    {#if gmControls}
+      <div class="combatant-row__actions">
         <button
           class="action-btn"
           type="button"
@@ -580,8 +559,8 @@
         >
           {@render iconRemove()}
         </button>
-      {/if}
-    </div>
+      </div>
+    {/if}
   </div>
 {/snippet}
 
