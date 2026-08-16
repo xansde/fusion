@@ -14,7 +14,8 @@
  * Covers REQ-CBA-020 (head at the top with portrait, name, health and conditions),
  * REQ-CBA-021 (fixed height, advance control anchored to the footer), REQ-CBA-022 (no
  * data changes the height), REQ-CBA-024 (the participant is identified as yours without
- * relying on colour), REQ-CBA-025 (legible truncation) and RNF-CBA-03.
+ * relying on colour), REQ-CBA-025 (legible truncation), REQ-CBA-071 (a privileged role
+ * advances, rewinds AND ends the encounter from the head) and RNF-CBA-03.
  */
 
 import { describe, expect, it } from "vitest";
@@ -243,5 +244,95 @@ describe("a cabeça fica fora da área rolável (REQ-CBA-020)", () => {
   it("com a cabeça no ar, o cabeçalho não repete o botão de avançar (DEC-CBA-02)", () => {
     expect(source).toContain("controls.canNext && !showTurnHead");
     expect(source).toContain("controls.canPrevious && !showTurnHead");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The three gestures of REQ-CBA-071, all reachable from the head
+// ---------------------------------------------------------------------------
+
+describe("REQ-CBA-071 — avançar, recuar e encerrar a partir da cabeça", () => {
+  /** The head as a privileged role sees it: the three controls the requirement names. */
+  function privilegedHead(): string {
+    const { body } = render(TurnHead, {
+      props: {
+        name: "Goblin Guerreiro",
+        img: null,
+        isYours: false,
+        canAdvance: true,
+        canPrevious: true,
+        canEnd: true,
+        busy: false,
+        state: new TurnHeadState(),
+      },
+    });
+    return body;
+  }
+
+  it("REQ-CBA-071: a cabeça desenha os três controles para papel privilegiado", () => {
+    const footer = footerOf(privilegedHead());
+
+    expect(footer).toContain("data-turn-head-advance");
+    expect(footer).toContain(t("FUSION.Combat.PreviousTurn"));
+    expect(footer).toContain(t("FUSION.Combat.TurnHead.EndEncounter"));
+    expect(footer).toContain("data-turn-head-end");
+  });
+
+  it("REQ-CBA-071: encerrar é um botão de verdade, alcançável por teclado e nomeado", () => {
+    const footer = footerOf(privilegedHead());
+    const button = /<button[^>]*data-turn-head-end[^>]*>/.exec(footer)?.[0] ?? "";
+
+    expect(button).toContain('type="button"');
+    expect(button).toContain(`aria-label="${t("FUSION.Combat.TurnHead.EndEncounter")}"`);
+    // Drawn icon, never an emoji.
+    expect(footer.slice(footer.indexOf("data-turn-head-end"))).toContain("<svg");
+  });
+
+  it("REQ-CBA-071/REQ-CBA-021: encerrar não desloca o controle de avançar", () => {
+    const style = styleOfTurnHead();
+
+    // Pinned to the opposite edge of a `justify-content: flex-end` footer, so the advance
+    // control keeps the same coordinate whether or not this button is drawn.
+    expect(style).toMatch(/\.turn-head__end\s*\{[^}]*margin-right:\s*auto/);
+    expect(/\.turn-head__footer\s*\{([\s\S]*?)\}/.exec(style)?.[1] ?? "").toMatch(
+      /justify-content:\s*flex-end/,
+    );
+  });
+
+  it("REQ-CBA-071/REQ-CBA-073: sem permissão, nenhum dos três controles é desenhado", () => {
+    const { body } = render(TurnHead, {
+      props: {
+        name: "Goblin Guerreiro",
+        img: null,
+        isYours: false,
+        canAdvance: false,
+        canPrevious: false,
+        canEnd: false,
+        busy: false,
+        state: new TurnHeadState(),
+      },
+    });
+    const footer = footerOf(body);
+
+    expect(footer).not.toContain("data-turn-head-advance");
+    expect(footer).not.toContain("data-turn-head-end");
+    expect(footer).not.toContain(t("FUSION.Combat.PreviousTurn"));
+  });
+
+  it("REQ-CBA-071: o painel liga o encerrar da cabeça ao op de encerrar, só para papel privilegiado", () => {
+    const source = combatPanelSource();
+
+    expect(source).toContain("canEnd={gmControls && (controls?.canEnd ?? false)}");
+    expect(source).toContain("onEnd={() => void combatActions.end(socket, combat._id)}");
+  });
+
+  it("REQ-CBA-071/DEC-CBA-02: com a cabeça no ar, o cabeçalho não repete o encerrar", () => {
+    expect(combatPanelSource()).toContain("controls.canEnd && !showTurnHead");
+  });
+
+  it("REQ-CBA-071: o rótulo do encerrar está traduzido", () => {
+    expect(t("FUSION.Combat.TurnHead.EndEncounter")).not.toBe(
+      "FUSION.Combat.TurnHead.EndEncounter",
+    );
   });
 });

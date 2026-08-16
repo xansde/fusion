@@ -7,6 +7,9 @@
    *    panel gives it a fixed slot and scrolls the rest;
    *  - one height for every participant, from a theme token (REQ-CBA-021), with the
    *    advance control anchored to the head's own footer, on the same pixel every turn;
+   *  - the three gestures REQ-CBA-071 gives a privileged role — advance, rewind and end
+   *    the encounter — all live in that footer, so none of them has to be looked for in
+   *    the panel's header while the head is up (DEC-CBA-02);
    *  - no data grows it (REQ-CBA-022, RNF-CBA-03): a seventh condition folds into "+N",
    *    a long name gets an ellipsis (REQ-CBA-025), health that cannot be resolved is
    *    omitted rather than drawn as an empty bar (REQ-CBA-043);
@@ -57,12 +60,20 @@
     canAdvance?: boolean;
     /** Whether this user may rewind the turn from here (REQ-CBA-071). */
     canPrevious?: boolean;
+    /**
+     * Whether this user may end the encounter from here (REQ-CBA-071). The three gestures
+     * of the requirement live in the same footer, so the privileged role never has to look
+     * for one of them somewhere else.
+     */
+    canEnd?: boolean;
     /** Label of the advance control — "next turn" for the GM, "end my turn" for a player. */
     advanceLabel?: string | undefined;
     /** Fired by the anchored control. The server is what validates it (REQ-CBA-080). */
     onAdvance?: (() => void) | undefined;
     /** Fired by the rewind control. */
     onPrevious?: (() => void) | undefined;
+    /** Fired by the end-encounter control. The server is what validates it (REQ-CBA-080). */
+    onEnd?: (() => void) | undefined;
     /** An operation is in flight; controls are disabled but keep their place. */
     busy?: boolean;
     /** The expansion state to read and write. Injectable so tests own their own. */
@@ -78,9 +89,11 @@
     conditions = [],
     canAdvance = false,
     canPrevious = false,
+    canEnd = false,
     advanceLabel,
     onAdvance,
     onPrevious,
+    onEnd,
     busy = false,
     state = sharedTurnHeadState,
   }: Props = $props();
@@ -223,6 +236,37 @@
        control sits on the same coordinate for every participant (REQ-CBA-021) and travels
        with the head only when the user expanded it (REQ-CBA-022). -->
   <div class="turn-head__footer">
+    {#if canEnd}
+      <!-- REQ-CBA-071: the third gesture of the requirement, in the head with the other
+           two. It is pinned to the opposite edge (`margin-right: auto`) so it can never
+           displace the advance control, which stays on its own coordinate (REQ-CBA-021). -->
+      <button
+        type="button"
+        class="turn-head__end"
+        data-turn-head-end
+        disabled={busy}
+        aria-label={t("FUSION.Combat.TurnHead.EndEncounter")}
+        title={t("FUSION.Combat.TurnHead.EndEncounter")}
+        onclick={() => onEnd?.()}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="12"
+          height="12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          focusable="false"
+          aria-hidden="true"
+        >
+          <rect x="6" y="6" width="12" height="12" rx="1.5" />
+        </svg>
+      </button>
+    {/if}
+
     {#if canPrevious}
       <button
         type="button"
@@ -453,7 +497,8 @@
   }
 
   .turn-head__advance,
-  .turn-head__previous {
+  .turn-head__previous,
+  .turn-head__end {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -472,6 +517,22 @@
     padding: 0;
   }
 
+  /* REQ-CBA-071 / REQ-CBA-021: ending the encounter sits at the far left of the same
+     footer, so it never shifts the advance control's position from one turn to the next,
+     and its danger colour keeps it from being pressed by reflex next to "next turn". */
+  .turn-head__end {
+    width: 1.625rem;
+    margin-right: auto;
+    padding: 0;
+    border-color: var(--fusion-danger);
+    color: var(--fusion-danger);
+  }
+
+  .turn-head__end:hover:not(:disabled) {
+    background: var(--fusion-danger-dim);
+    color: var(--fusion-danger);
+  }
+
   .turn-head__advance {
     padding: 0 0.75rem;
     border-color: transparent;
@@ -488,6 +549,7 @@
 
   .turn-head__advance:disabled,
   .turn-head__previous:disabled,
+  .turn-head__end:disabled,
   .turn-head__more-btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
@@ -496,6 +558,7 @@
   /* REQ-CBA-093 / REQ-UIF-064: every control here is keyboard-operable with visible focus. */
   .turn-head__advance:focus-visible,
   .turn-head__previous:focus-visible,
+  .turn-head__end:focus-visible,
   .turn-head__more-btn:focus-visible {
     outline: 2px solid var(--fusion-accent);
     outline-offset: 2px;

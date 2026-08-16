@@ -388,10 +388,12 @@
             >{t("FUSION.Combat.Begin")}</button>
           {/if}
 
-          <!-- DEC-CBA-02: while the turn head is up, advancing and rewinding belong to
-               it and to nowhere else — a second "next" somewhere in the header is a
-               second place for the most repeated gesture to be, which is exactly what
-               REQ-CBA-021 is against. -->
+          <!-- DEC-CBA-02: while the turn head is up, advancing, rewinding and ending
+               belong to it and to nowhere else — a second "next" somewhere in the header
+               is a second place for the most repeated gesture to be, which is exactly what
+               REQ-CBA-021 is against, and REQ-CBA-071 names the head as where the three
+               gestures are reached from. In montagem there is no head, so the header keeps
+               them. -->
           {#if controls.canPrevious && !showTurnHead}
             <button
               class="btn btn--ghost btn--xs"
@@ -412,7 +414,7 @@
             >&#x276F;</button>
           {/if}
 
-          {#if controls.canEnd}
+          {#if controls.canEnd && !showTurnHead}
             <button
               class="btn btn--danger btn--xs"
               onclick={() => combatActions.end(socket, combat._id)}
@@ -525,10 +527,12 @@
         conditions={vitals.get(row.id)?.conditions ?? []}
         canAdvance={gmControls || canEndOwnTurn}
         canPrevious={gmControls && (controls?.canPrevious ?? false)}
+        canEnd={gmControls && (controls?.canEnd ?? false)}
         advanceLabel={canEndOwnTurn ? t("FUSION.Combat.TurnHead.EndMyTurn") : undefined}
         busy={busy}
         onAdvance={() => void combatActions.nextTurn(socket, combat._id)}
         onPrevious={() => void combatActions.previousTurn(socket, combat._id)}
+        onEnd={() => void combatActions.end(socket, combat._id)}
       />
     {/if}
 
