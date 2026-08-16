@@ -465,12 +465,44 @@ Ou seja: **o toggle de condição não funciona hoje**, nas duas fichas, para qu
 Nenhum teste cobre o caminho — foi por isso que passou. Achado de passagem no recon da
 Fase 2; não é regressão desta leva, e a guarda de T031 foi escrita para não mascará-lo.
 
-**Pronto quando:** decidido se os operadores viram contrato de verdade (implementados no
-servidor, com teste de ida e volta) ou se as duas fichas passam a usar o caminho
-`embedded`, que é o que já funciona para Item. Marcar/desmarcar condição funciona na mesa,
-com teste que prova.
+**Decisão fechada (recon de 2026-08-16): as duas fichas migram para o caminho `embedded`.**
+Não implementar os operadores no servidor — fazê-los funcionar exigiria ensinar o caminho
+genérico a mutar coleção embutida, duplicando o ownership, a validação de schema e a
+re-derivação que `handleEmbeddedCreate/Update/Delete` já fazem. Duas semânticas para mexer
+em `items[]` é a classe de bug que este repo já pagou.
 
-### T032 — Broadcast das escritas que bumpam `_stats.version`
+O que sustenta a decisão, provado por execução:
+
+- **O caminho `embedded` já funciona para exatamente este caso.**
+  `embedded-item-actor.test.ts` passa 10/10 com um usuário `Role.PLAYER` puro, OWNER da
+  própria ficha — criar, atualizar e apagar Item embutido, validado contra o schema do
+  subtipo, com re-derivação do pai. É o cenário "jogador marca condição na própria ficha",
+  já testado, hoje.
+- **`toggleCondition` é a exceção no próprio arquivo.** Poucas centenas de linhas acima,
+  `addInventoryItem`, `removeInventoryItem` e `toggleEquipItem` já usam `parent`/`embedded`
+  corretamente. A correção é copiar o vizinho.
+- **Quebrado desde que nasceu.** `git log -S "toggleCondition"` acha um único commit,
+  `25ebf33` (26/06). Nunca funcionou.
+
+Três coisas que o recon achou junto, e que mudam o tamanho da tarefa:
+
+1. **Um segundo bug, mascarado pelo primeiro:** o payload monta `system: { value: null }`, e
+   `ConditionSystemSchema` usa `z.number().int().min(1).optional()`, que aceita `undefined`
+   e **recusa `null`**. Verificado por execução: `value: null` reprova, chave omitida passa.
+   Trocar só o caminho de rede deixaria o "marcar" quebrado do mesmo jeito.
+2. **Não existe UI para MARCAR condição.** Busca por qualquer picker em `packages/client/src`
+   não acha nada: as duas fichas só têm o clique para remover um chip que já está lá. O ramo
+   de adição é inalcançável — de rede e de tela. "Desmarcar" é o que dá para consertar sem
+   UI nova.
+3. **A checagem de imunidade (IWR) nunca foi ligada.** `systems/pf2e/src/actions/conditions-manager.ts`
+   existe, é completo e é exportado — e `packages/server/src` não o importa em lugar nenhum.
+   REQ-PF2-053 e DEC-PF2-07 estão na spec e não estão no código.
+
+**Pronto quando:** desmarcar condição funciona na mesa pelo caminho `embedded`, com teste
+que exercita o op que o VM produz (não um payload montado à mão), como PLAYER dono da ficha.
+Marcar depende da UI da lacuna 2; a imunidade, da lacuna 3 — as duas são entregas próprias.
+
+### T032 — Broadcast das escritas que bumpam `_stats.version` (em andamento)
 
 `packages/server/src/etmos/reacao-handler.ts:254-277/351` (`applyEstresseCost`) ·
 `packages/server/src/net/handlers/sync-handlers.ts:517/526-535` (cena ativa)
@@ -484,7 +516,56 @@ jogador afetado leva `STALE_WRITE` permanente na própria ficha).
 **Pronto quando:** as duas escritas emitem `doc:update` do documento afetado, com teste
 que prova que o mirror do cliente reflete a versão nova depois de cada uma.
 
-### T033 — Log diário passa a rotacionar por horário local
+**Fechamento parcial, declarado.** Estes dois pontos foram fechados; um terceiro, achado
+na revisão, **não**: `store.update("combats", ...)` em `reacao-handler.ts:174` e `:366` e
+em `combat/combat-handlers.ts:276` (`persistCombat`, o funil de toda mutação de combate)
+incrementa a versão do Combat e emite só `combat:updated`, cujo payload é
+`{combatId, diff, seq}` — **sem `_stats`**. Do lado do cliente,
+`DocumentMirror._handleCombatUpdated` faz `{...existing, ...diff}`, então o
+`_stats.version` local do Combat nunca avança. Combat está em `TYPE_TO_TABLE`, ou seja, é
+gravável por `doc:update` com `expectedVersion` — o mesmo alvo da T013. Ver **T036**.
+
+### T035 — Uma cena oculta é visível ou não? O código responde as duas coisas
+
+`packages/server/src/net/handlers/sync-handlers.ts` (`buildSnapshot`, `filterOpsForRole`) ·
+`packages/server/src/net/handlers/doc-handlers.ts` (`broadcastToWorld`)
+
+O snapshot de entrada **filtra** cenas por `resolveOwnership(...) >= LIMITED`. Todo
+broadcast ao vivo de Scene **não filtra**: redige token oculto e porta secreta, e entrega o
+documento inteiro a qualquer socket. O replay do buffer de resync segue o broadcast.
+
+Consequência prática: o que um jogador enxerga de uma cena depende de **quando** ele
+conectou, não do que ele pode ver. Entrou agora, com a cena em `ownership.default = NONE`:
+não recebe nada. Ficou conectado enquanto o GM mexeu num token dela: recebe o documento
+inteiro. No mundo real em disco, **quatro das cinco cenas do `teste_xande` estão em
+`default: 0`**, e a única em `default: 2` é a demo — então isso não é hipótese de borda, é
+o estado da mesa.
+
+Não dá para escolher um lado dentro de um conserto de outra coisa: apertar quebra a mesa
+(jogador para de ver o mapa que hoje vê), afrouxar oficializa o vazamento. É decisão de
+produto, e é irmã da T025 — quem decidir aqui decide metade do desenho de lá.
+
+**Pronto quando:** existe UMA regra de visibilidade de cena, aplicada igualmente no
+snapshot, no broadcast ao vivo e no replay do buffer, com teste que prova a paridade entre
+os três caminhos. Se a resposta for "jogador vê a cena", o `buildSnapshot` afrouxa; se for
+"não vê", o broadcast e o replay apertam **e** o fluxo de revelar cena passa a existir.
+
+### T036 — Escritas de Combat também bumpam versão sem `doc:update`
+
+`packages/server/src/combat/combat-handlers.ts:276` (`persistCombat`) ·
+`packages/server/src/etmos/reacao-handler.ts:174` e `:366`
+
+Mesmo defeito da T032, tabela diferente, achado na revisão dela. `combat:updated` carrega
+`{combatId, diff, seq}` e nunca `_stats`, e o cliente faz merge raso — o `_stats.version`
+local do Combat fica parado em 1 para sempre. Não foi consertado junto porque mexer no
+formato de `combat:updated` (ou somar um `doc:update` a cada mutação de combate) é mudança
+de protocolo com efeito em toda a UI de combate, e merecia caber num PR próprio.
+
+**Pronto quando:** o mirror do cliente reflete a versão nova do Combat depois de qualquer
+mutação, com teste; ou a decisão de que Combat não participa do controle otimista fica
+escrita, e a T013 exclui a tabela explicitamente.
+
+### T033 — Log diário passa a rotacionar por horário local (em andamento)
 
 `packages/server/src/logger.ts:25-28` (`dailyLogFilePath`), `:42-46`
 (`tryCreateFileDestination`), `:87` (chamada única em `createLogger`)
@@ -627,7 +708,8 @@ risco na mesa incomodar.
 | 5   | Fase 3 dados (T020–T024)      | PR 2                                   |
 | 6   | T025 (desenho novo)           | independente — pode vir logo após PR 1 |
 | 7   | Fase 5 (T026–T029)            | PR 2                                   |
-| —   | T032, T034                    | independentes, sem migration           |
+| 8   | T032, T033 (defeitos vivos)   | PR 3                                   |
+| —   | T034, T035, T036              | independentes, sem migration           |
 
 A Fase 2 rachou em três PRs porque o recon mostrou que T013 e T016 não estavam prontas
 para implementação: T013 depende de dois consertos que ela não previa (T030, T032) e T016
