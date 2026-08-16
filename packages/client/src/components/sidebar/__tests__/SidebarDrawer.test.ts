@@ -22,6 +22,8 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import Sidebar from "../Sidebar.svelte";
+import SidebarDrawer from "../SidebarDrawer.svelte";
+import SettingsTab from "../../settings/SettingsTab.svelte";
 import { sidebarIcons } from "../icons.js";
 import { clearSidebarTabs, registerSidebarTab } from "../../../lib/sidebar/registry.js";
 import { sidebarPreferencesKey } from "../../../lib/sidebar/preferences.js";
@@ -260,6 +262,46 @@ describe("Sidebar / SidebarDrawer", () => {
       const collapsed = renderSidebar();
       expect(collapsed).not.toContain("sidebar-drawer");
       expect(collapsed).not.toContain('role="tabpanel"');
+    });
+
+    it("REQ-GAV-017: the resolved panel is really mounted inside the drawer, with its props", () => {
+      // Every other case here hands the drawer `panel: null`, which renders an empty
+      // container — so nothing proved that a resolved panel ever reaches the screen.
+      // A real (cheap) panel is used, so the slot is exercised end to end.
+      const { body } = render(SidebarDrawer, {
+        props: {
+          open: true,
+          activeTabId: "settings",
+          panel: SettingsTab,
+          panelProps: {
+            socket: {} as never,
+            worldId: WORLD_ID,
+            userId: USER_ID,
+            isGm: true,
+            activeSceneId: null,
+          },
+        },
+      });
+
+      const drawer = /<div[^>]*class="sidebar-drawer[^"]*"[^>]*>([\s\S]*)<\/div>/.exec(body)?.[1];
+      expect(drawer).toContain("settings-tab");
+
+      // And the collapsed drawer mounts it not at all (REQ-GAV-017).
+      const { body: collapsed } = render(SidebarDrawer, {
+        props: {
+          open: false,
+          activeTabId: "settings",
+          panel: SettingsTab,
+          panelProps: {
+            socket: {} as never,
+            worldId: WORLD_ID,
+            userId: USER_ID,
+            isGm: true,
+            activeSceneId: null,
+          },
+        },
+      });
+      expect(collapsed).not.toContain("settings-tab");
     });
 
     it("REQ-GAV-017: the panel is rendered by the drawer, not kept alive beside it", () => {

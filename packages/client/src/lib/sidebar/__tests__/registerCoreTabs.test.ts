@@ -11,9 +11,11 @@
  * and who may write it), RNF-GAV-02 (panels are loaders, never evaluated by the
  * rail), REQ-CEN-001 (the Cenas tab) and REQ-CFG-001 (the Configurações tab).
  *
- * Panels themselves are NOT loaded here: calling a loader would drag PIXI, the dice
- * box and the whole chat graph into a node test — and never calling them is exactly
- * what RNF-GAV-02 asks of the rail.
+ * The rail never evaluates a loader (RNF-GAV-02), and that is asserted with a loader
+ * that explodes when called. The bridge itself, though, is only real if each id opens
+ * the panel it promises — so ONE block here does resolve every loader and checks the
+ * component that comes back against the panel named by hand in the test. Without it,
+ * pointing `chat` at another panel keeps the whole suite green.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -30,9 +32,11 @@ import {
   getSidebarTab,
   getVisibleSidebarTabs,
   listVisibleSidebarTabs,
+  loadSidebarPanel,
   registerSidebarTab,
   SETTINGS_TAB_ID,
 } from "../registry.js";
+import type { SidebarPanelModule } from "../registry.js";
 import { formatSidebarBadge } from "../badges.svelte.js";
 import { chatStore } from "../../chat/chatStore.svelte.js";
 import SidebarRail from "../../../components/sidebar/SidebarRail.svelte";
@@ -154,6 +158,45 @@ describe("the core tabs register through the public call (G016)", () => {
       for (const id of CORE_SIDEBAR_TAB_IDS) {
         expect(typeof getSidebarTab(id)?.component).toBe("function");
       }
+    });
+  });
+
+  describe("REQ-GAV-030: each id opens its own panel — the bridge of G016", () => {
+    /**
+     * The expected half of this table is written HERE, by hand, from the panels the
+     * table already had (spec 36 §7 lists the tab each one becomes). It is never read
+     * back from `registerCoreTabs.ts` — comparing the module against itself would pass
+     * for any wiring, including a `chat` that opens Configurações.
+     */
+    const EXPECTED_PANEL_OF: readonly (readonly [string, () => Promise<SidebarPanelModule>])[] = [
+      ["chat", () => import("../../../components/chat/ChatPanel.svelte")],
+      ["actors", () => import("../../../components/actors/ActorDirectory.svelte")],
+      ["combat", () => import("../../../components/combat/CombatPanel.svelte")],
+      ["compendium", () => import("../../../components/compendium/CompendiumBrowser.svelte")],
+      // REQ-CEN-001: Cenas is the panel extracted from the pre-drawer sidebar.
+      ["scenes", () => import("../../../components/scenes/ScenesTab.svelte")],
+      // REQ-CFG-001: Configurações is the placeholder panel of spec 36 §7.4.
+      ["settings", () => import("../../../components/settings/SettingsTab.svelte")],
+    ];
+
+    it("REQ-GAV-030: the table covers every core tab, so no id escapes the check", () => {
+      expect(EXPECTED_PANEL_OF.map(([id]) => id)).toEqual([...CORE_SIDEBAR_TAB_IDS]);
+    });
+
+    for (const [id, loadExpected] of EXPECTED_PANEL_OF) {
+      it(`REQ-GAV-030: "${id}" resolves to its own panel component`, async () => {
+        const resolved: unknown = await loadSidebarPanel(id);
+        const expected: unknown = (await loadExpected()).default;
+
+        expect(typeof resolved).toBe("function");
+        expect(resolved).toBe(expected);
+      });
+    }
+
+    it("REQ-GAV-030: no two tabs resolve to the same panel", async () => {
+      const panels = await Promise.all(CORE_SIDEBAR_TAB_IDS.map((id) => loadSidebarPanel(id)));
+
+      expect(new Set(panels).size).toBe(CORE_SIDEBAR_TAB_IDS.length);
     });
   });
 
