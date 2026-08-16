@@ -49,15 +49,15 @@ botão de avançar e sem entregar ao jogador informação que ele não deveria t
 
 ## 3. Conceitos e terminologia
 
-| Conceito            | Definição                                                                                                                   |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Participante**    | Quem está na fila do encontro. É o `Combatant` da spec 10 visto pela tela; esta spec nunca o chama de "token" (DEC-CBA-06). |
-| **Cabeça de turno** | Bloco fixo no topo do painel com o participante da vez, sua vida, suas condições e os controles de turno.                   |
-| **Fila**            | O resto da ordem, rotacionada a partir do turno atual: primeiro quem falta agir nesta rodada, depois quem já agiu.          |
-| **Montagem**        | Estado do painel entre criar o encontro e começá-lo (`started: false`): é onde a iniciativa tem número e a ordem se define. |
-| **Criatura**        | Participante que não é personagem de jogador. É a palavra usada nas regras de visibilidade de vida (DEC-CBA-03).            |
-| **Aviso de vez**    | Faixa no topo do painel e cor do badge quando o participante da vez pertence ao usuário.                                    |
-| **Encontro ativo**  | O `Combat` da cena ativa, criado e ainda não encerrado — inclui a montagem (DEC-CBT-06 mantém um por cena).                 |
+| Conceito            | Definição                                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Participante**    | Quem está na fila do encontro. É o `Combatant` da spec 10 visto pela tela; esta spec nunca o chama de "token" (DEC-CBA-06).      |
+| **Cabeça de turno** | Bloco fixo no topo do painel com o participante da vez, sua vida, suas condições e os controles de turno.                        |
+| **Fila**            | O resto da ordem, rotacionada a partir do turno atual: primeiro quem falta agir nesta rodada, depois quem já agiu.               |
+| **Montagem**        | Estado do painel entre criar o encontro e começá-lo (`started: false`): é onde a iniciativa tem número e a ordem se define.      |
+| **Criatura**        | Ator de natureza `creature` (`ver 45-atores.md`, DEC-ATR-03). É a palavra usada nas regras de visibilidade de vida (DEC-CBA-03). |
+| **Aviso de vez**    | Faixa no topo do painel e cor do badge quando o participante da vez pertence ao usuário.                                         |
+| **Encontro ativo**  | O `Combat` da cena ativa, criado e ainda não encerrado — inclui a montagem (DEC-CBT-06 mantém um por cena).                      |
 
 ## 4. Decisões
 

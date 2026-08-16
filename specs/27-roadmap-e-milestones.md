@@ -359,7 +359,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 - `04` [V2] (A/V WebRTC).
 - `01` Q2 / `22` (túnel WAN), `01` Q3 (UPnP).
 - `07` [V2] (modos de visão/detecção avançados, Scene Regions — `07` Q5).
-- `15` REQ-SYS-008, 050, 089 + `17` (plugins dinâmicos, keybindings, effects plugáveis, motor completo de rule-elements; actor types `familiar`/`party`/`vehicle`).
+- `15` REQ-SYS-008, 050, 089 + `17` (plugins dinâmicos, keybindings, effects plugáveis, motor completo de rule-elements). Os actor types `party` e `vehicle` saíram deste marco: não existem no Fusion (`ver 45-atores.md`, DEC-ATR-08), e `familiar` é [MVP] pela `29`.
 - `23` REQ-A11-\* [V2] (a11y avançada).
 
 **Definition of Done (verificável).**

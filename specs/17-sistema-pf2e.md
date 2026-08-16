@@ -52,8 +52,9 @@ explicitamente **[V2]**.
 - O **núcleo `systems/engine-2e`**: mecânicas 2e compartilhadas entre PF2e
   e SF2e (degrees of success, modifier stacking de 7 tipos, TEML, condições base,
   dying/wounded, apply damage/IWR, MAP).
-- **Actor types**: `character`, `npc`, `hazard`, `loot` [MVP]; `familiar`,
-  `party`, `vehicle` [V2]. Schemas resumidos de cada um.
+- **Actor types**: `character`, `npc`, `hazard`, `loot`, `familiar` [MVP]. Schemas
+  resumidos de cada um, cada um com a sua natureza (`ver 45-atores.md`, DEC-ATR-03).
+  `party` e `vehicle` **não existem** e saíram do plano (DEC-ATR-08).
 - **Item types**: lista completa da pesquisa 10 com schemas resumidos; subconjunto
   que entra no MVP marcado.
 - **Automação MVP**: cálculo de atributos/perícias derivados (TEML+nível), strikes
@@ -578,7 +579,10 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   derivada e produzindo um chat card com o `DegreeOfSuccess`.
 - **REQ-PF2-114** [MVP] As sheets DEVEM exibir e permitir editar condições ativas
   e seus valores.
-- **REQ-PF2-115** [V2] Sheets de `familiar`, `party` e `vehicle`.
+- **REQ-PF2-115** [V2] Sheet de `familiar` (`ver 29-pets-companions-familiars.md`).
+  `party` e `vehicle` foram removidos deste requisito: não são actor types do Fusion
+  (`ver 45-atores.md`, DEC-ATR-08), e o agrupamento de personagens é o painel de
+  Comitiva do Hub (REQ-HUB-044), não um ator.
 
 ### Bulk e inventário
 
@@ -664,15 +668,19 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
 
 ### Tipos de Actor
 
-| Subtype     | MVP?   | Descrição                                                                 |
-| ----------- | ------ | ------------------------------------------------------------------------- |
-| `character` | ✅ MVP | Personagem jogador (PC) com ABC, feats, skills, spellcasting, inventário. |
-| `npc`       | ✅ MVP | Criatura/NPC com statblock completo (AC, saves, HP, strikes, skills).     |
-| `hazard`    | ✅ MVP | Armadilha/perigo: subset do NPC, geralmente sem ações ativas.             |
-| `loot`      | ✅ MVP | Container de itens sem statblock.                                         |
-| `familiar`  | ⏳ V2  | Familiar; habilidades derivadas do PC mestre.                             |
-| `party`     | ⏳ V2  | Agregador de PCs (exploração, speed coletivo).                            |
-| `vehicle`   | ⏳ V2  | Veículo (HP, broken threshold, piloting).                                 |
+A coluna **Natureza** é o valor declarado em `defineModel` (`ver 45-atores.md`,
+REQ-ATR-010); ela é o que engine e cliente consultam, nunca o nome do subtype.
+
+| Subtype     | MVP?   | Natureza    | Descrição                                                                 |
+| ----------- | ------ | ----------- | ------------------------------------------------------------------------- |
+| `character` | ✅ MVP | `player`    | Personagem jogador (PC) com ABC, feats, skills, spellcasting, inventário. |
+| `npc`       | ✅ MVP | `creature`  | Criatura/NPC com statblock completo (AC, saves, HP, strikes, skills).     |
+| `hazard`    | ✅ MVP | `hazard`    | Armadilha/perigo: subset do NPC, geralmente sem ações ativas.             |
+| `loot`      | ✅ MVP | `container` | Container de itens sem statblock. É o baú da `42` (DEC-ATR-07).           |
+| `familiar`  | ✅ MVP | `creature`  | Familiar; habilidades derivadas do PC mestre (`ver 29-...md`).            |
+
+`party` e `vehicle` saíram desta tabela: não são actor types do Fusion e não estão no
+plano (`ver 45-atores.md`, DEC-ATR-08).
 
 ### Tipos de Item
 

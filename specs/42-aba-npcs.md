@@ -521,11 +521,15 @@ A aba abre a ficha em janela flutuante e não diz nada sobre o conteúdo dela.
   como faz com as condições (REQ-SYS-043), ou o Mestre cria os presets do mundo dele?
 - **Q-NPC-03** — A presença criada pelo arraste (REQ-NPC-063) nasce **vinculada** ou
   **desvinculada** do ator? Depende da spec `41` (Token) e não se decide antes dela.
-- **Q-NPC-04** — O subtipo `loot`, declarado pelo pf2e, fica **sem consumidor** com o baú
+- **Q-NPC-04** — ~~O subtipo `loot`, declarado pelo pf2e, fica **sem consumidor** com o baú
   fora de ator (DEC-NPC-08). Ele é usado por baixo do baú sem nunca ser listado, ou sai da
-  declaração do sistema?
-- **Q-NPC-05** — Onde vive o **conteúdo do baú** (os itens saqueáveis), já que ele não é
-  ator? É assunto da spec de Token/Cenas, e esta spec não o antecipa.
+  declaração do sistema?~~ **Fechada pela `45`** (DEC-ATR-07): `loot` é a natureza
+  `container`. O baú é ator, e continua fora desta aba exatamente como a DEC-NPC-08 exigiu
+  — o que ela recusou foi o baú no diretório, não o baú como registro.
+- **Q-NPC-05** — ~~Onde vive o **conteúdo do baú** (os itens saqueáveis), já que ele não é
+  ator? É assunto da spec de Token/Cenas, e esta spec não o antecipa.~~ **Fechada pela `45`**
+  (DEC-ATR-07): vive em `items`, como o conteúdo de qualquer ator (REQ-DOC-020). Com
+  presença desvinculada, o conteúdo vivo é o da presença, pela regra geral (DEC-ATR-11).
 - **Q-NPC-06** — **Excluir personagem de jogador** não tem tela em lugar nenhum do app.
   Aceito por ora (decisão de 2026-08-16). Quando o mundo precisar, o gesto é da seção
   Usuários da 37 — apagando a ficha junto com o usuário — ou de uma tela nova?
