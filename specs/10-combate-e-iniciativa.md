@@ -277,7 +277,16 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 
 **REQ-CBT-046** [MVP] O tracker DEVE exibir um indicador de "combate não iniciado" quando `started: false`, com botão "Begin Combat" para o GM.
 
-**REQ-CBT-047** [MVP] O tracker DEVE exibir um recurso rastreado configurável ao lado do HP (ex.: AC, nível, shield HP) via configuração de `trackedResource` no documento Combat; a system API fornece o valor.
+**REQ-CBT-047** [MVP] O documento Combat DEVE aceitar a configuração `trackedResource` (ex.: AC, nível, shield HP) e a system API DEVE fornecer o valor desse recurso por Combatant. A exibição é condicionada: o recurso rastreado SÓ DEVE ser exibido junto da vida de um Combatant cuja vida seja exibível ao papel do usuário (REQ-CBA-040, REQ-CBA-041, REQ-CBA-043) e NÃO DEVE servir de via alternativa para usuário sem papel privilegiado ler a vida de criatura. Onde a vida for omitida, o recurso rastreado daquele Combatant também DEVE ser omitido. No painel de Combate da gaveta lateral, exibir esse segundo recurso é [V2] (REQ-CBA-044): o MVP exibe apenas vida.
+
+> **Emenda obrigada pela spec 40** (`40-aba-combate.md`, REQ-CBA-044, DEC-CBA-03 e §12,
+> 2026-08-16): a redação anterior mandava o tracker exibir o recurso rastreado "ao lado do
+> HP", ancorando-o num HP que a reescrita de **REQ-CBT-041** deixou de garantir em toda
+> linha — vida passou a ser exibida conforme o papel e omitida quando não resolvível. A
+> filha, além disso, marca a exibição do segundo recurso como [V2] no painel. _(A redação
+> acima substitui essa exigência de exibição incondicional; o contrato de `trackedResource`
+> no documento Combat e o fornecimento do valor pela system API — `getTrackedResource`,
+> §"system API — Métodos Relevantes" — permanecem [MVP] e inalterados.)_
 
 ### Canvas — Combat Turn Marker e Targeting
 
