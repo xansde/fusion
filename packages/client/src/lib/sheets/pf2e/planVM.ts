@@ -551,6 +551,33 @@ export interface PlanModel {
   needsClass: boolean;
 }
 
+/**
+ * World-governed values for the two PF2e variant rules (REQ-MCL-001,
+ * DEC-MCL-09, spec 37 REQ-CFG-032/033/035): since 2026-08-15 both toggles are
+ * settings of scope `world` the pf2e system declares (`systems/pf2e/src/
+ * index.ts`, keys `pf2e:variantRules.freeArchetype`/`pf2e:variantRules.
+ * classLevels`), written ONLY from the Configurações tab's Mundo section
+ * (WorldSection.svelte) — the ficha itself never writes them again
+ * (REQ-CFG-033).
+ *
+ * A caller that knows the current world value (PlanColumn.svelte, sourced
+ * from `worldSettingsRegistry`) passes it here so derivation reflects
+ * governance, not a stale per-actor field. Either flag omitted (or the whole
+ * argument omitted) falls back to the actor's own legacy
+ * `system.build.freeArchetype`/`system.build.variantRules.classLevels` —
+ * this keeps `derivePlan`'s huge existing test surface working unchanged
+ * during the transition, and is also what a doc-only caller (no socket, no
+ * registry — e.g. a unit test) gets by default.
+ */
+export interface PlanVariantOverrides {
+  // `| undefined` (not just `?`) because `exactOptionalPropertyTypes: true`
+  // treats "key present with value undefined" as a distinct case — and
+  // PlanColumn.svelte's `worldVariants` object always has both keys, whose
+  // value legitimately IS `undefined` while the registry fetch is pending.
+  readonly freeArchetype?: boolean | undefined;
+  readonly classLevels?: boolean | undefined;
+}
+
 // ---------------------------------------------------------------------------
 // derivePlan
 // ---------------------------------------------------------------------------
@@ -1049,7 +1076,10 @@ export function planContext(doc: Record<string, unknown>): PlanContext {
  * empty `levels` array — the caller renders the "Escolher classe" CTA
  * instead of level cards (DEC-R10-01 compat gate).
  */
-export function derivePlan(doc: Record<string, unknown>): PlanModel {
+export function derivePlan(
+  doc: Record<string, unknown>,
+  worldVariants?: PlanVariantOverrides,
+): PlanModel {
   const sys = getSystem(doc);
   const classSystem = readClassSystem(doc);
   const level = getLevel(doc);
@@ -1061,14 +1091,25 @@ export function derivePlan(doc: Record<string, unknown>): PlanModel {
   }
 
   const choices = getBuildChoices(sys);
-  const freeArchetype = getFreeArchetype(sys);
+  const freeArchetype = worldVariants?.freeArchetype ?? getFreeArchetype(sys);
+  const classLevelsVariant = worldVariants?.classLevels ?? getClassLevelsVariant(sys);
   const items = getItems(doc);
   const abilities = getBuildAbilities(sys);
 
   const levels: LevelPlanModel[] = [];
   for (let lvl = 1; lvl <= level; lvl++) {
     levels.push(
-      buildLevelPlan(lvl, classSystem, choices, items, freeArchetype, doc, abilities, level),
+      buildLevelPlan(
+        lvl,
+        classSystem,
+        choices,
+        items,
+        freeArchetype,
+        doc,
+        abilities,
+        level,
+        classLevelsVariant,
+      ),
     );
   }
 
@@ -1260,13 +1301,18 @@ function buildLevelPlan(
   doc: Record<string, unknown>,
   abilities: BuildAbilities,
   charLevel: number,
+  classLevelsVariant: boolean,
 ): LevelPlanModel {
   const slots: PlanSlotModel[] = [];
 
   // Multiclass variant: FIRST slot of every level is "which class bought it".
   // It comes first because every other slot in the level is downstream of the
   // answer — the class decides which features and feats this level offers.
-  const variantOn = getClassLevelsVariant(getSystem(doc));
+  //
+  // `classLevelsVariant` is the caller's (derivePlan's) resolved value — world
+  // setting when known (REQ-MCL-001/DEC-MCL-09), actor field otherwise — never
+  // recomputed here, so this function has exactly one source of truth for it.
+  const variantOn = classLevelsVariant;
   if (variantOn) {
     slots.push(resolveClassLevelSlot(level, choices, doc));
   }

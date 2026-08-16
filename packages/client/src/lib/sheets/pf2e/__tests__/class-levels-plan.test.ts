@@ -233,6 +233,40 @@ describe("derivePlan — the classLevel slot", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// derivePlan — world-governed override (REQ-MCL-001, DEC-MCL-09, spec 37
+// REQ-CFG-032/033): since the variant moved to a world-scope setting, a
+// caller that knows the world's current value (PlanColumn.svelte, sourced
+// from `worldSettingsRegistry`) must be able to override whatever the
+// actor's own (legacy, pre-migration) field says.
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — world setting overrides the actor's legacy field (REQ-MCL-001)", () => {
+  it("an explicit classLevels:true override turns the slot on even when the actor's own field is off", () => {
+    const doc = actorDoc(3, [fighterClassDoc()]); // no variantRules.classLevels on the actor
+    const plan = derivePlan(doc, { classLevels: true });
+    for (const level of plan.levels) {
+      expect(level.slots[0]?.type).toBe("classLevel");
+    }
+  });
+
+  it("an explicit classLevels:false override turns the slot off even when the actor's own field is on", () => {
+    const doc = actorDoc(3, [fighterClassDoc()], { variantRules: { classLevels: true } });
+    const plan = derivePlan(doc, { classLevels: false });
+    for (const level of plan.levels) {
+      expect(level.slots.some((s) => s.type === "classLevel")).toBe(false);
+    }
+  });
+
+  it("omitting the override falls back to the actor's own field (back-compat for callers with no world context)", () => {
+    const doc = actorDoc(3, [fighterClassDoc()], { variantRules: { classLevels: true } });
+    const plan = derivePlan(doc);
+    for (const level of plan.levels) {
+      expect(level.slots[0]?.type).toBe("classLevel");
+    }
+  });
+});
+
 describe("classLevelTally", () => {
   it("counts only up to the level asked for", () => {
     const choices = [

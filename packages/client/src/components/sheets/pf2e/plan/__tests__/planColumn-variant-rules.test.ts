@@ -46,6 +46,19 @@ describe("REQ-CFG-033: PlanColumn.svelte no longer writes a variant rule", () =>
   });
 });
 
+describe("REQ-MCL-001/REQ-CFG-032: PlanColumn.svelte derives against the WORLD's variant setting", () => {
+  const source = readSource("../PlanColumn.svelte");
+
+  it("fetches the same world settings registry the Configurações tab's Mundo section reads", () => {
+    expect(source).toMatch(/ensureWorldSettingsRegistry/);
+    expect(source).toMatch(/worldSettingsRegistry/);
+  });
+
+  it("passes the resolved world variant flags into derivePlan, instead of only the doc", () => {
+    expect(source).toMatch(/derivePlan\(\s*doc\s*,\s*worldVariants\s*\)/);
+  });
+});
+
 describe("REQ-CFG-033: the removed i18n keys have no other reader", () => {
   it("no .svelte/.ts source under components/ or lib/ references the retired toggle keys", () => {
     // A deliberately narrow, dependency-free scan (no glob lib pulled in for

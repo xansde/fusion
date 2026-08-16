@@ -268,3 +268,56 @@ describe("pf2eSystem initiative formula", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Variant rule settings (REQ-MCL-001, DEC-MCL-09, spec 37 REQ-CFG-032/033)
+//
+// G103 review finding: the free-archetype/multiclass-by-class-levels variant
+// rules moved out of the actor and into world-scope settings, but nothing in
+// the pf2e system ever called `registrar.setting(...)` for either — the
+// Configurações tab's Mundo section (WorldSection.svelte, REQ-CFG-030) is a
+// pure renderer of whatever the active system declares, so with zero
+// declarations the section rendered empty and the rules had no write surface
+// at all. These tests prove the declaration exists, not just the client
+// plumbing that would consume it.
+// ---------------------------------------------------------------------------
+
+describe("pf2eSystem variant rule settings", () => {
+  it("declares 'variantRules.freeArchetype' as a world-scope boolean, default off (REQ-MCL-001, REQ-CFG-032)", () => {
+    const def = pf2eSystem.registries.settings.get("variantRules.freeArchetype");
+    expect(def).toBeDefined();
+    expect(def!.scope).toBe("world");
+    expect(def!.default).toBe(false);
+    expect(def!.schema.safeParse(true).success).toBe(true);
+    expect(def!.schema.safeParse("yes").success).toBe(false);
+  });
+
+  it("declares 'variantRules.classLevels' as a world-scope boolean, default off (REQ-MCL-001, REQ-CFG-032, REQ-MCL-004)", () => {
+    const def = pf2eSystem.registries.settings.get("variantRules.classLevels");
+    expect(def).toBeDefined();
+    expect(def!.scope).toBe("world");
+    expect(def!.default).toBe(false);
+    expect(def!.schema.safeParse(true).success).toBe(true);
+    expect(def!.schema.safeParse("yes").success).toBe(false);
+  });
+
+  it("both settings require the disable confirmation gate (REQ-CFG-082) and count affected actors", () => {
+    const freeArchetype = pf2eSystem.registries.settings.get("variantRules.freeArchetype");
+    const classLevels = pf2eSystem.registries.settings.get("variantRules.classLevels");
+    expect(freeArchetype!.requiresConfirmOnDisable).toBe(true);
+    expect(classLevels!.requiresConfirmOnDisable).toBe(true);
+
+    const actorWithFreeArchetype = { system: { build: { freeArchetype: true } } };
+    const actorWithout = { system: { build: {} } };
+    expect(
+      freeArchetype!.countAffectedActors?.([actorWithFreeArchetype, actorWithout, actorWithout]),
+    ).toBe(1);
+
+    const actorWithClassLevels = {
+      system: { build: { variantRules: { classLevels: true } } },
+    };
+    expect(
+      classLevels!.countAffectedActors?.([actorWithClassLevels, actorWithout, actorWithout]),
+    ).toBe(1);
+  });
+});
