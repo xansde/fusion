@@ -3,7 +3,8 @@
  * exceptions (G060, spec 39 §5.8/§5.9).
  *
  * Covers REQ-CTT-070, REQ-CTT-071, REQ-CTT-072, REQ-CTT-073, REQ-CTT-074,
- * REQ-CTT-075 and REQ-CTT-076 against a booted server: no mocked store, no
+ * REQ-CTT-075, REQ-CTT-076 and the creation half of REQ-CTT-080 against a
+ * booted server: no mocked store, no
  * mocked handler registry. Every assertion about what a user may or may not
  * do reads the ACK or the broadcast PAYLOAD the socket actually received —
  * never a screen, and never the helper's own return value fed back to itself.
@@ -29,7 +30,12 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
-import { PROTOCOL_VERSION, KnowledgeState, readKnowledgeMap } from "@fusion/shared";
+import {
+  PROTOCOL_VERSION,
+  KnowledgeState,
+  readKnowledgeMap,
+  touchesKnowledgeFlag,
+} from "@fusion/shared";
 import type { KnowledgeMap } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
 import { sf2eSystem } from "@fusion/system-sf2e";
@@ -597,6 +603,126 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     // Player B therefore sits at Known for this contact: the maximum wins.
     const states = [charBId, secondCharB].map((id) => stored.exceptions[id] ?? stored.general);
     expect(Math.max(...states)).toBe(KnowledgeState.Known);
+  });
+
+  // -------------------------------------------------------------------------
+  // REQ-CTT-080 / REQ-CTT-072 — the OTHER door: doc:create
+  //
+  // doc:update refuses the knowledge flag outright (tested above). Creation is
+  // the door next to it: a plain PLAYER may create exactly one Actor of their
+  // own — the companion of r17-P1 — and that payload is written by the client.
+  // If creation accepted the flag verbatim, authoring knowledge would simply
+  // move from `doc:update` to `doc:create`.
+  // -------------------------------------------------------------------------
+
+  it("REQ-CTT-080: a player creating their own companion (r17-P1) cannot smuggle knowledge in the create payload", async () => {
+    // The master: a character the player OWNS, carrying the feat that grants a
+    // familiar — the only configuration in which a PLAYER may create an Actor.
+    const masterId = await createActor({
+      name: "Wizard Master",
+      type: "character",
+      system: { details: { level: { value: 3 } } },
+      ownership: { default: 0, [ctx.playerAId]: 3 },
+      items: [{ _id: "feat-familiar", name: "Familiar", type: "feat", system: { rules: [] } }],
+    });
+
+    // The player creates the familiar — legitimately — and forges a knowledge
+    // map into the very same payload.
+    const ack = await sendOp(playerA, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Tobias",
+          type: "familiar",
+          flags: {
+            fusion: {
+              knowledge: {
+                general: KnowledgeState.Known,
+                exceptions: { [masterId]: KnowledgeState.Known },
+              },
+              // An unrelated flag in the same namespace must survive: the guard
+              // removes the knowledge key, not the player's own bookkeeping.
+              companionNote: "familiar do mago",
+            },
+          },
+          system: {
+            companionKind: "familiar",
+            masterActorId: masterId,
+            master: {
+              level: 3,
+              abilityMod: 4,
+              ac: 18,
+              saves: { fortitude: 1, reflex: 1, will: 1 },
+              perception: 1,
+            },
+            attributes: { hp: { value: 15, max: 15, temp: 0 } },
+            abilitiesBudget: { value: 2, max: 2 },
+            selectedAbilities: [],
+          },
+        },
+      ],
+    });
+
+    // The create itself is allowed (r17-P1) — it is the knowledge that is not.
+    expect(ack["ok"]).toBe(true);
+    const familiarId = docsOf(ack)[0]?.["_id"];
+    expect(typeof familiarId).toBe("string");
+
+    // The document as world.db holds it carries NO knowledge flag at all: not
+    // an empty map, not a default — the key was never written.
+    const stored = readFromStore(familiarId as string);
+    expect(touchesKnowledgeFlag(stored)).toBe(false);
+    expect((stored["flags"] as Record<string, Record<string, unknown>>)["fusion"]).toEqual({
+      companionNote: "familiar do mago",
+    });
+
+    // And the ack the player got back says the same thing — no leak either way.
+    expect(touchesKnowledgeFlag(docsOf(ack)[0])).toBe(false);
+  });
+
+  it("REQ-CTT-072: a contact created by the GM is born normalized — an exception equal to the general rule is not stored", async () => {
+    const charX = await createActor({
+      name: "Character X",
+      type: "character",
+      ownership: { default: 0, [ctx.playerAId]: 3 },
+    });
+    const charY = await createActor({
+      name: "Character Y",
+      type: "character",
+      ownership: { default: 0, [ctx.playerBId]: 3 },
+    });
+
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Guildmaster",
+          type: "npc",
+          ownership: { default: 0 },
+          flags: {
+            fusion: {
+              knowledge: {
+                general: KnowledgeState.Glimpsed,
+                exceptions: {
+                  // Same state as the general rule: redundant, must not survive.
+                  [charX]: KnowledgeState.Glimpsed,
+                  // A real exception: must survive untouched.
+                  [charY]: KnowledgeState.Known,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const newContactId = docsOf(ack)[0]?.["_id"];
+    expect(typeof newContactId).toBe("string");
+
+    expect(mapOf(readFromStore(newContactId as string))).toEqual({
+      general: KnowledgeState.Glimpsed,
+      exceptions: { [charY]: KnowledgeState.Known },
+    });
   });
 });
 
