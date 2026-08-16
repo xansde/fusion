@@ -63,6 +63,8 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 39  | [Contatos](39-contatos.md)                                           | Aba da gaveta: mesa, conhecidos, quem conhece    |
 | 40  | [Aba Combate](40-aba-combate.md)                                     | Aba da gaveta: cabeça de turno, fila, montagem   |
 | 42  | [Aba NPCs](42-aba-npcs.md)                                           | Aba da gaveta: pastas, autoria, atitude, baú     |
+| 43  | [Aba Compêndio](43-aba-compendio.md)                                 | Aba da gaveta: estante, busca no acervo, trazer  |
+| 44  | [Aba Cenas](44-aba-cenas.md)                                         | Aba da gaveta: o que está no ar, acervo, preparo |
 
 ## Níveis
 
@@ -125,6 +127,8 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-CTT-`  | [39](39-contatos.md)                      | Contatos (aba da gaveta)           |
 | `REQ-CBA-`  | [40](40-aba-combate.md)                   | Aba Combate (painel da gaveta)     |
 | `REQ-NPC-`  | [42](42-aba-npcs.md)                      | Aba NPCs (painel da gaveta)        |
+| `REQ-CPD-`  | [43](43-aba-compendio.md)                 | Aba Compêndio (painel da gaveta)   |
+| `REQ-CEN-`  | [44](44-aba-cenas.md)                     | Aba Cenas (painel da gaveta)       |
 
 <!-- prefixos:end -->
 
