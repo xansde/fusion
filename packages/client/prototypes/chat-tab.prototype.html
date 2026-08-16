@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>PROTOTYPE — Aba Chat (versão decidida, spec 38)</title>
+<!--
+  PROTOTYPE — throwaway. Estado DECIDIDO da aba Chat depois do grill de 2026-08-16.
+  Não é mais um comparador de variantes (as quatro primeiras viraram uma só, no
+  commit anterior): é a tela escolhida, para validação. A spec é specs/38-aba-chat.md.
+
+  CHASSI (spec 36, variante C): abas físicas à esquerda da gaveta, movendo junto;
+  recolher = clicar no ícone ativo (DEC-GAV-03); sem atalhos (DEC-GAV-05);
+  300px + 44px (DEC-GAV-04); Configurações no rodapé (DEC-GAV-09).
+
+  A ABA (spec 38), decisão por decisão:
+   · painel enxuto: barra superior + log + dados + escrita. Nada de drill-in.
+   · barra superior FIXA: pesquisa + "⋯" (onde o jogador edita os dados favoritos).
+   · caixa de escrita em LARGURA TOTAL; o seletor de modo saiu de lá.
+     ENTER envia; SHIFT+ENTER quebra linha.
+   · abaixo da caixa, faixa de 4 ícones de modo (público · ao Mestre · cega · só eu),
+     ÍCONES DESENHADOS, nunca emoji, com indicador deslizante e tooltip de ajuda.
+     O modo PERSISTE (por mundo + usuário, no aparelho) e MANDA EM TODAS as
+     rolagens — inclusive /roll, o que emenda REQ-CHT-017 da spec 09. Só um
+     comando que NOMEIA o modo (/gmroll, /blindroll) vence o seletor, e só para
+     aquela mensagem. A janela de dados NÃO escolhe modo: ela monta a rolagem,
+     quem decide a plateia é o seletor.
+   · NADA É APAGADO do log: a mensagem é INVALIDADA e fica no lugar, acinzentada
+     e riscada. Substitui a deleção de REQ-CHT-005 (o flush do log inteiro,
+     REQ-CHT-006, continua existindo). Regras:
+       – invalida o MESTRE ou o AUTOR; grava-se quem invalidou;
+       – revalida sempre o Mestre; o autor só desfaz o que ele mesmo invalidou —
+         invalidação do Mestre é palavra final;
+       – invalidar é ANOTAÇÃO no log, não desfazimento: dano já aplicado e
+         iniciativa já lançada continuam onde estão, e o narrador decide o resto.
+   · a caixa de escrita cresce com o texto (uma linha até cinco) e o placeholder
+     é curto: quem escreve não precisa ler instrução.
+   · acima da escrita, 3 DADOS FAVORITOS + o botão que abre a janela de dados.
+     Favorito = rótulo + fórmula em texto + modo ("segue o seletor" ou travado).
+     Guardado no APARELHO, por MUNDO + USUÁRIO (nunca no servidor). No MVP a
+     fórmula é pura (dados e números); nomes de atributo ("1d20 + Força +
+     percepção") entram quando o SISTEMA declarar o vocabulário — e os mods
+     acrescentam à mesma lista. O chat nunca resolve nome nenhum.
+   · janela de dados (window manager, spec 11 — ao contrário da aba 37, que
+     proibiu janela): quantidade, faces, modificador, rótulo, vantagem/
+     desvantagem, explosão, manter maiores, prévia da fórmula, modo e
+     "salvar como favorito".
+   · pesquisa: FTS5 no servidor (REQ-CHT-036), para TODOS, com o mesmo filtro de
+     visibilidade do histórico. Clicar num resultado abre uma janela de CONTEXTO
+     com ±5 mensagens QUE O PESQUISADOR PODE VER, e "mais 5" para cada lado.
+     Uma janela de contexto por vez; o log ao vivo continua correndo atrás.
+   · toda rolagem mostra os DADOS INDIVIDUAIS sempre (1d20+7 → [12]+7), inclusive
+     as rolagens filhas de dano e as salvaguardas dos alvos.
+   · ataque PODE ter alvo, quando houver alvo selecionado (mecânica de alvo é
+     futura — aqui é o botão "alvo" do switcher). O jogador vê NOME + GRAU
+     (Sucesso Crítico…), nunca a CA: o payload que sai para não-GM não pode
+     conter a CA, senão esconder na tela não esconde nada.
+   · SEM dados 3D: o dice-box sai do painel e vira mod futuro.
+   · cura continua marcada "sem modelo hoje" — o AbilityCard só conhece
+     damageFormula/damageType, e ninguém aplica nada em ninguém ainda.
+
+   · NÃO-LIDAS: o contador zera ao ABRIR o Chat, e o log abre posicionado na
+     PRIMEIRA MENSAGEM NÃO LIDA — não no fim. A linha "N novas" fica no lugar
+     onde você parou até você chegar ao fim do log. Isso confirma REQ-CHT-039 e
+     emenda REQ-GAV-022 da spec-mãe, que diz que abrir a aba não altera badge.
+
+  Não é código de produção; não importar nada daqui sem reescrever.
+-->
+<style>
+  :root{
+    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
+    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
+    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
+    --danger:#ff5c5c;--warn:#e5b83b;--ok:#3ddc84;
+    --radius-sm:4px;--radius:8px;--radius-lg:12px;
+    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --header:48px;--panel-w:300px;--rail-w:44px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
+  .header .bolt{color:#f5a623}
+  .header .world{font-weight:600}
+  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem;font-weight:600}
+  .header .spacer{flex:1}
+  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .header .who{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
+  .header .who b{color:var(--danger)}
+  .header .who.player b{color:var(--ok)}
+  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
+  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center;overflow:hidden}
+  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f}
+  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+  .stage .sel{position:absolute;left:calc(50% - 9vh);top:calc(50% + 6vh);border:2px dashed var(--warn);border-radius:6px;padding:.15rem .4rem;color:var(--warn);font-size:.72rem;background:rgba(11,11,15,.75)}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
+  .tabbtn:hover{color:var(--text)}
+  .tabbtn .badge{position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.combat{background:rgba(255,215,0,.18);border:1px solid #ffd700;color:#ffd700;font-size:.6rem}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
+  .tabbtn:hover .tip{opacity:1}
+  .sidebar{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding:10px 0;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
+  .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
+  .is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
+  .tabs .tabbtn.is-active .icon{width:22px;height:22px}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .tabs .foot{margin-top:auto;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
+  .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column;position:relative;overflow:hidden}
+  .is-open .panel{display:flex}
+  .panel-head{display:flex;align-items:center;gap:.35rem;padding:.45rem .5rem;border-bottom:1px solid var(--accent-dim);flex:0 0 auto}
+  .panel-body{flex:1;overflow:auto;padding:.75rem .8rem;color:var(--muted);font-size:.85rem;min-height:0}
+  .panel-body::-webkit-scrollbar,.log::-webkit-scrollbar,.wb::-webkit-scrollbar{width:8px}
+  .panel-body::-webkit-scrollbar-thumb,.log::-webkit-scrollbar-thumb,.wb::-webkit-scrollbar-thumb{background:var(--surface-alt);border-radius:99px}
+
+  /* ---------- Conteúdo mock das outras abas ---------- */
+  .row{display:flex;align-items:center;gap:.5rem;padding:.4rem .5rem;border-radius:var(--radius-sm)}
+  .row:hover{background:var(--surface-alt)}
+  .row .name{color:var(--text)}
+  .row .sub{color:var(--subtle);font-size:.75rem;margin-left:auto}
+  .empty{text-align:center;padding:1.5rem 0 .75rem;color:var(--muted)}
+  .btnp{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+  .btns{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;cursor:pointer}
+  .btnd{background:var(--danger);color:#fff;border:0;border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+  .actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+  .vazio{border:1px dashed var(--border);border-radius:var(--radius);padding:1rem .9rem;text-align:center;color:var(--subtle);font-size:.8rem;line-height:1.5}
+  .confirm{border:1px solid var(--danger);border-radius:var(--radius);padding:.6rem;margin:.5rem 0;background:rgba(255,92,92,.07);color:var(--text);font-size:.8rem;line-height:1.45}
+  .confirm .acts{display:flex;gap:.4rem;margin-top:.6rem}
+
+  /* ---------- Barra superior: pesquisa + ⋯ ---------- */
+  .search{flex:1;min-width:0;display:flex;align-items:center;gap:.3rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .4rem}
+  .search:focus-within{border-color:var(--accent)}
+  .search input{flex:1;min-width:0;background:none;border:0;color:var(--text);font:inherit;font-size:.8rem;padding:.15rem 0;outline:none}
+  .search .mag{color:var(--subtle);display:grid;place-items:center}
+  .search .mag .icon{width:13px;height:13px}
+  .tgt .icon{width:13px;height:13px;flex:0 0 auto}
+  .fav.more .icon{width:17px;height:17px}
+  .win .wh .icon{width:14px;height:14px;flex:0 0 auto}
+  .stage .sel{display:flex;align-items:center;gap:.3rem}
+  .stage .sel .icon{width:12px;height:12px}
+  .search .clr{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:.8rem;padding:0 .1rem}
+  .hact{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:1rem;line-height:1;padding:.15rem .3rem;border-radius:var(--radius-sm);flex:0 0 auto}
+  .hact:hover{color:var(--text);background:var(--surface-alt)}
+  .hact.on{color:var(--accent-hover);background:var(--accent-dim)}
+
+  /* ---------- Chat ---------- */
+  .chat{display:flex;flex-direction:column;height:100%;min-height:0;position:relative}
+  .log{flex:1;overflow:auto;padding:.5rem .55rem .6rem;display:flex;flex-direction:column;gap:.45rem;min-height:0}
+  .m{position:relative;border-left:2px solid var(--border);padding:.05rem .35rem;font-size:.83rem;line-height:1.45;color:var(--text)}
+  .m .meta{display:flex;align-items:baseline;gap:.3rem;font-size:.74rem;color:var(--subtle);margin-bottom:.1rem;flex-wrap:wrap}
+  .m .meta b{font-weight:700}
+  .m .body{white-space:pre-wrap;word-break:break-word}
+  .m--cont{margin-top:-.3rem}
+  .m--emote{font-style:italic;color:var(--muted)}
+  .m--whisper{border-left-color:var(--accent);background:rgba(124,92,252,.07);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .m--blind{border-left-color:var(--warn);background:rgba(229,184,59,.06);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .m--sys{border-left-color:#2f7fa8}
+  .m--target{outline:1px solid var(--warn);outline-offset:1px;border-radius:var(--radius-sm)}
+  .seal{font-size:.62rem;letter-spacing:.04em;border-radius:3px;padding:.05rem .3rem;border:1px solid;white-space:nowrap}
+  .seal.blind{color:var(--warn);border-color:var(--warn)}
+  .seal.revealed{color:var(--ok);border-color:var(--ok)}
+  .seal.whisper{color:var(--accent-hover);border-color:var(--accent)}
+  .seal.self{color:var(--subtle);border-color:var(--subtle)}
+  .seal.invalid{color:var(--subtle);border-color:var(--subtle)}
+  /* invalidada: continua no lugar, apagadinha e riscada — nunca some do log */
+  .m--invalid{opacity:.45;filter:grayscale(1)}
+  .m--invalid .body,.m--invalid .roll .total,.m--invalid .kid .kt{text-decoration:line-through}
+  .m--invalid .roll,.m--invalid .card{border-style:dashed}
+  mark{background:rgba(229,184,59,.3);color:var(--text);border-radius:2px}
+
+  /* rolagem — dados individuais SEMPRE visíveis */
+  .roll{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.3rem .4rem;margin-top:.15rem}
+  .roll .top{display:flex;align-items:center;gap:.4rem}
+  .roll .flavor{flex:1;min-width:0;color:var(--muted);font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .roll .total{font-size:1.05rem;font-weight:700;color:var(--accent-hover)}
+  .roll .total.crit{color:var(--ok)}
+  .roll .dice{color:var(--subtle);font-size:.7rem;font-family:ui-monospace,monospace;margin-top:.1rem}
+  .roll .dice .die{color:var(--text)}
+  .roll .dice .die.max{color:var(--ok)}
+  .roll .dice .die.min{color:var(--danger)}
+
+  /* card de habilidade */
+  .card{background:var(--surface-alt);border:1px solid #2f7fa8;border-radius:var(--radius-sm);padding:.35rem .4rem;margin-top:.15rem}
+  .card .ct{color:var(--text);font-weight:600;font-size:.82rem;display:flex;align-items:center;gap:.3rem;flex-wrap:wrap}
+  .card .cs{color:var(--subtle);font-size:.72rem;margin-bottom:.2rem}
+  .card .cf{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);padding:.08rem 0}
+  .card .cf b{color:var(--text)}
+  .card .cb{display:flex;gap:.3rem;margin-top:.3rem;flex-wrap:wrap}
+  .card .cb button{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.18rem .4rem;font:inherit;font-size:.72rem;cursor:pointer}
+  .card .cb button:hover{border-color:var(--accent)}
+  .card .cb button.own{border-color:rgba(124,92,252,.5);color:var(--accent-hover)}
+  .card .cb button.heal{border-color:rgba(61,220,132,.5);color:var(--ok)}
+  .tgt{font-size:.7rem;color:var(--warn);display:flex;align-items:center;gap:.25rem;margin-bottom:.15rem}
+  .tgt.none{color:var(--subtle)}
+
+  /* rolagens filhas */
+  .kids{margin-top:.35rem;border-top:1px dashed var(--border);padding-top:.28rem}
+  .kid{font-size:.75rem;padding:.06rem 0}
+  .kid .l1{display:flex;gap:.35rem;align-items:baseline}
+  .kid .kl{color:var(--subtle);min-width:42px}
+  .kid .kf{color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,monospace;font-size:.68rem}
+  .kid .kt{font-weight:700;color:var(--accent-hover)}
+  .kid .kt.heal{color:var(--ok)}
+  .svs{margin-top:.3rem}
+  .svs .st{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--subtle);margin-bottom:.12rem}
+  .sv{padding:.1rem 0;border-bottom:1px solid rgba(46,46,61,.5)}
+  .sv:last-of-type{border-bottom:0}
+  .sv .l1{display:flex;gap:.3rem;align-items:baseline;font-size:.74rem}
+  .sv .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+  .sv .l2{display:flex;gap:.35rem;color:var(--subtle);font-size:.68rem;font-family:ui-monospace,monospace}
+  .sv .l2 .hint{font-family:var(--font);margin-left:auto}
+  .deg{font-size:.6rem;border:1px solid;border-radius:3px;padding:0 .25rem;white-space:nowrap}
+  .deg.criticalSuccess{color:var(--ok);border-color:var(--ok)}
+  .deg.success{color:#8fe3b0;border-color:#8fe3b0}
+  .deg.failure{color:var(--warn);border-color:var(--warn)}
+  .deg.criticalFailure{color:var(--danger);border-color:var(--danger)}
+  .svs .more{background:none;border:0;color:var(--accent-hover);cursor:pointer;font:inherit;font-size:.7rem;padding:.15rem 0}
+  .nomodel{font-size:.6rem;letter-spacing:.03em;border:1px dashed var(--warn);color:var(--warn);border-radius:3px;padding:0 .25rem;white-space:nowrap}
+
+  /* ações no hover */
+  .m .acts{position:absolute;top:-6px;right:2px;display:none;gap:.1rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.1rem;z-index:3}
+  .m:hover .acts{display:flex}
+  .m .acts button{background:none;border:0;color:var(--subtle);cursor:pointer;font-size:.75rem;padding:.1rem .25rem;border-radius:3px}
+  .m .acts button:hover{color:var(--text);background:var(--surface)}
+
+  /* divisor de não lidas + jump */
+  .newdiv{display:flex;align-items:center;gap:.5rem;color:var(--danger);font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+  .newdiv::before,.newdiv::after{content:"";height:1px;background:rgba(255,92,92,.4);flex:1}
+  .jump{position:absolute;left:50%;transform:translateX(-50%);bottom:104px;background:var(--danger);color:#fff;border:0;border-radius:999px;padding:.25rem .7rem;font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:6}
+
+  /* ---------- Dados favoritos ---------- */
+  .dicebar{display:flex;gap:.25rem;padding:.35rem .5rem 0;flex:0 0 auto}
+  .fav{flex:1;min-width:0;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.25rem .3rem;font:inherit;font-size:.72rem;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:.05rem;line-height:1.15}
+  .fav:hover{border-color:var(--accent)}
+  .fav .fl{display:flex;align-items:center;gap:.2rem;width:100%}
+  .fav .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .fav .lock{color:var(--accent-hover);display:grid;place-items:center}
+  .fav .lock .icon{width:12px;height:12px;stroke-width:1.9}
+  .fav .ff{color:var(--subtle);font-family:ui-monospace,monospace;font-size:.65rem;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fav.more{flex:0 0 34px;align-items:center;justify-content:center;font-size:.95rem;color:var(--accent-hover)}
+
+  /* ---------- Composer ---------- */
+  .composer{padding:.35rem .5rem .45rem;display:flex;flex-direction:column;gap:.3rem;flex:0 0 auto;background:var(--surface)}
+  .composer .line{display:flex;gap:.3rem;align-items:flex-end}
+  /* cresce com o texto: uma linha por padrão, até 5 linhas; só então rola */
+  .composer textarea{flex:1;min-width:0;resize:none;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.35rem .45rem;font:inherit;font-size:.83rem;height:32px;min-height:32px;max-height:110px;line-height:1.35;overflow-y:hidden}
+  .composer textarea:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+  .composer .send{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);width:32px;height:34px;font-size:.9rem;cursor:pointer;flex:0 0 auto}
+
+  /* faixa de modos — 4 ícones com indicador deslizante (sem overflow: o tooltip sai da faixa) */
+  .modes{position:relative;display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;height:26px}
+  .modes .thumb{position:absolute;top:2px;bottom:2px;width:calc(25% - 3px);left:2px;border-radius:999px;background:var(--accent-dim);border:1px solid var(--accent);transition:left .14s ease;pointer-events:none}
+  .modes button{position:relative;background:none;border:0;color:var(--subtle);cursor:pointer;display:grid;place-items:center;padding:0;border-radius:999px}
+  .modes button .icon{width:15px;height:15px;stroke-width:1.7}
+  .modes button.on{color:var(--accent-hover)}
+  .modes button:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  .modes button:focus-visible{outline:1px solid var(--accent);outline-offset:1px}
+  .modes button .tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .45rem;border-radius:var(--radius-sm);font-size:.7rem;line-height:1.3;width:190px;text-align:left;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.6);z-index:20}
+  .modes button:hover .tip{opacity:1}
+  .modes button .tip b{color:var(--accent-hover)}
+
+  /* ---------- menu ⋯ ---------- */
+  .menu{position:absolute;top:36px;right:6px;z-index:30;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:186px;padding:.25rem}
+  .menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);font:inherit;font-size:.8rem;padding:.35rem .5rem;border-radius:var(--radius-sm);cursor:pointer}
+  .menu button:hover{background:var(--surface)}
+  .menu button.danger{color:var(--danger)}
+  .menu .sep{height:1px;background:var(--border);margin:.2rem 0}
+
+  /* ---------- busca: resultados ---------- */
+  .results{flex:1;overflow:auto;padding:.4rem .5rem;min-height:0}
+  .results .hd{color:var(--subtle);font-size:.72rem;margin-bottom:.3rem}
+  .res{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid rgba(46,46,61,.55);color:var(--text);font:inherit;padding:.45rem .1rem;cursor:pointer}
+  .res:hover{background:var(--surface-alt)}
+  .res .rmeta{display:flex;gap:.35rem;font-size:.7rem;color:var(--subtle);margin-bottom:.1rem}
+  .res .rtxt{font-size:.8rem;line-height:1.35}
+
+  /* ---------- janelas flutuantes (window manager, spec 11) ---------- */
+  .win{position:absolute;z-index:150;background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:0 18px 50px rgba(0,0,0,.65);display:flex;flex-direction:column;overflow:hidden}
+  .win .wh{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:.78rem;font-weight:600}
+  .win .wh .sp{flex:1}
+  .win .wh button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 .2rem}
+  .win .wb{padding:.6rem .7rem;overflow:auto;font-size:.82rem;color:var(--muted)}
+  .fld{display:flex;align-items:center;gap:.4rem;padding:.3rem 0}
+  .fld .fl{color:var(--text);flex:1;min-width:0;font-size:.8rem}
+  .fld .fl small{display:block;color:var(--subtle);font-size:.7rem;font-weight:400}
+  .fld input[type=text],.fld input[type=number],.fld select{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.25rem .4rem;font:inherit;font-size:.8rem}
+  .fld input[type=number]{width:64px}
+  .fld input[type=text]{flex:1;min-width:0}
+  .chk{display:flex;align-items:center;gap:.35rem;color:var(--text);font-size:.78rem;padding:.15rem 0}
+  .preview{background:#0b0b0f;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .5rem;font-family:ui-monospace,monospace;color:var(--accent-hover);font-size:.82rem;margin:.4rem 0}
+  .ctx-msg{border-left:2px solid var(--border);padding:.2rem .4rem;margin-bottom:.35rem;font-size:.8rem;color:var(--text)}
+  .ctx-msg.hit{border-left-color:var(--warn);background:rgba(229,184,59,.08)}
+  .ctx-msg .cm{color:var(--subtle);font-size:.7rem}
+  .ctx-more{width:100%;background:var(--surface-alt);border:1px solid var(--border);color:var(--muted);border-radius:var(--radius-sm);font:inherit;font-size:.72rem;padding:.2rem;cursor:pointer;margin:.2rem 0}
+
+  /* ---------- Switcher + legenda (não fazem parte do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.4rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.8rem;font-weight:600}
+  .switcher button{border:0;background:#111;color:#fff;height:28px;padding:0 .7rem;border-radius:999px;cursor:pointer;font-size:.76rem;font-weight:600}
+  .switcher button.alt{background:#5a4bd6}
+  .legend{position:fixed;left:16px;bottom:16px;z-index:9999;background:rgba(255,255,255,.96);color:#111;border-radius:10px;padding:.6rem .7rem;box-shadow:0 8px 30px rgba(0,0,0,.55);font-size:.72rem;max-width:340px;line-height:1.45}
+  .legend h4{margin:0 0 .35rem;font-size:.78rem}
+  .legend td{padding:.12rem .25rem;vertical-align:top}
+  .legend td:first-child{color:#666;white-space:nowrap}
+  .legend b{color:#111}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 aha</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+<div class="stage"><div class="art"><div class="house"><div class="star">★</div></div></div><div id="selmark"></div></div>
+
+<div id="root"></div>
+<div id="float"></div>
+
+<div class="switcher">
+  <button id="role">papel</button>
+  <button id="state">estado</button>
+  <button id="target" class="alt">alvo</button>
+  <button id="incoming" class="alt">chega mensagem</button>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ================= chassi (spec 36) ================= */
+const ICONS = {
+  chat:      '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  contacts:  '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  combat:    '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
+  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
+  npcs:      '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
+  scenes:    '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+  settings:  '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+};
+const TABS = [
+  {id:'chat',      label:'Chat',          group:'all'},
+  {id:'contacts',  label:'Contatos',      group:'all'},
+  {id:'combat',    label:'Combate',       group:'all', badge:'⚔', badgeCls:'combat'},
+  {id:'compendium',label:'Compêndio',     group:'all'},
+  {id:'npcs',      label:'NPCs',          group:'gm'},
+  {id:'scenes',    label:'Cenas',         group:'gm'},
+  {id:'settings',  label:'Configurações', group:'all', foot:true},
+];
+const TITLE = {contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  contacts: `<div class="row"><span>🧝</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
+    <div class="row"><span>🧔</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div>`,
+  combat: `<p class="empty">Nenhum combate ativo.</p><div class="actions"><button class="btnp">Criar combate</button></div>`,
+  compendium: `<div class="row"><span class="name">Talentos</span><span class="sub">1.812</span></div>
+    <div class="row"><span class="name">Magias</span><span class="sub">1.024</span></div>`,
+  npcs: `<div class="row"><span>👹</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>`,
+  scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub">ativa</span></div>`,
+  settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub">›</span></div>
+    <div class="row"><span class="name">Mundo</span><span class="sub">›</span></div>`,
+};
+
+/* ================= modos de rolagem (spec 09) ================= */
+/* ícones desenhados, nunca emoji: o emoji muda de forma e de cor em cada
+   sistema operacional e não acompanha o tema. */
+const MODE_ICON = {
+  public:'<svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><circle cx="17.5" cy="9" r="2.2"/><path d="M15.5 20c.5-2.6 1.9-4 3.9-4 1.4 0 2.4.7 3.1 2"/></svg>',
+  gmroll:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 5c5 0 8.5 4.2 9.5 7-1 2.8-4.5 7-9.5 7S3.5 14.8 2.5 12C3.5 9.2 7 5 12 5z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+  blind: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5l16 14"/><path d="M9.6 6.4A9.6 9.6 0 0 1 12 6c5 0 8.5 3.6 9.5 6-.5 1.2-1.6 2.9-3.3 4.2"/><path d="M6.6 8.2C4.7 9.5 3.1 11 2.5 12c1 2.4 4.5 6 9.5 6 1 0 1.9-.1 2.7-.4"/></svg>',
+  self:  '<svg class="icon" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>',
+};
+/* ícones de interface (mesma família do trilho) */
+const UI_ICON = {
+  search:'<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>',
+  dice:  '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5"/></svg>',
+  target:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+};
+const MODES = [
+  {id:'public', name:'Público',    help:'Todos na mesa veem o resultado.'},
+  {id:'gmroll', name:'Ao Mestre',  help:'Só você e o Mestre veem o resultado.'},
+  {id:'blind',  name:'Cega',       help:'Só o Mestre vê. Nem você vê o número.'},
+  {id:'self',   name:'Só eu',      help:'Ninguém além de você vê.'},
+];
+const modeIdx = id => Math.max(0, MODES.findIndex(m=>m.id===id));
+const modeOf  = id => MODES[modeIdx(id)];
+
+/* ================= estado mock ================= */
+const params = new URLSearchParams(location.search);
+let role       = params.get('role')==='player' ? 'player' : 'gm';
+let empty      = params.get('state')==='empty';
+let hasTarget  = params.get('target')!=='0';
+let mode       = params.get('mode') || 'public';                    /* persiste por mundo+usuário */
+
+let active='chat', open=true, menu=false, query='';
+let win=null;              /* {kind:'dice'|'context'|'favs', ...} */
+let confirmFlush=false;
+let unread=0, newFrom=null, newCount=0, scrollToNew=false, savesOpen={}, logScroll=null, stickBottom=true;
+let ctxRange={up:5,down:5}, ctxHit=null;
+
+const ME = ()=> role==='gm' ? 'Gamemaster' : 'Fofurinha';
+const COLOR = {Gamemaster:'#ff5c5c',Fofurinha:'#7c5cfc',Tobias:'#3ddc84'};
+
+/* Favoritos: aparelho + mundo + usuário (nunca servidor). Fórmula em TEXTO;
+   no MVP só dados e números — nomes de atributo entram quando o sistema
+   declarar o vocabulário. `lock:null` = segue o seletor de modo. */
+const FAVS = {
+  gm: [
+    {n:'Percepção',  f:'1d20+9',  lock:null},
+    {n:'Furtividade',f:'1d20+12', lock:'blind'},
+    {n:'Dano',       f:'2d6+4',   lock:null},
+  ],
+  player: [
+    {n:'Percepção', f:'1d20+7', lock:null},
+    {n:'Espada',    f:'1d8+4',  lock:null},
+    {n:'Iniciativa',f:'1d20+7', lock:null},
+  ],
+};
+const favs = ()=> FAVS[role];
+
+/* janela de dados */
+let dice={qty:1,faces:20,mod:7,label:'Percepção',adv:'none',explode:false,keep:0};
+let draft='', focusInput=false;
+
+let nextId=100;
+const BASE = [
+  {id:1,who:'Gamemaster',t:'21:04',type:'text',text:'Vocês empurram a porta da sala do trono. O ar cheira a ferro velho e cera queimada.'},
+  {id:2,who:'Fofurinha',t:'21:05',type:'roll',flavor:'Percepção',formula:'1d20+7',dice:[12],mod:7,total:19},
+  {id:3,who:'Tobias',t:'21:05',type:'emote',text:'avança dois passos e ergue o escudo.'},
+  {id:4,who:'Gamemaster',t:'21:06',type:'whisper',to:'Fofurinha',text:'Só você percebe: há uma alavanca atrás do trono, meio escondida pelo tapete.'},
+
+  /* GOLPE com ALVO — o jogador vê nome + grau; a CA fica só com o Mestre */
+  {id:5,who:'Tobias',t:'21:07',type:'ability',ability:{
+    kind:'strike',title:'Espada longa',sub:'Golpe · agilidade',
+    target:{name:'Goblin Guerreiro',ac:18},
+    fields:[['Ataque','+11'],['Dano','1d8+4 cortante']],
+    buttons:[{l:'Rolar dano',own:true},{l:'Rolar dano crítico',own:true}],
+    rolls:[
+      {lbl:'Ataque',formula:'1d20+11',dice:[17],mod:11,total:28,deg:'criticalSuccess'},
+      {lbl:'Dano',formula:'(1d8+4)×2',dice:[6],mod:4,total:20,type:'cortante'},
+    ]}},
+
+  {id:6,who:'Gamemaster',t:'21:08',type:'roll',flavor:'Furtividade do goblin',formula:'1d20+9',dice:[14],mod:9,total:23,blind:true},
+
+  /* MAGIA RESISTIDA — uma salvaguarda por alvo, com os dados de cada teste */
+  {id:7,who:'Fofurinha',t:'21:09',type:'ability',ability:{
+    kind:'spell',title:'Arco Elétrico',sub:'Magia lançada · nível 3 · ✳✳',
+    fields:[['CD','21'],['Resistência','Reflexos (básica)'],['Dano','2d4+4 elétrico']],
+    basicSave:true,dcHidden:true,
+    buttons:[{l:'Fazer teste de resistência'},{l:'Rolar dano',own:true}],
+    rolls:[{lbl:'Dano',formula:'2d4+4',dice:[3,2],mod:4,total:9,type:'elétrico'}],
+    saves:[
+      {who:'Goblin Guerreiro',formula:'1d20+6', dice:[8], mod:6, total:14,deg:'failure'},
+      {who:'Goblin Arqueiro', formula:'1d20+6', dice:[3], mod:6, total:9, deg:'criticalFailure'},
+      {who:'Lobo atroz',      formula:'1d20+13',dice:[11],mod:13,total:24,deg:'success'},
+      {who:'Goblin Chefe',    formula:'1d20+12',dice:[19],mod:12,total:31,deg:'criticalSuccess'},
+      {who:'Goblin Sapador',  formula:'1d20+6', dice:[10],mod:6, total:16,deg:'failure'},
+    ]}},
+
+  /* CURA — ainda sem modelo no repo */
+  {id:8,who:'Fofurinha',t:'21:10',type:'ability',ability:{
+    kind:'spell',title:'Curar',sub:'Magia lançada · nível 3 · ✳✳',noModel:true,
+    target:{name:'Tobias'},
+    fields:[['Cura','3d8']],
+    buttons:[{l:'Rolar cura',own:true,heal:true},{l:'Aplicar em Tobias',own:true,heal:true}],
+    rolls:[{lbl:'Cura',formula:'3d8',dice:[5,4,8],mod:0,total:17,type:'pontos de vida',heal:true}]}},
+
+  {id:9,who:'Gamemaster',t:'21:11',type:'roll',flavor:'Reflexos (revelada)',formula:'1d20+5',dice:[3],mod:5,total:8,revealed:true},
+  {id:10,who:'Gamemaster',t:'21:12',type:'text',text:'A porta atrás de vocês range. Rolem iniciativa.'},
+];
+let msgs = BASE.slice();
+
+const INCOMING = [
+  {who:'Tobias',type:'roll',flavor:'Iniciativa',formula:'1d20+5',dice:[6],mod:5,total:11},
+  {who:'Fofurinha',type:'roll',flavor:'Iniciativa',formula:'1d20+7',dice:[17],mod:7,total:24},
+  {who:'Tobias',type:'text',text:'Eu fico na frente da Fofurinha.'},
+  {who:'Gamemaster',type:'text',text:'Dois goblins entram pela porta lateral.'},
+];
+let incomingIdx=0;
+
+/* ================= helpers ================= */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function visible(m){
+  if(role==='gm') return true;
+  if(m.blind && !m.revealed) return false;
+  if(m.mode==='self' && m.who!==ME()) return false;
+  if(m.mode==='gmroll' && m.who!==ME()) return false;
+  if(m.type==='whisper' && m.to!==ME() && m.who!==ME()) return false;
+  return true;
+}
+function textOf(m){
+  return m.text || m.flavor || (m.ability&&m.ability.title) || (m.card&&m.card.title) || '';
+}
+function matches(m){
+  if(!query) return true;
+  return (textOf(m)+' '+m.who).toLowerCase().includes(query.toLowerCase());
+}
+function hl(s){
+  if(!query) return esc(s);
+  const i=String(s).toLowerCase().indexOf(query.toLowerCase());
+  if(i<0) return esc(s);
+  return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+query.length))+'</mark>'+esc(s.slice(i+query.length));
+}
+/* dados individuais SEMPRE visíveis */
+function diceHtml(r){
+  if(!r.dice || !r.dice.length) return '';
+  const faces = (r.formula.match(/d(\d+)/)||[])[1];
+  const pcs = r.dice.map(d=>{
+    const cls = faces && +d===+faces ? 'die max' : (+d===1 ? 'die min' : 'die');
+    return `<span class="${cls}">${d}</span>`;
+  }).join(', ');
+  const mod = r.mod ? (r.mod>0?` + ${r.mod}`:` − ${Math.abs(r.mod)}`) : '';
+  return `${esc(r.formula)} → [${pcs}]${mod}`;
+}
+
+/* ================= card de habilidade ================= */
+const DEG_LBL   = {criticalSuccess:'Sucesso Crítico',success:'Sucesso',failure:'Falha',criticalFailure:'Falha Crítica'};
+const BASIC_HINT= {criticalSuccess:'Nenhum dano',success:'Metade do dano',failure:'Dano integral',criticalFailure:'Dano dobrado'};
+const SAVES_COLLAPSE = 4;
+
+function abilityHtml(m){
+  const a=m.ability, isGm=role==='gm';
+  const mine = (m.who===ME()) || isGm;
+  const selo = a.noModel ? '<span class="nomodel">sem modelo hoje</span>' : '';
+
+  /* alvo: existe só quando havia seleção no canvas. O jogador nunca vê a CA. */
+  let tgt='';
+  if(a.target){
+    const ca = (isGm && a.target.ac) ? ` <span style="color:var(--subtle)">(CA ${a.target.ac} — só o Mestre vê)</span>` : '';
+    tgt = `<div class="tgt">${UI_ICON.target} ${esc(a.target.name)}${ca}</div>`;
+  } else if(a.kind!=='spell' || a.saves){
+    tgt = `<div class="tgt none">${UI_ICON.target} nenhum alvo selecionado</div>`;
+  }
+
+  const btns = a.buttons.filter(b=>!b.own || mine).map(b=>
+    `<button class="${b.own?'own':''} ${b.heal?'heal':''}" title="${b.own?'só quem controla o personagem':'qualquer um pode clicar — o alvo rola com o ator dele'}">${esc(b.l)}</button>`).join('');
+
+  const rolls = (a.rolls||[]).map(r=>`
+    <div class="kid">
+      <div class="l1"><span class="kl">${esc(r.lbl)}</span>
+        <span class="kf">${diceHtml(r)}${r.type?' · '+esc(r.type):''}</span>
+        <span class="kt ${r.heal?'heal':''}">${r.total}</span>
+        ${r.deg?`<span class="deg ${r.deg}">${DEG_LBL[r.deg]}</span>`:''}</div>
+    </div>`).join('');
+
+  let saves='';
+  if(a.saves && a.saves.length){
+    const isOpen=!!savesOpen[m.id];
+    const list=(a.saves.length>SAVES_COLLAPSE && !isOpen)?a.saves.slice(0,SAVES_COLLAPSE):a.saves;
+    saves = `<div class="svs"><div class="st">Salvaguardas</div>
+      ${list.map(s=>`<div class="sv">
+        <div class="l1"><span class="nm">${esc(s.who)}</span><span class="deg ${s.deg}">${DEG_LBL[s.deg]}</span></div>
+        <div class="l2"><span>${diceHtml(s)} = ${s.total}</span>${a.basicSave?`<span class="hint">${BASIC_HINT[s.deg]}</span>`:''}</div>
+      </div>`).join('')}
+      ${a.saves.length>SAVES_COLLAPSE?`<button class="more" data-saves="${m.id}">${isOpen?'recolher':`ver todas (${a.saves.length})`}</button>`:''}</div>`;
+  }
+
+  return `<div class="card">
+    <div class="ct">${hl(a.title)}${selo}</div>
+    <div class="cs">${esc(a.sub)}</div>
+    ${tgt}
+    ${a.fields.map(f=>`<div class="cf"><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join('')}
+    <div class="cb">${btns}</div>
+    ${(rolls||saves)?`<div class="kids">${rolls}${saves}</div>`:''}
+  </div>`;
+}
+
+/* ================= mensagens ================= */
+function msgHtml(m, prev){
+  const isCard = m.type==='ability';
+  const cont = prev && prev.who===m.who && prev.type!=='ability' && !isCard && m.type!=='whisper';
+  const cls=['m'];
+  if(cont) cls.push('m--cont');
+  if(m.type==='emote') cls.push('m--emote');
+  if(m.type==='whisper') cls.push('m--whisper');
+  if(m.blind && !m.revealed) cls.push('m--blind');
+  if(isCard) cls.push('m--sys');
+  if(m.invalid) cls.push('m--invalid');
+
+  let seals='';
+  if(m.invalid) seals += `<span class="seal invalid">invalidada ${m.invalidBy==='gm'?'pelo Mestre':'pelo autor'}</span>`;
+  if(m.blind && !m.revealed) seals += '<span class="seal blind">cega · só o Mestre</span>';
+  if(m.revealed) seals += '<span class="seal revealed">revelada</span>';
+  if(m.type==='whisper') seals += `<span class="seal whisper">para ${esc(m.to)}</span>`;
+  if(m.mode==='gmroll') seals += '<span class="seal whisper">ao Mestre</span>';
+  if(m.mode==='self')   seals += '<span class="seal self">só eu</span>';
+
+  const meta = cont ? '' :
+    `<div class="meta"><b style="color:${COLOR[m.who]||'#fff'}">${esc(m.who)}</b><span>${m.t}</span>${seals}</div>`;
+
+  let body='';
+  if(m.type==='text' || m.type==='whisper') body=`<div class="body">${hl(m.text)}</div>`;
+  if(m.type==='emote') body=`<div class="body">${esc(m.who)} ${hl(m.text)}</div>`;
+  if(m.type==='roll'){
+    const show = (!m.blind || role==='gm' || m.revealed);
+    body = show
+      ? `<div class="roll"><div class="top">
+           <span class="flavor">${hl(m.flavor)}</span>
+           <span class="total ${m.total>=20?'crit':''}">${m.total}</span></div>
+           <div class="dice">${diceHtml(m)}</div></div>`
+      : `<div class="roll"><div class="top"><span class="flavor">rolagem cega enviada ao Mestre</span><span class="total">•</span></div></div>`;
+  }
+  if(m.type==='ability') body=abilityHtml(m);
+
+  const canReveal = role==='gm' && (m.type==='whisper' || (m.blind && !m.revealed) || m.mode==='gmroll');
+  /* NADA é apagado: invalidar risca no lugar, substituindo a deleção de REQ-CHT-005.
+     Quem invalida: o Mestre ou o AUTOR. Quem revalida: sempre o Mestre; o autor só
+     desfaz o que ele mesmo invalidou — invalidação do Mestre é palavra final. */
+  const isAuthor = m.who===ME(), isGm = role==='gm';
+  const invBtn = !m.invalid
+    ? ((isGm||isAuthor) ? `<button data-invalid="${m.id}" title="Invalidar — risca sem apagar">⊘</button>` : '')
+    : ((isGm || (m.invalidBy==='author' && isAuthor)) ? `<button data-invalid="${m.id}" title="Revalidar">↺</button>` : '');
+  const acts = `<span class="acts">${isGm&&canReveal?`<button title="Revelar para a mesa">${MODE_ICON.gmroll}</button>`:''}<button title="Copiar">⧉</button>${invBtn}</span>`;
+
+  const bcolor = (cont||m.type==='whisper'||m.blind||isCard) ? '' : (COLOR[m.who]||'var(--border)');
+  return `<div class="${cls.join(' ')}" ${bcolor?`style="border-left-color:${bcolor}"`:''}>${acts}${meta}${body}</div>`;
+}
+
+function logHtml(){
+  const list = msgs.filter(visible);
+  if(!list.length){
+    return `<div class="log" id="log"><div class="vazio" style="margin-top:1.2rem">Nenhuma mensagem ainda.<br>
+      <span style="font-size:.75rem">Escreva abaixo, clique num dado favorito, ou role algo com <code>/r 1d20</code>.</span></div></div>`;
+  }
+  let out='',prev=null;
+  list.forEach(m=>{
+    /* a linha fica mesmo depois do contador zerar: ela é o lugar onde você parou */
+    if(newFrom && m.id===newFrom) out += `<div class="newdiv" id="newdiv">${newCount} nova${newCount>1?'s':''}</div>`;
+    out += msgHtml(m,prev); prev=m;
+  });
+  return `<div class="log" id="log">${out}</div>`;
+}
+
+/* ================= busca (FTS5 no servidor, filtrada pela visibilidade) ================= */
+function resultsHtml(){
+  const hits = msgs.filter(visible).filter(matches);
+  const head = `<div class="hd">${hits.length} resultado${hits.length===1?'':'s'} no log deste mundo — a busca roda no servidor e só devolve o que você pode ver.</div>`;
+  if(!hits.length) return `<div class="results">${head}<div class="vazio">Nada casa com “${esc(query)}”.</div></div>`;
+  return `<div class="results">${head}${hits.map(m=>`
+    <button class="res" data-ctx="${m.id}">
+      <span class="rmeta"><b style="color:${COLOR[m.who]}">${esc(m.who)}</b><span>${m.t}</span>
+        ${m.type==='whisper'?'<span class="seal whisper">✉</span>':''}${m.blind?'<span class="seal blind">cega</span>':''}</span>
+      <span class="rtxt">${hl(textOf(m))}</span></button>`).join('')}</div>`;
+}
+
+/* ================= dados favoritos + composer ================= */
+function diceBarHtml(){
+  const f = favs().map((fv,i)=>{
+    const lock = fv.lock ? `<span class="lock" title="modo travado: ${modeOf(fv.lock).name}">${MODE_ICON[fv.lock]}</span>` : '';
+    return `<button class="fav" data-fav="${i}" title="${esc(fv.n)} — ${esc(fv.f)}${fv.lock?' · sempre '+modeOf(fv.lock).name:' · segue o seletor'}">
+      <span class="fl"><span class="fn">${esc(fv.n)}</span>${lock}</span><span class="ff">${esc(fv.f)}</span></button>`;
+  }).join('');
+  return `<div class="dicebar">${f}<button class="fav more" data-win="dice" title="Montar uma rolagem (vantagem, explosão, manter maiores…)">${UI_ICON.dice}</button></div>`;
+}
+function composerHtml(){
+  const thumb = `<span class="thumb" style="left:calc(${modeIdx(mode)} * 25% + 2px)"></span>`;
+  /* o tooltip é ancorado à borda do painel nos extremos para não ser cortado */
+  const btns = MODES.map((m,i)=>{
+    const pos = i<2 ? 'left:0;transform:none' : 'right:0;left:auto;transform:none';
+    return `<button data-mode="${m.id}" class="${mode===m.id?'on':''}" aria-label="${m.name}" title="${m.name} — ${m.help}">
+      ${MODE_ICON[m.id]}<span class="tip" style="${pos}"><b>${m.name}</b><br>${m.help}</span></button>`;
+  }).join('');
+  return `<div class="composer">
+    <div class="line"><textarea id="draft" rows="1" placeholder="Digite aqui…">${esc(draft)}</textarea><button class="send" id="send" title="Enviar (Enter · Shift+Enter quebra linha)">➤</button></div>
+    <div class="modes">${thumb}${btns}</div>
+  </div>`;
+}
+
+/* ================= janelas ================= */
+function formulaPreview(){
+  const base = dice.adv==='none' ? `${dice.qty}d${dice.faces}`
+             : dice.adv==='adv'  ? `2d${dice.faces}kh1` : `2d${dice.faces}kl1`;
+  const keep = (dice.adv==='none' && dice.keep>0) ? `kh${dice.keep}` : '';
+  const ex   = dice.explode ? '!' : '';
+  const mod  = dice.mod ? (dice.mod>0?`+${dice.mod}`:`${dice.mod}`) : '';
+  return `${base}${keep}${ex}${mod}`;
+}
+function winHtml(){
+  if(!win) return '';
+  if(win.kind==='dice'){
+    return `<div class="win" style="left:calc(100% - 640px);top:16%;width:300px">
+      <div class="wh">${UI_ICON.dice} Montar rolagem<span class="sp"></span><button data-winclose>✕</button></div>
+      <div class="wb">
+        <div class="fld"><span class="fl">Dados</span>
+          <input type="number" id="d-qty" value="${dice.qty}" min="1" max="20">
+          <select id="d-faces">${[4,6,8,10,12,20,100].map(f=>`<option ${dice.faces===f?'selected':''}>${f}</option>`).join('')}</select></div>
+        <div class="fld"><span class="fl">Modificador</span><input type="number" id="d-mod" value="${dice.mod}"></div>
+        <div class="fld"><span class="fl">Rótulo<small>aparece no log</small></span><input type="text" id="d-label" value="${esc(dice.label)}"></div>
+        <div class="fld"><span class="fl">Vantagem</span>
+          <select id="d-adv">
+            <option value="none" ${dice.adv==='none'?'selected':''}>—</option>
+            <option value="adv"  ${dice.adv==='adv'?'selected':''}>Vantagem</option>
+            <option value="dis"  ${dice.adv==='dis'?'selected':''}>Desvantagem</option>
+          </select></div>
+        <label class="chk"><input type="checkbox" id="d-ex" ${dice.explode?'checked':''}> Explodir (dado máximo rola de novo)</label>
+        <div class="fld"><span class="fl">Manter maiores<small>0 = todos</small></span><input type="number" id="d-keep" value="${dice.keep}" min="0" max="20"></div>
+        <div class="preview">${formulaPreview()}</div>
+        <p style="color:var(--subtle);font-size:.72rem;margin:0 0 .4rem">Quem vê o resultado é o seletor do painel — agora em
+          <b style="color:var(--accent-hover)">${modeOf(mode).name}</b>. Esta janela monta a rolagem, não decide a plateia.</p>
+        <div class="actions" style="justify-content:flex-start">
+          <button class="btnp" id="d-roll">Rolar</button>
+          <button class="btns" id="d-save">Salvar como favorito</button></div>
+        <p style="color:var(--subtle);font-size:.72rem;margin:.5rem 0 0">No MVP a fórmula só tem dados e números. Nomes de atributo
+          (“1d20 + Força + percepção”) entram quando o sistema declarar o vocabulário.</p>
+      </div></div>`;
+  }
+  if(win.kind==='favs'){
+    return `<div class="win" style="left:calc(100% - 660px);top:20%;width:320px">
+      <div class="wh">Meus dados<span class="sp"></span><button data-winclose>✕</button></div>
+      <div class="wb">
+        <p style="color:var(--subtle);font-size:.74rem;margin:0 0 .5rem">Ficam neste aparelho, só neste mundo. Não sobem para o servidor.</p>
+        ${favs().map((f,i)=>`
+          <div class="fld"><input type="text" value="${esc(f.n)}" data-fn="${i}" style="width:96px">
+            <input type="text" value="${esc(f.f)}" data-ff="${i}" style="flex:1;font-family:ui-monospace,monospace">
+            <select data-fm="${i}"><option value="">segue o seletor</option>
+              ${MODES.map(x=>`<option value="${x.id}" ${f.lock===x.id?'selected':''}>${x.icon} ${x.name}</option>`).join('')}</select></div>`).join('')}
+      </div></div>`;
+  }
+  /* contexto de uma mensagem achada na busca */
+  const list = msgs.filter(visible);
+  const idx  = list.findIndex(m=>m.id===ctxHit);
+  const from = Math.max(0, idx-ctxRange.up), to = Math.min(list.length, idx+ctxRange.down+1);
+  const slice= list.slice(from,to);
+  const hitMsg = list[idx];
+  return `<div class="win" style="left:calc(100% - 620px);top:22%;width:300px;max-height:60vh">
+    <div class="wh">${UI_ICON.search} Contexto · ${hitMsg?hitMsg.t:''}<span class="sp"></span><button data-winclose>✕</button></div>
+    <div class="wb" style="flex:1">
+      ${from>0?`<button class="ctx-more" data-ctxmore="up">mais 5 acima</button>`:`<div class="ctx-more" style="opacity:.5">início do log</div>`}
+      ${slice.map(m=>`<div class="ctx-msg ${m.id===ctxHit?'hit':''}">
+        <div class="cm"><b style="color:${COLOR[m.who]}">${esc(m.who)}</b> · ${m.t}</div>${esc(textOf(m))}</div>`).join('')}
+      ${to<list.length?`<button class="ctx-more" data-ctxmore="down">mais 5 abaixo</button>`:`<div class="ctx-more" style="opacity:.5">fim do log</div>`}
+      <p style="color:var(--subtle);font-size:.7rem;margin:.4rem 0 0">Conta só mensagens que você pode ver — sussurro alheio e rolagem cega não entram nem como espaço.</p>
+    </div></div>`;
+}
+
+/* ================= painel do chat ================= */
+function chatHead(){
+  const clr = query ? `<button class="clr" data-clearq title="Limpar">✕</button>` : '';
+  return `<div class="panel-head">
+    <label class="search"><span class="mag">${UI_ICON.search}</span><input id="q" placeholder="Pesquisar no log…" value="${esc(query)}">${clr}</label>
+    <button class="hact ${menu?'on':''}" data-menu title="Mais">⋯</button></div>`;
+}
+function chatBody(){
+  const jump = (newCount>0 && !stickBottom) ? `<button class="jump" id="jump">↓ ${newCount} nova${newCount>1?'s':''}</button>` : '';
+  const middle = query ? resultsHtml() : logHtml();
+  return `<div class="chat">${middle}${jump}${diceBarHtml()}${composerHtml()}</div>`;
+}
+
+/* ================= render ================= */
+function tabButton(t){
+  const badgeVal = t.id==='chat' ? (unread>0?String(unread):null) : (t.badge||null);
+  const badge = badgeVal ? `<span class="badge ${t.badgeCls||''}">${badgeVal}</span>` : '';
+  return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+}
+function render(){
+  const isGm = role==='gm';
+  if(!isGm && ['npcs','scenes'].includes(active)) active='chat';
+  const all=TABS.filter(t=>t.group==='all'&&!t.foot), gms=TABS.filter(t=>t.group==='gm'&&isGm), foot=TABS.filter(t=>t.foot);
+
+  const head = active==='chat' ? chatHead()
+    : `<div class="panel-head"><span style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:.15rem .3rem">${TITLE[active]}</span></div>`;
+  const body = active==='chat' ? chatBody() : `<div class="panel-body">${OTHER[active]||''}</div>`;
+
+  const menuHtml = menu ? `<div class="menu">
+      <button data-win="favs">Meus dados…</button>
+      <div class="sep"></div>
+      ${isGm?`<button>Exportar em JSON</button><button>Exportar em texto</button>
+      <div class="sep"></div><button class="danger" id="askflush">Limpar o log</button>`
+      :`<button style="color:var(--subtle)" disabled>Exportar e limpar são do Mestre</button>`}
+    </div>` : '';
+  const conf = confirmFlush ? `<div class="menu" style="width:250px"><div class="confirm" style="margin:0">
+      <b>Apagar as ${msgs.length} mensagens, para todos?</b><div class="acts">
+      <button class="btnd" id="doflush">Limpar</button><button class="btns" id="noflush">Cancelar</button></div></div></div>` : '';
+
+  document.getElementById('root').innerHTML=`
+    <div class="${open?'is-open':''}"><aside class="sidebar">
+      <nav class="tabs">
+        <div class="grp">${all.map(tabButton).join('')}</div>
+        ${gms.length?`<div class="grp gm">${gms.map(tabButton).join('')}</div>`:''}
+        <div class="foot">${foot.map(tabButton).join('')}</div>
+      </nav>
+      <div class="panel">${head}${body}${menuHtml}${conf}</div>
+    </aside></div>`;
+
+  document.getElementById('float').innerHTML = winHtml();
+  document.getElementById('selmark').innerHTML = hasTarget
+    ? `<div class="sel">${UI_ICON.target} Goblin Guerreiro selecionado</div>` : '';
+
+  const who=document.getElementById('who');
+  who.className = isGm?'who':'who player';
+  who.innerHTML = isGm ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+                       : '<b>●</b> Fofurinha · <span style="color:var(--muted)">Jogador</span>';
+
+  wire(); restoreScroll(); paintSwitcher();
+
+  const u=new URL(location);
+  u.searchParams.set('role',role); u.searchParams.set('state',empty?'empty':'full');
+  u.searchParams.set('target',hasTarget?'1':'0');
+  u.searchParams.set('mode',mode);
+  history.replaceState(null,'',u);
+}
+
+/* ================= eventos ================= */
+function wire(){
+  const root=document.getElementById('root'), float=document.getElementById('float');
+
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.tab;
+    if(open&&active===id){open=false;}
+    else{
+      active=id; open=true;
+      /* abrir o Chat zera o contador E posiciona o log na primeira não lida */
+      if(id==='chat'){ if(unread>0){scrollToNew=true;stickBottom=false;} unread=0; }
+    }
+    menu=false; render();
+  });
+  root.querySelectorAll('[data-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();menu=!menu;render();});
+  root.querySelectorAll('[data-win]').forEach(b=>b.onclick=()=>{win={kind:b.dataset.win};menu=false;render();});
+  float.querySelectorAll('[data-winclose]').forEach(b=>b.onclick=()=>{win=null;render();});
+  root.querySelectorAll('[data-clearq]').forEach(b=>b.onclick=()=>{query='';render();});
+  root.querySelectorAll('[data-saves]').forEach(b=>b.onclick=()=>{const id=+b.dataset.saves;savesOpen[id]=!savesOpen[id];render();});
+  root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;render();});
+  root.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>rollFav(+b.dataset.fav));
+  root.querySelectorAll('[data-ctx]').forEach(b=>b.onclick=()=>{ctxHit=+b.dataset.ctx;ctxRange={up:5,down:5};win={kind:'context'};render();});
+  root.querySelectorAll('[data-invalid]').forEach(b=>b.onclick=()=>{
+    const m=msgs.find(x=>x.id===+b.dataset.invalid); if(!m) return;
+    if(m.invalid){ m.invalid=false; delete m.invalidBy; }
+    else { m.invalid=true; m.invalidBy = role==='gm' ? 'gm' : 'author'; }
+    render();
+  });
+  float.querySelectorAll('[data-ctxmore]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.ctxmore==='up') ctxRange.up+=5; else ctxRange.down+=5; render();
+  });
+
+  const q=root.querySelector('#q');
+  if(q) q.oninput=e=>{query=e.target.value;render();
+    const again=document.getElementById('q'); if(again){again.focus();again.setSelectionRange(query.length,query.length);}};
+
+  /* Enter envia; Shift+Enter quebra linha */
+  const ta=root.querySelector('#draft');
+  if(ta){
+    const grow=()=>{ ta.style.height='auto';
+      const h=Math.min(ta.scrollHeight, 110);
+      ta.style.height=h+'px';
+      ta.style.overflowY = ta.scrollHeight>110 ? 'auto' : 'hidden'; };
+    ta.oninput=e=>{draft=e.target.value;grow();};
+    ta.onkeydown=e=>{
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); draft=ta.value; focusInput=true; sendDraft(); }
+    };
+    grow();
+    if(focusInput){ focusInput=false; ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); }
+  }
+  const sendBtn=root.querySelector('#send'); if(sendBtn) sendBtn.onclick=()=>{const t=root.querySelector('#draft'); if(t) draft=t.value; focusInput=true; sendDraft();};
+
+  const flushBtn=root.querySelector('#askflush'); if(flushBtn) flushBtn.onclick=()=>{confirmFlush=true;menu=false;render();};
+  const no=root.querySelector('#noflush'); if(no) no.onclick=()=>{confirmFlush=false;render();};
+  const yes=root.querySelector('#doflush'); if(yes) yes.onclick=()=>{msgs=[];unread=0;newFrom=null;confirmFlush=false;render();};
+
+  const jump=root.querySelector('#jump'); if(jump) jump.onclick=()=>{
+    const log=document.getElementById('log'); if(log) log.scrollTop=log.scrollHeight; markRead();
+  };
+  const log=root.querySelector('#log');
+  if(log) log.onscroll=()=>{
+    logScroll=log.scrollTop;
+    stickBottom = log.scrollHeight-log.scrollTop-log.clientHeight < 24;
+    /* chegou ao fim: a marca de "você parou aqui" cumpriu o papel e sai */
+    if(stickBottom && newFrom){ newFrom=null; newCount=0; unread=0; render(); }
+  };
+
+  /* janela de dados */
+  const bind=(id,fn)=>{const el=float.querySelector(id); if(el) el.onchange=e=>{fn(e.target);render();};};
+  bind('#d-qty',  el=>dice.qty=+el.value);
+  bind('#d-faces',el=>dice.faces=+el.value);
+  bind('#d-mod',  el=>dice.mod=+el.value);
+  bind('#d-label',el=>dice.label=el.value);
+  bind('#d-adv',  el=>dice.adv=el.value);
+  bind('#d-ex',   el=>dice.explode=el.checked);
+  bind('#d-keep', el=>dice.keep=+el.value);
+  const dr=float.querySelector('#d-roll'); if(dr) dr.onclick=()=>rollDialog();
+  const ds=float.querySelector('#d-save'); if(ds) ds.onclick=()=>{
+    /* nasce seguindo o seletor; travar um modo é edição em "Meus dados" */
+    favs().unshift({n:dice.label||'Dado',f:formulaPreview(),lock:null}); favs().length=3; win=null; render();
+  };
+  /* editor de favoritos */
+  float.querySelectorAll('[data-fn]').forEach(i=>i.onchange=e=>{favs()[+i.dataset.fn].n=e.target.value;render();});
+  float.querySelectorAll('[data-ff]').forEach(i=>i.onchange=e=>{favs()[+i.dataset.ff].f=e.target.value;render();});
+  float.querySelectorAll('[data-fm]').forEach(s=>s.onchange=e=>{favs()[+s.dataset.fm].lock=e.target.value||null;render();});
+
+  document.body.onclick=e=>{ if(menu && !e.target.closest('.menu') && !e.target.closest('[data-menu]')){menu=false;render();} };
+}
+function markRead(){unread=0;newFrom=null;newCount=0;render();}
+function restoreScroll(){
+  const log=document.getElementById('log'); if(!log) return;
+  if(scrollToNew){
+    scrollToNew=false;
+    const div=document.getElementById('newdiv');
+    if(div){ log.scrollTop = Math.max(0, div.offsetTop - log.offsetTop - 8); return; }
+  }
+  if(stickBottom||logScroll===null) log.scrollTop=log.scrollHeight; else log.scrollTop=logScroll;
+}
+
+/* ================= rolar ================= */
+function roll(nd,faces,mod){
+  const dice=[]; for(let i=0;i<nd;i++) dice.push(1+Math.floor(Math.random()*faces));
+  return {dice,total:dice.reduce((a,b)=>a+b,0)+mod};
+}
+function pushRoll(flavor,formula,nd,faces,mod,useMode){
+  const r=roll(nd,faces,mod);
+  const m={id:nextId++,who:ME(),t:'21:1'+(nextId%10),type:'roll',flavor,formula,dice:r.dice,mod,total:r.total,
+           mode:useMode, blind: useMode==='blind'};
+  msgs.push(m); stickBottom=true; query=''; render();
+}
+/* Enter → envia. Comando que NOMEIA o modo vence o seletor, e só nesta mensagem. */
+function sendDraft(){
+  const raw=draft.trim(); if(!raw){draft='';render();return;}
+  const t='21:1'+(nextId%10);
+  const cmd=/^\/(r|roll|gmroll|blindroll|selfroll|me|em|emote|w|whisper)\b\s*(.*)$/is.exec(raw);
+  if(cmd){
+    const c=cmd[1].toLowerCase(), rest=cmd[2].trim();
+    if(['me','em','emote'].includes(c)){
+      msgs.push({id:nextId++,who:ME(),t,type:'emote',text:rest});
+    } else if(['w','whisper'].includes(c)){
+      const wm=/^\[?([^\]\s]+)\]?\s+(.*)$/s.exec(rest)||[];
+      msgs.push({id:nextId++,who:ME(),t,type:'whisper',to:wm[1]||'Mestre',text:wm[2]||rest});
+    } else {
+      const named = c==='gmroll'?'gmroll' : c==='blindroll'?'blind' : c==='selfroll'?'self' : mode;
+      const mm=/(\d*)d(\d+)([+-]\d+)?/.exec(rest)||[];
+      const nd=mm[1]?+mm[1]:1, faces=mm[2]?+mm[2]:20, mod=mm[3]?+mm[3]:0;
+      draft=''; pushRoll(rest||'Rolagem', rest||`1d${faces}`, nd, faces, mod, named); return;
+    }
+  } else {
+    msgs.push({id:nextId++,who:ME(),t,type:'text',text:raw});
+  }
+  draft=''; stickBottom=true; query=''; render();
+}
+
+function rollFav(i){
+  const f=favs()[i];
+  const mm=/(\d*)d(\d+)([+-]\d+)?/.exec(f.f);
+  const nd=mm&&mm[1]?+mm[1]:1, faces=mm?+mm[2]:20, mod=mm&&mm[3]?+mm[3]:0;
+  pushRoll(f.n, f.f, nd, faces, mod, f.lock || mode);      /* favorito travado vence o seletor */
+}
+function rollDialog(){
+  const nd = dice.adv==='none' ? dice.qty : 2;
+  pushRoll(dice.label||'Rolagem', formulaPreview(), nd, dice.faces, dice.mod, mode);
+  win=null; render();
+}
+
+/* ================= mensagens que chegam ================= */
+function incoming(){
+  const src=INCOMING[incomingIdx%INCOMING.length]; incomingIdx++;
+  const m=Object.assign({},src,{id:nextId++,t:'21:1'+(incomingIdx%10)});
+  msgs.push(m);
+  const chatOpen = active==='chat' && open;
+  if(!chatOpen){                              /* aba fechada: acumula e acende o badge */
+    if(!unread) newFrom=m.id;
+    unread++; newCount=unread; stickBottom=false;
+  } else if(!stickBottom){                    /* aba aberta, lendo o passado: só avisa */
+    if(!newFrom) newFrom=m.id;
+    newCount++;
+  }
+  render();
+}
+
+/* ================= switcher / legenda ================= */
+function applyEmpty(){msgs = empty?[]:BASE.slice();unread=0;newFrom=null;}
+function applyTarget(){
+  const strike=BASE.find(m=>m.id===5), spell=BASE.find(m=>m.id===7);
+  if(hasTarget){
+    strike.ability.target={name:'Goblin Guerreiro',ac:18};
+    strike.ability.rolls[0].deg='criticalSuccess';
+    spell.ability.saves=SAVES_FULL;
+  }else{
+    delete strike.ability.target;
+    delete strike.ability.rolls[0].deg;          /* sem alvo, não há grau: só o total */
+    spell.ability.saves=null;
+  }
+  msgs = empty?[]:BASE.slice();
+}
+const SAVES_FULL = BASE.find(m=>m.id===7).ability.saves;
+
+function paintSwitcher(){
+  document.getElementById('role').textContent   = role==='gm'?'ver como jogador':'ver como GM';
+  document.getElementById('state').textContent  = empty?'log: vazio':'log: com mensagens';
+  document.getElementById('target').textContent = hasTarget?'alvo: selecionado':'alvo: nenhum';
+
+  document.getElementById('legend').innerHTML = `
+    <h4>Aba Chat — versão decidida (spec 38)</h4>
+    <table>
+      <tr><td>barra superior</td><td><b>pesquisa fixa + ⋯</b> (⋯ = Meus dados; exportar/limpar são do Mestre)</td></tr>
+      <tr><td>escrita</td><td><b>largura total</b>; <b>Enter</b> envia, <b>Shift+Enter</b> quebra linha</td></tr>
+      <tr><td>moderação</td><td>nada é apagado — <b>Mestre ou autor invalida</b>; o autor só desfaz o que ele mesmo invalidou</td></tr>
+      <tr><td>modo de rolagem</td><td><b>${modeOf(mode).name}</b> — persiste, e manda em TODAS as rolagens (emenda REQ-CHT-017)</td></tr>
+      <tr><td>dados</td><td>3 favoritos (aparelho + <b>mundo</b> + usuário) + janela de montagem</td></tr>
+      <tr><td>alvo</td><td>${hasTarget?'<b>nome + grau</b>, sem a CA para o jogador':'<b>sem alvo</b> → rolagem sem grau'}</td></tr>
+      <tr><td>dados 3D</td><td><b>fora</b> — vira mod futuro</td></tr>
+      <tr><td>não-lido</td><td>zera ao <b>abrir o Chat</b>, e o log abre na <b>primeira não lida</b></td></tr>
+    </table>
+    <div style="margin-top:.4rem;padding-top:.35rem;border-top:1px solid #ddd;color:#666">
+      experimente: clicar num favorito · o botão de dado abre a janela de montagem · escrever e apertar <b>Enter</b> ·
+      passar o mouse sobre os 4 ícones de modo · pesquisar “goblin” e clicar num resultado (contexto ±5) ·
+      passar o mouse numa mensagem e <b>invalidar</b> (⊘) · fechar o Chat, apertar <b>n</b> algumas vezes e reabrir (badge some, log abre na primeira não lida) · <b>p</b> troca o papel.</div>`;
+}
+
+document.getElementById('role').onclick    =()=>{role=role==='gm'?'player':'gm';menu=false;win=null;render();};
+document.getElementById('state').onclick   =()=>{empty=!empty;applyEmpty();render();};
+document.getElementById('target').onclick  =()=>{hasTarget=!hasTarget;applyTarget();render();};
+document.getElementById('incoming').onclick=()=>incoming();
+
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='p'||e.key==='P'){role=role==='gm'?'player':'gm';win=null;render();}
+  if(e.key==='n'||e.key==='N'){incoming();}
+  if(e.key==='v'||e.key==='V'){empty=!empty;applyEmpty();render();}
+  if(e.key==='t'||e.key==='T'){hasTarget=!hasTarget;applyTarget();render();}
+});
+
+applyTarget(); applyEmpty(); render();
+</script>
+</body>
+</html>

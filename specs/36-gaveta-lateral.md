@@ -132,9 +132,10 @@ O trilho oferece a cada aba **um** badge, de um de dois tipos, e nada além diss
 - **Ponto de estado** (sem número): "algo está acontecendo" — combate ativo, e no futuro
   "é a sua vez".
 - O badge aparece **sempre que existir**, inclusive na aba ativa e aberta; a gaveta
-  recolhida não o esconde. **Abrir a aba não altera badge nenhum**: quem zera o
-  contador (ex.: ao ler de fato as mensagens) ou apaga o ponto de estado é a regra da
-  spec-filha.
+  recolhida não o esconde. **O trilho nunca altera badge nenhum por conta própria**:
+  quem zera o contador ou apaga o ponto de estado é sempre a regra da spec-filha — que
+  pode, sim, decidir que abrir a aba marca como lido (é o que a 38 decide para o Chat,
+  DEC-ACH-11).
 - **Quem acende** é a spec-filha (o chat é dono da regra de não-lido; o combate, da de
   "ativo"); esta spec só fixa tipo, posição no canto do ícone e sobrevivência à gaveta
   recolhida.
@@ -245,10 +246,10 @@ GM vê também mundo, permissões, usuários e mods (spec 37).
   estado** (booleano, sem número). Uma aba não pode ter os dois.
 - **REQ-GAV-021** [MVP] O badge DEVE ser renderizado no canto do ícone sempre que
   seu valor existir — inclusive na aba ativa e aberta e com a gaveta recolhida.
-- **REQ-GAV-022** [MVP] Abrir a aba, trocar de aba ou recolher a gaveta NÃO DEVE
-  alterar o valor de nenhum badge; contador e ponto de estado só mudam quando a
-  spec-filha muda o store (ex.: o chat zera o contador ao considerar as mensagens
-  lidas — regra de REQ-CHT-039).
+- **REQ-GAV-022** [MVP] O **trilho** NÃO DEVE alterar o valor de nenhum badge ao abrir
+  a aba, trocar de aba ou recolher a gaveta: contador e ponto de estado só mudam quando
+  a **spec-filha** muda o store. A filha PODE definir que abrir a aba marca o conteúdo
+  como lido — é o que a 38 faz para o Chat (REQ-ACH-004, com REQ-CHT-039).
 - **REQ-GAV-023** [MVP] O valor do badge é fornecido pela aba (store reativo no
   registro, REQ-GAV-030); o trilho NÃO DEVE conter regra de negócio de nenhum badge
   (a regra de não-lido é REQ-CHT-039; a de combate ativo é da spec 10).
@@ -308,22 +309,22 @@ gesto de recolher ou persistência de `open`/`activeTab`, que são desta spec:
 
 ### 7.1 Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                                                                                     |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CA-GAV-001 | Jogador logado vê no trilho exatamente Chat, Contatos, Combate e Compêndio nessa ordem, sem texto, mais Configurações ancorada no rodapé; GM vê os mesmos na mesma posição, com NPCs e Cenas no bloco intermediário.                         |
-| CA-GAV-002 | Primeiro acesso sem preferência: jogador abre em Chat, GM abre em Cenas; após trocar para Compêndio e recarregar, a gaveta volta aberta em Compêndio; recolher e recarregar volta recolhida.                                                 |
-| CA-GAV-003 | GM salva `activeTab = "scenes"` no dispositivo; usuário sem papel privilegiado entra no mesmo navegador: a gaveta abre em Chat, sem erro.                                                                                                    |
-| CA-GAV-004 | Com a gaveta aberta em Chat, clicar em Combate troca o painel sem mudar a largura; clicar em Combate de novo recolhe; `Esc` não recolhe; não existe chevron nem ✕.                                                                           |
-| CA-GAV-005 | Duas mensagens chegam com a gaveta recolhida → contador "2" no ícone de Chat; abrir Chat mantém o "2" até a regra do chat (spec-filha) zerá-lo; combate iniciado → ponto de estado em Combate, visível com Combate aberto, some ao encerrar. |
-| CA-GAV-006 | Registrar uma aba de teste `group: "gm"` via `registerSidebarTab` faz o ícone aparecer ao fim do grupo GM para o GM e não aparecer para o jogador; registrar o mesmo `id` de novo lança erro.                                                |
-| CA-GAV-007 | Em viewport de 800px, abrir a gaveta cobre toda a largura à esquerda do trilho; recolher devolve o mapa; o trilho continua com 44px.                                                                                                         |
-| CA-GAV-008 | Trilho navegável por Tab com foco visível; Enter/Espaço abre e recolhe como o clique; nenhum atalho `Alt+N` responde.                                                                                                                        |
+| ID         | Critério                                                                                                                                                                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CA-GAV-001 | Jogador logado vê no trilho exatamente Chat, Contatos, Combate e Compêndio nessa ordem, sem texto, mais Configurações ancorada no rodapé; GM vê os mesmos na mesma posição, com NPCs e Cenas no bloco intermediário.                                                           |
+| CA-GAV-002 | Primeiro acesso sem preferência: jogador abre em Chat, GM abre em Cenas; após trocar para Compêndio e recarregar, a gaveta volta aberta em Compêndio; recolher e recarregar volta recolhida.                                                                                   |
+| CA-GAV-003 | GM salva `activeTab = "scenes"` no dispositivo; usuário sem papel privilegiado entra no mesmo navegador: a gaveta abre em Chat, sem erro.                                                                                                                                      |
+| CA-GAV-004 | Com a gaveta aberta em Chat, clicar em Combate troca o painel sem mudar a largura; clicar em Combate de novo recolhe; `Esc` não recolhe; não existe chevron nem ✕.                                                                                                             |
+| CA-GAV-005 | Duas mensagens chegam com a gaveta recolhida → contador "2" no ícone de Chat; abrir Chat zera o contador pela regra da spec-filha (REQ-ACH-004), e o trilho não faz nada sozinho; combate iniciado → ponto de estado em Combate, visível com Combate aberto, some ao encerrar. |
+| CA-GAV-006 | Registrar uma aba de teste `group: "gm"` via `registerSidebarTab` faz o ícone aparecer ao fim do grupo GM para o GM e não aparecer para o jogador; registrar o mesmo `id` de novo lança erro.                                                                                  |
+| CA-GAV-007 | Em viewport de 800px, abrir a gaveta cobre toda a largura à esquerda do trilho; recolher devolve o mapa; o trilho continua com 44px.                                                                                                                                           |
+| CA-GAV-008 | Trilho navegável por Tab com foco visível; Enter/Espaço abre e recolhe como o clique; nenhum atalho `Alt+N` responde.                                                                                                                                                          |
 
 ## 8. Specs-filhas (uma por aba)
 
 | Aba           | Spec-filha                | Área dona do conteúdo citada          |
 | ------------- | ------------------------- | ------------------------------------- |
-| Chat          | _a criar_                 | 09                                    |
+| Chat          | [38](38-aba-chat.md)      | 09 (rolagens: 08)                     |
 | Contatos      | _a criar_                 | 02/05/11                              |
 | Combate       | _a criar_                 | 10                                    |
 | Compêndio     | _a criar_                 | 16                                    |

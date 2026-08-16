@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1463 requisitos [MVP]** definidos nas 37 specs. Os [V2] ficam de fora
+Escopo: os **1521 requisitos [MVP]** definidos nas 38 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 218 | 15% |
-| Citados só por código de produção | 330 | 23% |
-| Sem nenhuma citação | 915 | 63% |
-| **Total [MVP]** | **1463** | |
+| Citados por algum teste | 218 | 14% |
+| Citados só por código de produção | 330 | 22% |
+| Sem nenhuma citação | 973 | 64% |
+| **Total [MVP]** | **1521** | |
 
 ## Por spec
 
@@ -33,7 +33,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 85 | 3 | 33 | 49 | 4% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 12 | 24 | 20 | 21% |
 | [08](08-motor-de-rolagens.md) | 49 | 11 | 12 | 26 | 22% |
-| [09](09-chat-e-mensagens.md) | 47 | 5 | 9 | 33 | 11% |
+| [09](09-chat-e-mensagens.md) | 49 | 5 | 9 | 35 | 10% |
 | [10](10-combate-e-iniciativa.md) | 45 | 14 | 29 | 2 | 31% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 6 | 17 | 39 | 10% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
@@ -59,3 +59,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 0 | 0 | 24 | 0% |
 | [37](37-configuracoes.md) | 39 | 0 | 0 | 39 | 0% |
+| [38](38-aba-chat.md) | 56 | 0 | 0 | 56 | 0% |
