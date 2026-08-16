@@ -49,7 +49,7 @@ function unwrapSchema(schema: ZodTypeAny): ZodTypeAny {
       continue;
     }
     if (current instanceof z.ZodOptional || current instanceof z.ZodNullable) {
-      current = current.unwrap();
+      current = current.unwrap() as ZodTypeAny;
       continue;
     }
     return current;
@@ -69,7 +69,10 @@ export function classifySettingSchema(schema: ZodTypeAny): {
   const inner = unwrapSchema(schema);
   if (inner instanceof z.ZodBoolean) return { kind: "boolean" };
   if (inner instanceof z.ZodNumber) return { kind: "number" };
-  if (inner instanceof z.ZodEnum) return { kind: "enum", options: [...inner.options] };
+  if (inner instanceof z.ZodEnum) {
+    const options: string[] = [...(inner.options as string[])];
+    return { kind: "enum", options };
+  }
   return { kind: "unsupported" };
 }
 
