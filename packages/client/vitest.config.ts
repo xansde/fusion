@@ -18,6 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@fusion/shared": resolve(__dirname, "../shared/src/index.ts"),
+      $lib: resolve(__dirname, "src/lib"),
       "@fusion/system-etmos": resolve(__dirname, "../../systems/etmos/src/index.ts"),
     },
   },
