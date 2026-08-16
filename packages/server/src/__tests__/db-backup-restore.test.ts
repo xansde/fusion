@@ -28,9 +28,16 @@ import { migration001 } from "../db/migrations/001_initial_schema.js";
 import { migration002 } from "../db/migrations/002_users_sessions.js";
 import { migration003 } from "../db/migrations/003_fog_exploration.js";
 import { migration004 } from "../db/migrations/004_region_maps.js";
+import { migration005 } from "../db/migrations/005_roll_audit_log.js";
 import { WorldManager } from "../worlds/index.js";
 
-const ALL: FusionMigration[] = [migration001, migration002, migration003, migration004];
+const ALL: FusionMigration[] = [
+  migration001,
+  migration002,
+  migration003,
+  migration004,
+  migration005,
+];
 const UP_TO_3: FusionMigration[] = [migration001, migration002, migration003];
 
 let tempDirs: string[] = [];
@@ -152,17 +159,17 @@ describe("pre-migration backup (T001)", () => {
     applyMigrations(second.raw, path);
 
     const extra: FusionMigration = {
-      version: 5,
-      description: "test-only fifth migration",
+      version: 99,
+      description: "test-only migration beyond the bundled set",
       up(db) {
-        db.exec(`CREATE TABLE IF NOT EXISTS t5 (id TEXT PRIMARY KEY NOT NULL)`);
+        db.exec(`CREATE TABLE IF NOT EXISTS t99 (id TEXT PRIMARY KEY NOT NULL)`);
       },
     };
     registerMigrations([...ALL, extra]);
     applyMigrations(second.raw, path);
     second.close();
 
-    // One per migration run: world creation (v0 → v3), then 004, then 005 —
+    // One per migration run: world creation (v0 → v3), then 004, then the rest —
     // each with a distinct filename, none overwriting another.
     const backups = readdirSync(join(dir, "backups")).filter((f) => f.startsWith("pre-migration-"));
     expect(backups).toHaveLength(3);

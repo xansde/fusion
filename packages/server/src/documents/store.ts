@@ -179,7 +179,9 @@ function extractColumns(
 
     case "scenes":
       cols["name"] = doc["name"] ?? "";
-      cols["active"] = doc["active"] ? 1 : 0;
+      // No `active` column since migration 008: the active scene lives in
+      // settings['_meta:activeScene'], and the field inside the document is a
+      // mirror the world:activeScene handler maintains (T010).
       cols["navigation"] = doc["navigation"] !== false ? 1 : 0;
       cols["folder_id"] = doc["folder"] ?? null;
       cols["sort"] = doc["sort"] ?? 0;
@@ -457,7 +459,7 @@ export class DocumentStore {
     const tableColumns: Record<DocumentTable, string[]> = {
       actors: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
       items: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      scenes: ["name", "active", "navigation", "folder_id", "sort", "created_at", "updated_at"],
+      scenes: ["name", "navigation", "folder_id", "sort", "created_at", "updated_at"],
       journal_entries: ["name", "folder_id", "sort", "created_at", "updated_at"],
       macros: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
       roll_tables: ["name", "folder_id", "sort", "created_at", "updated_at"],

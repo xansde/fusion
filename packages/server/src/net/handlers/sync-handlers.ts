@@ -500,20 +500,21 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     const payload = parsed.data;
     const { sceneId } = payload;
 
-    // Deactivate all scenes, then activate the target (atomic via store)
+    // T010: settings['_meta:activeScene'] is the source of truth — it is what
+    // the join snapshot reads and what survives a restart. The `active` field
+    // on each scene document is a mirror, maintained here and nowhere else
+    // (doc:update refuses to write it). Reconciling every document against the
+    // target, instead of trusting the mirror to say who is active today, also
+    // repairs a world whose mirrors drifted apart in the past.
     const allScenes = deps.store.getAll("scenes");
 
     for (const scene of allScenes) {
       const id = scene["_id"] as string;
-      const isTarget = id === sceneId;
-      const isCurrentlyActive = scene["active"] === true;
+      const shouldBeActive = id === sceneId;
+      const mirrorSaysActive = scene["active"] === true;
 
-      if (isTarget && !isCurrentlyActive) {
-        // Activate this scene
-        deps.store.update("scenes", id, { active: true }, { userId: ctx.userId });
-      } else if (!isTarget && isCurrentlyActive) {
-        // Deactivate this scene
-        deps.store.update("scenes", id, { active: false }, { userId: ctx.userId });
+      if (shouldBeActive !== mirrorSaysActive) {
+        deps.store.update("scenes", id, { active: shouldBeActive }, { userId: ctx.userId });
       }
     }
 

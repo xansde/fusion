@@ -12,9 +12,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync } from "node:fs";
+import type { Database } from "better-sqlite3";
+import { mkdirSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import {
   openDatabase,
   applyMigrations,
@@ -28,8 +30,10 @@ import { migration001 } from "../db/migrations/001_initial_schema.js";
 import { migration002 } from "../db/migrations/002_users_sessions.js";
 import { migration003 } from "../db/migrations/003_fog_exploration.js";
 import { migration004 } from "../db/migrations/004_region_maps.js";
+import { migration005 } from "../db/migrations/005_roll_audit_log.js";
 
-const ALL: FusionMigration[] = [migration001, migration002, migration003, migration004];
+const UP_TO_4: FusionMigration[] = [migration001, migration002, migration003, migration004];
+const ALL: FusionMigration[] = [...UP_TO_4, migration005];
 
 let tempDirs: string[] = [];
 
@@ -54,6 +58,25 @@ function seedDatabase(path: string, migrations: FusionMigration[]): void {
   }
 }
 
+/**
+ * The `roll_audit_log` as it exists in worlds that were played before migration
+ * 005 adopted it.
+ *
+ * The DDL is read from a fixture captured out of a real world database, not
+ * retyped here. That distinction is the whole test: `ensureAuditTable` is gone
+ * from `chat/roll-service.ts`, so a hand-copied "legacy" DDL in this file would
+ * be the same person writing the same statement twice — and would agree with a
+ * mistranscribed migration just as happily as with a correct one.
+ */
+const LEGACY_AUDIT_DDL = readFileSync(
+  fileURLToPath(new URL("./fixtures/legacy-roll-audit-log.sql", import.meta.url)),
+  "utf8",
+);
+
+function seedLegacyAuditTable(db: Database): void {
+  db.exec(LEGACY_AUDIT_DDL);
+}
+
 beforeEach(() => {
   tempDirs = [];
   registerMigrations(ALL);
@@ -71,6 +94,12 @@ afterEach(() => {
 });
 
 describe("migration 004 — region_maps (T003)", () => {
+  // These assertions are about what version 4 looks like, so they pin the
+  // registered set to 004 rather than tracking the head of the migration list.
+  beforeEach(() => {
+    registerMigrations(UP_TO_4);
+  });
+
   it("a brand-new database is born at version 4 with the region_maps table", () => {
     const path = join(newTempDir(), "world.db");
     const db = openDatabase({ path, skipIntegrityCheck: true });
@@ -112,7 +141,7 @@ describe("migration 004 — region_maps (T003)", () => {
     expect(getSchemaVersion(before.raw)).toBe(3);
     before.close();
 
-    registerMigrations(ALL);
+    registerMigrations(UP_TO_4);
     const after = openDatabase({ path, skipIntegrityCheck: true });
     try {
       applyMigrations(after.raw, path);
@@ -129,7 +158,7 @@ describe("migration 004 — region_maps (T003)", () => {
 
   it("a version-4 database has nothing pending", () => {
     const path = join(newTempDir(), "world.db");
-    seedDatabase(path, ALL);
+    seedDatabase(path, UP_TO_4);
 
     const db = openDatabase({ path, skipIntegrityCheck: true });
     try {
@@ -165,14 +194,14 @@ describe("schema guard (T004)", () => {
 
   it("accepts a database one version behind and migrates it", () => {
     const path = join(newTempDir(), "world.db");
-    seedDatabase(path, [migration001, migration002, migration003]);
+    seedDatabase(path, UP_TO_4);
 
     registerMigrations(ALL);
     const db = openDatabase({ path, skipIntegrityCheck: true });
     try {
       expect(checkSchema(db.raw).ok).toBe(true);
       applyMigrations(db.raw, path);
-      expect(getSchemaVersion(db.raw)).toBe(4);
+      expect(getSchemaVersion(db.raw)).toBe(5);
     } finally {
       db.close();
     }
@@ -278,31 +307,40 @@ describe("schema guard (T004)", () => {
     }
   });
 
-  it("tolerates roll_audit_log, which is created outside the migrations (until T007)", () => {
+  it("tolerates roll_audit_log while the world is still below version 5", () => {
+    const path = join(newTempDir(), "world.db");
+    seedDatabase(path, UP_TO_4);
+
+    registerMigrations(ALL);
+    const db = openDatabase({ path, skipIntegrityCheck: true });
+    try {
+      seedLegacyAuditTable(db.raw);
+
+      // Version 4 predates the migration that adopts the table, so its
+      // presence is history, not divergence.
+      const report = checkSchema(db.raw);
+      expect(report.currentVersion).toBe(4);
+      expect(report.ok).toBe(true);
+    } finally {
+      db.close();
+    }
+  });
+
+  it("stops tolerating roll_audit_log once the world is at version 5", () => {
     const path = join(newTempDir(), "world.db");
     seedDatabase(path, ALL);
 
     registerMigrations(ALL);
     const db = openDatabase({ path, skipIntegrityCheck: true });
     try {
-      // Mirrors chat/roll-service.ts's ensureAuditTable.
-      db.raw.exec(`
-        CREATE TABLE IF NOT EXISTS roll_audit_log (
-          roll_id          TEXT    PRIMARY KEY NOT NULL,
-          world_id         TEXT    NOT NULL,
-          user_id          TEXT    NOT NULL,
-          actor_id         TEXT,
-          formula          TEXT    NOT NULL,
-          expanded_formula TEXT    NOT NULL,
-          total            REAL    NOT NULL,
-          seed             INTEGER NOT NULL,
-          created_at       INTEGER NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_roll_audit_world_user
-          ON roll_audit_log(world_id, user_id, created_at);
-      `);
+      // From version 5 on the table belongs to a migration, so losing it is a
+      // real problem — the exemption must not go on covering for it.
+      db.raw.exec(`DROP TABLE roll_audit_log`);
 
-      expect(checkSchema(db.raw).ok).toBe(true);
+      const report = checkSchema(db.raw);
+      expect(report.ok).toBe(false);
+      const missing = report.problems.filter((p) => p.kind === "object-missing");
+      expect(missing.map((p) => p.subject)).toContain("table roll_audit_log");
     } finally {
       db.close();
     }
@@ -324,6 +362,26 @@ describe("schema guard (T004)", () => {
       expect(() => {
         applyMigrations(db.raw, path, { force: true });
       }).not.toThrow();
+    } finally {
+      db.close();
+    }
+  });
+
+  it("still refuses an extra object that no exemption covers", () => {
+    const path = join(newTempDir(), "world.db");
+    seedDatabase(path, ALL);
+
+    registerMigrations(ALL);
+    const db = openDatabase({ path, skipIntegrityCheck: true });
+    try {
+      // The exemption is a named list with an adopting version, not a general
+      // tolerance for drift.
+      db.raw.exec(`CREATE TABLE roll_audit_log_v2 (id TEXT PRIMARY KEY NOT NULL)`);
+
+      const report = checkSchema(db.raw);
+      expect(report.ok).toBe(false);
+      const extra = report.problems.filter((p) => p.kind === "object-extra");
+      expect(extra.map((p) => p.subject)).toContain("table roll_audit_log_v2");
     } finally {
       db.close();
     }
@@ -358,3 +416,102 @@ describe("schema guard (T004)", () => {
     }
   });
 });
+
+describe("migration 005 — roll_audit_log (T007)", () => {
+  it("a brand-new database has the audit table before a single die is rolled", () => {
+    const path = join(newTempDir(), "world.db");
+    const db = openDatabase({ path, skipIntegrityCheck: true });
+
+    try {
+      applyMigrations(db.raw, path);
+
+      expect(getSchemaVersion(db.raw)).toBe(5);
+
+      const table = db.raw
+        .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='roll_audit_log'`)
+        .get();
+      expect(table, "roll_audit_log should exist without any RollService").toBeDefined();
+
+      const index = db.raw
+        .prepare(`SELECT 1 FROM sqlite_master WHERE type='index' AND name=?`)
+        .get("idx_roll_audit_world_user");
+      expect(index).toBeDefined();
+    } finally {
+      db.close();
+    }
+  });
+
+  it("a world that already rolled dice keeps its rows through the upgrade", () => {
+    const path = join(newTempDir(), "world.db");
+    seedDatabase(path, UP_TO_4);
+
+    // A world that has been played: the table was created on the side, and it
+    // holds history nobody wants to lose.
+    registerMigrations(UP_TO_4);
+    const before = openDatabase({ path, skipIntegrityCheck: true });
+    seedLegacyAuditTable(before.raw);
+    before.raw
+      .prepare(
+        `INSERT INTO roll_audit_log
+           (roll_id, world_id, user_id, actor_id, formula, expanded_formula, total, seed, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run("r1", "w1", "u1", null, "1d20+5", "[13]+5", 18, 42, 1);
+    expect(getSchemaVersion(before.raw)).toBe(4);
+    before.close();
+
+    registerMigrations(ALL);
+    const after = openDatabase({ path, skipIntegrityCheck: true });
+    try {
+      applyMigrations(after.raw, path);
+
+      expect(getSchemaVersion(after.raw)).toBe(5);
+      const row = after.raw
+        .prepare(`SELECT formula, seed FROM roll_audit_log WHERE roll_id='r1'`)
+        .get() as { formula: string; seed: number } | undefined;
+      expect(row?.formula).toBe("1d20+5");
+      expect(row?.seed).toBe(42);
+
+      // And the world is no longer leaning on an exemption to be considered sound.
+      expect(checkSchema(after.raw).ok).toBe(true);
+    } finally {
+      after.close();
+    }
+  });
+
+  it("lands on the same table a real played world already has", () => {
+    // The upgrade is a no-op for played worlds only if the shapes agree, so the
+    // comparison has to be against something this migration's author did not
+    // write: the fixture is the DDL as SQLite recorded it inside an actual
+    // world file (see fixtures/legacy-roll-audit-log.sql).
+    const fresh = join(newTempDir(), "world.db");
+    const legacy = join(newTempDir(), "world.db");
+
+    registerMigrations(ALL);
+    const a = openDatabase({ path: fresh, skipIntegrityCheck: true });
+    applyMigrations(a.raw, fresh);
+    const fromMigration = readAuditSchema(a.raw);
+    a.close();
+
+    seedDatabase(legacy, UP_TO_4);
+    registerMigrations(UP_TO_4);
+    const b = openDatabase({ path: legacy, skipIntegrityCheck: true });
+    seedLegacyAuditTable(b.raw);
+    const fromRollService = readAuditSchema(b.raw);
+    b.close();
+
+    expect(fromMigration).toEqual(fromRollService);
+  });
+});
+
+/** The audit objects as SQLite recorded them, whitespace flattened. */
+function readAuditSchema(db: Database): { name: string; sql: string }[] {
+  const rows = db
+    .prepare(
+      `SELECT name, sql FROM sqlite_master
+        WHERE name IN ('roll_audit_log', 'idx_roll_audit_world_user')
+        ORDER BY name`,
+    )
+    .all() as { name: string; sql: string }[];
+  return rows.map((r) => ({ name: r.name, sql: r.sql.replace(/\s+/g, " ").trim() }));
+}

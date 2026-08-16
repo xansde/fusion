@@ -145,69 +145,141 @@ document back": cria mundo → grava ator → backup → `DELETE FROM actors` �
 
 ---
 
-## Fase 1 — Consertar o schema (migrations 005+)
+## Fase 1 — Consertar o schema (migrations 005+) ✅
 
 Depende da Fase 0 inteira. T008 recria tabelas: só roda com T001 e T005 fechadas, e o
 ensaio é sobre **cópia** do `teste_xande`, nunca sobre o mundo que está servindo na 33000.
 
-### T007 — `roll_audit_log` entra nas migrations
+**Concluída** (PR 2), com **quatro** migrations em vez de três: T010 ganhou a sua (008).
+Antes de escrever qualquer uma, os 8 mundos em disco foram auditados — o ativo e os 7
+arquivados em `~/.fusion/backups/mundos-arquivados-2026-08-15/`. O resultado é o que
+liberou os constraints de T008: `role` só assume 1 e 4, nenhum nome colide ignorando
+caixa, `active` é sempre 1, nenhuma sessão órfã, e `roll_audit_log` existe nos 8 com DDL
+byte-idêntico.
 
-Nova migration `005_roll_audit_log.ts` · remover `ensureAuditTable` de
-`packages/server/src/chat/roll-service.ts:71` (chamada em ~504)
+### T007 ✅ — `roll_audit_log` entra nas migrations
+
+Nova migration `005_roll_audit_log.ts` · removido `ensureAuditTable` de
+`packages/server/src/chat/roll-service.ts` (a chamada ficava no **construtor** do
+`RollService`, não no primeiro dado: bastava instanciar o serviço)
 
 Hoje a tabela nasce sob demanda no primeiro dado rolado — ou seja, o schema de um mundo
 depende de alguém ter jogado. Criar por migration e apagar a criação ad-hoc.
 
+**A exceção da guarda não podia ser apagada, só versionada.** `checkSchema` julga o banco
+na versão que ele **declara**, antes de aplicar nada: um mundo em v4 é comparado contra as
+migrations 001–004, que não criam a tabela. Esvaziar `LEGACY_TOLERATED_OBJECTS` recusaria
+abrir todo mundo existente — inclusive o `teste_xande` — _antes_ de chegar na 005 que o
+consertaria. A allowlist virou `Map<nome, versão que adota>`: o objeto é tolerado como
+extra só **abaixo** da versão adotante; de lá em diante ele é esperado, e some vira
+problema.
+
 **Pronto quando:** banco novo já tem a tabela antes de qualquer rolagem; mundo antigo que
 já a tinha não quebra (`CREATE TABLE IF NOT EXISTS`); guarda de T004 deixa de precisar da
-exceção.
+exceção. → `db-schema-guard.test.ts`: tolerado em v4, exigido em v5, extra desconhecido
+ainda recusado, linhas preservadas na subida, e o DDL da migration comparado com o que o
+caminho antigo produzia (`lands on the same table an ad-hoc world already has`).
+`roll-converter.test.ts` passou a aplicar migrations — dependia do efeito colateral.
 
-### T008 — Constraints por recriação de tabela
+### T008 ✅ — Constraints por recriação de tabela
 
 Nova migration `006_constraints.ts`
 
 O SQLite não aceita `ALTER TABLE … ADD CONSTRAINT`: só rename, add e drop column. Cada
-tabela afetada é recriada (nova → copia → drop → rename), com `foreign_keys` desligado
-durante o procedimento e religado ao fim.
+tabela afetada é recriada (nova → copia → drop → rename).
 
-- `users`: `CHECK (role BETWEEN 0 AND 4)`, `CHECK (active IN (0,1))`,
-  `UNIQUE (name COLLATE NOCASE)` — hoje a unicidade existe só como `findByName` antes do
-  insert (`auth/service.ts:271`), que é TOCTOU.
+- `users`: `CHECK (role BETWEEN 1 AND 4)`, `CHECK (active IN (0,1))`, unicidade de nome —
+  hoje ela existe só como `findByName` antes do insert (`auth/user-store.ts:162`, chamado
+  de `auth/service.ts:271`), que é TOCTOU.
 - `sessions`: `user_id … REFERENCES users(id) ON DELETE CASCADE` — hoje é `NO ACTION`, o
   que faria "excluir usuário" falhar com erro de constraint no dia em que existir.
 
+**Mudança de abordagem, decidida na implementação — a técnica descrita acima não roda.**
+O plano dizia "com `foreign_keys` desligado durante o procedimento". `applyMigrations`
+executa cada `migration.up()` **dentro** de uma transação (`migrations.ts:454`), e o
+SQLite ignora `PRAGMA foreign_keys` em silêncio com transação aberta (verificado por
+execução contra o better-sqlite3 desta árvore: o pragma volta lido como `1`). A FK fica
+ligada de qualquer jeito, e aí remover a tabela `users` falha com `FOREIGN KEY constraint
+failed` em qualquer mundo que tenha sessões — o `teste_xande` tem 29. **A saída não precisa
+de pragma nenhum: remover a tabela FILHA antes da PAI.** Sem a `sessions` antiga, ninguém
+referencia a `users` antiga. A FK segue aplicada o tempo todo e sobrevive ao rename.
+
+Outras três decisões:
+
+- **Faixa 1..4, não 0..4** como o texto acima dizia: o enum `Role` (`auth/user-store.ts`)
+  não define 0, o DEFAULT da coluna é 1, e os 8 mundos auditados só têm 1 e 4. Um CHECK
+  que aceita um valor sem significado não é um CHECK.
+- **A unicidade virou `CREATE UNIQUE INDEX idx_users_name_nocase ON users(name COLLATE
+NOCASE)`**, não constraint de tabela. Mesmo efeito, e o mesmo objeto serve o `findByName`
+  — o índice de busca que T009 previa não precisa existir separado.
+- **Checagem prévia com mensagem acionável.** Sem ela, um mundo com dado fora da regra
+  morre no boot com `CHECK constraint failed` e nada mais. A migration agora recusa antes
+  de tocar em qualquer coisa, nomeando a linha ofensora e apontando o backup.
+
 **Pronto quando:** migration roda sobre cópia do `teste_xande` e do banco de um mundo
 arquivado; dados batem linha a linha antes/depois; tentativa de inserir `role = 9` ou nome
-duplicado falha no banco, não só no Zod.
+duplicado falha no banco, não só no Zod. → `db-constraints.test.ts`, 10 casos. O primeiro
+**semeia users e sessions antes de migrar**: com tabela vazia a remoção nunca viola FK, então
+todo teste que parte de diretório limpo daria falso positivo para uma 006 quebrada.
 
-### T009 [P] — Índices que servem para o que o código faz
+### T009 ✅ [P] — Índices que servem para o que o código faz
 
 Nova migration `007_indexes.ts`
 
-- Criar `users(name COLLATE NOCASE)` — `findByName` faz full scan hoje.
+- ~~Criar `users(name COLLATE NOCASE)`~~ — já veio na 006, como o índice único que também
+  aplica a regra de nome. Um objeto, dois propósitos.
 - Criar `chat_messages(timestamp DESC, id DESC)` — é exatamente a ordenação da paginação keyset.
 - Dropar `idx_scenes_nav` (ninguém consulta por `navigation`).
-- `idx_scenes_active`: depende de T010.
+- **A mais:** dropar `idx_chat_timestamp`. Tudo que um índice em `(timestamp)` serve, um em
+  `(timestamp, id)` também serve — mantidos os dois, é uma escrita de índice a mais por
+  mensagem em troca de nada.
+- `idx_scenes_active`: foi para a 008, junto com a coluna (ver T010).
 
 **Pronto quando:** `EXPLAIN QUERY PLAN` das três consultas reais usa índice, e não `SCAN`.
+→ `db-indexes.test.ts`, com o SQL **copiado de `chat-handler.ts` e `user-store.ts`**, não
+reescrito. Além de usar o índice, o plano não pode conter `USE TEMP B-TREE FOR ORDER BY`:
+índice que o SQLite aceita mas não usa para ordenar é o defeito que `idx_chat_timestamp`
+tinha.
 
-### T010 — Uma fonte de verdade para a cena ativa
+### T010 ✅ — Uma fonte de verdade para a cena ativa
 
-`packages/server/src/net/handlers/sync-handlers.ts:46,87` · `packages/server/src/documents/store.ts:180`
-· migration para dropar a coluna, se for o caso
+Nova migration `008_scene_active.ts` · `packages/server/src/documents/store.ts`
+(`extractColumns`, `_tableHasColumn`) · `packages/server/src/net/handlers/doc-handlers.ts`
+· `packages/server/src/net/handlers/sync-handlers.ts`
 
 Hoje `scenes.active` existe como coluna **com índice**, mas quem manda é
 `settings['_meta:activeScene']`. Duas fontes, uma delas mentindo.
 Recomendação: manter `settings` (é o que o código já usa) e dropar coluna + índice.
 
+Eram **três** representações, não duas: a coluna, o campo `active` dentro do JSON do
+documento, e a chave em `settings`. Só a última era lida por alguém — o snapshot do join e
+o broadcast de ativação. A coluna era escrita em todo create/update de cena e lida por
+ninguém, em lugar nenhum do server nem do client (a UI compara `scene._id ===
+activeSceneId`, nunca `scene.active`).
+
+O que ficou: a coluna e o índice saíram; `settings` é a fonte de verdade; o campo no
+documento continua como **espelho**, mantido só pelo handler de `world:activeScene` — e
+`doc:update` passou a **recusar** `active` em Scene. Era esse o segundo escritor que
+deixava os registros discordarem: gravava o campo sem tocar em `settings`, sem desativar a
+cena anterior e sem broadcast (o `e2e-dod-m3.test.ts` fazia exatamente isso, e passava).
+A ordem dentro da migration importa: `DROP INDEX` antes de `DROP COLUMN`, ou o SQLite
+recusa com um `SQLITE_ERROR` que não diz o motivo.
+
 **Pronto quando:** existe um único caminho de leitura e um único de escrita para "qual é a
 cena ativa", com teste que prova que ativar cena por qualquer caminho reflete no outro.
+→ `db-indexes.test.ts` (coluna e índice sumiram, documentos atravessam intactos) e
+`e2e-dod-m3.test.ts`, onde o caminho genérico agora é recusado e a ativação passa por
+`world:activeScene`.
 
-### T011 — Ensaio de fase sobre cópia do `teste_xande`
+### T011 ✅ — Ensaio de fase sobre cópia do `teste_xande`
 
-Rodar 005→007 sobre uma cópia, abrir o mundo, conferir contagens e um documento de cada tipo.
+Rodar 005→008 sobre uma cópia, abrir o mundo, conferir contagens e um documento de cada tipo.
 
 **Pronto quando:** relatório de antes/depois anexado ao PR.
+→ `docs/design/banco-de-dados/ensaio-fase-1.md`. A cópia sai por `VACUUM INTO` de uma
+conexão **readonly** sobre o mundo vivo — que estava com ~1 MB de WAL pendente e `world.lock`
+presente na hora do ensaio, ou seja, exatamente o estado que o backup da Fase 0 foi
+desenhado para capturar.
 
 ---
 
@@ -362,7 +434,7 @@ risco na mesa incomodar.
 | PR  | Conteúdo                   | Depende de                             |
 | --- | -------------------------- | -------------------------------------- |
 | 1   | Fase 0 (T001–T006) ✅      | —                                      |
-| 2   | Fase 1 (T007–T011)         | PR 1                                   |
+| 2   | Fase 1 (T007–T011) ✅      | PR 1                                   |
 | 3   | Fase 2 (T012–T016)         | PR 1                                   |
 | 4   | Fase 4 (T017–T019)         | PR 2                                   |
 | 5   | Fase 3 dados (T020–T024)   | PR 2                                   |
