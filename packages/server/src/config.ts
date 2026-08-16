@@ -30,6 +30,15 @@ import { homedir, platform } from "node:os";
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
+// GC defaults (T017, D5) — exported so `worlds/world-manager.ts` can fall
+// back to the exact same numbers when it is constructed without an explicit
+// override, instead of duplicating the literals 30/12 in a second file.
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_GC_SESSION_RETENTION_DAYS = 30;
+export const DEFAULT_GC_AUDIT_RETENTION_MONTHS = 12;
+
+// ---------------------------------------------------------------------------
 // Schema
 // ---------------------------------------------------------------------------
 
@@ -152,6 +161,26 @@ export const ServerConfigSchema = z.object({
    * as "update checking disabled", never crash on it.
    */
   updateRepo: z.string().default("REPLACE_ME/fusion"),
+
+  /**
+   * Days after a session's `expires_at` before the boot-time GC removes it
+   * (T017, D5). `0` disables session collection entirely — it does NOT mean
+   * "collect everything". See `db/gc.ts` for the exact boundary rule.
+   *
+   * Env: FUSION_GC_SESSION_RETENTION_DAYS
+   * Default: 30.
+   */
+  gcSessionRetentionDays: z.number().int().min(0).default(DEFAULT_GC_SESSION_RETENTION_DAYS),
+
+  /**
+   * Calendar months after a roll's `created_at` before the boot-time GC
+   * removes it from `roll_audit_log` (T017, D5). `0` disables audit-log
+   * collection entirely. See `db/gc.ts`.
+   *
+   * Env: FUSION_GC_AUDIT_RETENTION_MONTHS
+   * Default: 12.
+   */
+  gcAuditRetentionMonths: z.number().int().min(0).default(DEFAULT_GC_AUDIT_RETENTION_MONTHS),
 
   /** Reverse-proxy configuration (REQ-DST-032). */
   proxy: z
@@ -348,6 +377,12 @@ function readEnvLayer(): Partial<RawConfig> {
   if (env["FUSION_UPDATE_CHANNEL"] === "stable" || env["FUSION_UPDATE_CHANNEL"] === "dev") {
     partial.updateChannel = env["FUSION_UPDATE_CHANNEL"];
   }
+
+  const gcSessionRetentionDays = parseEnvInt(env["FUSION_GC_SESSION_RETENTION_DAYS"]);
+  if (gcSessionRetentionDays !== undefined) partial.gcSessionRetentionDays = gcSessionRetentionDays;
+
+  const gcAuditRetentionMonths = parseEnvInt(env["FUSION_GC_AUDIT_RETENTION_MONTHS"]);
+  if (gcAuditRetentionMonths !== undefined) partial.gcAuditRetentionMonths = gcAuditRetentionMonths;
 
   return partial;
 }

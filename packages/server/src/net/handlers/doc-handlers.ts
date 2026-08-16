@@ -202,10 +202,11 @@ const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries
  * Only an *array* value is refused, and that is deliberate: an array is the one
  * shape that reaches the database through this path. Any other shape is already
  * rejected downstream, because deepMerge replaces the array with the object and
- * the document then fails schema validation — including the dot-path operator
- * forms (`items.+`, `items.-<id>`) the character sheet sends today. Refusing
- * those here too would trade one rejection for another and hide that they need
- * an implementation, not a guard.
+ * the document then fails schema validation — including dot-path operator forms
+ * such as `items.+` / `items.-<id>`, which no client sends any more (the sheets
+ * used to, and never worked; T034 moved them to embedded item CRUD). Refusing
+ * them here as well would only trade one rejection for another, so the guard
+ * stays narrow: it names the shape that would otherwise succeed.
  */
 function rejectUnwritableField(
   documentType: string,

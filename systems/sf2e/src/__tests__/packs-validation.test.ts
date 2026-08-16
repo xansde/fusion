@@ -49,6 +49,8 @@ interface PackJson {
   id: string;
   label: string;
   documentType: string;
+  /** Who may see the shelf. Absent parses as "all" (REQ-CMP-004a). */
+  audience?: string;
   license?: {
     license?: string;
     attribution?: string;
@@ -225,5 +227,70 @@ describe("packs-validation (sf2e): clean-room invariants", () => {
       }
     }
     expect(failures, failures.join("\n")).toEqual([]);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Pack audience — REQ-CMP-004a, REQ-CMP-010a, REQ-CPD-071
+  //
+  // The alien bestiary is a shelf of creatures exactly like the pf2e one, and
+  // the same `writePack` in tools/importer-pf2e generates both. The audience,
+  // however, is only *declared* here: an absent `audience` parses as `"all"`
+  // (REQ-CMP-004a), so a manifest that stays silent is a manifest published to
+  // the players — the leak REQ-CPD-071 exists to close, and the reason these
+  // assertions read the committed file instead of trusting the generator.
+  //
+  // Note on requirement ownership: spec 17 spells this out for PF2e
+  // (REQ-PF2-140..145) and spec 43 names PF2e in REQ-CPD-072; spec 18 never got
+  // the sibling amendment, so what binds SF2e today is the system-agnostic pair
+  // REQ-CMP-004a + REQ-CPD-071. Registered as an open question.
+  //
+  // The rule is read from what each pack CONTAINS, never from a list of slugs —
+  // same rule the generator applies (tools/importer-pf2e/src/pack-audience.mjs),
+  // so the next alien pack is born `gm` without anyone editing a list here.
+  // ---------------------------------------------------------------------------
+
+  const GM_ONLY_DOCUMENT_TYPES = new Set(["npc", "hazard"]);
+
+  const gmOnlySlugs = slugs.filter((slug) =>
+    loadDocuments(slug).some((doc) => GM_ONLY_DOCUMENT_TYPES.has(doc.type)),
+  );
+
+  it("REQ-CMP-004a: every sf2e pack.json declares an audience — silence would publish it to everyone", () => {
+    const missing = slugs.filter((slug) => loadPackJson(slug).audience === undefined);
+    expect(missing, `packs without a declared audience: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("REQ-CPD-071 / REQ-CMP-010a: every sf2e pack carrying creatures is published with audience 'gm'", () => {
+    // Non-vacuity guard: the content detector must actually be finding the
+    // alien bestiary, otherwise the loop below would pass for free.
+    expect(gmOnlySlugs, "no creature pack found — the content detector is broken").toContain(
+      "bestiary-core",
+    );
+
+    const offenders: string[] = [];
+    for (const slug of gmOnlySlugs) {
+      const packJson = loadPackJson(slug);
+      if (packJson.documentType !== "Actor") {
+        offenders.push(
+          `[${slug}] carries creatures but documentType is "${packJson.documentType}"`,
+        );
+      }
+      if (packJson.audience !== "gm") {
+        offenders.push(`[${slug}] audience is "${String(packJson.audience)}", expected "gm"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("REQ-CMP-004a: every sf2e pack without creatures or hazards is published with audience 'all'", () => {
+    const offenders: string[] = [];
+    for (const slug of slugs) {
+      if (gmOnlySlugs.includes(slug)) continue;
+      const packJson = loadPackJson(slug);
+      if (packJson.audience !== "all") {
+        offenders.push(`[${slug}] audience is "${String(packJson.audience)}", expected "all"`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
   });
 });

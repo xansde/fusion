@@ -359,9 +359,28 @@ chat, combat tracker).
   **filtrados por role/permissão** do usuário (ver `05-usuarios-e-permissoes.md`):
   layers exclusivas de GM (Walls, Lighting, Sound) não aparecem para players sem a
   capacidade correspondente.
-- **REQ-UIF-005** [MVP] A **scene navigation** (topo) deve listar as cenas
-  marcadas como visíveis na navegação, indicar a cena ativa e a cena que o usuário
-  está vendo, e permitir trocar de cena com um clique. Deve ser colapsável.
+- **REQ-UIF-005** [MVP] A **scene navigation** (topo) DEVE listar as cenas marcadas
+  como visíveis na navegação e indicar a **cena no ar** (a cena ativa do mundo). Ela
+  NÃO DEVE oferecer cena diferente por usuário: no MVP, quem não está preparando
+  renderiza sempre a cena no ar. Trocar de cena a partir dela DEVE ser um de dois
+  gestos, ambos restritos a papel privilegiado — (a) **pôr no ar**, global, executado
+  pelo evento dedicado de cena ativa (REQ-CNV-070, REQ-CEN-040, REQ-CEN-041), ou
+  (b) **preparo local**, que troca apenas o canvas de quem prepara, não altera a cena
+  no ar e não é gravado no servidor (REQ-CNV-070a, REQ-CEN-050, REQ-CEN-051). A
+  navegação DEVE distinguir "a cena que o usuário está vendo" da cena no ar apenas
+  enquanto houver preparo em curso; para todo usuário sem papel privilegiado as duas
+  DEVEM coincidir sempre, e o clique NÃO DEVE trocar a cena renderizada. Deve ser
+  colapsável.
+
+  > **Emenda obrigada pela spec 44** (`44-aba-cenas.md`, DEC-CEN-02, DEC-CEN-03 e §12,
+  > 2026-08-16): a redação anterior mandava a navegação "indicar a cena ativa e a cena
+  > que o usuário está vendo, e permitir trocar de cena com um clique", sem restrição de
+  > papel — o que é navegação divergente por usuário, exatamente a alternativa que a
+  > DEC-CEN-03 recusa no MVP (exigiria cena na presença, que `05-usuarios-e-permissoes.md`
+  > não carrega; reabre em Q-CEN-05). _(A redação acima substitui a metade de "trocar de
+  > cena com um clique" e a de "a cena que o usuário está vendo"; listar as cenas visíveis
+  > na navegação, indicar a cena ativa e ser colapsável permanecem inalterados.)_
+
 - **REQ-UIF-006** [MVP] A **hotbar** deve exibir uma página de **10 slots**
   numerados; clicar (ou tecla `1`–`0`) executa a macro do slot; deve suportar
   **5 páginas** navegáveis e arrastar macros entre slots. Right-click em um slot
@@ -901,6 +920,9 @@ relevantes à UI.
 - `ver 21-seguranca.md` — sanitização de rich text e segurança de upload.
 - `ver 23-acessibilidade-e-dispositivos.md` — detalhamento de WCAG, gestos touch,
   player mode, PWA, safe areas, teclado virtual; esta spec define o mínimo e aponta.
+- `ver 44-aba-cenas.md` — painel de cenas da gaveta; pôr no ar (global, papel
+  privilegiado) vs. preparo local, que delimitam o que a scene navigation pode fazer
+  (REQ-UIF-005); diálogos de cena como janelas do window manager (DEC-CEN-09).
 
 ---
 

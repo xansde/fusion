@@ -330,6 +330,43 @@ export interface ConditionRow {
 }
 
 /**
+ * SCAFFOLDING (T034): minimal, provisional catalog backing the "+ Condition"
+ * picker in CharacterSheet.svelte/NpcSheet.svelte. Before this, the sheet had
+ * no way to ADD a condition at all — the conditions bar only rendered chips
+ * for conditions already present (click-to-remove), so toggleCondition's add
+ * branch was unreachable from the UI even once the server wire was fixed.
+ *
+ * The authoritative condition list is `PF2E_CONDITIONS` in
+ * `systems/pf2e/src/conditions.ts`, but the client package cannot import
+ * `@fusion/system-pf2e` (arch boundary REQ-ARQ-005 — see planVM.ts
+ * docstring), so a subset is mirrored by hand instead of the full catalog.
+ *
+ * Every entry here is a condition PF2e does NOT number, and that is a
+ * correctness constraint rather than a shortcut. A valued condition carries
+ * `valued: true` in `conditions.ts`, and its rule elements are written against
+ * that number: the modifier sits in the definition as a `-1` placeholder for
+ * the engine to scale, and the `<slug>:<value>` roll option is what the
+ * derivations read. Created without a value, the placeholder is applied
+ * verbatim and the roll option never fires — Frightened 3 would quietly behave
+ * like Frightened 1, with no way to say otherwise. Since this scaffolding has
+ * nowhere to type a number, offering those conditions would mean writing wrong
+ * mechanics rather than none. They come back with the real picker, together
+ * with the value input they need.
+ */
+export const SCAFFOLDING_CONDITION_CATALOG: ReadonlyArray<{ slug: string; label: string }> = [
+  { slug: "prone", label: "Prone" },
+  { slug: "off-guard", label: "Off-Guard" },
+  { slug: "blinded", label: "Blinded" },
+  { slug: "dazzled", label: "Dazzled" },
+  { slug: "deafened", label: "Deafened" },
+  { slug: "fatigued", label: "Fatigued" },
+  { slug: "grabbed", label: "Grabbed" },
+  { slug: "immobilized", label: "Immobilized" },
+  { slug: "restrained", label: "Restrained" },
+  { slug: "fleeing", label: "Fleeing" },
+];
+
+/**
  * A Kineticist Elemental Blast row for the sheet (r18-N2c). Rendered on the
  * Main tab next to strikes: attack with MAP variants + a damage button, same
  * affordance as StrikeRow. `element` keys the roll methods (there's one blast
@@ -2277,40 +2314,54 @@ export class CharacterSheetVM {
   }
 
   /**
-   * Build a doc:update op to toggle a condition on the actor.
-   * Adds the condition as an embedded item if not present; removes if present.
+   * Build a doc op to toggle a condition on the actor: removes the embedded
+   * condition Item if present, creates one if absent.
+   *
+   * FIX (T034): the previous implementation returned a doc:update Actor diff
+   * with synthetic dot-path operators ("items.-<id>" / "items.+") that the
+   * server never implemented — applyDotPathDiff expands the path literally
+   * to `{ items: { "-<id>": true } }`, deepMerge replaces the whole items
+   * array with that object, and schema validation then rejects the result.
+   * Every toggle has returned VALIDATION_FAILED since the function was
+   * introduced (25ebf33, 26/06) and the Actor was never touched. This now
+   * routes through the EMBEDDED item CRUD path that already works for
+   * inventory items (addInventoryItem/removeInventoryItem below): doc:create
+   * with a parent Actor ref to add, doc:delete with a parent Actor ref to
+   * remove — proven end-to-end by embedded-item-actor.test.ts.
+   *
+   * The add branch omits `system.value` entirely instead of sending
+   * `value: null`: ConditionSystemSchema's `value` is
+   * `z.number().int().min(1).optional()`, which accepts `undefined` but
+   * rejects `null` — sending `null` would have kept "add" broken even after
+   * the wire fix. Mirrors `applyCondition` in
+   * systems/pf2e/src/actions/conditions-manager.ts (the pure reference
+   * implementation), which does the same omission.
    */
-  toggleCondition(conditionSlug: string): DocUpdatePayload | null {
+  toggleCondition(
+    conditionSlug: string,
+  ): DocCreateEmbeddedPayload | DocDeleteEmbeddedPayload | null {
     if (!this.editable) return null;
 
-    // Check if condition already active — delegate actual toggle to server
-    // via embedded item CRUD (the server handles the IWR immune check).
-    // Here we just produce the diff that signals the intent.
     const existing = this.conditions.find((c) => c.slug === conditionSlug);
     if (existing) {
-      // Remove — mark item as deleted via a special diff flag
       return {
-        type: "doc:update",
-        documentType: "Actor",
-        id: this._actorId,
-        diff: {
-          [`items.-${existing.itemId}`]: true,
-        },
+        type: "doc:delete",
+        documentType: "Item",
+        id: existing.itemId,
+        parent: { type: "Actor", id: this._actorId },
       };
     }
 
-    // Add — signal to server to create an embedded condition item
+    const label = SCAFFOLDING_CONDITION_CATALOG.find((c) => c.slug === conditionSlug)?.label;
     return {
-      type: "doc:update",
-      documentType: "Actor",
-      id: this._actorId,
-      diff: {
-        "items.+": {
-          type: "condition",
-          name: conditionSlug,
-          system: { slug: conditionSlug, value: null },
-        },
+      type: "doc:create",
+      documentType: "Item",
+      data: {
+        type: "condition",
+        name: label ?? conditionSlug,
+        system: { slug: conditionSlug },
       },
+      parent: { type: "Actor", id: this._actorId },
     };
   }
 

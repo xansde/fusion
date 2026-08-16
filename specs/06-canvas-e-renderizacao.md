@@ -393,7 +393,19 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 - **REQ-CNV-067** [MVP] Uma cena DEVE suportar configuração de grade (tipo, `gridSize`, cor, opacidade, regra de diagonal, distância e unidade) conforme a seção de grade.
 - **REQ-CNV-068** [MVP] Uma cena DEVE suportar **initial view** (posição `{x, y}` e zoom iniciais do viewport ao ativar a cena).
 - **REQ-CNV-069** [MVP] Uma cena DEVE expor parâmetros de ambiente que esta spec apenas **posiciona** no canvas (darkness level, fog, iluminação global), com a semântica definida em `07-visao-iluminacao-fog.md`.
-- **REQ-CNV-070** [MVP] O cliente DEVE permitir **navegar entre cenas** e **ativar** uma cena (a ativa é a renderizada no canvas); ativar uma cena recarrega o canvas com seus placeables e aplica a initial view.
+- **REQ-CNV-070** [MVP] O cliente DEVE permitir **ativar** uma cena — pô-la no ar, isto é, torná-la a cena que **todos** os clientes do mundo renderizam. Existe no máximo uma cena no ar por mundo, e ativar DEVE ser um gesto restrito a papel privilegiado, executado pelo evento dedicado de cena ativa, que grava a fonte única do mundo e transmite a troca a todos os clientes (DEC-CEN-02, REQ-CEN-040, REQ-CEN-041). O servidor DEVE recusar alteração do campo `active` por atualização genérica de documento, de qualquer origem (REQ-CEN-042). Ao ativar, o canvas de cada cliente DEVE recarregar com os placeables da cena e aplicar a initial view (REQ-CNV-068).
+- **REQ-CNV-070a** [MVP] O cliente DEVE permitir, **apenas a papel privilegiado**, **abrir uma cena sem ativá-la** (preparo): trocar a cena renderizada **no canvas daquele cliente**, sem alterar a cena no ar, sem gravar estado no servidor e sem mudar a tela de nenhum outro usuário (DEC-CEN-03, REQ-CEN-050, REQ-CEN-051). Enquanto durar o preparo, o canvas DEVE sinalizá-lo de forma persistente a quem prepara (REQ-CEN-052); o preparo DEVE terminar ao pôr a cena preparada no ar (REQ-CEN-044) ou ao sair dele, devolvendo o canvas à cena no ar (REQ-CEN-053). Isto NÃO é navegação por usuário: no MVP, o Fusion NÃO DEVE oferecer cena diferente por usuário — quem não está preparando renderiza sempre a cena no ar.
+
+  > **Emenda obrigada pela spec 44** (`44-aba-cenas.md`, DEC-CEN-02, DEC-CEN-03 e §12,
+  > 2026-08-16): a redação anterior de REQ-CNV-070 juntava numa frase só "navegar entre
+  > cenas" e "ativar uma cena", sem dizer que as duas metades têm alcance, dono e
+  > persistência diferentes. **Ativar** é global, tem escritor único e é recusado no
+  > caminho genérico de documento (REQ-CEN-041/042); **navegar sem ativar** existe apenas
+  > como preparo local de quem tem papel privilegiado, é estado do cliente e não é gravado
+  > (REQ-CEN-050/051). _(A redação acima substitui a metade de "navegar entre cenas" por
+  > REQ-CNV-070a; ativar, o recarregamento dos placeables e a aplicação da initial view
+  > permanecem inalterados em REQ-CNV-070.)_
+
 - **REQ-CNV-071** [V2] **Pré-carregamento (preload)** de assets de uma cena nos clientes antes da ativação DEVE ser suportado para reduzir o tempo de troca de cena.
 - **REQ-CNV-072** [V2] **Foreground elevation** (tokens acima de certa elevação aparecem sobre o foreground/overhead) DEVE ser suportado.
 
@@ -622,6 +634,7 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - `14-macros-e-automacao.md` — Scene Regions e behaviors (Modify Movement Cost para custo de movimento no ruler — **[V2]**, DEC-MAC-04).
 - `17-sistema-pf2e.md` — regra de inclusão de célula de templates do PF2e, cone 90°, default de diagonal 5-10-5, ícones de status do sistema.
 - `20-assets-e-midia.md` — formatos de imagem (WebP/AVIF), upload e otimização de texturas em disco.
+- `44-aba-cenas.md` — painel da gaveta que aciona pôr no ar e preparar; dona da cena ativa como estado global de escritor único (DEC-CEN-02) e do preparo local do Mestre (DEC-CEN-03), as duas metades de REQ-CNV-070/070a.
 
 ---
 
@@ -643,7 +656,7 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - **CA-CNV-14** Notes linkam JournalEntries e respeitam a visibilidade efetiva em três estados — `none` não renderiza, `limited` mostra o marcador de rumor, `observer`+ mostra tudo — e podem ser criadas por drag da sidebar (REQ-CNV-057 a REQ-CNV-059, REQ-DOC-056/057).
 - **CA-CNV-20** O GM alterna um overlay de mapa pelo painel de camadas com um clique e todos os jogadores conectados veem a mudança imediatamente; um overlay oculto não aparece no payload de rede de um jogador, e o GM o vê com opacidade reduzida (REQ-CNV-083 a REQ-CNV-086, REQ-DOC-059/060).
 - **CA-CNV-15** O ruler mede com waypoints aplicando a regra da grade e é visível aos demais usuários com a cor do usuário (REQ-CNV-060 a REQ-CNV-062).
-- **CA-CNV-16** Uma cena configura dimensões, background/foreground, offset, padding, grade, initial view e ambiente; ativar a cena renderiza seus placeables e aplica a initial view (REQ-CNV-064 a REQ-CNV-070).
+- **CA-CNV-16** Uma cena configura dimensões, background/foreground, offset, padding, grade, initial view e ambiente; ativar a cena renderiza seus placeables e aplica a initial view em todos os clientes (REQ-CNV-064 a REQ-CNV-070). Abrir uma cena em preparo troca o canvas apenas de quem preparou: a cena no ar não muda, os demais clientes não mudam de tela, e uma tentativa de alterar `active` por atualização genérica de documento é recusada pelo servidor (REQ-CNV-070a, REQ-CEN-042).
 - **CA-CNV-17** Atualizações no mesmo frame (ex.: mover 5 tokens) coalescem em um único ciclo de re-render via flags, sem recálculo redundante (REQ-CNV-073).
 - **CA-CNV-18** Em hardware de cliente de classe média, uma cena 10k×10k com 50 tokens (com barras/ícones) sustenta ≥ 60 fps em pan/zoom e movimento, com culling manual ativo e draw calls controlados por cache/atlas (REQ-CNV-074 a REQ-CNV-077).
 - **CA-CNV-19** Em zoom out abaixo do limiar, nameplates/barras/ícones reduzem detalhe ou somem (LOD), preservando fps e legibilidade (REQ-CNV-078).

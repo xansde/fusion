@@ -68,8 +68,31 @@ export const PackSourceSchema = z.object({
 export type PackSource = z.infer<typeof PackSourceSchema>;
 
 // ---------------------------------------------------------------------------
+// PackAudience — who may see the pack at all
+// REQ-CMP-004a (spec 16), REQ-CPD-070 (spec 43)
+// ---------------------------------------------------------------------------
+
+/**
+ * Audience of a pack: WHO can see the shelf, not who can write to a document.
+ * It is declared once for the whole pack (DEC-CMP-03/DEC-CPD-04) and is NOT
+ * document ownership — deciding it per document would be a second permission
+ * system.
+ *
+ * `"all"` — every user of the world sees the pack.
+ * `"gm"`  — only users satisfying the privileged-role predicate see it; for
+ *           everybody else the pack must be indistinguishable from a pack that
+ *           does not exist (REQ-CMP-010a, REQ-CPD-071, REQ-SEC-020).
+ *
+ * Declaring the audience is not enforcing it: the enforcement point is the
+ * server-side read API (spec 16, REQ-CMP-010a).
+ */
+export const PackAudienceSchema = z.enum(["all", "gm"]);
+
+export type PackAudience = z.infer<typeof PackAudienceSchema>;
+
+// ---------------------------------------------------------------------------
 // PackManifest — the pack.json descriptor
-// REQ-CMP-003, REQ-CMP-004, REQ-CMP-040
+// REQ-CMP-003, REQ-CMP-004, REQ-CMP-004a, REQ-CMP-040
 // ---------------------------------------------------------------------------
 
 export const PackManifestSchema = z.object({
@@ -103,6 +126,14 @@ export const PackManifestSchema = z.object({
   indexFields: z.array(z.string()),
   /** License block for this pack. REQ-CMP-004. */
   license: PackLicenseSchema,
+  /**
+   * Audience of the pack, next to `license`. Optional on input: a pack.json
+   * written before this field existed stays valid and stays visible to
+   * everyone, because an absent `audience` parses as `"all"` (REQ-CMP-004a,
+   * REQ-CPD-070). Parsed manifests therefore always carry a resolved value —
+   * readers never have to re-apply the default.
+   */
+  audience: PackAudienceSchema.default("all"),
   /** Source tracking (where/how this pack was generated). REQ-CMP-040. */
   source: PackSourceSchema,
   /** Total number of documents in the pack. */
