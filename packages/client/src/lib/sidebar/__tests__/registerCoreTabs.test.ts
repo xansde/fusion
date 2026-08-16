@@ -25,8 +25,10 @@ import {
   CORE_SIDEBAR_TAB_IDS,
   chatUnreadBadge,
   combatActiveBadge,
+  contactsKnowledgeBadge,
   registerCoreSidebarTabs,
 } from "../registerCoreTabs.js";
+import { contactsStateDot } from "../../contacts/knowledgeBadge.js";
 import {
   clearSidebarTabs,
   getSidebarTab,
@@ -73,6 +75,7 @@ describe("the core tabs register through the public call (G016)", () => {
   beforeEach(() => {
     clearSidebarTabs();
     chatStore.unreadCount = 0;
+    contactsStateDot.clear();
     registerCoreSidebarTabs();
   });
 
@@ -80,6 +83,7 @@ describe("the core tabs register through the public call (G016)", () => {
     it("REQ-GAV-030: every panel of the table is in the registry after one bootstrap call", () => {
       expect(idsOf(listVisibleSidebarTabs(true))).toEqual([
         "chat",
+        "contacts",
         "actors",
         "combat",
         "compendium",
@@ -88,6 +92,7 @@ describe("the core tabs register through the public call (G016)", () => {
       ]);
       expect(CORE_SIDEBAR_TAB_IDS).toEqual([
         "chat",
+        "contacts",
         "actors",
         "combat",
         "compendium",
@@ -124,7 +129,7 @@ describe("the core tabs register through the public call (G016)", () => {
     it("REQ-GAV-003: the GM rail is group all, then group gm, then Settings in the footer", () => {
       const visible = getVisibleSidebarTabs(true);
 
-      expect(idsOf(visible.all)).toEqual(["chat", "actors", "combat", "compendium"]);
+      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "actors", "combat", "compendium"]);
       expect(idsOf(visible.gm)).toEqual(["scenes"]);
       expect(idsOf(visible.footer)).toEqual([SETTINGS_TAB_ID]);
     });
@@ -133,8 +138,15 @@ describe("the core tabs register through the public call (G016)", () => {
       const player = listVisibleSidebarTabs(false);
       const gm = listVisibleSidebarTabs(true);
 
-      expect(idsOf(player)).toEqual(["chat", "actors", "combat", "compendium", "settings"]);
-      for (const id of ["chat", "actors", "combat", "compendium"]) {
+      expect(idsOf(player)).toEqual([
+        "chat",
+        "contacts",
+        "actors",
+        "combat",
+        "compendium",
+        "settings",
+      ]);
+      for (const id of ["chat", "contacts", "actors", "combat", "compendium"]) {
         expect(idsOf(player).indexOf(id)).toBe(idsOf(gm).indexOf(id));
       }
       expect(idsOf(player).at(-1)).toBe("settings");
@@ -146,6 +158,19 @@ describe("the core tabs register through the public call (G016)", () => {
       expect(scenes?.group).toBe("gm");
       expect(idsOf(getVisibleSidebarTabs(true).gm)).toContain("scenes");
       expect(idsOf(listVisibleSidebarTabs(false))).not.toContain("scenes");
+    });
+
+    it('REQ-CTT-001: Contatos is id "contacts", group all, second of the group', () => {
+      const contacts = getSidebarTab("contacts");
+
+      expect(contacts?.group).toBe("all");
+      expect(contacts?.label).toBe("FUSION.Sidebar.Tabs.Contacts");
+      expect(idsOf(getVisibleSidebarTabs(false).all)[1]).toBe("contacts");
+      expect(idsOf(getVisibleSidebarTabs(true).all)[1]).toBe("contacts");
+      // DEC-CTT-01: the provisional Atores directory is still registered, because it
+      // is the only UI that creates and deletes an Actor until the NPCs tab lands.
+      expect(idsOf(listVisibleSidebarTabs(true))).toContain("actors");
+      expect(contacts?.icon).not.toBe(getSidebarTab("actors")?.icon);
     });
 
     it('REQ-CFG-001: Configurações is id "settings", group all, anchored to the footer', () => {
@@ -193,6 +218,10 @@ describe("the core tabs register through the public call (G016)", () => {
      */
     const EXPECTED_PANEL_OF: readonly (readonly [string, () => Promise<SidebarPanelModule>])[] = [
       ["chat", () => import("../../../components/chat/ChatPanel.svelte")],
+      // REQ-CTT-001: Contatos is spec 39's own panel, second in the group.
+      ["contacts", () => import("../../../components/contacts/ContactsPanel.svelte")],
+      // DEC-CTT-01: the Atores directory stays until the NPCs tab takes authoring
+      // over — it is still the only UI that creates and deletes an Actor.
       ["actors", () => import("../../../components/actors/ActorDirectory.svelte")],
       ["combat", () => import("../../../components/combat/CombatPanel.svelte")],
       ["compendium", () => import("../../../components/compendium/CompendiumBrowser.svelte")],
@@ -270,9 +299,29 @@ describe("the core tabs register through the public call (G016)", () => {
     });
 
     it("REQ-GAV-020: tabs with no news carry no badge at all", () => {
+      // "contacts" is absent from this list on purpose: spec 39 gives it a state dot
+      // of its own (REQ-CTT-002), asserted right below.
       for (const id of ["actors", "compendium", "scenes", "settings"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
+    });
+
+    it("REQ-CTT-002: Contatos brings a state dot — one badge, and never a number", () => {
+      expect(getSidebarTab("contacts")?.badge).toBe(contactsKnowledgeBadge);
+      expect(typeof contactsKnowledgeBadge.value).toBe("boolean");
+      expect(contactsStateDot.value).toBe(false);
+
+      // Whoever owns the rule moves the store; the rail only draws what it finds.
+      contactsStateDot.light();
+      expect(formatSidebarBadge(getSidebarTab("contacts")?.badge?.value)).toEqual({
+        kind: "dot",
+        text: null,
+      });
+      expect(renderRail().match(/data-badge-kind="dot"/g)).toHaveLength(1);
+      expect(renderRail().match(/data-badge-kind="counter"/g)).toBeNull();
+
+      contactsStateDot.clear();
+      expect(formatSidebarBadge(getSidebarTab("contacts")?.badge?.value).kind).toBe("none");
     });
   });
 });

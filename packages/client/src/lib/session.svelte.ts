@@ -26,6 +26,7 @@ import { SocketManager, type ConnectionState } from "./socket.js";
 import type { Socket } from "socket.io-client";
 import { attachWorldSync } from "./docs/worldSync.js";
 import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
+import { attachContactsKnowledgeBadge } from "./contacts/knowledgeBadge.js";
 import { classifyWorldFetchError } from "./worldFetchErrorClassifier.js";
 
 // ---------------------------------------------------------------------------
@@ -202,6 +203,15 @@ export function getSocket(): Socket | null {
 let _detachWorldSync: (() => void) | null = null;
 /** Active scene-list sync cleanup, called on disconnect/logout. */
 let _detachSceneSync: (() => void) | null = null;
+/** Active Contatos state-dot tracking cleanup (REQ-CTT-003). */
+let _detachContactsBadge: (() => void) | null = null;
+
+/**
+ * Lowest role the server treats as privileged (`isRolePrivileged`, spec 05). Mirrored
+ * here only to decide ergonomics — who gets the Contatos dot (REQ-CTT-004) — never
+ * to decide access: what a seat may see is redacted server-side (REQ-CTT-080).
+ */
+const PRIVILEGED_ROLE = 3;
 
 function _connectSocket(worldId: string): void {
   // The socket namespace is /world/<worldSlug> — use worldId as slug
@@ -216,6 +226,15 @@ function _connectSocket(worldId: string): void {
     // Attach scene list mirror subscription
     _detachSceneSync?.();
     _detachSceneSync = attachSceneListSync();
+    // The Contatos state dot has to work with the tab CLOSED (REQ-CTT-003), and the
+    // drawer mounts a panel only while its tab is open (REQ-GAV-017) — so the badge
+    // follows the mirror from here, beside the other world-level subscriptions.
+    _detachContactsBadge?.();
+    _detachContactsBadge = attachContactsKnowledgeBadge({
+      worldId,
+      userId: session.user?.id ?? "",
+      isPrivileged: (session.user?.role ?? 0) >= PRIVILEGED_ROLE,
+    });
   }
 }
 
@@ -224,4 +243,6 @@ function _disconnectSync(): void {
   _detachWorldSync = null;
   _detachSceneSync?.();
   _detachSceneSync = null;
+  _detachContactsBadge?.();
+  _detachContactsBadge = null;
 }
