@@ -419,6 +419,44 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     joiner.disconnect();
   });
 
+  it("REQ-CTT-040/REQ-CTT-074: the knowledge filter runs over contacts only — a `loot` actor shared by ownership still reaches the player", async () => {
+    // The chest (`loot`, DEC-NPC-08 of spec 42) is not one of "os não-jogadores"
+    // REQ-CTT-040 populates the Conhecidos section with, so knowledge has nothing
+    // to say about it: a party stash shared at OBSERVER is governed by `ownership`
+    // alone. Deriving "is a contact" as "is not a character" subjected it to the
+    // filter, whose default general rule is `oculto` — and the stash vanished from
+    // every player until the Mestre wrote knowledge onto a chest.
+    const stashName = "Estoque da Comitiva";
+    const stashId = await createActor({
+      name: stashName,
+      type: "loot",
+      img: "assets/x/bau.webp",
+      ownership: { default: 2 },
+    });
+    await settle();
+
+    const joiner = connectClient(ctx, ctx.playerAToken);
+    const traffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await settle();
+
+    const doc = actorDocsIn(traffic).find((d) => d["_id"] === stashId);
+    expect(doc).toBeDefined();
+    expect(doc?.["name"]).toBe(stashName);
+    // REQ-CTT-074 is symmetric: escaping the filter is not a grant either. A
+    // chest nobody may see is still shut by `ownership`.
+    const privateStashId = await createActor({
+      name: "Cofre do Mestre",
+      type: "loot",
+      ownership: { default: 0 },
+    });
+    await settle();
+    expect(actorDocsIn(traffic).some((d) => d["_id"] === privateStashId)).toBe(false);
+    expect(JSON.stringify(traffic)).not.toContain("Cofre do Mestre");
+    joiner.disconnect();
+  });
+
   it("REQ-CTT-081/REQ-CTT-013: a glimpsed contact arrives with no name, title, portrait or system data", async () => {
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);

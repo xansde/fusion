@@ -90,6 +90,32 @@ const BANDIDO: ContactActorDoc = {
   type: "npc",
 };
 
+/** A hazard is a non-playable actor too, and pf2e/sf2e both declare it. */
+const ARMADILHA: ContactActorDoc = {
+  _id: "act-armadilha1",
+  name: "Fosso de Estacas",
+  type: "hazard",
+};
+
+/** Etmos names its non-playable actor `antagonista` (`systems/etmos/src/index.ts`). */
+const ANTAGONISTA: ContactActorDoc = {
+  _id: "act-antagonis1",
+  name: "O Silêncio",
+  type: "antagonista",
+};
+
+/**
+ * The chest: pf2e declares the `loot` subtype, and spec 42 keeps it out of every
+ * list, count and knowledge window (DEC-NPC-05, DEC-NPC-08). It reaches a player
+ * through `ownership` alone — a party stash shared at OBSERVER.
+ */
+const BAU_DA_COMITIVA: ContactActorDoc = {
+  _id: "act-bau0000001",
+  name: "Estoque da Comitiva",
+  type: "loot",
+  ownership: { default: 2 },
+};
+
 // ---------------------------------------------------------------------------
 // Who is listed — REQ-CTT-040
 // ---------------------------------------------------------------------------
@@ -113,6 +139,24 @@ describe("who the Conhecidos section lists (REQ-CTT-040)", () => {
     expect(isKnownContact(FERREIRO_GLIMPSED)).toBe(true);
     expect(isKnownContact(FOFURINHA_DOC)).toBe(false);
     expect(isKnownContact(GRAO)).toBe(false);
+  });
+
+  it("REQ-CTT-040: membership is an allow-list of non-playable subtypes, so the chest is not a contact", () => {
+    // The section lists "os não-jogadores" — `npc`/`hazard` (spec 42 §3) and, in
+    // Etmos, `antagonista`. `loot` is the chest, which DEC-NPC-08 keeps out of every
+    // list and count; the complement of "is a character" would have filed it here.
+    expect(isKnownContact(BANDIDO)).toBe(true);
+    expect(isKnownContact(ARMADILHA)).toBe(true);
+    expect(isKnownContact(ANTAGONISTA)).toBe(true);
+    expect(isKnownContact(BAU_DA_COMITIVA)).toBe(false);
+
+    const section = buildKnownSection({
+      actors: [FOFURINHA_DOC, BAU_DA_COMITIVA, ARMADILHA, ANTAGONISTA],
+      isPrivileged: false,
+    });
+    const ids = section.groups.flatMap((group) => group.contacts.map((card) => card.id));
+    expect(ids.sort()).toEqual(["act-antagonis1", "act-armadilha1"]);
+    expect(section.total).toBe(2);
   });
 });
 

@@ -40,7 +40,11 @@ import {
 } from "@fusion/shared";
 import type { Ownership } from "@fusion/shared";
 import { OwnershipLevel, resolveOwnership } from "../documents/ownership.js";
-import { PLAYER_CHARACTER_SUBTYPES, isCharacterActor } from "../documents/knowledge.js";
+import {
+  PLAYER_CHARACTER_SUBTYPES,
+  isCharacterActor,
+  isNonPlayableActor,
+} from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
 
 /**
@@ -350,12 +354,16 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  *
  * Two carve-outs, both of them required by the model rather than convenient:
  *
- *   1. A player CHARACTER is not a contact. Spec 39 splits the panel in two:
+ *   1. Only a NON-PLAYABLE actor is a contact. Spec 39 splits the panel in two:
  *      "Na mesa" lists the characters (gated by `ownership`, REQ-CTT-014/020)
  *      and "Conhecidos" lists the non-players (REQ-CTT-040). The window that
  *      edits knowledge is contacts × characters — two disjoint sets. Running
  *      the filter over characters would hide the whole table from every player,
- *      since a fresh map reads `hidden`.
+ *      since a fresh map reads `hidden`; running it over everything ELSE the
+ *      manifests declare would do the same to the chest (`loot`, DEC-NPC-08)
+ *      and to a companion (`familiar`, DEC-CTT-06), neither of which knowledge
+ *      is about. Hence {@link isNonPlayableActor}, an allow-list, rather than
+ *      the complement of "is a character".
  *   2. Nobody is a stranger to a document they OWN. A player's companion is an
  *      Actor of type "familiar" whose ownership is forced to the master's
  *      (r17-P1); knowledge must not take it away from its owner.
@@ -367,11 +375,39 @@ export function actorIsSubjectToKnowledge(
   doc: Record<string, unknown>,
   viewer: ContactViewer,
 ): boolean {
-  if (isCharacterActor(doc)) return false;
+  if (!isNonPlayableActor(doc)) return false;
+  return ownershipLevelFor(doc, viewer) < OwnershipLevel.OWNER;
+}
+
+function ownershipLevelFor(doc: Record<string, unknown>, viewer: ContactViewer): OwnershipLevel {
   const ownership = isPlainObject(doc["ownership"])
     ? (doc["ownership"] as Ownership)
     : ({ default: OwnershipLevel.NONE } as Ownership);
-  return resolveOwnership(ownership, viewer.userId, viewer.role) < OwnershipLevel.OWNER;
+  return resolveOwnership(ownership, viewer.userId, viewer.role);
+}
+
+/**
+ * Whether an Actor the knowledge filter has nothing to say about may still reach
+ * this viewer (REQ-CTT-074).
+ *
+ * The knowledge filter is a restriction, never a grant, so escaping it cannot be
+ * what makes a document visible. Two populations escape it:
+ *
+ *   - a player CHARACTER, which every player is meant to see: "Na mesa" lists the
+ *     whole table, the viewer's own first (REQ-CTT-014, REQ-CTT-020);
+ *   - everything the manifests declare that is neither playable nor a contact —
+ *     the chest (`loot`, DEC-NPC-08), a companion (`familiar`, DEC-CTT-06), and
+ *     whatever a future system adds. Those answer to `ownership` and to nothing
+ *     else, at the same LIMITED threshold the join snapshot uses (REQ-NET-024),
+ *     so the live broadcast and the replay cannot hand over a chest the snapshot
+ *     would have withheld.
+ */
+function actorEscapingKnowledgeIsVisible(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): boolean {
+  if (isCharacterActor(doc)) return true;
+  return ownershipLevelFor(doc, viewer) >= OwnershipLevel.LIMITED;
 }
 
 /**
@@ -452,6 +488,9 @@ export interface RedactedActorBatch {
  * REQ-CTT-081: a contact that was `glimpsed` is reduced to
  * {@link glimpsedContactView}.
  * REQ-CTT-084: every surviving Actor loses its knowledge map.
+ * REQ-CTT-074: an Actor the knowledge filter says nothing about — a character, a
+ *              chest, a companion — is gated by `ownership` alone, so escaping
+ *              the filter never turns into a grant.
  * REQ-CTT-075: every id dropped by the rule above comes back in `removedIds`,
  * so a live/replay caller can carry the removal in the same envelope.
  *
@@ -468,6 +507,13 @@ export function redactActorDocsForViewer(
   const removedIds: string[] = [];
   for (const doc of documents) {
     if (!actorIsSubjectToKnowledge(doc, viewer)) {
+      // REQ-CTT-074: escaping the knowledge filter is not a grant. What escapes
+      // it answers to `ownership`, at the snapshot's own threshold.
+      if (!actorEscapingKnowledgeIsVisible(doc, viewer)) {
+        const id = doc["_id"];
+        if (typeof id === "string") removedIds.push(id);
+        continue;
+      }
       result.push(stripKnowledgeMap(doc));
       continue;
     }

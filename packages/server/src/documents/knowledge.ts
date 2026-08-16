@@ -62,6 +62,28 @@ export function isCharacterActor(doc: Record<string, unknown>): boolean {
   return typeof type === "string" && PLAYER_CHARACTER_SUBTYPES.has(type);
 }
 
+/**
+ * The Actor subtypes knowledge is ABOUT — the contacts of spec 39 §5.5.
+ *
+ * Same hand-mirror discipline as {@link PLAYER_CHARACTER_SUBTYPES}, and an
+ * allow-list for the same reason the client keeps one: the complement of "is a
+ * character" is a different, larger set. pf2e also declares `loot` (the chest,
+ * DEC-NPC-08) and `familiar` (a companion, DEC-CTT-06); spec 42 §3 names the
+ * non-playable vocabulary as `npc`/`hazard`, and etmos calls it `antagonista`.
+ *
+ * Subjecting `loot` to the knowledge filter would take an actor a player already
+ * reaches through `ownership` — a party stash shared at OBSERVER — away from him
+ * until the Mestre wrote knowledge on it, which is knowledge RESTRICTING what
+ * ownership granted for a document knowledge was never about (REQ-CTT-074).
+ */
+export const NON_PLAYABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "hazard", "antagonista"]);
+
+/** True for an Actor document that is a non-playable character, in any system. */
+export function isNonPlayableActor(doc: Record<string, unknown>): boolean {
+  const type = doc["type"];
+  return typeof type === "string" && NON_PLAYABLE_SUBTYPES.has(type);
+}
+
 /** The raw flag value as stored, before any interpretation. */
 function rawKnowledgeValue(doc: Record<string, unknown>): unknown {
   const flags = doc["flags"];

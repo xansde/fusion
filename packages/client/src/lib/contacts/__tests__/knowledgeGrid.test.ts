@@ -103,6 +103,25 @@ describe("the grid is contacts by characters (REQ-CTT-061)", () => {
     expect(grid.columns.map((column) => column.id)).toEqual([FOFURINHA._id, TOBIAS._id]);
   });
 
+  it("REQ-CTT-061: the chest is not a row — rows are the non-playable actors, by allow-list", () => {
+    // `loot` is the chest of DEC-NPC-08: out of every list, count and knowledge
+    // window. Deriving rows as "everything that is not a character" put it here.
+    const bau: ContactActorDoc = {
+      _id: "act-bau0000001",
+      name: "Estoque da Comitiva",
+      type: "loot",
+      ownership: { default: 2 },
+    };
+    const armadilha: ContactActorDoc = {
+      _id: "act-armadilha1",
+      name: "Fosso de Estacas",
+      type: "hazard",
+    };
+    const grid = buildKnowledgeGrid([FOFURINHA, bau, armadilha, TAVERNEIRA]);
+
+    expect(grid.rows.map((row) => row.id)).toEqual([armadilha._id, TAVERNEIRA._id]);
+  });
+
   it("REQ-CTT-061: a character of any system is a column, in pt-BR alphabetical order", () => {
     const grid = buildKnowledgeGrid([TOBIAS, BRUXA, FOFURINHA, FERREIRO]);
 

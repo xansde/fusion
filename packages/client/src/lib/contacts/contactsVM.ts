@@ -70,6 +70,23 @@ export interface ContactActorDoc {
 export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character", "orador"]);
 
 /**
+ * Actor subtypes that stand for a NON-PLAYABLE character — the population of the
+ * "Conhecidos" section (REQ-CTT-040).
+ *
+ * An allow-list on purpose, mirrored by hand from the manifests exactly like
+ * {@link PLAYER_CHARACTER_SUBTYPES}: pf2e/sf2e declare `npc` and `hazard`, etmos
+ * declares `antagonista` (`documentTypes.Actor` in each system's `src/index.ts`).
+ *
+ * The complement of "is a character" would be a different, wrong set. The
+ * manifests also declare `loot` — the container behind the Mestre's chest, which
+ * spec 42 keeps out of every list, count and knowledge window (DEC-NPC-05,
+ * DEC-NPC-08) — and any subtype a future system invents would join the section
+ * without anyone deciding it should. Spec 42 §3 fixes the vocabulary this list
+ * mirrors: "Não-jogável — Ator que não é personagem de jogador: `npc` ou `hazard`".
+ */
+export const NON_PLAYABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "hazard", "antagonista"]);
+
+/**
  * The Actor subtype every companion uses in the MVP (spec 29), and the link the
  * server itself authorizes against: `type === "familiar"` plus a non-empty
  * `system.masterActorId` (`net/handlers/doc-handlers.ts`). DEC-CTT-06 is explicit
@@ -156,6 +173,11 @@ function fusionFlags(doc: ContactActorDoc): Record<string, unknown> {
 /** True for an Actor subtype that represents a player's character. */
 export function isPlayerCharacter(doc: ContactActorDoc): boolean {
   return PLAYER_CHARACTER_SUBTYPES.has(text(doc.type));
+}
+
+/** True for an Actor subtype that represents a non-playable character (REQ-CTT-040). */
+export function isNonPlayableActor(doc: ContactActorDoc): boolean {
+  return NON_PLAYABLE_SUBTYPES.has(text(doc.type));
 }
 
 /** `system.masterActorId` of a companion, or `null` when there is no link. */
@@ -574,9 +596,16 @@ export interface KnownSectionInput {
 }
 
 /**
- * Whether an Actor belongs to the Conhecidos section: a non-player who is not a
- * companion of somebody's character (those are drawn inside their owner's card,
- * REQ-CTT-025).
+ * Whether an Actor belongs to the Conhecidos section: a NON-PLAYABLE actor
+ * ({@link NON_PLAYABLE_SUBTYPES}) that is not a companion of somebody's character
+ * (those are drawn inside their owner's card, REQ-CTT-025).
+ *
+ * The test is an allow-list, not the complement of "is a character": REQ-CTT-040
+ * populates the section with "os não-jogadores", and spec 42 §3 says which
+ * subtypes those are. A `loot` actor — the chest, DEC-NPC-08 — is neither a
+ * character nor a contact, and must appear in no list, no count and no knowledge
+ * window; the negative predicate would have filed it under Conhecidos and turned
+ * it into a row of the "Quem conhece quem" grid.
  *
  * There is deliberately no state test here. A contact at `oculto` never reaches the
  * client — the server drops it from snapshot, broadcast and replay alike
@@ -586,7 +615,7 @@ export interface KnownSectionInput {
  * payload.
  */
 export function isKnownContact(doc: ContactActorDoc): boolean {
-  return !isPlayerCharacter(doc) && !isSubCharacter(doc);
+  return isNonPlayableActor(doc) && !isSubCharacter(doc);
 }
 
 /**
