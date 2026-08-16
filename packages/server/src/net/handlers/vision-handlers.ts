@@ -51,6 +51,7 @@ import {
   moveBlocked,
 } from "@fusion/shared";
 import { broadcastToWorld } from "./doc-handlers.js";
+import { sceneIsInvisibleToRole } from "../redaction.js";
 
 // ---------------------------------------------------------------------------
 // Handler context shape (same deps pattern as doc-handlers.ts)
@@ -87,16 +88,29 @@ function buildEnvelope(
 // Scene loading helper
 // ---------------------------------------------------------------------------
 
+/**
+ * Load a Scene for an op that took its id from the client.
+ *
+ * The `role` argument is what makes an off-air scene indistinguishable from a
+ * scene that does not exist (REQ-CEN-070, REQ-CEN-071): the refusal is built
+ * HERE, from the same template, before any caller gets to look at the body —
+ * so a non-privileged requester cannot tell "no such scene" apart from "a scene
+ * the GM is preparing", and cannot write into the latter (REQ-CEN-073).
+ * Privileged callers (`isRolePrivileged`, via redaction.ts) are unaffected.
+ */
 function loadScene(
   store: DocumentStore,
   sceneId: string,
+  role: number,
 ): { scene: Record<string, unknown>; err: Ack<never> | null } {
+  const notFound = { scene: {}, err: ackError("NOT_FOUND", `Scene not found: ${sceneId}`) };
   try {
     const scene = store.get("scenes", sceneId);
+    if (sceneIsInvisibleToRole(role, scene)) return notFound;
     return { scene, err: null };
   } catch (err) {
     if (err instanceof DocumentNotFoundError) {
-      return { scene: {}, err: ackError("NOT_FOUND", `Scene not found: ${sceneId}`) };
+      return notFound;
     }
     throw err;
   }
@@ -124,7 +138,7 @@ export function buildWallCreateHandler(deps: VisionHandlerDeps): HandlerFn {
       return ackError("PERMISSION_DENIED", "Only GM/Assistant can create walls");
     }
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const existing = getCollection<WallDocument>(scene, "walls");
@@ -166,7 +180,7 @@ export function buildWallUpdateHandler(deps: VisionHandlerDeps): HandlerFn {
     if ("err" in parsed) return parsed.err;
     const { updates, sceneId } = parsed;
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const collection = getCollection<WallDocument>(scene, "walls");
@@ -207,7 +221,7 @@ export function buildWallDeleteHandler(deps: VisionHandlerDeps): HandlerFn {
     if ("err" in parsed) return parsed.err;
     const { ids, sceneId } = parsed;
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const collection = getCollection<WallDocument>(scene, "walls");
@@ -253,7 +267,7 @@ export function buildLightCreateHandler(deps: VisionHandlerDeps): HandlerFn {
       return ackError("PERMISSION_DENIED", "Only GM/Assistant can create lights");
     }
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const existing = getCollection<Record<string, unknown>>(scene, "lights");
@@ -289,7 +303,7 @@ export function buildLightUpdateHandler(deps: VisionHandlerDeps): HandlerFn {
     if ("err" in parsed) return parsed.err;
     const { updates, sceneId } = parsed;
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const collection = getCollection<Record<string, unknown>>(scene, "lights");
@@ -325,7 +339,7 @@ export function buildLightDeleteHandler(deps: VisionHandlerDeps): HandlerFn {
     if ("err" in parsed) return parsed.err;
     const { ids, sceneId } = parsed;
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const collection = getCollection<Record<string, unknown>>(scene, "lights");
@@ -379,7 +393,7 @@ export function buildDoorStateHandler(deps: VisionHandlerDeps): HandlerFn {
     }
     const { sceneId, wallId, state } = parsed.data;
 
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     const walls = getCollection<WallDocument>(scene, "walls");
@@ -474,7 +488,7 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
     const { sceneId, tokenId, x, y, rotation, force } = parsed.data;
 
     // Load the scene
-    const { scene, err } = loadScene(deps.store, sceneId);
+    const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
     if (err) return err;
 
     // Find the token

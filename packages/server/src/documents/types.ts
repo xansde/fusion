@@ -30,6 +30,7 @@ import {
   WallDocumentSchema,
   AmbientLightDocumentSchema,
   CombatDocumentSchema,
+  InitialViewSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -129,6 +130,14 @@ export const SceneSchema = BaseDocumentSchema.extend({
   globalLight: z.boolean().default(true),
   /** Darkness threshold above which GI is suppressed (spec 07 REQ-VIS-044). */
   globalLightThreshold: z.number().min(0).max(1).default(0.5),
+  /**
+   * Initial camera position/zoom, applied when the scene goes on air
+   * (REQ-CNV-068, REQ-CEN-046). Null = fit the scene to the viewport.
+   * Declared in the canonical model (`@fusion/shared` SceneDocumentSchema) but
+   * missing here, so every write silently dropped it and the client had nothing
+   * to apply. Same shape as the shared schema — one definition, imported.
+   */
+  initialView: InitialViewSchema.default(null),
   // Embedded collections stored as JSON arrays
   tokens: z.array(z.record(z.string(), z.unknown())).default(() => []),
   /** Walls with typed schema (spec 07 M2-A). */

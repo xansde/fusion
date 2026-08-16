@@ -17,6 +17,7 @@ import type { HandlerFn } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
+import { DocumentNotFoundError } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
 import {
   redactCombatDocsForNonPrivileged,
@@ -165,16 +166,21 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
     const payload = op.payload as Record<string, unknown> | null | undefined;
     if (!payload || typeof payload !== "object") return op;
 
-    // REQ-CBA-082: the generic document path buffers Combat bodies too — a
-    // `doc:update` on a Combat, and every embedded Combatant op (which
-    // republishes the parent as `{ documentType: "Combat", documents: [...] }`).
-    // Replaying them raw would hand a reconnecting player exactly the hidden
-    // combatants the live path refused to send.
-    if (payload["documentType"] === "Combat") {
+    const documentType = payload["documentType"];
+
+    // REQ-CBA-082 / REQ-CBT-031: the generic document path buffers Combat
+    // bodies too — a `doc:update` on a Combat, and every embedded Combatant op
+    // (which republishes the parent as `{ documentType: "Combat", documents:
+    // [...] }`, since T036 started broadcasting the document itself so the
+    // client's `_stats.version` can move). Replaying them raw would hand a
+    // reconnecting player exactly the hidden combatants the live path refused
+    // to send. Same redaction function the live path uses — the one in
+    // net/redaction.ts, never a second copy of the predicate.
+    if (documentType === "Combat") {
       return filterCombatDocOpForRole(op, payload);
     }
 
-    if (payload["documentType"] !== "Scene") return op;
+    if (documentType !== "Scene") return op;
 
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
@@ -631,6 +637,28 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { sceneId } = payload;
+
+    // REQ-CEN-045: a target that does not exist is a FAILURE, not a silent
+    // divergence. Without this, the reconcile below took every scene off the
+    // air, wrote a pointer naming nothing and broadcast it: the source of
+    // truth would name a scene with no body behind it, every client would
+    // render an empty canvas, and no resync would ever repair it (the snapshot
+    // reads the same broken pointer). Refuse before writing anything.
+    // `sceneId: null` stays legal — that is how "nothing on air" is expressed.
+    if (sceneId !== null) {
+      try {
+        deps.store.get("scenes", sceneId);
+      } catch (err) {
+        if (err instanceof DocumentNotFoundError) {
+          return {
+            ok: false,
+            code: "NOT_FOUND" as const,
+            message: `Scene not found: ${sceneId}`,
+          };
+        }
+        throw err;
+      }
+    }
 
     // T010: settings['_meta:activeScene'] is the source of truth — it is what
     // the join snapshot reads and what survives a restart. The `active` field

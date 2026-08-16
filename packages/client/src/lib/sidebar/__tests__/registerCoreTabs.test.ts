@@ -39,6 +39,8 @@ import {
 import type { SidebarPanelModule } from "../registry.js";
 import { formatSidebarBadge } from "../badges.svelte.js";
 import { chatStore } from "../../chat/chatStore.svelte.js";
+import { scenePrepareBadge, scenePrepareState } from "../../scenes/prepareState.svelte.js";
+import { activeSceneState } from "../../docs/activeScene.svelte.js";
 import SidebarRail from "../../../components/sidebar/SidebarRail.svelte";
 import "../../i18n/index.js";
 
@@ -270,9 +272,27 @@ describe("the core tabs register through the public call (G016)", () => {
     });
 
     it("REQ-GAV-020: tabs with no news carry no badge at all", () => {
-      for (const id of ["actors", "compendium", "scenes", "settings"]) {
+      for (const id of ["actors", "compendium", "settings"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
+    });
+
+    it("REQ-CEN-003: Cenas brings a state dot of its own, lit by the local prepare", () => {
+      // Spec 44 gave the Cenas tab a badge (REQ-CEN-003/004), so it left the list above.
+      // Its rule is the scenes' own — a prepare that differs from the scene on air — and
+      // the rail only reads it (REQ-GAV-023).
+      const badge = getSidebarTab("scenes")?.badge;
+      expect(badge).toBe(scenePrepareBadge);
+      expect(typeof badge?.value).toBe("boolean");
+
+      scenePrepareState.sceneId = null;
+      expect(formatSidebarBadge(badge?.value).kind).toBe("none");
+
+      activeSceneState.id = "on-air";
+      scenePrepareState.sceneId = "being-prepared";
+      expect(formatSidebarBadge(badge?.value)).toEqual({ kind: "dot", text: null });
+
+      scenePrepareState.sceneId = null;
     });
   });
 });

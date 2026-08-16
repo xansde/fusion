@@ -17,6 +17,7 @@
 
 import type { ChatMessage, RollResultData } from "@fusion/shared";
 import { toDegreeKey, getRollTotalClass, formatRoll, type DegreeKey } from "./messageFormatter.js";
+import { rollBreakdown } from "./rollDisplay.js";
 
 /** A caster attack/damage roll rendered as a compact line under the card. */
 export interface NestedRollLine {
@@ -24,8 +25,19 @@ export interface NestedRollLine {
   /** The roll's original formula (e.g. "1d20+9"). */
   formula: string;
   total: number;
+  /**
+   * Every die and every modifier of this child roll, e.g. "[3, 2] + 4"
+   * (REQ-ACH-022) — a nested line is never poorer than a loose roll card.
+   */
+  breakdown: string;
   /** Flavor label (e.g. "Ataque", "Arco Elétrico — Dano electricity"), if any. */
   flavor: string | null;
+  /**
+   * Degree of success when the server graded this roll (a strike, for example),
+   * or null. Saves live in the other bucket — this is REQ-ACH-022's "quando
+   * houver, o grau de sucesso" for the non-save children.
+   */
+  degree: DegreeKey | null;
   /** "crit" | "fumble" | "" — d20 single-die coloring (attack rolls). */
   totalClass: "crit" | "fumble" | "";
 }
@@ -36,6 +48,10 @@ export interface NestedSaveLine {
   /** Speaker alias (the target who rolled). */
   alias: string;
   total: number;
+  /** The save's formula (e.g. "1d20+8"). */
+  formula: string;
+  /** Every die and modifier of the save test, e.g. "[10] + 8" (REQ-ACH-023). */
+  breakdown: string;
   /** Narrowed degree key (for badge label/color), or null for an unknown grade. */
   degree: DegreeKey | null;
   /** Raw degree string (shown verbatim when it doesn't narrow to a key). */
@@ -61,12 +77,29 @@ function childDegree(msg: ChatMessage): string | null {
   return typeof deg === "string" && deg.length > 0 ? deg : null;
 }
 
-/** Read flags.pf2e.checkContext.basicSave off a graded save message. */
-function isBasicSave(msg: ChatMessage): boolean {
-  const cc = (msg.flags as Record<string, Record<string, unknown>> | undefined)?.["pf2e"]?.[
+/** Read flags.pf2e.checkContext off a graded message, or undefined. */
+function checkContextOf(msg: ChatMessage): Record<string, unknown> | undefined {
+  return (msg.flags as Record<string, Record<string, unknown>> | undefined)?.["pf2e"]?.[
     "checkContext"
   ] as Record<string, unknown> | undefined;
+}
+
+/** Read flags.pf2e.checkContext.basicSave off a graded save message. */
+function isBasicSave(msg: ChatMessage): boolean {
+  const cc = checkContextOf(msg);
   return cc?.["kind"] === "save" && cc["basicSave"] === true;
+}
+
+/**
+ * True when a graded child belongs in the "Salvaguardas" section. The server
+ * only grades save checkContexts today, so a graded child WITHOUT a context is
+ * still a save (that is how every message written before this existed reads);
+ * a graded child that explicitly declares another kind (a strike, say) is a roll
+ * line carrying its degree (REQ-ACH-022).
+ */
+function isSaveChild(msg: ChatMessage): boolean {
+  const kind = checkContextOf(msg)?.["kind"];
+  return kind === undefined || kind === "save";
 }
 
 /**
@@ -85,12 +118,14 @@ export function classifyNestedChildren(children: readonly ChatMessage[]): Nested
     if (!roll) continue; // no roll payload → nothing compact to show
 
     const degreeRaw = childDegree(child);
-    if (degreeRaw !== null) {
+    if (degreeRaw !== null && isSaveChild(child)) {
       // Graded save.
       saves.push({
         messageId: child._id,
         alias: child.speaker.alias,
         total: roll.total,
+        formula: roll.formula,
+        breakdown: rollBreakdown(roll),
         degree: toDegreeKey(degreeRaw),
         degreeRaw,
         basicSave: isBasicSave(child),
@@ -102,7 +137,9 @@ export function classifyNestedChildren(children: readonly ChatMessage[]): Nested
         messageId: child._id,
         formula: roll.formula,
         total: roll.total,
+        breakdown: rollBreakdown(roll),
         flavor: roll.flavor ?? null,
+        degree: toDegreeKey(degreeRaw ?? undefined),
         totalClass: getRollTotalClass(formatted),
       });
     }

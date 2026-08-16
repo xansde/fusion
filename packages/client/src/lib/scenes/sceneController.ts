@@ -25,12 +25,24 @@ import type { DocumentMirror } from "../docs/DocumentMirror.js";
 
 export interface SceneFormData {
   name: string;
+  /**
+   * The folder the scene is filed under, `null` for the unfiled group.
+   * REQ-CEN-061: filing is configuration, which is why the archive's drag only
+   * reorders inside a group and never moves a scene between folders.
+   */
+  folder: string | null;
   /** Scene width in pixels. */
   width: number;
   /** Scene height in pixels. */
   height: number;
   /** Grid cell size in pixels (min 50). */
   gridSize: number;
+  /**
+   * The colour painted under the scene — "preenchimento" of REQ-CEN-061. It is what
+   * a scene with no background image shows, and what stays under one that is still
+   * loading, so the head never flashes empty (REQ-CEN-012).
+   */
+  backgroundColor: string;
   /** Optional background URL or path. */
   background: string;
 }
@@ -40,8 +52,12 @@ export interface SceneFormErrors {
   width?: string;
   height?: string;
   gridSize?: string;
+  backgroundColor?: string;
   background?: string;
 }
+
+/** `#rgb` or `#rrggbb` — the shape every scene colour in the schema already has. */
+const HEX_COLOUR = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 // ---------------------------------------------------------------------------
 // Validation
@@ -78,6 +94,10 @@ export function validateSceneForm(data: SceneFormData): SceneFormErrors {
     errors.gridSize = "Grid size must not exceed 500 px.";
   }
 
+  if (!HEX_COLOUR.test(data.backgroundColor.trim())) {
+    errors.backgroundColor = "Fill colour must be a hex value such as #101018.";
+  }
+
   // background is optional; if present, just ensure it's a non-empty string
   if (data.background.trim() !== "" && data.background.trim().length > 1024) {
     errors.background = "Background path/URL must be 1 024 characters or fewer.";
@@ -97,9 +117,11 @@ export function isFormValid(errors: SceneFormErrors): boolean {
 export function defaultSceneFormData(): SceneFormData {
   return {
     name: "",
+    folder: null,
     width: 4000,
     height: 4000,
     gridSize: 100,
+    backgroundColor: "#000000",
     background: "",
   };
 }
@@ -112,15 +134,30 @@ export function defaultSceneFormData(): SceneFormData {
  * Create a new Scene document.
  * Resolves with the server-returned SceneDocument on success.
  * Rejects with OpError on failure.
+ *
+ * REQ-CEN-065: the new scene is born OFF air (`active: false`) and this function
+ * emits nothing else — creating a scene is not a way to put one on air, which has
+ * a single writer of its own (`activateScene`, DEC-CEN-02).
+ *
+ * `sort` is the position inside its folder; callers get it from
+ * `nextSortInFolder(scenes, folder)` so a new scene lands at the END of its group
+ * (REQ-CEN-031).
  */
-export async function createScene(socket: Socket, data: SceneFormData): Promise<SceneDocument> {
+export async function createScene(
+  socket: Socket,
+  data: SceneFormData,
+  sort = 0,
+): Promise<SceneDocument> {
   const id = createDocumentId();
 
   const sceneData: Record<string, unknown> = {
     _id: id,
     name: data.name.trim(),
+    folder: data.folder,
+    sort,
     width: data.width,
     height: data.height,
+    backgroundColor: data.backgroundColor.trim(),
     grid: {
       type: "square",
       size: data.gridSize,
@@ -155,8 +192,11 @@ export async function createScene(socket: Socket, data: SceneFormData): Promise<
 }
 
 /**
- * Update basic scene config (name, dimensions, grid, background).
- * Sends a minimal diff.
+ * Update basic scene config — REQ-CEN-061's six fields: name, folder, dimensions,
+ * fill colour, grid and background. Sends a minimal diff.
+ *
+ * `active` is deliberately absent: the generic document update refuses it anyway
+ * (REQ-CEN-042), and configuring a scene is not a way to put it on air.
  */
 export async function updateSceneConfig(
   socket: Socket,
@@ -172,9 +212,11 @@ export async function updateSceneConfig(
           _id: sceneId,
           diff: {
             name: data.name.trim(),
+            folder: data.folder,
             width: data.width,
             height: data.height,
             "grid.size": data.gridSize,
+            backgroundColor: data.backgroundColor.trim(),
             background: data.background.trim() || null,
           },
         },

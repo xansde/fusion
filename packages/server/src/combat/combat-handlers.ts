@@ -183,7 +183,7 @@ function combatActiveIsHidden(combat: Record<string, unknown>): boolean {
  * Uses per-socket iteration when the combat has hidden combatants; otherwise
  * falls back to the cheap namespace-wide emit.
  */
-function broadcastCombatUpdate(
+export function broadcastCombatUpdate(
   ns: Namespace,
   envelope: Envelope,
   combatDoc: Record<string, unknown>,
@@ -245,6 +245,86 @@ function broadcastCombatUpdate(
     } else {
       socket.emit("op", playerEnvelope);
     }
+  }
+}
+
+/**
+ * Broadcast a `doc:update` for a Combat document whose `_stats.version` was
+ * just bumped by a combat write.
+ *
+ * T036: every combat mutation goes through `store.update("combats", ...)`,
+ * which increments `_stats.version` — the same STALE_WRITE/`expectedVersion`
+ * counter doc-handlers.ts checks, and the one T013 will make mandatory.
+ * `combat:updated`'s payload is `{combatId, diff, seq}` and never carries
+ * `_stats`, so a connected client's `DocumentMirror._handleCombatUpdated`
+ * (a `{...existing, ...diff}` shallow merge) never advances the local
+ * `_stats.version`. Once `expectedVersion` is required, that client's
+ * `_stats.version` would be permanently stale and every future Combat write
+ * it attempts would be rejected as STALE_WRITE forever — the same failure
+ * mode T032 closed for Scene (sync-handlers.ts's
+ * broadcastSceneVersionUpdates) and Actor (this module's own
+ * `broadcastActorUpdate` re-export point, mirrored again in
+ * etmos/reacao-handler.ts). This is the SAME fix, same shape
+ * (`{documentType, documents}`), same "push to opBuffer before emit"
+ * ordering (REQ-NET-062), for Combat.
+ *
+ * Redaction (REQ-CBT-031): unlike Actor (never filtered by any doc:update
+ * path — see doc-handlers.ts's broadcastToWorld, which only special-cases
+ * Scene), Combat DOES carry player-hidden data (hidden combatants), so this
+ * path must never bypass redaction. Routes through the SAME
+ * stripHiddenCombatants (this module's re-export of
+ * stripHiddenCombatantsFromCombat) and the SAME per-socket privilege split
+ * broadcastCombatUpdate above already uses — never a second strip
+ * implementation, so the two paths cannot drift apart.
+ *
+ * Exported so etmos/reacao-handler.ts's two combat:updated call sites (the
+ * turnStart Reação reset and the etmos:reacao:usar spend) can reuse this
+ * exact redaction-aware broadcast instead of re-deriving it — a hand
+ * duplicate risks silently regressing REQ-CBT-031 the day only one copy
+ * gets updated.
+ *
+ * Volume tradeoff (deliberate, written down per T036's ask): this fires on
+ * EVERY combat write, once per existing combat:updated emission — doubling
+ * the wire traffic of that one event stream. Two leaner alternatives were
+ * considered and rejected as out of this handler's scope: (a) broadcasting
+ * only the changed `_stats` fragment instead of the full document, and
+ * (b) folding `_stats` into combat:updated's own payload. Both change the
+ * `doc:update`/`combat:updated` wire contract that DocumentMirror.ts (the
+ * client) parses — a protocol change, not a server-side fix. "Always emit"
+ * is also exactly the choice T032 made for Scene/Actor, so this keeps the
+ * three version-sync fixes consistent rather than inventing a fourth shape.
+ * Combat mutations are turn-by-turn/action-by-action, not per-frame, so the
+ * added traffic is bounded by the same cadence combat:updated already has.
+ */
+export function broadcastCombatVersionUpdate(
+  deps: { ns: Namespace; seqStore: SeqStore; opBuffer: OpBuffer },
+  combat: Record<string, unknown>,
+): void {
+  const seq = deps.seqStore.next();
+  const envelope: Envelope = {
+    type: "doc:update",
+    seq,
+    ts: Date.now(),
+    payload: { documentType: "Combat", documents: [combat] },
+  };
+  // REQ-NET-062: push BEFORE emitting — same ordering as every other
+  // doc:update broadcast site.
+  deps.opBuffer.push(envelope);
+
+  if (!combatHasHiddenCombatants(combat)) {
+    deps.ns.emit("op", envelope);
+    return;
+  }
+
+  const redactedCombat = stripHiddenCombatants(combat);
+  const playerEnvelope: Envelope = {
+    ...envelope,
+    payload: { documentType: "Combat", documents: [redactedCombat] },
+  };
+  for (const [, socket] of deps.ns.sockets) {
+    const data = socket.data as Record<string, unknown> | null | undefined;
+    const role = typeof data?.["role"] === "number" ? data["role"] : 0;
+    socket.emit("op", isRolePrivileged(role) ? envelope : playerEnvelope);
   }
 }
 
@@ -364,6 +444,10 @@ function broadcastUpdate(
   const updatedEnvelope = buildEnvelope("combat:updated", updatedPayload, seq);
   opBuffer.push(updatedEnvelope);
   broadcastCombatUpdate(ns, updatedEnvelope, combatPayload);
+
+  // T036: keep every client's DocumentMirror._stats.version in sync — see
+  // broadcastCombatVersionUpdate's docstring.
+  broadcastCombatVersionUpdate(deps, combatPayload);
 
   // combat:turnChange — emitted additionally for fast canvas turn marker update.
   if (prev !== undefined) {
@@ -1373,6 +1457,12 @@ export function buildCombatSetHiddenHandler(deps: CombatHandlerDeps): HandlerFn 
     const envelope = buildEnvelope("combat:updated", updatedPayload, seq);
     opBuffer.push(envelope);
     broadcastCombatUpdate(ns, envelope, combatPayload);
+
+    // T036: keep every client's DocumentMirror._stats.version in sync — see
+    // broadcastCombatVersionUpdate's docstring. Particularly relevant here:
+    // toggling `hidden` is exactly the write whose payload sensitivity
+    // changes with the new state, so this path must never skip redaction.
+    broadcastCombatVersionUpdate(deps, combatPayload);
 
     return ackOk({ combat: updatedCombat }, seq);
   };

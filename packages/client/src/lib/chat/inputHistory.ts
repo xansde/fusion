@@ -93,6 +93,18 @@ export class InputHistory {
     this._draft = "";
   }
 
+  /**
+   * Forget everything, entries included.
+   *
+   * The instance is session-scoped and lives outside the input component
+   * (REQ-ACH-026), so leaving a table has to empty it — otherwise the next world
+   * opens with the previous table's ↑ history in the box.
+   */
+  clear(): void {
+    this._entries = [];
+    this.resetNavigation();
+  }
+
   get cursor(): number {
     return this._cursor;
   }
