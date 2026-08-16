@@ -25,6 +25,7 @@
   } from "../../lib/chat/chatStore.svelte.js";
   import { ScrollStateManager, resolveMarkerAnchorId } from "../../lib/chat/scrollState.js";
   import { groupChatMessages } from "../../lib/chat/chatGrouping.js";
+  import { registerLogScroller } from "../../lib/chat/logScroller.js";
   import { t } from "../../lib/i18n/i18n.js";
   import ChatMessageComponent from "./ChatMessage.svelte";
 
@@ -128,6 +129,13 @@
   //  3. otherwise → the end, as always.
 
   onMount(() => {
+    // REQ-ACH-034: sending takes the log to its end, and the element that can do that
+    // lives here. The sender is a sibling, not a child, so the ability is published
+    // rather than threaded down.
+    registerLogScroller(() => {
+      scrollManager.forceScrollToBottom();
+    });
+
     if (positionAtUnreadMarker()) return;
 
     const saved = chatSession.scrollTop;
@@ -141,6 +149,7 @@
   });
 
   onDestroy(() => {
+    registerLogScroller(null);
     // Hand the position to the session before the component goes (REQ-ACH-026).
     if (logEl) chatSession.scrollTop = logEl.scrollTop;
   });
@@ -184,10 +193,10 @@
 <div class="chat-log-container">
   <!-- Load more indicator at top -->
   {#if chatStore.loadingMore}
-    <div class="chat-log__load-indicator">Loading…</div>
+    <div class="chat-log__load-indicator">{t("FUSION.Chat.Log.Loading")}</div>
   {:else if chatStore.hasMore}
     <div class="chat-log__load-indicator chat-log__load-indicator--hint">
-      Scroll up for more
+      {t("FUSION.Chat.Log.LoadMore")}
     </div>
   {/if}
 
@@ -202,9 +211,13 @@
     aria-atomic="false"
   >
     {#if chatStore.loadingInitial}
-      <p class="chat-log__loading">Loading messages…</p>
+      <p class="chat-log__loading">{t("FUSION.Chat.Log.Loading")}</p>
     {:else if chatStore.messages.length === 0}
-      <p class="chat-log__empty">No messages yet. Say something!</p>
+      <!-- Empty state per the mother spec's §7 contract, item 4 (REQ-ACH-020). -->
+      <p class="chat-log__empty">
+        {t("FUSION.Chat.Log.Empty")}
+        <span class="chat-log__empty-hint">{t("FUSION.Chat.Log.EmptyHint")}</span>
+      </p>
     {:else}
       {#each grouped.topLevel as msg (msg._id)}
         {#if markerAnchorId === msg._id}
@@ -219,6 +232,7 @@
           <ChatMessageComponent
             message={msg}
             children={grouped.childrenByParent.get(msg._id) ?? []}
+            continuesPrevious={grouped.continuations.has(msg._id)}
             {socket}
             {isGm}
             {userId}
@@ -284,6 +298,13 @@
     text-align: center;
     padding: 1.5rem 1rem;
     margin: 0;
+  }
+
+  .chat-log__empty-hint {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    opacity: 0.85;
   }
 
   .chat-log__error {
