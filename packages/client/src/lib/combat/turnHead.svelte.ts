@@ -24,7 +24,7 @@
  * system contract of REQ-SYS-043. This module knows a count and a boolean.
  */
 
-import type { ConditionTone } from "../conditions/conditionChip.js";
+import type { ConditionChipModel } from "../conditions/conditionChip.js";
 
 // ---------------------------------------------------------------------------
 // Theme tokens, mirrored
@@ -62,28 +62,23 @@ export const TURN_HEAD_CONDITION_ROW_CAPACITY = 3;
 // ---------------------------------------------------------------------------
 
 /**
- * What the head needs from a condition.
+ * What the head needs from a condition: the SHARED chip model, whole.
  *
  * `id` and `label` are the shape the geometry was built against — something to key on and
- * something to write — and they did not change when the declared contract arrived. The
- * three optional fields are that contract (REQ-SYS-043 with DEC-CTT-11, read by
- * REQ-CBA-050): they decide the chip's colour, its fill and its tooltip, never whether the
- * condition is drawn. `ConditionChipModel` from `lib/conditions/conditionChip.ts`
- * structurally satisfies this interface, so the panel passes its chips straight through.
+ * something to write. The rest is the declared contract (REQ-SYS-043 with DEC-CTT-11, read
+ * by REQ-CBA-050), which decides the chip's colour, its fill and its tooltip, never whether
+ * the condition is drawn.
+ *
+ * It is an ALIAS rather than a narrower copy on purpose: the head draws
+ * `components/common/ConditionChip.svelte`, the same component the contacts cards draw
+ * (spec 39 §5.4), and that component takes a `ConditionView` whole — slug, name and value
+ * included. A narrower local interface here would compile until the day the chip read one
+ * more declared field, and then fail at the call site instead of at the contract.
  *
  * Ordering is NOT this module's: it belongs to the contract (REQ-CBA-051), and arrives
  * already applied.
  */
-export interface TurnHeadCondition {
-  readonly id: string;
-  readonly label: string;
-  /** Declared effect on the bearer; absent ⇒ situation (REQ-CTT-035). */
-  readonly tone?: ConditionTone;
-  /** Declared as taking the participant out of the scene (REQ-CTT-032). */
-  readonly critical?: boolean;
-  /** Declared help text, or nothing for no tooltip (REQ-CTT-034). */
-  readonly help?: string | null;
-}
+export type TurnHeadCondition = ConditionChipModel;
 
 /**
  * Health of a participant, already resolved for the viewer's role.

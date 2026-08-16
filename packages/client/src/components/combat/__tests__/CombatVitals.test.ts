@@ -230,9 +230,20 @@ describe("the same encounter, two roles (REQ-CBA-040, REQ-CBA-041, REQ-CBA-053)"
 // The chip contract (REQ-CBA-050..052, REQ-CTT-030..038)
 // ---------------------------------------------------------------------------
 
+/**
+ * The chip is ONE component for the whole table (spec 39 §5.4, spec 40 REQ-CBA-050,
+ * spec 42 REQ-NPC-033): `components/common/ConditionChip.svelte`, taking a
+ * `ConditionView`. `buildConditionChip` produces exactly that shape, so the combat
+ * surfaces hand it their own model straight — no adapter, and no second chip that
+ * could drift from the one the contacts cards draw.
+ */
+function renderChipOf(overrides: Partial<ConditionChipModel> = {}): string {
+  return render(ConditionChip, { props: { condition: chip(overrides) } }).body;
+}
+
 describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050, REQ-CTT-030..038)", () => {
   it("REQ-CTT-030 / REQ-CBA-050: text tag with no icon and no image", () => {
-    const { body } = render(ConditionChip, { props: { label: "Amedrontado 2", tone: "harm" } });
+    const body = renderChipOf({ label: "Amedrontado 2", tone: "harm" });
 
     expect(body).toContain("Amedrontado 2");
     expect(body).not.toContain("<img");
@@ -241,51 +252,54 @@ describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050
 
   it("REQ-CTT-031: the tone is what selects the colour, and there are exactly three", () => {
     for (const tone of ["benefit", "harm", "special"] as const) {
-      const { body } = render(ConditionChip, { props: { label: "X", tone } });
-      expect(body).toContain(`condition-chip--${tone}`);
+      expect(renderChipOf({ label: "X", tone })).toContain(`condition-chip--${tone}`);
     }
 
     const style = styleOf("../../common/ConditionChip.svelte");
-    expect(style).toContain("--fusion-condition-benefit");
-    expect(style).toContain("--fusion-condition-harm");
-    expect(style).toContain("--fusion-condition-special");
+    expect(style).toContain("--fusion-success");
+    expect(style).toContain("--fusion-danger");
+    expect(style).toContain("--fusion-accent");
   });
 
   it("REQ-CTT-032: critical fills the chip in the tone it already has, and says the word", () => {
-    const { body } = render(ConditionChip, {
-      props: { label: "Inconsciente", tone: "harm", critical: true },
-    });
+    const body = renderChipOf({ label: "Inconsciente", tone: "harm", critical: true });
 
     expect(body).toContain("condition-chip--critical");
     expect(body).toContain("condition-chip--harm");
-    expect(body).toContain(t("FUSION.Condition.Critical"));
+    // REQ-CBA-094: the state is spelled out, so it never lives in the fill alone.
+    expect(body).toContain(t("FUSION.Conditions.Critical"));
 
-    // The fill is the tone's own dim variant — never a fourth colour.
+    // The fill is the tone's OWN ink — never a fourth colour.
     const style = styleOf("../../common/ConditionChip.svelte");
     const critical = /\.condition-chip--critical\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
-    expect(critical).toContain("var(--chip-fill)");
+    expect(critical).toContain("var(--chip-ink)");
+    expect(critical).not.toContain("--chip-ink:");
   });
 
   it("REQ-CTT-034: the help is a drawn tooltip, never the native `title`", () => {
-    const { body } = render(ConditionChip, {
-      props: { label: "Amedrontado 2", tone: "harm", help: "Penalidade em tudo." },
+    const body = renderChipOf({
+      label: "Amedrontado 2",
+      tone: "harm",
+      help: "Penalidade em tudo.",
     });
 
     expect(body).toContain('role="tooltip"');
     expect(body).toContain("Penalidade em tudo.");
-    expect(body).not.toContain("title=");
+    expect(body).not.toMatch(/\stitle=/);
   });
 
-  it("REQ-CTT-034 / REQ-CBA-093: the tipped chip stays a button, and the tip is wired to it", () => {
-    const { body } = render(ConditionChip, {
-      props: { label: "Amedrontado 2", tone: "harm", help: "Penalidade em tudo." },
+  it("REQ-CTT-034 / REQ-CBA-093: the tipped chip is a tab stop, and the tip is wired to it", () => {
+    const body = renderChipOf({
+      label: "Amedrontado 2",
+      tone: "harm",
+      help: "Penalidade em tudo.",
     });
 
-    // A tooltip trigger has to be reachable and announceable as a control (REQ-UIF-064).
-    // `role="note"` on this branch would override the button's implicit role and turn the
-    // tab stop into static prose.
-    expect(body).toContain("<button");
-    expect(body).not.toContain('role="note"');
+    // A tooltip trigger has to be reachable without a pointer (REQ-UIF-064). It is NOT a
+    // control — activating it does nothing — so it is a focusable span rather than a
+    // <button> that would promise an action the chip does not have.
+    expect(body).toMatch(/tabindex="0"/);
+    expect(body).not.toContain("<button");
 
     // The drawn tip is the only carrier of the help and of the whole label (REQ-CTT-038),
     // so it has to be pointed at by name, not merely displayed on hover.
@@ -296,17 +310,18 @@ describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050
   });
 
   it("REQ-CTT-035: no help means no tooltip, and the chip is still drawn", () => {
-    const { body } = render(ConditionChip, { props: { label: "Enfeitiçado" } });
+    const body = renderChipOf({ label: "Enfeitiçado", tone: "special", help: null });
 
     expect(body).toContain("Enfeitiçado");
     expect(body).not.toContain('role="tooltip"');
     // No declared tone degrades to a situation instead of hiding the condition.
     expect(body).toContain("condition-chip--special");
-    // Inert text: no tab stop, nothing to describe — and `role="note"` is what lets the
-    // bare <span> carry its accessible name at all, which a role-less element cannot.
+    // Inert text: no tab stop and nothing to describe. The tone still reaches a reader
+    // through the chip's hidden textual equivalent, never through the hue alone.
     expect(body).not.toContain("<button");
-    expect(body).toContain('role="note"');
+    expect(body).not.toContain("tabindex");
     expect(body).not.toContain("aria-describedby");
+    expect(body).toContain("condition-chip__meaning");
   });
 
   it("REQ-CTT-033 / REQ-CTT-038: the value rides the label in tabular numerals, and truncation keeps it whole", () => {
@@ -314,11 +329,9 @@ describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050
     expect(style).toContain("font-variant-numeric: tabular-nums");
     expect(style).toContain("text-overflow: ellipsis");
 
-    const { body } = render(ConditionChip, {
-      props: { label: "Amedrontado 2", tone: "harm", help: "ajuda" },
-    });
     // The tip repeats the label in full, so an ellipsis never hides what the chip says.
-    expect(body).toContain("condition-chip__tip-label");
+    const body = renderChipOf({ label: "Amedrontado 2", tone: "harm", help: "ajuda" });
+    expect(body).toContain("condition-chip__tooltip-label");
   });
 });
 

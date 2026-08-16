@@ -182,12 +182,7 @@
                critical, drawn tooltip — so the head, the queue and a contact card cannot
                drift apart (DEC-CTT-11). -->
           <li class="turn-head__condition">
-            <ConditionChip
-              label={condition.label}
-              tone={condition.tone}
-              critical={condition.critical}
-              help={condition.help}
-            />
+            <ConditionChip condition={condition} tooltipId={`turn-head-${condition.id}`} />
           </li>
         {/each}
 

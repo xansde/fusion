@@ -44,6 +44,11 @@ export const EnvelopeTypeSchema = z.union([
   // Built-in system handlers (M0-C)
   z.literal("system:ping"),
   z.literal("system:whoami"),
+  // Spec 15 REQ-SYS-043 / spec 39 DEC-CTT-11: the display contract of every
+  // condition the active system registered. The UI knows no condition — it
+  // paints what the system declared — and the client cannot import a game
+  // system package, so the dictionary travels over the wire.
+  z.literal("system:conditions"),
   z.literal("resync:request"),
   z.literal("resync:delta"),
   z.literal("resync:full"),
@@ -61,6 +66,10 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("chat:context"),
   // Invalidate/revalidate one message — REQ-CHT-005 (nothing is ever deleted)
   z.literal("chat:invalidate"),
+  // Spec 39 — contact knowledge (general rule + per-character exceptions).
+  // The one way in: doc:update refuses the flag path outright, so knowledge
+  // never rides an ordinary document write (REQ-CTT-070/072/080).
+  z.literal("actor:setKnowledge"),
   // M2-A: vision — walls, lights, door state
   z.literal("wall:create"),
   z.literal("wall:update"),

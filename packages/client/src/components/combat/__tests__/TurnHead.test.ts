@@ -27,6 +27,7 @@ import TurnHead from "../TurnHead.svelte";
 import CombatPanelSourceMarker from "../CombatPanel.svelte";
 import { TURN_HEAD_HEIGHT_TOKEN, TurnHeadState } from "../../../lib/combat/turnHead.svelte.js";
 import type { TurnHeadCondition } from "../../../lib/combat/turnHead.svelte.js";
+import { buildConditionChip } from "../../../lib/conditions/conditionChip.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -35,10 +36,16 @@ import { t } from "../../../lib/i18n/i18n.js";
 void CombatPanelSourceMarker;
 
 function conditions(count: number): TurnHeadCondition[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `cond-${String(i)}`,
-    label: `Condição ${String(i)}`,
-  }));
+  // The head takes the SHARED chip model whole (it draws `common/ConditionChip.svelte`),
+  // so the fixture builds one rather than a narrower literal.
+  return Array.from({ length: count }, (_, i) =>
+    buildConditionChip({
+      id: `cond-${String(i)}`,
+      slug: `cond-${String(i)}`,
+      name: `Condição ${String(i)}`,
+      value: null,
+    }),
+  );
 }
 
 interface HeadOptions {

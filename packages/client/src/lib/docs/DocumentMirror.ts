@@ -220,7 +220,7 @@ export class DocumentMirror {
         // Server broadcasts { documentType, documents: [...] } for both
         // create and update (complete post-merge documents).
         this._handleUpsert(
-          op.payload as { documentType: string; documents: unknown[] },
+          op.payload as { documentType: string; documents: unknown[]; removedIds?: unknown },
           affectedTypes,
         );
         break;
@@ -266,17 +266,31 @@ export class DocumentMirror {
    * where each element is the complete post-merge document state.
    * For create: inserts new docs. For update: replaces existing docs by _id
    * (server sends the full post-merge state, so no diff application needed).
+   *
+   * `removedIds` is the delta's other half: ids the SERVER's redaction dropped
+   * from this viewer's copy of the batch (spec 39, REQ-CTT-075 — a contact
+   * lowered to `oculto`). An upsert-only mirror would keep showing them until
+   * the next reload, so they are forgotten here, before the upsert, on the very
+   * same op — no extra envelope, so the seq stays contiguous. It is NOT a
+   * deletion of the document in the world: only this client stops holding it.
    */
   private _handleUpsert(
-    payload: { documentType: string; documents: unknown[] },
+    payload: { documentType: string; documents: unknown[]; removedIds?: unknown },
     affected: Set<string>,
   ): void {
-    const { documentType, documents } = payload;
+    const { documentType, documents, removedIds } = payload;
     if (!this._store.has(documentType)) {
       this._store.set(documentType, new Map());
     }
     const byId = this._store.get(documentType) ?? new Map<string, unknown>();
     this._store.set(documentType, byId);
+    if (Array.isArray(removedIds)) {
+      for (const id of removedIds) {
+        if (typeof id === "string" && byId.delete(id)) {
+          affected.add(documentType);
+        }
+      }
+    }
     for (const item of documents) {
       const d = item as Record<string, unknown>;
       if (typeof d["_id"] === "string") {

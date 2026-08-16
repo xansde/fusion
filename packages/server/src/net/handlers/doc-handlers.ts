@@ -74,12 +74,20 @@ import {
   TokenDocumentSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
-import { createDocumentId } from "@fusion/shared";
+import { createDocumentId, touchesKnowledgeFlag, KNOWLEDGE_FLAG_PATH } from "@fusion/shared";
+import {
+  sweepCharactersFromKnowledge,
+  sanitizeKnowledgeOnCreate,
+  isCharacterActor,
+} from "../../documents/knowledge.js";
 import {
   redactCombatDocsForNonPrivileged,
   redactSceneDocsForNonPrivileged,
   sceneIsInvisibleToRole,
   sceneIsOnAir,
+  redactActorDocsForViewer,
+  buildContactViewer,
+  getContactKnowledgeSource,
 } from "../redaction.js";
 import {
   validateAugmentationSlotLimit,
@@ -278,6 +286,20 @@ function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
 ): Ack<never> | null {
+  // `Actor.flags.fusion.knowledge` (spec 39 §5.8): contact knowledge is a
+  // field of the contact's own document, but this path authorizes on
+  // `ownership` — and a player who owns their own sheet would then be able to
+  // write who knows whom, which REQ-CTT-080 says the server must verify.
+  // `actor:setKnowledge` is the one way in: privileged-only, and it normalizes
+  // the map before writing (an exception equal to the general rule is removed,
+  // REQ-CTT-072) — a normalization the generic deep merge cannot perform.
+  if (documentType === "Actor" && touchesKnowledgeFlag(expandedDiff)) {
+    return ackError(
+      "VALIDATION_FAILED",
+      `${KNOWLEDGE_FLAG_PATH} is not writable through doc:update — use the actor:setKnowledge operation`,
+    );
+  }
+
   if (documentType === "Scene" && "active" in expandedDiff) {
     return ackError(
       "VALIDATION_FAILED",
@@ -844,6 +866,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         let item: Record<string, unknown> = rawItem as Record<string, unknown>;
         if (documentType === "Actor") {
           item = stripSystemDerived(item);
+          // REQ-CTT-072/080: knowledge arriving at creation is normalized for a
+          // privileged creator and dropped for anyone else — otherwise the
+          // player-companion path (r17-P1) would be a way to author knowledge
+          // that doc:update refuses.
+          item = sanitizeKnowledgeOnCreate(item, isPrivileged(ctx.role));
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1165,6 +1192,21 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // after the delete the `active` mirror is gone with the document, and the
     // broadcast would have no way to tell the scene the players already knew
     // from the ones whose very existence is privileged.
+    // REQ-CTT-076: which of the ids being deleted are player characters must
+    // also be read BEFORE the rows go — after the delete the subtype is gone
+    // with the document, and there would be no way to tell which contacts'
+    // exceptions have to be swept.
+    const deletedCharacterIds: string[] = [];
+    if (documentType === "Actor") {
+      for (const id of ids) {
+        try {
+          if (isCharacterActor(deps.store.get("actors", id))) deletedCharacterIds.push(id);
+        } catch {
+          // Missing document — the delete loop below reports NOT_FOUND.
+        }
+      }
+    }
+
     const onAirSceneIds = new Set<string>();
     if (documentType === "Scene") {
       for (const id of ids) {
@@ -1213,6 +1255,28 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // Broadcast delete to all clients (no ownership filter for deletes — everyone
     // must remove). Scene deletes go per-socket: see broadcastToWorld.
     broadcastToWorld(deps.ns, envelope, documentType, onAirSceneIds);
+
+    // REQ-CTT-076: a deleted character leaves its exceptions behind in every
+    // contact that named it — rules about a character that no longer exists,
+    // which the "Quem conhece quem" grid could never reach again because the
+    // column is gone. Sweep them now, leaving every general rule as it was,
+    // and broadcast the resulting document changes as their own delta so no
+    // client has to reload to be rid of them (REQ-CTT-075).
+    if (deletedCharacterIds.length > 0) {
+      const swept = sweepCharactersFromKnowledge(deps.store, deletedCharacterIds, {
+        userId: ctx.userId,
+      });
+      if (swept.length > 0) {
+        const sweepSeq = deps.seqStore.next();
+        const sweepEnvelope = buildBroadcastEnvelope(
+          "doc:update",
+          { documentType: "Actor", documents: swept },
+          sweepSeq,
+        );
+        deps.opBuffer.push(sweepEnvelope);
+        broadcastToWorld(deps.ns, sweepEnvelope, "Actor");
+      }
+    }
 
     return ackOk({ documentType, ids: deletedIds }, seq);
   };
@@ -1767,6 +1831,61 @@ function broadcastToWorld(
         payload: { ...payload, ids: visibleIds },
       };
       emitByRole(ns, envelope, playerEnvelope);
+      return;
+    }
+  }
+
+  // Actor envelopes ALSO go per-socket, and per USER rather than per role:
+  // contact knowledge is resolved over the characters each user owns
+  // (REQ-CTT-071), so two players on the same role can be owed different
+  // bodies of the same document. Everything is decided inside
+  // `redactActorDocsForViewer` — this site only chooses who gets which copy
+  // (REQ-CTT-083: no emission path may bypass the module).
+  if (
+    documentType === "Actor" &&
+    (envelope.type === "doc:create" || envelope.type === "doc:update")
+  ) {
+    const payload = envelope.payload as {
+      documentType: string;
+      documents?: Record<string, unknown>[];
+    };
+    if (Array.isArray(payload.documents)) {
+      const documents = payload.documents;
+      const source = getContactKnowledgeSource(ns);
+      // One redacted copy per USER, not per socket: the same person on two
+      // devices is owed the same body, and the Actor table is read once.
+      const byUser = new Map<string, Envelope>();
+      for (const [, socket] of ns.sockets) {
+        if (socketIsPrivileged(socket)) {
+          socket.emit("op", envelope);
+          continue;
+        }
+        const data = socket.data as Record<string, unknown> | null | undefined;
+        const rawUserId = data?.["userId"];
+        const rawRole = data?.["role"];
+        const userId = typeof rawUserId === "string" ? rawUserId : "";
+        const role = typeof rawRole === "number" ? rawRole : 0;
+        let playerEnvelope = byUser.get(userId);
+        if (!playerEnvelope) {
+          const viewer = buildContactViewer(source, userId, role);
+          const redacted = redactActorDocsForViewer(documents, viewer);
+          // REQ-CTT-075: dropping the body is only half of the delta. The
+          // client mirror upserts, so a contact lowered to `hidden` would stay
+          // on the player's screen until a reload unless the very same
+          // envelope names it as gone. Carried on the ordinary op — never a
+          // second envelope — because the mirror gates on a contiguous seq.
+          playerEnvelope = {
+            ...envelope,
+            payload: {
+              ...payload,
+              documents: redacted.documents,
+              ...(redacted.removedIds.length > 0 ? { removedIds: redacted.removedIds } : {}),
+            },
+          };
+          byUser.set(userId, playerEnvelope);
+        }
+        socket.emit("op", playerEnvelope);
+      }
       return;
     }
   }

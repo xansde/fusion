@@ -349,12 +349,10 @@
         >
           {#each chips.slice(0, TURN_HEAD_CONDITION_TAG_LIMIT) as chip (chip.id)}
             <li class="combatant-row__condition">
-              <ConditionChip
-                label={chip.label}
-                tone={chip.tone}
-                critical={chip.critical}
-                help={chip.help}
-              />
+              <!-- `ConditionChipModel` já é, campo a campo, o `ConditionView` que o chip
+                   compartilhado desenha (spec 39 §5.4) — o prefixo do tooltip inclui a
+                   linha porque a mesma condição aparece em vários combatentes. -->
+              <ConditionChip condition={chip} tooltipId={`queue-${row.id}-${chip.id}`} />
             </li>
           {/each}
           {#if chips.length > TURN_HEAD_CONDITION_TAG_LIMIT}

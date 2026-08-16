@@ -30,12 +30,19 @@ import {
   turnKeyOf,
 } from "../turnHead.svelte.js";
 import type { TurnHeadCondition } from "../turnHead.svelte.js";
+import { buildConditionChip } from "../../conditions/conditionChip.js";
 
 function conditions(count: number): TurnHeadCondition[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `cond-${String(i)}`,
-    label: `Condição ${String(i)}`,
-  }));
+  // The head takes the SHARED chip model whole, so the fixture builds one instead of
+  // hand-writing a narrower literal that would drift from the contract.
+  return Array.from({ length: count }, (_, i) =>
+    buildConditionChip({
+      id: `cond-${String(i)}`,
+      slug: `cond-${String(i)}`,
+      name: `Condição ${String(i)}`,
+      value: null,
+    }),
+  );
 }
 
 // ---------------------------------------------------------------------------

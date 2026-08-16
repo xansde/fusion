@@ -13,10 +13,11 @@
  *
  * Two consequences of that bridge are visible here and are deliberate:
  *
- *  - the second slot of the "all" group is the old **Atores** directory standing in
- *    for **Contatos** (DEC-GAV-01). Contatos and NPCs are content decisions of specs
- *    39 and 42; splitting the directory before those exist would be redesigning the
- *    panel, which G016 must not do. The position is already the final one.
+ *  - the second slot of the "all" group is **Contatos** (spec 39, REQ-CTT-001), and
+ *    the old **Atores** directory now sits right after it. The directory did not go
+ *    away with spec 39 and must not: it is the only UI that creates and deletes an
+ *    Actor, which DEC-CTT-01 deliberately kept out of the Contatos list. It leaves
+ *    when the NPCs tab (spec 42) takes authoring over.
  *  - **Configurações** is a placeholder panel with nothing but its empty state
  *    (spec 36 §7.4) until spec 37 lands; the tab itself already sits in the rail
  *    footer, which is what DEC-GAV-09/REQ-CFG-001 ask for.
@@ -27,11 +28,13 @@
 
 import { chatStore } from "../chat/chatStore.svelte.js";
 import { combatBadgeLit, combatBadgeTone } from "../combat/combatBadge.svelte.js";
+import { contactsStateDot } from "../contacts/knowledgeBadge.js";
 import {
   chatIcon,
   combatIcon,
   compendiumIcon,
   contactsIcon,
+  npcsIcon,
   scenesIcon,
   settingsIcon,
 } from "../../components/sidebar/icons.js";
@@ -76,6 +79,17 @@ export const combatActiveBadge: SidebarBadgeStore = {
 };
 
 /**
+ * Contatos' "someone has been introduced" dot (REQ-GAV-020 state-dot type).
+ *
+ * The rule that lights it and puts it out is spec 39's own (REQ-CTT-002..004), kept
+ * in `lib/contacts/knowledgeBadge.ts`: it lights when a contact rises in state for
+ * one of the viewer's characters while the tab is closed, never lights for a
+ * privileged seat, and goes out when the panel is opened. The rail only reads it
+ * (REQ-GAV-022, REQ-GAV-023).
+ */
+export const contactsKnowledgeBadge: SidebarBadgeStore = contactsStateDot;
+
+/**
  * Cenas' "you are not looking at the table's scene" dot (REQ-CEN-003, state-dot type).
  *
  * Re-exported from the scenes' own module for the same reason as the two above: the rule
@@ -102,14 +116,17 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     badge: chatUnreadBadge,
   },
   {
-    // Provisional occupant of the Contatos slot — see the module header.
-    id: "actors",
+    // REQ-CTT-001: id "contacts", group "all", second of the group, with its own
+    // drawn icon and an i18n label. REQ-CTT-002: one badge, and it is a state dot.
+    id: "contacts",
     icon: contactsIcon,
-    label: "FUSION.Sidebar.Tabs.Actors",
+    label: "FUSION.Sidebar.Tabs.Contacts",
     group: "all",
-    component: () => import("../../components/actors/ActorDirectory.svelte"),
+    component: () => import("../../components/contacts/ContactsPanel.svelte"),
+    badge: contactsKnowledgeBadge,
   },
   {
+    // REQ-CBA-001: id "combat", group "all", third of the group.
     id: "combat",
     icon: combatIcon,
     label: "FUSION.Sidebar.Tabs.Combat",
@@ -123,6 +140,23 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     label: "FUSION.Sidebar.Tabs.Compendium",
     group: "all",
     component: () => import("../../components/compendium/CompendiumBrowser.svelte"),
+  },
+  {
+    // The old Atores directory, kept ALIVE on purpose (DEC-CTT-01): it is still the
+    // only UI in the client that creates and deletes an Actor, and spec 39 took both
+    // out of the player's list. Removing it before the NPCs tab (spec 42) exists
+    // would leave the table with no way to create an actor at all — the declared
+    // debt of DEC-CTT-01, which the NPCs phase pays. It borrows the NPCs icon so the
+    // rail does not show the same glyph twice.
+    //
+    // It sits at the END of the "all" group, where REQ-GAV-031 puts a tab that is not
+    // one of the four of REQ-GAV-003 — so Contatos stays second (REQ-CTT-001) and
+    // Combate stays third (REQ-CBA-001) instead of being pushed down by a placeholder.
+    id: "actors",
+    icon: npcsIcon,
+    label: "FUSION.Sidebar.Tabs.Actors",
+    group: "all",
+    component: () => import("../../components/actors/ActorDirectory.svelte"),
   },
   {
     // REQ-CEN-001: id "scenes", group "gm", in the middle block; it is also the

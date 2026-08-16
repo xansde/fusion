@@ -44,7 +44,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
-import { PROTOCOL_VERSION } from "@fusion/shared";
+import { PROTOCOL_VERSION, KnowledgeState } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Harness (mirrors combat-hidden-payload-g056.test.ts)
@@ -297,6 +297,16 @@ describe("REQ-CBA-053 — a fonte de condição no payload do jogador", { timeou
       unknown
     >[];
     expect(created.length).toBe(3);
+
+    // Spec 39 (REQ-CTT-082): an NPC is a CONTACT, and a contact is hidden from a player
+    // until the Mestre introduces it — ownership alone stopped being enough to deliver
+    // its body. So the "shared" ally is introduced here, which is what makes it reach the
+    // player's payload with its condition items. The Goblin is deliberately left
+    // uninitiated: it is the LIMITE half of this file, and stays out of the payload.
+    const introduced = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [{ actorId: created[1]!["_id"] as string, general: KnowledgeState.Known }],
+    });
+    expect(introduced["ok"]).toBe(true);
 
     const createAck = await sendOp(gmSocket, "combat:create", { sceneId });
     const combatId = (
