@@ -96,6 +96,8 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("compendium:list"),
   z.literal("compendium:index"),
   z.literal("compendium:search"),
+  // One search over every pack the CALLER can see — REQ-CPD-030, REQ-CMP-013a
+  z.literal("compendium:searchAll"),
   z.literal("compendium:get"),
   z.literal("compendium:import"),
   // server → client compendium events

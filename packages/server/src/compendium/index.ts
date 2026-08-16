@@ -16,6 +16,7 @@ export {
   buildCompendiumListHandler,
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
+  buildCompendiumSearchAllHandler,
   buildCompendiumGetHandler,
   buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,

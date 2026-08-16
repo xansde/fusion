@@ -8,6 +8,7 @@
  *   compendium:list             — list available packs (all roles)
  *   compendium:index            — get pack index (all roles)
  *   compendium:search           — search/filter pack index (all roles)
+ *   compendium:searchAll        — search every VISIBLE pack at once (all roles)
  *   compendium:get              — load full document (all roles)
  *   compendium:i18nBySourceRef  — resolve pt-BR overlay by origin ref (all roles)
  *   compendium:import           — import doc(s) to world (GM/ASSISTANT only)
@@ -36,6 +37,7 @@ import {
   CompendiumListPayloadSchema,
   CompendiumIndexPayloadSchema,
   CompendiumSearchPayloadSchema,
+  CompendiumSearchAllPayloadSchema,
   CompendiumGetPayloadSchema,
   CompendiumI18nBySourceRefPayloadSchema,
   CompendiumImportPayloadSchema,
@@ -148,6 +150,44 @@ export function buildCompendiumSearchHandler(deps: CompendiumHandlerDeps): Handl
     }
 
     return { ok: true, result: { packId: parsed.data.packId, entries } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// compendium:searchAll — one search over every pack the CALLER can see
+// REQ-CPD-030..032, REQ-CMP-013a/013b, RNF-CPD-01
+// ---------------------------------------------------------------------------
+
+/**
+ * The aggregated counterpart of `compendium:search`. There is no `packId` in
+ * the payload: the scope IS "every pack visible to this role", resolved from
+ * `ctx.role` — the role the socket authenticated with — inside the service
+ * (REQ-CPD-030, REQ-CMP-013a).
+ *
+ * There is no permission branch here on purpose. A player is allowed to run
+ * this search; what changes is what the search can SEE, and that is decided by
+ * the one audience predicate in CompendiumService (REQ-CPD-071). A hidden pack
+ * contributes no entry, no group and no count, so the answer a player gets is
+ * the answer he would get if the pack had never been published (REQ-SEC-020).
+ *
+ * The response is already grouped, counted and truncated by the server
+ * (REQ-CPD-031/032): the client never receives — and therefore never has to
+ * download — the whole acervo to search it (DEC-CPD-02, DEC-CMP-02).
+ */
+export function buildCompendiumSearchAllHandler(deps: CompendiumHandlerDeps): HandlerFn {
+  return (payload, ctx): Ack => {
+    const parsed = CompendiumSearchAllPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Invalid compendium:searchAll payload",
+      };
+    }
+
+    const result = deps.compendium.searchAllPacks(ctx.role, parsed.data);
+
+    return { ok: true, result };
   };
 }
 

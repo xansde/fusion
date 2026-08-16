@@ -13,6 +13,8 @@ import type {
   PackManifest,
   PackIndexEntry,
   CompendiumSearchPayload,
+  CompendiumSearchAllPayload,
+  CompendiumSearchAllResult,
   CompendiumImportResult,
 } from "@fusion/shared";
 import { sendOp } from "../docs/sendOp.js";
@@ -136,6 +138,27 @@ export function searchPack(
   query: CompendiumSearchPayload,
 ): Promise<SearchPackResult> {
   return sendQuery<SearchPackResult>(socket, "compendium:search", query);
+}
+
+/**
+ * Name of the aggregated-search query (spec 43, DEC-CPD-02 / REQ-CPD-030).
+ * The server owns the index of every pack visible to the caller and answers
+ * already limited — this is NOT N `compendium:search` calls stitched together
+ * on the client, which would mean downloading the whole collection to search it.
+ */
+export const COMPENDIUM_SEARCH_ALL_QUERY = "compendium:searchAll";
+
+/**
+ * Search every pack visible to the caller, grouped by document type.
+ * REQ-CPD-030..032. The panel reads the answer through
+ * `normalizeAggregatedSearchResult`, which tolerates a shape it did not expect
+ * instead of throwing inside the render.
+ */
+export function searchAllPacks(
+  socket: Socket,
+  payload: CompendiumSearchAllPayload,
+): Promise<CompendiumSearchAllResult> {
+  return sendQuery<CompendiumSearchAllResult>(socket, COMPENDIUM_SEARCH_ALL_QUERY, payload);
 }
 
 export interface GetDocumentResult {

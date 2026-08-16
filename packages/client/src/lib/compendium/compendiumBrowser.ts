@@ -13,7 +13,12 @@
 
 import type { PackManifest, PackIndexEntry } from "@fusion/shared";
 import { searchPackIndex, normalizeSearchText } from "@fusion/shared";
-import type { CompendiumSearchPayload } from "@fusion/shared";
+import type {
+  CompendiumSearchPayload,
+  CompendiumSearchAllPayload,
+  CompendiumSearchFilters,
+} from "@fusion/shared";
+import type { ScopedSearchQuery } from "./browserScope.js";
 import type { SupportedLocale } from "../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
@@ -182,6 +187,182 @@ export function buildSearchQuery(
     text: state.text || undefined,
     filters: Object.keys(filters).length > 0 ? filters : undefined,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Aggregated search across every visible pack
+// REQ-CPD-012 (the body at root scope), DEC-CPD-02 (the server owns the index)
+// ---------------------------------------------------------------------------
+
+/** One line of an aggregated result: an entry plus the pack it came from. */
+export interface AggregatedSearchLine {
+  readonly entry: PackIndexEntry;
+  readonly packId: string;
+  /** Pack label, so the line can name its source without the manifest. */
+  readonly packLabel: string;
+  readonly documentType: string;
+}
+
+/** The lines of one document type, plus how many the server left out. */
+export interface AggregatedSearchGroup {
+  readonly documentType: string;
+  /** Matches in this group BEFORE the server's per-group limit. */
+  readonly total: number;
+  readonly lines: readonly AggregatedSearchLine[];
+  /** `total - lines.length`, never negative — what the group could not show. */
+  readonly omitted: number;
+}
+
+/** What the panel renders in aggregated-result mode. */
+export interface AggregatedSearchResult {
+  readonly groups: readonly AggregatedSearchGroup[];
+}
+
+/** i18n key for a document type heading; falls back to the raw type via `t()`. */
+export function documentTypeLabelKey(documentType: string): string {
+  return `FUSION.Compendium.DocType.${documentType}`;
+}
+
+/**
+ * Turn the current scope's question into the `compendium:searchAll` payload.
+ *
+ * The facets that ARE index fields travel as `filters`, in exactly the shape the
+ * per-pack search uses — a facet must not mean one thing in one scope and
+ * another in the other (REQ-CPD-034). A scope confined to a pack never reaches
+ * here: that search is answered by the pack's own index (REQ-CPD-014).
+ */
+export function buildSearchAllPayload(query: ScopedSearchQuery): CompendiumSearchAllPayload {
+  const filters: CompendiumSearchFilters = {};
+
+  const { minLevel, maxLevel, rarity } = query.facets;
+  if (minLevel !== undefined || maxLevel !== undefined) {
+    filters["system.level.value"] = {
+      ...(minLevel !== undefined ? { gte: minLevel } : {}),
+      ...(maxLevel !== undefined ? { lte: maxLevel } : {}),
+    };
+  }
+  if (rarity !== undefined) filters["system.traits.rarity"] = rarity;
+
+  return {
+    ...(query.text !== undefined ? { text: query.text } : {}),
+    ...(Object.keys(filters).length > 0 ? { filters } : {}),
+  };
+}
+
+/**
+ * Read a server aggregated-search answer into the shape the body renders.
+ *
+ * Tolerant on purpose: the ack is JSON off the wire, and a missing count or an
+ * unexpected line must degrade to "show what came" instead of tearing the panel
+ * down mid-search. Two shapes are accepted — already grouped (what the handler
+ * of REQ-CPD-031 returns) and a flat list of lines, which is grouped here by
+ * document type.
+ */
+export function normalizeAggregatedSearchResult(raw: unknown): AggregatedSearchResult {
+  const root = asRecord(raw);
+  if (!root) return { groups: [] };
+
+  const rawGroups = root["groups"];
+  if (Array.isArray(rawGroups)) {
+    const groups: AggregatedSearchGroup[] = [];
+    for (const item of rawGroups) {
+      const group = asRecord(item);
+      if (!group) continue;
+      const lines = readLines(
+        group["lines"] ?? group["entries"],
+        readString(group["documentType"]),
+      );
+      const documentType =
+        readString(group["documentType"]) ?? lines[0]?.documentType ?? UNKNOWN_DOCUMENT_TYPE;
+      const total = readCount(group["total"], lines.length);
+      groups.push({
+        documentType,
+        total,
+        lines,
+        omitted: Math.max(0, total - lines.length),
+      });
+    }
+    return { groups };
+  }
+
+  const flat = readLines(root["lines"] ?? root["entries"], undefined);
+  return { groups: groupLinesByType(flat) };
+}
+
+const UNKNOWN_DOCUMENT_TYPE = "Unknown";
+
+function groupLinesByType(lines: readonly AggregatedSearchLine[]): AggregatedSearchGroup[] {
+  const byType = new Map<string, AggregatedSearchLine[]>();
+  for (const line of lines) {
+    const bucket = byType.get(line.documentType);
+    if (bucket) bucket.push(line);
+    else byType.set(line.documentType, [line]);
+  }
+  return [...byType].map(([documentType, groupLines]) => ({
+    documentType,
+    total: groupLines.length,
+    lines: groupLines,
+    omitted: 0,
+  }));
+}
+
+function readLines(raw: unknown, groupType: string | undefined): AggregatedSearchLine[] {
+  if (!Array.isArray(raw)) return [];
+  const lines: AggregatedSearchLine[] = [];
+  for (const item of raw) {
+    const line = readLine(item, groupType);
+    if (line) lines.push(line);
+  }
+  return lines;
+}
+
+function readLine(raw: unknown, groupType: string | undefined): AggregatedSearchLine | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  // Either { entry, packId, packLabel } or a flattened entry carrying the source.
+  const entryRecord = asRecord(record["entry"]) ?? record;
+  const uuid = readString(entryRecord["uuid"]);
+  const name = readString(entryRecord["name"]);
+  if (uuid === undefined || name === undefined) return null;
+
+  const packId = readString(record["packId"]) ?? packIdFromUuid(uuid) ?? "";
+  return {
+    entry: entryRecord as unknown as PackIndexEntry,
+    packId,
+    packLabel: readString(record["packLabel"]) ?? packId,
+    documentType:
+      readString(record["documentType"]) ??
+      groupType ??
+      documentTypeFromUuid(uuid) ??
+      UNKNOWN_DOCUMENT_TYPE,
+  };
+}
+
+/** "Compendium.<packId>.<DocType>.<docId>" — REQ-CMP-009. */
+function packIdFromUuid(uuid: string): string | undefined {
+  const parts = uuid.split(".");
+  return parts.length >= 4 ? parts.slice(1, parts.length - 2).join(".") : undefined;
+}
+
+function documentTypeFromUuid(uuid: string): string | undefined {
+  const parts = uuid.split(".");
+  return parts.length >= 4 ? parts[parts.length - 2] : undefined;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function readCount(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : fallback;
 }
 
 // ---------------------------------------------------------------------------

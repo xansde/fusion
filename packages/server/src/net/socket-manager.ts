@@ -101,6 +101,7 @@ import {
   buildCompendiumListHandler,
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
+  buildCompendiumSearchAllHandler,
   buildCompendiumGetHandler,
   buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
@@ -391,6 +392,9 @@ export class SocketManager {
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));
     registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
+    // REQ-CPD-030..032 / REQ-CMP-013a: one search over every pack the caller
+    // can see, answered already grouped, counted and truncated by the server.
+    registry.register("compendium:searchAll", buildCompendiumSearchAllHandler(compDeps));
     registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
     // Issue #43: a world document has no `uuid` (importToWorld strips it to keep
     // the world copy EN-pure), so `compendium:get` cannot serve its translation.

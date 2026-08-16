@@ -35,14 +35,22 @@ import {
   PackI18nOverlaySchema,
   PackMechanicsOverlaySchema,
   searchPackIndex,
+  matchesFilters,
+  normalizeSearchText,
   buildPackDocUuid,
   parsePackDocUuid,
+  COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP,
 } from "@fusion/shared";
 import type {
   PackManifest,
   PackIndex,
   PackIndexEntry,
   CompendiumSearchPayload,
+  CompendiumSearchAllPayload,
+  CompendiumSearchAllResult,
+  CompendiumSearchAllEntry,
+  CompendiumSearchAllGroup,
+  CompendiumSearchAllPackTally,
   CompendiumImportResult,
   DocumentTable,
   DocI18n,
@@ -89,6 +97,24 @@ interface LoadedPack {
   _mechanics: Map<string, DocMechanics> | null;
 }
 
+/**
+ * One pre-normalized row of the cross-pack search index consumed by
+ * {@link CompendiumService.searchAllPacks}. Built once, cached for the
+ * service's lifetime, and filtered per VIEWER at query time — the row itself
+ * is audience-agnostic on purpose (see `_getSearchAllRows`).
+ */
+interface SearchAllRow {
+  packId: string;
+  packLabel: string;
+  documentType: string;
+  entry: PackIndexEntry;
+  /** `normalizeSearchText(entry.name)` — precomputed so a keystroke does not
+   * re-normalize ~12k names (RNF-CPD-01). */
+  nameNorm: string;
+  /** `normalizeSearchText(entry.namePt)`, or null when untranslated. */
+  namePtNorm: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // CompendiumService
 // ---------------------------------------------------------------------------
@@ -104,6 +130,14 @@ export class CompendiumService {
    * `_getSourceRefIndex`).
    */
   private _sourceRefIndex: Map<string, { packId: string; docId: string }> | null = null;
+
+  /**
+   * Cross-pack search index for {@link searchAllPacks}: every entry of every
+   * loaded pack, with its origin and its normalized names precomputed. `null`
+   * = not yet built (built lazily on the first aggregated search, then cached
+   * for the service's lifetime — same shape as `_sourceRefIndex`).
+   */
+  private _searchAllRows: SearchAllRow[] | null = null;
 
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
@@ -273,19 +307,29 @@ export class CompendiumService {
   getPackIndex(viewerRole: number, packId: string): PackIndex | null {
     const loaded = this._packFor(packId, viewerRole);
     if (!loaded) return null;
+    return { packId, entries: this._ensureIndex(loaded) };
+  }
 
+  /**
+   * Build-once/cache the enriched index of an ALREADY-RESOLVED pack. Callers
+   * must have passed the audience gate themselves (`_packFor`) or be
+   * cross-pack internals that apply the gate on the way out
+   * (`_getSearchAllRows`) — this method deliberately takes a `LoadedPack`, not
+   * a packId, so it cannot be reached with a viewer-supplied identifier.
+   *
+   * Build the base (EN) index, then enrich: (1) the compact per-entry
+   * `index.actionCost` (r20-X2) derived from the full documents, then (2)
+   * overlay pt-BR names when a translation overlay exists. Enrichment is
+   * applied ONCE and cached in `_index`, so subsequent index/search calls
+   * reuse the enriched entries.
+   */
+  private _ensureIndex(loaded: LoadedPack): PackIndexEntry[] {
     if (!loaded._index) {
-      // Build the base (EN) index, then enrich: (1) the compact per-entry
-      // `index.actionCost` (r20-X2) derived from the full documents, then
-      // (2) overlay pt-BR names when a translation overlay exists. Enrichment
-      // is applied ONCE here and cached in `_index`, so subsequent
-      // index/search calls reuse the enriched entries.
       const base = this._buildIndex(loaded);
       const withCost = this._applyActionCostToIndex(loaded, base);
       loaded._index = this._applyI18nToIndex(loaded, withCost);
     }
-
-    return { packId, entries: loaded._index };
+    return loaded._index;
   }
 
   /**
@@ -301,6 +345,118 @@ export class CompendiumService {
     const packIndex = this.getPackIndex(viewerRole, packId);
     if (!packIndex) return null;
     return searchPackIndex(packIndex.entries, query);
+  }
+
+  /**
+   * Search EVERY pack visible to `viewerRole` in one call, answering with a
+   * result that is already grouped, already counted and already truncated.
+   * REQ-CPD-030..032 (spec 43), REQ-CMP-013a/013b (spec 16), RNF-CPD-01.
+   *
+   * WHY THE SERVER OWNS THIS (DEC-CPD-02): the alternative — the client
+   * downloading every pack index and running N searches — is exactly what
+   * DEC-CMP-02 (lazy index) forbids: the committed pf2e acervo is ~4.2k
+   * documents across 14 packs today and ~12k when the full subset lands, and
+   * REQ-CMP-049 already budgets 1.5 s just to index ONE big pack. So the index
+   * is built here, once, lazily (`_getSearchAllRows`), and cached for the
+   * service's lifetime; a keystroke then costs one pass over pre-normalized
+   * strings, which is what makes RNF-CPD-01's 300 ms budget reachable.
+   *
+   * AUDIENCE (REQ-CPD-071, REQ-CMP-010a): `viewerRole` comes from the
+   * authenticated socket, never from the payload, and is applied by the single
+   * `_isPackVisible` predicate — a `gm` pack contributes NOTHING here: no
+   * entry, no group, no count, and it is not even part of `packsSearched`. A
+   * player searching "goblin" therefore cannot tell, from any field of this
+   * result, that a bestiary exists.
+   *
+   * GROUPING (REQ-CPD-031): by `PackManifest.documentType`, because that is
+   * the axis the spec names ("agrupado por tipo de documento"), with every row
+   * carrying `packId`/`packLabel` so it names its own source, and a per-group
+   * `packs` tally so a truncated group can offer opening a specific pack in
+   * its own scope (REQ-CPD-032).
+   *
+   * ORDER: truncation forces a choice the spec does not make, so entries are
+   * ranked by how well they matched (exact name → prefix → substring) and then
+   * alphabetically — dropping the tail of an alphabetical list would hide
+   * "Fireball" behind "Blazing Fireball" for the query "fireball".
+   */
+  searchAllPacks(viewerRole: number, query: CompendiumSearchAllPayload): CompendiumSearchAllResult {
+    const limitPerGroup = query.limitPerGroup ?? COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP;
+    const textNorm = normalizeSearchText((query.text ?? "").trim());
+
+    // Audience first: the set of packs this viewer can see (REQ-CPD-071).
+    const visiblePacks = new Set<string>();
+    for (const [packId, loaded] of this.packs) {
+      if (this._isPackVisible(loaded, viewerRole)) visiblePacks.add(packId);
+    }
+
+    interface Bucket {
+      documentType: string;
+      matches: Array<{ row: SearchAllRow; rank: number; sortKey: string }>;
+      byPack: Map<string, CompendiumSearchAllPackTally>;
+    }
+    const buckets = new Map<string, Bucket>();
+    let totalMatched = 0;
+
+    for (const row of this._getSearchAllRows()) {
+      if (!visiblePacks.has(row.packId)) continue;
+      if (textNorm && !rowMatchesText(row, textNorm)) continue;
+      if (query.filters && !matchesFilters(row.entry, query.filters)) continue;
+
+      let bucket = buckets.get(row.documentType);
+      if (!bucket) {
+        bucket = { documentType: row.documentType, matches: [], byPack: new Map() };
+        buckets.set(row.documentType, bucket);
+      }
+      bucket.matches.push({
+        row,
+        rank: matchRank(row, textNorm),
+        sortKey: row.namePtNorm ?? row.nameNorm,
+      });
+
+      const tally = bucket.byPack.get(row.packId);
+      if (tally) {
+        tally.matched++;
+      } else {
+        bucket.byPack.set(row.packId, {
+          packId: row.packId,
+          label: row.packLabel,
+          matched: 1,
+        });
+      }
+      totalMatched++;
+    }
+
+    const groups: CompendiumSearchAllGroup[] = [];
+    for (const bucket of buckets.values()) {
+      bucket.matches.sort((a, b) => {
+        if (a.rank !== b.rank) return a.rank - b.rank;
+        if (a.sortKey !== b.sortKey) return a.sortKey < b.sortKey ? -1 : 1;
+        return a.row.entry.uuid < b.row.entry.uuid ? -1 : 1;
+      });
+
+      const entries: CompendiumSearchAllEntry[] = bucket.matches
+        .slice(0, limitPerGroup)
+        .map(({ row }) => ({ ...row.entry, packId: row.packId, packLabel: row.packLabel }));
+
+      const packs: CompendiumSearchAllPackTally[] = [...bucket.byPack.values()].sort((a, b) =>
+        a.matched !== b.matched ? b.matched - a.matched : a.packId < b.packId ? -1 : 1,
+      );
+
+      groups.push({
+        documentType: bucket.documentType,
+        total: bucket.matches.length,
+        entries,
+        truncated: bucket.matches.length > entries.length,
+        omitted: bucket.matches.length - entries.length,
+        packs,
+      });
+    }
+
+    groups.sort((a, b) =>
+      a.total !== b.total ? b.total - a.total : a.documentType < b.documentType ? -1 : 1,
+    );
+
+    return { groups, totalMatched, limitPerGroup, packsSearched: visiblePacks.size };
   }
 
   /**
@@ -802,6 +958,58 @@ export class CompendiumService {
   }
 
   // ---------------------------------------------------------------------------
+  // Private helpers — cross-pack search index (REQ-CPD-030, RNF-CPD-01)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the flat cross-pack row list consumed by
+   * {@link searchAllPacks}: every entry of every LOADED pack, carrying its
+   * origin (`packId`/`packLabel`), its `documentType`, and both names already
+   * normalized for accent/case-insensitive matching (REQ-CMP-013b). Cached on
+   * `_searchAllRows` for the service's lifetime — packs are discovered once at
+   * startup and never change underneath a running service, the same assumption
+   * `_getSourceRefIndex` already makes.
+   *
+   * WHY IT IS AUDIENCE-AGNOSTIC: the rows cover every pack, and the audience is
+   * applied by the CALLER on the way out (`searchAllPacks` intersects with
+   * `_isPackVisible` before reading a single row). Keeping one shared index
+   * instead of one per role means the expensive part is paid once for the whole
+   * table — and the gate stays in the single place that already owns it
+   * (`_isPackVisible`), never duplicated into a second per-role cache that
+   * could drift.
+   *
+   * COST: reuses `_ensureIndex`, so it pays exactly the per-pack index build
+   * that `compendium:index` would have paid anyway, plus one normalization per
+   * name. Warming it is the slow call; every search after it is a pass over
+   * strings already in memory.
+   */
+  private _getSearchAllRows(): SearchAllRow[] {
+    if (this._searchAllRows) return this._searchAllRows;
+
+    const rows: SearchAllRow[] = [];
+    for (const [packId, loaded] of this.packs) {
+      const { label, documentType } = loaded.manifest;
+      for (const entry of this._ensureIndex(loaded)) {
+        rows.push({
+          packId,
+          packLabel: label,
+          documentType,
+          entry,
+          nameNorm: normalizeSearchText(entry.name),
+          namePtNorm: entry.namePt !== undefined ? normalizeSearchText(entry.namePt) : null,
+        });
+      }
+    }
+
+    this._searchAllRows = rows;
+    this.logger?.debug(
+      { packs: this.packs.size, entries: rows.length },
+      "Built cross-pack compendium search index",
+    );
+    return rows;
+  }
+
+  // ---------------------------------------------------------------------------
   // Private helpers — action-cost index enrichment (r20-X2)
   // ---------------------------------------------------------------------------
 
@@ -966,6 +1174,33 @@ export class CompendiumService {
 
 function packed<T>(v: T | null): v is T {
   return v !== null;
+}
+
+/**
+ * Does a cross-pack row match the (already normalized) query text? Matches
+ * against BOTH names — EN and pt-BR — so typing either language finds the same
+ * entry (REQ-CMP-013b, DEC-CPD-06). Mirrors `matchesTextSearch` from
+ * @fusion/shared, but over the row's precomputed normalizations instead of
+ * re-normalizing ~12k names on every keystroke (RNF-CPD-01).
+ */
+function rowMatchesText(row: SearchAllRow, textNorm: string): boolean {
+  if (!textNorm) return true;
+  if (row.nameNorm.includes(textNorm)) return true;
+  return row.namePtNorm !== null && row.namePtNorm.includes(textNorm);
+}
+
+/**
+ * How well a row matched, lowest = best: 0 = one of its names IS the query,
+ * 1 = one of them starts with it, 2 = it appears somewhere inside (or there was
+ * no query at all). Used only to order a group before truncation — see the
+ * ORDER note on `searchAllPacks`.
+ */
+function matchRank(row: SearchAllRow, textNorm: string): number {
+  if (!textNorm) return 2;
+  if (row.nameNorm === textNorm || row.namePtNorm === textNorm) return 0;
+  if (row.nameNorm.startsWith(textNorm)) return 1;
+  if (row.namePtNorm !== null && row.namePtNorm.startsWith(textNorm)) return 1;
+  return 2;
 }
 
 /**

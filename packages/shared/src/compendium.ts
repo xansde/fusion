@@ -326,31 +326,138 @@ export const CompendiumIndexPayloadSchema = z.object({
 
 export type CompendiumIndexPayload = z.infer<typeof CompendiumIndexPayloadSchema>;
 
+/**
+ * Equality/range filters over index fields. Shared by the per-pack search
+ * (`compendium:search`) and the aggregated one (`compendium:searchAll`) so a
+ * facet cannot mean one thing in one scope and another thing in the other
+ * (REQ-CMP-014, REQ-CPD-034).
+ */
+export const CompendiumSearchFiltersSchema = z.record(
+  z.string(),
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.array(z.string()),
+    z.object({
+      lte: z.number().optional(),
+      gte: z.number().optional(),
+      contains: z.string().optional(),
+    }),
+  ]),
+);
+
+export type CompendiumSearchFilters = z.infer<typeof CompendiumSearchFiltersSchema>;
+
 /** compendium:search — search/filter the index of a pack. */
 export const CompendiumSearchPayloadSchema = z.object({
   packId: z.string(),
   /** Substring search on name (case + accent insensitive). */
   text: z.string().optional(),
   /** Equality/range filters on indexFields. */
-  filters: z
-    .record(
-      z.string(),
-      z.union([
-        z.string(),
-        z.number(),
-        z.boolean(),
-        z.array(z.string()),
-        z.object({
-          lte: z.number().optional(),
-          gte: z.number().optional(),
-          contains: z.string().optional(),
-        }),
-      ]),
-    )
-    .optional(),
+  filters: CompendiumSearchFiltersSchema.optional(),
 });
 
 export type CompendiumSearchPayload = z.infer<typeof CompendiumSearchPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// compendium:searchAll — one search over EVERY pack the caller can see
+// REQ-CPD-030..032 (spec 43), REQ-CMP-013a/013b (spec 16), RNF-CPD-01
+// ---------------------------------------------------------------------------
+
+/**
+ * How many entries one group carries before the server truncates it
+ * (REQ-CPD-032).
+ *
+ * ANSWER TO Q-CPD-04 (the spec left the number open: "só sai de uso real").
+ * 20 is the pick, and this constant is the ONE place it lives — server default,
+ * documented ceiling and client expectation all read it from here, so changing
+ * the number is a one-line change and never a hunt through call sites.
+ *
+ * WHY 20: a 300px drawer shows ~8 rows at a time, so 20 is two and a half
+ * screens of scrolling inside a single group — enough that the answer is
+ * usually in the group, short enough that the truncation notice (and the way
+ * back into the pack's own scope) stays reachable without infinite scrolling.
+ * It also keeps the aggregated payload bounded: with ~5 document types the
+ * worst case is ~100 index entries per response, which is what makes
+ * RNF-CPD-01's budget a property of the SERVER's index and not of the wire.
+ */
+export const COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP = 20;
+
+/**
+ * Hard ceiling for a caller-supplied `limitPerGroup`. A request above it is
+ * refused by the schema instead of being silently clamped — asking for the
+ * whole acervo in one response is exactly the "baixar tudo para buscar" that
+ * DEC-CPD-02 forbids, so it should fail loudly rather than half-succeed.
+ */
+export const COMPENDIUM_SEARCH_ALL_MAX_LIMIT_PER_GROUP = 100;
+
+/**
+ * compendium:searchAll — search over all packs VISIBLE TO THE CALLER
+ * (REQ-CPD-030, REQ-CMP-013a). There is deliberately no `packId` field: the
+ * scope is "everything this role can see", resolved on the server from the
+ * authenticated socket role, never from the payload.
+ */
+export const CompendiumSearchAllPayloadSchema = z.object({
+  /** Substring search on either name — EN or pt-BR (REQ-CMP-013b). */
+  text: z.string().optional(),
+  /** Equality/range filters on indexFields (REQ-CPD-034). */
+  filters: CompendiumSearchFiltersSchema.optional(),
+  /** Entries per group before truncation. Defaults to
+   * {@link COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP}. */
+  limitPerGroup: z.number().int().min(1).max(COMPENDIUM_SEARCH_ALL_MAX_LIMIT_PER_GROUP).optional(),
+});
+
+export type CompendiumSearchAllPayload = z.infer<typeof CompendiumSearchAllPayloadSchema>;
+
+/**
+ * One row of an aggregated result: an ordinary index entry that also NAMES ITS
+ * SOURCE (REQ-CPD-031) — the aggregated scope is the one place where a row on
+ * screen has no surrounding pack header to inherit its origin from.
+ */
+export interface CompendiumSearchAllEntry extends PackIndexEntry {
+  /** Pack the entry came from (`PackManifest.id`). */
+  packId: string;
+  /** Human-readable pack label (`PackManifest.label`), so the row can name its
+   * source without a second round-trip to `compendium:list`. */
+  packLabel: string;
+}
+
+/** How many matches one pack contributed to a group (REQ-CPD-032: the truncated
+ * group must be able to offer opening THAT pack in its own scope). */
+export interface CompendiumSearchAllPackTally {
+  packId: string;
+  label: string;
+  matched: number;
+}
+
+/** One document-type group of an aggregated result (REQ-CPD-031). */
+export interface CompendiumSearchAllGroup {
+  /** `PackManifest.documentType` of every entry in the group. */
+  documentType: string;
+  /** Matches in the WHOLE group, before truncation (REQ-CPD-031: count per group). */
+  total: number;
+  /** At most `limitPerGroup` entries (REQ-CPD-032). */
+  entries: CompendiumSearchAllEntry[];
+  /** True when `total > entries.length`. */
+  truncated: boolean;
+  /** How many matches were left out — `total - entries.length` (REQ-CPD-032). */
+  omitted: number;
+  /** Per-pack breakdown of `total`, biggest contributor first. */
+  packs: CompendiumSearchAllPackTally[];
+}
+
+/** The `compendium:searchAll` ack result. */
+export interface CompendiumSearchAllResult {
+  /** Groups by document type, biggest first. */
+  groups: CompendiumSearchAllGroup[];
+  /** Matches across every group, before truncation. */
+  totalMatched: number;
+  /** The limit actually applied (echoed so the UI never guesses the default). */
+  limitPerGroup: number;
+  /** How many packs the search covered — i.e. how many the CALLER can see. */
+  packsSearched: number;
+}
 
 /** compendium:get — load the full document for a UUID. */
 export const CompendiumGetPayloadSchema = z.object({
