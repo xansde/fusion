@@ -13,14 +13,23 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 - `specs/` — especificações completas (índice em `specs/README.md`). Implementação segue as specs.
 - `docs/research/` — pesquisa que fundamenta as specs (21 docs sobre Foundry, PF2e, SF2e, Etmos, licenças, bibliotecas).
 
-## Branches (modelo alfa → beta → stable, desde 2026-08-15)
+## Branches
 
-- **`alfa/app`** — desenvolvimento e experimentação: é onde rodam os testes e onde se espera que tudo quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta para ela por PR.
-- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` quando um conjunto está íntegro (suíte verde + teste ao vivo).
-- **`stable/app`** — o app de verdade, pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto.
-- **`build/app`** — linha do **Mario**: ele segue trabalhando nela com as atualizações que ELE quer. Não é integração nossa, não apagar, não mergear nela sem combinar; `alfa/app` nasceu dela em 13/08. **`main`** é o espelho publicável e só recebe merge com instrução literal do Alexandre.
-- Nascimento: `stable/app` = `beta/app` = estado pré-mapa de `build/app` (`ab4966f`, 02/08) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados; `alfa/app` = ponta de `build/app` em 13/08 (toda a onda de mapa/hub/quest board a partir de 07/08 vive só ali).
-- Promoção é sempre ato humano (merge `alfa→beta` e `beta→stable`); nada de push direto em `beta`/`stable`.
+**Duas linhas paralelas**, sem relação de ancestralidade entre elas: divergiram do estado pré-mapa (`ab4966f`, 02/08) e não convergem. Nenhum merge entre as duas acontece sem instrução explícita do Alexandre.
+
+### Linha geral do projeto — `build/app` e `main`
+
+- **`build/app`** é a branch de integração de uso geral, e é onde vive a onda de mapa/hub/quest board (a partir de 07/08). Não apagar, não mergear nela, não trabalhar nela sem combinar.
+- **`main`** é o espelho publicável, alimentado por `build/app`. Push nela exige instrução literal do Alexandre.
+
+### Linha pessoal do Alexandre — `alfa/app`, `beta/app`, `stable/app`
+
+**Não são o fluxo oficial do projeto e não são de uso geral: só o Alexandre opera nelas.** Estado pré-mapa (sem a onda de mapa/hub) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados.
+
+- **`alfa/app`** — onde o trabalho entra e onde se espera que quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta por PR.
+- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` com a suíte verde.
+- **`stable/app`** — o app pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto.
+- Promoção (`alfa→beta`, `beta→stable`) é sempre ato humano; nada de push direto em `beta`/`stable`.
 
 ## Stack
 
