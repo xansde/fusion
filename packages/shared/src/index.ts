@@ -26,3 +26,4 @@ export * from "./compendium.js";
 export * from "./knowledge.js";
 export * from "./mechanics.js";
 export * from "./etmos/index.js";
+export * from "./asset-name-contract.js";

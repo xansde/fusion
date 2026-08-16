@@ -148,6 +148,7 @@
     <!-- Portrait (r19-W4): circular, with an initials fallback. -->
     <ActorPortrait
       img={vm.img}
+      docRef={{ table: "actors", id: actorId }}
       name={vm.name}
       size={48}
       label={t("FUSION.Sheet.Portrait.Alt", { name: vm.name })}

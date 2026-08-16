@@ -2,13 +2,34 @@
  * assets/index.ts — public API of the client assets module.
  */
 
-export { listAssets, uploadAsset, deleteAsset, assetUrl } from "./assetApi.js";
+export {
+  listAssets,
+  uploadAsset,
+  deleteAsset,
+  assetUrl,
+  assetNameFromPath,
+  fetchAssetToken,
+  resolveAssetUrl,
+  resolveBrowseAssetUrl,
+  needsAssetQueryToken,
+} from "./assetApi.js";
 export type {
   AssetEntry,
+  AssetQueryToken,
   UploadResult,
   UploadProgress,
   UploadProgressCallback,
 } from "./assetApi.js";
+
+export {
+  assetGrantsFor,
+  assetGrantsCovering,
+  invalidateAssetGrants,
+  clearAssetGrantCache,
+  peekAssetGrants,
+  GRANTABLE_ASSET_TABLES,
+} from "./assetGrants.svelte.js";
+export type { AssetDocRef, AssetDocTable, AssetGrantBundle } from "./assetGrants.svelte.js";
 
 export {
   validateFileForUpload,
