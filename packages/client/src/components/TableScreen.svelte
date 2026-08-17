@@ -52,14 +52,17 @@
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import {
+    buildActorDropTokenOp,
     buildTokenFromActorFields,
-    buildCreateTokenFromActorOp,
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
+  import { buildTokenCreateOp } from "../lib/docs/tokenCreateOp.js";
   import { sendOp } from "../lib/docs/sendOp.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
+  import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
+  import { effectiveGridSize, sceneContentOffset } from "../lib/canvas/sceneCoords.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -291,26 +294,22 @@
     }
   }
 
-  /**
-   * During `dragover` the HTML5 drag data store is in *protected* mode: `getData()` always
-   * returns "" — so the decision to accept the drop MUST be made from the advertised MIME
-   * types, never from the payload (which is only readable on `drop`). Reading the payload
-   * here was why the NPC → canvas drag silently did nothing (item A031 of the r1 review).
-   */
-  function _dragCarriesKnownType(event: DragEvent): boolean {
-    const types = event.dataTransfer?.types;
-    if (!types) return false;
-    const list = Array.from(types as ArrayLike<string>);
-    return list.includes("application/fusion-actor") || list.includes("text/plain");
-  }
-
   function handleCanvasDragOver(event: DragEvent): void {
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
     // The drop lands on the scene the Master is LOOKING at — the prepared one while a
     // prepare lasts (REQ-CEN-050), never the one on air behind his back.
     if (!canvasScene) return;
-    if (!_dragCarriesKnownType(event)) return;
+    // REQ-UIF-045 / item A031 of the r1 review: `dragover` runs in the browser's
+    // "protected mode" — only `dataTransfer.types` is readable here, `getData()`
+    // always returns "" until `drop` fires. Deciding from `_getActorDragPayload`/
+    // `_getCompendiumDragPayload` (which call `getData()`) never accepted a drag, so
+    // `preventDefault()` never ran, and the browser refused to ever fire `drop`. The
+    // types-only predicates live in `canvasDragTypes.ts` so the rule is exercised
+    // directly (canvasDragTypes.test.ts) instead of only through this component.
+    if (!hasActorDragType(event.dataTransfer) && !hasCompendiumDragType(event.dataTransfer)) {
+      return;
+    }
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
@@ -336,20 +335,21 @@
     const actorPayload = _getActorDragPayload(event);
     if (actorPayload) {
       event.preventDefault();
-      const gridSize = scene.grid?.size ?? 100;
-      const fields = buildTokenFromActorFields({
+      const gridSize = effectiveGridSize(scene);
+      const op = buildActorDropTokenOp({
         payload: actorPayload,
         sceneId: scene._id,
         x: worldX,
         y: worldY,
         gridSize,
       });
-      // REQ-NPC-063: an embedded doc:create, awaited with an ack so a server
-      // refusal (VALIDATION_FAILED, permission, …) surfaces to the Master
+      // REQ-NPC-063: an embedded doc:create (`buildActorDropTokenOp` composes the
+      // spec-41 token fields with the shared envelope), awaited with an ack so a
+      // server refusal (VALIDATION_FAILED, permission, …) surfaces to the Master
       // instead of being swallowed by a fire-and-forget emit (REQ-CPD-060).
       void (async () => {
         try {
-          await sendOp(sock, buildCreateTokenFromActorOp(fields, scene._id));
+          await sendOp(sock, op);
         } catch (err) {
           console.error("[TableScreen] Failed to create token from actor drop:", err);
           dropRefusal = t("FUSION.DragDrop.Actor.CreateFailed");
@@ -384,7 +384,7 @@
           const result = await compendiumImportToWorld(sock, [accepted.uuid]);
           const createdId = result.created[0];
           if (!createdId) return;
-          const gridSize = scene.grid?.size ?? 100;
+          const gridSize = effectiveGridSize(scene);
           // Build a minimal actor payload to reuse buildTokenFromActorFields
           const fakePayload: ActorDragPayload = {
             kind: "actor",
@@ -406,7 +406,7 @@
           // shape and same visible-failure treatment as the actor branch
           // above (REQ-CPD-060 requires a visible return of a failure, and a
           // fire-and-forget emit here would swallow it just as silently).
-          await sendOp(sock, buildCreateTokenFromActorOp(fields, scene._id));
+          await sendOp(sock, buildTokenCreateOp(scene._id, { ...fields }));
         } catch (err) {
           console.error("[TableScreen] Failed to import compendium actor on drop:", err);
           dropRefusal = t("FUSION.DragDrop.Actor.CreateFailed");
@@ -490,7 +490,7 @@
     const sock = getSocket();
     const currentIsGm = isGm();
     const userId = session.user?.id ?? "";
-    const gridSize = scene.grid?.size ?? 100;
+    const gridSize = effectiveGridSize(scene);
 
     // --- TokenLayer ---
     const tokenLayer = new TokenLayer(
@@ -512,12 +512,13 @@
     _tickerDisposer = canvas.addTicker(tickerCb);
 
     // --- LightingRenderer ---
+    const { padX, padY } = sceneContentOffset(scene);
     const lightingRenderer = new LightingRenderer(
       canvas.getLayer("lighting"),
       scene.width,
       scene.height,
-      Math.round(scene.width * scene.padding),
-      Math.round(scene.height * scene.padding),
+      padX,
+      padY,
     );
 
     // --- FogState (player only) ---

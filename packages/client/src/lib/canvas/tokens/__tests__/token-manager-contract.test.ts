@@ -123,21 +123,22 @@ function makeFakeContainer() {
 
 const SCENE_ID = "scene001";
 const TOKEN_ID = "tok001";
+const ACTOR_ID = "actor001";
 
 function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
   return {
     _id: TOKEN_ID,
     name: "Goblin",
-    actorId: null,
-    texture: null,
+    actorId: ACTOR_ID,
+    actorLink: true,
+    actorDelta: null,
     x: 100,
     y: 100,
-    width: 1,
-    height: 1,
     rotation: 0,
     elevation: 0,
     hidden: false,
     disposition: 0,
+    seenBy: [],
     bar1: { attribute: null },
     bar2: { attribute: null },
     flags: {},
@@ -210,7 +211,7 @@ describe("TokenInteractionManager — socket payload contract", () => {
     const layer = makeFakeTokenLayer();
     const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
 
-    await mgr.addToken("Goblin", null);
+    await mgr.addToken(ACTOR_ID);
 
     const emission = captured.find((e) => e.type === "doc:create");
     expect(emission).toBeDefined();
@@ -219,6 +220,13 @@ describe("TokenInteractionManager — socket payload contract", () => {
     expect(result.data?.documentType).toBe("Token");
     expect(result.data?.parent?.type).toBe("Scene");
     expect(result.data?.parent?.id).toBe(SCENE_ID);
+    // REQ-TOK-002: actorId is the content field addToken sends — no more
+    // texture/width/height (REQ-TOK-010/012).
+    const created = (result.data?.data as Record<string, unknown>[] | undefined)?.[0];
+    expect(created?.["actorId"]).toBe(ACTOR_ID);
+    expect(created).not.toHaveProperty("texture");
+    expect(created).not.toHaveProperty("width");
+    expect(created).not.toHaveProperty("height");
 
     mgr.destroy();
   });

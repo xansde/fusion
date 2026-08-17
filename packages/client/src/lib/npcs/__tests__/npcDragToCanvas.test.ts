@@ -19,8 +19,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { DocCreatePayloadSchema } from "@fusion/shared";
+
 import { NPC_DRAG_MIME, buildNpcDragPayload, readNpcDragPayload } from "../moveActor.js";
-import { buildTokenFromActorFields } from "../../actors/actorDirectory.js";
+import { buildActorDropTokenOp, buildTokenFromActorFields } from "../../actors/actorDirectory.js";
 
 const LOBO = {
   _id: "act-lobo00000001",
@@ -30,8 +32,18 @@ const LOBO = {
   folder: "fld-bosque0000001",
 };
 
+/**
+ * Source with every comment removed (same helper as `npcsFooter.test.ts`), so prose
+ * ABOUT a call is never read as the call itself. Required here: the resolved
+ * `handleCanvasDragOver` explains in a comment why `getData()` cannot be used during
+ * `dragover`, and a naive read would then see "getData(" inside the very function the
+ * A031 assertion proves is free of it.
+ */
 function source(relative: string): string {
-  return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8");
+  return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 }
 
 describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () => {
@@ -48,10 +60,13 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     expect(table).toContain('getData("application/fusion-actor")');
   });
 
-  it("REQ-NPC-063: dragover accepts by advertised MIME type, never by reading the payload (getData is empty during dragover)", () => {
+  it("REQ-NPC-063 / REQ-UIF-045 (A031): dragover accepts by advertised MIME type, never by reading the payload (getData is empty during dragover)", () => {
     // HTML5 drag data store is in protected mode during `dragover`: getData() returns "".
     // Deciding preventDefault() from the payload made the browser refuse every drop
-    // (item A031 of the r1 review). The gate must look at dataTransfer.types.
+    // (item A031 of the r1 review). The gate must look at dataTransfer.types — which
+    // is what `hasActorDragType`/`hasCompendiumDragType` (lib/canvas/canvasDragTypes.ts)
+    // do, and the reason the predicates live in a module of their own instead of inline
+    // in the component: canvasDragTypes.test.ts exercises the rule directly.
     const table = source("../../../components/TableScreen.svelte");
     const start = table.indexOf("function handleCanvasDragOver(");
     const end = table.indexOf("function handleCanvasDrop(");
@@ -60,8 +75,15 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     const dragOver = table.slice(start, end);
     expect(dragOver).not.toContain("getData(");
     expect(dragOver).not.toContain("_getActorDragPayload(");
-    expect(dragOver).toContain("_dragCarriesKnownType(event)");
-    expect(table).toContain('.includes("application/fusion-actor")');
+    expect(dragOver).toContain("hasActorDragType(event.dataTransfer)");
+    expect(dragOver).toContain("hasCompendiumDragType(event.dataTransfer)");
+
+    // … and the predicates themselves decide from `.types`, never from `getData()`.
+    // `NPC_DRAG_MIME` is pinned to "application/fusion-actor" by the first test above.
+    const dragTypes = source("../../canvas/canvasDragTypes.ts");
+    expect(dragTypes).not.toContain("getData(");
+    expect(dragTypes).toContain(".types.includes(NPC_DRAG_MIME)");
+    expect(dragTypes).toContain('.types.includes("text/plain")');
   });
 
   it("REQ-NPC-063: the payload the row writes survives the trip and names the actor", () => {
@@ -96,14 +118,17 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     });
 
     expect(fields.actorId).toBe("act-lobo00000001");
-    expect(fields.name).toBe("Lobo");
-    expect(fields.texture).toBe("worlds/img/lobo.webp");
     expect(fields).toMatchObject({ x: 300, y: 600 });
+    // TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): the presence carries no
+    // name or art of its own — it inherits both from the actor by `actorId`,
+    // it does not duplicate "Lobo" / the wolf's img here.
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
     // Q-NPC-03 is not answered here: nothing in the presence says linked or not.
     expect(Object.keys(fields)).not.toContain("actorLink");
   });
 
-  it("REQ-NPC-063: the drop creates the presence on the scene through a payload the server accepts", () => {
+  it("REQ-NPC-063: the drop wires the actor-drag branch through buildActorDropTokenOp", () => {
     const table = source("../../../components/TableScreen.svelte");
     const dropFnStart = table.indexOf("function handleCanvasDrop");
     expect(dropFnStart).toBeGreaterThan(-1);
@@ -111,28 +136,64 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
 
     // Isolate the actor-drag branch only. handleCanvasDrop also has a
     // compendium-drag branch right below it that builds the very same
-    // doc:create/Token shape — slicing to EOF would let a deleted actor
-    // branch hide undetected behind the compendium one.
+    // doc:create/Token/embedded shape — slicing to EOF would let a deleted
+    // actor branch hide undetected behind the compendium one.
     const actorBranchStart = dropFn.indexOf("const actorPayload = _getActorDragPayload(event);");
     const compBranchStart = dropFn.indexOf("const compPayload = _getCompendiumDragPayload(event);");
     expect(actorBranchStart).toBeGreaterThan(-1);
     expect(compBranchStart).toBeGreaterThan(actorBranchStart);
     const drop = dropFn.slice(actorBranchStart, compBranchStart);
 
-    expect(drop).toContain("buildTokenFromActorFields");
-    // A004 review (REQ-NPC-063, REQ-CPD-062): the wire shape is built by
-    // `buildCreateTokenFromActorOp` — `data: [fields]` + `parent: { type:
-    // "Scene", id }` — matching `DocCreatePayloadSchema`
-    // (`packages/shared/src/protocol.ts`), and sent through `sendOp` so a
-    // server refusal is awaited and surfaced (REQ-CPD-060) instead of a
-    // fire-and-forget `sock.emit` that swallows a VALIDATION_FAILED ack.
-    expect(drop).toContain("buildCreateTokenFromActorOp(fields, scene._id)");
-    expect(drop).toContain("await sendOp(sock,");
-    // The old broken shape — `documentType`/`embedded`/`documents` built
-    // inline — must be gone: `DocCreatePayloadSchema` has never accepted
-    // `embedded`/`documents`, only `data` (required) and an optional `parent`.
+    // TK022-client: the branch hands the drop straight to the shared
+    // buildActorDropTokenOp (packages/client/src/lib/actors/actorDirectory.ts)
+    // and sends its result verbatim — this only proves the WIRING calls the
+    // real function; the next test proves what that function actually emits.
+    expect(drop).toContain("buildActorDropTokenOp(");
+    // A004 review (REQ-NPC-063, REQ-CPD-060): sent through `sendOp` so a server
+    // refusal is AWAITED and surfaced to the Master, never a fire-and-forget
+    // `sock.emit` that swallows a VALIDATION_FAILED ack.
+    expect(drop).toContain("await sendOp(sock, op)");
+    expect(drop).not.toContain('sock.emit("op"');
+    // The old broken shape — `documentType`/`embedded`/`documents` built inline —
+    // must be gone: `DocCreatePayloadSchema` has never accepted `embedded`/
+    // `documents`, only `data` (required) and an optional `parent`.
     expect(drop).not.toContain("embedded:");
     expect(drop).not.toContain("documents:");
-    expect(drop).not.toContain('sock.emit("op"');
+  });
+
+  it("REQ-NPC-063: what buildActorDropTokenOp emits is a doc:create the server accepts", () => {
+    const op = buildActorDropTokenOp({
+      payload: {
+        kind: "actor",
+        uuid: LOBO._id,
+        documentType: "Actor",
+        subtype: "npc",
+        name: LOBO.name,
+        img: LOBO.img,
+        origin: "sidebar",
+      },
+      sceneId: "scn-clareira001",
+      x: 317,
+      y: 642,
+      gridSize: 100,
+    });
+
+    // The exact payload the socket carries — not the source text that builds
+    // it — is what has to satisfy the server's wire schema (spec 41 §7.2).
+    const result = DocCreatePayloadSchema.safeParse(op.payload);
+    expect(result.success, `DocCreatePayload parse failed: ${JSON.stringify(result)}`).toBe(true);
+
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Token");
+    expect(op.payload.parent).toEqual({ type: "Scene", id: "scn-clareira001" });
+
+    const created = op.payload.data[0] as Record<string, unknown>;
+    expect(created["actorId"]).toBe(LOBO._id);
+    expect(created).toMatchObject({ x: 300, y: 600 });
+    // TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): still no name/art of its
+    // own once it is the actual wire payload, not just the fields object.
+    expect(created).not.toHaveProperty("name");
+    expect(created).not.toHaveProperty("texture");
+    expect(Object.keys(created)).not.toContain("actorLink");
   });
 });

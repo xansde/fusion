@@ -481,24 +481,51 @@ describe("E2E M1-B — full resync scenario", () => {
     return tokens;
   }
 
-  /** Build the payload for a hidden token carrying the secret marker values. */
-  function hiddenTokenData(): Record<string, unknown> {
+  /**
+   * Build the payload for a hidden token carrying the secret marker values.
+   *
+   * REQ-TOK-002: `actorId` is a required, resolvable reference — the schema
+   * refuses `null`/absent, so the caller must create an actor first (see
+   * `createSecretActor`) and thread its id through. `texture`/`width`/
+   * `height` are gone from TokenDocumentSchema (REQ-TOK-010, REQ-TOK-012);
+   * they used to be sent here but are dropped from this fixture rather than
+   * silently stripped by the parser.
+   */
+  function hiddenTokenData(actorId: string): Record<string, unknown> {
     return {
       name: SECRET_NAME,
       x: SECRET_X,
       y: SECRET_Y,
       hidden: true,
-      width: 1,
-      height: 1,
       rotation: 0,
       elevation: 0,
       disposition: 0,
-      texture: null,
-      actorId: null,
+      actorId,
       bar1: { attribute: null },
       bar2: { attribute: null },
       flags: {},
     };
+  }
+
+  /**
+   * Create a minimal Actor via doc:create and return its `_id`, so a hidden
+   * token fixture has a resolvable `actorId` to reference (REQ-TOK-002).
+   */
+  async function createSecretActor(socket: ClientSocket, requestId: string): Promise<string> {
+    const ack = await sendOp(
+      socket,
+      "doc:create",
+      { documentType: "Actor", data: [{ name: "Hidden Token Owner", type: "npc" }] },
+      requestId,
+    );
+    if (!ack["ok"]) {
+      throw new Error(`Failed to create actor for hidden-token fixture: ${JSON.stringify(ack)}`);
+    }
+    const docs = (ack["result"] as Record<string, unknown>)["documents"] as Record<
+      string,
+      unknown
+    >[];
+    return docs[0]?.["_id"] as string;
   }
 
   it("hidden token move during player disconnect does NOT leak via delta resync", async () => {
@@ -527,12 +554,14 @@ describe("E2E M1-B — full resync scenario", () => {
       >[]
     )[0]?.["_id"] as string;
 
+    const actorId = await createSecretActor(gmSocket, "hidden-test-actor-001");
+
     const addHiddenTokenAck = await sendOp(
       gmSocket,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "hidden-token-create-001",
@@ -640,13 +669,15 @@ describe("E2E M1-B — full resync scenario", () => {
     player.socket.disconnect();
     await new Promise((r) => setTimeout(r, 100));
 
+    const actorId = await createSecretActor(gmSocket, "created-away-actor-001");
+
     // GM creates a hidden token while the player is away.
     const addHiddenTokenAck = await sendOp(
       gmSocket,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "created-away-token-001",
@@ -716,12 +747,14 @@ describe("E2E M1-B — full resync scenario", () => {
     const activateAck = await sendOp(gmSocket, "world:activeScene", { sceneId }, "reveal-activate");
     expect(activateAck["ok"]).toBe(true);
 
+    const actorId = await createSecretActor(gmSocket, "reveal-actor-001");
+
     const addHiddenTokenAck = await sendOp(
       gmSocket,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "reveal-token-001",
@@ -805,12 +838,14 @@ describe("E2E M1-B — full resync scenario", () => {
       >[]
     )[0]?.["_id"] as string;
 
+    const actorId = await createSecretActor(author, "gm-delta-actor-001");
+
     const addHiddenTokenAck = await sendOp(
       author,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "gm-delta-token-001",

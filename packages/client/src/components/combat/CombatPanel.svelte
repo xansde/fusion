@@ -42,6 +42,7 @@
     initiativeStatisticOptions,
   } from "../../lib/combat/combatSetup.js";
   import type { InitiativeStatisticOption } from "../../lib/combat/combatSetup.js";
+  import type { AddableTokenActor } from "../../lib/combat/combatTracker.js";
   import { turnHeadState, turnKeyOf } from "../../lib/combat/turnHead.svelte.js";
   import { worldMirror } from "../../lib/docs/worldSync.js";
   import TurnHead from "./TurnHead.svelte";
@@ -232,7 +233,26 @@
   // from. It is a collapsible block of this panel, never a popup (REQ-CBA-061).
   let candidatesOpen = $state(false);
 
-  const candidates = $derived(encounterCandidates(activeSceneState.scene?.tokens ?? [], combat));
+  /**
+   * REQ-TOK-060/RNF-TOK-01: resolve a candidate's effective actor from the same
+   * `actorsById` map the health/vitals/statistics lookups already use — narrowed
+   * defensively since the mirror hands back a generic document, not a typed
+   * `ActorDocument` (same pattern as `initiativeStatisticOptions` below).
+   */
+  function resolveCandidateActor(actorId: string): AddableTokenActor | undefined {
+    const actor = actorsById.get(actorId);
+    if (!actor || typeof actor["name"] !== "string") return undefined;
+    const system = actor["system"];
+    return {
+      name: actor["name"],
+      img: typeof actor["img"] === "string" ? actor["img"] : null,
+      system: typeof system === "object" && system !== null ? (system as Record<string, unknown>) : {},
+    };
+  }
+
+  const candidates = $derived(
+    encounterCandidates(activeSceneState.scene?.tokens ?? [], combat, resolveCandidateActor),
+  );
 
   /**
    * Statistics each participant could roll initiative with (REQ-CBA-066, Q-CBA-03), read

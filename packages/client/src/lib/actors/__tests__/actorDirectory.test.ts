@@ -13,7 +13,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildActorDragPayload,
   buildTokenFromActorFields,
-  buildCreateTokenFromActorOp,
+  buildActorDropTokenOp,
   type ActorDocument,
 } from "../actorDirectory.js";
 import { OwnershipLevel, DocCreatePayloadSchema } from "@fusion/shared";
@@ -114,15 +114,22 @@ describe("buildActorDragPayload()", () => {
 describe("buildTokenFromActorFields()", () => {
   const payload = buildActorDragPayload(makeActor("Aaaa0000000000a1", "Valeros", "character"));
 
-  it("sets name from payload.name", () => {
+  // REQ-TOK-010, REQ-TOK-012, REQ-TOK-060: the fields a token no longer
+  // carries — no fixed name (it inherits the actor's), no art/footprint of
+  // its own — must not reappear here as the token schema evolves.
+  it("carries no name, texture, width or height — the token inherits those from the actor", () => {
     const fields = buildTokenFromActorFields({
       payload,
       sceneId: "SceneXXXXXXXXXXXX",
-      x: 100,
-      y: 200,
+      x: 0,
+      y: 0,
       gridSize: 100,
     });
-    expect(fields.name).toBe("Valeros");
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
+    expect(fields).not.toHaveProperty("width");
+    expect(fields).not.toHaveProperty("height");
+    expect(Object.keys(fields).sort()).toEqual(["actorId", "x", "y"]);
   });
 
   it("sets actorId from payload.uuid", () => {
@@ -160,36 +167,26 @@ describe("buildTokenFromActorFields()", () => {
     expect(fields.x).toBe(155);
     expect(fields.y).toBe(248);
   });
-
-  it("uses 1x1 footprint by default", () => {
-    const fields = buildTokenFromActorFields({
-      payload,
-      sceneId: "SceneXXXXXXXXXXXX",
-      x: 0,
-      y: 0,
-      gridSize: 100,
-    });
-    expect(fields.width).toBe(1);
-    expect(fields.height).toBe(1);
-  });
 });
 
 // ---------------------------------------------------------------------------
-// buildCreateTokenFromActorOp (ajustes r1, A004 review — REQ-NPC-063, REQ-CPD-062)
+// buildActorDropTokenOp (ajustes r1 A004 review — REQ-NPC-063, REQ-CPD-062 —
+// composed with the spec-41 token form, TK022-client)
 // ---------------------------------------------------------------------------
 
-describe("buildCreateTokenFromActorOp() — REQ-NPC-063 / REQ-CPD-062: the drop payload the server accepts", () => {
+describe("buildActorDropTokenOp() — REQ-NPC-063 / REQ-CPD-062: the drop payload the server accepts", () => {
   const payload = buildActorDragPayload(makeActor("Aaaa0000000000a1", "Valeros", "character"));
-  const fields = buildTokenFromActorFields({
+  const opts = {
     payload,
     sceneId: "SceneXXXXXXXXXXXX",
     x: 100,
     y: 200,
     gridSize: 100,
-  });
+  };
+  const fields = buildTokenFromActorFields(opts);
 
   it("builds a doc:create of Token, embedded under the scene as parent", () => {
-    const op = buildCreateTokenFromActorOp(fields, "SceneXXXXXXXXXXXX");
+    const op = buildActorDropTokenOp(opts);
     expect(op.type).toBe("doc:create");
     expect(op.payload.documentType).toBe("Token");
     expect(op.payload.data).toEqual([fields]);
@@ -197,9 +194,23 @@ describe("buildCreateTokenFromActorOp() — REQ-NPC-063 / REQ-CPD-062: the drop 
   });
 
   it("satisfies DocCreatePayloadSchema — the real wire contract the server parses", () => {
-    const op = buildCreateTokenFromActorOp(fields, "SceneXXXXXXXXXXXX");
+    const op = buildActorDropTokenOp(opts);
     const result = DocCreatePayloadSchema.safeParse(op.payload);
     expect(result.success).toBe(true);
+  });
+
+  it("REQ-TOK-010/012/022: the wire payload carries nothing the server derives or refuses", () => {
+    // §7.2 DERIVED/REFUSED: `validateTokenCreateContract`
+    // (packages/server/src/tokens/tokenValidation.ts) answers VALIDATION_FAILED
+    // to any of these, so a drop that smuggled one in would land nothing at all.
+    const created = buildActorDropTokenOp(opts).payload.data[0] as Record<string, unknown>;
+    for (const derived of ["width", "height", "texture", "img", "ownership", "userId"]) {
+      expect(created).not.toHaveProperty(derived);
+    }
+    expect(created).not.toHaveProperty("actorDelta");
+    expect(created).not.toHaveProperty("name");
+    expect(created).not.toHaveProperty("_id");
+    expect(created["actorId"]).toBe("Aaaa0000000000a1");
   });
 
   it("REQ-NPC-063/REQ-CPD-062 regression: the OLD payload shape TableScreen.svelte sent — `embedded`/`documents` instead of `data`/`parent` — is rejected by the same schema", () => {

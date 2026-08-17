@@ -39,7 +39,7 @@
 
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import type { ViewerRole } from "./combatVisibility.js";
-import { addableTokens } from "./combatTracker.js";
+import { addableTokens, type AddableTokenActor } from "./combatTracker.js";
 import { skillNamePt } from "../sheets/pf2e/skillNames.js";
 
 // ---------------------------------------------------------------------------
@@ -118,12 +118,18 @@ export interface EncounterCandidate {
  * one already wired to the scene's embedded collection and already tested. This wrapper
  * exists to give the provenance a name the aba can use (DEC-CBA-06) and to be the single
  * place to change when spec `41` lands.
+ *
+ * `resolveActor` is threaded straight through to `addableTokens()` (REQ-TOK-060,
+ * RNF-TOK-01): a candidate's `name`/`img` resolve through the token's effective actor when
+ * the caller can supply one, falling back to an i18n label instead of a hardcoded string
+ * when it cannot.
  */
 export function encounterCandidates(
   sceneTokens: readonly TokenDocument[],
   combat: CombatDocument | null,
+  resolveActor?: (actorId: string) => AddableTokenActor | undefined,
 ): EncounterCandidate[] {
-  return addableTokens([...sceneTokens], combat);
+  return addableTokens([...sceneTokens], combat, resolveActor);
 }
 
 // ---------------------------------------------------------------------------

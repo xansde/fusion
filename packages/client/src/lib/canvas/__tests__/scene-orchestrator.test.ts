@@ -15,6 +15,14 @@
  *   - FogState.updateVision called after each vision recompute (player)
  *   - FogState.persistNow called on teardown
  *   - Multiple scene changes → each one triggers setVisionPolygons
+ *   - REQ-CNV-070/REQ-TOK-003 (defect 2, Fase 1 e2e): two concurrent setups —
+ *     an earlier `setup()` still awaiting `FogState.load()` when
+ *     `teardown()` runs on the SAME instance (`TableScreen.svelte` recreates
+ *     the orchestrator on every Scene mutation, including a new token
+ *     embedding, and does so again before the previous recreation finished)
+ *     must not touch the renderers that `teardown()` already destroyed, and
+ *     must not leak a mirror subscription. Only the LAST (surviving)
+ *     orchestrator's `render()` calls should ever land.
  */
 
 import { describe, it, expect } from "vitest";
@@ -827,6 +835,128 @@ describe("SceneOrchestrator", () => {
       expect(orchestrator.sceneId).toBe("scene-xyz");
       await orchestrator.setup();
       orchestrator.teardown();
+    });
+  });
+
+  describe("REQ-CNV-070/REQ-TOK-003 (defect 2, Fase 1 e2e): two concurrent setups — only the last applies", () => {
+    /** A FogState fake whose `load()` only resolves when the test calls the returned function. */
+    function makeDeferredFogState(): {
+      fogState: FogState;
+      resolveLoad: () => void;
+    } {
+      let resolveLoad: () => void = () => {
+        throw new Error("resolveLoad called before load()");
+      };
+      const loadPromise = new Promise<void>((resolve) => {
+        resolveLoad = resolve;
+      });
+      const fake = {
+        async load() {
+          await loadPromise;
+        },
+        updateVision(_polygons: unknown) {},
+        persistNow() {},
+        destroy() {},
+        getRenderState() {
+          return {
+            explored: { polygons: [], totalVertices: 0 },
+            currentVisionRings: [],
+            fogActive: true,
+            sceneId: "scene-1",
+          };
+        },
+        applyReset() {},
+        get explored() {
+          return { polygons: [], totalVertices: 0 };
+        },
+        get isDirty() {
+          return false;
+        },
+        get sceneId() {
+          return "scene-1";
+        },
+      } as unknown as FogState;
+      return { fogState: fake, resolveLoad };
+    }
+
+    it("an earlier setup() resuming after the LATER orchestrator's teardown() does not render, and does not throw", async () => {
+      const scene = makeScene("scene-1");
+      const mirror = makeMirror("scene-1", scene);
+
+      // Orchestrator #1 — the one whose setup() is still awaiting fog.load()
+      // when a second Scene mutation makes TableScreen.svelte tear it down
+      // (its own $effect re-running, same as a new token embedding).
+      const { fogState: fogState1, resolveLoad: resolveLoad1 } = makeDeferredFogState();
+      const { orchestrator: orch1, lightingRenderer: lighting1 } = makeOrchestrator(scene, mirror, {
+        fogState: fogState1,
+      });
+      const setup1 = orch1.setup(); // starts, blocks on fog1.load()
+
+      // TableScreen.svelte tears orch1 down BEFORE its setup() finished — the
+      // exact race: another Scene mutation reached the client in the meantime.
+      orch1.teardown();
+      const lighting1CallsAtTeardown = lighting1.calls.length;
+
+      // Orchestrator #2 — the one that superseded it. Its own fog load
+      // resolves immediately (a normal, un-raced setup).
+      const { orchestrator: orch2, lightingRenderer: lighting2 } = makeOrchestrator(scene, mirror);
+      await orch2.setup();
+      const lighting2CallsAfterOwnSetup = lighting2.calls.filter((c) => c.fn === "render").length;
+      expect(lighting2CallsAfterOwnSetup).toBeGreaterThan(0);
+
+      // NOW orch1's fog.load() resolves — its setup() continuation resumes
+      // AFTER its own teardown() already destroyed lighting1/tokenLayer1.
+      resolveLoad1();
+      await expect(setup1).resolves.toBeUndefined(); // must not throw
+
+      // orch1 must never have rendered after the point its teardown() ran —
+      // the bailout happens before any further render() call.
+      expect(lighting1.calls.length).toBe(lighting1CallsAtTeardown);
+      expect(orch1.isReady).toBe(false);
+
+      // orch2 — the surviving orchestrator — is completely unaffected.
+      expect(orch2.isReady).toBe(true);
+
+      orch2.teardown();
+    });
+
+    it("an earlier setup() resuming after teardown() does not leak a mirror subscription", async () => {
+      const scene = makeScene("scene-1");
+      const mirror = makeMirror("scene-1", scene);
+
+      const { fogState: fogState1, resolveLoad: resolveLoad1 } = makeDeferredFogState();
+      const { orchestrator: orch1, tokenLayer: tokenLayer1 } = makeOrchestrator(scene, mirror, {
+        fogState: fogState1,
+      });
+      const setup1 = orch1.setup();
+      orch1.teardown();
+
+      const { orchestrator: orch2 } = makeOrchestrator(scene, mirror);
+      await orch2.setup();
+
+      resolveLoad1();
+      await setup1;
+
+      const tokenLayer1CallsAfterResume = tokenLayer1.calls.length;
+
+      // A further Scene mutation must not reach orch1's tokenLayer — if
+      // setup1 had subscribed to the mirror (the leak this guard prevents),
+      // this feedOp would have called setVisionPolygons on the ALREADY
+      // destroyed tokenLayer1.
+      const updated = makeScene("scene-1", { tokens: [makeToken("tok-late")] });
+      mirror.feedOp({
+        seq: 2, // mirror.seq is 1 after makeMirror's snapshot — next must be 2
+        type: "doc:update",
+        ts: Date.now(),
+        payload: {
+          documentType: "Scene",
+          documents: [updated as unknown as Record<string, unknown>],
+        },
+      });
+
+      expect(tokenLayer1.calls.length).toBe(tokenLayer1CallsAfterResume);
+
+      orch2.teardown();
     });
   });
 });

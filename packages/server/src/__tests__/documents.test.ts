@@ -26,13 +26,14 @@
  *   - validation: valid documents for each registered table pass
  */
 
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
+import type { Logger } from "../logger.js";
 
 import {
   DocumentStore,
@@ -96,6 +97,35 @@ function createStore(): { store: DocumentStore; db: FusionDatabase; dir: string 
     coreVersion: "0.1.0",
   });
   return { store, db, dir };
+}
+
+/** A minimal pino-shaped logger mock, wired the same way SocketManager wires the real one. */
+function makeMockLogger(): Logger {
+  return {
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    error: vi.fn(),
+  } as unknown as Logger;
+}
+
+function createStoreWithLogger(): {
+  store: DocumentStore;
+  db: FusionDatabase;
+  dir: string;
+  logger: Logger;
+} {
+  const dir = makeTempDir();
+  tempDirs.push(dir);
+  const db = openTestDb(dir);
+  const logger = makeMockLogger();
+  const store = new DocumentStore({
+    db: db.raw,
+    defaultAuthor: { userId: "serverUserId" },
+    coreVersion: "0.1.0",
+    logger,
+  });
+  return { store, db, dir, logger };
 }
 
 // ---------------------------------------------------------------------------
@@ -299,6 +329,144 @@ describe("DocumentStore.getAll / query", () => {
     const results = store.query("actors", { nameLike: "%Goblin%", limit: 3 });
     expect(results).toHaveLength(3);
     for (const r of results) expect(String(r["name"])).toContain("Goblin");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LEGACY TOKEN READ POLICY (REQ-TOK-002)
+//
+// TokenDocumentSchema has required a resolvable `actorId` string since
+// TK020 (no `.nullable()`/`.default()`) — a token without one is refused at
+// WRITE time. A world whose Scene row predates that requirement (or was
+// written through a path that never validated per-token, like the server's
+// loosely-typed SceneSchema.tokens: z.array(z.record(...))) can still hold
+// one on disk. This is exactly that case: the Scene document is written
+// through the public store API (not raw SQL), because the server's own
+// SceneSchema accepts an embedded token shape TokenDocumentSchema would now
+// reject — proving the legacy row is reachable through ordinary writes, not
+// a fabricated fixture. A cleanup at read time, not a migration: nothing in
+// the database is rewritten, only what `get`/`getAll`/`query` return.
+// ---------------------------------------------------------------------------
+
+describe("DocumentStore — legacy token read policy (REQ-TOK-002)", () => {
+  it("get() drops a legacy token with no actorId and the scene still loads", () => {
+    const { store, logger } = createStoreWithLogger();
+    const created = store.create("scenes", {
+      name: "Legacy Scene",
+      tokens: [
+        { _id: "aaaaaaaaaaaaaaaa", name: "Ghost With No Actor", x: 1, y: 2 },
+        { _id: "bbbbbbbbbbbbbbbb", name: "Fine Token", actorId: "someActorId1234" },
+      ],
+    });
+    const sceneId = created["_id"] as string;
+
+    const fetched = store.get("scenes", sceneId);
+
+    // The scene loads — it does not throw or come back empty.
+    expect(fetched["_id"]).toBe(sceneId);
+    const tokens = fetched["tokens"] as Array<Record<string, unknown>>;
+    // Only the token WITH a resolvable actorId survives.
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0]?.["_id"]).toBe("bbbbbbbbbbbbbbbb");
+    expect(tokens.some((t) => t["_id"] === "aaaaaaaaaaaaaaaa")).toBe(false);
+
+    // The log warns about it, naming the scene.
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ sceneId, droppedCount: 1 }),
+      expect.stringContaining("actorId"),
+    );
+  });
+
+  it("warns exactly once per scene, not once per read", () => {
+    const { store, logger } = createStoreWithLogger();
+    const created = store.create("scenes", {
+      name: "Legacy Scene Read Twice",
+      tokens: [{ _id: "cccccccccccccccc", name: "Ghost", x: 0, y: 0 }],
+    });
+    const sceneId = created["_id"] as string;
+
+    store.get("scenes", sceneId);
+    store.get("scenes", sceneId);
+    store.get("scenes", sceneId);
+
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("getAll()/query() apply the same filter as get()", () => {
+    const { store, logger } = createStoreWithLogger();
+    store.create("scenes", {
+      name: "Legacy Scene In List",
+      tokens: [{ _id: "dddddddddddddddd", name: "Ghost", x: 0, y: 0 }],
+    });
+
+    const all = store.getAll("scenes");
+    expect(all).toHaveLength(1);
+    const tokens = all[0]?.["tokens"] as Array<Record<string, unknown>>;
+    expect(tokens).toHaveLength(0);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("a scene with no legacy tokens is untouched and never warns", () => {
+    const { store, logger } = createStoreWithLogger();
+    const created = store.create("scenes", {
+      name: "Clean Scene",
+      tokens: [{ _id: "eeeeeeeeeeeeeeee", name: "Fine Token", actorId: "someActorId1234" }],
+    });
+
+    const fetched = store.get("scenes", created["_id"] as string);
+    expect((fetched["tokens"] as unknown[]).length).toBe(1);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("works with no logger configured (sanitization still runs, just silent)", () => {
+    const { store } = createStore();
+    const created = store.create("scenes", {
+      name: "Legacy Scene No Logger",
+      tokens: [{ _id: "ffffffffffffffff", name: "Ghost", x: 0, y: 0 }],
+    });
+
+    const fetched = store.get("scenes", created["_id"] as string);
+    expect((fetched["tokens"] as unknown[]).length).toBe(0);
+  });
+
+  // REQ-TOK-002 — `getRaw()` is the escape hatch a write site (doc-handlers.ts's
+  // handleEmbeddedCreate/Update/Delete, vision-handlers.ts's token:move) uses
+  // to reconstruct `tokens[]` for a full-array-replace `update()` WITHOUT the
+  // legacy token silently vanishing from the row (REQ-DOC-037 replaces an
+  // array in full; building the replacement from the FILTERED `get()` would
+  // persist a `tokens[]` that never included it). `get()` on the very same
+  // document, right after, still filters it — the write-side escape hatch
+  // does not weaken the read-side policy for anyone else.
+  it("getRaw() returns the legacy token that get() filters out, unmodified otherwise", () => {
+    const { store, logger } = createStoreWithLogger();
+    const created = store.create("scenes", {
+      name: "Legacy Scene For getRaw",
+      tokens: [
+        { _id: "aaaaaaaaaaaaaaaa", name: "Ghost With No Actor", x: 1, y: 2 },
+        { _id: "bbbbbbbbbbbbbbbb", name: "Fine Token", actorId: "someActorId1234" },
+      ],
+    });
+    const sceneId = created["_id"] as string;
+
+    const raw = store.getRaw("scenes", sceneId);
+    const rawTokens = raw["tokens"] as Array<Record<string, unknown>>;
+    expect(rawTokens.map((t) => t["_id"])).toEqual(["aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb"]);
+    // getRaw() never warns — it is not the READ policy, just its bypass for
+    // internal write reconstruction.
+    expect(logger.warn).not.toHaveBeenCalled();
+
+    // The ordinary filtered read is completely unaffected by that getRaw()
+    // call: the legacy token is still hidden, and the warn still fires once.
+    const filtered = store.get("scenes", sceneId);
+    const filteredTokens = filtered["tokens"] as Array<Record<string, unknown>>;
+    expect(filteredTokens.map((t) => t["_id"])).toEqual(["bbbbbbbbbbbbbbbb"]);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("getRaw() throws DocumentNotFoundError for a missing id, like get()", () => {
+    const { store } = createStore();
+    expect(() => store.getRaw("scenes", "nonexistentId0001")).toThrow(DocumentNotFoundError);
   });
 });
 

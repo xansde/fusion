@@ -53,6 +53,7 @@ import {
 } from "./vision/vision-state.js";
 import type { FogState, FogRenderState } from "./vision/fog-state.js";
 import type { VisionPolygonResult } from "./vision/vision-state.js";
+import { effectiveGridSize } from "./sceneCoords.js";
 
 // ---------------------------------------------------------------------------
 // Injected renderer interfaces (no PIXI dependency — testable in Node)
@@ -148,6 +149,28 @@ export class SceneOrchestrator {
   /** Whether setup() has been called. */
   private _ready = false;
 
+  /**
+   * Set by `teardown()`, checked by `setup()`'s continuation after its
+   * `FogState.load()` await (defect 2, Fase 1 e2e). `TableScreen.svelte`
+   * recreates the orchestrator on every Scene mutation reaching the client —
+   * including a brand-new token embedding — via a `$effect` that tears down
+   * the CURRENT orchestrator and builds a new one. If that `$effect` re-runs
+   * again (another Scene mutation) while an earlier `setup()` call is still
+   * awaiting `fog.load()`'s round-trip, `teardown()` runs on THIS instance —
+   * destroying its `_tokenLayer`/`_lightingRenderer` — before that `setup()`
+   * continuation resumes. Without this guard the continuation went on to call
+   * `_onSceneChange` → `this._lightingRenderer.render(...)` against an
+   * already-destroyed renderer, which threw (LightingRenderer's own
+   * `_darknessOverlay.clear()` on a destroyed Graphics — the exact exception
+   * the e2e's console capture recorded). The orchestrator that superseded
+   * this one is unaffected either way (it owns its own renderer), but without
+   * this guard the throw happened AFTER this instance would otherwise have
+   * subscribed to the mirror below, leaking a subscription that keeps firing
+   * into destroyed PIXI objects on every future Scene change. Bailing out
+   * here — before that subscribe call — avoids the leak too.
+   */
+  private _destroyed = false;
+
   constructor(opts: SceneOrchestratorOptions) {
     this._scene = opts.scene;
     this._mirror = opts.mirror;
@@ -175,6 +198,12 @@ export class SceneOrchestrator {
       });
     }
 
+    // Defect 2 (Fase 1 e2e): teardown() may have already run on THIS instance
+    // while the await above was in flight — see `_destroyed`'s doc comment.
+    // Resuming past this point would subscribe/render against renderers this
+    // instance's own teardown() already destroyed.
+    if (this._destroyed) return;
+
     // Subscribe to Scene document changes (tokens, walls, lights embedded)
     const offScene = this._mirror.subscribe<SceneDocument>("Scene", (scenes) => {
       const scene = scenes.find((s) => s._id === this._scene._id);
@@ -200,8 +229,13 @@ export class SceneOrchestrator {
    * Tear down all subscriptions and owned resources.
    * Call before this scene is replaced by a new one.
    * Flushes pending fog state to server before destroying.
+   * Idempotent — a second call, or one racing a not-yet-finished `setup()`
+   * (defect 2, Fase 1 e2e), is a no-op past the first.
    */
   teardown(): void {
+    if (this._destroyed) return;
+    this._destroyed = true;
+
     for (const unsub of this._unsubscribes) {
       unsub();
     }
@@ -279,10 +313,10 @@ export class SceneOrchestrator {
 
     // Compute vision state. The SceneDocument type declares `grid` as always
     // present (Zod default), but minimal/legacy/partial-diff scenes can arrive
-    // without it at runtime — reading `.size` then throws. Guard defensively;
-    // the type says non-nullish, so the lint rule is disabled here on purpose.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const gridSize = scene.grid?.size ?? 100;
+    // without it at runtime — reading `.size` then throws (and a literal `0`
+    // would zero out footprint × gridSize elsewhere). `effectiveGridSize`
+    // guards both — see `sceneCoords.ts`.
+    const gridSize = effectiveGridSize(scene);
     const darkness = scene.darkness;
     const globalLight = scene.globalLight;
 
@@ -364,8 +398,7 @@ export class SceneOrchestrator {
    */
   private _buildTokenSources(tokens: TokenDocument[]): TokenSourceConfig[] {
     // See note above: `grid` can be runtime-absent despite the non-nullish type.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const gridSize = this._scene.grid?.size ?? 100;
+    const gridSize = effectiveGridSize(this._scene);
     const sources: TokenSourceConfig[] = [];
 
     for (const token of tokens) {

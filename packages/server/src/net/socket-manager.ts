@@ -284,7 +284,12 @@ export class SocketManager {
     // single point they all converge on.
     const writeMetrics = new WriteMetricsCollector({ logger: this.logger, worldId });
     this.writeMetrics.set(worldId, writeMetrics);
-    const store = new DocumentStore({ db, coreVersion: FUSION_VERSION, metrics: writeMetrics });
+    const store = new DocumentStore({
+      db,
+      coreVersion: FUSION_VERSION,
+      metrics: writeMetrics,
+      logger: this.logger,
+    });
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its

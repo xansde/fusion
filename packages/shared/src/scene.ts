@@ -28,6 +28,7 @@ import {
   TokenVisionSchema,
   TokenLightSchema,
 } from "./vision/scene-schemas.js";
+import { ActorDeltaPatchSchema } from "./token/effectiveActor.js";
 
 // ---------------------------------------------------------------------------
 // GridConfig Zod schema
@@ -146,23 +147,22 @@ export const TokenDocumentSchema = z.object({
   /** Unique 16-character nanoid ID within the Scene's tokens collection. REQ-DOC-001. */
   _id: z.string().regex(/^[A-Za-z0-9]{16}$/, "must be 16 chars from [A-Za-z0-9]"),
 
-  /** Display name on the canvas (may differ from Actor name). */
-  name: z.string().default(""),
+  /**
+   * Own display label. Null = inherit the effective actor's name (REQ-TOK-060).
+   * Spec 41 §7.1: never a hiding mechanism (REQ-TOK-062) — display only.
+   */
+  name: z.string().nullable().default(null),
 
   /**
-   * Soft reference to the base Actor document.
-   * Null for "anonymous" tokens without an actor backing.
-   * REQ-DOC-031.
+   * Soft reference to the base Actor document. REQUIRED — a token without a
+   * resolvable actor is refused by the server, on both create and update
+   * (REQ-TOK-002, DEC-TOK-04). No `.nullable()`/`.default()`: parsing a
+   * payload that omits this field, or sends `null`, fails validation instead
+   * of silently falling back — that refusal is exactly what REQ-TOK-002
+   * requires from this schema. Existence-of-actor is a server-side lookup
+   * (this schema only proves "a string was provided"), enforced by TK022.
    */
-  actorId: z.string().nullable().default(null),
-
-  /**
-   * Path or URL to the token artwork texture.
-   * Null renders a placeholder silhouette.
-   * M1-E (asset upload) will enforce valid asset paths; for now any string
-   * or null is accepted.
-   */
-  texture: z.string().nullable().default(null),
+  actorId: z.string(),
 
   /**
    * X position of the token's top-left corner in scene pixel coordinates.
@@ -175,19 +175,6 @@ export const TokenDocumentSchema = z.object({
    */
   y: z.number().default(0),
 
-  /**
-   * Token footprint width in grid cells.
-   * 1 = one-cell-wide token (e.g. medium creature in PF2e).
-   * Must be at least 0.5.
-   */
-  width: z.number().min(0.5).default(1),
-
-  /**
-   * Token footprint height in grid cells.
-   * Must be at least 0.5.
-   */
-  height: z.number().min(0.5).default(1),
-
   /** Rotation angle in degrees (0 = facing right/east, clockwise). */
   rotation: z.number().min(0).max(360).default(0),
 
@@ -198,13 +185,51 @@ export const TokenDocumentSchema = z.object({
   elevation: z.number().default(0),
 
   /**
+   * Whether this token's effective actor is the world Actor itself (true), or
+   * a TokenActor reconstructed from `actorId`'s base Actor plus `actorDelta`
+   * (false). REQ-DOC-031.
+   *
+   * Default `true` here is a READ-time placeholder for legacy rows that
+   * predate this field (REQ-DOC-061's own text: "o default do schema (true)
+   * governa a leitura de tokens já persistidos, que não têm o campo").
+   * It is NOT the creation default — REQ-TOK-023/REQ-DOC-061 require the
+   * creation default to follow the base actor's subtype (character → true,
+   * npc → false), decided by the server at creation time, never derived here
+   * or at read time. Choosing `.default(true)` over making the field required
+   * is deliberate: a required field would fail to parse every token
+   * persisted before this task, which is worse than a placeholder that only
+   * matters for pre-TK020 rows the server never re-derives (REQ-TOK-023).
+   */
+  actorLink: z.boolean().default(true),
+
+  /**
+   * Merge patch applied over the base actor when `actorLink === false`
+   * (DEC-DOC-08, REQ-DOC-033). Null when linked, or when unlinked with no
+   * overrides yet. Resolved exclusively by `resolveEffectiveActor` from
+   * `./token/effectiveActor.js` (RNF-TOK-01) — never re-implemented here.
+   * REQ-TOK-022/DEC-TOK-05: the creation payload must never carry this field
+   * (server-side refusal, TK025); it only ever arrives via the dedicated
+   * TokenActor-mutation route (REQ-DOC-034).
+   */
+  actorDelta: ActorDeltaPatchSchema.nullable().default(null),
+
+  /**
    * Whether the token is hidden from non-GM users.
    * Hidden tokens are still visible to GMs (dimmed indicator).
    */
   hidden: z.boolean().default(false),
 
-  /** Token disposition: -1 hostile, 0 neutral, 1 friendly. */
-  disposition: DispositionSchema.default(0),
+  /**
+   * UserIds exempted from `hidden` — they receive the token even while it is
+   * hidden from everyone else (REQ-TOK-050, DEC-TOK-08).
+   */
+  seenBy: z.array(z.string()).default([]),
+
+  /**
+   * Token disposition: -1 hostile, 0 neutral, 1 friendly.
+   * Null = inherit the base actor's disposition (REQ-TOK-080, DEC-TOK-12).
+   */
+  disposition: DispositionSchema.nullable().default(null),
 
   /**
    * Primary attribute bar (e.g. HP).
@@ -242,9 +267,13 @@ export const TokenDocumentSchema = z.object({
 
 export type TokenDocument = z.infer<typeof TokenDocumentSchema>;
 
-/** Factory: build a minimal valid TokenDocument with defaults. */
-export function defaultTokenDocument(id: string): TokenDocument {
-  return TokenDocumentSchema.parse({ _id: id });
+/**
+ * Factory: build a minimal valid TokenDocument with defaults.
+ * `actorId` is a required parameter — `TokenDocumentSchema` no longer accepts
+ * a missing/null `actorId` (REQ-TOK-002), so this factory cannot default it.
+ */
+export function defaultTokenDocument(id: string, actorId: string): TokenDocument {
+  return TokenDocumentSchema.parse({ _id: id, actorId });
 }
 
 // ---------------------------------------------------------------------------

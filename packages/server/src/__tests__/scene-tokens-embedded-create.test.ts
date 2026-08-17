@@ -26,6 +26,16 @@
  * real write) and REQ-NPC-061 (the token the write adds carries the fields a
  * real placement needs — actorId, position) — spec 42 §5.8.
  *
+ * The payload here is the spec 41 §7.2 one (TK022–TK025): `actorId` (which must
+ * RESOLVE to a real Actor — REQ-TOK-002/DEC-TOK-04, hence the actors this suite
+ * creates first) plus the obligatory `x`/`y` (REQ-TOK-020), and nothing the
+ * server derives or refuses. `texture`/`width`/`height` are NOT sent, and are not
+ * merely ignored: `validateTokenCreateContract`
+ * (`packages/server/src/tokens/tokenValidation.ts`) answers VALIDATION_FAILED to
+ * any of them (REQ-TOK-010/012/022, DEC-TOK-05) — pinned by the fourth case
+ * below, so a client that reintroduces the pre-TK022 payload fails here loudly
+ * instead of silently landing a token with art of its own.
+ *
  * This file drives the real socket handler end-to-end (boot() + socket.io
  * client, mirroring contacts-title-expected-version.test.ts's
  * infrastructure) as the GM — REQ-CEN-070 makes Scene-embedded writes a
@@ -172,28 +182,23 @@ function sendOp(
   });
 }
 
-/** A minimal, valid embedded-create token payload — the shape npcsFooter.ts/TokenAddDialog.svelte send. Never carries an `_id`: the server mints it. */
-function newTokenData(name: string, actorId: string | null = null): Record<string, unknown> {
-  return {
-    name,
-    actorId,
-    texture: null,
-    x: 0,
-    y: 0,
-    width: 1,
-    height: 1,
-    rotation: 0,
-    hidden: false,
-    disposition: 0,
-    elevation: 0,
-    bar1: { attribute: null },
-    bar2: { attribute: null },
-  };
+/**
+ * A minimal, valid embedded-create token payload — the shape `npcsFooter.ts`'s
+ * `buildPlaceChestTokenOp` and `TokenAddDialog.svelte`'s `buildCreateTokenOp`
+ * send after TK022: `actorId` + the obligatory `x`/`y` (REQ-TOK-020), plus at
+ * most an overridable `name` (REQ-TOK-060: absent means "inherit the actor's").
+ * Never an `_id` (the server mints it), and never a derived field — art,
+ * footprint and possession are refused outright (REQ-TOK-010/012/013/022).
+ */
+function newTokenData(actorId: string, name?: string): Record<string, unknown> {
+  const data: Record<string, unknown> = { actorId, x: 0, y: 0 };
+  if (name !== undefined) data["name"] = name;
+  return data;
 }
 
 /** A pre-existing embedded token, seeded directly in a doc:create's `data`, with a valid 16-char id. */
-function seededToken(id: string, name: string): Record<string, unknown> {
-  return { _id: id, ...newTokenData(name) };
+function seededToken(id: string, actorId: string, name?: string): Record<string, unknown> {
+  return { _id: id, ...newTokenData(actorId, name) };
 }
 
 // ---------------------------------------------------------------------------
@@ -204,12 +209,30 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
   let ctx: Ctx;
   let gm: ClientSocket;
   let sceneId: string;
+  /**
+   * The wolf already on the scene, and the chest the fix lands — both REAL Actors:
+   * REQ-TOK-002/DEC-TOK-04 refuses a token whose `actorId` resolves to nothing.
+   */
+  let loboActorId: string;
+  let bauActorId: string;
 
   beforeAll(async () => {
     ctx = await buildCtx();
     gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
     gm.connect();
     await waitForConnect(gm);
+
+    const actorsAck = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [
+        { name: "Lobo", type: "npc", folder: null },
+        { name: "Baú", type: "loot", folder: null },
+      ],
+    });
+    expect(actorsAck["ok"], JSON.stringify(actorsAck)).toBe(true);
+    const actors = (actorsAck["result"] as { documents: Array<{ _id: string }> }).documents;
+    loboActorId = actors[0]!._id;
+    bauActorId = actors[1]!._id;
   }, 30000);
 
   afterAll(async () => {
@@ -222,7 +245,7 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
   beforeEach(async () => {
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Scene",
-      data: [{ name: "Clareira", tokens: [seededToken("tokenlobo0000001", "Lobo")] }],
+      data: [{ name: "Clareira", tokens: [seededToken("tokenlobo0000001", loboActorId)] }],
     });
     expect(ack["ok"]).toBe(true);
     sceneId = (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
@@ -236,7 +259,7 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
       updates: [
         {
           _id: sceneId,
-          diff: { tokens: { $push: seededToken("tokenbau00000001", "Baú") } },
+          diff: { tokens: { $push: seededToken("tokenbau00000001", bauActorId) } },
         },
       ],
     });
@@ -260,7 +283,7 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
       updates: [
         {
           _id: sceneId,
-          diff: { tokens: [...currentTokens, seededToken("tokenbau00000001", "Baú")] },
+          diff: { tokens: [...currentTokens, seededToken("tokenbau00000001", bauActorId)] },
         },
       ],
     });
@@ -277,10 +300,11 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
   });
 
   it("the FIXED shape — an embedded doc:create — succeeds, mints the _id server-side, and the scene persists with both tokens", async () => {
-    // What `buildPlaceChestTokenOp`/`buildAddTokenOp` send after the A004 fix.
+    // What `buildPlaceChestTokenOp` / `buildCreateTokenOp` / `buildActorDropTokenOp`
+    // send after the A004 fix, in the spec 41 §7.2 form (TK022).
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [newTokenData("Baú", "actorbau00000001")],
+      data: [newTokenData(bauActorId, "Baú")],
       parent: { type: "Scene", id: sceneId },
     });
 
@@ -294,14 +318,49 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
     const mintedId = result.documents[0]?.["_id"];
     expect(typeof mintedId).toBe("string");
     expect(mintedId).toMatch(/^[A-Za-z0-9]{16}$/);
-    expect(result.documents[0]?.["actorId"]).toBe("actorbau00000001");
+    expect(result.documents[0]?.["actorId"]).toBe(bauActorId);
 
     const persisted = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
     const tokens = persisted["tokens"] as Array<Record<string, unknown>>;
     expect(tokens).toHaveLength(2);
     expect(tokens[0]?.["_id"]).toBe("tokenlobo0000001");
     expect(tokens[1]?.["_id"]).toBe(mintedId);
-    expect(tokens[1]?.["actorId"]).toBe("actorbau00000001");
+    expect(tokens[1]?.["actorId"]).toBe(bauActorId);
     expect(tokens[1]?.["name"]).toBe("Baú");
+  });
+
+  it("REQ-TOK-010/012/022 (TK025): the PRE-TK022 payload — art and footprint on the token — is refused, not silently stripped", async () => {
+    // The shape these same call sites used to send before spec 41 Fase 1. A token
+    // has no art or footprint of its own: both derive from the effective actor
+    // (DEC-TOK-03), and DEC-TOK-05 requires a REFUSAL rather than a quiet strip —
+    // otherwise a caller would keep believing it had set a texture that never
+    // existed on the document.
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Token",
+      data: [{ ...newTokenData(bauActorId, "Baú"), texture: null, width: 1, height: 1 }],
+      parent: { type: "Scene", id: sceneId },
+    });
+
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toContain("Token.width");
+
+    const persisted = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    expect((persisted["tokens"] as unknown[]).length).toBe(1);
+  });
+
+  it("REQ-TOK-002 (DEC-TOK-04): an actorId that resolves to no Actor is refused — there is no piece to draw", async () => {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Token",
+      data: [newTokenData("actorbau00000001")],
+      parent: { type: "Scene", id: sceneId },
+    });
+
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toContain("REQ-TOK-002");
+
+    const persisted = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    expect((persisted["tokens"] as unknown[]).length).toBe(1);
   });
 });

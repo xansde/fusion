@@ -45,6 +45,7 @@ import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
 import type { TokenLayer } from "./TokenLayer.js";
+import { footprintOf } from "./footprint.js";
 import {
   canMoveToken,
   snapTokenToGrid,
@@ -157,19 +158,19 @@ export class TokenInteractionManager {
   // ---------------------------------------------------------------------------
 
   /**
-   * GM: Add a new token to the active scene.
+   * GM: Add a new token linked to `actorId` to the active scene, centered in
+   * the current viewport.
    *
-   * @param name      Token display name.
-   * @param texture   URL/path to texture (or null for placeholder).
-   * @param widthCells  Footprint width in cells.
-   * @param heightCells Footprint height in cells.
+   * TK023 (REQ-TOK-002, REQ-TOK-010, REQ-TOK-012): `actorId` is required — a
+   * token with no actor is no longer a representable state (DEC-TOK-04) — and
+   * the payload carries no `name`/`texture`/`width`/`height` of its own: name
+   * and art come from the actor (REQ-TOK-060, REQ-CNV-091), and the footprint
+   * is a schema-less placeholder (`footprintOf`, TK041) used here only to
+   * center the drop.
+   *
+   * @param actorId  The Actor this token is linked to.
    */
-  async addToken(
-    name: string,
-    texture: string | null,
-    widthCells: number = 1,
-    heightCells: number = 1,
-  ): Promise<void> {
+  async addToken(actorId: string): Promise<void> {
     const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
     if (!scene) return;
 
@@ -181,23 +182,21 @@ export class TokenInteractionManager {
     const centerSy = viewRect.height / 2;
     const world = screenToWorld(centerSx, centerSy, camera);
 
+    const footprint = footprintOf(undefined, undefined);
     const snapped = snapTokenToGrid(
-      world.x - (widthCells * this._opts.gridConfig.size) / 2,
-      world.y - (heightCells * this._opts.gridConfig.size) / 2,
-      widthCells,
-      heightCells,
+      world.x - (footprint.width * this._opts.gridConfig.size) / 2,
+      world.y - (footprint.height * this._opts.gridConfig.size) / 2,
+      footprint.width,
+      footprint.height,
       this._opts.gridConfig,
     );
 
     const tokenId = createDocumentId();
     const newToken: Partial<TokenDocument> = {
       _id: tokenId,
-      name,
-      texture: texture ?? null,
+      actorId,
       x: snapped.x,
       y: snapped.y,
-      width: widthCells,
-      height: heightCells,
     };
 
     const createPayload: DocCreatePayload = {
@@ -397,11 +396,12 @@ export class TokenInteractionManager {
         const token = this._getToken(this._pointerDown.tokenId);
         if (!token) return;
 
+        const footprint = footprintOf(token, undefined);
         const snapped = snapTokenToGrid(
-          world.x - (token.width * this._opts.gridConfig.size) / 2,
-          world.y - (token.height * this._opts.gridConfig.size) / 2,
-          token.width,
-          token.height,
+          world.x - (footprint.width * this._opts.gridConfig.size) / 2,
+          world.y - (footprint.height * this._opts.gridConfig.size) / 2,
+          footprint.width,
+          footprint.height,
           this._opts.gridConfig,
         );
 

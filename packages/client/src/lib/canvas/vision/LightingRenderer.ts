@@ -88,6 +88,22 @@ export class LightingRenderer {
   /** Last rendered state — used to skip redundant draws. */
   private _lastStateKey = "";
 
+  /**
+   * Set by `destroy()`, checked at the top of `render()` (defect 2, Fase 1 e2e).
+   * `SceneOrchestrator.setup()` is async (it awaits `FogState.load()` before its
+   * first `render()` call); `TableScreen.svelte` can call this renderer's owning
+   * orchestrator's `teardown()` — which calls `destroy()` here — while that
+   * `setup()` is still in flight, whenever a Scene mutation (e.g. a new token
+   * embedding) makes the `$effect` re-run before the previous one finished. The
+   * `_darknessOverlay`/etc. Graphics objects are then already destroyed — PIXI's
+   * `Graphics.clear()` reads a `null` internal context in that state and throws
+   * `TypeError: Cannot read properties of null (reading 'clear')` (confirmed
+   * against the exact exception from the e2e console capture). `render()` after
+   * `destroy()` is a no-op instead: the orchestrator that superseded this one
+   * already owns a fresh `LightingRenderer` and will draw the current state.
+   */
+  private _destroyed = false;
+
   constructor(container: Container, sceneWidth: number, sceneHeight: number, padX = 0, padY = 0) {
     this._container = container;
     this._sceneWidth = sceneWidth;
@@ -141,6 +157,11 @@ export class LightingRenderer {
     debugMode = false,
     restrictionActive = true,
   ): void {
+    // Defect 2 (Fase 1 e2e): a no-op guard against a stale async continuation
+    // rendering into PIXI objects this instance's own `destroy()` already tore
+    // down — see the `_destroyed` field doc comment for the exact race.
+    if (this._destroyed) return;
+
     const t0 = performance.now();
 
     const stateKey = this._buildStateKey(state, fogState, restrictionActive);
@@ -181,8 +202,10 @@ export class LightingRenderer {
     }
   }
 
-  /** Clean up all PIXI objects. */
+  /** Clean up all PIXI objects. Idempotent — a second call is a no-op. */
   destroy(): void {
+    if (this._destroyed) return;
+    this._destroyed = true;
     this._darknessOverlay.destroy();
     this._lightsContainer.destroy({ children: true });
     this._fogContainer.destroy({ children: true });
