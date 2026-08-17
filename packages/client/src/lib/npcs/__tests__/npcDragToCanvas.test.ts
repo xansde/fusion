@@ -48,6 +48,22 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     expect(table).toContain('getData("application/fusion-actor")');
   });
 
+  it("REQ-NPC-063: dragover accepts by advertised MIME type, never by reading the payload (getData is empty during dragover)", () => {
+    // HTML5 drag data store is in protected mode during `dragover`: getData() returns "".
+    // Deciding preventDefault() from the payload made the browser refuse every drop
+    // (item A031 of the r1 review). The gate must look at dataTransfer.types.
+    const table = source("../../../components/TableScreen.svelte");
+    const start = table.indexOf("function handleCanvasDragOver(");
+    const end = table.indexOf("function handleCanvasDrop(");
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const dragOver = table.slice(start, end);
+    expect(dragOver).not.toContain("getData(");
+    expect(dragOver).not.toContain("_getActorDragPayload(");
+    expect(dragOver).toContain("_dragCarriesKnownType(event)");
+    expect(table).toContain('.includes("application/fusion-actor")');
+  });
+
   it("REQ-NPC-063: the payload the row writes survives the trip and names the actor", () => {
     const wire = JSON.stringify(buildNpcDragPayload(LOBO));
     const payload = readNpcDragPayload(wire);

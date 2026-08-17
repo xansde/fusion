@@ -291,15 +291,26 @@
     }
   }
 
+  /**
+   * During `dragover` the HTML5 drag data store is in *protected* mode: `getData()` always
+   * returns "" — so the decision to accept the drop MUST be made from the advertised MIME
+   * types, never from the payload (which is only readable on `drop`). Reading the payload
+   * here was why the NPC → canvas drag silently did nothing (item A031 of the r1 review).
+   */
+  function _dragCarriesKnownType(event: DragEvent): boolean {
+    const types = event.dataTransfer?.types;
+    if (!types) return false;
+    const list = Array.from(types as ArrayLike<string>);
+    return list.includes("application/fusion-actor") || list.includes("text/plain");
+  }
+
   function handleCanvasDragOver(event: DragEvent): void {
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
     // The drop lands on the scene the Master is LOOKING at — the prepared one while a
     // prepare lasts (REQ-CEN-050), never the one on air behind his back.
     if (!canvasScene) return;
-    const actorPayload = _getActorDragPayload(event);
-    const compPayload = _getCompendiumDragPayload(event);
-    if (!actorPayload && !compPayload) return;
+    if (!_dragCarriesKnownType(event)) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
