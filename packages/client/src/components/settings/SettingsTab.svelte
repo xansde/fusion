@@ -4,8 +4,9 @@
    * "settings", anchored to the rail footer by DEC-GAV-09 / REQ-CFG-001).
    *
    * G100: the index and the drill-in navigation. The tab opens on an **index** of
-   * sections — one line per section, title + one-line description, deliberately
-   * without an icon (REQ-CFG-003, REQ-CFG-004) — cut by role at the index itself
+   * sections — one line per section, title + one-line description + a "›" advance
+   * indicator, deliberately without a per-section icon (REQ-CFG-003, REQ-CFG-004) —
+   * cut by role at the index itself
    * (DEC-CFG-05, REQ-CFG-005): a non-privileged seat sees exactly one entry, "Minhas
    * preferências". Choosing a section substitutes the index with its content in this
    * same panel (REQ-CFG-010); the header of that content shows a "‹ voltar" control
@@ -94,7 +95,10 @@
     <header class="settings-tab__header">
       <span class="settings-tab__title">{t("FUSION.Sidebar.Settings.Title")}</span>
     </header>
-    <!-- REQ-CFG-003/004: one line per section, title + description, no icon. -->
+    <!-- REQ-CFG-003/004: one line per section, title + description + advance
+         indicator, no per-section icon. The indicator is a plain "›" glyph (same
+         family as the section header's own "‹" back control below), not an SVG
+         pictograph identifying the section — REQ-CFG-004 only bans the latter. -->
     <ul class="settings-tab__index">
       {#each sections as section (section.id)}
         <li>
@@ -103,9 +107,13 @@
             class="settings-tab__index-item"
             onclick={() => nav.open(section.id)}
           >
-            <span class="settings-tab__index-item-title">{t(section.titleKey)}</span>
-            <span class="settings-tab__index-item-description">{t(section.descriptionKey)}</span
-            >
+            <span class="settings-tab__index-item-text">
+              <span class="settings-tab__index-item-title">{t(section.titleKey)}</span>
+              <span class="settings-tab__index-item-description"
+                >{t(section.descriptionKey)}</span
+              >
+            </span>
+            <span class="settings-tab__index-item-indicator" aria-hidden="true">›</span>
           </button>
         </li>
       {/each}
@@ -176,14 +184,15 @@
   }
 
   .settings-tab__index-item {
+    align-items: center;
     background: none;
     border: none;
     border-bottom: 1px solid var(--fusion-border);
     cursor: pointer;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     font: inherit;
-    gap: 0.15rem;
+    gap: 0.5rem;
     padding: 0.6rem 0.75rem;
     text-align: left;
     width: 100%;
@@ -191,6 +200,20 @@
 
   .settings-tab__index-item:hover {
     background: var(--fusion-surface-alt);
+  }
+
+  .settings-tab__index-item-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .settings-tab__index-item-indicator {
+    color: var(--fusion-text-subtle);
+    flex-shrink: 0;
+    font-size: 1rem;
   }
 
   .settings-tab__index-item-title {

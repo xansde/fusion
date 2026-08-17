@@ -74,11 +74,18 @@ describe("SettingsTab — the index (REQ-CFG-003..005)", () => {
     }
   });
 
-  it("REQ-CFG-004: index rows carry a title and a description, but no icon markup", () => {
+  it("REQ-CFG-004: index rows carry a title, a description and an advance indicator, but no per-section icon", () => {
     const html = renderTab(true);
     const indexMatch = /<ul class="settings-tab__index[^"]*">([\s\S]*?)<\/ul>/.exec(html);
     expect(indexMatch).not.toBeNull();
-    expect(indexMatch?.[1]).not.toContain("<svg");
+    const indexHtml = indexMatch?.[1] ?? "";
+    // No SVG pictograph identifying a section (the prohibitive half of the requirement).
+    expect(indexHtml).not.toContain("<svg");
+    // Every row still carries the advance indicator (the mandatory half): one
+    // indicator per rendered row, none of them the section's own SVG icon.
+    const rowCount = SETTINGS_SECTIONS.length;
+    const indicatorMatches = indexHtml.match(/settings-tab__index-item-indicator/g) ?? [];
+    expect(indicatorMatches).toHaveLength(rowCount);
   });
 });
 
