@@ -581,6 +581,41 @@ export class DocumentStore {
   }
 
   /**
+   * Retrieve a single document by id WITHOUT the legacy-token read filter
+   * (REQ-TOK-002) — otherwise identical to `get()`.
+   *
+   * For internal, read-modify-write reconstruction ONLY. The one legitimate
+   * reason to bypass the filter is rebuilding an embedded collection (e.g.
+   * Scene.tokens) before a write that replaces that array in full
+   * (REQ-DOC-037): a caller that instead reconstructs from the FILTERED
+   * `get()` — as handleEmbeddedCreate/Update/Delete and the token:move
+   * handler do — permanently drops, from the ROW ITSELF, every legacy token
+   * it never even saw to intentionally remove (a bug: `filterLegacyTokens
+   * WithoutActor` is documented as a read-only policy, "nothing is rewritten
+   * in the database", but a full-array-replace `update()` built on its
+   * output rewrites exactly that).
+   *
+   * The document this returns must NEVER reach a socket as-is — a legacy
+   * token missing `actorId` is exactly what crashes a client trying to
+   * resolve its effective actor (RNF-TOK-01). Every caller of `getRaw` is
+   * responsible for re-reading the affected document through `get()` (which
+   * re-applies the filter, warns, and is exercised by the existing REQ-TOK-002
+   * test suite) before using it in a broadcast payload or an ack result.
+   */
+  getRaw(table: DocumentTable, id: string): Record<string, unknown> {
+    if (!DOCUMENT_TABLES.has(table)) {
+      throw new Error(`Unknown document table: "${table}"`);
+    }
+
+    const row = this.db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id) as
+      | { data: string }
+      | undefined;
+
+    if (!row) throw new DocumentNotFoundError(table, id);
+    return JSON.parse(row.data) as Record<string, unknown>;
+  }
+
+  /**
    * Retrieve all documents from a table (optionally filtered).
    * REQ-PER-023.
    */

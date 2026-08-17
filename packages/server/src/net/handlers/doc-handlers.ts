@@ -1439,10 +1439,17 @@ function handleEmbeddedCreate(
     }
   }
 
-  // Load parent
+  // Load parent — RAW (REQ-TOK-002): the embedded collection below is
+  // reconstructed from this doc and persisted with a full-array replace
+  // (REQ-DOC-037). Reading it through the filtered `get()` here would
+  // permanently drop a legacy token (no resolvable actorId) from the ROW on
+  // the very first embedded write to a legacy scene — see `getRaw`'s
+  // docstring. Ownership/visibility below don't depend on `tokens`, so raw
+  // vs. filtered makes no difference to them. `updatedParent` is re-read
+  // through the filtered `get()` before it reaches the ack/broadcast below.
   let parentDoc: Record<string, unknown>;
   try {
-    parentDoc = deps.store.get(parentTable as never, parent.id);
+    parentDoc = deps.store.getRaw(parentTable as never, parent.id);
   } catch (err) {
     if (err instanceof DocumentNotFoundError) {
       return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
@@ -1578,6 +1585,12 @@ function handleEmbeddedCreate(
     return ackError("INTERNAL_ERROR", "Failed to update parent document");
   }
 
+  // REQ-TOK-002: `updatedParent` above was built from the RAW `parentDoc`
+  // (getRaw), so a legacy token in this scene survived the write on disk —
+  // re-read through the filtered `get()` before it can reach the ack or the
+  // broadcast below (no-op for non-Scene tables/documents without tokens).
+  updatedParent = deps.store.get(parentTable as never, parent.id);
+
   // WIRING-DERIVE: an embedded Item create on an Actor (e.g. a Condition)
   // affects derived stats (AC, saves, ...) — recompute before broadcast.
   updatedParent = recomputeDerivedIfNeeded(deps, parent.type, updatedParent, {
@@ -1629,9 +1642,13 @@ function handleEmbeddedUpdate(
   const allUpdatedParents: Record<string, unknown>[] = [];
 
   for (const [parentId, parentUpdates] of byParent) {
+    // RAW (REQ-TOK-002) — see handleEmbeddedCreate's comment: `collection`
+    // below is reconstructed from this doc and persisted with a full-array
+    // replace. `updatedParent` is re-read through the filtered `get()` before
+    // it reaches the broadcast further down.
     let parentDoc: Record<string, unknown>;
     try {
-      parentDoc = deps.store.get(parentTable as never, parentId);
+      parentDoc = deps.store.getRaw(parentTable as never, parentId);
     } catch (err) {
       if (err instanceof DocumentNotFoundError) {
         return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
@@ -1784,6 +1801,11 @@ function handleEmbeddedUpdate(
     });
 
     if (updatedParent) {
+      // REQ-TOK-002: re-read through the filtered `get()` — `updatedParent`
+      // was built from the RAW `parentDoc`, so a legacy token survived the
+      // write on disk but must not reach the broadcast below.
+      updatedParent = deps.store.get(parentTable as never, parentId);
+
       // WIRING-DERIVE (audit issue 2): an embedded update (e.g. changing a
       // Condition's `value`, such as Frightened 2 → 1) affects derived stats
       // (AC, saves, ...) exactly like an embedded create does — recompute
@@ -1831,9 +1853,13 @@ function handleEmbeddedDelete(
     return ackError("VALIDATION_FAILED", `Unknown parent type: ${parent.type}`);
   }
 
+  // RAW (REQ-TOK-002) — see handleEmbeddedCreate's comment: `updatedCollection`
+  // below is reconstructed from this doc and persisted with a full-array
+  // replace. `updatedParent` is re-read through the filtered `get()` before
+  // it reaches the ack/broadcast further down.
   let parentDoc: Record<string, unknown>;
   try {
-    parentDoc = deps.store.get(parentTable as never, parent.id);
+    parentDoc = deps.store.getRaw(parentTable as never, parent.id);
   } catch (err) {
     if (err instanceof DocumentNotFoundError) {
       return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
@@ -1900,6 +1926,12 @@ function handleEmbeddedDelete(
   if (!updatedParent) {
     return ackError("INTERNAL_ERROR", "Failed to update parent after embedded delete");
   }
+
+  // REQ-TOK-002: `updatedParent` above was built from the RAW `parentDoc`
+  // (getRaw), so a legacy token this delete didn't target survived the write
+  // on disk — re-read through the filtered `get()` before it can reach the
+  // ack or the broadcast below.
+  updatedParent = deps.store.get(parentTable as never, parent.id);
 
   // WIRING-DERIVE (audit issue 2): removing an embedded Item (e.g. clearing a
   // Condition) affects derived stats (AC, saves, ...) exactly like create/

@@ -562,8 +562,20 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
     if (rotation !== undefined) {
       updatedToken["rotation"] = rotation;
     }
-    const updatedTokens: Record<string, unknown>[] = [...tokens];
-    updatedTokens[tokenIdx] = updatedToken;
+
+    // REQ-TOK-002: `tokens` above came from `scene` (loadScene → the
+    // FILTERED `store.get()`). Persisting a replacement array reconstructed
+    // from it would permanently drop, from the row, any legacy token (no
+    // resolvable actorId) this scene holds — read the untouched RAW row just
+    // for the array being written back. `tokenId` was already found in the
+    // filtered `tokens` above, so it necessarily has a resolvable actorId
+    // and survives into `rawTokens` unchanged too; the `t` fallback below is
+    // defensive only.
+    const rawScene = deps.store.getRaw("scenes", sceneId);
+    const rawTokens = getCollection<Record<string, unknown>>(rawScene, "tokens");
+    const updatedTokens: Record<string, unknown>[] = rawTokens.map((t) =>
+      t["_id"] === tokenId ? updatedToken : t,
+    );
 
     const updatedParent = deps.store.update(
       "scenes",
@@ -577,10 +589,15 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
       return ackOk({ sceneId, tokenId, x, y }, deps.seqStore.peek());
     }
 
+    // REQ-TOK-002: re-read through the filtered `get()` — the write above
+    // used the RAW tokens array, so a legacy token survived on disk but must
+    // not reach the broadcast below.
+    const filteredParent = deps.store.get("scenes", sceneId);
+
     const seq = deps.seqStore.next();
     const envelope = buildEnvelope(
       "doc:update",
-      { documentType: "Scene", documents: [updatedParent] },
+      { documentType: "Scene", documents: [filteredParent] },
       seq,
     );
     deps.opBuffer.push(envelope);

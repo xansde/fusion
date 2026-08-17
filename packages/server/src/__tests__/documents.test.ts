@@ -429,6 +429,45 @@ describe("DocumentStore — legacy token read policy (REQ-TOK-002)", () => {
     const fetched = store.get("scenes", created["_id"] as string);
     expect((fetched["tokens"] as unknown[]).length).toBe(0);
   });
+
+  // REQ-TOK-002 — `getRaw()` is the escape hatch a write site (doc-handlers.ts's
+  // handleEmbeddedCreate/Update/Delete, vision-handlers.ts's token:move) uses
+  // to reconstruct `tokens[]` for a full-array-replace `update()` WITHOUT the
+  // legacy token silently vanishing from the row (REQ-DOC-037 replaces an
+  // array in full; building the replacement from the FILTERED `get()` would
+  // persist a `tokens[]` that never included it). `get()` on the very same
+  // document, right after, still filters it — the write-side escape hatch
+  // does not weaken the read-side policy for anyone else.
+  it("getRaw() returns the legacy token that get() filters out, unmodified otherwise", () => {
+    const { store, logger } = createStoreWithLogger();
+    const created = store.create("scenes", {
+      name: "Legacy Scene For getRaw",
+      tokens: [
+        { _id: "aaaaaaaaaaaaaaaa", name: "Ghost With No Actor", x: 1, y: 2 },
+        { _id: "bbbbbbbbbbbbbbbb", name: "Fine Token", actorId: "someActorId1234" },
+      ],
+    });
+    const sceneId = created["_id"] as string;
+
+    const raw = store.getRaw("scenes", sceneId);
+    const rawTokens = raw["tokens"] as Array<Record<string, unknown>>;
+    expect(rawTokens.map((t) => t["_id"])).toEqual(["aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb"]);
+    // getRaw() never warns — it is not the READ policy, just its bypass for
+    // internal write reconstruction.
+    expect(logger.warn).not.toHaveBeenCalled();
+
+    // The ordinary filtered read is completely unaffected by that getRaw()
+    // call: the legacy token is still hidden, and the warn still fires once.
+    const filtered = store.get("scenes", sceneId);
+    const filteredTokens = filtered["tokens"] as Array<Record<string, unknown>>;
+    expect(filteredTokens.map((t) => t["_id"])).toEqual(["bbbbbbbbbbbbbbbb"]);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("getRaw() throws DocumentNotFoundError for a missing id, like get()", () => {
+    const { store } = createStore();
+    expect(() => store.getRaw("scenes", "nonexistentId0001")).toThrow(DocumentNotFoundError);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -387,4 +387,62 @@ describe("Token.actorId validation (REQ-TOK-002, CA-TOK-003)", () => {
     const persistedToken = tokens.find((t) => t["_id"] === tokenId);
     expect(persistedToken?.["actorId"]).toBe(otherActorId);
   });
+
+  // ---------------------------------------------------------------------------
+  // Legacy token survives a real embedded write (REQ-TOK-002)
+  //
+  // handleEmbeddedCreate (doc-handlers.ts) reads its parent Scene through
+  // `store.get()`, which drops any token with no resolvable `actorId`
+  // (REQ-TOK-002's read policy — see documents.test.ts). Before this task,
+  // the collection it persisted back was reconstructed from THAT filtered
+  // read: `store.update("scenes", ..., { tokens: [...filteredExisting, ...
+  // created] })` — an array patch REQ-DOC-037 replaces in full. The RAW row
+  // in the database, not just what a later `store.get()` returns, is the
+  // proof: the legacy token must survive on disk, not merely reappear
+  // because a subsequent read happens to filter consistently.
+  // ---------------------------------------------------------------------------
+  it("REQ-TOK-002: a real doc:create Token op in a legacy scene does not erase the legacy token from the row", async () => {
+    // Fabricate the legacy row through the ordinary store API (not raw SQL —
+    // same method documents.test.ts uses): the server's SceneSchema.tokens is
+    // a loose z.array(z.record(...)), so a token with no actorId at all is a
+    // shape only a pre-TK020 world (or write path) could have produced, and
+    // it is reachable through this write like any other.
+    const legacyScene = ctx.store.create("scenes", {
+      name: "Legacy Scene For Real Token Create",
+      tokens: [{ _id: "legacyTokenId0001", name: "Ghost With No Actor", x: 3, y: 4 }],
+    });
+    const sceneId = legacyScene["_id"] as string;
+
+    const actorId = await createActor(gm, "Actor For Legacy Scene Token");
+
+    // The real write path: a GM creates a Token in this scene through the
+    // socket op, exactly like a player dragging an actor onto the canvas.
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Token",
+      data: [{ actorId, x: 10, y: 20 }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(ack["ok"]).toBe(true);
+
+    // The RAW row, read directly from SQLite — not `store.get()`, which
+    // would filter the legacy token again and mask the very loss this test
+    // exists to catch.
+    const row = ctx.fusionDb.raw.prepare("SELECT data FROM scenes WHERE id = ?").get(sceneId) as {
+      data: string;
+    };
+    const rawTokens = (JSON.parse(row.data) as Record<string, unknown>)["tokens"] as Array<
+      Record<string, unknown>
+    >;
+    const rawIds = rawTokens.map((t) => t["_id"]);
+
+    expect(rawIds).toContain("legacyTokenId0001"); // the legacy token survives the write
+    expect(rawTokens).toHaveLength(2); // legacy token + the one just created
+
+    // And the ordinary, filtered read still hides it from any caller/client
+    // (REQ-TOK-002's read policy is unaffected by the write-side fix).
+    const filteredScene = ctx.store.get("scenes", sceneId);
+    const filteredTokens = filteredScene["tokens"] as Array<Record<string, unknown>>;
+    expect(filteredTokens.map((t) => t["_id"])).not.toContain("legacyTokenId0001");
+    expect(filteredTokens).toHaveLength(1);
+  });
 });
