@@ -8,6 +8,7 @@ import { describe, it, expect } from "vitest";
 import {
   dispositionColor,
   DISPOSITION_COLORS,
+  resolveDisposition,
   placeholderColor,
   placeholderInitials,
   tokenPixelSize,
@@ -50,6 +51,32 @@ describe("dispositionColor", () => {
   // this test used to pin (`SECRET_RING_COLOR`) is gone, and so is the
   // out-of-range case: `dispositionColor`'s parameter type is now exactly
   // -1 | 0 | 1, so there is no fourth value to return a color for.
+});
+
+// ---------------------------------------------------------------------------
+// resolveDisposition — REQ-TOK-080 (TK042): herda do ator quando não sobrescrita
+// ---------------------------------------------------------------------------
+
+describe("resolveDisposition", () => {
+  it("returns the token's own disposition when set, ignoring the actor's attitude", () => {
+    expect(resolveDisposition(-1, "ally")).toBe(-1);
+    expect(resolveDisposition(1, "enemy")).toBe(1);
+    expect(resolveDisposition(0, "enemy")).toBe(0);
+  });
+
+  it("inherits from the actor's attitude when the token disposition is null", () => {
+    expect(resolveDisposition(null, "enemy")).toBe(-1);
+    expect(resolveDisposition(null, "neutral")).toBe(0);
+    expect(resolveDisposition(null, "ally")).toBe(1);
+  });
+
+  it("falls back to neutral when disposition is null and the actor has no attitude", () => {
+    expect(resolveDisposition(null, undefined)).toBe(0);
+  });
+
+  it("treats an undefined token disposition the same as null", () => {
+    expect(resolveDisposition(undefined, "enemy")).toBe(-1);
+  });
 });
 
 // ---------------------------------------------------------------------------

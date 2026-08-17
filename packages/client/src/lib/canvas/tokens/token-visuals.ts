@@ -14,7 +14,7 @@
  *   - Animation interpolation: lerp position over time (for remote updates).
  */
 
-import type { TokenDocument } from "@fusion/shared";
+import type { TokenDocument, ActorAttitude } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Disposition color map (REQ-CNV-027)
@@ -42,6 +42,28 @@ export const DISPOSITION_COLORS: Record<DispositionValue, number> = {
  */
 export function dispositionColor(disposition: DispositionValue): number {
   return DISPOSITION_COLORS[disposition];
+}
+
+/**
+ * Resolve the disposition a token actually draws with (REQ-TOK-080, TK042):
+ * the token's own `disposition` when set, else herdada do ator — the base
+ * Actor's attitude towards the party (spec 42 §5.5, `flags.fusion.attitude`,
+ * REQ-NPC-037), else neutral when the actor carries none (e.g. a player
+ * character, which has no attitude flag — party members are never "towards
+ * the party").
+ *
+ * `attitude` maps 1:1 onto disposition — the same three-way split (spec 42's
+ * enemy/neutral/ally is spec 41's hostile/neutral/friendly, DEC-TOK-12) — so
+ * this is the inheritance REQ-TOK-080 requires, not a new vocabulary.
+ */
+export function resolveDisposition(
+  tokenDisposition: DispositionValue | null | undefined,
+  actorAttitude: ActorAttitude | undefined,
+): DispositionValue {
+  if (tokenDisposition !== null && tokenDisposition !== undefined) return tokenDisposition;
+  if (actorAttitude === "enemy") return -1;
+  if (actorAttitude === "ally") return 1;
+  return 0;
 }
 
 // ---------------------------------------------------------------------------

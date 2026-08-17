@@ -1,17 +1,19 @@
 /**
- * tokenSpriteRing.test.ts — a token with `disposition: null` draws the
- * neutral disposition ring, not a "secret" gray one.
+ * tokenSpriteRing.test.ts — a token with `disposition: null` inherits the
+ * base Actor's attitude towards the party, never a "secret" gray ring.
  *
  * REQ-TOK-080 (specs/41-token.md): disposition "DEVE ser herdada do ator
  * quando não sobrescrita". TK042 (Fase 3) removed `SECRET_RING_COLOR` and the
- * `secret` disposition value outright (DEC-TOK-12) — but full inheritance
- * FROM the actor stays a documented gap: `ActorDocument` (spec 02) carries no
- * `disposition` field, and no DEC-TOK decision adds one. So `null` (the
- * schema default since TK024 made the field nullable) still falls back to
- * neutral, which is the correct behaviour today — REQ-TOK-081/REQ-CNV-027's
- * hostile/neutral/friendly ring keeps showing on every token, and there is no
- * gray fallback left to regress to (`dispositionColor`'s parameter type is
- * now exactly -1 | 0 | 1).
+ * `secret` disposition value outright (DEC-TOK-12) and wires the inheritance
+ * through the base Actor's attitude towards the party (spec 42 §5.5,
+ * `flags.fusion.attitude`, REQ-NPC-037) — the same three-way split
+ * (enemy/neutral/ally ↔ hostile/neutral/friendly) `resolveDisposition`
+ * (token-visuals.ts) maps 1:1. An actor with no attitude flag (a player
+ * character has none — party members have no attitude "towards the party")
+ * still falls back to neutral, and there is no gray fallback left to regress
+ * to (`dispositionColor`'s parameter type is now exactly -1 | 0 | 1).
+ * REQ-CNV-027 (specs/06-canvas-e-renderizacao.md): the ring border by
+ * disposition is the display this test asserts on (`stroke()`'s color).
  *
  * PIXI is fully mocked (pattern shared with sceneGrantReuse.test.ts): none of
  * this needs a renderer, and the assertion is about which color `stroke()`
@@ -115,13 +117,23 @@ const { DocumentMirror } = await import("../../../docs/DocumentMirror.js");
 
 const ACTOR_ID = createDocumentId();
 
-function mirrorWithActor(): InstanceType<typeof DocumentMirror> {
+function mirrorWithActor(
+  attitude?: "enemy" | "neutral" | "ally",
+): InstanceType<typeof DocumentMirror> {
   const mirror = new DocumentMirror();
   mirror.applySnapshot({
     seq: 1,
     activeSceneId: null,
     documents: {
-      Actor: [{ _id: ACTOR_ID, name: "Goblin", img: null, system: {} }],
+      Actor: [
+        {
+          _id: ACTOR_ID,
+          name: "Goblin",
+          img: null,
+          system: {},
+          ...(attitude !== undefined ? { flags: { fusion: { attitude } } } : {}),
+        },
+      ],
     },
   });
   return mirror;
@@ -153,5 +165,31 @@ describe("TokenSprite ring color — REQ-TOK-080, REQ-TOK-081, DEC-TOK-12", () =
     pixiStubs.strokes.length = 0;
     new TokenSprite(makeToken({ disposition: 1 }), 100, false, mirror);
     expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[1]);
+  });
+
+  it("inherits hostile/neutral/friendly from the actor's attitude when disposition is null (TK042)", () => {
+    pixiStubs.strokes.length = 0;
+    new TokenSprite(makeToken(), 100, false, mirrorWithActor("enemy"));
+    expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[-1]);
+
+    pixiStubs.strokes.length = 0;
+    new TokenSprite(makeToken(), 100, false, mirrorWithActor("ally"));
+    expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[1]);
+
+    pixiStubs.strokes.length = 0;
+    new TokenSprite(makeToken(), 100, false, mirrorWithActor("neutral"));
+    expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[0]);
+  });
+
+  it("an explicit token disposition overrides the actor's attitude", () => {
+    pixiStubs.strokes.length = 0;
+    new TokenSprite(makeToken({ disposition: 1 }), 100, false, mirrorWithActor("enemy"));
+    expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[1]);
+  });
+
+  it("falls back to neutral when the actor carries no attitude flag (e.g. a player character)", () => {
+    pixiStubs.strokes.length = 0;
+    new TokenSprite(makeToken(), 100, false, mirrorWithActor());
+    expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[0]);
   });
 });
