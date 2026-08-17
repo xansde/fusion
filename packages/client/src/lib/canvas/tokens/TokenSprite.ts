@@ -49,6 +49,8 @@ import {
   BAR_FILL_COLORS,
   barFraction,
   barYOffset,
+  resolveBarAttribute,
+  barAttributeEquals,
   computeLod,
   animDuration,
   stepAnimation,
@@ -318,6 +320,27 @@ export class TokenSprite {
     const newName = this._displayName(newDoc, this._actor);
     const artChanged = (oldActor?.img ?? null) !== (this._actor?.img ?? null);
 
+    // REQ-CNV-092: the bar must repaint whenever the effective actor's
+    // resolved value changes — including a LINKED token whose base Actor was
+    // damaged directly (no op ever touches the TokenDocument in that case,
+    // so this `update()` call is driven by the Actor subscription reconcile,
+    // not by `newDoc` differing from `oldDoc` at all). Compared independently
+    // of `visualChanged` below so a bar-only change repaints just the bars,
+    // never the whole sprite (no re-render espúrio).
+    const bar1Changed =
+      newDoc.bar1.attribute !== oldDoc.bar1.attribute ||
+      !barAttributeEquals(
+        resolveBarAttribute(oldActor?.system, oldDoc.bar1.attribute),
+        resolveBarAttribute(this._actor?.system, newDoc.bar1.attribute),
+      );
+    const bar2Changed =
+      newDoc.bar2.attribute !== oldDoc.bar2.attribute ||
+      !barAttributeEquals(
+        resolveBarAttribute(oldActor?.system, oldDoc.bar2.attribute),
+        resolveBarAttribute(this._actor?.system, newDoc.bar2.attribute),
+      );
+    const barsChanged = bar1Changed || bar2Changed;
+
     // Re-draw visuals if anything else changed
     const visualChanged =
       this._footprint.width !== oldFootprint.width ||
@@ -340,6 +363,9 @@ export class TokenSprite {
       if (artChanged) {
         void this._loadArt(newDoc, pixelW, pixelH);
       }
+    } else if (barsChanged) {
+      // Bar-only change: repaint just the bars (REQ-CNV-092), not the whole sprite.
+      this._drawBars(newDoc, pixelW, pixelH);
     }
   }
 
@@ -624,11 +650,14 @@ export class TokenSprite {
     const barConfig = doc[barKey];
     if (!barConfig.attribute) return; // bar disabled
 
-    // For M1-C, bars read static value/max from token (actor integration is M3).
-    // The bar config only has `attribute` (a dot-path string) — without an actor,
-    // we render a full bar as a placeholder until actor data arrives.
-    // Real values will come from actor in M3.
-    const fraction = 1; // placeholder: full bar
+    // REQ-CNV-090: the bar reads the REAL value off the effective actor's
+    // `system`, resolved as a dot-path, and is ABSENT (nothing drawn — not
+    // even the background) when the path does not resolve or `max <= 0`.
+    // Never draw a full bar as a "no data yet" placeholder.
+    const barValue = resolveBarAttribute(this._actor?.system, barConfig.attribute);
+    if (!barValue || barValue.max <= 0) return;
+
+    const fraction = barFraction(barValue.value, barValue.max);
     const fillColor = BAR_FILL_COLORS[barKey];
     const y = barYOffset(barIndex, pixelH);
 
@@ -637,7 +666,7 @@ export class TokenSprite {
     g.fill({ color: BAR_BG_COLOR, alpha: 0.7 });
 
     // Fill
-    const fillW = Math.max(0, pixelW * barFraction(fraction, 1));
+    const fillW = Math.max(0, pixelW * fraction);
     if (fillW > 0) {
       g.rect(0, y, fillW, BAR_HEIGHT_PX - BAR_GAP_PX);
       g.fill({ color: fillColor, alpha: 0.9 });
