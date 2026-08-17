@@ -33,3 +33,16 @@ export type {
   BrokenReference,
   CaseMismatch,
 } from "./reconcile.js";
+
+// T025 — asset grants (authorisation for GET /assets/*)
+export { canonicalizeAssetName } from "./asset-name.js";
+export {
+  lp,
+  signDocGrant,
+  signBrowseGrant,
+  issueBrowseGrant,
+  verifyGrant,
+  ASSET_GRANT_TTL_MS,
+} from "./asset-grant.js";
+export type { AssetGrantScope, VerifyGrantOptions } from "./asset-grant.js";
+export { projectAssetFields, ASSET_FIELD_PATHS } from "./asset-fields.js";

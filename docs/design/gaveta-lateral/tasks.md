@@ -480,6 +480,25 @@ pós-combate estão fora de propósito. Não os implemente por conta própria.
 Alvo atual: `components/combat/CombatPanel.svelte` e
 `lib/combat/{combatStore.svelte.ts,combatTracker.ts,combatVisibility.ts}`.
 
+> **Pendência herdada — resolver ANTES de retomar esta fase** (levantada na sessão da spec
+> `41`, 2026-08-16; registro em `docs/design/spec-41-token/decisoes.md`).
+>
+> A `40` cita o painel de **Comitiva** da `28` (`REQ-HUB-044`) como a referência de que vida
+> de personagem é exibida — em `40:104` e em `40:478`. **Esse painel não existe nesta linha**:
+> foi substituído pelas telas de Combate (`40`) e Contatos (`39`).
+>
+> Duas consequências para esta fase:
+>
+> 1. **A referência é órfã.** A regra de exibição de vida da cabeça de turno (G050) se apoia
+>    num precedente que não está de pé. Ao retomar, decidir se a `40` passa a ser a dona da
+>    regra ou se ela cita outra fonte.
+> 2. **O corte mudou.** A visibilidade de vida passou a ser **OWNER** (D3): o jogador vê a
+>    vida dos **seus** personagens e sub-personagens; o Mestre vê a de todos. Isso reverte a
+>    DEC-CNV-15 (que usava OBSERVER) e afeta `combatVisibility.ts` e a Q-CBA-02.
+>
+> Decidido e **fechado** na mesma sessão: Contatos (`39`) **não exibe vida**, e está correto
+> assim. Vida de personagem aparece em combate e na ficha — não no diretório de contatos.
+
 ### G050 — Cabeça de turno de altura fixa, com o botão que não sai do lugar
 
 Bloco fixo no topo, fora da área rolável: participante da vez, retrato, nome, vida e

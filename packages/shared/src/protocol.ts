@@ -82,6 +82,13 @@ export const EnvelopeTypeSchema = z.union([
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
   z.literal("actor:setKnowledge"),
+  // Spec 42 — removing a folder without removing anything it held (REQ-NPC-022).
+  // Not doc:delete: that path drops the row and stops, leaving every actor of the
+  // folder pointing at an id that is gone and every subfolder orphaned.
+  z.literal("folder:delete"),
+  // Spec 42 — read-only: what a delete would take with the actor (REQ-NPC-051),
+  // and whether an unfinished encounter refuses it outright (REQ-NPC-052).
+  z.literal("actor:deletePreview"),
   // M2-A: vision — walls, lights, door state
   z.literal("wall:create"),
   z.literal("wall:update"),

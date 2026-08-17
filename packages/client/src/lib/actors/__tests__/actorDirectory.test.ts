@@ -1,13 +1,16 @@
 /**
- * actorDirectory.test.ts — Unit tests for actor directory logic.
+ * actorDirectory.test.ts — what survived the burial of the Actors directory (G078).
  *
- * REQ-UIF-002, REQ-UIF-044..046: actor list filtering, grouping, drag payload,
- * token-from-actor operation builder.
+ * REQ-UIF-044..046: the drag payload an actor row puts on a drag and the presence
+ * built from it when the drop lands on the canvas.
+ *
+ * The list/filter/group half went with the panel (its tests with it): ownership
+ * filtering is `lib/contacts/contactsVM.ts` and folder grouping is
+ * `lib/npcs/folderTree.ts`, each with its own suite.
  */
 
 import { describe, it, expect } from "vitest";
 import {
-  buildActorDirectory,
   buildActorDragPayload,
   buildTokenFromActorFields,
   type ActorDocument,
@@ -167,76 +170,5 @@ describe("buildTokenFromActorFields()", () => {
     });
     expect(fields.width).toBe(1);
     expect(fields.height).toBe(1);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// buildActorDirectory
-// ---------------------------------------------------------------------------
-
-describe("buildActorDirectory()", () => {
-  const gmId = "gm00000000000001";
-  const userId = "pl00000000000001";
-
-  it("returns all actors for GM regardless of ownership", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "Public Actor"),
-      makeActor("A0000000000000a2", "Private Actor"), // default NONE ownership
-    ];
-    const dir = buildActorDirectory(actors, gmId, true);
-    expect(dir.total).toBe(2);
-  });
-
-  it("filters actors by OBSERVER+ ownership for non-GMs", () => {
-    const owned = makeActor("A0000000000000a1", "Mine", "character", userId);
-    const notOwned = makeActor("A0000000000000a2", "Not Mine");
-    const dir = buildActorDirectory([owned, notOwned], userId, false);
-    expect(dir.total).toBe(1);
-    expect(dir.groups[0]!.actors[0]!._id).toBe("A0000000000000a1");
-  });
-
-  it("filters by search query (case-insensitive)", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "Valeros"),
-      makeActor("A0000000000000a2", "Seelah"),
-    ];
-    const dir = buildActorDirectory(actors, gmId, true, "vale");
-    expect(dir.total).toBe(1);
-    expect(dir.groups[0]!.actors[0]!.name).toBe("Valeros");
-  });
-
-  it("returns empty groups when no actors match search", () => {
-    const actors = [makeActor("A0000000000000a1", "Valeros")];
-    const dir = buildActorDirectory(actors, gmId, true, "zzz");
-    expect(dir.total).toBe(0);
-    expect(dir.groups).toHaveLength(0);
-  });
-
-  it("groups actors by folder", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "A in Folder 1", "character", undefined, "fold1"),
-      makeActor("A0000000000000a2", "B in Folder 2", "character", undefined, "fold2"),
-      makeActor("A0000000000000a3", "C no folder"),
-    ];
-    const dir = buildActorDirectory(actors, gmId, true);
-    // 3 groups: fold1, fold2, null (no folder)
-    expect(dir.groups).toHaveLength(3);
-  });
-
-  it("places null-folder actors in a group last", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "In Folder", "character", undefined, "fold1"),
-      makeActor("A0000000000000a2", "No Folder"),
-    ];
-    const dir = buildActorDirectory(actors, gmId, true);
-    const last = dir.groups[dir.groups.length - 1]!;
-    expect(last.folderId).toBeNull();
-  });
-
-  it("sorts actors alphabetically within a group", () => {
-    const actors = [makeActor("A0000000000000a2", "Zebra"), makeActor("A0000000000000a1", "Apple")];
-    const dir = buildActorDirectory(actors, gmId, true);
-    const names = dir.groups[0]!.actors.map((a) => a.name);
-    expect(names).toEqual(["Apple", "Zebra"]);
   });
 });

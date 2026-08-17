@@ -1,10 +1,15 @@
 /**
  * registerCoreTabs.test.ts — the core tabs enter through the public door (G016).
  *
- * The bridge this file guards: every panel the table already had (chat, actors,
- * combat, compendium, scenes) plus the settings placeholder is reachable through
+ * The bridge this file guards: every panel the table already had (chat, combat,
+ * compendium, scenes) plus the settings placeholder is reachable through
  * `registerSidebarTab`, in the rail order of DEC-GAV-01, without the drawer knowing
  * any of their names.
+ *
+ * G078 also makes this file the burial certificate of the legacy Atores directory:
+ * the rail's tab slot (REQ-UIF-002) still exists and is still filled by registration
+ * alone, but no id in it opens an actor directory panel any more — Contatos (39) and
+ * NPCs (42) split what it did.
  *
  * Covers REQ-GAV-030 (registration is the only door), REQ-GAV-003/REQ-GAV-004 (the
  * three blocks and what a player sees), REQ-GAV-020..023 (the badge each tab brings
@@ -99,7 +104,7 @@ describe("the core tabs register through the public call (G016)", () => {
         "contacts",
         "combat",
         "compendium",
-        "actors",
+        "npcs",
         "scenes",
         "settings",
       ]);
@@ -108,7 +113,7 @@ describe("the core tabs register through the public call (G016)", () => {
         "contacts",
         "combat",
         "compendium",
-        "actors",
+        "npcs",
         "scenes",
         "settings",
       ]);
@@ -142,10 +147,12 @@ describe("the core tabs register through the public call (G016)", () => {
     it("REQ-GAV-003: the GM rail is group all, then group gm, then Settings in the footer", () => {
       const visible = getVisibleSidebarTabs(true);
 
-      // REQ-GAV-003 order of the "all" group, then the provisional Atores directory at
-      // the end of the group (REQ-GAV-031 position), which DEC-CTT-01 keeps until spec 42.
-      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "combat", "compendium", "actors"]);
-      expect(idsOf(visible.gm)).toEqual(["scenes"]);
+      // REQ-GAV-003 order of the "all" group — exactly the four tabs of the
+      // requirement now that G078 buried the provisional Atores directory that used
+      // to sit at the end of the group (REQ-GAV-031 position).
+      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "combat", "compendium"]);
+      // REQ-NPC-001: NPCs is the FIRST of the gm group, ahead of Cenas.
+      expect(idsOf(visible.gm)).toEqual(["npcs", "scenes"]);
       expect(idsOf(visible.footer)).toEqual([SETTINGS_TAB_ID]);
     });
 
@@ -153,18 +160,26 @@ describe("the core tabs register through the public call (G016)", () => {
       const player = listVisibleSidebarTabs(false);
       const gm = listVisibleSidebarTabs(true);
 
-      expect(idsOf(player)).toEqual([
-        "chat",
-        "contacts",
-        "combat",
-        "compendium",
-        "actors",
-        "settings",
-      ]);
-      for (const id of ["chat", "contacts", "combat", "compendium", "actors"]) {
+      expect(idsOf(player)).toEqual(["chat", "contacts", "combat", "compendium", "settings"]);
+      // REQ-NPC-003: the NPCs tab is not rendered for a seat without a privileged role.
+      expect(idsOf(player)).not.toContain("npcs");
+      for (const id of ["chat", "contacts", "combat", "compendium"]) {
         expect(idsOf(player).indexOf(id)).toBe(idsOf(gm).indexOf(id));
       }
       expect(idsOf(player).at(-1)).toBe("settings");
+    });
+
+    it('REQ-NPC-001: NPCs is id "npcs", group gm, first of the group', () => {
+      const npcs = getSidebarTab("npcs");
+
+      expect(npcs?.group).toBe("gm");
+      expect(npcs?.label).toBe("FUSION.Sidebar.Tabs.Npcs");
+      expect(idsOf(getVisibleSidebarTabs(true).gm)[0]).toBe("npcs");
+      // REQ-NPC-003: hiding is not protection, but the tab is still not drawn for a
+      // player — the server check lives in the handlers (REQ-NPC-080).
+      expect(idsOf(listVisibleSidebarTabs(false))).not.toContain("npcs");
+      // G078: the provisional Atores directory it shared the rail with is gone.
+      expect(getSidebarTab("actors")).toBeUndefined();
     });
 
     it('REQ-CEN-001: Cenas is id "scenes", group gm, in the middle block', () => {
@@ -182,10 +197,9 @@ describe("the core tabs register through the public call (G016)", () => {
       expect(contacts?.label).toBe("FUSION.Sidebar.Tabs.Contacts");
       expect(idsOf(getVisibleSidebarTabs(false).all)[1]).toBe("contacts");
       expect(idsOf(getVisibleSidebarTabs(true).all)[1]).toBe("contacts");
-      // DEC-CTT-01: the provisional Atores directory is still registered, because it
-      // is the only UI that creates and deletes an Actor until the NPCs tab lands.
-      expect(idsOf(listVisibleSidebarTabs(true))).toContain("actors");
-      expect(contacts?.icon).not.toBe(getSidebarTab("actors")?.icon);
+      // DEC-CTT-01, paid: the provisional Atores directory is no longer registered —
+      // authoring a non-playable is the NPCs tab's (spec 42) since G078.
+      expect(idsOf(listVisibleSidebarTabs(true))).not.toContain("actors");
     });
 
     it('REQ-CBA-001: Combate is id "combat", group all, third of the group', () => {
@@ -193,8 +207,8 @@ describe("the core tabs register through the public call (G016)", () => {
 
       expect(combat?.group).toBe("all");
       expect(combat?.label).toBe("FUSION.Sidebar.Tabs.Combat");
-      // Third for every role: the provisional Atores directory sits at the end of the
-      // group precisely so it cannot push Combate out of the position REQ-CBA-001 names.
+      // Third for every role, and it stayed third across the burial of the Atores
+      // directory (G078) — that tab sat at the END of the group for this reason.
       expect(idsOf(getVisibleSidebarTabs(false).all)[2]).toBe("combat");
       expect(idsOf(getVisibleSidebarTabs(true).all)[2]).toBe("combat");
     });
@@ -205,6 +219,47 @@ describe("the core tabs register through the public call (G016)", () => {
       expect(settings?.group).toBe("all");
       expect(idsOf(getVisibleSidebarTabs(false).footer)).toEqual(["settings"]);
       expect(idsOf(getVisibleSidebarTabs(false).all)).not.toContain("settings");
+    });
+  });
+
+  describe("G078: the legacy Atores directory is buried, and the slot it left is filled", () => {
+    /**
+     * REQ-UIF-002 says the sidebar carries a SET OF TABS; spec 36's note under it
+     * (DEC-GAV-01) replaced the list that requirement enumerated, and spec 39 plus
+     * spec 42 replaced the "Actors" entry of that list with two tabs of their own.
+     *
+     * So the requirement is checked the way it now reads: the slot is still there and
+     * still full, every tab in it opens a panel, and NO tab opens an actor directory.
+     * A test that only asserted "actors" is absent would pass on a rail with zero
+     * tabs — which is why the population is asserted first.
+     */
+    it("REQ-UIF-002: the rail still carries a full set of tabs after the burial", () => {
+      const gm = listVisibleSidebarTabs(true);
+
+      expect(gm.length).toBeGreaterThanOrEqual(5);
+      for (const tab of gm) {
+        expect(typeof tab.component).toBe("function");
+      }
+      // Contatos (39) and NPCs (42) are what the "Actors" entry of REQ-UIF-002 became.
+      expect(idsOf(gm)).toContain("contacts");
+      expect(idsOf(gm)).toContain("npcs");
+    });
+
+    it("REQ-UIF-002: no registered tab is the legacy Atores directory any more", async () => {
+      // Neither by id...
+      expect(getSidebarTab("actors")).toBeUndefined();
+      expect(idsOf(listVisibleSidebarTabs(true))).not.toContain("actors");
+      expect(idsOf(listVisibleSidebarTabs(false))).not.toContain("actors");
+
+      // ...nor by panel: resolving every loader must not reach a module that is gone.
+      // If the component still existed and some id pointed at it, this would throw or
+      // resolve to it — the check is the whole point of the burial.
+      const panels = await Promise.all(
+        CORE_SIDEBAR_TAB_IDS.map(async (id) => await loadSidebarPanel(id)),
+      );
+      for (const panel of panels) {
+        expect(typeof panel).toBe("function");
+      }
     });
   });
 
@@ -248,9 +303,9 @@ describe("the core tabs register through the public call (G016)", () => {
       ["contacts", () => import("../../../components/contacts/ContactsPanel.svelte")],
       ["combat", () => import("../../../components/combat/CombatPanel.svelte")],
       ["compendium", () => import("../../../components/compendium/CompendiumBrowser.svelte")],
-      // DEC-CTT-01: the Atores directory stays until the NPCs tab takes authoring
-      // over — it is still the only UI that creates and deletes an Actor.
-      ["actors", () => import("../../../components/actors/ActorDirectory.svelte")],
+      // REQ-NPC-001: NPCs is spec 42's own panel, first of the gm group — and since
+      // G078 the only panel of this table that authors an Actor.
+      ["npcs", () => import("../../../components/npcs/NpcsPanel.svelte")],
       // REQ-CEN-001: Cenas is the panel extracted from the pre-drawer sidebar.
       ["scenes", () => import("../../../components/scenes/ScenesTab.svelte")],
       // REQ-CFG-001: Configurações is spec 37's own panel (G100 and on).
@@ -328,7 +383,9 @@ describe("the core tabs register through the public call (G016)", () => {
       // "contacts", "compendium" and "scenes" are absent from this list on purpose: spec
       // 39 gives the first a state dot (REQ-CTT-002), spec 43 the second (REQ-CPD-002)
       // and spec 44 the third (REQ-CEN-003) — all three asserted right below.
-      for (const id of ["actors", "settings"]) {
+      // REQ-NPC-002: NPCs brings no badge at all — nothing happens in that tab that
+      // was not the Mestre himself, so there is no novelty to announce.
+      for (const id of ["settings", "npcs"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
     });

@@ -99,6 +99,25 @@ export interface AuthorContext {
 }
 
 // ---------------------------------------------------------------------------
+// Composed transactions
+// ---------------------------------------------------------------------------
+
+/**
+ * Scoped write handle passed to `DocumentStore.transaction()`. `update`/
+ * `delete` here write on the ALREADY-OPEN transaction, unlike the store's
+ * public `update`/`delete`, which each open their own.
+ */
+export interface DocumentStoreTransaction {
+  update(
+    table: DocumentTable,
+    id: string,
+    patch: Record<string, unknown>,
+    author?: AuthorContext,
+  ): Record<string, unknown> | null;
+  delete(table: DocumentTable, id: string): string;
+}
+
+// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
@@ -614,6 +633,48 @@ export class DocumentStore {
         return id;
       })
       .immediate();
+  }
+
+  // --------------------------------------------------------------------------
+  // COMPOSED transactions
+  // --------------------------------------------------------------------------
+
+  /**
+   * Run a sequence of writes — across one or several tables — inside a
+   * single IMMEDIATE transaction, for composed operations whose steps must
+   * commit or roll back together. `folder:delete` is the motivating case
+   * (REQ-NPC-022): subfolders lift, documents release, and only then does the
+   * folder row go — three writes that used to run as three separate
+   * transactions, so a `DocumentValidationError` on the second step (e.g. a
+   * legacy row a prior pack/migration wrote that no longer matches the
+   * current schema) left the first step's writes committed with no broadcast
+   * to tell any client — server and clients diverging in silence until the
+   * next resync.
+   *
+   * `fn`'s handle writes on THIS already-open transaction (unlike the public
+   * `update`/`delete`, which each open their own — see the NOTE on
+   * `create()` about why no store method used to be called from inside
+   * another transaction; reads such as `get`/`getAll`/`query` remain safe to
+   * call from inside `fn` since they never open a transaction of their own).
+   * Any throw inside `fn` — including `DocumentValidationError` and
+   * `DocumentNotFoundError` — rolls back every write made so far in this
+   * call, and propagates to the caller.
+   */
+  transaction<T>(fn: (txn: DocumentStoreTransaction) => T): T {
+    const txn: DocumentStoreTransaction = {
+      update: (table, id, patch, author) =>
+        this._updateInTxn(table, id, patch, author ?? this.defaultAuthor),
+      delete: (table, id) => {
+        if (!DOCUMENT_TABLES.has(table)) {
+          throw new Error(`Unknown document table: "${table}"`);
+        }
+        const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+        if (!exists) throw new DocumentNotFoundError(table, id);
+        this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+        return id;
+      },
+    };
+    return this.db.transaction(() => fn(txn)).immediate();
   }
 
   // --------------------------------------------------------------------------

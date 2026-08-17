@@ -66,6 +66,9 @@ export const npcsIcon: string = icon(
     '<path d="M18.8 15.4h.01"/>',
 );
 
+/* The provisional Atores glyph was buried with its panel in G078: Contatos and
+   NPCs each carry their own, and the rail no longer has a third actor tab. */
+
 /** Scenes — a folded map. */
 export const scenesIcon: string = icon(
   '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/>' +

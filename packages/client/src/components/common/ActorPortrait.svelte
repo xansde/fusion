@@ -14,26 +14,33 @@
    * FilePicker/upload edit affordance; everywhere else it is read-only.
    *
    * Props:
-   *   img   — raw stored img path/URL from the actor document (may be null).
-   *   name  — display name (drives initials + fallback color).
-   *   size  — diameter in px (default 48).
-   *   label — accessible label; when omitted the portrait is decorative
-   *           (aria-hidden), for lists where the name is shown alongside.
+   *   img    — raw stored img path/URL from the actor document (may be null).
+   *   docRef — WHICH document `img` was read out of (T025). Required and with no
+   *            default: the server signs an asset grant per document, so a
+   *            caller that cannot name the actor it is drawing cannot be given
+   *            one. Every portrait in the app draws an Actor row, hence
+   *            `{ table: "actors", id: <actor._id> }`.
+   *   name   — display name (drives initials + fallback color).
+   *   size   — diameter in px (default 48).
+   *   label  — accessible label; when omitted the portrait is decorative
+   *            (aria-hidden), for lists where the name is shown alongside.
    */
 
   import { resolveAssetUrl } from "$lib/assets/assetApi.js";
+  import type { AssetDocRef } from "$lib/assets/assetGrants.svelte.js";
   import { fusionApi } from "$lib/api.js";
   import { session } from "$lib/session.svelte.js";
   import { portraitInitials, portraitColor, isPortraitPlaceholder } from "$lib/common/portrait.js";
 
   interface Props {
     img?: string | null | undefined;
+    docRef: AssetDocRef;
     name?: string | null | undefined;
     size?: number;
     label?: string;
   }
 
-  let { img = null, name = null, size = 48, label = "" }: Props = $props();
+  let { img = null, docRef, name = null, size = 48, label = "" }: Props = $props();
 
   // A fetchable URL for a REAL stored image; null → render the initials
   // fallback (also the state while an async resolve is still in flight, so the
@@ -54,7 +61,7 @@
       return;
     }
     let cancelled = false;
-    void resolveAssetUrl(raw as string, token, uid)
+    void resolveAssetUrl(raw as string, token, uid, docRef)
       .then((url) => {
         if (!cancelled) resolvedSrc = url;
       })

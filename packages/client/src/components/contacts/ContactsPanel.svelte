@@ -86,12 +86,11 @@
   import { t } from "../../lib/i18n/i18n.js";
   import ActorPortrait from "../common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
-  import KnowledgeGridWindow from "./KnowledgeGridWindow.svelte";
-  import { windowManager } from "../../lib/windows/window-manager.js";
+  import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
 
   const { socket, worldId, userId, isGm }: SidebarPanelProps = $props();
 
-  /** Etmos subtypes route through their own opener (same table as ActorDirectory). */
+  /** Etmos subtypes route through their own opener (the sheet registry's table). */
   const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
 
   let query = $state("");
@@ -397,22 +396,13 @@
   // -------------------------------------------------------------------------
 
   /**
-   * Open "Quem conhece quem" outside the drawer (REQ-CTT-061). The singleton key
-   * means a second click focuses the window already open instead of stacking a
-   * second grid over the first (REQ-UIF-014).
+   * Open "Quem conhece quem" outside the drawer (REQ-CTT-061). The open call lives
+   * in `lib/contacts/knowledgeWindow.ts` because the NPCs tab's footer opens the
+   * very same window (REQ-NPC-072): one function, one singleton key, one grid —
+   * a second click from either tab focuses the window already open (REQ-UIF-014).
    */
   function openKnowledgeGrid(): void {
-    windowManager.open({
-      singletonKey: "contacts:knowledge",
-      title: t("FUSION.Contacts.Knowledge.Window"),
-      resizable: true,
-      minimizable: true,
-      position: { width: 720, height: 460 },
-      minWidth: 360,
-      minHeight: 220,
-      component: KnowledgeGridWindow,
-      componentProps: { socket },
-    });
+    openKnowledgeWindow(socket);
   }
 </script>
 
@@ -468,7 +458,12 @@
               ondblclick={() => openSheet(card.id)}
             >
               <div class="contact-card__head">
-                <ActorPortrait img={card.img} name={card.name} size={34} />
+                <ActorPortrait
+                  img={card.img}
+                  docRef={{ table: "actors", id: card.id }}
+                  name={card.name}
+                  size={34}
+                />
 
                 <div class="contact-card__identity">
                   <span class="contact-card__name-line">
@@ -570,7 +565,12 @@
               <!-- REQ-CTT-025: the sub-character lives inside this card, never loose. -->
               {#each subCharactersOf(card) as sub (sub.id)}
                 <div class="contact-card__sub" data-sub-of={card.id} data-sub-id={sub.id}>
-                  <ActorPortrait img={sub.img} name={sub.name} size={22} />
+                  <ActorPortrait
+                    img={sub.img}
+                    docRef={{ table: "actors", id: sub.id }}
+                    name={sub.name}
+                    size={22}
+                  />
                   <span class="contact-card__sub-name">{sub.name}</span>
                   <span class="contact-card__sub-kind">{companionKindLabel(sub.kind)}</span>
                   {#if sub.conditions.length > 0}
@@ -760,7 +760,12 @@
               >
                 <div class="contact-card__head">
                   {#if card.identified}
-                    <ActorPortrait img={card.img} name={card.name} size={30} />
+                    <ActorPortrait
+                      img={card.img}
+                      docRef={{ table: "actors", id: card.id }}
+                      name={card.name}
+                      size={30}
+                    />
                   {:else}
                     <!-- REQ-CTT-041: no portrait to show, so a drawn silhouette
                          stands in — it identifies nobody. -->

@@ -91,7 +91,7 @@
   // The active world + this actor, for the "Usar" impulse chat announcement
   // (r19-W3). worldId MUST equal the connected world's id — the server rejects a
   // chat:send whose payload.worldId differs (chat-handler.ts). session.worldInfo.id
-  // is the SAME source the spell-cast flow uses (ActorDirectory → CharacterSheet).
+  // is the SAME source the spell-cast flow uses (sheet registry → CharacterSheet).
   const worldId = $derived(session.worldInfo?.id ?? "");
   const speakerActorId = $derived(typeof doc["_id"] === "string" ? (doc["_id"] as string) : "");
   // Lazy live-socket sender (frozen-socket safe, r10 lesson): resolves getSocket()

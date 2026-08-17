@@ -86,11 +86,20 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId, touchesKnowledgeFlag, KNOWLEDGE_FLAG_PATH } from "@fusion/shared";
+import { touchesAttitudeFlag, ATTITUDE_FLAG_PATH } from "@fusion/shared";
 import {
   sweepCharactersFromKnowledge,
   sanitizeKnowledgeOnCreate,
   isCharacterActor,
 } from "../../documents/knowledge.js";
+import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
+import {
+  findBlockingCombats,
+  blockingCombatMessage,
+  planPresenceRemoval,
+  applyPresenceRemoval,
+} from "../../documents/actor-deletion.js";
+import { isNonPlayableActor } from "../../documents/knowledge.js";
 import {
   redactCombatDocsForNonPrivileged,
   redactSceneDocsForNonPrivileged,
@@ -147,6 +156,20 @@ const TYPE_TO_TABLE: Record<string, string> = {
  * Combat is included (M2-C): the dedicated combat:* handlers are the normal
  * path, but the generic doc:create / doc:delete path must also reject non-GM
  * Combat creation/deletion as a defense-in-depth measure (DEC-CBT-06 + spec 05).
+ *
+ * Folder is included (REQ-NPC-021 / REQ-NPC-080): creating a folder is a
+ * privileged-only action, and there is no dedicated `folder:create` — it goes
+ * through this same generic `doc:create` path, so the gate has to live here.
+ * Before this, `documentType === "Folder"` fell through to the plain
+ * `role >= TRUSTED` floor a few lines below, and TRUSTED (role 2) is not
+ * privileged (`isRolePrivileged` is `>= ASSISTANT_GM`, role 3) — a TRUSTED
+ * socket could mint a Folder in the tree the NPCs tab draws, and could smuggle
+ * a self-`ownership: {OWNER}` into the payload while doing it, since nothing
+ * on the create path forces Folder's ownership the way r17-P1 forces a
+ * companion's. Delete is handled by the unconditional refusal in
+ * `buildDocDeleteHandler` below (REQ-NPC-022) — membership here still matters
+ * for delete because it is what stops a non-privileged role from reaching
+ * that far via the generic ownership-based delete rule.
  */
 const GM_ONLY_CREATE_DELETE = new Set([
   "Scene",
@@ -156,6 +179,7 @@ const GM_ONLY_CREATE_DELETE = new Set([
   "RollTable",
   "Playlist",
   "Combat",
+  "Folder",
 ]);
 
 /**
@@ -330,7 +354,40 @@ const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
+  role: number,
+  existing?: Record<string, unknown>,
 ): Ack<never> | null {
+  // `Actor.flags.fusion.attitude` (spec 42 §5.5): the attitude towards the
+  // party is a field of the actor's own document, and this path authorizes on
+  // `ownership` — so a player who owns an actor could otherwise declare it an
+  // ally of the party. REQ-NPC-080 names `isRolePrivileged` for "alterar
+  // atitude", and REQ-NPC-037/CA-NPC-010 say a hazard has none and none can be
+  // given to it. Both are decided here, before anything is written, and the
+  // subtype is read off the STORED document so a forged `type` on the same diff
+  // buys nothing.
+  if (documentType === "Actor" && touchesAttitudeFlag(expandedDiff)) {
+    const rejection = rejectAttitudeWrite(expandedDiff, isPrivileged(role), existing);
+    if (rejection) {
+      switch (rejection.kind) {
+        case "not-privileged":
+          return ackError(
+            "PERMISSION_DENIED",
+            `${ATTITUDE_FLAG_PATH} may only be written by a privileged role`,
+          );
+        case "not-applicable":
+          return ackError(
+            "VALIDATION_FAILED",
+            `${ATTITUDE_FLAG_PATH} does not apply to an Actor of type "${rejection.type}"`,
+          );
+        case "invalid-value":
+          return ackError(
+            "VALIDATION_FAILED",
+            `${ATTITUDE_FLAG_PATH} must be one of "enemy", "neutral", "ally" — or null to clear it`,
+          );
+      }
+    }
+  }
+
   // `Actor.flags.fusion.knowledge` (spec 39 §5.8): contact knowledge is a
   // field of the contact's own document, but this path authorizes on
   // `ownership` — and a player who owns their own sheet would then be able to
@@ -802,6 +859,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // player-companion path (r17-P1) would be a way to author knowledge
           // that doc:update refuses.
           item = sanitizeKnowledgeOnCreate(item, isPrivileged(ctx.role));
+          // REQ-NPC-047/080: the GM chooses the initial attitude at creation;
+          // anyone else loses it, and so does a subtype that cannot carry one
+          // (a hazard, CA-NPC-010) — otherwise the create path would author a
+          // field `doc:update` refuses.
+          item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -958,7 +1020,12 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       }
 
       const expandedDiffForChecks = applyDotPathDiff({}, upd.diff);
-      const rejection = rejectUnwritableField(documentType, expandedDiffForChecks);
+      const rejection = rejectUnwritableField(
+        documentType,
+        expandedDiffForChecks,
+        ctx.role,
+        existing,
+      );
       if (rejection) return rejection;
 
       // REQ-CFG-042: same domain validation as doc:create's guard above,
@@ -1087,6 +1154,25 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     const forbidden = rejectForbiddenDocumentType(documentType, parent?.type);
     if (forbidden) return forbidden;
 
+    // `Folder` (REQ-NPC-022 / REQ-NPC-080): deleting a folder is a composed
+    // operation — its subfolders lift to the deleted folder's own parent and
+    // its documents are released to "Sem pasta" BEFORE the row itself goes,
+    // so nothing is left pointing at an id that no longer exists.
+    // `folder:delete` (folder-handlers.ts) is the one door that does all
+    // three steps in order; this generic path only ever does the third one.
+    // Membership in GM_ONLY_CREATE_DELETE is not enough by itself here — that
+    // set still lets a *privileged* caller reach the ordinary OWNER/GM delete
+    // branch below, which would remove the row without reparenting anything.
+    // So Folder is refused unconditionally, for every role including
+    // privileged, the same way ChatMessage is refused above by type rather
+    // than by field.
+    if (documentType === "Folder") {
+      return ackError(
+        "PERMISSION_DENIED",
+        "Folder is not deletable through doc:delete — use folder:delete (REQ-NPC-022 / REQ-NPC-080)",
+      );
+    }
+
     // Embedded token deletion
     if (parent) {
       return handleEmbeddedDelete(deps, ctx, documentType, ids, parent);
@@ -1165,15 +1251,49 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // with the document, and there would be no way to tell which contacts'
     // exceptions have to be swept.
     const deletedCharacterIds: string[] = [];
+    const deletedActorIds = new Set<string>();
+    const deletedNonPlayableIds: string[] = [];
     if (documentType === "Actor") {
       for (const id of ids) {
         try {
-          if (isCharacterActor(deps.store.get("actors", id))) deletedCharacterIds.push(id);
+          const target = deps.store.get("actors", id);
+          deletedActorIds.add(id);
+          if (isCharacterActor(target)) deletedCharacterIds.push(id);
+          if (isNonPlayableActor(target)) deletedNonPlayableIds.push(id);
         } catch {
           // Missing document — the delete loop below reports NOT_FOUND.
         }
       }
     }
+
+    // REQ-NPC-052: a non-playable in an encounter that has not ended is NOT
+    // deletable. Deleting it would leave the tracker holding a combatant that
+    // points at nothing — the turn order still walks onto it and no screen can
+    // take it out, because every control the tracker draws is keyed on the actor
+    // it just lost. The refusal names the encounter AND the two ops that unblock
+    // it (REQ-CBT-003 / REQ-CBT-006): a wall without a door is not a refusal, it
+    // is a dead end.
+    //
+    // Judged BEFORE the delete loop and atomic for the batch, exactly like the
+    // on-air scene guard above: a mixed list of a free NPC and one in combat
+    // deletes NOTHING, so there is never a half-applied delete to undo.
+    for (const id of deletedNonPlayableIds) {
+      const blocking = findBlockingCombats(deps.store, new Set([id]));
+      if (blocking.length > 0) {
+        return ackError("VALIDATION_FAILED", blockingCombatMessage(id, blocking));
+      }
+    }
+
+    // REQ-NPC-053: every presence of a deleted actor leaves every scene. A token
+    // is not a row of its own — it lives inside the Scene's JSON (DEC-PER-02) —
+    // so deleting the Actor touches none of them, and the leftover would be a
+    // figure on the table that no sheet answers for.
+    //
+    // PLANNED here, applied after the rows are gone: a plan read while the actor
+    // still exists cannot be wrong about which scenes it touches, and a NOT_FOUND
+    // halfway through the delete loop then leaves no scene already rewritten for
+    // a delete that never happened.
+    const presenceRemovals = planPresenceRemoval(deps.store, deletedActorIds);
 
     const onAirSceneIds = new Set<string>();
     if (documentType === "Scene") {
@@ -1223,6 +1343,26 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // Broadcast delete to all clients (no ownership filter for deletes — everyone
     // must remove). Scene deletes go per-socket: see broadcastToWorld.
     broadcastToWorld(deps.ns, envelope, documentType, onAirSceneIds);
+
+    // REQ-NPC-053: now the rows are gone, take the presences with them. The
+    // delta travels the same `seq`/`OpBuffer`/redaction pipe as any other Scene
+    // change, so no client has to reload to stop drawing a token whose actor no
+    // longer exists (and a player seat still only hears about the scene on air).
+    if (presenceRemovals.length > 0) {
+      const scenesWithoutPresences = applyPresenceRemoval(deps.store, presenceRemovals, {
+        userId: ctx.userId,
+      });
+      if (scenesWithoutPresences.length > 0) {
+        const presenceSeq = deps.seqStore.next();
+        const presenceEnvelope = buildBroadcastEnvelope(
+          "doc:update",
+          { documentType: "Scene", documents: scenesWithoutPresences },
+          presenceSeq,
+        );
+        deps.opBuffer.push(presenceEnvelope);
+        broadcastToWorld(deps.ns, presenceEnvelope, "Scene");
+      }
+    }
 
     // REQ-CTT-076: a deleted character leaves its exceptions behind in every
     // contact that named it — rules about a character that no longer exists,

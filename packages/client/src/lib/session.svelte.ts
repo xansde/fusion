@@ -28,6 +28,7 @@ import { attachWorldSync } from "./docs/worldSync.js";
 import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
 import { attachContactsKnowledgeBadge } from "./contacts/knowledgeBadge.js";
 import { classifyWorldFetchError } from "./worldFetchErrorClassifier.js";
+import { clearAssetGrantCache } from "./assets/assetGrants.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Screen type
@@ -179,6 +180,13 @@ export const sessionActions = {
   async logout(): Promise<void> {
     _disconnectSync();
     socketManager.disconnect();
+    // T025: an asset grant is an HMAC bound to ONE user id, and the server
+    // refuses one whose `au` is not the caller. A surviving cache would hand the
+    // NEXT user in this tab URLs signed for the previous one — every already
+    // visited portrait and map coming back broken. Today the app happens to
+    // reload on logout, which hid the dependency; this makes it a fact of the
+    // logout path instead of a property of a redirect somewhere else.
+    clearAssetGrantCache();
     await fusionApi.logout();
     session.user = null;
     session.screen = "join";

@@ -128,6 +128,7 @@
     <div class="fam-sheet__ident">
       <ActorPortrait
         img={famImg}
+        docRef={{ table: "actors", id: actorId }}
         name={familiar.name}
         size={48}
         label={t("FUSION.Sheet.Portrait.Alt", { name: familiar.name })}
