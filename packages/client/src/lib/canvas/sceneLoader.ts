@@ -15,6 +15,7 @@ import type { FusionCanvas } from "./FusionCanvas.js";
 import { resolveAssetUrl } from "../assets/assetApi.js";
 import { fusionApi } from "../api.js";
 import { session } from "../session.svelte.js";
+import { sceneContentOffset } from "./sceneCoords.js";
 
 /**
  * Load a SceneDocument onto the canvas.
@@ -25,10 +26,13 @@ import { session } from "../session.svelte.js";
  * credential right before PIXI Assets.load() instead of loading the raw path,
  * otherwise the server's static route 401s on every scene load.
  *
- * T025: that credential is a grant for THIS scene document, and the same mint
- * covers every token texture of the scene. This call is what fills the cache the
- * TokenSprites then read — the scene pays one round-trip for its background and
- * its forty tokens together, not forty-one.
+ * T025: that credential is a grant for THIS scene document.
+ *
+ * TK023 (REQ-CNV-091): a token no longer carries its own `texture` — its art is
+ * the effective actor's `img`, so each `TokenSprite` mints its OWN grant against
+ * the `actors` table (`{ table: "actors", id: actorId }`), not this scene's. The
+ * "one mint pays for background and every token" claim this comment used to make
+ * no longer holds; see `TokenSprite._loadArt`.
  *
  * @returns Cleanup function — call before loading a new scene.
  */
@@ -36,8 +40,7 @@ export async function loadSceneDocument(
   canvas: FusionCanvas,
   scene: SceneDocument,
 ): Promise<() => void> {
-  const padX = Math.round(scene.width * scene.padding);
-  const padY = Math.round(scene.height * scene.padding);
+  const { padX, padY } = sceneContentOffset(scene);
   const totalWidth = scene.width + padX * 2;
   const totalHeight = scene.height + padY * 2;
 

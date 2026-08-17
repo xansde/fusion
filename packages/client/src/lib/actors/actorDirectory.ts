@@ -25,6 +25,8 @@
 
 import type { BaseDocument } from "@fusion/shared";
 
+import { buildTokenCreateOp, type TokenCreateOp } from "../docs/tokenCreateOp.js";
+
 // ---------------------------------------------------------------------------
 // Actor document type (minimal — full schema is in the system packages)
 // ---------------------------------------------------------------------------
@@ -105,16 +107,17 @@ export interface TokenFromActorOptions {
 
 /**
  * Token fields to set on doc:create (embedded Token in Scene).
- * Partial — the server fills defaults for unlisted fields.
+ *
+ * TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): `name`/`texture`/`width`/
+ * `height` are gone from `TokenDocumentSchema` — a token has no art or
+ * footprint of its own, and a fixed name here would just duplicate (and then
+ * fight) the actor's own name instead of inheriting it (`name: null`).
+ * `actorId` is the only content field; everything else the server defaults.
  */
 export interface TokenCreateFields {
-  name: string;
   actorId: string;
-  texture: string | null;
   x: number;
   y: number;
-  width: number;
-  height: number;
 }
 
 /**
@@ -139,55 +142,29 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
   }
 
   return {
-    name: opts.payload.name,
     actorId: opts.payload.uuid,
-    texture: opts.payload.img,
     x,
     y,
-    width: 1,
-    height: 1,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Op wrapper (A004 follow-up, ajustes r1 review — REQ-NPC-063, REQ-CPD-062)
-// ---------------------------------------------------------------------------
-
-/** The `doc:create` op `TableScreen.handleCanvasDrop` sends to land a Token on a scene. */
-export interface CreateTokenFromActorOp {
-  readonly type: "doc:create";
-  readonly payload: {
-    readonly documentType: "Token";
-    readonly data: readonly TokenCreateFields[];
-    readonly parent: { readonly type: "Scene"; readonly id: string };
   };
 }
 
 /**
- * Wrap `TokenCreateFields` in the embedded `doc:create` shape the server
- * actually understands — `data: [fields]` + `parent: { type: "Scene", id }`,
- * matched by `DocCreatePayloadSchema` (`packages/shared/src/protocol.ts`) and
- * routed to `handleEmbeddedCreate` (`doc-handlers.ts`), which appends to
- * `Scene.tokens` and mints `_id` server-side.
+ * Build the full `doc:create` op (TK022-client) for dropping an actor on the
+ * canvas — the composition `TableScreen.handleCanvasDrop`'s actor branch sends
+ * verbatim, through `sendOp` so the server's ack is AWAITED and a refusal
+ * (VALIDATION_FAILED, PERMISSION_DENIED) reaches the Master instead of being
+ * swallowed by a fire-and-forget `sock.emit` (A004 review, REQ-CPD-060).
  *
- * Sibling of `buildAddTokenOp` (`lib/scenes/tokenAddDialogOp.ts`) and
- * `buildPlaceChestTokenOp` (`lib/npcs/npcsFooter.ts`) — same op shape, same
- * bug family this fixes: an earlier version of `handleCanvasDrop` sent
- * `payload: { documentType: "Token", embedded: { type, sceneId }, documents: [fields] }`,
- * a shape `DocCreatePayloadSchema` has never accepted (`data` is required,
- * `embedded`/`documents` do not exist on it) — silently rejected with
- * `VALIDATION_FAILED` because the emit had no ack to surface it.
+ * Exists so the wiring between `buildTokenFromActorFields` (the field
+ * transform) and `buildTokenCreateOp` (the envelope) is itself a pure,
+ * DOM-free function under test — the same shape `token-manager-contract.test.ts`
+ * verifies for `TokenInteractionManager.addToken`, and `buildPlaceChestTokenOp`
+ * (`lib/npcs/npcsFooter.ts`) verifies for the chest. Before this existed, the
+ * only place the two calls were composed was inline in the `.svelte` file,
+ * which a source-text test can confirm is CALLED but never confirm produces a
+ * payload the server would accept (see `tokenCreateOp.ts`'s docstring for the
+ * three call sites that used to get this wrong).
  */
-export function buildCreateTokenFromActorOp(
-  fields: TokenCreateFields,
-  sceneId: string,
-): CreateTokenFromActorOp {
-  return {
-    type: "doc:create",
-    payload: {
-      documentType: "Token",
-      data: [fields],
-      parent: { type: "Scene", id: sceneId },
-    },
-  };
+export function buildActorDropTokenOp(opts: TokenFromActorOptions): TokenCreateOp {
+  return buildTokenCreateOp(opts.sceneId, { ...buildTokenFromActorFields(opts) });
 }

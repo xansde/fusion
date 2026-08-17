@@ -37,6 +37,7 @@ import { getDocumentSchema } from "./types.js";
 import { deepMerge, computeDiff } from "./merge.js";
 import { embeddedCollectionKeys, semanticDeltaBytes } from "./write-metrics.js";
 import type { WriteMetricsCollector } from "./write-metrics.js";
+import type { Logger } from "../logger.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -180,6 +181,64 @@ function validateDocument(
 }
 
 /**
+ * Result of filtering a Scene's `tokens[]` for legacy rows missing a
+ * resolvable `actorId` (REQ-TOK-002).
+ */
+interface LegacyTokenFilterResult {
+  /** The Scene doc, unchanged if nothing was dropped (same reference). */
+  doc: Record<string, unknown>;
+  /** How many tokens were dropped. */
+  droppedCount: number;
+}
+
+/**
+ * Drop tokens with a missing/null/non-string `actorId` from a Scene's
+ * `tokens[]` on READ.
+ *
+ * TokenDocumentSchema has required `actorId` a resolvable string since
+ * TK020/REQ-TOK-002 (no `.nullable()`/`.default()` — parsing a payload that
+ * omits it, or sends `null`, is refused at write time). That refusal only
+ * covers WRITES going through the schema, though — a world whose Scene rows
+ * predate the requirement (or were written by a path that never validated
+ * per-token, like the server's own loosely-typed SceneSchema.tokens:
+ * z.array(z.record(...))) can still hold a token with no `actorId` at all.
+ * Rather than let that raw row reach a caller (and crash whatever tries to
+ * resolve its effective actor downstream, per RNF-TOK-01), the read path
+ * drops it here — a data-cleaning read policy, not a migration: nothing is
+ * rewritten in the database, only what this READ returns is filtered.
+ *
+ * Pure and table-agnostic on purpose: non-Scene tables and Scenes without a
+ * `tokens` array pass through untouched, at no extra cost (same `doc`
+ * reference is returned). Logging (once per scene) is the caller's job —
+ * this function has no state to dedupe against.
+ */
+function filterLegacyTokensWithoutActor(
+  table: DocumentTable,
+  doc: Record<string, unknown>,
+): LegacyTokenFilterResult {
+  if (table !== "scenes") return { doc, droppedCount: 0 };
+  const tokens = doc["tokens"];
+  if (!Array.isArray(tokens)) return { doc, droppedCount: 0 };
+
+  const kept: unknown[] = [];
+  let droppedCount = 0;
+  for (const token of tokens) {
+    const actorId =
+      token !== null && typeof token === "object"
+        ? (token as Record<string, unknown>)["actorId"]
+        : undefined;
+    if (typeof actorId === "string" && actorId.length > 0) {
+      kept.push(token);
+    } else {
+      droppedCount += 1;
+    }
+  }
+
+  if (droppedCount === 0) return { doc, droppedCount: 0 };
+  return { doc: { ...doc, tokens: kept }, droppedCount };
+}
+
+/**
  * Extract the "indexed" columns from a document for the given table.
  * These are written to dedicated columns alongside the JSON data blob.
  */
@@ -311,6 +370,15 @@ export interface DocumentStoreOptions {
    * one per world in SocketManager.registerWorldNamespace.
    */
   metrics?: WriteMetricsCollector;
+  /**
+   * Optional structured logger, used only to warn (once per scene) when a
+   * READ finds a legacy token missing `actorId` (REQ-TOK-002 — see
+   * `readAndFilterLegacyTokens`). Left out, the sanitization still runs (a legacy
+   * token never reaches a caller either way); only the warning is skipped —
+   * which is what the many test call sites that build a bare
+   * `new DocumentStore({ db })` rely on.
+   */
+  logger?: Logger;
 }
 
 /**
@@ -363,12 +431,46 @@ export class DocumentStore {
   private readonly metrics: WriteMetricsCollector | undefined;
   /** Writes of the transaction currently open — see PendingWrite. */
   private readonly pendingMetrics: PendingWrite[] = [];
+  /** REQ-TOK-002 legacy-token read policy — see `readAndFilterLegacyTokens`. */
+  private readonly logger: Logger | undefined;
+  /**
+   * Scene ids already warned about for holding a legacy token without
+   * `actorId`, so the log gets exactly one line per scene per process — not
+   * one per read (a scene can be re-read on every join/snapshot/query).
+   */
+  private readonly warnedLegacyTokenScenes = new Set<string>();
 
   constructor(options: DocumentStoreOptions) {
     this.db = options.db;
     this.coreVersion = options.coreVersion ?? FUSION_VERSION;
     this.defaultAuthor = options.defaultAuthor ?? { userId: null };
     this.metrics = options.metrics;
+    this.logger = options.logger;
+  }
+
+  /**
+   * Filter legacy tokens without a resolvable `actorId` out of a just-read
+   * document (REQ-TOK-002), warning once per scene when any are dropped.
+   * Called from every read path (`get`, `_query`) so no caller — join
+   * snapshot, world listing, single fetch — can see a token the write path
+   * would now refuse.
+   */
+  private readAndFilterLegacyTokens(
+    table: DocumentTable,
+    doc: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const { doc: filtered, droppedCount } = filterLegacyTokensWithoutActor(table, doc);
+    if (droppedCount === 0) return filtered;
+
+    const sceneId = typeof doc["_id"] === "string" ? doc["_id"] : "(unknown)";
+    if (!this.warnedLegacyTokenScenes.has(sceneId)) {
+      this.warnedLegacyTokenScenes.add(sceneId);
+      this.logger?.warn(
+        { sceneId, droppedCount },
+        "Scene has legacy token(s) without a resolvable actorId (REQ-TOK-002) — dropped on read",
+      );
+    }
+    return filtered;
   }
 
   /**
@@ -474,6 +576,42 @@ export class DocumentStore {
       | undefined;
 
     if (!row) throw new DocumentNotFoundError(table, id);
+    const doc = JSON.parse(row.data) as Record<string, unknown>;
+    return this.readAndFilterLegacyTokens(table, doc);
+  }
+
+  /**
+   * Retrieve a single document by id WITHOUT the legacy-token read filter
+   * (REQ-TOK-002) — otherwise identical to `get()`.
+   *
+   * For internal, read-modify-write reconstruction ONLY. The one legitimate
+   * reason to bypass the filter is rebuilding an embedded collection (e.g.
+   * Scene.tokens) before a write that replaces that array in full
+   * (REQ-DOC-037): a caller that instead reconstructs from the FILTERED
+   * `get()` — as handleEmbeddedCreate/Update/Delete and the token:move
+   * handler do — permanently drops, from the ROW ITSELF, every legacy token
+   * it never even saw to intentionally remove (a bug: `filterLegacyTokens
+   * WithoutActor` is documented as a read-only policy, "nothing is rewritten
+   * in the database", but a full-array-replace `update()` built on its
+   * output rewrites exactly that).
+   *
+   * The document this returns must NEVER reach a socket as-is — a legacy
+   * token missing `actorId` is exactly what crashes a client trying to
+   * resolve its effective actor (RNF-TOK-01). Every caller of `getRaw` is
+   * responsible for re-reading the affected document through `get()` (which
+   * re-applies the filter, warns, and is exercised by the existing REQ-TOK-002
+   * test suite) before using it in a broadcast payload or an ack result.
+   */
+  getRaw(table: DocumentTable, id: string): Record<string, unknown> {
+    if (!DOCUMENT_TABLES.has(table)) {
+      throw new Error(`Unknown document table: "${table}"`);
+    }
+
+    const row = this.db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id) as
+      | { data: string }
+      | undefined;
+
+    if (!row) throw new DocumentNotFoundError(table, id);
     return JSON.parse(row.data) as Record<string, unknown>;
   }
 
@@ -541,7 +679,9 @@ export class DocumentStore {
     const allParams = options?.limit != null ? [...params, options.limit] : params;
 
     const rows = this.db.prepare(sql).all(...allParams) as Array<{ data: string }>;
-    return rows.map((r) => JSON.parse(r.data) as Record<string, unknown>);
+    return rows.map((r) =>
+      this.readAndFilterLegacyTokens(table, JSON.parse(r.data) as Record<string, unknown>),
+    );
   }
 
   /** PRAGMA table_info(<table>) results, cached per table on first use (T015). */

@@ -16,32 +16,26 @@
  * knowledge entry for it.
  *
  * **"On the scene" is a real `Token`, not a metaphor.** `packages/shared/src/scene.ts`
- * already gives a `Scene`'s embedded `Token` a soft `actorId` (REQ-DOC-031), and the
- * server already has a dedicated write for landing ONE new token on a scene: a
- * `doc:create` with `documentType: "Token"` and `parent: { type: "Scene", id }`
- * (`handleEmbeddedCreate`, doc-handlers.ts — `_id` is generated server-side and the
- * token is appended to `Scene.tokens` atomically). `buildPlaceChestTokenOp` uses
- * exactly that.
- *
- * A004 (ajustes r1 item 22): this module (and `TokenAddDialog.svelte`, the sibling
- * call site) used to build the SECOND write as a `doc:update` with
- * `diff: { tokens: { $push: {...} } }` — a MongoDB-style pseudo-operator that does
- * not exist on the server, rejected with `tokens: Expected array, received object`
- * (`Scene.tokens` is `z.array(TokenDocumentSchema)`, and the server's generic diff
- * merge replaces an array key wholesale rather than understanding `$push`). Sending
- * the WHOLE array back as a plain `doc:update` diff is not the fix either: the
- * server's `rejectUnwritableField` refuses that too, on purpose —
- * `"Scene.tokens is not writable as a whole through doc:update — use embedded
- * operations (updates[].embedded)"` — precisely to keep every embedded-collection
- * write going through the dedicated, append-safe path used here.
+ * gives a `Scene`'s embedded `Token` a required `actorId` (REQ-DOC-031, REQ-TOK-002).
+ * `buildPlaceChestTokenOp` lands one via the shared `doc:create` embedded-token
+ * envelope (`lib/docs/tokenCreateOp.ts`, TK022-client) — the same one
+ * `TokenAddDialog.svelte` uses. This module used to build a `doc:update` diff of
+ * `{ tokens: { $push: {...} } }` instead: `$push` is not an operator this codebase's
+ * merge (`packages/server/src/documents/merge.ts`) or its embedded-collection guard
+ * (`doc-handlers.ts`'s `rejectUnwritableField`) implement, so that write could never
+ * actually land a token — see `tokenCreateOp.ts`'s docstring for the full account.
+ * `placeChest` does the two writes the gesture needs: create the actor, then create
+ * a token for it, embedded in the scene on air. Nothing here is invented: both
+ * writes go through document types and fields that already exist and are already
+ * exercised elsewhere.
  *
  * **What this module still does not decide** — and does not need to, to do its
  * job: whether a token is *linked* or *unlinked* to its actor (the `actorLink`/
  * `actorDelta` pair spec 02's "Herança token→actor" section describes) is
- * Q-NPC-03, owned by the Token spec (`41`), and neither field is implemented on
- * `TokenDocumentSchema` yet — only the bare `actorId` reference exists today.
- * The token this module creates carries `actorId` and nothing `41` would have
- * to undo.
+ * Q-NPC-03, owned by the Token spec (`41`). Both fields exist on
+ * `TokenDocumentSchema` now (TK020), but this module writes neither: the
+ * chest is a plain linked token, which is exactly what the schema default
+ * (`actorLink: true`) already says without a write.
  *
  * Kept out of the component so it can be exercised without a DOM: the client
  * project runs Vitest in a node environment.
@@ -51,6 +45,7 @@ import type { Socket } from "socket.io-client";
 
 import { t } from "../i18n/i18n.js";
 import { sendOp } from "../docs/sendOp.js";
+import { buildTokenCreateOp, type TokenCreateOp } from "../docs/tokenCreateOp.js";
 
 /**
  * The subtype the pf2e system declares for a container (Q-NPC-04, closed by
@@ -120,64 +115,49 @@ export function buildCreateChestActorOp(): CreateChestActorOp {
 // The second write — a Token for it, on the scene on air (REQ-NPC-060)
 // ---------------------------------------------------------------------------
 
-export interface PlaceChestTokenOp {
-  readonly type: "doc:create";
-  readonly payload: {
-    readonly documentType: "Token";
-    readonly data: readonly Record<string, unknown>[];
-    readonly parent: { readonly type: "Scene"; readonly id: string };
-  };
-}
+export type PlaceChestTokenOp = TokenCreateOp;
 
 /**
- * REQ-NPC-060 (A004, ajustes r1 item 22): an embedded `doc:create` of a Token
- * under the target scene — `parent: { type: "Scene", id: sceneId }` is what
- * routes this through `handleEmbeddedCreate`, which appends to
- * `Scene.tokens` and mints the `_id` server-side. Never a `$push`
- * pseudo-operator, and never a whole-array `doc:update` diff either — both
- * are refused by the server (see the module docstring).
+ * REQ-NPC-060: the `doc:create` (`lib/docs/tokenCreateOp.ts`) that lands the chest's
+ * actor, embedded, on the scene on air — `actorId` set (REQ-DOC-031), and nothing
+ * else the token no longer carries.
+ *
+ * TK022/TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): `name`/`texture`/`width`/
+ * `height` are gone from `TokenDocumentSchema`. `name` is dropped on purpose, not
+ * just because it no longer exists on the wire the same way: the chest's name IS
+ * the actor's name (`buildCreateChestActorOp` already set it), so a `null` token
+ * name inherits it instead of duplicating it.
+ *
+ * `x`/`y` ARE sent, and are not optional: REQ-TOK-020 (§7.2) makes them
+ * obligatory content of every token creation, enforced server-side by
+ * `validateTokenCreateContract` (`packages/server/src/tokens/tokenValidation.ts`)
+ * before the payload ever reaches `TokenDocumentSchema`. This footer has no
+ * canvas/viewport to center on (see the module docstring — it is kept
+ * deliberately DOM-free so it can run under Vitest in node), unlike
+ * `TokenInteractionManager.addToken`'s viewport-centered drop; the origin is
+ * the same placeholder position the pre-TK022 payload used.
+ *
+ * `hidden` is deliberately ABSENT rather than spelled out as `false`: the chest
+ * lands VISIBLE, and §7.2 makes `hidden` an overridable field whose absent value
+ * inherits `TokenDocumentSchema`'s own default (`false`). Writing it explicitly
+ * would only restate the default, and the same reasoning covers `disposition`,
+ * `rotation`, `elevation` and `bar1`/`bar2` — every field the pre-merge payload
+ * used to enumerate by hand.
  */
-export function buildPlaceChestTokenOp(
-  sceneId: string,
-  actorId: string,
-  name: string,
-): PlaceChestTokenOp {
-  return {
-    type: "doc:create",
-    payload: {
-      documentType: "Token",
-      data: [
-        {
-          name,
-          actorId,
-          texture: null,
-          x: 0,
-          y: 0,
-          width: 1,
-          height: 1,
-          rotation: 0,
-          hidden: false,
-          disposition: 0,
-          elevation: 0,
-          bar1: { attribute: null },
-          bar2: { attribute: null },
-        },
-      ],
-      parent: { type: "Scene", id: sceneId },
-    },
-  };
+export function buildPlaceChestTokenOp(sceneId: string, actorId: string): PlaceChestTokenOp {
+  return buildTokenCreateOp(sceneId, { actorId, x: 0, y: 0 });
 }
 
 interface DocCreateResult {
-  readonly documents: readonly { readonly _id: string; readonly name?: string }[];
+  readonly documents: readonly { readonly _id: string }[];
 }
 
 /**
  * REQ-NPC-060: create the chest actor, then land it on the scene on air.
  *
- * Two ops, in order: `doc:create` mints the actor (REQ-NPC-061: no folder, no
- * attitude), and its `_id` becomes the `actorId` of the embedded `doc:create`
- * that lands a Token for it on the target scene. Either can reject; the
+ * Two `doc:create` ops, in order: the first mints the actor (REQ-NPC-061: no
+ * folder, no attitude), and its `_id` becomes the `actorId` of the second, which
+ * creates a token for it, embedded in the target scene. Either can reject; the
  * caller (the footer) is responsible for reporting a failure of the second
  * write, which would otherwise leave an actor with no presence.
  */
@@ -187,6 +167,5 @@ export async function placeChest(socket: Socket, sceneId: string): Promise<void>
   if (actor === undefined) {
     throw new Error("doc:create returned no chest actor");
   }
-  const name = actor.name ?? t("FUSION.Npcs.Chest.DefaultName");
-  await sendOp(socket, buildPlaceChestTokenOp(sceneId, actor._id, name));
+  await sendOp(socket, buildPlaceChestTokenOp(sceneId, actor._id));
 }

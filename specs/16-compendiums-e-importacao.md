@@ -428,6 +428,21 @@ de Foundry.
   (`ver 02-`, REQ-DOC-002); (c) preservar `system` e `flags` (incluindo
   `flags.fusion.*` de conversão); (d) inserir via CRUD normal
   (`ver 03-persistencia-e-mundos.md`).
+- **REQ-CMP-055** [MVP] O `name` do documento importado para o mundo (REQ-CMP-021)
+  DEVE permanecer **em inglês** — idêntico ao `name` do pack — e NÃO DEVE ser
+  reescrito com a tradução pt-BR. Quando o pack tiver overlay de tradução
+  (REQ-CMP-007a) para aquele documento, a importação DEVE gravar um **snapshot** do
+  rótulo traduzido (pelo menos `name`; `description`, quando houver) em
+  `flags.fusion.i18n["pt-BR"]`, tomado no instante do import — nunca uma view viva
+  do overlay do pack. Toda superfície de exibição (aba NPCs, Contatos, ficha) DEVE
+  resolver o nome mostrado por um único mecanismo de leitura desse rótulo — nunca por
+  um segundo cálculo de tradução independente. **Racional (decisão A041, ajustes r1,
+  2026-08-17):** identidade e toda derivação de sistema casam documentos por
+  `name`/`sourceId` em inglês — gravar a tradução no `name` quebraria esse casamento e
+  reverteria a decisão deliberada "mundo EN-puro" (issue #43 do código, mundo é
+  snapshot do pack, não view viva). A alternativa descartada foi gravar `name` em
+  pt-BR direto na importação; o risco documentado — "o mundo deixa de ser espelho
+  puro do pack" — foi o que decidiu pela opção do snapshot em `flags`.
 - **REQ-CMP-022** [MVP] Na importação, referências `@UUID` internas ao **mesmo pack**
   para itens que também forem importados em lote DEVEM ser **remapeadas** para os
   novos `_id` de mundo; referências a documentos não importados DEVEM permanecer como

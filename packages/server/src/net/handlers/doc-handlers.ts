@@ -101,6 +101,14 @@ import {
 } from "../../documents/actor-deletion.js";
 import { isNonPlayableActor } from "../../documents/knowledge.js";
 import {
+  validateTokenActorId,
+  validateTokenCreateContract,
+  applyTokenCreateDefaults,
+  validateTokenUpdateActorDelta,
+  validateTokenUpdateDerivedFields,
+  diffTouchesField,
+} from "../../tokens/tokenValidation.js";
+import {
   redactCombatDocsForNonPrivileged,
   redactSceneDocsForNonPrivileged,
   sceneIsInvisibleToRole,
@@ -1433,10 +1441,17 @@ function handleEmbeddedCreate(
     }
   }
 
-  // Load parent
+  // Load parent — RAW (REQ-TOK-002): the embedded collection below is
+  // reconstructed from this doc and persisted with a full-array replace
+  // (REQ-DOC-037). Reading it through the filtered `get()` here would
+  // permanently drop a legacy token (no resolvable actorId) from the ROW on
+  // the very first embedded write to a legacy scene — see `getRaw`'s
+  // docstring. Ownership/visibility below don't depend on `tokens`, so raw
+  // vs. filtered makes no difference to them. `updatedParent` is re-read
+  // through the filtered `get()` before it reaches the ack/broadcast below.
   let parentDoc: Record<string, unknown>;
   try {
-    parentDoc = deps.store.get(parentTable as never, parent.id);
+    parentDoc = deps.store.getRaw(parentTable as never, parent.id);
   } catch (err) {
     if (err instanceof DocumentNotFoundError) {
       return ackError("NOT_FOUND", `Parent document not found: ${parent.type}/${parent.id}`);
@@ -1483,7 +1498,32 @@ function handleEmbeddedCreate(
 
     // Validate against Token schema if applicable
     if (embeddedType === "Token") {
-      const tokenResult = TokenDocumentSchema.safeParse(raw);
+      // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: checked BEFORE the generic schema
+      // parse so a null/absent/dangling actorId gets our explicit message
+      // ("actorId is required and must resolve to an existing Actor")
+      // instead of Zod's generic "Expected string, received null".
+      const actorIdError = validateTokenActorId(deps.store, raw["actorId"]);
+      if (actorIdError) {
+        return ackError(actorIdError.code, actorIdError.message);
+      }
+      // §7.2 obligatory (x, y) / derived (footprint, art, possession) /
+      // refused (actorDelta) rows — TK025, REQ-TOK-020/022, DEC-TOK-05,
+      // CA-TOK-004. Checked on the raw wire payload, before any default is
+      // applied, so a derived field is REFUSED rather than silently
+      // stripped by the schema's `.strip()` behavior.
+      const contractError = validateTokenCreateContract(raw);
+      if (contractError) {
+        return ackError(contractError.code, contractError.message);
+      }
+      // §7.2 overridable rows whose "inherit when absent" default is more
+      // than a Zod literal: `actorLink` by the base actor's subtype
+      // (REQ-DOC-061/REQ-TOK-023) and `bar1`/`bar2` by the active system's
+      // manifest (REQ-SYS-004/REQ-TOK-024). Every other overridable field
+      // (hidden, seenBy, disposition, name, rotation, elevation, vision,
+      // light) already inherits correctly from TokenDocumentSchema's own
+      // Zod defaults below.
+      const withDefaults = applyTokenCreateDefaults(deps.store, deps.systemModule, raw);
+      const tokenResult = TokenDocumentSchema.safeParse(withDefaults);
       if (!tokenResult.success) {
         return ackError("VALIDATION_FAILED", tokenResult.error.message);
       }
@@ -1547,6 +1587,12 @@ function handleEmbeddedCreate(
     return ackError("INTERNAL_ERROR", "Failed to update parent document");
   }
 
+  // REQ-TOK-002: `updatedParent` above was built from the RAW `parentDoc`
+  // (getRaw), so a legacy token in this scene survived the write on disk —
+  // re-read through the filtered `get()` before it can reach the ack or the
+  // broadcast below (no-op for non-Scene tables/documents without tokens).
+  updatedParent = deps.store.get(parentTable as never, parent.id);
+
   // WIRING-DERIVE: an embedded Item create on an Actor (e.g. a Condition)
   // affects derived stats (AC, saves, ...) — recompute before broadcast.
   updatedParent = recomputeDerivedIfNeeded(deps, parent.type, updatedParent, {
@@ -1598,9 +1644,13 @@ function handleEmbeddedUpdate(
   const allUpdatedParents: Record<string, unknown>[] = [];
 
   for (const [parentId, parentUpdates] of byParent) {
+    // RAW (REQ-TOK-002) — see handleEmbeddedCreate's comment: `collection`
+    // below is reconstructed from this doc and persisted with a full-array
+    // replace. `updatedParent` is re-read through the filtered `get()` before
+    // it reaches the broadcast further down.
     let parentDoc: Record<string, unknown>;
     try {
-      parentDoc = deps.store.get(parentTable as never, parentId);
+      parentDoc = deps.store.getRaw(parentTable as never, parentId);
     } catch (err) {
       if (err instanceof DocumentNotFoundError) {
         return ackError("NOT_FOUND", `Parent not found: ${resolvedParentType}/${parentId}`);
@@ -1681,12 +1731,29 @@ function handleEmbeddedUpdate(
 
       // actorId reassignment is a privileged operation: it changes which actor
       // a token represents and affects ownership resolution for future updates.
-      // Only GM/ASSISTANT may change actorId.
-      if ("actorId" in sanitizedDiff && !isPrivileged(ctx.role)) {
+      // Only GM/ASSISTANT may change actorId. `diffTouchesField` (not a bare
+      // `in` check) so a dotted path can't dodge the gate — see its docstring.
+      if (diffTouchesField(sanitizedDiff, "actorId") && !isPrivileged(ctx.role)) {
         return ackError(
           "PERMISSION_DENIED",
           `Only GM/Assistant can change actorId on token ${tokenId}`,
         );
+      }
+
+      // REQ-TOK-010/012/013 (TK025 fix): the six DERIVED fields
+      // (width/height/texture/img/ownership/userId) §7.2 refuses at
+      // creation are refused here too — a doc:update persists the
+      // diff-applied token directly, with no schema re-parse, so nothing
+      // else stops one of these from being written straight to the
+      // database and echoed in the broadcast. Checked on every Token
+      // update (privileged or not — these fields are server-computed for
+      // everyone, not a permission question) and on the pre-diff
+      // `sanitizedDiff`, so the refusal fires before any write is computed.
+      if (embeddedType === "Token") {
+        const derivedFieldError = validateTokenUpdateDerivedFields(sanitizedDiff);
+        if (derivedFieldError) {
+          return ackError(derivedFieldError.code, derivedFieldError.message);
+        }
       }
 
       // Apply diff to token
@@ -1698,6 +1765,36 @@ function handleEmbeddedUpdate(
       // Build the updated token by applying dot-path diff (uses sanitized diff)
       const existingToken = collection[idx] ?? {};
       const patchedToken = applyDotPathDiff(existingToken, sanitizedDiff);
+
+      // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: the diff was only barred from
+      // TOUCHING actorId when the caller is non-privileged (above). A
+      // GM/ASSISTANT reaches this point free to set actorId to null or to an
+      // id that resolves to nothing — T-5, reproduced in
+      // token-actor-validation.test.ts — since nothing here re-validates the
+      // patched token against the Token schema. Checked on every Token
+      // update (not just ones that touch actorId) so an existing, already-
+      // orphaned token cannot be further mutated either.
+      if (embeddedType === "Token") {
+        const actorIdError = validateTokenActorId(deps.store, patchedToken["actorId"]);
+        if (actorIdError) {
+          return ackError(actorIdError.code, actorIdError.message);
+        }
+        // REQ-DOC-034/DEC-TOK-05 (TK025): actorDelta is the one field §7.2
+        // refuses at creation, refuses UNCONDITIONALLY for a non-privileged
+        // caller on UPDATE (the dedicated TokenActor route is their only
+        // route of authorship), and for GM/Assistant allows on UPDATE only
+        // on an unlinked token. Evaluated against the DIFF-APPLIED
+        // actorLink, not the pre-diff one, so a single update that both
+        // unlinks the token and sets its delta is judged by the new state.
+        const actorDeltaError = validateTokenUpdateActorDelta(
+          ctx.role,
+          patchedToken["actorLink"],
+          diffTouchesField(sanitizedDiff, "actorDelta"),
+        );
+        if (actorDeltaError) {
+          return ackError(actorDeltaError.code, actorDeltaError.message);
+        }
+      }
 
       // Schema validation of embedded Items against the active system's
       // registered data models (R10-C, see validateEmbeddedItemForSystem).
@@ -1723,6 +1820,11 @@ function handleEmbeddedUpdate(
     });
 
     if (updatedParent) {
+      // REQ-TOK-002: re-read through the filtered `get()` — `updatedParent`
+      // was built from the RAW `parentDoc`, so a legacy token survived the
+      // write on disk but must not reach the broadcast below.
+      updatedParent = deps.store.get(parentTable as never, parentId);
+
       // WIRING-DERIVE (audit issue 2): an embedded update (e.g. changing a
       // Condition's `value`, such as Frightened 2 → 1) affects derived stats
       // (AC, saves, ...) exactly like an embedded create does — recompute
@@ -1770,9 +1872,13 @@ function handleEmbeddedDelete(
     return ackError("VALIDATION_FAILED", `Unknown parent type: ${parent.type}`);
   }
 
+  // RAW (REQ-TOK-002) — see handleEmbeddedCreate's comment: `updatedCollection`
+  // below is reconstructed from this doc and persisted with a full-array
+  // replace. `updatedParent` is re-read through the filtered `get()` before
+  // it reaches the ack/broadcast further down.
   let parentDoc: Record<string, unknown>;
   try {
-    parentDoc = deps.store.get(parentTable as never, parent.id);
+    parentDoc = deps.store.getRaw(parentTable as never, parent.id);
   } catch (err) {
     if (err instanceof DocumentNotFoundError) {
       return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
@@ -1839,6 +1945,12 @@ function handleEmbeddedDelete(
   if (!updatedParent) {
     return ackError("INTERNAL_ERROR", "Failed to update parent after embedded delete");
   }
+
+  // REQ-TOK-002: `updatedParent` above was built from the RAW `parentDoc`
+  // (getRaw), so a legacy token this delete didn't target survived the write
+  // on disk — re-read through the filtered `get()` before it can reach the
+  // ack or the broadcast below.
+  updatedParent = deps.store.get(parentTable as never, parent.id);
 
   // WIRING-DERIVE (audit issue 2): removing an embedded Item (e.g. clearing a
   // Condition) affects derived stats (AC, saves, ...) exactly like create/

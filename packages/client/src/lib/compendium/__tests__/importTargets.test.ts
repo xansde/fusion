@@ -92,6 +92,26 @@ describe("sheet destinations (REQ-CPD-061)", () => {
     expect(targets.map((t) => t.actorId)).toEqual(["actor-owned"]);
   });
 
+  it("REQ-CMP-055: the 'Destino' select resolves the pt-BR snapshot, never doc.name straight (A041)", () => {
+    const importedWithSnapshot = {
+      _id: "actor-imported",
+      name: "Eagle",
+      type: "npc",
+      ownership: { default: OwnershipLevel.OWNER },
+      flags: { fusion: { i18n: { "pt-BR": { name: "Águia" } } } },
+    };
+
+    const targets = buildSheetTargets([importedWithSnapshot], PLAYER);
+
+    expect(targets[0]?.name).toBe("Águia");
+  });
+
+  it("REQ-CMP-055: falls back to the EN-pure doc.name when the actor has no snapshot", () => {
+    const targets = buildSheetTargets([OWNED], PLAYER);
+
+    expect(targets[0]?.name).toBe("Fofurinha");
+  });
+
   it("REQ-CPD-061: only a compatible type reaches a sheet, and only with a destination", () => {
     const targets = buildSheetTargets([OWNED], PLAYER);
 

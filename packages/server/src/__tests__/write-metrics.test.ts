@@ -269,20 +269,26 @@ describe("T016 — DocumentStore write metrics", () => {
     return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
   }
 
-  async function createToken(sceneId: string, name: string, x = 10, y = 10): Promise<string> {
+  async function createActor(name: string): Promise<string> {
     const ack = await sendOp(gm, "doc:create", {
-      documentType: "Token",
-      data: [{ name, x, y }],
-      parent: { type: "Scene", id: sceneId },
+      documentType: "Actor",
+      data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
     });
     expect(ack["ok"]).toBe(true);
     return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
   }
 
-  async function createActor(name: string): Promise<string> {
+  /**
+   * A Token no longer accepts a missing/null `actorId` (REQ-TOK-002) — this
+   * helper creates a throwaway backing Actor for every token, since none of
+   * the write-metrics scenarios below care which actor a token references.
+   */
+  async function createToken(sceneId: string, name: string, x = 10, y = 10): Promise<string> {
+    const actorId = await createActor(`${name} Actor`);
     const ack = await sendOp(gm, "doc:create", {
-      documentType: "Actor",
-      data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
+      documentType: "Token",
+      data: [{ name, actorId, x, y }],
+      parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"]).toBe(true);
     return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;

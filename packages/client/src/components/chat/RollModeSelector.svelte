@@ -2,9 +2,12 @@
   /**
    * RollModeSelector.svelte — the one control that decides the audience of a roll.
    *
-   * Spec 38 (`specs/38-aba-chat.md`) §5.5, DEC-ACH-04 / REQ-ACH-040: four drawn icons
-   * (public · to the GM · blind · self only), a visible mark on the active one, and help
-   * text on hover AND on focus. Never emoji (REQ-NPC-094).
+   * Spec 38 (`specs/38-aba-chat.md`) §5.5, DEC-ACH-04 / REQ-ACH-040: a **full-width** strip
+   * of four drawn icons (public · to the GM · blind · self only) behind a sliding indicator
+   * that animates to the active one, plus help text on hover AND on focus. Never emoji
+   * (REQ-NPC-094). The strip fills the composer's width — it is not a compact, self-sized
+   * cluster — matching `chat-tab.prototype.html`'s `.modes` (grid of 4 equal columns,
+   * `.thumb` sliding with `transition: left .14s`).
    *
    * It is a presentation component: it owns no preference and no storage. The owner
    * (`ChatInput`) reads and writes `lib/chat/rollModePreference.ts` per world + user
@@ -13,6 +16,11 @@
    *
    * Keyboard: four real `<button>`s in a `radiogroup`, so Tab reaches them and Enter/Space
    * activate them with the browser's own focus ring (RNF-ACH-04, REQ-UIF-064).
+   *
+   * REQ-ACH-040's "help text on hover or focus" is a *drawn* tooltip, not the native
+   * `title` (which never appears on keyboard focus) — same pattern as
+   * `SidebarRail.svelte`'s `.sidebar-rail__tooltip`, shown on `:hover` AND
+   * `:focus-visible`. `title` stays too, as a redundant native fallback.
    */
 
   import { t } from "../../lib/i18n/i18n.js";
@@ -39,6 +47,12 @@
   function helpOf(m: RollMode): string {
     return t(`${rollModeI18nStem[m]}.Help`);
   }
+
+  // The strip has ROLL_MODE_ORDER.length (4) equal columns; the thumb slides to the
+  // active one by percentage of its index, same formula as the decided prototype
+  // (`chat-tab.prototype.html`'s composerHtml: `calc(${idx} * 25% + 2px)`).
+  const activeIndex = $derived(ROLL_MODE_ORDER.indexOf(mode));
+  const thumbLeft = $derived(`calc(${activeIndex} * 25% + 2px)`);
 </script>
 
 <div
@@ -47,10 +61,12 @@
   aria-label={t("FUSION.Chat.RollMode.GroupLabel")}
   data-active-mode={mode}
 >
-  {#each ROLL_MODE_ORDER as m (m)}
+  <span class="roll-mode__thumb" style="left: {thumbLeft}" aria-hidden="true"></span>
+  {#each ROLL_MODE_ORDER as m, idx (m)}
     <button
       type="button"
       class="roll-mode__option"
+      class:roll-mode__option--anchor-end={idx >= ROLL_MODE_ORDER.length / 2}
       class:roll-mode__option--active={m === mode}
       data-mode={m}
       role="radio"
@@ -63,49 +79,69 @@
       }}
     >
       <span class="roll-mode__icon" aria-hidden="true">{@html rollModeIcons[m]}</span>
+      <!-- Drawn tooltip (REQ-ACH-040) — `title` alone never reaches keyboard focus.
+           Anchored to the strip's own edge on the outer two options so it never gets
+           clipped by the panel (prototype's `pos = i<2 ? 'left:0' : 'right:0'`). -->
+      <span class="roll-mode__tip" aria-hidden="true">
+        <b>{labelOf(m)}</b>{helpOf(m)}
+      </span>
     </button>
   {/each}
 </div>
 
 <style>
+  /* Full-width strip of 4 equal columns (DEC-ACH-04, REQ-ACH-040) — matches
+     chat-tab.prototype.html's `.modes`, not a compact self-sized cluster. */
   .roll-mode {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.1rem;
-    padding: 0.1rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    height: 26px;
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius-pill);
     background: var(--fusion-surface-alt);
-    flex-shrink: 0;
-    align-self: center;
+  }
+
+  /* The sliding indicator behind the active option — animates on mode change
+     instead of the option itself changing shape (prototype's `.modes .thumb`). */
+  .roll-mode__thumb {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: calc(25% - 3px);
+    border-radius: var(--fusion-radius-pill);
+    background: var(--fusion-accent-dim);
+    border: 1px solid var(--fusion-accent);
+    transition: left 0.14s ease;
+    pointer-events: none;
   }
 
   .roll-mode__option {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 100%;
+    height: 100%;
     padding: 0;
     border: none;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius-pill);
     background: transparent;
     color: var(--fusion-text-subtle);
     cursor: pointer;
-    transition: background-color var(--fusion-transition), color var(--fusion-transition);
+    transition: color var(--fusion-transition);
   }
 
   .roll-mode__option:not(:disabled):hover {
     color: var(--fusion-text);
-    background: var(--fusion-surface);
   }
 
   /* The active mark: colour alone would not survive a colour-blind reader, so the
-     active option also carries a filled backing plate. */
+     active option also sits above the filled, bordered thumb (above). */
   .roll-mode__option--active {
-    color: var(--fusion-accent);
-    background: var(--fusion-surface);
-    box-shadow: inset 0 0 0 1px var(--fusion-accent);
+    color: var(--fusion-accent-hover);
   }
 
   .roll-mode__option:disabled {
@@ -122,5 +158,54 @@
   .roll-mode__icon {
     display: inline-flex;
     line-height: 0;
+  }
+
+  /* Drawn tooltip (REQ-ACH-040) — same shape as the decided prototype's
+     `.modes button .tip`: above the strip, hidden until hover or keyboard focus. */
+  .roll-mode__tip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 190px;
+    padding: 3px 8px;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface-alt);
+    color: var(--fusion-text);
+    font-family: var(--fusion-font);
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--fusion-transition);
+    z-index: 20;
+  }
+
+  .roll-mode__tip b {
+    display: block;
+    color: var(--fusion-accent-hover);
+  }
+
+  /* The outer two options anchor the tooltip to the strip's own edge instead of
+     centering it, so it is never clipped by the drawer panel (prototype's
+     `pos = i<2 ? 'left:0' : 'right:0'`). */
+  .roll-mode__option:not(.roll-mode__option--anchor-end) .roll-mode__tip {
+    left: 0;
+    transform: none;
+  }
+
+  .roll-mode__option--anchor-end .roll-mode__tip {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  .roll-mode__option:hover .roll-mode__tip,
+  .roll-mode__option:focus-visible .roll-mode__tip {
+    opacity: 1;
+    visibility: visible;
   }
 </style>

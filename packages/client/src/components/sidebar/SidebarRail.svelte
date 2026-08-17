@@ -132,7 +132,11 @@
 </div>
 
 <style>
-  /* 44px of rail (REQ-GAV-012); the panel's 300px are the drawer's business. */
+  /* 44px of rail (REQ-GAV-012); the panel's 300px are the drawer's business.
+     REQ-GAV-001: the rail itself paints nothing — each button carries its own
+     fill (see `.sidebar-rail__button`), so the tabs read as individual physical
+     tabs instead of icons floating on a single continuous plate (prototype
+     variant C, `.C .tabs`). */
   .sidebar-rail {
     display: flex;
     flex-direction: column;
@@ -142,51 +146,87 @@
     box-sizing: border-box;
     padding: 6px 0;
     gap: 6px;
-    background: var(--fusion-surface-alt);
-    border-left: 1px solid var(--fusion-border);
-    /* REQ-GAV-013: the rail takes pointer events even with the drawer collapsed. */
-    pointer-events: auto;
+    /* REQ-GAV-013 is met by the buttons, not by this box: the container paints no
+       fill (A010), so most of its 44×100% is transparent canvas — claiming the
+       pointer here would make an invisible strip swallow clicks/drags meant for
+       the map. Each `.sidebar-rail__button` re-enables the pointer for itself. */
+    pointer-events: none;
   }
 
   .sidebar-rail__group {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* Flush against the drawer's edge, like the prototype's `.grp`/`.foot`. */
+    align-items: flex-end;
     gap: 4px;
   }
 
-  /* The visual separation REQ-GAV-003 asks for between the two groups. */
+  /* The visual separation REQ-GAV-003 asks for between the two groups — a short
+     rule recessed within the button column (prototype `.C .tabs .grp.gm::before`),
+     not a border spanning the rail's full 44px (which would float over bare
+     canvas now that A010 removed the container's own fill). */
   .sidebar-rail__group--gm {
-    margin-top: 6px;
-    padding-top: 8px;
-    border-top: 1px solid var(--fusion-border);
+    margin-top: 14px;
+    position: relative;
+  }
+
+  .sidebar-rail__group--gm::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: 6px;
+    width: 28px;
+    height: 1px;
+    background: var(--fusion-border);
   }
 
   /* DEC-GAV-09: Settings sits at the foot, in the same place for every role. */
   .sidebar-rail__group--footer {
     margin-top: auto;
-    padding-top: 8px;
-    border-top: 1px solid var(--fusion-border);
+    position: relative;
   }
 
+  .sidebar-rail__group--footer::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: 6px;
+    width: 28px;
+    height: 1px;
+    background: var(--fusion-border);
+  }
+
+  /* REQ-GAV-001: 40×44, own fill, radius only on the outer (left) edge — each
+     button reads as a physical tab, not a hole in a shared background. */
   .sidebar-rail__button {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 44px;
     padding: 0;
-    border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
-    background: transparent;
+    /* Contour on three sides, none on the fourth (prototype `.C .tabs .tabbtn`:
+       `border:1px solid var(--border); border-right:0`) — each tab reads as its
+       own physical shape against the canvas; the seam-side stays open so the
+       active tab can merge into the panel (REQ-GAV-005). */
+    border: 1px solid var(--fusion-border);
+    border-right: 0;
+    border-radius: var(--fusion-radius) 0 0 var(--fusion-radius);
+    background: var(--fusion-surface-alt);
     color: var(--fusion-text-muted);
     cursor: pointer;
     transition: var(--fusion-transition);
+    /* REQ-GAV-013: the button itself claims the pointer; the rail container does
+       not (see `.sidebar-rail`). */
+    pointer-events: auto;
   }
 
+  /* Prototype `.tabbtn:hover{color:var(--text)}`: hover only recolors the icon —
+     the fill stays `--fusion-surface-alt` so a hovered, inactive tab can never be
+     read as the active one (REQ-GAV-005), which is the only state that owns the
+     `--fusion-surface` fill. */
   .sidebar-rail__button:hover {
-    background: var(--fusion-surface);
     color: var(--fusion-text);
   }
 
@@ -195,17 +235,21 @@
     outline-offset: -2px;
   }
 
-  /* REQ-GAV-005: the active tab merges into the panel — same fill, and the seam
-     on the panel side is erased so the button and the drawer read as one shape. */
+  /* REQ-GAV-001/REQ-GAV-005: the active tab grows to 44px and merges into the
+     panel — same fill, and the accent contour (prototype `.C .tabs
+     .tabbtn.is-active`: `border-color:var(--accent); color:var(--accent-hover)`)
+     is what tells it apart from a hovered, still-inactive tab. */
   .sidebar-rail__button--active {
-    width: 40px;
-    margin-right: -2px;
+    width: 44px;
     background: var(--fusion-surface);
-    border-color: var(--fusion-border);
-    border-right-color: var(--fusion-surface);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    color: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent-hover);
+    /* Prototype `.C.is-open .tabs .tabbtn.is-active`'s `box-shadow` rule (1px 0 0 0
+       var(--surface)): the panel's own `border-left` (SidebarDrawer.svelte) is
+       accent-colored end to end, and this shadow paints over the 1px sliver of it
+       that sits behind the active button — the only place the seam needs to
+       disappear for REQ-GAV-005. */
+    box-shadow: 1px 0 0 0 var(--fusion-surface);
   }
 
   .sidebar-rail__icon {

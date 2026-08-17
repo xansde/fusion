@@ -111,7 +111,12 @@ import type { Database as Db } from "better-sqlite3";
 import type { SystemModule } from "@fusion/system-api";
 
 import { isRolePrivileged } from "../documents/ownership.js";
-import { EphemeralRateLimiter, handleEphemeralEnvelope } from "./ephemeral-handlers.js";
+import {
+  EphemeralRateLimiter,
+  handleEphemeralEnvelope,
+  buildPresenceOnlineBroadcast,
+} from "./ephemeral-handlers.js";
+import { UserStore } from "../auth/user-store.js";
 import { RollService } from "../chat/roll-service.js";
 import {
   CompendiumService,
@@ -279,7 +284,12 @@ export class SocketManager {
     // single point they all converge on.
     const writeMetrics = new WriteMetricsCollector({ logger: this.logger, worldId });
     this.writeMetrics.set(worldId, writeMetrics);
-    const store = new DocumentStore({ db, coreVersion: FUSION_VERSION, metrics: writeMetrics });
+    const store = new DocumentStore({
+      db,
+      coreVersion: FUSION_VERSION,
+      metrics: writeMetrics,
+      logger: this.logger,
+    });
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
@@ -297,6 +307,24 @@ export class SocketManager {
     // REQ-NET-005: track current scene room per socket (socketId → sceneId).
     // Updated by ephemeral-handlers when a cursor event carries a new sceneId.
     const sceneRooms = new Map<string, string>();
+
+    // REQ-NET-043: presence:online roster. `userStore` supplies the account
+    // directory (name/color) for every active user; "online" is read straight
+    // off `ns.sockets` (socket.io's own bookkeeping) instead of a second,
+    // hand-rolled counter that could drift from it — a user with two open
+    // tabs still shows online after closing one.
+    const userStore = new UserStore(db);
+    const broadcastPresenceOnline = (excludeSocketId?: string): void => {
+      const onlineUserIds = new Set<string>();
+      for (const [socketId, connectedSocket] of ns.sockets) {
+        if (socketId === excludeSocketId) continue;
+        onlineUserIds.add((connectedSocket.data as SocketData).userId);
+      }
+      const accounts = userStore
+        .listActive()
+        .map((user) => ({ id: user.id, name: user.name, color: user.color }));
+      ns.emit("ephemeral", buildPresenceOnlineBroadcast(accounts, onlineUserIds));
+    };
 
     const syncDeps = {
       store,
@@ -637,6 +665,9 @@ export class SocketManager {
         void socket.join("gm");
       }
 
+      // REQ-NET-043: tell every client (including this one) who is online now.
+      broadcastPresenceOnline();
+
       // REQ-DST-036/037: greet the client with the server's semantic version
       // and protocol version right after the connection is accepted (auth +
       // capacity checks already passed above). The client already validated
@@ -672,6 +703,10 @@ export class SocketManager {
         pingRateLimiter.evict(socket.id);
         // Evict scene room tracking for this socket
         sceneRooms.delete(socket.id);
+        // REQ-NET-043: re-broadcast the roster minus this socket — `ns.sockets`
+        // may or may not have dropped it yet at this point in the disconnect
+        // sequence, so it is excluded explicitly rather than relied upon.
+        broadcastPresenceOnline(socket.id);
       });
     });
 

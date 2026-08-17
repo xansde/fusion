@@ -10,6 +10,11 @@
  *   - Subscribe to DocumentMirror "Token" (embedded in active SceneDocument).
  *   - For each TokenDocument in the active scene: create, update, or destroy
  *     a TokenSprite.
+ *   - Subscribe to DocumentMirror "Actor": a sprite's art/name come from the
+ *     base Actor (TK023 / RNF-TOK-01), not from the token itself, so an
+ *     Actor edited (or created after its token, e.g. compendium drop) must
+ *     also re-reconcile the active scene's tokens — otherwise art/name
+ *     freeze after the first draw.
  *   - Hidden tokens: visible (semi-transparent) to GM; invisible to players
  *     (server already filters them from snapshots — but hidden flag may arrive
  *     via update op, so we guard here too).
@@ -43,6 +48,7 @@
 import type { Container } from "pixi.js";
 import type { TokenDocument, SceneDocument } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
+import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { TokenSprite } from "./TokenSprite.js";
 import type { VisionPolygonResult } from "../vision/vision-state.js";
 
@@ -85,8 +91,31 @@ export class TokenLayer {
   /** The PIXI container this layer manages. Pass the "tokens" layer. */
   private _container: Container;
 
-  /** Mirror subscription unsubscribe fn. */
+  /**
+   * The world mirror. Stored (not just read once in the constructor) so it
+   * can be handed to each `TokenSprite` — TK023 (REQ-CNV-091): a sprite reads
+   * its effective actor from the mirror by `token.actorId`, it no longer
+   * carries its own art.
+   */
+  private _mirror: DocumentMirror;
+
+  /** Mirror subscription unsubscribe fn (Scene collection). */
   private _unsubscribe: (() => void) | null = null;
+
+  /**
+   * Mirror subscription unsubscribe fn (Actor collection).
+   *
+   * TK023 (RNF-TOK-01) made every sprite resolve its art/name from the base
+   * Actor document via `resolveEffectiveActor`, but that resolution only
+   * re-runs when the sprite's own TokenDocument changes (`update()`). An
+   * Actor edited on its own (art swap, rename) — or an Actor arriving in the
+   * mirror AFTER its token (compendium drop: Actor doc:create, then the
+   * token's doc:create) — never touched the Scene document, so no sprite
+   * ever re-read it. Subscribing to "Actor" here closes that gap: any Actor
+   * change re-reconciles the active scene's tokens, which re-resolves every
+   * sprite's effective actor and redraws art/nameplate accordingly.
+   */
+  private _unsubscribeActor: (() => void) | null = null;
 
   /** Active sprites, keyed by token _id. */
   private _sprites: Map<string, TokenSprite> = new Map();
@@ -124,6 +153,7 @@ export class TokenLayer {
     isGm: boolean,
   ) {
     this._container = container;
+    this._mirror = mirror;
     this._sceneId = sceneId;
     this._gridSize = gridSize;
     this._isGm = isGm;
@@ -137,6 +167,17 @@ export class TokenLayer {
       } else {
         // Scene was deleted or no longer active — clear everything
         this._clearAll();
+      }
+    });
+
+    // Subscribe to Actor collection changes — an Actor edited (or created)
+    // on its own never touches the Scene document, so without this the
+    // sprite's art/name freeze after the first draw (see _unsubscribeActor
+    // doc comment above).
+    this._unsubscribeActor = mirror.subscribe<ActorDocument>("Actor", () => {
+      const activeScene = this._mirror.getDoc<SceneDocument>("Scene", this._sceneId);
+      if (activeScene) {
+        this._reconcileTokens(activeScene.tokens);
       }
     });
 
@@ -271,6 +312,8 @@ export class TokenLayer {
   destroy(): void {
     this._unsubscribe?.();
     this._unsubscribe = null;
+    this._unsubscribeActor?.();
+    this._unsubscribeActor = null;
     this._clearAll();
   }
 
@@ -302,10 +345,10 @@ export class TokenLayer {
         existing.update(token, this._gridSize);
       } else {
         // Create new sprite
-        // T025: the sprite is told which scene it belongs to so its art loads
-        // against that scene's asset grant — the one `sceneLoader` already
-        // minted — instead of a credential of its own.
-        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._sceneId);
+        // TK023 (REQ-CNV-091): the sprite is handed the mirror so it can
+        // resolve its own effective actor (art/name) by `token.actorId` —
+        // a token no longer carries a `texture` of its own.
+        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._mirror);
         sprite.updateLod(this._lastZoom);
         this._sprites.set(token._id, sprite);
         this._container.addChild(sprite.container);

@@ -8,7 +8,7 @@
 export {
   buildActorDragPayload,
   buildTokenFromActorFields,
-  buildCreateTokenFromActorOp,
+  buildActorDropTokenOp,
 } from "./actorDirectory.js";
 
 export type {
@@ -16,5 +16,4 @@ export type {
   ActorDragPayload,
   TokenFromActorOptions,
   TokenCreateFields,
-  CreateTokenFromActorOp,
 } from "./actorDirectory.js";

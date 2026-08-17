@@ -78,6 +78,7 @@
   } from "../../lib/scenes/sceneShelf.js";
   import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
+  import TokenAddDialog from "./TokenAddDialog.svelte";
   import {
     enterScenePrepare,
     exitScenePrepare,
@@ -148,6 +149,30 @@
       cancelled = true;
     };
   });
+
+  // --- Adding a token (TK022-client, REQ-TOK-002, DEC-TOK-04) -------------------
+  // `TokenAddDialog.svelte` already exists — form, actor search, validation, its own
+  // test — but nothing in the tree ever mounted it, so a piece could only be created
+  // by dragging an NPC row onto the canvas. It is a self-contained modal (its own
+  // backdrop/`<dialog>`, unlike the four dialogs in `sceneWindows.ts`), so it mounts
+  // inline here instead of through the window manager, gated on the scene actually
+  // on air — there is no scene to drop the token onto otherwise.
+
+  /** The document of the scene on air, straight from the world mirror. */
+  function sceneOnAir(): SceneDocument | null {
+    if (head.kind !== "on-air") return null;
+    return sceneListState.scenes.find((scene) => scene._id === head.sceneId) ?? null;
+  }
+
+  let tokenAddOpen = $state(false);
+
+  function openTokenAdd(): void {
+    tokenAddOpen = true;
+  }
+
+  function closeTokenAdd(): void {
+    tokenAddOpen = false;
+  }
 
   /**
    * The offer of REQ-CEN-014 with no scene on air. Putting a scene on air is a choice
@@ -379,6 +404,32 @@
         >
           <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
           <path d="M9.2 4.3l2.5 2.5" />
+        </svg>
+      </button>
+      <!-- TK022-client: the door into TokenAddDialog — the form path stays reachable
+           even when no drag is in progress. Floats over the fixed head, sitting right
+           next to `.scene-head__config` in the same top-right corner (a small gap
+           between the two), so neither adds a pixel of height (REQ-CEN-013). -->
+      <button
+        class="scene-head__addToken"
+        title={t("FUSION.Scenes.TokenAdd.Title")}
+        aria-label={t("FUSION.Scenes.TokenAdd.Title")}
+        onclick={openTokenAdd}
+      >
+        <!-- Drawn glyph (REQ-NPC-094): a token disc with a plus, "put a piece here". -->
+        <svg
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="8" cy="8" r="6" />
+          <path d="M8 5.4v5.2M5.4 8h5.2" />
         </svg>
       </button>
       <div class="scene-head__info">
@@ -670,7 +721,22 @@
 <!-- The four scene dialogs are NOT mounted here any more: they are windows of the
      window manager, opened by `lib/scenes/sceneWindows.ts` and rendered once by
      `WindowHost` (REQ-UIF-009, DEC-CEN-09). A form inside the drawer would either
-     widen it or be unusable at 300px (DEC-GAV-04). -->
+     widen it or be unusable at 300px (DEC-GAV-04). TokenAddDialog is the one
+     exception: it already paints its own backdrop/`<dialog>` frame (built before
+     sceneWindows.ts existed), so it mounts inline here instead of being migrated
+     into a window it was never written for (TK022-client). -->
+{#if tokenAddOpen}
+  {@const scene = sceneOnAir()}
+  {#if scene}
+    <TokenAddDialog
+      sceneId={scene._id}
+      {scene}
+      onClose={closeTokenAdd}
+      onSuccess={closeTokenAdd}
+      {socket}
+    />
+  {/if}
+{/if}
 
 <style>
   .scenes-tab {
@@ -716,6 +782,39 @@
      directly — restored the same day (Ajustes r1 review) because without it the
      archive's exclusion of the scene on air (REQ-CEN-036) left that scene with no
      reachable door at all, contradicting REQ-CEN-061/062. */
+
+  /* TK022-client: the token-add door, sharing the head's top-right corner with
+     `.scene-head__config` — same fixed size and vertical position as that button,
+     offset left by its own width plus a small gap so the two never overlap
+     (REQ-CEN-013: no pixel of height either way). */
+  .scene-head__addToken {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    height: 1.5rem;
+    justify-content: center;
+    padding: 0.2rem;
+    position: absolute;
+    right: calc(0.4rem + 1.5rem + 0.3rem);
+    top: 0.4rem;
+    width: 1.5rem;
+    z-index: 1;
+  }
+
+  .scene-head__addToken:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .scene-head__addToken:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
+  }
 
   .scene-head__info {
     position: relative;
@@ -765,11 +864,13 @@
     color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
     display: flex;
+    height: 1.5rem;
     justify-content: center;
     padding: 0.2rem;
     position: absolute;
     right: 0.4rem;
     top: 0.4rem;
+    width: 1.5rem;
     z-index: 1;
   }
 

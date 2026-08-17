@@ -8,6 +8,12 @@
  * pointer and the keyboard both reach.
  *
  * Covers REQ-ACH-040, REQ-ACH-041 and RNF-ACH-04.
+ *
+ * A020 (docs/design/gaveta-lateral/tasks-ajustes-r1.md): DEC-ACH-04 / REQ-ACH-040 ask for a
+ * full-width strip of 4 columns with a sliding indicator (the "thumb") behind the active
+ * option, matching `chat-tab.prototype.html`'s `.modes`/`.thumb` — not the previous compact,
+ * self-sized cluster. The block below proves the structure: exactly one thumb element,
+ * always present, sliding to the active mode's column.
  */
 
 import { describe, expect, it } from "vitest";
@@ -97,5 +103,54 @@ describe("RollModeSelector — ajuda e teclado (REQ-ACH-040, RNF-ACH-04)", () =>
     const body = renderSelector("public");
     expect(body).not.toContain("FUSION.Chat.RollMode.");
     expect(t("FUSION.Chat.RollMode.Public.Label")).toBe("Pública");
+  });
+});
+
+describe("RollModeSelector — tooltip desenhado (REQ-ACH-040)", () => {
+  it("draws one tip element per option, with the label and the help text", () => {
+    const body = renderSelector("public");
+    // Four tip spans (one per option), each holding the mode's label in a <b> plus
+    // its help text — the drawn equivalent of the native `title`, but reachable by
+    // `:focus-visible` too (unlike `title`).
+    expect(body.match(/roll-mode__tip/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(body).toContain(t("FUSION.Chat.RollMode.Public.Help"));
+    expect(body).toContain(t("FUSION.Chat.RollMode.Gm.Help"));
+    expect(body).toContain(t("FUSION.Chat.RollMode.Blind.Help"));
+    expect(body).toContain(t("FUSION.Chat.RollMode.Self.Help"));
+  });
+
+  it("anchors the tooltip to the strip's own edge on the two outer options, so it is never clipped", () => {
+    const body = renderSelector("public");
+    // Same rule as the prototype's `pos = i<2 ? 'left:0' : 'right:0'`: the first
+    // two options (public, gmroll) keep the default edge, the last two
+    // (blindroll, selfroll) get `--anchor-end`.
+    expect(body).toContain('data-mode="blindroll"');
+    expect(body).toContain('data-mode="selfroll"');
+    const anchorEndCount = (body.match(/roll-mode__option--anchor-end/g) ?? []).length;
+    expect(anchorEndCount).toBe(2);
+  });
+});
+
+describe("RollModeSelector — faixa cheia com indicador deslizante (DEC-ACH-04, REQ-ACH-040)", () => {
+  it("renders 4 mode buttons plus exactly one sliding thumb, in that structural order", () => {
+    const body = renderSelector("public");
+    // The thumb sits BEFORE the 4 buttons in markup order so it renders behind them
+    // (absolute positioning, no explicit z-index needed).
+    const thumbIndex = body.indexOf("roll-mode__thumb");
+    const firstButtonIndex = body.indexOf("<button");
+    expect(thumbIndex).toBeGreaterThan(-1);
+    expect(firstButtonIndex).toBeGreaterThan(-1);
+    expect(thumbIndex).toBeLessThan(firstButtonIndex);
+    expect(body.match(/roll-mode__thumb/g)).toHaveLength(1);
+    expect(body.match(/<button/g)).toHaveLength(4);
+  });
+
+  it("slides the thumb to the active mode's column, one quarter of the strip per index", () => {
+    // Same formula as the decided prototype (chat-tab.prototype.html, composerHtml):
+    // `calc(${idx} * 25% + 2px)`, idx being the mode's position in ROLL_MODE_ORDER.
+    ROLL_MODE_ORDER.forEach((m, idx) => {
+      const body = renderSelector(m);
+      expect(body).toContain(`left: calc(${idx} * 25% + 2px)`);
+    });
   });
 });

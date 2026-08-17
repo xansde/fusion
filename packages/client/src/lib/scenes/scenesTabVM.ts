@@ -21,6 +21,7 @@
  */
 
 import type { SceneDocument } from "@fusion/shared";
+import { effectiveGridSize } from "../canvas/sceneCoords.js";
 
 // ---------------------------------------------------------------------------
 // Theme contract
@@ -154,12 +155,20 @@ function dimensionsLine(scene: SceneDocument): SceneHeadLine {
   };
 }
 
-/** Grid line: kind plus cell size, or the honest "no grid" (REQ-CEN-011). */
+/**
+ * Grid line: kind plus cell size, or the honest "no grid" (REQ-CEN-011).
+ *
+ * `size` used to fall back to `?? 0` — a legacy scene persisted before REQ-CNV-067
+ * added `grid` (r7.1, `scene.grid` absent at runtime) showed "Grade quadrada · 0 px",
+ * a value the scene was never actually rendered/snapped at (TableScreen.svelte and
+ * scene-orchestrator.ts both default a missing grid to 100, via `effectiveGridSize`).
+ * Sharing that same helper keeps the label honest about what the scene DOES.
+ */
 function gridLine(scene: SceneDocument): SceneHeadLine {
   const grid = scene.grid as { type?: string; size?: number } | undefined;
   const type = grid?.type ?? "square";
   if (type === "gridless") return { key: SCENE_HEAD_KEYS.gridNone };
-  const size = grid?.size ?? 0;
+  const size = effectiveGridSize(scene);
   return {
     key: type === "hex" ? SCENE_HEAD_KEYS.gridHex : SCENE_HEAD_KEYS.gridSquare,
     vars: { size },

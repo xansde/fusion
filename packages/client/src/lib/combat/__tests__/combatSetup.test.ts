@@ -15,6 +15,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
+import { defaultTokenDocument } from "@fusion/shared";
 
 import {
   assemblySummary,
@@ -189,6 +190,21 @@ describe("candidatos que a cena ativa oferece (REQ-CBA-060)", () => {
     const [first] = encounterCandidates(sceneTokens, null);
 
     expect(first?.actorId).toBe("actor-t1");
+  });
+
+  it("resolve nome/arte pelo ator efetivo quando a peça não tem rótulo próprio (REQ-TOK-060, RNF-TOK-01)", () => {
+    // Since TK020, `name: null` (defaultTokenDocument's default) means "inherit the
+    // effective actor's name" — encounterCandidates must thread the resolver it receives
+    // straight to addableTokens() rather than deriving the name itself a second time.
+    const unnamedToken = {
+      ...defaultTokenDocument("tokUnnamedAAAAAA", "actorLoboAAAAAA"),
+      name: null,
+    };
+    const result = encounterCandidates([unnamedToken], null, (actorId) =>
+      actorId === "actorLoboAAAAAA" ? { name: "Lobo", img: "lobo.webp", system: {} } : undefined,
+    );
+
+    expect(result[0]).toMatchObject({ name: "Lobo", img: "lobo.webp" });
   });
 });
 

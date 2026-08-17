@@ -28,9 +28,13 @@
 import { Container, Graphics, Text, TextStyle, Assets, Sprite, type Texture } from "pixi.js";
 
 import type { TokenDocument } from "@fusion/shared";
+import { resolveEffectiveActor } from "@fusion/shared";
 import { resolveAssetUrl } from "../../assets/assetApi.js";
 import { fusionApi } from "../../api.js";
 import { session } from "../../session.svelte.js";
+import type { DocumentMirror } from "../../docs/DocumentMirror.js";
+import type { ActorDocument } from "../../actors/actorDirectory.js";
+import { footprintOf, type TokenFootprint } from "./footprint.js";
 import {
   tokenPixelSize,
   tokenCenter,
@@ -51,6 +55,19 @@ import {
   type AnimState,
   type LodState,
 } from "./token-visuals.js";
+
+// ---------------------------------------------------------------------------
+// Effective actor (RNF-TOK-01 — resolveEffectiveActor is the ONLY function
+// that may apply a token's actorDelta; this shell only calls it and reads the
+// result)
+// ---------------------------------------------------------------------------
+
+/** The slice of the effective actor TokenSprite draws from. */
+interface TokenSpriteActor {
+  readonly name: string;
+  readonly img?: string | null;
+  readonly system: Record<string, unknown>;
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -84,14 +101,20 @@ export class TokenSprite {
   private _gridSize: number;
   private _isGm: boolean;
   /**
-   * The scene this token is embedded in (T025).
+   * The world mirror, read-only here.
    *
-   * A token is not a document of its own: its texture is a field of the SCENE
-   * row, so the grant that opens the art is the scene's grant. Holding the id
-   * here is what lets `_loadArt` hit the cache `sceneLoader` already filled
-   * instead of minting once per sprite.
+   * TK023 (REQ-CNV-091, RNF-TOK-01): a token carries no art/name of its own —
+   * `_resolveActor` reads the base Actor from the mirror by `doc.actorId` and
+   * `resolveEffectiveActor` (the ONE shared function, `@fusion/shared`) applies
+   * the token's delta when unlinked. When the actor is not (yet) in the mirror
+   * this resolves to `undefined` and every draw path falls back to the same
+   * placeholder a missing texture used to produce.
    */
-  private _sceneId: string;
+  private _mirror: DocumentMirror;
+  /** The effective actor resolved from `_doc` — recomputed whenever `_doc` changes. */
+  private _actor: TokenSpriteActor | undefined;
+  /** This token's footprint (grid cells) — recomputed alongside `_actor`. */
+  private _footprint: TokenFootprint;
 
   // Sub-containers / graphics
   private _artContainer: Container;
@@ -125,11 +148,13 @@ export class TokenSprite {
   private _renderX: number;
   private _renderY: number;
 
-  constructor(doc: TokenDocument, gridSize: number, isGm: boolean, sceneId: string) {
+  constructor(doc: TokenDocument, gridSize: number, isGm: boolean, mirror: DocumentMirror) {
     this._doc = doc;
     this._gridSize = gridSize;
     this._isGm = isGm;
-    this._sceneId = sceneId;
+    this._mirror = mirror;
+    this._actor = this._resolveActor(doc);
+    this._footprint = footprintOf(doc, this._actor);
 
     this.container = new Container();
     this.container.label = `token:${doc._id}`;
@@ -160,11 +185,18 @@ export class TokenSprite {
     this.container.addChild(this._elevationText);
 
     // Nameplate
-    this._nameplate = new Text({ text: doc.name, style: NAMEPLATE_STYLE });
+    this._nameplate = new Text({
+      text: this._displayName(doc, this._actor),
+      style: NAMEPLATE_STYLE,
+    });
     this._nameplate.eventMode = "none";
     this.container.addChild(this._nameplate);
 
-    const { pixelW, pixelH } = tokenPixelSize(doc.width, doc.height, gridSize);
+    const { pixelW, pixelH } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      gridSize,
+    );
     this._renderX = doc.x;
     this._renderY = doc.y;
 
@@ -233,10 +265,18 @@ export class TokenSprite {
    */
   update(newDoc: TokenDocument, gridSize: number): void {
     const oldDoc = this._doc;
+    const oldActor = this._actor;
+    const oldFootprint = this._footprint;
     this._doc = newDoc;
     this._gridSize = gridSize;
+    this._actor = this._resolveActor(newDoc);
+    this._footprint = footprintOf(newDoc, this._actor);
 
-    const { pixelW, pixelH } = tokenPixelSize(newDoc.width, newDoc.height, gridSize);
+    const { pixelW, pixelH } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      gridSize,
+    );
 
     // Position
     const xChanged = newDoc.x !== oldDoc.x || newDoc.y !== oldDoc.y;
@@ -267,15 +307,26 @@ export class TokenSprite {
       }
     }
 
+    // Art changes with the EFFECTIVE actor, not with the token doc alone: it
+    // moves when actorId/actorLink/actorDelta change the resolution, or when
+    // the base actor itself was edited elsewhere (a fresh `_resolveActor`
+    // call above picks that up). This `update()` runs both on a genuine
+    // token-doc change AND whenever TokenLayer's Actor subscription fires a
+    // full reconcile of the active scene's tokens — see TokenLayer's
+    // `_unsubscribeActor` doc comment.
+    const oldName = this._displayName(oldDoc, oldActor);
+    const newName = this._displayName(newDoc, this._actor);
+    const artChanged = (oldActor?.img ?? null) !== (this._actor?.img ?? null);
+
     // Re-draw visuals if anything else changed
     const visualChanged =
-      newDoc.width !== oldDoc.width ||
-      newDoc.height !== oldDoc.height ||
+      this._footprint.width !== oldFootprint.width ||
+      this._footprint.height !== oldFootprint.height ||
       newDoc.disposition !== oldDoc.disposition ||
-      newDoc.name !== oldDoc.name ||
+      newName !== oldName ||
       newDoc.elevation !== oldDoc.elevation ||
       newDoc.hidden !== oldDoc.hidden ||
-      newDoc.texture !== oldDoc.texture ||
+      artChanged ||
       newDoc.rotation !== oldDoc.rotation;
 
     if (visualChanged || xChanged) {
@@ -286,8 +337,7 @@ export class TokenSprite {
       this._applyAlpha(newDoc);
       this._applyRotation(newDoc);
 
-      // Reload art if texture URL changed
-      if (newDoc.texture !== oldDoc.texture) {
+      if (artChanged) {
         void this._loadArt(newDoc, pixelW, pixelH);
       }
     }
@@ -347,7 +397,11 @@ export class TokenSprite {
    * Uses a bright white inner stroke layered on top of the disposition ring.
    */
   private _applySelectionOutline(): void {
-    const { pixelW, pixelH } = tokenPixelSize(this._doc.width, this._doc.height, this._gridSize);
+    const { pixelW, pixelH } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      this._gridSize,
+    );
     // Re-draw the ring, adding a selection highlight on top when selected.
     this._drawRing(pixelW, pixelH);
     if (this._selected) {
@@ -402,7 +456,40 @@ export class TokenSprite {
   }
 
   // ---------------------------------------------------------------------------
-  // Private — art loading (REQ-CNV-025, D7)
+  // Private — effective actor (RNF-TOK-01, REQ-CNV-091)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Resolve `doc`'s effective actor from the mirror, through the ONE shared
+   * function (`resolveEffectiveActor`, `@fusion/shared`) — never reimplemented
+   * here. `undefined` when the base actor is not (yet) in the mirror; every
+   * caller of `_actor` already treats that the same way a missing texture used
+   * to be treated: draw the placeholder.
+   */
+  private _resolveActor(doc: TokenDocument): TokenSpriteActor | undefined {
+    const baseActor = this._mirror.getDoc<ActorDocument>("Actor", doc.actorId);
+    if (!baseActor) return undefined;
+    return resolveEffectiveActor(doc, {
+      name: baseActor.name,
+      img: baseActor.img ?? null,
+      system: baseActor.system ?? {},
+    });
+  }
+
+  /**
+   * The name to draw: `doc.name` when set, else the effective actor's name
+   * (REQ-TOK-060 — `null` means "herda do ator"), else empty.
+   *
+   * WHO gets to see this name (REQ-TOK-073, redaction) is a server concern —
+   * this is display-only, drawing whatever the mirror already handed the
+   * client.
+   */
+  private _displayName(doc: TokenDocument, actor: TokenSpriteActor | undefined): string {
+    return doc.name ?? actor?.name ?? "";
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — art loading (REQ-CNV-025, D7, RNF-TOK-01)
   // ---------------------------------------------------------------------------
 
   private async _loadArt(doc: TokenDocument, pixelW: number, pixelH: number): Promise<void> {
@@ -413,25 +500,27 @@ export class TokenSprite {
     this._placeholder = null;
     this._artContainer.removeChildren();
 
-    if (doc.texture) {
+    const actor = this._actor;
+    const rawImg = actor?.img;
+    if (actor && rawImg) {
       try {
-        // BUG A FIX: doc.texture is a clean "/assets/<name>" path (no query
-        // token — see resolveAssetUrl()'s doc comment in assetApi.ts). Obtain a
-        // fresh credential right before loading, otherwise the server 401s.
+        // BUG A FIX: rawImg is a clean "/assets/<name>" path (no query token —
+        // see resolveAssetUrl()'s doc comment in assetApi.ts). Obtain a fresh
+        // credential right before loading, otherwise the server 401s.
         //
-        // T025: the docRef is the SCENE, not the token — a token is embedded in
-        // the scene row, so its texture is signed by the scene's grant. No mint
-        // happens here in practice: `sceneLoader` filled that cache entry
-        // before any sprite existed.
+        // TK023 (REQ-CNV-091): a token has no art field of its own — the docRef
+        // is the ACTOR, because the art IS the actor's `img` (its effective
+        // value, once TK021's delta applies). This replaces the old T025 scene
+        // grant (a token no longer carries its own `texture`).
         const accessToken = fusionApi.getToken();
         const userId = session.user?.id;
         const loadUrl =
           accessToken && userId
-            ? await resolveAssetUrl(doc.texture, accessToken, userId, {
-                table: "scenes",
-                id: this._sceneId,
+            ? await resolveAssetUrl(rawImg, accessToken, userId, {
+                table: "actors",
+                id: doc.actorId,
               })
-            : doc.texture;
+            : rawImg;
         const texture = await Assets.load<Texture>(loadUrl);
         const sprite = new Sprite(texture);
         // Position sprite centered within the footprint bounding box
@@ -455,13 +544,15 @@ export class TokenSprite {
       }
     }
 
-    // Placeholder: colored rectangle with initials (REQ-CNV-025 fallback)
+    // Placeholder: colored rectangle with initials (REQ-CNV-025 fallback —
+    // also the "actor not in the mirror yet" and "actor has no img" cases).
     this._drawPlaceholder(doc, pixelW, pixelH);
   }
 
   private _drawPlaceholder(doc: TokenDocument, pixelW: number, pixelH: number): void {
+    const name = this._displayName(doc, this._actor);
     const bg = new Graphics();
-    const color = placeholderColor(doc.name);
+    const color = placeholderColor(name);
     bg.roundRect(0, 0, pixelW, pixelH, Math.min(pixelW, pixelH) * 0.15);
     bg.fill({ color, alpha: 1 });
     bg.eventMode = "none";
@@ -469,7 +560,7 @@ export class TokenSprite {
     this._artContainer.addChild(bg);
 
     // Initials label
-    const initials = placeholderInitials(doc.name);
+    const initials = placeholderInitials(name);
     const style = new TextStyle({
       fontFamily: "ui-sans-serif, system-ui, sans-serif",
       fontSize: Math.max(12, Math.min(pixelW * 0.35, 40)),
@@ -494,7 +585,14 @@ export class TokenSprite {
     const g = this._ringGraphics;
     g.clear();
 
-    const color = dispositionColor(this._doc.disposition);
+    // TK024/REQ-TOK-080: `null` means "herda do ator" — resolving that
+    // inheritance is TK042 (Fase 3), out of this task's scope. Until then a
+    // null disposition falls back to neutral (0), the value the schema
+    // defaulted to before TK024 made the field nullable (DEC-TOK-12: three
+    // real dispositions, `secret` is not one of them) — NOT the gray
+    // `SECRET_RING_COLOR`, which `dispositionColor` only reaches for a
+    // genuinely out-of-range number and which TK042 removes outright.
+    const color = dispositionColor(this._doc.disposition ?? 0);
     g.roundRect(
       RING_THICKNESS / 2,
       RING_THICKNESS / 2,
@@ -551,7 +649,7 @@ export class TokenSprite {
   // ---------------------------------------------------------------------------
 
   private _drawNameplate(doc: TokenDocument, pixelW: number, pixelH: number): void {
-    this._nameplate.text = doc.name;
+    this._nameplate.text = this._displayName(doc, this._actor);
     this._nameplate.anchor.set(0.5, 0);
     // Position below the token bounding box
     this._nameplate.x = pixelW / 2;
@@ -568,7 +666,11 @@ export class TokenSprite {
       this._elevationText.visible = false;
       return;
     }
-    const { pixelW } = tokenPixelSize(doc.width, doc.height, this._gridSize);
+    const { pixelW } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      this._gridSize,
+    );
     this._elevationText.text = label;
     this._elevationText.visible = true;
     // Top-right corner of the bounding box
@@ -586,7 +688,11 @@ export class TokenSprite {
   }
 
   private _applyRotation(doc: TokenDocument): void {
-    const { pixelW, pixelH } = tokenPixelSize(doc.width, doc.height, this._gridSize);
+    const { pixelW, pixelH } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      this._gridSize,
+    );
     const { cx, cy } = tokenCenter(0, 0, pixelW, pixelH);
     // Rotation is applied to the art container around the center of the token
     this._artContainer.pivot.set(cx, cy);

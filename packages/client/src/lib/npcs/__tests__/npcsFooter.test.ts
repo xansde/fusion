@@ -10,20 +10,24 @@
  * conhece quem" window the Contatos tab opens — one component, one singleton
  * key, one knowledge model).
  *
- * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a
- * SECOND `doc:create` — embedded, `documentType: "Token"` with
- * `parent: { type: "Scene", id }` — lands a `Token` for it on the target
- * scene (REQ-NPC-060), `actorId` set (REQ-DOC-031). This is the shape
- * `TokenAddDialog.svelte`'s fixed dialog also sends (A004, ajustes r1 item
- * 22: both call sites used to send a `doc:update` with a `$push`
- * pseudo-operator the server's Zod schema — `tokens: z.array(...)` —
- * rejected outright; sending the whole array back through `doc:update` is
- * also refused, on purpose, by the server's `rejectUnwritableField`). What is
- * still open (Q-NPC-03, owned by the unwritten Token spec `41`) is whether a
- * token is *linked* or *unlinked* to its actor (the `actorLink`/`actorDelta`
- * pair spec 02's "Herança token→actor" section describes) — neither field
- * exists on `TokenDocumentSchema` yet, so this module writes neither; it uses
- * only the bare `actorId` reference that already does.
+ * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a second
+ * `doc:create` (embedded, `parent: {type:"Scene", id}`) creates a `Token` for it —
+ * the very envelope `TokenAddDialog.svelte` sends too (`lib/docs/tokenCreateOp.ts`,
+ * TK022-client), with `actorId` set (REQ-DOC-031).
+ *
+ * That envelope is also the A004 fix (ajustes r1 item 22): both call sites used to
+ * send a `doc:update` with a `{ tokens: { $push: {...} } }` pseudo-operator the
+ * server's `tokens: z.array(...)` rejects outright, and sending the whole array back
+ * through `doc:update` is refused too, on purpose, by `rejectUnwritableField`. The
+ * wire-level twin of the assertions below is
+ * `packages/server/src/__tests__/scene-tokens-embedded-create.test.ts`.
+ *
+ * What is still open (Q-NPC-03, owned by the Token spec `41`) is whether a token is
+ * *linked* or *unlinked* to its
+ * actor (the `actorLink`/`actorDelta` pair spec 02's "Herança token→actor" section
+ * describes) — both fields exist on `TokenDocumentSchema` now (TK020), but this
+ * module writes neither, so the chest stays a plain linked token (the schema
+ * default).
  *
  * The client runs Vitest in a node environment — no jsdom, no testing-library —
  * so the wire assertions read what the fake socket recorded, and the "no op
@@ -101,7 +105,7 @@ function fakeSocket(sent: Sent[]): Socket {
       ack: (result: unknown) => void,
     ): void {
       sent.push({ event, type: envelope.type, payload: envelope.payload });
-      if (envelope.type === "doc:create") {
+      if (envelope.type === "doc:create" && envelope.payload["documentType"] === "Actor") {
         ack({ ok: true, result: { documentType: "Actor", documents: [CREATED_CHEST] } });
         return;
       }
@@ -155,26 +159,39 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(op.payload.data[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
   });
 
-  it("REQ-NPC-060 (A004): the second write is an embedded `doc:create` of a Token under the scene — never a `$push`, never a whole-array `doc:update`", () => {
-    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
+  it("REQ-NPC-060 / REQ-TOK-001 / REQ-TOK-020: the second write creates a Token for that actor, embedded in the scene, with the obligatory x/y", () => {
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
 
-    // A004's exact regression: the old shape was `doc:update` with
-    // `diff: { tokens: { $push: {...} } }`, which the server's Zod schema
-    // (`tokens: z.array(...)`) rejects outright. Sending the whole array back
-    // as a plain `doc:update` diff is also refused by the server on purpose
-    // (`rejectUnwritableField`) — the fix is this embedded `doc:create`.
     expect(op.type).toBe("doc:create");
     expect(op.payload.documentType).toBe("Token");
     expect(op.payload.parent).toEqual({ type: "Scene", id: "scn-clareira001" });
     expect(op.payload.data).toHaveLength(1);
-    expect(op.payload.data[0]?.["actorId"]).toBe("act-bau0newlycreated1");
-    expect(op.payload.data[0]?.["name"]).toBe("Baú");
-    // No client-supplied `_id`: `handleEmbeddedCreate` mints it server-side.
-    expect(op.payload.data[0]).not.toHaveProperty("_id");
+    // REQ-TOK-020: x/y are obligatory content of every token creation — the
+    // server's validateTokenCreateContract refuses a payload missing either.
+    expect(op.payload.data[0]).toEqual({ actorId: "act-bau0newlycreated1", x: 0, y: 0 });
+    // A004's exact regression, kept as a negative: the old shape was a
+    // `doc:update` with `diff: { tokens: { $push: {...} } }`, and the `_id` is
+    // minted by `handleEmbeddedCreate`, never supplied by the client.
     expect(JSON.stringify(op)).not.toContain("$push");
+    expect(op.payload).not.toHaveProperty("updates");
+    expect(op.payload.data[0]).not.toHaveProperty("_id");
   });
 
-  it("REQ-NPC-060: activating it sends the create, then the embedded token create, in order", async () => {
+  it("REQ-TOK-060 / REQ-TOK-010 / REQ-TOK-012: the token carries no name, texture, width or height of its own — it inherits the chest actor's", () => {
+    // TK022/TK023: TokenDocumentSchema dropped the token's own `texture`/
+    // `width`/`height`, and `name: null` means "herda do ator" — the chest's
+    // actor already carries "Baú" (buildCreateChestActorOp), so duplicating it
+    // here would just be a second, driftable copy of the same name.
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
+    const fields = op.payload.data[0] as Record<string, unknown>;
+
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
+    expect(fields).not.toHaveProperty("width");
+    expect(fields).not.toHaveProperty("height");
+  });
+
+  it("REQ-NPC-060 / REQ-TOK-020: activating it sends the actor create, then the token create with x/y, in order", async () => {
     const sent: Sent[] = [];
     await placeChest(fakeSocket(sent), "scn-clareira001");
 
@@ -189,22 +206,28 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(sent[1]?.type).toBe("doc:create");
     expect(sent[1]?.payload["documentType"]).toBe("Token");
     expect(sent[1]?.payload["parent"]).toEqual({ type: "Scene", id: "scn-clareira001" });
-    const tokenData = sent[1]?.payload["data"] as Record<string, unknown>[];
+    const fields = (sent[1]?.payload["data"] as Record<string, unknown>[])[0];
     // The actorId on the wire is the id `fakeSocket` handed back for the create
     // above — the two writes are chained, not two independent guesses.
-    expect(tokenData[0]?.["actorId"]).toBe(CREATED_CHEST._id);
+    expect(fields?.["actorId"]).toBe(CREATED_CHEST._id);
+    // REQ-TOK-020: x/y are obligatory on the wire — a payload missing either
+    // is exactly what the server's validateTokenCreateContract refuses
+    // (VALIDATION_FAILED), which would leave the chest actor with no presence.
+    expect(fields?.["x"]).toBe(0);
+    expect(fields?.["y"]).toBe(0);
   });
 
   it("REQ-NPC-060 / Q-NPC-03: the token carries only actorId — no link/unlink field", () => {
-    // `actorLink`/`actorDelta` are Q-NPC-03, owned by `41`, and
-    // `TokenDocumentSchema` does not have them yet — so this module cannot
-    // write them, and does not pretend to.
-    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
-    const newToken = op.payload.data[0];
+    // `actorLink`/`actorDelta` exist on `TokenDocumentSchema` now (TK020), but
+    // this module has no reason to set them: the chest is a plain linked
+    // token, which is the schema's own default — writing them explicitly here
+    // would just restate what `actorLink: true` (the default) already means.
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
+    const fields = op.payload.data[0] as Record<string, unknown>;
 
-    expect(newToken?.["actorId"]).toBe("act-bau0newlycreated1");
-    expect(newToken).not.toHaveProperty("actorLink");
-    expect(newToken).not.toHaveProperty("actorDelta");
+    expect(fields["actorId"]).toBe("act-bau0newlycreated1");
+    expect(fields).not.toHaveProperty("actorLink");
+    expect(fields).not.toHaveProperty("actorDelta");
   });
 });
 

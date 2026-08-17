@@ -55,7 +55,7 @@ export function canMoveToken(
   if (userRole >= ROLE_ASSISTANT) return true;
 
   // Players can only move tokens linked to actors they own
-  if (token.actorId !== null && ownedActorIds.has(token.actorId)) return true;
+  if (ownedActorIds.has(token.actorId)) return true;
 
   // Fallback: check if token was explicitly assigned to this user via flags
   // (future-proof hook — not used in M1-C but prevents stale errors)

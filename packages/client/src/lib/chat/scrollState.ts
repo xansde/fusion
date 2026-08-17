@@ -114,6 +114,23 @@ export class ScrollStateManager {
   }
 
   /**
+   * Call when the LAST rendered message changed shape in place — same array
+   * length, but the row itself got taller or shorter (e.g. invalidation adds
+   * a "Invalidada por X" line and a strike, REQ-ACH-081). This is not an
+   * arrival, so it must never touch `_pendingCount` or the "N novas" notice
+   * (REQ-ACH-006 governs new messages, not edits to ones already shown).
+   *
+   * A pinned reader is looking at the end of the log; that promise only holds
+   * if the end re-measures after the row resizes, so this re-scrolls. An
+   * unpinned reader already chose to look elsewhere — nothing to do.
+   */
+  onLastMessageResized(): void {
+    if (this._pinned) {
+      this._callbacks.scrollToBottom();
+    }
+  }
+
+  /**
    * Call when the user clicks the "new messages" indicator.
    */
   jumpToBottom(): void {
@@ -216,4 +233,28 @@ export function resolveMarkerAnchorId(
     if (id !== undefined && rows.has(id)) return id;
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Detecting an in-place resize of the last message (REQ-ACH-081)
+// ---------------------------------------------------------------------------
+
+/**
+ * A cheap fingerprint of the last message's row-affecting fields.
+ *
+ * `chatStore.messages.length` does not change when an existing message is
+ * invalidated/revalidated (`applyMessageUpdate` replaces the entry at its own
+ * index — REQ-ACH-081 requires it to stay in place, never re-append). The
+ * `invalid` flag toggling adds or removes a line ("Invalidada por X" + the
+ * strike), so the row's rendered height changes without the array growing.
+ *
+ * Comparing this stamp across renders is how a caller notices that resize
+ * without needing to diff the whole message. Pure: no DOM, no store.
+ */
+export function lastMessageStamp(
+  messages: readonly { readonly _id: string; readonly invalid?: boolean | undefined }[],
+): string | null {
+  const last = messages[messages.length - 1];
+  if (!last) return null;
+  return `${last._id}:${last.invalid === true ? "invalid" : "valid"}`;
 }

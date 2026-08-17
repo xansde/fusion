@@ -37,15 +37,15 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     _id: "AAAA0000000001",
     name: "Goblin",
     actorId: "actor001",
-    texture: null,
+    actorLink: true,
+    actorDelta: null,
     x: 100,
     y: 100,
-    width: 1,
-    height: 1,
     rotation: 0,
     elevation: 0,
     hidden: false,
     disposition: 0,
+    seenBy: [],
     bar1: { attribute: null },
     bar2: { attribute: null },
     flags: {},
@@ -97,10 +97,10 @@ describe("canMoveToken", () => {
     expect(canMoveToken(token, "player1", 1, new Set(["actor001"]))).toBe(false);
   });
 
-  it("PLAYER cannot move token with null actorId (anonymous token)", () => {
-    const token = makeToken({ actorId: null });
-    expect(canMoveToken(token, "player1", 1, new Set(["actor001"]))).toBe(false);
-  });
+  // REQ-TOK-002 (DEC-TOK-04): `actorId` is a required field on
+  // `TokenDocumentSchema` now — a token with no actor is not a representable
+  // state anymore, so "anonymous token" has no runtime case left to test
+  // here (the type system is the enforcement).
 
   it("PLAYER cannot move token when ownedActorIds is empty", () => {
     const token = makeToken({ actorId: "actor001" });
