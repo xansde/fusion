@@ -394,8 +394,12 @@ describe("Token invocation contract (spec 41 §7.2)", () => {
     });
   });
 
-  describe("overridable: disposition (REQ-TOK-080)", () => {
-    it("absent → null (inherits from the actor at read time)", async () => {
+  // TK024 only puts the schema-level null acceptance in place (REQ-TOK-080's
+  // "DEVE ser herdada" clause). Read-time resolution against the base actor's
+  // disposition is TK042's job (Fase 2) — no Actor schema carries a
+  // `disposition` field yet, so no test here can prove inheritance itself.
+  describe("overridable: disposition — schema accepts null (REQ-TOK-080)", () => {
+    it("absent → stored as null (server does not freeze a default at creation)", async () => {
       const sceneId = await createScene(gm, "disposition default scene");
       const actorId = await createActor(gm, "Actor for disposition default");
 

@@ -289,7 +289,10 @@ describe("TokenDocumentSchema", () => {
     expect(r.success).toBe(false);
   });
 
-  it("accepts disposition as null (inherits from the base actor) — REQ-TOK-080", () => {
+  // Schema-level acceptance only (TK024). Read-time resolution against the
+  // base actor's disposition is TK042 — no Actor schema carries a
+  // `disposition` field yet, so inheritance itself isn't provable here.
+  it("accepts disposition as null (schema-level null acceptance) — REQ-TOK-080", () => {
     const r = TokenDocumentSchema.safeParse({
       _id: validId(),
       actorId: "B".repeat(16),
