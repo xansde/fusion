@@ -206,6 +206,16 @@ O merge patch é o simplificado da `02`: `items` **substitui** integralmente qua
 **Cobre:** REQ-TOK-023 · **Pronto quando:** um token desvinculado sobrevive ao round-trip de
 persistência (create e update) sem o delta ser descartado pela validação (REQ-DOC-018).
 
+**Atenção — janela de redação aberta por esta tarefa (REQ-DOC-062):** a partir desta tarefa,
+`actorDelta` passa a existir e a ser persistido na `Scene` — mas `packages/server/src/net/redaction.ts`
+ainda não sabe da sua existência (redação é Fase 6, TK072, fora do escopo desta fase). Entre esta
+tarefa e a TK072 landing, os pontos de vida (e demais overrides) de um token unlinked viajam sem
+corte em qualquer payload de `Scene` que chegue a um jogador. TK072 já é a dona funcional do corte
+(DEC-TOK-10 — corte por OWNER, lido do `Actor` base mesmo quando desvinculado), mas seu "Cobre"
+ainda não cita REQ-DOC-062 literalmente; ver nota espelhada lá. Registrar como openQuestion: a
+janela é aceitável dentro do MVP em construção (mundo de teste, sem jogador externo antes da Fase
+6), mas TK072 não pode ser adiada além do fechamento da onda.
+
 ### TK021 — A função única do ator efetivo
 
 `packages/shared/src/` (novo módulo) + consumo no servidor e no cliente
@@ -433,10 +443,16 @@ Ocultar é servidor (a peça não chega); estar fora do campo de visão é clien
 Corte em OWNER, em toda superfície (DEC-TOK-10). O corte é lido do **Actor base** mesmo para peça
 desvinculada: um delta descreve o que a peça tem, nunca quem pode olhar.
 
-**Cobre:** REQ-TOK-070, REQ-TOK-071, REQ-TOK-072, CA-TOK-010 · **Atenção:** isto **reverte a
-DEC-CNV-15** e afeta `combatVisibility.ts` e a Q-CBA-02 da `40`. A nota está no cabeçalho da Fase
-4 de [`../gaveta-lateral/tasks.md`](../gaveta-lateral/tasks.md) — conferir os dois planos antes de
-mexer.
+**Cobre:** REQ-TOK-070, REQ-TOK-071, REQ-TOK-072, CA-TOK-010, **REQ-DOC-062** · **Atenção:** isto
+**reverte a DEC-CNV-15** e afeta `combatVisibility.ts` e a Q-CBA-02 da `40`. A nota está no
+cabeçalho da Fase 4 de [`../gaveta-lateral/tasks.md`](../gaveta-lateral/tasks.md) — conferir os
+dois planos antes de mexer. **Também é a tarefa que fecha REQ-DOC-062** (specs/02:501-508): o
+`actorDelta` que a TK020 (Fase 1) fez nascer no schema ainda não é redigido em nenhum caminho de
+emissão de `Scene`. DEC-DOC-12 (specs/02:292-301) descreve um corte fail-closed **por papel**
+("não privilegiado" perde `actorDelta` inteiro); DEC-TOK-10 desta spec escolhe um corte mais fino
+**por ownership** (só a vida, só quem não é OWNER do `Actor` base). As duas decisões não foram
+reconciliadas por escrito — resolver aqui qual prevalece (ou se ambas se aplicam: papel primeiro,
+ownership depois) antes de implementar, e não deduzir em silêncio.
 
 ### TK073 — O nome só chega a quem conhece o ator
 
