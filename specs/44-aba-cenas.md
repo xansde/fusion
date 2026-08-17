@@ -129,15 +129,17 @@ iluminação nem de exploração.
   aqui; ajustar valores (nível de escuridão, limiar, visão por token) fica na janela.
 
 > **Nota de 2026-08-17** — retirado temporariamente da UI (decisão do Alexandre no
-> teste r1, item 25; ver a nota em REQ-CEN-020..025). Enquanto durar a retirada,
-> alternar escuridão e alternar névoa continuam alcançáveis pela janela de percepção
-> (REQ-CEN-062, aberta a partir da janela de configuração de qualquer cena);
-> **resetar a névoa não tem porta nenhuma na UI** — a janela de percepção nunca
-> acionou esse gesto (ela só grava `doc:update` dos campos de valor) e a segunda
-> frase deste racional já recusava colocá-lo lá ("obriga a abrir uma janela para uma
-> ação de dois segundos"). A lógica de servidor (`toggleSceneDarkness`/
-> `toggleSceneFog`/`resetSceneFog`) não mudou; só o gesto de reset ficou
-> temporariamente sem acionador algum (Q-CEN-07).
+> teste r1, item 25; texto normativo em REQ-CEN-020..025). Enquanto durar a
+> retirada, alternar escuridão e alternar névoa continuam alcançáveis pela janela
+> de percepção (REQ-CEN-062, aberta a partir da janela de configuração de qualquer
+> cena — inclusive a que está no ar: como REQ-CEN-036 a mantém fora do acervo, a
+> porta de configuração dela vive num controle próprio na cabeça, Ajustes r1
+> review, 2026-08-17). **Resetar a névoa não tem porta nenhuma na UI** — a janela
+> de percepção nunca acionou esse gesto (ela só grava `doc:update` dos campos de
+> valor) e a segunda frase deste racional já recusava colocá-lo lá ("obriga a abrir
+> uma janela para uma ação de dois segundos"). A lógica de servidor
+> (`toggleSceneDarkness`/`toggleSceneFog`/`resetSceneFog`) não mudou; só o gesto de
+> reset ficou temporariamente sem acionador algum (Q-CEN-07).
 
 ### DEC-CEN-07 — Excluir a cena que está no ar é recusado
 
@@ -227,31 +229,34 @@ real é o predicado do servidor, não a ausência do ícone.
 
 ### 5.3 Ambiente e controles de sessão
 
-- **REQ-CEN-020** [MVP] A cabeça DEVE oferecer alternar a **escuridão** da cena no ar
-  entre o valor configurado e nenhuma escuridão (REQ-VIS-044).
-- **REQ-CEN-021** [MVP] A cabeça DEVE oferecer alternar a **névoa** da cena no ar
-  (REQ-VIS-085).
-- **REQ-CEN-022** [MVP] A cabeça DEVE oferecer **resetar a névoa** da cena no ar para
-  todos os usuários (REQ-VIS-086), com confirmação, por ser irreversível.
-- **REQ-CEN-023** [MVP] Os controles de ambiente DEVEM refletir imediatamente o estado
-  vindo do servidor e NÃO DEVEM manter estado otimista divergente.
-- **REQ-CEN-024** [MVP] Esses controles NÃO DEVEM aparecer para cena que não esteja no
-  ar; ajustar ambiente de outra cena se faz na janela de percepção (REQ-CEN-062).
+- **REQ-CEN-020** [MVP] A cabeça NÃO DEVE oferecer, enquanto durar a retirada de
+  2026-08-17, o atalho de alternar a **escuridão** da cena no ar; o gesto
+  (REQ-VIS-044) se faz pela janela de percepção (REQ-CEN-062), aberta a partir da
+  janela de configuração de qualquer cena.
+- **REQ-CEN-021** [MVP] A cabeça NÃO DEVE oferecer, enquanto durar a retirada de
+  2026-08-17, o atalho de alternar a **névoa** da cena no ar; o gesto (REQ-VIS-085)
+  se faz pela janela de percepção (REQ-CEN-062), aberta a partir da janela de
+  configuração de qualquer cena.
+- **REQ-CEN-022** [MVP] A cabeça NÃO DEVE oferecer, enquanto durar a retirada de
+  2026-08-17, **resetar a névoa** da cena no ar; o gesto (REQ-VIS-086) fica sem
+  nenhuma porta na UI até Q-CEN-07 decidir um destino (a janela de percepção só
+  grava campos de valor por `doc:update` e nunca chamou `fog:reset`).
+- **REQ-CEN-023** [MVP] Se os controles de ambiente voltarem à cabeça, DEVEM
+  refletir imediatamente o estado vindo do servidor e NÃO DEVEM manter estado
+  otimista divergente; enquanto durar a retirada de 2026-08-17 (REQ-CEN-020/021),
+  não há controle na cabeça para este requisito verificar.
+- **REQ-CEN-024** [MVP] Se os controles de ambiente voltarem à cabeça, NÃO DEVEM
+  aparecer para cena que não esteja no ar; ajustar ambiente de outra cena sempre se
+  fez, e continua se fazendo, na janela de percepção (REQ-CEN-062).
 - **REQ-CEN-025** [MVP] A aba NÃO DEVE definir semântica de iluminação, visão ou
-  exploração: ela aciona os requisitos de `07`.
+  exploração: ela aciona os requisitos de `07` — inclusive enquanto durar a
+  retirada de 2026-08-17, já que a janela de percepção também é desta aba.
 
-> **Nota de 2026-08-17** — REQ-CEN-020, REQ-CEN-021, REQ-CEN-022, REQ-CEN-023,
-> REQ-CEN-024 e REQ-CEN-025 estão **retirados temporariamente da UI** (decisão do
-> Alexandre no teste r1, item 25 — "fora por enquanto", não é correção de defeito).
-> A cabeça não exibe mais o botão de percepção nem o grupo de três botões de
-> ambiente. A lógica de servidor por trás não mudou, mas o alcance por UI ficou
-> desigual entre os três gestos: REQ-CEN-020 (escuridão) e REQ-CEN-021 (névoa)
-> continuam alcançáveis pela janela de percepção (REQ-CEN-062), aberta a partir da
-> janela de configuração de qualquer cena; **REQ-CEN-022 (resetar a névoa) NÃO tem
-> porta nenhuma na UI enquanto durar a retirada** — a janela de percepção nunca
-> chamou `fog:reset` (ela só grava os campos de valor via `doc:update`), e
-> `resetSceneFog` ficou sem call-site de produção algum (Q-CEN-07). Os ids e as
-> tags [MVP] não são apagados: a retirada é reversível.
+> **Nota de 2026-08-17** — decisão do Alexandre no teste r1, item 25 ("fora por
+> enquanto", não correção de defeito): retirada temporária e reversível; ids e tags
+> [MVP] preservados. A lógica de servidor por trás (`toggleSceneDarkness`/
+> `toggleSceneFog`/`resetSceneFog`) não mudou — só deixou de ter, por ora, o
+> acionador da cabeça. Ver DEC-CEN-06 e Q-CEN-07.
 
 ### 5.4 Acervo, pastas e busca
 
@@ -325,11 +330,13 @@ real é o predicado do servidor, não a ausência do ícone.
   grade, fundo) DEVE abrir janela flutuante, e NÃO DEVE acontecer dentro da gaveta.
 - **REQ-CEN-062** [MVP] A percepção da cena (escuridão, iluminação global, limiar, visão
   por token) DEVE abrir janela flutuante, alcançável a partir da janela de configuração
-  e da cabeça (REQ-VIS-044, REQ-VIS-085).
+  de qualquer cena (REQ-VIS-044, REQ-VIS-085). Enquanto durar a retirada de 2026-08-17
+  (REQ-CEN-020..025), a cabeça NÃO DEVE oferecer um atalho direto para a percepção —
+  só o botão de configuração, de onde a percepção se abre como segundo passo.
 
-  > **Nota de 2026-08-17** — a porta da cabeça está retirada temporariamente junto com
-  > REQ-CEN-020..025 (mesma decisão, item 25 do teste r1); enquanto durar, a única
-  > porta de fato alcançável é a da janela de configuração.
+  > **Nota de 2026-08-17** — decisão do Alexandre no teste r1, item 25 (mesma
+  > retirada de REQ-CEN-020..025), reversível. Antes da retirada a cabeça abria a
+  > percepção diretamente; hoje o caminho é cabeça → configuração → percepção.
 
 - **REQ-CEN-063** [MVP] Excluir DEVE abrir confirmação que nomeia o que cai junto
   (presenças, paredes, luzes, sons, desenhos) e o que não cai (atores) — DEC-CEN-07.
@@ -448,12 +455,16 @@ real é o predicado do servidor, não a ausência do ícone.
 | CA-CEN-014 | Mundo sem cenas: a cabeça diz que não há nada no ar, o corpo convida a criar a primeira, e o jogador vê a tela de espera.                                               |
 | CA-CEN-015 | O rodapé informa onde fica o mapa de região, e o mapa de região não aparece em nenhum grupo do acervo.                                                                  |
 
-> **Nota de 2026-08-17** — enquanto durar a retirada temporária do item 25 (nota sob
-> REQ-CEN-025), CA-CEN-009 (reset de névoa) e a metade de CA-CEN-010 sobre alternar
-> névoa/escuridão pela cabeça não são verificáveis por UI: CA-CEN-010 volta a valer
-> pela janela de percepção (REQ-CEN-062); CA-CEN-009 não tem porta de UI nenhuma e
-> só é provado no nível de unidade (`sceneEnvironment.test.ts`) até Q-CEN-07 decidir
-> um destino para o gesto.
+> **Nota de 2026-08-17** — enquanto durar a retirada temporária do item 25
+> (REQ-CEN-020..025), CA-CEN-009 e a metade de CA-CEN-010 sobre "alternar
+> escuridão na cabeça" não são verificáveis por UI da forma como redigidos: a
+> cabeça não tem mais nenhum dos dois controles. CA-CEN-010 volta a valer pela
+> janela de percepção (REQ-CEN-062), alcançável a partir da janela de
+> configuração — inclusive, para a cena no ar, pelo controle de configuração
+> mantido na própria cabeça (REQ-CEN-036, Ajustes r1 review). CA-CEN-009 não tem
+> porta de UI nenhuma — a percepção nunca chamou `fog:reset` — e só é provado no
+> nível de unidade (`sceneEnvironment.test.ts`) até Q-CEN-07 decidir um destino
+> para o gesto.
 
 ## 11. O que esta spec ainda NÃO decide
 
@@ -473,7 +484,7 @@ Registradas para que o PR não deixe nenhuma spec contrariada em silêncio
 | Spec | O que muda                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `06` | **REQ-CNV-070** ("o cliente DEVE permitir navegar entre cenas e ativar uma cena") já foi rachado nas duas metades que esta spec exige: **ativar** é global, com escritor único e recusa de `active` no caminho genérico (DEC-CEN-02, REQ-CEN-040/041/042), e **navegar sem ativar** virou **REQ-CNV-070a**, preparo local de papel privilegiado, estado do cliente e nunca navegação por usuário (DEC-CEN-03, REQ-CEN-050/051/052/044/053) — emenda aplicada na `06` em 2026-08-16, junto da nota sob o requisito, da linha de `44` na tabela de dependências da `06` e da segunda metade de **CA-CNV-16**.                                                                                                                                                                                                            |
-| `07` | Nada muda na semântica. Registra-se que escuridão (REQ-VIS-044), névoa (REQ-VIS-085) e reset (REQ-VIS-086) ganham um acionador fora do canvas, na cabeça desta aba, restrito à cena no ar (DEC-CEN-06).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `07` | Nada muda na semântica. Registra-se que escuridão (REQ-VIS-044) e névoa (REQ-VIS-085) ganham um acionador fora do canvas, restrito à cena no ar (DEC-CEN-06) — a janela de percepção desta aba, alcançável a partir da janela de configuração (REQ-CEN-062). **Nota de 2026-08-17**: enquanto durar a retirada do item 25 (REQ-CEN-020..025), esse acionador NÃO é mais um controle direto na cabeça — é a janela de percepção, um passo além da configuração; e o reset (REQ-VIS-086) não ganhou acionador nenhum: a janela de percepção nunca chamou `fog:reset` (Q-CEN-07).                                                                                                                                                                                                                                         |
 | `11` | **REQ-UIF-002** já teve sua lista de abas substituída pela DEC-GAV-01; registra-se que o painel de cenas é definido aqui e que os diálogos existentes de cena passam a ser janelas do window manager (DEC-CEN-09). **REQ-UIF-005** ("indicar a cena ativa e a cena que o usuário está vendo, e permitir trocar de cena com um clique", sem restrição de papel) já foi restringido à mesma regra da `06`: trocar de cena é pôr no ar (global, papel privilegiado — DEC-CEN-02, REQ-CEN-040/041) ou preparo local de papel privilegiado (DEC-CEN-03, REQ-CEN-050/051), e a cena vista só difere da cena no ar enquanto houver preparo; cena por usuário continua fora do MVP (§11, Q-CEN-05) — emenda aplicada na `11` em 2026-08-16, junto da nota sob o requisito e da linha de `44` na lista de dependências da `11`. |
 | `05` | Nada muda. Registra-se que a presença (REQ-USR-032/033) **não** carrega cena, e que é por isso que o preparo é local (DEC-CEN-03); se um dia carregar, Q-CEN-05 reabre a decisão.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `02` | Nada muda no modelo. Registra-se que `folder` e `sort` de `Scene`, que existiam sem consumidor de UI, passam a ter um (DEC-CEN-05).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
