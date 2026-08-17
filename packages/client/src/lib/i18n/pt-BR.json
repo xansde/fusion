@@ -1321,6 +1321,7 @@
   "FUSION.Npcs.Create.Folder": "Pasta",
   "FUSION.Npcs.Create.Attitude": "Atitude inicial",
   "FUSION.Npcs.Create.NoAttitude": "sem atitude",
+  "FUSION.Npcs.Create.TabsLabel": "Caminho de criação",
   "FUSION.Npcs.Create.FromBestiary": "Do bestiário",
   "FUSION.Npcs.Create.FromScratch": "Criar do zero",
   "FUSION.Npcs.Create.BestiarySearch": "Buscar criatura por nome…",

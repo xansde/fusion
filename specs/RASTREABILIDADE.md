@@ -15,8 +15,8 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 674 | 35% |
-| Citados só por código de produção | 326 | 17% |
+| Citados por algum teste | 675 | 35% |
+| Citados só por código de produção | 325 | 17% |
 | Sem nenhuma citação | 952 | 49% |
 | **Total [MVP]** | **1952** | |
 
@@ -63,7 +63,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
 | [41](41-token.md) | 61 | 0 | 0 | 61 | 0% |
-| [42](42-aba-npcs.md) | 59 | 55 | 2 | 2 | 93% |
+| [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 60 | 58 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |
 | [45](45-atores.md) | 49 | 0 | 0 | 49 | 0% |

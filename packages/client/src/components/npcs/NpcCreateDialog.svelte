@@ -21,18 +21,29 @@
    *    with the player, a familiar is born glued to a master, a chest is not
    *    an actor, and a vehicle does not exist in Fusion.
    *
-   * Folder and attitude (REQ-NPC-047) sit below whichever door is open, same
-   * as the prototype (`Preset`/`Atitude`/`Pasta` render after `${body}`, for
-   * both `newMode`s) — they are properties of what is being created, shared
-   * by both doors, not of how it is being created. The folder arrives
-   * pre-selected when the window was opened from a folder header.
+   * Attitude and folder (REQ-NPC-047) sit below whichever door is open, in
+   * that order — matching the prototype's `Atitude` before `Pasta`
+   * (`npcs-tab.prototype.html:2315-2333`) — they are properties of what is
+   * being created, shared by both doors, not of how it is being created. The
+   * folder arrives pre-selected when the window was opened from a folder
+   * header.
    *
    * The preset (REQ-NPC-045) pre-fills the sheet and is not stored: this form is
    * the only place its name is ever written, and nothing it sends carries the id.
    * Which is why the row of a created NPC has no "mercador" label to hide
-   * (REQ-NPC-046) — there is nothing stored to label it with. It only applies to
-   * the "do zero" door: `importFromBestiary` (spec 16) has no preset parameter,
-   * since an imported actor's sheet already exists.
+   * (REQ-NPC-046) — there is nothing stored to label it with. Unlike the
+   * prototype, where `Preset` renders for both `newMode`s, this build keeps it
+   * inside the "do zero" door only (REQ-NPC-045 says creation "PODE oferecer" a
+   * preset, not that both doors must): `importFromBestiary` (spec 16) has no
+   * preset parameter, since an imported actor's sheet already exists, so there
+   * is nothing for a bestiary-door preset field to prime. Registered as an
+   * open question rather than matched blindly to the prototype.
+   *
+   * The footer (Cancelar + the primary action) is always on screen, on both
+   * doors, matching the prototype's `.wf` (`npcs-tab.prototype.html:2337-2338`)
+   * — only the primary's presence changes: bestiary imports per hit row (the
+   * existing, tested flow, not the prototype's select-then-confirm), so only
+   * Cancelar is common; the "do zero" door adds Criar next to it.
    */
 
   import type { Socket } from "socket.io-client";
@@ -200,14 +211,20 @@
 
 <div class="npc-create" data-npc-create>
   <!-- REQ-NPC-041 / DEC-NPC-06 (A035): both doors live in this one window, but
-       only the active tab's block is in the DOM — the prototype's `.wtabs`. -->
-  <div class="npc-create__tabs" role="tablist" data-npc-create-tabs>
+       only the active tab's block is in the DOM — the prototype's `.wtabs`.
+       A named group of TOGGLE buttons, not `role="tablist"`/`role="tab"`: that
+       ARIA pattern promises arrow-key navigation and a roving tabindex, which
+       this strip does not implement — same call already made, and explained,
+       by `SidebarRail.svelte` for the rail (DEC-GAV-05, REQ-GAV-041).
+       Announcing a pattern whose keyboard is absent strands the reader;
+       `aria-pressed` says exactly what each button does (REQ-NPC-092: every
+       control operable by Tab/Enter/Space, no arrow keys promised). -->
+  <div class="npc-create__tabs" role="group" aria-label={t("FUSION.Npcs.Create.TabsLabel")} data-npc-create-tabs>
     <button
       type="button"
-      role="tab"
       class="npc-create__tab"
       class:npc-create__tab--active={activeTab === "bestiary"}
-      aria-selected={activeTab === "bestiary"}
+      aria-pressed={activeTab === "bestiary"}
       data-tab="bestiary"
       onclick={() => (activeTab = "bestiary")}
     >
@@ -215,10 +232,9 @@
     </button>
     <button
       type="button"
-      role="tab"
       class="npc-create__tab"
       class:npc-create__tab--active={activeTab === "scratch"}
-      aria-selected={activeTab === "scratch"}
+      aria-pressed={activeTab === "scratch"}
       data-tab="scratch"
       onclick={() => (activeTab = "scratch")}
     >
@@ -331,23 +347,11 @@
   {/if}
 
   <!-- REQ-NPC-047: folder and attitude belong to what is created, not to the door
-       it came through — shared by both doors, below whichever one is open
-       (matches the prototype: `Preset`/`Atitude`/`Pasta` render after `${body}`
-       for every `newMode`). -->
+       it came through — shared by both doors, below whichever one is open.
+       Order matches the prototype (Atitude before Pasta,
+       `npcs-tab.prototype.html:2315-2333`; `Preset` stays scratch-only, see the
+       docstring's open question). -->
   <section class="npc-create__block" data-block="destination">
-    <label class="npc-create__field">
-      <span>{t("FUSION.Npcs.Create.Folder")}</span>
-      <select data-input="npc-create-folder" bind:value={folderId}>
-        {#each folderOptions as option (option.value)}
-          <option value={option.value}>
-            {option.unfiled
-              ? t("FUSION.Npcs.Folder.Unfiled")
-              : "  ".repeat(option.depth) + option.name}
-          </option>
-        {/each}
-      </select>
-    </label>
-
     <label class="npc-create__field">
       <span>{t("FUSION.Npcs.Create.Attitude")}</span>
       <!-- REQ-NPC-037: a hazard has no attitude, so the control is disabled rather
@@ -363,13 +367,34 @@
         <option value="enemy">{t("FUSION.Npcs.Attitude.enemy")}</option>
       </select>
     </label>
+
+    <label class="npc-create__field">
+      <span>{t("FUSION.Npcs.Create.Folder")}</span>
+      <select data-input="npc-create-folder" bind:value={folderId}>
+        {#each folderOptions as option (option.value)}
+          <option value={option.value}>
+            {option.unfiled
+              ? t("FUSION.Npcs.Folder.Unfiled")
+              : "  ".repeat(option.depth) + option.name}
+          </option>
+        {/each}
+      </select>
+    </label>
   </section>
 
-  {#if activeTab === "scratch"}
-    <div class="npc-create__row npc-create__row--end">
-      <button class="npc-create__btn" type="button" data-action="cancel-create" onclick={onClose}>
-        {t("FUSION.Npcs.Create.Cancel")}
-      </button>
+  <!-- REQ-NPC-041: the footer is always on screen, on both doors, matching the
+       prototype's `.wf` (`npcs-tab.prototype.html:2337-2338`) — before A035 the
+       two doors coexisted in the DOM, so Cancelar was always reachable; tabs
+       must not take that away. Only the primary action is door-specific: the
+       bestiary door confirms per hit row (`data-action="import-bestiary"`,
+       the existing tested flow — see the docstring's open question about the
+       prototype's own select-then-confirm), so it adds no second primary
+       button here. -->
+  <div class="npc-create__row npc-create__row--end">
+    <button class="npc-create__btn" type="button" data-action="cancel-create" onclick={onClose}>
+      {t("FUSION.Npcs.Create.Cancel")}
+    </button>
+    {#if activeTab === "scratch"}
       <button
         class="npc-create__btn npc-create__btn--primary"
         type="button"
@@ -379,8 +404,8 @@
       >
         {t("FUSION.Npcs.Create.Confirm")}
       </button>
-    </div>
-  {/if}
+    {/if}
+  </div>
 
   <!-- REQ-NPC-090 / DEC-NPC-02: a player's character is not born in this window,
        and this tab offers no control anywhere that creates one (REQ-NPC-044).

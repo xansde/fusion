@@ -216,6 +216,61 @@ describe("REQ-NPC-041 / REQ-NPC-043 / REQ-NPC-044: the window and its two doors"
     // panel that lists the created actors has none of these words.
     expect(renderPanel()).not.toContain('data-input="npc-create-preset"');
   });
+
+  it("REQ-NPC-041: Cancelar stays on screen on both doors, not just the scratch one", () => {
+    for (const tab of ["bestiary", "scratch"] as const) {
+      const body = renderDialog("fld-aldeia0000001", tab);
+
+      expect(body).toContain('data-action="cancel-create"');
+    }
+    // The primary "Criar" action is still door-specific: the bestiary door
+    // confirms per hit row, not with a second button in the footer.
+    expect(renderDialog("fld-aldeia0000001", "bestiary")).not.toContain('data-action="create-npc"');
+  });
+
+  it("A035: attitude renders before folder in the shared block, matching the prototype", () => {
+    const body = renderDialog("fld-aldeia0000001", "bestiary");
+    const shared = /<section[^>]*data-block="destination"[\s\S]*?<\/section>/.exec(body)?.[0];
+    expect(shared).toBeDefined();
+
+    const attitudeIndex = shared?.indexOf('data-input="npc-create-attitude"') ?? -1;
+    const folderIndex = shared?.indexOf('data-input="npc-create-folder"') ?? -1;
+    expect(attitudeIndex).toBeGreaterThan(-1);
+    expect(folderIndex).toBeGreaterThan(attitudeIndex);
+  });
+});
+
+describe("REQ-NPC-092: the tab strip is keyboard-operable without promising a keyboard it does not have", () => {
+  it("REQ-NPC-092: the strip is a labelled group of toggle buttons, not an ARIA tablist", () => {
+    const body = renderDialog();
+    const strip = /<div[^>]*data-npc-create-tabs[\s\S]*?<\/div>/.exec(body)?.[0];
+    expect(strip).toBeDefined();
+
+    // Same call as SidebarRail.svelte (DEC-GAV-05): role="group" + aria-pressed,
+    // never role="tablist"/role="tab", which promises arrow-key navigation this
+    // strip does not implement.
+    expect(strip).toContain('role="group"');
+    expect(strip).not.toContain('role="tablist"');
+    expect(strip).not.toContain('role="tab"');
+    expect(strip).toContain("aria-label=");
+  });
+
+  it("REQ-NPC-092: each tab button reports its own state via aria-pressed", () => {
+    /** The `<button ...>` that carries `data-tab="{tabId}"`, attributes only. */
+    function tabButton(body: string, tabId: string): string {
+      const match = new RegExp(`<button[^>]*data-tab="${tabId}"[^>]*>`).exec(body);
+      if (match === null) throw new Error(`no tab button for ${tabId}`);
+      return match[0];
+    }
+
+    const bestiaryBody = renderDialog("fld-aldeia0000001", "bestiary");
+    const scratchBody = renderDialog("fld-aldeia0000001", "scratch");
+
+    expect(tabButton(bestiaryBody, "bestiary")).toContain('aria-pressed="true"');
+    expect(tabButton(bestiaryBody, "scratch")).toContain('aria-pressed="false"');
+    expect(tabButton(scratchBody, "scratch")).toContain('aria-pressed="true"');
+    expect(tabButton(scratchBody, "bestiary")).toContain('aria-pressed="false"');
+  });
 });
 
 describe("REQ-NPC-038: the attitude is cycled on the row itself", () => {
