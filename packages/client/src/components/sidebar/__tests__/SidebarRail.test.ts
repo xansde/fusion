@@ -383,4 +383,67 @@ describe("SidebarRail", () => {
       expect(rule).toMatch(/width:\s*44px/);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Ajustes r1 — Fase 1, review round: A010 removed the container's fill but left
+  // four things still styled for the old opaque plate (revisão do PR de A010).
+  // ---------------------------------------------------------------------------
+  describe("each button carries the prototype's own contour, not a bare fill (REQ-GAV-001, REQ-GAV-005)", () => {
+    it("REQ-GAV-001: the base button has a visible border on three sides, none on the panel side", () => {
+      const rule = ruleFor(".sidebar-rail__button");
+
+      expect(rule).toMatch(/border:\s*1px solid var\(--fusion-border\)/);
+      expect(rule).toMatch(/border-right:\s*0/);
+    });
+
+    it("REQ-GAV-005: the active tab's contour and icon color are the accent tokens, not the neutral border", () => {
+      const rule = ruleFor(".sidebar-rail__button--active");
+
+      expect(rule).toMatch(/border-color:\s*var\(--fusion-accent\)(?!-hover)/);
+      expect(rule).toMatch(/color:\s*var\(--fusion-accent-hover\)/);
+    });
+
+    it("REQ-GAV-005: hovering an inactive tab only recolors it — it never borrows the active tab's fill", () => {
+      const rule = ruleFor(".sidebar-rail__button:hover");
+
+      expect(rule).not.toMatch(/background:/);
+      expect(rule).toMatch(/color:\s*var\(--fusion-text\)(?!-muted)/);
+    });
+  });
+
+  describe("group separators are a short recessed rule, not a border spanning the bare rail (REQ-GAV-003)", () => {
+    it("REQ-GAV-003: the gm group has no full-width border-top", () => {
+      expect(ruleFor(".sidebar-rail__group--gm")).not.toMatch(/border-top:/);
+    });
+
+    it("REQ-GAV-003: the gm separator is a 28px rule recessed within the button column", () => {
+      const rule = ruleFor(".sidebar-rail__group--gm::before");
+
+      expect(rule).toMatch(/width:\s*28px/);
+      expect(rule).toMatch(/height:\s*1px/);
+      expect(rule).toMatch(/right:\s*6px/);
+    });
+
+    it("REQ-GAV-003: the footer group has no full-width border-top", () => {
+      expect(ruleFor(".sidebar-rail__group--footer")).not.toMatch(/border-top:/);
+    });
+
+    it("REQ-GAV-003: the footer separator is a 28px rule recessed within the button column", () => {
+      const rule = ruleFor(".sidebar-rail__group--footer::before");
+
+      expect(rule).toMatch(/width:\s*28px/);
+      expect(rule).toMatch(/height:\s*1px/);
+      expect(rule).toMatch(/right:\s*6px/);
+    });
+  });
+
+  describe("the rail's own box never claims the pointer, only its buttons do (REQ-GAV-013)", () => {
+    it("REQ-GAV-013: the bare rail container lets pointer events fall through to the canvas", () => {
+      expect(ruleFor(".sidebar-rail")).toMatch(/pointer-events:\s*none/);
+    });
+
+    it("REQ-GAV-013: each button re-claims the pointer for itself, collapsed or not", () => {
+      expect(ruleFor(".sidebar-rail__button")).toMatch(/pointer-events:\s*auto/);
+    });
+  });
 });
