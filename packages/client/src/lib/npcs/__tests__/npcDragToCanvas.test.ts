@@ -107,8 +107,10 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     const drop = dropFn.slice(actorBranchStart, compBranchStart);
 
     expect(drop).toContain("buildTokenFromActorFields");
-    expect(drop).toContain('type: "doc:create"');
-    expect(drop).toContain('documentType: "Token"');
-    expect(drop).toContain("embedded:");
+    // TK022-client: the doc:create envelope is built by the shared
+    // buildTokenCreateOp helper (packages/client/src/lib/docs/tokenCreateOp.ts),
+    // not assembled inline anymore — asserting the call site, not the literal
+    // shape it wraps.
+    expect(drop).toContain("buildTokenCreateOp(scene._id");
   });
 });
