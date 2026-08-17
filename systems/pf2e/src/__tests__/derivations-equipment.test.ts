@@ -249,7 +249,7 @@ describe("stepCharCollectEquipment — weapon collection", () => {
       variants: Array<{ total: number }>;
     }>;
 
-    // The equipped Funda plus the synthetic Fist (issue #62 — no unarmed
+    // The equipped Funda plus the synthetic Punho (issue #62 — no unarmed
     // weapon exists in doc.items, so the collector always adds one).
     expect(strikes).toHaveLength(2);
     const strike = strikes.find((s) => s.label === "Funda");
@@ -311,9 +311,9 @@ describe("stepCharCollectEquipment — weapon collection", () => {
     }>;
 
     // A granted Mordida (Bite) does not replace the character's fists (CRB
-    // remaster "Unarmed Attacks") — the synthetic Fist is also present.
+    // remaster "Unarmed Attacks") — the synthetic Punho is also present.
     expect(strikes).toHaveLength(2);
-    expect(strikes.map((s) => s.label)).toEqual(expect.arrayContaining(["Mordida", "Fist"]));
+    expect(strikes.map((s) => s.label)).toEqual(expect.arrayContaining(["Mordida", "Punho"]));
     const strike = strikes.find((s) => s.label === "Mordida");
     expect(strike).toBeDefined();
     if (!strike) return;
@@ -327,7 +327,7 @@ describe("stepCharCollectEquipment — weapon collection", () => {
     expect(strike.variants[2]?.total).toBe(1);
   });
 
-  it("non-equipped martial weapon does NOT become a strike (but the synthetic Fist does)", () => {
+  it("non-equipped martial weapon does NOT become a strike (but the synthetic Punho does)", () => {
     const doc = makeCharDoc({
       items: [
         {
@@ -353,24 +353,29 @@ describe("stepCharCollectEquipment — weapon collection", () => {
     const derived = getDerived(doc);
     const strikes = derived["strikes"] as Array<{ label: string; damageRoll?: string }>;
     // The un-equipped Longsword never becomes a strike; the only strike
-    // present is the synthetic Fist (issue #62 — see describe block below).
+    // present is the synthetic Punho (issue #62 — see describe block below).
     expect(strikes).toHaveLength(1);
-    expect(strikes[0]?.label).toBe("Fist");
+    expect(strikes[0]?.label).toBe("Punho");
     expect(strikes.some((s) => s.label === "Longsword")).toBe(false);
   });
 });
 
 // ---------------------------------------------------------------------------
-// stepCharCollectEquipment — synthetic Fist when no unarmed weapon exists
+// stepCharCollectEquipment — synthetic Punho ("Fist") when no unarmed
+// weapon exists
 // Issue #62: a Monk (or any character) with no weapon equipped had NO
 // unarmed strike at all, because the collector only ever picked up an
 // unarmed weapon that already existed in doc.items — it never synthesized
 // one. Every PF2e character can strike unarmed per the CRB remaster; this is
-// a rule of the book, not something read off any pack.
+// a rule of the book, not something read off any pack. The synthesized
+// weapon's display name is "Punho" (pt-BR, matching the term the packs
+// themselves use for this CRB strike) — it is NOT pack-sourced, so unlike
+// every other weapon on the sheet it has no i18n entry to localize it; see
+// `equipment.ts`'s synthesis comment (code review finding, r1 Fase 0).
 // ---------------------------------------------------------------------------
 
-describe("stepCharCollectEquipment — synthetic Fist (issue #62)", () => {
-  it("empty items (Monk with no weapon equipped) → gets exactly one strike: Fist, 1d4 bludgeoning", () => {
+describe("stepCharCollectEquipment — synthetic Punho (issue #62)", () => {
+  it("empty items (Monk with no weapon equipped) → gets exactly one strike: Punho, 1d4 bludgeoning", () => {
     const doc = makeCharDoc({ items: [] });
 
     stepCharAbilityMods.run(doc, emptyCtx());
@@ -389,14 +394,14 @@ describe("stepCharCollectEquipment — synthetic Fist (issue #62)", () => {
     const strike = strikes[0];
     expect(strike).toBeDefined();
     if (!strike) return;
-    expect(strike.label).toBe("Fist");
+    expect(strike.label).toBe("Punho");
     // 1d4 bludgeoning, str mod 0 (default ability score 10) → no flat bonus.
     expect(strike.damageRoll).toBe("1d4");
     expect(strike.damageType).toBe("bludgeoning");
     expect(strike.traits).toEqual(expect.arrayContaining(["agile", "finesse", "nonlethal"]));
   });
 
-  it("character already has a granted unarmed weapon (e.g. Claw) → Fist is still synthesized (CRB: claws don't replace your fists)", () => {
+  it("character already has a granted unarmed weapon (e.g. Claw) → Punho is still synthesized (CRB: claws don't replace your fists)", () => {
     const doc = makeCharDoc({
       items: [
         {
@@ -423,19 +428,19 @@ describe("stepCharCollectEquipment — synthetic Fist (issue #62)", () => {
     const strikes = derived["strikes"] as Array<{ label: string; damageType?: string }>;
 
     // Per CRB remaster "Unarmed Attacks": having claws does not remove your
-    // fists — the granted Claw AND the default Fist must both show up.
+    // fists — the granted Claw AND the default Punho must both show up.
     expect(strikes).toHaveLength(2);
-    expect(strikes.map((s) => s.label)).toEqual(expect.arrayContaining(["Claw", "Fist"]));
+    expect(strikes.map((s) => s.label)).toEqual(expect.arrayContaining(["Claw", "Punho"]));
     expect(strikes.find((s) => s.label === "Claw")?.damageType).toBe("slashing");
-    expect(strikes.find((s) => s.label === "Fist")?.damageType).toBe("bludgeoning");
+    expect(strikes.find((s) => s.label === "Punho")?.damageType).toBe("bludgeoning");
   });
 
-  it("character already has a granted Fist (e.g. an upgraded unarmed feature) → no duplicate synthetic Fist", () => {
+  it("character already has a granted unarmed weapon with the localized name 'Punho' (e.g. an upgraded unarmed feature, imported from a pt-BR pack) → no duplicate synthetic Punho", () => {
     const doc = makeCharDoc({
       items: [
         {
           _id: "fist-1",
-          name: "Fist",
+          name: "Punho",
           type: "weapon",
           system: {
             category: "unarmed",
@@ -457,10 +462,14 @@ describe("stepCharCollectEquipment — synthetic Fist (issue #62)", () => {
     const derived = getDerived(doc);
     const strikes = derived["strikes"] as Array<{ label: string; damageRoll?: string }>;
 
-    // Only the granted Fist shows up — the collector must not ALSO push its
-    // own synthetic 1d4 Fist alongside an already-present one named "Fist".
+    // Only the granted Punho shows up — the collector must not ALSO push its
+    // own synthetic 1d4 Punho alongside an already-present one with that same
+    // (localized) name. This is the dedupe check that keeps working once the
+    // synthetic item's display name is translated instead of the raw English
+    // "Fist" (code review finding, r1 Fase 0 — the dedupe key must track
+    // whatever the synthetic item is actually named, not a stale literal).
     expect(strikes).toHaveLength(1);
-    expect(strikes[0]?.label).toBe("Fist");
+    expect(strikes[0]?.label).toBe("Punho");
     expect(strikes[0]?.damageRoll).toBe("1d6");
   });
 });

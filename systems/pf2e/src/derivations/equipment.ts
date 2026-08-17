@@ -173,21 +173,30 @@ export const stepCharCollectEquipment: DeriveStep = {
     // Every PF2e character can strike unarmed (CRB remaster, "Unarmed
     // Attacks": your fists always count as weapons) — this is NOT sourced
     // from any pack; it's a CRB rule the engine must guarantee even when
-    // `doc.items` has no explicit Fist item. Synthesize one only when the
-    // scan above found no weapon that IS a Fist already — checked by name,
-    // not by `category === "unarmed"` alone. Ancestry/heritage features that
-    // grant a differently-named unarmed attack (Claw, Jaws, Talon, ...) do
-    // NOT replace your fists per that same CRB rule — having claws doesn't
-    // remove the ability to punch — so a character with a granted Claw must
-    // end up with BOTH Claw and Fist. Only an item literally named "Fist"
-    // (e.g. one already synthesized, or a feature that specifically upgrades
-    // your fists) should suppress the synthetic one below (BUG FIX, found in
-    // review — the old `category === "unarmed"` check ate the Fist for ANY
-    // granted unarmed weapon, `derivations-equipment.test.ts`'s Claw case
-    // included).
-    if (!weapons.some((w) => w.category === "unarmed" && w.name === "Fist")) {
+    // `doc.items` has no explicit Punho ("Fist") item. Synthesize one only
+    // when the scan above found no weapon that IS a Punho already — checked
+    // by name, not by `category === "unarmed"` alone. Ancestry/heritage
+    // features that grant a differently-named unarmed attack (Garra/Claw,
+    // Mandíbulas/Jaws, ...) do NOT replace your fists per that same CRB
+    // rule — having claws doesn't remove the ability to punch — so a
+    // character with a granted Claw must end up with BOTH Claw and Punho.
+    // Only an item literally named "Punho" (e.g. one already synthesized, or
+    // a feature that specifically upgrades your fists) should suppress the
+    // synthetic one below (BUG FIX, found in review — the old
+    // `category === "unarmed"` check ate the Punho for ANY granted unarmed
+    // weapon, `derivations-equipment.test.ts`'s Claw case included).
+    //
+    // Display name is "Punho" (pt-BR), not "Fist": every other weapon that
+    // reaches the sheet gets its `name` already localized by the pack import
+    // (real pack items store the translated string directly in `item.name`
+    // — see `systems/pf2e/packs/*/i18n.pt-BR.json`, where this exact CRB
+    // unarmed strike is translated as "Punho"). This one is NOT pack-sourced,
+    // so the localized string has to be hardcoded here to match that same
+    // convention instead of leaking the English engine term onto a pt-BR
+    // character sheet (code review finding, r1 Fase 0).
+    if (!weapons.some((w) => w.category === "unarmed" && w.name === "Punho")) {
       weapons.push({
-        name: "Fist",
+        name: "Punho",
         id: "pf2e.synthetic.fist",
         damage: { dice: 1, die: "d4", damageType: "bludgeoning", modifier: 0 },
         category: "unarmed",

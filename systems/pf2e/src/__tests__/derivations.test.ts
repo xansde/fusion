@@ -396,13 +396,13 @@ describe("Fighter level 5 — full derivation pipeline", () => {
       variants: Array<{ total: number; formula: string }>;
     }>;
     // Every PF2e character can also strike unarmed (CRB "Unarmed Attacks"),
-    // so the synthetic Fist is always appended after the equipped weapons —
-    // the Longsword stays first, the Fist strike comes last (see #62).
+    // so the synthetic Punho is always appended after the equipped weapons —
+    // the Longsword stays first, the Punho strike comes last (see #62).
     expect(strikes).toHaveLength(2);
     const strike = strikes[0];
     expect(strike).toBeDefined();
     expect(strike?.label).toBe("Longsword");
-    expect(strikes[1]?.label).toBe("Fist");
+    expect(strikes[1]?.label).toBe("Punho");
     if (strike) {
       expect(strike.attackBonus).toBe(14);
       expect(strike.variants[0]?.total).toBe(14);
@@ -627,12 +627,12 @@ describe("Agile weapon strike MAP", () => {
       variants: Array<{ mapPenalty: number }>;
     }>;
 
-    // doc["items"] here only has the Dagger, so the synthetic Fist (CRB
+    // doc["items"] here only has the Dagger, so the synthetic Punho (CRB
     // "Unarmed Attacks") gets appended after it — Dagger stays first (see #62).
     expect(strikes).toHaveLength(2);
     const strike = strikes[0];
     expect(strike?.label).toBe("Dagger");
-    expect(strikes[1]?.label).toBe("Fist");
+    expect(strikes[1]?.label).toBe("Punho");
     expect(strike?.isAgile).toBe(true);
     expect(strike?.variants[0]?.mapPenalty).toBe(0);
     expect(strike?.variants[1]?.mapPenalty).toBe(-4);
