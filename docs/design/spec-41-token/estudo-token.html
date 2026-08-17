@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spec 41 — Token: estado da decisão</title>
+    <style>
+      :root {
+        --bg: #f7f6f3; --bg-elev: #ffffff; --bg-sunk: #eeece7;
+        --fg: #1c1b19; --fg-dim: #5c584f; --fg-faint: #8a8478;
+        --line: #ddd9d0; --line-strong: #c4beb2;
+        --accent: #7a4b2a; --accent-soft: #f0e4d8;
+        --bad: #a32f24; --bad-soft: #fbe6e3;
+        --warn: #8a6413; --warn-soft: #fcf1d9;
+        --good: #2c6b45; --good-soft: #e0f0e6;
+        --info: #2a5580; --info-soft: #e2ecf6;
+        --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #161513; --bg-elev: #201f1c; --bg-sunk: #100f0e;
+          --fg: #eae7e0; --fg-dim: #b0aaa0; --fg-faint: #7c766c;
+          --line: #322f2a; --line-strong: #47433c;
+          --accent: #d99f6c; --accent-soft: #2e241b;
+          --bad: #f08b7f; --bad-soft: #2f1b18;
+          --warn: #e0b45c; --warn-soft: #2c2415;
+          --good: #7fc79b; --good-soft: #16281d;
+          --info: #8ab6e6; --info-soft: #16232f;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #161513; --bg-elev: #201f1c; --bg-sunk: #100f0e;
+        --fg: #eae7e0; --fg-dim: #b0aaa0; --fg-faint: #7c766c;
+        --line: #322f2a; --line-strong: #47433c;
+        --accent: #d99f6c; --accent-soft: #2e241b;
+        --bad: #f08b7f; --bad-soft: #2f1b18;
+        --warn: #e0b45c; --warn-soft: #2c2415;
+        --good: #7fc79b; --good-soft: #16281d;
+        --info: #8ab6e6; --info-soft: #16232f;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+      .wrap { max-width: 1020px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+      header.doc { border-bottom: 2px solid var(--line-strong); padding-bottom: 1.4rem; margin-bottom: 2rem; }
+      .kicker { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 0 0 .4rem; }
+      h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 .6rem; letter-spacing: -.02em; }
+      .lede { font-size: 1.08rem; color: var(--fg-dim); margin: 0 0 1rem; max-width: 62ch; }
+      .meta { font-size: .8rem; color: var(--fg-faint); font-family: var(--mono); }
+      h2 { font-size: 1.38rem; margin: 2.8rem 0 .5rem; letter-spacing: -.01em; padding-top: 1rem; border-top: 1px solid var(--line); }
+      h2 .num { color: var(--accent); font-family: var(--mono); font-size: .93rem; margin-right: .5rem; }
+      h3 { font-size: 1rem; margin: 1.6rem 0 .4rem; }
+      p { margin: .6rem 0; max-width: 76ch; }
+      ul, ol { max-width: 76ch; padding-left: 1.3rem; }
+      li { margin: .28rem 0; }
+      code { font-family: var(--mono); font-size: .86em; background: var(--bg-sunk); border: 1px solid var(--line); padding: .08em .34em; border-radius: 3px; white-space: nowrap; }
+      a { color: var(--accent); }
+      .grid { display: grid; gap: .9rem; margin: 1.2rem 0; }
+      .grid-2 { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+      .grid-4 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+      .stat { background: var(--bg-elev); border: 1px solid var(--line); border-radius: 8px; padding: .85rem 1rem; }
+      .stat .n { font-size: 1.85rem; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+      .stat .n.good { color: var(--good); } .stat .n.warn { color: var(--warn); }
+      .stat .lbl { font-size: .79rem; color: var(--fg-dim); margin-top: .3rem; }
+      .card { background: var(--bg-elev); border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 6px; padding: .85rem 1.05rem; margin: .85rem 0; }
+      .card.bad { border-left-color: var(--bad); } .card.warn { border-left-color: var(--warn); }
+      .card.good { border-left-color: var(--good); } .card.info { border-left-color: var(--info); }
+      .card h4 { margin: 0 0 .3rem; font-size: .96rem; }
+      .card p { margin: .3rem 0; font-size: .92rem; }
+      .card p:last-child { margin-bottom: 0; }
+      .card ul { font-size: .92rem; margin: .4rem 0; }
+      .tag { display: inline-block; font-size: .66rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .11em .48em; border-radius: 3px; vertical-align: .12em; }
+      .tag.bad { background: var(--bad-soft); color: var(--bad); }
+      .tag.warn { background: var(--warn-soft); color: var(--warn); }
+      .tag.good { background: var(--good-soft); color: var(--good); }
+      .tag.info { background: var(--info-soft); color: var(--info); }
+      .tbl-scroll { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--line); border-radius: 6px; }
+      table { border-collapse: collapse; width: 100%; font-size: .86rem; min-width: 600px; }
+      th, td { text-align: left; padding: .48rem .62rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+      th { background: var(--bg-sunk); font-size: .73rem; text-transform: uppercase; letter-spacing: .05em; color: var(--fg-dim); }
+      tr:last-child td { border-bottom: none; }
+      .cell-bad { color: var(--bad); font-weight: 600; }
+      .cell-good { color: var(--good); }
+      .cell-warn { color: var(--warn); font-weight: 600; }
+      .cell-dim { color: var(--fg-faint); }
+      .did { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+      figure { margin: 1.2rem 0; }
+      figure svg { width: 100%; height: auto; display: block; }
+      figcaption { font-size: .78rem; color: var(--fg-faint); margin-top: .4rem; }
+      .callout { background: var(--accent-soft); border: 1px solid var(--line-strong); border-radius: 6px; padding: .85rem 1.05rem; margin: 1.2rem 0; }
+      .callout p { margin: .28rem 0; }
+      footer.doc { margin-top: 3rem; padding-top: 1.1rem; border-top: 1px solid var(--line); font-size: .8rem; color: var(--fg-faint); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="doc">
+        <p class="kicker">Fusion · insumo da spec 41</p>
+        <h1>Token — estado da decisão</h1>
+        <p class="lede">
+          Trinta decisões fechadas numa sessão. O que a spec afirma, o que ela emenda em outras
+          specs, o que ficou de fora e as sete confirmações que faltam antes de redigir.
+        </p>
+        <p class="meta">
+          2026-08-16 · racional completo em <code>decisoes.md</code> · defeitos em
+          <code>xansde/fusion</code> #164–#171
+        </p>
+      </header>
+
+      <h2><span class="num">§0</span>Onde estamos</h2>
+
+      <div class="grid grid-4">
+        <div class="stat"><div class="n good">30</div><div class="lbl">decisões fechadas</div></div>
+        <div class="stat"><div class="n warn">7</div><div class="lbl">confirmações pendentes — nenhuma bloqueia</div></div>
+        <div class="stat"><div class="n">11</div><div class="lbl">emendas obrigadas em outras specs</div></div>
+        <div class="stat"><div class="n">8</div><div class="lbl">defeitos vivos virados issue</div></div>
+      </div>
+
+      <div class="callout">
+        <p><strong>A definição, testada contra 12 casos e sem exceção:</strong></p>
+        <p>
+          Token é a <strong>manifestação de um ator numa cena</strong>: a peça que ocupa um
+          lugar no mapa, que pode se mover e que pode ser vista ou ocultada.
+        </p>
+        <p style="font-size:.88rem;color:var(--fg-dim);margin-top:.5rem">
+          A cláusula "serve de ponto de vista" saiu com D24 — visão é lugar reservado, não
+          funcionalidade desta spec.
+        </p>
+      </div>
+
+      <p>
+        <strong>Dá para redigir.</strong> Nenhuma pendência bloqueia: as sete restantes são
+        confirmações de propostas já formuladas (§5). O escopo encolheu bastante durante a
+        sessão — visão, névoa, targeting, ícones de status, concorrência e minimapa saíram —, e
+        o que sobrou é coeso: <em>o que a peça é, o que ela herda, como nasce, como se
+        distingue, quem a controla e como morre.</em>
+      </p>
+
+      <h2><span class="num">§1</span>O buraco que a spec fecha</h2>
+
+      <p>
+        Token é o conceito mais citado do projeto que ninguém define: <strong>121 requisitos em
+        21 áreas</strong> falam da presença na cena, e nenhuma área é dona — o que a
+        <code>CONVENCOES.md</code> §4 (<code>prefixo-com-dono</code>) trata como defeito
+        estrutural. A lacuna cobrou preço fora das specs: a forma do estado quente no banco foi
+        adiada com gatilho explícito nesta spec, e a <code>40</code> teve de banir a palavra da
+        interface inteira (DEC-CBA-06).
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 860 330" role="img" aria-label="O que a spec 41 define, emenda e deixa de fora">
+          <g font-family="ui-monospace, monospace" font-size="12">
+            <rect x="18" y="30" width="256" height="284" rx="8" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.6"/>
+            <text x="34" y="54" font-size="12" font-weight="700" fill="var(--good)">DEFINE</text>
+            <g fill="var(--fg)" font-size="11.5">
+              <text x="34" y="80">O que a peça é — campo a campo</text>
+              <text x="34" y="102">Contrato de invocação</text>
+              <text x="34" y="124">Vínculo com a ficha</text>
+              <text x="34" y="146">Controle = posse do ator</text>
+              <text x="34" y="168">Nome, numeração, distinção</text>
+              <text x="34" y="190">Ocultação por usuário</text>
+              <text x="34" y="212">Exclusão e cascata</text>
+              <text x="34" y="234">Cópia crua e idêntica</text>
+              <text x="34" y="256">Ordem de desenho (FIFO)</text>
+              <text x="34" y="278">Três níveis de exibição</text>
+              <text x="34" y="300">Extensão por sistema/addon</text>
+            </g>
+
+            <rect x="292" y="30" width="256" height="284" rx="8" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.6"/>
+            <text x="308" y="54" font-size="12" font-weight="700" fill="var(--warn)">EMENDA</text>
+            <g fill="var(--fg)" font-size="11.5">
+              <text x="308" y="80">02 — remove img, locked; vision;</text>
+              <text x="308" y="96">cascata como exceção à DEC-DOC-11</text>
+              <text x="308" y="120">06 — arte, secret, ajuste visual,</text>
+              <text x="308" y="136">status icons, 5→3 níveis, OWNER</text>
+              <text x="308" y="160">09 — quem fala é o jogador</text>
+              <text x="308" y="184">15 — tamanho→células; dado de peça</text>
+              <text x="308" y="208">20 — AssetRef da arte vai p/ o Actor</text>
+              <text x="308" y="232">29/47 — sub-personagem</text>
+              <text x="308" y="256">37 — setting de numeração</text>
+              <text x="308" y="280">README — prefixo REQ-TOK-</text>
+              <text x="308" y="304">CONVENCOES — sai da lista de lacunas</text>
+            </g>
+
+            <rect x="566" y="30" width="276" height="284" rx="8" fill="var(--bad-soft)" stroke="var(--bad)" stroke-width="1.6"/>
+            <text x="582" y="54" font-size="12" font-weight="700" fill="var(--bad)">FICA DE FORA</text>
+            <g fill="var(--fg)" font-size="11.5">
+              <text x="582" y="80">Visão, névoa, iluminação</text>
+              <text x="582" y="102">Colisão com parede</text>
+              <text x="582" y="124">Targeting</text>
+              <text x="582" y="146">Ícones de status (vão p/ a HUD)</text>
+              <text x="582" y="168">Concorrência de escrita</text>
+              <text x="582" y="190">Ring dinâmico</text>
+              <text x="582" y="212">Ajuste visual por peça</text>
+              <text x="582" y="234">Peça sem ator (adiada)</text>
+              <text x="582" y="256">Fila de iniciativa</text>
+              <text x="582" y="278">Saque do corpo (spec 46)</text>
+              <text x="582" y="300">Como cada tela oferece o gesto</text>
+            </g>
+          </g>
+        </svg>
+      </figure>
+
+      <h2><span class="num">§2</span>As trinta decisões</h2>
+
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th style="width:3.2rem">#</th><th>Decisão</th><th>O que obriga</th></tr></thead>
+          <tbody>
+            <tr><td class="did">D1</td><td>A arte é sempre herdada do ator; a peça <strong>não tem campo de arte</strong></td><td>Elimina 4 grafias. Emenda <code>02</code>, <code>06</code>, <code>20</code>.</td></tr>
+            <tr><td class="did">D2</td><td>Disposição tem 3 valores: hostil, neutro, amigo</td><td><code>secret</code> cai da <code>06</code>.</td></tr>
+            <tr><td class="did">D3</td><td>Vida é do dono: corte em <strong>OWNER</strong>, em toda superfície</td><td>Reverte DEC-CNV-15. Rótulo muda junto com a semântica.</td></tr>
+            <tr><td class="did">D4</td><td>O campo de visão chama-se <code>vision</code></td><td>Emenda <code>02</code>. Código já correto.</td></tr>
+            <tr><td class="did">D5</td><td>Targeting sai desta spec</td><td>TODO em <code>CONVENCOES</code> §7.</td></tr>
+            <tr><td class="did">D6</td><td>O termo é <strong>token</strong>; prefixo <code>REQ-TOK-</code></td><td>Linha no registro de prefixos, mesmo commit.</td></tr>
+            <tr><td class="did">D7</td><td>Tamanho herdado do ator; conversão é do <strong>sistema</strong></td><td>Extensão nova na <code>15</code> (PF2e: Médio 1×1, Grande 2×2).</td></tr>
+            <tr><td class="did">D8</td><td>Vínculo é <strong>configuração da peça</strong></td><td>Promove <code>REQ-CNV-093</code> a requisito de verdade.</td></tr>
+            <tr><td class="did">D9</td><td>A spec descreve o <strong>modelo certo</strong>; <code>build/app</code> fora</td><td>Nenhum requisito menciona branch.</td></tr>
+            <tr><td class="did">D10</td><td>Nasce herdando tudo; a <strong>origem</strong> sobrescreve</td><td>A spec define o contrato, não a UI.</td></tr>
+            <tr><td class="did">D11</td><td>Toda peça exige ator — <strong>por ora</strong></td><td>Adiamento deliberado. <code>TokenAddDialog</code> passa a exigir ator.</td></tr>
+            <tr><td class="did">D12</td><td>A peça não some sozinha; morrer é assunto do ator</td><td>Corpo vira recipiente pela <code>45</code>, sem mudar a peça.</td></tr>
+            <tr><td class="did">D13</td><td>Excluir o ator <strong>apaga as peças dele</strong></td><td>Exceção deliberada à DEC-DOC-11. Exclusão varre cenas.</td></tr>
+            <tr><td class="did">D14</td><td>Duas cópias: <strong>crua</strong> e <strong>idêntica</strong></td><td>Refina <code>REQ-CNV-041</code>. <code>23</code> exige alternativa não-arraste.</td></tr>
+            <tr><td class="did">D15</td><td><code>locked</code> não existe</td><td>Emenda a <code>02</code>.</td></tr>
+            <tr><td class="did">D16</td><td>Nome herdado do ator, <strong>sobrescrevível</strong> na peça</td><td>Nome próprio é rótulo, <strong>não</strong> ocultação — fronteira com a <code>39</code>.</td></tr>
+            <tr><td class="did">D17</td><td>Numeração de peças iguais é <strong>setting do Mestre</strong></td><td>Candidato: setting de mundo na <code>37</code>.</td></tr>
+            <tr><td class="did">D18</td><td>Sem ajuste visual por peça</td><td>Saem <code>scale</code>, <code>mirror</code>, <code>tint</code>, <code>alpha</code> da <code>06</code>.</td></tr>
+            <tr><td class="did">D19</td><td>Ring dinâmico para protótipo; borda por disposição fica</td><td>Confirma <code>REQ-CNV-033</code> como [V2].</td></tr>
+            <tr><td class="did">D20</td><td>Peças sobrepostas desenham em <strong>FIFO</strong></td><td>Sem campo de ordenação. Ordem deve ser igual em todo cliente.</td></tr>
+            <tr><td class="did">D21</td><td>Ocultação é <strong>por usuário</strong></td><td>Gancho de percepção passiva. Emissão já é por socket.</td></tr>
+            <tr><td class="did">D22</td><td><strong>Três</strong> níveis: <code>never</code> · <code>owner</code> · <code>always</code></td><td>Caem os dois de <em>hover</em>. Emenda <code>REQ-CNV-031</code>/<code>089</code>.</td></tr>
+            <tr><td class="did">D23</td><td>Sub-personagem herda a autoria do pai; ganha spec própria</td><td>"Os meus" resolve-se por posse simples.</td></tr>
+            <tr><td class="did">D24</td><td><strong>Visão e névoa fora</strong>; só o lugar fica pronto</td><td>Alcance maior que a spec — ver §4.</td></tr>
+            <tr><td class="did">D25</td><td>Movimento valida <strong>permissão</strong>; colisão sai</td><td><a href="https://github.com/xansde/fusion/issues/166">#166</a> vira código a remover.</td></tr>
+            <tr><td class="did">D26</td><td>Concorrência de escrita não é desta spec</td><td>Q5 da <code>04</code> e plano de banco.</td></tr>
+            <tr><td class="did">D27</td><td><strong>Controlar é ser dono do ator.</strong> Só isso.</td><td>Emenda <code>REQ-CHT-022</code>: quem fala é o jogador.</td></tr>
+            <tr><td class="did">D28</td><td>Ícones de status ficam fora da peça</td><td>Direção: espaço na HUD. Emenda <code>REQ-CNV-029</code>.</td></tr>
+            <tr><td class="did">D29</td><td>Sistema/addon declara dado próprio via <code>flags</code></td><td>Mecanismo já existe. A engine não interpreta.</td></tr>
+            <tr><td class="did">D30</td><td>Forma persistida: <strong>herda o adiamento do banco</strong> e escreve o gatilho</td><td>Embutida hoje; revisão condicionada a sessão real medida.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2><span class="num">§3</span>O modelo e o contrato</h2>
+
+      <h3>Contrato de invocação <span class="tag good">D10</span></h3>
+
+      <div class="grid grid-2">
+        <div class="card good">
+          <h4>Obrigatório</h4>
+          <p><code>actorId</code> · <code>x</code>, <code>y</code> · a cena (vem do embedding)</p>
+          <p style="font-size:.87rem;color:var(--fg-dim)">Quem, onde, em qual cena.</p>
+        </div>
+        <div class="card info">
+          <h4>Sobrescrevível — ausente, herda</h4>
+          <p><code>actorLink</code> · <code>hidden</code> · <code>disposition</code> · <code>name</code> · <code>rotation</code>, <code>elevation</code> · <code>bar1</code>, <code>bar2</code> (do sistema)</p>
+        </div>
+        <div class="card warn">
+          <h4>Derivado — servidor calcula e NÃO aceita</h4>
+          <p>footprint (do ator, via sistema) · arte (o campo nem existe) · ownership (deriva)</p>
+        </div>
+        <div class="card bad">
+          <h4>Recusado</h4>
+          <p><code>actorDelta</code> na criação — só por <code>token:updateActor</code> (<code>REQ-DOC-034</code>).</p>
+        </div>
+      </div>
+
+      <div class="card bad">
+        <h4><span class="tag bad">lição do projeto</span> Recusar, não ignorar em silêncio</h4>
+        <p>
+          A lição da T025 no plano de banco: <em>"o servidor lê" ≠ "o requisitante não
+          escreve"</em>. Campo derivado que o servidor recalcula mas <strong>aceita</strong> no
+          payload é campo que alguém vai escrever — com o teste da derivação verde o tempo todo.
+          Derivados e recusados precisam de rejeição explícita e de teste que reproduza a
+          escrita indevida.
+        </p>
+      </div>
+
+      <h3>O modelo que sai das decisões</h3>
+
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Campo</th><th>Situação</th><th>Regra</th></tr></thead>
+          <tbody>
+            <tr><td><code>_id</code></td><td class="cell-good">existe</td><td>identidade da peça</td></tr>
+            <tr><td><code>actorId</code></td><td class="cell-good">obrigatório</td><td><code>null</code> recusado <span class="did">D11</span></td></tr>
+            <tr><td><code>x</code>, <code>y</code></td><td class="cell-good">obrigatório</td><td>onde</td></tr>
+            <tr><td><code>actorLink</code></td><td class="cell-good">existe</td><td>configuração da peça <span class="did">D8</span></td></tr>
+            <tr><td><code>actorDelta</code></td><td class="cell-good">existe</td><td>só por <code>token:updateActor</code></td></tr>
+            <tr><td><code>hidden</code> + lista</td><td class="cell-good">existe</td><td>ocultação por usuário <span class="did">D21</span></td></tr>
+            <tr><td><code>disposition</code></td><td class="cell-good">3 valores</td><td>herda do ator <span class="did">D2</span></td></tr>
+            <tr><td><code>name</code></td><td class="cell-good">existe</td><td>herda; sobrescrevível; é rótulo, não ocultação <span class="did">D16</span></td></tr>
+            <tr><td><code>rotation</code>, <code>elevation</code></td><td class="cell-good">existe</td><td>default 0</td></tr>
+            <tr><td><code>vision</code>, <code>light</code></td><td class="cell-warn">inerte</td><td>lugar reservado, sem comportamento <span class="did">D24</span></td></tr>
+            <tr><td><code>bar1</code>, <code>bar2</code></td><td class="cell-good">existe</td><td>herda do sistema (<code>REQ-SYS-004</code>)</td></tr>
+            <tr><td><code>displayName</code>, <code>displayBars</code></td><td class="cell-good">3 níveis</td><td><code>never</code>/<code>owner</code>/<code>always</code> <span class="did">D22</span></td></tr>
+            <tr><td><code>flags</code></td><td class="cell-good">existe</td><td>extensão de sistema e addon <span class="did">D29</span></td></tr>
+            <tr><td>arte</td><td class="cell-bad">não existe</td><td>derivada do ator efetivo <span class="did">D1</span></td></tr>
+            <tr><td><code>width</code>, <code>height</code></td><td class="cell-bad">derivado</td><td>do tamanho do ator, via sistema <span class="did">D7</span></td></tr>
+            <tr><td><code>ownership</code></td><td class="cell-bad">não existe</td><td>deriva do ator <span class="did">D27</span></td></tr>
+            <tr><td><code>locked</code></td><td class="cell-bad">removido</td><td><span class="did">D15</span></td></tr>
+            <tr><td><code>scale</code>, <code>mirror</code>, <code>tint</code>, <code>alpha</code></td><td class="cell-bad">removidos</td><td><span class="did">D18</span></td></tr>
+            <tr><td>ícones de status</td><td class="cell-bad">fora</td><td>vão para a HUD <span class="did">D28</span></td></tr>
+            <tr><td>ordem de desenho</td><td class="cell-bad">sem campo</td><td>FIFO, ordem da coleção <span class="did">D20</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2><span class="num">§4</span>Decisões com alcance maior que esta spec</h2>
+
+      <div class="card bad">
+        <h4><span class="tag bad">escopo do projeto</span> Tirar visão e névoa mexe em quatro documentos</h4>
+        <p>
+          D24 tira visão/névoa <strong>desta spec</strong>. Tirar do projeto é outra coisa:
+          visão/névoa está escrita como <strong>[MVP]</strong> na spec <code>07</code> inteira,
+          no MVP global de <code>00</code> (<code>REQ-ESC-006/007</code>), no marco M2 de
+          <code>27</code> e no <code>CLAUDE.md</code>. As issues
+          <a href="https://github.com/xansde/fusion/issues/164">#164</a> e
+          <a href="https://github.com/xansde/fusion/issues/166">#166</a> deixariam de ser
+          defeito a corrigir e virariam código a remover.
+        </p>
+        <p><strong>Não é decisão da <code>41</code>.</strong> Fica registrada como pendência de escopo.</p>
+      </div>
+
+      <div class="card warn">
+        <h4><span class="tag warn">a sinalizar</span> A <code>09</code> perde a base do falante</h4>
+        <p>
+          D27 fixa que quem fala é o jogador, nunca a peça. <code>REQ-CHT-022</code> resolve o
+          <code>speaker</code> por "token controlado na cena ativa" e precisa ser reescrito; os
+          chat bubbles (<code>REQ-CHT-041</code>/<code>043</code>) perdem a âncora junto.
+        </p>
+      </div>
+
+      <h2><span class="num">§5</span>As sete confirmações que faltam</h2>
+
+      <p>Nenhuma bloqueia a redação — todas têm proposta formulada.</p>
+
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Ponto</th><th>Proposta</th></tr></thead>
+          <tbody>
+            <tr><td>Quem pode excluir uma peça</td><td>Quem pode criá-la: papel privilegiado, mais o dono do ator sobre as peças dele.</td></tr>
+            <tr><td>Cópia crua de peça <em>vinculada</em></td><td>Peça vinculada não tem estado próprio; os dois gestos colapsam em um.</td></tr>
+            <tr><td>Sub-personagem: <code>29</code> ou spec nova?</td><td>Se é familiar/pet/companion, é a <code>29</code>. Se é mais amplo, toma o <strong>47</strong>.</td></tr>
+            <tr><td>Borda por disposição fica?</td><td>Fica — sem ela a disposição de D2 não aparece em lugar nenhum.</td></tr>
+            <tr><td>Defaults de exibição</td><td>Nome <code>always</code>, barras <code>owner</code>.</td></tr>
+            <tr><td>Numeração quando uma peça some</td><td>Contador só cresce (não reaproveita o buraco) — evita dois "Esqueleto 3" na sessão.</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/166">#166</a> vira código a remover?</td><td>Sim, se D24 valer para o projeto e não só para a spec.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2><span class="num">§6</span>Governança e fronteira</h2>
+
+      <p>
+        Duas regras do <code>CONVENCOES.md</code> §4 puxam em direções opostas:
+        <strong><code>prefixo-com-dono</code></strong> (só a dona define ids da área) e
+        <strong><code>id-unico</code></strong> (um id nomeia um item para sempre; renumerar
+        invalida citação em código, teste e issue). Logo, a <code>41</code>
+        <strong>não pode</strong> transformar <code>REQ-CNV-025..033</code> em
+        <code>REQ-TOK-*</code>.
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>Caminho:</strong> emenda no lugar, como a <code>44</code> fez com
+          <code>REQ-CNV-070</code> (manteve o id, acrescentou <code>070a</code> e um bloco
+          "Emenda obrigada pela spec 44"). A <code>41</code> fica dona do que é novo — o que a
+          peça é, contrato de invocação, vínculo, controle, ciclo de vida, identidade — e emenda
+          as demais onde elas já decidem.
+        </p>
+        <p>
+          <strong>Exceção deliberada:</strong> a <strong>forma persistida</strong>. As
+          contradições eram todas de schema; uma spec que só emendasse comportamento deixaria a
+          divergência de nomes viva. A <code>41</code> reivindica a tabela de campos inteira.
+        </p>
+      </div>
+
+      <h2><span class="num">§7</span>Defeitos registrados</h2>
+
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>#</th><th>Defeito</th><th>Grav.</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/164">164</a></td><td>Visão do jogador nunca abre: "controle" tem duas implementações e a errada decide</td><td class="cell-bad">alta</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/165">165</a></td><td>Barra de HP desenhada sempre cheia (viola <code>REQ-CNV-090</code>)</td><td class="cell-bad">alta</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/166">166</a></td><td>Colisão de parede ignora o footprint</td><td class="cell-warn">média</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/167">167</a></td><td>Peça nasce 1×1 e neutra (fechado por D7)</td><td class="cell-warn">média</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/168">168</a></td><td><code>token:preview</code> só existe como literal no protocolo</td><td class="cell-dim">baixa</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/169">169</a></td><td><code>token:move</code> reescreve a coleção inteira: ~58× de amplificação</td><td class="cell-warn">média</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/170">170</a></td><td><code>ActorDragPayload.uuid</code> carrega um <code>_id</code></td><td class="cell-dim">baixa</td></tr>
+            <tr><td><a href="https://github.com/xansde/fusion/issues/171">171</a></td><td><code>REQ-NPC-061</code> contradiz DEC-ATR-09</td><td class="cell-dim">baixa</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2><span class="num">§8</span>Riscos de redação</h2>
+
+      <div class="grid grid-2">
+        <div class="card warn">
+          <h4>Emenda que não desce ao requisito</h4>
+          <p>
+            É o defeito <a href="https://github.com/xansde/fusion/issues/171">#171</a> e o da
+            DEC-CNV-15 (mudou o nível e esqueceu o bloco TypeScript). A <code>41</code> emenda
+            <strong>onze</strong> pontos — cada um precisa tocar o <strong>requisito</strong>,
+            não só o texto da decisão.
+          </p>
+        </div>
+        <div class="card warn">
+          <h4>Rótulo sem semântica</h4>
+          <p>
+            D3 moveu o corte para OWNER e D22 cortou para três níveis. Manter o nome
+            <code>observer</code> significando OWNER seria a pior saída: o próximo leitor lê o
+            nível pelo nome e erra.
+          </p>
+        </div>
+        <div class="card warn">
+          <h4>Requisito não-testável sobre desenho</h4>
+          <p>
+            <code>CONVENCOES.md</code> §6: <em>"se não dá para escrever o teste que o refuta,
+            ainda é uma decisão, não um requisito"</em>. A <code>06</code> tem 6% de cobertura —
+            a <code>41</code> não deve engrossar as promessas não-conferíveis.
+          </p>
+        </div>
+        <div class="card warn">
+          <h4>Adiamento sem gatilho</h4>
+          <p>
+            Três decisões adiam (D11 peça sem ator, D19 ring, D30 forma persistida). Adiamento
+            sem condição escrita foi o que produziu esta lacuna — cada um precisa dizer o que o
+            destrava.
+          </p>
+        </div>
+      </div>
+
+      <footer class="doc">
+        Insumo de trabalho, não spec. Racional completo em <code>decisoes.md</code>.
+        Levantamento sobre <code>alfa/app</code> @ <code>0d87602</code>; trinta decisões tomadas
+        na sessão de 2026-08-16. Nenhuma spec foi alterada ainda.
+      </footer>
+    </div>
+  </body>
+</html>
