@@ -1,12 +1,13 @@
 # Spec 41 — Token · registro de decisões
 
-> Insumo de trabalho, não spec. Vira `DEC-TOK-nn` quando a `41` for escrita.
+> Insumo de trabalho, não spec. **A spec existe:** [`specs/41-token.md`](../../../specs/41-token.md),
+> onde estas decisões viraram `DEC-TOK-01..22`. Este arquivo permanece como o **racional
+> completo** de cada uma — o porquê, o que se recusou e o que sobrou —, que a spec resume.
 > Companheiro de [`estudo-token.html`](estudo-token.html), que levanta os problemas, e de
-> [`prototipo-token.html`](prototipo-token.html), que executa o modelo decidido e verifica
-> sozinho um contrato de 18 expectativas. Este arquivo guarda o que foi **decidido**, com o que
-> cada decisão obriga.
+> [`prototipo-token.html`](prototipo-token.html), que executa o modelo e verifica sozinho um
+> contrato de 19 expectativas.
 >
-> Decisor: Alexandre · sessões de 2026-08-16 (D1–D30) e 2026-08-17 (D31–D33, revisão de D19/D22).
+> Decisor: Alexandre · sessões de 2026-08-16 (D1–D30) e 2026-08-17 (D31–D34, revisão de D19/D22).
 
 ## Definição de trabalho
 
@@ -228,7 +229,7 @@ O corte é o modelo de conhecimento da `39` (par contato × personagem), não um
 
 ### D32 — Exibir nome e barra na cena é preferência do usuário
 
-Separadas as três camadas: o **servidor** decide o que você *pode* ver (posse para vida,
+Separadas as três camadas: o **servidor** decide o que você _pode_ ver (posse para vida,
 conhecimento para nome), a **peça** guarda posição e vínculo, e o **usuário** escolhe, em
 configurações, se quer aquilo desenhado na tela.
 
@@ -258,7 +259,7 @@ permissão continua sendo a de D27 — só move quem é OWNER do ator —, e a c
 - **Sem diagonal.** Quatro direções. Atravessar na diagonal custa duas teclas; trocado de
   propósito por não inventar gesto composto (duas setas simultâneas) num MVP.
 - **Não confundir com passo de regra.** "Uma célula por tecla" é gesto de interface. Quanto a
-  criatura *pode* andar é do sistema (`15`) e do combate (`10`); a `41` não conta deslocamento.
+  criatura _pode_ andar é do sistema (`15`) e do combate (`10`); a `41` não conta deslocamento.
 
 ### D34 — Pôr peça na cena, copiar e tirar são do Mestre
 
@@ -392,11 +393,11 @@ armadilha. Abre espaço para percepção passiva no futuro.
 
 Os cinco níveis herdados do Foundry viram **três**, aplicados a nome e barras:
 
-| Nível | Quem vê |
-| --- | --- |
-| `never` | ninguém — nem o Mestre |
-| `owner` | quem é dono do ator (D3), mais papel privilegiado |
-| `always` | todos que enxergam a peça |
+| Nível    | Quem vê                                           |
+| -------- | ------------------------------------------------- |
+| `never`  | ninguém — nem o Mestre                            |
+| `owner`  | quem é dono do ator (D3), mais papel privilegiado |
+| `always` | todos que enxergam a peça                         |
 
 - **O rótulo acompanha a semântica** (risco registrado em §10 do estudo): como D3 moveu o corte
   para OWNER, o nível chama-se `owner`. Manter `observer` significando OWNER seria a pior
@@ -532,10 +533,10 @@ Excluído o ator, **todas as peças dele somem** — em todas as cenas.
 
 Duplicar uma peça tem **dois modos**:
 
-| Modo | Gesto sugerido | O que copia |
-| --- | --- | --- |
-| **Crua** | `Ctrl` + arrastar | a peça como se acabasse de nascer — estado vivo zerado (vida cheia) |
-| **Idêntica** | `Ctrl` + `Alt` + arrastar | a peça como está, estado vivo incluído |
+| Modo         | Gesto sugerido            | O que copia                                                         |
+| ------------ | ------------------------- | ------------------------------------------------------------------- |
+| **Crua**     | `Ctrl` + arrastar         | a peça como se acabasse de nascer — estado vivo zerado (vida cheia) |
+| **Idêntica** | `Ctrl` + `Alt` + arrastar | a peça como está, estado vivo incluído                              |
 
 - **Refina `REQ-CNV-041`**, hoje [V2] e prevendo só um gesto.
 - **O gesto é da `06`; os dois modos são desta spec.** Mesma disciplina de D10: a `41` diz que
@@ -599,36 +600,36 @@ e o que ela recusa.
 
 **Obrigatório — sem isto não há peça:**
 
-| Dado | Por quê |
-| --- | --- |
+| Dado      | Por quê                                                                          |
+| --------- | -------------------------------------------------------------------------------- |
 | `actorId` | quem está sendo manifestado. Obrigatório sempre (D11); `null` DEVE ser recusado. |
-| `x`, `y` | onde. |
-| cena | em qual — vem do embedding, não do payload. |
+| `x`, `y`  | onde.                                                                            |
+| cena      | em qual — vem do embedding, não do payload.                                      |
 
 **Aceito como sobrescrita — se ausente, herda:**
 
-| Dado | Herda de |
-| --- | --- |
-| `actorLink` | default por subtipo (`REQ-DOC-061`), configurável (D8) |
-| `hidden` | default visível — a emboscada sobrescreve |
-| `disposition` | do ator |
-| `name` | do ator |
-| `rotation`, `elevation` | zero |
-| visão, luz | do ator |
-| `bar1`, `bar2` | do sistema (`REQ-SYS-004`: `primaryBarAttribute`/`secondaryBarAttribute`) |
+| Dado                    | Herda de                                                                  |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `actorLink`             | default por subtipo (`REQ-DOC-061`), configurável (D8)                    |
+| `hidden`                | default visível — a emboscada sobrescreve                                 |
+| `disposition`           | do ator                                                                   |
+| `name`                  | do ator                                                                   |
+| `rotation`, `elevation` | zero                                                                      |
+| visão, luz              | do ator                                                                   |
+| `bar1`, `bar2`          | do sistema (`REQ-SYS-004`: `primaryBarAttribute`/`secondaryBarAttribute`) |
 
 **Derivado — o servidor calcula e NÃO aceita do requisitante:**
 
-| Dado | Regra |
-| --- | --- |
-| footprint (tamanho) | do ator, convertido pelo sistema (D7) |
-| arte | do ator efetivo (D1) — o campo nem existe |
-| ownership | não existe na peça; deriva do ator |
+| Dado                | Regra                                     |
+| ------------------- | ----------------------------------------- |
+| footprint (tamanho) | do ator, convertido pelo sistema (D7)     |
+| arte                | do ator efetivo (D1) — o campo nem existe |
+| ownership           | não existe na peça; deriva do ator        |
 
 **Recusado explicitamente:**
 
-| Dado | Por quê |
-| --- | --- |
+| Dado         | Por quê                                                              |
+| ------------ | -------------------------------------------------------------------- |
 | `actorDelta` | só entra por `token:updateActor` (`REQ-DOC-034`), nunca pela criação |
 
 > **Recusar, não ignorar em silêncio.** Vale aqui a lição da T025 registrada no plano de banco:
@@ -645,16 +646,16 @@ Levantados no `estudo-token.html` §5 e abertos em `xansde/fusion` em 2026-08-16
 tarefa da spec resolver; vários existem **porque** não há um lugar único que diga o que é
 verdade.
 
-| # | Defeito | Gravidade |
-| --- | --- | --- |
-| [#164](https://github.com/xansde/fusion/issues/164) | Visão do jogador nunca abre: "controle de token" tem duas implementações e a errada decide | alta |
-| [#165](https://github.com/xansde/fusion/issues/165) | Barra de HP desenhada sempre cheia como placeholder (viola `REQ-CNV-090`) | alta |
-| [#166](https://github.com/xansde/fusion/issues/166) | Colisão de parede ignora o footprint: peça grande atravessa | média |
-| [#167](https://github.com/xansde/fusion/issues/167) | Token nasce sempre 1x1 e neutro: tamanho e disposição não herdados (fechado por D7) | média |
-| [#168](https://github.com/xansde/fusion/issues/168) | `token:preview` (`REQ-NET-044`, MVP) só existe como literal no protocolo | baixa |
-| [#169](https://github.com/xansde/fusion/issues/169) | `token:move` reescreve a coleção inteira: ~58x de amplificação medida | média |
-| [#170](https://github.com/xansde/fusion/issues/170) | `ActorDragPayload.uuid` carrega um `_id`, não um UUID | baixa |
-| [#171](https://github.com/xansde/fusion/issues/171) | `REQ-NPC-061` contradiz DEC-ATR-09: a emenda do baú não desceu ao requisito | baixa |
+| #                                                   | Defeito                                                                                    | Gravidade |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------- |
+| [#164](https://github.com/xansde/fusion/issues/164) | Visão do jogador nunca abre: "controle de token" tem duas implementações e a errada decide | alta      |
+| [#165](https://github.com/xansde/fusion/issues/165) | Barra de HP desenhada sempre cheia como placeholder (viola `REQ-CNV-090`)                  | alta      |
+| [#166](https://github.com/xansde/fusion/issues/166) | Colisão de parede ignora o footprint: peça grande atravessa                                | média     |
+| [#167](https://github.com/xansde/fusion/issues/167) | Token nasce sempre 1x1 e neutro: tamanho e disposição não herdados (fechado por D7)        | média     |
+| [#168](https://github.com/xansde/fusion/issues/168) | `token:preview` (`REQ-NET-044`, MVP) só existe como literal no protocolo                   | baixa     |
+| [#169](https://github.com/xansde/fusion/issues/169) | `token:move` reescreve a coleção inteira: ~58x de amplificação medida                      | média     |
+| [#170](https://github.com/xansde/fusion/issues/170) | `ActorDragPayload.uuid` carrega um `_id`, não um UUID                                      | baixa     |
+| [#171](https://github.com/xansde/fusion/issues/171) | `REQ-NPC-061` contradiz DEC-ATR-09: a emenda do baú não desceu ao requisito                | baixa     |
 
 ---
 
@@ -682,7 +683,6 @@ server-side. O precedente **não está de pé nesta linha** — o argumento cont
 recorte vem do ownership do Actor e é feito no servidor), mas a `41` deve citá-lo pelo que ele
 é: uma decisão da `28`, cuja superfície não existe aqui. Melhor ancorar em `REQ-NET-096` e
 `REQ-DOC-062`, que estão vivos e implementados.
-
 
 ### D-PEND-10 — Três níveis de exibição bastam? · **RESPONDIDA: nenhum nível**
 
@@ -736,18 +736,18 @@ cena já disputam a mesma linha do banco.
 
 ## Testes da definição
 
-| Caso | Veredito | Nota |
-| --- | --- | --- |
-| Corpo caído / saqueável | ✅ | Melhor caso a favor: o ator ganha a faceta `container` e **a peça não muda**. Token é endereço, não identidade. |
-| Baú | ✅ | É ator com faceta `container` (`45`, DEC-ATR-09). Contradição viva encontrada → issue #171. |
-| Perigo / armadilha | ✅ | Tem ficha e ocupa lugar. Prova que ser fonte de visão é **opcional**, não constitutivo. |
-| Familiar / companion | ✅ | Ator completo com peça própria; o vínculo (`masterActorId`) é entre **atores**, não entre peças. |
-| Montaria | ✅ | Duas criaturas, duas peças. O **acoplamento de movimento** fica em aberto ([V2] pela `29`). |
-| Veículo | ✅ | Eliminado de graça: "veículo não existe no Fusion" (`42`, DEC-NPC-05). |
-| Invocação temporária | ✅ | Criatura como outra qualquer. |
-| Mesmo ator, várias peças na cena | ✅ | Passa, mas exige afirmação de cardinalidade (D-PEND-02). |
-| Mesmo ator em várias cenas | ✅ | Normal. Confirma que a peça é **por cena**, não do ator. |
-| Parede, luz, som, desenho, template, nota, overlay, tile | ✅ | Têm posição, não manifestam ator. Corte limpo. |
-| POI de mapa de região (`34`), avatar LPC (`35`) | ✅ | Fora. A `35` já se declara fora explicitamente. |
-| Chat bubble, turn marker, retícula de alvo | ✅ | Não são peças — são adornos ancorados numa. |
-| **Token sem ator** | 🚫 | Único caso que quebrava a definição — **proibido por D11**, adiado para decisão com calma. Com ele fora, a definição vale sem exceção. |
+| Caso                                                     | Veredito | Nota                                                                                                                                   |
+| -------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Corpo caído / saqueável                                  | ✅       | Melhor caso a favor: o ator ganha a faceta `container` e **a peça não muda**. Token é endereço, não identidade.                        |
+| Baú                                                      | ✅       | É ator com faceta `container` (`45`, DEC-ATR-09). Contradição viva encontrada → issue #171.                                            |
+| Perigo / armadilha                                       | ✅       | Tem ficha e ocupa lugar. Prova que ser fonte de visão é **opcional**, não constitutivo.                                                |
+| Familiar / companion                                     | ✅       | Ator completo com peça própria; o vínculo (`masterActorId`) é entre **atores**, não entre peças.                                       |
+| Montaria                                                 | ✅       | Duas criaturas, duas peças. O **acoplamento de movimento** fica em aberto ([V2] pela `29`).                                            |
+| Veículo                                                  | ✅       | Eliminado de graça: "veículo não existe no Fusion" (`42`, DEC-NPC-05).                                                                 |
+| Invocação temporária                                     | ✅       | Criatura como outra qualquer.                                                                                                          |
+| Mesmo ator, várias peças na cena                         | ✅       | Passa, mas exige afirmação de cardinalidade (D-PEND-02).                                                                               |
+| Mesmo ator em várias cenas                               | ✅       | Normal. Confirma que a peça é **por cena**, não do ator.                                                                               |
+| Parede, luz, som, desenho, template, nota, overlay, tile | ✅       | Têm posição, não manifestam ator. Corte limpo.                                                                                         |
+| POI de mapa de região (`34`), avatar LPC (`35`)          | ✅       | Fora. A `35` já se declara fora explicitamente.                                                                                        |
+| Chat bubble, turn marker, retícula de alvo               | ✅       | Não são peças — são adornos ancorados numa.                                                                                            |
+| **Token sem ator**                                       | 🚫       | Único caso que quebrava a definição — **proibido por D11**, adiado para decisão com calma. Com ele fora, a definição vale sem exceção. |

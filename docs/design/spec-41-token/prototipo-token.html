@@ -1,4 +1,4 @@
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>Protótipo — Token (spec 41)</title>
 <style>
   :root {
@@ -18,118 +18,358 @@
     --friendly: #7bd88f;
     --cell: 64px;
   }
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
   body {
-    margin: 0; background: var(--bg); color: var(--fg);
-    font: 14px/1.55 "Segoe UI", system-ui, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font:
+      14px/1.55 "Segoe UI",
+      system-ui,
+      sans-serif;
   }
   header {
-    padding: 18px 24px 14px; border-bottom: 1px solid var(--line);
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--line);
     background: var(--bg-2);
   }
-  header h1 { margin: 0 0 4px; font-size: 19px; letter-spacing: .2px; }
-  header p { margin: 0; color: var(--fg-dim); font-size: 13px; max-width: 92ch; }
-  .wrap { display: grid; grid-template-columns: 268px 1fr 330px; gap: 0; align-items: start; }
-  .col { padding: 16px 18px; }
-  .col + .col { border-left: 1px solid var(--line); }
-  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-mute);
-       margin: 22px 0 10px; font-weight: 600; }
-  h2:first-child { margin-top: 0; }
-  label.row { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; font-size: 13px; }
-  select, button {
-    background: var(--bg-3); color: var(--fg); border: 1px solid var(--line);
-    border-radius: 6px; padding: 6px 9px; font: inherit; font-size: 13px; cursor: pointer;
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 19px;
+    letter-spacing: 0.2px;
   }
-  select { width: 100%; }
-  button:hover { border-color: var(--accent); }
-  button.act { width: 100%; text-align: left; margin-bottom: 6px; }
-  .hint { color: var(--fg-mute); font-size: 11.5px; margin: 4px 0 0; line-height: 1.45; }
-  .dec { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
-  .tagcli { color: var(--warn); font-size: 11px; font-weight: 600; }
+  header p {
+    margin: 0;
+    color: var(--fg-dim);
+    font-size: 13px;
+    max-width: 92ch;
+  }
+  .wrap {
+    display: grid;
+    grid-template-columns: 268px 1fr 330px;
+    gap: 0;
+    align-items: start;
+  }
+  .col {
+    padding: 16px 18px;
+  }
+  .col + .col {
+    border-left: 1px solid var(--line);
+  }
+  h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-mute);
+    margin: 22px 0 10px;
+    font-weight: 600;
+  }
+  h2:first-child {
+    margin-top: 0;
+  }
+  label.row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  select,
+  button {
+    background: var(--bg-3);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  select {
+    width: 100%;
+  }
+  button:hover {
+    border-color: var(--accent);
+  }
+  button.act {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 6px;
+  }
+  .hint {
+    color: var(--fg-mute);
+    font-size: 11.5px;
+    margin: 4px 0 0;
+    line-height: 1.45;
+  }
+  .dec {
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .tagcli {
+    color: var(--warn);
+    font-size: 11px;
+    font-weight: 600;
+  }
 
   /* ---------- cena ---------- */
-  #stage-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  #stage-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
   #stage {
-    position: relative; width: calc(var(--cell) * 12); height: calc(var(--cell) * 8);
+    position: relative;
+    width: calc(var(--cell) * 12);
+    height: calc(var(--cell) * 8);
     background:
       repeating-linear-gradient(to right, #2a2f3d 0 1px, transparent 1px var(--cell)),
       repeating-linear-gradient(to bottom, #2a2f3d 0 1px, transparent 1px var(--cell)),
       radial-gradient(ellipse at 30% 20%, #262b38, #1a1d26 70%);
-    border: 1px solid var(--line); border-radius: 4px; overflow: hidden;
-    touch-action: none; user-select: none; outline: none;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    outline: none;
   }
-  #stage:focus-visible { border-color: var(--accent); }
-  .tk { position: absolute; display: flex; align-items: center; justify-content: center;
-        cursor: grab; transition: left .09s ease-out, top .09s ease-out; }
-  .tk.dragging { cursor: grabbing; opacity: .85; transition: none; }
+  #stage:focus-visible {
+    border-color: var(--accent);
+  }
+  .tk {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition:
+      left 0.09s ease-out,
+      top 0.09s ease-out;
+  }
+  .tk.dragging {
+    cursor: grabbing;
+    opacity: 0.85;
+    transition: none;
+  }
   .tk .disc {
-    width: 84%; height: 84%; border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-size: 26px; background: #2f3546;
-    border: 3px solid transparent; box-shadow: 0 2px 8px #0007;
+    width: 84%;
+    height: 84%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    background: #2f3546;
+    border: 3px solid transparent;
+    box-shadow: 0 2px 8px #0007;
   }
-  .tk.sel .disc { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .tk.sel .disc {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
   .tk .nome {
-    position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
-    font-size: 10.5px; white-space: nowrap; background: #0d0f14cc; padding: 1px 5px;
-    border-radius: 3px; color: #dfe3ec;
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10.5px;
+    white-space: nowrap;
+    background: #0d0f14cc;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #dfe3ec;
   }
   .tk .bar {
-    position: absolute; top: -7px; left: 8%; width: 84%; height: 5px;
-    background: #0d0f14; border: 1px solid #000a; border-radius: 2px; overflow: hidden;
+    position: absolute;
+    top: -7px;
+    left: 8%;
+    width: 84%;
+    height: 5px;
+    background: #0d0f14;
+    border: 1px solid #000a;
+    border-radius: 2px;
+    overflow: hidden;
   }
-  .tk .bar i { display: block; height: 100%; }
+  .tk .bar i {
+    display: block;
+    height: 100%;
+  }
   .tk .flag {
-    position: absolute; top: -6px; right: -4px; font-size: 9.5px; background: #0d0f14cc;
-    border: 1px solid var(--line); border-radius: 3px; padding: 0 3px; color: var(--fg-dim);
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    font-size: 9.5px;
+    background: #0d0f14cc;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0 3px;
+    color: var(--fg-dim);
   }
   #toast {
-    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
-    background: #2a1b22; border: 1px solid var(--bad); color: #ffd9de;
-    padding: 8px 14px; border-radius: 6px; font-size: 13px; opacity: 0;
-    transition: opacity .2s; pointer-events: none; z-index: 50; max-width: 70ch;
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    background: #2a1b22;
+    border: 1px solid var(--bad);
+    color: #ffd9de;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 50;
+    max-width: 70ch;
   }
-  #toast.on { opacity: 1; }
-  .legenda { color: var(--fg-mute); font-size: 12px; text-align: center; line-height: 1.9; }
-  kbd { background: var(--bg-3); border: 1px solid var(--line); border-bottom-width: 2px;
-        border-radius: 4px; padding: 0 5px; font: 11px monospace; color: var(--fg-dim); }
+  #toast.on {
+    opacity: 1;
+  }
+  .legenda {
+    color: var(--fg-mute);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.9;
+  }
+  kbd {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 5px;
+    font: 11px monospace;
+    color: var(--fg-dim);
+  }
 
   /* ---------- inspetor ---------- */
-  table.kv { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  table.kv td { padding: 3px 0; vertical-align: top; border-bottom: 1px solid #262b36; }
-  table.kv td:first-child { color: var(--fg-dim); width: 42%; }
-  code { font: 12px ui-monospace, Consolas, monospace; color: #cfd6e6; }
-  .naoexiste { color: var(--fg-mute); font-size: 12px; line-height: 1.8; }
-  .naoexiste code { color: var(--fg-mute); text-decoration: line-through; }
-  pre { background: #0f1117; border: 1px solid var(--line); border-radius: 6px;
-        padding: 10px; font: 11.5px ui-monospace, Consolas, monospace; overflow-x: auto;
-        color: #b9c2d6; max-height: 230px; }
+  table.kv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  table.kv td {
+    padding: 3px 0;
+    vertical-align: top;
+    border-bottom: 1px solid #262b36;
+  }
+  table.kv td:first-child {
+    color: var(--fg-dim);
+    width: 42%;
+  }
+  code {
+    font:
+      12px ui-monospace,
+      Consolas,
+      monospace;
+    color: #cfd6e6;
+  }
+  .naoexiste {
+    color: var(--fg-mute);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .naoexiste code {
+    color: var(--fg-mute);
+    text-decoration: line-through;
+  }
+  pre {
+    background: #0f1117;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px;
+    font:
+      11.5px ui-monospace,
+      Consolas,
+      monospace;
+    overflow-x: auto;
+    color: #b9c2d6;
+    max-height: 230px;
+  }
 
   /* ---------- contrato ---------- */
-  section.contrato { border-top: 1px solid var(--line); padding: 20px 24px 40px; background: var(--bg-2); }
-  section.contrato h2 { margin-top: 0; }
-  .chk { display: grid; grid-template-columns: 26px 1fr 104px; gap: 10px; align-items: start;
-         padding: 8px 0; border-bottom: 1px solid #262b36; font-size: 13px; }
-  .chk .st { font-weight: 700; text-align: center; }
-  .chk .st.p { color: var(--ok); }
-  .chk .st.f { color: var(--bad); }
-  .chk .det { color: var(--fg-mute); font-size: 11.5px; }
-  .chk .ref { color: var(--accent); font-size: 11px; text-align: right; }
-  .pend { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 10px 0;
-          background: var(--bg-3); }
-  .pend h3 { margin: 0 0 4px; font-size: 13.5px; }
-  .pend p { margin: 0 0 8px; font-size: 12.5px; color: var(--fg-dim); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 1240px) { .wrap { grid-template-columns: 1fr; } .col + .col { border-left: 0; border-top: 1px solid var(--line); } }
+  section.contrato {
+    border-top: 1px solid var(--line);
+    padding: 20px 24px 40px;
+    background: var(--bg-2);
+  }
+  section.contrato h2 {
+    margin-top: 0;
+  }
+  .chk {
+    display: grid;
+    grid-template-columns: 26px 1fr 104px;
+    gap: 10px;
+    align-items: start;
+    padding: 8px 0;
+    border-bottom: 1px solid #262b36;
+    font-size: 13px;
+  }
+  .chk .st {
+    font-weight: 700;
+    text-align: center;
+  }
+  .chk .st.p {
+    color: var(--ok);
+  }
+  .chk .st.f {
+    color: var(--bad);
+  }
+  .chk .det {
+    color: var(--fg-mute);
+    font-size: 11.5px;
+  }
+  .chk .ref {
+    color: var(--accent);
+    font-size: 11px;
+    text-align: right;
+  }
+  .pend {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    background: var(--bg-3);
+  }
+  .pend h3 {
+    margin: 0 0 4px;
+    font-size: 13.5px;
+  }
+  .pend p {
+    margin: 0 0 8px;
+    font-size: 12.5px;
+    color: var(--fg-dim);
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 1240px) {
+    .wrap {
+      grid-template-columns: 1fr;
+    }
+    .col + .col {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+  }
 </style>
 
 <header>
   <h1>Protótipo de Token — spec 41</h1>
-  <p>Maquete executável das decisões, para <b>ver</b> o que cada uma produz antes de escrever o
-  texto. Tudo aqui é derivado do modelo decidido — a peça não tem arte, tamanho, posse nem nome
-  visível próprios. Três camadas separadas, e a spec precisa não confundi-las: o que o
-  <b>servidor manda</b> (posse e conhecimento), o que a <b>peça é</b> (posição e vínculo), e o
-  que o <b>usuário escolhe ver</b>. Embaixo, o contrato de expectativas roda sozinho contra o
-  modelo.</p>
+  <p>
+    Maquete executável das decisões, para <b>ver</b> o que cada uma produz antes de escrever o
+    texto. Tudo aqui é derivado do modelo decidido — a peça não tem arte, tamanho, posse nem nome
+    visível próprios. Três camadas separadas, e a spec precisa não confundi-las: o que o
+    <b>servidor manda</b> (posse e conhecimento), o que a <b>peça é</b> (posição e vínculo), e o que
+    o <b>usuário escolhe ver</b>. Embaixo, o contrato de expectativas roda sozinho contra o modelo.
+  </p>
 </header>
 
 <div class="wrap">
@@ -141,27 +381,39 @@
       <option value="ana">Ana — dona da Aurora</option>
       <option value="bruno">Bruno — dono do Brann</option>
     </select>
-    <p class="hint">A cena é redigida <b>no servidor</b>, por socket. Trocar aqui recalcula o que
-    aquele cliente receberia. <span class="dec">D21 · D31</span></p>
+    <p class="hint">
+      A cena é redigida <b>no servidor</b>, por socket. Trocar aqui recalcula o que aquele cliente
+      receberia. <span class="dec">D21 · D31</span>
+    </p>
 
     <h2>Preferências deste usuário <span class="tagcli">cliente</span></h2>
-    <label class="row"><input type="checkbox" id="prefNomes" checked> Exibir nomes na cena</label>
-    <label class="row"><input type="checkbox" id="prefBarras" checked> Exibir barras na cena</label>
-    <p class="hint">Escolha de quem joga, e só tira da tela o que ele <b>já podia</b> ver.
-    Desligar não muda uma vírgula do payload — confira no inspetor à direita.
-    <span class="dec">D32</span></p>
+    <label class="row"><input type="checkbox" id="prefNomes" checked /> Exibir nomes na cena</label>
+    <label class="row"
+      ><input type="checkbox" id="prefBarras" checked /> Exibir barras na cena</label
+    >
+    <p class="hint">
+      Escolha de quem joga, e só tira da tela o que ele <b>já podia</b> ver. Desligar não muda uma
+      vírgula do payload — confira no inspetor à direita. <span class="dec">D32</span>
+    </p>
 
     <h2>Conhecimento</h2>
     <div id="conhec"></div>
-    <button class="act" id="btConhecer" style="margin-top:8px">Ana passa a conhecer o Kobold</button>
-    <p class="hint">Nome não é nível de exibição: é <b>conhecimento</b>. Quem não conhece o ator
-    não recebe o nome dele. <span class="dec">D31</span></p>
+    <button class="act" id="btConhecer" style="margin-top: 8px">
+      Ana passa a conhecer o Kobold
+    </button>
+    <p class="hint">
+      Nome não é nível de exibição: é <b>conhecimento</b>. Quem não conhece o ator não recebe o nome
+      dele. <span class="dec">D31</span>
+    </p>
 
     <h2>Setting de mundo</h2>
-    <label class="row"><input type="checkbox" id="numera" checked> Numerar peças do mesmo ator</label>
-    <label class="row"><input type="checkbox" id="borda" checked> Borda por disposição</label>
-    <p class="hint">A borda ficou (confirmada). O ring dinâmico saiu.
-    <span class="dec">D17 · D19</span></p>
+    <label class="row"
+      ><input type="checkbox" id="numera" checked /> Numerar peças do mesmo ator</label
+    >
+    <label class="row"><input type="checkbox" id="borda" checked /> Borda por disposição</label>
+    <p class="hint">
+      A borda ficou (confirmada). O ring dinâmico saiu. <span class="dec">D17 · D19</span>
+    </p>
 
     <h2>Eventos de mesa</h2>
     <button class="act" id="btArte">Trocar a arte do ator Kobold</button>
@@ -176,9 +428,11 @@
     <div id="stage-wrap">
       <div id="stage" tabindex="0"></div>
       <p class="legenda">
-        <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> movem a peça selecionada, uma célula por vez, sem diagonal
-        · arrastar também move · <kbd>Tab</kbd> = próxima peça que você controla<br>
-        <kbd>Ctrl</kbd>+arrastar = cópia crua · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+arrastar = cópia idêntica
+        <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> movem a peça selecionada, uma célula por
+        vez, sem diagonal · arrastar também move · <kbd>Tab</kbd> = próxima peça que você
+        controla<br />
+        <kbd>Ctrl</kbd>+arrastar = cópia crua · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+arrastar = cópia
+        idêntica
         <i>(só o Mestre)</i>
       </p>
     </div>
@@ -191,291 +445,387 @@
 
     <h2>O que o servidor mandou para este cliente</h2>
     <pre id="payload"></pre>
-    <p class="hint">Peça oculta não aparece; ator desconhecido chega <b>sem nome</b>. As duas
-    redações são do servidor. As preferências acima não tocam nada disto.
-    <span class="dec">D21 · D31 · D32</span></p>
+    <p class="hint">
+      Peça oculta não aparece; ator desconhecido chega <b>sem nome</b>. As duas redações são do
+      servidor. As preferências acima não tocam nada disto. <span class="dec">D21 · D31 · D32</span>
+    </p>
   </div>
 </div>
 
 <!-- ============ CONTRATO ============ -->
 <section class="contrato">
   <h2>Contrato de expectativas — verificado ao vivo</h2>
-  <p class="hint" style="margin-bottom:12px">Cada linha é uma afirmação que a spec 41 terá de
-  sustentar. O protótipo executa cada uma contra o modelo agora, em todos os pontos de vista —
-  não depende dos controles acima. Se uma virar ✗ ao mexer na cena, a decisão correspondente tem
-  buraco.</p>
+  <p class="hint" style="margin-bottom: 12px">
+    Cada linha é uma afirmação que a spec 41 terá de sustentar. O protótipo executa cada uma contra
+    o modelo agora, em todos os pontos de vista — não depende dos controles acima. Se uma virar ✗ ao
+    mexer na cena, a decisão correspondente tem buraco.
+  </p>
   <div id="checks"></div>
 
-  <h2 style="margin-top:28px">Confirmações pendentes</h2>
+  <h2 style="margin-top: 28px">Confirmações pendentes</h2>
   <div class="grid2" id="pendings"></div>
 </section>
 
 <div id="toast"></div>
 
 <script>
-"use strict";
+  "use strict";
 
-/* ======================================================================
+  /* ======================================================================
    MODELO — espelha as decisões. Deliberadamente pobre: o que foi decidido
    como inexistente simplesmente não está aqui.
    ====================================================================== */
 
-const PRIVILEGED = new Set(["gm"]);
-const OWNER = 3;
+  const PRIVILEGED = new Set(["gm"]);
+  const OWNER = 3;
 
-// Conversão tamanho → células é do SISTEMA (D7), não da engine.
-const SISTEMA_PF2E = { tiny: 1, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4 };
+  // Conversão tamanho → células é do SISTEMA (D7), não da engine.
+  const SISTEMA_PF2E = { tiny: 1, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4 };
 
-let actors, tokens, conhecimento, seq, sel;
+  let actors, tokens, conhecimento, seq, sel;
 
-function reset() {
-  actors = {
-    aurora: { id:"aurora", name:"Aurora", art:"🧝‍♀️", size:"medium", disposition:1,
-              hp:{ value:24, max:32 }, facets:["creature","player"], ownership:{ ana:OWNER } },
-    brann:  { id:"brann",  name:"Brann",  art:"🧔", size:"medium", disposition:1,
-              hp:{ value:30, max:30 }, facets:["creature","player"], ownership:{ bruno:OWNER } },
-    kobold: { id:"kobold", name:"Kobold", art:"👺", size:"medium", disposition:-1,
-              hp:{ value:14, max:14 }, facets:["creature"], ownership:{} },
-    ogro:   { id:"ogro",   name:"Ogro",   art:"👹", size:"large", disposition:-1,
-              hp:{ value:40, max:50 }, facets:["creature"], ownership:{} },
-    bau:    { id:"bau",    name:"Baú de carvalho", art:"🧰", size:"medium", disposition:0,
-              hp:null, facets:["container"], ownership:{} },
-    fosso:  { id:"fosso",  name:"Fosso de estacas", art:"🕳️", size:"medium", disposition:-1,
-              hp:{ value:1, max:1 }, facets:["hazard"], ownership:{} },
-  };
+  function reset() {
+    actors = {
+      aurora: {
+        id: "aurora",
+        name: "Aurora",
+        art: "🧝‍♀️",
+        size: "medium",
+        disposition: 1,
+        hp: { value: 24, max: 32 },
+        facets: ["creature", "player"],
+        ownership: { ana: OWNER },
+      },
+      brann: {
+        id: "brann",
+        name: "Brann",
+        art: "🧔",
+        size: "medium",
+        disposition: 1,
+        hp: { value: 30, max: 30 },
+        facets: ["creature", "player"],
+        ownership: { bruno: OWNER },
+      },
+      kobold: {
+        id: "kobold",
+        name: "Kobold",
+        art: "👺",
+        size: "medium",
+        disposition: -1,
+        hp: { value: 14, max: 14 },
+        facets: ["creature"],
+        ownership: {},
+      },
+      ogro: {
+        id: "ogro",
+        name: "Ogro",
+        art: "👹",
+        size: "large",
+        disposition: -1,
+        hp: { value: 40, max: 50 },
+        facets: ["creature"],
+        ownership: {},
+      },
+      bau: {
+        id: "bau",
+        name: "Baú de carvalho",
+        art: "🧰",
+        size: "medium",
+        disposition: 0,
+        hp: null,
+        facets: ["container"],
+        ownership: {},
+      },
+      fosso: {
+        id: "fosso",
+        name: "Fosso de estacas",
+        art: "🕳️",
+        size: "medium",
+        disposition: -1,
+        hp: { value: 1, max: 1 },
+        facets: ["hazard"],
+        ownership: {},
+      },
+    };
 
-  // Conhecimento (spec 39): quem sabe quem é quem. Default fechado — o que não
-  // está aqui é desconhecido. A posse do próprio ator conta como conhecimento.
-  conhecimento = { ana: new Set(["brann"]), bruno: new Set(["aurora", "bau"]) };
+    // Conhecimento (spec 39): quem sabe quem é quem. Default fechado — o que não
+    // está aqui é desconhecido. A posse do próprio ator conta como conhecimento.
+    conhecimento = { ana: new Set(["brann"]), bruno: new Set(["aurora", "bau"]) };
 
-  // A peça guarda: onde está, de quem é manifestação, e o estado de peça.
-  // NÃO guarda: arte, tamanho, posse, nível de exibição, locked, scale, tint, sort.
-  seq = 0;
-  tokens = [
-    mk("aurora", 2, 5, { link:true }),
-    mk("aurora", 3, 5, { link:true }),            // duas peças vinculadas: mesma vida
-    mk("brann",  1, 4, { link:true }),
-    mk("kobold", 6, 2, { link:false, delta:{ hp:{ value:14 } } }),
-    mk("kobold", 7, 3, { link:false, delta:{ hp:{ value:6  } } }),
-    mk("kobold", 6, 4, { link:false, delta:{ hp:{ value:11 } } }),
-    mk("ogro",   9, 3, { link:false }),
-    mk("bau",   10, 6, { link:false }),
-    mk("fosso",  4, 2, { link:false, hidden:true, seenBy:["ana"] }),
-  ];
-  sel = null;
-}
+    // A peça guarda: onde está, de quem é manifestação, e o estado de peça.
+    // NÃO guarda: arte, tamanho, posse, nível de exibição, locked, scale, tint, sort.
+    seq = 0;
+    tokens = [
+      mk("aurora", 2, 5, { link: true }),
+      mk("aurora", 3, 5, { link: true }), // duas peças vinculadas: mesma vida
+      mk("brann", 1, 4, { link: true }),
+      mk("kobold", 6, 2, { link: false, delta: { hp: { value: 14 } } }),
+      mk("kobold", 7, 3, { link: false, delta: { hp: { value: 6 } } }),
+      mk("kobold", 6, 4, { link: false, delta: { hp: { value: 11 } } }),
+      mk("ogro", 9, 3, { link: false }),
+      mk("bau", 10, 6, { link: false }),
+      mk("fosso", 4, 2, { link: false, hidden: true, seenBy: ["ana"] }),
+    ];
+    sel = null;
+  }
 
-function mk(actorId, x, y, o = {}) {
-  return {
-    _id: "tk" + String(++seq).padStart(3, "0"),
-    actorId,
-    x, y,
-    actorLink: o.link !== false,
-    actorDelta: o.delta || null,          // só existe em peça desvinculada
-    name: o.name || null,                 // rótulo sobrescrito, opcional (D16)
-    hidden: !!o.hidden,                   // D21
-    seenBy: o.seenBy || [],               // exceções nominais à ocultação
-    disposition: null,                    // null = herda do ator (D10)
-    rotation: 0,
-    elevation: o.elevation || 0,
-    born: seq,                            // ordem FIFO (D20) — não é campo de sort
-    flags: {},                            // extensão do sistema/addon (D29)
-    vision: { enabled:false },            // lugar reservado, inerte (D24)
-    light:  { enabled:false },
-  };
-}
+  function mk(actorId, x, y, o = {}) {
+    return {
+      _id: "tk" + String(++seq).padStart(3, "0"),
+      actorId,
+      x,
+      y,
+      actorLink: o.link !== false,
+      actorDelta: o.delta || null, // só existe em peça desvinculada
+      name: o.name || null, // rótulo sobrescrito, opcional (D16)
+      hidden: !!o.hidden, // D21
+      seenBy: o.seenBy || [], // exceções nominais à ocultação
+      disposition: null, // null = herda do ator (D10)
+      rotation: 0,
+      elevation: o.elevation || 0,
+      born: seq, // ordem FIFO (D20) — não é campo de sort
+      flags: {}, // extensão do sistema/addon (D29)
+      vision: { enabled: false }, // lugar reservado, inerte (D24)
+      light: { enabled: false },
+    };
+  }
 
-/* ---------- derivações ---------- */
+  /* ---------- derivações ---------- */
 
-// O ator EFETIVO: base quando vinculado, base+delta quando não.
-// Fonte única de arte, tamanho, vida e disposição.
-function efetivo(tk) {
-  const base = actors[tk.actorId];
-  if (!base) return null;
-  if (tk.actorLink || !tk.actorDelta) return base;
-  const d = tk.actorDelta;
-  return { ...base, ...d, hp: d.hp ? { ...base.hp, ...d.hp } : base.hp };
-}
+  // O ator EFETIVO: base quando vinculado, base+delta quando não.
+  // Fonte única de arte, tamanho, vida e disposição.
+  function efetivo(tk) {
+    const base = actors[tk.actorId];
+    if (!base) return null;
+    if (tk.actorLink || !tk.actorDelta) return base;
+    const d = tk.actorDelta;
+    return { ...base, ...d, hp: d.hp ? { ...base.hp, ...d.hp } : base.hp };
+  }
 
-const footprint = a => SISTEMA_PF2E[a.size] || 1;                        // D7
-const arte      = a => a.art;                                            // D1
-const disp      = tk => { const a = efetivo(tk); return tk.disposition ?? a.disposition; }; // D2
+  const footprint = (a) => SISTEMA_PF2E[a.size] || 1; // D7
+  const arte = (a) => a.art; // D1
+  const disp = (tk) => {
+    const a = efetivo(tk);
+    return tk.disposition ?? a.disposition;
+  }; // D2
 
-// Controlar = ser dono do ator. Não existe posse de peça. (D27)
-const controla = (tk, u) => PRIVILEGED.has(u) || (efetivo(tk).ownership[u] || 0) >= OWNER;
+  // Controlar = ser dono do ator. Não existe posse de peça. (D27)
+  const controla = (tk, u) => PRIVILEGED.has(u) || (efetivo(tk).ownership[u] || 0) >= OWNER;
 
-// Pôr peça na cena, copiar e tirar da cena são do Mestre. O dono move a peça
-// do próprio ator, e só. (D34)
-const podeCriar = u => PRIVILEGED.has(u);
-const podeExcluir = (tk, u) => PRIVILEGED.has(u);
+  // Pôr peça na cena, copiar e tirar da cena são do Mestre. O dono move a peça
+  // do próprio ator, e só. (D34)
+  const podeCriar = (u) => PRIVILEGED.has(u);
+  const podeExcluir = (tk, u) => PRIVILEGED.has(u);
 
-// Conhecer = saber quem aquele ator é. Papel privilegiado conhece tudo; o dono
-// conhece o próprio ator; o resto vem do modelo de conhecimento da 39. (D31)
-function conhece(actorId, u) {
-  if (PRIVILEGED.has(u)) return true;
-  const a = actors[actorId];
-  if (!a) return false;
-  if ((a.ownership[u] || 0) >= OWNER) return true;
-  return !!(conhecimento[u] && conhecimento[u].has(actorId));
-}
+  // Conhecer = saber quem aquele ator é. Papel privilegiado conhece tudo; o dono
+  // conhece o próprio ator; o resto vem do modelo de conhecimento da 39. (D31)
+  function conhece(actorId, u) {
+    if (PRIVILEGED.has(u)) return true;
+    const a = actors[actorId];
+    if (!a) return false;
+    if ((a.ownership[u] || 0) >= OWNER) return true;
+    return !!(conhecimento[u] && conhecimento[u].has(actorId));
+  }
 
-/* ---------- redação server-side ---------- */
+  /* ---------- redação server-side ---------- */
 
-// Peça oculta não é enviada. (D21)
-function redigirPecas(u) {
-  return tokens.filter(tk => !tk.hidden || PRIVILEGED.has(u) || tk.seenBy.includes(u));
-}
+  // Peça oculta não é enviada. (D21)
+  function redigirPecas(u) {
+    return tokens.filter((tk) => !tk.hidden || PRIVILEGED.has(u) || tk.seenBy.includes(u));
+  }
 
-// Ator desconhecido chega sem nome. A 41 não tem regra de nome: ela só herda. (D31)
-function redigirAtores(u) {
-  const usados = new Set(redigirPecas(u).map(t => t.actorId));
-  return [...usados].map(id => ({
-    _id: id,
-    name: conhece(id, u) ? actors[id].name : null,
-    img: actors[id].art,
-    hp: (redigirPecas(u).some(t => t.actorId === id && controla(t, u))) ? actors[id].hp : null,
-  }));
-}
+  // Ator desconhecido chega sem nome. A 41 não tem regra de nome: ela só herda. (D31)
+  function redigirAtores(u) {
+    const usados = new Set(redigirPecas(u).map((t) => t.actorId));
+    return [...usados].map((id) => ({
+      _id: id,
+      name: conhece(id, u) ? actors[id].name : null,
+      img: actors[id].art,
+      hp: redigirPecas(u).some((t) => t.actorId === id && controla(t, u)) ? actors[id].hp : null,
+    }));
+  }
 
-// Nome exibido: herdado do ator, sobrescrevível, numerado por setting de mundo.
-// Devolve null quando o cliente não recebeu nome nenhum. (D16 · D17 · D31)
-function nomeDe(tk, u, numerar) {
-  if (tk.name) return tk.name;                    // rótulo posto pelo Mestre na peça
-  if (!conhece(tk.actorId, u)) return null;
-  const a = efetivo(tk);
-  if (!numerar) return a.name;
-  const irmaos = tokens.filter(t => t.actorId === tk.actorId).sort((p, q) => p.born - q.born);
-  if (irmaos.length < 2) return a.name;
-  return a.name + " " + (irmaos.findIndex(t => t._id === tk._id) + 1);
-}
+  // Nome exibido: herdado do ator, sobrescrevível, numerado por setting de mundo.
+  // Devolve null quando o cliente não recebeu nome nenhum. (D16 · D17 · D31)
+  function nomeDe(tk, u, numerar) {
+    if (tk.name) return tk.name; // rótulo posto pelo Mestre na peça
+    if (!conhece(tk.actorId, u)) return null;
+    const a = efetivo(tk);
+    if (!numerar) return a.name;
+    const irmaos = tokens.filter((t) => t.actorId === tk.actorId).sort((p, q) => p.born - q.born);
+    if (irmaos.length < 2) return a.name;
+    return a.name + " " + (irmaos.findIndex((t) => t._id === tk._id) + 1);
+  }
 
-// Vida: do dono, sempre. Sem nível de exibição por peça. (D3)
-const podeVerVida = (tk, u) => controla(tk, u);
+  // Vida: do dono, sempre. Sem nível de exibição por peça. (D3)
+  const podeVerVida = (tk, u) => controla(tk, u);
 
-/* ======================================================================
+  /* ======================================================================
    RENDER
    ====================================================================== */
 
-const CELL = 64;
-const $ = id => document.getElementById(id);
-const cfg = () => ({
-  viewer: $("viewer").value,
-  prefNomes: $("prefNomes").checked,
-  prefBarras: $("prefBarras").checked,
-  numera: $("numera").checked,
-  borda: $("borda").checked,
-});
+  const CELL = 64;
+  const $ = (id) => document.getElementById(id);
+  const cfg = () => ({
+    viewer: $("viewer").value,
+    prefNomes: $("prefNomes").checked,
+    prefBarras: $("prefBarras").checked,
+    numera: $("numera").checked,
+    borda: $("borda").checked,
+  });
 
-const COR = { "-1": "var(--hostile)", "0": "var(--neutral)", "1": "var(--friendly)" };
-const ROTULO_DISP = { "-1": "hostil", "0": "neutro", "1": "amigo" };
+  const COR = { "-1": "var(--hostile)", 0: "var(--neutral)", 1: "var(--friendly)" };
+  const ROTULO_DISP = { "-1": "hostil", 0: "neutro", 1: "amigo" };
 
-function render() {
-  const c = cfg();
-  const stage = $("stage");
-  stage.innerHTML = "";
+  function render() {
+    const c = cfg();
+    const stage = $("stage");
+    stage.innerHTML = "";
 
-  // FIFO: a mais antiga embaixo, a mais recente por cima. Sem campo de ordenação. (D20)
-  const visiveis = redigirPecas(c.viewer).slice().sort((a, b) => a.born - b.born);
+    // FIFO: a mais antiga embaixo, a mais recente por cima. Sem campo de ordenação. (D20)
+    const visiveis = redigirPecas(c.viewer)
+      .slice()
+      .sort((a, b) => a.born - b.born);
 
-  for (const tk of visiveis) {
+    for (const tk of visiveis) {
+      const a = efetivo(tk);
+      const n = footprint(a);
+      const el = document.createElement("div");
+      // A peça que chegou é desenhada inteira, para todo mundo, do mesmo jeito.
+      // Não controlar não escurece nada: escurecer seria visão, e visão não existe (D24).
+      el.className =
+        "tk" + (sel === tk._id ? " sel" : "") + (drag && drag.id === tk._id ? " dragging" : "");
+      el.style.cssText =
+        `left:${tk.x * CELL}px; top:${tk.y * CELL}px;` +
+        `width:${n * CELL}px; height:${n * CELL}px; z-index:${tk.born};`;
+      el.dataset.id = tk._id;
+
+      const disc = document.createElement("div");
+      disc.className = "disc";
+      disc.textContent = arte(a);
+      if (c.borda) disc.style.borderColor = COR[String(disp(tk))];
+      el.appendChild(disc);
+
+      // Barras: servidor decide se PODE (posse); preferência decide se QUER.
+      if (a.hp && podeVerVida(tk, c.viewer) && c.prefBarras) {
+        const b = document.createElement("div");
+        b.className = "bar";
+        const f = Math.max(0, a.hp.value / a.hp.max);
+        b.innerHTML = `<i style="width:${f * 100}%;background:${
+          f > 0.6 ? "var(--ok)" : f > 0.3 ? "var(--warn)" : "var(--bad)"
+        }"></i>`;
+        b.title = `${a.hp.value} / ${a.hp.max}`;
+        el.appendChild(b);
+      }
+
+      // Nome: servidor decide se PODE (conhecimento); preferência decide se QUER.
+      const nome = nomeDe(tk, c.viewer, c.numera);
+      if (nome && c.prefNomes) {
+        const nm = document.createElement("div");
+        nm.className = "nome";
+        nm.textContent = nome;
+        el.appendChild(nm);
+      }
+
+      if (tk.hidden) {
+        const h = document.createElement("div");
+        h.className = "flag";
+        h.textContent = "oculta";
+        el.appendChild(h);
+      }
+
+      stage.appendChild(el);
+    }
+
+    renderConhecimento();
+    renderInspetor();
+    renderPayload();
+    runChecks();
+  }
+
+  function renderConhecimento() {
+    const u = cfg().viewer;
+    if (PRIVILEGED.has(u)) {
+      $("conhec").innerHTML = `<p class="hint">Papel privilegiado: conhece todos os atores.</p>`;
+      return;
+    }
+    const linhas = Object.keys(actors).map(
+      (id) =>
+        `<tr><td>${actors[id].art} ${actors[id].name}</td><td>${
+          conhece(id, u) ? "conhecido" : `<span class="hint">desconhecido</span>`
+        }</td></tr>`,
+    );
+    $("conhec").innerHTML = `<table class="kv">${linhas.join("")}</table>`;
+  }
+
+  function renderInspetor() {
+    const c = cfg();
+    const tk = tokens.find((t) => t._id === sel);
+    if (!tk) {
+      $("insp").innerHTML = `<p class="hint">Clique numa peça.</p>`;
+      return;
+    }
     const a = efetivo(tk);
-    const n = footprint(a);
-    const el = document.createElement("div");
-    // A peça que chegou é desenhada inteira, para todo mundo, do mesmo jeito.
-    // Não controlar não escurece nada: escurecer seria visão, e visão não existe (D24).
-    el.className = "tk" + (sel === tk._id ? " sel" : "") +
-                   (drag && drag.id === tk._id ? " dragging" : "");
-    el.style.cssText =
-      `left:${tk.x * CELL}px; top:${tk.y * CELL}px;` +
-      `width:${n * CELL}px; height:${n * CELL}px; z-index:${tk.born};`;
-    el.dataset.id = tk._id;
-
-    const disc = document.createElement("div");
-    disc.className = "disc";
-    disc.textContent = arte(a);
-    if (c.borda) disc.style.borderColor = COR[String(disp(tk))];
-    el.appendChild(disc);
-
-    // Barras: servidor decide se PODE (posse); preferência decide se QUER.
-    if (a.hp && podeVerVida(tk, c.viewer) && c.prefBarras) {
-      const b = document.createElement("div");
-      b.className = "bar";
-      const f = Math.max(0, a.hp.value / a.hp.max);
-      b.innerHTML = `<i style="width:${f * 100}%;background:${
-        f > .6 ? "var(--ok)" : f > .3 ? "var(--warn)" : "var(--bad)"}"></i>`;
-      b.title = `${a.hp.value} / ${a.hp.max}`;
-      el.appendChild(b);
-    }
-
-    // Nome: servidor decide se PODE (conhecimento); preferência decide se QUER.
     const nome = nomeDe(tk, c.viewer, c.numera);
-    if (nome && c.prefNomes) {
-      const nm = document.createElement("div");
-      nm.className = "nome";
-      nm.textContent = nome;
-      el.appendChild(nm);
-    }
-
-    if (tk.hidden) {
-      const h = document.createElement("div");
-      h.className = "flag"; h.textContent = "oculta";
-      el.appendChild(h);
-    }
-
-    stage.appendChild(el);
-  }
-
-  renderConhecimento();
-  renderInspetor();
-  renderPayload();
-  runChecks();
-}
-
-function renderConhecimento() {
-  const u = cfg().viewer;
-  if (PRIVILEGED.has(u)) {
-    $("conhec").innerHTML = `<p class="hint">Papel privilegiado: conhece todos os atores.</p>`;
-    return;
-  }
-  const linhas = Object.keys(actors).map(id =>
-    `<tr><td>${actors[id].art} ${actors[id].name}</td><td>${
-      conhece(id, u) ? "conhecido" : `<span class="hint">desconhecido</span>`}</td></tr>`);
-  $("conhec").innerHTML = `<table class="kv">${linhas.join("")}</table>`;
-}
-
-function renderInspetor() {
-  const c = cfg();
-  const tk = tokens.find(t => t._id === sel);
-  if (!tk) { $("insp").innerHTML = `<p class="hint">Clique numa peça.</p>`; return; }
-  const a = efetivo(tk);
-  const nome = nomeDe(tk, c.viewer, c.numera);
-  const linhas = [
-    ["_id", `<code>${tk._id}</code>`],
-    ["actorId", `<code>${tk.actorId}</code> <span class="hint">obrigatório (D11)</span>`],
-    ["x, y", `<code>${tk.x}, ${tk.y}</code>`],
-    ["actorLink", `<code>${tk.actorLink}</code>`],
-    ["actorDelta", tk.actorDelta ? `<code>${JSON.stringify(tk.actorDelta)}</code>` : `<code>null</code>`],
-    ["name", tk.name ? `<code>"${tk.name}"</code> <span class="hint">rótulo na peça</span>`
-                     : `<code>null</code> <span class="hint">herda do ator</span>`],
-    ["hidden / seenBy", `<code>${tk.hidden}</code> ${tk.seenBy.length ? `<code>[${tk.seenBy}]</code>` : ""}`],
-    ["disposition", `<code>null</code> <span class="hint">herda → ${ROTULO_DISP[String(disp(tk))]}</span>`],
-    ["elevation", `<code>${tk.elevation}</code>`],
-    ["flags", `<code>{}</code> <span class="hint">extensão do sistema (D29)</span>`],
-  ];
-  const derivados = [
-    ["arte", `${arte(a)} <span class="hint">do ator (D1)</span>`],
-    ["footprint", `${footprint(a)}×${footprint(a)} <span class="hint">tamanho <i>${a.size}</i> convertido pelo sistema (D7)</span>`],
-    ["nome exibido", nome ? `${nome}` : `<span class="hint">nenhum — este usuário não conhece o ator (D31)</span>`],
-    ["vida", !a.hp ? `<span class="hint">o ator não tem vida</span>`
-            : podeVerVida(tk, c.viewer) ? `${a.hp.value}/${a.hp.max}`
-            : `<span class="hint">não é dono — o servidor não manda (D3)</span>`],
-    ["controla", Object.keys(a.ownership).length
-        ? `<span class="hint">OWNER do ator: ${Object.keys(a.ownership).join(", ")}</span>`
-        : `<span class="hint">só papel privilegiado</span>`],
-    ["facetas", `<code>${a.facets.join(", ")}</code> <span class="hint">do ator (spec 45)</span>`],
-  ];
-  $("insp").innerHTML =
-    `<table class="kv">${linhas.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
+    const linhas = [
+      ["_id", `<code>${tk._id}</code>`],
+      ["actorId", `<code>${tk.actorId}</code> <span class="hint">obrigatório (D11)</span>`],
+      ["x, y", `<code>${tk.x}, ${tk.y}</code>`],
+      ["actorLink", `<code>${tk.actorLink}</code>`],
+      [
+        "actorDelta",
+        tk.actorDelta ? `<code>${JSON.stringify(tk.actorDelta)}</code>` : `<code>null</code>`,
+      ],
+      [
+        "name",
+        tk.name
+          ? `<code>"${tk.name}"</code> <span class="hint">rótulo na peça</span>`
+          : `<code>null</code> <span class="hint">herda do ator</span>`,
+      ],
+      [
+        "hidden / seenBy",
+        `<code>${tk.hidden}</code> ${tk.seenBy.length ? `<code>[${tk.seenBy}]</code>` : ""}`,
+      ],
+      [
+        "disposition",
+        `<code>null</code> <span class="hint">herda → ${ROTULO_DISP[String(disp(tk))]}</span>`,
+      ],
+      ["elevation", `<code>${tk.elevation}</code>`],
+      ["flags", `<code>{}</code> <span class="hint">extensão do sistema (D29)</span>`],
+    ];
+    const derivados = [
+      ["arte", `${arte(a)} <span class="hint">do ator (D1)</span>`],
+      [
+        "footprint",
+        `${footprint(a)}×${footprint(a)} <span class="hint">tamanho <i>${a.size}</i> convertido pelo sistema (D7)</span>`,
+      ],
+      [
+        "nome exibido",
+        nome
+          ? `${nome}`
+          : `<span class="hint">nenhum — este usuário não conhece o ator (D31)</span>`,
+      ],
+      [
+        "vida",
+        !a.hp
+          ? `<span class="hint">o ator não tem vida</span>`
+          : podeVerVida(tk, c.viewer)
+            ? `${a.hp.value}/${a.hp.max}`
+            : `<span class="hint">não é dono — o servidor não manda (D3)</span>`,
+      ],
+      [
+        "controla",
+        Object.keys(a.ownership).length
+          ? `<span class="hint">OWNER do ator: ${Object.keys(a.ownership).join(", ")}</span>`
+          : `<span class="hint">só papel privilegiado</span>`,
+      ],
+      [
+        "facetas",
+        `<code>${a.facets.join(", ")}</code> <span class="hint">do ator (spec 45)</span>`,
+      ],
+    ];
+    $("insp").innerHTML =
+      `<table class="kv">${linhas.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
      <h2>Derivado — a peça não guarda</h2>
      <table class="kv">${derivados.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
      <h2>Campos que não existem</h2>
@@ -488,375 +838,590 @@ function renderInspetor() {
        <code>scale</code> <code>tint</code> <code>alpha</code> <code>mirrorX/Y</code> <span class="dec">D18</span> ·
        <code>sort</code> <span class="dec">D20</span>
      </p>`;
-}
+  }
 
-function renderPayload() {
-  const u = cfg().viewer;
-  const pecas = redigirPecas(u);
-  const escondidas = tokens.length - pecas.length;
-  $("payload").textContent =
-    "// cena.tokens\n" +
-    JSON.stringify(pecas.map(tk => ({
-      _id: tk._id, actorId: tk.actorId, x: tk.x, y: tk.y,
-      actorLink: tk.actorLink, actorDelta: tk.actorDelta, hidden: tk.hidden,
-    })), null, 1) +
-    (escondidas ? `\n// ${escondidas} peça(s) não enviada(s) a este cliente.` : "") +
-    "\n\n// atores referenciados\n" +
-    JSON.stringify(redigirAtores(u), null, 1);
-}
+  function renderPayload() {
+    const u = cfg().viewer;
+    const pecas = redigirPecas(u);
+    const escondidas = tokens.length - pecas.length;
+    $("payload").textContent =
+      "// cena.tokens\n" +
+      JSON.stringify(
+        pecas.map((tk) => ({
+          _id: tk._id,
+          actorId: tk.actorId,
+          x: tk.x,
+          y: tk.y,
+          actorLink: tk.actorLink,
+          actorDelta: tk.actorDelta,
+          hidden: tk.hidden,
+        })),
+        null,
+        1,
+      ) +
+      (escondidas ? `\n// ${escondidas} peça(s) não enviada(s) a este cliente.` : "") +
+      "\n\n// atores referenciados\n" +
+      JSON.stringify(redigirAtores(u), null, 1);
+  }
 
-/* ======================================================================
+  /* ======================================================================
    INTERAÇÃO — mover pelas setas; arraste só para copiar
    ====================================================================== */
 
-// Movimento canônico: teclado. Uma célula por vez, permissão checada no servidor. (D33)
-addEventListener("keydown", ev => {
-  const DIR = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
-  const c = cfg();
+  // Movimento canônico: teclado. Uma célula por vez, permissão checada no servidor. (D33)
+  addEventListener("keydown", (ev) => {
+    const DIR = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const c = cfg();
 
-  if (ev.key === "Tab") {
-    const meus = redigirPecas(c.viewer).filter(t => controla(t, c.viewer)).sort((a,b) => a.born - b.born);
-    if (!meus.length) return;
-    const i = meus.findIndex(t => t._id === sel);
-    sel = meus[(i + 1) % meus.length]._id;
-    ev.preventDefault(); render();
-    return;
-  }
-
-  const d = DIR[ev.key];
-  if (!d) return;
-  ev.preventDefault();
-  const tk = tokens.find(t => t._id === sel);
-  if (!tk) return toast("Selecione uma peça — clique nela ou use Tab.");
-  if (!controla(tk, c.viewer)) return toast("Sem permissão: mover exige ser OWNER do ator (D27).");
-
-  const n = footprint(efetivo(tk));
-  tk.x = Math.max(0, Math.min(12 - n, tk.x + d[0]));
-  tk.y = Math.max(0, Math.min(8  - n, tk.y + d[1]));
-  render();
-});
-
-// Arraste continua movendo, ao lado das setas (D33). Com Ctrl, duplica — e
-// duplicar é criar, logo é só do Mestre (D34).
-let drag = null;
-
-$("stage").addEventListener("pointerdown", ev => {
-  const el = ev.target.closest(".tk");
-  $("stage").focus();
-  if (!el) { sel = null; render(); return; }
-  const c = cfg();
-  let tk = tokens.find(t => t._id === el.dataset.id);
-  sel = tk._id;
-
-  if (ev.ctrlKey) {
-    if (!podeCriar(c.viewer)) {
-      toast("Sem permissão: pôr peça na cena é do Mestre (D34).");
-      render(); return;
+    if (ev.key === "Tab") {
+      const meus = redigirPecas(c.viewer)
+        .filter((t) => controla(t, c.viewer))
+        .sort((a, b) => a.born - b.born);
+      if (!meus.length) return;
+      const i = meus.findIndex((t) => t._id === sel);
+      sel = meus[(i + 1) % meus.length]._id;
+      ev.preventDefault();
+      render();
+      return;
     }
-    const identica = ev.altKey;
-    const eraVinculada = tk.actorLink;
-    tk = duplicar(tk, identica);
+
+    const d = DIR[ev.key];
+    if (!d) return;
+    ev.preventDefault();
+    const tk = tokens.find((t) => t._id === sel);
+    if (!tk) return toast("Selecione uma peça — clique nela ou use Tab.");
+    if (!controla(tk, c.viewer))
+      return toast("Sem permissão: mover exige ser OWNER do ator (D27).");
+
+    const n = footprint(efetivo(tk));
+    tk.x = Math.max(0, Math.min(12 - n, tk.x + d[0]));
+    tk.y = Math.max(0, Math.min(8 - n, tk.y + d[1]));
+    render();
+  });
+
+  // Arraste continua movendo, ao lado das setas (D33). Com Ctrl, duplica — e
+  // duplicar é criar, logo é só do Mestre (D34).
+  let drag = null;
+
+  $("stage").addEventListener("pointerdown", (ev) => {
+    const el = ev.target.closest(".tk");
+    $("stage").focus();
+    if (!el) {
+      sel = null;
+      render();
+      return;
+    }
+    const c = cfg();
+    let tk = tokens.find((t) => t._id === el.dataset.id);
     sel = tk._id;
-    toast(eraVinculada
-      ? "Peça vinculada: não tem vida própria para zerar, então os dois gestos dão no mesmo (D14, a confirmar)."
-      : identica ? "Cópia idêntica — estado vivo preservado (D14)."
-                 : "Cópia crua — nasce com vida cheia (D14).");
-  } else if (!controla(tk, c.viewer)) {
-    toast("Sem permissão: mover exige ser OWNER do ator (D27).");
-    render(); return;
+
+    if (ev.ctrlKey) {
+      if (!podeCriar(c.viewer)) {
+        toast("Sem permissão: pôr peça na cena é do Mestre (D34).");
+        render();
+        return;
+      }
+      const identica = ev.altKey;
+      const eraVinculada = tk.actorLink;
+      tk = duplicar(tk, identica);
+      sel = tk._id;
+      toast(
+        eraVinculada
+          ? "Peça vinculada: não tem vida própria para zerar, então os dois gestos dão no mesmo (D14, a confirmar)."
+          : identica
+            ? "Cópia idêntica — estado vivo preservado (D14)."
+            : "Cópia crua — nasce com vida cheia (D14).",
+      );
+    } else if (!controla(tk, c.viewer)) {
+      toast("Sem permissão: mover exige ser OWNER do ator (D27).");
+      render();
+      return;
+    }
+
+    drag = { id: tk._id };
+    render();
+    ev.preventDefault();
+  });
+
+  $("stage").addEventListener("pointermove", (ev) => {
+    if (!drag) return;
+    const tk = tokens.find((t) => t._id === drag.id);
+    const r = $("stage").getBoundingClientRect();
+    const n = footprint(efetivo(tk));
+    tk.x = Math.max(0, Math.min(12 - n, Math.round((ev.clientX - r.left - CELL / 2) / CELL)));
+    tk.y = Math.max(0, Math.min(8 - n, Math.round((ev.clientY - r.top - CELL / 2) / CELL)));
+    render();
+  });
+
+  addEventListener("pointerup", () => {
+    if (drag) {
+      drag = null;
+      render();
+    }
+  });
+
+  // Duplicar: crua zera o estado vivo, idêntica preserva. Só faz diferença em peça
+  // desvinculada — a vinculada não tem estado vivo próprio. (D14)
+  function duplicar(tk, identica) {
+    const novo = {
+      ...tk,
+      _id: "tk" + String(++seq).padStart(3, "0"),
+      born: seq,
+      seenBy: [...tk.seenBy],
+      flags: {},
+    };
+    if (tk.actorLink) {
+      novo.actorDelta = null;
+    } else if (identica) {
+      novo.actorDelta = JSON.parse(JSON.stringify(tk.actorDelta || {}));
+    } else {
+      const base = actors[tk.actorId];
+      novo.actorDelta = base.hp ? { hp: { value: base.hp.max } } : null;
+    }
+    tokens.push(novo);
+    return novo;
   }
 
-  drag = { id: tk._id };
-  render();
-  ev.preventDefault();
-});
-
-$("stage").addEventListener("pointermove", ev => {
-  if (!drag) return;
-  const tk = tokens.find(t => t._id === drag.id);
-  const r = $("stage").getBoundingClientRect();
-  const n = footprint(efetivo(tk));
-  tk.x = Math.max(0, Math.min(12 - n, Math.round((ev.clientX - r.left - CELL / 2) / CELL)));
-  tk.y = Math.max(0, Math.min(8  - n, Math.round((ev.clientY - r.top  - CELL / 2) / CELL)));
-  render();
-});
-
-addEventListener("pointerup", () => { if (drag) { drag = null; render(); } });
-
-// Duplicar: crua zera o estado vivo, idêntica preserva. Só faz diferença em peça
-// desvinculada — a vinculada não tem estado vivo próprio. (D14)
-function duplicar(tk, identica) {
-  const novo = { ...tk, _id: "tk" + String(++seq).padStart(3, "0"), born: seq,
-                 seenBy: [...tk.seenBy], flags: {} };
-  if (tk.actorLink) {
-    novo.actorDelta = null;
-  } else if (identica) {
-    novo.actorDelta = JSON.parse(JSON.stringify(tk.actorDelta || {}));
-  } else {
-    const base = actors[tk.actorId];
-    novo.actorDelta = base.hp ? { hp: { value: base.hp.max } } : null;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("on");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("on"), 3000);
   }
-  tokens.push(novo);
-  return novo;
-}
 
-function toast(msg) {
-  const t = $("toast");
-  t.textContent = msg; t.classList.add("on");
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => t.classList.remove("on"), 3000);
-}
-
-/* ======================================================================
+  /* ======================================================================
    EVENTOS DE MESA
    ====================================================================== */
 
-$("btConhecer").onclick = () => {
-  conhecimento.ana.add("kobold");
-  toast("Ana passou a conhecer o Kobold — os três nomes aparecem para ela, sem tocar na peça.");
-  $("viewer").value = "ana";
-  render();
-};
+  $("btConhecer").onclick = () => {
+    conhecimento.ana.add("kobold");
+    toast("Ana passou a conhecer o Kobold — os três nomes aparecem para ela, sem tocar na peça.");
+    $("viewer").value = "ana";
+    render();
+  };
 
-$("btArte").onclick = () => {
-  if (!actors.kobold) return toast("O ator Kobold foi excluído.");
-  actors.kobold.art = actors.kobold.art === "👺" ? "🦎" : "👺";
-  toast("Arte trocada no ATOR — as três peças mudam juntas, porque nenhuma guarda cópia (D1).");
-  render();
-};
+  $("btArte").onclick = () => {
+    if (!actors.kobold) return toast("O ator Kobold foi excluído.");
+    actors.kobold.art = actors.kobold.art === "👺" ? "🦎" : "👺";
+    toast("Arte trocada no ATOR — as três peças mudam juntas, porque nenhuma guarda cópia (D1).");
+    render();
+  };
 
-$("btMorre").onclick = () => {
-  // O corpo ganha a faceta container SEM deixar de ser a criatura. A PEÇA NÃO MUDA. (D12 + spec 45)
-  const tk = tokens.find(t => t.actorId === "kobold" && t.actorDelta && t.actorDelta.hp.value === 6);
-  if (!tk) return toast("Kobold 2 já não está na cena.");
-  tk.actorDelta.hp = { value: 0 };
-  tk.actorDelta.facets = ["creature", "container"];
-  sel = tk._id;
-  toast("Kobold 2 caiu: o ATOR ganhou a faceta container. Mesmo _id, mesma peça (D12).");
-  render();
-};
+  $("btMorre").onclick = () => {
+    // O corpo ganha a faceta container SEM deixar de ser a criatura. A PEÇA NÃO MUDA. (D12 + spec 45)
+    const tk = tokens.find(
+      (t) => t.actorId === "kobold" && t.actorDelta && t.actorDelta.hp.value === 6,
+    );
+    if (!tk) return toast("Kobold 2 já não está na cena.");
+    tk.actorDelta.hp = { value: 0 };
+    tk.actorDelta.facets = ["creature", "container"];
+    sel = tk._id;
+    toast("Kobold 2 caiu: o ATOR ganhou a faceta container. Mesmo _id, mesma peça (D12).");
+    render();
+  };
 
-$("btDano").onclick = () => {
-  actors.aurora.hp.value = Math.max(0, actors.aurora.hp.value - 6);
-  toast("Dano no ator: as DUAS peças vinculadas da Aurora mostram a mesma vida (D8).");
-  render();
-};
+  $("btDano").onclick = () => {
+    actors.aurora.hp.value = Math.max(0, actors.aurora.hp.value - 6);
+    toast("Dano no ator: as DUAS peças vinculadas da Aurora mostram a mesma vida (D8).");
+    render();
+  };
 
-$("btExcluir").onclick = () => {
-  delete actors.kobold;
-  tokens = tokens.filter(t => t.actorId !== "kobold");   // cascata deliberada (D13)
-  sel = null;
-  toast("Ator excluído: todas as peças dele somem, em todas as cenas (D13).");
-  render();
-};
+  $("btExcluir").onclick = () => {
+    delete actors.kobold;
+    tokens = tokens.filter((t) => t.actorId !== "kobold"); // cascata deliberada (D13)
+    sel = null;
+    toast("Ator excluído: todas as peças dele somem, em todas as cenas (D13).");
+    render();
+  };
 
-$("btReset").onclick = () => { reset(); render(); };
+  $("btReset").onclick = () => {
+    reset();
+    render();
+  };
 
-["viewer", "prefNomes", "prefBarras", "numera", "borda"]
-  .forEach(id => $(id).addEventListener("change", render));
+  ["viewer", "prefNomes", "prefBarras", "numera", "borda"].forEach((id) =>
+    $(id).addEventListener("change", render),
+  );
 
-/* ======================================================================
+  /* ======================================================================
    CONTRATO DE EXPECTATIVAS — roda contra o modelo, não contra a tela
    ====================================================================== */
 
-const EXPECTATIVAS = [
-  { ref: "D1", txt: "Nenhuma peça carrega campo de arte; trocar a arte do ator muda toda peça dele.",
-    run: () => {
-      const semCampo = tokens.every(t => !("texture" in t) && !("img" in t) && !("art" in t));
-      const derivada = tokens.every(t => arte(efetivo(t)) !== undefined);
-      return [semCampo && derivada, semCampo ? "arte lida do ator em 100% das peças" : "campo de arte encontrado"];
-    } },
-  { ref: "D7", txt: "O footprint vem do tamanho do ator, convertido pelo sistema — não é dado da peça.",
-    run: () => {
-      const semCampo = tokens.every(t => !("width" in t) && !("height" in t));
-      const ogro = tokens.find(t => t.actorId === "ogro");
-      const ok = !ogro || footprint(efetivo(ogro)) === 2;
-      return [semCampo && ok, ogro ? `Ogro (large) ocupa ${footprint(efetivo(ogro))}×${footprint(efetivo(ogro))}` : "sem Ogro na cena"];
-    } },
-  { ref: "D11", txt: "Toda peça tem ator; actorId nulo é estado impossível.",
-    run: () => [tokens.every(t => t.actorId && actors[t.actorId]), `${tokens.length} peças, todas com ator vivo`] },
-  { ref: "D21", txt: "Peça oculta não chega ao cliente sem permissão; quem está na lista de exceção recebe.",
-    run: () => {
-      const f = tokens.find(t => t.hidden);
-      if (!f) return [true, "sem peça oculta na cena"];
-      const naoVe = !redigirPecas("bruno").some(t => t._id === f._id);
-      const ve    =  redigirPecas("ana").some(t => t._id === f._id);
-      const gm    =  redigirPecas("gm").some(t => t._id === f._id);
-      return [naoVe && ve && gm, "Bruno não recebe · Ana (exceção) recebe · Mestre recebe"];
-    } },
-  { ref: "D31", txt: "O nome só chega a quem conhece o ator — a peça não tem regra de nome, só herda.",
-    run: () => {
-      const k = tokens.find(t => t.actorId === "kobold");
-      const a = tokens.find(t => t.actorId === "aurora");
-      if (!k || !a) return [true, "cena sem os dois casos"];
-      const semNome = redigirAtores("bruno").find(x => x._id === "kobold");
-      const comNome = redigirAtores("ana").find(x => x._id === "aurora");
-      const gmVe    = redigirAtores("gm").find(x => x._id === "kobold");
-      return [semNome && semNome.name === null && comNome && comNome.name === "Aurora" && gmVe && gmVe.name,
-              "Bruno recebe o Kobold sem nome · Ana recebe a própria Aurora nomeada · Mestre recebe tudo"];
-    } },
-  { ref: "D31", txt: "Conhecer é do ator, não da peça: uma peça nova do mesmo ator já nasce conhecida.",
-    run: () => {
-      const ks = tokens.filter(t => t.actorId === "kobold");
-      if (ks.length < 2) return [true, "menos de duas peças do Kobold"];
-      const iguais = new Set(ks.map(t => conhece(t.actorId, "bruno"))).size === 1;
-      return [iguais, "as peças do mesmo ator têm todas o mesmo estado de conhecimento"];
-    } },
-  { ref: "D3", txt: "A vida é do dono: só o OWNER do ator e o Mestre recebem os pontos de vida.",
-    run: () => {
-      const k = tokens.find(t => t.actorId === "kobold");
-      const a = tokens.find(t => t.actorId === "aurora");
-      if (!k || !a) return [true, "cena sem os dois casos"];
-      return [!podeVerVida(k, "bruno") && !podeVerVida(a, "bruno") && podeVerVida(a, "ana") && podeVerVida(k, "gm"),
-              "Bruno não vê kobold nem Aurora · Ana vê Aurora · Mestre vê tudo"];
-    } },
-  { ref: "D32", txt: "A preferência de exibição é do cliente: ligar ou desligar não muda o payload.",
-    run: () => {
-      const antes = JSON.stringify([redigirPecas("ana"), redigirAtores("ana")]);
-      const p1 = $("prefNomes").checked, p2 = $("prefBarras").checked;
-      $("prefNomes").checked = !p1; $("prefBarras").checked = !p2;
-      const depois = JSON.stringify([redigirPecas("ana"), redigirAtores("ana")]);
-      $("prefNomes").checked = p1; $("prefBarras").checked = p2;
-      return [antes === depois, "payload idêntico com as preferências invertidas"];
-    } },
-  { ref: "D34", txt: "Pôr peça na cena, copiar e tirar da cena são do Mestre; o dono só move.",
-    run: () => {
-      const a = tokens.find(t => t.actorId === "aurora");
-      if (!a) return [true, "sem peça da Aurora na cena"];
-      const ok = podeCriar("gm") && !podeCriar("ana") && !podeCriar("bruno")
-              && podeExcluir(a, "gm") && !podeExcluir(a, "ana")
-              && controla(a, "ana");                       // move a própria peça
-      return [ok, "Ana move a Aurora, mas não cria, não copia e não exclui"];
-    } },
-  { ref: "D33", txt: "Mover é permissão de posse — e a peça não sai da cena.",
-    run: () => {
-      const k = tokens.find(t => t.actorId === "kobold");
-      const a = tokens.find(t => t.actorId === "aurora");
-      const permissao = (!k || (!controla(k, "bruno") && controla(k, "gm"))) && (!a || controla(a, "ana"));
-      const dentro = tokens.every(t => {
-        const n = footprint(efetivo(t));
-        return t.x >= 0 && t.y >= 0 && t.x + n <= 12 && t.y + n <= 8;
-      });
-      return [permissao && dentro, "posse checada no servidor · todas as peças dentro dos limites da cena"];
-    } },
-  { ref: "D8", txt: "Peças desvinculadas do mesmo ator têm vidas independentes; vinculadas compartilham.",
-    run: () => {
-      const ks = tokens.filter(t => t.actorId === "kobold" && !t.actorLink);
-      const as = tokens.filter(t => t.actorId === "aurora" && t.actorLink);
-      const indep = ks.length < 2 || new Set(ks.map(t => efetivo(t).hp.value)).size === ks.length;
-      const comum = as.length < 2 || new Set(as.map(t => efetivo(t).hp.value)).size === 1;
-      return [indep && comum, `${ks.length} kobolds com vidas distintas · ${as.length} peças da Aurora com a mesma`];
-    } },
-  { ref: "D27", txt: "Controlar é ser OWNER do ator, e a peça não guarda posse própria.",
-    run: () => {
-      const semCampo = tokens.every(t => !("ownership" in t) && !("userId" in t));
-      const a = tokens.find(t => t.actorId === "aurora");
-      const ok = !a || (controla(a, "ana") && !controla(a, "bruno") && controla(a, "gm"));
-      return [semCampo && ok, semCampo ? "posse só no ator; Ana controla, Bruno não" : "campo de posse na peça"];
-    } },
-  { ref: "D20", txt: "Peças sobrepostas desenham em FIFO, sem campo de ordenação.",
-    run: () => {
-      const semSort = tokens.every(t => !("sort" in t));
-      const crescente = tokens.every((t, i, arr) => i === 0 || arr[i - 1].born < t.born);
-      return [semSort && crescente, "ordem é a da coleção; nenhuma peça tem `sort`"];
-    } },
-  { ref: "D15 · D18 · D32", txt: "Não existe trava, ajuste visual nem nível de exibição por peça.",
-    run: () => {
-      const proibidos = ["locked", "scale", "tint", "alpha", "mirrorX", "mirrorY", "displayName", "displayBars"];
-      const limpo = tokens.every(t => proibidos.every(p => !(p in t)));
-      return [limpo, limpo ? `nenhum dos ${proibidos.length} campos existe no modelo` : "campo proibido encontrado"];
-    } },
-  { ref: "D12", txt: "Morrer não mexe na peça: o ator ganha a faceta, o _id continua o mesmo.",
-    run: () => {
-      const corpo = tokens.find(t => t.actorDelta && t.actorDelta.facets && t.actorDelta.facets.includes("container"));
-      if (!corpo) return [true, "ninguém caiu ainda — use o botão de evento"];
-      return [efetivo(corpo).hp.value === 0, `${corpo._id} continua na cena, agora saqueável`];
-    } },
-  { ref: "D13", txt: "Excluído o ator, nenhuma peça órfã sobrevive.",
-    run: () => {
-      const orfas = tokens.filter(t => !actors[t.actorId]);
-      return [orfas.length === 0, orfas.length ? `${orfas.length} peça(s) órfã(s)` : "nenhuma peça aponta para ator inexistente"];
-    } },
-  { ref: "D24", txt: "Visão e luz são lugar reservado inerte — declarados, sem comportamento.",
-    run: () => {
-      const inerte = tokens.every(t => t.vision && t.vision.enabled === false && t.light.enabled === false);
-      return [inerte, "campos presentes e desligados; nenhum requisito de visão nesta spec"];
-    } },
-  { ref: "D14", txt: "Cópia crua nasce com vida cheia; cópia idêntica preserva o estado vivo.",
-    run: () => {
-      const base = actors.kobold;
-      if (!base) return [true, "ator Kobold foi excluído"];
-      // escolhe deliberadamente a peça mais ferida — com vida cheia os dois modos
-      // coincidem e o teste passaria sem provar nada.
-      const feridos = tokens.filter(t => t.actorId === "kobold" && !t.actorLink)
-                            .sort((p, q) => efetivo(p).hp.value - efetivo(q).hp.value);
-      const modelo = feridos[0];
-      if (!modelo || efetivo(modelo).hp.value === base.hp.max)
-        return [true, "nenhuma peça ferida na cena — os dois modos coincidem"];
-      const crua = { ...modelo, actorDelta: { hp: { value: base.hp.max } } };
-      const iden = { ...modelo, actorDelta: JSON.parse(JSON.stringify(modelo.actorDelta)) };
-      return [efetivo(crua).hp.value === base.hp.max && efetivo(iden).hp.value === efetivo(modelo).hp.value,
-              `crua ${base.hp.max}/${base.hp.max} · idêntica ${efetivo(modelo).hp.value}/${base.hp.max}`];
-    } },
-  { ref: "D29", txt: "A peça aceita dado do sistema em `flags` namespaced, e a engine não lê nada de lá.",
-    run: () => [tokens.every(t => typeof t.flags === "object"), "ponto de extensão presente e não interpretado"] },
-];
+  const EXPECTATIVAS = [
+    {
+      ref: "D1",
+      txt: "Nenhuma peça carrega campo de arte; trocar a arte do ator muda toda peça dele.",
+      run: () => {
+        const semCampo = tokens.every((t) => !("texture" in t) && !("img" in t) && !("art" in t));
+        const derivada = tokens.every((t) => arte(efetivo(t)) !== undefined);
+        return [
+          semCampo && derivada,
+          semCampo ? "arte lida do ator em 100% das peças" : "campo de arte encontrado",
+        ];
+      },
+    },
+    {
+      ref: "D7",
+      txt: "O footprint vem do tamanho do ator, convertido pelo sistema — não é dado da peça.",
+      run: () => {
+        const semCampo = tokens.every((t) => !("width" in t) && !("height" in t));
+        const ogro = tokens.find((t) => t.actorId === "ogro");
+        const ok = !ogro || footprint(efetivo(ogro)) === 2;
+        return [
+          semCampo && ok,
+          ogro
+            ? `Ogro (large) ocupa ${footprint(efetivo(ogro))}×${footprint(efetivo(ogro))}`
+            : "sem Ogro na cena",
+        ];
+      },
+    },
+    {
+      ref: "D11",
+      txt: "Toda peça tem ator; actorId nulo é estado impossível.",
+      run: () => [
+        tokens.every((t) => t.actorId && actors[t.actorId]),
+        `${tokens.length} peças, todas com ator vivo`,
+      ],
+    },
+    {
+      ref: "D21",
+      txt: "Peça oculta não chega ao cliente sem permissão; quem está na lista de exceção recebe.",
+      run: () => {
+        const f = tokens.find((t) => t.hidden);
+        if (!f) return [true, "sem peça oculta na cena"];
+        const naoVe = !redigirPecas("bruno").some((t) => t._id === f._id);
+        const ve = redigirPecas("ana").some((t) => t._id === f._id);
+        const gm = redigirPecas("gm").some((t) => t._id === f._id);
+        return [naoVe && ve && gm, "Bruno não recebe · Ana (exceção) recebe · Mestre recebe"];
+      },
+    },
+    {
+      ref: "D31",
+      txt: "O nome só chega a quem conhece o ator — a peça não tem regra de nome, só herda.",
+      run: () => {
+        const k = tokens.find((t) => t.actorId === "kobold");
+        const a = tokens.find((t) => t.actorId === "aurora");
+        if (!k || !a) return [true, "cena sem os dois casos"];
+        const semNome = redigirAtores("bruno").find((x) => x._id === "kobold");
+        const comNome = redigirAtores("ana").find((x) => x._id === "aurora");
+        const gmVe = redigirAtores("gm").find((x) => x._id === "kobold");
+        return [
+          semNome &&
+            semNome.name === null &&
+            comNome &&
+            comNome.name === "Aurora" &&
+            gmVe &&
+            gmVe.name,
+          "Bruno recebe o Kobold sem nome · Ana recebe a própria Aurora nomeada · Mestre recebe tudo",
+        ];
+      },
+    },
+    {
+      ref: "D31",
+      txt: "Conhecer é do ator, não da peça: uma peça nova do mesmo ator já nasce conhecida.",
+      run: () => {
+        const ks = tokens.filter((t) => t.actorId === "kobold");
+        if (ks.length < 2) return [true, "menos de duas peças do Kobold"];
+        const iguais = new Set(ks.map((t) => conhece(t.actorId, "bruno"))).size === 1;
+        return [iguais, "as peças do mesmo ator têm todas o mesmo estado de conhecimento"];
+      },
+    },
+    {
+      ref: "D3",
+      txt: "A vida é do dono: só o OWNER do ator e o Mestre recebem os pontos de vida.",
+      run: () => {
+        const k = tokens.find((t) => t.actorId === "kobold");
+        const a = tokens.find((t) => t.actorId === "aurora");
+        if (!k || !a) return [true, "cena sem os dois casos"];
+        return [
+          !podeVerVida(k, "bruno") &&
+            !podeVerVida(a, "bruno") &&
+            podeVerVida(a, "ana") &&
+            podeVerVida(k, "gm"),
+          "Bruno não vê kobold nem Aurora · Ana vê Aurora · Mestre vê tudo",
+        ];
+      },
+    },
+    {
+      ref: "D32",
+      txt: "A preferência de exibição é do cliente: ligar ou desligar não muda o payload.",
+      run: () => {
+        const antes = JSON.stringify([redigirPecas("ana"), redigirAtores("ana")]);
+        const p1 = $("prefNomes").checked,
+          p2 = $("prefBarras").checked;
+        $("prefNomes").checked = !p1;
+        $("prefBarras").checked = !p2;
+        const depois = JSON.stringify([redigirPecas("ana"), redigirAtores("ana")]);
+        $("prefNomes").checked = p1;
+        $("prefBarras").checked = p2;
+        return [antes === depois, "payload idêntico com as preferências invertidas"];
+      },
+    },
+    {
+      ref: "D34",
+      txt: "Pôr peça na cena, copiar e tirar da cena são do Mestre; o dono só move.",
+      run: () => {
+        const a = tokens.find((t) => t.actorId === "aurora");
+        if (!a) return [true, "sem peça da Aurora na cena"];
+        const ok =
+          podeCriar("gm") &&
+          !podeCriar("ana") &&
+          !podeCriar("bruno") &&
+          podeExcluir(a, "gm") &&
+          !podeExcluir(a, "ana") &&
+          controla(a, "ana"); // move a própria peça
+        return [ok, "Ana move a Aurora, mas não cria, não copia e não exclui"];
+      },
+    },
+    {
+      ref: "D33",
+      txt: "Mover é permissão de posse — e a peça não sai da cena.",
+      run: () => {
+        const k = tokens.find((t) => t.actorId === "kobold");
+        const a = tokens.find((t) => t.actorId === "aurora");
+        const permissao =
+          (!k || (!controla(k, "bruno") && controla(k, "gm"))) && (!a || controla(a, "ana"));
+        const dentro = tokens.every((t) => {
+          const n = footprint(efetivo(t));
+          return t.x >= 0 && t.y >= 0 && t.x + n <= 12 && t.y + n <= 8;
+        });
+        return [
+          permissao && dentro,
+          "posse checada no servidor · todas as peças dentro dos limites da cena",
+        ];
+      },
+    },
+    {
+      ref: "D8",
+      txt: "Peças desvinculadas do mesmo ator têm vidas independentes; vinculadas compartilham.",
+      run: () => {
+        const ks = tokens.filter((t) => t.actorId === "kobold" && !t.actorLink);
+        const as = tokens.filter((t) => t.actorId === "aurora" && t.actorLink);
+        const indep =
+          ks.length < 2 || new Set(ks.map((t) => efetivo(t).hp.value)).size === ks.length;
+        const comum = as.length < 2 || new Set(as.map((t) => efetivo(t).hp.value)).size === 1;
+        return [
+          indep && comum,
+          `${ks.length} kobolds com vidas distintas · ${as.length} peças da Aurora com a mesma`,
+        ];
+      },
+    },
+    {
+      ref: "D27",
+      txt: "Controlar é ser OWNER do ator, e a peça não guarda posse própria.",
+      run: () => {
+        const semCampo = tokens.every((t) => !("ownership" in t) && !("userId" in t));
+        const a = tokens.find((t) => t.actorId === "aurora");
+        const ok = !a || (controla(a, "ana") && !controla(a, "bruno") && controla(a, "gm"));
+        return [
+          semCampo && ok,
+          semCampo ? "posse só no ator; Ana controla, Bruno não" : "campo de posse na peça",
+        ];
+      },
+    },
+    {
+      ref: "D20",
+      txt: "Peças sobrepostas desenham em FIFO, sem campo de ordenação.",
+      run: () => {
+        const semSort = tokens.every((t) => !("sort" in t));
+        const crescente = tokens.every((t, i, arr) => i === 0 || arr[i - 1].born < t.born);
+        return [semSort && crescente, "ordem é a da coleção; nenhuma peça tem `sort`"];
+      },
+    },
+    {
+      ref: "D15 · D18 · D32",
+      txt: "Não existe trava, ajuste visual nem nível de exibição por peça.",
+      run: () => {
+        const proibidos = [
+          "locked",
+          "scale",
+          "tint",
+          "alpha",
+          "mirrorX",
+          "mirrorY",
+          "displayName",
+          "displayBars",
+        ];
+        const limpo = tokens.every((t) => proibidos.every((p) => !(p in t)));
+        return [
+          limpo,
+          limpo
+            ? `nenhum dos ${proibidos.length} campos existe no modelo`
+            : "campo proibido encontrado",
+        ];
+      },
+    },
+    {
+      ref: "D12",
+      txt: "Morrer não mexe na peça: o ator ganha a faceta, o _id continua o mesmo.",
+      run: () => {
+        const corpo = tokens.find(
+          (t) => t.actorDelta && t.actorDelta.facets && t.actorDelta.facets.includes("container"),
+        );
+        if (!corpo) return [true, "ninguém caiu ainda — use o botão de evento"];
+        return [efetivo(corpo).hp.value === 0, `${corpo._id} continua na cena, agora saqueável`];
+      },
+    },
+    {
+      ref: "D13",
+      txt: "Excluído o ator, nenhuma peça órfã sobrevive.",
+      run: () => {
+        const orfas = tokens.filter((t) => !actors[t.actorId]);
+        return [
+          orfas.length === 0,
+          orfas.length
+            ? `${orfas.length} peça(s) órfã(s)`
+            : "nenhuma peça aponta para ator inexistente",
+        ];
+      },
+    },
+    {
+      ref: "D24",
+      txt: "Visão e luz são lugar reservado inerte — declarados, sem comportamento.",
+      run: () => {
+        const inerte = tokens.every(
+          (t) => t.vision && t.vision.enabled === false && t.light.enabled === false,
+        );
+        return [inerte, "campos presentes e desligados; nenhum requisito de visão nesta spec"];
+      },
+    },
+    {
+      ref: "D14",
+      txt: "Cópia crua nasce com vida cheia; cópia idêntica preserva o estado vivo.",
+      run: () => {
+        const base = actors.kobold;
+        if (!base) return [true, "ator Kobold foi excluído"];
+        // escolhe deliberadamente a peça mais ferida — com vida cheia os dois modos
+        // coincidem e o teste passaria sem provar nada.
+        const feridos = tokens
+          .filter((t) => t.actorId === "kobold" && !t.actorLink)
+          .sort((p, q) => efetivo(p).hp.value - efetivo(q).hp.value);
+        const modelo = feridos[0];
+        if (!modelo || efetivo(modelo).hp.value === base.hp.max)
+          return [true, "nenhuma peça ferida na cena — os dois modos coincidem"];
+        const crua = { ...modelo, actorDelta: { hp: { value: base.hp.max } } };
+        const iden = { ...modelo, actorDelta: JSON.parse(JSON.stringify(modelo.actorDelta)) };
+        return [
+          efetivo(crua).hp.value === base.hp.max &&
+            efetivo(iden).hp.value === efetivo(modelo).hp.value,
+          `crua ${base.hp.max}/${base.hp.max} · idêntica ${efetivo(modelo).hp.value}/${base.hp.max}`,
+        ];
+      },
+    },
+    {
+      ref: "D29",
+      txt: "A peça aceita dado do sistema em `flags` namespaced, e a engine não lê nada de lá.",
+      run: () => [
+        tokens.every((t) => typeof t.flags === "object"),
+        "ponto de extensão presente e não interpretado",
+      ],
+    },
+  ];
 
-function runChecks() {
-  $("checks").innerHTML = EXPECTATIVAS.map((e, i) => {
-    let pass = false, det = "";
-    try { [pass, det] = e.run(); } catch (err) { pass = false; det = "erro: " + err.message; }
-    return `<div class="chk">
+  function runChecks() {
+    $("checks").innerHTML = EXPECTATIVAS.map((e, i) => {
+      let pass = false,
+        det = "";
+      try {
+        [pass, det] = e.run();
+      } catch (err) {
+        pass = false;
+        det = "erro: " + err.message;
+      }
+      return `<div class="chk">
       <div class="st ${pass ? "p" : "f"}">${pass ? "✓" : "✗"}</div>
       <div>E${i + 1} — ${e.txt}<div class="det">${det}</div></div>
       <div class="ref">${e.ref}</div>
     </div>`;
-  }).join("");
-}
+    }).join("");
+  }
 
-/* ---------- pendências ---------- */
+  /* ---------- pendências ---------- */
 
-const PENDENTES = [
-  { t: "Cópia crua de peça vinculada — <span style='color:var(--warn)'>única aberta</span>",
-    p: "Peça vinculada lê a vida direto do ator: duas peças vinculadas mostram sempre a mesma vida. Então “nascer com vida cheia” é impossível para ela — só curando o ator, o que curaria a outra peça junto. A pergunta é o que o <kbd>Ctrl</kbd>+arraste faz nesse caso: <b>vira uma cópia só</b> (proposta) ou <b>recusa</b> o modo cru? Faça como Mestre e leia o aviso.",
-    b: "Mestre + selecionar a Aurora", f: () => { $("viewer").value = "gm"; const t = tokens.find(x => x.actorId === "aurora"); if (t) sel = t._id; render(); toast("Ctrl+arraste a Aurora."); } },
-  { t: "✅ O arraste continua movendo",
-    p: "Decidido: os dois gestos movem. A <b>23</b> continua satisfeita pelas setas, e o arraste concorrente (D26) segue sendo problema de servidor, não desta spec.",
-    b: null, f: null },
-  { t: "✅ Setas sem diagonal",
-    p: "Quatro direções. Atravessar na diagonal custa duas teclas — aceito em troca de não inventar gesto composto.",
-    b: null, f: null },
-  { t: "✅ Conhecimento: qualquer personagem, default fechado",
-    p: "O usuário conhece o ator se <b>qualquer</b> personagem dele conhece. E o default é <b>fechado</b>: o que não foi revelado não tem nome — inclusive o baú, para a Ana.",
-    b: "Ver como Ana", f: () => { $("viewer").value = "ana"; render(); toast("O baú aparece sem nome: default fechado, conforme decidido."); } },
-  { t: "✅ Criar, copiar e excluir são do Mestre",
-    p: "O dono move a peça do próprio ator, e nada além. Pôr na cena, duplicar e tirar são do Mestre — inclusive a peça do próprio personagem do jogador.",
-    b: "Tentar copiar como Ana", f: () => { $("viewer").value = "ana"; const t = tokens.find(x => x.actorId === "aurora"); if (t) sel = t._id; render(); toast("Ctrl+arraste a Aurora como Ana: recusado."); } },
-  { t: "✅ Numeração: o contador só cresce",
-    p: "Morreu o Esqueleto 3, o próximo nasce 7 — não reaproveita o buraco. Evita dois “Esqueleto 3” na mesma sessão. O protótipo ainda numera por posição, de propósito: remova o do meio e veja o efeito recusado.",
-    b: "Remover o Kobold 2", f: () => {
-        const ks = tokens.filter(t => t.actorId === "kobold").sort((a, b) => a.born - b.born);
-        if (ks[1]) tokens = tokens.filter(t => t._id !== ks[1]._id);
+  const PENDENTES = [
+    {
+      t: "Cópia crua de peça vinculada — <span style='color:var(--warn)'>única aberta</span>",
+      p: "Peça vinculada lê a vida direto do ator: duas peças vinculadas mostram sempre a mesma vida. Então “nascer com vida cheia” é impossível para ela — só curando o ator, o que curaria a outra peça junto. A pergunta é o que o <kbd>Ctrl</kbd>+arraste faz nesse caso: <b>vira uma cópia só</b> (proposta) ou <b>recusa</b> o modo cru? Faça como Mestre e leia o aviso.",
+      b: "Mestre + selecionar a Aurora",
+      f: () => {
+        $("viewer").value = "gm";
+        const t = tokens.find((x) => x.actorId === "aurora");
+        if (t) sel = t._id;
+        render();
+        toast("Ctrl+arraste a Aurora.");
+      },
+    },
+    {
+      t: "✅ O arraste continua movendo",
+      p: "Decidido: os dois gestos movem. A <b>23</b> continua satisfeita pelas setas, e o arraste concorrente (D26) segue sendo problema de servidor, não desta spec.",
+      b: null,
+      f: null,
+    },
+    {
+      t: "✅ Setas sem diagonal",
+      p: "Quatro direções. Atravessar na diagonal custa duas teclas — aceito em troca de não inventar gesto composto.",
+      b: null,
+      f: null,
+    },
+    {
+      t: "✅ Conhecimento: qualquer personagem, default fechado",
+      p: "O usuário conhece o ator se <b>qualquer</b> personagem dele conhece. E o default é <b>fechado</b>: o que não foi revelado não tem nome — inclusive o baú, para a Ana.",
+      b: "Ver como Ana",
+      f: () => {
+        $("viewer").value = "ana";
+        render();
+        toast("O baú aparece sem nome: default fechado, conforme decidido.");
+      },
+    },
+    {
+      t: "✅ Criar, copiar e excluir são do Mestre",
+      p: "O dono move a peça do próprio ator, e nada além. Pôr na cena, duplicar e tirar são do Mestre — inclusive a peça do próprio personagem do jogador.",
+      b: "Tentar copiar como Ana",
+      f: () => {
+        $("viewer").value = "ana";
+        const t = tokens.find((x) => x.actorId === "aurora");
+        if (t) sel = t._id;
+        render();
+        toast("Ctrl+arraste a Aurora como Ana: recusado.");
+      },
+    },
+    {
+      t: "✅ Numeração: o contador só cresce",
+      p: "Morreu o Esqueleto 3, o próximo nasce 7 — não reaproveita o buraco. Evita dois “Esqueleto 3” na mesma sessão. O protótipo ainda numera por posição, de propósito: remova o do meio e veja o efeito recusado.",
+      b: "Remover o Kobold 2",
+      f: () => {
+        const ks = tokens.filter((t) => t.actorId === "kobold").sort((a, b) => a.born - b.born);
+        if (ks[1]) tokens = tokens.filter((t) => t._id !== ks[1]._id);
         $("viewer").value = "gm";
         toast("Kobold 3 virou Kobold 2 — é exatamente o comportamento que a decisão recusa.");
         render();
-      } },
-  { t: "✅ Sub-personagem não precisa de spec",
-    p: "Sem diferenciação dentro do jogo: “os meus” são os atores de que sou OWNER, e pronto. Não há número 47 a reservar, e a <b>29</b> segue cuidando de familiar, pet e companion como já cuidava.",
-    b: null, f: null },
-  { t: "↗ Fora desta spec: a #166 e o resto da visão",
-    p: "Remover colisão de parede depende de D24 valer para o projeto inteiro — quatro documentos, e a <b>#164</b> deixa de ser defeito para virar código a remover. Decisão de escopo do projeto, não da 41.",
-    b: null, f: null },
-];
+      },
+    },
+    {
+      t: "✅ Sub-personagem não precisa de spec",
+      p: "Sem diferenciação dentro do jogo: “os meus” são os atores de que sou OWNER, e pronto. Não há número 47 a reservar, e a <b>29</b> segue cuidando de familiar, pet e companion como já cuidava.",
+      b: null,
+      f: null,
+    },
+    {
+      t: "↗ Fora desta spec: a #166 e o resto da visão",
+      p: "Remover colisão de parede depende de D24 valer para o projeto inteiro — quatro documentos, e a <b>#164</b> deixa de ser defeito para virar código a remover. Decisão de escopo do projeto, não da 41.",
+      b: null,
+      f: null,
+    },
+  ];
 
-$("pendings").innerHTML = PENDENTES.map((p, i) =>
-  `<div class="pend"><h3>${i + 1}. ${p.t}</h3><p>${p.p}</p>
-   ${p.b ? `<button data-p="${i}">${p.b}</button>` : ""}</div>`).join("");
-$("pendings").addEventListener("click", ev => {
-  const b = ev.target.closest("button");
-  if (b) PENDENTES[+b.dataset.p].f();
-});
+  $("pendings").innerHTML = PENDENTES.map(
+    (p, i) =>
+      `<div class="pend"><h3>${i + 1}. ${p.t}</h3><p>${p.p}</p>
+   ${p.b ? `<button data-p="${i}">${p.b}</button>` : ""}</div>`,
+  ).join("");
+  $("pendings").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button");
+    if (b) PENDENTES[+b.dataset.p].f();
+  });
 
-reset();
-render();
+  reset();
+  render();
 </script>
