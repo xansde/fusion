@@ -63,6 +63,16 @@ function renderMsg(
 const invalidateLabel = t("FUSION.Chat.Invalidate.Button");
 const revalidateLabel = t("FUSION.Chat.Revalidate.Button");
 
+/** Pictographs — the exact class of character the drawer bans (clean-room: no emoji icons). */
+const PICTOGRAPH = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+
+/** Extracts the `msg__act` button markup alone, so an emoji elsewhere in the row can't hide behind it. */
+function actButton(body: string): string {
+  const match = /<button[^>]*class="[^"]*\bmsg__act\b[^"]*"[\s\S]*?<\/button>/.exec(body);
+  if (!match) throw new Error("msg__act button not found in rendered body");
+  return match[0];
+}
+
 describe("REQ-ACH-082 — invalidate control visibility", () => {
   it("renders the invalidate button for the message's AUTHOR (not GM)", () => {
     const ana = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
@@ -122,5 +132,27 @@ describe("REQ-ACH-083 — revalidate control visibility", () => {
     });
     const body = renderMsg(invalidated, { isGm: false, userId: "u1" });
     expect(body).not.toContain("msg__act");
+  });
+});
+
+describe("REQ-ACH-082/083 — the control's icon is drawn, never a pictograph", () => {
+  it("draws the invalidate icon as inline SVG, no emoji", () => {
+    const ana = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
+    const body = renderMsg(ana, { isGm: false, userId: "u1" });
+    const button = actButton(body);
+    expect(button).toContain("<svg");
+    expect(button).not.toMatch(PICTOGRAPH);
+  });
+
+  it("draws the revalidate icon as inline SVG, no emoji", () => {
+    const invalidated = msg("m1", {
+      speaker: { userId: "u1", alias: "Ana" },
+      invalid: true,
+      invalidatedBy: "gm-1",
+    });
+    const body = renderMsg(invalidated, { isGm: true, userId: "gm-1" });
+    const button = actButton(body);
+    expect(button).toContain("<svg");
+    expect(button).not.toMatch(PICTOGRAPH);
   });
 });
