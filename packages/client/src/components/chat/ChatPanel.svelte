@@ -55,6 +55,7 @@
   import { getMessageDisplayMeta } from "../../lib/chat/messageFormatter.js";
   import { session } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import { clickOutside } from "../../lib/ui/clickOutside.js";
   import ChatLog from "./ChatLog.svelte";
   import ChatInput from "./ChatInput.svelte";
   import DiceTray from "./DiceTray.svelte";
@@ -202,7 +203,12 @@
       {/if}
     </div>
 
-    <div class="chat-panel__menu-anchor">
+    <div
+      class="chat-panel__menu-anchor"
+      use:clickOutside={() => {
+        if (menuOpen) menuOpen = false;
+      }}
+    >
       <button
         class="chat-panel__more"
         type="button"

@@ -56,6 +56,12 @@ interface TestContext {
   gmToken: string;
   playerToken: string;
   player2Token: string;
+  gmId: string;
+  gmColor: string;
+  playerId: string;
+  playerColor: string;
+  player2Id: string;
+  player2Color: string;
 }
 
 async function buildTestContext(): Promise<TestContext> {
@@ -128,6 +134,12 @@ async function buildTestContext(): Promise<TestContext> {
     gmToken: gmLogin.accessToken,
     playerToken: p1Login.accessToken,
     player2Token: p2Login.accessToken,
+    gmId: gm.id,
+    gmColor: gm.color,
+    playerId: player1.id,
+    playerColor: player1.color,
+    player2Id: player2.id,
+    player2Color: player2.color,
   };
 }
 
@@ -473,5 +485,81 @@ describe("Ephemeral events — do not appear in resync/snapshot", () => {
       );
       expect(ephemeralOps).toHaveLength(0);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-NET-043 — presence:online roster
+// ---------------------------------------------------------------------------
+//
+// This is the payload attachPresenceSync.ts wires into presenceState.onlineUsers
+// (feeding resolveSpeakerColor/A022 and resolveInvalidatorLabel/A024 in
+// ChatMessage.svelte). The client-side wiring is covered separately in
+// attachPresenceSync.test.ts; these tests inspect the actual socket payload
+// the server puts on the wire, per rule 7.
+
+describe("Ephemeral handlers — presence:online (REQ-NET-043)", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    playerSocket = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("broadcasts the full roster with color to already-connected clients when a new user connects", async () => {
+    const rosterPromise = waitForEphemeral(playerSocket, "presence:online", 2000);
+
+    const player2Socket = connectClient(ctx.port, ctx.worldId, ctx.player2Token);
+    player2Socket.connect();
+    await waitForConnect(player2Socket);
+
+    const envelope = await rosterPromise;
+    const payload = envelope.payload as { users: Array<Record<string, unknown>> };
+    expect(Array.isArray(payload.users)).toBe(true);
+
+    // REQ-NET-043: roster carries active state AND color (REQ-USR-002) for
+    // every account — this is exactly what resolveSpeakerColor/resolveInvalidatorLabel
+    // in ChatMessage.svelte need from presenceState.onlineUsers.
+    const gmRow = payload.users.find((u) => u["userId"] === ctx.gmId);
+    const player1Row = payload.users.find((u) => u["userId"] === ctx.playerId);
+    const player2Row = payload.users.find((u) => u["userId"] === ctx.player2Id);
+
+    expect(gmRow).toMatchObject({ online: true, color: ctx.gmColor });
+    expect(player1Row).toMatchObject({ online: true, color: ctx.playerColor });
+    expect(player2Row).toMatchObject({ online: true, color: ctx.player2Color });
+
+    player2Socket.disconnect();
+  });
+
+  it("re-broadcasts the roster with online:false (account still listed) when a user disconnects", async () => {
+    const player2Socket = connectClient(ctx.port, ctx.worldId, ctx.player2Token);
+    player2Socket.connect();
+    await waitForConnect(player2Socket);
+    // Drain the connect-triggered broadcast before arming the disconnect one.
+    await waitForEphemeral(playerSocket, "presence:online", 2000);
+
+    const rosterPromise = waitForEphemeral(playerSocket, "presence:online", 2000);
+    player2Socket.disconnect();
+
+    const envelope = await rosterPromise;
+    const payload = envelope.payload as { users: Array<Record<string, unknown>> };
+    const player2Row = payload.users.find((u) => u["userId"] === ctx.player2Id);
+
+    // The account is still in the roster (it did not stop existing) but no
+    // longer online — this is what lets an invalidation stamp keep resolving
+    // a name for a GM who has since logged off.
+    expect(player2Row).toMatchObject({ online: false, color: ctx.player2Color });
   });
 });

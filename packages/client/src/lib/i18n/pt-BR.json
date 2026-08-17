@@ -1176,6 +1176,8 @@
   "FUSION.Chat.Target.Label": "contra {{name}}",
   "FUSION.Chat.Invalidated.Badge": "invalidada",
   "FUSION.Chat.Invalidated.By": "Invalidada por {{who}}",
+  "FUSION.Chat.Invalidate.Button": "Invalidar — risca sem apagar",
+  "FUSION.Chat.Revalidate.Button": "Revalidar",
   "FUSION.Chat.SpellCard.Title": "Magia lançada",
   "FUSION.Chat.SpellCard.Rank": "nível {{rank}}",
   "FUSION.Chat.SpellCard.RollSave": "Fazer teste de resistência",

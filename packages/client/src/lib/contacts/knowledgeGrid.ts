@@ -39,6 +39,7 @@ import {
   type KnowledgeMap,
 } from "@fusion/shared";
 
+import { displayName } from "../docs/displayName.js";
 import {
   isGlimpsedContact,
   isKnownContact,
@@ -100,8 +101,14 @@ export interface KnowledgeGrid {
 // Building it
 // ---------------------------------------------------------------------------
 
+/**
+ * The label shown for a contact or a table character, resolved through the
+ * single mechanism REQ-CMP-055 requires — never `doc.name` straight, which
+ * stays EN-pure by design (issue #43) and would leak the pack's raw English
+ * name into this window while every other surface shows the pt-BR label.
+ */
 function nameOf(doc: ContactActorDoc): string {
-  return typeof doc.name === "string" ? doc.name : "";
+  return displayName(doc);
 }
 
 function byName(a: { name: string; id: string }, b: { name: string; id: string }): number {
