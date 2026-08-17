@@ -25,7 +25,8 @@ import {
   hashRefreshToken,
   generateRandomPassword,
 } from "./crypto.js";
-import { createDocumentId } from "@fusion/shared";
+import { createDocumentId, OwnershipLevel } from "@fusion/shared";
+import { DocumentStore } from "../documents/store.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -74,6 +75,7 @@ export class AuthService {
   private readonly users: UserStore;
   private readonly sessions: SessionStore;
   private readonly lockouts: LockoutStore;
+  private readonly documents: DocumentStore;
 
   constructor(
     private readonly db: Db,
@@ -83,6 +85,7 @@ export class AuthService {
     this.users = new UserStore(db);
     this.sessions = new SessionStore(db);
     this.lockouts = new LockoutStore(db);
+    this.documents = new DocumentStore({ db });
   }
 
   // --------------------------------------------------------------------------
@@ -259,6 +262,17 @@ export class AuthService {
 
   /**
    * Create a new user. REQ-USR-025
+   *
+   * REQ-USR-025/025a: creating a user of a non-privileged role (PLAYER or
+   * TRUSTED, DEC-USR-01) also creates a blank `character` Actor in the same
+   * gesture, with `ownership.default = none` and the new user as `OWNER`.
+   * Privileged roles (ASSISTANT, GAMEMASTER) get no Actor.
+   *
+   * REQ-USR-025c: the user row and the Actor are a single atomic gesture —
+   * both writes run inside one SQLite transaction, so an Actor-creation
+   * failure (e.g. validation) rolls back the user insert too and no user of
+   * a non-privileged role is ever left without its Actor.
+   *
    * Returns the created user and, if a password was generated, that password.
    */
   async createUser(params: {
@@ -284,7 +298,40 @@ export class AuthService {
       passwordHash,
     };
     if (params.color !== undefined) createOpts.color = params.color;
-    const record = this.users.create(createOpts);
+
+    const record = this.db.transaction(() => {
+      const created = this.users.create(createOpts);
+
+      // DEC-USR-01: only PLAYER and TRUSTED are non-privileged; ASSISTANT and
+      // GAMEMASTER get no character (REQ-USR-025, last paragraph).
+      if (created.role === Role.PLAYER || created.role === Role.TRUSTED) {
+        this.documents.create(
+          "actors",
+          {
+            // REQ-USR-025b: name derived from the user's own name; subtype
+            // "character"; no game-system fields filled in ("em branco").
+            name: created.name,
+            type: "character",
+            // REQ-USR-025a: default=none, the new user is the sole OWNER —
+            // an explicit exception to the GM-creator-becomes-OWNER default
+            // (REQ-DOC-029), because the intended owner is the new user, not
+            // the GM performing the creation.
+            ownership: {
+              default: OwnershipLevel.NONE,
+              [created.id]: OwnershipLevel.OWNER,
+            },
+            // Server-side link from the character back to the user it was
+            // created for, so later administration (e.g. REQ-NPC-055) can
+            // resolve "whose character is this" without guessing from
+            // ownership alone.
+            flags: { fusion: { playerId: created.id } },
+          },
+          { userId: null },
+        );
+      }
+
+      return created;
+    })();
 
     return { user: toPublic(record) };
   }

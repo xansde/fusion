@@ -47,8 +47,6 @@
     type KineticGatePick,
     setAbilityBoosts,
     markAbilityBoostsChoice,
-    setFreeArchetype,
-    setClassLevelsVariant,
     getClassLevelsVariant,
     classOptionsAt,
     chooseClassLevel,
@@ -110,6 +108,10 @@
     requireConnectedSocket,
   } from "../../../../lib/compendium/compendiumApi.js";
   import type { PackIndexEntry } from "@fusion/shared";
+  import {
+    ensureWorldSettingsRegistry,
+    worldSettingsRegistry,
+  } from "../../../../lib/settings/worldSettingsRegistry.svelte.js";
 
   interface Props {
     doc: Record<string, unknown>;
@@ -121,7 +123,41 @@
 
   let { doc, actorId, editable, sendOpFn, onHide }: Props = $props();
 
-  const plan = $derived(derivePlan(doc));
+  // ---------------------------------------------------------------------------
+  // Free Archetype / multiclass by class levels — governance moved to the
+  // world (REQ-CFG-032/033, spec 30 DEC-MCL-09, G103).
+  //
+  // Both variant rules are settings of scope `world`, declared by the pf2e
+  // system (`systems/pf2e/src/index.ts`, keys `pf2e:variantRules.
+  // freeArchetype`/`pf2e:variantRules.classLevels`) and written ONLY from the
+  // Configurações tab's Mundo section (WorldSection.svelte) — the ficha lost
+  // its own toggle and never writes `system.build.freeArchetype`/`system.
+  // build.variantRules.classLevels` again (REQ-CFG-033). This column fetches
+  // the SAME registry that section reads (`worldSettingsRegistry`, single-
+  // flight per socket) so the plan derives against the world's actual value
+  // even when the GM never opened Configurações on this client. Falling back
+  // to the actor's legacy field (`derivePlan`'s default when no override is
+  // passed) only happens before the fetch resolves, offline, or for a system
+  // that has not declared the setting yet.
+  // ---------------------------------------------------------------------------
+
+  $effect(() => {
+    const sock = getSocket();
+    if (sock) void ensureWorldSettingsRegistry(sock);
+  });
+
+  /** Current value of a pf2e world-scope variant setting, or `undefined` when not (yet) known. */
+  function worldVariantFlag(localKey: string): boolean | undefined {
+    const row = worldSettingsRegistry.rows.find((r) => r.key === `pf2e:variantRules.${localKey}`);
+    return row ? row.value === true : undefined;
+  }
+
+  const worldVariants = $derived({
+    freeArchetype: worldVariantFlag("freeArchetype"),
+    classLevels: worldVariantFlag("classLevels"),
+  });
+
+  const plan = $derived(derivePlan(doc, worldVariants));
   const ctx = $derived(planContext(doc));
   const opCtx = $derived<PlanOpBuilderContext>({ actorId, doc, editable });
 
@@ -1068,31 +1104,24 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Free Archetype toggle + level up
-  // ---------------------------------------------------------------------------
-
-  function toggleFreeArchetype(): void {
-    const isOn = doc["system"] && typeof doc["system"] === "object"
-      ? Boolean(((doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown> | undefined)?.["freeArchetype"])
-      : false;
-    const op = setFreeArchetype(opCtx, !isOn);
-    if (op) sendOpFn(op);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Multiclass by class levels (specs/30)
+  // Free Archetype / multiclass by class levels — READ ONLY (specs/30).
+  //
+  // REQ-CFG-032/033 (spec 37 DEC-CFG-08, spec 30 DEC-MCL-09): the two variant
+  // rules are settings of MUNDO now, written only from the Configurações tab's
+  // Mundo section (WorldSection.svelte) — the ficha lost its own toggle and
+  // never writes `system.build.freeArchetype`/`system.build.variantRules.
+  // classLevels` again. `classLevelsOn` reads the WORLD value (`worldVariants`
+  // above, fetched from `worldSettingsRegistry`) — it drives the level-up
+  // flow's class-picking behaviour below — falling back to the actor's own
+  // legacy field only while the registry fetch has not resolved yet (offline,
+  // no socket, or the field predates REQ-CFG-034's not-yet-implemented
+  // migration).
   // ---------------------------------------------------------------------------
 
   const classLevelsOn = $derived(
-    getClassLevelsVariant(
-      (doc["system"] as Record<string, unknown> | undefined) ?? {},
-    ),
+    worldVariants.classLevels ??
+      getClassLevelsVariant((doc["system"] as Record<string, unknown> | undefined) ?? {}),
   );
-
-  function toggleClassLevels(): void {
-    const op = setClassLevelsVariant(opCtx, !classLevelsOn);
-    if (op) sendOpFn(op);
-  }
 
   /** The level whose "Nível de classe" slot is being picked, if any. */
   let classLevelPicker = $state<number | null>(null);
@@ -1121,14 +1150,6 @@
   function handleLevelUp(): void {
     sendAll(levelUp(opCtx));
   }
-
-  const freeArchetypeOn = $derived(
-    Boolean(
-      doc["system"] && typeof doc["system"] === "object"
-        ? ((doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown> | undefined)?.["freeArchetype"]
-        : false,
-    ),
-  );
 </script>
 
 <div class="plan-column">
@@ -1184,17 +1205,6 @@
       onClick={() => openAbcPicker("class")}
     />
   </div>
-
-  {#if editable}
-    <label class="plan-column__toggle">
-      <input type="checkbox" checked={freeArchetypeOn} onchange={toggleFreeArchetype} />
-      {t("FUSION.Sheet.Plan.FreeArchetypeToggle")}
-    </label>
-    <label class="plan-column__toggle">
-      <input type="checkbox" checked={classLevelsOn} onchange={toggleClassLevels} />
-      {t("FUSION.Sheet.Plan.ClassLevelsToggle")}
-    </label>
-  {/if}
 
   {#if plan.needsClass}
     <div class="plan-column__cta">
@@ -1382,16 +1392,6 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-  }
-
-  .plan-column__toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11.5px;
-    color: var(--fusion-text-muted);
-    padding: 2px 2px;
-    cursor: pointer;
   }
 
   .plan-column__cta {

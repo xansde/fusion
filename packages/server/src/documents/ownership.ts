@@ -44,6 +44,20 @@ export function isRolePrivileged(role: number): boolean {
   return role >= PRIVILEGED_ROLE_THRESHOLD;
 }
 
+/**
+ * REQ-CFG-070/071: the Configurações aba's Mundo/Permissões/Usuários/Mods
+ * sections — read AND write — require `role === GAMEMASTER` STRICTLY, not
+ * the generic `isRolePrivileged` threshold, which also admits ASSISTANT_GM
+ * (role 3, extinct-pending — issue #133). Single source so `doc-handlers.ts`
+ * (Setting writes/broadcast) and `settings-handlers.ts` (Mundo/Permissões
+ * reads) can never drift on which threshold gates the mesa's config
+ * (DEC-CFG-10's implementation note).
+ */
+export function isGamemasterStrict(role: number): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+  return role === UserRole.GAMEMASTER;
+}
+
 // ---------------------------------------------------------------------------
 // Folder ownership context (minimal interface for inheritance)
 // ---------------------------------------------------------------------------

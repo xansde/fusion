@@ -968,6 +968,27 @@ describe("derivePlan — empty slot when choice/item is absent", () => {
     const l2 = plan.levels.find((l) => l.level === 2)!;
     expect(l2.slots.some((s) => s.type === "archetypeFeat")).toBe(false);
   });
+
+  // REQ-MCL-001, DEC-MCL-09, spec 37 REQ-CFG-032/033: the variant is a
+  // world-scope setting now — a caller that knows the world's value
+  // (PlanColumn.svelte, via `worldSettingsRegistry`) must be able to
+  // override the actor's own (legacy, pre-migration) field either way.
+  it("world override freeArchetype:false turns the slot off even when the actor's own field is on", () => {
+    const doc = tobiasLevel3Doc(); // fixture has build.freeArchetype: true
+    const plan = derivePlan(doc, { freeArchetype: false });
+    const l2 = plan.levels.find((l) => l.level === 2)!;
+    expect(l2.slots.some((s) => s.type === "archetypeFeat")).toBe(false);
+  });
+
+  it("world override freeArchetype:true turns the slot on even when the actor's own field is off", () => {
+    const doc = tobiasLevel3Doc();
+    (doc["system"] as Record<string, unknown> & { build: Record<string, unknown> }).build[
+      "freeArchetype"
+    ] = false;
+    const plan = derivePlan(doc, { freeArchetype: true });
+    const l2 = plan.levels.find((l) => l.level === 2)!;
+    expect(l2.slots.some((s) => s.type === "archetypeFeat")).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------

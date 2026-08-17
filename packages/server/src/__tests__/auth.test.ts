@@ -54,6 +54,7 @@ interface TestContext {
   fastify: FastifyInstance;
   gmUser: { id: string; password: string };
   playerUser: { id: string };
+  assistantUser: { id: string };
 }
 
 async function buildTestContext(): Promise<TestContext> {
@@ -79,6 +80,16 @@ async function buildTestContext(): Promise<TestContext> {
     password: "player-pass-1",
   });
 
+  // REQ-CFG-070: ASSISTANT (role 3) — a role slated for removal (issue #133,
+  // decided 2026-08-15) but still present in the enum — must be refused on
+  // the GAMEMASTER-strict routes just like PLAYER, not treated as privileged
+  // the way `isRolePrivileged` treats it elsewhere in the codebase.
+  const { user: assistantPublic } = await authService.createUser({
+    name: "Assistant1",
+    role: Role.ASSISTANT,
+    password: "assistant-pass-1",
+  });
+
   // Build Fastify with cookie plugin + auth routes
   const fastify = Fastify({ logger: false }) as unknown as FastifyInstance;
   await fastify.register(fastifyCookie);
@@ -96,6 +107,7 @@ async function buildTestContext(): Promise<TestContext> {
     fastify,
     gmUser: { id: gmPublic.id, password: gmPassword },
     playerUser: { id: playerPublic.id },
+    assistantUser: { id: assistantPublic.id },
   };
 }
 
@@ -568,6 +580,92 @@ describe("PLAYER permission denied on GM routes", () => {
       url: `/api/users/${ctx.gmUser.id}/reset-password`,
       headers: { authorization: `Bearer ${accessToken}` },
       payload: {},
+    });
+    expect(resp.statusCode).toBe(403);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: ASSISTANT (role 3) cannot access GM-strict routes either
+//
+// REQ-CFG-070: writes to the Usuários section (this route) require
+// `role === GAMEMASTER` strictly — not the generic `isRolePrivileged`
+// threshold used elsewhere, which admits ASSISTANT. `requireGm` in
+// auth/routes.ts already compares `role !== Role.GAMEMASTER`, so this suite
+// proves the strict gate on the wire rather than adding new production code.
+// ASSISTANT is a role slated for removal (issue #133, 2026-08-15) but the
+// enum value still exists — the guard is spelled out explicitly rather than
+// relying on the issue landing.
+// ---------------------------------------------------------------------------
+
+describe("ASSISTANT permission denied on GAMEMASTER-strict routes (REQ-CFG-070)", () => {
+  it("GET /api/users returns 403 for ASSISTANT", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.assistantUser.id, "assistant-pass-1");
+
+    const resp = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/users",
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    expect(resp.statusCode).toBe(403);
+    expect(resp.json<{ code: string }>().code).toBe("PERMISSION_DENIED");
+  });
+
+  it("POST /api/users returns 403 for ASSISTANT", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.assistantUser.id, "assistant-pass-1");
+
+    const resp = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/users",
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { name: "AssistantCreated", role: Role.PLAYER },
+    });
+    expect(resp.statusCode).toBe(403);
+    expect(resp.json<{ code: string }>().code).toBe("PERMISSION_DENIED");
+  });
+
+  it("PATCH /api/users/:id returns 403 for ASSISTANT", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.assistantUser.id, "assistant-pass-1");
+
+    const resp = await ctx.fastify.inject({
+      method: "PATCH",
+      url: `/api/users/${ctx.playerUser.id}`,
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { role: Role.TRUSTED },
+    });
+    expect(resp.statusCode).toBe(403);
+  });
+
+  it("POST /api/users/:id/reset-password returns 403 for ASSISTANT", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.assistantUser.id, "assistant-pass-1");
+
+    const resp = await ctx.fastify.inject({
+      method: "POST",
+      url: `/api/users/${ctx.gmUser.id}/reset-password`,
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: {},
+    });
+    expect(resp.statusCode).toBe(403);
+  });
+
+  it("DELETE /api/users/:id returns 403 for ASSISTANT", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.assistantUser.id, "assistant-pass-1");
+
+    const resp = await ctx.fastify.inject({
+      method: "DELETE",
+      url: `/api/users/${ctx.playerUser.id}`,
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    expect(resp.statusCode).toBe(403);
+  });
+
+  it("POST /api/users/:id/kick returns 403 for ASSISTANT", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.assistantUser.id, "assistant-pass-1");
+
+    const resp = await ctx.fastify.inject({
+      method: "POST",
+      url: `/api/users/${ctx.playerUser.id}/kick`,
+      headers: { authorization: `Bearer ${accessToken}` },
     });
     expect(resp.statusCode).toBe(403);
   });

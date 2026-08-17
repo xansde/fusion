@@ -16,6 +16,7 @@
  */
 
 import { defineSystem } from "@fusion/system-api";
+import { z } from "zod";
 
 // Schemas — actors
 import { CharacterSystemSchema } from "./schemas/actor-character.js";
@@ -305,6 +306,68 @@ export const pf2eSystem = defineSystem(
       render(payload: unknown) {
         return payload;
       },
+    });
+
+    // -----------------------------------------------------------------------
+    // World-scope variant rule settings (REQ-MCL-001, DEC-MCL-09, spec 37
+    // REQ-CFG-032/033/034/035).
+    //
+    // Both variant rules used to be a toggle inside `system.build` on the
+    // ACTOR (DEC-MCL-01) — a per-character field meant two characters at the
+    // same table could derive under different rules, and a player, not the
+    // GM, controlled a campaign-wide decision. DEC-MCL-09 (2026-08-15) moved
+    // them here: settings of scope `world`, written ONLY from the
+    // Configurações tab's Mundo section (`WorldSection.svelte` renders every
+    // row this registers with zero pf2e-specific code — REQ-CFG-031). The
+    // ficha itself no longer offers a control for either (REQ-CFG-033) and
+    // `planVM.ts`'s `derivePlan` takes the resolved value as an explicit
+    // argument from whichever caller knows the world's current setting.
+    //
+    // `countAffectedActors` answers REQ-CFG-082's "quantos são afetados"
+    // (settings:impact) when a GM tries to turn one of these OFF — it reads
+    // the actor's LEGACY per-actor field, which still exists during the
+    // migration window (REQ-CFG-034 is not implemented yet: this is a
+    // documented gap, not a design choice — see the module's own tests).
+    // -----------------------------------------------------------------------
+
+    function actorHasLegacyFreeArchetype(actor: Record<string, unknown>): boolean {
+      const system = actor["system"];
+      if (!system || typeof system !== "object") return false;
+      const build = (system as Record<string, unknown>)["build"];
+      if (!build || typeof build !== "object") return false;
+      return (build as Record<string, unknown>)["freeArchetype"] === true;
+    }
+
+    function actorHasLegacyClassLevels(actor: Record<string, unknown>): boolean {
+      const system = actor["system"];
+      if (!system || typeof system !== "object") return false;
+      const build = (system as Record<string, unknown>)["build"];
+      if (!build || typeof build !== "object") return false;
+      const variantRules = (build as Record<string, unknown>)["variantRules"];
+      if (!variantRules || typeof variantRules !== "object") return false;
+      return (variantRules as Record<string, unknown>)["classLevels"] === true;
+    }
+
+    registrar.setting({
+      key: "variantRules.freeArchetype",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Arquétipo livre",
+      hint: "Free Archetype",
+      requiresConfirmOnDisable: true,
+      countAffectedActors: (actors) => actors.filter(actorHasLegacyFreeArchetype).length,
+    });
+
+    registrar.setting({
+      key: "variantRules.classLevels",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Multiclasse por nível",
+      hint: "Multiclass by class levels",
+      requiresConfirmOnDisable: true,
+      countAffectedActors: (actors) => actors.filter(actorHasLegacyClassLevels).length,
     });
 
     // -----------------------------------------------------------------------

@@ -20,9 +20,10 @@
  *    so the directory was buried: the debt is now paid by halves, on purpose —
  *    creating a player's character is spec 37's (G105) and deleting one has no
  *    screen at all, accepted in Q-NPC-06.
- *  - **Configurações** is a placeholder panel with nothing but its empty state
- *    (spec 36 §7.4) until spec 37 lands; the tab itself already sits in the rail
- *    footer, which is what DEC-GAV-09/REQ-CFG-001 ask for.
+ *  - **Configurações** sits in the rail footer, which is what DEC-GAV-09/REQ-CFG-001
+ *    ask for; the placeholder panel is gone — its index→section navigation is spec
+ *    37's own (G100), and each section's content is filled in by its own task
+ *    (G101..G106).
  *
  * Every `component` is a real `() => import(...)`: mounting the rail must not pull a
  * single panel module (RNF-GAV-02). Registration itself never calls a loader.

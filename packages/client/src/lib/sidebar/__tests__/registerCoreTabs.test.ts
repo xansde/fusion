@@ -308,7 +308,7 @@ describe("the core tabs register through the public call (G016)", () => {
       ["npcs", () => import("../../../components/npcs/NpcsPanel.svelte")],
       // REQ-CEN-001: Cenas is the panel extracted from the pre-drawer sidebar.
       ["scenes", () => import("../../../components/scenes/ScenesTab.svelte")],
-      // REQ-CFG-001: Configurações is the placeholder panel of spec 36 §7.4.
+      // REQ-CFG-001: Configurações is spec 37's own panel (G100 and on).
       ["settings", () => import("../../../components/settings/SettingsTab.svelte")],
     ];
 

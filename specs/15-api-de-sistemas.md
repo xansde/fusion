@@ -444,9 +444,14 @@ rollOptions?: string[] }` invocável a partir de sheets, macros e chat (ex.:
   resolvidas via REQ-SYS-045 (`ver 09-`).
 - **REQ-SYS-047** [MVP] `registrar.setting(def: SettingDefinition)` DEVE registrar
   uma setting `{ key, scope: "world"|"user"|"client", schema: ZodType, default,
-label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
-  `schema` em get/set e expor `game.settings.get/set(systemId, key)` tipado
-  (`ver 03-`).
+label, hint?, requiresReload?, requiresConfirmOnDisable?, countAffectedActors?,
+  onChange? }`. A engine DEVE validar o valor pelo `schema` em get/set e expor
+  `game.settings.get/set(systemId, key)` tipado (`ver 03-`).
+  `requiresConfirmOnDisable` e `countAffectedActors(actors)` servem REQ-CFG-082/
+  DEC-CFG-09 (spec 37): quando `requiresConfirmOnDisable` é `true` e a setting é
+  desligada, a UI pede confirmação mostrando a contagem que `countAffectedActors`
+  devolve. `countAffectedActors` é **server-only** — como `onChange`, nunca cruza
+  o wire (`ver` `settings-handlers.ts`).
 - **REQ-SYS-048** [MVP] `manifest.languages[]` DEVE listar `{ lang, name, path }`
   e a engine DEVE carregar e mesclar as strings; a ordem de precedência DEVE ser
   Engine → System (sistema sobrescreve engine apenas em chaves namespaced do

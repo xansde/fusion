@@ -265,6 +265,22 @@ export interface SettingDefinition<S extends ZodType = ZodType> {
    */
   readonly requiresReload?: boolean;
   /**
+   * Spec 37 REQ-CFG-082 / DEC-CFG-09: when true, turning this setting OFF
+   * (from `true` to `false`) does NOT apply until the settings UI has asked
+   * for confirmation showing how many of the world's actors are affected.
+   * Turning it ON never confirms — this flag only gates the disable
+   * direction. Meaningless outside a boolean setting.
+   */
+  readonly requiresConfirmOnDisable?: boolean;
+  /**
+   * Spec 37 REQ-CFG-082: counts how many of the world's Actor documents would
+   * be left with an illegitimate choice if this setting were turned off —
+   * the number the confirmation shows. Only consulted when
+   * `requiresConfirmOnDisable` is true. Server-only, like `onChange`: never
+   * crosses the wire (see settings-handlers.ts's `settings:impact`).
+   */
+  countAffectedActors?(actors: readonly Record<string, unknown>[]): number;
+  /**
    * Called (on all clients for "world" scope) when the setting value changes.
    */
   onChange?(value: z.infer<S>): void;
@@ -281,6 +297,10 @@ export interface ErasedSettingDefinition {
   // `string | undefined` here so callers can set these from optional source fields.
   readonly hint: string | undefined;
   readonly requiresReload: boolean | undefined;
+  readonly requiresConfirmOnDisable: boolean | undefined;
+  readonly countAffectedActors:
+    | ((actors: readonly Record<string, unknown>[]) => number)
+    | undefined;
   readonly onChange: ((value: unknown) => void) | undefined;
 }
 

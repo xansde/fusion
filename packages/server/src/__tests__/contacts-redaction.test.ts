@@ -49,6 +49,7 @@ import { PROTOCOL_VERSION, KnowledgeState } from "@fusion/shared";
 import { buildContactViewer, redactActorDocsForViewer } from "../net/redaction.js";
 import type { ContactKnowledgeSource } from "../net/redaction.js";
 import { listeningPort } from "./helpers/ports.js";
+import { DocumentStore } from "../documents/store.js";
 
 // ---------------------------------------------------------------------------
 // Harness
@@ -110,12 +111,28 @@ async function buildTestContext(): Promise<TestContext> {
   });
   // Player C never receives a character: the session-zero case REQ-CTT-071 is
   // written about ("o maior estado entre os personagens que ele possui" — over
-  // an empty set).
+  // an empty set). Since REQ-USR-025/DEC-NPC-02 (G105) now makes createUser
+  // itself spawn a blank `character` Actor for every non-privileged user,
+  // session zero can no longer be reached through creation alone — so the
+  // auto-created Actor is deleted right back out, leaving player C with
+  // truly zero owned characters, same as before G105 existed.
   const { user: playerC } = await authService.createUser({
     name: "Jogadora C",
     role: Role.PLAYER,
     password: "player-c-pass",
   });
+  {
+    const documents = new DocumentStore({ db: fusionDb.raw });
+    const autoCharacter = documents.getAll("actors").find((doc) => {
+      const flags = doc["flags"] as Record<string, unknown> | undefined;
+      const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
+      return fusion?.["playerId"] === playerC.id;
+    });
+    if (!autoCharacter) {
+      throw new Error("REQ-USR-025 was expected to have created player C's character");
+    }
+    documents.delete("actors", autoCharacter["_id"] as string);
+  }
   const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
   const aLogin = await authService.login({
     userId: playerA.id,
