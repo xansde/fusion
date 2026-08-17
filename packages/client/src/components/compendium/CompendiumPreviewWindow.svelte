@@ -30,6 +30,7 @@
    * already resolved, and this window never widens it.
    */
 
+  import { onMount } from "svelte";
   import type { PackLicense } from "@fusion/shared";
   import {
     buildPreviewLicense,
@@ -117,8 +118,17 @@
     preview !== null && preview.img !== null && !isKnownPlaceholderImg(preview.img) && !imgBroken,
   );
 
-  // REQ-CPD-051: loaded on demand, once, when the window mounts.
-  $effect(() => {
+  // REQ-CPD-051: loaded on demand, once, when the window mounts. This is
+  // deliberately `onMount`, not a reactive `$effect`: `load()` reassigns
+  // `loadState` synchronously (before its first `await`), and an `$effect`
+  // that reads `loadState.status` while `load()` writes `loadState` inside
+  // its own run re-triggers itself on every write — a self-feeding loop that
+  // Svelte's runtime aborts with `effect_update_depth_exceeded` (seen live in
+  // the Fase 4 e2e run, item A040-A042: the preview never left "Carregando
+  // documento…"). `onMount` runs exactly once and creates no dependency on
+  // `loadState`, so `load()`'s own write cannot re-arm it. `retry()` below
+  // already calls `load()` directly and was never routed through this effect.
+  onMount(() => {
     if (loadState.status === "loading") void load();
   });
 
