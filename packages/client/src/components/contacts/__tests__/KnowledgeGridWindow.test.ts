@@ -4,8 +4,10 @@
  *
  * Covers REQ-CTT-060 (a fixed footer only a privileged role has, and it is a
  * footer, not a header), REQ-CTT-061 (the window opens outside the drawer via
- * the window manager, as contacts × characters), REQ-CTT-062 (every cell is an
- * activation that carries the state in words, and an exception is marked),
+ * the window manager, as contacts × characters), REQ-CTT-062 (every cell
+ * cycles the three states on activation, and an exception is marked by its
+ * own CSS class — never colour alone; the state's full word reaches assistive
+ * tech through the accessible name, REQ-CTT-094, not written into the cell),
  * REQ-CTT-063 / REQ-CTT-064 (the contact's name and the character's name are
  * controls of their own), REQ-CTT-065 (the general rule in text plus the legend
  * of the three states), REQ-CTT-066 (no path here creates, deletes or edits an
@@ -127,6 +129,31 @@ function rowOf(body: string, id: string): string {
   return body.slice(start, end === -1 ? body.length : end);
 }
 
+/**
+ * A row's markup with the row-head `<th>` (the contact's name and its general
+ * rule, always visible in words) cut away — what remains is only the cells, so
+ * an assertion made on it can never pass by reading the header instead.
+ */
+function cellsOf(row: string): string {
+  const afterHead = row.indexOf("</th>");
+  return afterHead === -1 ? row : row.slice(afterHead + "</th>".length);
+}
+
+/**
+ * The `class` attribute of the cell button identified by its `data-state`/
+ * `data-exception` pair — proof of the markup actually wiring the exception
+ * class to the right cell, not just of the CSS rule existing somewhere in the
+ * component's source.
+ */
+function cellClassFor(row: string, state: 0 | 1 | 2, exception: boolean): string {
+  const marker = `data-state="${state}" data-exception="${exception}"`;
+  const markerStart = row.indexOf(marker);
+  if (markerStart === -1) throw new Error(`no cell with ${marker}`);
+  const tagStart = row.lastIndexOf("<button", markerStart);
+  const classAttr = /class="([^"]*)"/.exec(row.slice(tagStart, markerStart));
+  return classAttr?.[1] ?? "";
+}
+
 beforeEach(() => {
   localStorageMock.clear();
   seedMirror([FOFURINHA, TOBIAS, FERREIRO, TAVERNEIRA]);
@@ -193,26 +220,37 @@ describe("the grid of contacts by characters (REQ-CTT-061)", () => {
     expect(body).not.toContain('data-contact-id="act-fofurinha01"');
   });
 
-  it("REQ-CTT-062: every cell is an activation carrying the state in words", () => {
+  it("REQ-CTT-062: every cell is its own activation, one button per character column", () => {
     const row = rowOf(renderWindow(), "act-ferreiro01");
+    const cells = cellsOf(row);
 
-    // Tobias knows him; Fofurinha reads the general rule, which is hidden.
-    expect(row).toContain("Conhecido");
-    expect(row).toContain("Oculto");
     // Two cells, both of them buttons — nothing here is a read-only swatch.
-    expect([...row.matchAll(/knowledge-grid__state /g)]).toHaveLength(2);
+    expect([...cells.matchAll(/knowledge-grid__state /g)]).toHaveLength(2);
   });
 
-  it("REQ-CTT-062: an exception is told apart by a mark and a word, not by colour", () => {
+  it("REQ-CTT-094: the state reaches the cell's accessible name in words — proven on the cells alone, never the row-head's general-rule text", () => {
+    const cells = cellsOf(rowOf(renderWindow(), "act-ferreiro01"));
+
+    // Fofurinha's cell falls back to the general rule (hidden); Tobias's cell
+    // is the exception overriding it to known. Both words can only have come
+    // from a cell here, since the row-head (which always reads "Oculto" for
+    // Ferreiro's general rule) was cut away.
+    expect(cells).toContain("Oculto");
+    expect(cells).toContain("Conhecido");
+  });
+
+  it("REQ-CTT-062 / REQ-CTT-072: an exception is wired to its own CSS class on the exact cell, not just named in the aria-label", () => {
     const row = rowOf(renderWindow(), "act-ferreiro01");
 
-    expect(row).toContain('data-exception="true"');
-    expect(row).toContain('data-exception="false"');
-    expect(row).toContain("exceção");
+    // Tobias's cell is the exception (state 2) and carries the class that
+    // draws the underline (proven separately below); Fofurinha's cell (state
+    // 0, the general rule) carries neither the flag nor the class.
+    expect(cellClassFor(row, 2, true)).toContain("knowledge-grid__state--exception");
+    expect(cellClassFor(row, 0, false)).not.toContain("knowledge-grid__state--exception");
 
     // A contact whose row is uniform has no exception at all.
     const plain = rowOf(renderWindow(), "act-taverneira");
-    expect(plain).not.toContain('data-exception="true"');
+    expect(plain).not.toContain("knowledge-grid__state--exception");
   });
 
   it("REQ-CTT-063 / REQ-CTT-064: the two names are controls of their own", () => {
@@ -298,7 +336,7 @@ describe("the cell is a compact SVG icon, not a written label or a text glyph (R
     );
   });
 
-  it("REQ-CTT-062: no visible word or icon is written inside the cell anymore — only the symbol", () => {
+  it("cleanup: no visible word or icon is written inside the cell anymore — only the symbol (this proves the OLD markup is gone, not the requirement itself; the requirement is proved above and by the CSS-fidelity tests below)", () => {
     const code = codeOf("KnowledgeGridWindow.svelte");
 
     expect(code).not.toContain("knowledge-grid__state-text");
