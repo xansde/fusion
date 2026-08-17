@@ -40,6 +40,7 @@ import { createLogger } from "../logger.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
+import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
@@ -67,6 +68,8 @@ interface Ctx {
   port: number;
   worldId: string;
   gmToken: string;
+  playerToken: string;
+  playerId: string;
 }
 
 async function buildCtx(worldId: string, systemModule?: SystemModule): Promise<Ctx> {
@@ -80,6 +83,16 @@ async function buildCtx(worldId: string, systemModule?: SystemModule): Promise<C
   const authService = new AuthService(fusionDb.raw, secret, worldId);
   const { user: gm, password: gmPw } = await authService.bootstrapGm();
   const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
+  const { user: player } = await authService.createUser({
+    name: "Player1",
+    role: Role.PLAYER,
+    password: "player1-pass",
+  });
+  const playerLogin = await authService.login({
+    userId: player.id,
+    password: "player1-pass",
+    ip: "127.0.0.1",
+  });
 
   const config = loadConfig({
     dataDirOverride: dataDir,
@@ -120,6 +133,8 @@ async function buildCtx(worldId: string, systemModule?: SystemModule): Promise<C
     port,
     worldId,
     gmToken: gmLogin.accessToken,
+    playerToken: playerLogin.accessToken,
+    playerId: player.id,
   };
 }
 
@@ -173,6 +188,28 @@ async function createActor(
   return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
 }
 
+/**
+ * Same as `createActor`, but grants OWNER ownership to `ownerId` — the shape
+ * REQ-DOC-034's own example uses ("o dono de um ator npc, um familiar
+ * posicionado unlinked", DEC-DOC-12): a non-privileged player who owns the
+ * Actor a Token references.
+ */
+async function createActorOwnedBy(
+  socket: ClientSocket,
+  name: string,
+  type: string,
+  ownerId: string,
+): Promise<string> {
+  const ack = await sendOp(socket, "doc:create", {
+    documentType: "Actor",
+    data: [{ name, type, system: {}, ownership: { default: 0, [ownerId]: 3 } }],
+  });
+  if (!ack["ok"]) {
+    throw new Error(`Failed to create owned actor "${name}": ${JSON.stringify(ack)}`);
+  }
+  return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+}
+
 async function createScene(socket: ClientSocket, name: string): Promise<string> {
   const ack = await sendOp(socket, "doc:create", { documentType: "Scene", data: [{ name }] });
   if (!ack["ok"]) {
@@ -208,16 +245,21 @@ async function createToken(
 describe("Token invocation contract (spec 41 §7.2)", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
+  let player: ClientSocket;
 
   beforeAll(async () => {
     ctx = await buildCtx("token_invocation_contract_world");
     gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
     gm.connect();
     await waitForConnect(gm);
+    player = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
+    player.connect();
+    await waitForConnect(player);
   }, 30000);
 
   afterAll(async () => {
     gm?.disconnect();
+    player?.disconnect();
     await teardown(ctx);
   });
 
@@ -578,6 +620,69 @@ describe("Token invocation contract (spec 41 §7.2)", () => {
 
       expect(updateAck["ok"]).toBe(false);
       expect(updateAck["code"]).toBe("VALIDATION_FAILED");
+      const message = updateAck["message"] as string;
+      expect(message).toContain("actorDelta");
+      expect(message).toContain("REQ-DOC-034");
+
+      const scene = ctx.store.get("scenes", sceneId);
+      const tokens = scene["tokens"] as Array<Record<string, unknown>>;
+      const persisted = tokens.find((t) => t["_id"] === token["_id"]);
+      expect(persisted?.["actorDelta"]).toBeNull();
+    });
+
+    it("refuses actorDelta on an UPDATE from a non-privileged OWNER of an unlinked token's actor, and the persisted actorDelta does not change (REQ-DOC-034)", async () => {
+      const sceneId = await createScene(gm, "actorDelta player-owned unlinked scene");
+      // REQ-CEN-071/073: a scene not on air does not exist for a
+      // non-privileged caller — the player socket below needs the scene ON
+      // AIR to reach the token at all, independent of the actorDelta gate
+      // this test is actually about.
+      const activateAck = await sendOp(gm, "world:activeScene", { sceneId });
+      if (!activateAck["ok"]) {
+        throw new Error(`Failed to activate scene: ${JSON.stringify(activateAck)}`);
+      }
+      // REQ-DOC-034's own example: "o dono de um ator npc (um familiar
+      // posicionado unlinked)" — a player who OWNS the npc Actor a token
+      // references, on a token that resolveActorLinkCreateDefault makes
+      // unlinked by default (npc subtype).
+      const actorId = await createActorOwnedBy(
+        gm,
+        "NPC owned by player for actorDelta permission gate",
+        "npc",
+        ctx.playerId,
+      );
+
+      const token = await createToken(gm, sceneId, { actorId, x: 0, y: 0 });
+      expect(token["actorLink"]).toBe(false);
+
+      // Sanity check: the player really does have OWNER-level write access
+      // to this token via the actor-ownership route (REQ-DOC-025) — proving
+      // the permission gate below is about `actorDelta` specifically, not
+      // about the player being blocked from touching the token at all.
+      const rotationAck = await sendOp(player, "doc:update", {
+        documentType: "Token",
+        updates: [
+          {
+            _id: token["_id"],
+            diff: { rotation: 45 },
+            embedded: { type: "Token", id: sceneId },
+          },
+        ],
+      });
+      expect(rotationAck["ok"]).toBe(true);
+
+      const updateAck = await sendOp(player, "doc:update", {
+        documentType: "Token",
+        updates: [
+          {
+            _id: token["_id"],
+            diff: { actorDelta: { system: { hp: { value: 3 } } } },
+            embedded: { type: "Token", id: sceneId },
+          },
+        ],
+      });
+
+      expect(updateAck["ok"]).toBe(false);
+      expect(updateAck["code"]).toBe("PERMISSION_DENIED");
       const message = updateAck["message"] as string;
       expect(message).toContain("actorDelta");
       expect(message).toContain("REQ-DOC-034");

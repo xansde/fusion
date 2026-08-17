@@ -1744,11 +1744,14 @@ function handleEmbeddedUpdate(
           return ackError(actorIdError.code, actorIdError.message);
         }
         // REQ-DOC-034/DEC-TOK-05 (TK025): actorDelta is the one field §7.2
-        // refuses at creation but allows on UPDATE — and only then, only on
-        // an unlinked token. Evaluated against the DIFF-APPLIED actorLink,
-        // not the pre-diff one, so a single update that both unlinks the
-        // token and sets its delta is judged by the new state.
+        // refuses at creation, refuses UNCONDITIONALLY for a non-privileged
+        // caller on UPDATE (the dedicated TokenActor route is their only
+        // route of authorship), and for GM/Assistant allows on UPDATE only
+        // on an unlinked token. Evaluated against the DIFF-APPLIED
+        // actorLink, not the pre-diff one, so a single update that both
+        // unlinks the token and sets its delta is judged by the new state.
         const actorDeltaError = validateTokenUpdateActorDelta(
+          ctx.role,
           patchedToken["actorLink"],
           "actorDelta" in sanitizedDiff,
         );

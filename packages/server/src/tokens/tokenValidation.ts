@@ -45,16 +45,20 @@
  *     schema": there is nothing on the Actor to read.
  *   - `validateTokenUpdateActorDelta` — the REQ-DOC-034 half of the
  *     `actorDelta` rule: refused on creation unconditionally (checked by
- *     `validateTokenCreateContract`), accepted on update ONLY when the
- *     patched token is unlinked (`actorLink === false`).
+ *     `validateTokenCreateContract`); on update, refused outright for a
+ *     non-privileged caller (the dedicated TokenActor mutation route is
+ *     their ONLY route of authorship — REQ-DOC-034's own words), and for a
+ *     privileged one accepted ONLY when the patched token is unlinked
+ *     (`actorLink === false`).
  */
 
 import { DocumentNotFoundError } from "../documents/store.js";
 import type { DocumentStore } from "../documents/store.js";
+import { isRolePrivileged } from "../documents/ownership.js";
 import type { SystemModule } from "@fusion/system-api";
 
 export interface TokenValidationError {
-  readonly code: "VALIDATION_FAILED";
+  readonly code: "VALIDATION_FAILED" | "PERMISSION_DENIED";
   readonly message: string;
 }
 
@@ -229,15 +233,32 @@ export function applyTokenCreateDefaults(
   return withDefaults;
 }
 
+const TOKEN_ACTOR_DELTA_PERMISSION_ERROR =
+  "Token.actorDelta cannot be written directly by a non-privileged user — the dedicated " +
+  "TokenActor mutation route on the unlinked token is the only route of authorship for " +
+  "actorDelta available to a non-GM/Assistant caller (REQ-DOC-034)";
+
 /**
  * The REQ-DOC-034 half of the `actorDelta` rule that
  * `validateTokenCreateContract` does not cover: on an UPDATE, `actorDelta`
- * is accepted only when the patched token is unlinked. A linked token's
- * effective actor IS the base Actor (`resolveEffectiveActor`,
- * `actorLink === true` short-circuits to the base actor) — a delta on a
- * linked token has nothing to apply to and would silently do nothing at
- * read time, so it is refused at write time instead (DEC-TOK-05: refuse,
- * don't ignore).
+ * is refused for a non-privileged caller UNCONDITIONALLY — REQ-DOC-034 is
+ * explicit that the dedicated TokenActor mutation route is "a única rota de
+ * autoria" of `actorDelta` for a non-privileged user, so a direct
+ * `doc:update` carrying `actorDelta` is not that route no matter what state
+ * the token ends up in. Checked BEFORE the unlinked-token check below so a
+ * player cannot bypass the permission gate merely by also unlinking the
+ * token in the same diff.
+ *
+ * For a privileged (GM/Assistant) caller, `actorDelta` is accepted only
+ * when the patched token is unlinked. A linked token's effective actor IS
+ * the base Actor (`resolveEffectiveActor`, `actorLink === true`
+ * short-circuits to the base actor) — a delta on a linked token has nothing
+ * to apply to and would silently do nothing at read time, so it is refused
+ * at write time instead (DEC-TOK-05: refuse, don't ignore).
+ *
+ * `role` is the caller's numeric role (mirrors `doc-handlers.ts`'s own
+ * `isPrivileged(ctx.role)` gates) checked through `isRolePrivileged` — the
+ * single shared predicate (REGRA 9) rather than a re-derived threshold.
  *
  * `patchedActorLink` is the diff-applied token's `actorLink` (mirrors how
  * `validateTokenActorId` reads `patchedToken["actorId"]` in
@@ -246,10 +267,14 @@ export function applyTokenCreateDefaults(
  * payload is evaluated against the NEW link state, not the old one).
  */
 export function validateTokenUpdateActorDelta(
+  role: number,
   patchedActorLink: unknown,
   diffHasActorDelta: boolean,
 ): TokenValidationError | null {
   if (!diffHasActorDelta) return null;
+  if (!isRolePrivileged(role)) {
+    return { code: "PERMISSION_DENIED", message: TOKEN_ACTOR_DELTA_PERMISSION_ERROR };
+  }
   if (patchedActorLink === false) return null;
   return {
     code: "VALIDATION_FAILED",
