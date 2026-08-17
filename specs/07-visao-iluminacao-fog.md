@@ -384,17 +384,6 @@ export interface TokenLight {
   enabled: boolean;
 }
 
-> **Nota de 2026-08-17**, obrigada pela `41-token.md` §12 (DEC-TOK-18, Q-TOK-04). Nenhum
-> requisito desta spec muda. A `41` (Token) declara os campos `vision` e `light` na forma
-> da peça — mesmo formato de `TokenVision`/`TokenLight` acima —, mas explicitamente **não
-> herda** visão, campo de visão, névoa, iluminação nem colisão com parede: esses campos são
-> **declaração inerte** enquanto esta spec não vale (nenhum cliente calcula polígono de
-> visão a partir deles, nenhum servidor valida colisão contra eles). Quando esta spec for
-> implementada, `TokenVision`/`TokenLight` continuam sendo a forma canônica — a `41` não
-> propõe um formato concorrente, só adia o comportamento. Q-TOK-04 registra que essa
-> remoção vale hoje só para a spec 41; estendê-la ao projeto (aposentar visão/fog do MVP
-> global) é decisão de escopo ainda em aberto, não tomada aqui.
-
 /** Configuração de percepção da cena. */
 export interface ScenePerception {
   /** Fog of war habilitado nesta cena. */
@@ -444,6 +433,17 @@ export interface FogResetCommand {
   target: "all" | { userId: string };
 }
 ```
+
+> **Nota de 2026-08-17**, obrigada pela `41-token.md` §12 (DEC-TOK-18, Q-TOK-04). Nenhum
+> requisito desta spec muda. A `41` (Token) declara os campos `vision` e `light` na forma
+> da peça — mesmo formato de `TokenVision`/`TokenLight` acima —, mas explicitamente **não
+> herda** visão, campo de visão, névoa, iluminação nem colisão com parede: esses campos são
+> **declaração inerte** enquanto esta spec não vale (nenhum cliente calcula polígono de
+> visão a partir deles, nenhum servidor valida colisão contra eles). Quando esta spec for
+> implementada, `TokenVision`/`TokenLight` continuam sendo a forma canônica — a `41` não
+> propõe um formato concorrente, só adia o comportamento. Q-TOK-04 registra que essa
+> remoção vale hoje só para a spec 41; estendê-la ao projeto (aposentar visão/fog do MVP
+> global) é decisão de escopo ainda em aberto, não tomada aqui.
 
 ## API e eventos
 
