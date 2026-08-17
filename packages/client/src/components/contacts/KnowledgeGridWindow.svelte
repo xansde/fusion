@@ -66,6 +66,18 @@
     return t(KNOWLEDGE_STATE_KEYS[state as 0 | 1 | 2]);
   }
 
+  /**
+   * One-character symbol per state, matching the prototype's dense matrix
+   * (`SYM = ["·", "◐", "✓"]` in npcs-tab.prototype.html). This is what the eye
+   * reads in the cell; the full word never leaves the accessible name
+   * (REQ-CTT-094 — never colour alone, but a symbol plus an accessible label
+   * is exactly the resolution the requirement asks for).
+   */
+  const STATE_SYMBOLS: Readonly<Record<0 | 1 | 2, string>> = { 0: "·", 1: "◐", 2: "✓" };
+  function stateSymbol(state: number): string {
+    return STATE_SYMBOLS[state as 0 | 1 | 2];
+  }
+
   function nameOrPlaceholder(name: string): string {
     return name.length > 0 ? name : t("FUSION.Contacts.Knowledge.Unnamed");
   }
@@ -112,7 +124,9 @@
   <div class="knowledge-grid__legend" aria-label={t("FUSION.Contacts.Knowledge.Legend")}>
     {#each KNOWLEDGE_STATES as state (state)}
       <span class="knowledge-grid__legend-item" data-state={state}>
-        <span class="knowledge-grid__swatch" data-state={state} aria-hidden="true"></span>
+        <span class="knowledge-grid__swatch" data-state={state} aria-hidden="true"
+          >{stateSymbol(state)}</span
+        >
         {stateLabel(state)}
       </span>
     {/each}
@@ -177,33 +191,34 @@
               {#each row.cells as cell (cell.characterId)}
                 {@const column = grid.columns.find((c) => c.id === cell.characterId)}
                 <td class="knowledge-grid__cell">
-                  <!-- REQ-CTT-062: one activation, one step of the cycle. -->
+                  <!-- REQ-CTT-062: one activation, one step of the cycle. The
+                       compact symbol (·/◐/✓, matching the prototype's dense
+                       matrix) is what the eye reads; the full state — and, for
+                       an exception, the word itself — reaches assistive tech
+                       through the accessible name alone (REQ-CTT-094), never
+                       written into the cell. -->
                   <button
                     class="knowledge-grid__state"
                     class:knowledge-grid__state--exception={cell.isException}
                     type="button"
                     data-state={cell.state}
                     data-exception={cell.isException}
-                    aria-label={t("FUSION.Contacts.Knowledge.CycleCell", {
-                      character: nameOrPlaceholder(column?.name ?? ""),
-                      contact: nameOrPlaceholder(row.name),
-                      state: stateLabel(cell.state),
-                    })}
+                    aria-label={cell.isException
+                      ? t("FUSION.Contacts.Knowledge.CycleCellException", {
+                          character: nameOrPlaceholder(column?.name ?? ""),
+                          contact: nameOrPlaceholder(row.name),
+                          state: stateLabel(cell.state),
+                        })
+                      : t("FUSION.Contacts.Knowledge.CycleCell", {
+                          character: nameOrPlaceholder(column?.name ?? ""),
+                          contact: nameOrPlaceholder(row.name),
+                          state: stateLabel(cell.state),
+                        })}
                     onclick={() => onCell(row, cell.characterId)}
                   >
-                    <!-- The word, always: state is never communicated by colour
-                         alone (REQ-CTT-094). -->
-                    <span class="knowledge-grid__state-text">{stateLabel(cell.state)}</span>
-                    {#if cell.isException}
-                      <span class="knowledge-grid__exception-mark" aria-hidden="true">
-                        <svg viewBox="0 0 8 8" width="7" height="7" focusable="false">
-                          <path d="M4 0.8 7.2 7.2H0.8z" fill="currentColor" />
-                        </svg>
-                      </span>
-                      <span class="knowledge-grid__exception-word"
-                        >{t("FUSION.Contacts.Knowledge.Exception")}</span
-                      >
-                    {/if}
+                    <span class="knowledge-grid__state-symbol" aria-hidden="true"
+                      >{stateSymbol(cell.state)}</span
+                    >
                   </button>
                 </td>
               {/each}
@@ -301,7 +316,7 @@
   .knowledge-grid__table {
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
 
   .knowledge-grid__corner,
@@ -310,10 +325,15 @@
   .knowledge-grid__cell {
     border-bottom: 1px solid var(--fusion-border);
     border-right: 1px solid var(--fusion-border);
-    padding: 0.15rem;
+    padding: 0.15rem 0.3rem;
     text-align: left;
-    vertical-align: top;
+    vertical-align: middle;
     background: var(--fusion-surface);
+  }
+
+  .knowledge-grid__cell {
+    text-align: center;
+    padding: 0.1rem;
   }
 
   .knowledge-grid__corner,
@@ -330,8 +350,8 @@
     position: sticky;
     left: 0;
     background: var(--fusion-surface-alt);
-    min-width: 9rem;
-    max-width: 14rem;
+    min-width: 7rem;
+    max-width: 10rem;
   }
 
   .knowledge-grid__corner {
@@ -380,50 +400,45 @@
     color: var(--fusion-text-subtle);
   }
 
+  /* Compact, one-symbol cell — the density of the prototype's matrix, not the
+     word-per-cell block this replaced. */
   .knowledge-grid__state {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.2rem;
-    width: 100%;
-    padding: 0.15rem 0.3rem;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    margin: 0 auto;
+    background: none;
+    border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text-muted);
+    color: var(--fusion-text-subtle);
     font: inherit;
-    font-size: 0.66rem;
     cursor: pointer;
   }
 
-  .knowledge-grid__state[data-state="2"] {
-    border-color: var(--fusion-accent);
-    color: var(--fusion-accent);
+  .knowledge-grid__state-symbol {
+    font-size: 0.9rem;
+    line-height: 1;
   }
 
   .knowledge-grid__state[data-state="1"] {
-    border-style: dashed;
+    color: var(--fusion-text-muted);
   }
 
-  /* REQ-CTT-062: an exception carries a mark and a word of its own, so it is not
-     told apart by colour alone. */
+  .knowledge-grid__state[data-state="2"] {
+    color: var(--fusion-accent);
+  }
+
+  /* REQ-CTT-062: an exception is told apart by contour alone — never a written
+     word in the cell (the word still reaches assistive tech via aria-label). */
   .knowledge-grid__state--exception {
-    border-width: 2px;
     border-color: var(--fusion-text);
-  }
-
-  .knowledge-grid__exception-mark {
-    display: inline-flex;
-    color: var(--fusion-text);
-  }
-
-  .knowledge-grid__exception-word {
-    font-size: 0.58rem;
-    font-style: italic;
-    color: var(--fusion-text-subtle);
   }
 
   .knowledge-grid__state:hover,
   .knowledge-grid__state:focus-visible {
-    background: var(--fusion-surface);
+    background: var(--fusion-surface-alt);
   }
 </style>

@@ -87,12 +87,16 @@ const FOLDER_OPTIONS: MoveTargetOption[] = [
   { value: UNFILED_FOLDER_ID, name: "", depth: 0, current: false, unfiled: true },
 ];
 
-function renderDialog(initialFolderId: string | null = "fld-aldeia0000001"): string {
+function renderDialog(
+  initialFolderId: string | null = "fld-aldeia0000001",
+  initialTab: "bestiary" | "scratch" = "bestiary",
+): string {
   return render(NpcCreateDialog, {
     props: {
       socket: {} as never,
       initialFolderId,
       folderOptions: FOLDER_OPTIONS,
+      initialTab,
       onClose: (): void => undefined,
     },
   }).body;
@@ -133,25 +137,51 @@ describe("REQ-NPC-040: creating a non-playable has two entry points in the panel
 });
 
 describe("REQ-NPC-041 / REQ-NPC-043 / REQ-NPC-044: the window and its two doors", () => {
-  it("REQ-NPC-041: both doors are in the same window", () => {
+  it("REQ-NPC-041 / A035: both doors are reachable from the same window's tab strip", () => {
+    const body = renderDialog();
+
+    // Both tabs are always drawn (npcs-tab.prototype.html:2308-2338, .wtabs).
+    expect(body).toContain('data-tab="bestiary"');
+    expect(body).toContain('data-tab="scratch"');
+  });
+
+  it("A035: only the active tab's door is in the DOM — bestiary is the default", () => {
     const body = renderDialog();
 
     expect(body).toContain('data-door="bestiary"');
-    expect(body).toContain('data-door="scratch"');
+    expect(body).not.toContain('data-door="scratch"');
     // And the bestiary door is a search, not a browse of the whole compendium.
     expect(body).toContain('data-input="bestiary-search"');
   });
 
+  it("A035: switching to the scratch tab shows only that door, not the bestiary one", () => {
+    const body = renderDialog("fld-aldeia0000001", "scratch");
+
+    expect(body).toContain('data-door="scratch"');
+    expect(body).not.toContain('data-door="bestiary"');
+  });
+
   it("REQ-NPC-043: the door from scratch asks for a subtype and a name", () => {
-    const body = renderDialog();
+    const body = renderDialog("fld-aldeia0000001", "scratch");
 
     expect(body).toContain('data-input="npc-create-subtype"');
     expect(body).toContain('data-input="npc-create-name"');
     expect(body).toContain('data-action="create-npc"');
   });
 
+  it("A035: the name field comes right after the subtype field, not at the bottom", () => {
+    const body = renderDialog("fld-aldeia0000001", "scratch");
+    const scratchDoor = /<section[^>]*data-door="scratch"[\s\S]*?<\/section>/.exec(body)?.[0];
+    expect(scratchDoor).toBeDefined();
+
+    const subtypeIndex = scratchDoor?.indexOf('data-input="npc-create-subtype"') ?? -1;
+    const nameIndex = scratchDoor?.indexOf('data-input="npc-create-name"') ?? -1;
+    expect(subtypeIndex).toBeGreaterThan(-1);
+    expect(nameIndex).toBeGreaterThan(subtypeIndex);
+  });
+
   it("REQ-NPC-044: exactly two subtypes are offered, and none of the four excluded ones", () => {
-    const body = renderDialog();
+    const body = renderDialog("fld-aldeia0000001", "scratch");
     const select = /<select[^>]*data-input="npc-create-subtype"[\s\S]*?<\/select>/.exec(body)?.[0];
     expect(select).toBeDefined();
 
@@ -165,18 +195,20 @@ describe("REQ-NPC-041 / REQ-NPC-043 / REQ-NPC-044: the window and its two doors"
     }
   });
 
-  it("REQ-NPC-047: folder and attitude are chosen in the window, above both doors", () => {
-    const body = renderDialog();
+  it("REQ-NPC-047: folder and attitude are shared by both doors, below whichever is open", () => {
+    for (const tab of ["bestiary", "scratch"] as const) {
+      const body = renderDialog("fld-aldeia0000001", tab);
 
-    expect(body).toContain('data-input="npc-create-folder"');
-    expect(body).toContain('data-input="npc-create-attitude"');
-    // Every folder of the tree, plus "Sem pasta".
-    expect(body).toContain('value="fld-aldeia0000001"');
-    expect(body).toContain(`value="${UNFILED_FOLDER_ID}"`);
+      expect(body).toContain('data-input="npc-create-folder"');
+      expect(body).toContain('data-input="npc-create-attitude"');
+      // Every folder of the tree, plus "Sem pasta".
+      expect(body).toContain('value="fld-aldeia0000001"');
+      expect(body).toContain(`value="${UNFILED_FOLDER_ID}"`);
+    }
   });
 
-  it("REQ-NPC-045: the preset is offered inside the window, and only there", () => {
-    const body = renderDialog();
+  it("REQ-NPC-045: the preset is offered inside the scratch door, and only there", () => {
+    const body = renderDialog("fld-aldeia0000001", "scratch");
 
     expect(body).toContain('data-input="npc-create-preset"');
     expect(body).toContain("Mercador");

@@ -799,43 +799,31 @@
       bind:value={query}
     />
     <!-- REQ-NPC-040: the first of the two doors into creation — the head of the
-         panel. The second is the head of each folder, below. -->
+         panel. The second is the head of each folder, below. Icon-only
+         (npcs-tab.prototype.html, npcsHead()): the label lives in aria-label,
+         never as visible text next to the search field. -->
     <button
-      class="npcs-panel__tool-btn"
+      class="npcs-panel__tool-btn npcs-panel__tool-btn--icon"
       type="button"
       data-action="new-npc"
+      aria-label={t("FUSION.Npcs.Create.New")}
+      title={t("FUSION.Npcs.Create.New")}
       onclick={() => openCreate(null)}
     >
-      {t("FUSION.Npcs.Create.New")}
-    </button>
-    <!-- REQ-NPC-021: creating a folder is reachable from the panel itself. -->
-    <button
-      class="npcs-panel__tool-btn"
-      type="button"
-      data-action="new-root-folder"
-      onclick={() => startCreate("")}
-    >
-      {t("FUSION.Npcs.Folder.New")}
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+        <path
+          d="M8 3v10M3 8h10"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
     </button>
   </header>
 
   {#if error !== null}
     <p class="npcs-panel__error" role="alert">{error}</p>
-  {/if}
-
-  {#if creatingUnder === ""}
-    <input
-      class="npcs-panel__name-input"
-      data-input="new-root-folder"
-      value={nameDraft}
-      aria-label={t("FUSION.Npcs.Folder.Name")}
-      placeholder={t("FUSION.Npcs.Folder.Name")}
-      oninput={(event) => {
-        nameDraft = event.currentTarget.value;
-      }}
-      onkeydown={(event) => onNameKeydown(event, "create")}
-      onblur={() => void confirmCreate()}
-    />
   {/if}
 
   <!-- REQ-NPC-023/DEC-NPC-03: the pinned block sits at the TOP, outside the
@@ -895,6 +883,55 @@
   {/if}
 
   <div class="npcs-panel__body">
+    <!-- REQ-NPC-021: creating a folder is reachable from the panel itself — now
+         a discreet text link next to the "pastas" label, matching
+         npcs-tab.prototype.html's treeBlock (the `.sec` header with the `.add`
+         button), rather than a bar button next to the search field. -->
+    <div class="npcs-tree__section" data-npc-folder-section>
+      <span class="npcs-tree__section-label">{t("FUSION.Npcs.Folder.SectionLabel")}</span>
+      <span class="npcs-tree__section-line"></span>
+      <button
+        class="npcs-tree__section-add"
+        type="button"
+        data-action="new-root-folder"
+        aria-label={t("FUSION.Npcs.Folder.New")}
+        onclick={() => startCreate("")}
+      >
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+          <path
+            d="M2.4 5.4a1 1 0 0 1 1-.9h2.4l1.1 1.1h5.7a1 1 0 0 1 1 .9v5.3a1 1 0 0 1-1 1H3.4a1 1 0 0 1-1-1z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8 7.4v3.2M6.4 9h3.2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+          />
+        </svg>
+        {t("FUSION.Npcs.Folder.NewShort")}
+      </button>
+    </div>
+
+    {#if creatingUnder === ""}
+      <input
+        class="npcs-panel__name-input"
+        data-input="new-root-folder"
+        value={nameDraft}
+        aria-label={t("FUSION.Npcs.Folder.Name")}
+        placeholder={t("FUSION.Npcs.Folder.Name")}
+        oninput={(event) => {
+          nameDraft = event.currentTarget.value;
+        }}
+        onkeydown={(event) => onNameKeydown(event, "create")}
+        onblur={() => void confirmCreate()}
+      />
+    {/if}
+
     <ul class="npcs-tree" data-npc-tree>
       {#each rows as row (row.node.id)}
         <li
@@ -1172,6 +1209,21 @@
     color: var(--fusion-accent);
   }
 
+  /* npcs-tab.prototype.html .hbtn.pri: the single icon-only "+" of the top bar
+     (REQ-NPC-040) — square, accent-tinted, no visible label. */
+  .npcs-panel__tool-btn--icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.625rem;
+    height: 1.625rem;
+    padding: 0;
+    flex: 0 0 auto;
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent);
+    background: var(--fusion-accent-dim);
+  }
+
   .npcs-panel__error {
     margin: 0;
     padding: 0.375rem 0.5rem;
@@ -1226,6 +1278,49 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+  }
+
+  /* npcs-tab.prototype.html .sec / .sec .add: the "pastas" section head, with the
+     new-folder link discreetly beside the label instead of a bar button. */
+  .npcs-tree__section {
+    display: flex;
+    align-items: center;
+    gap: 0.3125rem;
+    padding: 0.0625rem 0.5rem;
+    margin: 0.5rem 0 0.25rem;
+  }
+
+  .npcs-tree__section-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fusion-text-subtle);
+  }
+
+  .npcs-tree__section-line {
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--fusion-border);
+  }
+
+  .npcs-tree__section-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1875rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.6875rem;
+    color: var(--fusion-text-subtle);
+    cursor: pointer;
+    transition: var(--fusion-transition);
+  }
+
+  .npcs-tree__section-add:hover,
+  .npcs-tree__section-add:focus-visible {
+    color: var(--fusion-accent);
   }
 
   .npcs-tree,
@@ -1320,6 +1415,13 @@
   }
 
   .npcs-row__name {
+    /* A033: a flex item's default min-width is auto (the size of its content),
+       so ellipsis truncation never engages and the name pushes its siblings
+       (level/attitude/cycle button) instead of shrinking. min-width: 0 lets it
+       shrink below its content, and flex: 1 1 0 makes it the one that yields
+       the available row width to the fixed-size siblings. */
+    flex: 1 1 0;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

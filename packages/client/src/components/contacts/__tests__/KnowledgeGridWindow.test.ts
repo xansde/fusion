@@ -224,6 +224,65 @@ describe("the grid of contacts by characters (REQ-CTT-061)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Compact matrix, one symbol per state — REQ-CTT-062 / REQ-CTT-094 (A037: the
+// window used to draw the full word ("oculto"/"entrevisto"/"conhecido") and
+// the word "Exceção" inside every cell, which produced a much wider, heavier
+// grid than the prototype's dense matrix (SYM = ["·","◐","✓"]). It matches now:
+// a one-character symbol carries the state visually, and the full state — plus
+// the word "exceção" when it applies — reaches assistive tech only through the
+// button's accessible name.
+// ---------------------------------------------------------------------------
+
+describe("the cell is a compact symbol, not a written label (REQ-CTT-062, REQ-CTT-094)", () => {
+  /** The symbol drawn inside the button for a given `data-state`, from a row's markup. */
+  function symbolFor(row: string, state: 0 | 1 | 2): string {
+    const marker = `data-state="${state}"`;
+    const start = row.indexOf(marker);
+    if (start === -1) throw new Error(`no cell with data-state="${state}"`);
+    const spanStart = row.indexOf('aria-hidden="true">', start) + 'aria-hidden="true">'.length;
+    const spanEnd = row.indexOf("</span>", spanStart);
+    return row.slice(spanStart, spanEnd);
+  }
+
+  it("REQ-CTT-062: each state draws its one-character symbol (·/◐/✓), matching the prototype", () => {
+    const row = rowOf(renderWindow(), "act-ferreiro01");
+
+    // Ferreiro's general rule is hidden (·); Tobias overrides it to known (✓).
+    expect(symbolFor(row, 0)).toBe("·");
+    expect(symbolFor(row, 2)).toBe("✓");
+    expect(row).toContain('class="knowledge-grid__state-symbol');
+
+    seedMirror([
+      FOFURINHA,
+      TOBIAS,
+      { ...FERREIRO, flags: { fusion: { knowledge: { general: 1, exceptions: {} } } } },
+    ]);
+    const glimpsed = rowOf(renderWindow(), "act-ferreiro01");
+    expect(symbolFor(glimpsed, 1)).toBe("◐");
+  });
+
+  it("REQ-CTT-094: the symbol is hidden from assistive tech, and the full state name is the accessible name instead", () => {
+    const row = rowOf(renderWindow(), "act-ferreiro01");
+
+    // The symbol span never reaches a screen reader on its own.
+    expect(row).toMatch(/knowledge-grid__state-symbol[^"]*"\s+aria-hidden="true"/);
+    // The cell button carries the full word as its aria-label (never only colour).
+    expect(row).toMatch(/aria-label="[^"]*Ferreiro de Otari: Oculto\. Mudar o estado\."/);
+    expect(row).toMatch(
+      /aria-label="[^"]*Ferreiro de Otari: Conhecido, exceção\. Mudar o estado\."/,
+    );
+  });
+
+  it("REQ-CTT-062: no visible word or icon is written inside the cell anymore — only the symbol", () => {
+    const code = codeOf("KnowledgeGridWindow.svelte");
+
+    expect(code).not.toContain("knowledge-grid__state-text");
+    expect(code).not.toContain("knowledge-grid__exception-mark");
+    expect(code).not.toContain("knowledge-grid__exception-word");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // The general rule and the legend — REQ-CTT-065
 // ---------------------------------------------------------------------------
 

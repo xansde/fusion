@@ -204,6 +204,75 @@ describe("REQ-NPC-020 / REQ-NPC-026: the tree, and the count of each folder", ()
   });
 });
 
+// ---------------------------------------------------------------------------
+// A032 — top bar reduced to search + one icon-only button; "new folder" moved
+// into the "pastas" section head (npcs-tab.prototype.html, npcsHead() and the
+// "pastas" .sec block). Cobre: REQ-NPC-020, REQ-NPC-021, REQ-NPC-026, REQ-NPC-029.
+// ---------------------------------------------------------------------------
+
+/** The `<header>…</header>` region of the rendered panel. */
+function headerRegion(body: string): string {
+  const match = /<header[^>]*>[\s\S]*?<\/header>/.exec(body);
+  if (match === null) throw new Error("no <header> found in rendered panel");
+  return match[0];
+}
+
+describe("A032 / REQ-NPC-020 / REQ-NPC-021: the top bar has search plus ONE button", () => {
+  it("the header holds exactly one <button>, wired to new-npc, no visible label text", () => {
+    const body = renderPanel();
+    const header = headerRegion(body);
+
+    const buttonCount = header.match(/<button/g)?.length ?? 0;
+    expect(buttonCount).toBe(1);
+
+    expect(header).toContain('data-action="new-npc"');
+    // Icon-only: the button carries the label as aria-label, never as visible
+    // TEXT CONTENT between the tags (a screen reader still gets the label).
+    expect(header).toContain('aria-label="Novo não-jogável"');
+    expect(header).not.toMatch(/>\s*Novo não-jogável\s*</);
+    expect(header).toContain("<svg");
+  });
+
+  it('"new-root-folder" is no longer offered from the header bar', () => {
+    const body = renderPanel();
+
+    expect(headerRegion(body)).not.toContain('data-action="new-root-folder"');
+  });
+});
+
+describe('A032 / REQ-NPC-021 / REQ-NPC-026: "nova pasta" moved into the pastas section head', () => {
+  it('the folder tree opens with a "pastas" section head carrying the new-folder action', () => {
+    const body = renderPanel();
+
+    expect(body).toContain("data-npc-folder-section");
+    const sectionStart = body.indexOf("data-npc-folder-section");
+    const treeStart = body.indexOf("data-npc-tree");
+    expect(sectionStart).toBeGreaterThan(-1);
+    expect(treeStart).toBeGreaterThan(sectionStart);
+
+    const section = body.slice(sectionStart, treeStart);
+    expect(section).toContain('data-action="new-root-folder"');
+    // Sits alongside the "pastas" label, not the search bar.
+    expect(section).not.toContain("data-npc-search");
+  });
+
+  it("the section head lives after the header bar, not inside it", () => {
+    const body = renderPanel();
+    const header = headerRegion(body);
+
+    expect(header).not.toContain("data-npc-folder-section");
+  });
+
+  it("REQ-NPC-021/REQ-NPC-029: each folder still offers a per-folder new-subfolder action on hover", () => {
+    const body = renderPanel();
+
+    // Unchanged from before the reposition — one hover action per folder row.
+    for (const folder of FOLDERS) {
+      expect(folderRow(body, folder._id)).toContain('data-action="new-child-folder"');
+    }
+  });
+});
+
 describe('REQ-NPC-014: "Sem pasta" is the last group, and is not a folder', () => {
   it("REQ-NPC-014: it comes last and holds the actors that belong to no folder", () => {
     const body = renderPanel();
