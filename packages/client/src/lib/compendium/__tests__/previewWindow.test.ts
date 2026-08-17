@@ -24,7 +24,9 @@ import {
   previewError,
   previewReady,
   previewWindowSingletonKey,
+  shouldResetToLoading,
   type OpenPreviewInput,
+  type PreviewLoadState,
 } from "../previewWindow.js";
 import { windowManager } from "../../windows/window-manager.js";
 
@@ -161,6 +163,186 @@ describe("loading the document on demand (REQ-CPD-051)", () => {
       const failed = previewError(cause, "Falha ao carregar.");
       expect(failed.status === "error" ? failed.message : "").toBe("Falha ao carregar.");
     }
+  });
+});
+
+describe("bugfix A003 — the mount effect must not retrigger itself (REQ-CPD-051, REQ-CPD-060, DEC-CPD-03)", () => {
+  /**
+   * Models exactly the mechanism `CompendiumPreviewWindow.svelte` runs: an
+   * `$effect` that calls `load()` whenever `loadState.status === "loading"`,
+   * and a `load()` that MAY reassign `loadState` back to `PREVIEW_LOADING`
+   * before fetching. In Svelte 5, reassigning a `$state` object retriggers
+   * every effect reading it — even when the new value describes the same
+   * status as the old one — so an unconditional reset makes the effect that
+   * is still synchronously running `load()` schedule ANOTHER run of itself,
+   * forever. `resetPredicate` is the thing that decides whether to reset;
+   * passing `() => true` reproduces the old, unguarded `load()`.
+   */
+  function simulateMountEffect(
+    resetPredicate: (state: PreviewLoadState) => boolean,
+    maxIterations: number,
+  ): { loadCalls: number; exceededBudget: boolean } {
+    let loadState: PreviewLoadState = PREVIEW_LOADING;
+    let loadCalls = 0;
+    let effectPending = true;
+
+    while (effectPending) {
+      effectPending = false;
+      if (loadState.status !== "loading") continue;
+      // The effect body: `void load();`
+      loadCalls += 1;
+      if (loadCalls >= maxIterations) return { loadCalls, exceededBudget: true };
+      if (resetPredicate(loadState)) {
+        // A NEW object reference describing "loading" — Svelte's `$state`
+        // treats this as a change and reschedules every effect reading
+        // `loadState`, including the one currently running `load()`.
+        loadState = PREVIEW_LOADING;
+        effectPending = true;
+      }
+      // The real `load()` also does `await getDocument(...)` here. That
+      // never gets a chance to settle before the synchronous rerun above
+      // fires again — which is exactly what the live reproduction showed:
+      // the preview window stuck forever at "Carregando documento…"
+      // (`.e2e-visual/inv-a003/05.png`) after the console logged
+      // `https://svelte.dev/e/effect_update_depth_exceeded`
+      // (`.e2e-visual/inv-a003/page-errors.log`).
+    }
+    return { loadCalls, exceededBudget: false };
+  }
+
+  // Documents the failure mode the model above reproduces — `resetPredicate`
+  // is a stand-in this test itself injects, so this assertion is bound by
+  // `simulateMountEffect`'s own contract (it returns once `loadCalls` hits
+  // `maxIterations`), not by anything `CompendiumPreviewWindow.svelte` does.
+  // It cannot fail from a regression in production code; the guard actually
+  // shipped is proven separately, against the component's own source, by
+  // `CompendiumPreviewWindow.test.ts`'s "load() resets to PREVIEW_LOADING
+  // only behind shouldResetToLoading" (REQ-CPD-051).
+  it("documents the crash: an unconditional reset retriggers the effect without bound", () => {
+    const { loadCalls, exceededBudget } = simulateMountEffect(() => true, 1_000);
+
+    expect(exceededBudget).toBe(true);
+    expect(loadCalls).toBe(1_000);
+  });
+
+  it("REQ-CPD-051/DEC-CPD-03: shouldResetToLoading breaks the cycle — the mount effect settles after one load() call, so the window can leave 'loading' and the panel behind it (a non-modal window per DEC-CPD-03) never freezes", () => {
+    const { loadCalls, exceededBudget } = simulateMountEffect(shouldResetToLoading, 1_000);
+
+    expect(exceededBudget).toBe(false);
+    expect(loadCalls).toBe(1);
+  });
+
+  it("REQ-CPD-060: shouldResetToLoading is false while already loading — the mount path never rewrites loadState", () => {
+    expect(shouldResetToLoading(PREVIEW_LOADING)).toBe(false);
+  });
+
+  it("REQ-CPD-051: shouldResetToLoading is true after a failure — the retry button still shows the error→loading transition", () => {
+    const failed = previewError(new Error("socket is not connected"), "Falha ao carregar.");
+    expect(shouldResetToLoading(failed)).toBe(true);
+  });
+});
+
+describe("bugfix A003 (retry path) — a retry from 'error' must fire ONE getDocument, not two (REQ-CPD-051)", () => {
+  /**
+   * Models the mechanism `CompendiumPreviewWindow.svelte` actually runs when
+   * the reader clicks "Tentar de novo" (`retry()`, which calls `load()`
+   * directly) while `loadState.status === "error"`:
+   *
+   * `load()`'s `shouldResetToLoading` guard (proven above) correctly sees
+   * "error" and DOES reassign `loadState` back to `PREVIEW_LOADING` — a real
+   * status change. In Svelte 5 that reassignment reschedules the mount
+   * `$effect` (`if (loadState.status === "loading") void load();`), which
+   * runs on a later microtask and calls `load()` a SECOND time while the
+   * FIRST call is still awaiting `getDocument()`. Two `compendium:get`
+   * requests then race; whichever resolves last silently wins the window's
+   * final state — content vs. the error block — which is not what REQ-CPD-051
+   * promises ("a failure is recoverable", not "recoverable by a coin flip").
+   *
+   * `guardLoadInFlight` mirrors the `loadInFlight` flag added to `load()` in
+   * the component: set BEFORE the reset can retrigger the effect, so the
+   * effect's re-entrant call finds it already true and returns without a
+   * second fetch. Passing `guardLoadInFlight: false` reproduces the bug as it
+   * shipped; `true` is the fixed behavior.
+   */
+  function createRetryRaceHarness(guardLoadInFlight: boolean) {
+    let loadState: PreviewLoadState = previewError(
+      new Error("socket is not connected"),
+      "Falha ao carregar.",
+    );
+    let loadInFlight = false;
+    let getDocumentCalls = 0;
+    const pendingResolvers: (() => void)[] = [];
+
+    // The mount `$effect`: reschedules on a microtask whenever `loadState` is
+    // written, exactly like Svelte's dependency-tracked reactivity.
+    function scheduleEffect(): void {
+      queueMicrotask(() => {
+        if (loadState.status === "loading") void load();
+      });
+    }
+
+    // Stands in for `getDocument(socket, uuid)` — never resolves on its own,
+    // so the test controls exactly when each in-flight request settles.
+    async function fakeGetDocument(): Promise<Record<string, unknown>> {
+      getDocumentCalls += 1;
+      return new Promise((resolve) => {
+        pendingResolvers.push(() => resolve({ name: "Fireball" }));
+      });
+    }
+
+    async function load(): Promise<void> {
+      if (guardLoadInFlight) {
+        if (loadInFlight) return;
+        loadInFlight = true;
+      }
+      try {
+        if (shouldResetToLoading(loadState)) {
+          loadState = PREVIEW_LOADING;
+          scheduleEffect();
+        }
+        const document = await fakeGetDocument();
+        loadState = previewReady(document);
+      } finally {
+        if (guardLoadInFlight) loadInFlight = false;
+      }
+    }
+
+    return {
+      retry: (): void => void load(),
+      getDocumentCalls: (): number => getDocumentCalls,
+      resolveInFlight: (): void => {
+        const resolvers = pendingResolvers.splice(0);
+        for (const resolve of resolvers) resolve();
+      },
+    };
+  }
+
+  async function flushMicrotasks(): Promise<void> {
+    for (let i = 0; i < 5; i += 1) await Promise.resolve();
+  }
+
+  it("reproduces the bug: without the guard, one retry click fires getDocument twice", async () => {
+    const harness = createRetryRaceHarness(false);
+
+    harness.retry();
+    await flushMicrotasks();
+
+    expect(harness.getDocumentCalls()).toBe(2);
+  });
+
+  it("REQ-CPD-051: with loadInFlight guarding load(), one retry click fires getDocument exactly once", async () => {
+    const harness = createRetryRaceHarness(true);
+
+    harness.retry();
+    await flushMicrotasks();
+
+    expect(harness.getDocumentCalls()).toBe(1);
+
+    // The single in-flight request settles normally — the guard only blocks
+    // the redundant SECOND fetch, it does not stall the real one.
+    harness.resolveInFlight();
+    await flushMicrotasks();
+    expect(harness.getDocumentCalls()).toBe(1);
   });
 });
 

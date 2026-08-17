@@ -162,7 +162,7 @@ const TYPE_TO_TABLE: Record<string, string> = {
  * through this same generic `doc:create` path, so the gate has to live here.
  * Before this, `documentType === "Folder"` fell through to the plain
  * `role >= TRUSTED` floor a few lines below, and TRUSTED (role 2) is not
- * privileged (`isRolePrivileged` is `>= ASSISTANT_GM`, role 3) — a TRUSTED
+ * privileged (`isRolePrivileged` is `>= ASSISTANT`, role 3) — a TRUSTED
  * socket could mint a Folder in the tree the NPCs tab draws, and could smuggle
  * a self-`ownership: {OWNER}` into the payload while doing it, since nothing
  * on the create path forces Folder's ownership the way r17-P1 forces a
@@ -288,7 +288,7 @@ function isPrivileged(role: number): boolean {
 }
 
 // `isGamemasterStrict` (REQ-CFG-070/071: `role === GAMEMASTER` strictly, not
-// the generic `isRolePrivileged` threshold that also admits ASSISTANT_GM) is
+// the generic `isRolePrivileged` threshold that also admits ASSISTANT) is
 // imported from `../../documents/ownership.js` — single source shared with
 // `settings-handlers.ts` (Mundo/Permissões reads) so the two doors can never
 // gate on a different threshold (DEC-CFG-10's implementation note).
@@ -743,7 +743,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     //
     // REQ-USR-010 spells out the check as: (1) `role === GAMEMASTER` always
     // passes; (2) otherwise `role >= effectiveDefaultRole`. For a type with a
-    // configured key, that is the WHOLE gate — `isPrivileged` (ASSISTANT_GM+)
+    // configured key, that is the WHOLE gate — `isPrivileged` (ASSISTANT+)
     // must never be consulted as a shortcut here, or the table could only ever
     // WIDEN the door: a GM raising ACTOR_CREATE's floor to GAMEMASTER would
     // have no effect on an ASSISTANT, who `isPrivileged` waves through before
@@ -801,7 +801,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         }
       } else if (!isPrivileged(ctx.role)) {
         // Scene / Macro / Combat: REQ-USR-008 defines no configurable key for
-        // these — the historical ASSISTANT_GM+ gate is the only rule.
+        // these — the historical ASSISTANT+ gate is the only rule.
         return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
       }
     }
@@ -818,11 +818,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // Runs for EVERY role, including GM/ASSISTANT — not just non-privileged —
     // for the same REQ-USR-010 reason as the block above: JournalEntry's floor
     // is configurable up to GAMEMASTER, and `isPrivileged` must not be able to
-    // wave an ASSISTANT past a floor the GM raised above ASSISTANT_GM. A
+    // wave an ASSISTANT past a floor the GM raised above ASSISTANT. A
     // GAMEMASTER always passes (role === GAMEMASTER short-circuit); everyone
     // else, privileged or not, is measured against the resolved floor — which
     // for every type but JournalEntry is the fixed TRUSTED(2), so this changes
-    // nothing for ASSISTANT_GM(3)/GAMEMASTER(4) on those types.
+    // nothing for ASSISTANT(3)/GAMEMASTER(4) on those types.
     if (!authorizedCompanionBatch && !authorizedByPermissionTable) {
       const minRole =
         documentType === "JournalEntry"
@@ -1408,7 +1408,7 @@ function handleEmbeddedCreate(
 
   // Embedded create role floor: Scene tokens (and other non-Actor parents)
   // require TOKEN_CREATE's configured floor (REQ-CFG-040..042, defaulting to
-  // ASSISTANT_GM+ — REQ-USR-008's own default, world-permissions.ts). Actor-
+  // ASSISTANT+ — REQ-USR-008's own default, world-permissions.ts). Actor-
   // embedded Items are governed purely by the OWNER ownership check below —
   // a PLAYER managing spells/gear on their own sheet is the intended path
   // (r10-C, found in live verification: the blanket gate blocked every
@@ -1418,7 +1418,7 @@ function handleEmbeddedCreate(
   //
   // REQ-USR-010: `isPrivileged` is deliberately NOT the outer gate here — the
   // same reasoning as the primary doc:create path above. A GM raising
-  // TOKEN_CREATE's floor above ASSISTANT_GM must actually stop an ASSISTANT;
+  // TOKEN_CREATE's floor above ASSISTANT must actually stop an ASSISTANT;
   // `role === GAMEMASTER` is the one unconditional pass, everyone else is
   // measured against the resolved floor (fixed TRUSTED for Combatant, so this
   // changes nothing for that type).
@@ -1880,7 +1880,7 @@ function socketIsPrivileged(socket: Socket): boolean {
 
 /**
  * REQ-CFG-070/071, DEC-CFG-05: `Setting` broadcasts are eligible for
- * GAMEMASTER strictly, not the generic privileged threshold — ASSISTANT_GM
+ * GAMEMASTER strictly, not the generic privileged threshold — ASSISTANT
  * sees everything else, but the Mundo/Permissões sections say "só
  * GAMEMASTER", and the read predicate must not be looser than that.
  */
@@ -2078,7 +2078,7 @@ function broadcastToWorld(
   // rule's value, the instant the GM wrote it — the live-sync counterpart of
   // the read-side leak REQ-GAV-034 forbids. The GAMEMASTER-strict predicate
   // (not the generic privileged threshold) matches DEC-CFG-05's "só
-  // GAMEMASTER" for these sections — ASSISTANT_GM does not qualify either.
+  // GAMEMASTER" for these sections — ASSISTANT does not qualify either.
   // Non-eligible sockets get an empty-body envelope (never swallowed) for the
   // same reason Scene's does: the client mirror needs a contiguous seq.
   if (documentType === "Setting") {

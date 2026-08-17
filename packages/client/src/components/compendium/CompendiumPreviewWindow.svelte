@@ -30,13 +30,13 @@
    * already resolved, and this window never widens it.
    */
 
-  import { onMount } from "svelte";
   import type { PackLicense } from "@fusion/shared";
   import {
     buildPreviewLicense,
     hasLicenseOverride,
     previewError,
     previewReady,
+    shouldResetToLoading,
     PREVIEW_LOADING,
     type PreviewLoadState,
   } from "../../lib/compendium/previewWindow.js";
@@ -118,29 +118,47 @@
     preview !== null && preview.img !== null && !isKnownPlaceholderImg(preview.img) && !imgBroken,
   );
 
-  // REQ-CPD-051: loaded on demand, once, when the window mounts. This is
-  // deliberately `onMount`, not a reactive `$effect`: `load()` reassigns
-  // `loadState` synchronously (before its first `await`), and an `$effect`
-  // that reads `loadState.status` while `load()` writes `loadState` inside
-  // its own run re-triggers itself on every write — a self-feeding loop that
-  // Svelte's runtime aborts with `effect_update_depth_exceeded` (seen live in
-  // the Fase 4 e2e run, item A040-A042: the preview never left "Carregando
-  // documento…"). `onMount` runs exactly once and creates no dependency on
-  // `loadState`, so `load()`'s own write cannot re-arm it. `retry()` below
-  // already calls `load()` directly and was never routed through this effect.
-  onMount(() => {
+  // REQ-CPD-051: loaded on demand, once, when the window mounts.
+  $effect(() => {
     if (loadState.status === "loading") void load();
   });
 
+  // Bugfix A003 (retry path): `retry()` calls `load()` directly while
+  // `loadState.status === "error"`, so the reset a few lines below DOES run
+  // and writes `loadState` back to `PREVIEW_LOADING` — a real "error" →
+  // "loading" change, which reschedules the mount `$effect`. That effect then
+  // reads the new "loading" status and calls `load()` a SECOND time while
+  // THIS call is still awaiting `getDocument()`: two `compendium:get`
+  // requests race, and whichever resolves last silently decides the window's
+  // final state (content vs. the error block) — non-deterministic, and it
+  // contradicts REQ-CPD-051's "a failure is recoverable" (recovery is meant
+  // to be one load, not a race). `loadInFlight` closes the gap: it is set
+  // BEFORE the reassignment that can retrigger the effect, so the effect's
+  // re-entrant call sees it already true and returns without a second fetch.
+  let loadInFlight = false;
+
   async function load(): Promise<void> {
-    loadState = PREVIEW_LOADING;
-    imgBroken = false;
+    if (loadInFlight) return;
+    loadInFlight = true;
     try {
+      // Bugfix A003: do NOT reassign `loadState` when it already reads
+      // "loading" — the mount `$effect` below calls `load()` BECAUSE
+      // `loadState.status === "loading"`, and writing it again (even to a
+      // value describing the same status) is what turned that effect into an
+      // infinite self-retriggering loop (`effect_update_depth_exceeded`, see
+      // `shouldResetToLoading`'s doc comment). The retry button still gets a
+      // real "error" → "loading" transition drawn.
+      if (shouldResetToLoading(loadState)) {
+        loadState = PREVIEW_LOADING;
+      }
+      imgBroken = false;
       const socket = requireConnectedSocket(getSocket());
       const result = await getDocument(socket, uuid);
       loadState = previewReady(result.document);
     } catch (err) {
       loadState = previewError(err, t("FUSION.Compendium.Preview.Failed"));
+    } finally {
+      loadInFlight = false;
     }
   }
 

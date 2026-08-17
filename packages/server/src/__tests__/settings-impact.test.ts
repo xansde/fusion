@@ -143,11 +143,11 @@ describe("buildSettingsImpactHandler — REQ-CFG-082: a real count, from the sys
     expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });
 
-  it("ASSISTANT_GM (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", async () => {
+  it("ASSISTANT (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", async () => {
     const system = fakeSystemWith("fake-system", [FAKE_SETTING_WITH_COUNTER]);
     const ack = await buildSettingsImpactHandler(system, fakeActors(FAKE_ACTORS))(
       { key: "fake-system:freeArchetype" },
-      ctx(UserRole.ASSISTANT_GM),
+      ctx(UserRole.ASSISTANT),
     );
     expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });

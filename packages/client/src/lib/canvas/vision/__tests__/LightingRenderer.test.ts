@@ -25,7 +25,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { buildLightingStateKey } from "../LightingRenderer.js";
+import { buildLightingStateKey, selectLightingRenderMode } from "../LightingRenderer.js";
 import type {
   VisionStateResult,
   LightPolygonResult,
@@ -174,6 +174,23 @@ describe("buildLightingStateKey — coordinate sensitivity (regression for count
     expect(buildLightingStateKey(before)).not.toBe(buildLightingStateKey(after));
   });
 
+  // A005 fix (REQ-CEN-072/REQ-VIS-085): restrictionActive is now a render
+  // input distinct from isGm — a scene's `tokenVision` flag flipping (with
+  // GM-ness and everything else unchanged) must still force a redraw, or the
+  // guard would leave a stale fog/mask on screen after the GM toggles the
+  // setting.
+  it("REQ-VIS-085: restrictionActive toggle changes the key, independent of isGm", () => {
+    const state = makeState({ isGm: false });
+    const restricted = buildLightingStateKey(state, null, true);
+    const unrestricted = buildLightingStateKey(state, null, false);
+    expect(restricted).not.toBe(unrestricted);
+  });
+
+  it("restrictionActive defaults to true when omitted (back-compat with existing call sites)", () => {
+    const state = makeState({ isGm: false });
+    expect(buildLightingStateKey(state, null)).toBe(buildLightingStateKey(state, null, true));
+  });
+
   it("darkness change changes the key", () => {
     const before = makeState({ darkness: 0 });
     const after = makeState({ darkness: 0.5 });
@@ -233,5 +250,52 @@ describe("buildLightingStateKey — fog state coordinate sensitivity", () => {
 
     expect(before.currentVisionRings.length).toBe(after.currentVisionRings.length);
     expect(buildLightingStateKey(state, before)).not.toBe(buildLightingStateKey(state, after));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// selectLightingRenderMode — the actual restriction branch (A005 regression)
+// ---------------------------------------------------------------------------
+
+// Ajustes r1 — Fase 0 review of A005: the mutation check performed during
+// review (swap `showRestriction` for `!state.isGm` inside render()) left the
+// full `src/lib/canvas` suite green, because nothing exercised the branch
+// that decides whether the fog/vision-mask overlay is drawn or cleared —
+// only `buildLightingStateKey` (the re-render *cache* key) had coverage.
+// `selectLightingRenderMode` is the exact decision `render()` delegates to
+// (REQ-VIS-085, specs/07-visao-iluminacao-fog.md:238, CA-20 specs/07:524):
+// a non-GM viewer must only ever see fog/vision-mask when the scene opted
+// into restriction via BOTH `tokenVision` and `fogEnabled`; otherwise (GM,
+// or `restrictionActive=false`) both overlays must clear — that "clear"
+// outcome is precisely what was unreachable for players before the A005 fix
+// and painted the whole canvas black regardless of the scene's flags.
+describe("selectLightingRenderMode — REQ-VIS-085 restriction branches (A005 regression)", () => {
+  function makeFogRenderState(fogActive: boolean): FogRenderState {
+    return {
+      explored: emptyFog(),
+      currentVisionRings: [],
+      fogActive,
+      sceneId: "scene-1",
+    };
+  }
+
+  it("GM (isGm=true) resolves to 'clear' even with an active fog state and restrictionActive=true (GM is never restricted)", () => {
+    expect(selectLightingRenderMode(true, true, makeFogRenderState(true))).toBe("clear");
+  });
+
+  it("REQ-VIS-085/A005: non-GM with restrictionActive=false resolves to 'clear' even when a fog state with fogActive=true is present — the exact branch that painted the player's screen black before the fix", () => {
+    expect(selectLightingRenderMode(false, false, makeFogRenderState(true))).toBe("clear");
+  });
+
+  it("REQ-VIS-085: non-GM, restrictionActive=true, no fog state → 'vision-mask' (simple M2-A mask)", () => {
+    expect(selectLightingRenderMode(false, true, null)).toBe("vision-mask");
+  });
+
+  it("REQ-VIS-085: non-GM, restrictionActive=true, fog state present but fogActive=false → 'vision-mask' (falls back instead of clearing)", () => {
+    expect(selectLightingRenderMode(false, true, makeFogRenderState(false))).toBe("vision-mask");
+  });
+
+  it("REQ-VIS-085: non-GM, restrictionActive=true, fog state present and fogActive=true → 'fog' (three-state fog)", () => {
+    expect(selectLightingRenderMode(false, true, makeFogRenderState(true))).toBe("fog");
   });
 });

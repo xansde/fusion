@@ -59,8 +59,8 @@ describe("settings:permissions — REQ-CFG-040: one row per configurable Permiss
     });
     expect(byKey.get("ACTOR_CREATE")).toEqual({
       key: "ACTOR_CREATE",
-      minRole: UserRole.ASSISTANT_GM,
-      defaultMinRole: UserRole.ASSISTANT_GM,
+      minRole: UserRole.ASSISTANT,
+      defaultMinRole: UserRole.ASSISTANT,
     });
   });
 
@@ -110,8 +110,8 @@ describe("settings:permissions — REQ-CFG-040: one row per configurable Permiss
     // Untouched row: still identical to its default.
     expect(byKey.get("ITEM_CREATE")).toEqual({
       key: "ITEM_CREATE",
-      minRole: UserRole.ASSISTANT_GM,
-      defaultMinRole: UserRole.ASSISTANT_GM,
+      minRole: UserRole.ASSISTANT,
+      defaultMinRole: UserRole.ASSISTANT,
     });
   });
 
@@ -121,7 +121,7 @@ describe("settings:permissions — REQ-CFG-040: one row per configurable Permiss
     ]);
     const entry = ask(store).permissions.find((p) => p.key === "ITEM_CREATE");
 
-    expect(entry?.minRole).toBe(UserRole.ASSISTANT_GM);
+    expect(entry?.minRole).toBe(UserRole.ASSISTANT);
   });
 });
 
@@ -131,8 +131,8 @@ describe("settings:permissions — GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG-
     expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });
 
-  it("ASSISTANT_GM (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
-    const ack = buildSettingsPermissionsHandler(EMPTY_STORE)({}, ctx(UserRole.ASSISTANT_GM));
+  it("ASSISTANT (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
+    const ack = buildSettingsPermissionsHandler(EMPTY_STORE)({}, ctx(UserRole.ASSISTANT));
     expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });
 

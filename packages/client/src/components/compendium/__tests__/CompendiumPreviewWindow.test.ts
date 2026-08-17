@@ -257,52 +257,32 @@ describe("the preview names its fields through the bundle (REQ-CPD-051)", () => 
   });
 });
 
-// ---------------------------------------------------------------------------
-// The mount-time load must not be a self-feeding $effect (Fase 4 e2e finding)
-// ---------------------------------------------------------------------------
-//
-// Prints 12/13 of `.e2e-visual/aj-fase4-compendio/relatorio.html` show the
-// window frozen forever on "Carregando documento…", with the console showing
-// `effect_update_depth_exceeded`. The cause: an `$effect` read
-// `loadState.status`, and the `load()` it called reassigned `loadState`
-// synchronously (before its first `await`) — a write, from inside the
-// effect's own run, to the very state it depends on, which re-arms the
-// effect on every write and never lets it settle.
-//
-// This property can't be exercised behaviorally through `svelte/server`'s
-// `render()` (this file's own top comment: "$effect never runs there"), nor
-// through `$effect.root()` + `flushSync()` outside a mounted component under
-// Vitest's `environment: "node"` (verified directly: a bare `$effect` never
-// fires there either, for the same SSR-target-compilation reason). So — like
-// the REQ-CPD-050 block above, which reads `CompendiumBrowser.svelte`'s
-// source for a property that is likewise about something that must NOT
-// exist — this asserts on the fixed component's source.
-
-function previewWindowSource(): string {
-  return readFileSync(
-    fileURLToPath(new URL("../CompendiumPreviewWindow.svelte", import.meta.url)),
-    "utf8",
-  );
-}
-
-describe("the initial load runs once on mount, never as a self-feeding effect (REQ-CPD-051)", () => {
-  it("REQ-CPD-051: the trigger is onMount, not a reactive $effect over loadState", () => {
-    const src = previewWindowSource();
-
-    // onMount runs exactly once and creates no dependency on `loadState`, so
-    // `load()`'s own synchronous write to `loadState` cannot re-arm it.
-    expect(src).toContain('import { onMount } from "svelte";');
-    expect(src).toMatch(
-      /onMount\(\(\) => \{\s*if \(loadState\.status === "loading"\) void load\(\);/,
+describe("bugfix A003 — the mount effect's guard is real in production code (REQ-CPD-051, DEC-CPD-03)", () => {
+  /**
+   * `previewWindow.test.ts` proves, with a standalone model, that an
+   * unconditional `loadState = PREVIEW_LOADING` inside the mount effect's
+   * `load()` retriggers Svelte 5's `$effect` forever
+   * (`effect_update_depth_exceeded`) — that model never reads this component's
+   * source. This test closes that gap: it reads
+   * `CompendiumPreviewWindow.svelte` itself and asserts the ONE reassignment
+   * to `PREVIEW_LOADING` inside `load()` sits behind the `shouldResetToLoading`
+   * guard, so a future edit that removes the guard, or adds a second,
+   * unguarded reassignment, fails here without needing a live Svelte runtime.
+   */
+  it("REQ-CPD-051: load() resets to PREVIEW_LOADING only behind shouldResetToLoading, never unconditionally", () => {
+    const source = readFileSync(
+      fileURLToPath(new URL("../CompendiumPreviewWindow.svelte", import.meta.url)),
+      "utf8",
     );
-    // The defect's shape: a `$effect` reading the very state `load()` writes.
-    expect(src).not.toContain("$effect(");
-  });
+    const script = /<script lang="ts">([\s\S]*?)<\/script>/.exec(source)?.[1] ?? "";
+    expect(script.length).toBeGreaterThan(0);
 
-  it("REQ-CPD-051: retry() still drives recovery directly, independent of the mount trigger", () => {
-    const src = previewWindowSource();
+    const resetOccurrences = script.match(/loadState = PREVIEW_LOADING;/g) ?? [];
+    expect(resetOccurrences).toHaveLength(1);
 
-    expect(src).toMatch(/function retry\(\): void \{\s*void load\(\);\s*\}/);
+    expect(script).toMatch(
+      /if \(shouldResetToLoading\(loadState\)\) \{\s*loadState = PREVIEW_LOADING;\s*\}/,
+    );
   });
 });
 

@@ -18,14 +18,27 @@ import type { Ownership } from "@fusion/shared";
 // ---------------------------------------------------------------------------
 
 /**
- * User roles, matching spec 05-usuarios-e-permissoes.md.
+ * User roles, matching spec 05-usuarios-e-permissoes.md (REQ-USR-005).
  * GAMEMASTER always receives OwnershipLevel.OWNER on every document.
+ *
+ * Note: this is a DIFFERENT enum from `Role` in `auth/user-store.ts`, even
+ * though the two share the same four numeric values (REQ-USR-005) and an
+ * asset-grant test (`asset-grant.test.ts`, "Role and UserRole still agree
+ * numerically") pins that agreement. `Role` is the auth layer's shape (user
+ * records, login, JWT claims); `UserRole` is this module's shape (ownership
+ * resolution, redaction). They are kept separate on purpose — this module
+ * predates the full auth layer (see the file header) and merging them would
+ * make `documents/` depend on `auth/`, which is out of scope for this fix.
+ * A previous revision of this enum spelled role 3 with a confusing third
+ * name (appending "_GM" to the role, as if the assistant were the GM),
+ * used only inside this module — removed by issue #133 (2026-08-17); every
+ * consumer now spells it `UserRole.ASSISTANT`, matching the spec's own name.
  */
 export enum UserRole {
   NONE = 0,
   PLAYER = 1,
   TRUSTED = 2,
-  ASSISTANT_GM = 3,
+  ASSISTANT = 3,
   GAMEMASTER = 4,
 }
 
@@ -33,8 +46,17 @@ export enum UserRole {
 // Privilege threshold (single source of truth)
 // ---------------------------------------------------------------------------
 
-/** Minimum role that bypasses ownership checks and hidden-token redaction. */
-const PRIVILEGED_ROLE_THRESHOLD: number = UserRole.ASSISTANT_GM;
+/**
+ * Minimum role that bypasses ownership checks and hidden-token redaction.
+ *
+ * REQ-USR-007: ASSISTANT has the same in-game capacities as GAMEMASTER
+ * (everything except changing user roles, deleting the World, and global
+ * server config) — so ASSISTANT (role 3) belongs in this threshold, not
+ * just GAMEMASTER. That is deliberate spec behaviour, not the issue #133
+ * bug: the bug was the enum member's confusing three-word name (see the
+ * note above this enum), never this threshold's value.
+ */
+const PRIVILEGED_ROLE_THRESHOLD: number = UserRole.ASSISTANT;
 
 /**
  * Every emission path (snapshot, live broadcast, delta resync, ack) MUST use
@@ -47,11 +69,13 @@ export function isRolePrivileged(role: number): boolean {
 /**
  * REQ-CFG-070/071: the Configurações aba's Mundo/Permissões/Usuários/Mods
  * sections — read AND write — require `role === GAMEMASTER` STRICTLY, not
- * the generic `isRolePrivileged` threshold, which also admits ASSISTANT_GM
- * (role 3, extinct-pending — issue #133). Single source so `doc-handlers.ts`
- * (Setting writes/broadcast) and `settings-handlers.ts` (Mundo/Permissões
- * reads) can never drift on which threshold gates the mesa's config
- * (DEC-CFG-10's implementation note).
+ * the generic `isRolePrivileged` threshold, which also admits ASSISTANT
+ * (role 3) per REQ-USR-007/025 — ASSISTANT is privileged for GAME actions,
+ * never for mesa/user administration (REQ-USR-007 names the exact
+ * exceptions: user roles, World deletion, global server config). Single
+ * source so `doc-handlers.ts` (Setting writes/broadcast) and
+ * `settings-handlers.ts` (Mundo/Permissões reads) can never drift on which
+ * threshold gates the mesa's config (DEC-CFG-10's implementation note).
  */
 export function isGamemasterStrict(role: number): boolean {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison

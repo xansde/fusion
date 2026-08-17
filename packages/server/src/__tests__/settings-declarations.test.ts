@@ -250,8 +250,8 @@ describe("settings:declarations — GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG
     expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });
 
-  it("ASSISTANT_GM (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
-    const ack = buildSettingsDeclarationsHandler(FAKE, undefined)({}, ctx(UserRole.ASSISTANT_GM));
+  it("ASSISTANT (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
+    const ack = buildSettingsDeclarationsHandler(FAKE, undefined)({}, ctx(UserRole.ASSISTANT));
     expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });
 
