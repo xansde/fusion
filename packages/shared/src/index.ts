@@ -30,3 +30,4 @@ export * from "./actor-delete.js";
 export * from "./mechanics.js";
 export * from "./etmos/index.js";
 export * from "./asset-name-contract.js";
+export * from "./token/effectiveActor.js";

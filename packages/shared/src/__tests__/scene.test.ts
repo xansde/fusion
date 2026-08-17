@@ -211,30 +211,30 @@ describe("InitialViewSchema", () => {
 // ---------------------------------------------------------------------------
 
 describe("TokenDocumentSchema", () => {
-  it("accepts a minimal token with just _id", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId() });
+  it("accepts a minimal token with just _id and actorId", () => {
+    const r = TokenDocumentSchema.safeParse({ _id: validId(), actorId: "B".repeat(16) });
     expect(r.success).toBe(true);
   });
 
   it("applies all defaults correctly", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId() });
+    const r = TokenDocumentSchema.safeParse({ _id: validId(), actorId: "B".repeat(16) });
     expect(r.success).toBe(true);
     if (r.success) {
       const d = r.data;
-      expect(d.name).toBe("");
-      expect(d.actorId).toBeNull();
-      expect(d.texture).toBeNull();
+      expect(d.name).toBeNull();
+      expect(d.actorId).toBe("B".repeat(16));
       expect(d.x).toBe(0);
       expect(d.y).toBe(0);
-      expect(d.width).toBe(1);
-      expect(d.height).toBe(1);
       expect(d.rotation).toBe(0);
       expect(d.elevation).toBe(0);
       expect(d.hidden).toBe(false);
-      expect(d.disposition).toBe(0);
+      expect(d.seenBy).toEqual([]);
+      expect(d.disposition).toBeNull();
       expect(d.bar1.attribute).toBeNull();
       expect(d.bar2.attribute).toBeNull();
       expect(d.flags).toEqual({});
+      expect(d.actorLink).toBe(true);
+      expect(d.actorDelta).toBeNull();
     }
   });
 
@@ -243,62 +243,137 @@ describe("TokenDocumentSchema", () => {
       _id: validId(),
       name: "Goblin",
       actorId: "B".repeat(16),
-      texture: "/assets/goblin.webp",
       x: 250,
       y: 350,
-      width: 1,
-      height: 1,
       rotation: 90,
       elevation: 0,
       hidden: false,
+      seenBy: ["C".repeat(16)],
       disposition: -1,
       bar1: { attribute: "attributes.hp" },
       bar2: { attribute: null },
       flags: { core: { sourceId: "Compendium.pf2e.bestiary.Actor.GoblindId" } },
+      actorLink: false,
+      actorDelta: { name: "Goblin (wounded)" },
     });
     expect(r.success).toBe(true);
     if (r.success) {
       expect(r.data.name).toBe("Goblin");
       expect(r.data.disposition).toBe(-1);
+      expect(r.data.seenBy).toEqual(["C".repeat(16)]);
+      expect(r.data.actorLink).toBe(false);
+      expect(r.data.actorDelta).toEqual({ name: "Goblin (wounded)" });
     }
   });
 
   it("rejects _id with invalid format", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: "short" });
-    expect(r.success).toBe(false);
-  });
-
-  it("rejects width below 0.5", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId(), width: 0.1 });
-    expect(r.success).toBe(false);
-  });
-
-  it("rejects height below 0.5", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId(), height: 0.4 });
+    const r = TokenDocumentSchema.safeParse({ _id: "short", actorId: "B".repeat(16) });
     expect(r.success).toBe(false);
   });
 
   it("rejects rotation above 360", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId(), rotation: 361 });
+    const r = TokenDocumentSchema.safeParse({
+      _id: validId(),
+      actorId: "B".repeat(16),
+      rotation: 361,
+    });
     expect(r.success).toBe(false);
   });
 
   it("rejects invalid disposition value", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId(), disposition: 5 });
+    const r = TokenDocumentSchema.safeParse({
+      _id: validId(),
+      actorId: "B".repeat(16),
+      disposition: 5,
+    });
     expect(r.success).toBe(false);
   });
 
-  it("accepts texture as null (no art)", () => {
-    const r = TokenDocumentSchema.safeParse({ _id: validId(), texture: null });
-    expect(r.success).toBe(true);
-  });
-
-  it("accepts texture as a URL string", () => {
+  it("accepts disposition as null (inherits from the base actor) — REQ-TOK-080", () => {
     const r = TokenDocumentSchema.safeParse({
       _id: validId(),
-      texture: "https://example.com/img.png",
+      actorId: "B".repeat(16),
+      disposition: null,
     });
     expect(r.success).toBe(true);
+    if (r.success) expect(r.data.disposition).toBeNull();
+  });
+
+  it("accepts name as null (inherits from the effective actor) — REQ-TOK-060", () => {
+    const r = TokenDocumentSchema.safeParse({
+      _id: validId(),
+      actorId: "B".repeat(16),
+      name: null,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.name).toBeNull();
+  });
+
+  // REQ-TOK-002: actorId is required — null, missing, or omitted must all be refused.
+  it("rejects actorId: null — REQ-TOK-002", () => {
+    const r = TokenDocumentSchema.safeParse({ _id: validId(), actorId: null });
+    expect(r.success).toBe(false);
+  });
+
+  it("rejects a payload missing actorId entirely — REQ-TOK-002", () => {
+    const r = TokenDocumentSchema.safeParse({ _id: validId() });
+    expect(r.success).toBe(false);
+  });
+
+  // REQ-TOK-010/REQ-TOK-012: texture/width/height no longer exist on the schema.
+  // z.object() strips unknown keys silently on parse — this is documented here as the
+  // shared-schema behavior; the SERVER'S explicit refusal of these fields in a create
+  // payload (REQ-TOK-022) is TK025's responsibility, not this schema's.
+  it("strips texture/width/height from the parsed output — REQ-TOK-010, REQ-TOK-012", () => {
+    const r = TokenDocumentSchema.safeParse({
+      _id: validId(),
+      actorId: "B".repeat(16),
+      texture: "/assets/goblin.webp",
+      width: 2,
+      height: 2,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data).not.toHaveProperty("texture");
+      expect(r.data).not.toHaveProperty("width");
+      expect(r.data).not.toHaveProperty("height");
+    }
+  });
+
+  // REQ-TOK-050: seenBy is the exception list to `hidden`.
+  it("defaults seenBy to an empty array when omitted — REQ-TOK-050", () => {
+    const r = TokenDocumentSchema.safeParse({ _id: validId(), actorId: "B".repeat(16) });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.seenBy).toEqual([]);
+  });
+
+  it("accepts an explicit seenBy list of userIds — REQ-TOK-050", () => {
+    const r = TokenDocumentSchema.safeParse({
+      _id: validId(),
+      actorId: "B".repeat(16),
+      seenBy: ["C".repeat(16), "D".repeat(16)],
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.seenBy).toHaveLength(2);
+  });
+
+  // REQ-TOK-023/REQ-DOC-023: an unlinked token with a delta survives a parse -> JSON ->
+  // parse round-trip (persistence) without the delta being dropped by validation.
+  it("round-trips an unlinked token's actorDelta through parse -> JSON -> parse — REQ-TOK-023, REQ-DOC-018", () => {
+    const first = TokenDocumentSchema.parse({
+      _id: validId(),
+      actorId: "B".repeat(16),
+      actorLink: false,
+      actorDelta: {
+        name: "Goblin (elite)",
+        system: { attributes: { hp: { value: 20, max: 20 } } },
+        items: [{ name: "Elite Dagger" }],
+      },
+    });
+    const roundTripped = TokenDocumentSchema.parse(JSON.parse(JSON.stringify(first)));
+    expect(roundTripped.actorLink).toBe(false);
+    expect(roundTripped.actorDelta).toEqual(first.actorDelta);
+    expect(roundTripped.actorDelta?.items).toEqual([{ name: "Elite Dagger" }]);
   });
 });
 
@@ -308,7 +383,7 @@ describe("TokenDocumentSchema", () => {
 
 describe("defaultTokenDocument", () => {
   it("produces a valid TokenDocument", () => {
-    const token = defaultTokenDocument(validId());
+    const token = defaultTokenDocument(validId(), "B".repeat(16));
     const r = TokenDocumentSchema.safeParse(token);
     expect(r.success).toBe(true);
   });
@@ -371,7 +446,13 @@ describe("SceneDocumentSchema", () => {
   });
 
   it("accepts a scene with embedded tokens", () => {
-    const tokenData = { _id: "B".repeat(16), name: "Hero", x: 100, y: 200 };
+    const tokenData = {
+      _id: "B".repeat(16),
+      actorId: "Z".repeat(16),
+      name: "Hero",
+      x: 100,
+      y: 200,
+    };
     const r = SceneDocumentSchema.safeParse({
       ...baseSceneInput(),
       tokens: [tokenData],
@@ -386,9 +467,9 @@ describe("SceneDocumentSchema", () => {
 
   it("accepts multiple tokens with different dispositions", () => {
     const tokens = [
-      { _id: "A".repeat(16), disposition: 1 },
-      { _id: "B".repeat(16), disposition: -1 },
-      { _id: "C".repeat(16), disposition: 0 },
+      { _id: "A".repeat(16), actorId: "Z".repeat(16), disposition: 1 },
+      { _id: "B".repeat(16), actorId: "Z".repeat(16), disposition: -1 },
+      { _id: "C".repeat(16), actorId: "Z".repeat(16), disposition: 0 },
     ];
     const r = SceneDocumentSchema.safeParse({ ...baseSceneInput(), tokens });
     expect(r.success).toBe(true);
@@ -400,7 +481,7 @@ describe("SceneDocumentSchema", () => {
   it("rejects a token with invalid _id inside tokens array", () => {
     const r = SceneDocumentSchema.safeParse({
       ...baseSceneInput(),
-      tokens: [{ _id: "bad-id" }],
+      tokens: [{ _id: "bad-id", actorId: "Z".repeat(16) }],
     });
     expect(r.success).toBe(false);
   });
