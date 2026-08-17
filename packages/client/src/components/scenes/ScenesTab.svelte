@@ -795,7 +795,6 @@
     color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
     display: flex;
-    height: 1.5rem;
     justify-content: center;
     padding: 0.2rem;
     position: absolute;
@@ -864,7 +863,6 @@
     color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
     display: flex;
-    height: 1.5rem;
     justify-content: center;
     padding: 0.2rem;
     position: absolute;
