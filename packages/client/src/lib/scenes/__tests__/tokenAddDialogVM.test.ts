@@ -219,7 +219,7 @@ describe("REQ-TOK-020 / REQ-CNV-011: dialog and drop already agree on the same p
 
     const payload: ActorDragPayload = {
       kind: "actor",
-      uuid: "act-lobo00000001",
+      _id: "act-lobo00000001",
       documentType: "Actor",
       subtype: "npc",
       name: "Lobo",

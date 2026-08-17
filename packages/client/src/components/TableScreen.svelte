@@ -388,7 +388,7 @@
           // Build a minimal actor payload to reuse buildTokenFromActorFields
           const fakePayload: ActorDragPayload = {
             kind: "actor",
-            uuid: createdId,
+            _id: createdId,
             documentType: "Actor",
             subtype: accepted.subtype ?? "npc",
             name: accepted.name,
