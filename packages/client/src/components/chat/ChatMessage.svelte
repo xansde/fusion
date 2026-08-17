@@ -41,14 +41,17 @@
    *
    * REQ-ACH-025 (A022, chat-tab.prototype.html:410/592/623-624): the author's
    * name and, on a plain message, the row's left border are painted with a
-   * color deterministic per sender (lib/chat/speakerColor.ts) — a continuation
-   * row never repaints because it never shows a header. Whisper/blind/card
-   * rows keep the prototype's FIXED type colors instead of the per-sender one
-   * (a sussurro is always the accent purple, a cega always the warning amber, a
-   * system card always the fixed chat-sys blue), so a reader recognizes the
-   * TYPE at a glance the same way regardless of who sent it. DEC-ACH-02/
-   * DEC-ACH-03 govern the panel's search bar and write box, not this — cited
-   * only because the task that added this behavior names them alongside
+   * color deterministic per sender (lib/chat/speakerColor.ts's
+   * `resolveSpeakerColor` — the sender's own REQ-USR-002 world color when
+   * presence has a record for them, REQ-CHT-008's "cor do jogador", falling
+   * back to a per-alias hash only when it doesn't) — a continuation row never
+   * repaints because it never shows a header. Whisper/blind/card rows keep the
+   * prototype's FIXED type colors instead of the per-sender one (a sussurro is
+   * always the accent purple, a cega always the warning amber, a system card
+   * always the fixed chat-sys blue), so a reader recognizes the TYPE at a
+   * glance the same way regardless of who sent it. DEC-ACH-02/DEC-ACH-03
+   * govern the panel's search bar and write box, not this — cited only
+   * because the task that added this behavior names them alongside
    * REQ-ACH-025.
    */
 
@@ -71,7 +74,7 @@
   import { buildRollDisplay, type RollDisplay } from "../../lib/chat/rollDisplay.js";
   import { isCardMessage, isInvalidMessage } from "../../lib/chat/chatGrouping.js";
   import { resolveInvalidatorLabel } from "../../lib/chat/invalidationDisplay.js";
-  import { speakerColor, speakerColorKey } from "../../lib/chat/speakerColor.js";
+  import { resolveSpeakerColor } from "../../lib/chat/speakerColor.js";
   import { resolveInvalidateAction } from "../../lib/chat/invalidateButton.js";
   import { sendChatInvalidate } from "../../lib/chat/chatStore.svelte.js";
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
@@ -197,7 +200,7 @@
   // an id that resolves to nobody is printed as the id (see invalidationDisplay).
   const invalidatedBy = $derived(resolveInvalidatorLabel(message, presenceState.onlineUsers));
 
-  // ---- Per-sender color (REQ-ACH-025, A022) ----
+  // ---- Per-sender color (REQ-ACH-025, A022; REQ-CHT-008, REQ-USR-002) ----
   // Reuses chatGrouping's OWN predicate for "is this a card" — the same one
   // the log's grouping already relies on — instead of re-deriving a second
   // notion of it from message.type. The whisper TYPE tint, unlike the card
@@ -209,7 +212,14 @@
   // ("ao Mestre"/"só eu") — it is not painted as a sussurro.
   const isCard = $derived(isCardMessage(message));
   const isWhisperType = $derived(message.type === "whisper");
-  const authorColor = $derived(speakerColor(speakerColorKey(message.speaker)));
+  // resolveSpeakerColor prefers the sender's own world color (REQ-USR-002,
+  // the same field painted on their cursor/ruler/pings and edited in
+  // Settings) so a message never invents a SECOND identity color for someone
+  // who already has one (REQ-CHT-008: "borda na cor do jogador"). It falls
+  // back to the deterministic per-alias hash only when presence has no
+  // record for that userId. `presenceState.onlineUsers` is the same directory
+  // `invalidatedBy` above already reads — no second source of user color.
+  const authorColor = $derived(resolveSpeakerColor(message.speaker, presenceState.onlineUsers));
   // The prototype paints a plain message's left border with the sender's own
   // color, but a whisper/blind/card row keeps its FIXED type color instead
   // (painted below by .msg--whisper/.msg--blind/.msg--sys) — and a

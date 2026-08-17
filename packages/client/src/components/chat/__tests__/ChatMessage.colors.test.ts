@@ -9,11 +9,19 @@
  * because the task that added this behavior ("Cobre: DEC-ACH-02/03,
  * REQ-ACH-025") names them alongside REQ-ACH-025.
  *
+ * REQ-CHT-008/REQ-USR-002: when presence knows the sender's own world color,
+ * the row paints THAT color instead of the deterministic hash — one identity,
+ * one color, matching the same field already painted on that user's cursor,
+ * ruler and map pings elsewhere in the app. Every test below that does NOT set
+ * `presenceState.onlineUsers` exercises the hash fallback path deliberately
+ * (an unknown/offline sender): that is why `speakerColor(speakerColorKey(...))`
+ * remains the right "expected" value for them.
+ *
  * Rendered with `render()` from `svelte/server` — same instrument as
  * ChatMessage.test.ts, first-paint markup, no DOM/interaction required.
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
 
 import ChatMessage from "../ChatMessage.svelte";
@@ -21,8 +29,13 @@ import ChatMessage from "../ChatMessage.svelte";
 import "../../../lib/i18n/index.js";
 
 import { speakerColor, speakerColorKey } from "../../../lib/chat/speakerColor.js";
+import { presenceState } from "../../../lib/presence/presenceStore.svelte.js";
 
 import type { ChatMessage as ChatMessageType } from "@fusion/shared";
+
+afterEach(() => {
+  presenceState.onlineUsers = [];
+});
 
 function msg(id: string, overrides: Partial<ChatMessageType> = {}): ChatMessageType {
   return {
@@ -174,5 +187,35 @@ describe("REQ-ACH-025 / DEC-ACH-02 / DEC-ACH-03 — per-sender border + name col
     const expected = speakerColor(speakerColorKey(ana.speaker));
     expect(body).not.toContain("msg--whisper");
     expect(body).toContain(`border-left-color: ${expected}`);
+  });
+});
+
+describe("REQ-CHT-008 / REQ-USR-002 — the sender's real world color wins over the hash", () => {
+  it("paints the border with the world-assigned color when presence knows the sender", () => {
+    presenceState.onlineUsers = [{ userId: "u1", userName: "Ana", color: "#00aaff", online: true }];
+    const ana = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
+    const body = renderMsg(ana);
+    // NOT the hash color — the same string a hash of this key would never
+    // produce because it isn't an hsl() string.
+    expect(body).toContain("border-left-color: #00aaff");
+    expect(body).not.toContain(speakerColor(speakerColorKey(ana.speaker)));
+  });
+
+  it("paints the SAME resolved color for the SAME user across two different aliases", () => {
+    presenceState.onlineUsers = [
+      { userId: "u1", userName: "Mestre", color: "#ff5c5c", online: true },
+    ];
+    const asGm = renderMsg(msg("m1", { speaker: { userId: "u1", alias: "Gamemaster" } }));
+    const asTobias = renderMsg(msg("m2", { speaker: { userId: "u1", alias: "Tobias" } }));
+    expect(asGm).toContain("border-left-color: #ff5c5c");
+    expect(asTobias).toContain("border-left-color: #ff5c5c");
+  });
+
+  it("still colors the author's name with the resolved world color, matching the border", () => {
+    presenceState.onlineUsers = [{ userId: "u1", userName: "Ana", color: "#00aaff", online: true }];
+    const body = renderMsg(msg("m1", { speaker: { userId: "u1", alias: "Ana" } }));
+    const aliasStart = body.indexOf('class="msg__alias');
+    const aliasTag = body.slice(aliasStart, aliasStart + 120);
+    expect(aliasTag).toContain("color: #00aaff");
   });
 });

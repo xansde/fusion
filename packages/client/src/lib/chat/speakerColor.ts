@@ -5,16 +5,34 @@
  * name and the message's left border with a color keyed to `who` — a fixed
  * per-sender map (`Gamemaster`/`Fofurinha`/`Tobias`) that lets a reader tell who is
  * talking without reading the header on every row. That map only covers the three
- * demo speakers; the real chat has an unbounded set of authors, so this module
- * reproduces the same visual idea with a pure hash instead of a lookup table: the
- * sender's identity picks a slot in a fixed accent palette, so the SAME sender
- * always gets the SAME color, with no server-assigned color and no table to grow.
+ * demo speakers; the real chat has an unbounded set of authors, so `speakerColor`
+ * below reproduces the same visual idea with a pure hash instead of a lookup
+ * table: the sender's identity picks a slot in a fixed accent palette, so the
+ * SAME sender always gets the SAME color even with nothing else to go on.
  *
- * "Same sender" mirrors chatGrouping.ts's own definition for REQ-ACH-025 — the
- * pair (userId, alias): the Gamemaster voicing two different NPCs is two
- * different senders on screen, exactly like a run of consecutive messages never
- * groups across that boundary (see canGroupWithPrevious). speakerColorKey exists
- * so callers never re-derive that pairing on their own.
+ * But REQ-CHT-008 (`09-chat-e-mensagens.md`) asks OOC text messages for "borda na
+ * cor do jogador" — literally the user's own world color, REQ-USR-002
+ * (`05-usuarios-e-permissoes.md`): the SAME `color` field already painted on that
+ * user's live cursor, ruler and map pings (REQ-CNV-039/062, REQ-NET-041), edited
+ * in Settings (`UsersSection.svelte`) and carried to every client by presence
+ * (`OnlineUser.color`, `lib/presence/types.ts`). A hash that ignores it invents a
+ * SECOND color for a person who already has one — the Mestre paints a player
+ * green in Settings, the header shows green, and that player's name in chat
+ * comes out some unrelated hue. `resolveSpeakerColor` is the entry point callers
+ * should use: it resolves the real per-user color first and only falls back to
+ * the hash when the id can't be resolved (offline/unknown sender). `speakerColor`
+ * stays exported as that pure, table-free fallback — never called directly by UI
+ * code that has a user directory in hand.
+ *
+ * "Same sender" (for the hash fallback) mirrors chatGrouping.ts's own definition
+ * for REQ-ACH-025 — the pair (userId, alias): the Gamemaster voicing two
+ * different NPCs is two different senders on screen, exactly like a run of
+ * consecutive messages never groups across that boundary (see
+ * canGroupWithPrevious). speakerColorKey exists so callers never re-derive that
+ * pairing on their own. Once a sender resolves to a real user color, that
+ * color applies regardless of alias — REQ-USR-002 fixes ONE color per user, not
+ * one per (user, alias); the hash's per-alias split only survives as the
+ * fallback for senders no user record can be found for.
  *
  * No Svelte, no DOM, no CSS custom properties — the app has no light/dark theme
  * toggle today (base.css defines a single dark palette), so the fixed HSL
@@ -82,3 +100,33 @@ export function speakerColor(key: string): string {
 
 /** Exported for tests that want to assert against the palette's shape, not a magic number. */
 export const SPEAKER_COLOR_PALETTE_SIZE = PALETTE_SIZE;
+
+/**
+ * The shape this module needs from whatever user directory the client has —
+ * mirrors the narrow-interface pattern `invalidationDisplay.ts`'s `NamedUser`
+ * uses for the same reason: this module must not grow a dependency on
+ * `lib/presence/types.ts` just to read one field back out of it.
+ */
+export interface ColoredUser {
+  readonly userId: string;
+  readonly color: string;
+}
+
+/**
+ * The color to paint for a given speaker: the user's own world-assigned color
+ * (REQ-USR-002) when `users` has a record for `speaker.userId`, so the SAME
+ * person reads as the SAME color everywhere in the app (cursor, ruler, pings,
+ * chat — REQ-CHT-008). Falls back to the deterministic hash (`speakerColor`)
+ * only when the id resolves to nobody — an offline sender, a user removed from
+ * the world, or a test fixture with no directory at all. This is the function
+ * UI code with a user list in hand should call; `speakerColor`/`speakerColorKey`
+ * stay available underneath as the pure, table-free primitives this builds on.
+ */
+export function resolveSpeakerColor(
+  speaker: { readonly userId: string; readonly alias: string },
+  users: readonly ColoredUser[],
+): string {
+  const known = users.find((user) => user.userId === speaker.userId);
+  if (known) return known.color;
+  return speakerColor(speakerColorKey(speaker));
+}

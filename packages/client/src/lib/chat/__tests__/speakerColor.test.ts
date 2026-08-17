@@ -1,6 +1,7 @@
 /**
  * speakerColor.test.ts — the per-sender accent palette is deterministic and
- * distributes across senders (A022, spec 38).
+ * distributes across senders (A022, spec 38); `resolveSpeakerColor` prefers
+ * the sender's real world color (REQ-CHT-008, REQ-USR-002) over that palette.
  *
  * REQ-ACH-025: `speakerColorKey` uses the same (userId, alias) pairing
  * chatGrouping.ts treats as "the same author" — a Gamemaster voicing two NPCs
@@ -8,12 +9,19 @@
  * already gives them. DEC-ACH-02/DEC-ACH-03 govern the panel's fixed search bar
  * and full-width write box, not color — cited here (alongside REQ-ACH-025) only
  * because the task that added this module names them as what it covers.
+ *
+ * REQ-CHT-008 (`09-chat-e-mensagens.md`): OOC text messages get "borda na cor
+ * do jogador" — the user's own assigned color, REQ-USR-002
+ * (`05-usuarios-e-permissoes.md`), the SAME field already painted on that
+ * user's cursor/ruler/pings. `resolveSpeakerColor` is what makes chat consult
+ * that real color instead of inventing a second one via hash.
  */
 
 import { describe, expect, it } from "vitest";
 
 import {
   SPEAKER_COLOR_PALETTE_SIZE,
+  resolveSpeakerColor,
   speakerColor,
   speakerColorIndex,
   speakerColorKey,
@@ -77,5 +85,39 @@ describe("speakerColorIndex / speakerColor — deterministic hash into a fixed p
     const asGm = speakerColor(speakerColorKey({ userId: "u1", alias: "Gamemaster" }));
     const asTobias = speakerColor(speakerColorKey({ userId: "u1", alias: "Tobias" }));
     expect(asGm).not.toBe(asTobias);
+  });
+});
+
+describe("resolveSpeakerColor — REQ-CHT-008/REQ-USR-002, the sender's real color wins", () => {
+  it("returns the world-assigned color when presence has a record for the speaker's userId", () => {
+    const speaker = { userId: "u1", alias: "Fofurinha" };
+    const users = [{ userId: "u1", color: "#3ddc84" }];
+    expect(resolveSpeakerColor(speaker, users)).toBe("#3ddc84");
+  });
+
+  it("falls back to the deterministic hash when the userId resolves to nobody", () => {
+    const speaker = { userId: "u-offline", alias: "Ghost" };
+    const fallback = speakerColor(speakerColorKey(speaker));
+    expect(resolveSpeakerColor(speaker, [])).toBe(fallback);
+    expect(resolveSpeakerColor(speaker, [{ userId: "someone-else", color: "#ff5c5c" }])).toBe(
+      fallback,
+    );
+  });
+
+  it("gives the SAME user the SAME resolved color across two different aliases — one identity, one color", () => {
+    const users = [{ userId: "u1", color: "#ff5c5c" }];
+    const asGm = resolveSpeakerColor({ userId: "u1", alias: "Gamemaster" }, users);
+    const asTobias = resolveSpeakerColor({ userId: "u1", alias: "Tobias" }, users);
+    expect(asGm).toBe("#ff5c5c");
+    expect(asTobias).toBe("#ff5c5c");
+  });
+
+  it("ignores a color for a different userId (no cross-user leak)", () => {
+    const speaker = { userId: "u2", alias: "Ana" };
+    const users = [
+      { userId: "u1", color: "#ff5c5c" },
+      { userId: "u3", color: "#3ddc84" },
+    ];
+    expect(resolveSpeakerColor(speaker, users)).toBe(speakerColor(speakerColorKey(speaker)));
   });
 });
