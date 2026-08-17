@@ -442,6 +442,7 @@ Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 | `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                |
 | `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                    |
 | `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.          |
+| `15` | REQ-SYS-047 ganha `requiresConfirmOnDisable?` e `countAffectedActors?` na forma pública de `SettingDefinition`, para servir REQ-CFG-082; `countAffectedActors` é server-only.      |
 
 ## 13. Referências
 
