@@ -26,8 +26,7 @@ export class PermissionsSectionState {
   /** A confirmed write for `key` clears any refusal it previously carried. */
   clearError(key: string): void {
     if (!(key in this.#errors)) return;
-    const next = { ...this.#errors };
-    delete next[key];
+    const { [key]: _removed, ...next } = this.#errors;
     this.#errors = next;
   }
 }
