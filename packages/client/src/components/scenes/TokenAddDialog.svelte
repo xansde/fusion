@@ -17,7 +17,7 @@
   import { createDocumentId } from "@fusion/shared";
   import { fusionApi } from "../../lib/api.js";
   import { session } from "../../lib/session.svelte.js";
-  import { resolveAssetUrl } from "../../lib/assets/assetApi.js";
+  import { resolveBrowseAssetUrl } from "../../lib/assets/assetApi.js";
   import FilePicker from "../assets/FilePicker.svelte";
 
   // ---- Props ----
@@ -71,7 +71,15 @@
   // BUG A FIX: formData.texture is stored as a clean "/assets/<name>" path
   // (see resolveAssetUrl()'s doc comment) — the <img> preview below needs a
   // freshly-minted query token to actually load it, otherwise the server's
-  // static route 401s. External URLs pass through resolveAssetUrl() unchanged.
+  // static route 401s. External URLs pass through unchanged.
+  //
+  // T025: this preview uses the BROWSE scope, not a document grant, and that is
+  // the correct scope rather than an exemption. The value being previewed was
+  // just chosen in the FilePicker and is attached to NO document — the token
+  // does not exist yet, so asking the server for a grant over this scene would
+  // (rightly) return nothing and blank the preview. This dialog is a
+  // GM/TRUSTED surface, exactly the role browse scope serves, and the same
+  // credential the FilePicker grid beside it already uses.
   let previewUrl = $state<string | null>(null);
 
   $effect(() => {
@@ -87,7 +95,7 @@
       return;
     }
     let cancelled = false;
-    void resolveAssetUrl(raw, accessToken, userId).then((url) => {
+    void resolveBrowseAssetUrl(raw, accessToken, userId).then((url) => {
       if (!cancelled) previewUrl = url;
     });
     return () => { cancelled = true; };

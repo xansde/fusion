@@ -302,7 +302,10 @@ export class TokenLayer {
         existing.update(token, this._gridSize);
       } else {
         // Create new sprite
-        const sprite = new TokenSprite(token, this._gridSize, this._isGm);
+        // T025: the sprite is told which scene it belongs to so its art loads
+        // against that scene's asset grant — the one `sceneLoader` already
+        // minted — instead of a credential of its own.
+        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._sceneId);
         sprite.updateLod(this._lastZoom);
         this._sprites.set(token._id, sprite);
         this._container.addChild(sprite.container);

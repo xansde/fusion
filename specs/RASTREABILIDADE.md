@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 567 | 29% |
-| Citados só por código de produção | 328 | 17% |
-| Sem nenhuma citação | 1057 | 54% |
+| Citados por algum teste | 624 | 32% |
+| Citados só por código de produção | 329 | 17% |
+| Sem nenhuma citação | 999 | 51% |
 | **Total [MVP]** | **1952** | |
 
 ## Por spec
@@ -26,7 +26,7 @@ porque ainda não foram prometidos para nenhum marco.
 | --- | ---: | ---: | ---: | ---: | ---: |
 | [00](00-visao-e-escopo.md) | 18 | 0 | 1 | 17 | 0% |
 | [01](01-arquitetura-geral.md) | 42 | 6 | 8 | 28 | 14% |
-| [02](02-modelo-de-dados.md) | 59 | 9 | 17 | 33 | 15% |
+| [02](02-modelo-de-dados.md) | 59 | 10 | 17 | 32 | 17% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
 | [05](05-usuarios-e-permissoes.md) | 40 | 0 | 19 | 21 | 0% |
@@ -34,8 +34,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
 | [09](09-chat-e-mensagens.md) | 49 | 12 | 10 | 27 | 24% |
-| [10](10-combate-e-iniciativa.md) | 45 | 14 | 30 | 1 | 31% |
-| [11](11-ui-framework-e-fichas.md) | 62 | 8 | 17 | 37 | 13% |
+| [10](10-combate-e-iniciativa.md) | 45 | 16 | 28 | 1 | 36% |
+| [11](11-ui-framework-e-fichas.md) | 62 | 8 | 18 | 36 | 13% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 0 | 49 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
@@ -58,12 +58,12 @@ porque ainda não foram prometidos para nenhum marco.
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
-| [37](37-configuracoes.md) | 40 | 1 | 0 | 39 | 3% |
+| [37](37-configuracoes.md) | 40 | 2 | 0 | 38 | 5% |
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
 | [41](41-token.md) | 61 | 0 | 0 | 61 | 0% |
-| [42](42-aba-npcs.md) | 59 | 2 | 0 | 57 | 3% |
+| [42](42-aba-npcs.md) | 59 | 55 | 2 | 2 | 93% |
 | [43](43-aba-compendio.md) | 60 | 58 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |
 | [45](45-atores.md) | 49 | 0 | 0 | 49 | 0% |

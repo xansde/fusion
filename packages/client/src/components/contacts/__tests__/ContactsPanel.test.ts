@@ -264,14 +264,14 @@ describe("editing the title in the card (REQ-CTT-024)", () => {
     // The edit happens in the card — no window, no dialog is opened for it.
     // The panel does open ONE window (the "Quem conhece quem" grid of
     // REQ-CTT-061, G065), so the assertion names the title path instead of the
-    // whole file: no title function reaches for the window manager, and the one
-    // `windowManager.open` in the panel is the knowledge grid's.
+    // whole file: no title function opens a window, and the single door the panel
+    // has is `openKnowledgeWindow` — shared with the NPCs footer (REQ-NPC-072).
     for (const fn of ["startEditingTitle", "cancelEditingTitle", "commitTitle", "onTitleKeydown"]) {
       const body = code().slice(code().indexOf(`function ${fn}`));
-      expect(body.slice(0, body.indexOf("\n  }"))).not.toContain("windowManager");
+      expect(body.slice(0, body.indexOf("\n  }"))).not.toContain("openKnowledgeWindow");
     }
-    expect([...code().matchAll(/windowManager\.open/g)]).toHaveLength(1);
-    expect(code()).toContain("KnowledgeGridWindow");
+    expect(code()).not.toContain("windowManager");
+    expect([...code().matchAll(/openKnowledgeWindow\(socket\)/g)]).toHaveLength(1);
     expect(code()).not.toContain('role="dialog"');
   });
 

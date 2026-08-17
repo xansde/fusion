@@ -159,12 +159,21 @@ describe("the footer that opens the window (REQ-CTT-060)", () => {
 
   it("REQ-CTT-061: the footer opens the grid through the window manager, once", () => {
     const code = codeOf("ContactsPanel.svelte");
+    // The open call moved to `lib/contacts/knowledgeWindow.ts` when the NPCs tab
+    // gained a footer that opens the SAME window (REQ-NPC-072): one door, so the
+    // two tabs cannot drift into two grids. The panel keeps exactly one call.
+    const opener = readFileSync(
+      fileURLToPath(new URL("../../../lib/contacts/knowledgeWindow.ts", import.meta.url)),
+      "utf8",
+    );
 
-    expect(code).toContain("windowManager.open");
-    expect(code).toContain("KnowledgeGridWindow");
+    expect(code).toContain("openKnowledgeWindow");
+    expect(code).not.toContain("windowManager.open");
+    expect(opener).toContain("windowManager.open");
+    expect(opener).toContain("KnowledgeGridWindow");
     // A singleton key: clicking twice focuses the open window instead of stacking
     // a second grid over the first (REQ-UIF-014).
-    expect(code).toContain('singletonKey: "contacts:knowledge"');
+    expect(opener).toContain('KNOWLEDGE_WINDOW_KEY = "contacts:knowledge"');
   });
 });
 

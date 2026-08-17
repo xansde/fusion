@@ -14,10 +14,12 @@
  * Two consequences of that bridge are visible here and are deliberate:
  *
  *  - the second slot of the "all" group is **Contatos** (spec 39, REQ-CTT-001), and
- *    the old **Atores** directory now sits right after it. The directory did not go
- *    away with spec 39 and must not: it is the only UI that creates and deletes an
- *    Actor, which DEC-CTT-01 deliberately kept out of the Contatos list. It leaves
- *    when the NPCs tab (spec 42) takes authoring over.
+ *    the old **Atores** directory is GONE (G078). It was kept alive past spec 39
+ *    only because it was the last UI that created and deleted an Actor — the debt
+ *    DEC-CTT-01 declared. Spec 42's NPCs tab took authoring of non-playables over,
+ *    so the directory was buried: the debt is now paid by halves, on purpose —
+ *    creating a player's character is spec 37's (G105) and deleting one has no
+ *    screen at all, accepted in Q-NPC-06.
  *  - **Configurações** is a placeholder panel with nothing but its empty state
  *    (spec 36 §7.4) until spec 37 lands; the tab itself already sits in the rail
  *    footer, which is what DEC-GAV-09/REQ-CFG-001 ask for.
@@ -146,22 +148,18 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     // so there is nothing here for a counter to count.
     badge: compendiumImportBadge,
   },
+  // The provisional Atores directory used to sit here, at the end of the "all"
+  // group. G078 buried it: spec 42's NPCs tab authors non-playables, and with the
+  // directory gone the "all" group is exactly the four tabs of REQ-GAV-003.
   {
-    // The old Atores directory, kept ALIVE on purpose (DEC-CTT-01): it is still the
-    // only UI in the client that creates and deletes an Actor, and spec 39 took both
-    // out of the player's list. Removing it before the NPCs tab (spec 42) exists
-    // would leave the table with no way to create an actor at all — the declared
-    // debt of DEC-CTT-01, which the NPCs phase pays. It borrows the NPCs icon so the
-    // rail does not show the same glyph twice.
-    //
-    // It sits at the END of the "all" group, where REQ-GAV-031 puts a tab that is not
-    // one of the four of REQ-GAV-003 — so Contatos stays second (REQ-CTT-001) and
-    // Combate stays third (REQ-CBA-001) instead of being pushed down by a placeholder.
-    id: "actors",
+    // REQ-NPC-001: id "npcs", group "gm", FIRST of the group, with its own drawn
+    // icon and an i18n label. REQ-NPC-002: no badge of any kind — nothing happens
+    // in this tab that was not the Mestre himself.
+    id: "npcs",
     icon: npcsIcon,
-    label: "FUSION.Sidebar.Tabs.Actors",
-    group: "all",
-    component: () => import("../../components/actors/ActorDirectory.svelte"),
+    label: "FUSION.Sidebar.Tabs.Npcs",
+    group: "gm",
+    component: () => import("../../components/npcs/NpcsPanel.svelte"),
   },
   {
     // REQ-CEN-001: id "scenes", group "gm", in the middle block; it is also the

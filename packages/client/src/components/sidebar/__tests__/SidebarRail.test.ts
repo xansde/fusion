@@ -37,10 +37,10 @@ const neverLoaded = (): Promise<{ default: unknown }> => {
 /** The seven core tabs in the order of DEC-GAV-01. */
 const CORE_TABS = [
   { id: "chat", label: "FUSION.Sidebar.Tabs.Chat", group: "all" as const },
-  { id: "contacts", label: "FUSION.Sidebar.Tabs.Actors", group: "all" as const },
+  { id: "contacts", label: "FUSION.Sidebar.Tabs.Contacts", group: "all" as const },
   { id: "combat", label: "FUSION.Sidebar.Tabs.Combat", group: "all" as const },
   { id: "compendium", label: "FUSION.Sidebar.Tabs.Compendium", group: "all" as const },
-  { id: "npcs", label: "FUSION.Sidebar.Tabs.Actors", group: "gm" as const },
+  { id: "npcs", label: "FUSION.Sidebar.Tabs.Npcs", group: "gm" as const },
   { id: "scenes", label: "FUSION.Sidebar.Tabs.Scenes", group: "gm" as const },
   { id: "settings", label: "FUSION.Sidebar.Tabs.Settings", group: "all" as const },
 ];
