@@ -19,8 +19,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { DocCreatePayloadSchema } from "@fusion/shared";
+
 import { NPC_DRAG_MIME, buildNpcDragPayload, readNpcDragPayload } from "../moveActor.js";
-import { buildTokenFromActorFields } from "../../actors/actorDirectory.js";
+import { buildActorDropTokenOp, buildTokenFromActorFields } from "../../actors/actorDirectory.js";
 
 const LOBO = {
   _id: "act-lobo00000001",
@@ -90,7 +92,7 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     expect(Object.keys(fields)).not.toContain("actorLink");
   });
 
-  it("REQ-NPC-063: the drop creates the presence on the scene, embedded in it", () => {
+  it("REQ-NPC-063: the drop wires the actor-drag branch through buildActorDropTokenOp", () => {
     const table = source("../../../components/TableScreen.svelte");
     const dropFnStart = table.indexOf("function handleCanvasDrop");
     expect(dropFnStart).toBeGreaterThan(-1);
@@ -106,11 +108,47 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     expect(compBranchStart).toBeGreaterThan(actorBranchStart);
     const drop = dropFn.slice(actorBranchStart, compBranchStart);
 
-    expect(drop).toContain("buildTokenFromActorFields");
-    // TK022-client: the doc:create envelope is built by the shared
-    // buildTokenCreateOp helper (packages/client/src/lib/docs/tokenCreateOp.ts),
-    // not assembled inline anymore — asserting the call site, not the literal
-    // shape it wraps.
-    expect(drop).toContain("buildTokenCreateOp(scene._id");
+    // TK022-client: the branch hands the drop straight to the shared
+    // buildActorDropTokenOp (packages/client/src/lib/actors/actorDirectory.ts)
+    // and emits its result verbatim — this only proves the WIRING calls the
+    // real function; the next test proves what that function actually emits.
+    expect(drop).toContain("buildActorDropTokenOp(");
+    expect(drop).toContain('sock.emit("op", { ...op,');
+  });
+
+  it("REQ-NPC-063: what buildActorDropTokenOp emits is a doc:create the server accepts", () => {
+    const op = buildActorDropTokenOp({
+      payload: {
+        kind: "actor",
+        uuid: LOBO._id,
+        documentType: "Actor",
+        subtype: "npc",
+        name: LOBO.name,
+        img: LOBO.img,
+        origin: "sidebar",
+      },
+      sceneId: "scn-clareira001",
+      x: 317,
+      y: 642,
+      gridSize: 100,
+    });
+
+    // The exact payload the socket carries — not the source text that builds
+    // it — is what has to satisfy the server's wire schema (spec 41 §7.2).
+    const result = DocCreatePayloadSchema.safeParse(op.payload);
+    expect(result.success, `DocCreatePayload parse failed: ${JSON.stringify(result)}`).toBe(true);
+
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Token");
+    expect(op.payload.parent).toEqual({ type: "Scene", id: "scn-clareira001" });
+
+    const created = op.payload.data[0] as Record<string, unknown>;
+    expect(created["actorId"]).toBe(LOBO._id);
+    expect(created).toMatchObject({ x: 300, y: 600 });
+    // TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): still no name/art of its
+    // own once it is the actual wire payload, not just the fields object.
+    expect(created).not.toHaveProperty("name");
+    expect(created).not.toHaveProperty("texture");
+    expect(Object.keys(created)).not.toContain("actorLink");
   });
 });

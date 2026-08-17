@@ -25,6 +25,8 @@
 
 import type { BaseDocument } from "@fusion/shared";
 
+import { buildTokenCreateOp, type TokenCreateOp } from "../docs/tokenCreateOp.js";
+
 // ---------------------------------------------------------------------------
 // Actor document type (minimal — full schema is in the system packages)
 // ---------------------------------------------------------------------------
@@ -144,4 +146,23 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
     x,
     y,
   };
+}
+
+/**
+ * Build the full `doc:create` op (TK022-client) for dropping an actor on the
+ * canvas — the composition `TableScreen.handleCanvasDrop`'s actor branch emits
+ * verbatim (`sock.emit("op", { ...buildActorDropTokenOp(opts), ts: Date.now() })`).
+ *
+ * Exists so the wiring between `buildTokenFromActorFields` (the field
+ * transform) and `buildTokenCreateOp` (the envelope) is itself a pure,
+ * DOM-free function under test — the same shape `token-manager-contract.test.ts`
+ * verifies for `TokenInteractionManager.addToken`, and `buildPlaceChestTokenOp`
+ * (`lib/npcs/npcsFooter.ts`) verifies for the chest. Before this existed, the
+ * only place the two calls were composed was inline in the `.svelte` file,
+ * which a source-text test can confirm is CALLED but never confirm produces a
+ * payload the server would accept (see `tokenCreateOp.ts`'s docstring for the
+ * three call sites that used to get this wrong).
+ */
+export function buildActorDropTokenOp(opts: TokenFromActorOptions): TokenCreateOp {
+  return buildTokenCreateOp(opts.sceneId, { ...buildTokenFromActorFields(opts) });
 }

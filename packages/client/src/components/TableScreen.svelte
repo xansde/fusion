@@ -52,6 +52,7 @@
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import {
+    buildActorDropTokenOp,
     buildTokenFromActorFields,
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
@@ -325,14 +326,14 @@
     if (actorPayload) {
       event.preventDefault();
       const gridSize = scene.grid?.size ?? 100;
-      const fields = buildTokenFromActorFields({
+      const op = buildActorDropTokenOp({
         payload: actorPayload,
         sceneId: scene._id,
         x: worldX,
         y: worldY,
         gridSize,
       });
-      sock.emit("op", { ...buildTokenCreateOp(scene._id, { ...fields }), ts: Date.now() });
+      sock.emit("op", { ...op, ts: Date.now() });
       return;
     }
 
