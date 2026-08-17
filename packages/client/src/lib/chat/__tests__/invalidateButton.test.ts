@@ -4,15 +4,21 @@
  * component, no DOM — resolveInvalidateAction is the exact seam
  * ChatMessage.svelte reads to decide whether to render the button (A024).
  *
- * REQ-ACH-080 — the resolver never returns anything but "invalidate",
- *   "revalidate" or null: there is no deletion path.
  * REQ-ACH-082 — invalidate is offered to the GAMEMASTER and to the AUTHOR of
  *   the message; nobody else.
  * REQ-ACH-083 — revalidate is offered to the GM always; to the author ONLY
  *   when the standing invalidation is his own — a GM's invalidation is the
  *   last word and the author never even sees a button for it.
- * REQ-ACH-084 — the decision reads `invalidatedBy`, the field the server
- *   stamps and preserves through revalidation.
+ *
+ * REQ-ACH-080 (no deletion path) and REQ-ACH-084 (`invalidatedBy`/
+ * `invalidatedAt` are recorded and survive revalidation) are NOT this file's
+ * job — the resolver's return type already rules out a third action at
+ * compile time, so asserting membership in it proves nothing a mutant
+ * couldn't slip past. Those requirements are proven for real by
+ * `ChatMessageInvalid.test.ts` and `chat-generic-doc-path.test.ts:257`
+ * (server, no wire path deletes a ChatMessage) for REQ-ACH-080, and by
+ * `chat-invalidate.test.ts` (server) plus `chatInvalidation.test.ts`
+ * (client, the record survives a revalidation) for REQ-ACH-084.
  */
 
 import { describe, it, expect } from "vitest";
@@ -73,23 +79,5 @@ describe("REQ-ACH-083 — revalidating an invalidated message", () => {
   it("offers nothing to a bystander on an invalidated message", () => {
     const invalidated = msg({ invalid: true, invalidatedBy: GM });
     expect(resolveInvalidateAction(invalidated, false, OTHER)).toBeNull();
-  });
-});
-
-describe("REQ-ACH-080 — no third action exists", () => {
-  it("only ever resolves to invalidate, revalidate, or null", () => {
-    const cases: [InvalidateButtonMessage, boolean, string][] = [
-      [msg(), true, GM],
-      [msg(), false, AUTHOR],
-      [msg(), false, OTHER],
-      [msg({ invalid: true, invalidatedBy: AUTHOR }), true, GM],
-      [msg({ invalid: true, invalidatedBy: AUTHOR }), false, AUTHOR],
-      [msg({ invalid: true, invalidatedBy: GM }), false, AUTHOR],
-    ];
-    for (const [m, isGm, userId] of cases) {
-      expect(["invalidate", "revalidate", null]).toContain(
-        resolveInvalidateAction(m, isGm, userId),
-      );
-    }
   });
 });
