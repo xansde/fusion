@@ -2,28 +2,48 @@
   /**
    * NpcCreateDialog.svelte — the body of the creation window (spec 42 §5.6, G074).
    *
-   * Two doors in the SAME window (REQ-NPC-041), drawn side by side rather than
-   * behind a tab strip: the Mestre's question is "give me a goblin", and making him
-   * first pick which kind of question he is asking is the third screen DEC-NPC-06
-   * set out to remove.
+   * Two doors in the SAME window (REQ-NPC-041), behind a tab strip
+   * (`npcs-tab.prototype.html:2308-2338`, `.wtabs`, A035): only the active
+   * door renders, so the Mestre's question — "give me a goblin", or "let me
+   * type one" — never has to fight four stacked blocks of markup to reach the
+   * fields it needs. The tab strip itself, not a heading per block, names
+   * which door is open.
    *
-   *  - **Do bestiário** (REQ-NPC-042): a search by name over the actor packs, and
-   *    an import that is the spec 16 one. There is no second importer here — the
-   *    button calls `importFromBestiary`, which calls `compendium:import`.
-   *  - **Do zero** (REQ-NPC-043): subtype and name. The subtype select offers
-   *    exactly `npc` and `hazard` (REQ-NPC-044): a player's character is born with
-   *    the player, a familiar is born glued to a master, a chest is not an actor,
-   *    and a vehicle does not exist in Fusion.
+   *  - **Do bestiário** (REQ-NPC-042), the tab open by default (the
+   *    prototype's `newMode = "pack"`): a search by name over the actor
+   *    packs, and an import that is the spec 16 one. There is no second
+   *    importer here — the button calls `importFromBestiary`, which calls
+   *    `compendium:import`.
+   *  - **Do zero** (REQ-NPC-043): subtype, then name, then preset — in that
+   *    order, matching the prototype, so the name field sits high on the
+   *    screen instead of behind everything else. The subtype select offers
+   *    exactly `npc` and `hazard` (REQ-NPC-044): a player's character is born
+   *    with the player, a familiar is born glued to a master, a chest is not
+   *    an actor, and a vehicle does not exist in Fusion.
    *
-   * Folder and attitude are chosen ONCE, above both doors (REQ-NPC-047), because
-   * they are properties of what is being created and not of how it is being
-   * created. The folder arrives pre-selected when the window was opened from a
-   * folder header.
+   * Attitude and folder (REQ-NPC-047) sit below whichever door is open, in
+   * that order — matching the prototype's `Atitude` before `Pasta`
+   * (`npcs-tab.prototype.html:2315-2333`) — they are properties of what is
+   * being created, shared by both doors, not of how it is being created. The
+   * folder arrives pre-selected when the window was opened from a folder
+   * header.
    *
    * The preset (REQ-NPC-045) pre-fills the sheet and is not stored: this form is
    * the only place its name is ever written, and nothing it sends carries the id.
    * Which is why the row of a created NPC has no "mercador" label to hide
-   * (REQ-NPC-046) — there is nothing stored to label it with.
+   * (REQ-NPC-046) — there is nothing stored to label it with. Unlike the
+   * prototype, where `Preset` renders for both `newMode`s, this build keeps it
+   * inside the "do zero" door only (REQ-NPC-045 says creation "PODE oferecer" a
+   * preset, not that both doors must): `importFromBestiary` (spec 16) has no
+   * preset parameter, since an imported actor's sheet already exists, so there
+   * is nothing for a bestiary-door preset field to prime. Registered as an
+   * open question rather than matched blindly to the prototype.
+   *
+   * The footer (Cancelar + the primary action) is always on screen, on both
+   * doors, matching the prototype's `.wf` (`npcs-tab.prototype.html:2337-2338`)
+   * — only the primary's presence changes: bestiary imports per hit row (the
+   * existing, tested flow, not the prototype's select-then-confirm), so only
+   * Cancelar is common; the "do zero" door adds Criar next to it.
    */
 
   import type { Socket } from "socket.io-client";
@@ -46,17 +66,28 @@
   } from "../../lib/npcs/createNpc.js";
   import type { PackManifest } from "@fusion/shared";
 
+  /** Which door is open. Bestiary first, matching the prototype's `newMode = "pack"`. */
+  type CreateDoor = "bestiary" | "scratch";
+
   const {
     socket,
     initialFolderId = null,
     folderOptions = [],
+    // Testability hook only (svelte/server renders one static tree per call):
+    // the real window always opens on "bestiary" (REQ-NPC-042 is the primary
+    // door) — `npcCreateWindow.ts` never passes this prop.
+    initialTab = "bestiary",
     onClose,
   }: {
     socket: Socket;
     initialFolderId?: string | null;
     folderOptions?: readonly MoveTargetOption[];
+    initialTab?: CreateDoor;
     onClose: () => void;
   } = $props();
+
+  // svelte-ignore state_referenced_locally
+  let activeTab = $state<CreateDoor>(initialTab);
 
   // ---- Shared destination (REQ-NPC-047) ----
 
@@ -176,26 +207,151 @@
       void onCreate();
     }
   }
-
 </script>
 
 <div class="npc-create" data-npc-create>
-  <!-- REQ-NPC-047: folder and attitude belong to what is created, not to the door
-       it came through, so they are chosen once, above both. -->
-  <section class="npc-create__block" data-block="destination">
-    <label class="npc-create__field">
-      <span>{t("FUSION.Npcs.Create.Folder")}</span>
-      <select data-input="npc-create-folder" bind:value={folderId}>
-        {#each folderOptions as option (option.value)}
-          <option value={option.value}>
-            {option.unfiled
-              ? t("FUSION.Npcs.Folder.Unfiled")
-              : "  ".repeat(option.depth) + option.name}
-          </option>
-        {/each}
-      </select>
-    </label>
+  <!-- REQ-NPC-041 / DEC-NPC-06 (A035): both doors live in this one window, but
+       only the active tab's block is in the DOM — the prototype's `.wtabs`.
+       A named group of TOGGLE buttons, not `role="tablist"`/`role="tab"`: that
+       ARIA pattern promises arrow-key navigation and a roving tabindex, which
+       this strip does not implement — same call already made, and explained,
+       by `SidebarRail.svelte` for the rail (DEC-GAV-05, REQ-GAV-041).
+       Announcing a pattern whose keyboard is absent strands the reader;
+       `aria-pressed` says exactly what each button does (REQ-NPC-092: every
+       control operable by Tab/Enter/Space, no arrow keys promised). -->
+  <div class="npc-create__tabs" role="group" aria-label={t("FUSION.Npcs.Create.TabsLabel")} data-npc-create-tabs>
+    <button
+      type="button"
+      class="npc-create__tab"
+      class:npc-create__tab--active={activeTab === "bestiary"}
+      aria-pressed={activeTab === "bestiary"}
+      data-tab="bestiary"
+      onclick={() => (activeTab = "bestiary")}
+    >
+      {t("FUSION.Npcs.Create.FromBestiary")}
+    </button>
+    <button
+      type="button"
+      class="npc-create__tab"
+      class:npc-create__tab--active={activeTab === "scratch"}
+      aria-pressed={activeTab === "scratch"}
+      data-tab="scratch"
+      onclick={() => (activeTab = "scratch")}
+    >
+      {t("FUSION.Npcs.Create.FromScratch")}
+    </button>
+  </div>
 
+  {#if error !== null}
+    <p class="npc-create__error" role="alert">{error}</p>
+  {/if}
+
+  {#if activeTab === "bestiary"}
+    <!-- Door one (REQ-NPC-042). -->
+    <section class="npc-create__block" data-door="bestiary">
+      <div class="npc-create__row">
+        <input
+          type="search"
+          class="npc-create__input"
+          data-input="bestiary-search"
+          placeholder={t("FUSION.Npcs.Create.BestiarySearch")}
+          aria-label={t("FUSION.Npcs.Create.BestiarySearch")}
+          bind:value={term}
+          onkeydown={onSearchKeydown}
+        />
+        <button
+          class="npc-create__btn"
+          type="button"
+          data-action="search-bestiary"
+          onclick={() => void runSearch()}
+        >
+          {t("FUSION.Npcs.Create.Search")}
+        </button>
+      </div>
+
+      {#if searching}
+        <p class="npc-create__hint">{t("FUSION.Npcs.Create.Searching")}</p>
+      {:else if hits.length === 0 && term.trim().length > 0}
+        <p class="npc-create__hint" data-bestiary-empty>
+          {t("FUSION.Npcs.Create.NoBestiaryResult", { term })}
+        </p>
+      {/if}
+
+      <ul class="npc-create__hits" data-bestiary-hits>
+        {#each hits as hit (hit.uuid)}
+          <li class="npc-create__hit" data-bestiary-uuid={hit.uuid}>
+            <span class="npc-create__hit-name">{hit.name}</span>
+            {#if hit.secondaryName !== null}
+              <span class="npc-create__hit-alt">{hit.secondaryName}</span>
+            {/if}
+            {#if hit.level !== null}
+              <span class="npc-create__hit-level"
+                >{t("FUSION.Npcs.Level", { level: hit.level })}</span
+              >
+            {/if}
+            <span class="npc-create__hit-pack">{hit.packLabel}</span>
+            <button
+              class="npc-create__btn"
+              type="button"
+              data-action="import-bestiary"
+              disabled={busy}
+              onclick={() => void onImport(hit)}
+            >
+              {t("FUSION.Npcs.Create.Import")}
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {:else}
+    <!-- Door two (REQ-NPC-043). Order matches the prototype: Tipo → Nome → Preset,
+         so the name field sits high on the screen (A035) instead of behind four
+         stacked blocks. -->
+    <section class="npc-create__block" data-door="scratch">
+      <label class="npc-create__field">
+        <span>{t("FUSION.Npcs.Create.Subtype")}</span>
+        <!-- REQ-NPC-044: exactly two options, and the list is written here rather
+             than read from the system's declaration (DEC-NPC-05). -->
+        <select data-input="npc-create-subtype" bind:value={subtype}>
+          {#each NPC_CREATABLE_SUBTYPES as option (option)}
+            <option value={option}>{t(`FUSION.Npcs.Subtype.${option}`)}</option>
+          {/each}
+        </select>
+      </label>
+
+      <label class="npc-create__field">
+        <span>{t("FUSION.Npcs.Create.Name")}</span>
+        <input
+          class="npc-create__input"
+          data-input="npc-create-name"
+          bind:value={name}
+          onkeydown={onNameKeydown}
+        />
+      </label>
+
+      <!-- REQ-NPC-045: the preset pre-fills and is not stored. It exists inside
+           this window and nowhere else in the app (REQ-NPC-046), and only on the
+           "do zero" door — `importFromBestiary` has no preset of its own. -->
+      {#if presets.length > 0}
+        <label class="npc-create__field">
+          <span>{t("FUSION.Npcs.Create.Preset")}</span>
+          <select data-input="npc-create-preset" bind:value={presetId}>
+            <option value="">{t("FUSION.Npcs.Create.NoPreset")}</option>
+            {#each presets as preset (preset.id)}
+              <option value={preset.id}>{t(preset.labelKey)}</option>
+            {/each}
+          </select>
+        </label>
+      {/if}
+    </section>
+  {/if}
+
+  <!-- REQ-NPC-047: folder and attitude belong to what is created, not to the door
+       it came through — shared by both doors, below whichever one is open.
+       Order matches the prototype (Atitude before Pasta,
+       `npcs-tab.prototype.html:2315-2333`; `Preset` stays scratch-only, see the
+       docstring's open question). -->
+  <section class="npc-create__block" data-block="destination">
     <label class="npc-create__field">
       <span>{t("FUSION.Npcs.Create.Attitude")}</span>
       <!-- REQ-NPC-037: a hazard has no attitude, so the control is disabled rather
@@ -211,112 +367,34 @@
         <option value="enemy">{t("FUSION.Npcs.Attitude.enemy")}</option>
       </select>
     </label>
-  </section>
-
-  {#if error !== null}
-    <p class="npc-create__error" role="alert">{error}</p>
-  {/if}
-
-  <!-- Door one (REQ-NPC-042). -->
-  <section class="npc-create__block" data-door="bestiary">
-    <h3 class="npc-create__heading">{t("FUSION.Npcs.Create.FromBestiary")}</h3>
-
-    <div class="npc-create__row">
-      <input
-        type="search"
-        class="npc-create__input"
-        data-input="bestiary-search"
-        placeholder={t("FUSION.Npcs.Create.BestiarySearch")}
-        aria-label={t("FUSION.Npcs.Create.BestiarySearch")}
-        bind:value={term}
-        onkeydown={onSearchKeydown}
-      />
-      <button
-        class="npc-create__btn"
-        type="button"
-        data-action="search-bestiary"
-        onclick={() => void runSearch()}
-      >
-        {t("FUSION.Npcs.Create.Search")}
-      </button>
-    </div>
-
-    {#if searching}
-      <p class="npc-create__hint">{t("FUSION.Npcs.Create.Searching")}</p>
-    {:else if hits.length === 0 && term.trim().length > 0}
-      <p class="npc-create__hint" data-bestiary-empty>
-        {t("FUSION.Npcs.Create.NoBestiaryResult", { term })}
-      </p>
-    {/if}
-
-    <ul class="npc-create__hits" data-bestiary-hits>
-      {#each hits as hit (hit.uuid)}
-        <li class="npc-create__hit" data-bestiary-uuid={hit.uuid}>
-          <span class="npc-create__hit-name">{hit.name}</span>
-          {#if hit.secondaryName !== null}
-            <span class="npc-create__hit-alt">{hit.secondaryName}</span>
-          {/if}
-          {#if hit.level !== null}
-            <span class="npc-create__hit-level">{t("FUSION.Npcs.Level", { level: hit.level })}</span>
-          {/if}
-          <span class="npc-create__hit-pack">{hit.packLabel}</span>
-          <button
-            class="npc-create__btn"
-            type="button"
-            data-action="import-bestiary"
-            disabled={busy}
-            onclick={() => void onImport(hit)}
-          >
-            {t("FUSION.Npcs.Create.Import")}
-          </button>
-        </li>
-      {/each}
-    </ul>
-  </section>
-
-  <!-- Door two (REQ-NPC-043). -->
-  <section class="npc-create__block" data-door="scratch">
-    <h3 class="npc-create__heading">{t("FUSION.Npcs.Create.FromScratch")}</h3>
 
     <label class="npc-create__field">
-      <span>{t("FUSION.Npcs.Create.Subtype")}</span>
-      <!-- REQ-NPC-044: exactly two options, and the list is written here rather
-           than read from the system's declaration (DEC-NPC-05). -->
-      <select data-input="npc-create-subtype" bind:value={subtype}>
-        {#each NPC_CREATABLE_SUBTYPES as option (option)}
-          <option value={option}>{t(`FUSION.Npcs.Subtype.${option}`)}</option>
+      <span>{t("FUSION.Npcs.Create.Folder")}</span>
+      <select data-input="npc-create-folder" bind:value={folderId}>
+        {#each folderOptions as option (option.value)}
+          <option value={option.value}>
+            {option.unfiled
+              ? t("FUSION.Npcs.Folder.Unfiled")
+              : "  ".repeat(option.depth) + option.name}
+          </option>
         {/each}
       </select>
     </label>
+  </section>
 
-    <label class="npc-create__field">
-      <span>{t("FUSION.Npcs.Create.Name")}</span>
-      <input
-        class="npc-create__input"
-        data-input="npc-create-name"
-        bind:value={name}
-        onkeydown={onNameKeydown}
-      />
-    </label>
-
-    <!-- REQ-NPC-045: the preset pre-fills and is not stored. It exists inside this
-         window and nowhere else in the app (REQ-NPC-046). -->
-    {#if presets.length > 0}
-      <label class="npc-create__field">
-        <span>{t("FUSION.Npcs.Create.Preset")}</span>
-        <select data-input="npc-create-preset" bind:value={presetId}>
-          <option value="">{t("FUSION.Npcs.Create.NoPreset")}</option>
-          {#each presets as preset (preset.id)}
-            <option value={preset.id}>{t(preset.labelKey)}</option>
-          {/each}
-        </select>
-      </label>
-    {/if}
-
-    <div class="npc-create__row npc-create__row--end">
-      <button class="npc-create__btn" type="button" data-action="cancel-create" onclick={onClose}>
-        {t("FUSION.Npcs.Create.Cancel")}
-      </button>
+  <!-- REQ-NPC-041: the footer is always on screen, on both doors, matching the
+       prototype's `.wf` (`npcs-tab.prototype.html:2337-2338`) — before A035 the
+       two doors coexisted in the DOM, so Cancelar was always reachable; tabs
+       must not take that away. Only the primary action is door-specific: the
+       bestiary door confirms per hit row (`data-action="import-bestiary"`,
+       the existing tested flow — see the docstring's open question about the
+       prototype's own select-then-confirm), so it adds no second primary
+       button here. -->
+  <div class="npc-create__row npc-create__row--end">
+    <button class="npc-create__btn" type="button" data-action="cancel-create" onclick={onClose}>
+      {t("FUSION.Npcs.Create.Cancel")}
+    </button>
+    {#if activeTab === "scratch"}
       <button
         class="npc-create__btn npc-create__btn--primary"
         type="button"
@@ -326,8 +404,8 @@
       >
         {t("FUSION.Npcs.Create.Confirm")}
       </button>
-    </div>
-  </section>
+    {/if}
+  </div>
 
   <!-- REQ-NPC-090 / DEC-NPC-02: a player's character is not born in this window,
        and this tab offers no control anywhere that creates one (REQ-NPC-044).
@@ -354,12 +432,37 @@
     border-bottom: 1px solid var(--fusion-border);
   }
 
-  .npc-create__heading {
-    margin: 0;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  /* npcs-tab.prototype.html:1238-1262 (.wtabs) — the tab strip bleeds to the
+     window's edges, same as the prototype's, instead of sitting inside the
+     dialog's own padding. */
+  .npc-create__tabs {
+    display: flex;
+    gap: 0.375rem;
+    margin: -0.75rem -0.75rem 0;
+    padding: 0 0.75rem;
+    background: var(--fusion-surface-alt);
+    border-bottom: 1px solid var(--fusion-border);
+  }
+
+  .npc-create__tab {
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
     color: var(--fusion-text-muted);
+    font: inherit;
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.5rem;
+    cursor: pointer;
+  }
+
+  .npc-create__tab:hover {
+    color: var(--fusion-text);
+  }
+
+  .npc-create__tab--active {
+    color: var(--fusion-accent);
+    border-bottom-color: var(--fusion-accent);
+    font-weight: 600;
   }
 
   .npc-create__field {
