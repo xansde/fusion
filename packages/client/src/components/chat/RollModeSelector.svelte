@@ -2,9 +2,12 @@
   /**
    * RollModeSelector.svelte — the one control that decides the audience of a roll.
    *
-   * Spec 38 (`specs/38-aba-chat.md`) §5.5, DEC-ACH-04 / REQ-ACH-040: four drawn icons
-   * (public · to the GM · blind · self only), a visible mark on the active one, and help
-   * text on hover AND on focus. Never emoji (REQ-NPC-094).
+   * Spec 38 (`specs/38-aba-chat.md`) §5.5, DEC-ACH-04 / REQ-ACH-040: a **full-width** strip
+   * of four drawn icons (public · to the GM · blind · self only) behind a sliding indicator
+   * that animates to the active one, plus help text on hover AND on focus. Never emoji
+   * (REQ-NPC-094). The strip fills the composer's width — it is not a compact, self-sized
+   * cluster — matching `chat-tab.prototype.html`'s `.modes` (grid of 4 equal columns,
+   * `.thumb` sliding with `transition: left .14s`).
    *
    * It is a presentation component: it owns no preference and no storage. The owner
    * (`ChatInput`) reads and writes `lib/chat/rollModePreference.ts` per world + user
@@ -39,6 +42,12 @@
   function helpOf(m: RollMode): string {
     return t(`${rollModeI18nStem[m]}.Help`);
   }
+
+  // The strip has ROLL_MODE_ORDER.length (4) equal columns; the thumb slides to the
+  // active one by percentage of its index, same formula as the decided prototype
+  // (`chat-tab.prototype.html`'s composerHtml: `calc(${idx} * 25% + 2px)`).
+  const activeIndex = $derived(ROLL_MODE_ORDER.indexOf(mode));
+  const thumbLeft = $derived(`calc(${activeIndex} * 25% + 2px)`);
 </script>
 
 <div
@@ -47,6 +56,7 @@
   aria-label={t("FUSION.Chat.RollMode.GroupLabel")}
   data-active-mode={mode}
 >
+  <span class="roll-mode__thumb" style="left: {thumbLeft}" aria-hidden="true"></span>
   {#each ROLL_MODE_ORDER as m (m)}
     <button
       type="button"
@@ -68,44 +78,58 @@
 </div>
 
 <style>
+  /* Full-width strip of 4 equal columns (DEC-ACH-04, REQ-ACH-040) — matches
+     chat-tab.prototype.html's `.modes`, not a compact self-sized cluster. */
   .roll-mode {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.1rem;
-    padding: 0.1rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    height: 26px;
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius-pill);
     background: var(--fusion-surface-alt);
-    flex-shrink: 0;
-    align-self: center;
+  }
+
+  /* The sliding indicator behind the active option — animates on mode change
+     instead of the option itself changing shape (prototype's `.modes .thumb`). */
+  .roll-mode__thumb {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: calc(25% - 3px);
+    border-radius: var(--fusion-radius-pill);
+    background: var(--fusion-accent-dim);
+    border: 1px solid var(--fusion-accent);
+    transition: left 0.14s ease;
+    pointer-events: none;
   }
 
   .roll-mode__option {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 100%;
+    height: 100%;
     padding: 0;
     border: none;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius-pill);
     background: transparent;
     color: var(--fusion-text-subtle);
     cursor: pointer;
-    transition: background-color var(--fusion-transition), color var(--fusion-transition);
+    transition: color var(--fusion-transition);
   }
 
   .roll-mode__option:not(:disabled):hover {
     color: var(--fusion-text);
-    background: var(--fusion-surface);
   }
 
   /* The active mark: colour alone would not survive a colour-blind reader, so the
-     active option also carries a filled backing plate. */
+     active option also sits above the filled, bordered thumb (above). */
   .roll-mode__option--active {
-    color: var(--fusion-accent);
-    background: var(--fusion-surface);
-    box-shadow: inset 0 0 0 1px var(--fusion-accent);
+    color: var(--fusion-accent-hover);
   }
 
   .roll-mode__option:disabled {

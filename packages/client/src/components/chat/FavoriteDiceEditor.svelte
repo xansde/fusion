@@ -79,7 +79,7 @@
     <fieldset class="favorite-editor__slot" data-slot={index + 1}>
       <legend>{t("FUSION.Chat.RollBuilder.Slot", { index: index + 1 })}</legend>
 
-      <label class="favorite-editor__field">
+      <label class="favorite-editor__field favorite-editor__field--label">
         <span>{t("FUSION.Chat.Favorites.Editor.Label")}</span>
         <input
           type="text"
@@ -90,7 +90,7 @@
         />
       </label>
 
-      <label class="favorite-editor__field">
+      <label class="favorite-editor__field favorite-editor__field--formula">
         <span>{t("FUSION.Chat.Favorites.Editor.Formula")}</span>
         <input
           type="text"
@@ -107,7 +107,7 @@
         <p class="favorite-editor__problem" role="alert">{problem}</p>
       {/if}
 
-      <label class="favorite-editor__field">
+      <label class="favorite-editor__field favorite-editor__field--mode">
         <span>{t("FUSION.Chat.Favorites.Editor.Mode")}</span>
         <select
           value={favorite.mode ?? ""}
@@ -146,10 +146,15 @@
     color: var(--fusion-text);
   }
 
+  /* Row-based, like `.fld` in prototypes/chat-tab.prototype.html: label, formula and mode
+     of a favourite sit on one line, wrapping only when the formula's reason needs its own
+     row. */
   .favorite-editor__slot {
     display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.4rem;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     padding: 0.4rem 0.5rem;
@@ -169,6 +174,19 @@
     color: var(--fusion-text-muted);
   }
 
+  .favorite-editor__field--label {
+    flex: 0 0 6rem;
+  }
+
+  .favorite-editor__field--formula {
+    flex: 1 1 8.75rem;
+    min-width: 0;
+  }
+
+  .favorite-editor__field--mode {
+    flex: 0 0 auto;
+  }
+
   .favorite-editor__field input,
   .favorite-editor__field select {
     background: var(--fusion-surface-alt);
@@ -181,11 +199,16 @@
     min-width: 0;
   }
 
+  .favorite-editor__field--formula input {
+    font-family: ui-monospace, monospace;
+  }
+
   .favorite-editor__input--invalid {
     border-color: var(--fusion-danger);
   }
 
   .favorite-editor__problem {
+    flex: 1 0 100%;
     margin: 0;
     font-size: 0.7rem;
     color: var(--fusion-danger);

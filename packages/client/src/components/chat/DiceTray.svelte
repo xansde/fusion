@@ -139,10 +139,13 @@
         fire(favorite);
       }}
     >
-      <span class="dice-tray__label">{favorite.label}</span>
-      {#if favorite.mode !== null}
-        <span class="dice-tray__mode" aria-hidden="true">{@html rollModeIcons[favorite.mode]}</span>
-      {/if}
+      <span class="dice-tray__head">
+        <span class="dice-tray__label">{favorite.label}</span>
+        {#if favorite.mode !== null}
+          <span class="dice-tray__mode" aria-hidden="true">{@html rollModeIcons[favorite.mode]}</span>
+        {/if}
+      </span>
+      <span class="dice-tray__formula">{favorite.formula}</span>
     </button>
   {/each}
 
@@ -160,51 +163,78 @@
 </div>
 
 <style>
+  /* Layout mirrors `.dicebar`/`.fav` in prototypes/chat-tab.prototype.html — sizes, gaps
+     and colors are read from there, not guessed. */
   .dice-tray {
     display: flex;
     align-items: stretch;
     gap: 0.25rem;
-    padding: 0.35rem 0.6rem 0;
+    padding: 0.35rem 0.5rem 0;
     flex-shrink: 0;
   }
 
   .dice-tray__favorite {
     flex: 1;
     min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+    padding: 0.25rem 0.3rem;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
-    line-height: 1.4;
-    transition: background-color var(--fusion-transition), border-color var(--fusion-transition);
+    font-size: 0.72rem;
+    line-height: 1.15;
+    transition: border-color var(--fusion-transition);
   }
 
   .dice-tray__favorite:not(:disabled):hover {
     border-color: var(--fusion-accent);
-    background: var(--fusion-surface);
+  }
+
+  .dice-tray__head {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    width: 100%;
   }
 
   .dice-tray__label {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 600;
   }
 
   /* A locked favourite carries its own mode icon, so the row says who will see the roll
      before it is fired (REQ-ACH-044). */
   .dice-tray__mode {
-    display: inline-flex;
-    line-height: 0;
-    color: var(--fusion-accent);
+    display: grid;
+    place-items: center;
+    color: var(--fusion-accent-hover);
     flex-shrink: 0;
+  }
+
+  .dice-tray__mode :global(svg) {
+    width: 12px;
+    height: 12px;
+    stroke-width: 1.9;
+  }
+
+  .dice-tray__formula {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--fusion-text-subtle);
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
   }
 
   /* Q-ACH-04: invalid means disabled with the reason in the tooltip, not a click that
@@ -218,18 +248,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.9rem;
-    flex-shrink: 0;
+    flex: 0 0 34px;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);
-    color: var(--fusion-text-subtle);
+    color: var(--fusion-accent-hover);
     cursor: pointer;
     transition: color var(--fusion-transition), border-color var(--fusion-transition);
   }
 
   .dice-tray__builder:not(:disabled):hover {
-    color: var(--fusion-text);
     border-color: var(--fusion-accent);
   }
 

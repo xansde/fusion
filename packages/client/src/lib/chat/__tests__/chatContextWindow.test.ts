@@ -490,7 +490,13 @@ describe("ChatContextWindow.svelte", () => {
     await loadChatContext(server.socket, "world1", "v20");
 
     const body = renderWindow();
-    const controls = body.match(/<button[\s\S]*?<\/button>/g) ?? [];
+    // Scoped to ChatContextWindow's OWN "mais 5" controls (chat-context__more) —
+    // not a bare <button> match, because renderWindow() draws real ChatMessage
+    // rows for the target and its neighbours, and each row a viewer may
+    // invalidate/revalidate (A024, REQ-ACH-082/083) now carries its own
+    // hover-revealed <button> too (also SVG-only — see invalidateButton.test.ts
+    // and ChatMessage.test.ts for that control's own coverage).
+    const controls = body.match(/<button class="chat-context__more[^"]*"[\s\S]*?<\/button>/g) ?? [];
 
     expect(controls).toHaveLength(2);
     for (const control of controls) {
