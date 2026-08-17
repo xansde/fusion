@@ -63,8 +63,14 @@
     flex-direction: column;
     overflow: hidden;
     background: var(--fusion-surface);
-    /* No border on the rail side: REQ-GAV-005 wants the active tab and the panel to
-       read as one shape. The rail already carries the outer edge against the canvas. */
+    /* REQ-GAV-005/A010 (prototype variant C, `.C .panel`): the outer edge against
+       the canvas lives here, not on the rail — `.sidebar-rail` paints no fill or
+       border of its own (A010), so the panel is the only box left to draw it. The
+       accent token (not the neutral `--fusion-border`) is deliberate: it frames the
+       open tab, and `.sidebar-rail__button--active`'s box-shadow (SidebarRail.svelte)
+       erases exactly the segment behind the active button so the seam still reads
+       as one continuous shape. */
+    border-left: 1px solid var(--fusion-accent);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     /* REQ-GAV-013: the drawer takes the pointer; the shell around it does not. */

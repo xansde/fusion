@@ -14,6 +14,8 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import SidebarRail from "../SidebarRail.svelte";
 import { sidebarIcons } from "../icons.js";
@@ -91,6 +93,29 @@ function buttonOf(html: string, id: string): string {
   const match = new RegExp(`<button[^>]*data-tab-id="${id}"[\\s\\S]*?</button>`).exec(html);
   expect(match, `no rail button for tab "${id}"`).not.toBeNull();
   return match![0];
+}
+
+/**
+ * Raw source of a sibling file, for CSS assertions — `svelte/server`'s SSR output
+ * carries no `<style>` block, so the only way to pin the declarations of a class is
+ * to read the component's own `<style>` text (same pattern as
+ * `components/scenes/__tests__/ScenesTabWindows.test.ts`).
+ */
+function sourceOf(file: string): string {
+  return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
+}
+
+/**
+ * The declaration block of one exact CSS class selector, from the component's
+ * `<style>`. `(?![\w-])` after the selector stops `.sidebar-rail` from matching the
+ * start of the longer `.sidebar-rail__group`/`.sidebar-rail__button` selectors.
+ */
+function ruleFor(selector: string): string {
+  const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("SidebarRail.svelte"))?.[1] ?? "";
+  const escaped = selector.replace(/\./g, "\\.");
+  const rule = new RegExp(`${escaped}(?![\\w-])\\s*\\{([^}]*)\\}`).exec(style)?.[1];
+  expect(rule, `no CSS rule found for selector "${selector}"`).not.toBeUndefined();
+  return rule ?? "";
 }
 
 /**
@@ -316,6 +341,139 @@ describe("SidebarRail", () => {
       expect(html).not.toContain('aria-pressed="true"');
       // The rail itself stays on screen and clickable while collapsed (REQ-GAV-013).
       expect(tabOrder(html)).toHaveLength(7);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // A010 (Ajustes r1, plan `docs/design/gaveta-lateral/tasks-ajustes-r1.md`): the
+  // rail was a single filled plate with icons floating on top, instead of a column
+  // of individual physical tabs (prototype `sidebar-rail.prototype.html?variant=C`,
+  // `.C .tabs`). REQ-GAV-001 asks for the tabs, the fix moves the fill from the
+  // container to each button — asserted here from the component's own `<style>`
+  // text, since `svelte/server` renders no `<style>` into the SSR body.
+  // ---------------------------------------------------------------------------
+  // Note: this block proves the prototype's visual contract (variant C, `.C
+  // .tabs`), not the literal text of REQ-GAV-001 — the requirement only mandates
+  // an icon-only column with no textual label (proven at line 211 below); it says
+  // nothing about fill, sizing, radius or alignment. Titles below cite "A010"
+  // (the plan item) rather than the requirement number, so the requirement's
+  // citation coverage is not inflated by assertions it does not actually mandate.
+  describe("each tab paints its own fill, not the rail (A010, prototype variant C `.C .tabs`)", () => {
+    it("A010: the rail container itself paints no background and no border", () => {
+      const rule = ruleFor(".sidebar-rail");
+
+      // Word-boundary match so a mutant that re-paints the plate under a
+      // longhand/shorthand sibling (background-color, border, plain border
+      // instead of border-left) still fails this test.
+      expect(rule).not.toMatch(/(^|[\s;])background(-color|-image)?\s*:/);
+      expect(rule).not.toMatch(/(^|[\s;])border(-left|-inline-start)?\s*:/);
+    });
+
+    it("A010: every button carries its own background, sized 40×44, radius only on the outer edge", () => {
+      const rule = ruleFor(".sidebar-rail__button");
+
+      expect(rule).toMatch(/width:\s*40px/);
+      expect(rule).toMatch(/height:\s*44px/);
+      expect(rule).toMatch(/background:\s*var\(--fusion-surface-alt\)/);
+      expect(rule).toMatch(
+        /border-radius:\s*var\(--fusion-radius\)\s+0\s+0\s+var\(--fusion-radius\)/,
+      );
+    });
+
+    it("A010: the buttons hug the drawer's edge instead of centering on the rail", () => {
+      const rule = ruleFor(".sidebar-rail__group");
+
+      expect(rule).toMatch(/align-items:\s*flex-end/);
+    });
+
+    it("A010/REQ-GAV-005: the active tab grows to 44px and matches the panel's fill, closing the seam with the drawer", () => {
+      const rule = ruleFor(".sidebar-rail__button--active");
+
+      expect(rule).toMatch(/width:\s*44px/);
+      // REQ-GAV-005: "visually continuous with the panel" is realized by the
+      // background matching the drawer's own fill (SidebarDrawer.svelte uses
+      // the same `--fusion-surface` token) — not by the inactive button's
+      // `--fusion-surface-alt`. The negative lookahead keeps the mutant that
+      // restores `-alt` here from passing.
+      expect(rule).toMatch(/background:\s*var\(--fusion-surface\)(?!-alt)/);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Ajustes r1 — Fase 1, review round: A010 removed the container's fill but left
+  // four things still styled for the old opaque plate (revisão do PR de A010).
+  // ---------------------------------------------------------------------------
+  describe("each button carries the prototype's own contour, not a bare fill (REQ-GAV-001, REQ-GAV-005)", () => {
+    it("REQ-GAV-001/REQ-GAV-005: the base button has a visible border on three sides, none on the panel side", () => {
+      const rule = ruleFor(".sidebar-rail__button");
+
+      expect(rule).toMatch(/border:\s*1px solid var\(--fusion-border\)/);
+      // REQ-GAV-005 half of "no border between the button and the drawer": this
+      // is set on the base rule, so it applies to every button, active included
+      // — `.sidebar-rail__button--active` never overrides `border-right`.
+      expect(rule).toMatch(/border-right:\s*0/);
+    });
+
+    it("REQ-GAV-005: the active tab's contour and icon color are the accent tokens, not the neutral border", () => {
+      const rule = ruleFor(".sidebar-rail__button--active");
+
+      expect(rule).toMatch(/border-color:\s*var\(--fusion-accent\)(?!-hover)/);
+      expect(rule).toMatch(/color:\s*var\(--fusion-accent-hover\)/);
+    });
+
+    it("REQ-GAV-005: hovering an inactive tab only recolors it — it never borrows the active tab's fill", () => {
+      const rule = ruleFor(".sidebar-rail__button:hover");
+
+      expect(rule).not.toMatch(/background:/);
+      expect(rule).toMatch(/color:\s*var\(--fusion-text\)(?!-muted)/);
+    });
+
+    it("REQ-GAV-005: the active tab erases the panel's accent border behind itself with a matching box-shadow", () => {
+      // SidebarDrawer.svelte's `.sidebar-drawer` now carries the outer edge as
+      // `border-left: 1px solid var(--fusion-accent)` (A010 review round moved it
+      // off the bare `.sidebar-rail`). Prototype `.C.is-open .tabs .tabbtn.is-active`:
+      // `box-shadow:1px 0 0 0 var(--surface)` paints over exactly the 1px sliver of
+      // that border sitting behind the open tab, so button and panel read as one
+      // continuous shape at the seam.
+      const rule = ruleFor(".sidebar-rail__button--active");
+
+      expect(rule).toMatch(/box-shadow:\s*1px 0 0 0 var\(--fusion-surface\)(?!-alt)/);
+    });
+  });
+
+  describe("group separators are a short recessed rule, not a border spanning the bare rail (REQ-GAV-003)", () => {
+    it("REQ-GAV-003: the gm group has no full-width border-top", () => {
+      expect(ruleFor(".sidebar-rail__group--gm")).not.toMatch(/border-top:/);
+    });
+
+    it("REQ-GAV-003: the gm separator is a 28px rule recessed within the button column", () => {
+      const rule = ruleFor(".sidebar-rail__group--gm::before");
+
+      expect(rule).toMatch(/width:\s*28px/);
+      expect(rule).toMatch(/height:\s*1px/);
+      expect(rule).toMatch(/right:\s*6px/);
+    });
+
+    it("REQ-GAV-003: the footer group has no full-width border-top", () => {
+      expect(ruleFor(".sidebar-rail__group--footer")).not.toMatch(/border-top:/);
+    });
+
+    it("REQ-GAV-003: the footer separator is a 28px rule recessed within the button column", () => {
+      const rule = ruleFor(".sidebar-rail__group--footer::before");
+
+      expect(rule).toMatch(/width:\s*28px/);
+      expect(rule).toMatch(/height:\s*1px/);
+      expect(rule).toMatch(/right:\s*6px/);
+    });
+  });
+
+  describe("the rail's own box never claims the pointer, only its buttons do (REQ-GAV-013)", () => {
+    it("REQ-GAV-013: the bare rail container lets pointer events fall through to the canvas", () => {
+      expect(ruleFor(".sidebar-rail")).toMatch(/pointer-events:\s*none/);
+    });
+
+    it("REQ-GAV-013: each button re-claims the pointer for itself, collapsed or not", () => {
+      expect(ruleFor(".sidebar-rail__button")).toMatch(/pointer-events:\s*auto/);
     });
   });
 });
