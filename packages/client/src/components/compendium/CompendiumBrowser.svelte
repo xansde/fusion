@@ -295,6 +295,21 @@
   let sortField = $state<SortField>("name");
   let sortAsc = $state(true);
 
+  /**
+   * REQ-CPD-031: "Nível" is a sort button only inside an open pack — the
+   * aggregated body's toolbar offers Nome/Tipo alone (entries there can span
+   * packs with no `system.level.value` in their index at all). `sortField` is
+   * one piece of state shared by both toolbars, so sorting by level inside a
+   * pack and then returning to the shelf/search used to leave the aggregated
+   * result quietly sorted by a field neither of its two visible buttons could
+   * name — both arrows stayed blank. The effective field folds back to
+   * "name" outside a pack whenever the stored field is one the aggregated
+   * toolbar does not offer, so the button in effect always shows its arrow.
+   */
+  const effectiveSortField = $derived<SortField>(
+    openPackId === null && sortField === "level" ? "name" : sortField,
+  );
+
   // ---- Aggregated result state (scope = root, something asked for) ----
 
   let aggregated = $state<AggregatedSearchResult | null>(null);
@@ -452,7 +467,7 @@
    * each server-drawn group only (REQ-CPD-031).
    */
   const sortedAggregated = $derived<AggregatedSearchResult | null>(
-    visibleAggregated ? sortAggregatedResult(visibleAggregated, sortField, sortAsc) : null,
+    visibleAggregated ? sortAggregatedResult(visibleAggregated, effectiveSortField, sortAsc) : null,
   );
 
   // ---- Lifecycle ----
@@ -798,7 +813,7 @@
   }
 
   function sortArrow(field: SortField): string {
-    if (sortField !== field) return "";
+    if (effectiveSortField !== field) return "";
     return sortAsc ? " ▲" : " ▼";
   }
 
@@ -877,17 +892,14 @@
         : t(scopeInfo.labelKey, { pack: scopeInfo.packLabel })}
     </span>
     {#if scopeInfo.canGoBack}
+      <!--
+        A040/A042 fix: the chevron is already the first character of the i18n
+        string (`FUSION.Compendium.BackToShelf` = "‹ Estante"/"‹ Shelf") — a
+        second, SVG-drawn chevron here rendered two of them side by side. The
+        prototype's own back gesture (`compendium-tab.prototype.html`, `bodyA`,
+        `.crumb .back`) is plain text, no icon, so this stays text-only too.
+      -->
       <button class="compendium-browser__back" onclick={goBackToShelf}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path
-            d="M14 5 7 12l7 7"
-            stroke="currentColor"
-            stroke-width="2"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
         {t("FUSION.Compendium.BackToShelf")}
       </button>
     {/if}
@@ -1433,8 +1445,10 @@
 
   /*
    * The way back (REQ-CPD-015) drawn as its own accent control, not a ghost
-   * button lost in the row: a chevron plus the label, both in the accent
-   * colour, so a scope change is legible even at a glance.
+   * button lost in the row: the accent colour makes it legible even at a
+   * glance. The chevron is text, the first character of the i18n string
+   * itself (`FUSION.Compendium.BackToShelf`) — matching the prototype's
+   * plain-text `.crumb .back`, no icon drawn on top of it.
    */
   .compendium-browser__back {
     display: flex;
@@ -1457,10 +1471,39 @@
     border-color: var(--fusion-accent-hover, #8cc0ff);
   }
 
-  .compendium-browser__back svg {
-    width: 0.7rem;
-    height: 0.7rem;
-    flex-shrink: 0;
+  /*
+   * Generic panel button (fixes A042 leaving four buttons on native browser
+   * chrome: `.btn` was used in the markup but never defined anywhere reachable
+   * — not in `base.css`, not in this component's own `<style>`). Same visual
+   * family as `.compendium-browser__back`/`.sort-btn` above and the
+   * prototype's `.b`/`.b.g` (`compendium-tab.prototype.html`), so the panel
+   * never mixes two button languages.
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--fusion-text, #eee);
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    border-color: var(--fusion-accent, #6aa9ff);
+  }
+
+  .btn--sm {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  .btn--ghost {
+    background: none;
   }
 
   .compendium-browser__search {

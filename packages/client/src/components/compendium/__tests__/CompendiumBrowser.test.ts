@@ -393,3 +393,57 @@ describe("a truncated group offers the pack it hid (REQ-CPD-032)", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// A040 review fix — sorting is wired into the aggregated body, and the field
+// it sorts by is always one its own toolbar can point to (REQ-CPD-031)
+// ---------------------------------------------------------------------------
+//
+// `$effect` never runs under the server renderer, so the aggregated body
+// never has data to draw and `sortedAggregated`/`effectiveSortField` cannot
+// be exercised by feeding props to `render()`. Same instrument the rest of
+// this file already uses for wiring `$effect` hides (see REQ-CPD-091 above):
+// read the template/script, where the requirement lives.
+
+describe("the aggregated result can be reordered, by a field its toolbar owns (REQ-CPD-031)", () => {
+  it("REQ-CPD-031: the aggregated body draws its own Name/Type sort toolbar, without Nível", () => {
+    const template = source().split("<style>")[0] ?? "";
+    // The FIRST `entries-sort` toolbar in the template is the aggregated
+    // one (it comes before the pack body in source order); the pack's own
+    // toolbar — the second occurrence — is allowed a "Nível" button, the
+    // aggregated one is not (REQ-CPD-031: no button, no way to reach that
+    // sort from here).
+    const toolbarAt = template.indexOf('class="entries-sort"');
+    expect(toolbarAt).toBeGreaterThan(-1);
+    const toolbar = template.slice(toolbarAt, toolbarAt + 400);
+
+    expect(toolbar).toMatch(/onclick={\(\) => toggleSort\("name"\)}/);
+    expect(toolbar).toMatch(/onclick={\(\) => toggleSort\("type"\)}/);
+    expect(toolbar).not.toMatch(/onclick={\(\) => toggleSort\("level"\)}/);
+  });
+
+  it("REQ-CPD-031: the aggregated body's groups come from the SORTED result, not the unsorted one", () => {
+    const template = source().split("<style>")[0] ?? "";
+    expect(template).toContain("{#each sortedAggregated.groups as group (group.documentType)}");
+    expect(template).not.toContain(
+      "{#each visibleAggregated.groups as group (group.documentType)}",
+    );
+  });
+
+  it("REQ-CPD-031: sorting by level, then leaving the pack, folds back to a field the aggregated toolbar can name", () => {
+    const src = source();
+    // The derived value both the aggregated sort and its arrows read from —
+    // it exists, and it is the thing that stands between a stored "level"
+    // field and a scope that has no button for it.
+    expect(src).toMatch(
+      /const effectiveSortField = \$derived<SortField>\(\s*openPackId === null && sortField === "level" \? "name" : sortField,/,
+    );
+    // Both consumers use the folded field, not the raw one, so a leftover
+    // "level" selection can never leave the aggregated toolbar with both
+    // arrows blank while the list is silently sorted by level anyway.
+    expect(src).toMatch(/sortAggregatedResult\(visibleAggregated, effectiveSortField, sortAsc\)/);
+    const sortArrowFn = src.slice(src.indexOf("function sortArrow("));
+    const body = sortArrowFn.slice(0, sortArrowFn.indexOf("\n  }\n"));
+    expect(body).toContain("if (effectiveSortField !== field) return");
+  });
+});
