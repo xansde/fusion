@@ -307,6 +307,25 @@ describe("the facets of §5.4 (REQ-CPD-033, REQ-CPD-034)", () => {
     expect(html.slice(scrollAt)).not.toContain("compendium-browser__facet-select");
   });
 
+  it("REQ-CPD-033: inside a pack, the document-type facet reads the OPEN PACK's own choices, not the shelf's", () => {
+    // `openPackId` is derived from internal scope state that only a click
+    // gesture changes, and `$effect` never runs under the server renderer
+    // (see the file banner), so this scope cannot be reached by feeding
+    // props to `render()` — the wiring is read in the template instead, the
+    // same instrument REQ-CPD-031 and REQ-CPD-091 already use for states the
+    // SSR harness cannot stage.
+    const template = source().slice(source().indexOf("</script>"));
+
+    // A040: the select hides only when the OPEN PACK's own type choices
+    // collapse to at most one — never a hardcoded "always hide inside a
+    // pack" — so a manifest that ever carries more than one type stays
+    // filterable.
+    expect(template).toContain("{#if openPackId === null || packTypeChoices.length > 1}");
+    // And when it does render inside a pack, its options come from the
+    // pack's own choices, never a leftover copy of the shelf's full list.
+    expect(template).toContain("(openPackId === null ? typeChoices : packTypeChoices)");
+  });
+
   it("REQ-CPD-033: the source facet appears only once the answer spans more than one pack", () => {
     // Nothing has been searched, so there is no answer and no source to pick.
     expect(renderPanel()).not.toContain(t("FUSION.Compendium.Facet.Source"));

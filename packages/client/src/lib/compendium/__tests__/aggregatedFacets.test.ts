@@ -103,15 +103,16 @@ describe("the choices the panel offers (REQ-CPD-033)", () => {
     expect(choices).toEqual([{ value: "Actor", labelKey: "FUSION.Compendium.DocType.Actor" }]);
   });
 
-  it("REQ-CPD-033: one pack, one type — never a choice with more than one option", () => {
-    // The panel only renders the header select when there is more than one
-    // choice (REQ-CPD-033: a facet with a single value is not a filter). A
-    // pack's manifest fixes exactly one `documentType`, so this is always
-    // true today — the facet is data-driven, not hardcoded to always hide.
-    for (const documentType of ["Actor", "Item", "JournalEntry", "RollTable", "Scene"]) {
-      expect(packDocumentTypeChoices({ documentType }).length).toBeLessThanOrEqual(1);
-    }
-  });
+  // "One pack, one type" is not a fact this function can fail to uphold: its
+  // return is always `[]` or a one-element array literal (see
+  // aggregatedFacets.ts `packDocumentTypeChoices`), so asserting
+  // `.length <= 1` here would compare the output with its own construction —
+  // circular, and infallible regardless of any real regression. What A040
+  // actually changed is the PANEL's guard that reads this choice count to
+  // decide whether to render the select; that behavior is covered where it
+  // lives, on the template's own wiring:
+  // `CompendiumBrowser.test.ts` → "inside a pack, the document-type facet
+  // reads the OPEN PACK's own choices, not the shelf's" (REQ-CPD-033).
 
   it("REQ-CPD-033: the source facet lists the packs the ANSWER came from", () => {
     const sources = sourceChoices(answer());
