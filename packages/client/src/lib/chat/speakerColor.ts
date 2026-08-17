@@ -77,7 +77,7 @@ export function speakerColorIndex(key: string): number {
  */
 export function speakerColor(key: string): string {
   const hue = speakerColorIndex(key) * HUE_STEP_DEG;
-  return `hsl(${hue}, ${SATURATION_PCT}%, ${LIGHTNESS_PCT}%)`;
+  return `hsl(${String(hue)}, ${String(SATURATION_PCT)}%, ${String(LIGHTNESS_PCT)}%)`;
 }
 
 /** Exported for tests that want to assert against the palette's shape, not a magic number. */
