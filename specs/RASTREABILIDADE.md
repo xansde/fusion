@@ -8,7 +8,7 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1958 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **1962 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
@@ -17,8 +17,8 @@ porque ainda não foram prometidos para nenhum marco.
 | --- | ---: | ---: |
 | Citados por algum teste | 712 | 36% |
 | Citados só por código de produção | 319 | 16% |
-| Sem nenhuma citação | 927 | 47% |
-| **Total [MVP]** | **1958** | |
+| Sem nenhuma citação | 931 | 47% |
+| **Total [MVP]** | **1962** | |
 
 ## Por spec
 
@@ -29,7 +29,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 17 | 13 | 29 | 29% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 8 | 21 | 19 | 17% |
-| [05](05-usuarios-e-permissoes.md) | 40 | 18 | 11 | 11 | 45% |
+| [05](05-usuarios-e-permissoes.md) | 43 | 18 | 11 | 14 | 42% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 12 | 29 | 45 | 14% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
@@ -58,7 +58,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
-| [37](37-configuracoes.md) | 43 | 35 | 2 | 6 | 81% |
+| [37](37-configuracoes.md) | 44 | 35 | 2 | 7 | 80% |
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
