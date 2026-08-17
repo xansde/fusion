@@ -245,6 +245,18 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 - **REQ-CFG-024** [MVP] Preferências declaradas por um mod ativo DEVEM aparecer nesta
   seção quando seu escopo for de cliente, identificadas com o nome do mod de origem, e
   DEVEM desaparecer quando o mod for desligado. [V2] enquanto não houver mods.
+- **REQ-CFG-025** [MVP] A seção DEVE oferecer um controle de exibição de **nome** dos
+  tokens na cena, gravado exclusivamente no cliente (REQ-TOK-074); ligar ou desligar
+  NÃO DEVE alterar o payload emitido pelo servidor (REQ-TOK-075, REQ-TOK-076).
+- **REQ-CFG-026** [MVP] A seção DEVE oferecer um controle de exibição de **barras**
+  (vida e demais atributos) dos tokens na cena, gravado exclusivamente no cliente
+  (REQ-TOK-074); ligar ou desligar NÃO DEVE alterar o payload emitido pelo servidor
+  (REQ-TOK-075, REQ-TOK-076).
+
+  > **Emenda de 2026-08-17** — obrigada pela `41-token.md` §12 (REQ-TOK-074). As duas
+  > preferências de exibição de nome e barras na cena são ergonomia local do aparelho
+  > (DEC-UIF-10), na mesma régua dos volumes de REQ-CFG-020..023: gravadas no
+  > `localStorage`, nunca em Document, nunca geram operação de rede (REQ-CFG-022).
 
 ### 5.4 Mundo
 
@@ -267,6 +279,16 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 - **REQ-CFG-035** [MVP] Mudar uma setting de mundo DEVE re-derivar os personagens
   afetados e propagar o resultado a todos os clientes conectados pelos caminhos
   normais de sincronização, sem exigir recarga da página.
+- **REQ-CFG-036** [MVP] A seção DEVE hospedar o controle de **numeração de peças do
+  mesmo ator** ("Esqueleto 1..6" vs. mesmo nome para todas), como setting de escopo
+  `world` declarada pelo sistema ativo (REQ-TOK-064); a régua de escrita e persistência
+  desta setting é a mesma de REQ-CFG-030/071 — `Setting` (REQ-DOC-018), só GAMEMASTER.
+
+  > **Emenda de 2026-08-17** — obrigada pela `41-token.md` §12 (DEC-TOK-16,
+  > REQ-TOK-064/065). O Mestre escolhe, nesta seção, se peças do mesmo ator nascem
+  > numeradas; a numeração é o valor inicial do rótulo da peça, não um campo separado, e
+  > o contador nunca reaproveita número de peça removida (REQ-TOK-065) — comportamento
+  > do motor, não desta aba.
 
 ### 5.5 Permissões
 
@@ -358,16 +380,18 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 
 ## 7. Onde cada coisa é gravada
 
-| O quê                                           | Onde                                   | Quem escreve | Referência               |
-| ----------------------------------------------- | -------------------------------------- | ------------ | ------------------------ |
-| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02  |
-| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10   |
-| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047 |
-| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08               |
-| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009          |
-| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031         |
-| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02 |
-| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]         |
+| O quê                                           | Onde                                   | Quem escreve | Referência                   |
+| ----------------------------------------------- | -------------------------------------- | ------------ | ---------------------------- |
+| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02      |
+| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10       |
+| Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074 |
+| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047     |
+| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                   |
+| Numeração de peças do mesmo ator                | `Setting` de mundo                     | GAMEMASTER   | REQ-CFG-036, DEC-TOK-16      |
+| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009              |
+| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031             |
+| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02     |
+| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]             |
 
 Settings declaradas com escopo `user` (permitidas por REQ-SYS-047) **não têm casa nesta
 aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
@@ -403,6 +427,9 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 - `30` — DEC-MCL-01 é substituída (§12); REQ-MCL-001 e REQ-MCL-004 reescritos.
 - `00` — REQ-ESC-012 mantém carga dinâmica de mod fora do MVP.
 - `22`/`24` — donas da configuração de servidor, que esta aba não toca (DEC-CFG-02).
+- `41` — REQ-TOK-064 (numeração de peças do mesmo ator, setting de mundo, DEC-TOK-16) e
+  REQ-TOK-074..076 (preferências de exibição de nome/barras na cena, DEC-TOK-11):
+  hospedadas nesta spec (REQ-CFG-036 e REQ-CFG-025/026).
 
 ## 10. Critérios de aceitação
 

@@ -25,7 +25,7 @@ Esta spec é a fonte de verdade para tudo que aparece **dentro do `<canvas>`** d
 
 - A hierarquia de grupos e camadas PIXI v8 do canvas, e o uso de **Render Groups** para pan/zoom acelerado por GPU.
 - A abstração de grade: `square`, `hex` (pointy/flat, odd/even) e `gridless`; conversões pixel↔célula, snapping configurável e medição de distância (incluindo a regra de diagonais 5-10-5 do PF2e).
-- O modelo visual e de interação de **Tokens**: textura, ring/borda, barras de atributo, status icons, nameplate, elevação; movimento (drag, setas, animação interpolada, preview), seleção múltipla e targeting.
+- O modelo visual e de interação de **Tokens**: textura, ring/borda, barras de atributo, nameplate, elevação; movimento (drag, setas, animação interpolada, preview), seleção múltipla e targeting. _(Emenda `41-token.md` §12, DEC-TOK-19, 2026-08-17: ícones de status saem do canvas — ver `REQ-CNV-029`, aposentado.)_
 - **Tiles** (underfoot/overhead, oclusão), **Drawings** (formas, freehand, texto), **MeasuredTemplates** (circle, cone, line/ray, emanation conforme PF2e), **Notes** (map pins) e **Ruler**.
 - A configuração de **Scene** relevante ao canvas (dimensões, grade, background/foreground, padding, initial view, ambiente) e a navegação/ativação de cenas do ponto de vista do canvas.
 - As metas e técnicas de **performance** do canvas.
@@ -128,23 +128,44 @@ O Fusion implementa quatro formas de template: **circle** (raio a partir da orig
   - _Apenas geometria contínua sem highlight de células_: em grade, o que importa para PF2e é **quais quadrados** a área cobre (um quadrado é afetado se a área cobre seu ponto relevante segundo a regra do sistema). Sem highlight de células, o GM não sabe quem é atingido.
 - **Racional:** A pesquisa lista circle/cone/rectangle/ray como as formas do Foundry (research 03 §6.3) e identifica o cone como setor angular de 1°–360° com **padrão ~53° no Foundry** (research 03 §6.3). Para PF2e, o conjunto necessário é burst (circle), cone, line (ray) e emanation; mapeamos para essas quatro. O ângulo default de 90° para cone em PF2e é uma **decisão de design do Fusion** (um cone de PF2e a partir de um canto ocupa um quadrante de 90°), não um comportamento do Foundry — a regra exata do PF2e remaster deve ser fechada em `17-sistema-pf2e.md`. A regra de "qual quadrado conta como atingido" é igualmente detalhe do sistema PF2e (`17`); o canvas oferece o highlight geométrico e a estratégia de inclusão de célula como ponto de extensão da grade.
 
-### DEC-CNV-07 — Tokens com footprint em células separado da escala da arte, e ring opcional
+### DEC-CNV-07 — Tokens com footprint em células, e ring opcional
 
-O token separa **footprint** (`width`×`height` em células — define a ocupação na grade e o snapping) da **escala visual** da arte (`scale`, multiplicador estético). Suporta espelhamento (`mirrorX/Y`), `tint`, `rotation`, `alpha`, `elevation` e `disposition`. O **token ring** (moldura circular com cor/fundo dirigida por disposição/estado) é uma camada de apresentação **opcional**, separada da arte do sujeito.
+O token ocupa um **footprint** (`width`×`height` em células — define a ocupação na grade e o snapping), derivado do tamanho do ator pelo sistema de jogo (DEC-TOK-03, `41-token.md`). O **token ring** (moldura circular com cor/fundo dirigida por disposição/estado) é uma camada de apresentação **opcional**, separada da arte do sujeito.
 
 - **Alternativas rejeitadas:**
-  - _Acoplar tamanho na grade ao tamanho da imagem_: quebra para artes com moldura/respiro; o footprint precisa ser independente da arte (research 03 §7.2: "`scale` ajusta apenas a aparência da artwork").
+  - _Acoplar tamanho na grade ao tamanho da imagem_: quebra para artes com moldura/respiro; o footprint precisa ser independente da arte.
   - _Ring obrigatório (todo token tem moldura)_: nem todo token quer moldura; mantê-lo opcional respeita arte de mapa custom. O ring é um framework separado em camadas (subject/ring/background) à semelhança dos Dynamic Token Rings (research 03 §7.5), mas no MVP entregamos uma forma simples (borda colorida por disposição); o ring dinâmico completo é refinamento.
-- **Racional:** Separar footprint de escala é o modelo correto observado na pesquisa (research 03 §7.1, §7.2). Disposition pinta a borda/ring (friendly/neutral/hostile/secret), seguindo o esquema de cores observado (research 03 §7.1). Tokens grandes (2×2, 3×3…) exigem snapping multi-célula, com lógica especial em hex (research 03 §5.2, §7.2).
+- **Racional:** O footprint é o modelo correto observado na pesquisa (research 03 §7.1, §7.2). Disposition pinta a borda/ring (hostil/neutro/amigo, DEC-TOK-12), seguindo o esquema de cores observado (research 03 §7.1). Tokens grandes (2×2, 3×3…) exigem snapping multi-célula, com lógica especial em hex (research 03 §5.2, §7.2).
 
-### DEC-CNV-08 — Barras de atributo, status icons e nameplate como overlays cacheáveis do token
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-02, DEC-TOK-03, 2026-08-16 a
+  > 2026-08-17): a redação anterior separava footprint de uma **escala visual da arte** (`scale`,
+  > multiplicador estético independente do footprint) e listava `mirrorX/Y`, `tint`, `alpha`
+  > entre os atributos suportados. A peça deixou de ser dona de arte própria (DEC-TOK-02): a arte
+  > é sempre a do ator efetivo, lida a cada render, sem multiplicador de escala independente nem
+  > espelhamento/tint/alpha por peça — ver REQ-CNV-025/026. A metade sobre o ring opcional (e a
+  > disposition, ajustada a três valores por DEC-TOK-12) permanece de pé. _(A redação acima
+  > substitui a frase sobre escala visual independente e a lista de atributos suportados; o
+  > footprint e o ring opcional permanecem inalterados em espírito.)_
 
-Cada token compõe, acima da arte: até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, **ícones de status** (no canto, definidos pelo sistema), **nameplate** (rótulo) e, opcionalmente, indicador de **elevação**. A visibilidade de cada elemento é configurável por nível (nunca / dono / hover dono / hover todos / sempre). Esses overlays são **cacheados como bitmap** quando estáticos, para reduzir draw calls.
+### DEC-CNV-08 — Barras de atributo e nameplate como overlays cacheáveis do token
+
+Cada token compõe, acima da arte: até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, **nameplate** (rótulo) e, opcionalmente, indicador de **elevação**. A exibição do nome depende do **conhecimento** do usuário sobre o ator, e a da barra depende da **posse** (OWNER) sobre ele — nunca de um nível de visibilidade próprio do token (REQ-CNV-031, `41-token.md` DEC-TOK-09/DEC-TOK-10/DEC-TOK-11). Esses overlays são **cacheados como bitmap** quando estáticos, para reduzir draw calls.
+
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-11, DEC-TOK-19, 2026-08-17): a
+> redação anterior incluía **ícones de status** entre os overlays cacheáveis do token e descrevia
+> a visibilidade de cada elemento como um nível único configurável (nunca / dono / hover dono /
+> hover todos / sempre). Ícones de condição saem do canvas — a direção passa a ser um espaço
+> dedicado fora dele (DEC-TOK-19; ver `REQ-CNV-029`, aposentado, e `REQ-TOK-083`). A
+> visibilidade deixa de ser um nível único do token e passa a ser duas perguntas resolvidas no
+> servidor — conhecimento para o nome, posse para a barra — com preferência local do usuário por
+> cima (DEC-TOK-09/DEC-TOK-10/DEC-TOK-11). _(A redação acima substitui a menção a ícones de
+> status e a frase sobre visibilidade por nível; barras, nameplate, elevação e cache como bitmap
+> permanecem.)_
 
 - **Alternativas rejeitadas:**
-  - _Desenhar barras/ícones com `PIXI.Graphics` por frame sem cache_: `PIXI.Graphics` não participa de batching e gera um draw call por objeto; com 50 tokens isso explode os draw calls (research 03 §4.2, §15.2).
+  - _Desenhar barras/nameplate com `PIXI.Graphics` por frame sem cache_: `PIXI.Graphics` não participa de batching e gera um draw call por objeto; com 50 tokens isso explode os draw calls (research 03 §4.2, §15.2).
   - _Renderizar nameplates sempre, em qualquer zoom_: ilegível e custoso em zoom out; daí o LOD de nameplate (ver DEC-CNV-11).
-- **Racional:** A pesquisa quantifica o ganho de cachear barras/ícones como textura (`cacheAsBitmap`): de ~85 para ~36 draw calls, de ~55 fps para 100+ fps (research 03 §15.2). A visibilidade por nível é o comportamento esperado das resource bars/status (research 03 §7.4). Os ícones de status são definidos pelo sistema de jogo (`15-api-de-sistemas.md`).
+- **Racional:** A pesquisa quantifica o ganho de cachear barras como textura (`cacheAsBitmap`): de ~85 para ~36 draw calls, de ~55 fps para 100+ fps (research 03 §15.2).
 
 ### DEC-CNV-09 — Tiles overhead com modos de oclusão; teste de oclusão por amostragem de pontos
 
@@ -165,7 +186,11 @@ Mudanças que afetam o canvas (mover token, alterar luz, abrir porta, mudar oclu
 
 ### DEC-CNV-11 — LOD de nameplates e detalhe por nível de zoom
 
-Nameplates, barras e ícones de status têm **LOD por zoom**: abaixo de um limiar de zoom, nameplates somem (ou viram um ponto), barras simplificam e ícones de status agregam. A grade também ajusta densidade visual (linhas mais finas/atenuadas) em zoom baixo.
+Nameplates e barras têm **LOD por zoom**: abaixo de um limiar de zoom, nameplates somem (ou viram um ponto) e barras simplificam. A grade também ajusta densidade visual (linhas mais finas/atenuadas) em zoom baixo.
+
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19, 2026-08-17): a redação
+> anterior incluía ícones de status no LOD do token. Ícones de condição saem do canvas
+> (DEC-TOK-19; ver `REQ-CNV-029`, aposentado); o LOD de nameplate/barra não muda.
 
 - **Alternativas rejeitadas:**
   - _Detalhe constante em todo zoom_: ilegível em zoom out e custoso (texto pequeno re-renderizado).
@@ -198,38 +223,50 @@ O requisito "sobrepor mapas e alternar o que os jogadores veem sem cerimônia, n
 
 ---
 
-### DEC-CNV-15 — Visibilidade de resource bar ancorada no ownership do Actor
+### DEC-CNV-15 — Visibilidade de resource bar ancorada no ownership do Actor — **SUBSTITUÍDA por DEC-TOK-10** (`41-token.md`, 2026-08-17)
 
-O token **não tem ownership própria**: é embedded na cena e herda quem o controla do Actor
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-10, 2026-08-17): DEC-TOK-10
+> reverte esta decisão. O corte deixa de ser OBSERVER (2) e passa a ser **OWNER (3)** — vale
+> igualmente em toda superfície do Fusion que mostre vida, não só na resource bar do canvas. O
+> que sustentava OBSERVER aqui era não esvaziar o painel de Comitiva (`28`); esse painel não
+> existe nesta linha do projeto (substituído pelas telas de Combate — `40` — e Contatos — `39`),
+> e sem ele o corte em OWNER não tira nada de ninguém. Texto original preservado abaixo,
+> riscado, por `CONVENCOES.md` §5 ("a antiga não é apagada sem rastro"); onde este documento
+> ainda precisa citar o corte vigente, cita REQ-CNV-031/REQ-USR-013/DEC-TOK-10, não esta decisão.
+
+~~O token **não tem ownership própria**: é embedded na cena e herda quem o controla do Actor
 referido por `actorId` (`02-modelo-de-dados.md`, REQ-DOC-025). Logo, "quem vê a barra de um
 token" não é uma pergunta sobre o token — é a pergunta "qual o nível efetivo deste usuário
 sobre aquele Actor". O corte canônico é **OBSERVER (2) ou mais**, e papel privilegiado
 (GM/Assistente, `isRolePrivileged`) satisfaz o corte sempre, independente do mapa de
-ownership — o que o GM não vê é apenas o que o nível `never` desliga para todos.
+ownership — o que o GM não vê é apenas o que o nível `never` desliga para todos.~~
 
-A decisão fixa também **onde** o corte acontece: **no servidor**. O nível `observer` de
+~~A decisão fixa também **onde** o corte acontece: **no servidor**. O nível `observer` de
 `displayBars` (REQ-CNV-089) descreve o que o cliente desenha, mas o dado que sustenta a barra
 — o Actor com `system.attributes.hp` — só chega a quem pode vê-lo. Isso é o mesmo contrato
 que a spec `28` já exige do painel de Comitiva em REQ-HUB-045 ("o recorte vem do ownership do
 Actor, redigido no servidor — o painel NÃO DEVE decidir visibilidade na tela"), e é o que
-`04-rede-e-sincronizacao.md` REQ-NET-024 e REQ-NET-096 impõem aos quatro caminhos de emissão.
+`04-rede-e-sincronizacao.md` REQ-NET-024 e REQ-NET-096 impõem aos quatro caminhos de emissão.~~
 
-- **Alternativas rejeitadas:**
-  - _Esconder a barra apenas no cliente_: o Actor inteiro continuaria trafegando para todo
+- **Alternativas rejeitadas** _(histórico — a segunda alternativa abaixo é hoje a regra vigente
+  por DEC-TOK-10; preservada riscada, não invertida, para não reescrever a história)_:
+  - ~~_Esconder a barra apenas no cliente_: o Actor inteiro continuaria trafegando para todo
     jogador conectado, e "não desenhar" é uma escolha do front — o HP do NPC fica a um painel
     de devtools de distância. É exatamente o vazamento que esta decisão fecha; herdá-lo seria
-    entregar um indicador de HP que só parece privado.
-  - _Usar OWNER (3) como corte_: OWNER é o direito de **editar** a ficha. Ler o HP do
+    entregar um indicador de HP que só parece privado.~~
+  - ~~_Usar OWNER (3) como corte_: OWNER é o direito de **editar** a ficha. Ler o HP do
     companheiro de mesa não exige poder alterá-lo, e um corte em OWNER esvaziaria o painel de
     Comitiva (REQ-HUB-043/044) e a barra de HP de todo aliado. OBSERVER é o nível que a matriz
-    de `05-usuarios-e-permissoes.md` reserva para "vê o documento inteiro sem poder mudá-lo".
-  - _Ownership própria no TokenDocument_: duplicaria a fonte de verdade e faria token e ficha
-    divergirem no primeiro `doc:update` que tocasse só um dos dois.
-- **Racional:** o corte é uma única pergunta, feita num único lugar (`resolveOwnership` sobre
-  o Actor), e vale igualmente para a barra no canvas, para o painel de Comitiva e para
-  qualquer outra superfície que mostre HP. O piso de emissão do servidor é LIMITED (o
-  documento pode existir para o usuário); OBSERVER é o piso de **exibição da barra**, mais
-  estrito e verificado no cliente sobre um dado que ele legitimamente possui.
+    de `05-usuarios-e-permissoes.md` reserva para "vê o documento inteiro sem poder mudá-lo".~~
+  - ~~_Ownership própria no TokenDocument_: duplicaria a fonte de verdade e faria token e ficha
+    divergirem no primeiro `doc:update` que tocasse só um dos dois.~~
+- **Racional** _(histórico)_: ~~o corte é uma única pergunta, feita num único lugar
+  (`resolveOwnership` sobre o Actor), e vale igualmente para a barra no canvas, para o painel de
+  Comitiva e para qualquer outra superfície que mostre HP. O piso de emissão do servidor é
+  LIMITED (o documento pode existir para o usuário); OBSERVER é o piso de **exibição da barra**,
+  mais estrito e verificado no cliente sobre um dado que ele legitimamente possui.~~ O corte
+  vigente (OWNER, DEC-TOK-10) continua sendo uma única pergunta feita num único lugar; só o
+  nível mudou.
 
 ---
 
@@ -308,21 +345,88 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 
 ### Tokens — modelo visual
 
-- **REQ-CNV-025** [MVP] Um token DEVE renderizar uma textura de sujeito (arte) posicionada conforme sua posição e footprint, com `scale` (escala visual da arte) independente do footprint em células.
-- **REQ-CNV-026** [MVP] Um token DEVE suportar `rotation`, `alpha`, `tint`, `mirrorX`, `mirrorY` e `elevation`.
-- **REQ-CNV-027** [MVP] Um token DEVE indicar sua **disposition** (friendly / neutral / hostile / secret) por uma borda/ring colorido; o esquema de cores DEVE ser consistente e configurável no tema.
+- **REQ-CNV-025** [MVP] Um token DEVE posicionar-se na grade conforme seu **footprint** (`width`×`height` em células), com a arte do ator efetivo (DEC-TOK-02, `41-token.md`) renderizada nesse footprint.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, 2026-08-17): a redação anterior falava
+  > de uma **textura de sujeito** própria do token e de `scale` (multiplicador estético
+  > independente do footprint). O token deixou de ser dono de textura: a arte é sempre a do
+  > `Actor` efetivo, lida a cada render (DEC-TOK-02) — nunca um campo do token. Sem textura
+  > própria não sobra o que uma `scale` independente ajustaria; o campo sai junto. _(A redação
+  > acima substitui "textura de sujeito... com `scale`... independente do footprint"; o
+  > posicionamento pelo footprint permanece.)_
+
+- **REQ-CNV-026** [MVP] Um token DEVE suportar `rotation` e `elevation`.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, 2026-08-17): a redação anterior também
+  > listava `alpha`, `tint`, `mirrorX` e `mirrorY`. Nenhum desses quatro sobrevive à peça como
+  > endereço (DEC-TOK-02, `41-token.md`): são ajustes visuais por peça sobre uma arte que agora
+  > só existe no ator, e a `41` não abre campo para eles em `TokenData`
+  > (`02-modelo-de-dados.md`). _(A redação acima substitui "`rotation`, `alpha`, `tint`,
+  > `mirrorX`, `mirrorY` e `elevation`"; `rotation` e `elevation` permanecem inalterados.)_
+
+- **REQ-CNV-027** [MVP] Um token DEVE indicar sua **disposition** (friendly / neutral / hostile) por uma borda/ring colorido; o esquema de cores DEVE ser consistente e configurável no tema.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-12, 2026-08-17): a redação
+  > anterior incluía `secret` como quarto valor de disposition. DEC-TOK-12 fixa disposition em
+  > três valores (hostil/neutro/amigo) e tira `secret` de dentro dela: ocultar uma peça é
+  > assunto de visibilidade (DEC-TOK-08), não de atitude — os dois eram mecanismos diferentes
+  > vestidos do mesmo campo. _(A redação acima substitui a lista de quatro valores por três; a
+  > borda/ring como exibição da disposition permanece.)_
+
 - **REQ-CNV-028** [MVP] Um token DEVE poder exibir até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, com a barra refletindo valor atual/máximo.
-- **REQ-CNV-029** [MVP] Um token DEVE poder exibir **ícones de status** (definidos pelo sistema de jogo) agrupados em um canto; um status PODE ser exibido como overlay grande (no máximo um por token).
+- **REQ-CNV-029** [V2] ~~Um token DEVE poder exibir **ícones de status** (definidos pelo sistema de jogo) agrupados em um canto; um status PODE ser exibido como overlay grande (no máximo um por token).~~
+
+  > **APOSENTADO** — **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19,
+  > 2026-08-17): esta spec deixa de definir ícones de condição na peça. Uma peça de 1×1 com
+  > nome, duas barras, indicador de elevação, borda de disposição e até seis ícones de condição
+  > não é legível em nenhum zoom de mesa; a direção passa a ser um espaço dedicado na HUD, fora
+  > do canvas (decisão de quem for dono dessa tela). O registro da condição em si
+  > (`img`/`tone`/`help`) não muda — só onde ela aparece. Ver `REQ-TOK-083` (`41-token.md`). O id
+  > permanece definido aqui, aposentado, para que nenhuma citação existente resolva para o vazio
+  > (`CONVENCOES.md` §5). A tag muda de `[MVP]` para `[V2]` (`CONVENCOES.md` §2: "requisito que
+  > não se pretende mais cumprir é removido ou reclassificado") — um id aposentado marcado `[MVP]`
+  > continuava contando no total de requisitos MVP e na coluna "sem citação" de
+  > `RASTREABILIDADE.md`, como se fosse uma promessa de marco viva.
+
 - **REQ-CNV-030** [MVP] Um token DEVE exibir um **nameplate** (rótulo) com fonte/cor do tema.
-- **REQ-CNV-031** [MVP] A visibilidade de nameplate, resource bars e status icons DEVE ser configurável por nível, com exatamente estes cinco valores canônicos: `never`, `observer`, `hoverObserver`, `hoverAll`, `always`. O nível `observer` significa **OBSERVER (2) ou mais** sobre o Actor do token (DEC-CNV-15) — no Fusion não existe um nível "dono" separado para leitura, e OWNER (3) é o direito de editar, não de ver; `hoverObserver` aplica o mesmo corte apenas enquanto o ponteiro está sobre o token, e `hoverAll`/`always` dispensam o corte de ownership. Papel privilegiado (`isRolePrivileged`) vê em qualquer nível exceto `never` (`05-usuarios-e-permissoes.md`).
+- **REQ-CNV-031** [MVP] A **exibição** de nameplate e resource bars é governada por duas perguntas separadas, nunca por um nível de ownership do token: se o nome aparece depende do **conhecimento** (`39-contatos.md`, REQ-CTT-070/071 — o estado efetivo do usuário sobre o ator PRECISA ser `conhecido`); se a barra aparece depende da **posse** (REQ-USR-013 — OWNER (3) sobre o ator, ou papel privilegiado, DEC-TOK-10 em `41-token.md`). Acima desse corte de servidor, o usuário PODE ainda desligar nome e/ou barra por preferência local (DEC-TOK-11, `41-token.md`); a preferência só DEVE subtrair do que a redação já emitiu, nunca revelar o que ela não emitiu.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-09, DEC-TOK-10, DEC-TOK-11,
+  > 2026-08-17): a redação anterior definia um enum próprio de cinco níveis canônicos (`never`,
+  > `observer`, `hoverObserver`, `hoverAll`, `always`), com `observer` = OBSERVER (2) sobre o
+  > Actor (DEC-CNV-15). A `41` deriva os cinco níveis inteiros: eles respondiam a uma pergunta
+  > que conhecimento (para o nome) e posse (para a barra) já respondem melhor, e os dois valores
+  > de _hover_ nunca tiveram argumento próprio em spec nenhuma do Fusion. Ícones de status saem
+  > desta lista por serem aposentados (ver REQ-CNV-029). _(A redação acima substitui o enum de
+  > cinco níveis e a citação a DEC-CNV-15; nameplate e resource bars como as duas superfícies
+  > cobertas permanecem.)_
+
 - **REQ-CNV-032** [MVP] Um token com `elevation` ≠ 0 DEVE exibir um indicador de elevação legível (valor + unidade).
 - **REQ-CNV-033** [V2] O **token ring dinâmico** completo (camadas subject/ring/background com shaders dirigidos por estado de jogo, como turno de combate ou saúde) DEVE ser suportado; o MVP entrega apenas a borda colorida por disposição (DEC-CNV-07).
 
 ### Tokens — indicador de recursos (HP)
 
-- **REQ-CNV-089** [MVP] O `TokenDocument` DEVE carregar um campo `displayBars` com exatamente um dos cinco níveis canônicos de REQ-CNV-031 — `never`, `observer`, `hoverObserver`, `hoverAll`, `always` — e o default DEVE ser `observer`. O campo DEVE sobreviver ao round-trip de persistência (create e update) sem ser descartado pela validação do servidor (`02-modelo-de-dados.md`, REQ-DOC-018).
+- **REQ-CNV-089** [MVP] O `TokenDocument` NÃO DEVE carregar campo próprio de visibilidade de barra: a decisão de **redigir** a barra é do servidor, pelo corte de posse de REQ-CNV-031 (REQ-USR-013, DEC-TOK-10 em `41-token.md`), e a decisão de **desenhá-la** é preferência do usuário (DEC-TOK-11), nunca dado persistido no token ou na cena.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-11, 2026-08-17): a redação
+  > anterior fazia o `TokenDocument` carregar um campo `displayBars` com um dos cinco níveis
+  > canônicos de REQ-CNV-031 (default `observer`), persistido e sobrevivendo ao round-trip de
+  > create/update. DEC-TOK-11 tira `displayBars` do modelo inteiro: não é dado da peça nem do
+  > mundo — é preferência de usuário, guardada como as demais preferências locais de exibição
+  > (`37-configuracoes.md`), e nunca precisou ser gravada por documento para funcionar, porque a
+  > preferência só subtrai do que a redação do servidor já emitiu. _(A redação acima substitui a
+  > exigência de campo persistido por uma afirmação negativa — o campo não existe mais — e
+  > reaponta para onde cada metade da decisão mora agora.)_
+
 - **REQ-CNV-090** [MVP] A resource bar DEVE refletir o **valor real** do atributo apontado por `bar1.attribute` / `bar2.attribute` no ator efetivo do token (`actorId`), resolvido como caminho pontuado sobre `system` do Actor e lido como `{ value, max }`. A fração desenhada DEVE ser limitada a [0,1], e a barra DEVE ser **ausente** (não desenhada) quando o caminho não resolve, quando o token não tem ator, ou quando `max <= 0` — nunca desenhada cheia como placeholder.
-- **REQ-CNV-091** [MVP] O "ator efetivo" de REQ-CNV-090 é o do modelo de dados, não o `Actor` mundial: para um token com `actorLink: false` a barra DEVE ler o **TokenActor** reconstruído (base + `actorDelta`, `02-modelo-de-dados.md` REQ-DOC-033), usando a **mesma função de reconstrução** que o servidor usa para rotear mutações — nunca uma segunda implementação no cliente. Dois tokens do mesmo `Actor` com deltas diferentes DEVEM desenhar barras diferentes. O corte de visibilidade (DEC-CNV-15) continua sendo lido do **Actor base**: um delta descreve o que o token tem, nunca quem pode olhar.
+- **REQ-CNV-091** [MVP] O "ator efetivo" de REQ-CNV-090 é o do modelo de dados, não o `Actor` mundial: para um token com `actorLink: false` a barra DEVE ler o **TokenActor** reconstruído (base + `actorDelta`, `02-modelo-de-dados.md` REQ-DOC-033), usando a **mesma função de reconstrução** que o servidor usa para rotear mutações — nunca uma segunda implementação no cliente. Dois tokens do mesmo `Actor` com deltas diferentes DEVEM desenhar barras diferentes. O corte de visibilidade (REQ-CNV-031, REQ-USR-013, DEC-TOK-10 em `41-token.md`) continua sendo lido do **Actor base**: um delta descreve o que o token tem, nunca quem pode olhar.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-10, 2026-08-17): a citação a
+  > DEC-CNV-15 é substituída pela citação ao corte vigente (REQ-CNV-031/REQ-USR-013), porque
+  > DEC-CNV-15 foi revertida — ver DEC-CNV-15 nesta mesma spec. A regra em si (corte lido do
+  > Actor base, nunca do delta) não muda; só o nível do corte mudou, de OBSERVER (2) para OWNER
+  > (3).
+
 - **REQ-CNV-092** [MVP] O cliente DEVE repintar a barra quando `actorLink` ou `actorDelta` do token mudarem. Sem isso a barra de um token unlinked congela no valor de nascimento: o dano dele chega dentro do próprio `TokenDocument` (embedded na `Scene`) e **não emite nenhuma op de `Actor`**, que é o único gatilho de repintura que REQ-CNV-090 exigia.
 - **REQ-CNV-093** [MVP] O diálogo de configuração do token DEVE expor um controle para o **vínculo com a ficha** (`actorLink`), rotulado em linguagem de mesa ("usar ficha própria para este token" / "vincular à ficha do ator"), e o valor DEVE viajar no mesmo Save embedded dos demais campos. Salvar o vínculo NÃO DEVE limpar o `actorDelta`: religar é reversível, e apagar o delta na passagem tornaria a decisão irreversível em silêncio. Sem esse controle, o modelo de token unlinked existe mas é inalcançável da mesa — só o default de criação (REQ-DOC-061) teria opinião.
 - **REQ-CNV-094** [MVP] Abrir a ficha **a partir de um token** DEVE mostrar o ator efetivo daquele token e DEVE rotear as edições por `token:updateActor` (REQ-DOC-034), de modo que editar um esqueleto não altere os outros cinco. A janela DEVE ser identificada pelo **token** quando ele é unlinked — chavear pelo `Actor` colapsaria as seis fichas em uma. Edições que o merge patch não sabe representar (coleções `items`/`effects`, `ownership`) DEVEM ser **recusadas** enquanto REQ-DOC-035 não entregar delta item-granular, nunca escritas no `Actor` base como se fossem daquele token.
@@ -337,7 +441,20 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 - **REQ-CNV-038** [MVP] O usuário DEVE poder **selecionar múltiplos tokens** (rubber-band ou clique+modificadora) e movê-los/operá-los em conjunto, restrito aos tokens que ele controla.
 - **REQ-CNV-039** [MVP] O usuário DEVE poder **targetar** (marcar como alvo) um ou mais tokens, de forma distinta de selecionar/controlar; os alvos DEVEM ser visíveis aos demais usuários conforme política (ex.: cor do usuário que targetou).
 - **REQ-CNV-040** [MVP] A rotação de token DEVE ser possível por modificadora+scroll e por teclas, com incremento fino opcional.
-- **REQ-CNV-041** [V2] O GM DEVE poder **duplicar** um token com modificadora+drag (Ctrl+drag).
+- **REQ-CNV-041** [MVP] O GM DEVE poder **duplicar** um token por **dois modos de gesto**: modificadora+drag (Ctrl+drag) e uma alternativa que NÃO exige arraste (ex.: item de menu de contexto ou atalho de teclado). Para um token **não vinculado** (`actorLink: false`), cada gesto DEVE oferecer ao GM a escolha entre os dois modos de cópia de REQ-TOK-090 — **crua** (estado vivo zerado) e **idêntica** (estado vivo preservado); para um token **vinculado**, a interface NÃO DEVE oferecer essa escolha, porque os dois modos produzem o mesmo resultado (REQ-TOK-091 de `41-token.md`).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-14, 2026-08-17): a redação
+  > anterior era `[V2]` e descrevia só o gesto de Ctrl+drag. A `41` faz de duplicar um token
+  > (nos seus dois modos, crua/idêntica — DEC-TOK-14) comportamento `[MVP]`
+  > (REQ-TOK-031/REQ-TOK-090); "os modos são desta spec; o gesto é da `06`" (DEC-TOK-14), e a
+  > `23` exige alternativa não-arraste para os dois — Ctrl+drag deixa de ser a única porta. A
+  > qualificação por vínculo (linked/unlinked) é uma segunda emenda, obrigada por REQ-TOK-091: a
+  > redação anterior deste bloco mandava oferecer a escolha em todo gesto, incondicionalmente,
+  > contrariando o "a interface NÃO DEVE oferecer uma escolha sem efeito" da `41` para o caso
+  > vinculado. _(A redação acima substitui a tag `[V2]` por `[MVP]`, acrescenta o segundo modo de
+  > gesto e condiciona a oferta da escolha crua/idêntica ao token ser não vinculado; o gesto de
+  > Ctrl+drag original permanece como um dos dois.)_
+
 - **REQ-CNV-042** [V2] O **drag measurement** avançado com waypoints e tipos de movimento selecionáveis (caminhar/voar/nadar/escalar), e custo por tipo, DEVE ser suportado; o MVP entrega ruler de movimento simples (REQ-CNV-035).
 
 ### Tiles
@@ -417,11 +534,20 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 
 ## Requisitos não-funcionais
 
-- **REQ-CNV-074** [MVP] **Meta de framerate:** o canvas DEVE sustentar ≥ 60 fps em pan/zoom e movimento, em uma cena de até **10.000 × 10.000 px** com **50 tokens** visíveis (com resource bars e status icons), em hardware de cliente desktop de classe média com aceleração de hardware.
+- **REQ-CNV-074** [MVP] **Meta de framerate:** o canvas DEVE sustentar ≥ 60 fps em pan/zoom e movimento, em uma cena de até **10.000 × 10.000 px** com **50 tokens** visíveis (com resource bars), em hardware de cliente desktop de classe média com aceleração de hardware.
 - **REQ-CNV-075** [MVP] **Culling manual:** o canvas DEVE descartar do processamento/renderização os placeables cujo bounding box não intersecta o viewport (o PIXI não faz culling automático — research 03 §15.1).
-- **REQ-CNV-076** [MVP] **Draw calls controlados:** resource bars e status icons estáticos DEVEM ser cacheados como bitmap/atlas para reduzir draw calls; o objetivo é evitar 1 draw call por elemento por token (research 03 §15.2).
-- **REQ-CNV-077** [MVP] **Texturas:** o carregamento de texturas DEVE preferir formatos WebP/AVIF; texturas grandes (background) DEVEM usar mipmapping; ícones de status/ring DEVEM usar texture atlas.
-- **REQ-CNV-078** [MVP] **LOD:** nameplates, barras e ícones de status DEVEM ter nível de detalhe reduzido/oculto abaixo de um limiar de zoom configurável, mantendo legibilidade e performance.
+- **REQ-CNV-076** [MVP] **Draw calls controlados:** resource bars estáticas DEVEM ser cacheadas como bitmap/atlas para reduzir draw calls; o objetivo é evitar 1 draw call por elemento por token (research 03 §15.2).
+- **REQ-CNV-077** [MVP] **Texturas:** o carregamento de texturas DEVE preferir formatos WebP/AVIF; texturas grandes (background) DEVEM usar mipmapping; elementos de ring DEVEM usar texture atlas.
+- **REQ-CNV-078** [MVP] **LOD:** nameplates e barras DEVEM ter nível de detalhe reduzido/oculto abaixo de um limiar de zoom configurável, mantendo legibilidade e performance.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19, 2026-08-17): as quatro
+  > redações acima (REQ-CNV-074, -076, -077, -078) citavam **ícones de status** entre os
+  > elementos medidos/cacheados/atlasados/LOD do token. Ícones de condição saem do canvas
+  > (DEC-TOK-19; ver `REQ-CNV-029`, aposentado, e `REQ-TOK-083`); as metas de framerate, cache,
+  > textura e LOD passam a cobrir apenas resource bars, nameplate e ring. _(A redação acima
+  > substitui as quatro menções a "status icons"/"ícones de status"; as demais exigências de cada
+  > requisito não mudam.)_
+
 - **REQ-CNV-079** [MVP] **Degradação WebGPU→WebGL:** a ausência de WebGPU DEVE resultar em fallback automático para WebGL sem ação do usuário e sem perda de funcionalidade essencial (research 15 §3.1).
 - **REQ-CNV-080** [MVP] **Não bloquear o frame:** operações potencialmente longas no canvas (ex.: gerar highlight de um template muito grande, recompor atlas) NÃO DEVEM travar o loop de render por mais de um frame perceptível; caminhos pesados de visão seguem `07` e DEC-ARQ-09 de `01`.
 - **REQ-CNV-081** [MVP] **Responsividade de input:** o feedback de preview de drag/seleção DEVE ser local e imediato (independente de round-trip ao servidor), mantendo a autoridade no servidor (DEC-CNV-05).
@@ -501,37 +627,25 @@ export interface GridStrategy {
 
 // --- Tipos de apresentação (client; não persistidos diretamente) ---
 
-export type Disposition = "friendly" | "neutral" | "hostile" | "secret";
-
-/** Nível de visibilidade de um overlay do token. */
-export type DisplayMode = "never" | "owner" | "hover_owner" | "hover_all" | "always";
+export type Disposition = "friendly" | "neutral" | "hostile";
 
 export interface ResourceBarView {
   /** Caminho de atributo no ator (ex.: "attributes.hp"). */
   attributePath: string;
   value: number;
   max: number;
-  display: DisplayMode;
 }
 
 export interface TokenView {
-  /** Footprint em células (independe da escala da arte). */
+  /** Footprint em células (define ocupação na grade e snapping). */
   width: number;
   height: number;
-  /** Escala visual da arte (multiplicador). */
-  scale: number;
   rotation: number; // graus
-  alpha: number; // 0–1
-  tint?: string; // hex
-  mirrorX: boolean;
-  mirrorY: boolean;
   elevation: number; // em gridUnits
   disposition: Disposition;
-  textureSrc: string; // URL servida por HTTP estático (nunca via socket)
   ring: boolean; // borda/ring por disposição (MVP); ring dinâmico é [V2]
   bars: [ResourceBarView?, ResourceBarView?];
-  statusIcons: string[]; // ids de status definidos pelo sistema
-  nameplate: { text: string; display: DisplayMode };
+  nameplate: { text: string };
 }
 
 export type TemplateShapeKind = "circle" | "cone" | "line" | "emanation";
@@ -578,6 +692,22 @@ export interface CameraView {
   scale: number;
 }
 ```
+
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-02, DEC-TOK-03, DEC-TOK-09,
+> DEC-TOK-10, DEC-TOK-11, DEC-TOK-12, DEC-TOK-13, DEC-TOK-19, 2026-08-17): os tipos de
+> apresentação de token acima ("Tipos de apresentação") tinham `Disposition` com quatro valores
+> (incluindo `secret`), um `DisplayMode` de cinco níveis usado por `ResourceBarView.display` e
+> `nameplate.display`, e `TokenView` com `scale`, `alpha`, `tint`, `mirrorX`, `mirrorY`,
+> `textureSrc` e `statusIcons`. Nenhum desses campos sobrevive à peça deixar de ser dona de arte
+> própria (DEC-TOK-02 — a arte é sempre a do ator efetivo) e de visibilidade própria (DEC-TOK-09
+> a DEC-TOK-11 — nome por conhecimento, barra por posse OWNER, preferência local por cima; sem
+> nível de exibição persistido no token): `Disposition` fica com três valores
+> (hostil/neutro/amigo — `secret` vira assunto de visibilidade, DEC-TOK-12), `DisplayMode` é
+> removido inteiro, e `TokenView` perde os seis campos acima, com `width`/`height` continuando a
+> ser o footprint que já eram. Ícones de status saem do modelo de apresentação do canvas
+> (DEC-TOK-19; ver `REQ-CNV-029`, aposentado). _(A redação acima substitui os tipos
+> `Disposition`/`DisplayMode`/`ResourceBarView`/`TokenView` pela versão reduzida já aplicada; o
+> restante do bloco de código — grade, templates, tiles, câmera — não muda.)_
 
 ---
 
@@ -647,7 +777,16 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - **CA-CNV-05** As três grades (square/hex/gridless) implementam pixelToCell, cellToPixel, snapping, medição e highlight; o hex cobre as quatro variantes (REQ-CNV-014 a REQ-CNV-016, REQ-CNV-021).
 - **CA-CNV-06** Em cena PF2e (square), medir um caminho diagonal com `alternating_1` aplica 5-10-5 (acumula 1-2-1-2 ao longo do caminho, começa em 1); `alternating_2` acumula 2-1-2-1; trocar a regra de diagonal muda o resultado da medição (REQ-CNV-019, REQ-CNV-020).
 - **CA-CNV-07** Um token grande (ex.: 2×2) faz snap corretamente ao conjunto de células, em square e hex (REQ-CNV-023).
-- **CA-CNV-08** Um token exibe arte com footprint e escala independentes, borda por disposição, até duas resource bars, ícones de status e nameplate, com visibilidade por nível respeitando ownership (REQ-CNV-025 a REQ-CNV-031).
+- **CA-CNV-08** Um token exibe a arte do ator efetivo posicionada pelo footprint, borda por disposição (três valores), até duas resource bars e nameplate, com o nome cortado por conhecimento (`39-contatos.md`, REQ-CTT-070/071) e a barra cortada por posse OWNER (REQ-USR-013, DEC-TOK-10 em `41-token.md`) (REQ-CNV-025 a REQ-CNV-031).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-02, DEC-TOK-09, DEC-TOK-10,
+  > DEC-TOK-12, DEC-TOK-19, 2026-08-17): a redação anterior falava em "escala independente" (a
+  > peça deixou de ter escala própria, DEC-TOK-02), "ícones de status" (aposentados do canvas,
+  > DEC-TOK-19) e "visibilidade por nível respeitando ownership" (substituída por conhecimento
+  > para o nome + posse OWNER para a barra, DEC-TOK-09/DEC-TOK-10). _(A redação acima substitui o
+  > critério inteiro pela versão vigente; a faixa de requisitos citada — REQ-CNV-025 a
+  > REQ-CNV-031, já emendada — não muda.)_
+
 - **CA-CNV-09** Durante o drag, o ghost e o ruler de movimento aparecem antes da confirmação. Ao confirmar, o originador vê o movimento imediato (otimismo); demais clientes veem o token mover após o broadcast canônico; uma posição inválida/corrigida causa rollback no originador para a posição autoritativa (REQ-CNV-035 a REQ-CNV-037, REQ-NET-050/051/052).
 - **CA-CNV-10** Seleção múltipla e targeting funcionam de forma distinta entre si; alvos aparecem aos demais usuários (REQ-CNV-038, REQ-CNV-039).
 - **CA-CNV-11** Tiles overhead com modo `fade`/`radial` revelam ao token passar por baixo, com detecção por amostragem de múltiplos pontos (REQ-CNV-044 a REQ-CNV-046).
@@ -658,8 +797,12 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - **CA-CNV-15** O ruler mede com waypoints aplicando a regra da grade e é visível aos demais usuários com a cor do usuário (REQ-CNV-060 a REQ-CNV-062).
 - **CA-CNV-16** Uma cena configura dimensões, background/foreground, offset, padding, grade, initial view e ambiente; ativar a cena renderiza seus placeables e aplica a initial view em todos os clientes (REQ-CNV-064 a REQ-CNV-070). Abrir uma cena em preparo troca o canvas apenas de quem preparou: a cena no ar não muda, os demais clientes não mudam de tela, e uma tentativa de alterar `active` por atualização genérica de documento é recusada pelo servidor (REQ-CNV-070a, REQ-CEN-042).
 - **CA-CNV-17** Atualizações no mesmo frame (ex.: mover 5 tokens) coalescem em um único ciclo de re-render via flags, sem recálculo redundante (REQ-CNV-073).
-- **CA-CNV-18** Em hardware de cliente de classe média, uma cena 10k×10k com 50 tokens (com barras/ícones) sustenta ≥ 60 fps em pan/zoom e movimento, com culling manual ativo e draw calls controlados por cache/atlas (REQ-CNV-074 a REQ-CNV-077).
-- **CA-CNV-19** Em zoom out abaixo do limiar, nameplates/barras/ícones reduzem detalhe ou somem (LOD), preservando fps e legibilidade (REQ-CNV-078).
+- **CA-CNV-18** Em hardware de cliente de classe média, uma cena 10k×10k com 50 tokens (com barras) sustenta ≥ 60 fps em pan/zoom e movimento, com culling manual ativo e draw calls controlados por cache/atlas (REQ-CNV-074 a REQ-CNV-077).
+- **CA-CNV-19** Em zoom out abaixo do limiar, nameplates/barras reduzem detalhe ou somem (LOD), preservando fps e legibilidade (REQ-CNV-078).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19, 2026-08-17): as duas
+  > redações acima citavam ícones de status junto de barras/nameplate; eles saem do canvas (ver
+  > REQ-CNV-074/-076/-077/-078, já emendados).
 
 ---
 
