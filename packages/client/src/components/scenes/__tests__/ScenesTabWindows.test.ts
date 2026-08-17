@@ -83,6 +83,18 @@ function sourceOf(file: string): string {
   return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
 }
 
+/**
+ * The `<style>` block of a component. Throws rather than falling back to `""` — a
+ * fallback there would let the block go missing (or the regex stop matching) while
+ * every `not.toMatch` assertion built on top of it kept passing on empty string
+ * (see `ScenesTab.test.ts`'s `styleOfScenesTab` for the same convention).
+ */
+function styleOf(file: string): string {
+  const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf(file))?.[1];
+  if (style === undefined) throw new Error(`${file} has no <style> block`);
+  return style;
+}
+
 beforeEach(() => {
   sceneListState.scenes = [ON_AIR, OTHER];
   sceneListState.folders = [];
@@ -214,6 +226,13 @@ describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 2
     // remaining door is the configuration window, asserted below.
     const html = renderTab(ON_AIR._id);
 
+    // Anchor that the "on-air" branch actually rendered — otherwise the negatives
+    // below would pass just as well over the "pending"/"nothing on air" markup,
+    // which never carried `scene-head__perception` either (see the test right
+    // after this one, over `renderTab(null)`).
+    expect(html).toContain("scene-head__info");
+    expect(html).toContain(ON_AIR.name);
+
     expect(html).not.toContain("scene-head__perception");
     expect(html).not.toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
   });
@@ -225,8 +244,11 @@ describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 2
   });
 
   it("the head's stylesheet no longer carries a rule for the retired door", () => {
-    const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("ScenesTab.svelte"))?.[1] ?? "";
+    const style = styleOf("ScenesTab.svelte");
 
+    // Anchor the negative: prove the block that WOULD have carried the retired rule
+    // is actually there, so the assertion below can't pass by matching nothing.
+    expect(style).toMatch(/\.scene-head\s*\{/);
     expect(style).not.toMatch(/\.scene-head__perception\s*\{/);
   });
 });
@@ -254,7 +276,7 @@ describe("ScenesTab head — the configuration door (REQ-CEN-061, REQ-CEN-062, A
   });
 
   it("REQ-CEN-013: the door is out of flow and cannot grow the fixed head", () => {
-    const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("ScenesTab.svelte"))?.[1] ?? "";
+    const style = styleOf("ScenesTab.svelte");
     const rule = /\.scene-head__config\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
 
     expect(rule).toMatch(/position:\s*absolute/);
