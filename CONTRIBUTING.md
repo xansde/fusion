@@ -18,6 +18,8 @@ As [`specs/`](specs/README.md) são a fonte de verdade. Se a implementação div
 
 PRs pequenos e revisáveis são preferíveis a um PR grande. Um diff enorme não recebe review de verdade.
 
+PR de UI segue [`docs/design/PROCESSO-UI.md`](docs/design/PROCESSO-UI.md) (protótipo lado a lado, e2e com prints, smoke GM+player).
+
 ## Gates
 
 O CI roda estes comandos, nesta ordem. Rode-os antes de abrir o PR:
