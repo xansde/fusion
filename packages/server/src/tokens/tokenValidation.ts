@@ -27,9 +27,19 @@
  *   - `validateTokenCreateContract` — the OBLIGATORY (x, y — actorId is
  *     `validateTokenActorId`'s job) and REFUSED/DERIVED checks
  *     (`actorDelta`, footprint, art, possession — REQ-TOK-022, DEC-TOK-05).
- *     Called only on `doc:create`; a full-replace diff never reaches this
- *     path (the schema removed `width`/`height`/`texture` in TK023, and
- *     nothing in §7.2 asks the UPDATE path to re-police them).
+ *     Called only on `doc:create` (REQ-TOK-022 is textually scoped to "um
+ *     payload de criação").
+ *   - `validateTokenUpdateDerivedFields` — the UPDATE-time twin: the same
+ *     six DERIVED fields, but grounded in the unconditional "NÃO DEVE
+ *     possuir" rows (REQ-TOK-010/012/013), since a `doc:update` persists
+ *     the diff-applied token with no schema re-parse and can otherwise
+ *     reintroduce a field the creation path already refused once.
+ *   - `diffTouchesField` — the dot-path-aware presence check every one of
+ *     the above (and the `actorId`/`actorDelta` gates in
+ *     `doc-handlers.ts`) uses instead of a bare `field in diff`, so a
+ *     dotted key like `"actorDelta.system.hp.value"` cannot smuggle a
+ *     refused field past a gate that only recognizes the exact top-level
+ *     key.
  *   - `applyTokenCreateDefaults` — the OVERRIDABLE fields whose "inherit
  *     when absent" default needs more than a Zod literal: `actorLink`
  *     (REQ-DOC-061, by the base Actor's subtype) and `bar1`/`bar2`
@@ -118,6 +128,42 @@ const DERIVED_FIELD_REASON: Readonly<Record<string, string>> = {
   userId: "possession, which is not a Token field — it derives from the actor",
 };
 
+/**
+ * The requirement each DERIVED field violates when reintroduced by a
+ * doc:update — unlike `validateTokenCreateContract`'s REQ-TOK-022 (which is
+ * literally scoped to "um payload de criação"), these are the unconditional
+ * "o TokenDocument NÃO DEVE possuir X" rows (§5.2) that hold on every write
+ * path, not just at birth.
+ */
+const DERIVED_FIELD_UPDATE_REQ: Readonly<Record<string, string>> = {
+  width: "REQ-TOK-012",
+  height: "REQ-TOK-012",
+  texture: "REQ-TOK-010",
+  img: "REQ-TOK-010",
+  ownership: "REQ-TOK-013",
+  userId: "REQ-TOK-013",
+};
+
+/**
+ * True when a dot-path diff (the wire format `doc:update` carries, BEFORE
+ * `applyDotPathDiff` in `doc-handlers.ts` expands it) sets `field` itself or
+ * any nested path rooted at it — `"actorDelta.system.hp.value"` counts as
+ * touching `"actorDelta"`.
+ *
+ * `applyDotPathDiff` creates the intermediate object on the way down
+ * (`result.actorDelta = {}`, then descends into it) for ANY dotted key whose
+ * first segment is `field`, so a caller-side gate that only checks
+ * `field in diff` (exact key) never sees the field coming and the value is
+ * persisted anyway. Every gate in `doc-handlers.ts` that inspects a
+ * `sanitizedDiff` for a specific top-level Token field (`actorId`,
+ * `actorDelta`, and the DERIVED row below) MUST go through this helper
+ * instead of a bare `in` check.
+ */
+export function diffTouchesField(diff: Record<string, unknown>, field: string): boolean {
+  const prefix = `${field}.`;
+  return Object.keys(diff).some((key) => key === field || key.startsWith(prefix));
+}
+
 const TOKEN_ACTOR_DELTA_CREATE_ERROR =
   "Token.actorDelta cannot be set at creation — it only enters through the TokenActor " +
   "mutation route on an existing unlinked token (REQ-DOC-034, REQ-TOK-022, DEC-TOK-05)";
@@ -162,6 +208,45 @@ export function validateTokenCreateContract(
       code: "VALIDATION_FAILED",
       message: "Token creation requires y (REQ-TOK-020)",
     };
+  }
+  return null;
+}
+
+/**
+ * Validates a Token UPDATE diff against the same DERIVED row §7.2 defines
+ * for creation (footprint, art, possession) — but on the wire diff, using
+ * `diffTouchesField` so a dotted path (`"ownership.default"`) is caught the
+ * same as an exact key.
+ *
+ * `validateTokenCreateContract` only runs on `doc:create` (its own
+ * docstring says so explicitly) because REQ-TOK-022 is textually scoped to
+ * "um payload de criação". But REQ-TOK-010/012/013 are NOT creation-scoped
+ * — "o TokenDocument NÃO DEVE possuir width/height/texture/img/ownership/
+ * userId" is an invariant of the stored document, and `handleEmbeddedUpdate`
+ * persists the diff-applied token directly, with no schema re-parse (only
+ * Item gets one) — so before this function existed, a `doc:update` could
+ * write any of these six fields straight to the database and have them
+ * echoed back in the broadcast, un-refused (DEC-TOK-05: refuse, don't
+ * silently ignore).
+ *
+ * Checked on `sanitizedDiff` (pre-diff-apply), not `patchedToken`, so the
+ * refusal fires before the write is computed at all — mirrors where the
+ * `actorId` permission gate runs, just above this function's call site.
+ *
+ * Returns `null` when the diff is clean; otherwise a `VALIDATION_FAILED`
+ * error naming the offending field and the requirement it violates.
+ */
+export function validateTokenUpdateDerivedFields(
+  diff: Record<string, unknown>,
+): TokenValidationError | null {
+  for (const [field, reason] of Object.entries(DERIVED_FIELD_REASON)) {
+    if (diffTouchesField(diff, field)) {
+      const reqId = DERIVED_FIELD_UPDATE_REQ[field];
+      return {
+        code: "VALIDATION_FAILED",
+        message: `Token.${field} is ${reason}, and a doc:update cannot set it either (${String(reqId)})`,
+      };
+    }
   }
   return null;
 }

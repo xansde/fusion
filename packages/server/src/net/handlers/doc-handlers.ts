@@ -105,6 +105,8 @@ import {
   validateTokenCreateContract,
   applyTokenCreateDefaults,
   validateTokenUpdateActorDelta,
+  validateTokenUpdateDerivedFields,
+  diffTouchesField,
 } from "../../tokens/tokenValidation.js";
 import {
   redactCombatDocsForNonPrivileged,
@@ -1729,12 +1731,29 @@ function handleEmbeddedUpdate(
 
       // actorId reassignment is a privileged operation: it changes which actor
       // a token represents and affects ownership resolution for future updates.
-      // Only GM/ASSISTANT may change actorId.
-      if ("actorId" in sanitizedDiff && !isPrivileged(ctx.role)) {
+      // Only GM/ASSISTANT may change actorId. `diffTouchesField` (not a bare
+      // `in` check) so a dotted path can't dodge the gate — see its docstring.
+      if (diffTouchesField(sanitizedDiff, "actorId") && !isPrivileged(ctx.role)) {
         return ackError(
           "PERMISSION_DENIED",
           `Only GM/Assistant can change actorId on token ${tokenId}`,
         );
+      }
+
+      // REQ-TOK-010/012/013 (TK025 fix): the six DERIVED fields
+      // (width/height/texture/img/ownership/userId) §7.2 refuses at
+      // creation are refused here too — a doc:update persists the
+      // diff-applied token directly, with no schema re-parse, so nothing
+      // else stops one of these from being written straight to the
+      // database and echoed in the broadcast. Checked on every Token
+      // update (privileged or not — these fields are server-computed for
+      // everyone, not a permission question) and on the pre-diff
+      // `sanitizedDiff`, so the refusal fires before any write is computed.
+      if (embeddedType === "Token") {
+        const derivedFieldError = validateTokenUpdateDerivedFields(sanitizedDiff);
+        if (derivedFieldError) {
+          return ackError(derivedFieldError.code, derivedFieldError.message);
+        }
       }
 
       // Apply diff to token
@@ -1770,7 +1789,7 @@ function handleEmbeddedUpdate(
         const actorDeltaError = validateTokenUpdateActorDelta(
           ctx.role,
           patchedToken["actorLink"],
-          "actorDelta" in sanitizedDiff,
+          diffTouchesField(sanitizedDiff, "actorDelta"),
         );
         if (actorDeltaError) {
           return ackError(actorDeltaError.code, actorDeltaError.message);

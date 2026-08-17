@@ -697,6 +697,136 @@ describe("Token invocation contract (spec 41 §7.2)", () => {
       expect(persisted?.["actorDelta"]).toBeNull();
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Derived fields are also refused on UPDATE — the creation-time refusal
+  // (REQ-TOK-022) only stops a payload from bringing them at birth; nothing
+  // used to stop a later doc:update from writing them straight to the
+  // persisted document (REQ-TOK-010/012/013 — code-review fix, TK025).
+  // -------------------------------------------------------------------------
+
+  describe("derived fields are refused on UPDATE too, naming the field (REQ-TOK-010, REQ-TOK-012, REQ-TOK-013)", () => {
+    const cases: Array<{ field: string; value: unknown }> = [
+      { field: "width", value: 2 },
+      { field: "height", value: 2 },
+      { field: "texture", value: "hack.webp" },
+      { field: "img", value: "hack.webp" },
+      { field: "ownership", value: { default: 2 } },
+      { field: "userId", value: "some-user-id" },
+    ];
+
+    it.each(cases)(
+      "a doc:update writing $field is refused, and the persisted token never gains it",
+      async ({ field, value }) => {
+        const sceneId = await createScene(gm, `derived update ${field} scene`);
+        const actorId = await createActor(gm, `Actor for derived update ${field}`);
+        const token = await createToken(gm, sceneId, { actorId, x: 0, y: 0 });
+
+        const ack = await sendOp(gm, "doc:update", {
+          documentType: "Token",
+          updates: [
+            {
+              _id: token["_id"],
+              diff: { [field]: value },
+              embedded: { type: "Token", id: sceneId },
+            },
+          ],
+        });
+
+        expect(ack["ok"]).toBe(false);
+        expect(ack["code"]).toBe("VALIDATION_FAILED");
+        const message = ack["message"] as string;
+        expect(message).toContain(field);
+
+        const scene = ctx.store.get("scenes", sceneId);
+        const tokens = scene["tokens"] as Array<Record<string, unknown>>;
+        const persisted = tokens.find((t) => t["_id"] === token["_id"]);
+        // None of the six fields exist on TokenDocumentSchema at all
+        // (width/height/texture/img/ownership/userId — REQ-TOK-010/012/013)
+        // — the refusal must stop the write before it happens, never let it
+        // through and merely fail to persist by coincidence.
+        expect(persisted).not.toHaveProperty(field);
+      },
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // A dotted diff path must not smuggle a refused field past a gate that
+  // only recognizes the exact top-level key (code-review fix, TK025).
+  // `applyDotPathDiff` creates `result.actorDelta = {}` on the way down for
+  // ANY key starting with `"actorDelta."`, so `"actorDelta" in sanitizedDiff`
+  // alone missed this — REQ-DOC-034 must still hold.
+  // -------------------------------------------------------------------------
+
+  describe("actorDelta gate holds against a dotted diff path (REQ-DOC-034)", () => {
+    it("refuses a dotted actorDelta.* write on a LINKED token, and the state does not change", async () => {
+      const sceneId = await createScene(gm, "actorDelta dotted linked scene");
+      const actorId = await createActor(gm, "PC for actorDelta dotted linked", "character");
+
+      const token = await createToken(gm, sceneId, { actorId, x: 0, y: 0 }); // character → actorLink: true
+      expect(token["actorLink"]).toBe(true);
+
+      const updateAck = await sendOp(gm, "doc:update", {
+        documentType: "Token",
+        updates: [
+          {
+            _id: token["_id"],
+            diff: { "actorDelta.system.hp.value": 999 },
+            embedded: { type: "Token", id: sceneId },
+          },
+        ],
+      });
+
+      expect(updateAck["ok"]).toBe(false);
+      expect(updateAck["code"]).toBe("VALIDATION_FAILED");
+      const message = updateAck["message"] as string;
+      expect(message).toContain("actorDelta");
+      expect(message).toContain("REQ-DOC-034");
+
+      const scene = ctx.store.get("scenes", sceneId);
+      const tokens = scene["tokens"] as Array<Record<string, unknown>>;
+      const persisted = tokens.find((t) => t["_id"] === token["_id"]);
+      expect(persisted?.["actorDelta"]).toBeNull();
+    });
+
+    it("refuses a dotted actorDelta.* write from a non-privileged player, even on an unlinked token they own (REQ-DOC-034)", async () => {
+      const sceneId = await createScene(gm, "actorDelta dotted player-owned scene");
+      const activateAck = await sendOp(gm, "world:activeScene", { sceneId });
+      if (!activateAck["ok"]) {
+        throw new Error(`Failed to activate scene: ${JSON.stringify(activateAck)}`);
+      }
+      const actorId = await createActorOwnedBy(
+        gm,
+        "NPC owned by player for actorDelta dotted permission gate",
+        "npc",
+        ctx.playerId,
+      );
+      const token = await createToken(gm, sceneId, { actorId, x: 0, y: 0 });
+      expect(token["actorLink"]).toBe(false);
+
+      const updateAck = await sendOp(player, "doc:update", {
+        documentType: "Token",
+        updates: [
+          {
+            _id: token["_id"],
+            diff: { "actorDelta.system.hp.value": 999 },
+            embedded: { type: "Token", id: sceneId },
+          },
+        ],
+      });
+
+      expect(updateAck["ok"]).toBe(false);
+      expect(updateAck["code"]).toBe("PERMISSION_DENIED");
+      const message = updateAck["message"] as string;
+      expect(message).toContain("actorDelta");
+      expect(message).toContain("REQ-DOC-034");
+
+      const scene = ctx.store.get("scenes", sceneId);
+      const tokens = scene["tokens"] as Array<Record<string, unknown>>;
+      const persisted = tokens.find((t) => t["_id"] === token["_id"]);
+      expect(persisted?.["actorDelta"]).toBeNull();
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
