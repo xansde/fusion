@@ -150,14 +150,16 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(op.payload.data[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
   });
 
-  it("REQ-NPC-060 / REQ-TOK-001 / REQ-TOK-020: the second write creates a Token for that actor, embedded in the scene", () => {
+  it("REQ-NPC-060 / REQ-TOK-001 / REQ-TOK-020: the second write creates a Token for that actor, embedded in the scene, with the obligatory x/y", () => {
     const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
 
     expect(op.type).toBe("doc:create");
     expect(op.payload.documentType).toBe("Token");
     expect(op.payload.parent).toEqual({ type: "Scene", id: "scn-clareira001" });
     expect(op.payload.data).toHaveLength(1);
-    expect(op.payload.data[0]).toEqual({ actorId: "act-bau0newlycreated1" });
+    // REQ-TOK-020: x/y are obligatory content of every token creation — the
+    // server's validateTokenCreateContract refuses a payload missing either.
+    expect(op.payload.data[0]).toEqual({ actorId: "act-bau0newlycreated1", x: 0, y: 0 });
   });
 
   it("REQ-TOK-060 / REQ-TOK-010 / REQ-TOK-012: the token carries no name, texture, width or height of its own — it inherits the chest actor's", () => {
@@ -174,7 +176,7 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(fields).not.toHaveProperty("height");
   });
 
-  it("REQ-NPC-060: activating it sends the actor create, then the token create, in order", async () => {
+  it("REQ-NPC-060 / REQ-TOK-020: activating it sends the actor create, then the token create with x/y, in order", async () => {
     const sent: Sent[] = [];
     await placeChest(fakeSocket(sent), "scn-clareira001");
 
@@ -193,6 +195,11 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     // The actorId on the wire is the id `fakeSocket` handed back for the create
     // above — the two writes are chained, not two independent guesses.
     expect(fields?.["actorId"]).toBe(CREATED_CHEST._id);
+    // REQ-TOK-020: x/y are obligatory on the wire — a payload missing either
+    // is exactly what the server's validateTokenCreateContract refuses
+    // (VALIDATION_FAILED), which would leave the chest actor with no presence.
+    expect(fields?.["x"]).toBe(0);
+    expect(fields?.["y"]).toBe(0);
   });
 
   it("REQ-NPC-060 / Q-NPC-03: the token carries only actorId — no link/unlink field", () => {

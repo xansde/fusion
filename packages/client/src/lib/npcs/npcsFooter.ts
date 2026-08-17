@@ -127,9 +127,18 @@ export type PlaceChestTokenOp = TokenCreateOp;
  * just because it no longer exists on the wire the same way: the chest's name IS
  * the actor's name (`buildCreateChestActorOp` already set it), so a `null` token
  * name inherits it instead of duplicating it.
+ *
+ * `x`/`y` ARE sent, and are not optional: REQ-TOK-020 (§7.2) makes them
+ * obligatory content of every token creation, enforced server-side by
+ * `validateTokenCreateContract` (`packages/server/src/tokens/tokenValidation.ts`)
+ * before the payload ever reaches `TokenDocumentSchema`. This footer has no
+ * canvas/viewport to center on (see the module docstring — it is kept
+ * deliberately DOM-free so it can run under Vitest in node), unlike
+ * `TokenInteractionManager.addToken`'s viewport-centered drop; the origin is
+ * the same placeholder position the pre-TK022 payload used.
  */
 export function buildPlaceChestTokenOp(sceneId: string, actorId: string): PlaceChestTokenOp {
-  return buildTokenCreateOp(sceneId, { actorId });
+  return buildTokenCreateOp(sceneId, { actorId, x: 0, y: 0 });
 }
 
 interface DocCreateResult {
