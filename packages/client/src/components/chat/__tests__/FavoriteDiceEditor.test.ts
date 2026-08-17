@@ -122,4 +122,17 @@ describe("o editor de favoritos (REQ-ACH-055)", () => {
     const body = renderEditor();
     expect(body).not.toMatch(/gm-only|role="gm"|isGm/);
   });
+
+  it("puts the invalid-formula reason after the mode field in the DOM, so it never pushes the mode select out of the row (REQ-ACH-054, REQ-ACH-055)", () => {
+    seed([
+      { label: "Ataque", formula: "1d20 + Força", mode: null },
+      { label: "Dano", formula: "1d8", mode: null },
+      { label: "Percepção", formula: "1d20", mode: null },
+    ]);
+    const body = renderEditor();
+    const modeFieldIndex = body.indexOf("favorite-editor__field--mode");
+    const problemIndex = body.indexOf("favorite-editor__problem");
+    expect(modeFieldIndex).toBeGreaterThan(-1);
+    expect(problemIndex).toBeGreaterThan(modeFieldIndex);
+  });
 });

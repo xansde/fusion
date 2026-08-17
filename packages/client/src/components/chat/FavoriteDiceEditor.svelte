@@ -103,10 +103,6 @@
         />
       </label>
 
-      {#if problem !== null}
-        <p class="favorite-editor__problem" role="alert">{problem}</p>
-      {/if}
-
       <label class="favorite-editor__field favorite-editor__field--mode">
         <span>{t("FUSION.Chat.Favorites.Editor.Mode")}</span>
         <select
@@ -122,6 +118,10 @@
           {/each}
         </select>
       </label>
+
+      {#if problem !== null}
+        <p class="favorite-editor__problem" role="alert">{problem}</p>
+      {/if}
     </fieldset>
   {/each}
 
@@ -179,12 +179,21 @@
   }
 
   .favorite-editor__field--formula {
-    flex: 1 1 8.75rem;
+    flex: 1 1 6rem;
     min-width: 0;
   }
 
+  /* Shrinks instead of wrapping to its own row (a `flex: 0 0 auto` mode field never yields
+     its intrinsic width, and the fieldset's hypothetical-basis sum overflows the roll
+     builder window's 340px — see FavoriteDiceEditor's review r1 note). */
   .favorite-editor__field--mode {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .favorite-editor__field--mode select {
+    width: 100%;
   }
 
   .favorite-editor__field input,
