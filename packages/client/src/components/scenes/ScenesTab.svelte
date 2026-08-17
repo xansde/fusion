@@ -334,13 +334,49 @@
            logic stays; the door into it is still the configuration window
            (REQ-CEN-062). See `specs/44-aba-cenas.md` §5.3. -->
       <!-- Ajustes r1, item 27: the "no ar" flag is its own element, pinned to the
-           head's TOP edge (`position: absolute; top: 0`) — a sibling of
+           head's TOP edge (`position: absolute; top: 0.4rem`) — a sibling of
            `.scene-head__info`, never nested inside it, so it stays isolated from the
-           name/dimensions block that anchors to the footer. -->
+           name/dimensions block that anchors to the footer. Chip background
+           (Ajustes r1 review, 2026-08-17): plain text directly on the scene's own
+           image was unreadable over a light map — the same reason every other
+           control that used to sit on this canvas carried one. -->
       <span class="scene-head__flag">
         <span class="scene-head__flag-dot" aria-hidden="true"></span>
         {t("FUSION.Scene.Head.OnAir")}
       </span>
+      <!-- Ajustes r1 review (2026-08-17), REQ-CEN-061/062: the archive never repeats
+           the scene ON AIR (REQ-CEN-036), so once item 25 took the head's direct
+           perception door out, this button became the ONLY reachable door into that
+           scene's configuration — and, through it (`onOpenPerception`,
+           `lib/scenes/sceneWindows.ts`), into perception too. Out of flow, opposite
+           corner from the flag, so it cannot add a pixel to the fixed head
+           (REQ-CEN-013). Same pencil glyph as the archive row's edit action, so
+           "configure" reads as one verb across the whole tab. -->
+      <button
+        class="scene-head__config"
+        title="{t('FUSION.Scene.Dialog.EditScene')} {head.name}"
+        aria-label="{t('FUSION.Scene.Dialog.EditScene')} {head.name}"
+        onclick={() => {
+          const scene = sceneById(head.sceneId);
+          if (scene) openSceneConfigWindow(socket, scene);
+        }}
+      >
+        <svg
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
+          <path d="M9.2 4.3l2.5 2.5" />
+        </svg>
+      </button>
       <div class="scene-head__info">
         <span class="scene-head__name" title={head.name}>{head.name}</span>
         <span class="scene-head__meta">
@@ -668,10 +704,14 @@
     object-fit: cover;
   }
 
-  /* REQ-CEN-020..025: the environment row and the perception door that used to float
-     in the corners of the head were retired from this UI on 2026-08-17 (item 25 —
-     decision, not a bug). Their rules stayed in `lib/scenes/sceneEnvironment.ts` and
-     `lib/scenes/sceneWindows.ts` for when the UI comes back. */
+  /* REQ-CEN-020..025: the environment row and the DIRECT perception door that used to
+     float in the corners of the head were retired from this UI on 2026-08-17 (item 25
+     — decision, not a bug). Their rules stayed in `lib/scenes/sceneEnvironment.ts` and
+     `lib/scenes/sceneWindows.ts` for when the UI comes back. `.scene-head__config`
+     below is a DIFFERENT door — it opens the configuration window, not perception
+     directly — restored the same day (Ajustes r1 review) because without it the
+     archive's exclusion of the scene on air (REQ-CEN-036) left that scene with no
+     reachable door at all, contradicting REQ-CEN-061/062. */
 
   .scene-head__info {
     position: relative;
@@ -684,20 +724,60 @@
 
   /* Ajustes r1, item 27: anchored to the head's own top edge — independent of the
      footer's `.scene-head__info` gradient block, so it never grows/shrinks with the
-     name (REQ-CEN-013) and stays isolated at the top, as the prototype's `.lbl` does. */
+     name (REQ-CEN-013) and stays isolated at the top, as the prototype's `.lbl` does.
+     Chip background + explicit `left` (Ajustes r1 review, 2026-08-17): the flag used
+     to sit on plain gradient-backed ground; alone at the top edge it sat directly on
+     the scene's own image, and green text with no anteparo is unreadable over a
+     light map. Same treatment `.scene-head__perception` used to give any control
+     placed straight on the canvas. */
   .scene-head__flag {
     align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
     color: var(--fusion-success);
     display: flex;
     font-size: 0.6875rem;
     font-weight: 600;
     gap: 0.3rem;
+    left: 0.4rem;
     letter-spacing: 0.08em;
-    padding: 0.5rem 0.75rem;
+    padding: 0.25rem 0.5rem;
     position: absolute;
     text-transform: uppercase;
-    top: 0;
+    top: 0.4rem;
     z-index: 1;
+  }
+
+  /* REQ-CEN-061/062, Ajustes r1 review (2026-08-17): the scene on air's only
+     reachable door into configuration (see the note above `.scene-head__info`).
+     Opposite corner from the flag, out of flow, same chip treatment
+     `.scene-head__perception` used to have before item 25 retired it. */
+  .scene-head__config {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    padding: 0.2rem;
+    position: absolute;
+    right: 0.4rem;
+    top: 0.4rem;
+    z-index: 1;
+  }
+
+  .scene-head__config:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .scene-head__config:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .scene-head__flag-dot {
@@ -949,8 +1029,15 @@
     white-space: nowrap;
   }
 
-  /* REQ-CEN-035: marks, on one truncating line under the name. */
+  /* REQ-CEN-035: marks, on one truncating line under the name. `min-height` (Ajustes
+     r1 review, 2026-08-17): since A051 removed the dimensions text, a scene with no
+     marks (`entry.marks` empty) renders this as a childless flex container, which
+     collapses to zero height — so a row with marks and a row without ended up two
+     different heights in the same archive. The floor keeps every row the same shape
+     whether or not it has anything to say (REQ-CEN-035 draws the same line either
+     way, just sometimes empty). */
   .scene-row__meta {
+    min-height: 1rem;
     color: var(--fusion-text-subtle);
     display: flex;
     font-size: 0.6875rem;

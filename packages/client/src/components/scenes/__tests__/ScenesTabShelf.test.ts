@@ -137,6 +137,31 @@ describe("ScenesTab — the archive below the head", () => {
     expect(archive).not.toContain(t(SCENE_SHELF_KEYS.markFog));
   });
 
+  it("REQ-CEN-035: a scene with no marks still renders the meta line, same shape as one with marks (Ajustes r1 review)", () => {
+    // A051 removed the dimensions text that used to guarantee `.scene-row__meta` was
+    // never empty. A scene with no marks on now renders that span with nothing
+    // inside it — a `display: flex` container with no children collapses to zero
+    // height, so without a floor the row shrinks next to a row that has marks
+    // (uneven archive, same regression class as the flag legibility fix below).
+    sceneListState.scenes = [
+      makeScene({ _id: "s-quiet", name: "Silenciosa", sort: 0 }),
+      makeScene({ _id: "s-dark", name: "Escura", darkness: 0.5, sort: 1 }),
+    ];
+
+    const archive = archiveOf(renderTab(null));
+    const quietMeta = /<span class="scene-row__meta[^"]*"[^>]*>([\s\S]*?)<\/span>/.exec(archive);
+    expect(quietMeta).not.toBeNull();
+    // The empty line is still drawn — `{#each}` with zero marks leaves the wrapper in
+    // place — so the CSS floor below is what has to keep it the same height as a
+    // line that does have a mark, not conditional markup.
+    expect(archive).toContain("scene-row__meta");
+    expect(archive).toContain(t(SCENE_SHELF_KEYS.markDarkness));
+
+    const style = /<style>([\s\S]*)<\/style>/.exec(sourceOfScenesTab())?.[1] ?? "";
+    const rule = /\.scene-row__meta\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
+    expect(rule).toMatch(/min-height:\s*[\d.]/);
+  });
+
   it("REQ-CEN-034: the search field shows up only once the archive outgrows the panel", () => {
     sceneListState.scenes = [makeScene({ _id: "s1", name: "Taverna" })];
     expect(renderTab(null)).not.toContain("scenes-tab__search");

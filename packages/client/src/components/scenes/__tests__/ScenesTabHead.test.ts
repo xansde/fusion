@@ -311,6 +311,20 @@ describe("ScenesTab — the head that says what is on air", () => {
       expect(flagRule).not.toMatch(/height:\s*\d/);
     });
 
+    it("Ajustes r1 review (2026-08-17): the flag carries its own scrim over the scene's image", () => {
+      // The flag sits directly on `.scene-head__canvas` (the scene's own background
+      // image, DEC-CEN-04) with no gradient underneath it any more — green text with
+      // no anteparo of its own is unreadable over a light map. An explicit `left` is
+      // asserted too: the flag is an out-of-flow child with no other inset set, so its
+      // horizontal position would otherwise depend on static-position fallback instead
+      // of a declared value.
+      const css = styleOfScenesTab();
+      const flagRule = ruleFor(css, ".scene-head__flag");
+
+      expect(flagRule).toMatch(/background:\s*rgba\(0,\s*0,\s*0/);
+      expect(flagRule).toMatch(/left:\s*[\d.]/);
+    });
+
     it("REQ-CEN-010: the head's height stays the theme token, on air or not, flag or no flag", () => {
       const css = styleOfScenesTab();
       sceneListState.scenes = [makeScene({ _id: "s1" })];

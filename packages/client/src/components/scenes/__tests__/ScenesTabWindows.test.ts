@@ -208,10 +208,10 @@ describe("SceneCreateDialog — configuring a scene (REQ-CEN-061, REQ-CEN-062)",
 
 describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 25 of the r1 test)", () => {
   it("REQ-CEN-062: the head of the scene on air no longer opens the perception window", () => {
-    // Alexandre's r1 test, item 25 (2026-08-17): the head door into perception is out,
-    // along with the REQ-CEN-020..025 environment shortcuts — decision, not a bug (see
-    // `specs/44-aba-cenas.md`, note after REQ-CEN-062). The remaining door is the
-    // configuration window, asserted above.
+    // Alexandre's r1 test, item 25 (2026-08-17): the head's DIRECT door into
+    // perception is out, along with the REQ-CEN-020..025 environment shortcuts —
+    // decision, not a bug (see `specs/44-aba-cenas.md`, note after REQ-CEN-062). The
+    // remaining door is the configuration window, asserted below.
     const html = renderTab(ON_AIR._id);
 
     expect(html).not.toContain("scene-head__perception");
@@ -228,6 +228,46 @@ describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 2
     const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("ScenesTab.svelte"))?.[1] ?? "";
 
     expect(style).not.toMatch(/\.scene-head__perception\s*\{/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The head's OTHER door — into configuration — restored (Ajustes r1 review, 2026-08-17)
+// ---------------------------------------------------------------------------
+
+describe("ScenesTab head — the configuration door (REQ-CEN-061, REQ-CEN-062, Ajustes r1 review)", () => {
+  it("REQ-CEN-061/062: the scene on air has a reachable door into configuration", () => {
+    // REQ-CEN-036: the archive never repeats the scene ON AIR — so without a door in
+    // the head itself, that scene had NO way to reach `openSceneConfigWindow` (and,
+    // through its injected `onOpenPerception`, no way to reach perception either).
+    // This button is that door.
+    const html = renderTab(ON_AIR._id);
+
+    expect(html).toContain("scene-head__config");
+    expect(html).toContain(`aria-label="${t("FUSION.Scene.Dialog.EditScene")} ${ON_AIR.name}"`);
+  });
+
+  it("REQ-CEN-014: with nothing on air there is no scene to configure, and no door", () => {
+    const html = renderTab(null);
+
+    expect(html).not.toContain("scene-head__config");
+  });
+
+  it("REQ-CEN-013: the door is out of flow and cannot grow the fixed head", () => {
+    const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("ScenesTab.svelte"))?.[1] ?? "";
+    const rule = /\.scene-head__config\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
+
+    expect(rule).toMatch(/position:\s*absolute/);
+    expect(rule).not.toMatch(/height:\s*\d/);
+  });
+
+  it("does not reintroduce the retired direct perception door or the environment group", () => {
+    // The button opens `openSceneConfigWindow`, never `openScenePerceptionWindow`
+    // directly — item 25's retirement of REQ-CEN-020..025 stays in force.
+    const html = renderTab(ON_AIR._id);
+
+    expect(html).not.toContain("scene-head__perception");
+    expect(html).not.toContain("scene-head__env");
   });
 });
 

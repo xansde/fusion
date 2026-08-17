@@ -104,14 +104,23 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
     sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
+    const archive = html.slice(html.indexOf('class="scenes-tab__body'));
 
     // The scene NOT on air keeps the three verbs of the row...
     expect(html).toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Taverna`);
     expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} Taverna`);
     expect(html).toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} Taverna`);
-    // ...and the one on air has no row at all, so it offers none of them here.
-    expect(html).not.toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Cripta`);
-    expect(html).not.toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
+    // ...and the one on air has no ROW at all, so the archive offers none of them —
+    // activating and deleting the scene on air stay unreachable from anywhere.
+    expect(archive).not.toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Cripta`);
+    expect(archive).not.toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
+    expect(archive).not.toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} Cripta`);
+    // Ajustes r1 review (2026-08-17), REQ-CEN-061/062: with no row, the scene on air
+    // still needs a way into its own configuration — REQ-CEN-036 excludes it from
+    // the archive on purpose, it does not strand it. That door is `.scene-head__config`,
+    // in the head above the archive, not a row.
+    expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
+    expect(html).toContain("scene-head__config");
     // And the header still offers creating one.
     expect(html).toContain(t("FUSION.Sidebar.Scenes.Create"));
   });
