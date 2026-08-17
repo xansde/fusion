@@ -815,31 +815,37 @@ export interface SettingDocument extends BaseDocument {
 
 ### Documents embedded (MVP) — campos de engine
 
+> **Emenda de 2026-08-17**, obrigada pela `41-token.md` §12 (DEC-TOK-02). A forma da peça
+> passa a ser da `41` §7.1 — a tabela abaixo é espelho exato dela, não uma segunda fonte;
+> qualquer alteração de campo de `TokenData` se propõe lá, não aqui. Esta spec segue dona
+> da forma de Document em geral (`TypedDocument`/`BaseDocument`, `ownership`, embedding) —
+> só a forma específica do Token saiu daqui.
+
 ```ts
 export interface TokenData {
   _id: DocumentId;
-  name: string;
-  displayName: number;
-  actorId: DocumentId | null; // soft ref para Actor base
-  actorLink: boolean;
-  actorDelta: ActorDeltaPatch | null; // merge patch quando unlinked (DEC-DOC-08)
+  actorId: DocumentId; // obrigatório — REQ-TOK-002 (41-token.md)
   x: number;
   y: number;
-  elevation: number;
-  width: number;
-  height: number; // em células de grid
-  img: string | null;
-  hidden: boolean;
-  locked: boolean;
-  disposition: -1 | 0 | 1; // hostil/neutro/amigo
   rotation: number;
-  alpha: number;
+  elevation: number;
+
+  actorLink: boolean;
+  actorDelta: ActorDeltaPatch | null; // só quando actorLink = false (DEC-DOC-08)
+
+  name: string | null; // rótulo próprio; null = herda do ator
+  disposition: -1 | 0 | 1 | null; // null = herda do ator
+  hidden: boolean;
+  seenBy: DocumentId[]; // exceções à ocultação — REQ-TOK-050 (41-token.md)
+
   bar1: { attribute: string | null };
   bar2: { attribute: string | null };
-  light: TokenLightConfig; // ver 07
-  sight: TokenSightConfig; // ver 07
-  flags: FlagsRecord;
-  // sem ownership (deriva do Actor referenciado p/ fins de visão)
+
+  vision: TokenVisionConfig; // ver 07; inerte — REQ-TOK-101 (41-token.md)
+  light: TokenLightConfig; // ver 07; inerte — REQ-TOK-101 (41-token.md)
+
+  flags: FlagsRecord; // extensão namespaced — REQ-TOK-100 (41-token.md)
+  // sem ownership (posse deriva do Actor referenciado — REQ-TOK-034, 41-token.md)
 }
 
 /** Merge patch parcial simplificado (DEC-DOC-08). */
@@ -1068,7 +1074,7 @@ export type ActorEmbeddedItem = Omit<ItemDocument, "ownership" | "folderId">;
 ```
 
 > `PrototypeTokenData`, `GridConfig`, `FogConfig`, `LightConfig`,
-> `TokenLightConfig`, `TokenSightConfig`, `TextureConfig`, `DrawingShape`,
+> `TokenLightConfig`, `TokenVisionConfig`, `TextureConfig`, `DrawingShape`,
 > `EffectDuration`, `ChatSpeaker` são detalhados nas specs de canvas/visão/chat
 > (`ver 06-`, `07-`, `09-`); aqui aparecem como tipos opacos do ponto de vista do
 > modelo de dados.

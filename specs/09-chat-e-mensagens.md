@@ -57,7 +57,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 | **ChatMessage**    | Document persistido no `world.db`, representando uma mensagem no log de chat.                                                                                       |
 | **MessageType**    | Discriminador semântico do ChatMessage: `text`, `roll`, `emote`, `whisper`, `system`.                                                                               |
 | **Roll mode**      | Política de visibilidade de uma rolagem: `public`, `gmroll`, `blindroll`, `selfroll`. Mapeado em `whisper[]` e `blind` no documento.                                |
-| **Speaker**        | Objeto embeddido que identifica o remetente efetivo: pode ser o User, um Actor ou um Token alias.                                                                   |
+| **Speaker**        | Objeto embeddido que identifica o remetente efetivo: o Actor padrão do usuário (personagem) ou, na ausência de um, o User — nunca um Token (DEC-CHT-11).            |
 | **Chat card**      | Mensagem do tipo `system` ou `roll` que carrega um payload `CardData` — schema JSON declarativo renderizado pelo cliente como cartão interativo com botões de ação. |
 | **CardAction**     | Ação tipada associada a um botão de card. É serializada como string de tipo + payload JSON, executada pelo sistema registrado ao clicar.                            |
 | **Inline roll**    | Expressão `[[fórmula]]` avaliada imediatamente ao enviar a mensagem; resultado substituído inline no conteúdo.                                                      |
@@ -67,7 +67,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 | **Blind roll**     | Rolagem cujo resultado é visível apenas para GMs; o jogador que rolou vê apenas a mensagem de confirmação.                                                          |
 | **Virtual scroll** | Técnica de renderização que mantém somente as mensagens visíveis no DOM, não todo o histórico.                                                                      |
 | **FTS5**           | Extensão de full-text search do SQLite, usada para busca no log de chat.                                                                                            |
-| **Chat bubble**    | Balão visual temporário exibido acima de um token no canvas para mensagens IC e emotes.                                                                             |
+| **Chat bubble**    | Balão visual temporário exibido acima da(s) peça(s) do personagem do falante, na cena ativa, para mensagens IC e emotes (DEC-CHT-11).                               |
 
 ---
 
@@ -199,6 +199,24 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 
 ---
 
+### DEC-CHT-11: Speaker é sempre o jogador; o bubble ancora no personagem, não na peça controlada
+
+**Decisão:** O `speaker` de uma mensagem nunca referencia um Token. Ele é resolvido do lado do usuário: o Actor padrão (`User.characterId`) ou, na ausência de um, o nome do User. `ChatSpeaker` perde o campo `tokenId` — não sobra mais uma peça "controlada" para se referenciar (DEC-TOK-06, `specs/41-token.md`).
+
+Chat bubbles (REQ-CHT-041) deixam de estar amarrados a um Token de origem e passam a ser derivados de `speaker.actorId`: ao processar uma mensagem `emote`/IC, o servidor identifica, na cena ativa, toda peça cujo `actorId` seja o mesmo do falante, e o cliente desenha um bubble acima de **cada uma**. Sem `speaker.actorId` resolvido (fallback de nome de usuário), ou sem nenhuma peça daquele Actor na cena ativa, nenhum bubble aparece — silenciosamente, não é erro.
+
+**Alternativas rejeitadas:**
+
+- _Manter `tokenId` no `speaker`, resolvido por alguma outra regra (ex.: única peça do ator na cena):_ reintroduziria um predicado de "peça controlada" que a `41` eliminou deliberadamente (DEC-TOK-06); e não teria resposta estável com duas peças do mesmo ator na mesma cena, caso que a `41` já registra como legítimo (Q-TOK-06).
+- _Falar sem personagem em cena nunca gera bubble, mesmo com Actor padrão presente:_ é exatamente o comportamento adotado — não é alternativa rejeitada, é a decisão (registrado aqui só para deixar explícito que não há bubble "genérico" do usuário sem personagem).
+- _Escolher arbitrariamente uma peça entre várias do mesmo Actor:_ decisão sem critério estável — duas peças do mesmo personagem na cena são igualmente "o personagem falando"; mostrar em todas evita inventar um desempate sem fundamento na regra do jogo.
+
+**Racional:** DEC-TOK-06 (`specs/41-token.md`) elimina a posse de uma peça (Token) como base de **permissão/ownership** — ownership passou a ser sempre sobre o Actor, nunca sobre uma peça. A `09` era a última spec a usar "token controlado pelo usuário" como base de **identidade do falante** (quem fala no chat); `06` (REQ-CNV-008, navegação de câmera), `11` (REQ-UIF-008a, Token HUD) e `13` (REQ-AUD-028/REQ-AUD-035, áudio espacial) continuam usando a expressão em outros sentidos e não são tocadas por esta emenda — não há aqui alegação de que o termo tenha sido varrido do projeto inteiro. Ancorar o bubble no Actor, não na peça, mantém o comportamento coerente em cena sem nenhuma peça do personagem (não aparece) e em cena com mais de uma (aparece em todas), sem reintroduzir uma segunda noção de posse.
+
+_(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
+
+---
+
 ## Requisitos funcionais
 
 ### Modelo e persistência
@@ -264,7 +282,7 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 
 ### Speaker
 
-**REQ-CHT-022** [MVP] O objeto `speaker` de toda mensagem DEVE ser resolvido pelo servidor na seguinte ordem de prioridade: (1) token controlado pelo usuário na cena ativa; (2) actor padrão do usuário; (3) nome do usuário como fallback.
+**REQ-CHT-022** [MVP] O objeto `speaker` de toda mensagem DEVE ser resolvido pelo servidor a partir do **usuário autor**, nunca de uma peça posicionada em cena: (1) o Actor padrão do usuário (`User.characterId`, ver `02-modelo-de-dados.md`), se definido; (2) o nome do usuário como fallback. _(Esta redação substitui a anterior, que resolvia o falante por "token controlado pelo usuário na cena ativa" — DEC-TOK-06 (`41-token.md`) eliminou o conceito de posse de peça/"controle de token" do projeto inteiro: quem fala é sempre o jogador. Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-023** [MVP] O campo `speaker.alias` DEVE ser exibido no painel de chat como nome do remetente. Para mensagens OOC, o nome do User (não do personagem) DEVE ser exibido.
 
@@ -312,11 +330,11 @@ A consequência é a razão da decisão: a visibilidade do chat é lida por **tr
 
 ### Chat bubbles
 
-**REQ-CHT-041** [MVP] Mensagens do tipo `emote` e mensagens IC (`/ic`) originadas de um token posicionado na cena ativa DEVEM gerar um chat bubble acima do token no canvas.
+**REQ-CHT-041** [MVP] Mensagens do tipo `emote` e mensagens IC (`/ic`) DEVEM gerar um chat bubble acima de **cada peça**, presente na cena ativa, cujo `actorId` seja o `speaker.actorId` do falante (DEC-CHT-11). Sem `speaker.actorId` resolvido, ou sem nenhuma peça daquele Actor na cena ativa, nenhum bubble é exibido. _(Esta redação substitui a anterior, que ancorava no token que originou a mensagem — noção de "token de origem" eliminada por DEC-TOK-06 (`41-token.md`); emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-042** [MVP] Chat bubbles DEVEM ser exibidas por 5 segundos e então desaparecer com fade-out. Texto DEVE ser truncado após 120 caracteres com `…`.
 
-**REQ-CHT-043** [MVP] Chat bubbles DEVEM respeitar a visibilidade do token: se o token está fora do campo de visão do jogador (fog of war), o bubble NÃO é exibido para esse jogador.
+**REQ-CHT-043** [MVP] Cada chat bubble DEVE respeitar a visibilidade da peça em que está ancorado: se aquela peça está fora do campo de visão do jogador (fog of war), o bubble correspondente NÃO é exibido para esse jogador — mesmo que outra peça do mesmo personagem, na mesma cena, esteja visível e mostre o seu. _(Redação ajustada à pluralidade de âncoras de DEC-CHT-11/REQ-CHT-041; emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 ### Pop-out
 
@@ -367,15 +385,17 @@ export type MessageType = "text" | "roll" | "emote" | "whisper" | "system";
 /** Roll mode: determina visibilidade da rolagem */
 export type RollMode = "public" | "gmroll" | "blindroll" | "selfroll";
 
-/** Identidade do remetente efetivo */
+/**
+ * Identidade do remetente efetivo. Nunca referencia um Token — quem fala é o jogador,
+ * nunca a peça (DEC-CHT-11, DEC-TOK-06 de `41-token.md`). Sem `tokenId`: uma mensagem
+ * pode "iluminar" zero, uma ou várias peças do mesmo Actor na cena ativa (REQ-CHT-041).
+ */
 export interface ChatSpeaker {
   /** ID do User Fusion (sempre presente) */
   userId: string;
-  /** ID do Actor, se resolvido */
+  /** ID do Actor padrão do usuário (`User.characterId`), se definido */
   actorId?: string;
-  /** ID do Token, se resolvido */
-  tokenId?: string;
-  /** Alias exibido no log (nome do token, actor ou user) */
+  /** Alias exibido no log (nome do actor ou do user) */
   alias: string;
 }
 
@@ -533,18 +553,19 @@ export type ServerChatCommandHandler = (
 
 ## Dependências (specs irmãs)
 
-| Spec                          | Dependência                                                                           |
-| ----------------------------- | ------------------------------------------------------------------------------------- |
-| `02-modelo-de-dados.md`       | `ChatMessage` segue o modelo Document (campos base `_id`, `flags`, ownership).        |
-| `03-persistencia-e-mundos.md` | Tabela `chat_messages` e tabela FTS5 `chat_fts` no `world.db`; esquema de índices.    |
-| `04-rede-e-sincronizacao.md`  | Envelope de mensagem, namespaces, rooms, rate limiting de socket, sequência `seq`.    |
-| `05-usuarios-e-permissoes.md` | Permissão `CHAT_WHISPER`, visibilidade de blind rolls para GMs, deleção de mensagens. |
-| `08-motor-de-rolagens.md`     | `RollData`, avaliação de inline rolls, roll modes.                                    |
-| `11-ui-framework-e-fichas.md` | Componente `<ChatCard>`, virtual scroll, renderização de markdown.                    |
-| `13-audio-e-playlists.md`     | Som de notificação no canal de interface.                                             |
-| `14-macros-e-automacao.md`    | Comandos `/macro` e execução de macros via chat são escopo da spec de macros.         |
-| `15-api-de-sistemas.md`       | `registerChatCommand()`, `registerCardAction()`.                                      |
-| `21-seguranca.md`             | Allowlist de sanitização HTML/markdown, rate limiting detalhado, política de CSP.     |
+| Spec                          | Dependência                                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `02-modelo-de-dados.md`       | `ChatMessage` segue o modelo Document (campos base `_id`, `flags`, ownership).                                |
+| `03-persistencia-e-mundos.md` | Tabela `chat_messages` e tabela FTS5 `chat_fts` no `world.db`; esquema de índices.                            |
+| `04-rede-e-sincronizacao.md`  | Envelope de mensagem, namespaces, rooms, rate limiting de socket, sequência `seq`.                            |
+| `05-usuarios-e-permissoes.md` | Permissão `CHAT_WHISPER`, visibilidade de blind rolls para GMs, deleção de mensagens.                         |
+| `08-motor-de-rolagens.md`     | `RollData`, avaliação de inline rolls, roll modes.                                                            |
+| `11-ui-framework-e-fichas.md` | Componente `<ChatCard>`, virtual scroll, renderização de markdown.                                            |
+| `13-audio-e-playlists.md`     | Som de notificação no canal de interface.                                                                     |
+| `14-macros-e-automacao.md`    | Comandos `/macro` e execução de macros via chat são escopo da spec de macros.                                 |
+| `15-api-de-sistemas.md`       | `registerChatCommand()`, `registerCardAction()`.                                                              |
+| `21-seguranca.md`             | Allowlist de sanitização HTML/markdown, rate limiting detalhado, política de CSP.                             |
+| `41-token.md`                 | `TokenDocument.actorId`, ownership do Actor (DEC-TOK-06) — âncora dos chat bubbles (DEC-CHT-11, REQ-CHT-041). |
 
 ---
 

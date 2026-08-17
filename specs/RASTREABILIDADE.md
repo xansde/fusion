@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1952 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **1956 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 674 | 35% |
+| Citados por algum teste | 674 | 34% |
 | Citados só por código de produção | 326 | 17% |
-| Sem nenhuma citação | 952 | 49% |
-| **Total [MVP]** | **1952** | |
+| Sem nenhuma citação | 956 | 49% |
+| **Total [MVP]** | **1956** | |
 
 ## Por spec
 
@@ -39,7 +39,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 62 | 16 | 30 | 16 | 26% |
+| [15](15-api-de-sistemas.md) | 63 | 16 | 30 | 17 | 25% |
 | [16](16-compendiums-e-importacao.md) | 56 | 18 | 16 | 22 | 32% |
 | [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
@@ -58,7 +58,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
 | [36](36-gaveta-lateral.md) | 24 | 24 | 0 | 0 | 100% |
-| [37](37-configuracoes.md) | 40 | 35 | 2 | 3 | 88% |
+| [37](37-configuracoes.md) | 43 | 35 | 2 | 6 | 81% |
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |

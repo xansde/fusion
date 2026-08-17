@@ -325,6 +325,18 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
 - **REQ-SYS-008** [V2] A engine DEVE suportar carregamento dinâmico de sistemas/
   módulos de terceiros (fora do monorepo), com sandbox e verificação de
   integridade. (Fora do MVP por DEC-SYS-01 e `ver 01-`/`ver 21-`.)
+- **REQ-SYS-009** [MVP] O manifest DEVE poder declarar `sizeToFootprint` (mapa de categoria de
+  tamanho do ator → `{ width: number; height: number }`, células ocupadas na grade); a engine
+  consome o mapeamento para derivar o footprint do token a partir do tamanho do ator efetivo,
+  sem arbitrar a conversão — a mesma disciplina que REQ-SYS-004 já aplica a barras e iniciativa.
+  Campo opcional; sistema sem declaração não produz footprint multi-célula. (`ver 41-`.)
+
+  > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-03 e §12, 2026-08-17): ponto de
+  > extensão novo. O `TokenDocument` não carrega mais campo de footprint (REQ-TOK-012) — a peça é
+  > um endereço, e as células ocupadas são derivadas do tamanho do ator efetivo pela conversão que
+  > o sistema declara (PF2e: Médio 1×1, Grande 2×2). A engine não arbitra a regra: só encaminha o
+  > mapeamento para quem desenha o token. `sizeToFootprint` é o que sustenta REQ-TOK-012 e
+  > REQ-TOK-017 (footprint muda sozinho quando a criatura muda de tamanho, sem escrita na peça).
 
 ### Registro de document subtypes e schemas `system`
 
@@ -641,6 +653,7 @@ interface SystemManifest {
     path: string;
   }>;
   grid?: { distance: number; units: string };
+  sizeToFootprint?: Record<string, { width: number; height: number }>; // DEC-TOK-03 (41-token.md)
   initiative?: string; // id de InitiativeFormula registrada
   primaryBarAttribute?: string; // caminho (ex.: "attributes.hp")
   secondaryBarAttribute?: string;
@@ -906,6 +919,9 @@ Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat
   contrato de exibição de condição (REQ-SYS-043): `tone`, `help` e `critical`
   nasceram da DEC-CTT-11 e são lidos por REQ-CTT-030..038, REQ-CBA-050 e
   REQ-NPC-033.
+- `41-token.md` — footprint do token: `sizeToFootprint` (REQ-SYS-009) é a conversão
+  tamanho→células que REQ-TOK-012/017 exigem para derivar as células ocupadas do ator
+  efetivo, sem campo de footprint na peça (DEC-TOK-03).
 - `24-operacao-backups-telemetria.md` — backup pré-migração, relatório de
   migração, telemetria.
 - `25-testes-e-qualidade.md` — gate de contract test no CI.
