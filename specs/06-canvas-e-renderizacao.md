@@ -25,7 +25,7 @@ Esta spec é a fonte de verdade para tudo que aparece **dentro do `<canvas>`** d
 
 - A hierarquia de grupos e camadas PIXI v8 do canvas, e o uso de **Render Groups** para pan/zoom acelerado por GPU.
 - A abstração de grade: `square`, `hex` (pointy/flat, odd/even) e `gridless`; conversões pixel↔célula, snapping configurável e medição de distância (incluindo a regra de diagonais 5-10-5 do PF2e).
-- O modelo visual e de interação de **Tokens**: textura, ring/borda, barras de atributo, status icons, nameplate, elevação; movimento (drag, setas, animação interpolada, preview), seleção múltipla e targeting.
+- O modelo visual e de interação de **Tokens**: textura, ring/borda, barras de atributo, nameplate, elevação; movimento (drag, setas, animação interpolada, preview), seleção múltipla e targeting. _(Emenda `41-token.md` §12, DEC-TOK-19, 2026-08-17: ícones de status saem do canvas — ver `REQ-CNV-029`, aposentado.)_
 - **Tiles** (underfoot/overhead, oclusão), **Drawings** (formas, freehand, texto), **MeasuredTemplates** (circle, cone, line/ray, emanation conforme PF2e), **Notes** (map pins) e **Ruler**.
 - A configuração de **Scene** relevante ao canvas (dimensões, grade, background/foreground, padding, initial view, ambiente) e a navegação/ativação de cenas do ponto de vista do canvas.
 - As metas e técnicas de **performance** do canvas.
@@ -147,14 +147,25 @@ O token ocupa um **footprint** (`width`×`height` em células — define a ocupa
   > substitui a frase sobre escala visual independente e a lista de atributos suportados; o
   > footprint e o ring opcional permanecem inalterados em espírito.)_
 
-### DEC-CNV-08 — Barras de atributo, status icons e nameplate como overlays cacheáveis do token
+### DEC-CNV-08 — Barras de atributo e nameplate como overlays cacheáveis do token
 
-Cada token compõe, acima da arte: até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, **ícones de status** (no canto, definidos pelo sistema), **nameplate** (rótulo) e, opcionalmente, indicador de **elevação**. A visibilidade de cada elemento é configurável por nível (nunca / dono / hover dono / hover todos / sempre). Esses overlays são **cacheados como bitmap** quando estáticos, para reduzir draw calls.
+Cada token compõe, acima da arte: até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, **nameplate** (rótulo) e, opcionalmente, indicador de **elevação**. A exibição do nome depende do **conhecimento** do usuário sobre o ator, e a da barra depende da **posse** (OWNER) sobre ele — nunca de um nível de visibilidade próprio do token (REQ-CNV-031, `41-token.md` DEC-TOK-09/DEC-TOK-10/DEC-TOK-11). Esses overlays são **cacheados como bitmap** quando estáticos, para reduzir draw calls.
+
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-11, DEC-TOK-19, 2026-08-17): a
+> redação anterior incluía **ícones de status** entre os overlays cacheáveis do token e descrevia
+> a visibilidade de cada elemento como um nível único configurável (nunca / dono / hover dono /
+> hover todos / sempre). Ícones de condição saem do canvas — a direção passa a ser um espaço
+> dedicado fora dele (DEC-TOK-19; ver `REQ-CNV-029`, aposentado, e `REQ-TOK-083`). A
+> visibilidade deixa de ser um nível único do token e passa a ser duas perguntas resolvidas no
+> servidor — conhecimento para o nome, posse para a barra — com preferência local do usuário por
+> cima (DEC-TOK-09/DEC-TOK-10/DEC-TOK-11). _(A redação acima substitui a menção a ícones de
+> status e a frase sobre visibilidade por nível; barras, nameplate, elevação e cache como bitmap
+> permanecem.)_
 
 - **Alternativas rejeitadas:**
-  - _Desenhar barras/ícones com `PIXI.Graphics` por frame sem cache_: `PIXI.Graphics` não participa de batching e gera um draw call por objeto; com 50 tokens isso explode os draw calls (research 03 §4.2, §15.2).
+  - _Desenhar barras/nameplate com `PIXI.Graphics` por frame sem cache_: `PIXI.Graphics` não participa de batching e gera um draw call por objeto; com 50 tokens isso explode os draw calls (research 03 §4.2, §15.2).
   - _Renderizar nameplates sempre, em qualquer zoom_: ilegível e custoso em zoom out; daí o LOD de nameplate (ver DEC-CNV-11).
-- **Racional:** A pesquisa quantifica o ganho de cachear barras/ícones como textura (`cacheAsBitmap`): de ~85 para ~36 draw calls, de ~55 fps para 100+ fps (research 03 §15.2). A visibilidade por nível é o comportamento esperado das resource bars/status (research 03 §7.4). Os ícones de status são definidos pelo sistema de jogo (`15-api-de-sistemas.md`).
+- **Racional:** A pesquisa quantifica o ganho de cachear barras como textura (`cacheAsBitmap`): de ~85 para ~36 draw calls, de ~55 fps para 100+ fps (research 03 §15.2).
 
 ### DEC-CNV-09 — Tiles overhead com modos de oclusão; teste de oclusão por amostragem de pontos
 
@@ -175,7 +186,11 @@ Mudanças que afetam o canvas (mover token, alterar luz, abrir porta, mudar oclu
 
 ### DEC-CNV-11 — LOD de nameplates e detalhe por nível de zoom
 
-Nameplates, barras e ícones de status têm **LOD por zoom**: abaixo de um limiar de zoom, nameplates somem (ou viram um ponto), barras simplificam e ícones de status agregam. A grade também ajusta densidade visual (linhas mais finas/atenuadas) em zoom baixo.
+Nameplates e barras têm **LOD por zoom**: abaixo de um limiar de zoom, nameplates somem (ou viram um ponto) e barras simplificam. A grade também ajusta densidade visual (linhas mais finas/atenuadas) em zoom baixo.
+
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19, 2026-08-17): a redação
+> anterior incluía ícones de status no LOD do token. Ícones de condição saem do canvas
+> (DEC-TOK-19; ver `REQ-CNV-029`, aposentado); o LOD de nameplate/barra não muda.
 
 - **Alternativas rejeitadas:**
   - _Detalhe constante em todo zoom_: ilegível em zoom out e custoso (texto pequeno re-renderizado).
@@ -359,7 +374,7 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
   > borda/ring como exibição da disposition permanece.)_
 
 - **REQ-CNV-028** [MVP] Um token DEVE poder exibir até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, com a barra refletindo valor atual/máximo.
-- **REQ-CNV-029** [MVP] ~~Um token DEVE poder exibir **ícones de status** (definidos pelo sistema de jogo) agrupados em um canto; um status PODE ser exibido como overlay grande (no máximo um por token).~~
+- **REQ-CNV-029** [V2] ~~Um token DEVE poder exibir **ícones de status** (definidos pelo sistema de jogo) agrupados em um canto; um status PODE ser exibido como overlay grande (no máximo um por token).~~
 
   > **APOSENTADO** — **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19,
   > 2026-08-17): esta spec deixa de definir ícones de condição na peça. Uma peça de 1×1 com
@@ -368,7 +383,10 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
   > do canvas (decisão de quem for dono dessa tela). O registro da condição em si
   > (`img`/`tone`/`help`) não muda — só onde ela aparece. Ver `REQ-TOK-083` (`41-token.md`). O id
   > permanece definido aqui, aposentado, para que nenhuma citação existente resolva para o vazio
-  > (`CONVENCOES.md` §5).
+  > (`CONVENCOES.md` §5). A tag muda de `[MVP]` para `[V2]` (`CONVENCOES.md` §2: "requisito que
+  > não se pretende mais cumprir é removido ou reclassificado") — um id aposentado marcado `[MVP]`
+  > continuava contando no total de requisitos MVP e na coluna "sem citação" de
+  > `RASTREABILIDADE.md`, como se fosse uma promessa de marco viva.
 
 - **REQ-CNV-030** [MVP] Um token DEVE exibir um **nameplate** (rótulo) com fonte/cor do tema.
 - **REQ-CNV-031** [MVP] A **exibição** de nameplate e resource bars é governada por duas perguntas separadas, nunca por um nível de ownership do token: se o nome aparece depende do **conhecimento** (`39-contatos.md`, REQ-CTT-070/071 — o estado efetivo do usuário sobre o ator PRECISA ser `conhecido`); se a barra aparece depende da **posse** (REQ-USR-013 — OWNER (3) sobre o ator, ou papel privilegiado, DEC-TOK-10 em `41-token.md`). Acima desse corte de servidor, o usuário PODE ainda desligar nome e/ou barra por preferência local (DEC-TOK-11, `41-token.md`); a preferência só DEVE subtrair do que a redação já emitiu, nunca revelar o que ela não emitiu.
@@ -423,15 +441,19 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 - **REQ-CNV-038** [MVP] O usuário DEVE poder **selecionar múltiplos tokens** (rubber-band ou clique+modificadora) e movê-los/operá-los em conjunto, restrito aos tokens que ele controla.
 - **REQ-CNV-039** [MVP] O usuário DEVE poder **targetar** (marcar como alvo) um ou mais tokens, de forma distinta de selecionar/controlar; os alvos DEVEM ser visíveis aos demais usuários conforme política (ex.: cor do usuário que targetou).
 - **REQ-CNV-040** [MVP] A rotação de token DEVE ser possível por modificadora+scroll e por teclas, com incremento fino opcional.
-- **REQ-CNV-041** [MVP] O GM DEVE poder **duplicar** um token por **dois modos de gesto**: modificadora+drag (Ctrl+drag) e uma alternativa que NÃO exige arraste (ex.: item de menu de contexto ou atalho de teclado). Cada gesto DEVE oferecer ao GM a escolha entre os dois modos de cópia de REQ-TOK-090 — **crua** (estado vivo zerado) e **idêntica** (estado vivo preservado) — de `41-token.md`.
+- **REQ-CNV-041** [MVP] O GM DEVE poder **duplicar** um token por **dois modos de gesto**: modificadora+drag (Ctrl+drag) e uma alternativa que NÃO exige arraste (ex.: item de menu de contexto ou atalho de teclado). Para um token **não vinculado** (`actorLink: false`), cada gesto DEVE oferecer ao GM a escolha entre os dois modos de cópia de REQ-TOK-090 — **crua** (estado vivo zerado) e **idêntica** (estado vivo preservado); para um token **vinculado**, a interface NÃO DEVE oferecer essa escolha, porque os dois modos produzem o mesmo resultado (REQ-TOK-091 de `41-token.md`).
 
   > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-14, 2026-08-17): a redação
   > anterior era `[V2]` e descrevia só o gesto de Ctrl+drag. A `41` faz de duplicar um token
   > (nos seus dois modos, crua/idêntica — DEC-TOK-14) comportamento `[MVP]`
   > (REQ-TOK-031/REQ-TOK-090); "os modos são desta spec; o gesto é da `06`" (DEC-TOK-14), e a
-  > `23` exige alternativa não-arraste para os dois — Ctrl+drag deixa de ser a única porta.
-  > _(A redação acima substitui a tag `[V2]` por `[MVP]` e acrescenta o segundo modo de gesto e
-  > a escolha crua/idêntica; o gesto de Ctrl+drag original permanece como um dos dois.)_
+  > `23` exige alternativa não-arraste para os dois — Ctrl+drag deixa de ser a única porta. A
+  > qualificação por vínculo (linked/unlinked) é uma segunda emenda, obrigada por REQ-TOK-091: a
+  > redação anterior deste bloco mandava oferecer a escolha em todo gesto, incondicionalmente,
+  > contrariando o "a interface NÃO DEVE oferecer uma escolha sem efeito" da `41` para o caso
+  > vinculado. _(A redação acima substitui a tag `[V2]` por `[MVP]`, acrescenta o segundo modo de
+  > gesto e condiciona a oferta da escolha crua/idêntica ao token ser não vinculado; o gesto de
+  > Ctrl+drag original permanece como um dos dois.)_
 
 - **REQ-CNV-042** [V2] O **drag measurement** avançado com waypoints e tipos de movimento selecionáveis (caminhar/voar/nadar/escalar), e custo por tipo, DEVE ser suportado; o MVP entrega ruler de movimento simples (REQ-CNV-035).
 
@@ -512,11 +534,20 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 
 ## Requisitos não-funcionais
 
-- **REQ-CNV-074** [MVP] **Meta de framerate:** o canvas DEVE sustentar ≥ 60 fps em pan/zoom e movimento, em uma cena de até **10.000 × 10.000 px** com **50 tokens** visíveis (com resource bars e status icons), em hardware de cliente desktop de classe média com aceleração de hardware.
+- **REQ-CNV-074** [MVP] **Meta de framerate:** o canvas DEVE sustentar ≥ 60 fps em pan/zoom e movimento, em uma cena de até **10.000 × 10.000 px** com **50 tokens** visíveis (com resource bars), em hardware de cliente desktop de classe média com aceleração de hardware.
 - **REQ-CNV-075** [MVP] **Culling manual:** o canvas DEVE descartar do processamento/renderização os placeables cujo bounding box não intersecta o viewport (o PIXI não faz culling automático — research 03 §15.1).
-- **REQ-CNV-076** [MVP] **Draw calls controlados:** resource bars e status icons estáticos DEVEM ser cacheados como bitmap/atlas para reduzir draw calls; o objetivo é evitar 1 draw call por elemento por token (research 03 §15.2).
-- **REQ-CNV-077** [MVP] **Texturas:** o carregamento de texturas DEVE preferir formatos WebP/AVIF; texturas grandes (background) DEVEM usar mipmapping; ícones de status/ring DEVEM usar texture atlas.
-- **REQ-CNV-078** [MVP] **LOD:** nameplates, barras e ícones de status DEVEM ter nível de detalhe reduzido/oculto abaixo de um limiar de zoom configurável, mantendo legibilidade e performance.
+- **REQ-CNV-076** [MVP] **Draw calls controlados:** resource bars estáticas DEVEM ser cacheadas como bitmap/atlas para reduzir draw calls; o objetivo é evitar 1 draw call por elemento por token (research 03 §15.2).
+- **REQ-CNV-077** [MVP] **Texturas:** o carregamento de texturas DEVE preferir formatos WebP/AVIF; texturas grandes (background) DEVEM usar mipmapping; elementos de ring DEVEM usar texture atlas.
+- **REQ-CNV-078** [MVP] **LOD:** nameplates e barras DEVEM ter nível de detalhe reduzido/oculto abaixo de um limiar de zoom configurável, mantendo legibilidade e performance.
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19, 2026-08-17): as quatro
+  > redações acima (REQ-CNV-074, -076, -077, -078) citavam **ícones de status** entre os
+  > elementos medidos/cacheados/atlasados/LOD do token. Ícones de condição saem do canvas
+  > (DEC-TOK-19; ver `REQ-CNV-029`, aposentado, e `REQ-TOK-083`); as metas de framerate, cache,
+  > textura e LOD passam a cobrir apenas resource bars, nameplate e ring. _(A redação acima
+  > substitui as quatro menções a "status icons"/"ícones de status"; as demais exigências de cada
+  > requisito não mudam.)_
+
 - **REQ-CNV-079** [MVP] **Degradação WebGPU→WebGL:** a ausência de WebGPU DEVE resultar em fallback automático para WebGL sem ação do usuário e sem perda de funcionalidade essencial (research 15 §3.1).
 - **REQ-CNV-080** [MVP] **Não bloquear o frame:** operações potencialmente longas no canvas (ex.: gerar highlight de um template muito grande, recompor atlas) NÃO DEVEM travar o loop de render por mais de um frame perceptível; caminhos pesados de visão seguem `07` e DEC-ARQ-09 de `01`.
 - **REQ-CNV-081** [MVP] **Responsividade de input:** o feedback de preview de drag/seleção DEVE ser local e imediato (independente de round-trip ao servidor), mantendo a autoridade no servidor (DEC-CNV-05).
@@ -596,37 +627,25 @@ export interface GridStrategy {
 
 // --- Tipos de apresentação (client; não persistidos diretamente) ---
 
-export type Disposition = "friendly" | "neutral" | "hostile" | "secret";
-
-/** Nível de visibilidade de um overlay do token. */
-export type DisplayMode = "never" | "owner" | "hover_owner" | "hover_all" | "always";
+export type Disposition = "friendly" | "neutral" | "hostile";
 
 export interface ResourceBarView {
   /** Caminho de atributo no ator (ex.: "attributes.hp"). */
   attributePath: string;
   value: number;
   max: number;
-  display: DisplayMode;
 }
 
 export interface TokenView {
-  /** Footprint em células (independe da escala da arte). */
+  /** Footprint em células (define ocupação na grade e snapping). */
   width: number;
   height: number;
-  /** Escala visual da arte (multiplicador). */
-  scale: number;
   rotation: number; // graus
-  alpha: number; // 0–1
-  tint?: string; // hex
-  mirrorX: boolean;
-  mirrorY: boolean;
   elevation: number; // em gridUnits
   disposition: Disposition;
-  textureSrc: string; // URL servida por HTTP estático (nunca via socket)
   ring: boolean; // borda/ring por disposição (MVP); ring dinâmico é [V2]
   bars: [ResourceBarView?, ResourceBarView?];
-  statusIcons: string[]; // ids de status definidos pelo sistema
-  nameplate: { text: string; display: DisplayMode };
+  nameplate: { text: string };
 }
 
 export type TemplateShapeKind = "circle" | "cone" | "line" | "emanation";
@@ -673,6 +692,22 @@ export interface CameraView {
   scale: number;
 }
 ```
+
+> **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-02, DEC-TOK-03, DEC-TOK-09,
+> DEC-TOK-10, DEC-TOK-11, DEC-TOK-12, DEC-TOK-13, DEC-TOK-19, 2026-08-17): os tipos de
+> apresentação de token acima ("Tipos de apresentação") tinham `Disposition` com quatro valores
+> (incluindo `secret`), um `DisplayMode` de cinco níveis usado por `ResourceBarView.display` e
+> `nameplate.display`, e `TokenView` com `scale`, `alpha`, `tint`, `mirrorX`, `mirrorY`,
+> `textureSrc` e `statusIcons`. Nenhum desses campos sobrevive à peça deixar de ser dona de arte
+> própria (DEC-TOK-02 — a arte é sempre a do ator efetivo) e de visibilidade própria (DEC-TOK-09
+> a DEC-TOK-11 — nome por conhecimento, barra por posse OWNER, preferência local por cima; sem
+> nível de exibição persistido no token): `Disposition` fica com três valores
+> (hostil/neutro/amigo — `secret` vira assunto de visibilidade, DEC-TOK-12), `DisplayMode` é
+> removido inteiro, e `TokenView` perde os seis campos acima, com `width`/`height` continuando a
+> ser o footprint que já eram. Ícones de status saem do modelo de apresentação do canvas
+> (DEC-TOK-19; ver `REQ-CNV-029`, aposentado). _(A redação acima substitui os tipos
+> `Disposition`/`DisplayMode`/`ResourceBarView`/`TokenView` pela versão reduzida já aplicada; o
+> restante do bloco de código — grade, templates, tiles, câmera — não muda.)_
 
 ---
 
@@ -742,7 +777,16 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - **CA-CNV-05** As três grades (square/hex/gridless) implementam pixelToCell, cellToPixel, snapping, medição e highlight; o hex cobre as quatro variantes (REQ-CNV-014 a REQ-CNV-016, REQ-CNV-021).
 - **CA-CNV-06** Em cena PF2e (square), medir um caminho diagonal com `alternating_1` aplica 5-10-5 (acumula 1-2-1-2 ao longo do caminho, começa em 1); `alternating_2` acumula 2-1-2-1; trocar a regra de diagonal muda o resultado da medição (REQ-CNV-019, REQ-CNV-020).
 - **CA-CNV-07** Um token grande (ex.: 2×2) faz snap corretamente ao conjunto de células, em square e hex (REQ-CNV-023).
-- **CA-CNV-08** Um token exibe arte com footprint e escala independentes, borda por disposição, até duas resource bars, ícones de status e nameplate, com visibilidade por nível respeitando ownership (REQ-CNV-025 a REQ-CNV-031).
+- **CA-CNV-08** Um token exibe a arte do ator efetivo posicionada pelo footprint, borda por disposição (três valores), até duas resource bars e nameplate, com o nome cortado por conhecimento (`39-contatos.md`, REQ-CTT-070/071) e a barra cortada por posse OWNER (REQ-USR-013, DEC-TOK-10 em `41-token.md`) (REQ-CNV-025 a REQ-CNV-031).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-02, DEC-TOK-09, DEC-TOK-10,
+  > DEC-TOK-12, DEC-TOK-19, 2026-08-17): a redação anterior falava em "escala independente" (a
+  > peça deixou de ter escala própria, DEC-TOK-02), "ícones de status" (aposentados do canvas,
+  > DEC-TOK-19) e "visibilidade por nível respeitando ownership" (substituída por conhecimento
+  > para o nome + posse OWNER para a barra, DEC-TOK-09/DEC-TOK-10). _(A redação acima substitui o
+  > critério inteiro pela versão vigente; a faixa de requisitos citada — REQ-CNV-025 a
+  > REQ-CNV-031, já emendada — não muda.)_
+
 - **CA-CNV-09** Durante o drag, o ghost e o ruler de movimento aparecem antes da confirmação. Ao confirmar, o originador vê o movimento imediato (otimismo); demais clientes veem o token mover após o broadcast canônico; uma posição inválida/corrigida causa rollback no originador para a posição autoritativa (REQ-CNV-035 a REQ-CNV-037, REQ-NET-050/051/052).
 - **CA-CNV-10** Seleção múltipla e targeting funcionam de forma distinta entre si; alvos aparecem aos demais usuários (REQ-CNV-038, REQ-CNV-039).
 - **CA-CNV-11** Tiles overhead com modo `fade`/`radial` revelam ao token passar por baixo, com detecção por amostragem de múltiplos pontos (REQ-CNV-044 a REQ-CNV-046).
@@ -753,8 +797,12 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - **CA-CNV-15** O ruler mede com waypoints aplicando a regra da grade e é visível aos demais usuários com a cor do usuário (REQ-CNV-060 a REQ-CNV-062).
 - **CA-CNV-16** Uma cena configura dimensões, background/foreground, offset, padding, grade, initial view e ambiente; ativar a cena renderiza seus placeables e aplica a initial view em todos os clientes (REQ-CNV-064 a REQ-CNV-070). Abrir uma cena em preparo troca o canvas apenas de quem preparou: a cena no ar não muda, os demais clientes não mudam de tela, e uma tentativa de alterar `active` por atualização genérica de documento é recusada pelo servidor (REQ-CNV-070a, REQ-CEN-042).
 - **CA-CNV-17** Atualizações no mesmo frame (ex.: mover 5 tokens) coalescem em um único ciclo de re-render via flags, sem recálculo redundante (REQ-CNV-073).
-- **CA-CNV-18** Em hardware de cliente de classe média, uma cena 10k×10k com 50 tokens (com barras/ícones) sustenta ≥ 60 fps em pan/zoom e movimento, com culling manual ativo e draw calls controlados por cache/atlas (REQ-CNV-074 a REQ-CNV-077).
-- **CA-CNV-19** Em zoom out abaixo do limiar, nameplates/barras/ícones reduzem detalhe ou somem (LOD), preservando fps e legibilidade (REQ-CNV-078).
+- **CA-CNV-18** Em hardware de cliente de classe média, uma cena 10k×10k com 50 tokens (com barras) sustenta ≥ 60 fps em pan/zoom e movimento, com culling manual ativo e draw calls controlados por cache/atlas (REQ-CNV-074 a REQ-CNV-077).
+- **CA-CNV-19** Em zoom out abaixo do limiar, nameplates/barras reduzem detalhe ou somem (LOD), preservando fps e legibilidade (REQ-CNV-078).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md` §12, DEC-TOK-19, 2026-08-17): as duas
+  > redações acima citavam ícones de status junto de barras/nameplate; eles saem do canvas (ver
+  > REQ-CNV-074/-076/-077/-078, já emendados).
 
 ---
 
