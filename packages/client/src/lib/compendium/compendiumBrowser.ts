@@ -571,11 +571,24 @@ export function buildCompendiumDragPayload(
 
 export type SortField = "name" | "level" | "type";
 
-/** The comparator every sort in this module shares — one entry against another. */
-function compareEntries(a: PackIndexEntry, b: PackIndexEntry, field: SortField): number {
+/**
+ * The comparator every sort in this module shares — one entry against
+ * another. The "name" case sorts by the DISPLAYED name (REQ-CPD-040,
+ * DEC-CPD-06 — pt-BR overlay when the locale is pt-BR and a translation
+ * exists), never the raw EN `name`: the line the reader sees is
+ * `entryDisplayName`'s output, so a "Nome" sort that compared `entry.name`
+ * directly would silently stop being alphabetical for any translated entry
+ * (fixed in the Ajustes r1 review of A040 — see compendiumBrowser.test.ts).
+ */
+function compareEntries(
+  a: PackIndexEntry,
+  b: PackIndexEntry,
+  field: SortField,
+  locale: SupportedLocale,
+): number {
   switch (field) {
     case "name":
-      return a.name.localeCompare(b.name, "pt-BR");
+      return entryDisplayName(a, locale).localeCompare(entryDisplayName(b, locale), "pt-BR");
     case "level": {
       const aLv = a.index["system.level.value"];
       const bLv = b.index["system.level.value"];
@@ -595,9 +608,10 @@ export function sortEntries(
   entries: PackIndexEntry[],
   field: SortField = "name",
   asc = true,
+  locale: SupportedLocale = "pt-BR",
 ): PackIndexEntry[] {
   const sorted = [...entries].sort((a, b) => {
-    const cmp = compareEntries(a, b, field);
+    const cmp = compareEntries(a, b, field, locale);
     return asc ? cmp : -cmp;
   });
 
@@ -617,12 +631,13 @@ export function sortAggregatedResult(
   result: AggregatedSearchResult,
   field: SortField = "name",
   asc = true,
+  locale: SupportedLocale = "pt-BR",
 ): AggregatedSearchResult {
   return {
     groups: result.groups.map((group) => ({
       ...group,
       lines: [...group.lines].sort((a, b) => {
-        const cmp = compareEntries(a.entry, b.entry, field);
+        const cmp = compareEntries(a.entry, b.entry, field, locale);
         return asc ? cmp : -cmp;
       }),
     })),

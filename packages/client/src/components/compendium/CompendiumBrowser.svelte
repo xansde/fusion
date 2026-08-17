@@ -446,7 +446,7 @@
       // (REQ-CPD-034) — otherwise opening a pack would silently widen it back.
       ...(scopeState.facets.rarity !== undefined ? { rarity: scopeState.facets.rarity } : {}),
     });
-    return sortEntries(filterEntries(packEntries, query), sortField, sortAsc);
+    return sortEntries(filterEntries(packEntries, query), sortField, sortAsc, i18n.locale);
   });
 
   /**
@@ -468,7 +468,9 @@
    * stay REQ-CPD-031's.
    */
   const sortedAggregated = $derived<AggregatedSearchResult | null>(
-    visibleAggregated ? sortAggregatedResult(visibleAggregated, effectiveSortField, sortAsc) : null,
+    visibleAggregated
+      ? sortAggregatedResult(visibleAggregated, effectiveSortField, sortAsc, i18n.locale)
+      : null,
   );
 
   // ---- Lifecycle ----

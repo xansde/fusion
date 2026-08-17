@@ -282,6 +282,34 @@ describe("sortEntries", () => {
     sortEntries(entries, "level", false);
     expect(entries).toEqual(original);
   });
+
+  it("REQ-CPD-038/REQ-CPD-040: under pt-BR locale, sorts by the DISPLAYED (namePt) name, not the raw EN name (DEC-CPD-06)", () => {
+    // EN `name` is in the REVERSE order of `namePt` — a sort by the raw EN
+    // field would come out "Eagle, Owl, Spider" (wrong: that is not what the
+    // line shows), while a sort by the displayed name must read "Águia,
+    // Coruja, Aranha" — the fix from the Ajustes r1 review of A040.
+    const translated: PackIndexEntry[] = [
+      makeEntry({ _id: "t1", name: "Eagle", namePt: "Águia" }),
+      makeEntry({ _id: "t2", name: "Owl", namePt: "Coruja" }),
+      makeEntry({ _id: "t3", name: "Spider", namePt: "Aranha" }),
+    ];
+
+    const sorted = sortEntries(translated, "name", true, "pt-BR");
+
+    expect(sorted.map((e) => e.namePt)).toEqual(["Águia", "Aranha", "Coruja"]);
+  });
+
+  it("REQ-CPD-040: under en locale (no pt-BR overlay shown), sorts by the raw EN name", () => {
+    const translated: PackIndexEntry[] = [
+      makeEntry({ _id: "t1", name: "Eagle", namePt: "Águia" }),
+      makeEntry({ _id: "t2", name: "Owl", namePt: "Coruja" }),
+      makeEntry({ _id: "t3", name: "Spider", namePt: "Aranha" }),
+    ];
+
+    const sorted = sortEntries(translated, "name", true, "en");
+
+    expect(sorted.map((e) => e.name)).toEqual(["Eagle", "Owl", "Spider"]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -353,6 +381,34 @@ describe("sortAggregatedResult (REQ-CPD-038)", () => {
 
     expect(sorted.groups[0]?.total).toBe(30);
     expect(sorted.groups[0]?.omitted).toBe(28);
+  });
+
+  it("REQ-CPD-038/REQ-CPD-040: under pt-BR locale, sorts the group's lines by the DISPLAYED (namePt) name, not the raw EN name (DEC-CPD-06)", () => {
+    // Same bug as sortEntries, on the aggregated (whole-collection) body:
+    // the "Nome" chip must reorder by what the line actually shows.
+    const answer: AggregatedSearchResult = {
+      groups: [
+        {
+          documentType: "Actor",
+          total: 3,
+          lines: [
+            aggLine(makeEntry({ _id: "t1", name: "Eagle", namePt: "Águia" }), "Actor"),
+            aggLine(makeEntry({ _id: "t2", name: "Owl", namePt: "Coruja" }), "Actor"),
+            aggLine(makeEntry({ _id: "t3", name: "Spider", namePt: "Aranha" }), "Actor"),
+          ],
+          omitted: 0,
+          packs: [],
+        },
+      ],
+    };
+
+    const sorted = sortAggregatedResult(answer, "name", true, "pt-BR");
+
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.namePt)).toEqual([
+      "Águia",
+      "Aranha",
+      "Coruja",
+    ]);
   });
 
   it("does not mutate the input result", () => {

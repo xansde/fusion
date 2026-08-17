@@ -460,7 +460,9 @@ describe("the aggregated result can be reordered, by a field its toolbar owns (R
     // Both consumers use the folded field, not the raw one, so a leftover
     // "level" selection can never leave the aggregated toolbar with both
     // arrows blank while the list is silently sorted by level anyway.
-    expect(src).toMatch(/sortAggregatedResult\(visibleAggregated, effectiveSortField, sortAsc\)/);
+    expect(src).toMatch(
+      /sortAggregatedResult\(\s*visibleAggregated,\s*effectiveSortField,\s*sortAsc,\s*i18n\.locale,?\s*\)/,
+    );
     const sortArrowFn = src.slice(src.indexOf("function sortArrow("));
     const body = sortArrowFn.slice(0, sortArrowFn.indexOf("\n  }\n"));
     expect(body).toContain("if (effectiveSortField !== field) return");
