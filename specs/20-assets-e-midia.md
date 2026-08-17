@@ -326,7 +326,13 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 
 ### Integração com Documents
 
-**REQ-AST-043** [MVP] Campos de path de asset em Documents (ex.: `Actor.img`, `Scene.background.src`, `Token.texture.src`) DEVEM armazenar `AssetRef` — string que é um path relativo a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/maps/dungeon01.webp`) ou uma URL absoluta iniciando com `https://`.
+**REQ-AST-043** [MVP] Campos de path de asset em Documents (ex.: `Actor.img`, `Scene.background.src`) DEVEM armazenar `AssetRef` — string que é um path relativo a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/maps/dungeon01.webp`) ou uma URL absoluta iniciando com `https://`.
+
+> **Emenda (2026-08-17, obrigada por `specs/41-token.md` §12, DEC-TOK-02):** o `AssetRef` de arte
+> de criatura vive **só** no `Actor` (`Actor.img`), nunca no token — o `TokenDocument` NÃO possui
+> campo de arte/textura/imagem (REQ-TOK-010); a arte exibida em cada peça é sempre a do ator
+> efetivo, lida a cada render. O exemplo `Token.texture.src`, que citava um campo que a `41`
+> eliminou, saiu da lista acima.
 
 **REQ-AST-044** [MVP] Ao renderizar um `AssetRef` local, o cliente DEVE construir a URL completa concatenando o host com o path do AssetRef (ex.: `http(s)://<host>/assets/<digest>/<slug>` para assets compartilhados) usando o mapeamento `path → digest` obtido de `asset_meta`. Se o digest não for conhecido pelo cliente (cache miss), o cliente solicita ao servidor via `GET /api/storage/meta?path=...`.
 

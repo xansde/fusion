@@ -1060,3 +1060,5 @@ player: sim/não".
 **Pronto quando:** as quatro práticas estão escritas num lugar persistente (este documento
 já serve; se a skill `tutorial-e2e` for concluída antes, mover para lá) e o próximo PR de UI
 da gaveta ou de qualquer outra frente já as segue, sem precisar ser lembrado.
+
+Aplicado em 2026-08-17: `docs/design/PROCESSO-UI.md` (+ remissões em CONTRIBUTING.md e CLAUDE.md).

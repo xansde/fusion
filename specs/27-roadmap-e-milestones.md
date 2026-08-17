@@ -180,6 +180,17 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 
 **Objetivo.** Tokens têm visão limitada; paredes bloqueiam linha de visão; fog of war cobre área não-explorada; iluminação básica. Em cima disso, combate funciona: combat tracker, iniciativa, ciclo de turnos e hooks de combate. (A iniciativa usa a fórmula registrada pelo sistema — disponível de fato com PF2e em M3, mas o **motor** de combate e a infraestrutura de fórmula entram aqui.)
 
+> **Nota de 2026-08-17**, registro derivado de DEC-TOK-18/Q-TOK-04 de `41-token.md`, fora
+> da tabela §12 (a tabela lista `07`, não `27`; a extensão a este marco vem do TK008 do
+> plano de tarefas da `41`). Nenhum requisito deste marco muda. A `41` especificou a peça
+> (Token) sem herdar visão, névoa, iluminação ou colisão — os campos `vision`/`light` da
+> peça são declaração inerte até este marco valer. "Tokens têm visão limitada", acima,
+> continua sendo a entrega deste marco tal como especificado em `07`; o que passa a
+> existir é uma dependência registrada: se
+> Q-TOK-04 for resolvida no sentido de estender a remoção ao projeto inteiro (hoje vale só
+> para a spec 41), este marco muda de escopo. Enquanto Q-TOK-04 não for decidida nesse
+> sentido, M2 segue como está.
+
 **Entregáveis.**
 
 - Walls: segmentos com restrições `move/sight/light/sound`, portas com estado.
