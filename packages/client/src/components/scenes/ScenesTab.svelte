@@ -17,8 +17,6 @@
    *    answering "what is the table looking at right now" before "which scenes exist"
    *    (DEC-CEN-01). Its rule lives in `lib/scenes/scenesTabVM.ts`; what is here is
    *    markup and the asset-token dance the VM deliberately does not do.
-   *  - the environment shortcuts of the head (REQ-CEN-020..025), from
-   *    `lib/scenes/sceneEnvironment.ts`;
    *  - the four dialogs as WINDOWS (REQ-CEN-060..064): creating, configuring,
    *    perception and the delete confirmation open through
    *    `lib/scenes/sceneWindows.ts` — a form does not fit in 300px and the drawer
@@ -30,6 +28,14 @@
    *
    * Still to come with the rest of spec 44: the state dot of REQ-CEN-003..005 and the
    * local "preparo" of REQ-CEN-050..056.
+   *
+   * REQ-CEN-020..025 (the environment shortcuts and the perception door of the head)
+   * were retired from this UI on 2026-08-17 — Alexandre's r1 test, item 25 ("fora por
+   * enquanto", a decision, not a bug). The server-side logic they used to trigger
+   * (`toggleSceneDarkness`/`toggleSceneFog`/`resetSceneFog` in `lib/scenes/
+   * sceneEnvironment.ts`, and `openScenePerceptionWindow` in `lib/scenes/
+   * sceneWindows.ts`) is untouched and still reachable from the configuration window
+   * (REQ-CEN-062). See `specs/44-aba-cenas.md` §5.3 for the emended requirements.
    *
    * Content permission: the whole tab is group "gm" in the rail, but that is
    * ergonomics, not a boundary (REQ-GAV-034, DEC-CEN-11). Both halves are closed
@@ -49,26 +55,12 @@
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
   import {
-    SCENE_WINDOW_KEYS,
     openSceneConfigWindow,
     openSceneCreateWindow,
     openSceneDeleteWindow,
-    openScenePerceptionWindow,
   } from "../../lib/scenes/sceneWindows.js";
   import { t } from "../../lib/i18n/i18n.js";
   import { buildSceneHeadVM } from "../../lib/scenes/scenesTabVM.js";
-  import {
-    SCENE_ENV_KEYS,
-    buildSceneEnvironmentVM,
-    createDarknessMemory,
-    createSceneEnvironmentGestureRunner,
-    describeEnvironmentError,
-    resetSceneFog,
-    toggleSceneDarkness,
-    toggleSceneFog,
-    type SceneEnvironmentGestureId,
-  } from "../../lib/scenes/sceneEnvironment.js";
-  import { confirm as confirmDialog } from "../../lib/windows/dialogs.svelte.js";
   import {
     SCENE_SHELF_KEYS,
     buildSceneShelfVM,
@@ -152,83 +144,6 @@
       cancelled = true;
     };
   });
-
-  // --- The environment shortcuts (REQ-CEN-020..025) ----------------------------
-  // The three mid-session gestures over the scene ON AIR (DEC-CEN-06). Like the head
-  // itself they are a `$derived` projection of the document: pressed comes from the
-  // server and from nowhere else, so a refused write or a change made by another GM
-  // never leaves the control saying the opposite of the table (REQ-CEN-023). With no
-  // scene on air the VM is null and nothing is drawn (REQ-CEN-024).
-  const environment = $derived(
-    buildSceneEnvironmentVM({ scenes: sceneListState.scenes, activeSceneId: activeSceneId }),
-  );
-
-  /**
-   * The darkness level a scene had before the GM zeroed it, so the toggle can put it
-   * back (REQ-CEN-020). Session memory of a gesture — never a second opinion about what
-   * is on air, which is why it is not `$state` and nothing reads it to render.
-   */
-  const darknessMemory = createDarknessMemory();
-
-  /** Which gesture is in flight — disables the row instead of faking its new state. */
-  let envBusy = $state<SceneEnvironmentGestureId | null>(null);
-  let envError = $state<string | null>(null);
-
-  /**
-   * The one-at-a-time guard of REQ-CEN-023, kept out of the component so it can be
-   * exercised without a DOM (`lib/scenes/sceneEnvironment.ts`). It reports only whether a
-   * write is on the wire; what the controls SHOW is always the document.
-   */
-  const envGestures = createSceneEnvironmentGestureRunner(
-    {
-      setBusy: (gesture) => {
-        envBusy = gesture;
-      },
-      setError: (message) => {
-        envError = message;
-      },
-    },
-    describeEnvironmentError,
-  );
-
-  /** The document of the scene on air, straight from the world mirror. */
-  function sceneOnAir(): SceneDocument | null {
-    const id = environment?.sceneId;
-    if (id === undefined) return null;
-    return sceneListState.scenes.find((scene) => scene._id === id) ?? null;
-  }
-
-  async function runEnvGesture(
-    gesture: SceneEnvironmentGestureId,
-    run: () => Promise<unknown>,
-  ): Promise<void> {
-    await envGestures.run(gesture, run);
-  }
-
-  async function handleToggleDarkness(): Promise<void> {
-    const scene = sceneOnAir();
-    if (scene === null) return;
-    await runEnvGesture("darkness", () => toggleSceneDarkness(socket, scene, darknessMemory));
-  }
-
-  async function handleToggleFog(): Promise<void> {
-    const scene = sceneOnAir();
-    if (scene === null) return;
-    await runEnvGesture("fog", () => toggleSceneFog(socket, scene));
-  }
-
-  /** REQ-CEN-022: irreversible, so it asks first — and a refusal sends nothing. */
-  async function handleResetFog(): Promise<void> {
-    const scene = sceneOnAir();
-    if (scene === null) return;
-    await runEnvGesture("fogReset", () =>
-      resetSceneFog(socket, scene._id, () =>
-        confirmDialog(t(SCENE_ENV_KEYS.fogResetConfirm), {
-          confirmLabel: t(SCENE_ENV_KEYS.fogResetConfirmLabel),
-        }),
-      ),
-    );
-  }
 
   /**
    * The offer of REQ-CEN-014 with no scene on air. Putting a scene on air is a choice
@@ -413,113 +328,20 @@
           />
         {/if}
       </div>
-      {#if environment !== null}
-        {@const env = environment}
-        <!-- REQ-CEN-062: the head's door into the perception window, where the VALUES
-             are tuned (REQ-CEN-025). Absolute, in the opposite corner from the
-             environment group, so neither can add a pixel to the fixed head
-             (REQ-CEN-013). -->
-        <button
-          class="scene-head__perception"
-          title={t(SCENE_WINDOW_KEYS.headPerception)}
-          aria-label={t(SCENE_WINDOW_KEYS.headPerception)}
-          onclick={() => {
-            const scene = sceneOnAir();
-            if (scene) openScenePerceptionWindow(socket, scene);
-          }}
-        >
-          <!-- Drawn glyph (REQ-NPC-094): a sun with rays, "how this scene is seen". -->
-          <svg
-            viewBox="0 0 16 16"
-            width="14"
-            height="14"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.4"
-            stroke-linecap="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <circle cx="8" cy="8" r="2.6" />
-            <path d="M8 1.6v1.6M8 12.8v1.6M1.6 8h1.6M12.8 8h1.6M3.5 3.5l1.1 1.1M11.4 11.4l1.1 1.1M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1" />
-          </svg>
-        </button>
-        <!-- REQ-CEN-020/021/022: the three mid-session gestures, floating over the fixed
-             box so they cannot add a pixel of height to it (REQ-CEN-013). They exist only
-             while a scene is on air (REQ-CEN-024), and they only ACTION spec 07 —
-             darkness (REQ-VIS-044), the fog flag (REQ-VIS-085) and the reset
-             (REQ-VIS-086); values are tuned in the perception window (REQ-CEN-025). -->
-        <div class="scene-head__env" role="group" aria-label={t(env.groupKey)}>
-          <button
-            class="scene-head__env-btn"
-            class:scene-head__env-btn--on={env.darkness.pressed}
-            aria-pressed={env.darkness.pressed}
-            title={t(env.darkness.actionKey)}
-            aria-label={t(env.darkness.actionKey)}
-            disabled={envBusy !== null}
-            onclick={handleToggleDarkness}
-          >
-            <!-- Drawn glyphs only (REQ-NPC-094): a crescent for darkness, a bank of
-                 fog, and a circular arrow for the reset. -->
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-              <path
-                d="M11.6 10.4A5 5 0 0 1 5.6 4.4a5 5 0 1 0 6 6z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-          <button
-            class="scene-head__env-btn"
-            class:scene-head__env-btn--on={env.fog.pressed}
-            aria-pressed={env.fog.pressed}
-            title={t(env.fog.actionKey)}
-            aria-label={t(env.fog.actionKey)}
-            disabled={envBusy !== null}
-            onclick={handleToggleFog}
-          >
-            <svg
-              viewBox="0 0 16 16"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.4"
-              stroke-linecap="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M2.5 6h11" />
-              <path d="M4 9h8.5" />
-              <path d="M3 12h7" />
-            </svg>
-          </button>
-          <button
-            class="scene-head__env-btn scene-head__env-btn--reset"
-            title={t(env.fogReset.actionKey)}
-            aria-label={t(env.fogReset.actionKey)}
-            disabled={envBusy !== null}
-            onclick={handleResetFog}
-          >
-            <svg
-              viewBox="0 0 16 16"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M13 8a5 5 0 1 1-1.6-3.7" />
-              <path d="M13 2.5V5h-2.5" />
-            </svg>
-          </button>
-        </div>
-      {/if}
+      <!-- REQ-CEN-020..025: the perception door and the three environment gestures
+           that used to float here were retired from the head's UI on 2026-08-17
+           (Alexandre's r1 test, item 25 — a decision, not a bug). The server-side
+           logic stays; the door into it is still the configuration window
+           (REQ-CEN-062). See `specs/44-aba-cenas.md` §5.3. -->
+      <!-- Ajustes r1, item 27: the "no ar" flag is its own element, pinned to the
+           head's TOP edge (`position: absolute; top: 0`) — a sibling of
+           `.scene-head__info`, never nested inside it, so it stays isolated from the
+           name/dimensions block that anchors to the footer. -->
+      <span class="scene-head__flag">
+        <span class="scene-head__flag-dot" aria-hidden="true"></span>
+        {t("FUSION.Scene.Head.OnAir")}
+      </span>
       <div class="scene-head__info">
-        <span class="scene-head__flag">{t("FUSION.Scene.Head.OnAir")}</span>
         <span class="scene-head__name" title={head.name}>{head.name}</span>
         <span class="scene-head__meta">
           {t(head.dimensions.key, head.dimensions.vars)} · {t(head.grid.key, head.grid.vars)}
@@ -663,14 +485,11 @@
                       <circle cx="10" cy="12" r="1.1" />
                     </svg>
                   </button>
-                  <!-- REQ-CEN-035: name, dimensions and the environment marks that are
-                       on — written out, never carried by colour alone (REQ-CEN-091). -->
+                  <!-- REQ-CEN-035: name and the environment marks that are on —
+                       written out, never carried by colour alone (REQ-CEN-091). -->
                   <span class="scene-row__text">
                     <span class="scene-row__name" title={entry.name}>{entry.name}</span>
                     <span class="scene-row__meta">
-                      <span class="scene-row__dims"
-                        >{t(entry.dimensions.key, entry.dimensions.vars)}</span
-                      >
                       {#each entry.marks as mark (mark.id)}
                         <span class="scene-row__mark" title={t(mark.labelKey)}
                           >{t(mark.labelKey)}</span
@@ -795,11 +614,6 @@
     {#if activateError}
       <p class="scenes-tab__error" role="alert">{activateError}</p>
     {/if}
-    <!-- REQ-CEN-023: a refused environment write becomes a message; the control keeps
-         showing what the server actually holds, never the state we asked for. -->
-    {#if envError}
-      <p class="scenes-tab__error" role="alert">{envError}</p>
-    {/if}
     <!-- REQ-CEN-037: a refused reorder is a message too — the lines keep the order the
          documents actually hold. -->
     {#if shelfError}
@@ -854,89 +668,10 @@
     object-fit: cover;
   }
 
-  /* REQ-CEN-020..022: the environment row floats in the corner of the head. It is taken
-     out of the flow on purpose — a control that participated in the layout could push
-     the identification down and change the head's height (REQ-CEN-013). */
-  .scene-head__env {
-    position: absolute;
-    top: 0.4rem;
-    right: 0.4rem;
-    display: flex;
-    gap: 0.2rem;
-    z-index: 1;
-  }
-
-  /* REQ-CEN-062: the perception door, in the opposite corner and equally out of the
-     flow — the head's height is the token's and nothing here may touch it. */
-  .scene-head__perception {
-    align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--fusion-radius-sm);
-    color: rgba(255, 255, 255, 0.85);
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    left: 0.4rem;
-    padding: 0.2rem;
-    position: absolute;
-    top: 0.4rem;
-    z-index: 1;
-  }
-
-  .scene-head__perception:hover {
-    background: var(--fusion-accent);
-    border-color: var(--fusion-accent);
-    color: #fff;
-  }
-
-  .scene-head__perception:focus-visible {
-    outline: 2px solid var(--fusion-accent);
-    outline-offset: 2px;
-  }
-
-  .scene-head__env-btn {
-    align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--fusion-radius-sm);
-    color: rgba(255, 255, 255, 0.85);
-    cursor: pointer;
-    display: flex;
-    height: 1.5rem;
-    justify-content: center;
-    padding: 0;
-    transition:
-      background-color var(--fusion-transition),
-      color var(--fusion-transition);
-    width: 1.5rem;
-  }
-
-  .scene-head__env-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-
-  /* REQ-CEN-023: "on" is the state the server holds, and it is not carried by colour
-     alone — the pressed control also gets a ring, so it reads without hue. */
-  .scene-head__env-btn--on {
-    background: var(--fusion-accent);
-    border-color: var(--fusion-accent);
-    box-shadow: 0 0 0 2px rgba(124, 92, 252, 0.35);
-    color: #fff;
-  }
-
-  .scene-head__env-btn--reset:not(:disabled):hover {
-    background: var(--fusion-danger);
-    border-color: var(--fusion-danger);
-    color: #fff;
-  }
-
-  /* Same visible ring as every other control of the panel (REQ-CEN-090 / REQ-UIF-064). */
-  .scene-head__env-btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
-    outline-offset: 2px;
-  }
+  /* REQ-CEN-020..025: the environment row and the perception door that used to float
+     in the corners of the head were retired from this UI on 2026-08-17 (item 25 —
+     decision, not a bug). Their rules stayed in `lib/scenes/sceneEnvironment.ts` and
+     `lib/scenes/sceneWindows.ts` for when the UI comes back. */
 
   .scene-head__info {
     position: relative;
@@ -947,12 +682,31 @@
     background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
   }
 
+  /* Ajustes r1, item 27: anchored to the head's own top edge — independent of the
+     footer's `.scene-head__info` gradient block, so it never grows/shrinks with the
+     name (REQ-CEN-013) and stays isolated at the top, as the prototype's `.lbl` does. */
   .scene-head__flag {
+    align-items: center;
     color: var(--fusion-success);
+    display: flex;
     font-size: 0.6875rem;
     font-weight: 600;
+    gap: 0.3rem;
     letter-spacing: 0.08em;
+    padding: 0.5rem 0.75rem;
+    position: absolute;
     text-transform: uppercase;
+    top: 0;
+    z-index: 1;
+  }
+
+  .scene-head__flag-dot {
+    background: var(--fusion-success);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(61, 220, 132, 0.6);
+    flex-shrink: 0;
+    height: 7px;
+    width: 7px;
   }
 
   /* REQ-CEN-013: what does not fit is truncated legibly — the whole name stays in the
@@ -1195,7 +949,7 @@
     white-space: nowrap;
   }
 
-  /* REQ-CEN-035: dimensions and marks, on one truncating line under the name. */
+  /* REQ-CEN-035: marks, on one truncating line under the name. */
   .scene-row__meta {
     color: var(--fusion-text-subtle);
     display: flex;

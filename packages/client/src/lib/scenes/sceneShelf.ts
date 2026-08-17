@@ -23,7 +23,7 @@
 import type { Socket } from "socket.io-client";
 import type { SceneDocument } from "@fusion/shared";
 import { sendOp } from "../docs/sendOp.js";
-import { SCENE_HEAD_KEYS, type SceneHeadLine } from "./scenesTabVM.js";
+import type { SceneHeadLine } from "./scenesTabVM.js";
 
 // ---------------------------------------------------------------------------
 // i18n keys and constants
@@ -122,7 +122,6 @@ export interface SceneShelfEntryVM {
   readonly folderId: string | null;
   /** The document's manual position, carried so a drag can compute the next one. */
   readonly sort: number;
-  readonly dimensions: SceneShelfLine;
   readonly marks: readonly SceneShelfMark[];
   /**
    * Whether THIS client is preparing this scene (REQ-CEN-056).
@@ -253,10 +252,6 @@ function entryOf(scene: SceneDocument, preparingSceneId: string | null): SceneSh
     name: scene.name,
     folderId: folderOf(scene),
     sort: sortOf(scene),
-    dimensions: {
-      key: SCENE_HEAD_KEYS.dimensions,
-      vars: { width: scene.width, height: scene.height },
-    },
     marks: marksOf(scene, preparing),
   };
 }

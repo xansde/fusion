@@ -124,7 +124,7 @@ describe("ScenesTab — the archive below the head", () => {
     expect(archive).not.toContain("Cripta");
   });
 
-  it("REQ-CEN-035: every line carries name, dimensions and the marks that are on", () => {
+  it("REQ-CEN-035: every line carries name and the marks that are on — no dimensions", () => {
     sceneListState.scenes = [
       makeScene({ _id: "s1", name: "Cripta", width: 4200, height: 2800, darkness: 0.8 }),
     ];
@@ -132,7 +132,7 @@ describe("ScenesTab — the archive below the head", () => {
     const archive = archiveOf(renderTab(null));
 
     expect(archive).toContain("Cripta");
-    expect(archive).toContain(t("FUSION.Scene.Head.Dimensions", { width: 4200, height: 2800 }));
+    expect(archive).not.toContain(t("FUSION.Scene.Head.Dimensions", { width: 4200, height: 2800 }));
     expect(archive).toContain(t(SCENE_SHELF_KEYS.markDarkness));
     expect(archive).not.toContain(t(SCENE_SHELF_KEYS.markFog));
   });

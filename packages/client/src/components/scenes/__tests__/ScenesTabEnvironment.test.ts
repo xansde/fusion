@@ -1,19 +1,21 @@
 /**
- * ScenesTabEnvironment.test.ts — the environment controls as the head draws them (G081).
+ * ScenesTabEnvironment.test.ts — the environment shortcuts are OUT of the head (G081,
+ * plan A050).
  *
- * The rule of WHAT the controls are and WHAT each one sends is pinned in
- * `lib/scenes/__tests__/sceneEnvironment.test.ts`. What only the component can answer is
- * asserted here: that the three gestures are actually on the head of the scene on air,
- * that they carry the state the server pushed (and no local copy of it), that they
- * vanish when nothing is on air, and that they do not grow the fixed head.
+ * REQ-CEN-020..025 (darkness/fog/reset toggles, plus the perception door of the head)
+ * were retired from this UI on 2026-08-17 — Alexandre's r1 test, item 25 ("fora por
+ * enquanto"), a decision and not a bug (see `specs/44-aba-cenas.md` §5.3, the note
+ * after REQ-CEN-025, and DEC-CEN-06). This file used to prove the controls were ON the
+ * head; it now proves the opposite — that none of the four controls
+ * (`.scene-head__perception`, `.scene-head__env` and its three buttons) render there,
+ * with or without a scene on air, and that removing them did not touch the underlying
+ * server-side gestures (`lib/scenes/sceneEnvironment.ts`), which stay directly
+ * testable and are still reachable from the configuration window (REQ-CEN-062).
  *
  * The client's Vitest runs in a node environment (no DOM), so the assertions are on the
- * server-rendered markup and on the component's own stylesheet — the technique
- * `ScenesTabHead.test.ts` already uses here. What happens BETWEEN the click and the
- * server's answer (REQ-CEN-023) needs a live gesture, so it is proven where it can be
- * driven: `createSceneEnvironmentGestureRunner` in `lib/scenes/__tests__/`.
+ * server-rendered markup — the technique `ScenesTabHead.test.ts` already uses here.
  *
- * Covers REQ-CEN-020, REQ-CEN-021, REQ-CEN-022, REQ-CEN-023, REQ-CEN-024.
+ * Covers REQ-CEN-020, REQ-CEN-021, REQ-CEN-022, REQ-CEN-023, REQ-CEN-024, REQ-CEN-025.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -24,7 +26,7 @@ import type { SceneDocument } from "@fusion/shared";
 
 import ScenesTab from "../ScenesTab.svelte";
 import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
-import { SCENE_ENV_KEYS } from "../../../lib/scenes/sceneEnvironment.js";
+import { buildSceneEnvironmentVM, SCENE_ENV_KEYS } from "../../../lib/scenes/sceneEnvironment.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -66,71 +68,38 @@ function sourceOfScenesTab(): string {
   return readFileSync(fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)), "utf8");
 }
 
-function styleOfScenesTab(): string {
-  const style = /<style>([\s\S]*)<\/style>/.exec(sourceOfScenesTab())?.[1];
-  if (style === undefined) throw new Error("ScenesTab.svelte has no <style> block");
-  return style;
-}
-
-function ruleFor(css: string, selector: string): string {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`).exec(css);
-  if (match === null) throw new Error(`no rule for ${selector}`);
-  return match[1] ?? "";
-}
-
-/** The `<section class="scene-head">` block alone — the controls live inside it. */
+/** The `<section class="scene-head">` block alone — the retired controls used to live inside it. */
 function headOf(html: string): string {
   return /<section class="scene-head[^"]*"[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
 }
 
-describe("ScenesTab — the environment shortcuts on the head", () => {
+describe("ScenesTab — the environment shortcuts are retired from the head (REQ-CEN-020..025)", () => {
   beforeEach(() => {
     sceneListState.scenes = [];
   });
 
-  it("REQ-CEN-020 / REQ-CEN-021 / REQ-CEN-022: the three gestures sit on the head of the scene on air", () => {
+  it("REQ-CEN-020/021/022: the three gestures do NOT render on the head of a scene on air", () => {
     sceneListState.scenes = [makeScene({ _id: "s1" })];
 
     const head = headOf(renderTab("s1"));
 
-    expect(head).toContain("scene-head__env");
-    expect(head).toContain(t(SCENE_ENV_KEYS.darknessOn));
-    expect(head).toContain(t(SCENE_ENV_KEYS.fogOn));
-    expect(head).toContain(t(SCENE_ENV_KEYS.fogReset));
+    expect(head).not.toContain("scene-head__env");
+    expect(head).not.toContain(t(SCENE_ENV_KEYS.darknessOn));
+    expect(head).not.toContain(t(SCENE_ENV_KEYS.fogOn));
+    expect(head).not.toContain(t(SCENE_ENV_KEYS.fogReset));
   });
 
-  it("REQ-CEN-023: each toggle carries the state of the document, not a local copy", () => {
+  it("REQ-CEN-020/021/022: no environment button appears whatever the document's darkness/fog", () => {
     sceneListState.scenes = [makeScene({ _id: "s1", darkness: 0.7, fogEnabled: true })];
-    const dark = headOf(renderTab("s1"));
-
-    sceneListState.scenes = [makeScene({ _id: "s1", darkness: 0, fogEnabled: false })];
-    const lit = headOf(renderTab("s1"));
-
-    // Pressed follows the server's document in both directions — the only thing that
-    // changed between the two renders is the document the mirror holds.
-    expect(dark).toContain('aria-pressed="true"');
-    expect(dark).toContain(t(SCENE_ENV_KEYS.darknessOff));
-    expect(dark).toContain(t(SCENE_ENV_KEYS.fogOff));
-    expect(lit).not.toContain('aria-pressed="true"');
-    expect(lit).toContain(t(SCENE_ENV_KEYS.darknessOn));
-    expect(lit).toContain(t(SCENE_ENV_KEYS.fogOn));
-  });
-
-  it("REQ-CEN-023: each toggle reads its own field, so the two never move together", () => {
-    // Fog on with the room still lit: one control pressed, the other not. A single local
-    // "pressed" flag — or a toggle reading the wrong field — cannot draw this head.
-    sceneListState.scenes = [makeScene({ _id: "s1", darkness: 0, fogEnabled: true })];
 
     const head = headOf(renderTab("s1"));
 
-    expect(head).toContain(t(SCENE_ENV_KEYS.darknessOn));
-    expect(head).toContain(t(SCENE_ENV_KEYS.fogOff));
-    expect(head.match(/aria-pressed="true"/g) ?? []).toHaveLength(1);
-    expect(head.match(/aria-pressed="false"/g) ?? []).toHaveLength(1);
+    expect(head).not.toContain("scene-head__env-btn");
+    expect(head).not.toContain('aria-pressed="true"');
+    expect(head).not.toContain('aria-pressed="false"');
   });
 
-  it("REQ-CEN-024: nothing on air, no environment controls", () => {
+  it("REQ-CEN-024: nothing on air, still no environment controls (nothing to retire twice)", () => {
     sceneListState.scenes = [makeScene({ _id: "s1" })];
 
     const html = renderTab(null);
@@ -139,32 +108,32 @@ describe("ScenesTab — the environment shortcuts on the head", () => {
     expect(html).not.toContain(t(SCENE_ENV_KEYS.fogReset));
   });
 
-  it("REQ-CEN-024: a scene on air this client has not received yet gets no controls either", () => {
-    sceneListState.scenes = [makeScene({ _id: "s1" })];
+  it("REQ-CEN-025: the head's stylesheet no longer carries a rule for the retired controls", () => {
+    const source = sourceOfScenesTab();
+    const style = /<style>([\s\S]*)<\/style>/.exec(source)?.[1] ?? "";
 
-    const html = renderTab("s2");
-
-    expect(html).not.toContain("scene-head__env");
+    expect(style).not.toMatch(/\.scene-head__env\s*\{/);
+    expect(style).not.toMatch(/\.scene-head__env-btn/);
   });
 
-  it("REQ-CEN-020..022: the controls do not grow the head — they float over the fixed box", () => {
-    const css = styleOfScenesTab();
-    const rule = ruleFor(css, ".scene-head__env");
+  it("REQ-CEN-020..025: the head's own height is untouched by the retirement (REQ-CEN-013)", () => {
+    const source = sourceOfScenesTab();
+    const style = /<style>([\s\S]*)<\/style>/.exec(source)?.[1] ?? "";
+    const rule = /\.scene-head\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
 
-    expect(rule).toMatch(/position:\s*absolute/);
-    expect(rule).not.toMatch(/height:\s*\d/);
-    // And the head itself is still the one height the theme fixes (REQ-CEN-010).
-    expect(ruleFor(css, ".scene-head")).toMatch(/height:\s*var\(--fusion-scene-head-height\)/);
+    expect(rule).toMatch(/height:\s*var\(--fusion-scene-head-height\)/);
   });
 
-  it("REQ-CEN-022: the reset announces itself as the irreversible one", () => {
-    sceneListState.scenes = [makeScene({ _id: "s1" })];
+  it("the underlying server-side gestures stay intact — this is a UI retirement, not a logic removal", () => {
+    // `lib/scenes/sceneEnvironment.ts` still computes the VM the head used to draw; only
+    // the component wiring that turned it into buttons is gone. Exercised directly (not
+    // through ScenesTab) to prove the rule survives even though no button calls it.
+    sceneListState.scenes = [makeScene({ _id: "s1", darkness: 0.7, fogEnabled: true })];
 
-    const head = headOf(renderTab("s1"));
+    const vm = buildSceneEnvironmentVM({ scenes: sceneListState.scenes, activeSceneId: "s1" });
 
-    // The button is there; the confirmation text it will show is a real message.
-    expect(head).toContain("scene-head__env-btn--reset");
-    expect(t(SCENE_ENV_KEYS.fogResetConfirm)).not.toBe(SCENE_ENV_KEYS.fogResetConfirm);
-    expect(t(SCENE_ENV_KEYS.fogResetConfirmLabel)).not.toBe(SCENE_ENV_KEYS.fogResetConfirmLabel);
+    expect(vm).not.toBeNull();
+    expect(vm?.darkness.pressed).toBe(true);
+    expect(vm?.fog.pressed).toBe(true);
   });
 });

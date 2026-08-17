@@ -820,6 +820,10 @@ janela de percepção.
 
 **Cobre:** REQ-CEN-020..025.
 
+> **Nota de 2026-08-17** — retirado temporariamente da UI (decisão do Alexandre no
+> teste r1, item 25; ver a nota em `specs/44-aba-cenas.md` REQ-CEN-020..025). A
+> implementação bateu com este plano; a lógica de servidor continua de pé.
+
 ### G082 — Acervo agrupado por pasta
 
 Cenas agrupadas pela pasta, na ordenação **manual do documento** (`folder` e `sort` existem

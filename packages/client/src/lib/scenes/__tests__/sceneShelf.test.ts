@@ -256,7 +256,7 @@ describe("the archive groups by folder (REQ-CEN-030)", () => {
 // ---------------------------------------------------------------------------
 
 describe("what each line of the archive says (REQ-CEN-035)", () => {
-  it("REQ-CEN-035: name, dimensions and the environment marks that are on", () => {
+  it("REQ-CEN-035: name and the environment marks that are on — no dimensions", () => {
     const vm = buildSceneShelfVM({
       scenes: [makeScene({ _id: "s1", name: "Cripta", width: 4200, height: 2800, darkness: 0.8 })],
       activeSceneId: null,
@@ -264,7 +264,7 @@ describe("what each line of the archive says (REQ-CEN-035)", () => {
 
     const entry = vm.groups[0]?.entries[0];
     expect(entry?.name).toBe("Cripta");
-    expect(entry?.dimensions.vars).toEqual({ width: 4200, height: 2800 });
+    expect(entry).not.toHaveProperty("dimensions");
     expect(entry?.marks.map((mark) => mark.id)).toEqual(["darkness"]);
   });
 

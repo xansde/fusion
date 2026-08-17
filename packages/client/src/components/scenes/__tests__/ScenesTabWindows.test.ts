@@ -203,31 +203,31 @@ describe("SceneCreateDialog — configuring a scene (REQ-CEN-061, REQ-CEN-062)",
 });
 
 // ---------------------------------------------------------------------------
-// The head's second door into perception
+// The head's second door into perception — retired 2026-08-17 (REQ-CEN-062, item 25)
 // ---------------------------------------------------------------------------
 
-describe("ScenesTab head — the perception door (REQ-CEN-062)", () => {
-  it("REQ-CEN-062: the head of the scene on air opens the perception window", () => {
+describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 25 of the r1 test)", () => {
+  it("REQ-CEN-062: the head of the scene on air no longer opens the perception window", () => {
+    // Alexandre's r1 test, item 25 (2026-08-17): the head door into perception is out,
+    // along with the REQ-CEN-020..025 environment shortcuts — decision, not a bug (see
+    // `specs/44-aba-cenas.md`, note after REQ-CEN-062). The remaining door is the
+    // configuration window, asserted above.
     const html = renderTab(ON_AIR._id);
 
-    expect(html).toContain("scene-head__perception");
-    // The control is there and it is named; that pressing it produces the perception
-    // window is `openScenePerceptionWindow`'s own test (sceneWindows.test.ts).
-    expect(html).toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
+    expect(html).not.toContain("scene-head__perception");
+    expect(html).not.toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
   });
 
-  it("REQ-CEN-062: with nothing on air there is no scene to tune, and no door", () => {
+  it("REQ-CEN-062: with nothing on air there was never a door to begin with", () => {
     const html = renderTab(null);
 
     expect(html).not.toContain("scene-head__perception");
   });
 
-  it("REQ-CEN-013: the door floats over the fixed head instead of growing it", () => {
+  it("the head's stylesheet no longer carries a rule for the retired door", () => {
     const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("ScenesTab.svelte"))?.[1] ?? "";
-    const rule = /\.scene-head__perception\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
 
-    expect(rule).toMatch(/position:\s*absolute/);
-    expect(rule).not.toMatch(/height:\s*\d/);
+    expect(style).not.toMatch(/\.scene-head__perception\s*\{/);
   });
 });
 

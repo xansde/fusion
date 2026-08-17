@@ -1,11 +1,17 @@
 /**
  * ScenesTabErrors.test.ts — what the Cenas tab does when the SERVER says no.
  *
- * The panel has three write surfaces and each one can be refused: putting a scene on air
- * (REQ-CEN-045), the environment shortcuts of the head (REQ-CEN-023) and the reorder of
- * the archive (REQ-CEN-037). Until this file existed, every one of those refusals was
+ * The panel has two write surfaces left in the head/archive and each one can be
+ * refused: putting a scene on air (REQ-CEN-045) and the reorder of the archive
+ * (REQ-CEN-037). Until this file existed, every one of those refusals was
  * unexercised — deleting the whole `catch` of the activation left the suite green, which
  * is precisely the shape of the r22 lesson (a green suite that proves nothing).
+ *
+ * A third surface used to live here too: the environment shortcuts of the head
+ * (REQ-CEN-023). They were retired from the UI on 2026-08-17 (item 25 of Alexandre's r1
+ * test — see `specs/44-aba-cenas.md`, note after REQ-CEN-025); the refusal RULE that
+ * fed their message region still exists and is exercised directly against
+ * `lib/scenes/sceneEnvironment.ts` below, with no button left to wire it to.
  *
  * The two halves of REQ-CEN-045 are asserted apart:
  *  - the MESSAGE — the refusal must arrive as an `OpError` carrying the server's own
@@ -193,14 +199,14 @@ describe("a refused environment write (REQ-CEN-023)", () => {
     expect(generic).not.toContain("socket exploded");
   });
 
-  it("REQ-CEN-023: the panel keeps a message region bound to the failed environment gesture", () => {
+  it("REQ-CEN-020..025: the panel no longer wires an environment gesture or its error region (retirado da UI em 2026-08-17, item 25)", () => {
+    // The three controls that used to feed this message region are out of the head
+    // (`specs/44-aba-cenas.md`, note after REQ-CEN-025) — so there is no `envError` left
+    // to bind, and no dangling reference to it in either the script or the template.
     const source = sourceOfScenesTab();
 
-    // `envError` is null at server-render time, so the region itself can only be pinned
-    // in the template — the same technique the CSS rules use in `ScenesTab.test.ts`.
-    expect(source).toMatch(
-      /\{#if envError\}[\s\S]{0,200}class="scenes-tab__error"[\s\S]{0,80}role="alert"/,
-    );
+    expect(source).not.toMatch(/envError/);
+    expect(source).not.toMatch(/envBusy/);
   });
 });
 

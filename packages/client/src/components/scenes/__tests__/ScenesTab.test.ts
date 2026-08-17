@@ -250,6 +250,19 @@ function sourceOfPrepareNotice(): string {
   );
 }
 
+/**
+ * `resetSceneFog` used to be wired to the head as `handleResetFog`; REQ-CEN-020..025
+ * retired that wiring from `ScenesTab.svelte` on 2026-08-17 (item 25 of the r1 test —
+ * decision, not a bug), but the confirming gesture itself still lives in
+ * `lib/scenes/sceneEnvironment.ts` for when the UI comes back.
+ */
+function sourceOfSceneEnvironment(): string {
+  return readFileSync(
+    fileURLToPath(new URL("../../../lib/scenes/sceneEnvironment.ts", import.meta.url)),
+    "utf8",
+  );
+}
+
 describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
   it("REQ-CEN-043: the archive's activate action reaches the write with no confirmation in between", () => {
     const source = sourceOfScenesTab();
@@ -258,11 +271,14 @@ describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
     expect(activate).toContain("activateScene(socket, scene._id)");
     expect(activate).not.toMatch(/confirm/i);
 
-    // The live contrast, in the very same file: the one gesture of this panel that
-    // cannot be undone DOES ask first (REQ-CEN-022). So "no confirmation" above is a
-    // property of the activation path, not of a pattern that matches nothing here.
-    const resetFog = /async function handleResetFog[\s\S]*?\n  }/.exec(source)?.[0] ?? "";
-    expect(resetFog).toContain("confirmDialog(");
+    // The live contrast: the one gesture that DOES ask first (REQ-CEN-022) — so "no
+    // confirmation" above is a property of the activation path, not of a pattern that
+    // matches nothing anywhere. `resetSceneFog` no longer has a button wired to it in
+    // ScenesTab.svelte (REQ-CEN-020..025 retired that wiring on 2026-08-17, item 25),
+    // so the contrast is read from `lib/scenes/sceneEnvironment.ts` instead.
+    const resetFog =
+      /export async function resetSceneFog[\s\S]*?\n\}/.exec(sourceOfSceneEnvironment())?.[0] ?? "";
+    expect(resetFog).toContain("confirm()");
   });
 
   it("REQ-CEN-043: the prepare notice's put-on-air action reaches the write with no confirmation either", () => {

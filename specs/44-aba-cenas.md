@@ -128,6 +128,11 @@ iluminação nem de exploração.
   janela para uma ação de dois segundos. O limite é claro: alternar e resetar ficam
   aqui; ajustar valores (nível de escuridão, limiar, visão por token) fica na janela.
 
+> **Nota de 2026-08-17** — retirado temporariamente da UI (decisão do Alexandre no
+> teste r1, item 25; ver a nota em REQ-CEN-020..025). Enquanto durar a retirada, os
+> três gestos só são alcançáveis pela janela de percepção (REQ-CEN-062); a lógica de
+> servidor que este atalho aciona não mudou.
+
 ### DEC-CEN-07 — Excluir a cena que está no ar é recusado
 
 A exclusão de cena é recusada enquanto ela estiver no ar, com a razão explícita e o
@@ -229,6 +234,15 @@ real é o predicado do servidor, não a ausência do ícone.
 - **REQ-CEN-025** [MVP] A aba NÃO DEVE definir semântica de iluminação, visão ou
   exploração: ela aciona os requisitos de `07`.
 
+> **Nota de 2026-08-17** — REQ-CEN-020, REQ-CEN-021, REQ-CEN-022, REQ-CEN-023,
+> REQ-CEN-024 e REQ-CEN-025 estão **retirados temporariamente da UI** (decisão do
+> Alexandre no teste r1, item 25 — "fora por enquanto", não é correção de defeito).
+> A cabeça não exibe mais o botão de percepção nem o grupo de três botões de
+> ambiente; a lógica de servidor por trás (`toggleSceneDarkness`/`toggleSceneFog`/
+> `resetSceneFog` e a janela de percepção) **permanece intacta e alcançável pela
+> janela de configuração** (REQ-CEN-062) — só a porta que vivia na cabeça saiu. Os
+> ids e as tags [MVP] não são apagados: a retirada é reversível.
+
 ### 5.4 Acervo, pastas e busca
 
 - **REQ-CEN-030** [MVP] Abaixo da cabeça, o painel DEVE listar as demais cenas do mundo,
@@ -242,8 +256,14 @@ real é o predicado do servidor, não a ausência do ícone.
 - **REQ-CEN-034** [MVP] O painel DEVE oferecer busca por nome de cena e de pasta quando
   o mundo tiver mais cenas do que couber sem rolagem, e a busca DEVE ocultar grupos sem
   resultado.
-- **REQ-CEN-035** [MVP] Cada linha DEVE exibir nome, dimensões e marcas de ambiente
-  (escuridão, névoa) da cena.
+- **REQ-CEN-035** [MVP] Cada linha DEVE exibir nome e marcas de ambiente (escuridão,
+  névoa) da cena.
+
+  > **Emenda de 2026-08-17** (item 26 do teste r1 do Alexandre): a redação anterior
+  > também mandava exibir dimensões (largura×altura da imagem) na linha do acervo. O
+  > Alexandre pediu a remoção — a linha fica só com nome e marcas de ambiente; tamanho
+  > de grade nunca apareceu aqui (só na cabeça, REQ-CEN-011) e continua fora da linha.
+
 - **REQ-CEN-036** [MVP] A cena no ar NÃO DEVE ser repetida no acervo: ela vive na cabeça.
 - **REQ-CEN-037** [MVP] O papel privilegiado DEVE poder reordenar cenas dentro de um
   grupo por arraste, e a nova ordem DEVE ser gravada no documento.
@@ -296,6 +316,11 @@ real é o predicado do servidor, não a ausência do ícone.
 - **REQ-CEN-062** [MVP] A percepção da cena (escuridão, iluminação global, limiar, visão
   por token) DEVE abrir janela flutuante, alcançável a partir da janela de configuração
   e da cabeça (REQ-VIS-044, REQ-VIS-085).
+
+  > **Nota de 2026-08-17** — a porta da cabeça está retirada temporariamente junto com
+  > REQ-CEN-020..025 (mesma decisão, item 25 do teste r1); enquanto durar, a única
+  > porta de fato alcançável é a da janela de configuração.
+
 - **REQ-CEN-063** [MVP] Excluir DEVE abrir confirmação que nomeia o que cai junto
   (presenças, paredes, luzes, sons, desenhos) e o que não cai (atores) — DEC-CEN-07.
 - **REQ-CEN-064** [MVP] Excluir a cena que está no ar DEVE ser recusado, com a razão e o
