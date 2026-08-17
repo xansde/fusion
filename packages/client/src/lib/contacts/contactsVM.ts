@@ -18,6 +18,12 @@
  *    viewer has only glimpsed arrives with no `name`, no `img` and no `system`,
  *    carrying `flags.fusion.glimpsed` — so it cannot be found by name here
  *    (REQ-CTT-013) as a consequence of the payload, not of a screen rule.
+ *
+ * A card's `name` resolves through `displayName()` (packages/client/src/lib/
+ * docs/displayName.ts, REQ-CMP-055) rather than `doc.name` straight — see
+ * `npcRowVM.ts`'s docstring for why: the world document stays EN-pure, and the
+ * pt-BR label (when the pack had one) is a snapshot in
+ * `flags.fusion.i18n["pt-BR"].name`, taken at import time.
  */
 
 import {
@@ -30,6 +36,7 @@ import {
 import type { Ownership } from "@fusion/shared";
 import { categoryOfContact } from "./categories.js";
 import type { ContactCategories } from "./categories.js";
+import { displayName } from "../docs/displayName.js";
 import { buildConditionViews } from "../conditions/conditionView.js";
 import type {
   ActiveCondition,
@@ -453,7 +460,7 @@ function buildSubCard(
   const kind = text(record(doc.system)["companionKind"]) || COMPANION_ACTOR_SUBTYPE;
   return {
     id: doc._id,
-    name: text(doc.name),
+    name: displayName(doc),
     img: doc.img ?? null,
     kind,
     conditions: buildContactConditions(doc, declarations),
@@ -505,7 +512,7 @@ export function buildTableSection(input: TableSectionInput): TableSection {
     const isMine = ownsContact(doc, input.userId);
     const card: ContactCard = {
       id: doc._id,
-      name: text(doc.name),
+      name: displayName(doc),
       img: doc.img ?? null,
       isMine,
       present: isContactPresent(doc, online),
@@ -679,7 +686,7 @@ export function buildKnownSection(input: KnownSectionInput): KnownSection {
     cards.push({
       id: doc._id,
       identified,
-      name: identified ? text(doc.name) : "",
+      name: identified ? displayName(doc) : "",
       img: identified ? (doc.img ?? null) : null,
       title: identified ? resolveTitleLine(doc) : null,
       conditions: identified ? buildContactConditions(doc, declarations) : [],

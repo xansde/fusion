@@ -18,6 +18,7 @@ import {
   applyAggregatedFacets,
   describeActiveFacets,
   documentTypeChoices,
+  packDocumentTypeChoices,
   rarityChoices,
   sourceChoices,
 } from "../aggregatedFacets.js";
@@ -85,6 +86,31 @@ describe("the choices the panel offers (REQ-CPD-033)", () => {
 
   it("REQ-CPD-033: the rarity facet is the generic ladder, not a system-declared filter", () => {
     expect(rarityChoices().map((c) => c.value)).toEqual(["common", "uncommon", "rare", "unique"]);
+  });
+
+  // A040 — the document-type facet only hid itself inside a pack because the
+  // panel hardcoded root-only, not because a pack could never offer a choice.
+  // `PackManifest.documentType` is one value per pack (REQ-CMP-001), so this
+  // is what makes it disappear inside a pack in practice: not a scope check,
+  // but a real "there is no second type to filter by".
+  it("REQ-CPD-033: no open pack offers no document-type choice at all", () => {
+    expect(packDocumentTypeChoices(null)).toEqual([]);
+  });
+
+  it("REQ-CPD-033: an open pack offers only its OWN type, named by key", () => {
+    const choices = packDocumentTypeChoices({ documentType: "Actor" });
+
+    expect(choices).toEqual([{ value: "Actor", labelKey: "FUSION.Compendium.DocType.Actor" }]);
+  });
+
+  it("REQ-CPD-033: one pack, one type — never a choice with more than one option", () => {
+    // The panel only renders the header select when there is more than one
+    // choice (REQ-CPD-033: a facet with a single value is not a filter). A
+    // pack's manifest fixes exactly one `documentType`, so this is always
+    // true today — the facet is data-driven, not hardcoded to always hide.
+    for (const documentType of ["Actor", "Item", "JournalEntry", "RollTable", "Scene"]) {
+      expect(packDocumentTypeChoices({ documentType }).length).toBeLessThanOrEqual(1);
+    }
   });
 
   it("REQ-CPD-033: the source facet lists the packs the ANSWER came from", () => {

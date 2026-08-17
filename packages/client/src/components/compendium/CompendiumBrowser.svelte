@@ -78,6 +78,7 @@
     buildSearchQuery,
     buildCompendiumDragPayload,
     sortEntries,
+    sortAggregatedResult,
     buildSearchAllPayload,
     documentTypeLabelKey,
     normalizeAggregatedSearchResult,
@@ -113,6 +114,7 @@
     applyAggregatedFacets,
     describeActiveFacets,
     documentTypeChoices,
+    packDocumentTypeChoices,
     rarityChoices,
     sourceChoices,
     type FacetChip,
@@ -192,6 +194,21 @@
   const scopeInfo = $derived(describeScope(scopeState));
   const canWiden = $derived(canWidenToWholeCollection(scopeState));
   const openPackId = $derived(scopeState.scope.kind === "pack" ? scopeState.scope.packId : null);
+
+  /**
+   * A042: which of the three levels the header is naming right now — the
+   * shelf, an aggregated result, or an open pack. Drawn as an icon next to the
+   * scope label (never colour alone, REQ-CPD-094) so the reader has a second,
+   * immediate cue for "why did the list change" beyond reading the text.
+   */
+  const scopeKind = $derived<"shelf" | "results" | "pack">(
+    openPackId !== null ? "pack" : mode === "results" ? "results" : "shelf",
+  );
+  const SCOPE_ICON_PATHS: Record<"shelf" | "results" | "pack", string> = {
+    shelf: "M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4Zm16 0h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7Z",
+    results: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm10 17-5.7-5.7",
+    pack: "M4 4h16v16H4Zm0 0 8 4 8-4M12 8v12",
+  };
 
   // ---- Shelf state ----
 
@@ -427,6 +444,17 @@
     aggregated ? applyAggregatedFacets(aggregated, scopeState.facets) : null,
   );
 
+  /**
+   * A040: sorting was pack-only until now — the whole-collection result had no
+   * way to reorder its lines even though every other piece of chrome around it
+   * (the facets, the search bar) already worked in both scopes. Same Name/Type
+   * toolbar, same `sortField`/`sortAsc` state; sorting reorders lines inside
+   * each server-drawn group only (REQ-CPD-031).
+   */
+  const sortedAggregated = $derived<AggregatedSearchResult | null>(
+    visibleAggregated ? sortAggregatedResult(visibleAggregated, sortField, sortAsc) : null,
+  );
+
   // ---- Lifecycle ----
 
   $effect(() => {
@@ -561,6 +589,13 @@
   }
 
   const typeChoices = $derived<FacetChoice[]>(documentTypeChoices(packs));
+  /**
+   * A040: the document-type choice offered while a pack is open — the header
+   * facet used to be hardcoded to root-only (`openPackId === null`), unlike
+   * rarity/level which already worked in both scopes. `packDocumentTypeChoices`
+   * reads the type off the open pack itself instead.
+   */
+  const packTypeChoices = $derived<FacetChoice[]>(packDocumentTypeChoices(selectedPack));
   const rarityOptions = $derived<FacetChoice[]>(rarityChoices());
   /** REQ-CPD-033: source only exists once the answer spans more than one pack. */
   const packChoices = $derived<FacetChoice[]>(sourceChoices(aggregated));
@@ -814,14 +849,45 @@
     only scrolling area: both stay visible in either body and in any scope
     (REQ-CPD-015, REQ-CPD-016).
   -->
-  <div class="compendium-browser__scope" data-mode={mode}>
+  <!--
+    A042: the strongest text in the panel — this is level 1 of the three-level
+    hierarchy (shelf / aggregated result / open pack), so it carries both an
+    icon (`scopeKind`, never colour alone) and the boldest type in the header.
+    The back gesture, when offered, is drawn as its own accent-coloured
+    control right next to it — the one visible proof that the list you are
+    looking at is not the one you started from.
+  -->
+  <div class="compendium-browser__scope" data-mode={mode} data-scope-kind={scopeKind}>
+    <svg
+      class="compendium-browser__scope-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={SCOPE_ICON_PATHS[scopeKind]} />
+    </svg>
     <span class="compendium-browser__scope-label">
       {scopeInfo.packLabel === null
         ? t(scopeInfo.labelKey)
         : t(scopeInfo.labelKey, { pack: scopeInfo.packLabel })}
     </span>
     {#if scopeInfo.canGoBack}
-      <button class="btn btn--sm btn--ghost compendium-browser__back" onclick={goBackToShelf}>
+      <button class="compendium-browser__back" onclick={goBackToShelf}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M14 5 7 12l7 7"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
         {t("FUSION.Compendium.BackToShelf")}
       </button>
     {/if}
@@ -833,62 +899,73 @@
     and a seat with no destination at all sees no import affordance anywhere.
   -->
   {#if sheetTargets.length > 0 || canBringToWorld(viewer)}
+    <!--
+      A042: destination and batch used to be two stacked rows before the
+      search bar even started — in a 300px column that is a lot of chrome to
+      scroll past before the reader sees a single result. Both live on ONE
+      row now (wraps only if the destination select and the batch button
+      cannot both fit); every notice below it — batch outcome, one-line
+      import success/failure — collapses into a single slim banner instead of
+      up to three full-padding paragraphs.
+    -->
     <div class="compendium-browser__import">
-      {#if sheetTargets.length > 0 && (canBringToWorld(viewer) || sheetTargets.length > 1)}
-        <label class="compendium-browser__destination">
-          <span class="compendium-browser__destination-label">
-            {t("FUSION.Compendium.Import.Destination")}
-          </span>
-          <select bind:value={destination} class="compendium-browser__destination-select">
-            {#if canBringToWorld(viewer)}
-              <option value="world">{t("FUSION.Compendium.Import.DestinationWorld")}</option>
-            {/if}
-            {#each sheetTargets as target (target.actorId)}
-              <option value={target.actorId}>{target.name}</option>
-            {/each}
-          </select>
-        </label>
-      {/if}
-
-      <!--
-        Batch import, offered to a privileged seat over what the body lists
-        (spec 43 §8.3). While it runs the button becomes progress plus a way
-        out, and the result — including the partial-state warning — is written
-        under it (REQ-CPD-065).
-      -->
-      {#if canBringToWorld(viewer) && activeDestination.kind === "world"}
-        {#if batchProgress}
-          <div class="compendium-browser__batch" role="status">
-            <span class="compendium-browser__batch-progress">
-              {batchProgress.cancelling
-                ? t("FUSION.Compendium.Import.BatchCancelling")
-                : t("FUSION.Compendium.Import.BatchProgress", {
-                    done: batchProgress.done,
-                    total: batchProgress.total,
-                  })}
+      <div class="compendium-browser__import-row">
+        {#if sheetTargets.length > 0 && (canBringToWorld(viewer) || sheetTargets.length > 1)}
+          <label class="compendium-browser__destination">
+            <span class="compendium-browser__destination-label">
+              {t("FUSION.Compendium.Import.Destination")}
             </span>
-            <progress
-              class="compendium-browser__batch-bar"
-              max={batchProgress.total}
-              value={batchProgress.done}
-            ></progress>
-            <button
-              class="btn btn--sm btn--ghost"
-              onclick={cancelBatchImport}
-              disabled={batchProgress.cancelling}
-            >
-              {t("FUSION.Compendium.Import.BatchCancel")}
-            </button>
-          </div>
-        {:else if listedUuids.length > 0}
-          <button class="btn btn--sm compendium-browser__batch-start" onclick={startBatchImport}>
-            {t("FUSION.Compendium.Import.Batch", { count: listedUuids.length })}
-          </button>
+            <select bind:value={destination} class="compendium-browser__destination-select">
+              {#if canBringToWorld(viewer)}
+                <option value="world">{t("FUSION.Compendium.Import.DestinationWorld")}</option>
+              {/if}
+              {#each sheetTargets as target (target.actorId)}
+                <option value={target.actorId}>{target.name}</option>
+              {/each}
+            </select>
+          </label>
         {/if}
-      {/if}
+
+        <!--
+          Batch import, offered to a privileged seat over what the body lists
+          (spec 43 §8.3). While it runs the button becomes progress plus a way
+          out, and the result — including the partial-state warning — is
+          written under it (REQ-CPD-065).
+        -->
+        {#if canBringToWorld(viewer) && activeDestination.kind === "world"}
+          {#if batchProgress}
+            <div class="compendium-browser__batch" role="status">
+              <span class="compendium-browser__batch-progress">
+                {batchProgress.cancelling
+                  ? t("FUSION.Compendium.Import.BatchCancelling")
+                  : t("FUSION.Compendium.Import.BatchProgress", {
+                      done: batchProgress.done,
+                      total: batchProgress.total,
+                    })}
+              </span>
+              <progress
+                class="compendium-browser__batch-bar"
+                max={batchProgress.total}
+                value={batchProgress.done}
+              ></progress>
+              <button
+                class="compendium-browser__batch-cancel"
+                onclick={cancelBatchImport}
+                disabled={batchProgress.cancelling}
+              >
+                {t("FUSION.Compendium.Import.BatchCancel")}
+              </button>
+            </div>
+          {:else if listedUuids.length > 0}
+            <button class="compendium-browser__batch-start" onclick={startBatchImport}>
+              {t("FUSION.Compendium.Import.Batch", { count: listedUuids.length })}
+            </button>
+          {/if}
+        {/if}
+      </div>
 
       {#if batchNotice}
-        <p class="compendium-browser__batch-notice" role="status">{batchNotice}</p>
+        <p class="compendium-browser__notice" role="status">{batchNotice}</p>
       {/if}
 
       <!--
@@ -898,10 +975,14 @@
         exactly where it was.
       -->
       {#if importSuccess}
-        <p class="compendium-browser__success" role="status">{importSuccess}</p>
+        <p class="compendium-browser__notice compendium-browser__notice--success" role="status">
+          {importSuccess}
+        </p>
       {/if}
       {#if importError}
-        <p class="compendium-browser__error" role="alert">{importError}</p>
+        <p class="compendium-browser__notice compendium-browser__notice--error" role="alert">
+          {importError}
+        </p>
       {/if}
     </div>
   {/if}
@@ -928,12 +1009,14 @@
   <!--
     The facets of §5.4 (REQ-CPD-033), in the header with the search bar: they are
     the other half of the same question, so they must be visible wherever the
-    question is — in either body and in either scope (REQ-CPD-016). Document type
-    and source only make sense over the whole collection; opening a pack already
-    fixes both, and `openPack` drops them so nothing invisible survives.
+    question is — in either body and in either scope (REQ-CPD-016). Source only
+    makes sense over the whole collection: a pack IS one source. Document type
+    is visible in both scopes, like rarity/level — inside a pack it offers the
+    open pack's own type(s) (`packTypeChoices`), which today is always at most
+    one, so it renders nothing there in practice (A040).
   -->
   <div class="compendium-browser__facets">
-    {#if openPackId === null}
+    {#if openPackId === null || packTypeChoices.length > 1}
       <label class="compendium-browser__facet">
         <span class="compendium-browser__facet-label">{t("FUSION.Compendium.Facet.DocumentType")}</span>
         <select
@@ -942,7 +1025,7 @@
           onchange={(e) => onSelectFacet("documentType", e)}
         >
           <option value="">{t("FUSION.Compendium.Facet.Any")}</option>
-          {#each typeChoices as choice (choice.value)}
+          {#each (openPackId === null ? typeChoices : packTypeChoices) as choice (choice.value)}
             <option value={choice.value}>{t(choice.labelKey ?? choice.value)}</option>
           {/each}
         </select>
@@ -1096,7 +1179,7 @@
           <button class="btn btn--sm compendium-browser__retry-search" onclick={retrySearch}>
             {t("FUSION.Compendium.Retry")}
           </button>
-        {:else if !visibleAggregated || visibleAggregated.groups.length === 0}
+        {:else if !sortedAggregated || sortedAggregated.groups.length === 0}
           <p class="compendium-browser__empty">
             {t("FUSION.Compendium.NoResultsInScope", {
               query: scopeState.search,
@@ -1104,7 +1187,21 @@
             })}
           </p>
         {:else}
-          {#each visibleAggregated.groups as group (group.documentType)}
+          <!--
+            A040: sorting used to be pack-only — the same Name/Type toolbar the
+            open-pack body already had, now offered here too, over the lines of
+            every group (REQ-CPD-031: sorting reorders lines, groups/counts
+            stay the server's).
+          -->
+          <div class="entries-sort" role="toolbar" aria-label={t("FUSION.Compendium.SortBy")}>
+            <button class="sort-btn" onclick={() => toggleSort("name")}>
+              {t("FUSION.Compendium.SortName")}{sortArrow("name")}
+            </button>
+            <button class="sort-btn" onclick={() => toggleSort("type")}>
+              {t("FUSION.Compendium.SortType")}{sortArrow("type")}
+            </button>
+          </div>
+          {#each sortedAggregated.groups as group (group.documentType)}
             <div class="result-group">
               <!--
                 REQ-CPD-093: the count is announceable — the heading says the
@@ -1284,27 +1381,86 @@
   .compendium-browser {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.35rem;
     height: 100%;
     overflow: hidden;
     padding: 0.5rem;
-    font-size: 0.85rem;
+    /*
+     * A042: the whole panel reads a step larger than before (0.85rem base) —
+     * this is a 300px-wide reading surface, not a dense settings form, and
+     * the old 0.65–0.85rem range left every line the same visual weight.
+     * Facets and metadata stay small on purpose (see below); this is the
+     * floor everything else is measured against.
+     */
+    font-size: 0.88rem;
   }
 
+  /*
+   * A042 — level 1 of the hierarchy (estante / resultado agregado / pack
+   * aberto): a tinted bar with its own icon, the boldest label in the
+   * header, and — once a pack is open — an accent "back" control right next
+   * to it. This is the one line that always answers "why did the list
+   * change", so it is drawn to be noticed, not just present.
+   */
   .compendium-browser__scope {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 0.4rem;
     flex-shrink: 0;
+    padding: 0.3rem 0.5rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border-left: 3px solid var(--fusion-accent, #6aa9ff);
+    border-radius: var(--fusion-radius-sm, 4px);
+  }
+
+  .compendium-browser__scope-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--fusion-accent, #6aa9ff);
   }
 
   .compendium-browser__scope-label {
-    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
     color: var(--fusion-text, #eee);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /*
+   * The way back (REQ-CPD-015) drawn as its own accent control, not a ghost
+   * button lost in the row: a chevron plus the label, both in the accent
+   * colour, so a scope change is legible even at a glance.
+   */
+  .compendium-browser__back {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fusion-accent, #6aa9ff);
+    background: none;
+    border: 1px solid var(--fusion-accent, #6aa9ff);
+    border-radius: var(--fusion-radius-sm, 4px);
+    padding: 0.2rem 0.45rem;
+    cursor: pointer;
+  }
+
+  .compendium-browser__back:hover {
+    color: var(--fusion-accent-hover, #8cc0ff);
+    border-color: var(--fusion-accent-hover, #8cc0ff);
+  }
+
+  .compendium-browser__back svg {
+    width: 0.7rem;
+    height: 0.7rem;
+    flex-shrink: 0;
   }
 
   .compendium-browser__search {
@@ -1315,9 +1471,13 @@
   }
 
   /*
-   * The import bar lives with the header, outside the scrolling area: a batch
-   * that is running must stay visible while the user keeps reading the list
-   * (REQ-CPD-016, REQ-CPD-065). Like everything else here it declares no width.
+   * A042: destination and batch used to be two stacked rows, each with its
+   * own vertical padding, before the search bar even started. The import bar
+   * lives with the header, outside the scrolling area — a batch that is
+   * running must stay visible while the user keeps reading the list
+   * (REQ-CPD-016, REQ-CPD-065) — but it is now ONE row of controls plus, only
+   * when there is something to say, a slim notice line under it. Like
+   * everything else here it declares no width.
    */
   .compendium-browser__import {
     display: flex;
@@ -1326,10 +1486,19 @@
     flex-shrink: 0;
   }
 
+  .compendium-browser__import-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
   .compendium-browser__destination {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    flex: 1 1 auto;
+    min-width: 8rem;
     font-size: 0.75rem;
     color: var(--fusion-text-muted, #aaa);
   }
@@ -1349,27 +1518,69 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    flex: 1 1 auto;
     font-size: 0.75rem;
     color: var(--fusion-text-muted, #aaa);
   }
 
   .compendium-browser__batch-bar {
     flex: 1;
-    min-width: 0;
+    min-width: 3rem;
     height: 0.5rem;
   }
 
+  .compendium-browser__batch-start,
+  .compendium-browser__batch-cancel {
+    font: inherit;
+    font-size: 0.75rem;
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-text, #eee);
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .compendium-browser__batch-start:hover,
+  .compendium-browser__batch-cancel:hover {
+    border-color: var(--fusion-accent, #6aa9ff);
+  }
+
+  .compendium-browser__batch-cancel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   /*
-   * The partial-state warning must be readable in full — it names how many
-   * documents are already in the world (REQ-CPD-065), so it wraps and is never
-   * truncated.
+   * A042: every notice this panel can show above the fold — the batch
+   * outcome AND the one-line import success/failure — shares this compact
+   * banner instead of a full-padding centred paragraph each. A coloured left
+   * border carries the kind (info/success/error) alongside the text and the
+   * `role`, never colour alone (REQ-CPD-094); it wraps and is never
+   * truncated, because REQ-CPD-065's partial-state warning names a count
+   * that must stay readable in full.
    */
-  .compendium-browser__batch-notice {
+  .compendium-browser__notice {
     margin: 0;
+    padding: 0.25rem 0.4rem;
+    border-left: 3px solid var(--fusion-border, #444);
+    background: var(--fusion-surface-alt, #2a2a2a);
+    border-radius: var(--fusion-radius-sm, 4px);
     font-size: 0.75rem;
     color: var(--fusion-text-muted, #aaa);
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .compendium-browser__notice--success {
+    border-left-color: var(--fusion-success, #27ae60);
+    color: var(--fusion-success, #27ae60);
+  }
+
+  .compendium-browser__notice--error {
+    border-left-color: var(--fusion-danger, #e74c3c);
+    color: var(--fusion-danger, #e74c3c);
   }
 
   .compendium-browser__search-input,
@@ -1386,21 +1597,30 @@
   }
 
   /*
-   * The facets sit with the search bar, above the scroller and outside it
-   * (REQ-CPD-016): a filter you cannot see is a filter you cannot remove
-   * (REQ-CPD-034). No width is declared here either — the drawer owns it.
+   * A042: facets used to stack one full-width row per facet — three or four
+   * rows of chrome before a single result. They wrap inline now, each one as
+   * narrow as its own label/select needs to be, which is most of the height
+   * this redesign gives back. They stay deliberately the smallest text in
+   * the panel (REQ-CPD-016: a filter you cannot see is a filter you cannot
+   * remove, REQ-CPD-034) — level 1 (scope) leads, level 3 (result lines)
+   * reads, facets are the quiet control row in between. No width is declared
+   * on the group either — the drawer owns it.
    */
   .compendium-browser__facets {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.5rem;
     flex-shrink: 0;
   }
 
   .compendium-browser__facet {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.3rem;
+    flex: 1 1 8rem;
+    min-width: 6rem;
     font-size: 0.7rem;
     color: var(--fusion-text-muted, #aaa);
   }
@@ -1425,6 +1645,8 @@
   .compendium-browser__facet-row {
     display: flex;
     gap: 0.25rem;
+    flex: 1 1 10rem;
+    min-width: 8rem;
   }
 
   .compendium-browser__chips {
@@ -1474,8 +1696,7 @@
 
   .compendium-browser__loading,
   .compendium-browser__empty,
-  .compendium-browser__error,
-  .compendium-browser__success {
+  .compendium-browser__error {
     padding: 0.5rem;
     text-align: center;
     color: var(--fusion-text-muted, #888);
@@ -1483,9 +1704,6 @@
 
   .compendium-browser__error {
     color: var(--fusion-danger, #e74c3c);
-  }
-  .compendium-browser__success {
-    color: var(--fusion-success, #27ae60);
   }
 
   /* ---- Bodies: same box, different content (REQ-CPD-010, REQ-CPD-017) ---- */
@@ -1496,14 +1714,18 @@
     gap: 0.3rem;
   }
 
-  /* The shelf's own rules live in CompendiumShelf.svelte, which draws it. */
+  /*
+   * The shelf's own rules live in CompendiumShelf.svelte, which draws it.
+   * A042: level 2 of the hierarchy (the aggregated result) — bigger than the
+   * facets, still clearly under the scope label above it.
+   */
   .result-group__heading {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--fusion-text-muted, #888);
-    margin: 0 0 0.25rem;
+    margin: 0 0 0.3rem;
     padding: 0 0.25rem;
     display: flex;
     justify-content: space-between;
@@ -1593,7 +1815,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.25rem;
   }
 
   .entry-list__empty {

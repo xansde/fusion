@@ -194,6 +194,23 @@ selo NÃO promete que os dois estejam iguais: importar clona com `_id` novo
   significa "atualizado" seria mentir: a `16` não define nenhum caminho de atualização
   de conteúdo já importado, e esta spec não o inventa (§11).
 
+### DEC-CPD-13 — O nome no mundo segue EN-puro; a tradução é rótulo, não é o `name`
+
+DEC-CPD-06 decide os **dois nomes na listagem** do compêndio (tradução em destaque,
+original abaixo) — mas nunca decidiu o que acontece com o `name` do documento **depois**
+de trazido para o mundo. Essa lacuna foi fechada por REQ-CMP-055 (`16-compendiums-e-
+importacao.md`, decisão A041, ajustes r1, 2026-08-17): o `name` do documento importado
+continua em inglês, e a tradução pt-BR viaja como snapshot em
+`flags.fusion.i18n["pt-BR"]`, gravado no instante do import.
+
+- **Racional:** a mesma razão de DEC-CPD-04/06 — identidade e derivação de sistema
+  casam por nome/`sourceId` em inglês (issue #43 do código) — vale igualmente **fora**
+  da aba: um Ator trazido para o mundo e mostrado na aba NPCs, em Contatos ou na ficha
+  não pode reescrever seu `name` sem quebrar esse casamento. A aba Compêndio já resolve
+  os dois nomes na listagem (DEC-CPD-06); esta decisão generaliza o mesmo princípio —
+  **exibição resolve, o documento permanece EN-puro** — para toda superfície que mostra
+  um ator já importado, não só a lâmina de resultado desta aba.
+
 ## 5. Requisitos funcionais
 
 > Blocos de dezena por tema: 001–009 identidade e badge; 010–019 modos e escopo;

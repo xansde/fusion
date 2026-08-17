@@ -13,6 +13,7 @@
 
 import type { NpcDerived, ModifierBreakdown } from "./derivedTypes.js";
 import { fmtMod, SCAFFOLDING_CONDITION_CATALOG } from "./characterSheetVM.js";
+import { displayName } from "../../docs/displayName.js";
 
 export type { NpcDerived };
 export { fmtMod, SCAFFOLDING_CONDITION_CATALOG };
@@ -133,9 +134,15 @@ export class NpcSheetVM {
   // Accessors
   // -------------------------------------------------------------------------
 
+  /**
+   * Resolves through `displayName()` (REQ-CMP-055, A041) rather than reading
+   * `this._doc["name"]` straight — a compendium-imported NPC's document stays
+   * EN-pure, and its pt-BR label, when the pack had one, is a snapshot in
+   * `flags.fusion.i18n["pt-BR"].name`.
+   */
   get name(): string {
-    const raw = this._doc["name"];
-    return typeof raw === "string" ? raw : "Unknown NPC";
+    const resolved = displayName(this._doc);
+    return resolved.length > 0 ? resolved : "Unknown NPC";
   }
 
   get img(): string | null {

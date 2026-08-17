@@ -571,6 +571,23 @@ export function buildCompendiumDragPayload(
 
 export type SortField = "name" | "level" | "type";
 
+/** The comparator every sort in this module shares — one entry against another. */
+function compareEntries(a: PackIndexEntry, b: PackIndexEntry, field: SortField): number {
+  switch (field) {
+    case "name":
+      return a.name.localeCompare(b.name, "pt-BR");
+    case "level": {
+      const aLv = a.index["system.level.value"];
+      const bLv = b.index["system.level.value"];
+      const la = typeof aLv === "number" ? aLv : 0;
+      const lb = typeof bLv === "number" ? bLv : 0;
+      return la - lb;
+    }
+    case "type":
+      return (a.type ?? "").localeCompare(b.type ?? "", "pt-BR");
+  }
+}
+
 /**
  * Sort entries for display.
  */
@@ -580,29 +597,35 @@ export function sortEntries(
   asc = true,
 ): PackIndexEntry[] {
   const sorted = [...entries].sort((a, b) => {
-    let cmp = 0;
-
-    switch (field) {
-      case "name":
-        cmp = a.name.localeCompare(b.name, "pt-BR");
-        break;
-      case "level": {
-        const aLv = a.index["system.level.value"];
-        const bLv = b.index["system.level.value"];
-        const la = typeof aLv === "number" ? aLv : 0;
-        const lb = typeof bLv === "number" ? bLv : 0;
-        cmp = la - lb;
-        break;
-      }
-      case "type":
-        cmp = (a.type ?? "").localeCompare(b.type ?? "", "pt-BR");
-        break;
-    }
-
+    const cmp = compareEntries(a, b, field);
     return asc ? cmp : -cmp;
   });
 
   return sorted;
+}
+
+/**
+ * Sort the aggregated result of REQ-CPD-012/031 for display — the same
+ * Name/Type sort the open-pack body offers, applied to the whole-collection
+ * search. Sorting reorders the LINES inside each group only: the grouping by
+ * document type and each group's `total`/`omitted` come from the server
+ * (REQ-CPD-031) and must survive untouched, or a sort would quietly change
+ * what REQ-CPD-032's truncation notice is talking about.
+ */
+export function sortAggregatedResult(
+  result: AggregatedSearchResult,
+  field: SortField = "name",
+  asc = true,
+): AggregatedSearchResult {
+  return {
+    groups: result.groups.map((group) => ({
+      ...group,
+      lines: [...group.lines].sort((a, b) => {
+        const cmp = compareEntries(a.entry, b.entry, field);
+        return asc ? cmp : -cmp;
+      }),
+    })),
+  };
 }
 
 // ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ import {
   buildSearchQuery,
   buildCompendiumDragPayload,
   sortEntries,
+  sortAggregatedResult,
   buildDocumentPreview,
   highlightMatch,
   fallbackIcon,
@@ -27,6 +28,7 @@ import {
   entryDisplayName,
   entrySecondaryName,
 } from "../compendiumBrowser.js";
+import type { AggregatedSearchResult } from "../compendiumBrowser.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -279,6 +281,87 @@ describe("sortEntries", () => {
     const original = [...entries];
     sortEntries(entries, "level", false);
     expect(entries).toEqual(original);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sortAggregatedResult (A040 — sorting was pack-only; the whole-collection
+// result had no way to reorder its lines)
+// ---------------------------------------------------------------------------
+
+describe("sortAggregatedResult", () => {
+  /** One aggregated line: an entry plus the pack it came from. */
+  function aggLine(entry: PackIndexEntry, documentType: string) {
+    return { entry, packId: "pf2e.test", packLabel: "Teste", documentType };
+  }
+
+  function twoGroupAnswer(): AggregatedSearchResult {
+    return {
+      groups: [
+        {
+          documentType: "Actor",
+          total: 2,
+          lines: [
+            aggLine(makeEntry({ _id: "a1", name: "Zebra", type: "npc" }), "Actor"),
+            aggLine(makeEntry({ _id: "a2", name: "Alpha", type: "hazard" }), "Actor"),
+          ],
+          omitted: 0,
+          packs: [],
+        },
+        {
+          documentType: "Item",
+          total: 2,
+          lines: [
+            aggLine(makeEntry({ _id: "i1", name: "Mango", type: "weapon" }), "Item"),
+            aggLine(makeEntry({ _id: "i2", name: "Apple", type: "armor" }), "Item"),
+          ],
+          omitted: 0,
+          packs: [],
+        },
+      ],
+    };
+  }
+
+  it("REQ-CPD-031: sorts the lines INSIDE each group by name, groups untouched", () => {
+    const sorted = sortAggregatedResult(twoGroupAnswer(), "name", true);
+
+    expect(sorted.groups.map((g) => g.documentType)).toEqual(["Actor", "Item"]);
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.name)).toEqual(["Alpha", "Zebra"]);
+    expect(sorted.groups[1]?.lines.map((l) => l.entry.name)).toEqual(["Apple", "Mango"]);
+  });
+
+  it("REQ-CPD-031: sorts by name descending", () => {
+    const sorted = sortAggregatedResult(twoGroupAnswer(), "name", false);
+
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.name)).toEqual(["Zebra", "Alpha"]);
+  });
+
+  it("REQ-CPD-031: sorts by type (subtype), the other chip the toolbar offers", () => {
+    const sorted = sortAggregatedResult(twoGroupAnswer(), "type", true);
+
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.type)).toEqual(["hazard", "npc"]);
+    expect(sorted.groups[1]?.lines.map((l) => l.entry.type)).toEqual(["armor", "weapon"]);
+  });
+
+  it("REQ-CPD-031: a group's total/omitted/packs survive a sort untouched", () => {
+    const original = twoGroupAnswer();
+    const answer: AggregatedSearchResult = {
+      groups: [{ ...original.groups[0]!, total: 30, omitted: 28 }, original.groups[1]!],
+    };
+
+    const sorted = sortAggregatedResult(answer, "name", true);
+
+    expect(sorted.groups[0]?.total).toBe(30);
+    expect(sorted.groups[0]?.omitted).toBe(28);
+  });
+
+  it("does not mutate the input result", () => {
+    const answer = twoGroupAnswer();
+    const originalOrder = answer.groups[0]!.lines.map((l) => l.entry.name);
+
+    sortAggregatedResult(answer, "name", true);
+
+    expect(answer.groups[0]!.lines.map((l) => l.entry.name)).toEqual(originalOrder);
   });
 });
 

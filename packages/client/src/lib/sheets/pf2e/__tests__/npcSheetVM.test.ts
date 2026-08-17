@@ -104,6 +104,28 @@ describe("NpcSheetVM — basic fields", () => {
     expect(makeVM().name).toBe("Goblin Warrior");
   });
 
+  it("REQ-CMP-055: the header resolves the pt-BR snapshot when the actor was imported with one (A041)", () => {
+    const vm = makeVM({
+      name: "Eagle",
+      flags: {
+        fusion: {
+          packName: "bestiary",
+          sourceId: "eagle-001",
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    });
+    expect(vm.name).toBe("Águia");
+  });
+
+  it("REQ-CMP-055: falls back to the EN doc.name when the actor was imported before the flag existed", () => {
+    const vm = makeVM({
+      name: "Eagle",
+      flags: { fusion: { packName: "bestiary", sourceId: "eagle-001" } },
+    });
+    expect(vm.name).toBe("Eagle");
+  });
+
   it("reads level", () => {
     expect(makeVM().level).toBe(-1);
   });

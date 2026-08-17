@@ -178,6 +178,46 @@ describe("REQ-NPC-030: portrait, name, title, level and attitude", () => {
   });
 });
 
+describe("REQ-CMP-055: a row's name resolves the pt-BR snapshot, never doc.name straight (A041/A034)", () => {
+  it("REQ-CMP-055: a compendium-imported NPC shows the pt-BR label from flags.fusion.i18n", () => {
+    const EAGLE: NpcActorDoc = {
+      _id: "act-eagle0000001",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      folder: null,
+      system: { details: { level: { value: 1 } } },
+      flags: {
+        fusion: {
+          packName: "bestiary",
+          sourceId: "eagle-001",
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    };
+
+    const [row] = buildNpcRows({ actors: [EAGLE], isPrivileged: true });
+
+    expect(row?.name).toBe("Águia");
+  });
+
+  it("REQ-CMP-055: an NPC imported before the flag existed (no snapshot) falls back to doc.name", () => {
+    const EAGLE_NO_FLAG: NpcActorDoc = {
+      _id: "act-eagle0000002",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      folder: null,
+      system: { details: { level: { value: 1 } } },
+      flags: { fusion: { packName: "bestiary", sourceId: "eagle-001" } },
+    };
+
+    const [row] = buildNpcRows({ actors: [EAGLE_NO_FLAG], isPrivileged: true });
+
+    expect(row?.name).toBe("Eagle");
+  });
+});
+
 describe("REQ-NPC-031: no hit points reach the line, for any role", () => {
   it("REQ-NPC-031: the row of an actor with hp carries no number of it whatsoever", () => {
     const row = rowOf(GOBLIN._id);
