@@ -109,8 +109,10 @@
     "1": "1 character has choices that depend on this rule. Turn it off anyway?",
     "other": "{{count}} characters have choices that depend on this rule. Turn it off anyway?"
   },
+  "FUSION.Settings.World.WriteFailed": "Could not save: {{message}}",
   "FUSION.Settings.Permissions.Empty": "No configurable permission in this world.",
   "FUSION.Settings.Permissions.Changed": "Changed",
+  "FUSION.Settings.Permissions.WriteFailed": "Could not save: {{message}}",
   "FUSION.Settings.Permissions.Keys.ACTOR_CREATE": "Create new Actors",
   "FUSION.Settings.Permissions.Keys.ITEM_CREATE": "Create new Items",
   "FUSION.Settings.Permissions.Keys.TABLE_CREATE": "Create roll tables",

@@ -15,17 +15,32 @@
    * Writes go through the generic `doc:create`/`doc:update` of `Setting`
    * (`buildSettingWriteOp`, REQ-CFG-071) — never a bespoke setting-write op.
    * No optimistic update: the control only reflects a NEW value once the ack
-   * confirms it (`applyWorldSettingWrite`), never before — a refusal simply
-   * leaves the control showing the last value the server actually accepted.
+   * confirms it (`applyWorldSettingWrite`), never before. On a refusal
+   * (REQ-CFG-073/042) `commit` does two things `worldSettingsRegistry` alone
+   * cannot: records the server's reason in `state` (rendered under the row,
+   * `FUSION.Settings.World.WriteFailed`) and forces the control's DOM value
+   * back to what `controlForRow(row)` still says — a plain checkbox/select's
+   * `checked`/`value` is native browser state the moment the user acts on
+   * it, and since the row itself never changed on a refusal, Svelte's own
+   * `checked={control.checked}` binding has nothing to re-run (the
+   * expression's value is unchanged), so nobody else undoes the browser's
+   * own edit.
    *
    * Turning a boolean row OFF goes through one more generic gate first
-   * (REQ-CFG-082, DEC-CFG-09): `needsDisableConfirm` (worldSettingsSection.ts)
+   * (REQ-CFG-082, DEC-CFG-09): `resolveBooleanWrite` (worldSettingsSection.ts)
    * decides — from `row.requiresConfirmOnDisable`/`row.value` alone, never a
-   * key — whether this is the ONE gesture the tab confirms; if so,
-   * `querySettingDisableImpact` asks the server how many actors are affected
-   * and a native `confirm()` (same precedent as ActorDirectory's delete, not
-   * a floating window) shows the count before `commit` ever runs. Turning ON
-   * always skips straight to `commit`.
+   * key — whether this is the ONE gesture the tab confirms; if so, it asks
+   * the server how many actors are affected and gates on a native
+   * `confirm()` (same precedent as ActorDirectory's delete, not a floating
+   * window) showing the count before commit ever runs. Turning ON always
+   * skips straight to commit. A cancelled confirm reverts the checkbox the
+   * same way a refusal does — nothing was ever applied, but the browser
+   * still flipped it natively before this handler ran.
+   *
+   * `state` (`WorldSectionState`) is an injectable prop, same pattern as
+   * `UsersSection.svelte`'s `flow` — defaults to a fresh instance per mount
+   * (the drawer remounts the panel on every switch, REQ-GAV-017), and lets
+   * tests pre-seed a refusal before a `svelte/server` render.
    */
 
   import type { Socket } from "socket.io-client";
@@ -39,16 +54,18 @@
   import {
     buildSettingWriteOp,
     controlForRow,
-    needsDisableConfirm,
+    resolveBooleanWrite,
     type WorldSettingRow,
   } from "../../lib/settings/worldSettingsSection.js";
   import { querySettingDisableImpact } from "../../lib/settings/worldSettingsImpact.js";
+  import { WorldSectionState } from "../../lib/settings/worldSectionState.svelte.js";
 
   interface Props {
     socket: Socket;
+    state?: WorldSectionState;
   }
 
-  const { socket }: Props = $props();
+  const { socket, state = new WorldSectionState() }: Props = $props();
 
   // The drawer mounts a fresh panel on every switch (REQ-GAV-017), so there is
   // nothing to keep reactive to a socket reconnect here.
@@ -57,46 +74,62 @@
 
   const rows = $derived(worldSettingsRegistry.rows);
 
-  async function commit(row: WorldSettingRow, nextValue: unknown): Promise<void> {
+  function errorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
+  }
+
+  /** REQ-CFG-073/042: put a control's DOM value back to what the row still holds. */
+  function revertControl(row: WorldSettingRow, target: HTMLInputElement | HTMLSelectElement): void {
+    const control = controlForRow(row);
+    if (control.kind === "boolean") {
+      (target as HTMLInputElement).checked = control.checked;
+    } else if (control.kind === "number") {
+      (target as HTMLInputElement).value = String(control.value);
+    } else {
+      (target as HTMLSelectElement).value = control.value;
+    }
+  }
+
+  async function commit(
+    row: WorldSettingRow,
+    nextValue: unknown,
+    target: HTMLInputElement | HTMLSelectElement,
+  ): Promise<void> {
     const op = buildSettingWriteOp(row, nextValue);
     try {
       const result = await sendOp<{ documents?: Array<{ _id: string }> }>(socket, op);
       const id = row.id ?? result.documents?.[0]?._id;
       if (id !== undefined) applyWorldSettingWrite(row.key, id, nextValue);
+      state.clearError(row.key);
     } catch (err) {
-      // REQ-CFG-073's spirit: nothing above assumed success, so a refusal
-      // simply leaves the control at the last server-confirmed value.
-      console.error(`[WorldSection] setting write failed for "${row.key}":`, err);
+      // REQ-CFG-073: a refusal reverts the control to the value the server
+      // last actually accepted, and shows why.
+      state.setError(row.key, errorMessage(err));
+      revertControl(row, target);
     }
   }
 
   /**
    * The gate every boolean row's checkbox goes through (REQ-CFG-082,
-   * DEC-CFG-09). Turning ON, or a row without `requiresConfirmOnDisable`,
-   * commits straight away — `needsDisableConfirm` is what decides, so
-   * nothing here branches on which setting this is (REQ-CFG-031). Only when
-   * it says yes does this ask the server "how many" and gate on a native
-   * confirm — the same `confirm()` precedent ActorDirectory's delete uses,
-   * not a floating window (REQ-CFG-013).
+   * DEC-CFG-09) — see module docstring.
    */
-  async function handleBooleanChange(row: WorldSettingRow, nextValue: boolean): Promise<void> {
-    if (!needsDisableConfirm(row, nextValue)) {
-      await commit(row, nextValue);
-      return;
+  async function handleBooleanChange(
+    row: WorldSettingRow,
+    nextValue: boolean,
+    target: HTMLInputElement,
+  ): Promise<void> {
+    const shouldCommit = await resolveBooleanWrite(row, nextValue, {
+      confirmDisable: (message) => confirm(message),
+      queryImpact: (key) => querySettingDisableImpact(socket, key),
+      formatConfirmMessage: (count) => t("FUSION.Settings.World.ConfirmDisable", { count }),
+    });
+    if (shouldCommit) {
+      await commit(row, nextValue, target);
+    } else {
+      // Cancelled: nothing was ever applied, but the browser already
+      // flipped the checkbox natively before this handler ran.
+      revertControl(row, target);
     }
-    let count = 0;
-    try {
-      count = (await querySettingDisableImpact(socket, row.key)).count;
-    } catch (err) {
-      console.error(`[WorldSection] impact query failed for "${row.key}":`, err);
-      // Unknown impact is not "no impact" — still confirm, with count 0 as
-      // the honest floor rather than silently skipping the gate.
-    }
-    if (confirm(t("FUSION.Settings.World.ConfirmDisable", { count }))) {
-      await commit(row, nextValue);
-    }
-    // Cancelled: nothing was ever applied optimistically, so there is
-    // nothing to revert — the control already reflects `row.value`.
   }
 </script>
 
@@ -107,11 +140,17 @@
     <ul class="world-section__list">
       {#each rows as row (row.key)}
         {@const control = controlForRow(row)}
+        {@const rowError = state.errorFor(row.key)}
         <li class="world-section__row">
           <div class="world-section__meta">
             <span class="world-section__label">{row.label}</span>
             {#if row.hint}
               <span class="world-section__hint">{row.hint}</span>
+            {/if}
+            {#if rowError}
+              <span class="world-section__error"
+                >{t("FUSION.Settings.World.WriteFailed", { message: rowError })}</span
+              >
             {/if}
           </div>
 
@@ -121,7 +160,8 @@
                 type="checkbox"
                 checked={control.checked}
                 onchange={(event) => {
-                  void handleBooleanChange(row, (event.currentTarget as HTMLInputElement).checked);
+                  const target = event.currentTarget as HTMLInputElement;
+                  void handleBooleanChange(row, target.checked, target);
                 }}
               />
             </label>
@@ -130,7 +170,8 @@
               class="world-section__select"
               value={control.value}
               onchange={(event) => {
-                void commit(row, (event.currentTarget as HTMLSelectElement).value);
+                const target = event.currentTarget as HTMLSelectElement;
+                void commit(row, target.value, target);
               }}
             >
               {#each control.options as option (option)}
@@ -143,7 +184,8 @@
               type="number"
               value={control.value}
               onchange={(event) => {
-                void commit(row, Number((event.currentTarget as HTMLInputElement).value));
+                const target = event.currentTarget as HTMLInputElement;
+                void commit(row, Number(target.value), target);
               }}
             />
           {/if}
@@ -195,6 +237,11 @@
 
   .world-section__hint {
     color: var(--fusion-text-subtle);
+    font-size: 0.75rem;
+  }
+
+  .world-section__error {
+    color: var(--fusion-danger);
     font-size: 0.75rem;
   }
 

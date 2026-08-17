@@ -133,3 +133,47 @@ export function needsDisableConfirm(row: WorldSettingRow, nextValue: unknown): b
     nextValue === false
   );
 }
+
+// ---------------------------------------------------------------------------
+// Boolean-row write orchestration (REQ-CFG-082, DEC-CFG-09) — the gate every
+// boolean row's checkbox goes through, extracted so `WorldSection.svelte`
+// only has to wire real `confirm`/socket-query functions to it.
+// ---------------------------------------------------------------------------
+
+export interface BooleanWriteDeps {
+  /** Wraps `window.confirm` — same `confirm()` precedent ActorDirectory's delete uses. */
+  readonly confirmDisable: (message: string) => boolean;
+  /** Wraps `querySettingDisableImpact` — asks the server how many actors are affected. */
+  readonly queryImpact: (key: string) => Promise<{ count: number }>;
+  /** Builds the confirmation copy for a given count (REQ-CFG-082's "quantos"). */
+  readonly formatConfirmMessage: (count: number) => string;
+}
+
+/**
+ * Decides whether `nextValue` should actually be committed for `row`
+ * (REQ-CFG-082, DEC-CFG-09): turning a row ON, or a row without
+ * `requiresConfirmOnDisable`, always says yes without touching `deps` at
+ * all — `needsDisableConfirm` alone decides, so nothing here branches on
+ * which setting this is (REQ-CFG-031). Only when it says yes does this ask
+ * `deps.queryImpact` "how many" and gate on `deps.confirmDisable`; an
+ * unknown impact (the query rejects) is not "no impact" — this still
+ * confirms, with count 0 as the honest floor rather than silently skipping
+ * the gate.
+ */
+export async function resolveBooleanWrite(
+  row: WorldSettingRow,
+  nextValue: boolean,
+  deps: BooleanWriteDeps,
+): Promise<boolean> {
+  if (!needsDisableConfirm(row, nextValue)) {
+    return true;
+  }
+  let count = 0;
+  try {
+    count = (await deps.queryImpact(row.key)).count;
+  } catch {
+    // Unknown impact is not "no impact" — still confirm, with count 0 as
+    // the honest floor rather than silently skipping the gate.
+  }
+  return deps.confirmDisable(deps.formatConfirmMessage(count));
+}

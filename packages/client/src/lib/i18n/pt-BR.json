@@ -109,8 +109,10 @@
     "1": "1 personagem tem escolhas que dependem desta regra. Desligar mesmo assim?",
     "other": "{{count}} personagens têm escolhas que dependem desta regra. Desligar mesmo assim?"
   },
+  "FUSION.Settings.World.WriteFailed": "Não foi possível salvar: {{message}}",
   "FUSION.Settings.Permissions.Empty": "Nenhuma permissão configurável neste mundo.",
   "FUSION.Settings.Permissions.Changed": "Alterado",
+  "FUSION.Settings.Permissions.WriteFailed": "Não foi possível salvar: {{message}}",
   "FUSION.Settings.Permissions.Keys.ACTOR_CREATE": "Criar novos Atores",
   "FUSION.Settings.Permissions.Keys.ITEM_CREATE": "Criar novos Itens",
   "FUSION.Settings.Permissions.Keys.TABLE_CREATE": "Criar tabelas aleatórias",

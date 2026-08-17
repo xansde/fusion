@@ -11,12 +11,13 @@
  * setting even is (REQ-CFG-031).
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   buildSettingWriteOp,
   controlForRow,
   needsDisableConfirm,
+  resolveBooleanWrite,
   type WorldSettingRow,
 } from "../worldSettingsSection.js";
 
@@ -202,5 +203,94 @@ describe("needsDisableConfirm — REQ-CFG-082: desligar confirma, ligar nunca co
     expect(needsDisableConfirm(fromAnotherSystem, false)).toBe(
       needsDisableConfirm(FREE_ARCHETYPE_ON, false),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveBooleanWrite — REQ-CFG-082/083: the confirm/impact-query orchestration
+// WorldSection.svelte's `handleBooleanChange` wires real `confirm`/socket
+// functions into. Every `deps` function here is a spy, so what is proved is
+// the ORCHESTRATION — which deps get called, with what, and what the caller
+// is told to do — never the DOM or the network.
+// ---------------------------------------------------------------------------
+
+describe("resolveBooleanWrite — REQ-CFG-082: gate a boolean row's write on confirmation", () => {
+  it("turning a row ON never asks the server or confirms — commits straight away", async () => {
+    const off: WorldSettingRow = { ...FREE_ARCHETYPE_ON, value: false };
+    const queryImpact = vi.fn();
+    const confirmDisable = vi.fn();
+
+    const shouldCommit = await resolveBooleanWrite(off, true, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage: (count) => String(count),
+    });
+
+    expect(shouldCommit).toBe(true);
+    expect(queryImpact).not.toHaveBeenCalled();
+    expect(confirmDisable).not.toHaveBeenCalled();
+  });
+
+  it("a row without requiresConfirmOnDisable commits straight away, even turning OFF", async () => {
+    const { requiresConfirmOnDisable: _drop, ...rest } = FREE_ARCHETYPE_ON;
+    const plain: WorldSettingRow = rest;
+    const queryImpact = vi.fn();
+    const confirmDisable = vi.fn();
+
+    const shouldCommit = await resolveBooleanWrite(plain, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage: (count) => String(count),
+    });
+
+    expect(shouldCommit).toBe(true);
+    expect(queryImpact).not.toHaveBeenCalled();
+    expect(confirmDisable).not.toHaveBeenCalled();
+  });
+
+  it("REQ-CFG-082: turning a requiresConfirmOnDisable row OFF asks the impact count and confirms with it", async () => {
+    const queryImpact = vi.fn().mockResolvedValue({ count: 3 });
+    const confirmDisable = vi.fn().mockReturnValue(true);
+    const formatConfirmMessage = vi.fn((count: number) => `${count} personagens afetados`);
+
+    const shouldCommit = await resolveBooleanWrite(FREE_ARCHETYPE_ON, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage,
+    });
+
+    expect(queryImpact).toHaveBeenCalledWith("pf2e:freeArchetype");
+    expect(formatConfirmMessage).toHaveBeenCalledWith(3);
+    expect(confirmDisable).toHaveBeenCalledWith("3 personagens afetados");
+    expect(shouldCommit).toBe(true);
+  });
+
+  it("cancelling the confirm dialog says not to commit", async () => {
+    const queryImpact = vi.fn().mockResolvedValue({ count: 1 });
+    const confirmDisable = vi.fn().mockReturnValue(false);
+
+    const shouldCommit = await resolveBooleanWrite(FREE_ARCHETYPE_ON, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage: (count) => String(count),
+    });
+
+    expect(shouldCommit).toBe(false);
+  });
+
+  it("an impact query that rejects is not treated as zero impact — it still confirms, with count 0 as the floor", async () => {
+    const queryImpact = vi.fn().mockRejectedValue(new Error("timed out"));
+    const confirmDisable = vi.fn().mockReturnValue(true);
+    const formatConfirmMessage = vi.fn((count: number) => `count=${count}`);
+
+    const shouldCommit = await resolveBooleanWrite(FREE_ARCHETYPE_ON, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage,
+    });
+
+    expect(formatConfirmMessage).toHaveBeenCalledWith(0);
+    expect(confirmDisable).toHaveBeenCalledWith("count=0");
+    expect(shouldCommit).toBe(true);
   });
 });

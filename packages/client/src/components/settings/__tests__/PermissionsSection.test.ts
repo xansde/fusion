@@ -18,6 +18,7 @@ import {
   resetPermissionsRegistry,
   seedPermissionsRegistry,
 } from "../../../lib/settings/permissionsRegistry.svelte.js";
+import { PermissionsSectionState } from "../../../lib/settings/permissionsSectionState.svelte.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -104,5 +105,52 @@ describe("PermissionsSection — REQ-CFG-040: uma linha por permissão, nunca ma
     const html = renderSection();
 
     expect(html).toContain(t("FUSION.Settings.Permissions.Empty"));
+  });
+});
+
+describe("PermissionsSection — REQ-CFG-042/073: a refusal shows its reason under the row", () => {
+  function renderWithState(state: PermissionsSectionState): string {
+    const { body } = render(PermissionsSection, { props: { socket: {} as never, state } });
+    return body;
+  }
+
+  it("a row with an error recorded in state renders the WriteFailed message", () => {
+    seedPermissionsRegistry({
+      settingId: "setting-perms-1",
+      permissions: [{ key: "ACTOR_CREATE", minRole: 3, defaultMinRole: 3 }],
+    });
+    const state = new PermissionsSectionState();
+    state.setError("ACTOR_CREATE", "papel insuficiente");
+
+    const html = renderWithState(state);
+
+    expect(html).toContain(
+      t("FUSION.Settings.Permissions.WriteFailed", { message: "papel insuficiente" }),
+    );
+  });
+
+  it("a row with no recorded error shows no failure message at all", () => {
+    seedPermissionsRegistry({
+      settingId: "setting-perms-1",
+      permissions: [{ key: "ACTOR_CREATE", minRole: 3, defaultMinRole: 3 }],
+    });
+
+    const html = renderWithState(new PermissionsSectionState());
+
+    expect(html).not.toContain("permissions-section__error");
+  });
+
+  it("REQ-CFG-042: the selector still reflects the row's own value while the error shows — refusal never assumes success", () => {
+    seedPermissionsRegistry({
+      settingId: "setting-perms-1",
+      permissions: [{ key: "ACTOR_CREATE", minRole: 3, defaultMinRole: 3 }],
+    });
+    const state = new PermissionsSectionState();
+    state.setError("ACTOR_CREATE", "papel insuficiente");
+
+    const html = renderWithState(state);
+    const selectMatch = /<select[^>]*>([\s\S]*?)<\/select>/.exec(html);
+    expect(selectMatch).not.toBeNull();
+    expect(selectMatch?.[1]).toContain('value="3" selected');
   });
 });
