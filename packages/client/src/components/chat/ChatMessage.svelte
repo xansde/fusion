@@ -69,7 +69,7 @@
   } from "../../lib/chat/messageFormatter.js";
   import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
   import { buildRollDisplay, type RollDisplay } from "../../lib/chat/rollDisplay.js";
-  import { isCardMessage, isInvalidMessage, isWhisperMessage } from "../../lib/chat/chatGrouping.js";
+  import { isCardMessage, isInvalidMessage } from "../../lib/chat/chatGrouping.js";
   import { resolveInvalidatorLabel } from "../../lib/chat/invalidationDisplay.js";
   import { speakerColor, speakerColorKey } from "../../lib/chat/speakerColor.js";
   import { resolveInvalidateAction } from "../../lib/chat/invalidateButton.js";
@@ -198,11 +198,17 @@
   const invalidatedBy = $derived(resolveInvalidatorLabel(message, presenceState.onlineUsers));
 
   // ---- Per-sender color (REQ-ACH-025, A022) ----
-  // Reuses chatGrouping's OWN predicates for "is this a card"/"is this a
-  // whisper" — the same ones the log's grouping already relies on — instead of
-  // re-deriving a second notion of either from message.type.
+  // Reuses chatGrouping's OWN predicate for "is this a card" — the same one
+  // the log's grouping already relies on — instead of re-deriving a second
+  // notion of it from message.type. The whisper TYPE tint, unlike the card
+  // check, is keyed strictly to `message.type === "whisper"`
+  // (chat-tab.prototype.html:578/623) — NOT the broader `isWhisperMessage`
+  // predicate (msg.type === "whisper" || msg.whisper.length > 0). A PRIVATE
+  // ROLL (gmroll/selfroll) also populates `whisper[]`, but the prototype
+  // keeps its border the sender's own color and marks it only with a seal
+  // ("ao Mestre"/"só eu") — it is not painted as a sussurro.
   const isCard = $derived(isCardMessage(message));
-  const isWhisper = $derived(isWhisperMessage(message));
+  const isWhisperType = $derived(message.type === "whisper");
   const authorColor = $derived(speakerColor(speakerColorKey(message.speaker)));
   // The prototype paints a plain message's left border with the sender's own
   // color, but a whisper/blind/card row keeps its FIXED type color instead
@@ -210,7 +216,7 @@
   // continuation row shows no header at all, so no color to apply. `undefined`
   // here means "let the CSS class decide", never "no color painted".
   const borderColor = $derived.by(() => {
-    if (continuesPrevious || isWhisper || meta.isBlind || isCard) return undefined;
+    if (continuesPrevious || isWhisperType || meta.isBlind || isCard) return undefined;
     return authorColor;
   });
 
@@ -240,7 +246,7 @@
   class="msg {meta.typeClass}"
   class:msg--continued={continuesPrevious}
   class:msg--invalid={invalidated}
-  class:msg--whisper={isWhisper}
+  class:msg--whisper={isWhisperType}
   class:msg--blind={meta.isBlind}
   class:msg--sys={isCard}
   style:border-left-color={borderColor}
@@ -543,23 +549,31 @@
     shows on hover/focus — it never crowds the message body, and a reader who
     is not the GM or the author simply never sees it (the button is absent from
     the markup entirely for them, not just hidden by CSS).
+
+    RNF-ACH-04 (REQ-UIF-064): revealed via opacity, not `display: none` — a
+    `display: none` element is removed from the tab order, so a keyboard user
+    could never focus the button in the first place and `:focus-within` below
+    would be dead code (same pattern as ScenesTab.svelte's
+    `.scene-row__actions` / CombatQueue.svelte's `.combatant-row__actions`).
   */
   .msg__acts {
     position: absolute;
     top: -6px;
     right: 4px;
-    display: none;
+    display: flex;
     gap: 0.15rem;
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     padding: 0.1rem;
     z-index: 2;
+    opacity: 0;
+    transition: opacity var(--fusion-transition);
   }
 
   .msg:hover .msg__acts,
   .msg:focus-within .msg__acts {
-    display: flex;
+    opacity: 1;
   }
 
   .msg__act {
@@ -582,6 +596,14 @@
   .msg__act:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* RNF-ACH-04: the browser's default outline is not enough once revealed by
+     opacity — a visible ring on keyboard focus (same treatment as
+     RollModeSelector.svelte's `.roll-mode__option:focus-visible`). */
+  .msg__act:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 1px;
   }
 
   .msg__act svg {

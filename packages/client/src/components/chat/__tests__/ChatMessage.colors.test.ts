@@ -141,4 +141,38 @@ describe("REQ-ACH-025 / DEC-ACH-02 / DEC-ACH-03 — per-sender border + name col
     const aliasTag = body.slice(aliasStart, aliasStart + 120);
     expect(aliasTag).toContain(`color: ${expected}`);
   });
+
+  /*
+   * A gmroll/selfroll message ALSO populates `whisper[]` (server:
+   * chat-handler.ts, `whisper = getGmUserIds(db)` / `whisper = [authorId]`),
+   * so `isWhisperMessage` (chatGrouping.ts) returns true for it too. But it
+   * is NOT the "whisper" TYPE — the prototype (chat-tab.prototype.html:578
+   * `if(m.type==='whisper') cls.push('m--whisper')`, :623 `bcolor =
+   * (cont||m.type==='whisper'||m.blind||isCard) ? '' : COLOR[m.who]`) keeps
+   * the sender's own border for a private ROLL and marks it only with a seal,
+   * never with the fixed sussurro tint. REQ-ACH-025.
+   */
+  it("a gmroll (type roll, whisper populated) keeps the sender's border, NOT the fixed whisper color", () => {
+    const ana = msg("m1", {
+      type: "roll",
+      whisper: ["gm-1"],
+      speaker: { userId: "u1", alias: "Ana" },
+    });
+    const body = renderMsg(ana);
+    const expected = speakerColor(speakerColorKey(ana.speaker));
+    expect(body).not.toContain("msg--whisper");
+    expect(body).toContain(`border-left-color: ${expected}`);
+  });
+
+  it("a selfroll (type roll, whisper = [authorId]) keeps the sender's border, NOT the fixed whisper color", () => {
+    const ana = msg("m1", {
+      type: "roll",
+      whisper: ["u1"],
+      speaker: { userId: "u1", alias: "Ana" },
+    });
+    const body = renderMsg(ana);
+    const expected = speakerColor(speakerColorKey(ana.speaker));
+    expect(body).not.toContain("msg--whisper");
+    expect(body).toContain(`border-left-color: ${expected}`);
+  });
 });
