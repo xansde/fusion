@@ -34,8 +34,12 @@
    * enquanto", a decision, not a bug). The server-side logic they used to trigger
    * (`toggleSceneDarkness`/`toggleSceneFog`/`resetSceneFog` in `lib/scenes/
    * sceneEnvironment.ts`, and `openScenePerceptionWindow` in `lib/scenes/
-   * sceneWindows.ts`) is untouched and still reachable from the configuration window
-   * (REQ-CEN-062). See `specs/44-aba-cenas.md` §5.3 for the emended requirements.
+   * sceneWindows.ts`) is untouched, but reachability by UI is now UNEVEN between the
+   * three gestures: `toggleSceneDarkness`/`toggleSceneFog` stay reachable from the
+   * configuration window's perception door (REQ-CEN-062); `resetSceneFog` has NO UI
+   * door at all — the perception window only ever wrote value fields via `doc:update`
+   * and never called `fog:reset` (Q-CEN-07 in `specs/44-aba-cenas.md`). See
+   * `specs/44-aba-cenas.md` §5.3 for the emended requirements.
    *
    * Content permission: the whole tab is group "gm" in the rail, but that is
    * ergonomics, not a boundary (REQ-GAV-034, DEC-CEN-11). Both halves are closed

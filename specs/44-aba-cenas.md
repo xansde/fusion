@@ -129,9 +129,15 @@ iluminação nem de exploração.
   aqui; ajustar valores (nível de escuridão, limiar, visão por token) fica na janela.
 
 > **Nota de 2026-08-17** — retirado temporariamente da UI (decisão do Alexandre no
-> teste r1, item 25; ver a nota em REQ-CEN-020..025). Enquanto durar a retirada, os
-> três gestos só são alcançáveis pela janela de percepção (REQ-CEN-062); a lógica de
-> servidor que este atalho aciona não mudou.
+> teste r1, item 25; ver a nota em REQ-CEN-020..025). Enquanto durar a retirada,
+> alternar escuridão e alternar névoa continuam alcançáveis pela janela de percepção
+> (REQ-CEN-062, aberta a partir da janela de configuração de qualquer cena);
+> **resetar a névoa não tem porta nenhuma na UI** — a janela de percepção nunca
+> acionou esse gesto (ela só grava `doc:update` dos campos de valor) e a segunda
+> frase deste racional já recusava colocá-lo lá ("obriga a abrir uma janela para uma
+> ação de dois segundos"). A lógica de servidor (`toggleSceneDarkness`/
+> `toggleSceneFog`/`resetSceneFog`) não mudou; só o gesto de reset ficou
+> temporariamente sem acionador algum (Q-CEN-07).
 
 ### DEC-CEN-07 — Excluir a cena que está no ar é recusado
 
@@ -238,10 +244,14 @@ real é o predicado do servidor, não a ausência do ícone.
 > REQ-CEN-024 e REQ-CEN-025 estão **retirados temporariamente da UI** (decisão do
 > Alexandre no teste r1, item 25 — "fora por enquanto", não é correção de defeito).
 > A cabeça não exibe mais o botão de percepção nem o grupo de três botões de
-> ambiente; a lógica de servidor por trás (`toggleSceneDarkness`/`toggleSceneFog`/
-> `resetSceneFog` e a janela de percepção) **permanece intacta e alcançável pela
-> janela de configuração** (REQ-CEN-062) — só a porta que vivia na cabeça saiu. Os
-> ids e as tags [MVP] não são apagados: a retirada é reversível.
+> ambiente. A lógica de servidor por trás não mudou, mas o alcance por UI ficou
+> desigual entre os três gestos: REQ-CEN-020 (escuridão) e REQ-CEN-021 (névoa)
+> continuam alcançáveis pela janela de percepção (REQ-CEN-062), aberta a partir da
+> janela de configuração de qualquer cena; **REQ-CEN-022 (resetar a névoa) NÃO tem
+> porta nenhuma na UI enquanto durar a retirada** — a janela de percepção nunca
+> chamou `fog:reset` (ela só grava os campos de valor via `doc:update`), e
+> `resetSceneFog` ficou sem call-site de produção algum (Q-CEN-07). Os ids e as
+> tags [MVP] não são apagados: a retirada é reversível.
 
 ### 5.4 Acervo, pastas e busca
 
@@ -438,6 +448,13 @@ real é o predicado do servidor, não a ausência do ícone.
 | CA-CEN-014 | Mundo sem cenas: a cabeça diz que não há nada no ar, o corpo convida a criar a primeira, e o jogador vê a tela de espera.                                               |
 | CA-CEN-015 | O rodapé informa onde fica o mapa de região, e o mapa de região não aparece em nenhum grupo do acervo.                                                                  |
 
+> **Nota de 2026-08-17** — enquanto durar a retirada temporária do item 25 (nota sob
+> REQ-CEN-025), CA-CEN-009 (reset de névoa) e a metade de CA-CEN-010 sobre alternar
+> névoa/escuridão pela cabeça não são verificáveis por UI: CA-CEN-010 volta a valer
+> pela janela de percepção (REQ-CEN-062); CA-CEN-009 não tem porta de UI nenhuma e
+> só é provado no nível de unidade (`sceneEnvironment.test.ts`) até Q-CEN-07 decidir
+> um destino para o gesto.
+
 ## 11. O que esta spec ainda NÃO decide
 
 | Assunto                                            | Por que ainda não                                         | Onde vai ser decidido  |
@@ -477,6 +494,13 @@ Registradas para que o PR não deixe nenhuma spec contrariada em silêncio
   significar alguma coisa. Vale antecipar isso, ou esperar a `05` mudar?
 - **Q-CEN-06** — Pôr no ar durante um encontro ativo em outra cena: recusar, avisar ou
   deixar passar? A `10` é dona do encontro e não trata de troca de cena.
+- **Q-CEN-07** — Enquanto durar a retirada do item 25 (nota sob REQ-CEN-025), resetar
+  a névoa (REQ-CEN-022/REQ-VIS-086) fica sem NENHUM acionador de UI: a janela de
+  percepção nunca chamou `fog:reset` (só grava campos de valor), e DEC-CEN-06 já
+  recusava colocar o reset lá ("obriga a abrir uma janela para uma ação de dois
+  segundos"). Volta um botão dedicado quando a cabeça reabrir, ou ganha um lugar na
+  janela de percepção antes disso? Até decidir, `resetSceneFog` segue sem call-site
+  de produção e CA-CEN-009 só é provado no nível de unidade.
 
 ## 14. Referências
 
