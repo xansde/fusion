@@ -207,7 +207,7 @@ describe("REQ-NPC-020 / REQ-NPC-026: the tree, and the count of each folder", ()
 // ---------------------------------------------------------------------------
 // A032 — top bar reduced to search + one icon-only button; "new folder" moved
 // into the "pastas" section head (npcs-tab.prototype.html, npcsHead() and the
-// "pastas" .sec block). Cobre: REQ-NPC-020, REQ-NPC-021, REQ-NPC-026, REQ-NPC-029.
+// "pastas" .sec block). Cobre: REQ-NPC-010, REQ-NPC-021, REQ-NPC-040.
 // ---------------------------------------------------------------------------
 
 /** The `<header>…</header>` region of the rendered panel. */
@@ -217,14 +217,19 @@ function headerRegion(body: string): string {
   return match[0];
 }
 
-describe("A032 / REQ-NPC-020 / REQ-NPC-021: the top bar has search plus ONE button", () => {
+describe("A032 / REQ-NPC-010 / REQ-NPC-040: the top bar has search plus ONE button", () => {
   it("the header holds exactly one <button>, wired to new-npc, no visible label text", () => {
     const body = renderPanel();
     const header = headerRegion(body);
 
+    // REQ-NPC-010: the fixed bar holds search plus ONE creation control — no
+    // longer the search + two buttons ("Novo não-jogável" and "Nova pasta")
+    // the panel had before A032.
     const buttonCount = header.match(/<button/g)?.length ?? 0;
     expect(buttonCount).toBe(1);
 
+    // REQ-NPC-040: creation stays reachable from the head of the panel — this
+    // is that door, still standing after A032's reposition.
     expect(header).toContain('data-action="new-npc"');
     // Icon-only: the button carries the label as aria-label, never as visible
     // TEXT CONTENT between the tags (a screen reader still gets the label).
@@ -240,7 +245,7 @@ describe("A032 / REQ-NPC-020 / REQ-NPC-021: the top bar has search plus ONE butt
   });
 });
 
-describe('A032 / REQ-NPC-021 / REQ-NPC-026: "nova pasta" moved into the pastas section head', () => {
+describe('A032 / REQ-NPC-021: "nova pasta" moved into the pastas section head', () => {
   it('the folder tree opens with a "pastas" section head carrying the new-folder action', () => {
     const body = renderPanel();
 
@@ -263,7 +268,7 @@ describe('A032 / REQ-NPC-021 / REQ-NPC-026: "nova pasta" moved into the pastas s
     expect(header).not.toContain("data-npc-folder-section");
   });
 
-  it("REQ-NPC-021/REQ-NPC-029: each folder still offers a per-folder new-subfolder action on hover", () => {
+  it("REQ-NPC-021: each folder still offers a per-folder new-subfolder action on hover", () => {
     const body = renderPanel();
 
     // Unchanged from before the reposition — one hover action per folder row.
