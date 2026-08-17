@@ -256,5 +256,5 @@ export function lastMessageStamp(
 ): string | null {
   const last = messages[messages.length - 1];
   if (!last) return null;
-  return `${last._id}:${last.invalid === true}`;
+  return `${last._id}:${last.invalid === true ? "invalid" : "valid"}`;
 }
