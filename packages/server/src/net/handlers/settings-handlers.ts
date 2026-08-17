@@ -24,7 +24,9 @@
  */
 
 import { z, type ZodTypeAny } from "zod";
-import type { HandlerFn } from "../handler-registry.js";
+import type { Ack } from "@fusion/shared";
+import type { HandlerContext, HandlerFn } from "../handler-registry.js";
+import { isGamemasterStrict } from "../../documents/ownership.js";
 import {
   DEFAULT_PERMISSION_MIN_ROLE,
   findPermissionsSettingId,
@@ -32,6 +34,30 @@ import {
   resolvePermissionMinRole,
   type PermissionsStoreSource,
 } from "../../documents/world-permissions.js";
+
+// ---------------------------------------------------------------------------
+// Ack helpers
+// ---------------------------------------------------------------------------
+
+function ackError(code: string, message: string): Ack<never> {
+  return { ok: false, code: code as never, message };
+}
+
+/**
+ * REQ-GAV-034, DEC-CFG-05, REQ-CFG-070: the three queries in this file are
+ * the door the Mundo and Permissões sections read through, and DEC-CFG-05
+ * says "só GAMEMASTER" for both — the "quem vê" column, not just "quem
+ * escreve". The rail hiding these sections from a player is ergonomics
+ * (REQ-CFG-005), never the boundary; every door that hands back data those
+ * sections own gates the same way the write path already does
+ * (`isGamemasterStrict` in `doc-handlers.ts`'s `Setting` guard), imported
+ * from the single source in `documents/ownership.ts` so the two doors can
+ * never drift on which threshold applies.
+ */
+function requireGamemasterStrict(ctx: HandlerContext): Ack<never> | null {
+  if (isGamemasterStrict(ctx.role)) return null;
+  return ackError("PERMISSION_DENIED", "Only the Gamemaster can read this configuration data");
+}
 
 // ---------------------------------------------------------------------------
 // Schema → render-kind classification
@@ -170,21 +196,25 @@ function indexStoredSettings(
  * setting declarations, each already carrying its current value (REQ-CFG-030,
  * RNF-CFG-02).
  *
- * No role gate, on purpose: like `system:conditions`, this is read of static
- * (well, GM-written) declared data, not a write — the write path (doc:create/
- * doc:update of `Setting`) is what REQ-CFG-070 actually gates. The tab hides
- * the Mundo section from non-privileged seats at the index (REQ-CFG-005), but
- * that is ergonomics, not the boundary (REQ-GAV-034).
+ * GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG-05, spec 37 §8 item 6): the
+ * Mundo section's rows are content only a GAMEMASTER may see, not just write
+ * — REQ-CFG-070's "role === GAMEMASTER no servidor" covers "tudo que é da
+ * mesa", and REQ-GAV-034 says explicitly that the trilho hiding a GM-group
+ * tab is not the security boundary, so this door must enforce it itself. The
+ * tab hiding the Mundo section from non-privileged seats at the index
+ * (REQ-CFG-005) is ergonomics on top of this, never a substitute for it.
  *
  * A world whose system registered nothing (or that has no system at all)
  * answers with an empty list, never an error — same degrade-open shape as
- * `system:conditions`.
+ * `system:conditions` — but only once the requester has cleared the gate.
  */
 export function buildSettingsDeclarationsHandler(
   systemModule?: SettingsRegistrySource,
   store?: SettingsStoreSource,
 ): HandlerFn<SettingsDeclarationsPayload, SettingsDeclarationsResult> {
-  return () => {
+  return (_payload, ctx) => {
+    const denied = requireGamemasterStrict(ctx);
+    if (denied) return denied;
     if (!systemModule) {
       return { ok: true, result: { systemId: null, settings: [] } };
     }
@@ -254,12 +284,20 @@ export interface SettingsImpactResult {
  * the key does not belong to this system, the key is not declared, or the
  * declaration never registered a counter — an unconfirmable setting simply
  * reports nothing to confirm.
+ *
+ * GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG-05): this query runs the
+ * requested setting's `countAffectedActors` over EVERY actor in the world —
+ * exactly the "quantos são afetados" the Mundo section's disable confirmation
+ * shows, so it is Mundo-section content and gated the same as
+ * `settings:declarations`, checked before the world is even touched.
  */
 export function buildSettingsImpactHandler(
   systemModule?: SettingsRegistrySource,
   actorStore?: SettingsActorStoreSource,
 ): HandlerFn<unknown, SettingsImpactResult> {
-  return (rawPayload) => {
+  return (rawPayload, ctx) => {
+    const denied = requireGamemasterStrict(ctx);
+    if (denied) return denied;
     if (!systemModule) return { ok: true, result: { count: 0 } };
 
     const parsed = SettingsImpactPayloadSchema.safeParse(rawPayload);
@@ -306,16 +344,19 @@ export type SettingsPermissionsPayload = Record<string, never>;
  * handler has no per-key branch — it maps the array, nothing else — so a key
  * added to that module later shows up with zero lines touched here.
  *
- * No role gate, same reasoning as `settings:declarations`: this is a read of
- * GM-written configuration, not the write itself — REQ-CFG-070/042's actual
- * enforcement is the GAMEMASTER-strict guard on `Setting` writes in
- * `doc-handlers.ts`. The tab hides the section from non-privileged seats at
- * the index (REQ-CFG-005), which is ergonomics, not the boundary.
+ * GAMEMASTER-strict gate, same reasoning as `settings:declarations`
+ * (REQ-GAV-034, DEC-CFG-05): the Permissões section is "só GAMEMASTER" for
+ * reads too, not only for the write REQ-CFG-042/070/073 enforce via the
+ * GAMEMASTER-strict guard on `Setting` writes in `doc-handlers.ts`. The tab
+ * hiding the section from non-privileged seats at the index (REQ-CFG-005) is
+ * ergonomics on top of this gate, never a substitute for it.
  */
 export function buildSettingsPermissionsHandler(
   store?: PermissionsStoreSource,
 ): HandlerFn<SettingsPermissionsPayload, SettingsPermissionsResult> {
-  return () => {
+  return (_payload, ctx) => {
+    const denied = requireGamemasterStrict(ctx);
+    if (denied) return denied;
     const source: PermissionsStoreSource = store ?? { getAll: () => [] };
     const settingId = findPermissionsSettingId(source);
     const permissions: SettingsPermissionRow[] = PERMISSION_KEYS.map((key) => ({

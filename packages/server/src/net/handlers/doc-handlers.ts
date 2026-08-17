@@ -68,6 +68,7 @@ import {
   resolveOwnership,
   OwnershipLevel,
   isRolePrivileged,
+  isGamemasterStrict,
   testOwnership,
 } from "../../documents/ownership.js";
 import {
@@ -262,23 +263,11 @@ function isPrivileged(role: number): boolean {
   return isRolePrivileged(role);
 }
 
-/**
- * REQ-CFG-070/071: writes to Setting documents (world-scope config declared
- * by the active system, REQ-SYS-047 — the persistence target for the
- * Configurações aba's Mundo/Permissões/Mods sections, REQ-CFG-071) require
- * `role === GAMEMASTER` STRICTLY — not the generic `isPrivileged`/
- * `isRolePrivileged` threshold, which also admits ASSISTANT (role 3).
- *
- * ASSISTANT is a role slated for removal (issue #133, decided 2026-08-15,
- * see specs/45-atores.md and the Fase 9 plan's G106) but the enum value
- * still exists in `UserRole`/`Role`, so this guard spells out the strict
- * check explicitly instead of reusing `isPrivileged` — the same shape as
- * `requireGm` in `auth/routes.ts`, which already gates `/api/users` this way.
- */
-function isGamemasterStrict(role: number): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-  return role === UserRole.GAMEMASTER;
-}
+// `isGamemasterStrict` (REQ-CFG-070/071: `role === GAMEMASTER` strictly, not
+// the generic `isRolePrivileged` threshold that also admits ASSISTANT_GM) is
+// imported from `../../documents/ownership.js` — single source shared with
+// `settings-handlers.ts` (Mundo/Permissões reads) so the two doors can never
+// gate on a different threshold (DEC-CFG-10's implementation note).
 
 /**
  * True when this requester must be answered as if the parent scene did not
@@ -1750,15 +1739,34 @@ function socketIsPrivileged(socket: Socket): boolean {
 }
 
 /**
- * Emit one envelope per socket, choosing by role.
- *
- * `isRolePrivileged` (via {@link socketIsPrivileged}) is the ONLY predicate that
- * decides which of the two envelopes a socket gets — never a duplicated
- * role comparison.
+ * REQ-CFG-070/071, DEC-CFG-05: `Setting` broadcasts are eligible for
+ * GAMEMASTER strictly, not the generic privileged threshold — ASSISTANT_GM
+ * sees everything else, but the Mundo/Permissões sections say "só
+ * GAMEMASTER", and the read predicate must not be looser than that.
  */
-function emitByRole(ns: Namespace, privilegedEnvelope: Envelope, playerEnvelope: Envelope): void {
+function socketIsGamemasterStrict(socket: Socket): boolean {
+  const data = socket.data as Record<string, unknown> | null | undefined;
+  if (!data) return false;
+  const role = data["role"];
+  return typeof role === "number" && isGamemasterStrict(role);
+}
+
+/**
+ * Emit one envelope per socket, choosing by an eligibility predicate.
+ *
+ * `isEligible` (defaulting to {@link socketIsPrivileged}) is the ONLY
+ * predicate that decides which of the two envelopes a socket gets — never a
+ * duplicated role comparison. Callers that need a stricter door (e.g.
+ * `Setting`, GAMEMASTER-only per DEC-CFG-05) pass {@link socketIsGamemasterStrict}.
+ */
+function emitByRole(
+  ns: Namespace,
+  privilegedEnvelope: Envelope,
+  playerEnvelope: Envelope,
+  isEligible: (socket: Socket) => boolean = socketIsPrivileged,
+): void {
   for (const [, socket] of ns.sockets) {
-    socket.emit("op", socketIsPrivileged(socket) ? privilegedEnvelope : playerEnvelope);
+    socket.emit("op", isEligible(socket) ? privilegedEnvelope : playerEnvelope);
   }
 }
 
@@ -1785,6 +1793,9 @@ function emitByRole(ns: Namespace, privilegedEnvelope: Envelope, playerEnvelope:
  * Scene doc:delete needs `onAirSceneIds` — the ids that were on air at the
  * moment of deletion, captured by the caller BEFORE the rows were removed,
  * since the document (and its `active` mirror) is gone by broadcast time.
+ *
+ * `Setting` envelopes ALSO go per-socket, GAMEMASTER-strictly (REQ-CFG-070/
+ * 071, DEC-CFG-05) — see the branch below.
  *
  * All other document types keep the cheap namespace-wide emit.
  */
@@ -1915,6 +1926,42 @@ function broadcastToWorld(
         emitByRole(ns, envelope, playerEnvelope);
         return;
       }
+    }
+  }
+
+  // REQ-CFG-070/071, DEC-CFG-05: a `Setting` document is what the Mundo and
+  // Permissões sections write through — visible to GAMEMASTER only, same as
+  // the read door in `settings-handlers.ts`. Before this branch, a GM's
+  // `doc:create`/`doc:update`/`doc:delete` of `Setting` fell through to the
+  // fast path below and reached EVERY connected socket verbatim: a player
+  // learned `fusion.permissions`' new floors, and any world-scope variant
+  // rule's value, the instant the GM wrote it — the live-sync counterpart of
+  // the read-side leak REQ-GAV-034 forbids. The GAMEMASTER-strict predicate
+  // (not the generic privileged threshold) matches DEC-CFG-05's "só
+  // GAMEMASTER" for these sections — ASSISTANT_GM does not qualify either.
+  // Non-eligible sockets get an empty-body envelope (never swallowed) for the
+  // same reason Scene's does: the client mirror needs a contiguous seq.
+  if (documentType === "Setting") {
+    if (envelope.type === "doc:create" || envelope.type === "doc:update") {
+      const payload = envelope.payload as {
+        documentType: string;
+        documents: Record<string, unknown>[];
+      };
+      const playerEnvelope: Envelope = {
+        ...envelope,
+        payload: { ...payload, documents: [] },
+      };
+      emitByRole(ns, envelope, playerEnvelope, socketIsGamemasterStrict);
+      return;
+    }
+    if (envelope.type === "doc:delete") {
+      const payload = envelope.payload as { documentType: string; ids: string[] };
+      const playerEnvelope: Envelope = {
+        ...envelope,
+        payload: { ...payload, ids: [] },
+      };
+      emitByRole(ns, envelope, playerEnvelope, socketIsGamemasterStrict);
+      return;
     }
   }
 

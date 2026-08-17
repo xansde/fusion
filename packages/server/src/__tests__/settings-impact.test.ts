@@ -134,20 +134,21 @@ describe("buildSettingsImpactHandler — REQ-CFG-082: a real count, from the sys
     expect("ok" in ack && ack.ok && ack.result).toEqual({ count: 0 });
   });
 
-  it("REQ-CFG-070's spirit: the read itself has no role gate — same shape as settings:declarations, the write path is what actually gates", async () => {
+  it("REQ-GAV-034/DEC-CFG-05: a PLAYER is refused with PERMISSION_DENIED — never runs countAffectedActors for them", async () => {
     const system = fakeSystemWith("fake-system", [FAKE_SETTING_WITH_COUNTER]);
-    const asPlayer = await ask(
-      system,
-      fakeActors(FAKE_ACTORS),
-      "fake-system:freeArchetype",
-      UserRole.PLAYER,
+    const ack = await buildSettingsImpactHandler(system, fakeActors(FAKE_ACTORS))(
+      { key: "fake-system:freeArchetype" },
+      ctx(UserRole.PLAYER),
     );
-    const asGm = await ask(
-      system,
-      fakeActors(FAKE_ACTORS),
-      "fake-system:freeArchetype",
-      UserRole.GAMEMASTER,
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+  });
+
+  it("ASSISTANT_GM (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", async () => {
+    const system = fakeSystemWith("fake-system", [FAKE_SETTING_WITH_COUNTER]);
+    const ack = await buildSettingsImpactHandler(system, fakeActors(FAKE_ACTORS))(
+      { key: "fake-system:freeArchetype" },
+      ctx(UserRole.ASSISTANT_GM),
     );
-    expect(asPlayer).toEqual(asGm);
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
   });
 });

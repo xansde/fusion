@@ -216,6 +216,39 @@ function sendOp(
   });
 }
 
+/** Same shape as `sendOp`, over the "query" channel `settings:*` handlers register on. */
+function sendQuery(
+  socket: ClientSocket,
+  type: string,
+  payload: unknown,
+): Promise<Record<string, unknown>> {
+  return new Promise<Record<string, unknown>>((resolve, reject) => {
+    socket.emit("query", { type, ts: Date.now(), payload }, (r: Record<string, unknown>) =>
+      resolve(r),
+    );
+    setTimeout(() => reject(new Error(`Timeout for query: ${type}`)), 8000);
+  });
+}
+
+/** Wait for the next "op" broadcast matching a predicate (mirrors combat-redaction-m2c.test.ts). */
+function waitForOp(
+  socket: ClientSocket,
+  predicate: (env: Record<string, unknown>) => boolean,
+  timeoutMs = 4000,
+): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Timeout waiting for op event")), timeoutMs);
+    const handler = (env: Record<string, unknown>) => {
+      if (predicate(env)) {
+        clearTimeout(timer);
+        socket.off("op", handler);
+        resolve(env);
+      }
+    };
+    socket.on("op", handler);
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
@@ -459,6 +492,114 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
       });
       expect(ack["ok"]).toBe(false);
       expect(ack["code"]).toBe("PERMISSION_DENIED");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // settings:declarations / settings:impact / settings:permissions
+  // (REQ-GAV-034, DEC-CFG-05, spec 37 §8 item 6) — the Mundo and Permissões
+  // sections are "só GAMEMASTER" on the READ, not just the write REQ-CFG-070
+  // already covered above: the trilho hiding a GM-group tab is ergonomics
+  // (REQ-CFG-005), never the boundary the server trusts (REQ-GAV-034). Driven
+  // over the real "query" channel these three handlers register on
+  // (`net/socket-manager.ts`), not a direct unit call, so the ASSERTION is
+  // about the wire payload a player's socket actually gets back.
+  // -------------------------------------------------------------------------
+
+  describe("settings:declarations / settings:impact / settings:permissions are GAMEMASTER-strict (REQ-GAV-034, DEC-CFG-05)", () => {
+    it("settings:declarations refuses PLAYER and ASSISTANT, admits GAMEMASTER", async () => {
+      const playerAck = await sendQuery(player, "settings:declarations", {});
+      expect(playerAck["ok"]).toBe(false);
+      expect(playerAck["code"]).toBe("PERMISSION_DENIED");
+
+      const assistantAck = await sendQuery(assistant, "settings:declarations", {});
+      expect(assistantAck["ok"]).toBe(false);
+      expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+
+      const gmAck = await sendQuery(gm, "settings:declarations", {});
+      expect(gmAck["ok"]).toBe(true);
+    });
+
+    it("settings:impact refuses PLAYER and ASSISTANT, admits GAMEMASTER", async () => {
+      const playerAck = await sendQuery(player, "settings:impact", { key: "stub:anything" });
+      expect(playerAck["ok"]).toBe(false);
+      expect(playerAck["code"]).toBe("PERMISSION_DENIED");
+
+      const assistantAck = await sendQuery(assistant, "settings:impact", {
+        key: "stub:anything",
+      });
+      expect(assistantAck["ok"]).toBe(false);
+      expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+
+      const gmAck = await sendQuery(gm, "settings:impact", { key: "stub:anything" });
+      expect(gmAck["ok"]).toBe(true);
+    });
+
+    it("settings:permissions refuses PLAYER and ASSISTANT, admits GAMEMASTER", async () => {
+      const playerAck = await sendQuery(player, "settings:permissions", {});
+      expect(playerAck["ok"]).toBe(false);
+      expect(playerAck["code"]).toBe("PERMISSION_DENIED");
+
+      const assistantAck = await sendQuery(assistant, "settings:permissions", {});
+      expect(assistantAck["ok"]).toBe(false);
+      expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+
+      const gmAck = await sendQuery(gm, "settings:permissions", {});
+      expect(gmAck["ok"]).toBe(true);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // broadcastToWorld's Setting branch (REQ-GAV-034, DEC-CFG-05) — the second
+  // leak path the read gate above does not close by itself: a GM's
+  // doc:create/doc:update of a Setting reaches every socket in the
+  // namespace, so without a dedicated branch a player's socket received the
+  // full body (e.g. `fusion.permissions`'s new floors) at the instant of
+  // write, through the live-sync "op" channel, bypassing the read gate
+  // entirely. Asserts the PAYLOAD the player's own socket receives, not a
+  // screen.
+  // -------------------------------------------------------------------------
+
+  describe("broadcastToWorld redacts Setting for non-GAMEMASTER sockets (REQ-GAV-034, DEC-CFG-05)", () => {
+    it("a player's socket receives an empty-body envelope on doc:create Setting; the GM's socket receives the full body", async () => {
+      const isSettingCreate = (env: Record<string, unknown>): boolean =>
+        env["type"] === "doc:create" &&
+        (env["payload"] as { documentType?: string } | undefined)?.documentType === "Setting";
+
+      const playerOpP = waitForOp(player, isSettingCreate);
+      const gmOpP = waitForOp(gm, isSettingCreate);
+
+      const createAck = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [{ key: "world:test:broadcastLeak", value: 42 }],
+      });
+      expect(createAck["ok"]).toBe(true);
+
+      const [playerEnvelope, gmEnvelope] = await Promise.all([playerOpP, gmOpP]);
+
+      const playerPayload = playerEnvelope["payload"] as { documents: unknown[] };
+      expect(playerPayload.documents).toEqual([]);
+
+      const gmPayload = gmEnvelope["payload"] as { documents: Array<{ key: string }> };
+      expect(gmPayload.documents[0]?.key).toBe("world:test:broadcastLeak");
+    });
+
+    it("ASSISTANT (role 3) also gets the empty-body envelope — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", async () => {
+      const isSettingCreate = (env: Record<string, unknown>): boolean =>
+        env["type"] === "doc:create" &&
+        (env["payload"] as { documentType?: string } | undefined)?.documentType === "Setting";
+
+      const assistantOpP = waitForOp(assistant, isSettingCreate);
+
+      const createAck = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [{ key: "world:test:broadcastLeakAssistant", value: 1 }],
+      });
+      expect(createAck["ok"]).toBe(true);
+
+      const assistantEnvelope = await assistantOpP;
+      const assistantPayload = assistantEnvelope["payload"] as { documents: unknown[] };
+      expect(assistantPayload.documents).toEqual([]);
     });
   });
 });

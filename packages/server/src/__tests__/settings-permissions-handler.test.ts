@@ -37,7 +37,10 @@ function ctx(role: number): HandlerContext {
   return { userId: "user-1", role, worldId: "world-1" };
 }
 
-function ask(store?: PermissionsStoreSource, role = UserRole.PLAYER): SettingsPermissionsResult {
+function ask(
+  store?: PermissionsStoreSource,
+  role = UserRole.GAMEMASTER,
+): SettingsPermissionsResult {
   const ack = buildSettingsPermissionsHandler(store)({}, ctx(role));
   if (!("ok" in ack) || !ack.ok) throw new Error("handler refused");
   return ack.result;
@@ -122,8 +125,18 @@ describe("settings:permissions — REQ-CFG-040: one row per configurable Permiss
   });
 });
 
-describe("no role gate on the read (REQ-CFG-042's enforcement lives on the write, not here)", () => {
-  it("a player receives the exact same rows as the Mestre", () => {
-    expect(ask(EMPTY_STORE, UserRole.PLAYER)).toEqual(ask(EMPTY_STORE, UserRole.GAMEMASTER));
+describe("settings:permissions — GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG-05)", () => {
+  it("a PLAYER is refused with PERMISSION_DENIED, never handed the permission floors", () => {
+    const ack = buildSettingsPermissionsHandler(EMPTY_STORE)({}, ctx(UserRole.PLAYER));
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+  });
+
+  it("ASSISTANT_GM (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
+    const ack = buildSettingsPermissionsHandler(EMPTY_STORE)({}, ctx(UserRole.ASSISTANT_GM));
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+  });
+
+  it("the GAMEMASTER is admitted and receives the rows", () => {
+    expect(ask(EMPTY_STORE, UserRole.GAMEMASTER).permissions.length).toBeGreaterThan(0);
   });
 });

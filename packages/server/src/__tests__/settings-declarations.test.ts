@@ -58,7 +58,7 @@ function ctx(role: number): HandlerContext {
 function ask(
   systemModule: SettingsRegistrySource | undefined,
   store?: SettingsStoreSource,
-  role = UserRole.PLAYER,
+  role = UserRole.GAMEMASTER,
 ) {
   const ack = buildSettingsDeclarationsHandler(systemModule, store)({}, ctx(role));
   if (!("ok" in ack) || !ack.ok) throw new Error("handler refused");
@@ -235,19 +235,28 @@ describe("a world with no system answers with an empty list, never an error", ()
 });
 
 // ---------------------------------------------------------------------------
-// Who gets it — REQ-CFG-031: no server-side gate, mirrors system:conditions;
-// the tab hides the section by role, the server never trusts that (REQ-GAV-034).
+// Who gets it — REQ-GAV-034/DEC-CFG-05: the Mundo section is "só GAMEMASTER"
+// on the read too, not just the write; the trilho hiding the section from a
+// player is ergonomics (REQ-CFG-005), never the boundary the server trusts.
 // ---------------------------------------------------------------------------
 
-describe("the declaration dictionary is the same for every seat", () => {
+describe("settings:declarations — GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG-05)", () => {
   const FAKE = fakeSystemWith("fake-system", [
     { key: "shared", scope: "world", schema: z.boolean(), default: true, label: "Compartilhada" },
   ]);
 
-  it("a player receives the same declarations as the Mestre", () => {
-    expect(ask(FAKE, undefined, UserRole.PLAYER)).toEqual(
-      ask(FAKE, undefined, UserRole.GAMEMASTER),
-    );
+  it("a PLAYER is refused with PERMISSION_DENIED, never handed the settings table", () => {
+    const ack = buildSettingsDeclarationsHandler(FAKE, undefined)({}, ctx(UserRole.PLAYER));
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+  });
+
+  it("ASSISTANT_GM (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
+    const ack = buildSettingsDeclarationsHandler(FAKE, undefined)({}, ctx(UserRole.ASSISTANT_GM));
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+  });
+
+  it("the GAMEMASTER is admitted and receives the declarations", () => {
+    expect(ask(FAKE, undefined, UserRole.GAMEMASTER).settings).toHaveLength(1);
   });
 });
 
