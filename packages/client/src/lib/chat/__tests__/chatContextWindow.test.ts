@@ -490,13 +490,41 @@ describe("ChatContextWindow.svelte", () => {
     await loadChatContext(server.socket, "world1", "v20");
 
     const body = renderWindow();
-    const controls = body.match(/<button[\s\S]*?<\/button>/g) ?? [];
-
+    // `controls` is narrowed to the window's OWN "mais 5" buttons
+    // (chat-context__more) to prove there are exactly two of them (REQ-ACH-013's
+    // "mais 5" per side). The anti-pictograph gate below then covers EVERY
+    // <button> in the rendered body — renderWindow() also draws real
+    // ChatMessage rows for the target and its neighbours, so a regression in
+    // that component's markup, or in how this window composes it, would fail
+    // this test on its own.
+    const controls = body.match(/<button class="chat-context__more[^"]*"[\s\S]*?<\/button>/g) ?? [];
     expect(controls).toHaveLength(2);
-    for (const control of controls) {
-      expect(control).toContain("<svg");
-      expect(control).not.toMatch(PICTOGRAPH);
+
+    const allButtons = body.match(/<button[\s\S]*?<\/button>/g) ?? [];
+    expect(allButtons.length).toBeGreaterThanOrEqual(controls.length);
+    for (const button of allButtons) {
+      expect(button).toContain("<svg");
+      expect(button).not.toMatch(PICTOGRAPH);
     }
+  });
+
+  it("REQ-ACH-014: nenhuma linha oferece invalidar/revalidar — a janela não assina doc:update para refletir o resultado", async () => {
+    // Achado da revisão: sem isto, a mensagem do próprio autor (userId "user1",
+    // como toda fixture desta suíte) mostraria o botão de A024
+    // (REQ-ACH-080..086) dentro da janela, mas um clique aqui alcançaria o
+    // servidor de verdade e nunca teria efeito visível — nem sucesso nem
+    // recusa — porque `chatContext` é um retrato único de `loadChatContext`,
+    // não um assinante do `doc:update` que a invalidação dispara
+    // (chatMessageSync.ts). `ChatMessage.svelte` recebe `readOnly` desta
+    // janela por isso (ver ChatContextWindow.svelte, cabeçalho).
+    const server = fakeServer(visibleLog(21));
+    await loadChatContext(server.socket, "world1", "v10");
+
+    const body = renderWindow();
+
+    expect(body).not.toContain("msg__act");
+    expect(body).not.toContain(t("FUSION.Chat.Invalidate.Button"));
+    expect(body).not.toContain(t("FUSION.Chat.Revalidate.Button"));
   });
 
   it("REQ-ACH-014: a janela reaproveitada pinta o NOVO alvo — o estado manda, não as props", async () => {

@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 678 | 35% |
+| Citados por algum teste | 681 | 35% |
 | Citados só por código de produção | 325 | 17% |
-| Sem nenhuma citação | 955 | 49% |
+| Sem nenhuma citação | 952 | 49% |
 | **Total [MVP]** | **1958** | |
 
 ## Por spec
@@ -28,12 +28,12 @@ porque ainda não foram prometidos para nenhum marco.
 | [01](01-arquitetura-geral.md) | 42 | 6 | 8 | 28 | 14% |
 | [02](02-modelo-de-dados.md) | 59 | 11 | 16 | 32 | 19% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
-| [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
-| [05](05-usuarios-e-permissoes.md) | 40 | 17 | 12 | 11 | 43% |
-| [06](06-canvas-e-renderizacao.md) | 86 | 5 | 32 | 49 | 6% |
+| [04](04-rede-e-sincronizacao.md) | 48 | 8 | 21 | 19 | 17% |
+| [05](05-usuarios-e-permissoes.md) | 40 | 18 | 11 | 11 | 45% |
+| [06](06-canvas-e-renderizacao.md) | 86 | 5 | 33 | 48 | 6% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
-| [09](09-chat-e-mensagens.md) | 49 | 12 | 10 | 27 | 24% |
+| [09](09-chat-e-mensagens.md) | 49 | 13 | 10 | 26 | 27% |
 | [10](10-combate-e-iniciativa.md) | 45 | 16 | 28 | 1 | 36% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 8 | 18 | 36 | 13% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
