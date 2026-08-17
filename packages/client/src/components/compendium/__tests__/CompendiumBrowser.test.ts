@@ -415,7 +415,7 @@ describe("a truncated group offers the pack it hid (REQ-CPD-032)", () => {
 
 // ---------------------------------------------------------------------------
 // A040 review fix — sorting is wired into the aggregated body, and the field
-// it sorts by is always one its own toolbar can point to (REQ-CPD-031)
+// it sorts by is always one its own toolbar can point to (REQ-CPD-038)
 // ---------------------------------------------------------------------------
 //
 // `$effect` never runs under the server renderer, so the aggregated body
@@ -424,13 +424,13 @@ describe("a truncated group offers the pack it hid (REQ-CPD-032)", () => {
 // this file already uses for wiring `$effect` hides (see REQ-CPD-091 above):
 // read the template/script, where the requirement lives.
 
-describe("the aggregated result can be reordered, by a field its toolbar owns (REQ-CPD-031)", () => {
-  it("REQ-CPD-031: the aggregated body draws its own Name/Type sort toolbar, without Nível", () => {
+describe("the aggregated result can be reordered, by a field its toolbar owns (REQ-CPD-038)", () => {
+  it("REQ-CPD-038: the aggregated body draws its own Name/Type sort toolbar, without Nível", () => {
     const template = source().split("<style>")[0] ?? "";
     // The FIRST `entries-sort` toolbar in the template is the aggregated
     // one (it comes before the pack body in source order); the pack's own
     // toolbar — the second occurrence — is allowed a "Nível" button, the
-    // aggregated one is not (REQ-CPD-031: no button, no way to reach that
+    // aggregated one is not (REQ-CPD-038: no button, no way to reach that
     // sort from here).
     const toolbarAt = template.indexOf('class="entries-sort"');
     expect(toolbarAt).toBeGreaterThan(-1);
@@ -441,7 +441,7 @@ describe("the aggregated result can be reordered, by a field its toolbar owns (R
     expect(toolbar).not.toMatch(/onclick={\(\) => toggleSort\("level"\)}/);
   });
 
-  it("REQ-CPD-031: the aggregated body's groups come from the SORTED result, not the unsorted one", () => {
+  it("REQ-CPD-038: the aggregated body's groups come from the SORTED result, not the unsorted one", () => {
     const template = source().split("<style>")[0] ?? "";
     expect(template).toContain("{#each sortedAggregated.groups as group (group.documentType)}");
     expect(template).not.toContain(
@@ -449,7 +449,7 @@ describe("the aggregated result can be reordered, by a field its toolbar owns (R
     );
   });
 
-  it("REQ-CPD-031: sorting by level, then leaving the pack, folds back to a field the aggregated toolbar can name", () => {
+  it("REQ-CPD-038: sorting by level, then leaving the pack, folds back to a field the aggregated toolbar can name", () => {
     const src = source();
     // The derived value both the aggregated sort and its arrows read from —
     // it exists, and it is the thing that stands between a stored "level"

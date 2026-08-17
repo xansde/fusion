@@ -296,7 +296,7 @@
   let sortAsc = $state(true);
 
   /**
-   * REQ-CPD-031: "Nível" is a sort button only inside an open pack — the
+   * REQ-CPD-038: "Nível" is a sort button only inside an open pack — the
    * aggregated body's toolbar offers Nome/Tipo alone (entries there can span
    * packs with no `system.level.value` in their index at all). `sortField` is
    * one piece of state shared by both toolbars, so sorting by level inside a
@@ -460,11 +460,12 @@
   );
 
   /**
-   * A040: sorting was pack-only until now — the whole-collection result had no
-   * way to reorder its lines even though every other piece of chrome around it
-   * (the facets, the search bar) already worked in both scopes. Same Name/Type
-   * toolbar, same `sortField`/`sortAsc` state; sorting reorders lines inside
-   * each server-drawn group only (REQ-CPD-031).
+   * REQ-CPD-038 (A040): sorting was pack-only until now — the whole-collection
+   * result had no way to reorder its lines even though every other piece of
+   * chrome around it (the facets, the search bar) already worked in both
+   * scopes. Same Name/Type toolbar, same `sortField`/`sortAsc` state; sorting
+   * reorders lines inside each server-drawn group only, whose grouping/count
+   * stay REQ-CPD-031's.
    */
   const sortedAggregated = $derived<AggregatedSearchResult | null>(
     visibleAggregated ? sortAggregatedResult(visibleAggregated, effectiveSortField, sortAsc) : null,
@@ -1025,7 +1026,7 @@
     makes sense over the whole collection: a pack IS one source. Document type
     is visible in both scopes, like rarity/level — inside a pack it offers the
     open pack's own type(s) (`packTypeChoices`), which today is always at most
-    one, so it renders nothing there in practice (A040).
+    one, so it renders nothing there in practice (DEC-CPD-14).
   -->
   <div class="compendium-browser__facets">
     {#if openPackId === null || packTypeChoices.length > 1}
@@ -1200,10 +1201,10 @@
           </p>
         {:else}
           <!--
-            A040: sorting used to be pack-only — the same Name/Type toolbar the
-            open-pack body already had, now offered here too, over the lines of
-            every group (REQ-CPD-031: sorting reorders lines, groups/counts
-            stay the server's).
+            REQ-CPD-038 (A040): sorting used to be pack-only — the same Name/Type
+            toolbar the open-pack body already had, now offered here too, over the
+            lines of every group (sorting reorders lines only; grouping/counts stay
+            REQ-CPD-031's).
           -->
           <div class="entries-sort" role="toolbar" aria-label={t("FUSION.Compendium.SortBy")}>
             <button class="sort-btn" onclick={() => toggleSort("name")}>

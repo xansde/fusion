@@ -605,12 +605,13 @@ export function sortEntries(
 }
 
 /**
- * Sort the aggregated result of REQ-CPD-012/031 for display — the same
- * Name/Type sort the open-pack body offers, applied to the whole-collection
- * search. Sorting reorders the LINES inside each group only: the grouping by
- * document type and each group's `total`/`omitted` come from the server
- * (REQ-CPD-031) and must survive untouched, or a sort would quietly change
- * what REQ-CPD-032's truncation notice is talking about.
+ * Sort the aggregated result of REQ-CPD-012/031 for display — the Name/Type
+ * reorder REQ-CPD-038 requires over the whole-collection search, the sibling
+ * of the Name/Level/Type sort the open-pack body already offered. Sorting
+ * reorders the LINES inside each group only: the grouping by document type
+ * and each group's `total`/`omitted` come from the server (REQ-CPD-031) and
+ * must survive untouched, or a sort would quietly change what REQ-CPD-032's
+ * truncation notice is talking about.
  */
 export function sortAggregatedResult(
   result: AggregatedSearchResult,

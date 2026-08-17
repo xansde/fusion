@@ -285,11 +285,11 @@ describe("sortEntries", () => {
 });
 
 // ---------------------------------------------------------------------------
-// sortAggregatedResult (A040 — sorting was pack-only; the whole-collection
-// result had no way to reorder its lines)
+// sortAggregatedResult (REQ-CPD-038 — A040 flagged sorting as pack-only; the
+// whole-collection result had no way to reorder its lines)
 // ---------------------------------------------------------------------------
 
-describe("sortAggregatedResult", () => {
+describe("sortAggregatedResult (REQ-CPD-038)", () => {
   /** One aggregated line: an entry plus the pack it came from. */
   function aggLine(entry: PackIndexEntry, documentType: string) {
     return { entry, packId: "pf2e.test", packLabel: "Teste", documentType };
@@ -322,7 +322,7 @@ describe("sortAggregatedResult", () => {
     };
   }
 
-  it("REQ-CPD-031: sorts the lines INSIDE each group by name, groups untouched", () => {
+  it("REQ-CPD-038: sorts the lines INSIDE each group by name, groups untouched", () => {
     const sorted = sortAggregatedResult(twoGroupAnswer(), "name", true);
 
     expect(sorted.groups.map((g) => g.documentType)).toEqual(["Actor", "Item"]);
@@ -330,20 +330,20 @@ describe("sortAggregatedResult", () => {
     expect(sorted.groups[1]?.lines.map((l) => l.entry.name)).toEqual(["Apple", "Mango"]);
   });
 
-  it("REQ-CPD-031: sorts by name descending", () => {
+  it("REQ-CPD-038: sorts by name descending", () => {
     const sorted = sortAggregatedResult(twoGroupAnswer(), "name", false);
 
     expect(sorted.groups[0]?.lines.map((l) => l.entry.name)).toEqual(["Zebra", "Alpha"]);
   });
 
-  it("REQ-CPD-031: sorts by type (subtype), the other chip the toolbar offers", () => {
+  it("REQ-CPD-038: sorts by type (subtype), the other chip the toolbar offers", () => {
     const sorted = sortAggregatedResult(twoGroupAnswer(), "type", true);
 
     expect(sorted.groups[0]?.lines.map((l) => l.entry.type)).toEqual(["hazard", "npc"]);
     expect(sorted.groups[1]?.lines.map((l) => l.entry.type)).toEqual(["armor", "weapon"]);
   });
 
-  it("REQ-CPD-031: a group's total/omitted/packs survive a sort untouched", () => {
+  it("REQ-CPD-038 must not disturb REQ-CPD-031: a group's total/omitted/packs survive a sort untouched", () => {
     const original = twoGroupAnswer();
     const answer: AggregatedSearchResult = {
       groups: [{ ...original.groups[0]!, total: 30, omitted: 28 }, original.groups[1]!],

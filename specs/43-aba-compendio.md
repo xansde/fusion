@@ -211,6 +211,25 @@ continua em inglês, e a tradução pt-BR viaja como snapshot em
   **exibição resolve, o documento permanece EN-puro** — para toda superfície que mostra
   um ator já importado, não só a lâmina de resultado desta aba.
 
+### DEC-CPD-14 — A faceta de tipo de documento é do escopo raiz; dentro de um pack, oferecer o próprio tipo não é filtrar
+
+Decisão A040 (ajustes r1, 2026-08-17). A040 flagara como assimetria não explicada: a
+faceta de tipo (REQ-CPD-033) só aparece na estante/resultado agregado (escopo raiz);
+raridade e nível continuam disponíveis nos dois escopos. Não é uma lacuna — é
+consequência de REQ-CMP-001: um pack contém documentos de **um único tipo primário**,
+fixo desde `pack.json`. Com um pack aberto, a faceta de tipo teria exatamente uma opção
+— a que o escopo já entrega sozinho no cabeçalho ("Pack: {{pack}}") — e uma faceta de
+opção única não filtra nada, só ocupa lugar.
+
+- **Racional:** REQ-CPD-033 continua valendo por inteiro no escopo raiz, onde o
+  resultado de fato mistura tipos. Dentro de um pack a faceta de tipo NÃO é omitida por
+  regra especial de UI — ela é derivada do próprio pack aberto (o mesmo padrão de
+  "leia o dado, não hardcode a exceção" que a faceta de fonte já usa para se esconder
+  sob um único pack, REQ-CPD-033) e hoje sempre resolve para zero ou uma opção, o que
+  não renderiza controle algum. Se um pack algum dia declarar mais de um tipo primário
+  (fora do desenho atual de REQ-CMP-001), a faceta volta a aparecer sem exigir código
+  novo.
+
 ## 5. Requisitos funcionais
 
 > Blocos de dezena por tema: 001–009 identidade e badge; 010–019 modos e escopo;
@@ -288,6 +307,11 @@ continua em inglês, e a tradução pt-BR viaja como snapshot em
   oferecer ampliar o escopo quando houver um mais amplo.
 - **REQ-CPD-037** [V2] O usuário PODE salvar uma combinação de facetas como filtro
   nomeado (é REQ-CMP-019, que já é [V2] na área dona).
+- **REQ-CPD-038** [MVP] O corpo DEVE oferecer reordenar as linhas do resultado, por
+  Nome ou por Tipo no resultado agregado (escopo raiz) e por Nome, Nível ou Tipo dentro
+  de um pack aberto; a ordenação reordena as linhas **dentro** de cada grupo e NÃO DEVE
+  alterar o agrupamento nem a contagem de REQ-CPD-031 (decisão A040, ajustes r1,
+  2026-08-17).
 
 ### 5.5 Linha de resultado
 

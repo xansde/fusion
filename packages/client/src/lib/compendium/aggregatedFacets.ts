@@ -84,10 +84,11 @@ export function documentTypeChoices(
  *
  * `PackManifest.documentType` is one value per pack (REQ-CMP-001) — a pack's
  * own type never varies while it is open, so the facet would offer exactly
- * one choice, which is no choice at all. Rather than hardcoding "never inside
- * a pack" (the asymmetry A040 flagged against rarity/level, which DO stay
- * offered in both scopes), this reads the choice off the open pack itself and
- * only a real choice (more than one distinct type) renders — matching how the
+ * one choice, which is no choice at all (DEC-CPD-14, the resolution of the
+ * asymmetry A040 flagged against rarity/level, which DO stay offered in both
+ * scopes). Rather than hardcoding "never inside a pack", this reads the
+ * choice off the open pack itself and only a real choice (more than one
+ * distinct type) renders — matching how the
  * source facet already hides itself under one pack (REQ-CPD-033). Today that
  * is always zero or one, so the facet stays invisible inside a pack in
  * practice; it is data-driven so a manifest that ever carries more than one
