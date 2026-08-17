@@ -1,10 +1,12 @@
 # Spec 41 — Token · registro de decisões
 
 > Insumo de trabalho, não spec. Vira `DEC-TOK-nn` quando a `41` for escrita.
-> Companheiro de [`estudo-token.html`](estudo-token.html), que levanta os problemas;
-> este arquivo guarda o que foi **decidido** sobre eles, com o que cada decisão obriga.
+> Companheiro de [`estudo-token.html`](estudo-token.html), que levanta os problemas, e de
+> [`prototipo-token.html`](prototipo-token.html), que executa o modelo decidido e verifica
+> sozinho um contrato de 18 expectativas. Este arquivo guarda o que foi **decidido**, com o que
+> cada decisão obriga.
 >
-> Decisor: Alexandre · sessão de 2026-08-16.
+> Decisor: Alexandre · sessões de 2026-08-16 (D1–D30) e 2026-08-17 (D31–D33, revisão de D19/D22).
 
 ## Definição de trabalho
 
@@ -195,6 +197,66 @@ adiamento.
   verdade. Escrever o gatilho é o que impede o adiamento de virar esquecimento, que é
   exatamente o que produziu esta lacuna.
 
+### D31 — O nome não é nível de exibição: é conhecimento
+
+Quem vê a peça sabe o nome do ator **se conhece aquele ator**. Se não conhece, não recebe o nome.
+O corte é o modelo de conhecimento da `39` (par contato × personagem), não um campo da peça.
+
+- **A consequência mais forte é uma subtração:** a `41` deixa de ter **qualquer** regra de nome.
+  O nome é herdado do ator (D16); o que o cliente sabe do ator é decidido pela `39` e redigido
+  pela `21`. A peça não participa. Some o `displayName`, some o enum, some a pergunta "qual o
+  default".
+- **A redação muda de objeto.** Hoje a `41` redige a **peça** (`hidden`, D21). Isto redige o
+  **ator**: o mesmo `Actor` chega nomeado para uns e anônimo para outros. É superfície nova, e
+  não é desta spec — é da `21`. A `41` só afirma que herda o que chegou.
+- **Não conflita com D16, conclui-a.** D16 alertava que nome de peça e conhecimento seriam dois
+  mecanismos concorrentes de "você não sabe quem é este". Com D31 sobra um só: o conhecimento
+  decide o que você pode saber, e o rótulo na peça é o que o Mestre escreve por cima
+  ("Encapuzado"). Papéis distintos, sem disputa.
+- **Registrar a fronteira do que isso esconde:** a arte é herdada e sempre visível (D1). Esconder
+  o nome "Kobold" de quem está vendo o desenho de um kobold não esconde grande coisa. Onde a
+  regra ganha é no NPC nomeado — "Lorde Vashra" contra uma figura encapuzada. Vale a spec dizer
+  isso, para ninguém supor que o nome protege identidade sozinho.
+- **Duas perguntas abertas**, ambas no protótipo:
+  - **Conhecimento de quem?** O modelo da `39` é por par contato × personagem; quem olha a cena é
+    o **usuário**. Proposta: conhece se **qualquer** personagem dele conhece.
+  - **Qual o default?** O protótipo assume **fechado** — e por isso o baú aparece sem nome, o que
+    provavelmente não é o desejado. A alternativa é abrir por faceta: criatura fecha, objeto abre.
+
+### D32 — Exibir nome e barra na cena é preferência do usuário
+
+Separadas as três camadas: o **servidor** decide o que você *pode* ver (posse para vida,
+conhecimento para nome), a **peça** guarda posição e vínculo, e o **usuário** escolhe, em
+configurações, se quer aquilo desenhado na tela.
+
+- **A preferência só subtrai.** Ela nunca revela o que a redação não mandou — desligar limpa a
+  tela, ligar não abre nada. Isso precisa estar escrito, ou alguém vai implementá-la como um
+  filtro que "mostra tudo" no cliente.
+- **Não é dado da peça nem do mundo:** é preferência de usuário, do mesmo tipo das de acesso
+  (`23`). Some `displayName`/`displayBars` do modelo da peça — que é o que estava puxando a
+  `41` para uma decisão que nunca foi dela.
+- **Custo zero de rede:** o payload é idêntico com a preferência ligada ou desligada. O
+  protótipo verifica isso automaticamente (E8) justamente para impedir que vire filtro de
+  servidor por engano.
+- **Obriga:** `06` — `REQ-CNV-031` e `REQ-CNV-089` perdem o enum e passam a citar posse e
+  conhecimento; o bloco TypeScript da própria spec cai junto.
+
+### D33 — Mover é pelas setas
+
+O gesto de movimento é o **teclado**: setas movem a peça selecionada, uma célula por vez. A
+permissão continua sendo a de D27 — só move quem é OWNER do ator —, e a checagem é do servidor.
+
+- **A `23` ganha acessibilidade de graça.** `REQ-A11-036` exige alternativa não-arraste para toda
+  ação de arraste. Com as setas como gesto canônico, a alternativa não é um acréscimo: é o
+  caminho principal.
+- **Sobra decidir o que acontece com o arraste.** Se ele deixa de mover, a `41` fica com um gesto
+  só e o arraste concorrente (D26) some como problema desta superfície. Se fica, são dois
+  caminhos para o mesmo efeito. **Pendente.**
+- **Diagonal, pendente.** Quatro direções numa grade quadrada dobram o número de teclas para
+  atravessar uma sala. A saída natural é duas setas simultâneas — decidir antes de escrever.
+- **Não confundir com passo de regra.** "Uma célula por tecla" é gesto de interface. Quanto a
+  criatura *pode* andar é do sistema (`15`) e do combate (`10`); a `41` não conta deslocamento.
+
 ### D27 — Controlar é ser dono do ator. Só isso.
 
 A peça **herda a posse do ator** que ela manifesta. Quem é OWNER do ator, controla a peça — e
@@ -295,7 +357,13 @@ armadilha. Abre espaço para percepção passiva no futuro.
   com garantias diferentes, e a spec precisa dizer isso — senão alguém vai supor que o fog
   protege posição de inimigo, e ele não protege.
 
-### D22 — Três níveis de exibição
+### D22 — Três níveis de exibição · **REVOGADA por D31/D32**
+
+> **Superada em 2026-08-17.** O enum de níveis por peça deixou de existir: nome passou a ser
+> governado por **conhecimento** (D31) e vida por **posse** (D3), e o que o usuário quer ver na
+> tela virou **preferência de cliente** (D32). Nenhum dos dois é campo da peça. O registro abaixo
+> fica como histórico do caminho — e a razão de tê-lo percorrido continua válida: os cinco níveis
+> do Foundry não sobrevivem a nenhuma pergunta.
 
 Os cinco níveis herdados do Foundry viram **três**, aplicados a nome e barras:
 
@@ -351,7 +419,8 @@ saúde) sai desta rodada e volta como protótipo visual mais adiante. `REQ-CNV-0
 
 - **A borda colorida por disposição continua** (`REQ-CNV-027`, [MVP], já implementada). Sem
   ela, a disposição decidida em D2 vira dado sem nenhuma exibição — hostil e amigo ficariam
-  indistinguíveis no mapa. _A confirmar se a intenção era guardar também esta metade._
+  indistinguíveis no mapa. **Confirmado em 2026-08-17:** a borda fica; o ring dinâmico não volta
+  nesta rodada.
 
 ### D20 — Peças sobrepostas desenham em FIFO
 
@@ -604,12 +673,25 @@ Vocabulário novo, introduzido em D3, sem spec. O modelo mais próximo é o comp
 
 Recomendação: a primeira, se a verificação confirmar. Regra nova só se o modelo obrigar.
 
-### D-PEND-10 — Três níveis de exibição bastam?
+### D-PEND-10 — Três níveis de exibição bastam? · **RESPONDIDA: nenhum nível**
 
-Os cinco níveis (`never` / `<corte>` / `hover<corte>` / `hoverAll` / `always`) são herança do
-Foundry. Os dois de *hover* não têm argumento próprio em nenhuma spec do Fusion e custam dois
-estados a mais em cada superfície que desenha overlay. Cortar agora é uma linha; cortar depois
-é emenda em três specs.
+Fechada por D31/D32: não há enum. Nome sai por conhecimento, vida por posse, e o resto é
+preferência do cliente. Os cinco níveis do Foundry saem inteiros — não por corte, por não haver
+onde encaixá-los.
+
+### D-PEND-11 — O arraste continua movendo? · aberta
+
+D33 fez das setas o gesto de mover. Falta decidir se o arraste sobrevive como atalho. Ver a
+pendência 1 do protótipo.
+
+### D-PEND-12 — As setas andam na diagonal? · aberta
+
+Quatro direções ou oito. Ver a pendência 2 do protótipo.
+
+### D-PEND-13 — Conhecimento: de quem, e qual o default? · aberta
+
+As duas perguntas registradas em D31. O protótipo assume "qualquer personagem do usuário" e
+default fechado, e mostra o efeito colateral do fechado no baú sem nome.
 
 ### D-PEND-02 — Cardinalidade
 
