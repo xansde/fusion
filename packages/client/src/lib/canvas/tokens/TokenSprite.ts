@@ -309,9 +309,11 @@ export class TokenSprite {
 
     // Art changes with the EFFECTIVE actor, not with the token doc alone: it
     // moves when actorId/actorLink/actorDelta change the resolution, or when
-    // the base actor itself was edited (a fresh `_resolveActor` call above
-    // already picked that up — TokenLayer does not subscribe to Actor changes
-    // on its own, see the openQuestion in this task's structured report).
+    // the base actor itself was edited elsewhere (a fresh `_resolveActor`
+    // call above picks that up). This `update()` runs both on a genuine
+    // token-doc change AND whenever TokenLayer's Actor subscription fires a
+    // full reconcile of the active scene's tokens — see TokenLayer's
+    // `_unsubscribeActor` doc comment.
     const oldName = this._displayName(oldDoc, oldActor);
     const newName = this._displayName(newDoc, this._actor);
     const artChanged = (oldActor?.img ?? null) !== (this._actor?.img ?? null);
