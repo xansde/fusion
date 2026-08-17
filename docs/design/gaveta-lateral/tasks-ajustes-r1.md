@@ -960,6 +960,25 @@ REQ-CEN-010..015. **Pronto quando:** captura da cabeça mostra "no ar" isolado n
 imagem e o nome continua embaixo, sem mudar de altura entre os dois estados (com/sem cena
 no ar).
 
+**Captura (revisão 2026-08-17):** roteiro `.claude/skills/tutorial-e2e/roteiros/aj-fase5-
+cenas.spec.ts`, seção única "Cenas — cabeça (A050/A052) e acervo (A051)", 9 passos, 0
+falhas registradas. Prints revisados um a um (`.e2e-visual/aj-fase5-cenas/`). A fixture
+padrão de demo chega com uma cena já no ar e não tem gesto de UI para desligá-la sem
+excluí-la, então o estado "sem cena no ar" foi capturado numa segunda rodada contra uma
+cópia da mesma fixture com `settings['_meta:activeScene']` limpo diretamente no banco
+(script one-off, fora do repo) — as duas rodadas confirmam:
+
+- **Sem cena no ar** (REQ-CEN-014): "Nenhuma cena no ar" / "Os jogadores estão na tela de
+  espera." / botão "Escolher uma cena para pôr no ar", mesma altura da cabeça.
+- **Com cena no ar** (A052): o badge "NO AR" isolado no canto superior-esquerdo, o botão
+  de configuração (pencil, revisão) no canto superior-direito, nome/meta no bloco de
+  rodapé — sem sobreposição, sem mudança de altura entre os dois estados. Nenhum dos
+  quatro controles retirados por A050 aparece.
+- **Acervo** (A051): as linhas mostram nome sem dimensões (REQ-CEN-035 emendado) e altura
+  igual entre linhas, mesmo sem marca de ambiente configurada em nenhuma delas nesta
+  fixture — a paridade `.scene-row__meta` com/sem marca fica coberta pelo teste unitário
+  `ScenesTabEnvironment.test.ts` (CSS), não por este roteiro.
+
 ---
 
 ## Fase 6 — Aba Configurações (specs 37/05)

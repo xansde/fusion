@@ -22,6 +22,15 @@
  * BEFORE the GM zeroed it (see {@link DarknessMemory}): the document only stores the
  * current level, so "back to the configured value" (REQ-CEN-020) needs somewhere to come
  * from. It is memory of a gesture, never a second source of truth for what is on air.
+ *
+ * **Current UI reachability (2026-08-17, Alexandre's r1 test item 25 — decision, not a
+ * bug):** the head no longer draws any of the three gestures. `toggleSceneDarkness` and
+ * `toggleSceneFog` are still reachable through the perception window (REQ-CEN-062,
+ * opened from a scene's configuration window); `resetSceneFog` has NO UI door at all —
+ * the perception window only ever writes the value fields via `doc:update` and has never
+ * called `fog:reset`. See `specs/44-aba-cenas.md` Q-CEN-07 for the open question and the
+ * emended notes under DEC-CEN-06 and REQ-CEN-025. This module's own logic is unaffected;
+ * only who calls it changed.
  */
 
 import type { Socket } from "socket.io-client";

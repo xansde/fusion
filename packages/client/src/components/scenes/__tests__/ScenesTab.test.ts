@@ -104,14 +104,23 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
     sceneListState.scenes = [makeScene("s1", "Taverna"), makeScene("s2", "Cripta")];
 
     const html = renderTab("s2");
+    const archive = html.slice(html.indexOf('class="scenes-tab__body'));
 
     // The scene NOT on air keeps the three verbs of the row...
     expect(html).toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Taverna`);
     expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} Taverna`);
     expect(html).toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} Taverna`);
-    // ...and the one on air has no row at all, so it offers none of them here.
-    expect(html).not.toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Cripta`);
-    expect(html).not.toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
+    // ...and the one on air has no ROW at all, so the archive offers none of them —
+    // activating and deleting the scene on air stay unreachable from anywhere.
+    expect(archive).not.toContain(`${t("FUSION.Scene.Dialog.ActivateScene")} Cripta`);
+    expect(archive).not.toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
+    expect(archive).not.toContain(`${t("FUSION.Scene.Dialog.DeleteScene")} Cripta`);
+    // Ajustes r1 review (2026-08-17), REQ-CEN-061/062: with no row, the scene on air
+    // still needs a way into its own configuration — REQ-CEN-036 excludes it from
+    // the archive on purpose, it does not strand it. That door is `.scene-head__config`,
+    // in the head above the archive, not a row.
+    expect(html).toContain(`${t("FUSION.Scene.Dialog.EditScene")} Cripta`);
+    expect(html).toContain("scene-head__config");
     // And the header still offers creating one.
     expect(html).toContain(t("FUSION.Sidebar.Scenes.Create"));
   });
@@ -250,6 +259,19 @@ function sourceOfPrepareNotice(): string {
   );
 }
 
+/**
+ * `resetSceneFog` used to be wired to the head as `handleResetFog`; REQ-CEN-020..025
+ * retired that wiring from `ScenesTab.svelte` on 2026-08-17 (item 25 of the r1 test —
+ * decision, not a bug), but the confirming gesture itself still lives in
+ * `lib/scenes/sceneEnvironment.ts` for when the UI comes back.
+ */
+function sourceOfSceneEnvironment(): string {
+  return readFileSync(
+    fileURLToPath(new URL("../../../lib/scenes/sceneEnvironment.ts", import.meta.url)),
+    "utf8",
+  );
+}
+
 describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
   it("REQ-CEN-043: the archive's activate action reaches the write with no confirmation in between", () => {
     const source = sourceOfScenesTab();
@@ -258,11 +280,14 @@ describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
     expect(activate).toContain("activateScene(socket, scene._id)");
     expect(activate).not.toMatch(/confirm/i);
 
-    // The live contrast, in the very same file: the one gesture of this panel that
-    // cannot be undone DOES ask first (REQ-CEN-022). So "no confirmation" above is a
-    // property of the activation path, not of a pattern that matches nothing here.
-    const resetFog = /async function handleResetFog[\s\S]*?\n  }/.exec(source)?.[0] ?? "";
-    expect(resetFog).toContain("confirmDialog(");
+    // The live contrast: the one gesture that DOES ask first (REQ-CEN-022) — so "no
+    // confirmation" above is a property of the activation path, not of a pattern that
+    // matches nothing anywhere. `resetSceneFog` no longer has a button wired to it in
+    // ScenesTab.svelte (REQ-CEN-020..025 retired that wiring on 2026-08-17, item 25),
+    // so the contrast is read from `lib/scenes/sceneEnvironment.ts` instead.
+    const resetFog =
+      /export async function resetSceneFog[\s\S]*?\n\}/.exec(sourceOfSceneEnvironment())?.[0] ?? "";
+    expect(resetFog).toContain("confirm()");
   });
 
   it("REQ-CEN-043: the prepare notice's put-on-air action reaches the write with no confirmation either", () => {

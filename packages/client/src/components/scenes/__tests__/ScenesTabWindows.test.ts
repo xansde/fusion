@@ -83,6 +83,18 @@ function sourceOf(file: string): string {
   return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
 }
 
+/**
+ * The `<style>` block of a component. Throws rather than falling back to `""` — a
+ * fallback there would let the block go missing (or the regex stop matching) while
+ * every `not.toMatch` assertion built on top of it kept passing on empty string
+ * (see `ScenesTab.test.ts`'s `styleOfScenesTab` for the same convention).
+ */
+function styleOf(file: string): string {
+  const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf(file))?.[1];
+  if (style === undefined) throw new Error(`${file} has no <style> block`);
+  return style;
+}
+
 beforeEach(() => {
   sceneListState.scenes = [ON_AIR, OTHER];
   sceneListState.folders = [];
@@ -203,31 +215,81 @@ describe("SceneCreateDialog — configuring a scene (REQ-CEN-061, REQ-CEN-062)",
 });
 
 // ---------------------------------------------------------------------------
-// The head's second door into perception
+// The head's second door into perception — retired 2026-08-17 (REQ-CEN-062, item 25)
 // ---------------------------------------------------------------------------
 
-describe("ScenesTab head — the perception door (REQ-CEN-062)", () => {
-  it("REQ-CEN-062: the head of the scene on air opens the perception window", () => {
+describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 25 of the r1 test)", () => {
+  it("REQ-CEN-062: the head of the scene on air no longer opens the perception window", () => {
+    // Alexandre's r1 test, item 25 (2026-08-17): the head's DIRECT door into
+    // perception is out, along with the REQ-CEN-020..025 environment shortcuts —
+    // decision, not a bug (see `specs/44-aba-cenas.md`, note after REQ-CEN-062). The
+    // remaining door is the configuration window, asserted below.
     const html = renderTab(ON_AIR._id);
 
-    expect(html).toContain("scene-head__perception");
-    // The control is there and it is named; that pressing it produces the perception
-    // window is `openScenePerceptionWindow`'s own test (sceneWindows.test.ts).
-    expect(html).toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
+    // Anchor that the "on-air" branch actually rendered — otherwise the negatives
+    // below would pass just as well over the "pending"/"nothing on air" markup,
+    // which never carried `scene-head__perception` either (see the test right
+    // after this one, over `renderTab(null)`).
+    expect(html).toContain("scene-head__info");
+    expect(html).toContain(ON_AIR.name);
+
+    expect(html).not.toContain("scene-head__perception");
+    expect(html).not.toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
   });
 
-  it("REQ-CEN-062: with nothing on air there is no scene to tune, and no door", () => {
+  it("REQ-CEN-062: with nothing on air there was never a door to begin with", () => {
     const html = renderTab(null);
 
     expect(html).not.toContain("scene-head__perception");
   });
 
-  it("REQ-CEN-013: the door floats over the fixed head instead of growing it", () => {
-    const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("ScenesTab.svelte"))?.[1] ?? "";
-    const rule = /\.scene-head__perception\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
+  it("the head's stylesheet no longer carries a rule for the retired door", () => {
+    const style = styleOf("ScenesTab.svelte");
+
+    // Anchor the negative: prove the block that WOULD have carried the retired rule
+    // is actually there, so the assertion below can't pass by matching nothing.
+    expect(style).toMatch(/\.scene-head\s*\{/);
+    expect(style).not.toMatch(/\.scene-head__perception\s*\{/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The head's OTHER door — into configuration — restored (Ajustes r1 review, 2026-08-17)
+// ---------------------------------------------------------------------------
+
+describe("ScenesTab head — the configuration door (REQ-CEN-061, REQ-CEN-062, Ajustes r1 review)", () => {
+  it("REQ-CEN-061/062: the scene on air has a reachable door into configuration", () => {
+    // REQ-CEN-036: the archive never repeats the scene ON AIR — so without a door in
+    // the head itself, that scene had NO way to reach `openSceneConfigWindow` (and,
+    // through its injected `onOpenPerception`, no way to reach perception either).
+    // This button is that door.
+    const html = renderTab(ON_AIR._id);
+
+    expect(html).toContain("scene-head__config");
+    expect(html).toContain(`aria-label="${t("FUSION.Scene.Dialog.EditScene")} ${ON_AIR.name}"`);
+  });
+
+  it("REQ-CEN-014: with nothing on air there is no scene to configure, and no door", () => {
+    const html = renderTab(null);
+
+    expect(html).not.toContain("scene-head__config");
+  });
+
+  it("REQ-CEN-013: the door is out of flow and cannot grow the fixed head", () => {
+    const style = styleOf("ScenesTab.svelte");
+    const rule = /\.scene-head__config\s*\{([^}]*)\}/.exec(style)?.[1] ?? "";
 
     expect(rule).toMatch(/position:\s*absolute/);
     expect(rule).not.toMatch(/height:\s*\d/);
+  });
+
+  it("does not reintroduce the retired direct perception door or the environment group", () => {
+    // The button opens `openSceneConfigWindow`, never `openScenePerceptionWindow`
+    // directly — item 25's retirement of REQ-CEN-020..025 stays in force.
+    const html = renderTab(ON_AIR._id);
+
+    expect(html).not.toContain("scene-head__perception");
+    expect(html).not.toContain("scene-head__env");
   });
 });
 

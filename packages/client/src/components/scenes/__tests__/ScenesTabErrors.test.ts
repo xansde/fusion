@@ -1,11 +1,17 @@
 /**
  * ScenesTabErrors.test.ts — what the Cenas tab does when the SERVER says no.
  *
- * The panel has three write surfaces and each one can be refused: putting a scene on air
- * (REQ-CEN-045), the environment shortcuts of the head (REQ-CEN-023) and the reorder of
- * the archive (REQ-CEN-037). Until this file existed, every one of those refusals was
+ * The panel has two write surfaces left in the head/archive and each one can be
+ * refused: putting a scene on air (REQ-CEN-045) and the reorder of the archive
+ * (REQ-CEN-037). Until this file existed, every one of those refusals was
  * unexercised — deleting the whole `catch` of the activation left the suite green, which
  * is precisely the shape of the r22 lesson (a green suite that proves nothing).
+ *
+ * A third surface used to live here too: the environment shortcuts of the head
+ * (REQ-CEN-023). They were retired from the UI on 2026-08-17 (item 25 of Alexandre's r1
+ * test — see `specs/44-aba-cenas.md`, note after REQ-CEN-025); the refusal RULE that
+ * fed their message region still exists and is exercised directly against
+ * `lib/scenes/sceneEnvironment.ts` below, with no button left to wire it to.
  *
  * The two halves of REQ-CEN-045 are asserted apart:
  *  - the MESSAGE — the refusal must arrive as an `OpError` carrying the server's own
@@ -23,11 +29,14 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { render } from "svelte/server";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { Socket } from "socket.io-client";
 import type { Envelope, SceneDocument } from "@fusion/shared";
 
+import ScenesTab from "../ScenesTab.svelte";
+import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import { activateScene, OpError } from "../../../lib/scenes/sceneController.js";
 import { buildSceneHeadVM } from "../../../lib/scenes/scenesTabVM.js";
 import {
@@ -90,6 +99,24 @@ function refusingSocket(code = "NOT_FOUND", message = REFUSAL): RefusingSocket {
 /** The component's own source — for the template rules a node run cannot render. */
 function sourceOfScenesTab(): string {
   return readFileSync(fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)), "utf8");
+}
+
+/**
+ * Server-rendered markup of the panel — same technique `ScenesTab.test.ts` uses
+ * (`svelte/server`, no DOM needed). `sceneListState` is the global the component reads
+ * its list from, so every caller must set it first.
+ */
+function renderTab(activeSceneId: string | null): string {
+  const { body } = render(ScenesTab, {
+    props: {
+      socket: {} as never,
+      worldId: "world-1",
+      userId: "user-1",
+      isGm: true,
+      activeSceneId,
+    },
+  });
+  return body;
 }
 
 // ---------------------------------------------------------------------------
@@ -193,14 +220,20 @@ describe("a refused environment write (REQ-CEN-023)", () => {
     expect(generic).not.toContain("socket exploded");
   });
 
-  it("REQ-CEN-023: the panel keeps a message region bound to the failed environment gesture", () => {
-    const source = sourceOfScenesTab();
+  it("REQ-CEN-020..025: the rendered head offers no environment gesture (retirado da UI em 2026-08-17, item 25)", () => {
+    // The three controls that used to feed this message region are out of the head
+    // (`specs/44-aba-cenas.md`, note after REQ-CEN-025). Asserted against what the
+    // panel actually draws — the translated label of each gesture — rather than
+    // against a variable name in the source, which would survive a rename of the
+    // retired code and could break on an unrelated comment mentioning the same words.
+    sceneListState.scenes = WORLD;
+    const html = renderTab(ON_AIR._id);
+    sceneListState.scenes = [];
 
-    // `envError` is null at server-render time, so the region itself can only be pinned
-    // in the template — the same technique the CSS rules use in `ScenesTab.test.ts`.
-    expect(source).toMatch(
-      /\{#if envError\}[\s\S]{0,200}class="scenes-tab__error"[\s\S]{0,80}role="alert"/,
-    );
+    expect(html).toContain(ON_AIR.name);
+    expect(html).not.toContain(t(SCENE_ENV_KEYS.darkness));
+    expect(html).not.toContain(t(SCENE_ENV_KEYS.fog));
+    expect(html).not.toContain(t(SCENE_ENV_KEYS.fogReset));
   });
 });
 

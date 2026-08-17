@@ -254,4 +254,91 @@ describe("ScenesTab — the head that says what is on air", () => {
       expect(source).toMatch(/const head = \$derived\(/);
     });
   });
+
+  // Ajustes r1, item 27 (plan A052): the prototype (`scenes-tab.prototype.html`,
+  // `liveHead()`) anchors "no ar" to the TOP of the head, isolated from the name — not
+  // stacked with it in the footer gradient block. Structural proof, not a screenshot:
+  // the flag markup must be a SIBLING of `.scene-head__info` (never nested inside it),
+  // and must be pinned to the head's own top edge, independent of the footer block.
+  describe("the on-air flag is anchored to the top, apart from the name (REQ-CEN-010, REQ-CEN-011, REQ-CEN-013)", () => {
+    function headOf(html: string): string {
+      const match = /<section class="scene-head[^"]*"[\s\S]*?<\/section>/.exec(html);
+      if (match === null) throw new Error("no .scene-head section in the rendered markup");
+      return match[0];
+    }
+
+    it("REQ-CEN-011: the flag is NOT nested inside `.scene-head__info` — it is a sibling of it", () => {
+      sceneListState.scenes = [makeScene({ _id: "s1", name: "Taverna" })];
+      const head = headOf(renderTab("s1"));
+
+      // `.scene-head__info` only ever wraps `<span>`s (name, meta) — no nested `<div>` —
+      // so its content runs up to the very next closing tag.
+      const infoMatch = /<div class="scene-head__info[^"]*"[^>]*>([\s\S]*?)<\/div>/.exec(head);
+      expect(infoMatch).not.toBeNull();
+      const infoInner = infoMatch?.[1] ?? "";
+
+      expect(infoInner).not.toContain("scene-head__flag");
+      // The name and dimensions stay exactly where they were — in the footer block.
+      expect(infoInner).toContain("scene-head__name");
+      expect(infoInner).toContain("scene-head__meta");
+    });
+
+    it("REQ-CEN-011: the flag markup sits before `.scene-head__info` opens, as its own element", () => {
+      sceneListState.scenes = [makeScene({ _id: "s1", name: "Taverna" })];
+      const head = headOf(renderTab("s1"));
+
+      const canvasCloseAt = head.indexOf("</div>"); // closes `.scene-head__canvas`
+      const flagAt = head.indexOf("scene-head__flag");
+      const infoOpenAt = head.indexOf("scene-head__info");
+
+      expect(canvasCloseAt).toBeGreaterThan(-1);
+      expect(flagAt).toBeGreaterThan(canvasCloseAt);
+      expect(flagAt).toBeLessThan(infoOpenAt);
+      expect(head).toContain(t("FUSION.Scene.Head.OnAir"));
+    });
+
+    it("REQ-CEN-013: the flag is pinned to the head's own top edge, not carried by the footer", () => {
+      const css = styleOfScenesTab();
+
+      const flagRule = ruleFor(css, ".scene-head__flag");
+      expect(flagRule).toMatch(/position:\s*absolute/);
+      expect(flagRule).toMatch(/top:\s*0/);
+
+      // The head is the positioning context — unchanged by this move.
+      expect(ruleFor(css, ".scene-head")).toMatch(/position:\s*relative/);
+
+      // No height leaks from the flag into the fixed-height box (REQ-CEN-013/REQ-CEN-010).
+      expect(flagRule).not.toMatch(/height:\s*\d/);
+    });
+
+    it("Ajustes r1 review (2026-08-17): the flag carries its own scrim over the scene's image", () => {
+      // The flag sits directly on `.scene-head__canvas` (the scene's own background
+      // image, DEC-CEN-04) with no gradient underneath it any more — green text with
+      // no anteparo of its own is unreadable over a light map. An explicit `left` is
+      // asserted too: the flag is an out-of-flow child with no other inset set, so its
+      // horizontal position would otherwise depend on static-position fallback instead
+      // of a declared value.
+      const css = styleOfScenesTab();
+      const flagRule = ruleFor(css, ".scene-head__flag");
+
+      expect(flagRule).toMatch(/background:\s*rgba\(0,\s*0,\s*0/);
+      expect(flagRule).toMatch(/left:\s*[\d.]/);
+    });
+
+    it("REQ-CEN-010: the head's height stays the theme token, on air or not, flag or no flag", () => {
+      const css = styleOfScenesTab();
+      sceneListState.scenes = [makeScene({ _id: "s1" })];
+
+      const onAir = renderTab("s1");
+      const nothingOnAir = renderTab(null);
+
+      expect(onAir).toContain("scene-head__flag");
+      expect(nothingOnAir).not.toContain("scene-head__flag");
+      // Same fixed-height rule regardless — checked once in the shape/height describe
+      // above; here we only confirm the flag itself never gets its own height rule.
+      expect(ruleFor(css, ".scene-head")).toMatch(
+        new RegExp(`height:\\s*var\\(${SCENE_HEAD_HEIGHT_TOKEN}\\)`),
+      );
+    });
+  });
 });
