@@ -204,6 +204,80 @@ describe("REQ-NPC-020 / REQ-NPC-026: the tree, and the count of each folder", ()
   });
 });
 
+// ---------------------------------------------------------------------------
+// A032 — top bar reduced to search + one icon-only button; "new folder" moved
+// into the "pastas" section head (npcs-tab.prototype.html, npcsHead() and the
+// "pastas" .sec block). Cobre: REQ-NPC-010, REQ-NPC-021, REQ-NPC-040.
+// ---------------------------------------------------------------------------
+
+/** The `<header>…</header>` region of the rendered panel. */
+function headerRegion(body: string): string {
+  const match = /<header[^>]*>[\s\S]*?<\/header>/.exec(body);
+  if (match === null) throw new Error("no <header> found in rendered panel");
+  return match[0];
+}
+
+describe("A032 / REQ-NPC-010 / REQ-NPC-040: the top bar has search plus ONE button", () => {
+  it("the header holds exactly one <button>, wired to new-npc, no visible label text", () => {
+    const body = renderPanel();
+    const header = headerRegion(body);
+
+    // REQ-NPC-010: the fixed bar holds search plus ONE creation control — no
+    // longer the search + two buttons ("Novo não-jogável" and "Nova pasta")
+    // the panel had before A032.
+    const buttonCount = header.match(/<button/g)?.length ?? 0;
+    expect(buttonCount).toBe(1);
+
+    // REQ-NPC-040: creation stays reachable from the head of the panel — this
+    // is that door, still standing after A032's reposition.
+    expect(header).toContain('data-action="new-npc"');
+    // Icon-only: the button carries the label as aria-label, never as visible
+    // TEXT CONTENT between the tags (a screen reader still gets the label).
+    expect(header).toContain('aria-label="Novo não-jogável"');
+    expect(header).not.toMatch(/>\s*Novo não-jogável\s*</);
+    expect(header).toContain("<svg");
+  });
+
+  it('"new-root-folder" is no longer offered from the header bar', () => {
+    const body = renderPanel();
+
+    expect(headerRegion(body)).not.toContain('data-action="new-root-folder"');
+  });
+});
+
+describe('A032 / REQ-NPC-021: "nova pasta" moved into the pastas section head', () => {
+  it('the folder tree opens with a "pastas" section head carrying the new-folder action', () => {
+    const body = renderPanel();
+
+    expect(body).toContain("data-npc-folder-section");
+    const sectionStart = body.indexOf("data-npc-folder-section");
+    const treeStart = body.indexOf("data-npc-tree");
+    expect(sectionStart).toBeGreaterThan(-1);
+    expect(treeStart).toBeGreaterThan(sectionStart);
+
+    const section = body.slice(sectionStart, treeStart);
+    expect(section).toContain('data-action="new-root-folder"');
+    // Sits alongside the "pastas" label, not the search bar.
+    expect(section).not.toContain("data-npc-search");
+  });
+
+  it("the section head lives after the header bar, not inside it", () => {
+    const body = renderPanel();
+    const header = headerRegion(body);
+
+    expect(header).not.toContain("data-npc-folder-section");
+  });
+
+  it("REQ-NPC-021: each folder still offers a per-folder new-subfolder action on hover", () => {
+    const body = renderPanel();
+
+    // Unchanged from before the reposition — one hover action per folder row.
+    for (const folder of FOLDERS) {
+      expect(folderRow(body, folder._id)).toContain('data-action="new-child-folder"');
+    }
+  });
+});
+
 describe('REQ-NPC-014: "Sem pasta" is the last group, and is not a folder', () => {
   it("REQ-NPC-014: it comes last and holds the actors that belong to no folder", () => {
     const body = renderPanel();
@@ -371,6 +445,32 @@ describe("REQ-NPC-028 / REQ-NPC-029: moving has two paths, and both are drawn", 
     expect(SOURCE).toContain("void moveNpc(doc._id");
     expect(move).toContain("buildMoveActorOp(");
     expect(move).toContain("sendOp(socket, op)");
+  });
+});
+
+describe("A033: the move control does not steal the name's width at rest", () => {
+  it("REQ-NPC-028: `.npcs-row__move` collapses to a fixed footprint at rest, not the select's full outline", () => {
+    const rule = /\.npcs-row__move\s*\{([\s\S]*?)\}/.exec(SOURCE)?.[1] ?? "";
+
+    // `opacity: 0` alone hides the control but still reserves its full box in
+    // the flex row, so a hidden 8rem-wide <select> was permanently taking
+    // width away from `.npcs-row__name` next door — the name kept truncating
+    // (e.g. "Eagle", 5 characters, cut down to "Ea…") even when the row had
+    // room to spare. Collapsing to a small fixed width at rest is what fixes
+    // the actual cause, not just hiding the control.
+    expect(rule).toContain("opacity: 0");
+    expect(rule).toMatch(/width:\s*1\.25rem/);
+    expect(rule).not.toMatch(/max-width:\s*8rem/);
+  });
+
+  it("REQ-NPC-028: the control still widens on hover/focus, so it stays reachable by keyboard", () => {
+    const hoverBlock =
+      /\.npcs-row:hover \.npcs-row__move,[\s\S]*?\.npcs-row__move:focus-visible\s*\{([\s\S]*?)\}/.exec(
+        SOURCE,
+      )?.[1] ?? "";
+
+    expect(hoverBlock).toContain("opacity: 1");
+    expect(hoverBlock).toMatch(/width:\s*8rem/);
   });
 });
 

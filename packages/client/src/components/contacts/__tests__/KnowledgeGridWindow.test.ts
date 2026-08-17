@@ -4,8 +4,10 @@
  *
  * Covers REQ-CTT-060 (a fixed footer only a privileged role has, and it is a
  * footer, not a header), REQ-CTT-061 (the window opens outside the drawer via
- * the window manager, as contacts × characters), REQ-CTT-062 (every cell is an
- * activation that carries the state in words, and an exception is marked),
+ * the window manager, as contacts × characters), REQ-CTT-062 (every cell
+ * cycles the three states on activation, and an exception is marked by its
+ * own CSS class — never colour alone; the state's full word reaches assistive
+ * tech through the accessible name, REQ-CTT-094, not written into the cell),
  * REQ-CTT-063 / REQ-CTT-064 (the contact's name and the character's name are
  * controls of their own), REQ-CTT-065 (the general rule in text plus the legend
  * of the three states), REQ-CTT-066 (no path here creates, deletes or edits an
@@ -127,6 +129,31 @@ function rowOf(body: string, id: string): string {
   return body.slice(start, end === -1 ? body.length : end);
 }
 
+/**
+ * A row's markup with the row-head `<th>` (the contact's name and its general
+ * rule, always visible in words) cut away — what remains is only the cells, so
+ * an assertion made on it can never pass by reading the header instead.
+ */
+function cellsOf(row: string): string {
+  const afterHead = row.indexOf("</th>");
+  return afterHead === -1 ? row : row.slice(afterHead + "</th>".length);
+}
+
+/**
+ * The `class` attribute of the cell button identified by its `data-state`/
+ * `data-exception` pair — proof of the markup actually wiring the exception
+ * class to the right cell, not just of the CSS rule existing somewhere in the
+ * component's source.
+ */
+function cellClassFor(row: string, state: 0 | 1 | 2, exception: boolean): string {
+  const marker = `data-state="${state}" data-exception="${exception}"`;
+  const markerStart = row.indexOf(marker);
+  if (markerStart === -1) throw new Error(`no cell with ${marker}`);
+  const tagStart = row.lastIndexOf("<button", markerStart);
+  const classAttr = /class="([^"]*)"/.exec(row.slice(tagStart, markerStart));
+  return classAttr?.[1] ?? "";
+}
+
 beforeEach(() => {
   localStorageMock.clear();
   seedMirror([FOFURINHA, TOBIAS, FERREIRO, TAVERNEIRA]);
@@ -193,26 +220,37 @@ describe("the grid of contacts by characters (REQ-CTT-061)", () => {
     expect(body).not.toContain('data-contact-id="act-fofurinha01"');
   });
 
-  it("REQ-CTT-062: every cell is an activation carrying the state in words", () => {
+  it("REQ-CTT-062: every cell is its own activation, one button per character column", () => {
     const row = rowOf(renderWindow(), "act-ferreiro01");
+    const cells = cellsOf(row);
 
-    // Tobias knows him; Fofurinha reads the general rule, which is hidden.
-    expect(row).toContain("Conhecido");
-    expect(row).toContain("Oculto");
     // Two cells, both of them buttons — nothing here is a read-only swatch.
-    expect([...row.matchAll(/knowledge-grid__state /g)]).toHaveLength(2);
+    expect([...cells.matchAll(/knowledge-grid__state /g)]).toHaveLength(2);
   });
 
-  it("REQ-CTT-062: an exception is told apart by a mark and a word, not by colour", () => {
+  it("REQ-CTT-094: the state reaches the cell's accessible name in words — proven on the cells alone, never the row-head's general-rule text", () => {
+    const cells = cellsOf(rowOf(renderWindow(), "act-ferreiro01"));
+
+    // Fofurinha's cell falls back to the general rule (hidden); Tobias's cell
+    // is the exception overriding it to known. Both words can only have come
+    // from a cell here, since the row-head (which always reads "Oculto" for
+    // Ferreiro's general rule) was cut away.
+    expect(cells).toContain("Oculto");
+    expect(cells).toContain("Conhecido");
+  });
+
+  it("REQ-CTT-062 / REQ-CTT-072: an exception is wired to its own CSS class on the exact cell, not just named in the aria-label", () => {
     const row = rowOf(renderWindow(), "act-ferreiro01");
 
-    expect(row).toContain('data-exception="true"');
-    expect(row).toContain('data-exception="false"');
-    expect(row).toContain("exceção");
+    // Tobias's cell is the exception (state 2) and carries the class that
+    // draws the underline (proven separately below); Fofurinha's cell (state
+    // 0, the general rule) carries neither the flag nor the class.
+    expect(cellClassFor(row, 2, true)).toContain("knowledge-grid__state--exception");
+    expect(cellClassFor(row, 0, false)).not.toContain("knowledge-grid__state--exception");
 
     // A contact whose row is uniform has no exception at all.
     const plain = rowOf(renderWindow(), "act-taverneira");
-    expect(plain).not.toContain('data-exception="true"');
+    expect(plain).not.toContain("knowledge-grid__state--exception");
   });
 
   it("REQ-CTT-063 / REQ-CTT-064: the two names are controls of their own", () => {
@@ -220,6 +258,90 @@ describe("the grid of contacts by characters (REQ-CTT-061)", () => {
 
     expect(body).toContain("Mudar a regra geral de Ferreiro de Otari e alinhar a linha inteira");
     expect(body).toContain("Mudar o que Tobias sabe sobre todos os contatos");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compact matrix, one SVG icon per state — REQ-CTT-062 / REQ-CTT-094 / REQ-NPC-094
+// (A037 review: the window used to draw the full word ("oculto"/"entrevisto"/
+// "conhecido") and the word "Exceção" inside every cell, which produced a much
+// wider, heavier grid than the prototype's dense matrix. A first fix matched the
+// prototype's own glyphs (SYM = ["·","◐","✓"]) as plain Unicode text, but this
+// window opens from both the Contatos footer AND the NPCs footer (REQ-NPC-072),
+// so DEC-ACH-04 — "drawn icons, never emoji", cited by spec 42 as a principle of
+// the whole gaveta, not only its own tab — reaches it: "◐" (U+25D0) and "✓"
+// (U+2713) both sit inside the emoji-ish range the repo already treats as
+// forbidden (see the EMOJI regex below, borrowed from NpcsFooter.test.ts). Each
+// state now draws its own inline SVG (dot / half-filled circle / check) instead,
+// coloured by state; the full state — plus the word "exceção" when it applies —
+// still reaches assistive tech only through the button's accessible name.
+// ---------------------------------------------------------------------------
+
+/** Every emoji-ish codepoint: pictographs, dingbats and the variation selector
+ *  (same range NpcsFooter.test.ts already polices for the NPCs tab's own icons). */
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2190}-\u{2BFF}\u{FE0F}]/u;
+
+describe("the cell is a compact SVG icon, not a written label or a text glyph (REQ-CTT-062, REQ-CTT-094, REQ-NPC-094)", () => {
+  /** The markup drawn inside the button for a given `data-state`, from a row's markup. */
+  function symbolMarkupFor(row: string, state: 0 | 1 | 2): string {
+    const marker = `data-state="${state}"`;
+    const start = row.indexOf(marker);
+    if (start === -1) throw new Error(`no cell with data-state="${state}"`);
+    const spanStart = row.indexOf('aria-hidden="true">', start) + 'aria-hidden="true">'.length;
+    const spanEnd = row.indexOf("</span>", spanStart);
+    return row.slice(spanStart, spanEnd);
+  }
+
+  it("REQ-CTT-062: each state draws its own SVG icon (dot / half-circle / check), matching the prototype's shapes", () => {
+    const row = rowOf(renderWindow(), "act-ferreiro01");
+
+    // Ferreiro's general rule is hidden (dot); Tobias overrides it to known (check).
+    expect(symbolMarkupFor(row, 0)).toContain("<svg");
+    expect(symbolMarkupFor(row, 0)).toContain("<circle");
+    expect(symbolMarkupFor(row, 2)).toContain("<svg");
+    expect(symbolMarkupFor(row, 2)).toContain("<path");
+    expect(row).toContain('class="knowledge-grid__state-symbol');
+
+    seedMirror([
+      FOFURINHA,
+      TOBIAS,
+      { ...FERREIRO, flags: { fusion: { knowledge: { general: 1, exceptions: {} } } } },
+    ]);
+    const glimpsed = rowOf(renderWindow(), "act-ferreiro01");
+    // Half-glimpsed draws both a stroked circle and a filled half.
+    expect(symbolMarkupFor(glimpsed, 1)).toContain("<circle");
+    expect(symbolMarkupFor(glimpsed, 1)).toContain("<path");
+  });
+
+  it("REQ-NPC-094: no state icon is a text glyph in the emoji-ish range — every state is an SVG path/circle, never emoji (DEC-ACH-04, a principle of the whole gaveta per spec 42)", () => {
+    const body = renderWindow();
+
+    expect(EMOJI.test(body)).toBe(false);
+    // Every icon is drawn with `currentColor`, so it always follows the state's
+    // colour and never bakes in a fixed one.
+    expect([...body.matchAll(/stroke="currentColor"|fill="currentColor"/g)].length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("REQ-CTT-094: the symbol is hidden from assistive tech, and the full state name is the accessible name instead", () => {
+    const row = rowOf(renderWindow(), "act-ferreiro01");
+
+    // The symbol span never reaches a screen reader on its own.
+    expect(row).toMatch(/knowledge-grid__state-symbol[^"]*"\s+aria-hidden="true"/);
+    // The cell button carries the full word as its aria-label (never only colour).
+    expect(row).toMatch(/aria-label="[^"]*Ferreiro de Otari: Oculto\. Mudar o estado\."/);
+    expect(row).toMatch(
+      /aria-label="[^"]*Ferreiro de Otari: Conhecido, exceção\. Mudar o estado\."/,
+    );
+  });
+
+  it("cleanup: no visible word or icon is written inside the cell anymore — only the symbol (this proves the OLD markup is gone, not the requirement itself; the requirement is proved above and by the CSS-fidelity tests below)", () => {
+    const code = codeOf("KnowledgeGridWindow.svelte");
+
+    expect(code).not.toContain("knowledge-grid__state-text");
+    expect(code).not.toContain("knowledge-grid__exception-mark");
+    expect(code).not.toContain("knowledge-grid__exception-word");
   });
 });
 
@@ -243,6 +365,73 @@ describe("the general rule and the legend are drawn (REQ-CTT-065)", () => {
     expect(legend).toContain("Oculto");
     expect(legend).toContain("Entrevisto");
     expect(legend).toContain("Conhecido");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Prototype fidelity — REQ-CTT-062 / REQ-CTT-065 (A037 review): the swatch was
+// a bordered/filled 0.6rem box that clipped and mis-coloured the icon it grew
+// to hold, and an entrevisto/conhecido state read as grey/roxo instead of the
+// prototype's amber/verde. Neither is a rendering detail: `npcs-tab.prototype
+// .html`/`contacts-tab.prototype.html` are the acceptance criteria for this
+// visual-adjustment phase (spec 36 §5, DEC-GAV rules referenced by A037).
+// ---------------------------------------------------------------------------
+
+describe("the legend and the cell match the prototype's colours and shapes (REQ-CTT-062, REQ-CTT-065)", () => {
+  it("REQ-CTT-062: the cell colours entrevisto amber and conhecido green — the prototype's --warn/--ok, not grey/roxo", () => {
+    const code = codeOf("KnowledgeGridWindow.svelte");
+
+    expect(code).toMatch(
+      /knowledge-grid__state\[data-state="1"\]\s*\{[^}]*color:\s*var\(--fusion-warning\)/,
+    );
+    expect(code).toMatch(
+      /knowledge-grid__state\[data-state="2"\]\s*\{[^}]*color:\s*var\(--fusion-success\)/,
+    );
+    // Neither state paints a background behind the icon — the prototype's
+    // `.k1`/`.k2` only ever change the glyph's own colour.
+    expect(code).not.toMatch(/knowledge-grid__state\[data-state="[12]"\]\s*\{[^}]*background:/);
+  });
+
+  it("REQ-CTT-065: the legend swatch carries no box — no border, no background, no fixed size that could clip its icon", () => {
+    const code = codeOf("KnowledgeGridWindow.svelte");
+    const swatchRule = /\.knowledge-grid__swatch\s*\{([^}]*)\}/.exec(code);
+
+    expect(swatchRule).not.toBeNull();
+    expect(swatchRule![1]).not.toMatch(/border:/);
+    expect(swatchRule![1]).not.toMatch(/background:/);
+    expect(swatchRule![1]).not.toMatch(/border-radius:/);
+    // The legend's amber/green also match the cell's, so the key never
+    // disagrees with what the grid actually draws.
+    expect(code).toMatch(
+      /knowledge-grid__swatch\[data-state="1"\]\s*\{[^}]*color:\s*var\(--fusion-warning\)/,
+    );
+    expect(code).toMatch(
+      /knowledge-grid__swatch\[data-state="2"\]\s*\{[^}]*color:\s*var\(--fusion-success\)/,
+    );
+  });
+
+  it("REQ-CTT-062: an exception is marked by an underline under its icon, never a box outline (matches `.matrix td button.cell.ex` in both prototypes)", () => {
+    const code = codeOf("KnowledgeGridWindow.svelte");
+
+    expect(code).toMatch(
+      /knowledge-grid__state--exception \.knowledge-grid__state-symbol\s*\{[^}]*border-bottom:/,
+    );
+    // The old dashed-box read as a focus ring — it must be gone, on the cell
+    // and on the legend's exception key alike.
+    expect(code).not.toMatch(/knowledge-grid__state--exception\s*\{[^}]*border-color:/);
+    expect(code).not.toMatch(/border-style:\s*dashed/);
+  });
+
+  it("REQ-CTT-065: the legend's exception key draws the same underlined check as an exception cell, not an empty box", () => {
+    const body = renderWindow();
+    const legend = body.slice(
+      body.indexOf("knowledge-grid__legend"),
+      body.indexOf("knowledge-grid__scroll"),
+    );
+    const exceptionKey = legend.slice(legend.indexOf("knowledge-grid__swatch--exception"));
+
+    expect(exceptionKey).toContain("<svg");
+    expect(exceptionKey).toContain("<path");
   });
 });
 
