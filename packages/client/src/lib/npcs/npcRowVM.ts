@@ -7,6 +7,13 @@
  * the scenes and in which ones (REQ-NPC-036). `NpcsPanel.svelte` only draws the
  * result, so all of it is unit-testable in the client's node environment.
  *
+ * A row's `name` resolves through `displayName()` (packages/client/src/lib/docs/
+ * displayName.ts, REQ-CMP-055), never straight off `doc.name` — a compendium-
+ * imported actor's document stays EN-pure by decision (issue #43), and its
+ * pt-BR label, when the pack had one, lives in `flags.fusion.i18n["pt-BR"].name`
+ * as a snapshot taken at import time. This closes A041/A034 (ajustes r1, Fase 4):
+ * do not read `doc.name` directly for a row's name again.
+ *
  * Three rules run through the whole module:
  *
  *  - **No hit points, for any role** (REQ-NPC-031, DEC-NPC-10). Nothing here reads
@@ -32,6 +39,7 @@
 
 import type { ActorAttitude } from "@fusion/shared";
 import { attitudeOfActor } from "./npcAttitude.js";
+import { displayName } from "../docs/displayName.js";
 import type { ConditionDisplayContract, ConditionView } from "../conditions/conditionView.js";
 import {
   CONTACT_TITLE_FLAG_PATH,
@@ -294,7 +302,7 @@ function buildSubRow(
   const kind = text(record(doc.system)["companionKind"]) || COMPANION_ACTOR_SUBTYPE;
   return {
     id: doc._id,
-    name: text(doc.name),
+    name: displayName(doc),
     img: doc.img ?? null,
     kind,
     conditions: buildContactConditions(doc, declarations),
@@ -339,7 +347,7 @@ export function buildNpcRows(input: NpcRowsInput): NpcRow[] {
 
     rows.push({
       id: doc._id,
-      name: text(doc.name),
+      name: displayName(doc),
       img: doc.img ?? null,
       subtype: text(doc.type),
       folderId: folderIdOf(doc),

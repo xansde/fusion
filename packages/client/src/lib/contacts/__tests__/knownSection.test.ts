@@ -161,6 +161,46 @@ describe("who the Conhecidos section lists (REQ-CTT-040)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// The card's name resolves the pt-BR snapshot — REQ-CMP-055 (A041)
+// ---------------------------------------------------------------------------
+
+/** A compendium-imported NPC: EN-pure `name`, pt-BR label snapshotted at import. */
+const AGUIA_IMPORTED: ContactActorDoc = {
+  _id: "act-eagle0000001",
+  name: "Eagle",
+  type: "npc",
+  flags: {
+    fusion: { packName: "bestiary", sourceId: "eagle-001", i18n: { "pt-BR": { name: "Águia" } } },
+  },
+};
+
+/** Imported before A041's flag existed — no snapshot, falls back to EN name. */
+const CORUJA_LEGACY: ContactActorDoc = {
+  _id: "act-owl00000001",
+  name: "Owl",
+  type: "npc",
+  flags: { fusion: { packName: "bestiary", sourceId: "owl-001" } },
+};
+
+describe("REQ-CMP-055: the card's name resolves the pt-BR snapshot, never doc.name straight (A041)", () => {
+  it("REQ-CMP-055: a compendium-imported NPC's card shows the pt-BR label", () => {
+    const section = buildKnownSection({ actors: [AGUIA_IMPORTED], isPrivileged: false });
+    const card = section.groups
+      .flatMap((group) => group.contacts)
+      .find((c) => c.id === AGUIA_IMPORTED._id);
+    expect(card?.name).toBe("Águia");
+  });
+
+  it("REQ-CMP-055: an NPC imported before the flag existed falls back to the EN doc.name", () => {
+    const section = buildKnownSection({ actors: [CORUJA_LEGACY], isPrivileged: false });
+    const card = section.groups
+      .flatMap((group) => group.contacts)
+      .find((c) => c.id === CORUJA_LEGACY._id);
+    expect(card?.name).toBe("Owl");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // The glimpsed contact — REQ-CTT-041 / REQ-CTT-042 / REQ-CTT-013
 // ---------------------------------------------------------------------------
 

@@ -221,6 +221,29 @@ describe("the search filters name and title, in the client (REQ-CTT-011)", () =>
     // And there is nothing in the payload the search could have matched.
     expect(GLIMPSED.name).toBeUndefined();
   });
+
+  it("REQ-CTT-011 + REQ-CMP-055: a contact drawn as 'Águia' is found by the label the card shows", () => {
+    // The card renders displayName() (REQ-CMP-055) — the search must match the
+    // same resolved label, not only the EN-pure doc.name underneath it.
+    const EAGLE: ContactActorDoc = {
+      _id: "act-eagle0000005",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      flags: {
+        fusion: {
+          packName: "bestiary",
+          sourceId: "eagle-001",
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    };
+
+    expect(matchesContactQuery(EAGLE, "Águia")).toBe(true);
+    // And it stays findable by the EN-pure doc.name too — whoever knows the
+    // source pack still types the name they know.
+    expect(matchesContactQuery(EAGLE, "Eagle")).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
