@@ -584,10 +584,13 @@ export class TokenSprite {
     g.clear();
 
     // TK024/REQ-TOK-080: `null` means "herda do ator" — resolving that
-    // inheritance is TK042 (Fase 2), out of this task's scope. Until then a
-    // null disposition draws the same gray `dispositionColor` already reserves
-    // for "no actor" / unresolved, rather than guessing a value it isn't.
-    const color = dispositionColor(this._doc.disposition ?? Number.NaN);
+    // inheritance is TK042 (Fase 3), out of this task's scope. Until then a
+    // null disposition falls back to neutral (0), the value the schema
+    // defaulted to before TK024 made the field nullable (DEC-TOK-12: three
+    // real dispositions, `secret` is not one of them) — NOT the gray
+    // `SECRET_RING_COLOR`, which `dispositionColor` only reaches for a
+    // genuinely out-of-range number and which TK042 removes outright.
+    const color = dispositionColor(this._doc.disposition ?? 0);
     g.roundRect(
       RING_THICKNESS / 2,
       RING_THICKNESS / 2,
