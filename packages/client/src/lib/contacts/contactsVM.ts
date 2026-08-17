@@ -365,17 +365,25 @@ function fold(value: string): string {
 }
 
 /**
- * Whether a contact matches the search box (REQ-CTT-011): name and title, in the
- * client, with no request to the server (RNF-CTT-02).
+ * Whether a contact matches the search box (REQ-CTT-011, REQ-NPC-011): name and
+ * title, in the client, with no request to the server (RNF-CTT-02).
  *
- * A glimpsed contact carries neither, so it can never be found by name
- * (REQ-CTT-013) — that falls out of the redacted payload rather than from a rule
- * written here.
+ * The haystack carries BOTH the resolved label (`displayName()`, REQ-CMP-055 — what
+ * the card actually shows) and the raw `doc.name` (EN-pure, REQ-CMP-055) — so a
+ * contact drawn as "Águia" is found by "Águia" as well as by "Eagle", the name
+ * whoever knows the source pack would type. Matching only the raw name here while
+ * the card renders the resolved one would defeat the very rule that names this
+ * search "by name" (REQ-CTT-011/REQ-NPC-011): the name the user reads on screen.
+ *
+ * A glimpsed contact carries neither (`displayName()` resolves to `""` when there
+ * is no `flags.fusion.i18n` entry and no `doc.name` either), so it can never be
+ * found by name (REQ-CTT-013) — that falls out of the redacted payload rather than
+ * from a rule written here.
  */
 export function matchesContactQuery(doc: ContactActorDoc, query: string): boolean {
   const needle = fold(query.trim());
   if (needle.length === 0) return true;
-  const haystack = fold(`${text(doc.name)} ${readContactTitle(doc)}`);
+  const haystack = fold(`${displayName(doc)} ${text(doc.name)} ${readContactTitle(doc)}`);
   return haystack.includes(needle);
 }
 
