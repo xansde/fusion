@@ -210,7 +210,15 @@ describe("bugfix A003 — the mount effect must not retrigger itself (REQ-CPD-05
     return { loadCalls, exceededBudget: false };
   }
 
-  it("reproduces the crash: an unconditional reset retriggers the effect without bound", () => {
+  // Documents the failure mode the model above reproduces — `resetPredicate`
+  // is a stand-in this test itself injects, so this assertion is bound by
+  // `simulateMountEffect`'s own contract (it returns once `loadCalls` hits
+  // `maxIterations`), not by anything `CompendiumPreviewWindow.svelte` does.
+  // It cannot fail from a regression in production code; the guard actually
+  // shipped is proven separately, against the component's own source, by
+  // `CompendiumPreviewWindow.test.ts`'s "load() resets to PREVIEW_LOADING
+  // only behind shouldResetToLoading" (REQ-CPD-051).
+  it("documents the crash: an unconditional reset retriggers the effect without bound", () => {
     const { loadCalls, exceededBudget } = simulateMountEffect(() => true, 1_000);
 
     expect(exceededBudget).toBe(true);

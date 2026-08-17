@@ -257,6 +257,35 @@ describe("the preview names its fields through the bundle (REQ-CPD-051)", () => 
   });
 });
 
+describe("bugfix A003 — the mount effect's guard is real in production code (REQ-CPD-051, DEC-CPD-03)", () => {
+  /**
+   * `previewWindow.test.ts` proves, with a standalone model, that an
+   * unconditional `loadState = PREVIEW_LOADING` inside the mount effect's
+   * `load()` retriggers Svelte 5's `$effect` forever
+   * (`effect_update_depth_exceeded`) — that model never reads this component's
+   * source. This test closes that gap: it reads
+   * `CompendiumPreviewWindow.svelte` itself and asserts the ONE reassignment
+   * to `PREVIEW_LOADING` inside `load()` sits behind the `shouldResetToLoading`
+   * guard, so a future edit that removes the guard, or adds a second,
+   * unguarded reassignment, fails here without needing a live Svelte runtime.
+   */
+  it("REQ-CPD-051: load() resets to PREVIEW_LOADING only behind shouldResetToLoading, never unconditionally", () => {
+    const source = readFileSync(
+      fileURLToPath(new URL("../CompendiumPreviewWindow.svelte", import.meta.url)),
+      "utf8",
+    );
+    const script = /<script lang="ts">([\s\S]*?)<\/script>/.exec(source)?.[1] ?? "";
+    expect(script.length).toBeGreaterThan(0);
+
+    const resetOccurrences = script.match(/loadState = PREVIEW_LOADING;/g) ?? [];
+    expect(resetOccurrences).toHaveLength(1);
+
+    expect(script).toMatch(
+      /if \(shouldResetToLoading\(loadState\)\) \{\s*loadState = PREVIEW_LOADING;\s*\}/,
+    );
+  });
+});
+
 describe("the panel no longer previews inside itself (REQ-CPD-050, REQ-CPD-054)", () => {
   it("REQ-CPD-050: the drawer's panel holds no preview blade and no preview state", () => {
     const src = browserSource();
