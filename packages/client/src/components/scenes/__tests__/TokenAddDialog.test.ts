@@ -26,6 +26,9 @@ import "../../../lib/i18n/index.js";
 
 const SCENE_ID = "scn-clareira0001";
 
+/** Fixture matching the Fase 1 e2e's own scenes (width/height/padding — defect 1). */
+const SCENE_DIMENSIONS = { width: 4000, height: 2400, padding: 0.25 };
+
 const ACTORS = [
   { _id: "act-lobo00000001", name: "Lobo", img: "worlds/img/lobo.webp" },
   { _id: "act-goblin000001", name: "Goblin Guerreiro", img: null },
@@ -43,6 +46,7 @@ function renderDialog(): string {
   return render(TokenAddDialog, {
     props: {
       sceneId: SCENE_ID,
+      scene: SCENE_DIMENSIONS,
       onClose: () => {},
       onSuccess: () => {},
       socket: {} as never,
@@ -85,5 +89,24 @@ describe("CA-TOK-003 / REQ-TOK-002: TokenAddDialog first paint", () => {
 
     expect(body).toContain(t("FUSION.Scenes.TokenAdd.ActorNoResults"));
     expect(submitButtonTag(body)).toMatch(/\bdisabled\b/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Defect 1 (Fase 1 e2e): the X/Y fields start on the visible map, not (0, 0)
+// ---------------------------------------------------------------------------
+
+describe("REQ-CNV-011/REQ-CNV-066: TokenAddDialog's X/Y fields default to the map's middle", () => {
+  it("first paint shows the content-area center, not (0, 0) — a corner of the padding margin", () => {
+    seedMirror();
+
+    const body = renderDialog();
+    // SCENE_DIMENSIONS: padX = round(4000*0.25) = 1000, padY = round(2400*0.25) = 600;
+    // center = padX + width/2, padY + height/2 = (3000, 1800).
+    const xField = /id="token-x"[^>]*value="([^"]*)"/.exec(body);
+    const yField = /id="token-y"[^>]*value="([^"]*)"/.exec(body);
+
+    expect(xField?.[1]).toBe("3000");
+    expect(yField?.[1]).toBe("1800");
   });
 });

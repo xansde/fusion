@@ -62,6 +62,7 @@
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
+  import { effectiveGridSize, sceneContentOffset } from "../lib/canvas/sceneCoords.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -334,7 +335,7 @@
     const actorPayload = _getActorDragPayload(event);
     if (actorPayload) {
       event.preventDefault();
-      const gridSize = scene.grid?.size ?? 100;
+      const gridSize = effectiveGridSize(scene);
       const op = buildActorDropTokenOp({
         payload: actorPayload,
         sceneId: scene._id,
@@ -383,7 +384,7 @@
           const result = await compendiumImportToWorld(sock, [accepted.uuid]);
           const createdId = result.created[0];
           if (!createdId) return;
-          const gridSize = scene.grid?.size ?? 100;
+          const gridSize = effectiveGridSize(scene);
           // Build a minimal actor payload to reuse buildTokenFromActorFields
           const fakePayload: ActorDragPayload = {
             kind: "actor",
@@ -489,7 +490,7 @@
     const sock = getSocket();
     const currentIsGm = isGm();
     const userId = session.user?.id ?? "";
-    const gridSize = scene.grid?.size ?? 100;
+    const gridSize = effectiveGridSize(scene);
 
     // --- TokenLayer ---
     const tokenLayer = new TokenLayer(
@@ -511,12 +512,13 @@
     _tickerDisposer = canvas.addTicker(tickerCb);
 
     // --- LightingRenderer ---
+    const { padX, padY } = sceneContentOffset(scene);
     const lightingRenderer = new LightingRenderer(
       canvas.getLayer("lighting"),
       scene.width,
       scene.height,
-      Math.round(scene.width * scene.padding),
-      Math.round(scene.height * scene.padding),
+      padX,
+      padY,
     );
 
     // --- FogState (player only) ---

@@ -24,6 +24,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCreateTokenOp,
+  defaultTokenPosition,
   filterTokenActorOptions,
   isTokenAddFormValid,
   toTokenActorOptions,
@@ -31,6 +32,7 @@ import {
   type TokenActorOption,
   type TokenAddFormData,
 } from "../tokenAddDialogVM.js";
+import { buildActorDropTokenOp, type ActorDragPayload } from "../../actors/actorDirectory.js";
 
 const ACTORS: TokenActorOption[] = [
   { id: "act-lobo00000001", name: "Lobo", img: "img/lobo.png" },
@@ -185,5 +187,80 @@ describe("REQ-TOK-020: buildCreateTokenOp", () => {
     ]) {
       expect(fields).not.toHaveProperty(forbidden);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Defect 1 (Fase 1 e2e): the piece born via the dialog nasce fora da cena
+// ---------------------------------------------------------------------------
+//
+// Root cause (confirmed against specs/06-canvas-e-renderizacao.md §REQ-CNV-011/
+// REQ-CNV-066): `Token.x`/`y` are already plain "scene coordinates" — origin at
+// the corner of the PADDED area — the exact same system `TokenSprite` renders
+// with (no offset of its own) and `TableScreen.handleCanvasDrop`'s `worldX`/
+// `worldY` already land in. There never was a unit mismatch between the two
+// creation paths to convert away — `buildCreateTokenOp` and
+// `buildActorDropTokenOp` both send `x`/`y` straight through, unconverted, and
+// therefore ALREADY agree for the same numeric point (first test below). The
+// actual bug was the dialog's STARTING value: a hardcoded `(0, 0)` sits inside
+// the scene's padding margin (REQ-CNV-066: staging space around the map, not
+// the map), so a token created without the GM touching "X"/"Y" landed off to
+// the side, invisibly, for any scene with nonzero padding — every scene in the
+// Fase 1 e2e fixture (`padding: 0.25`).
+
+describe("REQ-TOK-020 / REQ-CNV-011: dialog and drop already agree on the same point", () => {
+  const SCENE = { _id: "scn-clareira001", width: 4000, height: 2400, padding: 0.25 };
+
+  it("buildCreateTokenOp and buildActorDropTokenOp send the identical x/y for the same coordinate — no per-path conversion", () => {
+    const dialogOp = buildCreateTokenOp(
+      SCENE._id,
+      form({ actorId: "act-lobo00000001", x: 1900, y: 1100 }),
+    );
+
+    const payload: ActorDragPayload = {
+      kind: "actor",
+      uuid: "act-lobo00000001",
+      documentType: "Actor",
+      subtype: "npc",
+      name: "Lobo",
+      img: null,
+      origin: "sidebar",
+    };
+    const dropOp = buildActorDropTokenOp({
+      payload,
+      sceneId: SCENE._id,
+      x: 1900,
+      y: 1100,
+      gridSize: 100,
+      snapToGrid: false,
+    });
+
+    expect(dialogOp.payload.data[0]).toMatchObject({ x: 1900, y: 1100 });
+    expect(dropOp.payload.data[0]).toMatchObject({ x: 1900, y: 1100 });
+  });
+});
+
+describe("REQ-CNV-011/REQ-CNV-066: defaultTokenPosition", () => {
+  it("starts a new token at the middle of the visible map, not (0, 0) — a corner of the padding margin", () => {
+    const scene = { width: 4000, height: 2400, padding: 0.25 };
+
+    // padX = round(4000*0.25) = 1000, padY = round(2400*0.25) = 600;
+    // center = padX + width/2, padY + height/2.
+    expect(defaultTokenPosition(scene)).toEqual({ x: 3000, y: 1800 });
+  });
+
+  it("is (width/2, height/2) for a scene with no padding", () => {
+    const scene = { width: 4000, height: 4000, padding: 0 };
+
+    expect(defaultTokenPosition(scene)).toEqual({ x: 2000, y: 2000 });
+  });
+
+  it("the default position is a legitimate, resend-able x/y through buildCreateTokenOp", () => {
+    const scene = { width: 4000, height: 2400, padding: 0.25 };
+    const pos = defaultTokenPosition(scene);
+
+    const op = buildCreateTokenOp("scn-clareira001", form({ actorId: "act-lobo00000001", ...pos }));
+
+    expect(op.payload.data[0]).toMatchObject(pos);
   });
 });

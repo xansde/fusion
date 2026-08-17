@@ -866,7 +866,13 @@
 {#if tokenAddOpen}
   {@const scene = sceneOnAir()}
   {#if scene}
-    <TokenAddDialog sceneId={scene._id} onClose={closeTokenAdd} onSuccess={closeTokenAdd} {socket} />
+    <TokenAddDialog
+      sceneId={scene._id}
+      {scene}
+      onClose={closeTokenAdd}
+      onSuccess={closeTokenAdd}
+      {socket}
+    />
   {/if}
 {/if}
 

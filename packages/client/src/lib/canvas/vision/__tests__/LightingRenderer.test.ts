@@ -1,10 +1,17 @@
 /**
- * LightingRenderer.test.ts — unit tests for the pure state-key logic.
+ * LightingRenderer.test.ts — unit tests for the pure state-key logic, plus a
+ * targeted regression test that exercises the real class (defect 2, Fase 1
+ * e2e — see below).
  *
- * LightingRenderer itself constructs real PIXI Graphics/Container objects,
- * which require a renderer and are not exercised here (see
- * CombatTurnMarker.test.ts for the established convention of testing the
- * extracted pure logic instead of the PIXI wrapper).
+ * LightingRenderer mostly constructs real PIXI Graphics/Container objects,
+ * which need a renderer to actually PAINT and are not exercised for that
+ * here (see CombatTurnMarker.test.ts for the established convention of
+ * testing the extracted pure logic instead of the PIXI wrapper). Building
+ * and mutating those objects, however, needs no renderer at all — `Graphics`/
+ * `Container` are plain JS classes under `pixi.js`, confirmed by the "render
+ * after destroy" test below actually constructing a real `LightingRenderer`
+ * against a real `Container` in this project's Node (no jsdom) Vitest
+ * environment.
  *
  * Regression coverage for the bug fixed here: `_buildStateKey` used to key
  * on vertex/ring COUNTS instead of actual coordinates, so moving a light or
@@ -22,10 +29,22 @@
  *   - Changing fog explored/current-vision ring coordinates changes the key
  *     even when ring/polygon counts stay the same
  *   - isGm / darkness / globalLight toggles change the key
+ *   - REQ-CNV-070/REQ-TOK-003 (defect 2): render() after destroy() is a
+ *     no-op, not a thrown TypeError — the exact crash the Fase 1 e2e's
+ *     console capture recorded on the player's client
+ *     (`Cannot read properties of null (reading 'clear')`, from
+ *     `_renderDarkness`'s `Graphics.clear()` on an already-destroyed
+ *     `_darknessOverlay`), which aborted the reapplication of scene state
+ *     (fog/vision/darkness) after a new token embedded into the scene.
  */
 
 import { describe, it, expect } from "vitest";
-import { buildLightingStateKey, selectLightingRenderMode } from "../LightingRenderer.js";
+import { Container } from "pixi.js";
+import {
+  LightingRenderer,
+  buildLightingStateKey,
+  selectLightingRenderMode,
+} from "../LightingRenderer.js";
 import type {
   VisionStateResult,
   LightPolygonResult,
@@ -297,5 +316,38 @@ describe("selectLightingRenderMode — REQ-VIS-085 restriction branches (A005 re
 
   it("REQ-VIS-085: non-GM, restrictionActive=true, fog state present and fogActive=true → 'fog' (three-state fog)", () => {
     expect(selectLightingRenderMode(false, true, makeFogRenderState(true))).toBe("fog");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-CNV-070/REQ-TOK-003 (defect 2, Fase 1 e2e): destroyed renderer is safe
+// ---------------------------------------------------------------------------
+
+describe("LightingRenderer.render() after destroy()", () => {
+  it("is a no-op, not a thrown TypeError — the exact race a stale SceneOrchestrator.setup() continuation hits", () => {
+    const container = new Container();
+    const renderer = new LightingRenderer(container, 4000, 2400, 1000, 600);
+
+    // A normal render works first, same as any live orchestrator's first frame.
+    expect(() => renderer.render(makeState())).not.toThrow();
+
+    renderer.destroy();
+
+    // This is what SceneOrchestrator.setup()'s continuation used to do after
+    // resuming from `await FogState.load()` on an instance whose OWN
+    // teardown() had already run — see scene-orchestrator.test.ts's
+    // "two concurrent setups" test for the full sequence this reproduces.
+    expect(() => renderer.render(makeState({ darkness: 0.5 }))).not.toThrow();
+  });
+
+  it("destroy() itself is idempotent — a second call does not throw", () => {
+    const container = new Container();
+    const renderer = new LightingRenderer(container, 4000, 2400);
+
+    renderer.destroy();
+
+    expect(() => {
+      renderer.destroy();
+    }).not.toThrow();
   });
 });

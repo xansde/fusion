@@ -4,6 +4,8 @@
    *
    * Props:
    *   sceneId   string        — ID of the target scene.
+   *   scene     SceneDimensionsInput — width/height/padding, to pick a sane default
+   *                              position (see below).
    *   onClose   () => void    — called when the dialog is dismissed.
    *   onSuccess () => void    — called after the token is created.
    *   socket    Socket        — for sendOp.
@@ -18,14 +20,26 @@
    * field this dialog exposes (REQ-TOK-024), for the piece that enters an ambush
    * already out of sight. The pure logic (filtering, validation, the `doc:create` op)
    * lives in `lib/scenes/tokenAddDialogVM.ts` so it is testable without a DOM.
+   *
+   * Defect 1 (Fase 1 e2e): "X"/"Y" below ARE ordinary scene coordinates (REQ-CNV-011 —
+   * same system `Token.x`/`y` already store, no conversion needed: see
+   * `lib/canvas/sceneCoords.ts`'s docstring). The bug was the STARTING value: a raw
+   * `(0, 0)` default sits in the scene's padding margin (REQ-CNV-066 — staging space
+   * outside the main map, not the map itself), so a token created without the GM
+   * touching these fields landed invisibly off to the side. `defaultTokenPosition`
+   * starts the fields at the middle of the visible map instead — still a plain,
+   * freely-overwritable scene coordinate.
    */
 
   import type { Socket } from "socket.io-client";
+  import { untrack } from "svelte";
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { worldMirror } from "../../lib/docs/worldSync.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import type { SceneDimensionsInput } from "../../lib/canvas/sceneCoords.js";
   import {
     buildCreateTokenOp,
+    defaultTokenPosition,
     filterTokenActorOptions,
     isTokenAddFormValid,
     toTokenActorOptions,
@@ -40,11 +54,13 @@
 
   const {
     sceneId,
+    scene,
     onClose,
     onSuccess,
     socket,
   }: {
     sceneId: string;
+    scene: SceneDimensionsInput;
     onClose: () => void;
     onSuccess: () => void;
     socket: Socket;
@@ -69,11 +85,13 @@
 
   // ---- Form state ----
 
+  // `untrack`: the starting position is read from `scene` ONCE, when the dialog opens —
+  // not recomputed every time the scene document changes underneath an open dialog,
+  // which would silently move whatever the GM already typed.
   let formData = $state<TokenAddFormData>({
     actorId: "",
     name: "",
-    x: 0,
-    y: 0,
+    ...untrack(() => defaultTokenPosition(scene)),
     hidden: false,
   });
 

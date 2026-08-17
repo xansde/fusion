@@ -15,6 +15,7 @@ import type { FusionCanvas } from "./FusionCanvas.js";
 import { resolveAssetUrl } from "../assets/assetApi.js";
 import { fusionApi } from "../api.js";
 import { session } from "../session.svelte.js";
+import { sceneContentOffset } from "./sceneCoords.js";
 
 /**
  * Load a SceneDocument onto the canvas.
@@ -39,8 +40,7 @@ export async function loadSceneDocument(
   canvas: FusionCanvas,
   scene: SceneDocument,
 ): Promise<() => void> {
-  const padX = Math.round(scene.width * scene.padding);
-  const padY = Math.round(scene.height * scene.padding);
+  const { padX, padY } = sceneContentOffset(scene);
   const totalWidth = scene.width + padX * 2;
   const totalHeight = scene.height + padY * 2;
 

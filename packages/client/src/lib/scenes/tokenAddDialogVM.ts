@@ -13,9 +13,16 @@
  *
  * Kept out of the component so it can be exercised without a DOM: the client project
  * runs Vitest in a node environment.
+ *
+ * `defaultTokenPosition` fixes defect 1 of the Fase 1 e2e: the form's "X"/"Y" fields
+ * used to default to `(0, 0)`, a corner of the scene's padding margin (REQ-CNV-066),
+ * so a token created without the GM touching those fields landed off to the side of
+ * the visible map instead of on it. See `lib/canvas/sceneCoords.ts` for why `(0, 0)`
+ * is a legitimate scene coordinate (REQ-CNV-011) and not a unit bug.
  */
 
 import { buildTokenCreateOp, type TokenCreateOp } from "../docs/tokenCreateOp.js";
+import { sceneContentOffset, type SceneDimensionsInput } from "../canvas/sceneCoords.js";
 
 // ---------------------------------------------------------------------------
 // Actor picker
@@ -89,6 +96,25 @@ export function isTokenAddFormValid(errs: TokenAddFormErrors): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Default position (defect 1, Fase 1 e2e)
+// ---------------------------------------------------------------------------
+
+/**
+ * The "X"/"Y" fields' starting value: the middle of the visible map, in scene
+ * coordinates (REQ-CNV-011) — not `(0, 0)`, which sits in the scene's padding
+ * margin (REQ-CNV-066: staging space around the map, not the map itself).
+ * The GM is always free to overwrite it; this only decides what a token
+ * looks like when they do not.
+ */
+export function defaultTokenPosition(scene: SceneDimensionsInput): { x: number; y: number } {
+  const { padX, padY } = sceneContentOffset(scene);
+  return {
+    x: padX + Math.round(scene.width / 2),
+    y: padY + Math.round(scene.height / 2),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Op builder
 // ---------------------------------------------------------------------------
 
@@ -99,6 +125,13 @@ export function isTokenAddFormValid(errs: TokenAddFormErrors): boolean {
  * unchecked "hidden" leaves the server default, REQ-TOK-024). REQ-TOK-010/012/022: no
  * `texture`/`width`/`height`/`disposition`/`actorDelta` — none of the fields §7.2 marks
  * derived or refused are ever written here, only the two the dialog itself offers.
+ *
+ * `data.x`/`data.y` are sent through unchanged as `Token.x`/`y` — REQ-CNV-011 (spec 06)
+ * defines "scene coordinates" as origin at the corner of the PADDED area, the same
+ * system `TokenSprite`/`TableScreen.handleCanvasDrop`'s `worldX`/`worldY` already use
+ * with no conversion of their own, so there is no unit to convert here (see
+ * `TokenAddDialog.svelte` for where the *default* shown in these fields comes from —
+ * that is the part defect 1 of the Fase 1 e2e was actually about).
  */
 export function buildCreateTokenOp(sceneId: string, data: TokenAddFormData): TokenCreateOp {
   const fields: Record<string, unknown> = {
