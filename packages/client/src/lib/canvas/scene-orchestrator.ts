@@ -318,7 +318,11 @@ export class SceneOrchestrator {
     // single source of truth threaded through TokenLayer/FogState/LightingRenderer
     // below: GM never restricted; a player only restricted when the scene opted
     // into token vision.
-    const restrictionActive = !this._isGm && scene.tokenVision === true;
+    // Legacy/partial scenes persisted before this field existed can carry
+    // `tokenVision: undefined` at runtime even though the type says boolean;
+    // coerce so restriction stays off (REQ-VIS-085).
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
+    const restrictionActive = !this._isGm && !!scene.tokenVision;
 
     // Feed vision polygons to TokenLayer (hides tokens outside vision for players)
     this._tokenLayer.setVisionPolygons(visionResult.visionPolygons, restrictionActive);
