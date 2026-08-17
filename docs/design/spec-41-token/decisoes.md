@@ -78,7 +78,8 @@ regra diferente por tela.
     a significar OWNER. **Cuidado de redação:** manter o rótulo `observer` significando OWNER
     seria a pior das saídas; o nível deve ser renomeado junto com a semântica.
   - `28` — ver D-PEND-08: a spec inteira precisa de posição.
-- **Segue em aberto (D-PEND-09):** "sub-personagem" é vocabulário novo, sem spec.
+- **Fechado (D-PEND-09):** "sub-personagem" não ganha definição própria — "os meus" são os
+  atores de que sou OWNER, sem diferenciação dentro do jogo.
 
 ### D4 — O campo de visão do token chama-se `vision`
 
@@ -217,11 +218,13 @@ O corte é o modelo de conhecimento da `39` (par contato × personagem), não um
   o nome "Kobold" de quem está vendo o desenho de um kobold não esconde grande coisa. Onde a
   regra ganha é no NPC nomeado — "Lorde Vashra" contra uma figura encapuzada. Vale a spec dizer
   isso, para ninguém supor que o nome protege identidade sozinho.
-- **Duas perguntas abertas**, ambas no protótipo:
-  - **Conhecimento de quem?** O modelo da `39` é por par contato × personagem; quem olha a cena é
-    o **usuário**. Proposta: conhece se **qualquer** personagem dele conhece.
-  - **Qual o default?** O protótipo assume **fechado** — e por isso o baú aparece sem nome, o que
-    provavelmente não é o desejado. A alternativa é abrir por faceta: criatura fecha, objeto abre.
+- **Conhecimento de quem: do usuário, por qualquer personagem dele.** O modelo da `39` é por par
+  contato × personagem; a cena é olhada pelo **usuário**. Regra: conhece o ator se **qualquer**
+  personagem seu conhece. Sem regra de "este personagem está na cena, aquele não".
+- **Default fechado.** O que não foi revelado não tem nome — inclusive objeto. O baú aparece sem
+  nome para quem nunca o abriu, e isso é aceito: quem revela é o Mestre. A alternativa recusada
+  era abrir por faceta (criatura fecha, objeto abre), que criaria uma segunda regra de nome só
+  para dizer "baú".
 
 ### D32 — Exibir nome e barra na cena é preferência do usuário
 
@@ -249,13 +252,35 @@ permissão continua sendo a de D27 — só move quem é OWNER do ator —, e a c
 - **A `23` ganha acessibilidade de graça.** `REQ-A11-036` exige alternativa não-arraste para toda
   ação de arraste. Com as setas como gesto canônico, a alternativa não é um acréscimo: é o
   caminho principal.
-- **Sobra decidir o que acontece com o arraste.** Se ele deixa de mover, a `41` fica com um gesto
-  só e o arraste concorrente (D26) some como problema desta superfície. Se fica, são dois
-  caminhos para o mesmo efeito. **Pendente.**
-- **Diagonal, pendente.** Quatro direções numa grade quadrada dobram o número de teclas para
-  atravessar uma sala. A saída natural é duas setas simultâneas — decidir antes de escrever.
+- **O arraste continua movendo.** Os dois gestos coexistem: as setas satisfazem a `23` e o
+  arraste segue sendo o gesto natural do mouse. Consequência assumida: o arraste concorrente
+  (D26) continua de pé — segue sendo problema de servidor, não desta spec.
+- **Sem diagonal.** Quatro direções. Atravessar na diagonal custa duas teclas; trocado de
+  propósito por não inventar gesto composto (duas setas simultâneas) num MVP.
 - **Não confundir com passo de regra.** "Uma célula por tecla" é gesto de interface. Quanto a
   criatura *pode* andar é do sistema (`15`) e do combate (`10`); a `41` não conta deslocamento.
+
+### D34 — Pôr peça na cena, copiar e tirar são do Mestre
+
+Criar, duplicar e excluir peça exigem **papel privilegiado**. O dono do ator **move** a peça do
+próprio ator, e nada além — nem a do próprio personagem ele põe no mapa.
+
+- **Fecha o resíduo de D12** (quem exclui) e a metade que faltava de D14 (quem copia): a régua é
+  a mesma para as três operações, e é uma só.
+- **Separa posse de autoridade sobre a cena, e é isso que a torna simples.** Ownership do ator
+  responde "de quem é esta ficha"; quem povoa a cena é quem dirige a mesa. Sem essa separação,
+  cada operação precisaria da própria régua — foi o que gerou a pergunta em D12 e em D14.
+- **Consequência assumida:** o jogador não arrasta o próprio personagem do diretório para o
+  mapa. Quem coloca é o Mestre. Vale escrever explicitamente, porque é o caso que alguém vai
+  testar primeiro.
+- **Obriga:**
+  - o contrato de invocação (D10) ganha uma linha de permissão: **criar exige papel
+    privilegiado**, verificada no servidor como as demais.
+  - `06` — `REQ-CNV-041` (duplicar) passa a ser gesto do Mestre.
+  - o `TokenAddDialog` e o arraste do diretório precisam recusar requisitante não privilegiado,
+    com teste que reproduza a tentativa. Vale aqui a mesma lição da T025: campo (ou operação)
+    que o servidor "sabe" que é do Mestre, mas aceita de qualquer um, é operação que alguém vai
+    executar.
 
 ### D27 — Controlar é ser dono do ator. Só isso.
 
@@ -461,10 +486,9 @@ O Mestre escolhe se peças do mesmo ator ganham **numeração** ("Esqueleto 1..6
   — mesmo tratamento que a regra variante recebeu.
 - **Age no nascimento** (D10): a numeração é o **valor inicial** do nome derivado, não um
   campo separado. Como o nome é sobrescrevível (D16), o Mestre renomeia depois se quiser.
-- **A definir na redação:** a numeração é por cena ou por mundo, e o que acontece com o número
-  quando uma peça some — se o Esqueleto 3 morre, o próximo nasce 3 (reaproveita o buraco) ou 7
-  (contador só cresce)? A segunda é mais barata e não confunde a mesa com dois "Esqueleto 3"
-  ao longo da sessão.
+- **Decidido:** o **contador só cresce**. Morto o Esqueleto 3, o próximo nasce 7 — o buraco não
+  é reaproveitado, e a mesa nunca vê dois "Esqueleto 3" na mesma sessão. _Falta afirmar na
+  redação se o contador é por cena ou por mundo._
 
 ### D12 — A peça não some sozinha; morrer é assunto do ator
 
@@ -487,9 +511,7 @@ casos, **não é a peça que decide** — a `41` não faz nada acontecer por con
   pendente, e isso é o comportamento correto: é literalmente o exemplo que a DEC-DOC-11 usa
   para justificar soft reference.
 
-**Resíduo aberto:** *quem* pode excluir uma peça. Proposta: **quem pode criá-la** — papel
-privilegiado, mais o dono do ator sobre as peças do próprio ator. Corrigir se a régua for
-outra.
+**Resíduo fechado por D34:** excluir é do Mestre, como criar e copiar.
 
 ### D13 — Excluir o ator apaga as peças dele
 
@@ -661,17 +683,6 @@ recorte vem do ownership do Actor e é feito no servidor), mas a `41` deve citá
 é: uma decisão da `28`, cuja superfície não existe aqui. Melhor ancorar em `REQ-NET-096` e
 `REQ-DOC-062`, que estão vivos e implementados.
 
-### D-PEND-09 — "Sub-personagem" precisa de definição
-
-Vocabulário novo, introduzido em D3, sem spec. O modelo mais próximo é o companion com
-`masterActorId` (`29`, `REQ-PET-002`). Duas formas de mecanizar:
-
-- **Por posse (simples):** "os meus" = os atores de que sou OWNER. Familiar, pet e companion já
-  entram, **desde que nasçam com ownership do jogador** — o que precisa ser verificado.
-- **Por vínculo (regra nova):** "os meus" = OWNER do ator **ou** OWNER do `masterActorId` dele.
-  Só necessário se o companion puder existir sem ownership do dono.
-
-Recomendação: a primeira, se a verificação confirmar. Regra nova só se o modelo obrigar.
 
 ### D-PEND-10 — Três níveis de exibição bastam? · **RESPONDIDA: nenhum nível**
 
@@ -679,19 +690,17 @@ Fechada por D31/D32: não há enum. Nome sai por conhecimento, vida por posse, e
 preferência do cliente. Os cinco níveis do Foundry saem inteiros — não por corte, por não haver
 onde encaixá-los.
 
-### D-PEND-11 — O arraste continua movendo? · aberta
+### D-PEND-11/12/13 — **FECHADAS em 2026-08-17**
 
-D33 fez das setas o gesto de mover. Falta decidir se o arraste sobrevive como atalho. Ver a
-pendência 1 do protótipo.
+Arraste continua movendo, setas sem diagonal, conhecimento por qualquer personagem do usuário
+com default fechado. Absorvidas em D33 e D31.
 
-### D-PEND-12 — As setas andam na diagonal? · aberta
+### D-PEND-09 — "Sub-personagem" · **FECHADA: não precisa de definição própria**
 
-Quatro direções ou oito. Ver a pendência 2 do protótipo.
-
-### D-PEND-13 — Conhecimento: de quem, e qual o default? · aberta
-
-As duas perguntas registradas em D31. O protótipo assume "qualquer personagem do usuário" e
-default fechado, e mostra o efeito colateral do fechado no baú sem nome.
+Sem diferenciação dentro do jogo. "Os meus" são os atores de que sou OWNER, e nada mais — a
+saída por posse simples, que já era a recomendada. **Não há número 47 a reservar**, e a `29`
+segue cuidando de familiar, pet e companion como já cuidava. Fica só a verificação de código
+apontada em D23: que esses atores realmente nasçam com a ownership do jogador.
 
 ### D-PEND-02 — Cardinalidade
 

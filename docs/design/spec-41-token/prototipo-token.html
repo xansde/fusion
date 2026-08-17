@@ -68,7 +68,6 @@
     border: 3px solid transparent; box-shadow: 0 2px 8px #0007;
   }
   .tk.sel .disc { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .tk.ghost { opacity: .45; filter: grayscale(.65); }
   .tk .nome {
     position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
     font-size: 10.5px; white-space: nowrap; background: #0d0f14cc; padding: 1px 5px;
@@ -177,9 +176,10 @@
     <div id="stage-wrap">
       <div id="stage" tabindex="0"></div>
       <p class="legenda">
-        <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> movem a peça selecionada, uma célula por vez
-        · clique = selecionar · <kbd>Tab</kbd> = próxima peça que você controla<br>
+        <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> movem a peça selecionada, uma célula por vez, sem diagonal
+        · arrastar também move · <kbd>Tab</kbd> = próxima peça que você controla<br>
         <kbd>Ctrl</kbd>+arrastar = cópia crua · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+arrastar = cópia idêntica
+        <i>(só o Mestre)</i>
       </p>
     </div>
   </div>
@@ -304,6 +304,11 @@ const disp      = tk => { const a = efetivo(tk); return tk.disposition ?? a.disp
 // Controlar = ser dono do ator. Não existe posse de peça. (D27)
 const controla = (tk, u) => PRIVILEGED.has(u) || (efetivo(tk).ownership[u] || 0) >= OWNER;
 
+// Pôr peça na cena, copiar e tirar da cena são do Mestre. O dono move a peça
+// do próprio ator, e só. (D34)
+const podeCriar = u => PRIVILEGED.has(u);
+const podeExcluir = (tk, u) => PRIVILEGED.has(u);
+
 // Conhecer = saber quem aquele ator é. Papel privilegiado conhece tudo; o dono
 // conhece o próprio ator; o resto vem do modelo de conhecimento da 39. (D31)
 function conhece(actorId, u) {
@@ -376,8 +381,10 @@ function render() {
     const a = efetivo(tk);
     const n = footprint(a);
     const el = document.createElement("div");
+    // A peça que chegou é desenhada inteira, para todo mundo, do mesmo jeito.
+    // Não controlar não escurece nada: escurecer seria visão, e visão não existe (D24).
     el.className = "tk" + (sel === tk._id ? " sel" : "") +
-                   (controla(tk, c.viewer) ? "" : " ghost");
+                   (drag && drag.id === tk._id ? " dragging" : "");
     el.style.cssText =
       `left:${tk.x * CELL}px; top:${tk.y * CELL}px;` +
       `width:${n * CELL}px; height:${n * CELL}px; z-index:${tk.born};`;
@@ -529,8 +536,8 @@ addEventListener("keydown", ev => {
   render();
 });
 
-// Arraste: no protótipo serve só para as duas cópias. Se o gesto de mover por
-// arraste continua existindo é decisão pendente.
+// Arraste continua movendo, ao lado das setas (D33). Com Ctrl, duplica — e
+// duplicar é criar, logo é só do Mestre (D34).
 let drag = null;
 
 $("stage").addEventListener("pointerdown", ev => {
@@ -541,18 +548,24 @@ $("stage").addEventListener("pointerdown", ev => {
   let tk = tokens.find(t => t._id === el.dataset.id);
   sel = tk._id;
 
-  if (!ev.ctrlKey) { render(); return; }
+  if (ev.ctrlKey) {
+    if (!podeCriar(c.viewer)) {
+      toast("Sem permissão: pôr peça na cena é do Mestre (D34).");
+      render(); return;
+    }
+    const identica = ev.altKey;
+    const eraVinculada = tk.actorLink;
+    tk = duplicar(tk, identica);
+    sel = tk._id;
+    toast(eraVinculada
+      ? "Peça vinculada: não tem vida própria para zerar, então os dois gestos dão no mesmo (D14, a confirmar)."
+      : identica ? "Cópia idêntica — estado vivo preservado (D14)."
+                 : "Cópia crua — nasce com vida cheia (D14).");
+  } else if (!controla(tk, c.viewer)) {
+    toast("Sem permissão: mover exige ser OWNER do ator (D27).");
+    render(); return;
+  }
 
-  if (!controla(tk, c.viewer)) { toast("Sem permissão: copiar exige ser OWNER do ator (D27)."); render(); return; }
-
-  const identica = ev.altKey;
-  const eraVinculada = tk.actorLink;
-  tk = duplicar(tk, identica);
-  sel = tk._id;
-  toast(eraVinculada
-    ? "Peça vinculada: sem estado vivo próprio, os dois gestos colapsam num só (D14, a confirmar)."
-    : identica ? "Cópia idêntica — estado vivo preservado (D14)."
-               : "Cópia crua — nasce com vida cheia (D14).");
   drag = { id: tk._id };
   render();
   ev.preventDefault();
@@ -568,7 +581,7 @@ $("stage").addEventListener("pointermove", ev => {
   render();
 });
 
-addEventListener("pointerup", () => { drag = null; });
+addEventListener("pointerup", () => { if (drag) { drag = null; render(); } });
 
 // Duplicar: crua zera o estado vivo, idêntica preserva. Só faz diferença em peça
 // desvinculada — a vinculada não tem estado vivo próprio. (D14)
@@ -706,6 +719,15 @@ const EXPECTATIVAS = [
       $("prefNomes").checked = p1; $("prefBarras").checked = p2;
       return [antes === depois, "payload idêntico com as preferências invertidas"];
     } },
+  { ref: "D34", txt: "Pôr peça na cena, copiar e tirar da cena são do Mestre; o dono só move.",
+    run: () => {
+      const a = tokens.find(t => t.actorId === "aurora");
+      if (!a) return [true, "sem peça da Aurora na cena"];
+      const ok = podeCriar("gm") && !podeCriar("ana") && !podeCriar("bruno")
+              && podeExcluir(a, "gm") && !podeExcluir(a, "ana")
+              && controla(a, "ana");                       // move a própria peça
+      return [ok, "Ana move a Aurora, mas não cria, não copia e não exclui"];
+    } },
   { ref: "D33", txt: "Mover é permissão de posse — e a peça não sai da cena.",
     run: () => {
       const k = tokens.find(t => t.actorId === "kobold");
@@ -795,35 +817,35 @@ function runChecks() {
 /* ---------- pendências ---------- */
 
 const PENDENTES = [
-  { t: "O arraste continua movendo?",
-    p: "As setas viraram o gesto de mover (D33). Se o arraste some, a 41 fica com um gesto só e a <b>23</b> ganha acessibilidade de graça; se fica, são dois caminhos para o mesmo efeito e o arraste concorrente (D26) segue de pé. Aqui o arraste move só a cópia recém-criada.",
+  { t: "Cópia crua de peça vinculada — <span style='color:var(--warn)'>única aberta</span>",
+    p: "Peça vinculada lê a vida direto do ator: duas peças vinculadas mostram sempre a mesma vida. Então “nascer com vida cheia” é impossível para ela — só curando o ator, o que curaria a outra peça junto. A pergunta é o que o <kbd>Ctrl</kbd>+arraste faz nesse caso: <b>vira uma cópia só</b> (proposta) ou <b>recusa</b> o modo cru? Faça como Mestre e leia o aviso.",
+    b: "Mestre + selecionar a Aurora", f: () => { $("viewer").value = "gm"; const t = tokens.find(x => x.actorId === "aurora"); if (t) sel = t._id; render(); toast("Ctrl+arraste a Aurora."); } },
+  { t: "✅ O arraste continua movendo",
+    p: "Decidido: os dois gestos movem. A <b>23</b> continua satisfeita pelas setas, e o arraste concorrente (D26) segue sendo problema de servidor, não desta spec.",
     b: null, f: null },
-  { t: "As setas andam na diagonal?",
-    p: "O protótipo faz quatro direções. Grade quadrada tem oito, e sem diagonal atravessar a sala custa o dobro de teclas. A saída natural é duas setas ao mesmo tempo — decidir antes de escrever.",
-    b: "Selecionar a Aurora e testar", f: () => { const t = tokens.find(x => x.actorId === "aurora"); if (t) { sel = t._id; $("viewer").value = "ana"; render(); $("stage").focus(); toast("Use as setas."); } } },
-  { t: "Conhecimento de quem?",
-    p: "O modelo da <b>39</b> é por par <i>contato × personagem</i>, e quem olha a cena é o <b>usuário</b>. Proposta: o usuário conhece o ator se <b>qualquer</b> personagem dele conhece. O protótipo já assume isso.",
-    b: "Ana conhece o Kobold", f: () => $("btConhecer").click() },
-  { t: "Default do conhecimento: fechado",
-    p: "Aqui o default é <b>desconhecido</b> — por isso o baú aparece sem nome para a Ana, o que talvez você não queira. A alternativa é abrir por faceta: criatura fecha, objeto abre.",
-    b: "Ver como Ana", f: () => { $("viewer").value = "ana"; render(); toast("Repare no baú: sem nome, porque o default é fechado."); } },
-  { t: "Cópia crua de peça vinculada",
-    p: "Proposta: os dois gestos colapsam num só, porque peça vinculada não tem estado vivo próprio. <kbd>Ctrl</kbd>+arraste a Aurora e leia o aviso.",
-    b: "Selecionar a Aurora", f: () => { const t = tokens.find(x => x.actorId === "aurora"); if (t) { sel = t._id; render(); } } },
-  { t: "Numeração quando uma peça some",
-    p: "Proposta: o contador só cresce, não reaproveita o buraco. Aqui a numeração é posicional de propósito, para você ver o efeito recusado: remova o Kobold do meio e veja os nomes deslizarem.",
+  { t: "✅ Setas sem diagonal",
+    p: "Quatro direções. Atravessar na diagonal custa duas teclas — aceito em troca de não inventar gesto composto.",
+    b: null, f: null },
+  { t: "✅ Conhecimento: qualquer personagem, default fechado",
+    p: "O usuário conhece o ator se <b>qualquer</b> personagem dele conhece. E o default é <b>fechado</b>: o que não foi revelado não tem nome — inclusive o baú, para a Ana.",
+    b: "Ver como Ana", f: () => { $("viewer").value = "ana"; render(); toast("O baú aparece sem nome: default fechado, conforme decidido."); } },
+  { t: "✅ Criar, copiar e excluir são do Mestre",
+    p: "O dono move a peça do próprio ator, e nada além. Pôr na cena, duplicar e tirar são do Mestre — inclusive a peça do próprio personagem do jogador.",
+    b: "Tentar copiar como Ana", f: () => { $("viewer").value = "ana"; const t = tokens.find(x => x.actorId === "aurora"); if (t) sel = t._id; render(); toast("Ctrl+arraste a Aurora como Ana: recusado."); } },
+  { t: "✅ Numeração: o contador só cresce",
+    p: "Morreu o Esqueleto 3, o próximo nasce 7 — não reaproveita o buraco. Evita dois “Esqueleto 3” na mesma sessão. O protótipo ainda numera por posição, de propósito: remova o do meio e veja o efeito recusado.",
     b: "Remover o Kobold 2", f: () => {
         const ks = tokens.filter(t => t.actorId === "kobold").sort((a, b) => a.born - b.born);
         if (ks[1]) tokens = tokens.filter(t => t._id !== ks[1]._id);
         $("viewer").value = "gm";
-        toast("Kobold 3 virou Kobold 2 — é o comportamento que a proposta recusa.");
+        toast("Kobold 3 virou Kobold 2 — é exatamente o comportamento que a decisão recusa.");
         render();
       } },
-  { t: "Quem pode excluir uma peça",
-    p: "Proposta: quem pode criá-la — papel privilegiado, mais o dono do ator sobre as peças do próprio ator. É a mesma régua já aplicada ao mover: tente mover um kobold como Bruno.",
-    b: "Ver como Bruno e tentar", f: () => { $("viewer").value = "bruno"; render(); toast("Selecione um kobold e use as setas: a recusa é a mesma régua proposta para excluir."); } },
-  { t: "Sub-personagem: spec 29 ou 47 · e a #166",
-    p: "Não são prototipáveis. A primeira é escolha de onde o conceito mora; a segunda depende de D24 valer para o projeto inteiro, e não só para esta spec.",
+  { t: "✅ Sub-personagem não precisa de spec",
+    p: "Sem diferenciação dentro do jogo: “os meus” são os atores de que sou OWNER, e pronto. Não há número 47 a reservar, e a <b>29</b> segue cuidando de familiar, pet e companion como já cuidava.",
+    b: null, f: null },
+  { t: "↗ Fora desta spec: a #166 e o resto da visão",
+    p: "Remover colisão de parede depende de D24 valer para o projeto inteiro — quatro documentos, e a <b>#164</b> deixa de ser defeito para virar código a remover. Decisão de escopo do projeto, não da 41.",
     b: null, f: null },
 ];
 
