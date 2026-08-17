@@ -150,7 +150,7 @@ describe("REQ-NPC-060: the footer's chest control", () => {
   });
 
   it("REQ-NPC-060: the second write pushes a Token for that actor onto the scene", () => {
-    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
 
     expect(op.type).toBe("doc:update");
     expect(op.payload.documentType).toBe("Scene");
@@ -159,7 +159,21 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
       .$push;
     expect(push["actorId"]).toBe("act-bau0newlycreated1");
-    expect(push["name"]).toBe("Baú");
+  });
+
+  it("REQ-TOK-060: the push carries no name of its own — the token inherits the chest actor's", () => {
+    // TK023: TokenDocumentSchema dropped the token's own `texture`/`width`/
+    // `height`, and `name: null` means "herda do ator" — the chest's actor
+    // already carries "Baú" (buildCreateChestActorOp), so duplicating it here
+    // would just be a second, driftable copy of the same name.
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
+    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
+      .$push;
+
+    expect(push).not.toHaveProperty("name");
+    expect(push).not.toHaveProperty("texture");
+    expect(push).not.toHaveProperty("width");
+    expect(push).not.toHaveProperty("height");
   });
 
   it("REQ-NPC-060: activating it sends the create, then the token push, in order", async () => {
@@ -185,10 +199,11 @@ describe("REQ-NPC-060: the footer's chest control", () => {
   });
 
   it("REQ-NPC-060 / Q-NPC-03: the token carries only actorId — no link/unlink field", () => {
-    // `actorLink`/`actorDelta` are Q-NPC-03, owned by `41`, and
-    // `TokenDocumentSchema` does not have them yet — so this module cannot
-    // write them, and does not pretend to.
-    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
+    // `actorLink`/`actorDelta` exist on `TokenDocumentSchema` now (TK020), but
+    // this module has no reason to set them: the chest is a plain linked
+    // token, which is the schema's own default — writing them explicitly here
+    // would just restate what `actorLink: true` (the default) already means.
+    const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
     const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
       .$push;
 

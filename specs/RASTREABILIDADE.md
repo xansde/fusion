@@ -16,8 +16,8 @@ porque ainda não foram prometidos para nenhum marco.
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
 | Citados por algum teste | 686 | 35% |
-| Citados só por código de produção | 327 | 17% |
-| Sem nenhuma citação | 943 | 48% |
+| Citados só por código de produção | 329 | 17% |
+| Sem nenhuma citação | 941 | 48% |
 | **Total [MVP]** | **1956** | |
 
 ## Por spec
@@ -39,7 +39,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 63 | 16 | 30 | 17 | 25% |
+| [15](15-api-de-sistemas.md) | 63 | 16 | 31 | 16 | 25% |
 | [16](16-compendiums-e-importacao.md) | 56 | 18 | 16 | 22 | 32% |
 | [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
@@ -62,7 +62,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
-| [41](41-token.md) | 61 | 8 | 1 | 52 | 13% |
+| [41](41-token.md) | 61 | 8 | 2 | 51 | 13% |
 | [42](42-aba-npcs.md) | 59 | 55 | 2 | 2 | 93% |
 | [43](43-aba-compendio.md) | 60 | 58 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |

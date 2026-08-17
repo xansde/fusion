@@ -162,6 +162,22 @@ function sendOp(
   });
 }
 
+/**
+ * Create a minimal Actor and return its `_id`. A Token no longer accepts a
+ * missing/null `actorId` (REQ-TOK-002) — every embedded Token created below
+ * needs a resolvable actor to reference.
+ */
+async function createActor(socket: ClientSocket, name: string): Promise<string> {
+  const ack = await sendOp(socket, "doc:create", {
+    documentType: "Actor",
+    data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
+  });
+  if (!ack["ok"]) {
+    throw new Error(`Failed to create actor "${name}": ${JSON.stringify(ack)}`);
+  }
+  return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+}
+
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
@@ -200,10 +216,11 @@ describe("doc:update routing guards (mixed batch + Scene.tokens generic path)", 
     });
     expect(sceneAck["ok"]).toBe(true);
     const sceneId = (sceneAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const tokenActorId = await createActor(gm, "Mixed Batch Token Actor");
 
     const tokenAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "T", x: 0, y: 0 }],
+      data: [{ name: "T", actorId: tokenActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);
@@ -252,9 +269,10 @@ describe("doc:update routing guards (mixed batch + Scene.tokens generic path)", 
       data: [{ name: "Mixed Batch Scene 2" }],
     });
     const sceneId = (sceneAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const staleActorId = await createActor(gm, "Stale Batch Token Actor");
     const tokenAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "T2", x: 0, y: 0 }],
+      data: [{ name: "T2", actorId: staleActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     const tId = (
@@ -305,9 +323,10 @@ describe("doc:update routing guards (mixed batch + Scene.tokens generic path)", 
       data: [{ name: "Only Embedded Scene" }],
     });
     const sceneId = (sceneAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const onlyEmbeddedActorId = await createActor(gm, "Only Embedded Token Actor");
     const tokenAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "OnlyEmbedded", x: 0, y: 0 }],
+      data: [{ name: "OnlyEmbedded", actorId: onlyEmbeddedActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     const tId = (
@@ -339,9 +358,10 @@ describe("doc:update routing guards (mixed batch + Scene.tokens generic path)", 
       data: [{ name: "Generic Tokens Scene" }],
     });
     const sceneId = (sceneAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const guardedActorId = await createActor(gm, "Guarded Token Actor");
     const tokenAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Guarded", x: 5, y: 5, hidden: false }],
+      data: [{ name: "Guarded", actorId: guardedActorId, x: 5, y: 5, hidden: false }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);
@@ -381,9 +401,10 @@ describe("doc:update routing guards (mixed batch + Scene.tokens generic path)", 
       data: [{ name: "Legit Embedded Scene" }],
     });
     const sceneId = (sceneAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const movableActorId = await createActor(gm, "Movable Token Actor");
     const tokenAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Movable", x: 1, y: 1 }],
+      data: [{ name: "Movable", actorId: movableActorId, x: 1, y: 1 }],
       parent: { type: "Scene", id: sceneId },
     });
     const tId = (

@@ -184,6 +184,21 @@ function sendOp(
 }
 
 /**
+ * Create a minimal Actor via doc:create and return its `_id`. A Token no
+ * longer accepts a missing/null `actorId` (REQ-TOK-002).
+ */
+async function createActor(socket: ClientSocket, name: string): Promise<string> {
+  const ack = await sendOp(socket, "doc:create", {
+    documentType: "Actor",
+    data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
+  });
+  if (!ack["ok"]) {
+    throw new Error(`Failed to create actor "${name}": ${JSON.stringify(ack)}`);
+  }
+  return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+}
+
+/**
  * Wait for the next broadcast `op` envelope matching `predicate` on `socket`.
  * Mirrors e2e-etmos-m5e.test.ts's helper of the same name.
  */
@@ -497,9 +512,10 @@ describe("T032 — writes that bump _stats.version must emit doc:update", () => 
 
       // Put a hidden token in the hidden scene, so the redaction assertion at
       // the end has something real to bite on instead of an empty array.
+      const lurkerActorId = await createActor(gm, "Lurker Actor");
       const hiddenTokenAck = await sendOp(gm, "doc:create", {
         documentType: "Token",
-        data: [{ name: "Lurker", x: 3, y: 4, hidden: true }],
+        data: [{ name: "Lurker", actorId: lurkerActorId, x: 3, y: 4, hidden: true }],
         parent: { type: "Scene", id: hiddenSceneId },
       });
       expect(hiddenTokenAck["ok"]).toBe(true);

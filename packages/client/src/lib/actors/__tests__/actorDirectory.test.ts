@@ -113,15 +113,22 @@ describe("buildActorDragPayload()", () => {
 describe("buildTokenFromActorFields()", () => {
   const payload = buildActorDragPayload(makeActor("Aaaa0000000000a1", "Valeros", "character"));
 
-  it("sets name from payload.name", () => {
+  // REQ-TOK-010, REQ-TOK-012, REQ-TOK-060: the fields a token no longer
+  // carries — no fixed name (it inherits the actor's), no art/footprint of
+  // its own — must not reappear here as the token schema evolves.
+  it("carries no name, texture, width or height — the token inherits those from the actor", () => {
     const fields = buildTokenFromActorFields({
       payload,
       sceneId: "SceneXXXXXXXXXXXX",
-      x: 100,
-      y: 200,
+      x: 0,
+      y: 0,
       gridSize: 100,
     });
-    expect(fields.name).toBe("Valeros");
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
+    expect(fields).not.toHaveProperty("width");
+    expect(fields).not.toHaveProperty("height");
+    expect(Object.keys(fields).sort()).toEqual(["actorId", "x", "y"]);
   });
 
   it("sets actorId from payload.uuid", () => {
@@ -158,17 +165,5 @@ describe("buildTokenFromActorFields()", () => {
     });
     expect(fields.x).toBe(155);
     expect(fields.y).toBe(248);
-  });
-
-  it("uses 1x1 footprint by default", () => {
-    const fields = buildTokenFromActorFields({
-      payload,
-      sceneId: "SceneXXXXXXXXXXXX",
-      x: 0,
-      y: 0,
-      gridSize: 100,
-    });
-    expect(fields.width).toBe(1);
-    expect(fields.height).toBe(1);
   });
 });

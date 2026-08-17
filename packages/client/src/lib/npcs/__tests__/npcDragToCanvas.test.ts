@@ -80,9 +80,12 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     });
 
     expect(fields.actorId).toBe("act-lobo00000001");
-    expect(fields.name).toBe("Lobo");
-    expect(fields.texture).toBe("worlds/img/lobo.webp");
     expect(fields).toMatchObject({ x: 300, y: 600 });
+    // TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): the presence carries no
+    // name or art of its own — it inherits both from the actor by `actorId`,
+    // it does not duplicate "Lobo" / the wolf's img here.
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
     // Q-NPC-03 is not answered here: nothing in the presence says linked or not.
     expect(Object.keys(fields)).not.toContain("actorLink");
   });

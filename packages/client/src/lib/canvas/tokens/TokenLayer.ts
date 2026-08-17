@@ -85,6 +85,14 @@ export class TokenLayer {
   /** The PIXI container this layer manages. Pass the "tokens" layer. */
   private _container: Container;
 
+  /**
+   * The world mirror. Stored (not just read once in the constructor) so it
+   * can be handed to each `TokenSprite` — TK023 (REQ-CNV-091): a sprite reads
+   * its effective actor from the mirror by `token.actorId`, it no longer
+   * carries its own art.
+   */
+  private _mirror: DocumentMirror;
+
   /** Mirror subscription unsubscribe fn. */
   private _unsubscribe: (() => void) | null = null;
 
@@ -124,6 +132,7 @@ export class TokenLayer {
     isGm: boolean,
   ) {
     this._container = container;
+    this._mirror = mirror;
     this._sceneId = sceneId;
     this._gridSize = gridSize;
     this._isGm = isGm;
@@ -302,10 +311,10 @@ export class TokenLayer {
         existing.update(token, this._gridSize);
       } else {
         // Create new sprite
-        // T025: the sprite is told which scene it belongs to so its art loads
-        // against that scene's asset grant — the one `sceneLoader` already
-        // minted — instead of a credential of its own.
-        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._sceneId);
+        // TK023 (REQ-CNV-091): the sprite is handed the mirror so it can
+        // resolve its own effective actor (art/name) by `token.actorId` —
+        // a token no longer carries a `texture` of its own.
+        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._mirror);
         sprite.updateLod(this._lastZoom);
         this._sprites.set(token._id, sprite);
         this._container.addChild(sprite.container);

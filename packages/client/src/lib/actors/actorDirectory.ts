@@ -105,16 +105,17 @@ export interface TokenFromActorOptions {
 
 /**
  * Token fields to set on doc:create (embedded Token in Scene).
- * Partial — the server fills defaults for unlisted fields.
+ *
+ * TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): `name`/`texture`/`width`/
+ * `height` are gone from `TokenDocumentSchema` — a token has no art or
+ * footprint of its own, and a fixed name here would just duplicate (and then
+ * fight) the actor's own name instead of inheriting it (`name: null`).
+ * `actorId` is the only content field; everything else the server defaults.
  */
 export interface TokenCreateFields {
-  name: string;
   actorId: string;
-  texture: string | null;
   x: number;
   y: number;
-  width: number;
-  height: number;
 }
 
 /**
@@ -139,12 +140,8 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
   }
 
   return {
-    name: opts.payload.name,
     actorId: opts.payload.uuid,
-    texture: opts.payload.img,
     x,
     y,
-    width: 1,
-    height: 1,
   };
 }

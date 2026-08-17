@@ -455,7 +455,7 @@ describe("resolveTrackedResource", () => {
 // ---------------------------------------------------------------------------
 
 function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
-  return { ...defaultTokenDocument("tokenAAAAAAAAAAA"), ...overrides };
+  return { ...defaultTokenDocument("tokenAAAAAAAAAAA", "actorAAAAAAAAAAA"), ...overrides };
 }
 
 describe("addableTokens", () => {
@@ -494,20 +494,22 @@ describe("addableTokens", () => {
     expect(result[0]!.name).toBe("Token");
   });
 
-  it("carries actorId and img through for the add-combatant call", () => {
+  it("carries actorId through for the add-combatant call; img is null (REQ-TOK-010/012)", () => {
+    // The token no longer carries a `texture` of its own — art now lives on
+    // the effective actor (TokenSprite resolves it via the mirror), which
+    // this pure filter has no access to.
     const tokens = [
       makeToken({
         _id: "tok1AAAAAAAAAAAA",
         name: "Goblin",
         actorId: "actorAAAAAAAAAAA",
-        texture: "/assets/goblin.webp",
       }),
     ];
     const result = addableTokens(tokens, null);
     expect(result[0]).toEqual({
       id: "tok1AAAAAAAAAAAA",
       name: "Goblin",
-      img: "/assets/goblin.webp",
+      img: null,
       actorId: "actorAAAAAAAAAAA",
     });
   });

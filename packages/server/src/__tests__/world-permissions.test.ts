@@ -340,6 +340,21 @@ function sendOp(
   });
 }
 
+/**
+ * Create a minimal Actor via doc:create and return its `_id`. A Token no
+ * longer accepts a missing/null `actorId` (REQ-TOK-002).
+ */
+async function createActor(socket: ClientSocket, name: string): Promise<string> {
+  const ack = await sendOp(socket, "doc:create", {
+    documentType: "Actor",
+    data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
+  });
+  if (!ack["ok"]) {
+    throw new Error(`Failed to create actor "${name}": ${JSON.stringify(ack)}`);
+  }
+  return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+}
+
 describe("configurable Permissions gate doc:create (REQ-CFG-040..042)", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
@@ -512,9 +527,10 @@ describe("configurable Permissions gate on embedded Token create (TOKEN_CREATE, 
     });
     expect(settingAck["ok"]).toBe(true);
 
+    const loweredFloorActorId = await createActor(gm, "Player Token After Lowering Floor Actor");
     const ack = await sendOp(player, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Player Token After Lowering Floor" }],
+      data: [{ name: "Player Token After Lowering Floor", actorId: loweredFloorActorId }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"]).toBe(true);
@@ -789,9 +805,10 @@ describe("GM raising TOKEN_CREATE above ASSISTANT_GM refuses an ASSISTANT (REQ-U
   });
 
   it("ASSISTANT creates a Token by default, before any floor is raised (sanity baseline)", async () => {
+    const beforeRaiseActorId = await createActor(gm, "Assistant Token Before Raise Actor");
     const ack = await sendOp(assistant, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Assistant Token Before Raise" }],
+      data: [{ name: "Assistant Token Before Raise", actorId: beforeRaiseActorId }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"]).toBe(true);
@@ -813,9 +830,10 @@ describe("GM raising TOKEN_CREATE above ASSISTANT_GM refuses an ASSISTANT (REQ-U
     expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
 
     // GAMEMASTER itself is always accepted regardless of the table (REQ-USR-010 step 1).
+    const gmAfterRaiseActorId = await createActor(gm, "Gm Token After Raise Actor");
     const gmAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Gm Token After Raise" }],
+      data: [{ name: "Gm Token After Raise", actorId: gmAfterRaiseActorId }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(gmAck["ok"]).toBe(true);

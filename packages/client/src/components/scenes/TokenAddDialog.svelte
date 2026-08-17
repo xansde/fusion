@@ -8,17 +8,20 @@
    *   onSuccess () => void    — called after the token is created.
    *   socket    Socket        — for sendOp.
    *
-   * The texture field uses FilePicker (world assets) OR an external URL.
-   * Logic (form validation, sendOp) lives in tokenController.ts (pure TS).
+   * TK023 (REQ-TOK-002, REQ-TOK-010, REQ-TOK-012, DEC-TOK-04): a token has no
+   * `texture`/`width`/`height` of its own anymore, and `actorId` is required —
+   * a piece with no actor is not a representable state. This dialog has no
+   * actor PICKER yet (that UI is TK022-client, a later stage of this same
+   * plan): until it exists, `actorId` stays empty and the submit button stays
+   * disabled (`isValid`), same as a name that fails validation today. `name`
+   * remains free text: unlike the hardcoded name a dragged actor's token used
+   * to duplicate, this one is a deliberate GM override — left blank, it is
+   * sent as `null` and the token inherits the actor's own name (REQ-TOK-060).
    */
 
   import type { Socket } from "socket.io-client";
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { createDocumentId } from "@fusion/shared";
-  import { fusionApi } from "../../lib/api.js";
-  import { session } from "../../lib/session.svelte.js";
-  import { resolveBrowseAssetUrl } from "../../lib/assets/assetApi.js";
-  import FilePicker from "../assets/FilePicker.svelte";
 
   // ---- Props ----
 
@@ -38,77 +41,38 @@
 
   interface TokenFormData {
     name: string;
-    texture: string;
+    actorId: string;
     x: number;
     y: number;
-    width: number;
-    height: number;
   }
 
   let formData = $state<TokenFormData>({
-    name: "New Token",
-    texture: "",
+    name: "",
+    actorId: "",
     x: 0,
     y: 0,
-    width: 1,
-    height: 1,
   });
 
   interface TokenFormErrors {
     name?: string;
-    texture?: string;
+    actorId?: string;
     x?: string;
     y?: string;
-    width?: string;
-    height?: string;
   }
 
   let errors = $state<TokenFormErrors>({});
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
-  let showFilePicker = $state(false);
-
-  // BUG A FIX: formData.texture is stored as a clean "/assets/<name>" path
-  // (see resolveAssetUrl()'s doc comment) — the <img> preview below needs a
-  // freshly-minted query token to actually load it, otherwise the server's
-  // static route 401s. External URLs pass through unchanged.
-  //
-  // T025: this preview uses the BROWSE scope, not a document grant, and that is
-  // the correct scope rather than an exemption. The value being previewed was
-  // just chosen in the FilePicker and is attached to NO document — the token
-  // does not exist yet, so asking the server for a grant over this scene would
-  // (rightly) return nothing and blank the preview. This dialog is a
-  // GM/TRUSTED surface, exactly the role browse scope serves, and the same
-  // credential the FilePicker grid beside it already uses.
-  let previewUrl = $state<string | null>(null);
-
-  $effect(() => {
-    const raw = formData.texture.trim();
-    if (!raw) {
-      previewUrl = null;
-      return;
-    }
-    const accessToken = fusionApi.getToken();
-    const userId = session.user?.id;
-    if (!accessToken || !userId) {
-      previewUrl = raw;
-      return;
-    }
-    let cancelled = false;
-    void resolveBrowseAssetUrl(raw, accessToken, userId).then((url) => {
-      if (!cancelled) previewUrl = url;
-    });
-    return () => { cancelled = true; };
-  });
 
   // ---- Validation ----
 
   function validate(data: TokenFormData): TokenFormErrors {
     const errs: TokenFormErrors = {};
-    if (!data.name.trim()) errs.name = "Name is required.";
-    else if (data.name.trim().length > 128) errs.name = "Name must be 128 chars or fewer.";
-    if (!Number.isInteger(data.width) || data.width < 1) errs.width = "Width must be at least 1.";
-    if (!Number.isInteger(data.height) || data.height < 1) errs.height = "Height must be at least 1.";
+    if (data.name.trim().length > 128) errs.name = "Name must be 128 chars or fewer.";
+    // REQ-TOK-002 / DEC-TOK-04: no actor, no token — and there is no picker
+    // here yet (TK022-client), so this is the one way this form can fail
+    // validation on the field that matters most.
+    if (!data.actorId.trim()) errs.actorId = "An actor is required.";
     return errs;
   }
 
@@ -143,18 +107,11 @@
                 tokens: {
                   $push: {
                     _id: createDocumentId(),
-                    name: formData.name.trim(),
-                    texture: formData.texture.trim() || null,
+                    // REQ-TOK-060: blank name inherits the actor's own.
+                    name: formData.name.trim() || null,
+                    actorId: formData.actorId.trim(),
                     x: formData.x,
                     y: formData.y,
-                    width: formData.width,
-                    height: formData.height,
-                    rotation: 0,
-                    hidden: false,
-                    disposition: 0,
-                    elevation: 0,
-                    bar1: { attribute: null },
-                    bar2: { attribute: null },
                   },
                 },
               },
@@ -199,9 +156,30 @@
   </header>
 
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
-    <!-- Name -->
+    <!-- Actor (REQ-TOK-002, DEC-TOK-04: required — no picker yet, TK022-client) -->
+    <div class="field" class:field--error={!!errors.actorId}>
+      <label class="field__label" for="token-actor">Actor</label>
+      <input
+        id="token-actor"
+        class="field__input"
+        type="text"
+        bind:value={formData.actorId}
+        oninput={handleInput}
+        placeholder="Actor id"
+        autocomplete="off"
+        disabled={submitting}
+        required
+      />
+      {#if errors.actorId}
+        <span class="field__error" role="alert">{errors.actorId}</span>
+      {/if}
+    </div>
+
+    <!-- Name (optional override — blank inherits the actor's own, REQ-TOK-060) -->
     <div class="field" class:field--error={!!errors.name}>
-      <label class="field__label" for="token-name">Name</label>
+      <label class="field__label" for="token-name">
+        Name <span class="field__optional">(optional — inherits the actor's)</span>
+      </label>
       <input
         id="token-name"
         class="field__input"
@@ -212,52 +190,9 @@
         maxlength="128"
         autocomplete="off"
         disabled={submitting}
-        required
       />
       {#if errors.name}
         <span class="field__error" role="alert">{errors.name}</span>
-      {/if}
-    </div>
-
-    <!-- Texture / art -->
-    <div class="field" class:field--error={!!errors.texture}>
-      <label class="field__label" for="token-texture">
-        Texture <span class="field__optional">(optional)</span>
-      </label>
-      <div class="field__asset-row">
-        <input
-          id="token-texture"
-          class="field__input field__input--grow"
-          type="text"
-          bind:value={formData.texture}
-          oninput={handleInput}
-          placeholder="https://… or pick from assets"
-          disabled={submitting}
-        />
-        <button
-          type="button"
-          class="btn btn--ghost btn--sm"
-          onclick={() => { showFilePicker = true; }}
-          disabled={submitting}
-          aria-label="Browse assets"
-          title="Browse world assets"
-        >
-          &#128247;
-        </button>
-      </div>
-      {#if previewUrl && !submitting}
-        <div class="field__preview">
-          <img
-            class="field__preview-img"
-            src={previewUrl}
-            alt="Token texture preview"
-            loading="lazy"
-            onerror={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        </div>
-      {/if}
-      {#if errors.texture}
-        <span class="field__error" role="alert">{errors.texture}</span>
       {/if}
     </div>
 
@@ -291,44 +226,6 @@
       </div>
     </div>
 
-    <!-- Size row -->
-    <div class="field-row">
-      <div class="field" class:field--error={!!errors.width}>
-        <label class="field__label" for="token-w">Width (cells)</label>
-        <input
-          id="token-w"
-          class="field__input"
-          type="number"
-          bind:value={formData.width}
-          oninput={handleInput}
-          min="1"
-          max="10"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.width}
-          <span class="field__error" role="alert">{errors.width}</span>
-        {/if}
-      </div>
-      <div class="field" class:field--error={!!errors.height}>
-        <label class="field__label" for="token-h">Height (cells)</label>
-        <input
-          id="token-h"
-          class="field__input"
-          type="number"
-          bind:value={formData.height}
-          oninput={handleInput}
-          min="1"
-          max="10"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.height}
-          <span class="field__error" role="alert">{errors.height}</span>
-        {/if}
-      </div>
-    </div>
-
     {#if serverError}
       <div class="server-error" role="alert">{serverError}</div>
     {/if}
@@ -347,20 +244,6 @@
     </footer>
   </form>
 </dialog>
-
-<!-- FilePicker rendered outside dialog -->
-{#if showFilePicker}
-  {@const tok = fusionApi.getToken() ?? ""}
-  <FilePicker
-    token={tok}
-    onSelect={(path) => {
-      formData.texture = path;
-      errors = validate(formData);
-      showFilePicker = false;
-    }}
-    onClose={() => { showFilePicker = false; }}
-  />
-{/if}
 
 <style>
   .dialog-backdrop {
@@ -452,17 +335,6 @@
     font-weight: 400;
   }
 
-  .field__asset-row {
-    display: flex;
-    gap: 0.4rem;
-    align-items: stretch;
-  }
-
-  .field__input--grow {
-    flex: 1;
-    min-width: 0;
-  }
-
   .field__input {
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
@@ -492,25 +364,6 @@
   .field__error {
     color: var(--fusion-danger);
     font-size: 0.75rem;
-  }
-
-  /* Inline preview of the selected texture URL */
-  .field__preview {
-    background: var(--fusion-bg);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    height: 80px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .field__preview-img {
-    display: block;
-    max-height: 78px;
-    max-width: 100%;
-    object-fit: contain;
   }
 
   .server-error {
@@ -568,11 +421,6 @@
   .btn--ghost:hover:not(:disabled) {
     border-color: var(--fusion-text-muted);
     color: var(--fusion-text);
-  }
-
-  .btn--sm {
-    font-size: 0.8125rem;
-    padding: 0.3rem 0.75rem;
   }
 
   .btn--icon {

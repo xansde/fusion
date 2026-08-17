@@ -16,20 +16,20 @@
  * knowledge entry for it.
  *
  * **"On the scene" is a real `Token`, not a metaphor.** `packages/shared/src/scene.ts`
- * already gives a `Scene`'s embedded `Token` a soft `actorId` (REQ-DOC-031), and
- * `TokenAddDialog.svelte` already places one by pushing into `Scene.tokens` — the
- * exact mechanism `buildPlaceChestTokenOp` reuses. `placeChest` does the two writes
- * the gesture needs: create the actor, then push a token for it onto the scene on
- * air. Nothing here is invented: both writes go through document types and fields
+ * gives a `Scene`'s embedded `Token` a required `actorId` (REQ-DOC-031, REQ-TOK-002)
+ * — `buildPlaceChestTokenOp` pushes one into `Scene.tokens`, the same mechanism
+ * `TokenAddDialog.svelte` uses. `placeChest` does the two writes the gesture
+ * needs: create the actor, then push a token for it onto the scene on air.
+ * Nothing here is invented: both writes go through document types and fields
  * that already exist and are already exercised elsewhere.
  *
  * **What this module still does not decide** — and does not need to, to do its
  * job: whether a token is *linked* or *unlinked* to its actor (the `actorLink`/
  * `actorDelta` pair spec 02's "Herança token→actor" section describes) is
- * Q-NPC-03, owned by the Token spec (`41`), and neither field is implemented on
- * `TokenDocumentSchema` yet — only the bare `actorId` reference exists today.
- * The token this module creates carries `actorId` and nothing `41` would have
- * to undo.
+ * Q-NPC-03, owned by the Token spec (`41`). Both fields exist on
+ * `TokenDocumentSchema` now (TK020), but this module writes neither: the
+ * chest is a plain linked token, which is exactly what the schema default
+ * (`actorLink: true`) already says without a write.
  *
  * Kept out of the component so it can be exercised without a DOM: the client
  * project runs Vitest in a node environment.
@@ -122,14 +122,16 @@ export interface PlaceChestTokenOp {
 
 /**
  * REQ-NPC-060: the `Scene.tokens` push that lands the chest's actor on the
- * scene on air — the same `$push` shape `TokenAddDialog.svelte` already sends,
- * with `actorId` set (REQ-DOC-031) instead of left null.
+ * scene on air — `actorId` set (REQ-DOC-031), and nothing else the token no
+ * longer carries.
+ *
+ * TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): `name`/`texture`/`width`/
+ * `height` are gone from `TokenDocumentSchema`. `name` is dropped on purpose,
+ * not just because it no longer exists on the wire the same way: the chest's
+ * name IS the actor's name (`buildCreateChestActorOp` already set it), so a
+ * `null` token name inherits it instead of duplicating it.
  */
-export function buildPlaceChestTokenOp(
-  sceneId: string,
-  actorId: string,
-  name: string,
-): PlaceChestTokenOp {
+export function buildPlaceChestTokenOp(sceneId: string, actorId: string): PlaceChestTokenOp {
   return {
     type: "doc:update",
     payload: {
@@ -141,19 +143,7 @@ export function buildPlaceChestTokenOp(
             tokens: {
               $push: {
                 _id: createDocumentId(),
-                name,
                 actorId,
-                texture: null,
-                x: 0,
-                y: 0,
-                width: 1,
-                height: 1,
-                rotation: 0,
-                hidden: false,
-                disposition: 0,
-                elevation: 0,
-                bar1: { attribute: null },
-                bar2: { attribute: null },
               },
             },
           },
@@ -164,7 +154,7 @@ export function buildPlaceChestTokenOp(
 }
 
 interface DocCreateResult {
-  readonly documents: readonly { readonly _id: string; readonly name?: string }[];
+  readonly documents: readonly { readonly _id: string }[];
 }
 
 /**
@@ -182,6 +172,5 @@ export async function placeChest(socket: Socket, sceneId: string): Promise<void>
   if (actor === undefined) {
     throw new Error("doc:create returned no chest actor");
   }
-  const name = actor.name ?? t("FUSION.Npcs.Chest.DefaultName");
-  await sendOp(socket, buildPlaceChestTokenOp(sceneId, actor._id, name));
+  await sendOp(socket, buildPlaceChestTokenOp(sceneId, actor._id));
 }

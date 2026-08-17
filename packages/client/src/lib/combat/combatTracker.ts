@@ -472,7 +472,12 @@ export function addableTokens(
     .map((t) => ({
       id: t._id,
       name: t.name || "Token",
-      img: t.texture,
+      // REQ-TOK-010/012: a token no longer carries its own `texture` — its art
+      // is the effective actor's `img` (TokenSprite resolves it via the
+      // mirror). This pure filter has no mirror access, so it cannot resolve
+      // art; wiring the actor's art into this list is a follow-up (TokenSprite
+      // itself is wired by TK023 already).
+      img: null,
       actorId: t.actorId,
     }));
 }
