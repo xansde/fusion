@@ -14,6 +14,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
+import { pf2eSystem } from "@fusion/system-pf2e";
+
 import {
   buildSettingsDeclarationsHandler,
   classifySettingSchema,
@@ -246,5 +248,49 @@ describe("the declaration dictionary is the same for every seat", () => {
     expect(ask(FAKE, undefined, UserRole.PLAYER)).toEqual(
       ask(FAKE, undefined, UserRole.GAMEMASTER),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The REAL pf2e system, not a stand-in — REQ-CFG-032/033, REQ-MCL-001/004.
+//
+// Every other describe() above proves genericity with a system this handler
+// has never seen (RNF-CFG-02) — that is by design, not a gap: it is the
+// proof that the handler carries zero pf2e-specific code. What it does NOT
+// prove is that pf2e itself actually calls `registrar.setting(...)` for the
+// two variant rules the Mundo section exists to surface. `pf2eSystem.
+// registries.settings` already asserts the declarations are shaped right
+// (system-registration.test.ts); this closes the last link by running them
+// through the real generic handler and checking the wire keys a GM's browser
+// would actually receive.
+// ---------------------------------------------------------------------------
+
+describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-032/033)", () => {
+  it("answers with pf2e:variantRules.freeArchetype and pf2e:variantRules.classLevels as boolean, confirm-gated toggles", () => {
+    const byKey = new Map(ask(pf2eSystem).settings.map((s) => [s.key, s]));
+
+    const freeArchetype = byKey.get("pf2e:variantRules.freeArchetype");
+    expect(freeArchetype).toMatchObject({
+      kind: "boolean",
+      requiresConfirmOnDisable: true,
+      value: false,
+    });
+
+    const classLevels = byKey.get("pf2e:variantRules.classLevels");
+    expect(classLevels).toMatchObject({
+      kind: "boolean",
+      requiresConfirmOnDisable: true,
+      value: false,
+    });
+  });
+
+  it("REQ-CFG-071: a GM-written Setting document's value wins over pf2e's declared default", () => {
+    const store = fakeStore([
+      { _id: "setting-fa", key: "pf2e:variantRules.freeArchetype", value: true },
+    ]);
+    const entry = ask(pf2eSystem, store).settings.find(
+      (s) => s.key === "pf2e:variantRules.freeArchetype",
+    );
+    expect(entry).toMatchObject({ id: "setting-fa", value: true });
   });
 });
