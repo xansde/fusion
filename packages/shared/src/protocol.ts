@@ -295,6 +295,14 @@ export const TokenMovePayloadSchema = z.object({
 
 export type TokenMovePayload = z.infer<typeof TokenMovePayloadSchema>;
 
+// `token:preview` (REQ-NET-044) is an EPHEMERAL event (the `ephemeral` socket
+// channel, not `op`) — its payload schema lives with the rest of the
+// ephemeral payloads in `packages/server/src/net/ephemeral-handlers.ts`
+// (`TokenPreviewPayloadSchema`), matching where `CursorMovePayloadSchema` /
+// `MapPingPayloadSchema` / `RulerUpdatePayloadSchema` already live. Only the
+// `EnvelopeTypeSchema` literal above is shared — every other ephemeral
+// payload schema is intentionally NOT duplicated into this `op`-channel file.
+
 // ---------------------------------------------------------------------------
 // Door state payloads
 // M2-A: REQ-VIS-004, REQ-VIS-007 — any user can open/close an unlocked door;

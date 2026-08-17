@@ -16,6 +16,7 @@ import {
   addPing,
   applyRemoteRuler,
   clearRemoteRuler,
+  applyRemoteTokenPreview,
   updateOnlineUsers,
   startPresenceBackground,
 } from "./presenceStore.svelte.js";
@@ -116,6 +117,21 @@ export function attachPresenceSync(socket: Socket): () => void {
 
       case "presence:ruler:clear": {
         clearRemoteRuler(asStr(payload["userId"]));
+        break;
+      }
+
+      case "token:preview": {
+        // REQ-NET-044: another user's token drag, in progress.
+        const tokenId = asStr(payload["tokenId"]);
+        const sceneId = asStr(payload["sceneId"]);
+        if (tokenId === "" || sceneId === "") break;
+        applyRemoteTokenPreview({
+          tokenId,
+          sceneId,
+          userId: asStr(payload["userId"]),
+          x: typeof payload["x"] === "number" ? payload["x"] : 0,
+          y: typeof payload["y"] === "number" ? payload["y"] : 0,
+        });
         break;
       }
 
@@ -253,5 +269,46 @@ export function emitRulerClear(socket: Socket | null): void {
     type: "presence:ruler:clear",
     ts: Date.now(),
     payload: {},
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Token preview emitter — client → server (REQ-NET-044)
+// ---------------------------------------------------------------------------
+
+/** Minimum interval between token:preview emissions to the server (ms) — same target rate as cursors. */
+const TOKEN_PREVIEW_EMIT_INTERVAL_MS = 50;
+
+const _tokenPreviewThrottleState = createThrottleState();
+
+/**
+ * Emit a token drag's target position to the server, subject to throttle
+ * (REQ-NET-044). Call this from TokenInteractionManager's pointermove drag
+ * handler, alongside the local optimistic ghost move — never as a
+ * replacement for it (the dragger's OWN screen never depends on this
+ * round-trip).
+ *
+ * @param socket   Connected socket
+ * @param sceneId  Scene the token belongs to
+ * @param tokenId  The token being dragged
+ * @param x        World X (already grid-snapped by the caller)
+ * @param y        World Y (already grid-snapped by the caller)
+ * @param nowMs    Current timestamp (injectable for testing)
+ */
+export function emitTokenPreview(
+  socket: Socket | null,
+  sceneId: string,
+  tokenId: string,
+  x: number,
+  y: number,
+  nowMs: number = Date.now(),
+): void {
+  if (!socket?.connected) return;
+  if (shouldThrottle(_tokenPreviewThrottleState, TOKEN_PREVIEW_EMIT_INTERVAL_MS, nowMs)) return;
+
+  socket.emit("ephemeral", {
+    type: "token:preview",
+    ts: nowMs,
+    payload: { sceneId, tokenId, x, y },
   });
 }

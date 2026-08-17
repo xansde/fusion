@@ -58,6 +58,26 @@ export interface RulerState {
 }
 
 // ---------------------------------------------------------------------------
+// Token drag preview (REQ-NET-044)
+// ---------------------------------------------------------------------------
+
+/**
+ * The most recent `token:preview` broadcast for a token being dragged by
+ * ANOTHER user — REQ-NET-044. Keyed by `tokenId` in the store (one preview
+ * per token, not per user, since only one user may hold OWNER-gated drag
+ * control of a given token at a time — REQ-TOK-032).
+ */
+export interface RemoteTokenPreview {
+  tokenId: string;
+  sceneId: string;
+  userId: string;
+  x: number;
+  y: number;
+  /** When this preview was received (Date.now()) — used to prune stale ones. */
+  receivedAtMs: number;
+}
+
+// ---------------------------------------------------------------------------
 // Online user
 // ---------------------------------------------------------------------------
 

@@ -303,6 +303,9 @@ export class SocketManager {
     const cursorRateLimiter = new EphemeralRateLimiter(50);
     // ping: 2/s max = 500 ms minimum interval
     const pingRateLimiter = new EphemeralRateLimiter(500);
+    // REQ-NET-044: token:preview throttled like cursors — a drag is
+    // effectively a cursor carrying a token, same target frequency.
+    const previewRateLimiter = new EphemeralRateLimiter(50);
 
     // REQ-NET-005: track current scene room per socket (socketId → sceneId).
     // Updated by ephemeral-handlers when a cursor event carries a new sceneId.
@@ -690,6 +693,7 @@ export class SocketManager {
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
         cursorRateLimiter,
         pingRateLimiter,
+        previewRateLimiter,
         sceneRooms,
       });
 
@@ -701,6 +705,7 @@ export class SocketManager {
         // Evict rate limiter state for this socket to free memory
         cursorRateLimiter.evict(socket.id);
         pingRateLimiter.evict(socket.id);
+        previewRateLimiter.evict(socket.id);
         // Evict scene room tracking for this socket
         sceneRooms.delete(socket.id);
         // REQ-NET-043: re-broadcast the roster minus this socket — `ns.sockets`
@@ -825,6 +830,7 @@ export class SocketManager {
     rateLimiters: {
       cursorRateLimiter: EphemeralRateLimiter;
       pingRateLimiter: EphemeralRateLimiter;
+      previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
     },
@@ -991,6 +997,7 @@ export class SocketManager {
           logger,
           cursorRateLimiter: rateLimiters.cursorRateLimiter,
           pingRateLimiter: rateLimiters.pingRateLimiter,
+          previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
         },
       );
