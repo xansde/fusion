@@ -448,6 +448,32 @@ describe("REQ-NPC-028 / REQ-NPC-029: moving has two paths, and both are drawn", 
   });
 });
 
+describe("A033: the move control does not steal the name's width at rest", () => {
+  it("REQ-NPC-028: `.npcs-row__move` collapses to a fixed footprint at rest, not the select's full outline", () => {
+    const rule = /\.npcs-row__move\s*\{([\s\S]*?)\}/.exec(SOURCE)?.[1] ?? "";
+
+    // `opacity: 0` alone hides the control but still reserves its full box in
+    // the flex row, so a hidden 8rem-wide <select> was permanently taking
+    // width away from `.npcs-row__name` next door — the name kept truncating
+    // (e.g. "Eagle", 5 characters, cut down to "Ea…") even when the row had
+    // room to spare. Collapsing to a small fixed width at rest is what fixes
+    // the actual cause, not just hiding the control.
+    expect(rule).toContain("opacity: 0");
+    expect(rule).toMatch(/width:\s*1\.25rem/);
+    expect(rule).not.toMatch(/max-width:\s*8rem/);
+  });
+
+  it("REQ-NPC-028: the control still widens on hover/focus, so it stays reachable by keyboard", () => {
+    const hoverBlock =
+      /\.npcs-row:hover \.npcs-row__move,[\s\S]*?\.npcs-row__move:focus-visible\s*\{([\s\S]*?)\}/.exec(
+        SOURCE,
+      )?.[1] ?? "";
+
+    expect(hoverBlock).toContain("opacity: 1");
+    expect(hoverBlock).toMatch(/width:\s*8rem/);
+  });
+});
+
 describe("REQ-NPC-022: removing a folder never goes through doc:delete", () => {
   it("REQ-NPC-022: the panel emits folder:delete, the composed operation", () => {
     expect(SOURCE).toContain('type: "folder:delete"');

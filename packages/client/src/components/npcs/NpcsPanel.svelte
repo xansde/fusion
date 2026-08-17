@@ -1512,12 +1512,21 @@
   }
 
   /* REQ-NPC-028: the keyboard path. Visible on focus as well as on hover, so it
-     is never an affordance that only a pointer can find (REQ-UIF-064). */
+     is never an affordance that only a pointer can find (REQ-UIF-064).
+
+     A033: `opacity: 0` alone hides the control but keeps reserving its full
+     layout box, so a hidden 8rem-wide <select> was permanently stealing width
+     from `.npcs-row__name` next door — the name kept truncating even when the
+     row had room to spare (a defect the name's own min-width fix could not
+     touch, because the cause lived here). At rest the control collapses to a
+     1.25rem footprint (matching the icon buttons beside it) and only grows to
+     8rem on hover/focus, where it is genuinely visible and needs the room to
+     read the folder names. */
   .npcs-row__move {
     font: inherit;
     font-size: 0.6875rem;
     margin-left: auto;
-    max-width: 8rem;
+    width: 1.25rem;
     padding: 0.0625rem 0.25rem;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
@@ -1525,6 +1534,7 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     opacity: 0;
+    overflow: hidden;
     transition: var(--fusion-transition);
   }
 
@@ -1532,6 +1542,7 @@
   .npcs-row:focus-within .npcs-row__move,
   .npcs-row__move:focus-visible {
     opacity: 1;
+    width: 8rem;
     border-color: var(--fusion-border);
     background: var(--fusion-surface);
   }
