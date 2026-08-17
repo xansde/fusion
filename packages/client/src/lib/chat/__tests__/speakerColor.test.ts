@@ -19,6 +19,9 @@
 
 import { describe, expect, it } from "vitest";
 
+import type { ChatMessage } from "@fusion/shared";
+
+import { canGroupWithPrevious } from "../chatGrouping.js";
 import {
   SPEAKER_COLOR_PALETTE_SIZE,
   resolveSpeakerColor,
@@ -27,15 +30,51 @@ import {
   speakerColorKey,
 } from "../speakerColor.js";
 
-describe("speakerColorKey — REQ-ACH-025 same-author pairing", () => {
-  it("joins userId and alias, matching chatGrouping's own author identity", () => {
-    expect(speakerColorKey({ userId: "u1", alias: "Ana" })).toBe("u1:Ana");
+/** Minimal-but-valid ChatMessage fixture — mirrors chatGrouping.test.ts's `msg()`. */
+function msg(id: string, overrides: Partial<ChatMessage> = {}): ChatMessage {
+  return {
+    _id: id,
+    _stats: {
+      createdTime: 1000,
+      modifiedTime: 1000,
+      version: 1,
+      lastModifiedBy: "u1",
+      createdBy: "u1",
+      coreVersion: "0.1.0",
+      systemId: null,
+      systemVersion: null,
+      engineSchemaVersion: 1,
+      systemSchemaVersion: null,
+    },
+    sort: 0,
+    ownership: { default: 0 },
+    flags: {},
+    type: "text",
+    worldId: "w1",
+    content: id,
+    speaker: { userId: "u1", alias: "A" },
+    timestamp: 1000,
+    whisper: [],
+    blind: false,
+    ...overrides,
+  };
+}
+
+describe("speakerColorKey — REQ-ACH-025 same-author pairing, proven against chatGrouping's own definition", () => {
+  it("gives two messages that canGroupWithPrevious treats as a continuation the SAME resolved color", () => {
+    const previous = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
+    const current = msg("m2", { speaker: { userId: "u1", alias: "Ana" } });
+    expect(canGroupWithPrevious(current, previous)).toBe(true);
+    expect(speakerColor(speakerColorKey(current.speaker))).toBe(
+      speakerColor(speakerColorKey(previous.speaker)),
+    );
   });
 
-  it("gives the Gamemaster voicing two different NPCs two different keys", () => {
-    const asGm = speakerColorKey({ userId: "u1", alias: "Gamemaster" });
-    const asTobias = speakerColorKey({ userId: "u1", alias: "Tobias" });
-    expect(asGm).not.toBe(asTobias);
+  it("gives the Gamemaster voicing two different NPCs DIFFERENT keys, exactly where chatGrouping also refuses to group them", () => {
+    const previous = msg("m1", { speaker: { userId: "u1", alias: "Gamemaster" } });
+    const current = msg("m2", { speaker: { userId: "u1", alias: "Tobias" } });
+    expect(canGroupWithPrevious(current, previous)).toBe(false);
+    expect(speakerColorKey(current.speaker)).not.toBe(speakerColorKey(previous.speaker));
   });
 });
 
