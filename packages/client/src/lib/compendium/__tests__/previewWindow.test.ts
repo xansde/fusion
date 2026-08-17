@@ -24,7 +24,9 @@ import {
   previewError,
   previewReady,
   previewWindowSingletonKey,
+  shouldResetToLoading,
   type OpenPreviewInput,
+  type PreviewLoadState,
 } from "../previewWindow.js";
 import { windowManager } from "../../windows/window-manager.js";
 
@@ -161,6 +163,74 @@ describe("loading the document on demand (REQ-CPD-051)", () => {
       const failed = previewError(cause, "Falha ao carregar.");
       expect(failed.status === "error" ? failed.message : "").toBe("Falha ao carregar.");
     }
+  });
+});
+
+describe("bugfix A003 — the mount effect must not retrigger itself (REQ-CPD-051, REQ-CPD-060, DEC-CPD-03)", () => {
+  /**
+   * Models exactly the mechanism `CompendiumPreviewWindow.svelte` runs: an
+   * `$effect` that calls `load()` whenever `loadState.status === "loading"`,
+   * and a `load()` that MAY reassign `loadState` back to `PREVIEW_LOADING`
+   * before fetching. In Svelte 5, reassigning a `$state` object retriggers
+   * every effect reading it — even when the new value describes the same
+   * status as the old one — so an unconditional reset makes the effect that
+   * is still synchronously running `load()` schedule ANOTHER run of itself,
+   * forever. `resetPredicate` is the thing that decides whether to reset;
+   * passing `() => true` reproduces the old, unguarded `load()`.
+   */
+  function simulateMountEffect(
+    resetPredicate: (state: PreviewLoadState) => boolean,
+    maxIterations: number,
+  ): { loadCalls: number; exceededBudget: boolean } {
+    let loadState: PreviewLoadState = PREVIEW_LOADING;
+    let loadCalls = 0;
+    let effectPending = true;
+
+    while (effectPending) {
+      effectPending = false;
+      if (loadState.status !== "loading") continue;
+      // The effect body: `void load();`
+      loadCalls += 1;
+      if (loadCalls >= maxIterations) return { loadCalls, exceededBudget: true };
+      if (resetPredicate(loadState)) {
+        // A NEW object reference describing "loading" — Svelte's `$state`
+        // treats this as a change and reschedules every effect reading
+        // `loadState`, including the one currently running `load()`.
+        loadState = PREVIEW_LOADING;
+        effectPending = true;
+      }
+      // The real `load()` also does `await getDocument(...)` here. That
+      // never gets a chance to settle before the synchronous rerun above
+      // fires again — which is exactly what the live reproduction showed:
+      // the preview window stuck forever at "Carregando documento…"
+      // (`.e2e-visual/inv-a003/05.png`) after the console logged
+      // `https://svelte.dev/e/effect_update_depth_exceeded`
+      // (`.e2e-visual/inv-a003/page-errors.log`).
+    }
+    return { loadCalls, exceededBudget: false };
+  }
+
+  it("reproduces the crash: an unconditional reset retriggers the effect without bound", () => {
+    const { loadCalls, exceededBudget } = simulateMountEffect(() => true, 1_000);
+
+    expect(exceededBudget).toBe(true);
+    expect(loadCalls).toBe(1_000);
+  });
+
+  it("REQ-CPD-051/DEC-CPD-03: shouldResetToLoading breaks the cycle — the mount effect settles after one load() call, so the window can leave 'loading' and the panel behind it (a non-modal window per DEC-CPD-03) never freezes", () => {
+    const { loadCalls, exceededBudget } = simulateMountEffect(shouldResetToLoading, 1_000);
+
+    expect(exceededBudget).toBe(false);
+    expect(loadCalls).toBe(1);
+  });
+
+  it("REQ-CPD-060: shouldResetToLoading is false while already loading — the mount path never rewrites loadState", () => {
+    expect(shouldResetToLoading(PREVIEW_LOADING)).toBe(false);
+  });
+
+  it("REQ-CPD-051: shouldResetToLoading is true after a failure — the retry button still shows the error→loading transition", () => {
+    const failed = previewError(new Error("socket is not connected"), "Falha ao carregar.");
+    expect(shouldResetToLoading(failed)).toBe(true);
   });
 });
 

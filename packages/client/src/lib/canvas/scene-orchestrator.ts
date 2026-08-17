@@ -72,7 +72,12 @@ export interface ITokenLayer {
  * Minimal interface for LightingRenderer that the orchestrator drives.
  */
 export interface ILightingRenderer {
-  render(state: VisionStateResult, fogState?: FogRenderState | null, debugMode?: boolean): void;
+  render(
+    state: VisionStateResult,
+    fogState?: FogRenderState | null,
+    debugMode?: boolean,
+    restrictionActive?: boolean,
+  ): void;
   destroy(): void;
 }
 
@@ -302,19 +307,34 @@ export class SceneOrchestrator {
       visionResult.lightPolygons.push(...ambientPolygons);
     }
 
-    // Feed vision polygons to TokenLayer (hides tokens outside vision for players)
-    const fogEnabled = !this._isGm;
-    this._tokenLayer.setVisionPolygons(visionResult.visionPolygons, fogEnabled);
+    // A005 fix (ajustes r1, item 24): REQ-VIS-085 ties vision/fog restriction to
+    // the SCENE's own `tokenVision` flag ("com token vision habilitado, jogadores
+    // são limitados ao que seus tokens veem" — off by default, `scene.ts:368`),
+    // not just to "is this viewer a GM". Before this fix, every non-GM viewer was
+    // always restricted regardless of the scene's setting, so a scene created
+    // with the (default) token-vision-off configuration still painted the
+    // player's screen fully black — REQ-VIS-085's "com fog desabilitado, toda a
+    // cena é visível a todos" was never honoured. `restrictionActive` is the
+    // single source of truth threaded through TokenLayer/FogState/LightingRenderer
+    // below: GM never restricted; a player only restricted when the scene opted
+    // into token vision.
+    const restrictionActive = !this._isGm && scene.tokenVision === true;
 
-    // Update fog accumulation with current vision polygons (player only)
-    if (this._fogState && !this._isGm) {
+    // Feed vision polygons to TokenLayer (hides tokens outside vision for players)
+    this._tokenLayer.setVisionPolygons(visionResult.visionPolygons, restrictionActive);
+
+    // Update fog accumulation with current vision polygons (player only, and
+    // only while the scene actually restricts — no point accumulating
+    // exploration for a scene nobody is being masked in).
+    if (this._fogState && restrictionActive) {
       const rawPolygons = visionResult.visionPolygons.map((vp) => vp.polygon);
       this._fogState.updateVision(rawPolygons);
     }
 
     // Render lighting/fog overlay
-    const fogRenderState = this._fogState?.getRenderState() ?? null;
-    this._lightingRenderer.render(visionResult, fogRenderState);
+    const fogRenderState =
+      this._fogState && restrictionActive ? this._fogState.getRenderState() : null;
+    this._lightingRenderer.render(visionResult, fogRenderState, false, restrictionActive);
 
     this._lastVisionResult = visionResult;
   }

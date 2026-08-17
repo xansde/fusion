@@ -36,6 +36,7 @@
     hasLicenseOverride,
     previewError,
     previewReady,
+    shouldResetToLoading,
     PREVIEW_LOADING,
     type PreviewLoadState,
   } from "../../lib/compendium/previewWindow.js";
@@ -123,7 +124,16 @@
   });
 
   async function load(): Promise<void> {
-    loadState = PREVIEW_LOADING;
+    // Bugfix A003: do NOT reassign `loadState` when it already reads
+    // "loading" — the mount `$effect` below calls `load()` BECAUSE
+    // `loadState.status === "loading"`, and writing it again (even to a
+    // value describing the same status) is what turned that effect into an
+    // infinite self-retriggering loop (`effect_update_depth_exceeded`, see
+    // `shouldResetToLoading`'s doc comment). The retry button still gets a
+    // real "error" → "loading" transition drawn.
+    if (shouldResetToLoading(loadState)) {
+      loadState = PREVIEW_LOADING;
+    }
     imgBroken = false;
     try {
       const socket = requireConnectedSocket(getSocket());

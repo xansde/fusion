@@ -128,31 +128,46 @@ export class LightingRenderer {
    * @param fogState - Optional fog render state from FogState. When provided,
    *   replaces the simple vision mask with three-state fog rendering.
    * @param debugMode - Log timing when true.
+   * @param restrictionActive - REQ-VIS-085: whether this scene actually
+   *   restricts non-GM vision (`scene.tokenVision === true`). Defaults to
+   *   `true` for callers that only ever render restricted scenes (e.g. the
+   *   existing unit tests). When `false`, fog/vision-mask are cleared exactly
+   *   like the GM branch below — darkness and lights (which are not a
+   *   per-role restriction) still render for everyone.
    */
-  render(state: VisionStateResult, fogState?: FogRenderState | null, debugMode = false): void {
+  render(
+    state: VisionStateResult,
+    fogState?: FogRenderState | null,
+    debugMode = false,
+    restrictionActive = true,
+  ): void {
     const t0 = performance.now();
 
-    const stateKey = this._buildStateKey(state, fogState);
+    const stateKey = this._buildStateKey(state, fogState, restrictionActive);
     if (stateKey === this._lastStateKey) return;
     this._lastStateKey = stateKey;
 
     this._renderDarkness(state.darkness);
     this._renderLights(state.lightPolygons, state.globalLight);
 
-    if (fogState && fogState.fogActive) {
+    const showRestriction = !state.isGm && restrictionActive;
+
+    if (fogState && fogState.fogActive && showRestriction) {
       // Three-state fog: hides simple vision mask
       this._visionMaskContainer.removeChildren();
       this._visionMaskContainer.visible = false;
       this._fogContainer.visible = true;
       this._renderFog(fogState, state.visionPolygons);
-    } else if (!state.isGm) {
+    } else if (showRestriction) {
       // No fog state — use simple M2-A vision mask
       this._fogContainer.removeChildren();
       this._fogContainer.visible = false;
       this._visionMaskContainer.visible = true;
       this._renderVisionMask(state.visionPolygons, state.isGm, state.darkness, state.globalLight);
     } else {
-      // GM: clear both
+      // GM, or a scene that does not restrict non-GM vision at all
+      // (REQ-VIS-085: `scene.tokenVision !== true` → the whole scene is
+      // visible to everyone): clear both.
       this._fogContainer.removeChildren();
       this._fogContainer.visible = false;
       this._visionMaskContainer.removeChildren();
@@ -456,8 +471,12 @@ export class LightingRenderer {
     return parseInt(clean, 16) || 0xffffff;
   }
 
-  private _buildStateKey(state: VisionStateResult, fogState?: FogRenderState | null): string {
-    return buildLightingStateKey(state, fogState);
+  private _buildStateKey(
+    state: VisionStateResult,
+    fogState: FogRenderState | null | undefined,
+    restrictionActive: boolean,
+  ): string {
+    return buildLightingStateKey(state, fogState, restrictionActive);
   }
 }
 
@@ -512,10 +531,16 @@ function fogRingKey(ring: FogRing): string {
  * Exported as a pure function (no PIXI dependency) so it can be unit tested
  * without a renderer, per this codebase's convention (see
  * CombatTurnMarker.test.ts / computePulseAlpha).
+ *
+ * `restrictionActive` (REQ-VIS-085, A005 fix) is folded into the key too:
+ * toggling a scene's `tokenVision` flag with everything else unchanged must
+ * still force a redraw (fog/mask appearing or disappearing), not get skipped
+ * by the re-render guard.
  */
 export function buildLightingStateKey(
   state: VisionStateResult,
   fogState?: FogRenderState | null,
+  restrictionActive = true,
 ): string {
   const vpKey = state.visionPolygons
     .map((v) => `${v.tokenId}:${polygonVerticesKey(v.polygon.vertices)}`)
@@ -534,7 +559,7 @@ export function buildLightingStateKey(
         .join("|")}:cv:${fogState.currentVisionRings.map((r) => fogRingKey(r)).join("|")}`
     : "nofog";
 
-  return `${String(state.isGm)}|${String(state.darkness)}|${String(state.globalLight)}|${vpKey}||${lpKey}||${fogKey}`;
+  return `${String(state.isGm)}|${String(restrictionActive)}|${String(state.darkness)}|${String(state.globalLight)}|${vpKey}||${lpKey}||${fogKey}`;
 }
 
 // ---------------------------------------------------------------------------

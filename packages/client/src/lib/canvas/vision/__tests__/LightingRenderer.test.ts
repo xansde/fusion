@@ -174,6 +174,23 @@ describe("buildLightingStateKey — coordinate sensitivity (regression for count
     expect(buildLightingStateKey(before)).not.toBe(buildLightingStateKey(after));
   });
 
+  // A005 fix (REQ-CEN-072/REQ-VIS-085): restrictionActive is now a render
+  // input distinct from isGm — a scene's `tokenVision` flag flipping (with
+  // GM-ness and everything else unchanged) must still force a redraw, or the
+  // guard would leave a stale fog/mask on screen after the GM toggles the
+  // setting.
+  it("REQ-VIS-085: restrictionActive toggle changes the key, independent of isGm", () => {
+    const state = makeState({ isGm: false });
+    const restricted = buildLightingStateKey(state, null, true);
+    const unrestricted = buildLightingStateKey(state, null, false);
+    expect(restricted).not.toBe(unrestricted);
+  });
+
+  it("restrictionActive defaults to true when omitted (back-compat with existing call sites)", () => {
+    const state = makeState({ isGm: false });
+    expect(buildLightingStateKey(state, null)).toBe(buildLightingStateKey(state, null, true));
+  });
+
   it("darkness change changes the key", () => {
     const before = makeState({ darkness: 0 });
     const after = makeState({ darkness: 0.5 });

@@ -34,6 +34,11 @@ import type { FogRenderState } from "../vision/fog-state.js";
 // Helpers
 // ---------------------------------------------------------------------------
 
+// A005 fix (REQ-VIS-085): restriction is now gated on `scene.tokenVision`, not
+// just "is this viewer a GM". Every pre-existing test in this file was written
+// when a non-GM viewer was ALWAYS restricted, so the default fixture keeps that
+// behaviour explicit (`tokenVision: true`) — the handful of tests that exercise
+// the NEW "tokenVision off" branch pass `{ tokenVision: false }` themselves.
 function makeScene(id: string, overrides: Record<string, unknown> = {}): SceneDocument {
   return {
     _id: id,
@@ -49,6 +54,7 @@ function makeScene(id: string, overrides: Record<string, unknown> = {}): SceneDo
     tokens: [],
     background: null,
     initialView: null,
+    tokenVision: true,
     ...overrides,
   } as unknown as SceneDocument;
 }
@@ -352,6 +358,60 @@ describe("SceneOrchestrator", () => {
       const svpCalls = tokenLayer.calls.filter((c) => c.fn === "setVisionPolygons");
       expect(svpCalls.length).toBeGreaterThan(0);
       // GM → fogEnabled = false
+      const lastCall = svpCalls[svpCalls.length - 1];
+      expect(lastCall?.args[1]).toBe(false);
+
+      orchestrator.teardown();
+    });
+
+    // A005 (ajustes r1, item 24 — "cena preta para o jogador"): REQ-CEN-072
+    // (specs/44-aba-cenas.md) requires the player to keep receiving the data
+    // of the scene on air needed to render it, deferring the actual rendering
+    // rule to spec 07. REQ-VIS-085 (specs/07-visao-iluminacao-fog.md) is that
+    // rule — "com fog desabilitado, toda a cena é visível a todos" — and ties
+    // restriction to the SCENE's own `tokenVision` flag, which defaults to
+    // `false` (`packages/shared/src/scene.ts:368`), not to "is this viewer a
+    // GM". Before this fix, `scene-orchestrator.ts` restricted EVERY non-GM
+    // viewer unconditionally, so a brand-new scene (token vision never turned
+    // on by the GM) still painted the player's canvas fully black even though
+    // REQ-CEN-072 was already delivering the scene's data correctly.
+    it("REQ-CEN-072/REQ-VIS-085: player in a scene with tokenVision=false → setVisionPolygons called with fogEnabled=false (no restriction)", async () => {
+      const token = makeToken("tok-1");
+      const scene = makeScene("scene-1", { tokens: [token], tokenVision: false });
+      const mirror = makeMirror("scene-1", scene);
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: false,
+        userId: "user-1",
+      });
+
+      await orchestrator.setup();
+
+      const svpCalls = tokenLayer.calls.filter((c) => c.fn === "setVisionPolygons");
+      expect(svpCalls.length).toBeGreaterThan(0);
+      const lastCall = svpCalls[svpCalls.length - 1];
+      expect(lastCall?.args[1]).toBe(false);
+
+      orchestrator.teardown();
+    });
+
+    it("REQ-VIS-085: player in a scene without a tokenVision field at all (legacy/partial scene) → restriction stays off", async () => {
+      const token = makeToken("tok-1");
+      // No `tokenVision` override: makeScene's spread order means an explicit
+      // `undefined` from a caller who forgot the field is exactly what a
+      // scene persisted before this flag existed would look like.
+      const scene = { ...makeScene("scene-1", { tokens: [token] }) } as Record<string, unknown>;
+      delete scene["tokenVision"];
+      const mirror = makeMirror("scene-1", scene as unknown as SceneDocument);
+      const { orchestrator, tokenLayer } = makeOrchestrator(
+        scene as unknown as SceneDocument,
+        mirror,
+        { isGm: false, userId: "user-1" },
+      );
+
+      await orchestrator.setup();
+
+      const svpCalls = tokenLayer.calls.filter((c) => c.fn === "setVisionPolygons");
+      expect(svpCalls.length).toBeGreaterThan(0);
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
 
