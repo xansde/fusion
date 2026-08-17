@@ -20,7 +20,6 @@
    * lives in `lib/scenes/tokenAddDialogVM.ts` so it is testable without a DOM.
    */
 
-  import { onMount } from "svelte";
   import type { Socket } from "socket.io-client";
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { worldMirror } from "../../lib/docs/worldSync.js";
@@ -80,7 +79,13 @@
 
   const selectedActor = $derived(actors.find((a) => a.id === formData.actorId) ?? null);
 
-  let errors = $state<TokenAddFormErrors>({});
+  // Validated eagerly (not just on mount): `render()` from `svelte/server` — the
+  // component-test instrument this repo uses for first-paint assertions — never runs
+  // lifecycle hooks, so an `onMount`-only validation would leave `errors` empty on
+  // every SSR string and mask CA-TOK-003's "legible reason" in the very test meant to
+  // prove it. Computing it here also removes the one-tick flash of an unlabeled
+  // required field a real mount used to have before `onMount` fired.
+  let errors = $state<TokenAddFormErrors>(validateTokenAddForm(formData));
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
 
@@ -123,10 +128,6 @@
   function handleKeydown(e: KeyboardEvent): void {
     if (e.key === "Escape") onClose();
   }
-
-  onMount(() => {
-    errors = validateTokenAddForm(formData);
-  });
 </script>
 
 <!-- Backdrop -->
