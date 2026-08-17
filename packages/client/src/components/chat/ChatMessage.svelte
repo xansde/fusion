@@ -38,6 +38,11 @@
    * funnel `ChatInput` uses for `chat:send`. No local optimism: the row
    * updates when the server's own `doc:update` broadcast arrives
    * (REQ-ACH-086), through the sync path `chatMessageSync.ts` already wires.
+   * `readOnly` forces the control off no matter what `resolveInvalidateAction`
+   * would otherwise allow — a surface that does not subscribe to that
+   * `doc:update` broadcast (ChatContextWindow.svelte, REQ-ACH-014) would let
+   * the viewer fire a real `chat:invalidate` and never see it take effect,
+   * success OR refusal. Every other caller leaves it at its default `false`.
    *
    * REQ-ACH-025 (A022, chat-tab.prototype.html:410/592/623-624): the author's
    * name and, on a plain message, the row's left border are painted with a
@@ -90,6 +95,7 @@
     isGm = false,
     userId = "",
     worldId = "",
+    readOnly = false,
   }: {
     message: ChatMessageType;
     /**
@@ -113,6 +119,16 @@
     userId?: string;
     /** World id — required for the PF2e SpellCastCard's chat:send roll ops (r17-P2). */
     worldId?: string;
+    /**
+     * True on a surface that must never let this row fire a write it cannot
+     * show the outcome of (ChatContextWindow.svelte). Suppresses the
+     * invalidate/revalidate control entirely, regardless of what
+     * `resolveInvalidateAction` would return — a viewer/GM in every other
+     * respect still sees the row exactly as-is, including an existing
+     * invalidation's struck-through styling (REQ-ACH-081), just with no
+     * button to change that state from here.
+     */
+    readOnly?: boolean;
   } = $props();
 
   // Classify nested children into compact roll lines (attack/damage) + graded
@@ -232,8 +248,12 @@
 
   // ---- Invalidate / revalidate button (REQ-ACH-080..086, A024) ----
   // `null` when the viewer may neither invalidate nor revalidate this row —
-  // then no button is rendered at all (REQ-ACH-082/083).
-  const invalidateAction = $derived(resolveInvalidateAction(message, isGm, userId));
+  // then no button is rendered at all (REQ-ACH-082/083). `readOnly` forces
+  // `null` even when `resolveInvalidateAction` would allow it, for a surface
+  // that cannot show whether the write it triggered succeeded or was refused.
+  const invalidateAction = $derived(
+    readOnly ? null : resolveInvalidateAction(message, isGm, userId),
+  );
   let invalidateActing = $state(false);
 
   async function handleInvalidateClick(): Promise<void> {

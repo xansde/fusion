@@ -14,6 +14,21 @@
    *
    * It reads no live-log state and writes none: the log behind it neither scrolls
    * nor changes while this is open (REQ-ACH-014).
+   *
+   * That "writes none" also has to hold for the rows it draws, not just for the
+   * window's own state: it reuses ChatMessage.svelte for the target and every
+   * neighbour, which — outside this window — carries the invalidate/revalidate
+   * control (A024, REQ-ACH-080..086). `chatContext`'s `target`/`before`/`after`
+   * are a one-shot snapshot from `loadChatContext` (chatContext.svelte.ts) and
+   * never subscribe to the `doc:update` broadcast that control's write lands
+   * as — that subscription is `chatStore`'s/`chatMessageSync.ts`'s. Without
+   * `readOnly`, clicking the button would still reach the server and really
+   * invalidate the message (REQ-ACH-090 makes the server the only gate), but
+   * this window would never repaint to show it, success OR refusal — a write
+   * with no visible outcome. So every row here is rendered `readOnly`: same
+   * struck-through presentation for a message that already came back
+   * invalidated (REQ-ACH-081), no button offering a write this window has no
+   * way to reflect.
    */
 
   import { onDestroy } from "svelte";
@@ -34,7 +49,10 @@
     isGm = false,
     userId = "",
   }: {
-    /** Only forwarded to the message renderer (cards); this window sends nothing. */
+    /**
+     * Only forwarded to the message renderer (cards); every row is drawn
+     * `readOnly` (see header comment), so this window itself sends nothing.
+     */
     socket: Socket;
     worldId?: string;
     isGm?: boolean;
@@ -88,7 +106,7 @@
     <div class="chat-context__list">
       {#each chatContext.before as msg (msg._id)}
         <div class="chat-context__row" data-message-id={msg._id}>
-          <ChatMessageComponent message={msg} {socket} {isGm} {userId} {worldId} />
+          <ChatMessageComponent message={msg} {socket} {isGm} {userId} {worldId} readOnly />
         </div>
       {/each}
 
@@ -97,12 +115,12 @@
         data-message-id={chatContext.target._id}
         aria-label={t("FUSION.Chat.Context.TargetLabel")}
       >
-        <ChatMessageComponent message={chatContext.target} {socket} {isGm} {userId} {worldId} />
+        <ChatMessageComponent message={chatContext.target} {socket} {isGm} {userId} {worldId} readOnly />
       </div>
 
       {#each chatContext.after as msg (msg._id)}
         <div class="chat-context__row" data-message-id={msg._id}>
-          <ChatMessageComponent message={msg} {socket} {isGm} {userId} {worldId} />
+          <ChatMessageComponent message={msg} {socket} {isGm} {userId} {worldId} readOnly />
         </div>
       {/each}
     </div>

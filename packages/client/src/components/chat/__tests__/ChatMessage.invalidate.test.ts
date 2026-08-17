@@ -54,7 +54,7 @@ function msg(id: string, overrides: Partial<ChatMessageType> = {}): ChatMessageT
 
 function renderMsg(
   message: ChatMessageType,
-  props: { isGm?: boolean; userId?: string } = {},
+  props: { isGm?: boolean; userId?: string; readOnly?: boolean } = {},
 ): string {
   const { body } = render(ChatMessage, { props: { message, ...props } });
   return body;
@@ -132,6 +132,39 @@ describe("REQ-ACH-083 — revalidate control visibility", () => {
     });
     const body = renderMsg(invalidated, { isGm: false, userId: "u1" });
     expect(body).not.toContain("msg__act");
+  });
+});
+
+describe("REQ-ACH-014 — readOnly suppresses the control (ChatContextWindow.svelte)", () => {
+  // Achado da revisão: a janela de contexto (ChatContextWindow.svelte) reusa
+  // este componente mas nunca assina o `doc:update` que uma invalidação
+  // dispara — um clique ali alcançaria o servidor de verdade sem que a janela
+  // jamais mostrasse o resultado, sucesso ou recusa. `readOnly` é o que essa
+  // janela passa para nunca oferecer esse botão, mesmo quando o viewer é o
+  // autor ou o Mestre.
+  it("omits the invalidate button for the AUTHOR when readOnly is set", () => {
+    const ana = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
+    const body = renderMsg(ana, { isGm: false, userId: "u1", readOnly: true });
+    expect(body).not.toContain("msg__act");
+    expect(body).not.toContain(invalidateLabel);
+  });
+
+  it("omits the invalidate button for the GAMEMASTER when readOnly is set", () => {
+    const ana = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
+    const body = renderMsg(ana, { isGm: true, userId: "gm-1", readOnly: true });
+    expect(body).not.toContain("msg__act");
+    expect(body).not.toContain(invalidateLabel);
+  });
+
+  it("omits the revalidate button for the GAMEMASTER on an invalidated message when readOnly is set", () => {
+    const invalidated = msg("m1", {
+      speaker: { userId: "u1", alias: "Ana" },
+      invalid: true,
+      invalidatedBy: "gm-1",
+    });
+    const body = renderMsg(invalidated, { isGm: true, userId: "gm-1", readOnly: true });
+    expect(body).not.toContain("msg__act");
+    expect(body).not.toContain(revalidateLabel);
   });
 });
 
