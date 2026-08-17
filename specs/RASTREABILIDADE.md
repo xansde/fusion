@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1956 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **1958 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 676 | 35% |
+| Citados por algum teste | 678 | 35% |
 | Citados só por código de produção | 325 | 17% |
 | Sem nenhuma citação | 955 | 49% |
-| **Total [MVP]** | **1956** | |
+| **Total [MVP]** | **1958** | |
 
 ## Por spec
 
@@ -40,7 +40,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 63 | 16 | 30 | 17 | 25% |
-| [16](16-compendiums-e-importacao.md) | 56 | 18 | 16 | 22 | 32% |
+| [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
 | [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
@@ -64,6 +64,6 @@ porque ainda não foram prometidos para nenhum marco.
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
 | [41](41-token.md) | 61 | 0 | 0 | 61 | 0% |
 | [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
-| [43](43-aba-compendio.md) | 60 | 58 | 1 | 1 | 97% |
+| [43](43-aba-compendio.md) | 61 | 59 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |
 | [45](45-atores.md) | 49 | 0 | 0 | 49 | 0% |

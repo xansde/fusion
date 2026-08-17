@@ -594,10 +594,11 @@ export class CompendiumService {
 
   /**
    * Import one or more pack documents into the world (actors or items table).
-   * REQ-CMP-021..024.
+   * REQ-CMP-021..024, REQ-CMP-055.
    *
    * - Clones the document data (new _id for world copy).
-   * - Preserves system + flags.fusion.*.
+   * - Preserves system + flags.fusion.* (+ snapshots the pt-BR overlay's name/
+   *   description into flags.fusion.i18n["pt-BR"], REQ-CMP-055).
    * - Inserts via DocumentStore.
    * - GM-only operation.
    *
@@ -708,6 +709,25 @@ export class CompendiumService {
         // above `getDocument`). `uuid` is stripped and cannot be used for
         // that lookup — `getDocument(uuid)`'s overlay attachment only ever
         // applied to the PACK-side copy, never the world copy.
+        //
+        // REQ-CMP-055 (A041, spec decision 2026-08-17): a SECOND, more direct
+        // path also exists — before the `i18n` projection above is deleted,
+        // its `ptBR.name` (and `ptBR.description`, when present) is
+        // SNAPSHOTTED into `flags.fusion.i18n["pt-BR"]`, below. This keeps
+        // `name` EN-pure (issue #43 is not reverted — the world document is
+        // still a snapshot, not a live view of the pack overlay) while giving
+        // every display surface a label to resolve without a second socket
+        // round-trip. `displayName()`
+        // (packages/client/src/lib/docs/displayName.ts) is the single reader
+        // of this flag; do not add a second name-resolution mechanism
+        // elsewhere (rule #14 of the A041 task).
+        //
+        // Shared with `importToActor` below via `snapshotPtBRLabel` — REQ-CMP-055
+        // requires "toda superfície" to resolve through one mechanism, and that
+        // only holds if BOTH import surfaces (world and sheet) snapshot the same
+        // way before stripping `i18n` (code review, ajustes r1 Fase 4, 2026-08-17).
+        snapshotPtBRLabel(worldDoc);
+
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
         delete worldDoc["mechanics"];
@@ -885,6 +905,19 @@ export class CompendiumService {
         // Same EN-pure strip importToWorld does: `uuid`/`i18n`/`mechanics` are
         // pack-side projections, and `flags.fusion.{packName,sourceId}` — kept —
         // is what points the copy back at its origin (issue #43, DEC-CPD-12).
+        //
+        // REQ-CMP-055 (code review, ajustes r1 Fase 4, 2026-08-17): before the
+        // `i18n` projection is stripped, snapshot it into
+        // `flags.fusion.i18n["pt-BR"]` — the SAME mechanism `importToWorld`
+        // uses (`snapshotPtBRLabel`). Without this, "trazer para a ficha"
+        // (REQ-CPD-061) delivered the item EN-forever, the exact defect
+        // REQ-CMP-055 was written to close, while the sheet's OWN picker
+        // (`doc:create` with an embedded Item, characterSheetVM.addSpellToEntry)
+        // keeps the pack-side `i18n.ptBR` bag on the item verbatim — a second,
+        // pre-existing name-resolution mechanism `displayName()` does not read.
+        // That second mechanism is a real, separate defect (see openQuestions)
+        // and is NOT fixed here.
+        snapshotPtBRLabel(embedded);
         delete embedded["uuid"];
         delete embedded["i18n"];
         delete embedded["mechanics"];
@@ -1421,6 +1454,51 @@ export class CompendiumService {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Snapshot a document's pt-BR overlay label (`doc.i18n.ptBR.{name,description}`
+ * — the projection `getDocument()` attaches for the picker UI, T1) into
+ * `flags.fusion.i18n["pt-BR"]`, mutating `doc` in place. No-op when there is
+ * no overlay, or the overlay has neither field as a string.
+ *
+ * Shared by `importToWorld` and `importToActor` — REQ-CMP-055 (A041, ajustes
+ * r1 Fase 4, 2026-08-17) requires every import surface to snapshot the SAME
+ * way, so a display surface never needs a second translation calculation
+ * regardless of whether the document landed in the world or on a sheet.
+ * `displayName()` (packages/client/src/lib/docs/displayName.ts) is the single
+ * reader of this flag.
+ *
+ * Callers are responsible for deleting `doc["i18n"]` afterwards (the EN-pure
+ * decision, issue #43, is untouched by this helper — it only copies, never
+ * keeps a live view of the overlay).
+ */
+function snapshotPtBRLabel(doc: Record<string, unknown>): void {
+  const overlay = doc["i18n"];
+  if (typeof overlay !== "object" || overlay === null) return;
+  const ptBR = (overlay as Record<string, unknown>)["ptBR"];
+  if (typeof ptBR !== "object" || ptBR === null) return;
+
+  const label: Record<string, unknown> = {};
+  const ptName = (ptBR as Record<string, unknown>)["name"];
+  if (typeof ptName === "string") label["name"] = ptName;
+  const ptDescription = (ptBR as Record<string, unknown>)["description"];
+  if (typeof ptDescription === "string") label["description"] = ptDescription;
+  if (Object.keys(label).length === 0) return;
+
+  const existingFlags = doc["flags"];
+  const flags: Record<string, unknown> =
+    typeof existingFlags === "object" && existingFlags !== null
+      ? { ...(existingFlags as Record<string, unknown>) }
+      : {};
+  const existingFusion = flags["fusion"];
+  const fusion: Record<string, unknown> =
+    typeof existingFusion === "object" && existingFusion !== null
+      ? { ...(existingFusion as Record<string, unknown>) }
+      : {};
+  fusion["i18n"] = { "pt-BR": label };
+  flags["fusion"] = fusion;
+  doc["flags"] = flags;
+}
 
 function packed<T>(v: T | null): v is T {
   return v !== null;

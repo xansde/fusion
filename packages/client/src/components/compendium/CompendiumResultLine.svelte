@@ -281,8 +281,13 @@
   .result-line {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.4rem;
+    gap: 0.45rem;
+    /*
+     * A042: level 3 of the hierarchy (estante / resultado agregado / pack
+     * aberto) — this is what the reader actually came for, so it gets more
+     * breathing room than the chrome around it, not the same density.
+     */
+    padding: 0.35rem 0.45rem;
     background: var(--fusion-surface-alt, #2a2a2a);
     border: 1px solid var(--fusion-border, #444);
     border-radius: var(--fusion-radius-sm, 4px);
@@ -340,7 +345,8 @@
   }
 
   .result-line__name {
-    font-size: 0.82rem;
+    font-size: 0.87rem;
+    font-weight: 500;
     color: var(--fusion-text, #eee);
     white-space: nowrap;
     overflow: hidden;
@@ -348,7 +354,7 @@
   }
 
   .result-line__name-original {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     font-style: italic;
     color: var(--fusion-text-muted, #888);
     white-space: nowrap;
@@ -359,8 +365,8 @@
   .result-line__meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.1rem 0.4rem;
-    font-size: 0.7rem;
+    gap: 0.12rem 0.4rem;
+    font-size: 0.72rem;
     color: var(--fusion-text-muted, #888);
   }
 
