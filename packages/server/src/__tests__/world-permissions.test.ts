@@ -28,6 +28,16 @@
  *   - REQ-CFG-073: a permission-table write refused by the server (non-GM)
  *     leaves the previously configured floor in force — neither wider nor
  *     narrower than what the GM last set.
+ *   - REQ-USR-009/010 — RAISING a floor above ASSISTANT_GM has real effect:
+ *     the generic `isPrivileged` (ASSISTANT_GM+) threshold used to be
+ *     consulted BEFORE the permission table for every gate this module backs
+ *     (ACTOR_CREATE/ITEM_CREATE/TABLE_CREATE/PLAYLIST_CREATE in
+ *     GM_ONLY_CREATE_DELETE, JOURNAL_CREATE, and embedded TOKEN_CREATE), so
+ *     an ASSISTANT sailed through regardless of what the GM configured — the
+ *     table could only ever widen the door, never narrow it back below
+ *     ASSISTANT_GM. GM raising ACTOR_CREATE/ITEM_CREATE/JOURNAL_CREATE/
+ *     TOKEN_CREATE to GAMEMASTER now refuses an ASSISTANT on each, while
+ *     GAMEMASTER itself is always accepted (REQ-USR-010 step 1).
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -137,6 +147,7 @@ interface Ctx {
   gmToken: string;
   playerToken: string;
   trustedToken: string;
+  assistantToken: string;
   playerUserId: string;
   trustedUserId: string;
 }
@@ -162,6 +173,15 @@ async function buildCtx(): Promise<Ctx> {
     role: Role.TRUSTED,
     password: "trusted-pass",
   });
+  // ASSISTANT (role 3) — the role `isPrivileged` treats as privileged
+  // everywhere else in doc-handlers.ts. Needed to prove REQ-USR-009/010: a
+  // floor the GM raises above ASSISTANT_GM must actually refuse this role,
+  // not just PLAYER/TRUSTED below it.
+  const { user: assistant } = await authService.createUser({
+    name: "PermsAssistant",
+    role: Role.ASSISTANT,
+    password: "assistant-pass",
+  });
 
   const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
   const playerLogin = await authService.login({
@@ -172,6 +192,11 @@ async function buildCtx(): Promise<Ctx> {
   const trustedLogin = await authService.login({
     userId: trusted.id,
     password: "trusted-pass",
+    ip: "127.0.0.1",
+  });
+  const assistantLogin = await authService.login({
+    userId: assistant.id,
+    password: "assistant-pass",
     ip: "127.0.0.1",
   });
 
@@ -211,6 +236,7 @@ async function buildCtx(): Promise<Ctx> {
     gmToken: gmLogin.accessToken,
     playerToken: playerLogin.accessToken,
     trustedToken: trustedLogin.accessToken,
+    assistantToken: assistantLogin.accessToken,
     playerUserId: player.id,
     trustedUserId: trusted.id,
   };
@@ -494,5 +520,172 @@ describe("REQ-CFG-073 — refused permission write keeps the previous configured
       data: [{ name: "Trusted Item Still Allowed" }],
     });
     expect(trustedAck["ok"]).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-USR-009/010 — raising a floor ABOVE ASSISTANT_GM must actually refuse
+// an ASSISTANT, not just PLAYER/TRUSTED below it. Before the fix, every gate
+// this module backs consulted `isPrivileged` (ASSISTANT_GM+) BEFORE the
+// configured floor, so the table could only ever widen the door.
+// ---------------------------------------------------------------------------
+
+describe("GM raising a permission floor above ASSISTANT_GM refuses an ASSISTANT (REQ-USR-009/010)", () => {
+  let ctx: Ctx;
+  let gm: ClientSocket;
+  let assistant: ClientSocket;
+  let settingId: string | null = null;
+
+  async function setOverrides(value: Record<string, number>): Promise<void> {
+    if (settingId === null) {
+      const ack = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [{ key: PERMISSIONS_SETTING_KEY, value }],
+      });
+      expect(ack["ok"]).toBe(true);
+      settingId = (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+      return;
+    }
+    const ack = await sendOp(gm, "doc:update", {
+      documentType: "Setting",
+      updates: [{ _id: settingId, diff: { value } }],
+    });
+    expect(ack["ok"]).toBe(true);
+  }
+
+  beforeAll(async () => {
+    ctx = await buildCtx();
+    gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    assistant = connectClient(ctx.port, ctx.worldId, ctx.assistantToken);
+    gm.connect();
+    assistant.connect();
+    await Promise.all([waitForConnect(gm), waitForConnect(assistant)]);
+  }, 30000);
+
+  afterAll(async () => {
+    gm?.disconnect();
+    assistant?.disconnect();
+    await teardown(ctx);
+  });
+
+  it("ASSISTANT creates an Actor by default, before any floor is raised (sanity baseline)", async () => {
+    const ack = await sendOp(assistant, "doc:create", {
+      documentType: "Actor",
+      data: [{ name: "Assistant Actor Before Raise" }],
+    });
+    expect(ack["ok"]).toBe(true);
+  });
+
+  it("GM raising ACTOR_CREATE to GAMEMASTER refuses an ASSISTANT — the Permissões selector's floor now has real effect (REQ-USR-009/010, REQ-CFG-040)", async () => {
+    await setOverrides({ ACTOR_CREATE: UserRole.GAMEMASTER });
+
+    const assistantAck = await sendOp(assistant, "doc:create", {
+      documentType: "Actor",
+      data: [{ name: "Assistant Actor After Raise" }],
+    });
+    expect(assistantAck["ok"]).toBe(false);
+    expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+
+    // GAMEMASTER itself is always accepted regardless of the table (REQ-USR-010 step 1).
+    const gmAck = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [{ name: "Gm Actor After Raise" }],
+    });
+    expect(gmAck["ok"]).toBe(true);
+  });
+
+  it("GM raising ITEM_CREATE to GAMEMASTER refuses an ASSISTANT (REQ-USR-009/010, REQ-CFG-040)", async () => {
+    await setOverrides({ ACTOR_CREATE: UserRole.GAMEMASTER, ITEM_CREATE: UserRole.GAMEMASTER });
+
+    const assistantAck = await sendOp(assistant, "doc:create", {
+      documentType: "Item",
+      data: [{ name: "Assistant Item After Raise" }],
+    });
+    expect(assistantAck["ok"]).toBe(false);
+    expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+  });
+
+  it("GM raising JOURNAL_CREATE to GAMEMASTER refuses an ASSISTANT (REQ-USR-009/010, REQ-CFG-040)", async () => {
+    await setOverrides({
+      ACTOR_CREATE: UserRole.GAMEMASTER,
+      ITEM_CREATE: UserRole.GAMEMASTER,
+      JOURNAL_CREATE: UserRole.GAMEMASTER,
+    });
+
+    const assistantAck = await sendOp(assistant, "doc:create", {
+      documentType: "JournalEntry",
+      data: [{ name: "Assistant Journal After Raise" }],
+    });
+    expect(assistantAck["ok"]).toBe(false);
+    expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-USR-009/010 on embedded Token create — same bug, separate world so the
+// scene/ownership setup does not interact with the suite above.
+// ---------------------------------------------------------------------------
+
+describe("GM raising TOKEN_CREATE above ASSISTANT_GM refuses an ASSISTANT (REQ-USR-009/010)", () => {
+  let ctx: Ctx;
+  let gm: ClientSocket;
+  let assistant: ClientSocket;
+  let sceneId: string;
+
+  beforeAll(async () => {
+    ctx = await buildCtx();
+    gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    assistant = connectClient(ctx.port, ctx.worldId, ctx.assistantToken);
+    gm.connect();
+    assistant.connect();
+    await Promise.all([waitForConnect(gm), waitForConnect(assistant)]);
+
+    const sceneAck = await sendOp(gm, "doc:create", {
+      documentType: "Scene",
+      data: [{ name: "Token Raised Floor Scene" }],
+    });
+    expect(sceneAck["ok"]).toBe(true);
+    sceneId = (sceneAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const activateAck = await sendOp(gm, "world:activeScene", { sceneId });
+    expect(activateAck["ok"]).toBe(true);
+  }, 30000);
+
+  afterAll(async () => {
+    gm?.disconnect();
+    assistant?.disconnect();
+    await teardown(ctx);
+  });
+
+  it("ASSISTANT creates a Token by default, before any floor is raised (sanity baseline)", async () => {
+    const ack = await sendOp(assistant, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Assistant Token Before Raise" }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(ack["ok"]).toBe(true);
+  });
+
+  it("GM raising TOKEN_CREATE to GAMEMASTER refuses an ASSISTANT on embedded create (REQ-USR-009/010, REQ-CFG-040)", async () => {
+    const settingAck = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key: PERMISSIONS_SETTING_KEY, value: { TOKEN_CREATE: UserRole.GAMEMASTER } }],
+    });
+    expect(settingAck["ok"]).toBe(true);
+
+    const assistantAck = await sendOp(assistant, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Assistant Token After Raise" }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(assistantAck["ok"]).toBe(false);
+    expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+
+    // GAMEMASTER itself is always accepted regardless of the table (REQ-USR-010 step 1).
+    const gmAck = await sendOp(gm, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Gm Token After Raise" }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(gmAck["ok"]).toBe(true);
   });
 });

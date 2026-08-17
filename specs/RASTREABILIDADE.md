@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 615 | 33% |
-| Citados só por código de produção | 328 | 17% |
-| Sem nenhuma citação | 948 | 50% |
+| Citados por algum teste | 618 | 33% |
+| Citados só por código de produção | 326 | 17% |
+| Sem nenhuma citação | 947 | 50% |
 | **Total [MVP]** | **1891** | |
 
 ## Por spec
@@ -29,7 +29,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 10 | 16 | 33 | 17% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 7 | 21 | 20 | 15% |
-| [05](05-usuarios-e-permissoes.md) | 40 | 13 | 14 | 13 | 33% |
+| [05](05-usuarios-e-permissoes.md) | 40 | 16 | 12 | 12 | 40% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 5 | 32 | 49 | 6% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |

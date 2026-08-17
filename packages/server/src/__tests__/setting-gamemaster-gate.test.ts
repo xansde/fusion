@@ -28,6 +28,15 @@
  *     store immediately after the ack — no separate "save" step exists on
  *     this path (REQ-CFG-080).
  *   - doc:delete Setting: PLAYER and ASSISTANT refused, GAMEMASTER accepted.
+ *   - doc:create/update/delete User: refused for EVERY role, including
+ *     GAMEMASTER — `User` is the same physical `users` table `auth/
+ *     user-store.ts` uses for login, and the generic path had no guard for it
+ *     at all (absent from GM_ONLY_CREATE_DELETE, no forbidden-type entry): a
+ *     TRUSTED requester could `doc:create` a `{name, role: 4}` document and
+ *     get back a passwordless GAMEMASTER account, joinable with no password
+ *     (REQ-USR-018) — reproduced below with a TRUSTED user before the fix
+ *     (REQ-USR-025..031, REQ-USR-030). `/api/users` (requireRole GAMEMASTER)
+ *     is the one door.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -75,6 +84,7 @@ interface Ctx {
   gmToken: string;
   playerToken: string;
   assistantToken: string;
+  trustedToken: string;
   playerUserId: string;
 }
 
@@ -102,6 +112,15 @@ async function buildCtx(): Promise<Ctx> {
     role: Role.ASSISTANT,
     password: "assistant-pass",
   });
+  // TRUSTED (role 2) — the role that reproduces the User-forgery finding: it
+  // clears the generic TRUSTED+ floor doc:create otherwise uses for types
+  // with no dedicated guard, which is exactly what made `documentType:
+  // "User"` reachable before GENERIC_PATH_FORBIDDEN_TYPES covered it.
+  const { user: trusted } = await authService.createUser({
+    name: "SettingGateTrusted",
+    role: Role.TRUSTED,
+    password: "trusted-pass",
+  });
 
   const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
   const playerLogin = await authService.login({
@@ -112,6 +131,11 @@ async function buildCtx(): Promise<Ctx> {
   const assistantLogin = await authService.login({
     userId: assistant.id,
     password: "assistant-pass",
+    ip: "127.0.0.1",
+  });
+  const trustedLogin = await authService.login({
+    userId: trusted.id,
+    password: "trusted-pass",
     ip: "127.0.0.1",
   });
 
@@ -152,6 +176,7 @@ async function buildCtx(): Promise<Ctx> {
     gmToken: gmLogin.accessToken,
     playerToken: playerLogin.accessToken,
     assistantToken: assistantLogin.accessToken,
+    trustedToken: trustedLogin.accessToken,
     playerUserId: player.id,
   };
 }
@@ -200,22 +225,31 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
   let gm: ClientSocket;
   let player: ClientSocket;
   let assistant: ClientSocket;
+  let trusted: ClientSocket;
 
   beforeAll(async () => {
     ctx = await buildCtx();
     gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
     player = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
     assistant = connectClient(ctx.port, ctx.worldId, ctx.assistantToken);
+    trusted = connectClient(ctx.port, ctx.worldId, ctx.trustedToken);
     gm.connect();
     player.connect();
     assistant.connect();
-    await Promise.all([waitForConnect(gm), waitForConnect(player), waitForConnect(assistant)]);
+    trusted.connect();
+    await Promise.all([
+      waitForConnect(gm),
+      waitForConnect(player),
+      waitForConnect(assistant),
+      waitForConnect(trusted),
+    ]);
   }, 30000);
 
   afterAll(async () => {
     gm?.disconnect();
     player?.disconnect();
     assistant?.disconnect();
+    trusted?.disconnect();
     await teardown(ctx);
   });
 
@@ -364,6 +398,67 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
       });
       expect(ack["ok"]).toBe(true);
       expect(() => ctx.store.get("settings", id)).toThrow(DocumentNotFoundError);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // documentType "User" (REQ-USR-025..031, REQ-USR-030) — `TYPE_TO_TABLE` maps
+  // it to the SAME `users` table `auth/user-store.ts` reads at login, and the
+  // generic path had no guard at all for it (absent from
+  // GM_ONLY_CREATE_DELETE — only the generic TRUSTED+ floor stood in the way).
+  // Refused for EVERY role, including GAMEMASTER: /api/users is the one door.
+  // -------------------------------------------------------------------------
+
+  describe('documentType "User" is not writable through the generic path (REQ-USR-030, REQ-CFG-070)', () => {
+    it("TRUSTED cannot forge a passwordless GAMEMASTER account via doc:create (REQ-USR-018, REQ-USR-030)", async () => {
+      const ack = await sendOp(trusted, "doc:create", {
+        documentType: "User",
+        data: [{ name: "ForgedGmByTrusted", role: 4 }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
+
+      // Nothing was inserted into the real auth table — not just an ack lie.
+      const row = ctx.fusionDb.raw
+        .prepare("SELECT id FROM users WHERE name = ?")
+        .get("ForgedGmByTrusted");
+      expect(row).toBeUndefined();
+    });
+
+    it("ASSISTANT is refused on doc:create User (REQ-USR-030)", async () => {
+      const ack = await sendOp(assistant, "doc:create", {
+        documentType: "User",
+        data: [{ name: "ForgedByAssistant", role: 1 }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
+    });
+
+    it("GAMEMASTER is ALSO refused on doc:create User — /api/users is the one door (REQ-USR-030)", async () => {
+      const ack = await sendOp(gm, "doc:create", {
+        documentType: "User",
+        data: [{ name: "GmViaGenericPath", role: 1 }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
+    });
+
+    it("doc:update User is refused for every role, GAMEMASTER included (REQ-USR-030)", async () => {
+      const ack = await sendOp(gm, "doc:update", {
+        documentType: "User",
+        updates: [{ _id: ctx.playerUserId, diff: { role: 4 } }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
+    });
+
+    it("doc:delete User is refused for every role, GAMEMASTER included (REQ-USR-030)", async () => {
+      const ack = await sendOp(gm, "doc:delete", {
+        documentType: "User",
+        ids: [ctx.playerUserId],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
     });
   });
 });

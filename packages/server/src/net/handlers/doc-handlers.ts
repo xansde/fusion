@@ -191,10 +191,27 @@ const CREATE_PERMISSION_KEY_BY_TYPE: Partial<Record<string, PermissionKey>> = {
  * is no field of a ChatMessage this path is supposed to write, so the whole
  * type is refused and the chat handlers stay the single writer of
  * `chat_messages`.
+ *
+ * `User` (REQ-USR-025..031, REQ-USR-030, REQ-CFG-070): `TYPE_TO_TABLE` maps it
+ * to the SAME `users` table `auth/user-store.ts` reads at login — this is not
+ * a document type with a stray table, it is the authentication table itself.
+ * `/api/users` (`auth/routes.ts`, gated by `requireRole(Role.GAMEMASTER, ...)`)
+ * is its one door, matching every other administration action REQ-USR-030
+ * names. The generic path had no matching guard: `User` is absent from
+ * `GM_ONLY_CREATE_DELETE`, so a create/update/delete only had to clear the
+ * TRUSTED+ floor below — and unlike `store.create("users", ...)`'s intended
+ * caller (`UserStore.create` in user-store.ts, which always supplies
+ * `password_hash`/`active`), `DocumentStore.create("users", ...)` only
+ * extracts `name`/`role` into columns (`documents/store.ts`), leaving
+ * `password_hash` NULL and `active` at its column default of 1 — a role-2
+ * (TRUSTED) requester sending `{documentType:"User", data:[{name:"x",
+ * role:4}]}` got a passwordless GAMEMASTER account back, joinable with no
+ * password (REQ-USR-018), verified by execution before this guard existed.
  */
 const GENERIC_PATH_FORBIDDEN_TYPES: Record<string, string> = {
   ChatMessage:
     "ChatMessage is not writable through doc:create/doc:update/doc:delete — use chat:send to post and chat:invalidate to moderate (REQ-CHT-005 / REQ-ACH-080)",
+  User: "User is not writable through doc:create/doc:update/doc:delete — use the /api/users routes (REQ-USR-025..031, REQ-USR-030)",
 };
 
 /**
@@ -647,10 +664,21 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
 
     // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT —
     // UNLESS the world's Permissões section (REQ-CFG-040..042, REQ-USR-009)
-    // has lowered this documentType's configured floor (CREATE_PERMISSION_
-    // KEY_BY_TYPE) to something this requester's role already meets, in which
-    // case they are authorized to create it directly, same as a privileged
-    // creator (`meetsConfiguredFloor` below).
+    // has moved this documentType's configured floor (CREATE_PERMISSION_
+    // KEY_BY_TYPE) to something this requester's role already meets
+    // (`meetsConfiguredFloor` below).
+    //
+    // REQ-USR-010 spells out the check as: (1) `role === GAMEMASTER` always
+    // passes; (2) otherwise `role >= effectiveDefaultRole`. For a type with a
+    // configured key, that is the WHOLE gate — `isPrivileged` (ASSISTANT_GM+)
+    // must never be consulted as a shortcut here, or the table could only ever
+    // WIDEN the door: a GM raising ACTOR_CREATE's floor to GAMEMASTER would
+    // have no effect on an ASSISTANT, who `isPrivileged` waves through before
+    // the table is ever read (found by execution: the selector accepts role 4
+    // and marks the row "Alterado", but the write does nothing). `isPrivileged`
+    // is kept ONLY as the fallback for the three GM_ONLY_CREATE_DELETE types
+    // REQ-USR-008 defines no key for (Scene, Macro, Combat) — those have no
+    // configured floor to raise, so their gate stays exactly what it was.
     //
     // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
     // companions (familiars) linked to a master they own. Each item in the
@@ -670,50 +698,65 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // generic TRUSTED role floor below, so a floor configured under TRUSTED
     // is not silently re-blocked by it.
     let authorizedByPermissionTable = false;
-    if (GM_ONLY_CREATE_DELETE.has(documentType) && !isPrivileged(ctx.role)) {
+    if (GM_ONLY_CREATE_DELETE.has(documentType)) {
       const permissionKey = CREATE_PERMISSION_KEY_BY_TYPE[documentType];
-      const meetsConfiguredFloor =
-        permissionKey !== undefined &&
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-        ctx.role >= resolvePermissionMinRole(deps.store, permissionKey);
+      if (permissionKey !== undefined) {
+        const minRole = resolvePermissionMinRole(deps.store, permissionKey);
+        const meetsConfiguredFloor =
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+          ctx.role === UserRole.GAMEMASTER || ctx.role >= minRole;
 
-      if (meetsConfiguredFloor) {
-        authorizedByPermissionTable = true;
-      } else if (documentType !== "Actor") {
-        return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
-      } else {
-        // Every item must be an authorized companion, else deny the whole batch.
-        for (let i = 0; i < data.length; i++) {
-          const item = data[i] as Record<string, unknown>;
-          if (!isCompanionDoc(item)) {
-            return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+        if (meetsConfiguredFloor) {
+          authorizedByPermissionTable = true;
+        } else if (documentType !== "Actor") {
+          return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+        } else {
+          // Every item must be an authorized companion, else deny the whole batch.
+          for (let i = 0; i < data.length; i++) {
+            const item = data[i] as Record<string, unknown>;
+            if (!isCompanionDoc(item)) {
+              return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+            }
+            const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+            if (!auth.ok) {
+              return ackError(auth.code, auth.message);
+            }
+            // Force the familiar's ownership to mirror the master's owners.
+            forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
           }
-          const auth = authorizePlayerCompanionCreate(deps, ctx, item);
-          if (!auth.ok) {
-            return ackError(auth.code, auth.message);
-          }
-          // Force the familiar's ownership to mirror the master's owners.
-          forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
+          authorizedCompanionBatch = data.length > 0;
         }
-        authorizedCompanionBatch = data.length > 0;
+      } else if (!isPrivileged(ctx.role)) {
+        // Scene / Macro / Combat: REQ-USR-008 defines no configurable key for
+        // these — the historical ASSISTANT_GM+ gate is the only rule.
+        return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
       }
     }
 
     // Non-privileged users can create their own documents for allowed types
     // (REQ-USR-008; JournalEntry's key is JOURNAL_CREATE, configurable via
-    // world-permissions.ts — everything else reaching this point, e.g. User/
+    // world-permissions.ts — everything else reaching this point, e.g.
     // Folder, keeps the historical TRUSTED+ floor since REQ-USR-008 defines no
     // key for them). Skipped for an already-authorized player companion batch
     // (r17-P1) or an already-authorized configured-permission batch: a plain
     // PLAYER owning a granting master, or a role meeting a lowered configured
     // floor, is authorized above.
-    if (!authorizedCompanionBatch && !authorizedByPermissionTable && !isPrivileged(ctx.role)) {
+    //
+    // Runs for EVERY role, including GM/ASSISTANT — not just non-privileged —
+    // for the same REQ-USR-010 reason as the block above: JournalEntry's floor
+    // is configurable up to GAMEMASTER, and `isPrivileged` must not be able to
+    // wave an ASSISTANT past a floor the GM raised above ASSISTANT_GM. A
+    // GAMEMASTER always passes (role === GAMEMASTER short-circuit); everyone
+    // else, privileged or not, is measured against the resolved floor — which
+    // for every type but JournalEntry is the fixed TRUSTED(2), so this changes
+    // nothing for ASSISTANT_GM(3)/GAMEMASTER(4) on those types.
+    if (!authorizedCompanionBatch && !authorizedByPermissionTable) {
       const minRole =
         documentType === "JournalEntry"
           ? resolvePermissionMinRole(deps.store, "JOURNAL_CREATE")
           : UserRole.TRUSTED;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      if (ctx.role < minRole) {
+      if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
         return ackError("PERMISSION_DENIED", "Insufficient role to create documents");
       }
     }
@@ -1197,13 +1240,20 @@ function handleEmbeddedCreate(
   // player from adding a spell to their own actor). Non-Token embedded types
   // (Combatant) have no REQ-USR-008 key, so they keep the historical
   // TRUSTED+ floor unconditionally.
-  if (parent.type !== "Actor" && !isPrivileged(ctx.role)) {
+  //
+  // REQ-USR-010: `isPrivileged` is deliberately NOT the outer gate here — the
+  // same reasoning as the primary doc:create path above. A GM raising
+  // TOKEN_CREATE's floor above ASSISTANT_GM must actually stop an ASSISTANT;
+  // `role === GAMEMASTER` is the one unconditional pass, everyone else is
+  // measured against the resolved floor (fixed TRUSTED for Combatant, so this
+  // changes nothing for that type).
+  if (parent.type !== "Actor") {
     const minRole =
       embeddedType === "Token"
         ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
         : UserRole.TRUSTED;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (ctx.role < minRole) {
+    if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
       return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
     }
   }
