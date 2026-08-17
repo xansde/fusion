@@ -8,7 +8,6 @@ import { describe, it, expect } from "vitest";
 import {
   dispositionColor,
   DISPOSITION_COLORS,
-  SECRET_RING_COLOR,
   placeholderColor,
   placeholderInitials,
   tokenPixelSize,
@@ -47,10 +46,10 @@ describe("dispositionColor", () => {
     expect(dispositionColor(1)).toBe(DISPOSITION_COLORS[1]);
   });
 
-  it("returns secret gray for unknown values", () => {
-    expect(dispositionColor(99)).toBe(SECRET_RING_COLOR);
-    expect(dispositionColor(2)).toBe(SECRET_RING_COLOR);
-  });
+  // DEC-TOK-12 (TK042): `secret` is not a disposition — the gray fallback
+  // this test used to pin (`SECRET_RING_COLOR`) is gone, and so is the
+  // out-of-range case: `dispositionColor`'s parameter type is now exactly
+  // -1 | 0 | 1, so there is no fourth value to return a color for.
 });
 
 // ---------------------------------------------------------------------------

@@ -1,15 +1,17 @@
 /**
  * tokenSpriteRing.test.ts — a token with `disposition: null` draws the
- * neutral disposition ring, not the "secret" gray one.
+ * neutral disposition ring, not a "secret" gray one.
  *
  * REQ-TOK-080 (specs/41-token.md): disposition "DEVE ser herdada do ator
- * quando não sobrescrita". Full inheritance from the actor is TK042 (Fase 3,
- * out of this task's scope — no Actor document carries a `disposition` field
- * yet). Until then, `null` (the schema default since TK024 made the field
- * nullable) MUST fall back to neutral so REQ-TOK-081 / REQ-CNV-027's
- * hostile/neutral/friendly ring keeps showing on every token — not regress
- * to the gray `SECRET_RING_COLOR`, which DEC-TOK-12 already retired as a
- * disposition value.
+ * quando não sobrescrita". TK042 (Fase 3) removed `SECRET_RING_COLOR` and the
+ * `secret` disposition value outright (DEC-TOK-12) — but full inheritance
+ * FROM the actor stays a documented gap: `ActorDocument` (spec 02) carries no
+ * `disposition` field, and no DEC-TOK decision adds one. So `null` (the
+ * schema default since TK024 made the field nullable) still falls back to
+ * neutral, which is the correct behaviour today — REQ-TOK-081/REQ-CNV-027's
+ * hostile/neutral/friendly ring keeps showing on every token, and there is no
+ * gray fallback left to regress to (`dispositionColor`'s parameter type is
+ * now exactly -1 | 0 | 1).
  *
  * PIXI is fully mocked (pattern shared with sceneGrantReuse.test.ts): none of
  * this needs a renderer, and the assertion is about which color `stroke()`
@@ -18,7 +20,7 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { createDocumentId, defaultTokenDocument, type TokenDocument } from "@fusion/shared";
-import { DISPOSITION_COLORS, SECRET_RING_COLOR } from "../token-visuals.js";
+import { DISPOSITION_COLORS } from "../token-visuals.js";
 
 // --- PIXI stubs -------------------------------------------------------------
 const pixiStubs = vi.hoisted(() => {
@@ -139,7 +141,6 @@ describe("TokenSprite ring color — REQ-TOK-080, REQ-TOK-081, DEC-TOK-12", () =
     new TokenSprite(token, 100, false, mirror);
 
     expect(pixiStubs.strokes[0]?.color).toBe(DISPOSITION_COLORS[0]);
-    expect(pixiStubs.strokes[0]?.color).not.toBe(SECRET_RING_COLOR);
   });
 
   it("still draws hostile/neutral/friendly when disposition is explicitly overridden", () => {

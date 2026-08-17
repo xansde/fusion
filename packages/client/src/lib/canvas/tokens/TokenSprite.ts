@@ -611,13 +611,16 @@ export class TokenSprite {
     const g = this._ringGraphics;
     g.clear();
 
-    // TK024/REQ-TOK-080: `null` means "herda do ator" — resolving that
-    // inheritance is TK042 (Fase 3), out of this task's scope. Until then a
-    // null disposition falls back to neutral (0), the value the schema
-    // defaulted to before TK024 made the field nullable (DEC-TOK-12: three
-    // real dispositions, `secret` is not one of them) — NOT the gray
-    // `SECRET_RING_COLOR`, which `dispositionColor` only reaches for a
-    // genuinely out-of-range number and which TK042 removes outright.
+    // TK024/REQ-TOK-080: `null` means "herda do ator". TK042 (Fase 3) is what
+    // was supposed to resolve that inheritance here, but `ActorDocument` (spec
+    // 02) carries no `disposition` field to inherit FROM — no DEC-TOK decision
+    // adds one, and this task's file scope (this module + shared/scene.ts)
+    // does not extend to changing the Actor schema. Until an actor-level
+    // disposition exists, `null` falls back to neutral (0), the value the
+    // schema defaulted to before TK024 made the field nullable (DEC-TOK-12:
+    // three real dispositions, `secret` is not one of them) — never the gray
+    // `SECRET_RING_COLOR`, which TK042 removed outright (there is no fourth
+    // case left: `dispositionColor` only accepts -1/0/1 now).
     const color = dispositionColor(this._doc.disposition ?? 0);
     g.roundRect(
       RING_THICKNESS / 2,

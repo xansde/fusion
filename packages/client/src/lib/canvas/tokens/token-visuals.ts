@@ -30,21 +30,18 @@ export const DISPOSITION_COLORS: Record<DispositionValue, number> = {
   "1": 0x33bc4e, // friendly — green
 };
 
-/** Secret / no-actor disposition ring color. */
-export const SECRET_RING_COLOR = 0x555555;
-
 /**
- * Return the ring border color for a token.
- * When `showRing` is false, callers should skip rendering the ring entirely.
+ * Return the ring border color for a token's disposition.
  *
- * Disposition -1 = hostile, 0 = neutral, 1 = friendly.
- * Any other value → secret gray.
+ * Disposition -1 = hostile, 0 = neutral, 1 = friendly — exactly three values
+ * (DEC-TOK-12, REQ-TOK-080). `SECRET_RING_COLOR` — the pre-TK042 fallback for
+ * "any other value", which was also what painted a token with no actor
+ * (DEC-TOK-04 has since made that state unrepresentable) — is gone: there is
+ * no fourth case left to fall back to, so the parameter type itself rules it
+ * out at compile time instead of a runtime branch nothing can reach.
  */
-export function dispositionColor(disposition: number): number {
-  if (disposition === -1) return DISPOSITION_COLORS[-1];
-  if (disposition === 0) return DISPOSITION_COLORS[0];
-  if (disposition === 1) return DISPOSITION_COLORS[1];
-  return SECRET_RING_COLOR;
+export function dispositionColor(disposition: DispositionValue): number {
+  return DISPOSITION_COLORS[disposition];
 }
 
 // ---------------------------------------------------------------------------
