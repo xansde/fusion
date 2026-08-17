@@ -39,3 +39,9 @@ Thumbs.db
 # Claude session-local launch config (absolute local paths)
 .claude/launch.json
 .playwright-cli/
+
+# Leva noturna 2026-08-17: ferramental local + cópia de dados (auth_secret, mundos) — nunca versionar
+.fusion-build/leva-2026-08-17/
+# saída da skill local tutorial-e2e (prints + relatório)
+.e2e-visual/
+test-results/
