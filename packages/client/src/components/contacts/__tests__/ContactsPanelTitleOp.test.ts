@@ -9,21 +9,48 @@
  * DocumentMirror. The client runs Vitest in a node environment with no
  * jsdom/testing-library (see ContactsPanel.test.ts's own docstring), so this
  * file cannot click the edit control to drive the real component — instead
- * it proves the op-building contract directly: the EXACT same
- * `{ type: "doc:update", documentType: "Actor", id, diff }` shape
- * `commitTitle()` builds (documentType "Actor", `id: card.id`,
+ * it proves the fix in two halves. The first `it` proves the op-building
+ * contract: the EXACT same `{ type: "doc:update", documentType: "Actor", id,
+ * diff }` shape `commitTitle()` builds (documentType "Actor", `id: card.id`,
  * `diff: contactTitleDiff(next)`), passed through the funnel the fixed
  * component now uses (`toEnvelope`), comes out with `expectedVersion` filled
- * from the mirror — and that the OLD crude shape (a hand-built wire envelope,
- * skipping the funnel) does not.
+ * from the mirror. The second `it` proves the call site actually reaches that
+ * funnel: it reads `ContactsPanel.svelte`'s own source (same `codeOf()` idiom
+ * as ContactsPanelEmpty.test.ts) and asserts `commitTitle()` calls
+ * `sendOp(socket, toEnvelope(op))` — never a hand-built wire envelope — so
+ * reverting the call site fails this test even though `toEnvelope()` itself
+ * is untouched.
  */
 
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { toEnvelope } from "../../../lib/docs/sendOp.js";
 import { DocumentMirror } from "../../../lib/docs/DocumentMirror.js";
 import { contactTitleDiff } from "../../../lib/contacts/contactsVM.js";
 
 const ACTOR_ID = "act-fofurinha01";
+
+/** Same idiom as ContactsPanelEmpty.test.ts's codeOf(): source with comments
+ * stripped, so prose (including this file's own doc-comments about the old
+ * shape) is never mistaken for the code under test. */
+function codeOf(file: string): string {
+  return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+}
+
+/** The body of ContactsPanel.svelte's commitTitle(), isolated so an assertion
+ * about "the call site" can't accidentally match some other function. */
+function commitTitleSource(): string {
+  const code = codeOf("ContactsPanel.svelte");
+  const start = code.indexOf("async function commitTitle");
+  const end = code.indexOf("function onTitleKeydown", start);
+  if (start === -1 || end === -1) {
+    throw new Error("commitTitle() or its successor not found in ContactsPanel.svelte");
+  }
+  return code.slice(start, end);
+}
 
 /** A DocumentMirror seeded with one Actor at a known `_stats.version`. */
 function mirrorWithActor(id: string, version: number): DocumentMirror {
@@ -62,20 +89,22 @@ describe("A001 — ContactsPanel's title-edit op (REQ-CTT-024, REQ-CTT-085)", ()
     });
   });
 
-  it("the OLD crude shape (a hand-built wire envelope bypassing toEnvelope) never carries expectedVersion, reproducing the server's refusal", () => {
-    // This is what commitTitle() sent BEFORE the A001 fix: a wire-shaped
-    // envelope built by hand and handed straight to sendOp(), never routed
-    // through toEnvelope()/fillExpectedVersion at all. No mirror is consulted
-    // here on purpose — that is exactly the bug: the field is absent no
-    // matter what the mirror knows, which is what made the server reject it
-    // with "expectedVersion is required for Actor/<id> — reload the document
-    // and retry" (doc-handlers.ts) for every non-privileged writer.
-    const legacyPayload = {
-      documentType: "Actor",
-      updates: [{ _id: ACTOR_ID, diff: contactTitleDiff("A Voz do Bosque") }],
-    };
+  it("ContactsPanel.svelte's commitTitle() calls sendOp through toEnvelope, not a hand-built wire envelope (REQ-CTT-024, REQ-CTT-085)", () => {
+    // This is the call-site half of the fix: the previous `it` proves that
+    // *if* commitTitle's op is routed through toEnvelope(), expectedVersion
+    // comes out filled — but nothing above touches ContactsPanel.svelte's own
+    // source. Before the A001 fix, commitTitle() called
+    // `sendOp(socket, { type: "doc:update", payload: { documentType, updates: [...] } })`
+    // directly: a wire-shaped envelope built by hand, bypassing
+    // toEnvelope()/fillExpectedVersion entirely — which is what made the
+    // server reject it with "expectedVersion is required for Actor/<id> —
+    // reload the document and retry" (doc-handlers.ts) for every
+    // non-privileged writer. Reverting the call site to that shape must fail
+    // this assertion, independent of what toEnvelope() itself does.
+    const source = commitTitleSource();
 
-    const updates = legacyPayload.updates;
-    expect("expectedVersion" in updates[0]!).toBe(false);
+    expect(source).toContain("sendOp(socket, toEnvelope(op))");
+    expect(source).not.toContain("payload: {");
+    expect(source).not.toContain("updates: [");
   });
 });
