@@ -190,11 +190,14 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 
 - **Racional:** REQ-USR-030 já restringe administração de usuários ao GAMEMASTER; o
   resto da aba segue o mesmo nível em vez de inventar um segundo.
-- **Nota de implementação:** o predicado do servidor hoje é `isRolePrivileged`, que
-  inclui o papel `ASSISTANT_GM`. O papel foi extinto por decisão de 2026-08-15 (issue
-  #133) e esta spec já é escrita sem ele; enquanto a issue não roda, a escrita das
-  seções de mesa **DEVE** ser guardada explicitamente por GAMEMASTER e não por
-  `isRolePrivileged`.
+- **Nota de implementação:** a escrita (e a leitura) das seções Mundo, Permissões,
+  Usuários e Mods é guardada por `isGamemasterStrict` (`role === GAMEMASTER`
+  estritamente), não por `isRolePrivileged` — o predicado genérico usado nas ações de
+  jogo, que inclui `ASSISTANT` (papel 3, REQ-USR-007) e por isso não serve para esta
+  aba. A issue #133 (2026-08-15) rodou por completo: o enum `ASSISTANT_GM` — nome
+  interno de `packages/server/src/documents/ownership.ts` que confundia o papel
+  `ASSISTANT` da spec 05 com o GM — foi removido; o papel `ASSISTANT` (REQ-USR-005)
+  continua ativo e privilegiado para ações de jogo, só não para administração de mesa.
 
 ## 5. Requisitos funcionais
 
