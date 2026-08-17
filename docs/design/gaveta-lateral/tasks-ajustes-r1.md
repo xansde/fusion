@@ -50,16 +50,16 @@ instrução) primeiro: são os que impedem testar o resto da mesa ou corrompem d
 uma fase por área/aba, na ordem em que o Alexandre relatou: Rail → Chat → Contatos/NPCs →
 Compêndio → Cenas → Configurações → Processo.
 
-| PR  | Fase                          | Itens                  |
-| --- | ------------------------------ | ----------------------- |
-| K   | Fase 0 — bugs bloqueantes      | 9, 13, 14, 22, 24, 28, 31 |
-| L   | Fase 1 — Rail (36)             | 1, 2/32                 |
-| M   | Fase 2 — Chat (38)             | 3, 4, 5, 6, 7, 8         |
+| PR  | Fase                           | Itens                          |
+| --- | ------------------------------ | ------------------------------ |
+| K   | Fase 0 — bugs bloqueantes      | 9, 13, 14, 22, 24, 28, 31      |
+| L   | Fase 1 — Rail (36)             | 1, 2/32                        |
+| M   | Fase 2 — Chat (38)             | 3, 4, 5, 6, 7, 8               |
 | N   | Fase 3 — Contatos/NPCs (39/42) | 10, 11, 17, 18, 19, 20, 21, 23 |
-| O   | Fase 4 — Compêndio (43/16)     | 12, 15, 16               |
-| P   | Fase 5 — Cenas (44)            | 25, 26, 27               |
-| Q   | Fase 6 — Configurações (37/05) | 29, 30                   |
-| R   | Fase 7 — Processo               | 33 (P1–P4)               |
+| O   | Fase 4 — Compêndio (43/16)     | 12, 15, 16                     |
+| P   | Fase 5 — Cenas (44)            | 25, 26, 27                     |
+| Q   | Fase 6 — Configurações (37/05) | 29, 30                         |
+| R   | Fase 7 — Processo              | 33 (P1–P4)                     |
 
 Fase 0 não é cortável. Da Fase 6 para trás, pode-se cortar por tempo — exceto Fase 7
 (processo), que é o que evita repetir esta rodada inteira.
@@ -110,8 +110,8 @@ carregamento, erro com nova tentativa". G094 (`tasks.md:942-949`).
 ...)`, timeout 10s. O handler do servidor sempre resolve o ack (inclusive em exceção, via
 try/catch do dispatcher genérico em `net/socket-manager.ts:862-870`). `requireConnectedSocket`
 (`compendiumApi.ts:41-58`) já tem um guard comentado como fix de um bug de classe conhecida:
-*"socket.io buffers `emit()` calls on a disconnected/replaced Socket instance silently: the
-ack callback never fires... endless spinner with ZERO ops reaching the server"* — mas esse
+_"socket.io buffers `emit()` calls on a disconnected/replaced Socket instance silently: the
+ack callback never fires... endless spinner with ZERO ops reaching the server"_ — mas esse
 guard só cobre o caso `socket.connected === false` no momento da chamada.
 
 **(c) Causa provável:** o cenário documentado no próprio comentário do código — socket
@@ -257,9 +257,9 @@ issue nomeando a causa confirmada).
 `ASSISTANT`, `GAMEMASTER`. **`TRUSTED` é canônico da spec 05 — não é invenção da
 implementação.** O que **foi** extinto (issue #133, 2026-08-15) é um enum **diferente**:
 `ASSISTANT_GM`, usado internamente em `packages/server/src/documents/ownership.ts`. A spec
-37 já registra a distinção por escrito (linha 193-197): *"o predicado de hoje é
+37 já registra a distinção por escrito (linha 193-197): _"o predicado de hoje é
 `isRolePrivileged`, que inclui `ASSISTANT_GM`... enquanto a issue não roda, guardar
-explicitamente por GAMEMASTER"*.
+explicitamente por GAMEMASTER"_.
 
 **(b) Estado atual:** há **dois enums de papel** que não são o mesmo: `Role` em
 `user-store.ts` (espelha a spec 05: `PLAYER=1, TRUSTED=2, ASSISTANT=3, GAMEMASTER=4`) e
@@ -276,6 +276,7 @@ vivo e correto; `ASSISTANT_GM` do código, extinto pela issue #133 mas **ainda p
 por completo — só a aba Configurações foi isolada do problema via `isGamemasterStrict`.
 
 **(d) Tarefa — duas frentes distintas:**
+
 1. **Confirmar com o Alexandre** que `TRUSTED` é papel legítimo da spec 05 (REQ-USR-005) e
    não deve ser removido do seletor — só registrar a citação exata para fechar a dúvida.
 2. **Concluir a issue #133 de verdade:** remover `ASSISTANT_GM` de `ownership.ts` e migrar
@@ -303,19 +304,20 @@ fist|unarmed|desarmad"` só retorna commits anteriores à divergência das duas 
 
 **(c) Commits candidatos em `origin/build/app`, em ordem, todos tocando só
 `systems/pf2e/`:**
+
 1. **`e8fc80c`** — `feat(pf2e): todo personagem ganha o ataque desarmado de Punho por
-   regra (#62)` (12/08 19:03) — `systems/pf2e/src/derivations/equipment.ts` (+23/-8),
+regra (#62)` (12/08 19:03) — `systems/pf2e/src/derivations/equipment.ts` (+23/-8),
    `systems/pf2e/src/__tests__/derivations-equipment.test.ts` (+85/-4). Introduz a síntese
    do "Fist" (1d4 contundente) quando o scan não encontra nenhuma arma desarmada.
 2. **`3a420f9`** — `fix(pf2e): garra concedida deixa de comer o Punho do personagem`
    (12/08 21:14) — mesmos dois arquivos (+53/-8 e ajustes). Corrige dedupe do Punho
    sintético (trocou `category === "unarmed"` por `category === "unarmed" && name ===
-   "Fist"`), permitindo Claw+Fist coexistirem. **Nota do próprio commit:** documenta duas
+"Fist"`), permitindo Claw+Fist coexistirem. **Nota do próprio commit:** documenta duas
    falhas pré-existentes e não corrigidas ali ("Fighter level 5 — Strike (Longsword)" e
    "Agile weapon strike MAP") — avisar o Alexandre de que o cherry-pick não é 100%
    fechado mesmo depois desses três commits.
 3. **`2beab12`** — `test(pf2e): derivations.test.ts absorve o Punho sintético — 2 strikes
-   com arma equipada` (12/08 21:45) — `systems/pf2e/src/__tests__/derivations.test.ts`
+com arma equipada` (12/08 21:45) — `systems/pf2e/src/__tests__/derivations.test.ts`
    (+13/-2). Ajusta duas asserções que esperavam 1 strike para 2 (o Punho sintético agora
    sempre entra na lista, por último).
 
@@ -546,6 +548,7 @@ sustenta a hipótese de regressão via commit.
 **(b) Seletor de modo dentro do editor de favoritos — achado: a spec pede o OPOSTO do que
 foi relatado como proibido, mas só para a JANELA DE MONTAGEM, não para o editor de
 favoritos:**
+
 - DEC-ACH-06 (`specs/38-aba-chat.md:142-149`) — a **janela de montagem** "não tem seletor
   de modo — apenas informa em que modo a rolagem vai sair". REQ-ACH-061 confirma.
 - G035 (`tasks.md:377-390`) — "A janela compõe o que se rola e não escolhe a plateia: só
@@ -564,6 +567,7 @@ componente novo (a "tela boa" que o Alexandre viu não existe em nenhum commit) 
 modo é **exigido** no editor de favoritos por REQ-ACH-052/055, não proibido.
 
 **(d) Tarefa — três frentes:**
+
 1. **Confirmar com o Alexandre**, citando REQ-ACH-052/055/DEC-ACH-06 literalmente, se ele
    quer **mudar a decisão** (proibir modo travado por favorito também) — isso seria emenda
    de spec 38 antes de qualquer código, não correção de bug.
@@ -805,6 +809,7 @@ ser uma variante de grill mais recente que não ficou salva no HTML, ou uma tela
 vista durante a implementação).
 
 **(b) Divergências reais encontradas (não "fora do padrão", mas inconsistências):**
+
 1. As facetas de tipo de documento só aparecem na **raiz** (`openPackId === null`);
    raridade e nível aparecem sempre (dentro e fora de pack) — assimetria sem explicação
    na UI.
@@ -834,9 +839,9 @@ destaque, nome original abaixo") — não no documento importado em si.
 `doc.name` = nome EN do pack) para o novo documento do mundo, e **deleta** o campo `i18n`
 (linha 712) que carregava a tradução como overlay separado (`i18n.ptBR`, anexado só na
 leitura via `getDocument()`, nunca persistido no `name` raiz). O comentário do próprio
-código (linhas 696-713) documenta que isso é **deliberado**: *"This EN-pure decision is
+código (linhas 696-713) documenta que isso é **deliberado**: _"This EN-pure decision is
 DELIBERATE and must not be reverted (issue #43) — the world document is a snapshot, not a
-live view of the pack overlay."*
+live view of the pack overlay."_
 
 **Gap real:** essa decisão "EN-pure" foi tomada no nível de implementação (issue #43 do
 código), **sem que a spec 43/16 jamais tenha discutido explicitamente** se `name` do
@@ -864,6 +869,7 @@ consumidores; ou (se opção 2) altera `importToWorld` para persistir o nome tra
 
 **(b) Pontos de confusão estrutural encontrados na leitura do código real (base para o
 redesign):**
+
 - Densidade tipográfica extrema (0.65rem–0.85rem em quase tudo), sem hierarquia visual
   entre "escopo corrente", facetas e linhas de resultado.
 - Facetas assimétricas (ver A040-b).
@@ -968,16 +974,16 @@ de permissão tenha sua origem documentada.
 
 **(b) Lista-base levantada** (handlers que hoje fazem checagem de papel/permissão):
 
-| Arquivo | Uso |
-|---|---|
-| `actor-delete-handlers.ts:33` | `isRolePrivileged` — exclusão de ator (REQ-NPC-050) |
-| `doc-handlers.ts` | `isRolePrivileged` (linhas 70, 287, 1878); `isGamemasterStrict` (1891, seções de mesa da Config.); `role >= minRole` (780, permissões configuráveis REQ-USR-010) |
-| `fog-handlers.ts:78,120,154` | `isRolePrivileged` — fog of war |
-| `folder-handlers.ts:88` | `isRolePrivileged` — CRUD de pastas |
-| `knowledge-handlers.ts:55` | `isRolePrivileged` — conhecimento/contatos |
-| `settings-handlers.ts:201` | comentário aponta REQ-CFG-070 (role===GAMEMASTER no servidor) |
-| `sync-handlers.ts:74,665` | `isRolePrivileged` — sincronização/redação de snapshot |
-| `vision-handlers.ts` (6 ocorrências) | `isRolePrivileged` — visão/iluminação |
+| Arquivo                              | Uso                                                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actor-delete-handlers.ts:33`        | `isRolePrivileged` — exclusão de ator (REQ-NPC-050)                                                                                                              |
+| `doc-handlers.ts`                    | `isRolePrivileged` (linhas 70, 287, 1878); `isGamemasterStrict` (1891, seções de mesa da Config.); `role >= minRole` (780, permissões configuráveis REQ-USR-010) |
+| `fog-handlers.ts:78,120,154`         | `isRolePrivileged` — fog of war                                                                                                                                  |
+| `folder-handlers.ts:88`              | `isRolePrivileged` — CRUD de pastas                                                                                                                              |
+| `knowledge-handlers.ts:55`           | `isRolePrivileged` — conhecimento/contatos                                                                                                                       |
+| `settings-handlers.ts:201`           | comentário aponta REQ-CFG-070 (role===GAMEMASTER no servidor)                                                                                                    |
+| `sync-handlers.ts:74,665`            | `isRolePrivileged` — sincronização/redação de snapshot                                                                                                           |
+| `vision-handlers.ts` (6 ocorrências) | `isRolePrivileged` — visão/iluminação                                                                                                                            |
 
 Nota: a maioria usa o predicado genérico `isRolePrivileged` (limiar por papel, não por
 `Permission Key` individual) — a granularidade fina de REQ-USR-008/009 (papel mínimo por
