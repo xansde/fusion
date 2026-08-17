@@ -25,6 +25,7 @@ import {
   systemPingHandler,
   buildWhoAmIHandler,
   buildSystemConditionsHandler,
+  buildSystemFootprintHandler,
 } from "./handlers/system.js";
 import {
   buildSettingsDeclarationsHandler,
@@ -353,6 +354,12 @@ export class SocketManager {
     // (REQ-CTT-031/032/034) and the client cannot import a game system, so the
     // declaration reaches the drawer through here.
     registry.register("system:conditions", buildSystemConditionsHandler(systemModule));
+    // Spec 15 REQ-SYS-009 / spec 41-token.md TK041/DEC-TOK-03: the active
+    // system's size→footprint table. A token's occupied cells are derived
+    // from its effective actor's size category, never a field on the token
+    // (REQ-TOK-012/017), and the client cannot import a game system — same
+    // door shape as `system:conditions` above.
+    registry.register("system:footprint", buildSystemFootprintHandler(systemModule));
     // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's
     // Mundo section renders purely from what the active system declared —
     // this is the door that declaration crosses (settings ENGINE already
