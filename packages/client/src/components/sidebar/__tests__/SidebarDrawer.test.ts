@@ -178,6 +178,31 @@ describe("Sidebar / SidebarDrawer", () => {
     });
   });
 
+  describe("the outer edge against the canvas (REQ-GAV-005, A010 review round)", () => {
+    it("REQ-GAV-005: the panel carries the drawer's outer border now that A010 stripped the rail's", () => {
+      // Ajustes r1 — Fase 1, review round: A010 removed `.sidebar-rail`'s own
+      // `background`/`border-left` (SidebarRail.test.ts, "the rail container itself
+      // paints no background and no border"), which left the drawer with no outer
+      // edge against the canvas at all. The prototype (`sidebar-rail.prototype.html`,
+      // `.C .panel`) puts that edge on the panel, in the accent token rather than the
+      // neutral border — `.sidebar-rail__button--active`'s box-shadow is what erases
+      // the seam behind the open tab (SidebarRail.test.ts).
+      const drawerCss = source("SidebarDrawer.svelte");
+      const rule = /\.sidebar-drawer\s*\{([^}]*)\}/.exec(drawerCss)?.[1] ?? "";
+
+      expect(rule).toMatch(/border-left:\s*1px solid var\(--fusion-accent\)(?!-hover)/);
+    });
+
+    it("REQ-GAV-005: the comment above the panel's fill no longer claims the rail owns the edge", () => {
+      // The comment this replaces used to read "The rail already carries the outer
+      // edge against the canvas" — false the moment A010 dropped that border. Pin
+      // the specific false claim so it cannot silently come back.
+      const drawerCss = source("SidebarDrawer.svelte");
+
+      expect(drawerCss).not.toMatch(/rail already carries the outer edge/i);
+    });
+  });
+
   describe("one gesture, and no second control (REQ-GAV-010, REQ-GAV-011)", () => {
     it("REQ-GAV-010: the drawer opens on the tab the rail marks as active", () => {
       seedPreferences(true, "combat");

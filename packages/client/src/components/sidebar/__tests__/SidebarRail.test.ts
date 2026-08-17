@@ -427,6 +427,18 @@ describe("SidebarRail", () => {
       expect(rule).not.toMatch(/background:/);
       expect(rule).toMatch(/color:\s*var\(--fusion-text\)(?!-muted)/);
     });
+
+    it("REQ-GAV-005: the active tab erases the panel's accent border behind itself with a matching box-shadow", () => {
+      // SidebarDrawer.svelte's `.sidebar-drawer` now carries the outer edge as
+      // `border-left: 1px solid var(--fusion-accent)` (A010 review round moved it
+      // off the bare `.sidebar-rail`). Prototype `.C.is-open .tabs .tabbtn.is-active`:
+      // `box-shadow:1px 0 0 0 var(--surface)` paints over exactly the 1px sliver of
+      // that border sitting behind the open tab, so button and panel read as one
+      // continuous shape at the seam.
+      const rule = ruleFor(".sidebar-rail__button--active");
+
+      expect(rule).toMatch(/box-shadow:\s*1px 0 0 0 var\(--fusion-surface\)(?!-alt)/);
+    });
   });
 
   describe("group separators are a short recessed rule, not a border spanning the bare rail (REQ-GAV-003)", () => {

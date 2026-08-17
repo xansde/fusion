@@ -244,6 +244,12 @@
     background: var(--fusion-surface);
     border-color: var(--fusion-accent);
     color: var(--fusion-accent-hover);
+    /* Prototype `.C.is-open .tabs .tabbtn.is-active`'s `box-shadow` rule (1px 0 0 0
+       var(--surface)): the panel's own `border-left` (SidebarDrawer.svelte) is
+       accent-colored end to end, and this shadow paints over the 1px sliver of it
+       that sits behind the active button — the only place the seam needs to
+       disappear for REQ-GAV-005. */
+    box-shadow: 1px 0 0 0 var(--fusion-surface);
   }
 
   .sidebar-rail__icon {
