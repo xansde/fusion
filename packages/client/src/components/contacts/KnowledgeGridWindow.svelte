@@ -66,18 +66,6 @@
     return t(KNOWLEDGE_STATE_KEYS[state as 0 | 1 | 2]);
   }
 
-  /**
-   * One-character symbol per state, matching the prototype's dense matrix
-   * (`SYM = ["·", "◐", "✓"]` in npcs-tab.prototype.html). This is what the eye
-   * reads in the cell; the full word never leaves the accessible name
-   * (REQ-CTT-094 — never colour alone, but a symbol plus an accessible label
-   * is exactly the resolution the requirement asks for).
-   */
-  const STATE_SYMBOLS: Readonly<Record<0 | 1 | 2, string>> = { 0: "·", 1: "◐", 2: "✓" };
-  function stateSymbol(state: number): string {
-    return STATE_SYMBOLS[state as 0 | 1 | 2];
-  }
-
   function nameOrPlaceholder(name: string): string {
     return name.length > 0 ? name : t("FUSION.Contacts.Knowledge.Unnamed");
   }
@@ -113,6 +101,41 @@
   }
 </script>
 
+<!--
+  One SVG icon per state (dot / half-filled circle / check), matching the
+  prototype's dense matrix (`SYM = ["·", "◐", "✓"]` in npcs-tab.prototype.html)
+  in shape, not in glyph: this window is reachable from both the Contatos
+  footer and the NPCs footer (REQ-NPC-072), so DEC-ACH-04's "drawn icons,
+  never emoji" — cited by spec 42 as a principle of the whole gaveta, not only
+  its own tab — reaches it too. A `·`/`◐`/`✓` text character sits inside the
+  Unicode ranges the repo already treats as emoji-ish (see the EMOJI regex in
+  NpcsFooter.test.ts); an SVG path never does. The full word still never
+  leaves the accessible name (REQ-CTT-094 — never colour alone).
+-->
+{#snippet stateIcon(state: number)}
+  {#if state === 0}
+    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
+      <circle cx="6" cy="6" r="1.4" fill="currentColor" />
+    </svg>
+  {:else if state === 1}
+    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
+      <circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.3" />
+      <path d="M6 1.7A4.3 4.3 0 0 1 6 10.3Z" fill="currentColor" />
+    </svg>
+  {:else}
+    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
+      <path
+        d="M2.3 6.2 5 8.9 9.7 3.3"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  {/if}
+{/snippet}
+
 <div class="knowledge-grid">
   {#if failure}
     <p class="knowledge-grid__error" role="alert">
@@ -124,15 +147,19 @@
   <div class="knowledge-grid__legend" aria-label={t("FUSION.Contacts.Knowledge.Legend")}>
     {#each KNOWLEDGE_STATES as state (state)}
       <span class="knowledge-grid__legend-item" data-state={state}>
-        <span class="knowledge-grid__swatch" data-state={state} aria-hidden="true"
-          >{stateSymbol(state)}</span
-        >
+        <span class="knowledge-grid__swatch" data-state={state} aria-hidden="true">
+          {@render stateIcon(state)}
+        </span>
         {stateLabel(state)}
       </span>
     {/each}
     <span class="knowledge-grid__legend-item">
-      <span class="knowledge-grid__swatch knowledge-grid__swatch--exception" aria-hidden="true"
-      ></span>
+      <!-- REQ-CTT-062/DEC-ACH-04: the same "conhecido" check as the cells,
+           underlined — the exact mark a cell that is both known and an
+           exception draws, matching contacts-tab.prototype.html:1632. -->
+      <span class="knowledge-grid__swatch knowledge-grid__swatch--exception" aria-hidden="true">
+        {@render stateIcon(2)}
+      </span>
       {t("FUSION.Contacts.Knowledge.Exception")}
     </span>
   </div>
@@ -192,11 +219,11 @@
                 {@const column = grid.columns.find((c) => c.id === cell.characterId)}
                 <td class="knowledge-grid__cell">
                   <!-- REQ-CTT-062: one activation, one step of the cycle. The
-                       compact symbol (·/◐/✓, matching the prototype's dense
-                       matrix) is what the eye reads; the full state — and, for
-                       an exception, the word itself — reaches assistive tech
-                       through the accessible name alone (REQ-CTT-094), never
-                       written into the cell. -->
+                       compact icon (dot/half-circle/check, matching the
+                       prototype's dense matrix) is what the eye reads; the
+                       full state — and, for an exception, the word itself —
+                       reaches assistive tech through the accessible name
+                       alone (REQ-CTT-094), never written into the cell. -->
                   <button
                     class="knowledge-grid__state"
                     class:knowledge-grid__state--exception={cell.isException}
@@ -216,9 +243,9 @@
                         })}
                     onclick={() => onCell(row, cell.characterId)}
                   >
-                    <span class="knowledge-grid__state-symbol" aria-hidden="true"
-                      >{stateSymbol(cell.state)}</span
-                    >
+                    <span class="knowledge-grid__state-symbol" aria-hidden="true">
+                      {@render stateIcon(cell.state)}
+                    </span>
                   </button>
                 </td>
               {/each}
@@ -264,30 +291,30 @@
     gap: 0.25rem;
   }
 
+  /* Bare, colour-only icon — no swatch box — the same treatment as the
+     prototype's `.keys i` (npcs-tab.prototype.html/contacts-tab.prototype.html):
+     the glyph itself carries the colour, nothing sits behind it. */
   .knowledge-grid__swatch {
-    width: 0.6rem;
-    height: 0.6rem;
-    border: 1px solid var(--fusion-border);
-    border-radius: 0.15rem;
-    background: var(--fusion-surface);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    color: var(--fusion-text-subtle);
   }
 
   .knowledge-grid__swatch[data-state="1"] {
-    background: repeating-linear-gradient(
-      45deg,
-      var(--fusion-text-subtle) 0 2px,
-      transparent 2px 4px
-    );
+    color: var(--fusion-warning);
   }
 
   .knowledge-grid__swatch[data-state="2"] {
-    background: var(--fusion-accent);
-    border-color: var(--fusion-accent);
+    color: var(--fusion-success);
   }
 
+  /* REQ-CTT-062: the exception mark is the same "conhecido" check, underlined
+     — never a dashed box that no cell actually draws. */
   .knowledge-grid__swatch--exception {
-    border-style: dashed;
-    border-color: var(--fusion-text);
+    border-bottom: 1.5px solid currentColor;
+    padding-bottom: 1px;
   }
 
   /* REQ-CTT-093 (REQ-UIF-064): the window's controls are cells of a grid, where a
@@ -419,22 +446,25 @@
   }
 
   .knowledge-grid__state-symbol {
-    font-size: 0.9rem;
+    display: inline-flex;
     line-height: 1;
   }
 
   .knowledge-grid__state[data-state="1"] {
-    color: var(--fusion-text-muted);
+    color: var(--fusion-warning);
   }
 
   .knowledge-grid__state[data-state="2"] {
-    color: var(--fusion-accent);
+    color: var(--fusion-success);
   }
 
-  /* REQ-CTT-062: an exception is told apart by contour alone — never a written
-     word in the cell (the word still reaches assistive tech via aria-label). */
-  .knowledge-grid__state--exception {
-    border-color: var(--fusion-text);
+  /* REQ-CTT-062: an exception is told apart by an underline under its icon —
+     matching contacts-tab.prototype.html's `.matrix td button.cell.ex` — never
+     a box outline, which reads as a focus ring (the word still reaches
+     assistive tech via aria-label). */
+  .knowledge-grid__state--exception .knowledge-grid__state-symbol {
+    border-bottom: 1.5px solid currentColor;
+    padding-bottom: 1px;
   }
 
   .knowledge-grid__state:hover,
