@@ -150,15 +150,16 @@ export class LightingRenderer {
     this._renderDarkness(state.darkness);
     this._renderLights(state.lightPolygons, state.globalLight);
 
-    const showRestriction = !state.isGm && restrictionActive;
+    const mode = selectLightingRenderMode(state.isGm, restrictionActive, fogState);
 
-    if (fogState && fogState.fogActive && showRestriction) {
+    if (mode === "fog") {
       // Three-state fog: hides simple vision mask
       this._visionMaskContainer.removeChildren();
       this._visionMaskContainer.visible = false;
       this._fogContainer.visible = true;
-      this._renderFog(fogState, state.visionPolygons);
-    } else if (showRestriction) {
+      // Narrowed by selectLightingRenderMode: "fog" only returns when fogState is truthy.
+      this._renderFog(fogState as FogRenderState, state.visionPolygons);
+    } else if (mode === "vision-mask") {
       // No fog state — use simple M2-A vision mask
       this._fogContainer.removeChildren();
       this._fogContainer.visible = false;
@@ -478,6 +479,41 @@ export class LightingRenderer {
   ): string {
     return buildLightingStateKey(state, fogState, restrictionActive);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Pure render-mode selector (exported for unit testing without a PIXI renderer)
+// ---------------------------------------------------------------------------
+
+/**
+ * Decide which of render()'s three mutually-exclusive branches applies
+ * (REQ-VIS-085, A005 fix — "cena preta para o jogador", ajustes r1 item 24).
+ *
+ * - "fog": three-state fog rendering — fogState is provided, its own
+ *   `fogActive` flag is on, AND this scene restricts non-GM vision.
+ * - "vision-mask": simple M2-A vision mask — scene restricts non-GM vision,
+ *   but there is no active fog state to render instead.
+ * - "clear": GM (never restricted), or a scene that does not restrict
+ *   non-GM vision at all (`restrictionActive === false` — either
+ *   `scene.tokenVision` or `scene.fogEnabled` is off). Both the fog and
+ *   vision-mask containers must be cleared here, not just left alone —
+ *   this is the branch that used to be unreachable for a non-GM viewer
+ *   before the A005 fix, which painted the whole canvas black regardless
+ *   of `restrictionActive`.
+ *
+ * Extracted as a pure function (no PIXI dependency) so this exact branch
+ * can be unit tested without a renderer, per this codebase's convention
+ * (see `buildLightingStateKey` below).
+ */
+export function selectLightingRenderMode(
+  isGm: boolean,
+  restrictionActive: boolean,
+  fogState: FogRenderState | null | undefined,
+): "fog" | "vision-mask" | "clear" {
+  const showRestriction = !isGm && restrictionActive;
+  if (fogState && fogState.fogActive && showRestriction) return "fog";
+  if (showRestriction) return "vision-mask";
+  return "clear";
 }
 
 // ---------------------------------------------------------------------------

@@ -133,8 +133,13 @@ function makeLightingRenderer(): ILightingRenderer & { calls: { fn: string; args
   const calls: { fn: string; args: unknown[] }[] = [];
   return {
     calls,
-    render(state, fogState, debugMode) {
-      calls.push({ fn: "render", args: [state, fogState, debugMode] });
+    // A005/REQ-VIS-085 review: `restrictionActive` (4th arg) is what actually
+    // gates the fog/vision-mask overlay in LightingRenderer.render() — it
+    // MUST be captured here, not dropped, so tests below can assert on it
+    // directly instead of only on the unrelated TokenLayer.setVisionPolygons
+    // call.
+    render(state, fogState, debugMode, restrictionActive) {
+      calls.push({ fn: "render", args: [state, fogState, debugMode, restrictionActive] });
     },
     destroy() {
       calls.push({ fn: "destroy", args: [] });
@@ -327,11 +332,11 @@ describe("SceneOrchestrator", () => {
       orchestrator.teardown();
     });
 
-    it("player role → setVisionPolygons called with fogEnabled=true", async () => {
+    it("player role → setVisionPolygons called with fogEnabled=true, and LightingRenderer.render's restrictionActive arg is also true", async () => {
       const token = makeToken("tok-1");
       const scene = makeScene("scene-1", { tokens: [token] });
       const mirror = makeMirror("scene-1", scene);
-      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
         isGm: false,
         userId: "user-1",
       });
@@ -344,14 +349,21 @@ describe("SceneOrchestrator", () => {
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(true);
 
+      // A005/REQ-VIS-085 review: the 4th arg of LightingRenderer.render is
+      // the SAME `restrictionActive` value fed to setVisionPolygons above —
+      // it must not be silently dropped by the caller.
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls.length).toBeGreaterThan(0);
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(true);
+
       orchestrator.teardown();
     });
 
-    it("GM role → setVisionPolygons called with fogEnabled=false", async () => {
+    it("GM role → setVisionPolygons called with fogEnabled=false, and LightingRenderer.render's restrictionActive arg is also false", async () => {
       const token = makeToken("tok-gm", 100, 100);
       const scene = makeScene("scene-1", { tokens: [token] });
       const mirror = makeMirror("scene-1", scene);
-      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
         isGm: true,
         fogState: null,
       });
@@ -363,6 +375,10 @@ describe("SceneOrchestrator", () => {
       // GM → fogEnabled = false
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
+
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls.length).toBeGreaterThan(0);
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(false);
 
       orchestrator.teardown();
     });
@@ -378,11 +394,11 @@ describe("SceneOrchestrator", () => {
     // viewer unconditionally, so a brand-new scene (token vision never turned
     // on by the GM) still painted the player's canvas fully black even though
     // REQ-CEN-072 was already delivering the scene's data correctly.
-    it("REQ-CEN-072/REQ-VIS-085: player in a scene with tokenVision=false → setVisionPolygons called with fogEnabled=false (no restriction)", async () => {
+    it("REQ-CEN-072/REQ-VIS-085: player in a scene with tokenVision=false → setVisionPolygons called with fogEnabled=false (no restriction), and LightingRenderer.render's restrictionActive arg matches", async () => {
       const token = makeToken("tok-1");
       const scene = makeScene("scene-1", { tokens: [token], tokenVision: false });
       const mirror = makeMirror("scene-1", scene);
-      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
         isGm: false,
         userId: "user-1",
       });
@@ -393,6 +409,12 @@ describe("SceneOrchestrator", () => {
       expect(svpCalls.length).toBeGreaterThan(0);
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
+
+      // This is the branch a mutation of `showRestriction` in LightingRenderer
+      // (reverting it to `!isGm`) would leave uncaught: assert the 4th arg
+      // that actually gates the fog/vision-mask overlay in render().
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(false);
 
       orchestrator.teardown();
     });
@@ -405,7 +427,7 @@ describe("SceneOrchestrator", () => {
       const scene = { ...makeScene("scene-1", { tokens: [token] }) } as Record<string, unknown>;
       delete scene["tokenVision"];
       const mirror = makeMirror("scene-1", scene as unknown as SceneDocument);
-      const { orchestrator, tokenLayer } = makeOrchestrator(
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(
         scene as unknown as SceneDocument,
         mirror,
         { isGm: false, userId: "user-1" },
@@ -417,6 +439,9 @@ describe("SceneOrchestrator", () => {
       expect(svpCalls.length).toBeGreaterThan(0);
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
+
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(false);
 
       orchestrator.teardown();
     });
@@ -438,7 +463,7 @@ describe("SceneOrchestrator", () => {
         fogEnabled: false,
       });
       const mirror = makeMirror("scene-1", scene);
-      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
         isGm: false,
         userId: "user-1",
       });
@@ -449,6 +474,9 @@ describe("SceneOrchestrator", () => {
       expect(svpCalls.length).toBeGreaterThan(0);
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
+
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(false);
 
       orchestrator.teardown();
     });
@@ -467,7 +495,7 @@ describe("SceneOrchestrator", () => {
         fogEnabled: true,
       });
       const mirror = makeMirror("scene-1", scene);
-      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
         isGm: false,
         userId: "user-1",
       });
@@ -479,10 +507,13 @@ describe("SceneOrchestrator", () => {
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
 
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(false);
+
       orchestrator.teardown();
     });
 
-    it("REQ-VIS-085: player in a scene with fogEnabled=true and tokenVision=true → setVisionPolygons called with fogEnabled=true (restricted)", async () => {
+    it("REQ-VIS-085: player in a scene with fogEnabled=true and tokenVision=true → setVisionPolygons called with fogEnabled=true (restricted), and LightingRenderer.render's restrictionActive arg is also true", async () => {
       const token = makeToken("tok-1");
       const scene = makeScene("scene-1", {
         tokens: [token],
@@ -490,7 +521,7 @@ describe("SceneOrchestrator", () => {
         fogEnabled: true,
       });
       const mirror = makeMirror("scene-1", scene);
-      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
         isGm: false,
         userId: "user-1",
       });
@@ -501,6 +532,9 @@ describe("SceneOrchestrator", () => {
       expect(svpCalls.length).toBeGreaterThan(0);
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(true);
+
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      expect(renderCalls[renderCalls.length - 1]?.args[3]).toBe(true);
 
       orchestrator.teardown();
     });
@@ -545,6 +579,29 @@ describe("SceneOrchestrator", () => {
 
       // No exception should be thrown (fog is null for GM)
       expect(orchestrator.isReady).toBe(true);
+      orchestrator.teardown();
+    });
+
+    // Ajustes r1 — Fase 0 review of A005: `this._fogState.updateVision` in
+    // scene-orchestrator.ts is gated on `restrictionActive`, not just "fog
+    // state exists" — a player whose scene doesn't restrict vision
+    // (REQ-VIS-085: tokenVision=false or fogEnabled=false) has a fogState
+    // instance (they are not the GM) but must not accumulate exploration for
+    // a scene nobody is being masked in.
+    it("REQ-VIS-085: FogState.updateVision NOT called for a non-GM player when the scene doesn't restrict vision (tokenVision=false)", async () => {
+      const token = makeToken("tok-1");
+      const scene = makeScene("scene-1", { tokens: [token], tokenVision: false });
+      const mirror = makeMirror("scene-1", scene);
+      const fogState = makeFogState(false);
+      const { orchestrator } = makeOrchestrator(scene, mirror, {
+        isGm: false,
+        userId: "user-1",
+        fogState,
+      });
+
+      await orchestrator.setup();
+
+      expect(fogState.updateVisionCalls).toBe(0);
       orchestrator.teardown();
     });
   });
