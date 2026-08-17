@@ -299,6 +299,7 @@
   "FUSION.Notifications.SaveError": "Save error. Please try again.",
   "FUSION.Canvas.Token.DropActor": "Create token for {{name}}",
   "FUSION.DragDrop.Actor.Hint": "Drop on canvas to create a token",
+  "FUSION.DragDrop.Actor.CreateFailed": "Could not create the token on this scene.",
   "FUSION.Window.Close": "Close",
   "FUSION.Window.Minimize": "Minimize",
   "FUSION.Window.Restore": "Restore",

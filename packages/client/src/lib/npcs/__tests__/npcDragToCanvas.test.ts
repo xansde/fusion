@@ -87,7 +87,7 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     expect(Object.keys(fields)).not.toContain("actorLink");
   });
 
-  it("REQ-NPC-063: the drop creates the presence on the scene, embedded in it", () => {
+  it("REQ-NPC-063: the drop creates the presence on the scene through a payload the server accepts", () => {
     const table = source("../../../components/TableScreen.svelte");
     const dropFnStart = table.indexOf("function handleCanvasDrop");
     expect(dropFnStart).toBeGreaterThan(-1);
@@ -95,8 +95,8 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
 
     // Isolate the actor-drag branch only. handleCanvasDrop also has a
     // compendium-drag branch right below it that builds the very same
-    // doc:create/Token/embedded shape — slicing to EOF would let a deleted
-    // actor branch hide undetected behind the compendium one.
+    // doc:create/Token shape — slicing to EOF would let a deleted actor
+    // branch hide undetected behind the compendium one.
     const actorBranchStart = dropFn.indexOf("const actorPayload = _getActorDragPayload(event);");
     const compBranchStart = dropFn.indexOf("const compPayload = _getCompendiumDragPayload(event);");
     expect(actorBranchStart).toBeGreaterThan(-1);
@@ -104,8 +104,19 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     const drop = dropFn.slice(actorBranchStart, compBranchStart);
 
     expect(drop).toContain("buildTokenFromActorFields");
-    expect(drop).toContain('type: "doc:create"');
-    expect(drop).toContain('documentType: "Token"');
-    expect(drop).toContain("embedded:");
+    // A004 review (REQ-NPC-063, REQ-CPD-062): the wire shape is built by
+    // `buildCreateTokenFromActorOp` — `data: [fields]` + `parent: { type:
+    // "Scene", id }` — matching `DocCreatePayloadSchema`
+    // (`packages/shared/src/protocol.ts`), and sent through `sendOp` so a
+    // server refusal is awaited and surfaced (REQ-CPD-060) instead of a
+    // fire-and-forget `sock.emit` that swallows a VALIDATION_FAILED ack.
+    expect(drop).toContain("buildCreateTokenFromActorOp(fields, scene._id)");
+    expect(drop).toContain("await sendOp(sock,");
+    // The old broken shape — `documentType`/`embedded`/`documents` built
+    // inline — must be gone: `DocCreatePayloadSchema` has never accepted
+    // `embedded`/`documents`, only `data` (required) and an optional `parent`.
+    expect(drop).not.toContain("embedded:");
+    expect(drop).not.toContain("documents:");
+    expect(drop).not.toContain('sock.emit("op"');
   });
 });

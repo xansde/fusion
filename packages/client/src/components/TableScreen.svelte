@@ -53,8 +53,10 @@
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import {
     buildTokenFromActorFields,
+    buildCreateTokenFromActorOp,
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
+  import { sendOp } from "../lib/docs/sendOp.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
@@ -331,15 +333,20 @@
         y: worldY,
         gridSize,
       });
-      sock.emit("op", {
-        type: "doc:create",
-        ts: Date.now(),
-        payload: {
-          documentType: "Token",
-          embedded: { type: "Token", sceneId: scene._id },
-          documents: [fields],
-        },
-      });
+      // REQ-NPC-063: an embedded doc:create, awaited with an ack so a server
+      // refusal (VALIDATION_FAILED, permission, …) surfaces to the Master
+      // instead of being swallowed by a fire-and-forget emit (REQ-CPD-060).
+      void (async () => {
+        try {
+          await sendOp(sock, buildCreateTokenFromActorOp(fields, scene._id));
+        } catch (err) {
+          console.error("[TableScreen] Failed to create token from actor drop:", err);
+          dropRefusal = t("FUSION.DragDrop.Actor.CreateFailed");
+          window.setTimeout(() => {
+            dropRefusal = null;
+          }, DROP_REFUSAL_MS);
+        }
+      })();
       return;
     }
 
@@ -384,17 +391,17 @@
             y: worldY,
             gridSize,
           });
-          sock.emit("op", {
-            type: "doc:create",
-            ts: Date.now(),
-            payload: {
-              documentType: "Token",
-              embedded: { type: "Token", sceneId: scene._id },
-              documents: [fields],
-            },
-          });
+          // REQ-CPD-062: an embedded doc:create, awaited with an ack — same
+          // shape and same visible-failure treatment as the actor branch
+          // above (REQ-CPD-060 requires a visible return of a failure, and a
+          // fire-and-forget emit here would swallow it just as silently).
+          await sendOp(sock, buildCreateTokenFromActorOp(fields, scene._id));
         } catch (err) {
           console.error("[TableScreen] Failed to import compendium actor on drop:", err);
+          dropRefusal = t("FUSION.DragDrop.Actor.CreateFailed");
+          window.setTimeout(() => {
+            dropRefusal = null;
+          }, DROP_REFUSAL_MS);
         }
       })();
     }
