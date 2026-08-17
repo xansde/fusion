@@ -18,6 +18,7 @@
 
 import type { Socket } from "socket.io-client";
 import { sheetRegistry } from "../sheetRegistry.js";
+import { displayName } from "../../docs/displayName.js";
 
 // Lazy import to avoid pulling Svelte heavy import graph until needed.
 // In tests this file is never loaded (tests target the VMs, not the registry).
@@ -104,8 +105,12 @@ export function openActorSheet(
     const systemDoc = actorDoc["system"] as Record<string, unknown> | undefined;
     const rawSubtype = systemDoc?.["subtype"] ?? actorDoc["type"] ?? "character";
     const subtype = typeof rawSubtype === "string" ? rawSubtype : "character";
-    const rawName = actorDoc["name"];
-    const name = typeof rawName === "string" ? rawName : "Actor";
+    // REQ-CMP-055: the window title is a display surface for the actor's
+    // name, so it MUST resolve through the same single mechanism
+    // (displayName) as the NPCs tab / Contatos / sheet header — never a
+    // second, ad-hoc read of the raw (EN-pure) doc.name.
+    const resolvedName = displayName(actorDoc);
+    const name = resolvedName.length > 0 ? resolvedName : "Actor";
     const singletonKey = `sheet:Actor:${actorId}`;
 
     const reg = sheetRegistry.resolve("Actor", subtype);
