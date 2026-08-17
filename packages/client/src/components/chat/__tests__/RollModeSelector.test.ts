@@ -106,6 +106,31 @@ describe("RollModeSelector — ajuda e teclado (REQ-ACH-040, RNF-ACH-04)", () =>
   });
 });
 
+describe("RollModeSelector — tooltip desenhado (REQ-ACH-040)", () => {
+  it("draws one tip element per option, with the label and the help text", () => {
+    const body = renderSelector("public");
+    // Four tip spans (one per option), each holding the mode's label in a <b> plus
+    // its help text — the drawn equivalent of the native `title`, but reachable by
+    // `:focus-visible` too (unlike `title`).
+    expect(body.match(/roll-mode__tip/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(body).toContain(t("FUSION.Chat.RollMode.Public.Help"));
+    expect(body).toContain(t("FUSION.Chat.RollMode.Gm.Help"));
+    expect(body).toContain(t("FUSION.Chat.RollMode.Blind.Help"));
+    expect(body).toContain(t("FUSION.Chat.RollMode.Self.Help"));
+  });
+
+  it("anchors the tooltip to the strip's own edge on the two outer options, so it is never clipped", () => {
+    const body = renderSelector("public");
+    // Same rule as the prototype's `pos = i<2 ? 'left:0' : 'right:0'`: the first
+    // two options (public, gmroll) keep the default edge, the last two
+    // (blindroll, selfroll) get `--anchor-end`.
+    expect(body).toContain('data-mode="blindroll"');
+    expect(body).toContain('data-mode="selfroll"');
+    const anchorEndCount = (body.match(/roll-mode__option--anchor-end/g) ?? []).length;
+    expect(anchorEndCount).toBe(2);
+  });
+});
+
 describe("RollModeSelector — faixa cheia com indicador deslizante (DEC-ACH-04, REQ-ACH-040)", () => {
   it("renders 4 mode buttons plus exactly one sliding thumb, in that structural order", () => {
     const body = renderSelector("public");

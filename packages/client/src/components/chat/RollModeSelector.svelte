@@ -16,6 +16,11 @@
    *
    * Keyboard: four real `<button>`s in a `radiogroup`, so Tab reaches them and Enter/Space
    * activate them with the browser's own focus ring (RNF-ACH-04, REQ-UIF-064).
+   *
+   * REQ-ACH-040's "help text on hover or focus" is a *drawn* tooltip, not the native
+   * `title` (which never appears on keyboard focus) — same pattern as
+   * `SidebarRail.svelte`'s `.sidebar-rail__tooltip`, shown on `:hover` AND
+   * `:focus-visible`. `title` stays too, as a redundant native fallback.
    */
 
   import { t } from "../../lib/i18n/i18n.js";
@@ -57,10 +62,11 @@
   data-active-mode={mode}
 >
   <span class="roll-mode__thumb" style="left: {thumbLeft}" aria-hidden="true"></span>
-  {#each ROLL_MODE_ORDER as m (m)}
+  {#each ROLL_MODE_ORDER as m, idx (m)}
     <button
       type="button"
       class="roll-mode__option"
+      class:roll-mode__option--anchor-end={idx >= ROLL_MODE_ORDER.length / 2}
       class:roll-mode__option--active={m === mode}
       data-mode={m}
       role="radio"
@@ -73,6 +79,12 @@
       }}
     >
       <span class="roll-mode__icon" aria-hidden="true">{@html rollModeIcons[m]}</span>
+      <!-- Drawn tooltip (REQ-ACH-040) — `title` alone never reaches keyboard focus.
+           Anchored to the strip's own edge on the outer two options so it never gets
+           clipped by the panel (prototype's `pos = i<2 ? 'left:0' : 'right:0'`). -->
+      <span class="roll-mode__tip" aria-hidden="true">
+        <b>{labelOf(m)}</b>{helpOf(m)}
+      </span>
     </button>
   {/each}
 </div>
@@ -146,5 +158,54 @@
   .roll-mode__icon {
     display: inline-flex;
     line-height: 0;
+  }
+
+  /* Drawn tooltip (REQ-ACH-040) — same shape as the decided prototype's
+     `.modes button .tip`: above the strip, hidden until hover or keyboard focus. */
+  .roll-mode__tip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 190px;
+    padding: 3px 8px;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface-alt);
+    color: var(--fusion-text);
+    font-family: var(--fusion-font);
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--fusion-transition);
+    z-index: 20;
+  }
+
+  .roll-mode__tip b {
+    display: block;
+    color: var(--fusion-accent-hover);
+  }
+
+  /* The outer two options anchor the tooltip to the strip's own edge instead of
+     centering it, so it is never clipped by the drawer panel (prototype's
+     `pos = i<2 ? 'left:0' : 'right:0'`). */
+  .roll-mode__option:not(.roll-mode__option--anchor-end) .roll-mode__tip {
+    left: 0;
+    transform: none;
+  }
+
+  .roll-mode__option--anchor-end .roll-mode__tip {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  .roll-mode__option:hover .roll-mode__tip,
+  .roll-mode__option:focus-visible .roll-mode__tip {
+    opacity: 1;
+    visibility: visible;
   }
 </style>
