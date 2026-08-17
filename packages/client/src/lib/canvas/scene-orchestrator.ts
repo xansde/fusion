@@ -307,22 +307,33 @@ export class SceneOrchestrator {
       visionResult.lightPolygons.push(...ambientPolygons);
     }
 
-    // A005 fix (ajustes r1, item 24): REQ-VIS-085 ties vision/fog restriction to
-    // the SCENE's own `tokenVision` flag ("com token vision habilitado, jogadores
-    // são limitados ao que seus tokens veem" — off by default, `scene.ts:368`),
-    // not just to "is this viewer a GM". Before this fix, every non-GM viewer was
-    // always restricted regardless of the scene's setting, so a scene created
-    // with the (default) token-vision-off configuration still painted the
-    // player's screen fully black — REQ-VIS-085's "com fog desabilitado, toda a
-    // cena é visível a todos" was never honoured. `restrictionActive` is the
-    // single source of truth threaded through TokenLayer/FogState/LightingRenderer
-    // below: GM never restricted; a player only restricted when the scene opted
-    // into token vision.
-    // Legacy/partial scenes persisted before this field existed can carry
-    // `tokenVision: undefined` at runtime even though the type says boolean;
-    // coerce so restriction stays off (REQ-VIS-085).
+    // A005 fix (ajustes r1, item 24), revised in the Ajustes r1 — Fase 0 review:
+    // REQ-VIS-085 (specs/07-visao-iluminacao-fog.md:238) defines TWO independent
+    // flags, not one — "Cada cena DEVE ter uma flag fog habilitado e uma
+    // política de token vision habilitado: com fog desabilitado, toda a cena é
+    // visível a todos [...]; com token vision habilitado, jogadores são
+    // limitados ao que seus tokens veem." CA-20 (specs/07:524) makes the first
+    // clause unconditional: "Em uma cena com fog desabilitado, todos os
+    // jogadores veem o mapa inteiro sem névoa" — no exception for tokenVision.
+    // The schema doc-comments on both fields (`packages/shared/src/scene.ts`)
+    // independently say the same thing: EITHER flag being false means the
+    // whole map is visible. So restriction requires BOTH flags true:
+    //   - `fogEnabled: false`  → never restricted (CA-20), regardless of
+    //     tokenVision — fixes the "Fog" toggle in the perception window
+    //     (REQ-CEN-021) being a dead switch for players.
+    //   - `tokenVision: false` → never restricted (schema doc-comment on the
+    //     field itself), regardless of fogEnabled — this is what the original
+    //     A005 fix already covered (a brand-new scene, both flags at their
+    //     `false` default, must not paint the player's screen black).
+    // `restrictionActive` stays the single source of truth threaded through
+    // TokenLayer/FogState/LightingRenderer below: GM never restricted; a
+    // player only restricted when the scene opted into BOTH fog and token
+    // vision.
+    // Legacy/partial scenes persisted before these fields existed can carry
+    // `tokenVision`/`fogEnabled` as `undefined` at runtime even though the
+    // type says boolean; coerce so restriction stays off (REQ-VIS-085).
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
-    const restrictionActive = !this._isGm && !!scene.tokenVision;
+    const restrictionActive = !this._isGm && !!scene.tokenVision && !!scene.fogEnabled;
 
     // Feed vision polygons to TokenLayer (hides tokens outside vision for players)
     this._tokenLayer.setVisionPolygons(visionResult.visionPolygons, restrictionActive);
