@@ -122,8 +122,7 @@ retrato ou uma silhueta em seu lugar. `conhecido` — nome, título e categoria.
   escolha de apresentação daquela tela — não é segredo do servidor, e nenhuma outra tela é
   obrigada a repeti-la.
 - **Isto não afrouxa `oculto`:** um ator que o usuário não conhece continua sem ser emitido
-  a ele — a mudança é só no degrau `entrevisto`. `oculto` só passa a ser emitido quando o
-  usuário recebe uma peça daquele ator (`41-token.md`).
+  a ele — a mudança é só no degrau `entrevisto` (REQ-CTT-082 permanece intocado).
 
   > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
   > redação anterior redigia nome, título **e retrato** do payload de um contato
