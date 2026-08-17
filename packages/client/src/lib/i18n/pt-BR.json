@@ -347,6 +347,7 @@
   "FUSION.Combat.Setup.CandidatesHint": "Quem a cena ativa oferece",
   "FUSION.Combat.Setup.CandidatesEmpty": "Todos os candidatos da cena ativa já estão no encontro.",
   "FUSION.Combat.Setup.CandidatesNoScene": "Nenhuma cena ativa.",
+  "FUSION.Combat.Setup.UnnamedToken": "Peça sem nome",
   "FUSION.Combat.Setup.Add": "Adicionar",
   "FUSION.Combat.Setup.AddCandidate": "Adicionar {{name}} ao encontro",
   "FUSION.Combat.Setup.Expand": "Mostrar a lista de candidatos",

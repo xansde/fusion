@@ -347,6 +347,7 @@
   "FUSION.Combat.Setup.CandidatesHint": "Whoever the active scene offers",
   "FUSION.Combat.Setup.CandidatesEmpty": "Every candidate the active scene offers is already in the encounter.",
   "FUSION.Combat.Setup.CandidatesNoScene": "No active scene.",
+  "FUSION.Combat.Setup.UnnamedToken": "Unnamed token",
   "FUSION.Combat.Setup.Add": "Add",
   "FUSION.Combat.Setup.AddCandidate": "Add {{name}} to the encounter",
   "FUSION.Combat.Setup.Expand": "Show the candidate list",

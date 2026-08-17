@@ -16,9 +16,14 @@ import {
   addableTokens,
   resolveActiveCombat,
   extractConflictingCombatId,
+  type AddableTokenActor,
 } from "../combatTracker.js";
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import { defaultTokenDocument } from "@fusion/shared";
+// Preloads the pt-BR/en bundles onto the shared i18n singleton so addableTokens()'s
+// t("FUSION.Combat.Setup.UnnamedToken") fallback resolves to real copy instead of the
+// raw key (same pattern as npcsFooter.test.ts / npcCreateWindow.test.ts).
+import "../../i18n/index.js";
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -488,16 +493,47 @@ describe("addableTokens", () => {
     expect(addableTokens(tokens, combat)).toEqual([]);
   });
 
-  it("falls back to a generic name when the token has an empty name", () => {
-    const tokens = [makeToken({ _id: "tok1AAAAAAAAAAAA", name: "" })];
+  it("falls back to an i18n label (never a hardcoded string) when the token has no own name and no actor can be resolved (REQ-TOK-060)", () => {
+    // Since TK020, `name: null` is the token's default — "inherit the effective actor's
+    // name" — not `name: ""`; a token with no override and no resolvable actor (no
+    // `resolveActor` given, or the actor is not yet in the mirror) must never fall back to
+    // a hardcoded English string like "Token".
+    const tokens = [makeToken({ _id: "tok1AAAAAAAAAAAA", name: null })];
     const result = addableTokens(tokens, null);
-    expect(result[0]!.name).toBe("Token");
+    expect(result[0]!.name).toBe("Peça sem nome");
+    expect(result[0]!.name).not.toBe("Token");
   });
 
-  it("carries actorId through for the add-combatant call; img is null (REQ-TOK-010/012)", () => {
-    // The token no longer carries a `texture` of its own — art now lives on
-    // the effective actor (TokenSprite resolves it via the mirror), which
-    // this pure filter has no access to.
+  it("resolves name/img from the effective actor when the token has no own name (REQ-TOK-060, RNF-TOK-01)", () => {
+    const tokens = [
+      makeToken({ _id: "tok1AAAAAAAAAAAA", name: null, actorId: "actorAAAAAAAAAAA" }),
+    ];
+    const actor: AddableTokenActor = { name: "Goblin", img: "goblin.webp", system: {} };
+    const result = addableTokens(tokens, null, (actorId) =>
+      actorId === "actorAAAAAAAAAAA" ? actor : undefined,
+    );
+    expect(result[0]).toEqual({
+      id: "tok1AAAAAAAAAAAA",
+      name: "Goblin",
+      img: "goblin.webp",
+      actorId: "actorAAAAAAAAAAA",
+    });
+  });
+
+  it("prefers the token's own name over the effective actor's when the piece carries a label (DEC-TOK-09)", () => {
+    const tokens = [
+      makeToken({ _id: "tok1AAAAAAAAAAAA", name: "Goblin Cabecilha", actorId: "actorAAAAAAAAAAA" }),
+    ];
+    const actor: AddableTokenActor = { name: "Goblin", img: "goblin.webp", system: {} };
+    const result = addableTokens(tokens, null, () => actor);
+    expect(result[0]!.name).toBe("Goblin Cabecilha");
+    expect(result[0]!.img).toBe("goblin.webp");
+  });
+
+  it("carries actorId through for the add-combatant call; img stays null with no actor resolver (REQ-TOK-010/012)", () => {
+    // The token no longer carries a `texture` of its own — art now lives on the effective
+    // actor. When the caller passes no `resolveActor` (or the actor is not in the mirror
+    // yet), art cannot be resolved and stays null; a token's own name (non-null) still wins.
     const tokens = [
       makeToken({
         _id: "tok1AAAAAAAAAAAA",

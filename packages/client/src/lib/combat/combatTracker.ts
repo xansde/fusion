@@ -17,8 +17,14 @@
  * Spec: 10-combate-e-iniciativa.md §REQ-CBT-040..047
  */
 
-import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
-import { sortCombatants } from "@fusion/shared";
+import type {
+  CombatDocument,
+  CombatantDocument,
+  EffectiveActorBaseInput,
+  TokenDocument,
+} from "@fusion/shared";
+import { resolveEffectiveActor, sortCombatants } from "@fusion/shared";
+import { t } from "../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
 // TrackerRow
@@ -445,6 +451,17 @@ export interface AddableToken {
 }
 
 /**
+ * The minimal actor shape `addableTokens` needs to resolve a token's
+ * effective name/art (RNF-TOK-01) — a generic document from the mirror
+ * (`worldMirror.getByType("Actor")` yields `Record<string, unknown>`, not a
+ * typed `ActorDocument`), defensively narrowed by the caller before it is
+ * handed to `resolveEffectiveActor`. Mirrors the same minimal-shape pattern
+ * `TokenSprite` uses (`TokenSpriteActor`) so this pure module never depends
+ * on a client-only actor type.
+ */
+export type AddableTokenActor = EffectiveActorBaseInput;
+
+/**
  * List the active scene's tokens that are NOT already combatants.
  *
  * BUG D root cause: combat:create + combat:beginCombat both work, and the
@@ -456,30 +473,43 @@ export interface AddableToken {
  * everything; hidden combatants are a combat-level flag set separately via
  * combat:setHidden, not inherited from the token).
  *
- * @param sceneTokens  All tokens embedded in the active scene (GM view — unfiltered).
- * @param combat       Current combat, or null when none exists yet.
+ * Name/art resolution (spec 41, REQ-TOK-060/RNF-TOK-01): since TK020, a
+ * token's own `name`/`img` are nullable and default to "inherit from the
+ * effective actor" — nearly every token created after TK020-025 lands here
+ * with `name: null`. `resolveActor` lets the caller (which HAS mirror access;
+ * this module deliberately does not) hand back the base actor for a given
+ * `actorId`; when provided, the ONE shared function (`resolveEffectiveActor`,
+ * `@fusion/shared`) resolves the token's `actorDelta` over it, same as
+ * `TokenSprite` does for the canvas. Without a `resolveActor` (or when the
+ * actor is not in the mirror yet), the row falls back to an i18n label —
+ * never a hardcoded English string.
+ *
+ * @param sceneTokens   All tokens embedded in the active scene (GM view — unfiltered).
+ * @param combat        Current combat, or null when none exists yet.
+ * @param resolveActor  Look up the base Actor document for a token's `actorId`, or
+ *                       `undefined` when it is not (yet) available.
  */
 export function addableTokens(
   sceneTokens: TokenDocument[],
   combat: CombatDocument | null,
+  resolveActor?: (actorId: string) => AddableTokenActor | undefined,
 ): AddableToken[] {
   const existingTokenIds = new Set(
     (combat?.combatants ?? []).map((c) => c.tokenId).filter((id): id is string => id !== null),
   );
 
   return sceneTokens
-    .filter((t) => !existingTokenIds.has(t._id))
-    .map((t) => ({
-      id: t._id,
-      name: t.name || "Token",
-      // REQ-TOK-010/012: a token no longer carries its own `texture` — its art
-      // is the effective actor's `img` (TokenSprite resolves it via the
-      // mirror). This pure filter has no mirror access, so it cannot resolve
-      // art; wiring the actor's art into this list is a follow-up (TokenSprite
-      // itself is wired by TK023 already).
-      img: null,
-      actorId: t.actorId,
-    }));
+    .filter((tok) => !existingTokenIds.has(tok._id))
+    .map((tok) => {
+      const baseActor = resolveActor?.(tok.actorId);
+      const effective = baseActor ? resolveEffectiveActor(tok, baseActor) : undefined;
+      return {
+        id: tok._id,
+        name: tok.name ?? effective?.name ?? t("FUSION.Combat.Setup.UnnamedToken"),
+        img: effective?.img ?? null,
+        actorId: tok.actorId,
+      };
+    });
 }
 
 // ---------------------------------------------------------------------------
