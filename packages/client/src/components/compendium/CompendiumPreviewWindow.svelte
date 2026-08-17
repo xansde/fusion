@@ -123,24 +123,42 @@
     if (loadState.status === "loading") void load();
   });
 
+  // Bugfix A003 (retry path): `retry()` calls `load()` directly while
+  // `loadState.status === "error"`, so the reset a few lines below DOES run
+  // and writes `loadState` back to `PREVIEW_LOADING` — a real "error" →
+  // "loading" change, which reschedules the mount `$effect`. That effect then
+  // reads the new "loading" status and calls `load()` a SECOND time while
+  // THIS call is still awaiting `getDocument()`: two `compendium:get`
+  // requests race, and whichever resolves last silently decides the window's
+  // final state (content vs. the error block) — non-deterministic, and it
+  // contradicts REQ-CPD-051's "a failure is recoverable" (recovery is meant
+  // to be one load, not a race). `loadInFlight` closes the gap: it is set
+  // BEFORE the reassignment that can retrigger the effect, so the effect's
+  // re-entrant call sees it already true and returns without a second fetch.
+  let loadInFlight = false;
+
   async function load(): Promise<void> {
-    // Bugfix A003: do NOT reassign `loadState` when it already reads
-    // "loading" — the mount `$effect` below calls `load()` BECAUSE
-    // `loadState.status === "loading"`, and writing it again (even to a
-    // value describing the same status) is what turned that effect into an
-    // infinite self-retriggering loop (`effect_update_depth_exceeded`, see
-    // `shouldResetToLoading`'s doc comment). The retry button still gets a
-    // real "error" → "loading" transition drawn.
-    if (shouldResetToLoading(loadState)) {
-      loadState = PREVIEW_LOADING;
-    }
-    imgBroken = false;
+    if (loadInFlight) return;
+    loadInFlight = true;
     try {
+      // Bugfix A003: do NOT reassign `loadState` when it already reads
+      // "loading" — the mount `$effect` below calls `load()` BECAUSE
+      // `loadState.status === "loading"`, and writing it again (even to a
+      // value describing the same status) is what turned that effect into an
+      // infinite self-retriggering loop (`effect_update_depth_exceeded`, see
+      // `shouldResetToLoading`'s doc comment). The retry button still gets a
+      // real "error" → "loading" transition drawn.
+      if (shouldResetToLoading(loadState)) {
+        loadState = PREVIEW_LOADING;
+      }
+      imgBroken = false;
       const socket = requireConnectedSocket(getSocket());
       const result = await getDocument(socket, uuid);
       loadState = previewReady(result.document);
     } catch (err) {
       loadState = previewError(err, t("FUSION.Compendium.Preview.Failed"));
+    } finally {
+      loadInFlight = false;
     }
   }
 

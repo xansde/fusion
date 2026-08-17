@@ -234,6 +234,110 @@ describe("bugfix A003 — the mount effect must not retrigger itself (REQ-CPD-05
   });
 });
 
+describe("bugfix A003 (retry path) — a retry from 'error' must fire ONE getDocument, not two (REQ-CPD-051)", () => {
+  /**
+   * Models the mechanism `CompendiumPreviewWindow.svelte` actually runs when
+   * the reader clicks "Tentar de novo" (`retry()`, which calls `load()`
+   * directly) while `loadState.status === "error"`:
+   *
+   * `load()`'s `shouldResetToLoading` guard (proven above) correctly sees
+   * "error" and DOES reassign `loadState` back to `PREVIEW_LOADING` — a real
+   * status change. In Svelte 5 that reassignment reschedules the mount
+   * `$effect` (`if (loadState.status === "loading") void load();`), which
+   * runs on a later microtask and calls `load()` a SECOND time while the
+   * FIRST call is still awaiting `getDocument()`. Two `compendium:get`
+   * requests then race; whichever resolves last silently wins the window's
+   * final state — content vs. the error block — which is not what REQ-CPD-051
+   * promises ("a failure is recoverable", not "recoverable by a coin flip").
+   *
+   * `guardLoadInFlight` mirrors the `loadInFlight` flag added to `load()` in
+   * the component: set BEFORE the reset can retrigger the effect, so the
+   * effect's re-entrant call finds it already true and returns without a
+   * second fetch. Passing `guardLoadInFlight: false` reproduces the bug as it
+   * shipped; `true` is the fixed behavior.
+   */
+  function createRetryRaceHarness(guardLoadInFlight: boolean) {
+    let loadState: PreviewLoadState = previewError(
+      new Error("socket is not connected"),
+      "Falha ao carregar.",
+    );
+    let loadInFlight = false;
+    let getDocumentCalls = 0;
+    const pendingResolvers: (() => void)[] = [];
+
+    // The mount `$effect`: reschedules on a microtask whenever `loadState` is
+    // written, exactly like Svelte's dependency-tracked reactivity.
+    function scheduleEffect(): void {
+      queueMicrotask(() => {
+        if (loadState.status === "loading") void load();
+      });
+    }
+
+    // Stands in for `getDocument(socket, uuid)` — never resolves on its own,
+    // so the test controls exactly when each in-flight request settles.
+    async function fakeGetDocument(): Promise<Record<string, unknown>> {
+      getDocumentCalls += 1;
+      return new Promise((resolve) => {
+        pendingResolvers.push(() => resolve({ name: "Fireball" }));
+      });
+    }
+
+    async function load(): Promise<void> {
+      if (guardLoadInFlight) {
+        if (loadInFlight) return;
+        loadInFlight = true;
+      }
+      try {
+        if (shouldResetToLoading(loadState)) {
+          loadState = PREVIEW_LOADING;
+          scheduleEffect();
+        }
+        const document = await fakeGetDocument();
+        loadState = previewReady(document);
+      } finally {
+        if (guardLoadInFlight) loadInFlight = false;
+      }
+    }
+
+    return {
+      retry: (): void => void load(),
+      getDocumentCalls: (): number => getDocumentCalls,
+      resolveInFlight: (): void => {
+        const resolvers = pendingResolvers.splice(0);
+        for (const resolve of resolvers) resolve();
+      },
+    };
+  }
+
+  async function flushMicrotasks(): Promise<void> {
+    for (let i = 0; i < 5; i += 1) await Promise.resolve();
+  }
+
+  it("reproduces the bug: without the guard, one retry click fires getDocument twice", async () => {
+    const harness = createRetryRaceHarness(false);
+
+    harness.retry();
+    await flushMicrotasks();
+
+    expect(harness.getDocumentCalls()).toBe(2);
+  });
+
+  it("REQ-CPD-051: with loadInFlight guarding load(), one retry click fires getDocument exactly once", async () => {
+    const harness = createRetryRaceHarness(true);
+
+    harness.retry();
+    await flushMicrotasks();
+
+    expect(harness.getDocumentCalls()).toBe(1);
+
+    // The single in-flight request settles normally — the guard only blocks
+    // the redundant SECOND fetch, it does not stall the real one.
+    harness.resolveInFlight();
+    await flushMicrotasks();
+    expect(harness.getDocumentCalls()).toBe(1);
+  });
+});
+
 describe("the license block (REQ-CPD-052)", () => {
   it("REQ-CPD-052: the pack's license and its notices are always in the block", () => {
     const block = buildPreviewLicense(ORC_PACK, docWith(undefined));
