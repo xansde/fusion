@@ -82,6 +82,37 @@ export function previewError(cause: unknown, fallback: string): PreviewLoadState
   return { status: "error", message };
 }
 
+/**
+ * Whether the window's `load()` must reassign `loadState` back to
+ * `PREVIEW_LOADING` before fetching.
+ *
+ * Bugfix A003 (item 14 of `docs/design/gaveta-lateral/tasks-ajustes-r1.md`):
+ * `load()` runs from two places — the mount `$effect` (which fires exactly
+ * because `loadState.status === "loading"` already) and the retry button
+ * (which runs after a failure). The mount path must NOT write `loadState`
+ * again: `$state` treats every object reassignment as a change regardless of
+ * shape, even reassigning a "loading" status onto a state that was already
+ * "loading" — so the write re-triggers the very effect that is still
+ * synchronously running `load()`, which reassigns again, which retriggers
+ * again... a self-feeding effect loop that Svelte's runtime eventually
+ * aborts by throwing `effect_update_depth_exceeded`. That throw happens
+ * before the window's own `getDocument()` call ever gets to `await` — the
+ * preview is stuck at "loading" forever (REQ-CPD-051 broken) — and because it
+ * happens inside Svelte's shared effect flush, the WHOLE reactive tree can be
+ * left mid-flush: DEC-CPD-03 promises the preview is a non-modal window that
+ * never blocks the panel, but the observed effect was the entire gaveta
+ * losing click response after the crash, including the destination picker
+ * that REQ-CPD-060 relies on for a visible return of "Trazer para o mundo".
+ *
+ * The retry path (`status === "error"`) is a REAL transition the reader must
+ * see, so it still resets. Reopening the window on an already-loading state
+ * does not need to (it already reads "loading") — skipping the redundant
+ * write is what breaks the cycle.
+ */
+export function shouldResetToLoading(current: PreviewLoadState): boolean {
+  return current.status !== "loading";
+}
+
 // ---------------------------------------------------------------------------
 // License block (REQ-CPD-052, DEC-CPD-07)
 // ---------------------------------------------------------------------------

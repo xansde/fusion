@@ -13,9 +13,10 @@ import { describe, it, expect } from "vitest";
 import {
   buildActorDragPayload,
   buildTokenFromActorFields,
+  buildCreateTokenFromActorOp,
   type ActorDocument,
 } from "../actorDirectory.js";
-import { OwnershipLevel } from "@fusion/shared";
+import { OwnershipLevel, DocCreatePayloadSchema } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -170,5 +171,44 @@ describe("buildTokenFromActorFields()", () => {
     });
     expect(fields.width).toBe(1);
     expect(fields.height).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildCreateTokenFromActorOp (ajustes r1, A004 review — REQ-NPC-063, REQ-CPD-062)
+// ---------------------------------------------------------------------------
+
+describe("buildCreateTokenFromActorOp() — REQ-NPC-063 / REQ-CPD-062: the drop payload the server accepts", () => {
+  const payload = buildActorDragPayload(makeActor("Aaaa0000000000a1", "Valeros", "character"));
+  const fields = buildTokenFromActorFields({
+    payload,
+    sceneId: "SceneXXXXXXXXXXXX",
+    x: 100,
+    y: 200,
+    gridSize: 100,
+  });
+
+  it("builds a doc:create of Token, embedded under the scene as parent", () => {
+    const op = buildCreateTokenFromActorOp(fields, "SceneXXXXXXXXXXXX");
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Token");
+    expect(op.payload.data).toEqual([fields]);
+    expect(op.payload.parent).toEqual({ type: "Scene", id: "SceneXXXXXXXXXXXX" });
+  });
+
+  it("satisfies DocCreatePayloadSchema — the real wire contract the server parses", () => {
+    const op = buildCreateTokenFromActorOp(fields, "SceneXXXXXXXXXXXX");
+    const result = DocCreatePayloadSchema.safeParse(op.payload);
+    expect(result.success).toBe(true);
+  });
+
+  it("REQ-NPC-063/REQ-CPD-062 regression: the OLD payload shape TableScreen.svelte sent — `embedded`/`documents` instead of `data`/`parent` — is rejected by the same schema", () => {
+    const oldShapePayload = {
+      documentType: "Token",
+      embedded: { type: "Token", sceneId: "SceneXXXXXXXXXXXX" },
+      documents: [fields],
+    };
+    const result = DocCreatePayloadSchema.safeParse(oldShapePayload);
+    expect(result.success).toBe(false);
   });
 });

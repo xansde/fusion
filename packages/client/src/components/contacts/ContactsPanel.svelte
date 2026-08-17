@@ -81,7 +81,7 @@
   } from "../../lib/contacts/categories.js";
   import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
   import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
-  import { sendOp, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
+  import { sendOp, toEnvelope, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
   import ActorPortrait from "../common/ActorPortrait.svelte";
@@ -338,13 +338,27 @@
     if (card.title.kind === "title" && next === card.title.text) return;
     if (card.title.kind !== "title" && next.length === 0) return;
     try {
-      await sendOp(socket, {
+      // A001: goes through the same funnel every other call site in the repo
+      // uses — toEnvelope() fills `expectedVersion` from the DocumentMirror
+      // (sendOp.ts's fillExpectedVersion), which the server requires on the
+      // primary doc:update path for a non-privileged writer (doc-handlers.ts).
+      // Calling sendOp() with a hand-built wire envelope, as this used to,
+      // skips that fill entirely and the server refuses with
+      // "expectedVersion is required for Actor/<id> — reload the document
+      // and retry" (REQ-CTT-024, REQ-CTT-085).
+      // Built as a plain (un-annotated) const, then passed by reference:
+      // toEnvelope's `op` parameter only requires `{ readonly type: string }`,
+      // and TS's excess-property check applies to a FRESH object literal, not
+      // to a variable reference — so `documentType`/`id`/`diff` are accepted
+      // without widening the parameter type or duplicating the "doc:update"
+      // literal a second time.
+      const op = {
         type: "doc:update",
-        payload: {
-          documentType: "Actor",
-          updates: [{ _id: card.id, diff: contactTitleDiff(next) }],
-        },
-      });
+        documentType: "Actor",
+        id: card.id,
+        diff: contactTitleDiff(next),
+      };
+      await sendOp(socket, toEnvelope(op));
       titleError = null;
     } catch (err) {
       // REQ-CTT-080: hiding the control is not the protection — the server refuses,

@@ -148,3 +148,46 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
     height: 1,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Op wrapper (A004 follow-up, ajustes r1 review — REQ-NPC-063, REQ-CPD-062)
+// ---------------------------------------------------------------------------
+
+/** The `doc:create` op `TableScreen.handleCanvasDrop` sends to land a Token on a scene. */
+export interface CreateTokenFromActorOp {
+  readonly type: "doc:create";
+  readonly payload: {
+    readonly documentType: "Token";
+    readonly data: readonly TokenCreateFields[];
+    readonly parent: { readonly type: "Scene"; readonly id: string };
+  };
+}
+
+/**
+ * Wrap `TokenCreateFields` in the embedded `doc:create` shape the server
+ * actually understands — `data: [fields]` + `parent: { type: "Scene", id }`,
+ * matched by `DocCreatePayloadSchema` (`packages/shared/src/protocol.ts`) and
+ * routed to `handleEmbeddedCreate` (`doc-handlers.ts`), which appends to
+ * `Scene.tokens` and mints `_id` server-side.
+ *
+ * Sibling of `buildAddTokenOp` (`lib/scenes/tokenAddDialogOp.ts`) and
+ * `buildPlaceChestTokenOp` (`lib/npcs/npcsFooter.ts`) — same op shape, same
+ * bug family this fixes: an earlier version of `handleCanvasDrop` sent
+ * `payload: { documentType: "Token", embedded: { type, sceneId }, documents: [fields] }`,
+ * a shape `DocCreatePayloadSchema` has never accepted (`data` is required,
+ * `embedded`/`documents` do not exist on it) — silently rejected with
+ * `VALIDATION_FAILED` because the emit had no ack to surface it.
+ */
+export function buildCreateTokenFromActorOp(
+  fields: TokenCreateFields,
+  sceneId: string,
+): CreateTokenFromActorOp {
+  return {
+    type: "doc:create",
+    payload: {
+      documentType: "Token",
+      data: [fields],
+      parent: { type: "Scene", id: sceneId },
+    },
+  };
+}

@@ -9,12 +9,14 @@
    *   socket    Socket        — for sendOp.
    *
    * The texture field uses FilePicker (world assets) OR an external URL.
-   * Logic (form validation, sendOp) lives in tokenController.ts (pure TS).
+   * The op sent on submit (A004, ajustes r1 item 22 — an embedded `doc:create`
+   * under the target scene, never the old `$push` pseudo-operator) lives in
+   * `tokenAddDialogOp.ts` (pure TS), so it can be exercised without a DOM.
    */
 
   import type { Socket } from "socket.io-client";
   import { sendOp } from "../../lib/docs/sendOp.js";
-  import { createDocumentId } from "@fusion/shared";
+  import { buildAddTokenOp } from "../../lib/scenes/tokenAddDialogOp.js";
   import { fusionApi } from "../../lib/api.js";
   import { session } from "../../lib/session.svelte.js";
   import { resolveBrowseAssetUrl } from "../../lib/assets/assetApi.js";
@@ -132,36 +134,11 @@
     serverError = null;
 
     try {
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: sceneId,
-              diff: {
-                tokens: {
-                  $push: {
-                    _id: createDocumentId(),
-                    name: formData.name.trim(),
-                    texture: formData.texture.trim() || null,
-                    x: formData.x,
-                    y: formData.y,
-                    width: formData.width,
-                    height: formData.height,
-                    rotation: 0,
-                    hidden: false,
-                    disposition: 0,
-                    elevation: 0,
-                    bar1: { attribute: null },
-                    bar2: { attribute: null },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      });
+      // A004 (ajustes r1 item 22): an embedded `doc:create` under the target
+      // scene — never the `$push` pseudo-operator this dialog used to send
+      // (see tokenAddDialogOp.ts for why a whole-array `doc:update` is not
+      // the fix either).
+      await sendOp(socket, buildAddTokenOp(sceneId, formData));
       onSuccess();
     } catch (err) {
       serverError = err instanceof Error ? err.message : "An unexpected error occurred.";

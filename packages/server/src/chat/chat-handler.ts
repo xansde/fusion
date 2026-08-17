@@ -159,7 +159,7 @@ function getAllUsers(db: Db): UserRow[] {
 }
 
 function getGmUserIds(db: Db): string[] {
-  // GAMEMASTER = 4, ASSISTANT_GM = 3 — both are privileged
+  // GAMEMASTER = 4, ASSISTANT = 3 — both are privileged
   return (
     db.prepare(`SELECT id FROM users WHERE role >= 3 AND active = 1`).all() as { id: string }[]
   ).map((r) => r.id);
@@ -1038,7 +1038,7 @@ const GAMEMASTER_ROLE: number = UserRole.GAMEMASTER;
  *
  * Note that the GM check is `role === GAMEMASTER`, strictly, and not
  * `isRolePrivileged` — REQ-ACH-082 names the role literally. `isRolePrivileged`
- * (which also admits ASSISTANT_GM) governs VISIBILITY, a different question,
+ * (which also admits ASSISTANT) governs VISIBILITY, a different question,
  * and is still the only predicate used for that above.
  */
 function mayChangeInvalidation(

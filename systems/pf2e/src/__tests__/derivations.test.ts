@@ -391,12 +391,18 @@ describe("Fighter level 5 — full derivation pipeline", () => {
     // Actually: attackBonus = strMod(4) + profBonus(rank2, level5=9) + potency(1) = 4+9+1 = 14
     const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
     const strikes = derived["strikes"] as Array<{
+      label: string;
       attackBonus: number;
       variants: Array<{ total: number; formula: string }>;
     }>;
-    expect(strikes).toHaveLength(1);
+    // Every PF2e character can also strike unarmed (CRB "Unarmed Attacks"),
+    // so the synthetic Punho is always appended after the equipped weapons —
+    // the Longsword stays first, the Punho strike comes last (see #62).
+    expect(strikes).toHaveLength(2);
     const strike = strikes[0];
     expect(strike).toBeDefined();
+    expect(strike?.label).toBe("Longsword");
+    expect(strikes[1]?.label).toBe("Punho");
     if (strike) {
       expect(strike.attackBonus).toBe(14);
       expect(strike.variants[0]?.total).toBe(14);
@@ -616,12 +622,17 @@ describe("Agile weapon strike MAP", () => {
 
     const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
     const strikes = derived["strikes"] as Array<{
+      label: string;
       isAgile: boolean;
       variants: Array<{ mapPenalty: number }>;
     }>;
 
-    expect(strikes).toHaveLength(1);
+    // doc["items"] here only has the Dagger, so the synthetic Punho (CRB
+    // "Unarmed Attacks") gets appended after it — Dagger stays first (see #62).
+    expect(strikes).toHaveLength(2);
     const strike = strikes[0];
+    expect(strike?.label).toBe("Dagger");
+    expect(strikes[1]?.label).toBe("Punho");
     expect(strike?.isAgile).toBe(true);
     expect(strike?.variants[0]?.mapPenalty).toBe(0);
     expect(strike?.variants[1]?.mapPenalty).toBe(-4);

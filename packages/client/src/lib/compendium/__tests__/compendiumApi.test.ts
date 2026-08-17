@@ -10,11 +10,24 @@
  * Also pins the WIRE contract of the two import doors of spec 43 §5.7 —
  * `compendium:import` (world) and `compendium:importToActor` (sheet):
  * REQ-CPD-060, REQ-CPD-061, REQ-CPD-073.
+ *
+ * Bugfix A002 (item 13, `docs/design/gaveta-lateral/tasks-ajustes-r1.md`):
+ * getDocument()'s query rejects once its internal timeout elapses even when
+ * the ack NEVER arrives (the class of failure a reconnection mid-load can
+ * produce). Live reproduction (`.claude/skills/tutorial-e2e/roteiros/inv-a002.spec.ts`,
+ * forcing offline→online in the middle of a preview load) did not reproduce
+ * the infinite spinner — socket.io's own reconnection buffer resent the
+ * query and the preview loaded normally. This test pins the one remaining
+ * gap the live repro could not exercise deterministically: an ack that never
+ * arrives at all, of any cause. Without this timeout, `CompendiumPreviewWindow`'s
+ * `load()` would await forever and REQ-CPD-051's "erro com nova tentativa"
+ * would never be reachable.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Socket } from "socket.io-client";
 import {
+  getDocument,
   importToActor,
   importToWorld,
   requireConnectedSocket,
@@ -84,6 +97,45 @@ describe("requireConnectedSocket", () => {
       // expected
     }
     expect(Date.now() - before).toBeLessThan(50);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getDocument()'s query never hangs forever, even with no ack at all
+// (bugfix A002, REQ-CPD-051)
+// ---------------------------------------------------------------------------
+
+/** A socket whose emit is heard by the transport but whose ack never fires. */
+function socketThatNeverAcks(): Socket {
+  return { connected: true, emit: () => undefined } as unknown as Socket;
+}
+
+describe("getDocument — the preview's query settles even when the ack never arrives", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("REQ-CPD-051: rejects once the query's internal timeout elapses, instead of hanging forever", async () => {
+    const promise = getDocument(socketThatNeverAcks(), "Compendium.pf2e.spells-core.Item.s1");
+
+    // No ack ever fires — advance past the query's own timeout window.
+    vi.advanceTimersByTime(10_001);
+
+    await expect(promise).rejects.toThrow(/timed out/i);
+  });
+
+  it("REQ-CPD-051: resolves normally when the ack arrives before the timeout", async () => {
+    const sent: SentOp[] = [];
+    const socket = recordingSocket(sent, { document: { name: "Fireball" } });
+
+    const promise = getDocument(socket, "Compendium.pf2e.spells-core.Item.s1");
+    vi.advanceTimersByTime(1_000);
+
+    await expect(promise).resolves.toEqual({ document: { name: "Fireball" } });
   });
 });
 
