@@ -352,15 +352,24 @@ describe("SidebarRail", () => {
   // container to each button — asserted here from the component's own `<style>`
   // text, since `svelte/server` renders no `<style>` into the SSR body.
   // ---------------------------------------------------------------------------
-  describe("REQ-GAV-001: each tab paints its own fill, not the rail (A010)", () => {
-    it("REQ-GAV-001: the rail container itself paints no background and no border", () => {
+  // Note: this block proves the prototype's visual contract (variant C, `.C
+  // .tabs`), not the literal text of REQ-GAV-001 — the requirement only mandates
+  // an icon-only column with no textual label (proven at line 211 below); it says
+  // nothing about fill, sizing, radius or alignment. Titles below cite "A010"
+  // (the plan item) rather than the requirement number, so the requirement's
+  // citation coverage is not inflated by assertions it does not actually mandate.
+  describe("each tab paints its own fill, not the rail (A010, prototype variant C `.C .tabs`)", () => {
+    it("A010: the rail container itself paints no background and no border", () => {
       const rule = ruleFor(".sidebar-rail");
 
-      expect(rule).not.toMatch(/background:/);
-      expect(rule).not.toMatch(/border-left:/);
+      // Word-boundary match so a mutant that re-paints the plate under a
+      // longhand/shorthand sibling (background-color, border, plain border
+      // instead of border-left) still fails this test.
+      expect(rule).not.toMatch(/(^|[\s;])background(-color|-image)?\s*:/);
+      expect(rule).not.toMatch(/(^|[\s;])border(-left|-inline-start)?\s*:/);
     });
 
-    it("REQ-GAV-001: every button carries its own background, sized 40×44, radius only on the outer edge", () => {
+    it("A010: every button carries its own background, sized 40×44, radius only on the outer edge", () => {
       const rule = ruleFor(".sidebar-rail__button");
 
       expect(rule).toMatch(/width:\s*40px/);
@@ -371,16 +380,22 @@ describe("SidebarRail", () => {
       );
     });
 
-    it("REQ-GAV-001: the buttons hug the drawer's edge instead of centering on the rail", () => {
+    it("A010: the buttons hug the drawer's edge instead of centering on the rail", () => {
       const rule = ruleFor(".sidebar-rail__group");
 
       expect(rule).toMatch(/align-items:\s*flex-end/);
     });
 
-    it("REQ-GAV-001/REQ-GAV-005: the active tab grows to 44px, matching the prototype's bookmark effect", () => {
+    it("A010/REQ-GAV-005: the active tab grows to 44px and matches the panel's fill, closing the seam with the drawer", () => {
       const rule = ruleFor(".sidebar-rail__button--active");
 
       expect(rule).toMatch(/width:\s*44px/);
+      // REQ-GAV-005: "visually continuous with the panel" is realized by the
+      // background matching the drawer's own fill (SidebarDrawer.svelte uses
+      // the same `--fusion-surface` token) — not by the inactive button's
+      // `--fusion-surface-alt`. The negative lookahead keeps the mutant that
+      // restores `-alt` here from passing.
+      expect(rule).toMatch(/background:\s*var\(--fusion-surface\)(?!-alt)/);
     });
   });
 
@@ -389,10 +404,13 @@ describe("SidebarRail", () => {
   // four things still styled for the old opaque plate (revisão do PR de A010).
   // ---------------------------------------------------------------------------
   describe("each button carries the prototype's own contour, not a bare fill (REQ-GAV-001, REQ-GAV-005)", () => {
-    it("REQ-GAV-001: the base button has a visible border on three sides, none on the panel side", () => {
+    it("REQ-GAV-001/REQ-GAV-005: the base button has a visible border on three sides, none on the panel side", () => {
       const rule = ruleFor(".sidebar-rail__button");
 
       expect(rule).toMatch(/border:\s*1px solid var\(--fusion-border\)/);
+      // REQ-GAV-005 half of "no border between the button and the drawer": this
+      // is set on the base rule, so it applies to every button, active included
+      // — `.sidebar-rail__button--active` never overrides `border-right`.
       expect(rule).toMatch(/border-right:\s*0/);
     });
 
