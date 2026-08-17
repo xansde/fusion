@@ -307,6 +307,25 @@ describe("the facets of §5.4 (REQ-CPD-033, REQ-CPD-034)", () => {
     expect(html.slice(scrollAt)).not.toContain("compendium-browser__facet-select");
   });
 
+  it("REQ-CPD-033: inside a pack, the document-type facet reads the OPEN PACK's own choices, not the shelf's", () => {
+    // `openPackId` is derived from internal scope state that only a click
+    // gesture changes, and `$effect` never runs under the server renderer
+    // (see the file banner), so this scope cannot be reached by feeding
+    // props to `render()` — the wiring is read in the template instead, the
+    // same instrument REQ-CPD-031 and REQ-CPD-091 already use for states the
+    // SSR harness cannot stage.
+    const template = source().slice(source().indexOf("</script>"));
+
+    // A040: the select hides only when the OPEN PACK's own type choices
+    // collapse to at most one — never a hardcoded "always hide inside a
+    // pack" — so a manifest that ever carries more than one type stays
+    // filterable.
+    expect(template).toContain("{#if openPackId === null || packTypeChoices.length > 1}");
+    // And when it does render inside a pack, its options come from the
+    // pack's own choices, never a leftover copy of the shelf's full list.
+    expect(template).toContain("(openPackId === null ? typeChoices : packTypeChoices)");
+  });
+
   it("REQ-CPD-033: the source facet appears only once the answer spans more than one pack", () => {
     // Nothing has been searched, so there is no answer and no source to pick.
     expect(renderPanel()).not.toContain(t("FUSION.Compendium.Facet.Source"));
@@ -391,5 +410,61 @@ describe("a truncated group offers the pack it hid (REQ-CPD-032)", () => {
     expect(t("FUSION.Compendium.OpenPackWithMatches", { pack: "Magias", count: 37 })).not.toContain(
       "FUSION.",
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A040 review fix — sorting is wired into the aggregated body, and the field
+// it sorts by is always one its own toolbar can point to (REQ-CPD-038)
+// ---------------------------------------------------------------------------
+//
+// `$effect` never runs under the server renderer, so the aggregated body
+// never has data to draw and `sortedAggregated`/`effectiveSortField` cannot
+// be exercised by feeding props to `render()`. Same instrument the rest of
+// this file already uses for wiring `$effect` hides (see REQ-CPD-091 above):
+// read the template/script, where the requirement lives.
+
+describe("the aggregated result can be reordered, by a field its toolbar owns (REQ-CPD-038)", () => {
+  it("REQ-CPD-038: the aggregated body draws its own Name/Type sort toolbar, without Nível", () => {
+    const template = source().split("<style>")[0] ?? "";
+    // The FIRST `entries-sort` toolbar in the template is the aggregated
+    // one (it comes before the pack body in source order); the pack's own
+    // toolbar — the second occurrence — is allowed a "Nível" button, the
+    // aggregated one is not (REQ-CPD-038: no button, no way to reach that
+    // sort from here).
+    const toolbarAt = template.indexOf('class="entries-sort"');
+    expect(toolbarAt).toBeGreaterThan(-1);
+    const toolbar = template.slice(toolbarAt, toolbarAt + 400);
+
+    expect(toolbar).toMatch(/onclick={\(\) => toggleSort\("name"\)}/);
+    expect(toolbar).toMatch(/onclick={\(\) => toggleSort\("type"\)}/);
+    expect(toolbar).not.toMatch(/onclick={\(\) => toggleSort\("level"\)}/);
+  });
+
+  it("REQ-CPD-038: the aggregated body's groups come from the SORTED result, not the unsorted one", () => {
+    const template = source().split("<style>")[0] ?? "";
+    expect(template).toContain("{#each sortedAggregated.groups as group (group.documentType)}");
+    expect(template).not.toContain(
+      "{#each visibleAggregated.groups as group (group.documentType)}",
+    );
+  });
+
+  it("REQ-CPD-038: sorting by level, then leaving the pack, folds back to a field the aggregated toolbar can name", () => {
+    const src = source();
+    // The derived value both the aggregated sort and its arrows read from —
+    // it exists, and it is the thing that stands between a stored "level"
+    // field and a scope that has no button for it.
+    expect(src).toMatch(
+      /const effectiveSortField = \$derived<SortField>\(\s*openPackId === null && sortField === "level" \? "name" : sortField,/,
+    );
+    // Both consumers use the folded field, not the raw one, so a leftover
+    // "level" selection can never leave the aggregated toolbar with both
+    // arrows blank while the list is silently sorted by level anyway.
+    expect(src).toMatch(
+      /sortAggregatedResult\(\s*visibleAggregated,\s*effectiveSortField,\s*sortAsc,\s*i18n\.locale,?\s*\)/,
+    );
+    const sortArrowFn = src.slice(src.indexOf("function sortArrow("));
+    const body = sortArrowFn.slice(0, sortArrowFn.indexOf("\n  }\n"));
+    expect(body).toContain("if (effectiveSortField !== field) return");
   });
 });

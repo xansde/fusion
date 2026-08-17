@@ -407,6 +407,52 @@ export async function sendChatMessage(
   });
 }
 
+/**
+ * Invalidate (or, with `invalid: false`, revalidate) one message — REQ-CHT-005,
+ * REQ-ACH-080..086. This is the client's ONLY door to `chat:invalidate` —
+ * ChatMessage.svelte's button (A024) calls it, gated by
+ * `lib/chat/invalidateButton.ts` (REQ-ACH-082/083).
+ *
+ * A write, so it travels on `op` (the same channel `sendChatMessage` uses),
+ * not `query`.
+ *
+ * No optimistic update: the server is the only one that decides whether the
+ * transition is allowed (REQ-ACH-090), and the row updates when its own
+ * `doc:update` broadcast arrives (REQ-ACH-086) — the invalidator is always one
+ * of the eligible recipients of that broadcast (author or GM), and
+ * `attachChatMessageSync`'s `applyMessageUpdate` already replaces the message
+ * in place. Reconciling a second, local-only path here would only risk
+ * disagreeing with the one the server actually enacted.
+ */
+export async function sendChatInvalidate(
+  socket: Socket,
+  worldId: string,
+  id: string,
+  invalid: boolean,
+): Promise<void> {
+  chatStore.error = null;
+  return new Promise<void>((resolve, reject) => {
+    socket.emit(
+      "op",
+      {
+        type: "chat:invalidate",
+        payload: { worldId, _id: id, invalid },
+        requestId: _reqId(),
+        ts: Date.now(),
+      },
+      (ack: { ok: boolean; message?: string; code?: string }) => {
+        if (ack.ok) {
+          resolve();
+        } else {
+          const msg = ack.message ?? "Invalidate failed";
+          chatStore.error = msg;
+          reject(new Error(msg));
+        }
+      },
+    );
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Internal socket helper
 // ---------------------------------------------------------------------------

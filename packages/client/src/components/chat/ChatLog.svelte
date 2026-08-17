@@ -23,7 +23,11 @@
     loadMoreHistory,
     resolveUnreadAnchorIndex,
   } from "../../lib/chat/chatStore.svelte.js";
-  import { ScrollStateManager, resolveMarkerAnchorId } from "../../lib/chat/scrollState.js";
+  import {
+    ScrollStateManager,
+    resolveMarkerAnchorId,
+    lastMessageStamp,
+  } from "../../lib/chat/scrollState.js";
   import { groupChatMessages } from "../../lib/chat/chatGrouping.js";
   import { registerLogScroller } from "../../lib/chat/logScroller.js";
   import { t } from "../../lib/i18n/i18n.js";
@@ -107,6 +111,12 @@
 
   let _prevMsgCount = 0;
   /**
+   * Fingerprint of the last message's row-affecting fields (id + invalid),
+   * so an in-place edit to the last row (invalidation) is noticed even though
+   * `chatStore.messages.length` does not move — see `onLastMessageResized`.
+   */
+  let _prevLastStamp: string | null = null;
+  /**
    * The first pass only records how much was already there. Messages already in
    * the store when the panel mounts are not arrivals — counting them would open
    * the log with a "N novas" notice for messages that are simply the log
@@ -116,9 +126,11 @@
 
   $effect(() => {
     const count = chatStore.messages.length;
+    const stamp = lastMessageStamp(chatStore.messages);
     if (!_seeded) {
       _seeded = true;
       _prevMsgCount = count;
+      _prevLastStamp = stamp;
       return;
     }
     if (count > _prevMsgCount) {
@@ -127,7 +139,12 @@
         scrollManager.onNewMessage();
       }
       _prevMsgCount = count;
+    } else if (count === _prevMsgCount && stamp !== _prevLastStamp) {
+      // Same length, last row changed shape in place (e.g. invalidated) — a
+      // pinned reader must still see the true end of the log (REQ-ACH-081).
+      scrollManager.onLastMessageResized();
     }
+    _prevLastStamp = stamp;
   });
 
   // ---- Where the log opens (REQ-ACH-004, REQ-ACH-026, RNF-ACH-02) ----

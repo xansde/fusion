@@ -18,6 +18,7 @@ import {
   applyAggregatedFacets,
   describeActiveFacets,
   documentTypeChoices,
+  packDocumentTypeChoices,
   rarityChoices,
   sourceChoices,
 } from "../aggregatedFacets.js";
@@ -86,6 +87,32 @@ describe("the choices the panel offers (REQ-CPD-033)", () => {
   it("REQ-CPD-033: the rarity facet is the generic ladder, not a system-declared filter", () => {
     expect(rarityChoices().map((c) => c.value)).toEqual(["common", "uncommon", "rare", "unique"]);
   });
+
+  // A040 — the document-type facet only hid itself inside a pack because the
+  // panel hardcoded root-only, not because a pack could never offer a choice.
+  // `PackManifest.documentType` is one value per pack (REQ-CMP-001), so this
+  // is what makes it disappear inside a pack in practice: not a scope check,
+  // but a real "there is no second type to filter by".
+  it("REQ-CPD-033: no open pack offers no document-type choice at all", () => {
+    expect(packDocumentTypeChoices(null)).toEqual([]);
+  });
+
+  it("REQ-CPD-033: an open pack offers only its OWN type, named by key", () => {
+    const choices = packDocumentTypeChoices({ documentType: "Actor" });
+
+    expect(choices).toEqual([{ value: "Actor", labelKey: "FUSION.Compendium.DocType.Actor" }]);
+  });
+
+  // "One pack, one type" is not a fact this function can fail to uphold: its
+  // return is always `[]` or a one-element array literal (see
+  // aggregatedFacets.ts `packDocumentTypeChoices`), so asserting
+  // `.length <= 1` here would compare the output with its own construction —
+  // circular, and infallible regardless of any real regression. What A040
+  // actually changed is the PANEL's guard that reads this choice count to
+  // decide whether to render the select; that behavior is covered where it
+  // lives, on the template's own wiring:
+  // `CompendiumBrowser.test.ts` → "inside a pack, the document-type facet
+  // reads the OPEN PACK's own choices, not the shelf's" (REQ-CPD-033).
 
   it("REQ-CPD-033: the source facet lists the packs the ANSWER came from", () => {
     const sources = sourceChoices(answer());

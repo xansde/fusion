@@ -572,37 +572,76 @@ export function buildCompendiumDragPayload(
 export type SortField = "name" | "level" | "type";
 
 /**
+ * The comparator every sort in this module shares — one entry against
+ * another. The "name" case sorts by the DISPLAYED name (REQ-CPD-040,
+ * DEC-CPD-06 — pt-BR overlay when the locale is pt-BR and a translation
+ * exists), never the raw EN `name`: the line the reader sees is
+ * `entryDisplayName`'s output, so a "Nome" sort that compared `entry.name`
+ * directly would silently stop being alphabetical for any translated entry
+ * (fixed in the Ajustes r1 review of A040 — see compendiumBrowser.test.ts).
+ */
+function compareEntries(
+  a: PackIndexEntry,
+  b: PackIndexEntry,
+  field: SortField,
+  locale: SupportedLocale,
+): number {
+  switch (field) {
+    case "name":
+      return entryDisplayName(a, locale).localeCompare(entryDisplayName(b, locale), "pt-BR");
+    case "level": {
+      const aLv = a.index["system.level.value"];
+      const bLv = b.index["system.level.value"];
+      const la = typeof aLv === "number" ? aLv : 0;
+      const lb = typeof bLv === "number" ? bLv : 0;
+      return la - lb;
+    }
+    case "type":
+      return (a.type ?? "").localeCompare(b.type ?? "", "pt-BR");
+  }
+}
+
+/**
  * Sort entries for display.
  */
 export function sortEntries(
   entries: PackIndexEntry[],
   field: SortField = "name",
   asc = true,
+  locale: SupportedLocale = "pt-BR",
 ): PackIndexEntry[] {
   const sorted = [...entries].sort((a, b) => {
-    let cmp = 0;
-
-    switch (field) {
-      case "name":
-        cmp = a.name.localeCompare(b.name, "pt-BR");
-        break;
-      case "level": {
-        const aLv = a.index["system.level.value"];
-        const bLv = b.index["system.level.value"];
-        const la = typeof aLv === "number" ? aLv : 0;
-        const lb = typeof bLv === "number" ? bLv : 0;
-        cmp = la - lb;
-        break;
-      }
-      case "type":
-        cmp = (a.type ?? "").localeCompare(b.type ?? "", "pt-BR");
-        break;
-    }
-
+    const cmp = compareEntries(a, b, field, locale);
     return asc ? cmp : -cmp;
   });
 
   return sorted;
+}
+
+/**
+ * Sort the aggregated result of REQ-CPD-012/031 for display — the Name/Type
+ * reorder REQ-CPD-038 requires over the whole-collection search, the sibling
+ * of the Name/Level/Type sort the open-pack body already offered. Sorting
+ * reorders the LINES inside each group only: the grouping by document type
+ * and each group's `total`/`omitted` come from the server (REQ-CPD-031) and
+ * must survive untouched, or a sort would quietly change what REQ-CPD-032's
+ * truncation notice is talking about.
+ */
+export function sortAggregatedResult(
+  result: AggregatedSearchResult,
+  field: SortField = "name",
+  asc = true,
+  locale: SupportedLocale = "pt-BR",
+): AggregatedSearchResult {
+  return {
+    groups: result.groups.map((group) => ({
+      ...group,
+      lines: [...group.lines].sort((a, b) => {
+        const cmp = compareEntries(a.entry, b.entry, field, locale);
+        return asc ? cmp : -cmp;
+      }),
+    })),
+  };
 }
 
 // ---------------------------------------------------------------------------

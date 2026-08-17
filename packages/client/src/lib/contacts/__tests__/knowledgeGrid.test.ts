@@ -308,6 +308,43 @@ describe("the character's name cycles the column (REQ-CTT-064)", () => {
 // The general rule in text and the legend — REQ-CTT-065
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// The label — REQ-CMP-055
+// ---------------------------------------------------------------------------
+
+describe("the grid resolves labels through the single displayName mechanism (REQ-CMP-055)", () => {
+  it("REQ-CMP-055: a row's name is the pt-BR snapshot, not the EN-pure doc.name", () => {
+    const eagle: ContactActorDoc = {
+      _id: "act-eagle0001",
+      name: "Eagle",
+      type: "npc",
+      flags: {
+        fusion: {
+          knowledge: { general: KnowledgeState.Known, exceptions: {} },
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    };
+    const grid = buildKnowledgeGrid([FOFURINHA, eagle]);
+    const row = rowOf(grid, eagle._id);
+
+    expect(row.name).toBe("Águia");
+    expect(row.name).not.toBe("Eagle");
+  });
+
+  it("REQ-CMP-055: a column's name (the table's character) resolves the same way", () => {
+    const wolfPc: ContactActorDoc = {
+      _id: "act-wolfpc0001",
+      name: "Wolf",
+      type: "character",
+      flags: { fusion: { i18n: { "pt-BR": { name: "Lobo" } } } },
+    };
+    const grid = buildKnowledgeGrid([wolfPc, TAVERNEIRA]);
+
+    expect(grid.columns.map((column) => column.name)).toEqual(["Lobo"]);
+  });
+});
+
 describe("the general rule and the legend are readable (REQ-CTT-065)", () => {
   it("REQ-CTT-065: each row exposes the general rule in force, apart from the cells", () => {
     const grid = buildKnowledgeGrid(TABLE);

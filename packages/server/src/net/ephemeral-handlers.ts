@@ -13,9 +13,14 @@
  *   presence:cursor  — cursor position; rebroadcast to room EXCEPT sender (~20/s server limit)
  *   presence:ping    — map ping; rebroadcast to room INCLUDING sender; rate-limited
  *   presence:ruler   — ruler:update / ruler:clear; rebroadcast to room INCLUDING sender
+ *   presence:online  — connected-user roster; server-initiated (connect/disconnect), not
+ *                       client-triggered, so it is built by `buildPresenceOnlineBroadcast`
+ *                       below and emitted directly by socket-manager.ts rather than routed
+ *                       through `handleEphemeralEnvelope`
  *
  * REQ-NET-040: cursors throttled ≤ 30 msg/s per user (server enforces ~20/s = 50 ms min gap)
  * REQ-NET-041: ping to room with rate limit
+ * REQ-NET-043: presence:online roster (active/color) updated on connect/disconnect
  * REQ-NET-071: ephemeral rate limiting, silent drop
  */
 
@@ -295,4 +300,53 @@ export function handleEphemeralEnvelope(
       logger.debug({ type: envelope.type, userId: ctx.userId }, "Unknown ephemeral type");
       return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// presence:online — connected-user roster (REQ-NET-043)
+// ---------------------------------------------------------------------------
+
+/** One row of the presence:online roster sent to every client. */
+export interface PresenceOnlineUser {
+  userId: string;
+  userName: string;
+  color: string;
+  online: boolean;
+}
+
+export interface PresenceOnlinePayload {
+  users: PresenceOnlineUser[];
+}
+
+/**
+ * Build the presence:online envelope broadcast to the whole world namespace
+ * on every connect/disconnect (REQ-NET-043): the full roster of active
+ * accounts, each flagged `online` by whether it currently owns at least one
+ * live socket. Unlike the other ephemeral types above, this one is not a
+ * reaction to a client-sent envelope — socket-manager.ts calls this directly
+ * from its connection/disconnect handlers — so it is kept as a pure function
+ * here (DB read + `ns.emit` stay in the caller) rather than routed through
+ * `handleEphemeralEnvelope`.
+ *
+ * `accounts` is every active `User` row (color, name — REQ-USR-002); this
+ * function itself never touches the database, so it is testable without a
+ * socket or a DB fixture.
+ */
+export function buildPresenceOnlineBroadcast(
+  accounts: ReadonlyArray<{ id: string; name: string; color: string }>,
+  connectedUserIds: ReadonlySet<string>,
+  now: number = Date.now(),
+): Envelope<PresenceOnlinePayload> {
+  return {
+    type: "presence:online",
+    ts: now,
+    payload: {
+      users: accounts.map((account) => ({
+        userId: account.id,
+        userName: account.name,
+        color: account.color,
+        online: connectedUserIds.has(account.id),
+      })),
+    },
+  };
 }

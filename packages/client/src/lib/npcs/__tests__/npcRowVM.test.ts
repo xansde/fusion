@@ -178,6 +178,46 @@ describe("REQ-NPC-030: portrait, name, title, level and attitude", () => {
   });
 });
 
+describe("REQ-CMP-055: a row's name resolves the pt-BR snapshot, never doc.name straight (A041/A034)", () => {
+  it("REQ-CMP-055: a compendium-imported NPC shows the pt-BR label from flags.fusion.i18n", () => {
+    const EAGLE: NpcActorDoc = {
+      _id: "act-eagle0000001",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      folder: null,
+      system: { details: { level: { value: 1 } } },
+      flags: {
+        fusion: {
+          packName: "bestiary",
+          sourceId: "eagle-001",
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    };
+
+    const [row] = buildNpcRows({ actors: [EAGLE], isPrivileged: true });
+
+    expect(row?.name).toBe("Águia");
+  });
+
+  it("REQ-CMP-055: an NPC imported before the flag existed (no snapshot) falls back to doc.name", () => {
+    const EAGLE_NO_FLAG: NpcActorDoc = {
+      _id: "act-eagle0000002",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      folder: null,
+      system: { details: { level: { value: 1 } } },
+      flags: { fusion: { packName: "bestiary", sourceId: "eagle-001" } },
+    };
+
+    const [row] = buildNpcRows({ actors: [EAGLE_NO_FLAG], isPrivileged: true });
+
+    expect(row?.name).toBe("Eagle");
+  });
+});
+
 describe("REQ-NPC-031: no hit points reach the line, for any role", () => {
   it("REQ-NPC-031: the row of an actor with hp carries no number of it whatsoever", () => {
     const row = rowOf(GOBLIN._id);
@@ -396,6 +436,50 @@ describe("REQ-NPC-011: the search reads name and title, in the client", () => {
     // The familiar is part of that line (REQ-NPC-034), so finding it must not
     // produce a row of its own — it produces the master's.
     expect(rows("rato de estimação").map((row) => row.id)).toEqual([GOBLIN._id]);
+  });
+
+  it("REQ-NPC-011 + REQ-CMP-055: an NPC drawn as 'Águia' is found by the label the row actually shows", () => {
+    // The row renders displayName() (REQ-CMP-055) — the search must match what the
+    // Mestre reads on screen, not only the EN-pure doc.name underneath it.
+    const EAGLE: NpcActorDoc = {
+      _id: "act-eagle0000003",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      folder: null,
+      system: { details: { level: { value: 1 } } },
+      flags: {
+        fusion: {
+          packName: "bestiary",
+          sourceId: "eagle-001",
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    };
+    const [row] = buildNpcRows({ actors: [EAGLE], isPrivileged: true });
+    expect(row?.name).toBe("Águia");
+
+    expect(matchesNpcQuery(EAGLE, "Águia")).toBe(true);
+  });
+
+  it("REQ-NPC-011 + REQ-CMP-055: the same NPC stays findable by its EN-pure doc.name", () => {
+    const EAGLE: NpcActorDoc = {
+      _id: "act-eagle0000004",
+      name: "Eagle",
+      type: "npc",
+      img: "worlds/img/eagle.webp",
+      folder: null,
+      system: { details: { level: { value: 1 } } },
+      flags: {
+        fusion: {
+          packName: "bestiary",
+          sourceId: "eagle-001",
+          i18n: { "pt-BR": { name: "Águia" } },
+        },
+      },
+    };
+
+    expect(matchesNpcQuery(EAGLE, "Eagle")).toBe(true);
   });
 });
 

@@ -21,6 +21,7 @@
 
 import { OwnershipLevel, getUserLevel, isSheetImportableDocumentType } from "@fusion/shared";
 import type { Ownership } from "@fusion/shared";
+import { displayName } from "../docs/displayName.js";
 import type { CompendiumDragPayload } from "./compendiumBrowser.js";
 
 // ---------------------------------------------------------------------------
@@ -76,9 +77,14 @@ export function buildSheetTargets(actors: readonly unknown[], viewer: ImportView
       getUserLevel(readOwnership(doc), viewer.userId) >= OwnershipLevel.OWNER;
     if (!owns) continue;
 
+    // REQ-CMP-055 (A041): the "Destino" select is a name-display surface like any
+    // other — it MUST resolve through the single displayName() mechanism, never
+    // a raw doc.name read, or a pt-BR-imported actor would show its EN-pure name
+    // here while every other surface (NPCs tab, Contatos, sheet) shows the label.
+    const resolved = displayName(doc);
     targets.push({
       actorId,
-      name: readString(doc, "name") ?? actorId,
+      name: resolved.length > 0 ? resolved : actorId,
       subtype: readString(doc, "type"),
     });
   }

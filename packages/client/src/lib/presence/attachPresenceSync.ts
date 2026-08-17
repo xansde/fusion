@@ -10,11 +10,13 @@
 
 import type { Socket } from "socket.io-client";
 import type { Envelope } from "@fusion/shared";
+import type { OnlineUser } from "./types.js";
 import {
   applyRemoteCursor,
   addPing,
   applyRemoteRuler,
   clearRemoteRuler,
+  updateOnlineUsers,
   startPresenceBackground,
 } from "./presenceStore.svelte.js";
 
@@ -117,8 +119,30 @@ export function attachPresenceSync(socket: Socket): () => void {
         break;
       }
 
+      case "presence:online": {
+        // REQ-NET-043: server-pushed roster (id/name/color/online) on every
+        // connect/disconnect — feeds resolveSpeakerColor (A022) and
+        // resolveInvalidatorLabel (A024) via presenceState.onlineUsers.
+        const rawUsers = Array.isArray(payload["users"]) ? payload["users"] : [];
+        const users: OnlineUser[] = [];
+        for (const raw of rawUsers as unknown[]) {
+          if (typeof raw !== "object" || raw === null) continue;
+          const row = raw as Record<string, unknown>;
+          const userId = asStr(row["userId"]);
+          if (userId === "") continue;
+          users.push({
+            userId,
+            userName: asStr(row["userName"]),
+            color: asStr(row["color"]),
+            online: row["online"] === true,
+          });
+        }
+        updateOnlineUsers(users);
+        break;
+      }
+
       default:
-        // Other ephemeral types (e.g. presence:online, presence:pan) handled elsewhere
+        // Other ephemeral types (e.g. presence:pan) handled elsewhere
         break;
     }
   };

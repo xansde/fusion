@@ -27,6 +27,37 @@
    * attenuated with its value struck through, and carries the stamp of who
    * voided it. Nothing is removed from the markup — invalidation is an
    * annotation on the log, never a deletion (REQ-ACH-080/085).
+   *
+   * REQ-ACH-080..086 (A024, chat-tab.prototype.html:614-616 `invBtn`): the row
+   * carries a hover-revealed invalidate/revalidate control. Visibility is
+   * decided by `lib/chat/invalidateButton.ts` (REQ-ACH-082/083), the client
+   * mirror of the server's `mayChangeInvalidation` — but the server is still
+   * the ONLY enforcement point (REQ-ACH-090); this component never assumes an
+   * emit will succeed. `chat:invalidate` travels through
+   * `lib/chat/chatStore.svelte.ts`'s `sendChatInvalidate`, the same `op`
+   * funnel `ChatInput` uses for `chat:send`. No local optimism: the row
+   * updates when the server's own `doc:update` broadcast arrives
+   * (REQ-ACH-086), through the sync path `chatMessageSync.ts` already wires.
+   * `readOnly` forces the control off no matter what `resolveInvalidateAction`
+   * would otherwise allow — a surface that does not subscribe to that
+   * `doc:update` broadcast (ChatContextWindow.svelte, REQ-ACH-014) would let
+   * the viewer fire a real `chat:invalidate` and never see it take effect,
+   * success OR refusal. Every other caller leaves it at its default `false`.
+   *
+   * REQ-ACH-025 (A022, chat-tab.prototype.html:410/592/623-624): the author's
+   * name and, on a plain message, the row's left border are painted with a
+   * color deterministic per sender (lib/chat/speakerColor.ts's
+   * `resolveSpeakerColor` — the sender's own REQ-USR-002 world color when
+   * presence has a record for them, REQ-CHT-008's "cor do jogador", falling
+   * back to a per-alias hash only when it doesn't) — a continuation row never
+   * repaints because it never shows a header. Whisper/blind/card rows keep the
+   * prototype's FIXED type colors instead of the per-sender one (a sussurro is
+   * always the accent purple, a cega always the warning amber, a system card
+   * always the fixed chat-sys blue), so a reader recognizes the TYPE at a
+   * glance the same way regardless of who sent it. DEC-ACH-02/DEC-ACH-03
+   * govern the panel's search bar and write box, not this — cited only
+   * because the task that added this behavior names them alongside
+   * REQ-ACH-025.
    */
 
   import type { Socket } from "socket.io-client";
@@ -46,8 +77,11 @@
   } from "../../lib/chat/messageFormatter.js";
   import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
   import { buildRollDisplay, type RollDisplay } from "../../lib/chat/rollDisplay.js";
-  import { isInvalidMessage } from "../../lib/chat/chatGrouping.js";
+  import { isCardMessage, isInvalidMessage } from "../../lib/chat/chatGrouping.js";
   import { resolveInvalidatorLabel } from "../../lib/chat/invalidationDisplay.js";
+  import { resolveSpeakerColor } from "../../lib/chat/speakerColor.js";
+  import { resolveInvalidateAction } from "../../lib/chat/invalidateButton.js";
+  import { sendChatInvalidate } from "../../lib/chat/chatStore.svelte.js";
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
   import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
@@ -61,6 +95,7 @@
     isGm = false,
     userId = "",
     worldId = "",
+    readOnly = false,
   }: {
     message: ChatMessageType;
     /**
@@ -84,6 +119,16 @@
     userId?: string;
     /** World id — required for the PF2e SpellCastCard's chat:send roll ops (r17-P2). */
     worldId?: string;
+    /**
+     * True on a surface that must never let this row fire a write it cannot
+     * show the outcome of (ChatContextWindow.svelte). Suppresses the
+     * invalidate/revalidate control entirely, regardless of what
+     * `resolveInvalidateAction` would return — a viewer/GM in every other
+     * respect still sees the row exactly as-is, including an existing
+     * invalidation's struck-through styling (REQ-ACH-081), just with no
+     * button to change that state from here.
+     */
+    readOnly?: boolean;
   } = $props();
 
   // Classify nested children into compact roll lines (attack/damage) + graded
@@ -170,21 +215,130 @@
   // Who voided it. The only user directory the client has is the presence list;
   // an id that resolves to nobody is printed as the id (see invalidationDisplay).
   const invalidatedBy = $derived(resolveInvalidatorLabel(message, presenceState.onlineUsers));
+
+  // ---- Per-sender color (REQ-ACH-025, A022; REQ-CHT-008, REQ-USR-002) ----
+  // Reuses chatGrouping's OWN predicate for "is this a card" — the same one
+  // the log's grouping already relies on — instead of re-deriving a second
+  // notion of it from message.type. The whisper TYPE tint, unlike the card
+  // check, is keyed strictly to `message.type === "whisper"`
+  // (chat-tab.prototype.html:578/623) — NOT the broader `isWhisperMessage`
+  // predicate (msg.type === "whisper" || msg.whisper.length > 0). A PRIVATE
+  // ROLL (gmroll/selfroll) also populates `whisper[]`, but the prototype
+  // keeps its border the sender's own color and marks it only with a seal
+  // ("ao Mestre"/"só eu") — it is not painted as a sussurro.
+  const isCard = $derived(isCardMessage(message));
+  const isWhisperType = $derived(message.type === "whisper");
+  // resolveSpeakerColor prefers the sender's own world color (REQ-USR-002,
+  // the same field painted on their cursor/ruler/pings and edited in
+  // Settings) so a message never invents a SECOND identity color for someone
+  // who already has one (REQ-CHT-008: "borda na cor do jogador"). It falls
+  // back to the deterministic per-alias hash only when presence has no
+  // record for that userId. `presenceState.onlineUsers` is the same directory
+  // `invalidatedBy` above already reads — no second source of user color.
+  const authorColor = $derived(resolveSpeakerColor(message.speaker, presenceState.onlineUsers));
+  // The prototype paints a plain message's left border with the sender's own
+  // color, but a whisper/blind/card row keeps its FIXED type color instead
+  // (painted below by .msg--whisper/.msg--blind/.msg--sys) — and a
+  // continuation row shows no header at all, so no color to apply. `undefined`
+  // here means "let the CSS class decide", never "no color painted".
+  const borderColor = $derived.by(() => {
+    if (continuesPrevious || isWhisperType || meta.isBlind || isCard) return undefined;
+    return authorColor;
+  });
+
+  // ---- Invalidate / revalidate button (REQ-ACH-080..086, A024) ----
+  // `null` when the viewer may neither invalidate nor revalidate this row —
+  // then no button is rendered at all (REQ-ACH-082/083). `readOnly` forces
+  // `null` even when `resolveInvalidateAction` would allow it, for a surface
+  // that cannot show whether the write it triggered succeeded or was refused.
+  const invalidateAction = $derived(
+    readOnly ? null : resolveInvalidateAction(message, isGm, userId),
+  );
+  let invalidateActing = $state(false);
+
+  async function handleInvalidateClick(): Promise<void> {
+    if (!socket || !invalidateAction || invalidateActing) return;
+    invalidateActing = true;
+    try {
+      await sendChatInvalidate(socket, worldId, message._id, invalidateAction === "invalidate");
+    } catch {
+      // The server is the enforcement point (REQ-ACH-090); a refusal lands in
+      // chatStore.error the same way any other chat action's does. The button
+      // simply re-enables so the viewer can retry or the row can settle on
+      // whatever state the server actually holds.
+    } finally {
+      invalidateActing = false;
+    }
+  }
 </script>
 
 <div
   class="msg {meta.typeClass}"
   class:msg--continued={continuesPrevious}
   class:msg--invalid={invalidated}
+  class:msg--whisper={isWhisperType}
+  class:msg--blind={meta.isBlind}
+  class:msg--sys={isCard}
+  style:border-left-color={borderColor}
   role="listitem"
 >
+  <!--
+    ---- Invalidate / revalidate control (REQ-ACH-080..086, A024) ----
+    Hover-revealed, prototype-style (chat-tab.prototype.html:614-616 `invBtn`).
+    Absent entirely when the viewer may neither invalidate nor revalidate this
+    row — REQ-ACH-082/083 decide that in lib/chat/invalidateButton.ts.
+  -->
+  {#if invalidateAction}
+    <div class="msg__acts">
+      <button
+        type="button"
+        class="msg__act"
+        onclick={() => void handleInvalidateClick()}
+        disabled={invalidateActing}
+        title={invalidateAction === "invalidate"
+          ? t("FUSION.Chat.Invalidate.Button")
+          : t("FUSION.Chat.Revalidate.Button")}
+        aria-label={invalidateAction === "invalidate"
+          ? t("FUSION.Chat.Invalidate.Button")
+          : t("FUSION.Chat.Revalidate.Button")}
+      >
+        {#if invalidateAction === "invalidate"}
+          <!-- circle-slash: void, without deleting -->
+          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+            <circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.3" />
+            <path d="M3.1 3.1l5.8 5.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+          </svg>
+        {:else}
+          <!-- restore arc: bring the row back -->
+          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+            <path
+              d="M9.3 6A3.3 3.3 0 1 1 7.1 2.9"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+            />
+            <path
+              d="M9.3 2.6v3.1h-3.1"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        {/if}
+      </button>
+    </div>
+  {/if}
+
   <!-- ---- Header (omitted on a continuation — REQ-ACH-025) ---- -->
   {#if !continuesPrevious}
     <div class="msg__header">
       <span class="msg__time" title={new Date(message.timestamp).toLocaleString()}
         >{meta.timeStr}</span
       >
-      <span class="msg__alias">{meta.alias}</span>
+      <span class="msg__alias" style:color={authorColor}>{meta.alias}</span>
       {#if meta.isWhisper}
         <span class="msg__badge msg__badge--whisper"
           title="Whisper to {message.whisper.join(', ')}">whisper</span>
@@ -397,14 +551,94 @@
 </div>
 
 <style>
+  /*
+    REQ-ACH-025 (A022): every row carries a left border, default neutral gray so
+    a continuation (no inline color — same author, header suppressed) still
+    aligns with the row above it. `style:border-left-color` (set from script)
+    overrides this per-sender for a plain top-level message; the .msg--whisper/
+    .msg--blind/.msg--sys rules below override it again, unconditionally, for
+    the three fixed types the prototype paints regardless of sender.
+  */
   .msg {
+    position: relative;
     padding: 0.35rem 0.75rem;
+    border-left: 2px solid var(--fusion-border);
     border-bottom: 1px solid transparent;
-    transition: background-color var(--fusion-transition);
+    transition:
+      background-color var(--fusion-transition),
+      border-left-color var(--fusion-transition);
   }
 
   .msg:hover {
     background: var(--fusion-surface-alt);
+  }
+
+  /*
+    REQ-ACH-080..086 (A024, chat-tab.prototype.html `.acts`): the
+    invalidate/revalidate control sits in the row's top-right corner and only
+    shows on hover/focus — it never crowds the message body, and a reader who
+    is not the GM or the author simply never sees it (the button is absent from
+    the markup entirely for them, not just hidden by CSS).
+
+    RNF-ACH-04 (REQ-UIF-064): revealed via opacity, not `display: none` — a
+    `display: none` element is removed from the tab order, so a keyboard user
+    could never focus the button in the first place and `:focus-within` below
+    would be dead code (same pattern as ScenesTab.svelte's
+    `.scene-row__actions` / CombatQueue.svelte's `.combatant-row__actions`).
+  */
+  .msg__acts {
+    position: absolute;
+    top: -6px;
+    right: 4px;
+    display: flex;
+    gap: 0.15rem;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 0.1rem;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity var(--fusion-transition);
+  }
+
+  .msg:hover .msg__acts,
+  .msg:focus-within .msg__acts {
+    opacity: 1;
+  }
+
+  .msg__act {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    color: var(--fusion-text-subtle);
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    border-radius: 3px;
+  }
+
+  .msg__act:hover:not(:disabled) {
+    color: var(--fusion-text);
+    background: var(--fusion-surface);
+  }
+
+  .msg__act:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* RNF-ACH-04: the browser's default outline is not enough once revealed by
+     opacity — a visible ring on keyboard focus (same treatment as
+     RollModeSelector.svelte's `.roll-mode__option:focus-visible`). */
+  .msg__act:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 1px;
+  }
+
+  .msg__act svg {
+    width: 12px;
+    height: 12px;
   }
 
   /*
@@ -457,9 +691,25 @@
     color: var(--fusion-text-muted);
   }
 
+  /*
+    Fixed type colors (chat-tab.prototype.html: .m--whisper/.m--blind/.m--sys).
+    These override the per-sender border painted inline via style:border-left-color
+    (borderColor is `undefined` for whisper/blind/card rows precisely so these
+    win) — a reader recognizes the TYPE of a row at a glance, the same color
+    regardless of who sent it.
+  */
   .msg--whisper {
     background: rgba(124, 92, 252, 0.07);
-    border-left: 2px solid var(--fusion-accent-dim);
+    border-left: 2px solid var(--fusion-accent);
+  }
+
+  .msg--blind {
+    background: rgba(255, 200, 87, 0.06);
+    border-left: 2px solid var(--fusion-warning);
+  }
+
+  .msg--sys {
+    border-left-color: var(--fusion-chat-sys);
   }
 
   .msg--system {

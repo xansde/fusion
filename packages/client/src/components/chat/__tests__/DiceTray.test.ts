@@ -95,6 +95,21 @@ describe("a fileira: três favoritos e um quarto botão (REQ-ACH-050)", () => {
     expect(body).toContain("Iniciativa");
   });
 
+  // Matches prototypes/chat-tab.prototype.html's `.fav` row: label on top (`.fn`), formula
+  // on its own line below (`.ff`) — REQ-ACH-051 asks for "rótulo, fórmula em texto e modo",
+  // and the row must show that text, not just carry it as an attribute.
+  it("shows the formula as its own visible line under the label (REQ-ACH-051)", () => {
+    seed([
+      { label: "Ataque", formula: "1d20+7", mode: null },
+      { label: "Dano", formula: "1d8+4", mode: null },
+      { label: "Iniciativa", formula: "1d20+2", mode: null },
+    ]);
+    const body = renderTray();
+    expect(body.match(/class="dice-tray__formula[^"]*"/g)).toHaveLength(3);
+    expect(body).toMatch(/<span class="dice-tray__formula[^"]*">1d20\+7<\/span>/);
+    expect(body).toMatch(/<span class="dice-tray__formula[^"]*">1d8\+4<\/span>/);
+  });
+
   it("uses drawn icons and no emoji (REQ-NPC-094)", () => {
     seed([
       { label: "Furtiva", formula: "1d20+9", mode: "gmroll" },

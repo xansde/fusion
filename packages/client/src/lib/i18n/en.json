@@ -1160,6 +1160,8 @@
   "FUSION.Chat.Target.Label": "vs {{name}}",
   "FUSION.Chat.Invalidated.Badge": "voided",
   "FUSION.Chat.Invalidated.By": "Voided by {{who}}",
+  "FUSION.Chat.Invalidate.Button": "Void — strike through, do not delete",
+  "FUSION.Chat.Revalidate.Button": "Restore",
   "FUSION.Chat.SpellCard.Title": "Spell cast",
   "FUSION.Chat.SpellCard.Rank": "rank {{rank}}",
   "FUSION.Chat.SpellCard.RollSave": "Roll saving throw",

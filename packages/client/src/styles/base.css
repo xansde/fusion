@@ -37,6 +37,14 @@
   --fusion-warning-dim: rgba(255, 200, 87, 0.14);
   --fusion-danger-dim: rgba(255, 92, 92, 0.14);
 
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025 — chat-tab.prototype.html
+     ~167 `.m--sys{border-left-color:#2f7fa8}`): a card's left border is this fixed blue
+     regardless of sender, so a reader tells "this is a system card" apart from
+     "this is <someone>'s message" at a glance. Not derived from --fusion-accent/-success/
+     -danger/-warning on purpose — those already carry unrelated meaning elsewhere in chat
+     (crit, fumble, blind), and reusing one here would blur that signal. */
+  --fusion-chat-sys: #2f7fa8;
+
   /* On-accent text (buttons filled with --fusion-accent) */
   --fusion-on-accent: #ffffff;
 
