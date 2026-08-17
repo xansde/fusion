@@ -11,9 +11,15 @@
  * key, one knowledge model).
  *
  * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a
- * `doc:update` pushes a `Token` for it onto `Scene.tokens` — the very shape
- * `TokenAddDialog.svelte` already sends, with `actorId` set (REQ-DOC-031). What
- * is still open (Q-NPC-03, owned by the unwritten Token spec `41`) is whether a
+ * SECOND `doc:create` — embedded, `documentType: "Token"` with
+ * `parent: { type: "Scene", id }` — lands a `Token` for it on the target
+ * scene (REQ-NPC-060), `actorId` set (REQ-DOC-031). This is the shape
+ * `TokenAddDialog.svelte`'s fixed dialog also sends (A004, ajustes r1 item
+ * 22: both call sites used to send a `doc:update` with a `$push`
+ * pseudo-operator the server's Zod schema — `tokens: z.array(...)` —
+ * rejected outright; sending the whole array back through `doc:update` is
+ * also refused, on purpose, by the server's `rejectUnwritableField`). What is
+ * still open (Q-NPC-03, owned by the unwritten Token spec `41`) is whether a
  * token is *linked* or *unlinked* to its actor (the `actorLink`/`actorDelta`
  * pair spec 02's "Herança token→actor" section describes) — neither field
  * exists on `TokenDocumentSchema` yet, so this module writes neither; it uses
@@ -149,20 +155,26 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(op.payload.data[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
   });
 
-  it("REQ-NPC-060: the second write pushes a Token for that actor onto the scene", () => {
+  it("REQ-NPC-060 (A004): the second write is an embedded `doc:create` of a Token under the scene — never a `$push`, never a whole-array `doc:update`", () => {
     const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
 
-    expect(op.type).toBe("doc:update");
-    expect(op.payload.documentType).toBe("Scene");
-    expect(op.payload.updates).toHaveLength(1);
-    expect(op.payload.updates[0]?._id).toBe("scn-clareira001");
-    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
-      .$push;
-    expect(push["actorId"]).toBe("act-bau0newlycreated1");
-    expect(push["name"]).toBe("Baú");
+    // A004's exact regression: the old shape was `doc:update` with
+    // `diff: { tokens: { $push: {...} } }`, which the server's Zod schema
+    // (`tokens: z.array(...)`) rejects outright. Sending the whole array back
+    // as a plain `doc:update` diff is also refused by the server on purpose
+    // (`rejectUnwritableField`) — the fix is this embedded `doc:create`.
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Token");
+    expect(op.payload.parent).toEqual({ type: "Scene", id: "scn-clareira001" });
+    expect(op.payload.data).toHaveLength(1);
+    expect(op.payload.data[0]?.["actorId"]).toBe("act-bau0newlycreated1");
+    expect(op.payload.data[0]?.["name"]).toBe("Baú");
+    // No client-supplied `_id`: `handleEmbeddedCreate` mints it server-side.
+    expect(op.payload.data[0]).not.toHaveProperty("_id");
+    expect(JSON.stringify(op)).not.toContain("$push");
   });
 
-  it("REQ-NPC-060: activating it sends the create, then the token push, in order", async () => {
+  it("REQ-NPC-060: activating it sends the create, then the embedded token create, in order", async () => {
     const sent: Sent[] = [];
     await placeChest(fakeSocket(sent), "scn-clareira001");
 
@@ -174,14 +186,13 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(created).toHaveLength(1);
     expect(created[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
 
-    expect(sent[1]?.type).toBe("doc:update");
-    expect(sent[1]?.payload["documentType"]).toBe("Scene");
-    const updates = sent[1]?.payload["updates"] as { _id: string; diff: Record<string, unknown> }[];
-    expect(updates[0]?._id).toBe("scn-clareira001");
-    const push = (updates[0]?.diff["tokens"] as { $push: Record<string, unknown> }).$push;
+    expect(sent[1]?.type).toBe("doc:create");
+    expect(sent[1]?.payload["documentType"]).toBe("Token");
+    expect(sent[1]?.payload["parent"]).toEqual({ type: "Scene", id: "scn-clareira001" });
+    const tokenData = sent[1]?.payload["data"] as Record<string, unknown>[];
     // The actorId on the wire is the id `fakeSocket` handed back for the create
     // above — the two writes are chained, not two independent guesses.
-    expect(push["actorId"]).toBe(CREATED_CHEST._id);
+    expect(tokenData[0]?.["actorId"]).toBe(CREATED_CHEST._id);
   });
 
   it("REQ-NPC-060 / Q-NPC-03: the token carries only actorId — no link/unlink field", () => {
@@ -189,12 +200,11 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     // `TokenDocumentSchema` does not have them yet — so this module cannot
     // write them, and does not pretend to.
     const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1", "Baú");
-    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
-      .$push;
+    const newToken = op.payload.data[0];
 
-    expect(push["actorId"]).toBe("act-bau0newlycreated1");
-    expect(push).not.toHaveProperty("actorLink");
-    expect(push).not.toHaveProperty("actorDelta");
+    expect(newToken?.["actorId"]).toBe("act-bau0newlycreated1");
+    expect(newToken).not.toHaveProperty("actorLink");
+    expect(newToken).not.toHaveProperty("actorDelta");
   });
 });
 

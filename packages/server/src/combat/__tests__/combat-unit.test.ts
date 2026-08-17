@@ -107,7 +107,7 @@ class MockNamespace {
   /** Envelopes of a given type seen by player (non-GM) sockets. */
   playerEnvelopes(type: string): Envelope[] {
     return this.perSocket
-      .filter((p) => p.role < UserRole.ASSISTANT_GM && p.envelope.type === type)
+      .filter((p) => p.role < UserRole.ASSISTANT && p.envelope.type === type)
       .map((p) => p.envelope);
   }
 }
