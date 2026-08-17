@@ -113,3 +113,37 @@ describe("REQ-NPC-061 / REQ-NPC-094: what the footer does not build itself", () 
     expect(EMOJI.test(body)).toBe(false);
   });
 });
+
+describe("REQ-GAV-012: the footer fits the drawer's fixed 300px panel in one row", () => {
+  // The prototype (npcs-tab.prototype.html:2466-2468) sizes the chest to its own
+  // content and only stretches "Quem conhece" — never a 50/50 split, which is
+  // what pushed the wide label onto a second line before this fix.
+  it("REQ-GAV-012: only the knowledge button stretches — the chest sizes to its content", () => {
+    expect(SOURCE).toMatch(/\.npcs-footer__btn--chest\s*\{[^}]*flex:\s*0\s+0\s+auto/);
+    expect(SOURCE).toMatch(/\.npcs-footer__btn--wide\s*\{[^}]*flex:\s*1\s+1\s+0/);
+    // The base rule carries no flex of its own anymore — only the modifiers do.
+    expect(SOURCE).toMatch(/\.npcs-footer__btn\s*\{(?:(?!flex:)[^}])*\}/);
+  });
+
+  it("REQ-GAV-012: the chest and the knowledge door carry the modifier classes", () => {
+    const body = renderFooter("scn-clareira001");
+
+    expect(body).toMatch(
+      /class="npcs-footer__btn npcs-footer__btn--chest[^"]*"[^>]*data-action="place-chest"/,
+    );
+    expect(body).toMatch(
+      /class="npcs-footer__btn npcs-footer__btn--wide[^"]*"[^>]*data-action="open-knowledge"/,
+    );
+  });
+
+  it("REQ-GAV-012: the visible labels are short — the long text stays in title/aria-label", () => {
+    const body = renderFooter("scn-clareira001");
+
+    // Short labels the prototype uses so the row never wraps.
+    expect(body).toMatch(/>\s*Baú\s*</);
+    expect(body).toMatch(/>\s*Quem conhece\s*</);
+    // The long, descriptive text is still there — just off the visible row.
+    expect(body).toContain("Pôr um baú na cena");
+    expect(body).toContain("Quem conhece quem");
+  });
+});

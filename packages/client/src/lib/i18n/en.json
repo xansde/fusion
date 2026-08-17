@@ -1342,6 +1342,8 @@
   "FUSION.Npcs.Chest.Open": "Put a chest on the scene",
   "FUSION.Npcs.Chest.NoScene": "No scene on air: the chest goes to the active scene, and there is none.",
   "FUSION.Npcs.Chest.DefaultName": "Chest",
+  "FUSION.Npcs.Footer.Chest": "Chest",
+  "FUSION.Npcs.Footer.Knowledge": "Who knows",
   "FUSION.Npcs.Delete.Title": "Delete non-playable",
   "FUSION.Npcs.Delete.Open": "Delete {{name}}",
   "FUSION.Npcs.Delete.Question": "Delete “{{name}}”? Deleting cannot be undone.",

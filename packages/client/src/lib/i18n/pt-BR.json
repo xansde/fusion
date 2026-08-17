@@ -1342,6 +1342,8 @@
   "FUSION.Npcs.Chest.Open": "Pôr um baú na cena",
   "FUSION.Npcs.Chest.NoScene": "Nenhuma cena no ar: o baú vai para a cena ativa, e não há uma.",
   "FUSION.Npcs.Chest.DefaultName": "Baú",
+  "FUSION.Npcs.Footer.Chest": "Baú",
+  "FUSION.Npcs.Footer.Knowledge": "Quem conhece",
   "FUSION.Npcs.Delete.Title": "Excluir não-jogável",
   "FUSION.Npcs.Delete.Open": "Excluir {{name}}",
   "FUSION.Npcs.Delete.Question": "Excluir “{{name}}”? A exclusão não tem volta.",
