@@ -16,6 +16,8 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import NpcsPanel from "../NpcsPanel.svelte";
 import NpcCreateDialog from "../NpcCreateDialog.svelte";
@@ -23,6 +25,18 @@ import { worldMirror } from "../../../lib/docs/worldSync.js";
 import { UNFILED_FOLDER_ID } from "../../../lib/npcs/folderTree.js";
 import type { MoveTargetOption } from "../../../lib/npcs/moveActor.js";
 import "../../../lib/i18n/index.js";
+
+function sourceOf(file: string): string {
+  return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
+}
+
+/** Source with every comment removed, so prose is never mistaken for code. */
+function codeOf(file: string): string {
+  return sourceOf(file)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+}
 
 // ---------------------------------------------------------------------------
 // localStorage stub — the panel reads its pins from it at construction.
@@ -87,12 +101,16 @@ const FOLDER_OPTIONS: MoveTargetOption[] = [
   { value: UNFILED_FOLDER_ID, name: "", depth: 0, current: false, unfiled: true },
 ];
 
-function renderDialog(initialFolderId: string | null = "fld-aldeia0000001"): string {
+function renderDialog(
+  initialFolderId: string | null = "fld-aldeia0000001",
+  initialTab: "bestiary" | "scratch" = "bestiary",
+): string {
   return render(NpcCreateDialog, {
     props: {
       socket: {} as never,
       initialFolderId,
       folderOptions: FOLDER_OPTIONS,
+      initialTab,
       onClose: (): void => undefined,
     },
   }).body;
@@ -133,25 +151,82 @@ describe("REQ-NPC-040: creating a non-playable has two entry points in the panel
 });
 
 describe("REQ-NPC-041 / REQ-NPC-043 / REQ-NPC-044: the window and its two doors", () => {
-  it("REQ-NPC-041: both doors are in the same window", () => {
+  it("REQ-NPC-041 / A035: both doors are reachable from the same window's tab strip", () => {
+    const body = renderDialog();
+
+    // Both tabs are always drawn (npcs-tab.prototype.html:2308-2338, .wtabs).
+    expect(body).toContain('data-tab="bestiary"');
+    expect(body).toContain('data-tab="scratch"');
+  });
+
+  it("A035: only the active tab's door is in the DOM — bestiary is the default", () => {
     const body = renderDialog();
 
     expect(body).toContain('data-door="bestiary"');
-    expect(body).toContain('data-door="scratch"');
+    expect(body).not.toContain('data-door="scratch"');
     // And the bestiary door is a search, not a browse of the whole compendium.
     expect(body).toContain('data-input="bestiary-search"');
   });
 
+  it("A035: the window npcCreateWindow.ts actually opens (no initialTab prop) defaults to bestiary", () => {
+    // `renderDialog()` above always passes `initialTab` explicitly (it is the
+    // helper's own function-default), so it can never see the component's own
+    // prop default — a wrong default there would sail through undetected.
+    // `npcCreateWindow.ts` never passes `initialTab` (NpcCreateDialog.svelte's
+    // own docstring: "Testability hook only ... the real window always opens on
+    // bestiary"), so this is the one render that matches production.
+    const body = render(NpcCreateDialog, {
+      props: {
+        socket: {} as never,
+        initialFolderId: "fld-aldeia0000001",
+        folderOptions: FOLDER_OPTIONS,
+        onClose: (): void => undefined,
+      },
+    }).body;
+
+    expect(body).toContain('data-door="bestiary"');
+    expect(body).not.toContain('data-door="scratch"');
+  });
+
+  it("A035: switching to the scratch tab shows only that door, not the bestiary one", () => {
+    const body = renderDialog("fld-aldeia0000001", "scratch");
+
+    expect(body).toContain('data-door="scratch"');
+    expect(body).not.toContain('data-door="bestiary"');
+  });
+
+  it("A035: each tab button's own onclick, not a testing prop, is what really flips the door — svelte/server cannot click, so the wiring itself is the proof (pattern of KnowledgeGridWindow.test.ts)", () => {
+    const code = codeOf("NpcCreateDialog.svelte");
+
+    expect(code).toMatch(
+      /data-tab="bestiary"[\s\S]{0,200}onclick=\{\(\) => \(activeTab = "bestiary"\)\}/,
+    );
+    expect(code).toMatch(
+      /data-tab="scratch"[\s\S]{0,200}onclick=\{\(\) => \(activeTab = "scratch"\)\}/,
+    );
+  });
+
   it("REQ-NPC-043: the door from scratch asks for a subtype and a name", () => {
-    const body = renderDialog();
+    const body = renderDialog("fld-aldeia0000001", "scratch");
 
     expect(body).toContain('data-input="npc-create-subtype"');
     expect(body).toContain('data-input="npc-create-name"');
     expect(body).toContain('data-action="create-npc"');
   });
 
+  it("A035: the name field comes right after the subtype field, not at the bottom", () => {
+    const body = renderDialog("fld-aldeia0000001", "scratch");
+    const scratchDoor = /<section[^>]*data-door="scratch"[\s\S]*?<\/section>/.exec(body)?.[0];
+    expect(scratchDoor).toBeDefined();
+
+    const subtypeIndex = scratchDoor?.indexOf('data-input="npc-create-subtype"') ?? -1;
+    const nameIndex = scratchDoor?.indexOf('data-input="npc-create-name"') ?? -1;
+    expect(subtypeIndex).toBeGreaterThan(-1);
+    expect(nameIndex).toBeGreaterThan(subtypeIndex);
+  });
+
   it("REQ-NPC-044: exactly two subtypes are offered, and none of the four excluded ones", () => {
-    const body = renderDialog();
+    const body = renderDialog("fld-aldeia0000001", "scratch");
     const select = /<select[^>]*data-input="npc-create-subtype"[\s\S]*?<\/select>/.exec(body)?.[0];
     expect(select).toBeDefined();
 
@@ -165,24 +240,81 @@ describe("REQ-NPC-041 / REQ-NPC-043 / REQ-NPC-044: the window and its two doors"
     }
   });
 
-  it("REQ-NPC-047: folder and attitude are chosen in the window, above both doors", () => {
-    const body = renderDialog();
+  it("REQ-NPC-047: folder and attitude are shared by both doors, below whichever is open", () => {
+    for (const tab of ["bestiary", "scratch"] as const) {
+      const body = renderDialog("fld-aldeia0000001", tab);
 
-    expect(body).toContain('data-input="npc-create-folder"');
-    expect(body).toContain('data-input="npc-create-attitude"');
-    // Every folder of the tree, plus "Sem pasta".
-    expect(body).toContain('value="fld-aldeia0000001"');
-    expect(body).toContain(`value="${UNFILED_FOLDER_ID}"`);
+      expect(body).toContain('data-input="npc-create-folder"');
+      expect(body).toContain('data-input="npc-create-attitude"');
+      // Every folder of the tree, plus "Sem pasta".
+      expect(body).toContain('value="fld-aldeia0000001"');
+      expect(body).toContain(`value="${UNFILED_FOLDER_ID}"`);
+    }
   });
 
-  it("REQ-NPC-045: the preset is offered inside the window, and only there", () => {
-    const body = renderDialog();
+  it("REQ-NPC-045: the preset is offered inside the scratch door, and only there", () => {
+    const body = renderDialog("fld-aldeia0000001", "scratch");
 
     expect(body).toContain('data-input="npc-create-preset"');
     expect(body).toContain("Mercador");
     // REQ-NPC-046: it is a choice of the form, never a field of a document — the
     // panel that lists the created actors has none of these words.
     expect(renderPanel()).not.toContain('data-input="npc-create-preset"');
+  });
+
+  it("REQ-NPC-041: Cancelar stays on screen on both doors, not just the scratch one", () => {
+    for (const tab of ["bestiary", "scratch"] as const) {
+      const body = renderDialog("fld-aldeia0000001", tab);
+
+      expect(body).toContain('data-action="cancel-create"');
+    }
+    // The primary "Criar" action is still door-specific: the bestiary door
+    // confirms per hit row, not with a second button in the footer.
+    expect(renderDialog("fld-aldeia0000001", "bestiary")).not.toContain('data-action="create-npc"');
+  });
+
+  it("A035: attitude renders before folder in the shared block, matching the prototype", () => {
+    const body = renderDialog("fld-aldeia0000001", "bestiary");
+    const shared = /<section[^>]*data-block="destination"[\s\S]*?<\/section>/.exec(body)?.[0];
+    expect(shared).toBeDefined();
+
+    const attitudeIndex = shared?.indexOf('data-input="npc-create-attitude"') ?? -1;
+    const folderIndex = shared?.indexOf('data-input="npc-create-folder"') ?? -1;
+    expect(attitudeIndex).toBeGreaterThan(-1);
+    expect(folderIndex).toBeGreaterThan(attitudeIndex);
+  });
+});
+
+describe("REQ-NPC-092: the tab strip is keyboard-operable without promising a keyboard it does not have", () => {
+  it("REQ-NPC-092: the strip is a labelled group of toggle buttons, not an ARIA tablist", () => {
+    const body = renderDialog();
+    const strip = /<div[^>]*data-npc-create-tabs[\s\S]*?<\/div>/.exec(body)?.[0];
+    expect(strip).toBeDefined();
+
+    // Same call as SidebarRail.svelte (DEC-GAV-05): role="group" + aria-pressed,
+    // never role="tablist"/role="tab", which promises arrow-key navigation this
+    // strip does not implement.
+    expect(strip).toContain('role="group"');
+    expect(strip).not.toContain('role="tablist"');
+    expect(strip).not.toContain('role="tab"');
+    expect(strip).toContain("aria-label=");
+  });
+
+  it("REQ-NPC-092: each tab button reports its own state via aria-pressed", () => {
+    /** The `<button ...>` that carries `data-tab="{tabId}"`, attributes only. */
+    function tabButton(body: string, tabId: string): string {
+      const match = new RegExp(`<button[^>]*data-tab="${tabId}"[^>]*>`).exec(body);
+      if (match === null) throw new Error(`no tab button for ${tabId}`);
+      return match[0];
+    }
+
+    const bestiaryBody = renderDialog("fld-aldeia0000001", "bestiary");
+    const scratchBody = renderDialog("fld-aldeia0000001", "scratch");
+
+    expect(tabButton(bestiaryBody, "bestiary")).toContain('aria-pressed="true"');
+    expect(tabButton(bestiaryBody, "scratch")).toContain('aria-pressed="false"');
+    expect(tabButton(scratchBody, "scratch")).toContain('aria-pressed="true"');
+    expect(tabButton(scratchBody, "bestiary")).toContain('aria-pressed="false"');
   });
 });
 

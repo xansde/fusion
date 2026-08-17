@@ -460,7 +460,7 @@ describe("REQ-NPC-080: the check is on the server, not on the tab that is not dr
 
   // REQ-NPC-080: "criar e excluir pasta" is one of the operations the requirement
   // names for `isRolePrivileged`. TRUSTED (role 2) is a real, creatable seat that
-  // is NOT privileged (`isRolePrivileged` is `>= ASSISTANT_GM`, role 3) — the
+  // is NOT privileged (`isRolePrivileged` is `>= ASSISTANT`, role 3) — the
   // generic `doc:create`/`doc:delete` path used to fall through to the plain
   // `role >= TRUSTED` floor for any documentType not in GM_ONLY_CREATE_DELETE,
   // and Folder was missing from that set.

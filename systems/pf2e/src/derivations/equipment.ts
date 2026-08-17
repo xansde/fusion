@@ -116,7 +116,10 @@ function toEquippedArmor(item: Record<string, unknown>): EquippedArmorInput {
  * "base" → "derived" phase split already guarantees this step runs first).
  *
  * Weapon inclusion rule: unarmed-category weapons ALWAYS count (you cannot
- * unequip your own fists/bite), all others require `isEquippedFlag`.
+ * unequip your own fists/bite), all others require `isEquippedFlag`. If the
+ * scan finds no unarmed weapon at all, a synthetic Fist (1d4 bludgeoning,
+ * agile/finesse/nonlethal) is appended — every PF2e character can strike
+ * unarmed per the CRB remaster, regardless of what's in `doc.items`.
  * Armor inclusion rule: the FIRST equipped armor item found becomes
  * `doc._equippedArmor` (no support for stacking multiple armors).
  *
@@ -143,15 +146,12 @@ export const stepCharCollectEquipment: DeriveStep = {
     (sys["derived"] as Record<string, unknown>)["_equipmentCollected"] = true;
 
     const rawItems = doc["items"];
-    if (!Array.isArray(rawItems)) {
-      doc["_equippedWeapons"] = [];
-      return;
-    }
+    const items: unknown[] = Array.isArray(rawItems) ? rawItems : [];
 
     const weapons: EquippedWeaponInput[] = [];
     let armor: EquippedArmorInput | undefined;
 
-    for (const raw of rawItems) {
+    for (const raw of items) {
       if (!raw || typeof raw !== "object") continue;
       const item = raw as Record<string, unknown>;
       const itemType = item["type"];
@@ -168,6 +168,42 @@ export const stepCharCollectEquipment: DeriveStep = {
       if (itemType === "armor" && armor === undefined && isEquippedFlag(itemSys)) {
         armor = toEquippedArmor(item);
       }
+    }
+
+    // Every PF2e character can strike unarmed (CRB remaster, "Unarmed
+    // Attacks": your fists always count as weapons) — this is NOT sourced
+    // from any pack; it's a CRB rule the engine must guarantee even when
+    // `doc.items` has no explicit Punho ("Fist") item. Synthesize one only
+    // when the scan above found no weapon that IS a Punho already — checked
+    // by name, not by `category === "unarmed"` alone. Ancestry/heritage
+    // features that grant a differently-named unarmed attack (Garra/Claw,
+    // Mandíbulas/Jaws, ...) do NOT replace your fists per that same CRB
+    // rule — having claws doesn't remove the ability to punch — so a
+    // character with a granted Claw must end up with BOTH Claw and Punho.
+    // Only an item literally named "Punho" (e.g. one already synthesized, or
+    // a feature that specifically upgrades your fists) should suppress the
+    // synthetic one below (BUG FIX, found in review — the old
+    // `category === "unarmed"` check ate the Punho for ANY granted unarmed
+    // weapon, `derivations-equipment.test.ts`'s Claw case included).
+    //
+    // Display name is "Punho" (pt-BR), not "Fist": every other weapon that
+    // reaches the sheet gets its `name` already localized by the pack import
+    // (real pack items store the translated string directly in `item.name`
+    // — see `systems/pf2e/packs/*/i18n.pt-BR.json`, where this exact CRB
+    // unarmed strike is translated as "Punho"). This one is NOT pack-sourced,
+    // so the localized string has to be hardcoded here to match that same
+    // convention instead of leaking the English engine term onto a pt-BR
+    // character sheet (code review finding, r1 Fase 0).
+    if (!weapons.some((w) => w.category === "unarmed" && w.name === "Punho")) {
+      weapons.push({
+        name: "Punho",
+        id: "pf2e.synthetic.fist",
+        damage: { dice: 1, die: "d4", damageType: "bludgeoning", modifier: 0 },
+        category: "unarmed",
+        traits: ["agile", "finesse", "nonlethal"],
+        range: null,
+        runes: { potency: 0, striking: 0 },
+      });
     }
 
     doc["_equippedWeapons"] = weapons;

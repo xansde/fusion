@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 677 | 35% |
-| Citados só por código de produção | 326 | 17% |
-| Sem nenhuma citação | 953 | 49% |
+| Citados por algum teste | 679 | 35% |
+| Citados só por código de produção | 325 | 17% |
+| Sem nenhuma citação | 952 | 49% |
 | **Total [MVP]** | **1956** | |
 
 ## Por spec
@@ -29,7 +29,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 11 | 16 | 32 | 19% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 8 | 21 | 19 | 17% |
-| [05](05-usuarios-e-permissoes.md) | 40 | 17 | 11 | 12 | 43% |
+| [05](05-usuarios-e-permissoes.md) | 40 | 18 | 11 | 11 | 45% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 5 | 33 | 48 | 6% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
@@ -63,7 +63,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
 | [41](41-token.md) | 61 | 0 | 0 | 61 | 0% |
-| [42](42-aba-npcs.md) | 59 | 55 | 2 | 2 | 93% |
+| [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 60 | 58 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |
 | [45](45-atores.md) | 49 | 0 | 0 | 49 | 0% |

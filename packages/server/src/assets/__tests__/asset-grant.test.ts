@@ -1508,7 +1508,7 @@ describe("the field table and the allowlist agree", () => {
   it("Role and UserRole still agree numerically (the mint casts between them)", () => {
     expect(Role.PLAYER as number).toBe(UserRole.PLAYER as number);
     expect(Role.TRUSTED as number).toBe(UserRole.TRUSTED as number);
-    expect(Role.ASSISTANT as number).toBe(UserRole.ASSISTANT_GM as number);
+    expect(Role.ASSISTANT as number).toBe(UserRole.ASSISTANT as number);
     expect(Role.GAMEMASTER as number).toBe(UserRole.GAMEMASTER as number);
   });
 });

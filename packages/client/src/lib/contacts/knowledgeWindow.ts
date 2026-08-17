@@ -41,7 +41,10 @@ export function knowledgeWindowOptions(socket: Socket): WindowOpenOptions {
     title: t(KNOWLEDGE_WINDOW_TITLE_KEY),
     resizable: true,
     minimizable: true,
-    position: { width: 720, height: 460 },
+    // Close to the prototype's dense 600px matrix (npcs-tab.prototype.html,
+    // `.win { width: 600px }`) now that cells hold a one-character symbol
+    // instead of a full-word label.
+    position: { width: 600, height: 420 },
     minWidth: 360,
     minHeight: 220,
     component: KnowledgeGridWindow,

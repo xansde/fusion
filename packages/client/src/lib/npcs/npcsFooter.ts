@@ -16,12 +16,24 @@
  * knowledge entry for it.
  *
  * **"On the scene" is a real `Token`, not a metaphor.** `packages/shared/src/scene.ts`
- * already gives a `Scene`'s embedded `Token` a soft `actorId` (REQ-DOC-031), and
- * `TokenAddDialog.svelte` already places one by pushing into `Scene.tokens` — the
- * exact mechanism `buildPlaceChestTokenOp` reuses. `placeChest` does the two writes
- * the gesture needs: create the actor, then push a token for it onto the scene on
- * air. Nothing here is invented: both writes go through document types and fields
- * that already exist and are already exercised elsewhere.
+ * already gives a `Scene`'s embedded `Token` a soft `actorId` (REQ-DOC-031), and the
+ * server already has a dedicated write for landing ONE new token on a scene: a
+ * `doc:create` with `documentType: "Token"` and `parent: { type: "Scene", id }`
+ * (`handleEmbeddedCreate`, doc-handlers.ts — `_id` is generated server-side and the
+ * token is appended to `Scene.tokens` atomically). `buildPlaceChestTokenOp` uses
+ * exactly that.
+ *
+ * A004 (ajustes r1 item 22): this module (and `TokenAddDialog.svelte`, the sibling
+ * call site) used to build the SECOND write as a `doc:update` with
+ * `diff: { tokens: { $push: {...} } }` — a MongoDB-style pseudo-operator that does
+ * not exist on the server, rejected with `tokens: Expected array, received object`
+ * (`Scene.tokens` is `z.array(TokenDocumentSchema)`, and the server's generic diff
+ * merge replaces an array key wholesale rather than understanding `$push`). Sending
+ * the WHOLE array back as a plain `doc:update` diff is not the fix either: the
+ * server's `rejectUnwritableField` refuses that too, on purpose —
+ * `"Scene.tokens is not writable as a whole through doc:update — use embedded
+ * operations (updates[].embedded)"` — precisely to keep every embedded-collection
+ * write going through the dedicated, append-safe path used here.
  *
  * **What this module still does not decide** — and does not need to, to do its
  * job: whether a token is *linked* or *unlinked* to its actor (the `actorLink`/
@@ -36,7 +48,6 @@
  */
 
 import type { Socket } from "socket.io-client";
-import { createDocumentId } from "@fusion/shared";
 
 import { t } from "../i18n/i18n.js";
 import { sendOp } from "../docs/sendOp.js";
@@ -110,20 +121,21 @@ export function buildCreateChestActorOp(): CreateChestActorOp {
 // ---------------------------------------------------------------------------
 
 export interface PlaceChestTokenOp {
-  readonly type: "doc:update";
+  readonly type: "doc:create";
   readonly payload: {
-    readonly documentType: "Scene";
-    readonly updates: readonly {
-      readonly _id: string;
-      readonly diff: Record<string, unknown>;
-    }[];
+    readonly documentType: "Token";
+    readonly data: readonly Record<string, unknown>[];
+    readonly parent: { readonly type: "Scene"; readonly id: string };
   };
 }
 
 /**
- * REQ-NPC-060: the `Scene.tokens` push that lands the chest's actor on the
- * scene on air — the same `$push` shape `TokenAddDialog.svelte` already sends,
- * with `actorId` set (REQ-DOC-031) instead of left null.
+ * REQ-NPC-060 (A004, ajustes r1 item 22): an embedded `doc:create` of a Token
+ * under the target scene — `parent: { type: "Scene", id: sceneId }` is what
+ * routes this through `handleEmbeddedCreate`, which appends to
+ * `Scene.tokens` and mints the `_id` server-side. Never a `$push`
+ * pseudo-operator, and never a whole-array `doc:update` diff either — both
+ * are refused by the server (see the module docstring).
  */
 export function buildPlaceChestTokenOp(
   sceneId: string,
@@ -131,34 +143,27 @@ export function buildPlaceChestTokenOp(
   name: string,
 ): PlaceChestTokenOp {
   return {
-    type: "doc:update",
+    type: "doc:create",
     payload: {
-      documentType: "Scene",
-      updates: [
+      documentType: "Token",
+      data: [
         {
-          _id: sceneId,
-          diff: {
-            tokens: {
-              $push: {
-                _id: createDocumentId(),
-                name,
-                actorId,
-                texture: null,
-                x: 0,
-                y: 0,
-                width: 1,
-                height: 1,
-                rotation: 0,
-                hidden: false,
-                disposition: 0,
-                elevation: 0,
-                bar1: { attribute: null },
-                bar2: { attribute: null },
-              },
-            },
-          },
+          name,
+          actorId,
+          texture: null,
+          x: 0,
+          y: 0,
+          width: 1,
+          height: 1,
+          rotation: 0,
+          hidden: false,
+          disposition: 0,
+          elevation: 0,
+          bar1: { attribute: null },
+          bar2: { attribute: null },
         },
       ],
+      parent: { type: "Scene", id: sceneId },
     },
   };
 }
@@ -171,10 +176,10 @@ interface DocCreateResult {
  * REQ-NPC-060: create the chest actor, then land it on the scene on air.
  *
  * Two ops, in order: `doc:create` mints the actor (REQ-NPC-061: no folder, no
- * attitude), and its `_id` becomes the `actorId` of the `doc:update` that pushes
- * a token for it onto the target scene. Either can reject; the caller (the
- * footer) is responsible for reporting a failure of the second write, which
- * would otherwise leave an actor with no presence.
+ * attitude), and its `_id` becomes the `actorId` of the embedded `doc:create`
+ * that lands a Token for it on the target scene. Either can reject; the
+ * caller (the footer) is responsible for reporting a failure of the second
+ * write, which would otherwise leave an actor with no presence.
  */
 export async function placeChest(socket: Socket, sceneId: string): Promise<void> {
   const created = await sendOp<DocCreateResult>(socket, buildCreateChestActorOp());

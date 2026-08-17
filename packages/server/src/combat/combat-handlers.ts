@@ -19,7 +19,7 @@
  * ## Security disciplines
  *
  * Privilege model:
- *   - GM (role ≥ ASSISTANT_GM) = full control
+ *   - GM (role ≥ ASSISTANT) = full control
  *   - Player = can only roll initiative for combatants linked to an actor they own,
  *     and can end their OWN turn through combat:nextTurn (REQ-CBA-072, REQ-CBA-081).
  *     Going back a turn (combat:previousTurn) and ending the encounter
