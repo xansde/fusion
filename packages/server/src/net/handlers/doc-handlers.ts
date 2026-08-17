@@ -70,7 +70,12 @@ import {
   isRolePrivileged,
   testOwnership,
 } from "../../documents/ownership.js";
-import { resolvePermissionMinRole, type PermissionKey } from "../../documents/world-permissions.js";
+import {
+  resolvePermissionMinRole,
+  validatePermissionOverrides,
+  PERMISSIONS_SETTING_KEY,
+  type PermissionKey,
+} from "../../documents/world-permissions.js";
 import { detectFamiliarGrant } from "@fusion/system-pf2e";
 import {
   DocCreatePayloadSchema,
@@ -637,6 +642,28 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("PERMISSION_DENIED", "Only the Gamemaster can create Setting documents");
     }
 
+    // REQ-CFG-042: a `fusion.permissions` Setting's `value` is validated
+    // against the domain world-permissions.ts owns (known key, role in
+    // PLAYER..GAMEMASTER) before it is ever persisted — the GAMEMASTER-strict
+    // check above only proves WHO may write, not WHAT was written. Without
+    // this, a forged/malformed override (e.g. `{"ACTOR_CREATE": 0}`) would
+    // sail straight through and `resolvePermissionMinRole` would then have to
+    // treat NONE as a legitimate floor.
+    if (documentType === "Setting") {
+      for (const rawItem of data) {
+        const item = rawItem as Record<string, unknown>;
+        if (item["key"] === PERMISSIONS_SETTING_KEY) {
+          const errors = validatePermissionOverrides(item["value"]);
+          if (errors.length > 0) {
+            return ackError(
+              "VALIDATION_FAILED",
+              `Invalid ${PERMISSIONS_SETTING_KEY} value: ${errors.join("; ")}`,
+            );
+          }
+        }
+      }
+    }
+
     // REQ-CEN-065: creating a scene does NOT put it on air. `active` is a mirror of
     // the single source of truth (`_meta:activeScene`, DEC-CEN-02) and only the
     // dedicated `world:activeScene` operation may move it — the same rule
@@ -941,8 +968,27 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         );
       }
 
-      const rejection = rejectUnwritableField(documentType, applyDotPathDiff({}, upd.diff));
+      const expandedDiffForChecks = applyDotPathDiff({}, upd.diff);
+      const rejection = rejectUnwritableField(documentType, expandedDiffForChecks);
       if (rejection) return rejection;
+
+      // REQ-CFG-042: same domain validation as doc:create's guard above,
+      // applied to the `fusion.permissions` Setting's `value` diff before it
+      // is merged in. `existing` (loaded just above) is what tells us this
+      // specific Setting document IS the permissions table — documentType
+      // alone is not enough, a world can have many Setting documents.
+      if (documentType === "Setting" && existing["key"] === PERMISSIONS_SETTING_KEY) {
+        const diffValue = expandedDiffForChecks["value"];
+        if (diffValue !== undefined) {
+          const errors = validatePermissionOverrides(diffValue);
+          if (errors.length > 0) {
+            return ackError(
+              "VALIDATION_FAILED",
+              `Invalid ${PERMISSIONS_SETTING_KEY} value: ${errors.join("; ")}`,
+            );
+          }
+        }
+      }
     }
 
     const authorCtx = { userId: ctx.userId };
@@ -1233,7 +1279,7 @@ function handleEmbeddedCreate(
 
   // Embedded create role floor: Scene tokens (and other non-Actor parents)
   // require TOKEN_CREATE's configured floor (REQ-CFG-040..042, defaulting to
-  // TRUSTED+ — today's hardcoded behaviour, world-permissions.ts). Actor-
+  // ASSISTANT_GM+ — REQ-USR-008's own default, world-permissions.ts). Actor-
   // embedded Items are governed purely by the OWNER ownership check below —
   // a PLAYER managing spells/gear on their own sheet is the intended path
   // (r10-C, found in live verification: the blanket gate blocked every

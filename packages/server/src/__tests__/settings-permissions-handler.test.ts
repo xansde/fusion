@@ -61,7 +61,7 @@ describe("settings:permissions — REQ-CFG-040: one row per configurable Permiss
     });
   });
 
-  it("lists exactly the keys world-permissions.ts knows about — nothing hardcoded, nothing dropped", () => {
+  it("REQ-CFG-040: lists all 19 Permission Keys from REQ-USR-008 — nothing hardcoded, nothing dropped", () => {
     expect(
       ask(EMPTY_STORE)
         .permissions.map((p) => p.key)
@@ -69,11 +69,24 @@ describe("settings:permissions — REQ-CFG-040: one row per configurable Permiss
     ).toEqual(
       [
         "ACTOR_CREATE",
+        "DRAWING_CREATE",
+        "FILES_BROWSE",
+        "FILES_UPLOAD",
         "ITEM_CREATE",
         "JOURNAL_CREATE",
+        "MACRO_SCRIPT",
+        "MANUAL_ROLLS",
+        "MESSAGE_WHISPER",
+        "NOTE_CREATE",
+        "PING_CANVAS",
         "PLAYLIST_CREATE",
+        "SHOW_CURSOR",
+        "SHOW_RULER",
         "TABLE_CREATE",
+        "TOKEN_CONFIGURE",
         "TOKEN_CREATE",
+        "TOKEN_DELETE",
+        "WALL_DOORS",
       ].sort(),
     );
   });

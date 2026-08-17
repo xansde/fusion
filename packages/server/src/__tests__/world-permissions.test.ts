@@ -12,9 +12,14 @@
  * `world-permissions.ts` changes no default behaviour.
  *
  * Coverage:
- *   - Pure module: defaults match today's hardcoded behaviour; an override
- *     is honoured; an invalid/out-of-range override falls back to the
- *     default instead of opening the gate wider (REQ-USR-008/009).
+ *   - REQ-CFG-040/REQ-USR-008: `PERMISSION_KEYS` carries all 19 Permission
+ *     Keys the spec's table defines, one row per key — not just the subset
+ *     that already has an enforcement point in doc-handlers.ts.
+ *   - Pure module: defaults match REQ-USR-008's own `defaultRole` column
+ *     (not a hardcoded-behaviour compromise, REQ-USR-008/009); an override
+ *     is honoured; an invalid/out-of-range override — including NONE (0),
+ *     which is not a legitimate floor — falls back to the default instead of
+ *     opening the gate wider.
  *   - doc:create JournalEntry: PLAYER refused / TRUSTED accepted by default
  *     (JOURNAL_CREATE default TRUSTED); GM lowering the floor to PLAYER via
  *     `fusion.permissions` lets a PLAYER through (REQ-CFG-040/041/042).
@@ -23,8 +28,13 @@
  *     lowering the floor to TRUSTED lets a TRUSTED user through while PLAYER
  *     stays refused (REQ-CFG-040/041/042).
  *   - Embedded doc:create Token on a Scene: PLAYER with OWNER access to the
- *     scene still refused by default (TOKEN_CREATE default TRUSTED); GM
- *     lowering the floor to PLAYER lets that PLAYER through.
+ *     scene still refused by default (TOKEN_CREATE default ASSISTANT_GM,
+ *     REQ-USR-008); GM lowering the floor to PLAYER lets that PLAYER through.
+ *   - REQ-CFG-042: a write to the `fusion.permissions` Setting whose `value`
+ *     names an unknown key, a non-integer role, or a role outside
+ *     PLAYER..GAMEMASTER (NONE included) is refused server-side with
+ *     VALIDATION_FAILED, on both doc:create and doc:update — the
+ *     GAMEMASTER-strict guard alone only proves WHO may write.
  *   - REQ-CFG-073: a permission-table write refused by the server (non-GM)
  *     leaves the previously configured floor in force — neither wider nor
  *     narrower than what the GM last set.
@@ -62,6 +72,7 @@ import { UserRole } from "../documents/ownership.js";
 import {
   DEFAULT_PERMISSION_MIN_ROLE,
   PERMISSIONS_SETTING_KEY,
+  PERMISSION_KEYS,
   resolvePermissionMinRole,
   validatePermissionOverrides,
   type PermissionsStoreSource,
@@ -80,13 +91,54 @@ function storeWithPermissions(value: unknown): PermissionsStoreSource {
 const EMPTY_STORE: PermissionsStoreSource = { getAll: () => [] };
 
 describe("world-permissions module (REQ-USR-008/009)", () => {
-  it("defaults match today's hardcoded doc-handlers.ts behaviour", () => {
+  it("REQ-CFG-040/REQ-USR-008: lists all 19 Permission Keys from the spec's table, not just the ones with an enforcement point", () => {
+    expect([...PERMISSION_KEYS].sort()).toEqual(
+      [
+        "ACTOR_CREATE",
+        "DRAWING_CREATE",
+        "FILES_BROWSE",
+        "FILES_UPLOAD",
+        "ITEM_CREATE",
+        "JOURNAL_CREATE",
+        "MACRO_SCRIPT",
+        "MANUAL_ROLLS",
+        "MESSAGE_WHISPER",
+        "NOTE_CREATE",
+        "PING_CANVAS",
+        "PLAYLIST_CREATE",
+        "SHOW_CURSOR",
+        "SHOW_RULER",
+        "TABLE_CREATE",
+        "TOKEN_CONFIGURE",
+        "TOKEN_CREATE",
+        "TOKEN_DELETE",
+        "WALL_DOORS",
+      ].sort(),
+    );
+  });
+
+  it("defaults match REQ-USR-008's own defaultRole column (specs/05-usuarios-e-permissoes.md)", () => {
     expect(DEFAULT_PERMISSION_MIN_ROLE.ACTOR_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.DRAWING_CREATE).toBe(UserRole.TRUSTED);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.FILES_BROWSE).toBe(UserRole.TRUSTED);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.FILES_UPLOAD).toBe(UserRole.ASSISTANT_GM);
     expect(DEFAULT_PERMISSION_MIN_ROLE.ITEM_CREATE).toBe(UserRole.ASSISTANT_GM);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.TABLE_CREATE).toBe(UserRole.ASSISTANT_GM);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.PLAYLIST_CREATE).toBe(UserRole.ASSISTANT_GM);
     expect(DEFAULT_PERMISSION_MIN_ROLE.JOURNAL_CREATE).toBe(UserRole.TRUSTED);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_CREATE).toBe(UserRole.TRUSTED);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.MACRO_SCRIPT).toBe(UserRole.PLAYER);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.MANUAL_ROLLS).toBe(UserRole.TRUSTED);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.MESSAGE_WHISPER).toBe(UserRole.PLAYER);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.NOTE_CREATE).toBe(UserRole.TRUSTED);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.PING_CANVAS).toBe(UserRole.PLAYER);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.PLAYLIST_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.SHOW_CURSOR).toBe(UserRole.PLAYER);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.SHOW_RULER).toBe(UserRole.PLAYER);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TABLE_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_CONFIGURE).toBe(UserRole.TRUSTED);
+    // REQ-USR-008 names ASSISTANT here — not the TRUSTED+ doc-handlers.ts
+    // hardcoded before this table existed (rule 11: spec manda).
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_DELETE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.WALL_DOORS).toBe(UserRole.PLAYER);
   });
 
   it("resolves the default when no fusion.permissions Setting exists", () => {
@@ -103,6 +155,11 @@ describe("world-permissions module (REQ-USR-008/009)", () => {
     expect(resolvePermissionMinRole(store, "JOURNAL_CREATE")).toBe(UserRole.TRUSTED);
   });
 
+  it("falls back to the default for NONE (0) — not a legitimate floor, never wide-open", () => {
+    const store = storeWithPermissions({ ACTOR_CREATE: UserRole.NONE });
+    expect(resolvePermissionMinRole(store, "ACTOR_CREATE")).toBe(UserRole.ASSISTANT_GM);
+  });
+
   it("falls back to the default when the Setting value is not a plain object", () => {
     const store = storeWithPermissions("not-an-object");
     expect(resolvePermissionMinRole(store, "ITEM_CREATE")).toBe(UserRole.ASSISTANT_GM);
@@ -111,12 +168,18 @@ describe("world-permissions module (REQ-USR-008/009)", () => {
   it("validatePermissionOverrides rejects unknown keys and out-of-range roles", () => {
     const errors = validatePermissionOverrides({
       JOURNAL_CREATE: UserRole.PLAYER,
-      SHOW_CURSOR: UserRole.PLAYER,
+      SHOW_RULER_TYPO: UserRole.PLAYER,
       ITEM_CREATE: 99,
     });
-    expect(errors.some((e) => e.includes("SHOW_CURSOR"))).toBe(true);
+    expect(errors.some((e) => e.includes("SHOW_RULER_TYPO"))).toBe(true);
     expect(errors.some((e) => e.includes("ITEM_CREATE"))).toBe(true);
     expect(errors).toHaveLength(2);
+  });
+
+  it("validatePermissionOverrides rejects NONE (0) as an out-of-range role", () => {
+    const errors = validatePermissionOverrides({ ACTOR_CREATE: UserRole.NONE });
+    expect(errors.some((e) => e.includes("ACTOR_CREATE"))).toBe(true);
+    expect(errors).toHaveLength(1);
   });
 
   it("validatePermissionOverrides accepts a well-formed override map", () => {
@@ -432,7 +495,7 @@ describe("configurable Permissions gate on embedded Token create (TOKEN_CREATE, 
     await teardown(ctx);
   });
 
-  it("PLAYER with OWNER access to the scene is refused by default (TOKEN_CREATE default TRUSTED)", async () => {
+  it("PLAYER with OWNER access to the scene is refused by default (TOKEN_CREATE default ASSISTANT_GM, REQ-USR-008)", async () => {
     const ack = await sendOp(player, "doc:create", {
       documentType: "Token",
       data: [{ name: "Player Token Attempt" }],
@@ -520,6 +583,75 @@ describe("REQ-CFG-073 — refused permission write keeps the previous configured
       data: [{ name: "Trusted Item Still Allowed" }],
     });
     expect(trustedAck["ok"]).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-CFG-042 — the GAMEMASTER-strict guard proves WHO may write; this is
+// the domain check for WHAT was written. A GM socket is fully authorized by
+// role on every case below — the write is refused purely on the malformed
+// `value`, over the real socket/store path (not just the pure-module unit
+// tests above), proving `validatePermissionOverrides` is actually wired into
+// doc:create/doc:update and not dead code.
+// ---------------------------------------------------------------------------
+
+describe("REQ-CFG-042 — the fusion.permissions value is validated server-side on write", () => {
+  let ctx: Ctx;
+  let gm: ClientSocket;
+
+  beforeAll(async () => {
+    ctx = await buildCtx();
+    gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    gm.connect();
+    await waitForConnect(gm);
+  }, 30000);
+
+  afterAll(async () => {
+    gm?.disconnect();
+    await teardown(ctx);
+  });
+
+  it("doc:create refuses an unknown permission key even from the GM", async () => {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key: PERMISSIONS_SETTING_KEY, value: { NOT_A_REAL_KEY: UserRole.PLAYER } }],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+  });
+
+  it("doc:create refuses NONE (0) as a floor even from the GM — NONE is not a legitimate role for this table", async () => {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key: PERMISSIONS_SETTING_KEY, value: { ACTOR_CREATE: UserRole.NONE } }],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+  });
+
+  it("doc:update refuses a malformed value diff on the already-created fusion.permissions Setting", async () => {
+    const createAck = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key: PERMISSIONS_SETTING_KEY, value: { ACTOR_CREATE: UserRole.GAMEMASTER } }],
+    });
+    expect(createAck["ok"]).toBe(true);
+    const settingId = (createAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!
+      ._id;
+
+    const updateAck = await sendOp(gm, "doc:update", {
+      documentType: "Setting",
+      updates: [{ _id: settingId, diff: { value: { ITEM_CREATE: UserRole.NONE } } }],
+    });
+    expect(updateAck["ok"]).toBe(false);
+    expect(updateAck["code"]).toBe("VALIDATION_FAILED");
+
+    // The rejected write must not have moved ACTOR_CREATE either — the whole
+    // diff is refused atomically, not applied key-by-key.
+    const refetch = await sendOp(gm, "doc:update", {
+      documentType: "Setting",
+      updates: [{ _id: settingId, diff: { value: { ACTOR_CREATE: UserRole.TRUSTED } } }],
+    });
+    expect(refetch["ok"]).toBe(true);
   });
 });
 

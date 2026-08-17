@@ -8,20 +8,30 @@
  * `{ [permissionKey]: minRole }`. No dedicated table, no migration — Setting
  * already is a generic document (REQ-DOC-018), and writes to it already go
  * through the GAMEMASTER-strict guard in doc-handlers.ts (REQ-CFG-070,
- * `isGamemasterStrict`) — this module never writes, it only resolves reads.
+ * `isGamemasterStrict`), PLUS domain validation of the `value` itself
+ * (REQ-CFG-042, `validatePermissionOverrides` below, wired into
+ * `buildDocCreateHandler`/`buildDocUpdateHandler`) — this module never
+ * writes, it only resolves reads and validates.
  *
- * Scope (deliberately narrow — "sem inventar novos" per the Fase 9 plan's
- * G104): only the permission keys from the REQ-USR-008 table that ALREADY
- * have a concrete role-floor check in doc-handlers.ts today become
- * configurable here. Two of them (`JOURNAL_CREATE`, `TOKEN_CREATE`) were
- * literally hardcoded to "TRUSTED+" with a comment naming the simplification;
- * the other four (`ACTOR_CREATE`, `ITEM_CREATE`, `TABLE_CREATE`,
- * `PLAYLIST_CREATE`) were hardcoded to the generic `isPrivileged`
- * (ASSISTANT+) threshold via `GM_ONLY_CREATE_DELETE`, which happens to equal
- * REQ-USR-008's own default for all four — so wiring them through this table
- * changes no default behaviour, only makes the floor GM-adjustable.
- * Permission keys with no existing gate (SHOW_CURSOR, PING_CANVAS, ...) are
- * NOT represented here — inventing enforcement for them is out of scope.
+ * Coverage (fixed 2026-08-16, code review of the Fase 9 G104 rollout): ALL 19
+ * Permission Keys from the REQ-USR-008 table are listed here — REQ-CFG-040 is
+ * literal ("a seção DEVE listar **as** permissões configuráveis de
+ * REQ-USR-008, uma por linha"), not "the ones that already have a gate". An
+ * earlier revision narrowed this to the 6 keys doc-handlers.ts already
+ * enforced; that was an unregistered, silent divergence from both REQ-CFG-040
+ * and REQ-USR-008 (specs/CONVENCOES.md §2), reverted here.
+ *
+ * Listing a key here does NOT imply doc-handlers.ts enforces it: only
+ * `ACTOR_CREATE`, `ITEM_CREATE`, `TABLE_CREATE`, `PLAYLIST_CREATE`,
+ * `JOURNAL_CREATE` and `TOKEN_CREATE` back a real create gate today (the
+ * other 13 — `DRAWING_CREATE`, `FILES_BROWSE`, `FILES_UPLOAD`,
+ * `MACRO_SCRIPT`, `MANUAL_ROLLS`, `MESSAGE_WHISPER`, `NOTE_CREATE`,
+ * `PING_CANVAS`, `SHOW_CURSOR`, `SHOW_RULER`, `TOKEN_CONFIGURE`,
+ * `TOKEN_DELETE`, `WALL_DOORS` — have no corresponding operation gate
+ * anywhere in the server yet). REQ-CFG-040 only requires the row to exist and
+ * be GM-adjustable (REQ-USR-009); wiring a NEW enforcement point for a key
+ * whose feature is not itself built is separate feature work, out of scope
+ * for G104 (rule: não invente escopo).
  */
 
 import { UserRole } from "./ownership.js";
@@ -38,32 +48,60 @@ export const PERMISSIONS_SETTING_KEY = "fusion.permissions";
 // ---------------------------------------------------------------------------
 
 /**
- * The subset of REQ-USR-008's Permission Keys that map to a real,
- * already-enforced gate in `doc-handlers.ts` today.
+ * All 19 Permission Keys from the REQ-USR-008 table, in the same order the
+ * spec lists them.
  */
 export type PermissionKey =
   | "ACTOR_CREATE"
+  | "DRAWING_CREATE"
+  | "FILES_BROWSE"
+  | "FILES_UPLOAD"
   | "ITEM_CREATE"
-  | "TABLE_CREATE"
-  | "PLAYLIST_CREATE"
   | "JOURNAL_CREATE"
-  | "TOKEN_CREATE";
+  | "MACRO_SCRIPT"
+  | "MANUAL_ROLLS"
+  | "MESSAGE_WHISPER"
+  | "NOTE_CREATE"
+  | "PING_CANVAS"
+  | "PLAYLIST_CREATE"
+  | "SHOW_CURSOR"
+  | "SHOW_RULER"
+  | "TABLE_CREATE"
+  | "TOKEN_CONFIGURE"
+  | "TOKEN_CREATE"
+  | "TOKEN_DELETE"
+  | "WALL_DOORS";
 
 /**
- * Default minimum role per key — identical to the role threshold each gate
- * enforces today (REQ-USR-008's own `defaultRole` column, except
- * `TOKEN_CREATE`: the table names ASSISTANT there, but the code has always
- * enforced TRUSTED+ — "defaults iguais ao comportamento atual" wins per the
- * G104 task order; see openQuestions in the task report).
+ * Default minimum role per key — REQ-USR-008's own `defaultRole` column,
+ * verbatim (specs/05-usuarios-e-permissoes.md). `TOKEN_CREATE` is ASSISTANT
+ * here, matching the spec: an earlier revision hardcoded TRUSTED+ to match
+ * doc-handlers.ts's pre-existing behaviour instead, which was the divergence
+ * — per this repo's rule 11 ("se a spec e o código divergirem, a spec
+ * manda"), the code's floor moves to match the spec, not the other way
+ * around.
  */
 export const DEFAULT_PERMISSION_MIN_ROLE: Readonly<Record<PermissionKey, UserRole>> = Object.freeze(
   {
     ACTOR_CREATE: UserRole.ASSISTANT_GM,
+    DRAWING_CREATE: UserRole.TRUSTED,
+    FILES_BROWSE: UserRole.TRUSTED,
+    FILES_UPLOAD: UserRole.ASSISTANT_GM,
     ITEM_CREATE: UserRole.ASSISTANT_GM,
-    TABLE_CREATE: UserRole.ASSISTANT_GM,
-    PLAYLIST_CREATE: UserRole.ASSISTANT_GM,
     JOURNAL_CREATE: UserRole.TRUSTED,
-    TOKEN_CREATE: UserRole.TRUSTED,
+    MACRO_SCRIPT: UserRole.PLAYER,
+    MANUAL_ROLLS: UserRole.TRUSTED,
+    MESSAGE_WHISPER: UserRole.PLAYER,
+    NOTE_CREATE: UserRole.TRUSTED,
+    PING_CANVAS: UserRole.PLAYER,
+    PLAYLIST_CREATE: UserRole.ASSISTANT_GM,
+    SHOW_CURSOR: UserRole.PLAYER,
+    SHOW_RULER: UserRole.PLAYER,
+    TABLE_CREATE: UserRole.ASSISTANT_GM,
+    TOKEN_CONFIGURE: UserRole.TRUSTED,
+    TOKEN_CREATE: UserRole.ASSISTANT_GM,
+    TOKEN_DELETE: UserRole.ASSISTANT_GM,
+    WALL_DOORS: UserRole.PLAYER,
   },
 );
 
@@ -133,6 +171,14 @@ export function findPermissionsSettingId(store: PermissionsStoreSource): string 
  * matches today's hardcoded behaviour (REQ-CFG-073's "recusa mantém o valor
  * anterior" — an invalid/missing override is never treated as "wide open",
  * it just falls back).
+ *
+ * The floor's legitimate domain is PLAYER..GAMEMASTER, never NONE: the
+ * client's own selector never offers it (`PERMISSION_ROLE_OPTIONS`,
+ * permissionsSection.ts), REQ-USR-008's table treats NONE as "no access",
+ * not as a configurable floor, and a stray `raw === 0` (e.g. a malformed
+ * `{"ACTOR_CREATE": 0}` override) would otherwise resolve to a floor every
+ * connected role satisfies (`ctx.role >= 0` is always true) — silently
+ * disabling the gate instead of narrowing it.
  */
 export function resolvePermissionMinRole(
   store: PermissionsStoreSource,
@@ -144,7 +190,7 @@ export function resolvePermissionMinRole(
     typeof raw === "number" &&
     Number.isInteger(raw) &&
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    raw >= UserRole.NONE &&
+    raw >= UserRole.PLAYER &&
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     raw <= UserRole.GAMEMASTER
   ) {
@@ -154,11 +200,17 @@ export function resolvePermissionMinRole(
 }
 
 /**
- * Validate a full `{ permissionKey: minRole }` payload before it is allowed
- * to be written to the `fusion.permissions` Setting (used by tests and,
- * should a dedicated write path ever be added, by that path too). Unknown
- * keys or out-of-range roles are reported by key so a caller can refuse the
- * whole write rather than silently drop bad entries.
+ * Validate a full (or partial-diff) `{ permissionKey: minRole }` payload
+ * before it is allowed to be written to the `fusion.permissions` Setting
+ * (REQ-CFG-042). Wired into `buildDocCreateHandler`/`buildDocUpdateHandler`
+ * (doc-handlers.ts) for `documentType === "Setting"` writes whose `key` is
+ * `PERMISSIONS_SETTING_KEY` — the GAMEMASTER-strict guard those handlers
+ * already run (REQ-CFG-070) only proves WHO may write, not WHAT was
+ * written. Unknown keys or out-of-range roles are reported by key so a
+ * caller can refuse the whole write rather than silently drop bad entries.
+ *
+ * NONE (0) is out of range here too — same PLAYER..GAMEMASTER domain as
+ * `resolvePermissionMinRole` above; see that function's docstring for why.
  */
 export function validatePermissionOverrides(value: unknown): string[] {
   const errors: string[] = [];
@@ -174,7 +226,7 @@ export function validatePermissionOverrides(value: unknown): string[] {
       typeof minRole !== "number" ||
       !Number.isInteger(minRole) ||
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      minRole < UserRole.NONE ||
+      minRole < UserRole.PLAYER ||
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       minRole > UserRole.GAMEMASTER
     ) {
