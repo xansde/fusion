@@ -60,6 +60,7 @@
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
+  import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -297,9 +298,14 @@
     // The drop lands on the scene the Master is LOOKING at — the prepared one while a
     // prepare lasts (REQ-CEN-050), never the one on air behind his back.
     if (!canvasScene) return;
-    const actorPayload = _getActorDragPayload(event);
-    const compPayload = _getCompendiumDragPayload(event);
-    if (!actorPayload && !compPayload) return;
+    // REQ-UIF-045: `dragover` runs in the browser's "protected mode" — only
+    // `dataTransfer.types` is readable here, `getData()` always returns "" until
+    // `drop` fires. Deciding from `_getActorDragPayload`/`_getCompendiumDragPayload`
+    // (which call `getData()`) never accepted a drag, so `preventDefault()` never
+    // ran, and the browser refused to ever fire `drop` — see `canvasDragTypes.ts`.
+    if (!hasActorDragType(event.dataTransfer) && !hasCompendiumDragType(event.dataTransfer)) {
+      return;
+    }
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }

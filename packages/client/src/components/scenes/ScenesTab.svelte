@@ -82,6 +82,7 @@
   } from "../../lib/scenes/sceneShelf.js";
   import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
+  import TokenAddDialog from "./TokenAddDialog.svelte";
   import {
     enterScenePrepare,
     exitScenePrepare,
@@ -196,6 +197,23 @@
     const id = environment?.sceneId;
     if (id === undefined) return null;
     return sceneListState.scenes.find((scene) => scene._id === id) ?? null;
+  }
+
+  // --- Adding a token (TK022-client, REQ-TOK-002, DEC-TOK-04) -------------------
+  // `TokenAddDialog.svelte` already exists — form, actor search, validation, its own
+  // test — but nothing in the tree ever mounted it, so a piece could only be created
+  // by dragging an NPC row onto the canvas. It is a self-contained modal (its own
+  // backdrop/`<dialog>`, unlike the four dialogs in `sceneWindows.ts`), so it mounts
+  // inline here instead of through the window manager, gated on the scene actually
+  // on air — there is no scene to drop the token onto otherwise.
+  let tokenAddOpen = $state(false);
+
+  function openTokenAdd(): void {
+    tokenAddOpen = true;
+  }
+
+  function closeTokenAdd(): void {
+    tokenAddOpen = false;
   }
 
   async function runEnvGesture(
@@ -518,6 +536,31 @@
           </button>
         </div>
       {/if}
+      <!-- TK022-client: the door into TokenAddDialog — the form path stays reachable
+           even when no drag is in progress. Floats over the fixed head like the two
+           corner controls above, so it cannot add a pixel of height (REQ-CEN-013). -->
+      <button
+        class="scene-head__addToken"
+        title={t("FUSION.Scenes.TokenAdd.Title")}
+        aria-label={t("FUSION.Scenes.TokenAdd.Title")}
+        onclick={openTokenAdd}
+      >
+        <!-- Drawn glyph (REQ-NPC-094): a token disc with a plus, "put a piece here". -->
+        <svg
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="8" cy="8" r="6" />
+          <path d="M8 5.4v5.2M5.4 8h5.2" />
+        </svg>
+      </button>
       <div class="scene-head__info">
         <span class="scene-head__flag">{t("FUSION.Scene.Head.OnAir")}</span>
         <span class="scene-head__name" title={head.name}>{head.name}</span>
@@ -816,7 +859,16 @@
 <!-- The four scene dialogs are NOT mounted here any more: they are windows of the
      window manager, opened by `lib/scenes/sceneWindows.ts` and rendered once by
      `WindowHost` (REQ-UIF-009, DEC-CEN-09). A form inside the drawer would either
-     widen it or be unusable at 300px (DEC-GAV-04). -->
+     widen it or be unusable at 300px (DEC-GAV-04). TokenAddDialog is the one
+     exception: it already paints its own backdrop/`<dialog>` frame (built before
+     sceneWindows.ts existed), so it mounts inline here instead of being migrated
+     into a window it was never written for (TK022-client). -->
+{#if tokenAddOpen}
+  {@const scene = sceneOnAir()}
+  {#if scene}
+    <TokenAddDialog sceneId={scene._id} onClose={closeTokenAdd} onSuccess={closeTokenAdd} {socket} />
+  {/if}
+{/if}
 
 <style>
   .scenes-tab {
@@ -891,6 +943,35 @@
   }
 
   .scene-head__perception:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
+  }
+
+  /* TK022-client: the token-add door, opposite corner from the info strip so it
+     never sits over the scene name/dimensions (REQ-CEN-013: no pixel of height). */
+  .scene-head__addToken {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    bottom: 0.4rem;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    padding: 0.2rem;
+    position: absolute;
+    right: 0.4rem;
+    z-index: 1;
+  }
+
+  .scene-head__addToken:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .scene-head__addToken:focus-visible {
     outline: 2px solid var(--fusion-accent);
     outline-offset: 2px;
   }
