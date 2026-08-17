@@ -132,7 +132,11 @@
 </div>
 
 <style>
-  /* 44px of rail (REQ-GAV-012); the panel's 300px are the drawer's business. */
+  /* 44px of rail (REQ-GAV-012); the panel's 300px are the drawer's business.
+     REQ-GAV-001: the rail itself paints nothing — each button carries its own
+     fill (see `.sidebar-rail__button`), so the tabs read as individual physical
+     tabs instead of icons floating on a single continuous plate (prototype
+     variant C, `.C .tabs`). */
   .sidebar-rail {
     display: flex;
     flex-direction: column;
@@ -142,8 +146,6 @@
     box-sizing: border-box;
     padding: 6px 0;
     gap: 6px;
-    background: var(--fusion-surface-alt);
-    border-left: 1px solid var(--fusion-border);
     /* REQ-GAV-013: the rail takes pointer events even with the drawer collapsed. */
     pointer-events: auto;
   }
@@ -151,7 +153,8 @@
   .sidebar-rail__group {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* Flush against the drawer's edge, like the prototype's `.grp`/`.foot`. */
+    align-items: flex-end;
     gap: 4px;
   }
 
@@ -169,17 +172,19 @@
     border-top: 1px solid var(--fusion-border);
   }
 
+  /* REQ-GAV-001: 40×44, own fill, radius only on the outer (left) edge — each
+     button reads as a physical tab, not a hole in a shared background. */
   .sidebar-rail__button {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 44px;
     padding: 0;
     border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
-    background: transparent;
+    border-radius: var(--fusion-radius) 0 0 var(--fusion-radius);
+    background: var(--fusion-surface-alt);
     color: var(--fusion-text-muted);
     cursor: pointer;
     transition: var(--fusion-transition);
@@ -195,16 +200,17 @@
     outline-offset: -2px;
   }
 
-  /* REQ-GAV-005: the active tab merges into the panel — same fill, and the seam
-     on the panel side is erased so the button and the drawer read as one shape. */
+  /* REQ-GAV-001/REQ-GAV-005: the active tab grows to 44px and merges into the
+     panel — same fill, and the seam on the panel side is erased so the button
+     and the drawer read as one shape (the "bookmark" effect of prototype
+     variant C, `.C .tabs .tabbtn.is-active`). The right corners are already
+     square on the base button, so no override is needed here. */
   .sidebar-rail__button--active {
-    width: 40px;
+    width: 44px;
     margin-right: -2px;
     background: var(--fusion-surface);
     border-color: var(--fusion-border);
     border-right-color: var(--fusion-surface);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
     color: var(--fusion-accent);
   }
 

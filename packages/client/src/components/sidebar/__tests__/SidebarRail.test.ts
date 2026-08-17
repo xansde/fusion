@@ -14,6 +14,8 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import SidebarRail from "../SidebarRail.svelte";
 import { sidebarIcons } from "../icons.js";
@@ -91,6 +93,29 @@ function buttonOf(html: string, id: string): string {
   const match = new RegExp(`<button[^>]*data-tab-id="${id}"[\\s\\S]*?</button>`).exec(html);
   expect(match, `no rail button for tab "${id}"`).not.toBeNull();
   return match![0];
+}
+
+/**
+ * Raw source of a sibling file, for CSS assertions — `svelte/server`'s SSR output
+ * carries no `<style>` block, so the only way to pin the declarations of a class is
+ * to read the component's own `<style>` text (same pattern as
+ * `components/scenes/__tests__/ScenesTabWindows.test.ts`).
+ */
+function sourceOf(file: string): string {
+  return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
+}
+
+/**
+ * The declaration block of one exact CSS class selector, from the component's
+ * `<style>`. `(?![\w-])` after the selector stops `.sidebar-rail` from matching the
+ * start of the longer `.sidebar-rail__group`/`.sidebar-rail__button` selectors.
+ */
+function ruleFor(selector: string): string {
+  const style = /<style>([\s\S]*)<\/style>/.exec(sourceOf("SidebarRail.svelte"))?.[1] ?? "";
+  const escaped = selector.replace(/\./g, "\\.");
+  const rule = new RegExp(`${escaped}(?![\\w-])\\s*\\{([^}]*)\\}`).exec(style)?.[1];
+  expect(rule, `no CSS rule found for selector "${selector}"`).not.toBeUndefined();
+  return rule ?? "";
 }
 
 /**
@@ -316,6 +341,46 @@ describe("SidebarRail", () => {
       expect(html).not.toContain('aria-pressed="true"');
       // The rail itself stays on screen and clickable while collapsed (REQ-GAV-013).
       expect(tabOrder(html)).toHaveLength(7);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // A010 (Ajustes r1, plan `docs/design/gaveta-lateral/tasks-ajustes-r1.md`): the
+  // rail was a single filled plate with icons floating on top, instead of a column
+  // of individual physical tabs (prototype `sidebar-rail.prototype.html?variant=C`,
+  // `.C .tabs`). REQ-GAV-001 asks for the tabs, the fix moves the fill from the
+  // container to each button — asserted here from the component's own `<style>`
+  // text, since `svelte/server` renders no `<style>` into the SSR body.
+  // ---------------------------------------------------------------------------
+  describe("REQ-GAV-001: each tab paints its own fill, not the rail (A010)", () => {
+    it("REQ-GAV-001: the rail container itself paints no background and no border", () => {
+      const rule = ruleFor(".sidebar-rail");
+
+      expect(rule).not.toMatch(/background:/);
+      expect(rule).not.toMatch(/border-left:/);
+    });
+
+    it("REQ-GAV-001: every button carries its own background, sized 40×44, radius only on the outer edge", () => {
+      const rule = ruleFor(".sidebar-rail__button");
+
+      expect(rule).toMatch(/width:\s*40px/);
+      expect(rule).toMatch(/height:\s*44px/);
+      expect(rule).toMatch(/background:\s*var\(--fusion-surface-alt\)/);
+      expect(rule).toMatch(
+        /border-radius:\s*var\(--fusion-radius\)\s+0\s+0\s+var\(--fusion-radius\)/,
+      );
+    });
+
+    it("REQ-GAV-001: the buttons hug the drawer's edge instead of centering on the rail", () => {
+      const rule = ruleFor(".sidebar-rail__group");
+
+      expect(rule).toMatch(/align-items:\s*flex-end/);
+    });
+
+    it("REQ-GAV-001/REQ-GAV-005: the active tab grows to 44px, matching the prototype's bookmark effect", () => {
+      const rule = ruleFor(".sidebar-rail__button--active");
+
+      expect(rule).toMatch(/width:\s*44px/);
     });
   });
 });
