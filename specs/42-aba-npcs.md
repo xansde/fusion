@@ -35,7 +35,7 @@ matou.
 - As **pastas**: criar, renomear, aninhar, excluir e **fixar** no topo.
 - **Mover** um não-jogável entre pastas, pelos dois caminhos.
 - A **atitude** do não-jogável diante da party.
-- O **baú** posto direto na cena, e por que ele não é ator.
+- O **baú** posto direto na cena, e por que ele não aparece no diretório desta aba.
 - A leitura do **conhecimento** na linha, e o caminho até a janela que o edita.
 
 ### 2.2 Não inclui
@@ -127,7 +127,8 @@ O sistema pf2e declara `character`, `npc`, `hazard`, `loot` e `familiar`
 
 - `character` → nasce com o player (DEC-NPC-02).
 - `familiar` → nasce colado a um dono, por `masterActorId` (REQ-PET-002).
-- `loot` → é o baú, que não é ator desta aba (DEC-NPC-08, Q-NPC-04).
+- `loot` → é o baú: ator com faceta `container` (DEC-ATR-09), fora do diretório desta aba
+  (DEC-NPC-08, Q-NPC-04).
 - **Veículo não existe no Fusion.** Não é subtipo cortado: nunca foi declarado por sistema
   nenhum e não aparece em lugar algum do repositório. Fica registrado para que ninguém o
   reintroduza achando que foi esquecimento.
@@ -370,8 +371,20 @@ A aba abre a ficha em janela flutuante e não diz nada sobre o conteúdo dela.
 
 - **REQ-NPC-060** [MVP] O painel DEVE oferecer, no rodapé, um controle que põe um **baú** na
   cena ativa.
-- **REQ-NPC-061** [MVP] O baú NÃO DEVE ser ator: NÃO DEVE aparecer no diretório desta aba,
-  na busca, em contagem alguma nem na janela de conhecimento (DEC-NPC-08).
+- **REQ-NPC-061** [MVP] O baú DEVE ser ator, com a faceta `container` (`ver 45-atores.md`,
+  DEC-ATR-09), e por isso PODE ter uma peça em cena (`ver 41-token.md`). Ele NÃO DEVE, ainda
+  assim, aparecer no diretório desta aba: NÃO DEVE aparecer na árvore de pastas, na busca, em
+  contagem alguma nem na janela de conhecimento (DEC-NPC-08).
+
+  > **Emenda obrigada pela spec 45** (DEC-ATR-09) **e registrada pela spec 41** (`41-token.md`
+  > §12, issue #171, 2026-08-17): a redação anterior dizia que o baú NÃO DEVE ser ator — o
+  > oposto do que a `45` decidiu. DEC-ATR-09 fixou que o recipiente É ator (faceta
+  > `container`), com `items`, `ownership` e presença na cena como qualquer ator; é essa
+  > presença que dá ao baú uma peça (spec `41`). O corte original desta aba — nenhum
+  > cerimonial de autoria, nenhuma entrada no diretório — não mudou e continua na segunda
+  > frase deste requisito e em DEC-NPC-08 (já emendada). Só a primeira frase, que contradizia
+  > a `45`, foi reescrita.
+
 - **REQ-NPC-062** [MVP] O rodapé DEVE ser fixo: NÃO DEVE rolar com a lista, e DEVE conter o
   controle do baú e o que abre a janela de conhecimento (REQ-NPC-072).
 - **REQ-NPC-063** [MVP] Arrastar uma linha para o canvas DEVE criar uma presença do ator na
@@ -434,18 +447,18 @@ A aba abre a ficha em janela flutuante e não diz nada sobre o conteúdo dela.
 
 ## 7. Onde cada coisa é gravada
 
-| O quê                                 | Onde                              | Quem escreve | Referência               |
-| ------------------------------------- | --------------------------------- | ------------ | ------------------------ |
-| Pasta (nome, hierarquia)              | document `Folder`, no `world.db`  | servidor     | REQ-NPC-020, REQ-DOC-018 |
-| Pasta de um ator                      | `folderId` do ator, no `world.db` | servidor     | REQ-NPC-028              |
-| Título do não-jogável                 | no próprio ator, no `world.db`    | servidor     | REQ-NPC-032              |
-| Atitude                               | no próprio ator, no `world.db`    | servidor     | REQ-NPC-037              |
-| Conhecimento (regra geral + exceções) | no próprio ator, no `world.db`    | servidor     | REQ-CTT-070/072          |
-| Pastas fixadas                        | cliente, por **mundo + usuário**  | o próprio    | REQ-NPC-025, DEC-UIF-10  |
-| Pastas recolhidas/expandidas          | cliente, por **mundo + usuário**  | o próprio    | REQ-NPC-027              |
-| Preset escolhido na criação           | **em lugar nenhum**               | —            | DEC-NPC-07, REQ-NPC-046  |
-| Baú posto na cena                     | na cena — não é ator              | servidor     | DEC-NPC-08, Q-NPC-05     |
-| `open` / `activeTab` da gaveta        | cliente (`ClientUIPreferences`)   | o próprio    | REQ-GAV-014              |
+| O quê                                 | Onde                                         | Quem escreve | Referência               |
+| ------------------------------------- | -------------------------------------------- | ------------ | ------------------------ |
+| Pasta (nome, hierarquia)              | document `Folder`, no `world.db`             | servidor     | REQ-NPC-020, REQ-DOC-018 |
+| Pasta de um ator                      | `folderId` do ator, no `world.db`            | servidor     | REQ-NPC-028              |
+| Título do não-jogável                 | no próprio ator, no `world.db`               | servidor     | REQ-NPC-032              |
+| Atitude                               | no próprio ator, no `world.db`               | servidor     | REQ-NPC-037              |
+| Conhecimento (regra geral + exceções) | no próprio ator, no `world.db`               | servidor     | REQ-CTT-070/072          |
+| Pastas fixadas                        | cliente, por **mundo + usuário**             | o próprio    | REQ-NPC-025, DEC-UIF-10  |
+| Pastas recolhidas/expandidas          | cliente, por **mundo + usuário**             | o próprio    | REQ-NPC-027              |
+| Preset escolhido na criação           | **em lugar nenhum**                          | —            | DEC-NPC-07, REQ-NPC-046  |
+| Baú posto na cena                     | no próprio ator (`container`), no `world.db` | servidor     | REQ-NPC-061, DEC-ATR-09  |
+| `open` / `activeTab` da gaveta        | cliente (`ClientUIPreferences`)              | o próprio    | REQ-GAV-014              |
 
 ## 8. Contrato da spec-mãe (§7 da 36), item a item
 

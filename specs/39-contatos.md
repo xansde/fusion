@@ -109,14 +109,30 @@ documento: conhecer **nunca** concede acesso a quem o ownership nega.
 ### DEC-CTT-04 — Três degraus, e "entrevisto" é redigido no servidor
 
 `oculto` — o contato não existe para aquele personagem. `entrevisto` — existe, sem
-identidade: aparece como silhueta, sem nome, título ou retrato. `conhecido` — nome,
-título e categoria.
+identidade: nome e título são redigidos; o retrato viaja, e a tela decide se mostra o
+retrato ou uma silhueta em seu lugar. `conhecido` — nome, título e categoria.
 
 - **Racional:** a mesa reconhece o degrau do meio ("aquele encapuzado de novo"), e ele é o
   que torna a revelação uma cena em vez de um interruptor.
 - **Consequência dura:** o payload enviado a um usuário cujo maior estado é `entrevisto`
-  **não pode conter** nome, título nem retrato do contato. Esconder no cliente não esconde
-  nada — é a mesma lição que a aba Chat fixou sobre a CA do alvo.
+  **não pode conter** nome nem título do contato. Esconder no cliente não esconde nada —
+  é a mesma lição que a aba Chat fixou sobre a CA do alvo. O retrato (`AssetRef`) **não**
+  é redigido: ele sempre viaja no payload do contato, porque uma peça no mapa precisa da
+  arte para ser desenhada. A silhueta que o cartão de contato exibe no lugar do retrato é
+  escolha de apresentação daquela tela — não é segredo do servidor, e nenhuma outra tela é
+  obrigada a repeti-la.
+- **Isto não afrouxa `oculto`:** um ator que o usuário não conhece continua sem ser emitido
+  a ele — a mudança é só no degrau `entrevisto`. `oculto` só passa a ser emitido quando o
+  usuário recebe uma peça daquele ator (`41-token.md`).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
+  > redação anterior redigia nome, título **e retrato** do payload de um contato
+  > `entrevisto`. Mas uma peça no mapa precisa da arte para ser desenhada, e o jogador está
+  > olhando a criatura: o segredo é **quem ela é**, não **como ela parece**. A regra que
+  > fica de pé nas duas specs: o nome é redigido no servidor, sempre; a arte viaja; a
+  > silhueta no cartão de contato passa a ser escolha de apresentação daquela tela. _(A
+  > redação acima substitui a proibição de retrato; a redação de nome e título, o racional
+  > do degrau intermediário e o corte de `oculto` permanecem inalterados.)_
 
 ### DEC-CTT-05 — O conhecimento se edita num lugar só, aberto por um rodapé do Mestre
 
@@ -314,8 +330,16 @@ botão de ficha alcançável por teclado e por toque.
 
 - **REQ-CTT-040** [MVP] A seção **Conhecidos** DEVE listar os não-jogadores cujo estado para
   o usuário (REQ-CTT-071) seja `entrevisto` ou `conhecido`.
-- **REQ-CTT-041** [MVP] Contato `entrevisto` DEVE ser exibido sem nome, título ou retrato,
-  com marcação explícita de não identificado.
+- **REQ-CTT-041** [MVP] Contato `entrevisto` DEVE ser exibido sem nome ou título, com
+  marcação explícita de não identificado; o retrato do contato PODE ser exibido, e a tela
+  DECIDE se mostra o retrato ou uma silhueta em seu lugar — essa escolha é apresentação,
+  não redação de servidor (DEC-CTT-04).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
+  > redação anterior incluía "ou retrato" na lista do que é redigido do payload. O retrato
+  > deixou de ser redigido — o servidor sempre o envia; só nome e título continuam
+  > redigidos. Ver DEC-CTT-04.
+
 - **REQ-CTT-042** [MVP] Contato `entrevisto` NÃO DEVE oferecer categorização nem abertura de
   ficha.
 - **REQ-CTT-043** [MVP] Contato `oculto` NÃO DEVE aparecer na lista, em contagem, em busca
@@ -388,7 +412,13 @@ botão de ficha alcançável por teclado e por toque.
 - **REQ-CTT-080** [MVP] Esconder um controle no cliente NÃO É proteção (REQ-GAV-034):
   alterar conhecimento e alterar título DEVEM ser verificados no servidor.
 - **REQ-CTT-081** [MVP] O payload de um contato entregue a usuário cujo estado efetivo seja
-  `entrevisto` NÃO DEVE conter nome, título, retrato nem dado de sistema do contato.
+  `entrevisto` NÃO DEVE conter nome, título nem dado de sistema do contato; o retrato
+  (`AssetRef`) NÃO É redigido e DEVE viajar normalmente (DEC-CTT-04).
+
+  > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
+  > redação anterior incluía "retrato" entre os campos redigidos do payload — a mesma
+  > mudança de REQ-CTT-041. Ver DEC-CTT-04.
+
 - **REQ-CTT-082** [MVP] O payload de um contato `oculto` NÃO DEVE ser entregue de forma
   alguma ao usuário — nem em snapshot, nem em broadcast, nem em replay de operações.
 - **REQ-CTT-083** [MVP] A redação de REQ-CTT-081 e REQ-CTT-082 DEVE ocorrer no **módulo

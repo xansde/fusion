@@ -384,6 +384,17 @@ export interface TokenLight {
   enabled: boolean;
 }
 
+> **Nota de 2026-08-17**, obrigada pela `41-token.md` §12 (DEC-TOK-18, Q-TOK-04). Nenhum
+> requisito desta spec muda. A `41` (Token) declara os campos `vision` e `light` na forma
+> da peça — mesmo formato de `TokenVision`/`TokenLight` acima —, mas explicitamente **não
+> herda** visão, campo de visão, névoa, iluminação nem colisão com parede: esses campos são
+> **declaração inerte** enquanto esta spec não vale (nenhum cliente calcula polígono de
+> visão a partir deles, nenhum servidor valida colisão contra eles). Quando esta spec for
+> implementada, `TokenVision`/`TokenLight` continuam sendo a forma canônica — a `41` não
+> propõe um formato concorrente, só adia o comportamento. Q-TOK-04 registra que essa
+> remoção vale hoje só para a spec 41; estendê-la ao projeto (aposentar visão/fog do MVP
+> global) é decisão de escopo ainda em aberto, não tomada aqui.
+
 /** Configuração de percepção da cena. */
 export interface ScenePerception {
   /** Fog of war habilitado nesta cena. */
@@ -494,6 +505,7 @@ para cada detectionMode do observador:
 - `05-usuarios-e-permissoes.md` — quem controla quais tokens (base da união de visão do jogador), quem é GM (vê tudo), quem pode editar walls/luzes e abrir portas secretas/trancadas.
 - `06-canvas-e-renderizacao.md` — framework de camadas PIXI, câmera, sprites de token, conversão unidade-de-grid→pixel, snap; consumo da máscara de visão e da iluminação na composição final.
 - `08-motor-de-rolagens.md` — sem dependência direta; condições mecânicas (ex.: invisível) que alimentam detection modes podem vir de efeitos do sistema.
+- `41-token.md` — dona da forma da peça (`TokenData`); os campos `vision`/`light` que ela declara espelham `TokenVision`/`TokenLight` desta spec, mas são inertes até esta spec valer (DEC-TOK-18, Q-TOK-04).
 - `13-audio-e-playlists.md` — consumo da dimensão `sound` das walls (propagação/oclusão de áudio) e dos sons de porta.
 - `15-api-de-sistemas.md` — sistemas podem registrar vision/detection modes adicionais ([V2]) e mapear traços (darkvision, tremorsense) dos atores para configuração de visão dos tokens.
 - `17-sistema-pf2e.md` — mapeamento de sentidos PF2e (visão normal, darkvision, low-light vision) para vision/detection modes do Fusion.
