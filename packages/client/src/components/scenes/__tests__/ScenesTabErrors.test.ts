@@ -29,11 +29,14 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { render } from "svelte/server";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { Socket } from "socket.io-client";
 import type { Envelope, SceneDocument } from "@fusion/shared";
 
+import ScenesTab from "../ScenesTab.svelte";
+import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import { activateScene, OpError } from "../../../lib/scenes/sceneController.js";
 import { buildSceneHeadVM } from "../../../lib/scenes/scenesTabVM.js";
 import {
@@ -96,6 +99,24 @@ function refusingSocket(code = "NOT_FOUND", message = REFUSAL): RefusingSocket {
 /** The component's own source — for the template rules a node run cannot render. */
 function sourceOfScenesTab(): string {
   return readFileSync(fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)), "utf8");
+}
+
+/**
+ * Server-rendered markup of the panel — same technique `ScenesTab.test.ts` uses
+ * (`svelte/server`, no DOM needed). `sceneListState` is the global the component reads
+ * its list from, so every caller must set it first.
+ */
+function renderTab(activeSceneId: string | null): string {
+  const { body } = render(ScenesTab, {
+    props: {
+      socket: {} as never,
+      worldId: "world-1",
+      userId: "user-1",
+      isGm: true,
+      activeSceneId,
+    },
+  });
+  return body;
 }
 
 // ---------------------------------------------------------------------------
@@ -199,14 +220,20 @@ describe("a refused environment write (REQ-CEN-023)", () => {
     expect(generic).not.toContain("socket exploded");
   });
 
-  it("REQ-CEN-020..025: the panel no longer wires an environment gesture or its error region (retirado da UI em 2026-08-17, item 25)", () => {
+  it("REQ-CEN-020..025: the rendered head offers no environment gesture (retirado da UI em 2026-08-17, item 25)", () => {
     // The three controls that used to feed this message region are out of the head
-    // (`specs/44-aba-cenas.md`, note after REQ-CEN-025) — so there is no `envError` left
-    // to bind, and no dangling reference to it in either the script or the template.
-    const source = sourceOfScenesTab();
+    // (`specs/44-aba-cenas.md`, note after REQ-CEN-025). Asserted against what the
+    // panel actually draws — the translated label of each gesture — rather than
+    // against a variable name in the source, which would survive a rename of the
+    // retired code and could break on an unrelated comment mentioning the same words.
+    sceneListState.scenes = WORLD;
+    const html = renderTab(ON_AIR._id);
+    sceneListState.scenes = [];
 
-    expect(source).not.toMatch(/envError/);
-    expect(source).not.toMatch(/envBusy/);
+    expect(html).toContain(ON_AIR.name);
+    expect(html).not.toContain(t(SCENE_ENV_KEYS.darkness));
+    expect(html).not.toContain(t(SCENE_ENV_KEYS.fog));
+    expect(html).not.toContain(t(SCENE_ENV_KEYS.fogReset));
   });
 });
 
