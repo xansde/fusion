@@ -16,6 +16,8 @@
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "svelte/server";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import NpcsPanel from "../NpcsPanel.svelte";
 import NpcCreateDialog from "../NpcCreateDialog.svelte";
@@ -23,6 +25,18 @@ import { worldMirror } from "../../../lib/docs/worldSync.js";
 import { UNFILED_FOLDER_ID } from "../../../lib/npcs/folderTree.js";
 import type { MoveTargetOption } from "../../../lib/npcs/moveActor.js";
 import "../../../lib/i18n/index.js";
+
+function sourceOf(file: string): string {
+  return readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), "utf8");
+}
+
+/** Source with every comment removed, so prose is never mistaken for code. */
+function codeOf(file: string): string {
+  return sourceOf(file)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+}
 
 // ---------------------------------------------------------------------------
 // localStorage stub — the panel reads its pins from it at construction.
@@ -154,11 +168,42 @@ describe("REQ-NPC-041 / REQ-NPC-043 / REQ-NPC-044: the window and its two doors"
     expect(body).toContain('data-input="bestiary-search"');
   });
 
+  it("A035: the window npcCreateWindow.ts actually opens (no initialTab prop) defaults to bestiary", () => {
+    // `renderDialog()` above always passes `initialTab` explicitly (it is the
+    // helper's own function-default), so it can never see the component's own
+    // prop default — a wrong default there would sail through undetected.
+    // `npcCreateWindow.ts` never passes `initialTab` (NpcCreateDialog.svelte's
+    // own docstring: "Testability hook only ... the real window always opens on
+    // bestiary"), so this is the one render that matches production.
+    const body = render(NpcCreateDialog, {
+      props: {
+        socket: {} as never,
+        initialFolderId: "fld-aldeia0000001",
+        folderOptions: FOLDER_OPTIONS,
+        onClose: (): void => undefined,
+      },
+    }).body;
+
+    expect(body).toContain('data-door="bestiary"');
+    expect(body).not.toContain('data-door="scratch"');
+  });
+
   it("A035: switching to the scratch tab shows only that door, not the bestiary one", () => {
     const body = renderDialog("fld-aldeia0000001", "scratch");
 
     expect(body).toContain('data-door="scratch"');
     expect(body).not.toContain('data-door="bestiary"');
+  });
+
+  it("A035: each tab button's own onclick, not a testing prop, is what really flips the door — svelte/server cannot click, so the wiring itself is the proof (pattern of KnowledgeGridWindow.test.ts)", () => {
+    const code = codeOf("NpcCreateDialog.svelte");
+
+    expect(code).toMatch(
+      /data-tab="bestiary"[\s\S]{0,200}onclick=\{\(\) => \(activeTab = "bestiary"\)\}/,
+    );
+    expect(code).toMatch(
+      /data-tab="scratch"[\s\S]{0,200}onclick=\{\(\) => \(activeTab = "scratch"\)\}/,
+    );
   });
 
   it("REQ-NPC-043: the door from scratch asks for a subtype and a name", () => {
