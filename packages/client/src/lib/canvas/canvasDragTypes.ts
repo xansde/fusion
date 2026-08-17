@@ -18,7 +18,7 @@ import { NPC_DRAG_MIME } from "../npcs/moveActor.js";
 
 export type DragTypesSource = Pick<DataTransfer, "types"> | null | undefined;
 
-/** True when the drag carries an actor payload (REQ-UIF-046a: sidebar → canvas). */
+/** True when the drag carries an actor payload (REQ-UIF-046 fluxo (a): sidebar → canvas). */
 export function hasActorDragType(dataTransfer: DragTypesSource): boolean {
   return dataTransfer?.types.includes(NPC_DRAG_MIME) ?? false;
 }

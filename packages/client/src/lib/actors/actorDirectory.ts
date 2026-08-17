@@ -150,8 +150,10 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
 
 /**
  * Build the full `doc:create` op (TK022-client) for dropping an actor on the
- * canvas — the composition `TableScreen.handleCanvasDrop`'s actor branch emits
- * verbatim (`sock.emit("op", { ...buildActorDropTokenOp(opts), ts: Date.now() })`).
+ * canvas — the composition `TableScreen.handleCanvasDrop`'s actor branch sends
+ * verbatim, through `sendOp` so the server's ack is AWAITED and a refusal
+ * (VALIDATION_FAILED, PERMISSION_DENIED) reaches the Master instead of being
+ * swallowed by a fire-and-forget `sock.emit` (A004 review, REQ-CPD-060).
  *
  * Exists so the wiring between `buildTokenFromActorFields` (the field
  * transform) and `buildTokenCreateOp` (the envelope) is itself a pure,

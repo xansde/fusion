@@ -136,6 +136,13 @@ export type PlaceChestTokenOp = TokenCreateOp;
  * deliberately DOM-free so it can run under Vitest in node), unlike
  * `TokenInteractionManager.addToken`'s viewport-centered drop; the origin is
  * the same placeholder position the pre-TK022 payload used.
+ *
+ * `hidden` is deliberately ABSENT rather than spelled out as `false`: the chest
+ * lands VISIBLE, and §7.2 makes `hidden` an overridable field whose absent value
+ * inherits `TokenDocumentSchema`'s own default (`false`). Writing it explicitly
+ * would only restate the default, and the same reasoning covers `disposition`,
+ * `rotation`, `elevation` and `bar1`/`bar2` — every field the pre-merge payload
+ * used to enumerate by hand.
  */
 export function buildPlaceChestTokenOp(sceneId: string, actorId: string): PlaceChestTokenOp {
   return buildTokenCreateOp(sceneId, { actorId, x: 0, y: 0 });

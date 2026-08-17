@@ -55,7 +55,7 @@
 <footer class="npcs-footer" data-npcs-footer>
   <div class="npcs-footer__row">
     <button
-      class="npcs-footer__btn"
+      class="npcs-footer__btn npcs-footer__btn--chest"
       type="button"
       data-action="place-chest"
       disabled={!chest.enabled}
@@ -73,11 +73,11 @@
           stroke-linejoin="round"
         />
       </svg>
-      {t("FUSION.Npcs.Chest.Open")}
+      {t("FUSION.Npcs.Footer.Chest")}
     </button>
 
     <button
-      class="npcs-footer__btn"
+      class="npcs-footer__btn npcs-footer__btn--wide"
       type="button"
       data-action="open-knowledge"
       title={t("FUSION.Contacts.Knowledge.Open")}
@@ -93,7 +93,7 @@
           stroke-width="1.2"
         />
       </svg>
-      {t("FUSION.Contacts.Knowledge.Open")}
+      {t("FUSION.Npcs.Footer.Knowledge")}
     </button>
   </div>
 
@@ -129,16 +129,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 0.3rem 0.4rem;
+    gap: 0.3rem;
+    height: 1.625rem;
+    min-width: 1.625rem;
+    padding: 0 0.45rem;
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
     font: inherit;
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     cursor: pointer;
     transition: var(--fusion-transition);
   }
@@ -152,6 +152,26 @@
   .npcs-footer__btn:disabled {
     cursor: not-allowed;
     opacity: 0.6;
+  }
+
+  /* The chest sizes to its own content — only "Quem conhece" stretches
+     (prototype `.hbtn.chestb` / `.hbtn.wide`, npcs-tab.prototype.html:2467-2468). */
+  .npcs-footer__btn--chest {
+    flex: 0 0 auto;
+    border-color: rgba(245, 166, 35, 0.5);
+    color: var(--fusion-warning);
+  }
+
+  .npcs-footer__btn--chest:hover:not(:disabled),
+  .npcs-footer__btn--chest:focus-visible {
+    background: rgba(245, 166, 35, 0.1);
+    border-color: var(--fusion-warning);
+    color: var(--fusion-warning);
+  }
+
+  .npcs-footer__btn--wide {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   /* REQ-NPC-092 (REQ-UIF-064): every control says where the focus is. */

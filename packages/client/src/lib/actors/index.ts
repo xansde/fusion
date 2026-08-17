@@ -5,7 +5,11 @@
  * still has consumers (Contatos, the NPCs row, and `TableScreen`'s drop handler).
  */
 
-export { buildActorDragPayload, buildTokenFromActorFields } from "./actorDirectory.js";
+export {
+  buildActorDragPayload,
+  buildTokenFromActorFields,
+  buildActorDropTokenOp,
+} from "./actorDirectory.js";
 
 export type {
   ActorDocument,

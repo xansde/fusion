@@ -207,7 +207,14 @@ describe("a lista de candidatos que a cena ativa oferece (REQ-CBA-060)", () => {
   const source = panelSource();
 
   it("lê o que a cena ativa oferece e oferece adicionar cada um", () => {
-    expect(source).toContain("encounterCandidates(activeSceneState.scene?.tokens ?? [], combat)");
+    // TK020/REQ-TOK-060: a peça não tem mais nome nem arte próprios — herda do ator
+    // efetivo —, então `encounterCandidates` ganhou um terceiro argumento
+    // (`resolveCandidateActor`) que resolve esse ator pelo mesmo mapa `actorsById`
+    // que o painel já usa. A asserção cobre a chamada inteira de propósito: sem o
+    // resolvedor, todo candidato voltaria a cair no rótulo genérico de "sem nome".
+    expect(source).toContain(
+      "encounterCandidates(activeSceneState.scene?.tokens ?? [], combat, resolveCandidateActor)",
+    );
     expect(source).toContain("handleAddCandidate");
     expect(source).toContain("combatActions.addCombatant");
   });

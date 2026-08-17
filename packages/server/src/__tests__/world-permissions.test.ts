@@ -28,7 +28,7 @@
  *     lowering the floor to TRUSTED lets a TRUSTED user through while PLAYER
  *     stays refused (REQ-CFG-040/041/042).
  *   - Embedded doc:create Token on a Scene: PLAYER with OWNER access to the
- *     scene still refused by default (TOKEN_CREATE default ASSISTANT_GM,
+ *     scene still refused by default (TOKEN_CREATE default ASSISTANT,
  *     REQ-USR-008); GM lowering the floor to PLAYER lets that PLAYER through.
  *   - REQ-CFG-042: a write to the `fusion.permissions` Setting whose `value`
  *     names an unknown key, a non-integer role, or a role outside
@@ -38,14 +38,14 @@
  *   - REQ-CFG-073: a permission-table write refused by the server (non-GM)
  *     leaves the previously configured floor in force — neither wider nor
  *     narrower than what the GM last set.
- *   - REQ-USR-009/010 — RAISING a floor above ASSISTANT_GM has real effect:
- *     the generic `isPrivileged` (ASSISTANT_GM+) threshold used to be
+ *   - REQ-USR-009/010 — RAISING a floor above ASSISTANT has real effect:
+ *     the generic `isPrivileged` (ASSISTANT+) threshold used to be
  *     consulted BEFORE the permission table for every gate this module backs
  *     (ACTOR_CREATE/ITEM_CREATE/TABLE_CREATE/PLAYLIST_CREATE in
  *     GM_ONLY_CREATE_DELETE, JOURNAL_CREATE, and embedded TOKEN_CREATE), so
  *     an ASSISTANT sailed through regardless of what the GM configured — the
  *     table could only ever widen the door, never narrow it back below
- *     ASSISTANT_GM. GM raising ACTOR_CREATE/ITEM_CREATE/JOURNAL_CREATE/
+ *     ASSISTANT. GM raising ACTOR_CREATE/ITEM_CREATE/JOURNAL_CREATE/
  *     TOKEN_CREATE to GAMEMASTER now refuses an ASSISTANT on each, while
  *     GAMEMASTER itself is always accepted (REQ-USR-010 step 1).
  */
@@ -118,26 +118,26 @@ describe("world-permissions module (REQ-USR-008/009)", () => {
   });
 
   it("defaults match REQ-USR-008's own defaultRole column (specs/05-usuarios-e-permissoes.md)", () => {
-    expect(DEFAULT_PERMISSION_MIN_ROLE.ACTOR_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.ACTOR_CREATE).toBe(UserRole.ASSISTANT);
     expect(DEFAULT_PERMISSION_MIN_ROLE.DRAWING_CREATE).toBe(UserRole.TRUSTED);
     expect(DEFAULT_PERMISSION_MIN_ROLE.FILES_BROWSE).toBe(UserRole.TRUSTED);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.FILES_UPLOAD).toBe(UserRole.ASSISTANT_GM);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.ITEM_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.FILES_UPLOAD).toBe(UserRole.ASSISTANT);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.ITEM_CREATE).toBe(UserRole.ASSISTANT);
     expect(DEFAULT_PERMISSION_MIN_ROLE.JOURNAL_CREATE).toBe(UserRole.TRUSTED);
     expect(DEFAULT_PERMISSION_MIN_ROLE.MACRO_SCRIPT).toBe(UserRole.PLAYER);
     expect(DEFAULT_PERMISSION_MIN_ROLE.MANUAL_ROLLS).toBe(UserRole.TRUSTED);
     expect(DEFAULT_PERMISSION_MIN_ROLE.MESSAGE_WHISPER).toBe(UserRole.PLAYER);
     expect(DEFAULT_PERMISSION_MIN_ROLE.NOTE_CREATE).toBe(UserRole.TRUSTED);
     expect(DEFAULT_PERMISSION_MIN_ROLE.PING_CANVAS).toBe(UserRole.PLAYER);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.PLAYLIST_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.PLAYLIST_CREATE).toBe(UserRole.ASSISTANT);
     expect(DEFAULT_PERMISSION_MIN_ROLE.SHOW_CURSOR).toBe(UserRole.PLAYER);
     expect(DEFAULT_PERMISSION_MIN_ROLE.SHOW_RULER).toBe(UserRole.PLAYER);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.TABLE_CREATE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TABLE_CREATE).toBe(UserRole.ASSISTANT);
     expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_CONFIGURE).toBe(UserRole.TRUSTED);
     // REQ-USR-008 names ASSISTANT here — not the TRUSTED+ doc-handlers.ts
     // hardcoded before this table existed (rule 11: spec manda).
-    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_CREATE).toBe(UserRole.ASSISTANT_GM);
-    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_DELETE).toBe(UserRole.ASSISTANT_GM);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_CREATE).toBe(UserRole.ASSISTANT);
+    expect(DEFAULT_PERMISSION_MIN_ROLE.TOKEN_DELETE).toBe(UserRole.ASSISTANT);
     expect(DEFAULT_PERMISSION_MIN_ROLE.WALL_DOORS).toBe(UserRole.PLAYER);
   });
 
@@ -157,12 +157,12 @@ describe("world-permissions module (REQ-USR-008/009)", () => {
 
   it("falls back to the default for NONE (0) — not a legitimate floor, never wide-open", () => {
     const store = storeWithPermissions({ ACTOR_CREATE: UserRole.NONE });
-    expect(resolvePermissionMinRole(store, "ACTOR_CREATE")).toBe(UserRole.ASSISTANT_GM);
+    expect(resolvePermissionMinRole(store, "ACTOR_CREATE")).toBe(UserRole.ASSISTANT);
   });
 
   it("falls back to the default when the Setting value is not a plain object", () => {
     const store = storeWithPermissions("not-an-object");
-    expect(resolvePermissionMinRole(store, "ITEM_CREATE")).toBe(UserRole.ASSISTANT_GM);
+    expect(resolvePermissionMinRole(store, "ITEM_CREATE")).toBe(UserRole.ASSISTANT);
   });
 
   it("validatePermissionOverrides rejects unknown keys and out-of-range roles", () => {
@@ -238,7 +238,7 @@ async function buildCtx(): Promise<Ctx> {
   });
   // ASSISTANT (role 3) — the role `isPrivileged` treats as privileged
   // everywhere else in doc-handlers.ts. Needed to prove REQ-USR-009/010: a
-  // floor the GM raises above ASSISTANT_GM must actually refuse this role,
+  // floor the GM raises above ASSISTANT must actually refuse this role,
   // not just PLAYER/TRUSTED below it.
   const { user: assistant } = await authService.createUser({
     name: "PermsAssistant",
@@ -510,7 +510,7 @@ describe("configurable Permissions gate on embedded Token create (TOKEN_CREATE, 
     await teardown(ctx);
   });
 
-  it("PLAYER with OWNER access to the scene is refused by default (TOKEN_CREATE default ASSISTANT_GM, REQ-USR-008)", async () => {
+  it("PLAYER with OWNER access to the scene is refused by default (TOKEN_CREATE default ASSISTANT, REQ-USR-008)", async () => {
     const ack = await sendOp(player, "doc:create", {
       documentType: "Token",
       data: [{ name: "Player Token Attempt" }],
@@ -605,6 +605,66 @@ describe("REQ-CFG-073 — refused permission write keeps the previous configured
 });
 
 // ---------------------------------------------------------------------------
+// A006 (issue #133) — `isRolePrivileged` genuinely admits role 3 (REQ-USR-005:
+// `PLAYER` 1, `TRUSTED` 2, `ASSISTANT` 3, `GAMEMASTER` 4) for GAME actions
+// (REQ-USR-007), so an ASSISTANT socket must NOT be mistaken for a
+// GAMEMASTER-strict pass. The Configurações mesa writes (Mundo/Permissões/
+// Usuários/Mods) are the one place REQ-CFG-070 requires `role === GAMEMASTER`
+// literally — proving that over a REAL socket connection (not the pure
+// `isGamemasterStrict` unit tests in settings-*.test.ts) closes out issue
+// #133: an ASSISTANT is privileged everywhere else in this very file
+// (ACTOR_CREATE/TOKEN_CREATE default to ASSISTANT) yet is refused here.
+// ---------------------------------------------------------------------------
+
+describe("A006 — REQ-CFG-070/REQ-USR-005: an ASSISTANT socket (role 3) cannot write the mesa's Permissões Setting; a GAMEMASTER socket can", () => {
+  let ctx: Ctx;
+  let gm: ClientSocket;
+  let assistant: ClientSocket;
+  let settingId: string;
+
+  beforeAll(async () => {
+    ctx = await buildCtx();
+    gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    assistant = connectClient(ctx.port, ctx.worldId, ctx.assistantToken);
+    gm.connect();
+    assistant.connect();
+    await Promise.all([waitForConnect(gm), waitForConnect(assistant)]);
+
+    // GAMEMASTER creating the Setting is accepted — REQ-CFG-070 is satisfied
+    // by `role === GAMEMASTER`, the literal case the requirement names.
+    const createAck = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key: PERMISSIONS_SETTING_KEY, value: { ITEM_CREATE: UserRole.TRUSTED } }],
+    });
+    expect(createAck["ok"]).toBe(true);
+    settingId = (createAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+  }, 30000);
+
+  afterAll(async () => {
+    gm?.disconnect();
+    assistant?.disconnect();
+    await teardown(ctx);
+  });
+
+  it("ASSISTANT (role 3, Role.ASSISTANT in auth/user-store.ts) is refused with PERMISSION_DENIED on doc:update of the mesa's fusion.permissions Setting (REQ-CFG-070)", async () => {
+    const ack = await sendOp(assistant, "doc:update", {
+      documentType: "Setting",
+      updates: [{ _id: settingId, diff: { value: { ITEM_CREATE: UserRole.ASSISTANT } } }],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+  });
+
+  it("GAMEMASTER (role 4) is accepted on the same doc:update, over the same socket path (REQ-CFG-070)", async () => {
+    const ack = await sendOp(gm, "doc:update", {
+      documentType: "Setting",
+      updates: [{ _id: settingId, diff: { value: { ITEM_CREATE: UserRole.PLAYER } } }],
+    });
+    expect(ack["ok"]).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // REQ-CFG-042 — the GAMEMASTER-strict guard proves WHO may write; this is
 // the domain check for WHAT was written. A GM socket is fully authorized by
 // role on every case below — the write is refused purely on the malformed
@@ -674,13 +734,13 @@ describe("REQ-CFG-042 — the fusion.permissions value is validated server-side 
 });
 
 // ---------------------------------------------------------------------------
-// REQ-USR-009/010 — raising a floor ABOVE ASSISTANT_GM must actually refuse
+// REQ-USR-009/010 — raising a floor ABOVE ASSISTANT must actually refuse
 // an ASSISTANT, not just PLAYER/TRUSTED below it. Before the fix, every gate
-// this module backs consulted `isPrivileged` (ASSISTANT_GM+) BEFORE the
+// this module backs consulted `isPrivileged` (ASSISTANT+) BEFORE the
 // configured floor, so the table could only ever widen the door.
 // ---------------------------------------------------------------------------
 
-describe("GM raising a permission floor above ASSISTANT_GM refuses an ASSISTANT (REQ-USR-009/010)", () => {
+describe("GM raising a permission floor above ASSISTANT refuses an ASSISTANT (REQ-USR-009/010)", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
   let assistant: ClientSocket;
@@ -776,7 +836,7 @@ describe("GM raising a permission floor above ASSISTANT_GM refuses an ASSISTANT 
 // scene/ownership setup does not interact with the suite above.
 // ---------------------------------------------------------------------------
 
-describe("GM raising TOKEN_CREATE above ASSISTANT_GM refuses an ASSISTANT (REQ-USR-009/010)", () => {
+describe("GM raising TOKEN_CREATE above ASSISTANT refuses an ASSISTANT (REQ-USR-009/010)", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
   let assistant: ClientSocket;

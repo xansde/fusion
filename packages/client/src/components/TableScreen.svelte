@@ -57,6 +57,7 @@
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
   import { buildTokenCreateOp } from "../lib/docs/tokenCreateOp.js";
+  import { sendOp } from "../lib/docs/sendOp.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
@@ -298,11 +299,13 @@
     // The drop lands on the scene the Master is LOOKING at — the prepared one while a
     // prepare lasts (REQ-CEN-050), never the one on air behind his back.
     if (!canvasScene) return;
-    // REQ-UIF-045: `dragover` runs in the browser's "protected mode" — only
-    // `dataTransfer.types` is readable here, `getData()` always returns "" until
-    // `drop` fires. Deciding from `_getActorDragPayload`/`_getCompendiumDragPayload`
-    // (which call `getData()`) never accepted a drag, so `preventDefault()` never
-    // ran, and the browser refused to ever fire `drop` — see `canvasDragTypes.ts`.
+    // REQ-UIF-045 / item A031 of the r1 review: `dragover` runs in the browser's
+    // "protected mode" — only `dataTransfer.types` is readable here, `getData()`
+    // always returns "" until `drop` fires. Deciding from `_getActorDragPayload`/
+    // `_getCompendiumDragPayload` (which call `getData()`) never accepted a drag, so
+    // `preventDefault()` never ran, and the browser refused to ever fire `drop`. The
+    // types-only predicates live in `canvasDragTypes.ts` so the rule is exercised
+    // directly (canvasDragTypes.test.ts) instead of only through this component.
     if (!hasActorDragType(event.dataTransfer) && !hasCompendiumDragType(event.dataTransfer)) {
       return;
     }
@@ -339,7 +342,21 @@
         y: worldY,
         gridSize,
       });
-      sock.emit("op", { ...op, ts: Date.now() });
+      // REQ-NPC-063: an embedded doc:create (`buildActorDropTokenOp` composes the
+      // spec-41 token fields with the shared envelope), awaited with an ack so a
+      // server refusal (VALIDATION_FAILED, permission, …) surfaces to the Master
+      // instead of being swallowed by a fire-and-forget emit (REQ-CPD-060).
+      void (async () => {
+        try {
+          await sendOp(sock, op);
+        } catch (err) {
+          console.error("[TableScreen] Failed to create token from actor drop:", err);
+          dropRefusal = t("FUSION.DragDrop.Actor.CreateFailed");
+          window.setTimeout(() => {
+            dropRefusal = null;
+          }, DROP_REFUSAL_MS);
+        }
+      })();
       return;
     }
 
@@ -384,9 +401,17 @@
             y: worldY,
             gridSize,
           });
-          sock.emit("op", { ...buildTokenCreateOp(scene._id, { ...fields }), ts: Date.now() });
+          // REQ-CPD-062: an embedded doc:create, awaited with an ack — same
+          // shape and same visible-failure treatment as the actor branch
+          // above (REQ-CPD-060 requires a visible return of a failure, and a
+          // fire-and-forget emit here would swallow it just as silently).
+          await sendOp(sock, buildTokenCreateOp(scene._id, { ...fields }));
         } catch (err) {
           console.error("[TableScreen] Failed to import compendium actor on drop:", err);
+          dropRefusal = t("FUSION.DragDrop.Actor.CreateFailed");
+          window.setTimeout(() => {
+            dropRefusal = null;
+          }, DROP_REFUSAL_MS);
         }
       })();
     }

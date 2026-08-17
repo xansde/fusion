@@ -545,6 +545,15 @@ botão de ficha alcançável por teclado e por toque.
   > **Fechada em 2026-08-16 pela spec 42** (`42-aba-npcs.md`, REQ-NPC-032 e §12): o título
   > vale também para não-jogador e é editável pelo Mestre. Mantida aqui como registro da
   > pergunta e de onde ela foi respondida, não como decisão pendente.
+- **Q-CTT-06** — Hoje o conhecimento é binário por bloco: DEC-CTT-04/REQ-CTT-081 escondem
+  nome, título e retrato **juntos**, como um bloco único, quando o estado é `entrevisto`.
+  Não existe, nem aqui nem em `42-aba-npcs.md`, controle granular de **quais campos da
+  ficha** aparecem nesse estado (ex.: mostrar o nome mas não os atributos, ou o inverso) —
+  as duas specs excluem a ficha do personagem do escopo (DEC-CTT-09, DEC-NPC-13). A
+  intenção do Alexandre é que cada NPC ganhe, no futuro, esse controle granular; fica
+  registrada aqui como **apontamento para a spec de ficha futura**, sem alterar o modelo
+  de 3 estados vigente. Origem: item A030 de
+  `docs/design/gaveta-lateral/tasks-ajustes-r1.md`.
 
 ## 12. Emendas que esta spec obriga
 

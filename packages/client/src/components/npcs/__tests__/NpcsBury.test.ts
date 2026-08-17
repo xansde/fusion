@@ -83,12 +83,13 @@ function renderPanel(): string {
   }).body;
 }
 
-function renderDialog(): string {
+function renderDialog(initialTab: "bestiary" | "scratch" = "bestiary"): string {
   return render(NpcCreateDialog, {
     props: {
       socket: {} as never,
       initialFolderId: null,
       folderOptions: FOLDER_OPTIONS,
+      initialTab,
       onClose: (): void => undefined,
     },
   }).body;
@@ -103,9 +104,10 @@ describe("G078: what the buried directory did, the NPCs tab does", () => {
     const body = renderPanel();
 
     expect(body).toContain('data-action="new-npc"');
-    // And the window it opens is the one with both doors (REQ-NPC-041).
-    expect(renderDialog()).toContain('data-door="bestiary"');
-    expect(renderDialog()).toContain('data-door="scratch"');
+    // And the window it opens is the one with both doors (REQ-NPC-041), reachable
+    // through its tab strip (A035) — only the active one renders at a time.
+    expect(renderDialog("bestiary")).toContain('data-door="bestiary"');
+    expect(renderDialog("scratch")).toContain('data-door="scratch"');
   });
 
   it("REQ-NPC-050: deleting a non-playable is offered on the row of a non-playable", () => {
@@ -138,7 +140,7 @@ describe("REQ-NPC-044 / DEC-NPC-02: creating a character has no trigger in this 
    * control is reintroduced before G105 gives it its real address.
    */
   it("REQ-NPC-044: the window renders no character-creation block, scaffolded or otherwise", () => {
-    const body = renderDialog();
+    const body = renderDialog("scratch");
 
     expect(body).not.toContain('data-block="character-scaffolding"');
     expect(body).not.toContain("data-scaffolding");
@@ -146,7 +148,7 @@ describe("REQ-NPC-044 / DEC-NPC-02: creating a character has no trigger in this 
   });
 
   it("REQ-NPC-044: it is not a third subtype of the tab's own door", () => {
-    const body = renderDialog();
+    const body = renderDialog("scratch");
     const select = /<select[^>]*data-input="npc-create-subtype"[\s\S]*?<\/select>/.exec(body)?.[0];
 
     expect(select).toBeDefined();

@@ -270,11 +270,14 @@ describe("nothing is said by colour alone (REQ-CTT-094)", () => {
   it("REQ-CTT-094: the knowledge state is written out in the window, not only shaded", () => {
     const code = codeOf("KnowledgeGridWindow.svelte");
 
-    // Each cell carries the state as a word and the exception as a word.
-    expect(code).toContain("knowledge-grid__state-text");
-    expect(code).toContain("knowledge-grid__exception-word");
-    // The swatches of the legend are decoration on top of those words.
+    // Each cell's symbol is decoration (aria-hidden); the state — and, for an
+    // exception, the word itself — reaches assistive tech through the
+    // accessible name (aria-label), never through colour alone.
+    expect(code).toContain('<span class="knowledge-grid__state-symbol" aria-hidden="true"');
+    expect(code).toContain("FUSION.Contacts.Knowledge.CycleCellException");
+    // The legend spells every state out in words next to its swatch.
     expect(code).toContain('class="knowledge-grid__swatch" data-state={state} aria-hidden="true"');
+    expect(code).toContain("{stateLabel(state)}");
   });
 
   it("REQ-CTT-094: a condition carries its tone in words as well as in its hue", () => {

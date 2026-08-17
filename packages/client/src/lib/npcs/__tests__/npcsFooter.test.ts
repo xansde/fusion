@@ -13,8 +13,17 @@
  * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a second
  * `doc:create` (embedded, `parent: {type:"Scene", id}`) creates a `Token` for it —
  * the very envelope `TokenAddDialog.svelte` sends too (`lib/docs/tokenCreateOp.ts`,
- * TK022-client), with `actorId` set (REQ-DOC-031). What is still open (Q-NPC-03,
- * owned by the Token spec `41`) is whether a token is *linked* or *unlinked* to its
+ * TK022-client), with `actorId` set (REQ-DOC-031).
+ *
+ * That envelope is also the A004 fix (ajustes r1 item 22): both call sites used to
+ * send a `doc:update` with a `{ tokens: { $push: {...} } }` pseudo-operator the
+ * server's `tokens: z.array(...)` rejects outright, and sending the whole array back
+ * through `doc:update` is refused too, on purpose, by `rejectUnwritableField`. The
+ * wire-level twin of the assertions below is
+ * `packages/server/src/__tests__/scene-tokens-embedded-create.test.ts`.
+ *
+ * What is still open (Q-NPC-03, owned by the Token spec `41`) is whether a token is
+ * *linked* or *unlinked* to its
  * actor (the `actorLink`/`actorDelta` pair spec 02's "Herança token→actor" section
  * describes) — both fields exist on `TokenDocumentSchema` now (TK020), but this
  * module writes neither, so the chest stays a plain linked token (the schema
@@ -160,6 +169,12 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     // REQ-TOK-020: x/y are obligatory content of every token creation — the
     // server's validateTokenCreateContract refuses a payload missing either.
     expect(op.payload.data[0]).toEqual({ actorId: "act-bau0newlycreated1", x: 0, y: 0 });
+    // A004's exact regression, kept as a negative: the old shape was a
+    // `doc:update` with `diff: { tokens: { $push: {...} } }`, and the `_id` is
+    // minted by `handleEmbeddedCreate`, never supplied by the client.
+    expect(JSON.stringify(op)).not.toContain("$push");
+    expect(op.payload).not.toHaveProperty("updates");
+    expect(op.payload.data[0]).not.toHaveProperty("_id");
   });
 
   it("REQ-TOK-060 / REQ-TOK-010 / REQ-TOK-012: the token carries no name, texture, width or height of its own — it inherits the chest actor's", () => {

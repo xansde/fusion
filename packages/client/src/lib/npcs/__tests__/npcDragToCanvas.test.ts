@@ -32,8 +32,18 @@ const LOBO = {
   folder: "fld-bosque0000001",
 };
 
+/**
+ * Source with every comment removed (same helper as `npcsFooter.test.ts`), so prose
+ * ABOUT a call is never read as the call itself. Required here: the resolved
+ * `handleCanvasDragOver` explains in a comment why `getData()` cannot be used during
+ * `dragover`, and a naive read would then see "getData(" inside the very function the
+ * A031 assertion proves is free of it.
+ */
 function source(relative: string): string {
-  return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8");
+  return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
 }
 
 describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () => {
@@ -48,6 +58,32 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     expect(panel).toContain("NPC_DRAG_MIME");
     // … and the canvas reads that exact type on drop.
     expect(table).toContain('getData("application/fusion-actor")');
+  });
+
+  it("REQ-NPC-063 / REQ-UIF-045 (A031): dragover accepts by advertised MIME type, never by reading the payload (getData is empty during dragover)", () => {
+    // HTML5 drag data store is in protected mode during `dragover`: getData() returns "".
+    // Deciding preventDefault() from the payload made the browser refuse every drop
+    // (item A031 of the r1 review). The gate must look at dataTransfer.types — which
+    // is what `hasActorDragType`/`hasCompendiumDragType` (lib/canvas/canvasDragTypes.ts)
+    // do, and the reason the predicates live in a module of their own instead of inline
+    // in the component: canvasDragTypes.test.ts exercises the rule directly.
+    const table = source("../../../components/TableScreen.svelte");
+    const start = table.indexOf("function handleCanvasDragOver(");
+    const end = table.indexOf("function handleCanvasDrop(");
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const dragOver = table.slice(start, end);
+    expect(dragOver).not.toContain("getData(");
+    expect(dragOver).not.toContain("_getActorDragPayload(");
+    expect(dragOver).toContain("hasActorDragType(event.dataTransfer)");
+    expect(dragOver).toContain("hasCompendiumDragType(event.dataTransfer)");
+
+    // … and the predicates themselves decide from `.types`, never from `getData()`.
+    // `NPC_DRAG_MIME` is pinned to "application/fusion-actor" by the first test above.
+    const dragTypes = source("../../canvas/canvasDragTypes.ts");
+    expect(dragTypes).not.toContain("getData(");
+    expect(dragTypes).toContain(".types.includes(NPC_DRAG_MIME)");
+    expect(dragTypes).toContain('.types.includes("text/plain")');
   });
 
   it("REQ-NPC-063: the payload the row writes survives the trip and names the actor", () => {
@@ -110,10 +146,19 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
 
     // TK022-client: the branch hands the drop straight to the shared
     // buildActorDropTokenOp (packages/client/src/lib/actors/actorDirectory.ts)
-    // and emits its result verbatim — this only proves the WIRING calls the
+    // and sends its result verbatim — this only proves the WIRING calls the
     // real function; the next test proves what that function actually emits.
     expect(drop).toContain("buildActorDropTokenOp(");
-    expect(drop).toContain('sock.emit("op", { ...op,');
+    // A004 review (REQ-NPC-063, REQ-CPD-060): sent through `sendOp` so a server
+    // refusal is AWAITED and surfaced to the Master, never a fire-and-forget
+    // `sock.emit` that swallows a VALIDATION_FAILED ack.
+    expect(drop).toContain("await sendOp(sock, op)");
+    expect(drop).not.toContain('sock.emit("op"');
+    // The old broken shape — `documentType`/`embedded`/`documents` built inline —
+    // must be gone: `DocCreatePayloadSchema` has never accepted `embedded`/
+    // `documents`, only `data` (required) and an optional `parent`.
+    expect(drop).not.toContain("embedded:");
+    expect(drop).not.toContain("documents:");
   });
 
   it("REQ-NPC-063: what buildActorDropTokenOp emits is a doc:create the server accepts", () => {

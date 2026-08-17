@@ -8,6 +8,17 @@
  * REQ-TOK-022 (the client never writes a field the server would refuse as derived —
  * footprint, art, ownership, actorDelta), REQ-TOK-024 (hidden is overridable at
  * creation), REQ-TOK-060 (a blank name override inherits the actor's own).
+ *
+ * Also covers REQ-NPC-060 (A004, ajustes r1 item 22 — absorbed from
+ * `tokenAddDialogOp.test.ts` when the two implementations of this op were merged
+ * into one): the write that lands a token on a scene is an EMBEDDED `doc:create`
+ * (`documentType: "Token"` + `parent: { type: "Scene", id }`), never the
+ * `doc:update` + `{ tokens: { $push: {...} } }` pseudo-operator this dialog used to
+ * send (rejected by the server's `tokens: z.array(...)` with "Expected array,
+ * received object"), and never a whole-array `doc:update` either (refused on purpose
+ * by `rejectUnwritableField`: "Scene.tokens is not writable as a whole through
+ * doc:update — use embedded operations"). The wire-level twin of these assertions is
+ * `packages/server/src/__tests__/scene-tokens-embedded-create.test.ts`.
  */
 
 import { describe, expect, it } from "vitest";
@@ -136,6 +147,23 @@ describe("REQ-TOK-020: buildCreateTokenOp", () => {
     const op = buildCreateTokenOp("scn-clareira001", form({ actorId: "act-lobo00000001" }));
 
     expect(op.payload.data[0]).not.toHaveProperty("hidden");
+  });
+
+  it("REQ-NPC-060 (A004): never a `$push` pseudo-operator and never a `tokens` array — the two shapes the server refuses", () => {
+    const op = buildCreateTokenOp(
+      "scn-clareira001",
+      form({ actorId: "act-lobo00000001", x: 10, y: 20 }),
+    );
+
+    expect(JSON.stringify(op)).not.toContain("$push");
+    expect(op.payload).not.toHaveProperty("updates");
+    expect(op.payload.data[0]).not.toHaveProperty("tokens");
+  });
+
+  it("REQ-NPC-060 (A004): no client-supplied `_id` — `handleEmbeddedCreate` mints it server-side", () => {
+    const op = buildCreateTokenOp("scn-clareira001", form({ actorId: "act-lobo00000001" }));
+
+    expect(op.payload.data[0]).not.toHaveProperty("_id");
   });
 
   it("REQ-TOK-010/012/022: the payload never carries texture, width, height, disposition, footprint, ownership or actorDelta", () => {
