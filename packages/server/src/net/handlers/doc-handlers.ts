@@ -101,6 +101,12 @@ import {
 } from "../../documents/actor-deletion.js";
 import { isNonPlayableActor } from "../../documents/knowledge.js";
 import {
+  validateTokenActorId,
+  validateTokenCreateContract,
+  applyTokenCreateDefaults,
+  validateTokenUpdateActorDelta,
+} from "../../tokens/tokenValidation.js";
+import {
   redactCombatDocsForNonPrivileged,
   redactSceneDocsForNonPrivileged,
   sceneIsInvisibleToRole,
@@ -1483,7 +1489,32 @@ function handleEmbeddedCreate(
 
     // Validate against Token schema if applicable
     if (embeddedType === "Token") {
-      const tokenResult = TokenDocumentSchema.safeParse(raw);
+      // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: checked BEFORE the generic schema
+      // parse so a null/absent/dangling actorId gets our explicit message
+      // ("actorId is required and must resolve to an existing Actor")
+      // instead of Zod's generic "Expected string, received null".
+      const actorIdError = validateTokenActorId(deps.store, raw["actorId"]);
+      if (actorIdError) {
+        return ackError(actorIdError.code, actorIdError.message);
+      }
+      // §7.2 obligatory (x, y) / derived (footprint, art, possession) /
+      // refused (actorDelta) rows — TK025, REQ-TOK-020/022, DEC-TOK-05,
+      // CA-TOK-004. Checked on the raw wire payload, before any default is
+      // applied, so a derived field is REFUSED rather than silently
+      // stripped by the schema's `.strip()` behavior.
+      const contractError = validateTokenCreateContract(raw);
+      if (contractError) {
+        return ackError(contractError.code, contractError.message);
+      }
+      // §7.2 overridable rows whose "inherit when absent" default is more
+      // than a Zod literal: `actorLink` by the base actor's subtype
+      // (REQ-DOC-061/REQ-TOK-023) and `bar1`/`bar2` by the active system's
+      // manifest (REQ-SYS-004/REQ-TOK-024). Every other overridable field
+      // (hidden, seenBy, disposition, name, rotation, elevation, vision,
+      // light) already inherits correctly from TokenDocumentSchema's own
+      // Zod defaults below.
+      const withDefaults = applyTokenCreateDefaults(deps.store, deps.systemModule, raw);
+      const tokenResult = TokenDocumentSchema.safeParse(withDefaults);
       if (!tokenResult.success) {
         return ackError("VALIDATION_FAILED", tokenResult.error.message);
       }
@@ -1698,6 +1729,33 @@ function handleEmbeddedUpdate(
       // Build the updated token by applying dot-path diff (uses sanitized diff)
       const existingToken = collection[idx] ?? {};
       const patchedToken = applyDotPathDiff(existingToken, sanitizedDiff);
+
+      // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: the diff was only barred from
+      // TOUCHING actorId when the caller is non-privileged (above). A
+      // GM/ASSISTANT reaches this point free to set actorId to null or to an
+      // id that resolves to nothing — T-5, reproduced in
+      // token-actor-validation.test.ts — since nothing here re-validates the
+      // patched token against the Token schema. Checked on every Token
+      // update (not just ones that touch actorId) so an existing, already-
+      // orphaned token cannot be further mutated either.
+      if (embeddedType === "Token") {
+        const actorIdError = validateTokenActorId(deps.store, patchedToken["actorId"]);
+        if (actorIdError) {
+          return ackError(actorIdError.code, actorIdError.message);
+        }
+        // REQ-DOC-034/DEC-TOK-05 (TK025): actorDelta is the one field §7.2
+        // refuses at creation but allows on UPDATE — and only then, only on
+        // an unlinked token. Evaluated against the DIFF-APPLIED actorLink,
+        // not the pre-diff one, so a single update that both unlinks the
+        // token and sets its delta is judged by the new state.
+        const actorDeltaError = validateTokenUpdateActorDelta(
+          patchedToken["actorLink"],
+          "actorDelta" in sanitizedDiff,
+        );
+        if (actorDeltaError) {
+          return ackError(actorDeltaError.code, actorDeltaError.message);
+        }
+      }
 
       // Schema validation of embedded Items against the active system's
       // registered data models (R10-C, see validateEmbeddedItemForSystem).

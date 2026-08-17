@@ -530,7 +530,9 @@ describe("configurable Permissions gate on embedded Token create (TOKEN_CREATE, 
     const loweredFloorActorId = await createActor(gm, "Player Token After Lowering Floor Actor");
     const ack = await sendOp(player, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Player Token After Lowering Floor", actorId: loweredFloorActorId }],
+      data: [
+        { name: "Player Token After Lowering Floor", actorId: loweredFloorActorId, x: 0, y: 0 },
+      ],
       parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"]).toBe(true);
@@ -808,7 +810,7 @@ describe("GM raising TOKEN_CREATE above ASSISTANT_GM refuses an ASSISTANT (REQ-U
     const beforeRaiseActorId = await createActor(gm, "Assistant Token Before Raise Actor");
     const ack = await sendOp(assistant, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Assistant Token Before Raise", actorId: beforeRaiseActorId }],
+      data: [{ name: "Assistant Token Before Raise", actorId: beforeRaiseActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"]).toBe(true);
@@ -833,7 +835,7 @@ describe("GM raising TOKEN_CREATE above ASSISTANT_GM refuses an ASSISTANT (REQ-U
     const gmAfterRaiseActorId = await createActor(gm, "Gm Token After Raise Actor");
     const gmAck = await sendOp(gm, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Gm Token After Raise", actorId: gmAfterRaiseActorId }],
+      data: [{ name: "Gm Token After Raise", actorId: gmAfterRaiseActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(gmAck["ok"]).toBe(true);

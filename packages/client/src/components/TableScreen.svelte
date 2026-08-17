@@ -55,6 +55,7 @@
     buildTokenFromActorFields,
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
+  import { buildTokenCreateOp } from "../lib/docs/tokenCreateOp.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
@@ -331,15 +332,7 @@
         y: worldY,
         gridSize,
       });
-      sock.emit("op", {
-        type: "doc:create",
-        ts: Date.now(),
-        payload: {
-          documentType: "Token",
-          embedded: { type: "Token", sceneId: scene._id },
-          documents: [fields],
-        },
-      });
+      sock.emit("op", { ...buildTokenCreateOp(scene._id, { ...fields }), ts: Date.now() });
       return;
     }
 
@@ -384,15 +377,7 @@
             y: worldY,
             gridSize,
           });
-          sock.emit("op", {
-            type: "doc:create",
-            ts: Date.now(),
-            payload: {
-              documentType: "Token",
-              embedded: { type: "Token", sceneId: scene._id },
-              documents: [fields],
-            },
-          });
+          sock.emit("op", { ...buildTokenCreateOp(scene._id, { ...fields }), ts: Date.now() });
         } catch (err) {
           console.error("[TableScreen] Failed to import compendium actor on drop:", err);
         }

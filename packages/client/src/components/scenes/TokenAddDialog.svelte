@@ -8,20 +8,34 @@
    *   onSuccess () => void    — called after the token is created.
    *   socket    Socket        — for sendOp.
    *
-   * TK023 (REQ-TOK-002, REQ-TOK-010, REQ-TOK-012, DEC-TOK-04): a token has no
-   * `texture`/`width`/`height` of its own anymore, and `actorId` is required —
-   * a piece with no actor is not a representable state. This dialog has no
-   * actor PICKER yet (that UI is TK022-client, a later stage of this same
-   * plan): until it exists, `actorId` stays empty and the submit button stays
-   * disabled (`isValid`), same as a name that fails validation today. `name`
-   * remains free text: unlike the hardcoded name a dragged actor's token used
-   * to duplicate, this one is a deliberate GM override — left blank, it is
-   * sent as `null` and the token inherits the actor's own name (REQ-TOK-060).
+   * TK022-client (REQ-TOK-002, REQ-TOK-010, REQ-TOK-012, REQ-TOK-020, REQ-TOK-024,
+   * DEC-TOK-04): a token has no `texture`/`width`/`height` of its own, and `actorId` is
+   * required — a piece with no actor is not a representable state. This dialog picks
+   * that actor from the world's own list (`worldMirror`, searchable by name); with none
+   * selected, "Add Token" stays disabled with a legible reason (CA-TOK-003). `name`
+   * remains a free-text override: blank, it is left off the payload and the token
+   * inherits the actor's own name (REQ-TOK-060). `hidden` is the other overridable
+   * field this dialog exposes (REQ-TOK-024), for the piece that enters an ambush
+   * already out of sight. The pure logic (filtering, validation, the `doc:create` op)
+   * lives in `lib/scenes/tokenAddDialogVM.ts` so it is testable without a DOM.
    */
 
+  import { onMount } from "svelte";
   import type { Socket } from "socket.io-client";
   import { sendOp } from "../../lib/docs/sendOp.js";
-  import { createDocumentId } from "@fusion/shared";
+  import { worldMirror } from "../../lib/docs/worldSync.js";
+  import { t } from "../../lib/i18n/i18n.js";
+  import {
+    buildCreateTokenOp,
+    filterTokenActorOptions,
+    isTokenAddFormValid,
+    toTokenActorOptions,
+    validateTokenAddForm,
+    type MinimalActorDoc,
+    type TokenActorOption,
+    type TokenAddFormData,
+    type TokenAddFormErrors,
+  } from "../../lib/scenes/tokenAddDialogVM.js";
 
   // ---- Props ----
 
@@ -37,91 +51,70 @@
     socket: Socket;
   } = $props();
 
-  // ---- Form state ----
+  // ---- Actor list (REQ-TOK-002: picking one is mandatory) ----
 
-  interface TokenFormData {
-    name: string;
-    actorId: string;
-    x: number;
-    y: number;
-  }
+  let actors = $state<TokenActorOption[]>(
+    toTokenActorOptions(worldMirror.getByType<MinimalActorDoc>("Actor")),
+  );
 
-  let formData = $state<TokenFormData>({
-    name: "",
-    actorId: "",
-    x: 0,
-    y: 0,
+  $effect(() => {
+    const unsubscribe = worldMirror.subscribe<MinimalActorDoc>("Actor", (docs) => {
+      actors = toTokenActorOptions(docs);
+    });
+    actors = toTokenActorOptions(worldMirror.getByType<MinimalActorDoc>("Actor"));
+    return unsubscribe;
   });
 
-  interface TokenFormErrors {
-    name?: string;
-    actorId?: string;
-    x?: string;
-    y?: string;
-  }
+  let actorQuery = $state("");
+  const filteredActors = $derived(filterTokenActorOptions(actors, actorQuery));
 
-  let errors = $state<TokenFormErrors>({});
+  // ---- Form state ----
+
+  let formData = $state<TokenAddFormData>({
+    actorId: "",
+    name: "",
+    x: 0,
+    y: 0,
+    hidden: false,
+  });
+
+  const selectedActor = $derived(actors.find((a) => a.id === formData.actorId) ?? null);
+
+  let errors = $state<TokenAddFormErrors>({});
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
-
-  // ---- Validation ----
-
-  function validate(data: TokenFormData): TokenFormErrors {
-    const errs: TokenFormErrors = {};
-    if (data.name.trim().length > 128) errs.name = "Name must be 128 chars or fewer.";
-    // REQ-TOK-002 / DEC-TOK-04: no actor, no token — and there is no picker
-    // here yet (TK022-client), so this is the one way this form can fail
-    // validation on the field that matters most.
-    if (!data.actorId.trim()) errs.actorId = "An actor is required.";
-    return errs;
-  }
-
-  function isValid(errs: TokenFormErrors): boolean {
-    return Object.keys(errs).length === 0;
-  }
 
   // ---- Handlers ----
 
   function handleInput(): void {
-    errors = validate(formData);
+    errors = validateTokenAddForm(formData);
     serverError = null;
+  }
+
+  function selectActor(id: string): void {
+    formData.actorId = id;
+    actorQuery = "";
+    handleInput();
+  }
+
+  function clearActor(): void {
+    formData.actorId = "";
+    handleInput();
   }
 
   async function handleSubmit(e: Event): Promise<void> {
     e.preventDefault();
-    errors = validate(formData);
-    if (!isValid(errors)) return;
+    errors = validateTokenAddForm(formData);
+    if (!isTokenAddFormValid(errors)) return;
 
     submitting = true;
     serverError = null;
 
     try {
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: sceneId,
-              diff: {
-                tokens: {
-                  $push: {
-                    _id: createDocumentId(),
-                    // REQ-TOK-060: blank name inherits the actor's own.
-                    name: formData.name.trim() || null,
-                    actorId: formData.actorId.trim(),
-                    x: formData.x,
-                    y: formData.y,
-                  },
-                },
-              },
-            },
-          ],
-        },
-      });
+      await sendOp(socket, buildCreateTokenOp(sceneId, formData));
       onSuccess();
     } catch (err) {
-      serverError = err instanceof Error ? err.message : "An unexpected error occurred.";
+      serverError = err instanceof Error ? err.message : t("FUSION.Scenes.TokenAdd.UnexpectedError");
     } finally {
       submitting = false;
     }
@@ -130,6 +123,10 @@
   function handleKeydown(e: KeyboardEvent): void {
     if (e.key === "Escape") onClose();
   }
+
+  onMount(() => {
+    errors = validateTokenAddForm(formData);
+  });
 </script>
 
 <!-- Backdrop -->
@@ -145,40 +142,85 @@
 <dialog
   class="token-dialog"
   open
-  aria-label="Add token"
+  aria-label={t("FUSION.Scenes.TokenAdd.Title")}
   onkeydown={handleKeydown}
 >
   <header class="dialog__header">
-    <h2 class="dialog__title">Add Token</h2>
-    <button class="dialog__close btn btn--icon" onclick={onClose} aria-label="Close dialog">
+    <h2 class="dialog__title">{t("FUSION.Scenes.TokenAdd.Title")}</h2>
+    <button
+      class="dialog__close btn btn--icon"
+      onclick={onClose}
+      aria-label={t("FUSION.Dialog.Close")}
+    >
       &#x2715;
     </button>
   </header>
 
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
-    <!-- Actor (REQ-TOK-002, DEC-TOK-04: required — no picker yet, TK022-client) -->
+    <!-- Actor (REQ-TOK-002, DEC-TOK-04: required — CA-TOK-003) -->
     <div class="field" class:field--error={!!errors.actorId}>
-      <label class="field__label" for="token-actor">Actor</label>
-      <input
-        id="token-actor"
-        class="field__input"
-        type="text"
-        bind:value={formData.actorId}
-        oninput={handleInput}
-        placeholder="Actor id"
-        autocomplete="off"
-        disabled={submitting}
-        required
-      />
+      <label class="field__label" for="token-actor-search">
+        {t("FUSION.Scenes.TokenAdd.ActorLabel")}
+      </label>
+
+      {#if selectedActor}
+        <div class="actor-selected">
+          {#if selectedActor.img}
+            <img class="actor-selected__img" src={selectedActor.img} alt="" />
+          {/if}
+          <span class="actor-selected__name">{selectedActor.name}</span>
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            onclick={clearActor}
+            disabled={submitting}
+          >
+            {t("FUSION.Scenes.TokenAdd.ActorChange")}
+          </button>
+        </div>
+      {:else}
+        <input
+          id="token-actor-search"
+          class="field__input"
+          type="text"
+          bind:value={actorQuery}
+          placeholder={t("FUSION.Scenes.TokenAdd.ActorSearchPlaceholder")}
+          autocomplete="off"
+          disabled={submitting}
+        />
+        <ul class="actor-list" role="listbox" aria-label={t("FUSION.Scenes.TokenAdd.ActorLabel")}>
+          {#each filteredActors as actor (actor.id)}
+            <li>
+              <button
+                type="button"
+                class="actor-option"
+                role="option"
+                aria-selected="false"
+                onclick={() => selectActor(actor.id)}
+                disabled={submitting}
+              >
+                {#if actor.img}
+                  <img class="actor-option__img" src={actor.img} alt="" />
+                {/if}
+                <span class="actor-option__name">{actor.name}</span>
+              </button>
+            </li>
+          {:else}
+            <li class="actor-list__empty">{t("FUSION.Scenes.TokenAdd.ActorNoResults")}</li>
+          {/each}
+        </ul>
+      {/if}
+
       {#if errors.actorId}
-        <span class="field__error" role="alert">{errors.actorId}</span>
+        <span class="field__error" role="alert">{t(errors.actorId)}</span>
       {/if}
     </div>
 
     <!-- Name (optional override — blank inherits the actor's own, REQ-TOK-060) -->
     <div class="field" class:field--error={!!errors.name}>
       <label class="field__label" for="token-name">
-        Name <span class="field__optional">(optional — inherits the actor's)</span>
+        {t("FUSION.Scenes.TokenAdd.NameLabel")}
+        <span class="field__optional">{t("FUSION.Scenes.TokenAdd.NameOptional")}</span>
       </label>
       <input
         id="token-name"
@@ -186,20 +228,19 @@
         type="text"
         bind:value={formData.name}
         oninput={handleInput}
-        placeholder="Goblin Warrior"
         maxlength="128"
         autocomplete="off"
         disabled={submitting}
       />
       {#if errors.name}
-        <span class="field__error" role="alert">{errors.name}</span>
+        <span class="field__error" role="alert">{t(errors.name)}</span>
       {/if}
     </div>
 
     <!-- Position row -->
     <div class="field-row">
-      <div class="field" class:field--error={!!errors.x}>
-        <label class="field__label" for="token-x">X (px)</label>
+      <div class="field">
+        <label class="field__label" for="token-x">{t("FUSION.Scenes.TokenAdd.XLabel")}</label>
         <input
           id="token-x"
           class="field__input"
@@ -211,8 +252,8 @@
           disabled={submitting}
         />
       </div>
-      <div class="field" class:field--error={!!errors.y}>
-        <label class="field__label" for="token-y">Y (px)</label>
+      <div class="field">
+        <label class="field__label" for="token-y">{t("FUSION.Scenes.TokenAdd.YLabel")}</label>
         <input
           id="token-y"
           class="field__input"
@@ -226,20 +267,31 @@
       </div>
     </div>
 
+    <!-- Hidden (REQ-TOK-024: overridable at creation) -->
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        bind:checked={formData.hidden}
+        onchange={handleInput}
+        disabled={submitting}
+      />
+      <span>{t("FUSION.Scenes.TokenAdd.HiddenLabel")}</span>
+    </label>
+
     {#if serverError}
       <div class="server-error" role="alert">{serverError}</div>
     {/if}
 
     <footer class="dialog__footer">
       <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
-        Cancel
+        {t("FUSION.Dialog.Cancel")}
       </button>
       <button
         type="submit"
         class="btn btn--primary"
-        disabled={submitting || !isValid(validate(formData))}
+        disabled={submitting || !isTokenAddFormValid(validateTokenAddForm(formData))}
       >
-        {submitting ? "Adding…" : "Add Token"}
+        {submitting ? t("FUSION.Scenes.TokenAdd.Submitting") : t("FUSION.Scenes.TokenAdd.Submit")}
       </button>
     </footer>
   </form>
@@ -366,6 +418,87 @@
     font-size: 0.75rem;
   }
 
+  .actor-list {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0.3rem 0 0;
+    max-height: 12rem;
+    overflow-y: auto;
+    padding: 0.25rem;
+  }
+
+  .actor-list__empty {
+    color: var(--fusion-text-subtle);
+    font-size: 0.8125rem;
+    padding: 0.5rem;
+  }
+
+  .actor-option {
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    cursor: pointer;
+    display: flex;
+    font-family: var(--fusion-font);
+    font-size: 0.875rem;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .actor-option:hover:not(:disabled) {
+    background: var(--fusion-surface);
+  }
+
+  .actor-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .actor-option__img {
+    border-radius: var(--fusion-radius-sm);
+    height: 1.5rem;
+    object-fit: cover;
+    width: 1.5rem;
+  }
+
+  .actor-selected {
+    align-items: center;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .actor-selected__img {
+    border-radius: var(--fusion-radius-sm);
+    height: 1.75rem;
+    object-fit: cover;
+    width: 1.75rem;
+  }
+
+  .actor-selected__name {
+    flex: 1;
+    font-size: 0.875rem;
+  }
+
+  .checkbox-row {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-size: 0.875rem;
+    gap: 0.5rem;
+  }
+
   .server-error {
     background: rgba(255, 92, 92, 0.12);
     border: 1px solid var(--fusion-danger);
@@ -421,6 +554,11 @@
   .btn--ghost:hover:not(:disabled) {
     border-color: var(--fusion-text-muted);
     color: var(--fusion-text);
+  }
+
+  .btn--sm {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
   }
 
   .btn--icon {

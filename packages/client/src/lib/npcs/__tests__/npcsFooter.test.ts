@@ -10,14 +10,15 @@
  * conhece quem" window the Contatos tab opens — one component, one singleton
  * key, one knowledge model).
  *
- * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a
- * `doc:update` pushes a `Token` for it onto `Scene.tokens` — the very shape
- * `TokenAddDialog.svelte` already sends, with `actorId` set (REQ-DOC-031). What
- * is still open (Q-NPC-03, owned by the unwritten Token spec `41`) is whether a
- * token is *linked* or *unlinked* to its actor (the `actorLink`/`actorDelta`
- * pair spec 02's "Herança token→actor" section describes) — neither field
- * exists on `TokenDocumentSchema` yet, so this module writes neither; it uses
- * only the bare `actorId` reference that already does.
+ * `placeChest` writes twice: a `doc:create` mints the chest's actor, and a second
+ * `doc:create` (embedded, `parent: {type:"Scene", id}`) creates a `Token` for it —
+ * the very envelope `TokenAddDialog.svelte` sends too (`lib/docs/tokenCreateOp.ts`,
+ * TK022-client), with `actorId` set (REQ-DOC-031). What is still open (Q-NPC-03,
+ * owned by the Token spec `41`) is whether a token is *linked* or *unlinked* to its
+ * actor (the `actorLink`/`actorDelta` pair spec 02's "Herança token→actor" section
+ * describes) — both fields exist on `TokenDocumentSchema` now (TK020), but this
+ * module writes neither, so the chest stays a plain linked token (the schema
+ * default).
  *
  * The client runs Vitest in a node environment — no jsdom, no testing-library —
  * so the wire assertions read what the fake socket recorded, and the "no op
@@ -95,7 +96,7 @@ function fakeSocket(sent: Sent[]): Socket {
       ack: (result: unknown) => void,
     ): void {
       sent.push({ event, type: envelope.type, payload: envelope.payload });
-      if (envelope.type === "doc:create") {
+      if (envelope.type === "doc:create" && envelope.payload["documentType"] === "Actor") {
         ack({ ok: true, result: { documentType: "Actor", documents: [CREATED_CHEST] } });
         return;
       }
@@ -149,34 +150,31 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(op.payload.data[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
   });
 
-  it("REQ-NPC-060: the second write pushes a Token for that actor onto the scene", () => {
+  it("REQ-NPC-060 / REQ-TOK-001 / REQ-TOK-020: the second write creates a Token for that actor, embedded in the scene", () => {
     const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
 
-    expect(op.type).toBe("doc:update");
-    expect(op.payload.documentType).toBe("Scene");
-    expect(op.payload.updates).toHaveLength(1);
-    expect(op.payload.updates[0]?._id).toBe("scn-clareira001");
-    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
-      .$push;
-    expect(push["actorId"]).toBe("act-bau0newlycreated1");
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Token");
+    expect(op.payload.parent).toEqual({ type: "Scene", id: "scn-clareira001" });
+    expect(op.payload.data).toHaveLength(1);
+    expect(op.payload.data[0]).toEqual({ actorId: "act-bau0newlycreated1" });
   });
 
-  it("REQ-TOK-060: the push carries no name of its own — the token inherits the chest actor's", () => {
-    // TK023: TokenDocumentSchema dropped the token's own `texture`/`width`/
-    // `height`, and `name: null` means "herda do ator" — the chest's actor
-    // already carries "Baú" (buildCreateChestActorOp), so duplicating it here
-    // would just be a second, driftable copy of the same name.
+  it("REQ-TOK-060 / REQ-TOK-010 / REQ-TOK-012: the token carries no name, texture, width or height of its own — it inherits the chest actor's", () => {
+    // TK022/TK023: TokenDocumentSchema dropped the token's own `texture`/
+    // `width`/`height`, and `name: null` means "herda do ator" — the chest's
+    // actor already carries "Baú" (buildCreateChestActorOp), so duplicating it
+    // here would just be a second, driftable copy of the same name.
     const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
-    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
-      .$push;
+    const fields = op.payload.data[0] as Record<string, unknown>;
 
-    expect(push).not.toHaveProperty("name");
-    expect(push).not.toHaveProperty("texture");
-    expect(push).not.toHaveProperty("width");
-    expect(push).not.toHaveProperty("height");
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
+    expect(fields).not.toHaveProperty("width");
+    expect(fields).not.toHaveProperty("height");
   });
 
-  it("REQ-NPC-060: activating it sends the create, then the token push, in order", async () => {
+  it("REQ-NPC-060: activating it sends the actor create, then the token create, in order", async () => {
     const sent: Sent[] = [];
     await placeChest(fakeSocket(sent), "scn-clareira001");
 
@@ -188,14 +186,13 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     expect(created).toHaveLength(1);
     expect(created[0]?.["type"]).toBe(CHEST_ACTOR_SUBTYPE);
 
-    expect(sent[1]?.type).toBe("doc:update");
-    expect(sent[1]?.payload["documentType"]).toBe("Scene");
-    const updates = sent[1]?.payload["updates"] as { _id: string; diff: Record<string, unknown> }[];
-    expect(updates[0]?._id).toBe("scn-clareira001");
-    const push = (updates[0]?.diff["tokens"] as { $push: Record<string, unknown> }).$push;
+    expect(sent[1]?.type).toBe("doc:create");
+    expect(sent[1]?.payload["documentType"]).toBe("Token");
+    expect(sent[1]?.payload["parent"]).toEqual({ type: "Scene", id: "scn-clareira001" });
+    const fields = (sent[1]?.payload["data"] as Record<string, unknown>[])[0];
     // The actorId on the wire is the id `fakeSocket` handed back for the create
     // above — the two writes are chained, not two independent guesses.
-    expect(push["actorId"]).toBe(CREATED_CHEST._id);
+    expect(fields?.["actorId"]).toBe(CREATED_CHEST._id);
   });
 
   it("REQ-NPC-060 / Q-NPC-03: the token carries only actorId — no link/unlink field", () => {
@@ -204,12 +201,11 @@ describe("REQ-NPC-060: the footer's chest control", () => {
     // token, which is the schema's own default — writing them explicitly here
     // would just restate what `actorLink: true` (the default) already means.
     const op = buildPlaceChestTokenOp("scn-clareira001", "act-bau0newlycreated1");
-    const push = (op.payload.updates[0]?.diff["tokens"] as { $push: Record<string, unknown> })
-      .$push;
+    const fields = op.payload.data[0] as Record<string, unknown>;
 
-    expect(push["actorId"]).toBe("act-bau0newlycreated1");
-    expect(push).not.toHaveProperty("actorLink");
-    expect(push).not.toHaveProperty("actorDelta");
+    expect(fields["actorId"]).toBe("act-bau0newlycreated1");
+    expect(fields).not.toHaveProperty("actorLink");
+    expect(fields).not.toHaveProperty("actorDelta");
   });
 });
 

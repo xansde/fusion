@@ -310,13 +310,8 @@ describe("T032 — writes that bump _stats.version must emit doc:update", () => 
             name: "Reação AM Orador",
             x: 0,
             y: 0,
-            width: 1,
-            height: 1,
-            visible: true,
             hidden: false,
             disposition: 1,
-            img: "icons/placeholder/token.svg",
-            ownership: { default: 0, [ctx.playerId]: 3 },
           },
         ],
       });
