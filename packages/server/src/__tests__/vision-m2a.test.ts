@@ -1,8 +1,8 @@
 /**
- * M2-A integration tests — walls, ambient lights, door state, move collision,
- * secret door redaction.
+ * M2-A integration tests — walls, ambient lights, door state, token:move
+ * permission, secret door redaction.
  *
- * Spec: 07-visao-iluminacao-fog.md
+ * Spec: 07-visao-iluminacao-fog.md, 41-token.md §5.5 (token:move's own rules)
  *
  * Coverage:
  *  §WALLS
@@ -31,11 +31,11 @@
  *   - broadcast: player receives secret door as plain wall after GM creates wall
  *   - delta resync: player receives secret door as plain wall in delta ops
  *
- *  §MOVEMENT COLLISION (REQ-VIS-091)
- *   - token move through wall → MOVE_BLOCKED
- *   - token move through open door → allowed
- *   - GM can bypass with force:true
+ *  §TOKEN MOVE — permission only, no collision (TK062, REQ-TOK-042, DEC-TOK-07)
  *   - token move in open space → allowed
+ *   - token move THROUGH A WALL → also allowed (collision removed, not fixed)
+ *   - player OWNER of the actor moves; non-OWNER player is denied
+ *   - ownership.default recognition (M5-C debt payoff, kept from the old suite)
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -1055,7 +1055,7 @@ describe("M2-A — secret door redaction", () => {
 // §MOVEMENT COLLISION (REQ-VIS-091)
 // ---------------------------------------------------------------------------
 
-describe("M2-A — token:move collision validation", () => {
+describe("M2-A/spec-41 — token:move permission (collision REMOVED by TK062, DEC-TOK-07)", () => {
   let ctx: TestContext;
   let gmSocket: ClientSocket;
   let playerSocket: ClientSocket;
@@ -1249,161 +1249,34 @@ describe("M2-A — token:move collision validation", () => {
     expect((ack as Record<string, unknown>)["code"]).toBe("PERMISSION_DENIED");
   });
 
-  it("token move through wall → MOVE_BLOCKED", async () => {
+  it("REQ-TOK-042/DEC-TOK-07 (TK062): a token move THROUGH A WALL is allowed — collision was removed, not fixed", async () => {
     const { sceneId, tokenId } = await buildSceneWithWallAndToken();
 
-    // Move from (50,100) to (150,100) — crosses vertical wall at x=100
+    // Move from (50,100) to (150,100) — crosses the vertical wall at x=100.
+    // Before TK062 this was rejected with MOVE_BLOCKED (REQ-VIS-091); D24/D25
+    // put wall collision entirely out of spec 41's scope, so token:move no
+    // longer even looks at the scene's walls.
     const ack = await sendOp(playerSocket, "token:move", {
       sceneId,
       tokenId,
       x: 150,
       y: 100,
     });
-    expect(ack["ok"]).toBe(false);
-    expect((ack as Record<string, unknown>)["code"]).toBe("MOVE_BLOCKED");
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
   });
 
-  it("token move through closed door → MOVE_BLOCKED", async () => {
+  it("REQ-TOK-042: a closed, non-secret door blocks nothing either — same removal", async () => {
     const { sceneId, tokenId } = await buildSceneWithWallAndToken({
       doorType: "door",
       doorState: "closed",
     });
 
-    // Move from (50,100) to (150,100) — crosses closed door
     const ack = await sendOp(playerSocket, "token:move", {
       sceneId,
       tokenId,
       x: 150,
       y: 100,
     });
-    expect(ack["ok"]).toBe(false);
-    expect((ack as Record<string, unknown>)["code"]).toBe("MOVE_BLOCKED");
-  });
-
-  it("token move through open door → allowed", async () => {
-    const {
-      sceneId: _sceneId,
-      tokenId: _tokenId,
-      wallId,
-    } = await (async () => {
-      const result = await buildSceneWithWallAndToken({
-        doorType: "door",
-        doorState: "closed",
-      });
-      // Find the wall id
-      const sceneDoc = await sendOp(gmSocket, "doc:update", {
-        documentType: "Scene",
-        updates: [{ _id: result.sceneId, diff: {} }],
-      });
-      // Get scene directly
-      const sceneAck = await new Promise<Record<string, unknown>>((resolve, reject) => {
-        gmSocket.emit(
-          "query",
-          { type: "query", ts: Date.now(), payload: { documentType: "Scene", id: result.sceneId } },
-          (r: Record<string, unknown>) => resolve(r),
-        );
-        setTimeout(() => reject(new Error("Query timeout")), 3000);
-      });
-      void sceneDoc;
-      void sceneAck;
-      return { ...result, wallId: "" as string };
-    })();
-
-    // We need to find the wall id from the scene. Let's use a simpler approach:
-    // Set up the whole scene manually with a known wall id
-    const actorAck = await sendOp(gmSocket, "doc:create", {
-      documentType: "Actor",
-      data: [
-        {
-          name: "Hero2",
-          type: "character",
-          ownership: { default: 0, [ctx.playerUserId]: 3 },
-        },
-      ],
-    });
-    const actorId2 = (
-      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
-    )[0]?.["_id"] as string;
-
-    const scene2 = await createScene(gmSocket, "Scene with door");
-    const sceneId2 = scene2["_id"] as string;
-
-    // Create a door wall
-    const wallCreateAck = await sendOp(gmSocket, "wall:create", {
-      documentType: "Wall",
-      data: [
-        {
-          a: { x: 100, y: 0 },
-          b: { x: 100, y: 200 },
-          move: "normal",
-          doorType: "door",
-          doorState: "closed",
-        },
-      ],
-      parent: { type: "Scene", id: sceneId2 },
-    });
-    expect(wallCreateAck["ok"]).toBe(true);
-    const doorWallId = (
-      (wallCreateAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
-    )[0]?.["_id"] as string;
-
-    // Create token
-    const tokenAck2 = await sendOp(gmSocket, "doc:create", {
-      documentType: "Token",
-      data: [{ name: "Hero2", actorId: actorId2, x: 50, y: 100 }],
-      parent: { type: "Scene", id: sceneId2 },
-    });
-    const tokenId2 = (
-      (tokenAck2["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
-    )[0]?.["_id"] as string;
-
-    // Open the door
-    const doorAck = await sendOp(playerSocket, "scene:doorState", {
-      sceneId: sceneId2,
-      wallId: doorWallId,
-      state: "open",
-    });
-    expect(doorAck["ok"]).toBe(true);
-
-    void wallId; // unused reference from first setup
-
-    // Now move through the open door
-    const moveAck = await sendOp(playerSocket, "token:move", {
-      sceneId: sceneId2,
-      tokenId: tokenId2,
-      x: 150,
-      y: 100,
-    });
-    expect(moveAck["ok"]).toBe(true);
-  });
-
-  it("GM can bypass wall collision with force:true", async () => {
-    const { sceneId, tokenId } = await buildSceneWithWallAndToken();
-
-    // GM forces movement through wall
-    const ack = await sendOp(gmSocket, "token:move", {
-      sceneId,
-      tokenId,
-      x: 150,
-      y: 100,
-      force: true,
-    });
-    expect(ack["ok"]).toBe(true);
-  });
-
-  it("player cannot bypass collision with force:true (ignored for non-GM)", async () => {
-    const { sceneId, tokenId } = await buildSceneWithWallAndToken();
-
-    // Player sends force:true but it should be ignored since they're not GM
-    const ack = await sendOp(playerSocket, "token:move", {
-      sceneId,
-      tokenId,
-      x: 150,
-      y: 100,
-      force: true,
-    });
-    // Player with force=true but not GM → still blocked
-    expect(ack["ok"]).toBe(false);
-    expect((ack as Record<string, unknown>)["code"]).toBe("MOVE_BLOCKED");
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
   });
 });

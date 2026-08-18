@@ -291,12 +291,6 @@ export const TokenMovePayloadSchema = z.object({
       y: z.number(),
     })
     .optional(),
-  /**
-   * GM-only flag to bypass wall collision check.
-   * When true and the requester is GM/ASSISTANT, movement is allowed even
-   * if it would cross a blocking wall (spec 07 §REQ-VIS-091).
-   */
-  force: z.boolean().optional(),
 });
 
 export type TokenMovePayload = z.infer<typeof TokenMovePayloadSchema>;

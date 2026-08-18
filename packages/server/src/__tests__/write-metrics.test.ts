@@ -734,7 +734,7 @@ describe("T016 — DocumentStore write metrics", () => {
     // Fresh window: exactly one write to `scenes` will land in it.
     ctx.collector.flush();
 
-    const moveAck = await sendOp(gm, "token:move", { sceneId, tokenId, x: 45, y: 45, force: true });
+    const moveAck = await sendOp(gm, "token:move", { sceneId, tokenId, x: 45, y: 45 });
     expect(moveAck["ok"]).toBe(true);
 
     const report = ctx.collector.snapshot();
