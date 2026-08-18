@@ -109,6 +109,9 @@
   "FUSION.Settings.Preferences.NotificationsTitle": "Notifications",
   "FUSION.Settings.Preferences.Notifications.ChatSound": "Play a sound on new chat messages",
   "FUSION.Settings.Preferences.Notifications.TurnAlert": "Alert me when it's my turn",
+  "FUSION.Settings.Preferences.TokenDisplayTitle": "Token display",
+  "FUSION.Settings.Preferences.TokenDisplay.ShowNames": "Show token names on the map",
+  "FUSION.Settings.Preferences.TokenDisplay.ShowBars": "Show token health/resource bars on the map",
   "FUSION.Settings.World.Empty": "The active system declared no world settings.",
   "FUSION.Settings.World.ConfirmDisable": {
     "1": "1 character has choices that depend on this rule. Turn it off anyway?",

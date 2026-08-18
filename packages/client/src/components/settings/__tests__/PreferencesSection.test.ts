@@ -7,7 +7,7 @@
  * itself (`lib/settings/clientPrefs.ts`) already carries the exhaustive behavioral
  * coverage, including the "never touches a socket" proof for RNF-CFG-01.
  *
- * Covers REQ-CFG-020, REQ-CFG-021, REQ-CFG-023.
+ * Covers REQ-CFG-020, REQ-CFG-021, REQ-CFG-023, REQ-TOK-074 (TK080).
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -15,6 +15,7 @@ import { render } from "svelte/server";
 
 import PreferencesSection from "../PreferencesSection.svelte";
 import { setNotificationPreference, setVolumeChannel } from "../../../lib/settings/clientPrefs.js";
+import { setTokenDisplayPref } from "../../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -76,18 +77,51 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
 
     expect(html).toContain(t("FUSION.Settings.Preferences.Notifications.ChatSound"));
     expect(html).toContain(t("FUSION.Settings.Preferences.Notifications.TurnAlert"));
+    // Total checkbox count includes the two TK080 token-display toggles too
+    // (see the describe block below) — the notifications section itself is
+    // asserted by its two labels above and by the 4-checkbox count here.
     const checkboxCount = (html.match(/type="checkbox"/g) ?? []).length;
-    expect(checkboxCount).toBe(2);
+    expect(checkboxCount).toBe(4);
   });
 
   it("reflects a saved 'off' state instead of always showing the default", () => {
     setNotificationPreference("world-1", "user-1", "chatSound", false);
     const html = renderSection("world-1", "user-1");
 
+    // Order on the page: chatSound, turnAlert, then TK080's showNames/showBars.
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes).toHaveLength(4);
     expect(checkboxes[0]?.[1]).not.toMatch(/checked/);
     expect(checkboxes[1]?.[1]).toMatch(/checked/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TK080 (spec 41-token.md REQ-TOK-074/075/076, DEC-TOK-11)
+// ---------------------------------------------------------------------------
+
+describe("PreferencesSection — REQ-TOK-074: token display preferences", () => {
+  it("shows a checkbox for names and one for bars, both checked by default", () => {
+    const html = renderSection("world-1", "user-1");
+
+    expect(html).toContain(t("FUSION.Settings.Preferences.TokenDisplayTitle"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.TokenDisplay.ShowNames"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.TokenDisplay.ShowBars"));
+
+    const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
+    expect(checkboxes).toHaveLength(4);
+    // The last two checkboxes are showNames/showBars — both on by default.
+    expect(checkboxes[2]?.[1]).toMatch(/checked/);
+    expect(checkboxes[3]?.[1]).toMatch(/checked/);
+  });
+
+  it("reflects a saved 'off' state for showNames without disturbing showBars", () => {
+    setTokenDisplayPref("world-1", "user-1", "showNames", false);
+    const html = renderSection("world-1", "user-1");
+
+    const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
+    expect(checkboxes[2]?.[1]).not.toMatch(/checked/);
+    expect(checkboxes[3]?.[1]).toMatch(/checked/);
   });
 });
 

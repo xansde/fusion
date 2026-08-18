@@ -46,6 +46,7 @@
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
+  import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -239,6 +240,12 @@
       // once per seat; fails open (empty map → every token stays 1×1) so a
       // slow or absent answer never blocks the canvas.
       void ensureFootprintRegistry(sock);
+
+      // TK080 (REQ-TOK-074): this user's saved name/bar display preferences,
+      // loaded once per seat into the live store TokenSprite reads through
+      // (tokenDisplayPrefsStore.svelte.ts) — 100% client-local, no socket
+      // round-trip (unlike the footprint table above, which is server data).
+      initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
