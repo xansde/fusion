@@ -21,8 +21,13 @@
  *    open question of this phase. The day it is closed, the assertion marked LIMITE below
  *    is the one that must fail.
  *
- * REQ-CBA-083 / Q-CBA-02 is visible here too: the shared NPC's hit points DO travel in the
- * player's payload. Refusing to draw them is a rule of the combat screen, not a seal.
+ * REQ-CBA-083 / Q-CBA-02 is visible here too, and is now CLOSED by spec 41-token.md's
+ * DEC-TOK-10 (TK072, 2026-08-17): the shared NPC's hit points do NOT travel in the
+ * player's payload — DEC-TOK-10 explicitly reverts DEC-CNV-15 (which used to let hp
+ * travel at OBSERVER and left the refusal to the combat panel alone). The server now
+ * performs the cut itself, at OWNER, through `stripPrivilegedActorFields`
+ * (net/redaction.ts) — the panel's own "hasPlayerOwner" rule (REQ-CBA-041) is
+ * defense-in-depth on top of that, not the only guard.
  *
  * Every assertion inspects the PAYLOAD a PLAYER socket actually received, never the screen.
  */
@@ -372,15 +377,21 @@ describe("REQ-CBA-053 — a fonte de condição no payload do jogador", { timeou
       true,
     );
 
-    // REQ-CBA-083 / Q-CBA-02: the numbers themselves DO travel — not drawing them is a
-    // rule of the combat screen, not redaction. Written down so nobody reads the panel's
-    // refusal as a guarantee of secrecy.
+    // Q-CBA-02 is now CLOSED: spec 41-token.md DEC-TOK-10 (TK072,
+    // 2026-08-17) explicitly REVERTS DEC-CNV-15 — hit points are cut in the
+    // SERVER, at OWNER, on every surface, not left to the combat panel's own
+    // "hasPlayerOwner" rule to refuse drawing. Before TK072 this test pinned
+    // the opposite ("the numbers themselves DO travel"); that was correct
+    // for DEC-CNV-15 and is no longer correct now that DEC-TOK-10 has
+    // replaced it — `stripPrivilegedActorFields` (net/redaction.ts) strips
+    // `system.attributes.hp` from a non-OWNER's copy of every Actor,
+    // `sharedCombatant`'s included, before it ever reaches this snapshot.
     const sharedHp = (
       (shared?.["system"] as Record<string, unknown> | undefined)?.["attributes"] as
         | Record<string, unknown>
         | undefined
     )?.["hp"];
-    expect(sharedHp).toEqual({ value: 12, max: 40 });
+    expect(sharedHp).toBeUndefined();
 
     playerSocket.disconnect();
   });

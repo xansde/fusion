@@ -15,9 +15,14 @@
  *  - **Presence changes the presentation, never the position** (REQ-CTT-015):
  *    `present` is a field of the card, and it is not part of any sort key.
  *  - **Knowledge is redacted on the server** (REQ-CTT-081/083). A contact the
- *    viewer has only glimpsed arrives with no `name`, no `img` and no `system`,
- *    carrying `flags.fusion.glimpsed` — so it cannot be found by name here
- *    (REQ-CTT-013) as a consequence of the payload, not of a screen rule.
+ *    viewer has only glimpsed arrives with no `name` and no `system`, carrying
+ *    `flags.fusion.glimpsed` — so it cannot be found by name here (REQ-CTT-013)
+ *    as a consequence of the payload, not of a screen rule. `img` DOES travel,
+ *    since TK003 (spec 41-token.md DEC-TOK-09/§12): a token on the map needs
+ *    the art even for an actor the viewer has only glimpsed. This card's own
+ *    VM still blanks it (`img: identified ? doc.img : null` below) — the
+ *    silhouette this screen shows instead of the portrait is THIS screen's own
+ *    presentation choice (DEC-CTT-04), never the server's redaction.
  *
  * A card's `name` resolves through `displayName()` (packages/client/src/lib/
  * docs/displayName.ts, REQ-CMP-055) rather than `doc.name` straight — see

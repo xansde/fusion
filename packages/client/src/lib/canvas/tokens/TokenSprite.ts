@@ -528,12 +528,18 @@ export class TokenSprite {
   }
 
   /**
-   * The name to draw: `doc.name` when set, else the effective actor's name
-   * (REQ-TOK-060 — `null` means "herda do ator"), else empty.
+   * The name to draw: `doc.name` when set — REQ-TOK-062/074 (TK074): the
+   * peça's own label is DISPLAY, never an identity-hiding mechanism, so it
+   * always prevails when set, with no knowledge check gating it here — else
+   * the effective actor's name (REQ-TOK-060 — `null` means "herda do ator"),
+   * else empty.
    *
-   * WHO gets to see this name (REQ-TOK-073, redaction) is a server concern —
-   * this is display-only, drawing whatever the mirror already handed the
-   * client.
+   * WHO gets to see the ACTOR's name (REQ-TOK-061/063, TK073, redaction) is a
+   * server concern, already decided before this code runs: `actor?.name` is
+   * simply absent from the mirror's copy of a GLIMPSED/HIDDEN actor
+   * (`glimpsedContactView`, `net/redaction.ts`), so falling through to `""`
+   * here is a consequence of what arrived, never a second rule written
+   * against the Token.
    */
   private _displayName(doc: TokenDocument, actor: TokenSpriteActor | undefined): string {
     return doc.name ?? actor?.name ?? "";
