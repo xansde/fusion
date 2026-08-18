@@ -312,6 +312,33 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     expect(tokens.some((t) => t["_id"] === pcTokenId)).toBe(false);
   });
 
+  it("TK092 (REQ-TOK-092): deleting a token does not touch the actor it manifested", async () => {
+    // The opposite direction of TK091's cascade (REQ-TOK-093): a token
+    // leaving a scene must never reach into the actors table. Re-create the
+    // PC's token (deleted above) and delete it again, then confirm the
+    // actor is untouched.
+    const createAck = await sendOp(gm, "doc:create", {
+      documentType: "Token",
+      data: [newTokenData(pcActorId, "Tobias")],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(createAck["ok"]).toBe(true);
+    const anotherPcTokenId = (createAck["result"] as { documents: Array<{ _id: string }> })
+      .documents[0]!._id;
+
+    const actorBefore = ctx.store.get("actors", pcActorId) as Record<string, unknown>;
+
+    const deleteAck = await sendOp(gm, "doc:delete", {
+      documentType: "Token",
+      ids: [anotherPcTokenId],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(deleteAck["ok"], JSON.stringify(deleteAck)).toBe(true);
+
+    const actorAfter = ctx.store.get("actors", pcActorId) as Record<string, unknown>;
+    expect(actorAfter).toEqual(actorBefore);
+  });
+
   // -------------------------------------------------------------------------
   // TK051 — move (REQ-TOK-032, REQ-TOK-034, CA-TOK-006)
   // -------------------------------------------------------------------------
@@ -375,5 +402,38 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     );
     expect(token?.["x"]).toBe(9);
     expect(token?.["y"]).toBe(9);
+  });
+
+  // -------------------------------------------------------------------------
+  // TK092 — dying does not touch the token (REQ-TOK-094/095, CA-TOK-014)
+  // -------------------------------------------------------------------------
+
+  it("TK092 (REQ-TOK-094/095, CA-TOK-014): the actor's hp reaching 0 leaves the token exactly as it was", async () => {
+    const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    const before = (scene["tokens"] as Array<Record<string, unknown>>).find(
+      (t) => t["_id"] === npcTokenId,
+    );
+    expect(before).toBeDefined();
+
+    // Kill the NPC's actor (nothing in this spec removes/replaces a token as
+    // a consequence of the actor's state — REQ-TOK-094 — and there is no
+    // hp-triggered token mutation anywhere in the server to begin with).
+    const npcActorAck = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: npcActorId,
+          diff: { system: { attributes: { hp: { value: 0, max: 6 } } } },
+        },
+      ],
+    });
+    expect(npcActorAck["ok"], JSON.stringify(npcActorAck)).toBe(true);
+
+    const after = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    const token = (after["tokens"] as Array<Record<string, unknown>>).find(
+      (t) => t["_id"] === npcTokenId,
+    );
+    // Same document, byte for byte — same _id (CA-TOK-014), same everything.
+    expect(token).toEqual(before);
   });
 });

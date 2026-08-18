@@ -336,4 +336,90 @@ describe("TokenInteractionManager — socket payload contract", () => {
 
     mgr.destroy();
   });
+
+  // -------------------------------------------------------------------------
+  // duplicateSelectedToken — TK090, spec 41-token.md REQ-TOK-090/091, DEC-TOK-14
+  // -------------------------------------------------------------------------
+
+  describe("duplicateSelectedToken", () => {
+    it("'raw' mode on an unlinked token emits ONLY doc:create — no actorDelta write", async () => {
+      const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+
+      const token = makeToken({
+        actorLink: false,
+        actorDelta: { system: { attributes: { hp: { value: 3, max: 20 } } } },
+      });
+      const mirror = makeFakeMirror(SCENE_ID, [token]);
+      const layer = makeFakeTokenLayer();
+      const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
+      (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
+
+      await mgr.duplicateSelectedToken("raw");
+
+      expect(captured.filter((e) => e.type === "doc:create")).toHaveLength(1);
+      expect(captured.filter((e) => e.type === "doc:update")).toHaveLength(0);
+
+      const created = DocCreatePayloadSchema.parse(
+        captured.find((e) => e.type === "doc:create")!.payload,
+      );
+      const data = (created.data as Record<string, unknown>[])[0];
+      expect(data?.["actorId"]).toBe(ACTOR_ID);
+      expect(data).not.toHaveProperty("actorDelta");
+
+      mgr.destroy();
+    });
+
+    it("'identical' mode on an unlinked token with a delta emits doc:create THEN a follow-up doc:update copying actorDelta", async () => {
+      const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+
+      const delta = { system: { attributes: { hp: { value: 3, max: 20 } } } };
+      const token = makeToken({ actorLink: false, actorDelta: delta });
+      const mirror = makeFakeMirror(SCENE_ID, [token]);
+      const layer = makeFakeTokenLayer();
+      const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
+      (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
+
+      await mgr.duplicateSelectedToken("identical");
+
+      expect(captured.filter((e) => e.type === "doc:create")).toHaveLength(1);
+      const updateEmission = captured.find((e) => e.type === "doc:update");
+      expect(updateEmission).toBeDefined();
+      const updateResult = DocUpdatePayloadSchema.parse(updateEmission!.payload);
+      expect(updateResult.updates[0]?.diff).toMatchObject({ actorDelta: delta });
+      expect(updateResult.updates[0]?.embedded?.type).toBe("Token");
+      expect(updateResult.updates[0]?.embedded?.id).toBe(SCENE_ID);
+      // The updated id is the NEWLY minted token, never the original's.
+      const createdId = (
+        DocCreatePayloadSchema.parse(captured.find((e) => e.type === "doc:create")!.payload)
+          .data as Record<string, unknown>[]
+      )[0]?.["_id"];
+      expect(updateResult.updates[0]?._id).toBe(createdId);
+      expect(updateResult.updates[0]?._id).not.toBe(TOKEN_ID);
+
+      mgr.destroy();
+    });
+
+    it("DEC-TOK-14/REQ-TOK-091: on a LINKED token, 'raw' and 'identical' collapse into the exact same single write", async () => {
+      const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+
+      for (const mode of ["raw", "identical"] as const) {
+        captured = [];
+        socket = makeFakeSocket(captured);
+        const token = makeToken({ actorLink: true, actorDelta: null });
+        const mirror = makeFakeMirror(SCENE_ID, [token]);
+        const layer = makeFakeTokenLayer();
+        const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
+        (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
+
+        await mgr.duplicateSelectedToken(mode);
+
+        // Exactly one write, whichever mode was asked for — no second
+        // actorDelta write ever fires for a linked token (nothing to copy).
+        expect(captured).toHaveLength(1);
+        expect(captured[0]?.type).toBe("doc:create");
+
+        mgr.destroy();
+      }
+    });
+  });
 });

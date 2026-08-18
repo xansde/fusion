@@ -36,8 +36,8 @@ import type { TokenDocument, ScenePoint } from "@fusion/shared";
  *
  * canMoveToken: returns true if the given user can move the given token.
  *   - GM (role >= ASSISTANT=3) can move any token.
- *   - Player can move tokens they own: token.actorId matches one of their
- *     owned actor IDs, OR if an explicit ownership map is provided.
+ *   - Player can move a token only when `token.actorId` is one of their owned
+ *     actor IDs (REQ-TOK-032/034, DEC-TOK-06) — no other predicate exists.
  *
  * @param token        The token to check.
  * @param userId       The user's ID (string).
@@ -57,11 +57,16 @@ export function canMoveToken(
   // Players can only move tokens linked to actors they own
   if (ownedActorIds.has(token.actorId)) return true;
 
-  // Fallback: check if token was explicitly assigned to this user via flags
-  // (future-proof hook — not used in M1-C but prevents stale errors)
-  const flagOwner = token.flags["fusion"]?.["owner"];
-  if (typeof flagOwner === "string" && flagOwner === userId) return true;
-
+  // TK093 (spec 41-token.md REQ-TOK-100, DEC-TOK-20): there used to be a
+  // fallback here reading an "owner" key nested inside the reserved
+  // namespace of the token's own flags — a second, ad-hoc "control"
+  // predicate. Removed — REQ-TOK-034/DEC-TOK-06 forbid any predicate for
+  // who controls a token other than "OWNER of the effective actor", and
+  // REQ-TOK-100 forbids the engine interpreting flags content at all. The
+  // server had no matching concept either (this was client-only), so the
+  // branch could only ever grant a permission the server would then refuse
+  // — the opposite of REQ-TOK-033's "the interface MAY anticipate the
+  // result, but MUST NOT be the only guard".
   return false;
 }
 
