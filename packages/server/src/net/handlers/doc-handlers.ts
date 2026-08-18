@@ -1891,7 +1891,8 @@ function handleEmbeddedDelete(
     return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
   }
 
-  // Permission: GM/ASSISTANT or actor owner
+  // Permission: GM/ASSISTANT or actor owner — EXCEPT Token, which is
+  // role-only (see below).
   //
   // Item (embedded directly in Actor, parent.type === "Actor") is checked
   // against the parent Actor's OWN ownership map — there is no separate
@@ -1903,6 +1904,21 @@ function handleEmbeddedDelete(
     const level = resolveOwnership(ownership, ctx.userId, ctx.role);
     if (level < OwnershipLevel.OWNER) {
       return ackError("PERMISSION_DENIED", `No OWNER access to parent Actor/${parent.id}`);
+    }
+  } else if (embeddedType === "Token") {
+    // REQ-TOK-031 (spec 41-token.md, DEC-TOK-06): excluir um token exige
+    // papel privilegiado, com a MESMA régua de REQ-TOK-030 (criar) — nunca
+    // ownership do ator. Antes desta checagem, um jogador OWNER do próprio
+    // personagem conseguia excluir o próprio token direto por aqui (a
+    // ownership-of-actor branch abaixo, que este `else if` substitui para
+    // Token, aceitava). TOKEN_DELETE espelha o floor configurável que
+    // TOKEN_CREATE já usa (REQ-CFG-040..042, world-permissions.ts),
+    // GM sempre passa independente do floor (mesma disciplina de
+    // handleEmbeddedCreate acima).
+    const minRole = resolvePermissionMinRole(deps.store, "TOKEN_DELETE");
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
+      return ackError("PERMISSION_DENIED", "Insufficient role to delete tokens");
     }
   } else if (!isPrivileged(ctx.role)) {
     const collKey = embeddedType.toLowerCase() + "s";
