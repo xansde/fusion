@@ -238,6 +238,21 @@ describe("TokenDocumentSchema", () => {
     }
   });
 
+  // TK100 (spec 41-token.md REQ-TOK-101/102, DEC-TOK-18, D24): `vision`/
+  // `light` stay declared — inert as far as spec 41 is concerned, not
+  // removed from the model. See scene.ts's own field comments for why
+  // "tirar de verdade" (project-wide) is explicitly out of spec 41's scope.
+  it("REQ-TOK-101/102: declares `vision` and `light` (never `sight`), present with defaults", () => {
+    const r = TokenDocumentSchema.safeParse({ _id: validId(), actorId: "B".repeat(16) });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      const d = r.data as unknown as Record<string, unknown>;
+      expect(d).toHaveProperty("vision");
+      expect(d).toHaveProperty("light");
+      expect(d).not.toHaveProperty("sight");
+    }
+  });
+
   it("accepts a fully populated token", () => {
     const r = TokenDocumentSchema.safeParse({
       _id: validId(),
