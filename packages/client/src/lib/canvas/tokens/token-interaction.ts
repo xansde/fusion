@@ -36,8 +36,8 @@ import type { TokenDocument, ScenePoint } from "@fusion/shared";
  *
  * canMoveToken: returns true if the given user can move the given token.
  *   - GM (role >= ASSISTANT=3) can move any token.
- *   - Player can move tokens they own: token.actorId matches one of their
- *     owned actor IDs, OR if an explicit ownership map is provided.
+ *   - Player can move a token only when `token.actorId` is one of their owned
+ *     actor IDs (REQ-TOK-032/034, DEC-TOK-06) — no other predicate exists.
  *
  * @param token        The token to check.
  * @param userId       The user's ID (string).
@@ -57,11 +57,16 @@ export function canMoveToken(
   // Players can only move tokens linked to actors they own
   if (ownedActorIds.has(token.actorId)) return true;
 
-  // Fallback: check if token was explicitly assigned to this user via flags
-  // (future-proof hook — not used in M1-C but prevents stale errors)
-  const flagOwner = token.flags["fusion"]?.["owner"];
-  if (typeof flagOwner === "string" && flagOwner === userId) return true;
-
+  // TK093 (spec 41-token.md REQ-TOK-100, DEC-TOK-20): there used to be a
+  // fallback here reading an "owner" key nested inside the reserved
+  // namespace of the token's own flags — a second, ad-hoc "control"
+  // predicate. Removed — REQ-TOK-034/DEC-TOK-06 forbid any predicate for
+  // who controls a token other than "OWNER of the effective actor", and
+  // REQ-TOK-100 forbids the engine interpreting flags content at all. The
+  // server had no matching concept either (this was client-only), so the
+  // branch could only ever grant a permission the server would then refuse
+  // — the opposite of REQ-TOK-033's "the interface MAY anticipate the
+  // result, but MUST NOT be the only guard".
   return false;
 }
 
@@ -371,4 +376,42 @@ export function canStartDrag(machine: DragMachine, _tokenId: string): boolean {
   // If dragging/pending a DIFFERENT token, we can start dragging this one
   // (multi-token drag is [V2]; for now only single-token).
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Keyboard target guard (R3 / F192 fase 8)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether `target` — a `KeyboardEvent.target` — is something the user is
+ * actively typing INTO: a text input/textarea/select, or any element with
+ * `contenteditable` (TipTap's chat editor, notably).
+ *
+ * TokenInteractionManager attaches its keydown listener on `window`
+ * (REQ-A11-036, spec 23: a non-drag keyboard alternative is required for
+ * every drag-only token action, so the listener has to be able to fire from
+ * anywhere the canvas has focus-adjacent UI, not scoped to the canvas
+ * element itself) — which means every keystroke in the whole app, including
+ * the chat composer or any text field, reaches `_handleKeyDown` first.
+ * Without this guard, typing the word "dado" in chat with a token selected
+ * fires KeyD (duplicate — TK090, REQ-TOK-090/091) on every "d", Backspace
+ * deletes the selected token instead of a character, and the arrow keys
+ * move the token instead of the text cursor.
+ *
+ * No DOM global (`instanceof HTMLElement`) is used here — the client test
+ * suite runs under Vitest's `node` environment (no jsdom), so this checks
+ * the shape of `target` by duck-typing instead. Typed `unknown` (rather
+ * than `EventTarget | null`) for the same reason: it lets a test pass a
+ * plain `{ tagName: "INPUT" }` mock object directly instead of a full
+ * `EventTarget` (`addEventListener`/`dispatchEvent`/…), which a `node`
+ * environment doesn't have a real implementation of anyway.
+ */
+export function isEditableTarget(target: unknown): boolean {
+  if (target === null || target === undefined) return false;
+  const el = target as { tagName?: unknown; isContentEditable?: unknown };
+  if (typeof el.tagName === "string") {
+    const tag = el.tagName.toUpperCase();
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  }
+  return el.isContentEditable === true;
 }

@@ -61,6 +61,7 @@ import {
   rollbackMove,
   resetToIdle,
   canStartDrag,
+  isEditableTarget,
   type GridSnapConfig,
   type ArrowDirection,
   type DragMachine,
@@ -95,6 +96,17 @@ export interface TokenInteractionOptions {
   attachKeyboard?: boolean;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
+}
+
+/**
+ * The shape of a `doc:create` ack's `result` for an embedded document (e.g.
+ * Token) — `documents[0]._id` is the server-assigned id (F192-1: never the
+ * client's own, see duplicateSelectedToken's docstring). Mirrors
+ * npcsFooter.ts's identical local interface for the same reason: the wire
+ * ack has no shared named type of its own.
+ */
+interface DocCreateResult {
+  readonly documents: readonly { readonly _id: string }[];
 }
 
 // ---------------------------------------------------------------------------
@@ -281,6 +293,138 @@ export class TokenInteractionManager {
           ? `Failed to toggle hidden: ${err.message}`
           : "Failed to toggle hidden",
       );
+    }
+  }
+
+  /**
+   * GM: Duplicate the currently selected token (TK090, spec 41-token.md
+   * REQ-TOK-090/091, DEC-TOK-14).
+   *
+   * Two modes exist ONLY for an unlinked token, which carries its own live
+   * state (`actorDelta`):
+   *   - `"raw"` — the copy is born as if it had just been placed: no
+   *     `actorDelta` is written at create time (refused unconditionally by
+   *     the server regardless of role — TK025, `validateTokenCreateContract`)
+   *     and none is added afterwards, so the copy reads full life straight
+   *     off the base actor, same as any newly unlinked token.
+   *   - `"identical"` — a second `doc:update` (embedded, on the newly minted
+   *     token) copies the original's `actorDelta` verbatim. Allowed because
+   *     the caller here is always privileged (duplicating is a GM/Assistant
+   *     gesture, TK050) and the new token is unlinked — the two conditions
+   *     `validateTokenUpdateActorDelta` requires (REQ-DOC-034).
+   *
+   * For a LINKED token both modes collapse into the exact same single
+   * `doc:create` (DEC-TOK-14: "os dois gestos colapsam num só") — there is
+   * no live state of the token's own to preserve or reset, so `mode` is
+   * read but never causes a second write. REQ-TOK-091's "a interface NÃO
+   * DEVE oferecer uma escolha sem efeito" is kept by the CALLER (the
+   * keyboard handler below binds two different keys to two different
+   * effects only where a linked token would notice the difference — for a
+   * linked token both keys reach this same single-write path).
+   *
+   * F192-1: the embedded `_id` an embedded-doc `doc:create` is sent with is
+   * NEVER what ends up persisted — the server always mints its own for an
+   * embedded document and ignores the client's (doc-handlers.ts's
+   * `handleEmbeddedCreate`: "_id is always generated server-side for
+   * embedded documents"). So no `_id` is sent here at all, and the
+   * follow-up `doc:update` (identical mode) targets whatever id the
+   * doc:create ACK actually returned (`ack.result.documents[0]._id`) — using
+   * a client-guessed id there would always miss with NOT_FOUND. The two
+   * `sendOp` calls are also in separate try/catch blocks: a failure in the
+   * first means nothing was created (the original generic message fits); a
+   * failure in the second means the token DOES exist on the scene already,
+   * just without its life total copied — a different, more specific message
+   * so the user doesn't go looking for a token that isn't there.
+   */
+  async duplicateSelectedToken(mode: "raw" | "identical"): Promise<void> {
+    const [selectedId] = this._selectedIds;
+    if (!selectedId) return;
+
+    const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
+    if (!scene) return;
+    const original = scene.tokens.find((t) => t._id === selectedId);
+    if (!original) return;
+
+    const footprint = footprintOf(original, this._getActor(original.actorId));
+    const offset = this._opts.gridConfig.size;
+    const snapped = snapTokenToGrid(
+      original.x + offset,
+      original.y + offset,
+      footprint.width,
+      footprint.height,
+      this._opts.gridConfig,
+    );
+
+    const newToken: Partial<TokenDocument> = {
+      actorId: original.actorId,
+      actorLink: original.actorLink,
+      x: snapped.x,
+      y: snapped.y,
+      name: original.name,
+      rotation: original.rotation,
+      elevation: original.elevation,
+      hidden: original.hidden,
+      seenBy: original.seenBy,
+      disposition: original.disposition,
+      bar1: original.bar1,
+      bar2: original.bar2,
+    };
+
+    const createPayload: DocCreatePayload = {
+      documentType: "Token",
+      data: [newToken],
+      parent: { type: "Scene", id: this._opts.sceneId },
+    };
+
+    let createdTokenId: string;
+    try {
+      const created = await sendOp<DocCreateResult>(this._opts.socket, {
+        type: "doc:create",
+        payload: createPayload,
+      });
+      const createdDoc = created.documents[0];
+      if (!createdDoc) {
+        this._opts.onError?.("Failed to duplicate token: server returned no document");
+        return;
+      }
+      createdTokenId = createdDoc._id;
+    } catch (err) {
+      this._opts.onError?.(
+        err instanceof OpError
+          ? `Failed to duplicate token: ${err.message}`
+          : "Failed to duplicate token",
+      );
+      return;
+    }
+
+    // "identical" only matters for an unlinked token with a non-null delta —
+    // a linked token has no actorDelta to copy (collapses to the same op as
+    // "raw", per DEC-TOK-14).
+    if (mode === "identical" && !original.actorLink && original.actorDelta !== null) {
+      const deltaPayload: DocUpdatePayload = {
+        documentType: "Token",
+        updates: [
+          {
+            _id: createdTokenId,
+            diff: { actorDelta: original.actorDelta },
+            embedded: { type: "Token", id: this._opts.sceneId },
+          },
+        ],
+      };
+      try {
+        await sendOp(this._opts.socket, { type: "doc:update", payload: deltaPayload });
+      } catch (err) {
+        // The token itself was created successfully above — only its life
+        // total failed to copy. Say so, instead of the generic duplicate
+        // failure message, so the user doesn't hunt for a token that IS
+        // there (and can fix the HP by hand instead of retrying the whole
+        // duplicate).
+        this._opts.onError?.(
+          err instanceof OpError
+            ? `Token duplicated, but its life total was not copied: ${err.message}`
+            : "Token duplicated, but its life total was not copied. Adjust its HP manually.",
+        );
+      }
     }
   }
 
@@ -548,6 +692,18 @@ export class TokenInteractionManager {
   private _handleKeyDown(e: KeyboardEvent): void {
     if (this._destroyed) return;
 
+    // R3 (spec 23 REQ-A11-036, spec 41-token.md REQ-TOK-090/091): this
+    // listener is attached on `window` (constructor, above), so it sees
+    // EVERY keydown in the app, not just ones aimed at the canvas — typing
+    // "dado" in the chat composer with a token selected would otherwise
+    // fire KeyD (duplicate) on every "d", Backspace would delete the token
+    // instead of a character, and the arrow keys would move the token
+    // instead of the text cursor. Bail out before touching drag state,
+    // sending any op, or calling preventDefault when the keystroke is
+    // actually going into a text field/contenteditable — see
+    // isEditableTarget's docstring in token-interaction.ts.
+    if (isEditableTarget(e.target)) return;
+
     // ESC — cancel drag or deselect
     if (e.code === "Escape") {
       if (this._drag.state === "dragging" && this._drag.context) {
@@ -611,6 +767,19 @@ export class TokenInteractionManager {
     if ((e.code === "Delete" || e.code === "Backspace") && this._opts.userRole >= 3) {
       if (this._selectedIds.size > 0) {
         void this.deleteSelectedToken();
+      }
+      return;
+    }
+
+    // D — duplicate selected token (GM only). TK090/REQ-TOK-090/091, DEC-TOK-14:
+    // two DIFFERENT keys for the two modes, non-drag (REQ-A11-036, spec 23).
+    // Shift+D ("identical") vs. plain D ("raw") — for a LINKED token both
+    // reach the exact same single write inside duplicateSelectedToken, so no
+    // meaningless choice is ever actually offered, even though both keys
+    // exist.
+    if (e.code === "KeyD" && this._opts.userRole >= 3) {
+      if (this._selectedIds.size > 0) {
+        void this.duplicateSelectedToken(e.shiftKey ? "identical" : "raw");
       }
       return;
     }

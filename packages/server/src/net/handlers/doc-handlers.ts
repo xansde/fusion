@@ -1301,6 +1301,15 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // still exists cannot be wrong about which scenes it touches, and a NOT_FOUND
     // halfway through the delete loop then leaves no scene already rewritten for
     // a delete that never happened.
+    //
+    // spec 41-token.md TK091/DEC-TOK-17: this is a DELIBERATE exception to
+    // DEC-DOC-11 (soft-reference-by-default for a Document referencing
+    // another). A token's `actorId` is NOT a soft reference that survives its
+    // target's deletion — REQ-TOK-093 requires the token to go with it, in
+    // EVERY scene of the world, not just be left pointing at a ghost. Do not
+    // "fix" this back into a soft reference: an orphaned token with no actor
+    // to draw, name, or check ownership against is exactly the state
+    // REQ-TOK-002/DEC-TOK-04 already refuse a token from ever entering.
     const presenceRemovals = planPresenceRemoval(deps.store, deletedActorIds);
 
     const onAirSceneIds = new Set<string>();
