@@ -127,6 +127,17 @@ async function settle(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+/**
+ * TK110 note: since two clicks on the same token within
+ * DOUBLE_CLICK_WINDOW_MS open its sheet (REQ-TOK-110), consecutive synthetic
+ * gestures in one test would land on the same millisecond and read as one
+ * double click. Each simulated gesture therefore advances a controlled clock,
+ * which is what separates two deliberate gestures from one double click in
+ * real use — the manager's own drag detection also forgets a press that
+ * became a drag.
+ */
+let fakeNow = 1_000_000;
+
 function simulateDrag(
   container: ReturnType<typeof makeFakeContainer>,
   downX: number,
@@ -134,6 +145,7 @@ function simulateDrag(
   moveX: number,
   moveY: number,
 ): void {
+  fakeNow += 1_000;
   const target = { label: `token:${TOKEN_ID}`, parent: null };
   container._handlers.get("pointerdown")?.({
     button: 0,
@@ -148,6 +160,8 @@ function simulateDrag(
 
 describe("TokenInteractionManager.setGridSize (R4)", () => {
   beforeEach(() => {
+    fakeNow += 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => fakeNow);
     resetFootprintRegistry();
     seedFootprintRegistry({ med: { width: 1, height: 1 } });
   });

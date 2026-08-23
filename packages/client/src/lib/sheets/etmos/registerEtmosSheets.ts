@@ -53,6 +53,8 @@ export function openEtmosActorSheet(
     isGm: boolean;
     sendOpFn?: (op: unknown) => void;
     onConjurar?: (actorId: string) => void;
+    /** Window identity, when it is the token's rather than the actor's (REQ-CNV-094). */
+    singletonKey?: string;
   },
 ): void {
   void import("$lib/windows/window-manager.js").then(({ windowManager }) => {
@@ -60,7 +62,8 @@ export function openEtmosActorSheet(
     const subtype = typeof rawType === "string" ? rawType : "orador";
     const rawName = actorDoc["name"];
     const name = typeof rawName === "string" ? rawName : "Orador";
-    const singletonKey = `sheet:Actor:${actorId}`;
+    const { singletonKey: requestedKey, ...sheetProps } = opts;
+    const singletonKey = requestedKey ?? `sheet:Actor:${actorId}`;
 
     const reg = sheetRegistry.resolve("Actor", subtype);
     if (!reg) {
@@ -82,7 +85,7 @@ export function openEtmosActorSheet(
       componentProps: {
         actorId,
         doc: actorDoc,
-        ...opts,
+        ...sheetProps,
         // Only the Orador sheet declares an onConjurar prop — wire it to open
         // the Compositor unless the caller already supplied its own. Omitted
         // for other subtypes (e.g. antagonista has no such prop).
@@ -91,7 +94,10 @@ export function openEtmosActorSheet(
               onConjurar:
                 opts.onConjurar ??
                 ((id: string) => {
-                  openCompositor(id, actorDoc, opts);
+                  // `sheetProps`, not `opts`: the Compositor has a window
+                  // identity of its own (`compositor:<actorId>`) and must not
+                  // inherit the key this sheet was opened under.
+                  openCompositor(id, actorDoc, sheetProps);
                 }),
             }
           : {}),

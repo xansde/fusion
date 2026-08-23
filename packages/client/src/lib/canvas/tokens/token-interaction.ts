@@ -448,3 +448,82 @@ export function isEditableTarget(target: unknown): boolean {
   }
   return el.isContentEditable === true;
 }
+
+// ---------------------------------------------------------------------------
+// TK110 — opening the sheet from the map (REQ-TOK-110..113)
+// ---------------------------------------------------------------------------
+
+/**
+ * How long after a click a second click on the SAME token still counts as
+ * "two clicks" (REQ-TOK-110). 400 ms is the platform default range for a
+ * double click (Windows' default is 500 ms, GTK's is 400 ms); the shorter of
+ * the two is deliberate here, because the gesture competes with dragging:
+ * every millisecond this window stays open is a millisecond in which a slow
+ * "click, then pick up and move" reads as "open the sheet".
+ */
+export const DOUBLE_CLICK_WINDOW_MS = 400;
+
+/**
+ * The one click already seen, waiting for a partner — or `null` when nothing
+ * is pending. Deliberately a value, not internal mutable state: the manager
+ * owns exactly one of these and hands it back on every click, so the rule
+ * itself stays a pure function that a test can drive with a fake clock.
+ */
+export interface TokenClickTracker {
+  readonly tokenId: string;
+  readonly at: number;
+}
+
+/**
+ * Feed a click into the double-click detector.
+ *
+ * REQ-TOK-110: two clicks on the same token, within `windowMs`, are one
+ * gesture. A click on a DIFFERENT token is never the partner of the previous
+ * one — it re-arms on the token just clicked, so alternating between two
+ * tokens can never open a sheet.
+ *
+ * The pair is **consumed**: a detected double click returns `tracker: null`,
+ * so a third rapid click starts a fresh pair instead of opening a second
+ * sheet on every click of a fast drum roll.
+ *
+ * @param prev     The tracker from the previous call (`null` on the first).
+ * @param tokenId  The token just clicked.
+ * @param nowMs    Current time in ms (injected — never read from a clock here).
+ * @param windowMs Pairing window; defaults to DOUBLE_CLICK_WINDOW_MS.
+ */
+export function registerTokenClick(
+  prev: TokenClickTracker | null,
+  tokenId: string,
+  nowMs: number,
+  windowMs: number = DOUBLE_CLICK_WINDOW_MS,
+): { tracker: TokenClickTracker | null; isDoubleClick: boolean } {
+  if (prev !== null && prev.tokenId === tokenId && nowMs - prev.at <= windowMs) {
+    return { tracker: null, isDoubleClick: true };
+  }
+  return { tracker: { tokenId, at: nowMs }, isDoubleClick: false };
+}
+
+/**
+ * May this user open the sheet of this token?
+ *
+ * REQ-TOK-111: the rule is **the same** as the one for moving it — privileged
+ * role, or OWNER of the effective actor. This function exists for the name at
+ * the call site, not for a second rule: REQ-TOK-034 / DEC-TOK-06 forbid any
+ * predicate about a token other than "OWNER of the actor", so it delegates to
+ * `canMoveToken` instead of restating the check. If the two ever need to
+ * diverge, that divergence has to be decided in the spec first, and this
+ * delegation is where it would show up.
+ *
+ * Why players are refused at all: the sheet of an actor a player does not own
+ * would show hit points the server deliberately redacted out of their copy
+ * (REQ-TOK-070/071) — the gesture must not be a side door into data the wire
+ * never delivered.
+ */
+export function canOpenTokenSheet(
+  token: TokenDocument,
+  userId: string,
+  userRole: number,
+  ownedActorIds: ReadonlySet<string>,
+): boolean {
+  return canMoveToken(token, userId, userRole, ownedActorIds);
+}
