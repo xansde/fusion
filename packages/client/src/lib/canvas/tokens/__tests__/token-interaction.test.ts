@@ -24,6 +24,7 @@ import {
   canStartDrag,
   ROLE_ASSISTANT,
   ROLE_GAMEMASTER,
+  isEditableTarget,
   type GridSnapConfig,
 } from "../token-interaction.js";
 import type { TokenDocument } from "@fusion/shared";
@@ -532,5 +533,33 @@ describe("canStartDrag", () => {
     m = confirmDrop(m);
     m = rollbackMove(m, 0, 0);
     expect(canStartDrag(m, "tok1")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isEditableTarget — R3 keyboard target guard
+// ---------------------------------------------------------------------------
+
+describe("isEditableTarget", () => {
+  it("returns false for null/undefined", () => {
+    expect(isEditableTarget(null)).toBe(false);
+    expect(isEditableTarget(undefined)).toBe(false);
+  });
+
+  it("returns true for INPUT, TEXTAREA, SELECT (any case)", () => {
+    expect(isEditableTarget({ tagName: "INPUT" })).toBe(true);
+    expect(isEditableTarget({ tagName: "TEXTAREA" })).toBe(true);
+    expect(isEditableTarget({ tagName: "SELECT" })).toBe(true);
+    expect(isEditableTarget({ tagName: "input" })).toBe(true);
+  });
+
+  it("returns true for a contenteditable element (e.g. TipTap's chat composer)", () => {
+    expect(isEditableTarget({ tagName: "DIV", isContentEditable: true })).toBe(true);
+  });
+
+  it("returns false for a plain, non-editable element like document.body", () => {
+    expect(isEditableTarget({ tagName: "BODY" })).toBe(false);
+    expect(isEditableTarget({ tagName: "DIV", isContentEditable: false })).toBe(false);
+    expect(isEditableTarget({ tagName: "CANVAS" })).toBe(false);
   });
 });

@@ -377,3 +377,41 @@ export function canStartDrag(machine: DragMachine, _tokenId: string): boolean {
   // (multi-token drag is [V2]; for now only single-token).
   return false;
 }
+
+// ---------------------------------------------------------------------------
+// Keyboard target guard (R3 / F192 fase 8)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether `target` — a `KeyboardEvent.target` — is something the user is
+ * actively typing INTO: a text input/textarea/select, or any element with
+ * `contenteditable` (TipTap's chat editor, notably).
+ *
+ * TokenInteractionManager attaches its keydown listener on `window`
+ * (REQ-A11-036, spec 23: a non-drag keyboard alternative is required for
+ * every drag-only token action, so the listener has to be able to fire from
+ * anywhere the canvas has focus-adjacent UI, not scoped to the canvas
+ * element itself) — which means every keystroke in the whole app, including
+ * the chat composer or any text field, reaches `_handleKeyDown` first.
+ * Without this guard, typing the word "dado" in chat with a token selected
+ * fires KeyD (duplicate — TK090, REQ-TOK-090/091) on every "d", Backspace
+ * deletes the selected token instead of a character, and the arrow keys
+ * move the token instead of the text cursor.
+ *
+ * No DOM global (`instanceof HTMLElement`) is used here — the client test
+ * suite runs under Vitest's `node` environment (no jsdom), so this checks
+ * the shape of `target` by duck-typing instead. Typed `unknown` (rather
+ * than `EventTarget | null`) for the same reason: it lets a test pass a
+ * plain `{ tagName: "INPUT" }` mock object directly instead of a full
+ * `EventTarget` (`addEventListener`/`dispatchEvent`/…), which a `node`
+ * environment doesn't have a real implementation of anyway.
+ */
+export function isEditableTarget(target: unknown): boolean {
+  if (target === null || target === undefined) return false;
+  const el = target as { tagName?: unknown; isContentEditable?: unknown };
+  if (typeof el.tagName === "string") {
+    const tag = el.tagName.toUpperCase();
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  }
+  return el.isContentEditable === true;
+}

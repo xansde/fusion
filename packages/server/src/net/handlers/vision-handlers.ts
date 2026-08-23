@@ -474,7 +474,11 @@ export function buildDoorStateHandler(deps: VisionHandlerDeps): HandlerFn {
 // ---------------------------------------------------------------------------
 // token:move
 // TK062 (spec 41-token.md, DEC-TOK-07): the ONLY validation left is permission
-// (REQ-TOK-032) and the token staying inside the scene's bounds (REQ-TOK-042).
+// (REQ-TOK-032). Scene-bounds enforcement (the other half of REQ-TOK-042) is
+// NOT implemented by this handler: no write path (this handler or the
+// doc:update path in doc-handlers.ts) reads scene.width/height. Pending a
+// product decision on what "bounds" means in the padded coordinate space
+// before it is added.
 // Wall collision (REQ-VIS-091) is REMOVED, not fixed: D24/D25
 // (docs/design/spec-41-token/decisoes.md) close Q-TOK-04 — vision, fog,
 // lighting and wall collision are OUT of spec 41's scope, deferred whole to a
