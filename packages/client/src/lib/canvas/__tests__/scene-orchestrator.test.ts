@@ -87,9 +87,9 @@ function makeToken(
     rotation: 0,
     vision: { enabled: true, range: null, angle: 360, rotation: 0, visionMode: "basic" },
     light: null,
-    // TK030 (#164): `TokenDocument` has no `ownership` field (REQ-TOK-013) —
+    // TK030 (#164): `TokenDocument` has no `ownership` field (REQ-TOK-013, REQ-TOK-032, REQ-TOK-034) —
     // control is resolved from the ACTOR referenced by `actorId` (see the
-    // "REQ-TOK-013/034: token control" describe block below, which sets up a
+    // "REQ-TOK-013, REQ-TOK-034: token control" describe block below, which sets up a
     // real Actor with `ownership` in the mirror). None of the tests above
     // that block assert on vision CONTENT gated by `controlled` — only that
     // setVisionPolygons/render were called — so they do not need an Actor.
@@ -965,14 +965,14 @@ describe("SceneOrchestrator", () => {
   });
 
   // ---------------------------------------------------------------------------
-  // TK030 (#164) — REQ-TOK-013/034/032, REQ-USR-013: token control IS OWNER
+  // TK030 (#164) — REQ-TOK-013, REQ-TOK-032, REQ-TOK-034, REQ-USR-013: token control IS OWNER
   // of the actor. The old predicate read `token.ownership`/`token.userId`,
   // fields `TokenDocument` never had (REQ-DOC-025) — always `undefined`, so
   // every non-GM user got `false`. This resolves ownership on the ACTOR the
   // mirror holds by `token.actorId`, the same shape the server's
   // `documents/ownership.ts` resolves against.
   // ---------------------------------------------------------------------------
-  describe("_isTokenControlledByUser (TK030, #164, REQ-TOK-013/034)", () => {
+  describe("_isTokenControlledByUser (TK030, #164, REQ-TOK-013, REQ-TOK-034)", () => {
     function makeMirrorWithActor(
       sceneId: string,
       scene: SceneDocument,

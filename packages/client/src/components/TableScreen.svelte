@@ -46,6 +46,8 @@
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
+  import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -147,6 +149,34 @@
   // Stored here so _teardownOrchestrator and onDestroy can remove it cleanly,
   // preventing accumulation of stale callbacks across scene switches (leak fix).
   let _tickerDisposer: (() => void) | null = null;
+  // Click-to-select, drag-to-move, arrow-key move, duplicate/delete (TK030,
+  // TK050/051, TK060-062, TK090) — was built and unit-tested but never
+  // instantiated anywhere in the running app until this wiring. Lives outside
+  // SceneOrchestrator, same as _tickerDisposer above, for the same reason:
+  // it is bound 1:1 to canvas.getLayer("tokens") + the socket for THIS scene
+  // load, not part of the orchestrator's own render/tick contract.
+  let _tokenInteraction: TokenInteractionManager | null = null;
+  /**
+   * The `_id` of the scene the canvas currently has loaded — tracked so the
+   * scene-reload $effect below can tell "the GM switched scenes" (reload)
+   * apart from "something INSIDE the same scene changed" (no reload).
+   *
+   * Every embedded Token op (move/create/delete/hide — TK030+) is broadcast
+   * by the server as a `{ documentType: "Scene" }` update (sync-handlers.ts:
+   * embedded ops re-send the FULL parent Scene), because that's what the
+   * client's Scene collection actually stores. `worldSync.ts` reacts to any
+   * such broadcast by re-deriving `activeSceneState.scene` from the mirror —
+   * a fresh object every time, whether or not the change was token-related.
+   * Without this guard, `canvasScene` (which is exactly that derived value)
+   * changes identity on every single token drag, and the effect below tore
+   * down and rebuilt the ENTIRE canvas for it: re-running loadSceneDocument
+   * (black screen while art reloads) and re-centering the camera via
+   * canvas.panTo/fitToScene (zoom reset) — on every drag frame's ack.
+   * TokenLayer already reconciles token-only changes on its own mirror
+   * subscription (see TokenLayer.ts's `mirror.subscribe("Scene", ...)`), so
+   * a full reload here is both wrong and redundant for that case.
+   */
+  let _loadedSceneId: string | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -457,12 +487,20 @@
     // REQ-CEN-050/053: the prepared scene when there is one, the scene on air otherwise.
     const scene = canvasScene;
 
+    // Same scene still active — only its content mutated (e.g. a token moved,
+    // an embedded doc:update echoed back as a Scene broadcast). TokenLayer and
+    // the other per-doc reconcilers already pick this up on their own mirror
+    // subscriptions; a full canvas teardown/reload here would only cause a
+    // black-screen flash and reset the camera for no reason. See _loadedSceneId.
+    if (scene && scene._id === _loadedSceneId) return;
+
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
 
     // Cleanup previous scene content
     cleanupScene?.();
     cleanupScene = null;
+    _loadedSceneId = null;
 
     void (async () => {
       try {
@@ -471,6 +509,7 @@
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
+          _loadedSceneId = scene._id;
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
         // by the Svelte template. Dev-scene is only used in the initial mount
@@ -518,6 +557,35 @@
       sceneOrchestrator?.tick(ticker.deltaMS, canvas.camera.scale);
     };
     _tickerDisposer = canvas.addTicker(tickerCb);
+
+    // --- TokenInteractionManager (click-to-select, drag/arrow move, duplicate, delete) ---
+    // Requires a live socket — with none (disconnected), there is nothing to
+    // send ops on, so interaction stays unwired for this scene load rather
+    // than silently queuing/dropping every gesture.
+    if (sock) {
+      const ownedActorIds = ownedActorIdsOf(
+        worldMirror.getByType<Record<string, unknown>>("Actor"),
+        userId,
+      );
+      _tokenInteraction = new TokenInteractionManager({
+        tokenContainer: canvas.getLayer("tokens"),
+        tokenLayer,
+        mirror: worldMirror,
+        sceneId: scene._id,
+        canvas,
+        socket: sock,
+        userId,
+        userRole: session.user?.role ?? 0,
+        ownedActorIds,
+        gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
+        onError: (msg) => {
+          dropRefusal = msg;
+          window.setTimeout(() => {
+            dropRefusal = null;
+          }, DROP_REFUSAL_MS);
+        },
+      });
+    }
 
     // --- LightingRenderer ---
     const { padX, padY } = sceneContentOffset(scene);
@@ -591,6 +659,9 @@
     // callback cannot fire against a half-destroyed tokenLayer.
     _tickerDisposer?.();
     _tickerDisposer = null;
+
+    _tokenInteraction?.destroy();
+    _tokenInteraction = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
