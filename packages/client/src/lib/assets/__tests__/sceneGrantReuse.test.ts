@@ -97,6 +97,14 @@ const pixiStubs = vi.hoisted(() => {
 
 vi.mock("pixi.js", () => ({
   Container: pixiStubs.StubContainer,
+  Rectangle: class StubRectangle {
+    constructor(
+      public x = 0,
+      public y = 0,
+      public width = 0,
+      public height = 0,
+    ) {}
+  },
   Graphics: pixiStubs.StubGraphics,
   Sprite: pixiStubs.StubSprite,
   Text: pixiStubs.StubText,
