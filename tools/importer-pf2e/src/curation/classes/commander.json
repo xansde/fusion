@@ -1,0 +1,103 @@
+{
+  "class": "commander",
+  "displayName": "Commander",
+  "vendorClassFile": "classes/commander.json",
+  "keyAbilityOptions": ["int"],
+  "hp": 8,
+  "choiceAxes": [],
+  "classFeats": {
+    "trait": "commander",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Armor Expertise",
+      "Armor Mastery",
+      "Fortitude Expertise",
+      "Greater Weapon Specialization",
+      "Perception Mastery",
+      "Shield Block",
+      "Weapon Mastery",
+      "Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Armor Expertise",
+      "Armor Mastery",
+      "Fortitude Expertise",
+      "Greater Weapon Specialization",
+      "Perception Mastery",
+      "Shield Block",
+      "Weapon Mastery",
+      "Weapon Specialization"
+    ],
+    "missingFromPacks": [
+      "Battlefield Intuition",
+      "Commander's Banner",
+      "Commanding Will",
+      "Drilled Reactions",
+      "Expert Tactician",
+      "Legendary Tactician",
+      "Master Tactician",
+      "Military Expertise",
+      "Tactics",
+      "Warfare Expertise"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Battle-Hardened Companion", "Battle-Tested Companion"],
+      ["Drilled Reflexes", "drilled reactions"],
+      ["Targeting Strike", "Guiding Shot or Set-Up Strike"],
+      ["Fortunate Blow", "Guiding Shot or Set-Up Strike"],
+      ["Perfected Evaluations", "Unrivaled Analysis"],
+      ["Contact With the Enemy", "Adaptive Stratagem"],
+      ["Confusing Commands", "Deceptive Tactics"],
+      ["Peerless Mascot Companion", "Battle-Hardened Companion"],
+      ["Practiced Reflexes", "Drilled Reflexes"],
+      ["Observational Analysis", "Combat Assessment"],
+      ["Shielded Recovery", "Officer's Medical Training"],
+      ["Battle-Tested Companion", "Commander's Companion"],
+      ["Claim the Field", "Plant Banner"],
+      ["Unrivaled Analysis", "Rapid Assessment"],
+      ["Shield Warden", "shield block"],
+      ["Desperate Resuscitation", "Officer's Medical Training"]
+    ],
+    "referencesOutsideSelection": []
+  },
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "Combat Assessment",
+      "Reactive Interference",
+      "Reactive Strike",
+      "Shield Warden"
+    ],
+    "collisionsDetected": [
+      "Fortitude Expertise: nivel generico do arquivo (class-features/fortitude-expertise.json, system.level.value=3) diverge do nivel no items{} do Commander (9) -- usar 9.",
+      "Armor Expertise: nivel generico do arquivo (system.level.value=7) diverge do nivel no items{} do Commander (11) -- usar 11. Mesma divergencia ja documentada no fighter.json para o mesmo arquivo generico (Fighter tambem usa 11).",
+      "Perception Mastery: nivel generico do arquivo (system.level.value=7) diverge do nivel no items{} do Commander (13) -- usar 13. Thaumaturge usa 9 para o MESMO arquivo generico -- confirma que o nivel generico nao e autoritativo para nenhuma classe, cada items{} manda no seu proprio nivel.",
+      "Armor Mastery: nivel generico do arquivo (system.level.value=13) diverge do nivel no items{} do Commander (17) -- usar 17. Mesma divergencia ja documentada no fighter.json para o mesmo arquivo generico (Fighter tambem usa 17).",
+      "CORRECAO ao relatorio-padrao do Fighter (r21): o fighter-relatorio.md secao 11 afirma que Armor Mastery 'nao inclui heavy no seu subfeatures.proficiencies (so light/medium/unarmored)' e que por isso o Fighter 'fica sem upgrade de armor.heavy alem do rank 2'. Isso le so subfeatures.proficiencies -- class-features/armor-mastery.json TEM um rules[] ActiveEffectLike adicional: {mode:'upgrade', path:'system.proficiencies.defenses.heavy.rank', predicate:[{not:'class:barbarian'}], value:3}. Como Commander (e Fighter) nao sao barbarian, esse rule TAMBEM sobe armor.heavy para rank 3 no nivel do items{} (17 para Commander). A leitura correta parece exigir rules[], nao so subfeatures -- mesma licao ja registrada no proprio thaumaturge.json para Weapon Expertise (champion.json/magus.json linha ~80/~227). Reportado para a integracao central resolver os dois casos (Fighter e Commander) de uma vez -- nao pode ser resolvido so aqui porque armor-mastery.json e doc compartilhado.",
+      "classDC resolvido (mesmo padrao do Thaumaturge, diferente da ambiguidade deixada em aberto pelo Fighter): a chave de subfeature 'commander' aparece em expert-tactician.json (L7 items{} -> rank2), master-tactician.json (L15 items{} -> rank3) e legendary-tactician.json (L19 items{} -> rank4). O doc de classe do vendor (classes/commander.json) NAO tem system.classDC (confirmado: 'classDC' in system === false, igual Fighter/Thaumaturge), mas transform.mjs ja aplica default 1 (classDC: src.classDC ?? system.classDC ?? 1). Nota: Commander e a UNICA classe desta leva com upgrade de classDC ate rank 4 (legendary) em L19 -- as demais classes ja curadas param em rank 3 (master). Nao verificado se essa e a primeira ocorrencia de rank4 entre as 21 classes ja curadas; vale conferencia da integracao central.",
+      "keyAbility de opcao unica ['int'] (sem par tipo dex/str do Fighter ou dex-str do Exemplar) -- sem correcao necessaria."
+    ]
+  },
+  "notes": [
+    "Confirma a medicao preliminar do orquestrador: hp 8, atributo-chave int, 18 features no items{} (8 ja nos packs por sourceId: Armor Expertise, Armor Mastery, Fortitude Expertise, Greater Weapon Specialization, Perception Mastery, Shield Block, Weapon Mastery, Weapon Specialization -- verificado contra systems/pf2e/packs/class-features-core/documents.json, 318 docs, cruzamento por flags.fusion.sourceId), 43 class feats candidatos (39 exclusivos de feats/class/commander/level-*/ + 4 de shared-class-feats com trait commander: Combat Assessment, Reactive Interference, Reactive Strike, Shield Warden -- os 4 ja em feats-core por sourceId, trazidos por Fighter/Rogue/Barbarian-Champion-Exemplar-Guardian-Magus-Swashbuckler/Champion-Fighter respectivamente, todos curados antes desta rodada), sem conjuracao (system.spellcasting=0 no doc de classe; 0/1797 arquivos de spells/** com trait commander), 0/16 nomes canonicos do items{} divergem do segmento final da uuid.",
+    "REFUTACAO PARCIAL da medicao preliminar ('nenhuma otherTag com prefixo commander-'): a afirmacao e verdadeira APENAS para a pasta class-features/** (0/842 arquivos com otherTag commander-*, confirmado por varredura completa) -- mas EXISTEM 5 otherTags com prefixo commander- (commander-mobility-tactic, commander-offensive-tactic, commander-expert-tactic, commander-master-tactic, commander-legendary-tactic) em outra pasta do vendor: actions/class/commander/ (38 arquivos, dos quais 37 tem trait 'tactic'+'commander' -- o 38o, shift-immanence.json, e um action do EXEMPLAR mal-arquivado nessa pasta, traits=[divine,exemplar], sem trait commander/tactic, ignorado). O roteiro do PLANO §6 so manda escanear otherTags em class-features/**, por isso a medicao preliminar (feita a partir dessa instrucao) nao capturou o eixo real do Commander.",
+    "ACHADO DE PRIMEIRA ORDEM -- Tactics e uma QUARTA forma de escolha, distinta de choiceAxes/GRANTED_FEAT_CHOICES/Summoner: a feature 'Tactics' (items{} L1) tem 5 pares ChoiceSet+GrantItem embutidos em system.rules (firstTactic..fifthTactic; os 3 ultimos com predicate ['class:commander'], plausivelmente para reuso futuro por uma dedication de arquetipo que concederia so 2), cada ChoiceSet filtrando itemType:'action' com filter [item:trait:tactic, {or:[item:tag:commander-mobility-tactic, item:tag:commander-offensive-tactic]}]. 'Expert Tactician' (L7), 'Master Tactician' (L15) e 'Legendary Tactician' (L19) repetem o padrao com so 2 ChoiceSet+GrantItem cada, alargando o filtro OR para incluir a tag do proprio tier (expert/master/legendary). O feat 'Tactical Expansion' (classFeats candidato, L2, repetivel) usa o MESMO mecanismo (2 ChoiceSet+GrantItem), com o OR condicionado dinamicamente a predicate feature:expert-tactician / feature:master-tactician / feature:legendary-tactician -- ou seja, ha dependencia real e mecanizada entre tatica e feat, exatamente o que o PLANO pediu para medir. As opcoes (as 37 acoes com trait tactic) NAO sao classFeature nem feat: sao type:'action', vivem em actions/class/commander/, e normalizeClassFeatureSystem (transform.mjs) so consulta axisCategoryByOtherTag/axisLevelByOtherTag para docs classFeature -- portanto choiceAxes e estruturalmente incompativel com essa pool (nao e so falta de dado, e o tipo de documento errado). Nao inventei extensao de schema; registrado aqui como achado para a integracao central, nao como decisao tomada.",
+    "BOA NOTICIA sobre a pool de tactics: como o predicado isActionsCoreDoc (build-mvp-subset.mjs) inclui TODA acao de fusionCategory 'class' sem depender de curadoria por classe, os 37 tactics do Commander JA ESTAO no pack construido hoje -- medido diretamente em systems/pf2e/packs/actions-core/documents.json (521 docs totais): 37 docs com trait 'tactic' e trait 'commander', sourceIds batendo com os _id dos 37 arquivos do vendor (ex.: Coordinating Maneuvers=Kp325Qf0qpF6RCDE, Corpse Crenellation=yT2A0CxSA5nJ8e7n). R2 (prioridade ao que ja existe) cumprida da forma mais forte possivel: zero conteudo faltando, nao ha reuso a declarar porque nunca houve necessidade de importar nada nesta rodada. O que falta e so o MECANISMO de escolha do lado cliente (equivalente a GRANTED_FEAT_CHOICES, mas para documentos 'action' filtrados por trait+otherTag em vez de feats filtrados por category+trait+level) -- fora do escopo do schema de curation/classes/*.json, que nao tem nenhum campo para declarar pool de acoes (so classFeatures.extraNames para classFeature e classFeats.extraNames para feat).",
+    "3 bugs de dado do vendor encontrados na pool de tactics (nenhum corrigido aqui -- fora do escopo desta fase, registrados para a integracao central avaliar prerequisiteFixes-like ou reporte upstream): (1) actions/class/commander/ready-aim-fire.json tem a otherTag com typo 'vcommander-master-tactic' (v extra no prefixo) em vez de 'commander-master-tactic' -- um picker de Master Tactician filtrado por tag exata NUNCA ofereceria essa tactic, mesmo ela estando no pack; (2) actions/class/commander/shift-immanence.json e um action do Exemplar mal-arquivado nesta pasta (traits=[divine,exemplar], sem trait commander nem tactic) -- inofensivo porque a inclusao em packs e por trait/categoria, nao por pasta, mas quem contar arquivos da pasta (38) em vez de tactics reais (37) vai errar por 1; (3) 5 das 37 tactics (Corpse Crenellation, For Talmandor for Freedom!, Seek and Destroy, Shadows in the Moonlight, Wait for It) vem de 'Pathfinder Adventure Path: Hell's Destiny' (nao do Battlecry!) e NAO TEM NENHUMA otherTag de tier (system.traits.otherTags ausente, nao so vazio) -- elas satisfazem trait:tactic mas nunca o segundo termo do OR de nenhum dos 4 filtros de tier (Tactics/Expert/Master/Legendary Tactician), entao sao mecanicamente inalcancaveis por qualquer um dos 4 pontos de concessao nativos do vendor, mesmo estando corretamente no pack. Nao inventei tag para elas -- dado preservado como esta.",
+    "CONFERENCIA INDEPENDENTE, NAO-CIRCULAR: ao contrario do que a tarefa presumia ('nao existe pregen de Commander nos iconics/'), EXISTE um -- tools/importer-pf2e/vendor/pf2e/packs/pf2e/iconics/ulka/ (Ulka, Orc, level-1/3/5.json), classe 'Commander' confirmada por items.find(type==='class').name. A ficha da Ulka no nivel 1 traz exatamente 5 actions do tipo tactic (Coordinating Maneuvers, Gather to Me!, Pincer Attack, Protective Screen, Strike Hard! -- todas tag mobility ou offensive), confirmando o numero de picks da feature Tactics medido em system.rules. No nivel 3 ganha Warfare Expertise (items{} L3) + Set-Up Strike (nosso candidato L2, consistente com feat de nivel de classe <= 3) + 2 feats gerais/pericia fora do conjunto do Commander. No nivel 5 ganha Military Expertise (items{} L5) + Banner's Inspiration (nosso candidato L4, consistente). Zero divergencias entre a ficha da Ulka e os dados medidos aqui (niveis de feature/feat, contagem de tactics). Fonte citada: iconics/ulka/ulka-level-{1,3,5}.json + descricao textual das 18 features (class-features/*.json) para os mecanismos sem conjuracao a conferir.",
+    "39/39 feats exclusivos e 0/43 candidatos totais tem trait 'archetype'. 4/43 (os compartilhados) tem trait de OUTRA classe alem de commander: Combat Assessment (fighter), Reactive Interference (rogue), Reactive Strike (barbarian+champion+exemplar+guardian+magus+swashbuckler -- 7 classes ao todo), Shield Warden (champion+fighter) -- mesma ambiguidade de gate class_level (any entre as classes-trait vs. grantedBy-like) ja registrada em fighter.json/druid.json/thaumaturge.json, 4a vez que aparece nesta rodada+r21, nao resolvida aqui, decisao da integracao central.",
+    "16/43 candidatos tem system.prerequisites.value nao-vazio; todos os 16 resolvem para DENTRO do conjunto de 43 feats + 18 features (0 referenciam fora da selecao do Commander) -- 15 puros + Desperate Resuscitation (misto: 'Officer's Medical Training' interno + 'master in Medicine' nao-mecanizavel, texto preservado). 2 casos usam o nome da FEATURE em minusculo, mesmo padrao ja documentado no relatorio do Fighter: Drilled Reflexes -> 'drilled reactions' (items{} L1) e Shield Warden -> 'shield block' (items{} L1, feature compartilhada). Nenhum prerequisite cita OR precisando de merge (fix) -- os que tem alternativa ja vem como texto unico 'X or Y' do proprio vendor.",
+    "levelBasis='class' (spec 31 §4.3): todos os niveis acima (items{} e feats) sao niveis DE CLASSE do Commander, nao de personagem -- classe nova (Battlecry!, 2024), sem entrada na tabela de mudancas do remaster e sem multiclasse dedication avaliada nesta rodada (fora do escopo §9 do PLANO)."
+  ],
+  "levelBasis": "class"
+}

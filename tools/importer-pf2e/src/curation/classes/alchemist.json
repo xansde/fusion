@@ -1,0 +1,117 @@
+{
+  "class": "alchemist",
+  "displayName": "Alchemist",
+  "vendorClassFile": "classes/alchemist.json",
+  "keyAbilityOptions": ["int"],
+  "hp": 8,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "alchemist-research-field",
+      "featureNameInItemsMap": "Research Field",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 4,
+      "slotType": "researchField"
+    }
+  ],
+  "classFeats": {
+    "trait": "alchemist",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": ["Formula Book", "Advanced Alchemy", "Versatile Vials", "Quick Alchemy"],
+    "sharedWithOtherClasses": [
+      "Perception Expertise",
+      "Will Expertise",
+      "Medium Armor Expertise",
+      "Medium Armor Mastery",
+      "Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Perception Expertise",
+      "Will Expertise",
+      "Medium Armor Expertise",
+      "Medium Armor Mastery",
+      "Weapon Specialization"
+    ],
+    "missingFromPacks": [
+      "Alchemy",
+      "Chemical Hardiness",
+      "Alchemical Weapon Mastery",
+      "Explosion Dodger",
+      "Research Field",
+      "Double Brew",
+      "Alchemical Weapon Expertise",
+      "Greater Field Discovery",
+      "Alchemical Expertise",
+      "Abundant Vials",
+      "Advanced Vials",
+      "Field Discovery",
+      "Powerful Alchemy",
+      "Alchemical Mastery",
+      "Formula Book",
+      "Advanced Alchemy",
+      "Versatile Vials",
+      "Quick Alchemy"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Advanced Efficient Alchemy", "Efficient Alchemy (Alchemist)"],
+      ["Greater Debilitating Bomb", "Debilitating Bomb"],
+      ["True Debilitating Bomb", "Greater Debilitating Bomb"],
+      ["Supreme Invigorating Elixir", "Invigorating Elixir"],
+      ["Improved Invigorating Elixir", "Invigorating Elixir"],
+      ["Uncanny Bombs", "Far Lobber"],
+      ["Greater Merciful Elixir", "Merciful Elixir"],
+      ["Eternal Elixir", "Extend Elixir"],
+      ["Persistent Mutagen", "Extend Elixir"],
+      ["Potent Poisoner", "Powerful Alchemy"],
+      ["Efficient Alchemy (Alchemist)", "Advanced Alchemy"]
+    ],
+    "referencesOutsideSelection": [
+      "Perpetual Breadth (L8) -> prerequisites.value = 'perpetual infusions': NAO resolve para nenhum documento vivo desta curadoria. Existe uma familia de 15 docs no vendor (Perpetual Infusions + 4 variantes por research field, Perpetual Potency + 4 variantes, Perpetual Perfection + 4 variantes, todas com GrantItem dinamico {actor|flags.system.alchemist.*}), mas NENHUMA aparece na tabela oficial 'Class Features' do journal (vendor/pf2e/packs/pf2e/journals/classes.json, pagina Alchemist, conferida celula a celula ate o nivel 20) nem no items{} do doc de classe -- e portanto nao faz parte do chassi atual do Alchemist remaster. 'Perpetual Breadth' e um dos 15/65 candidatos exclusivos com publication.remaster=false (Pathfinder Advanced Player's Guide, pre-remaster). Preservado como texto, sem predicado inventado (REQ-BC-034).",
+      "Alchemical Assessment (L1) -> 'trained in Crafting': texto de proficiencia, nao mecanizavel.",
+      "Inured to Alchemy (L4, feat compartilhado alchemist+barbarian+fighter) -> 'expert in Fortitude saves': texto de proficiencia, nao mecanizavel -- ja registrado identico em fighter.json para o mesmo documento (mesmo _id gL7QZsSMldjwE6te)."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": ["Poison Resistance", "Inured to Alchemy"],
+    "collisionsDetected": [
+      "Nome divergente entre entry.name e uuid tail no items{}: a entrada de nivel 13 exibe '(Choice) Greater Field Discovery' mas a uuid aponta para 'Compendium.pf2e.classfeatures.Item.Greater Field Discovery' -- nome canonico usado e 'Greater Field Discovery' (mesma armadilha do Magus/Lightning Reflexes citada no PLANO).",
+      "Perception Expertise: nivel generico do arquivo (system.level=3) diverge do nivel no items{} do Alchemist (9) -- usar 9.",
+      "Will Expertise: nivel generico do arquivo (system.level=3) diverge do nivel no items{} do Alchemist (7) -- usar 7.",
+      "Medium Armor Expertise: nivel generico do arquivo (system.level=11) diverge do nivel no items{} do Alchemist (13) -- usar 13.",
+      "Medium Armor Mastery: nivel generico do arquivo (system.level=17) diverge do nivel no items{} do Alchemist (19) -- usar 19.",
+      "Weapon Specialization: nivel generico do arquivo (system.level=7) diverge do nivel no items{} do Alchemist (13) -- usar 13. E a MAIOR divergencia medida ate agora nesta rodada (6 niveis, vs 4 do Fighter/Armor Expertise) -- o Alchemist ganha a especializacao de arma muito mais tarde que Fighter/Thaumaturge.",
+      "15 dos 65 candidatos exclusivos (23%) tem publication.remaster=false no vendor (ex.: Merciful Elixir, Potent Poisoner, Perfect Mutagen, Perpetual Breadth, Efficient Alchemy (Paragon) -- lista completa no relatorio). Para comparacao, o Fighter (ja publicado) tem 3/72 (4%). NAO tratei isso como sinal de exclusao (nao ha precedente para excluir por essa flag isolada -- o proprio Fighter ja publicado inclui 3 desses sem ressalva) -- mantidos todos os 15 no candidate set, R3 nao inventa predicado a partir de um campo sem interpretacao estabelecida. Excecao: 'Efficient Alchemy (Paragon)' (L20) carrega nota textual explicita do vendor -- '<em>Note: This feat is incompatible with the Alchemist class presented in Player Core 2, and is not automated as a result.</em>' -- unico dos 67 com essa marcacao explicita. Mantido no candidate set (mesmo raciocinio), sinalizado para decisao da integracao central.",
+      "attacks.other do doc de classe = {name:'Alchemical Bombs', rank:1} (medido, diferente do vazio do Fighter/Druid). DUAS features do items{} (Alchemical Weapon Expertise L7, Alchemical Weapon Mastery L15) sobem essa trilha via rules[] ActiveEffectLike 'system.proficiencies.attacks.weapon-base-alchemical-bomb.rank' (mode:upgrade, value:2 e 3) -- ALEM do subfeatures.proficiencies padrao (simple+unarmed). Confirmado por grep: transform.mjs NAO tem nenhuma referencia a 'attacks.other', 'weapon-base-alchemical-bomb' ou trilha equivalente -- a trilha 'Alchemical Bombs' nao e hoje derivada por deriveProficiencyUpgrades (que le so subfeatures.proficiencies). Mesma familia de risco do classDC ambiguo do Fighter (SS10), mas aqui e attacks.other, nao classDC.",
+      "Trait-duplo nos 2 feats compartilhados (Poison Resistance = alchemist+druid, ja reusado de druid.json; Inured to Alchemy = alchemist+barbarian+fighter, ja reusado de fighter.json): mesma ambiguidade class_level 'any' ja registrada em fighter.json/druid.json/thaumaturge.json -- 4a repeticao da mesma pergunta em aberto, nao resolvida aqui."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "CONFIRMA a medicao preliminar do orquestrador: hp 8, int, 19 features no items{} (5 ja nos packs: Perception Expertise, Will Expertise, Medium Armor Expertise, Medium Armor Mastery, Weapon Specialization), 67 class feats candidatos (65 exclusivos + 2 de shared-class-feats: Poison Resistance e Inured to Alchemy, ambos ja em feats-core por sourceId), eixo alchemist-research-field com 4 opcoes (Bomber, Chirurgeon, Mutagenist, Toxicologist), sem conjuracao (system.spellcasting=0, 0 magias com trait alchemist em 1797 arquivos varridos). Nenhuma divergencia numerica contra a medicao preliminar.",
+    "DIVIDA CENTRAL DA CLASSE (item explicito pedido pela tarefa) -- MEDIDA, nao estimada: o vendor tem 824 itens com trait 'alchemical' em tools/importer-pf2e/vendor/pf2e/packs/pf2e/equipment/ (5645 arquivos varridos), quebrados por trait secundario: 217 elixir, 171 poison, 168 bomb, 70 mutagen, 24 drug (mais 74 ammo e outros tipos). Cruzamento por trait+type contra os packs atuais do Fusion: elixir 31/217 ja em equipment-core (14%, via predicado isEquipmentCoreCuratedDoc que so aceita category potion/elixir/talisman, nivel<=8, publicacao PC1/PC2/GMCore -- em build-mvp-subset.mjs); bomb 24/168 ja em weapons-core (14%, quase todos 'Blasting Stone/Blight Bomb/Bottled Lightning/Crystal Shards/Frost Vial/Ghost Charge' + Versatile Vial -- os staples 'Acid Flask'/\"Alchemist's Fire\"/'Tanglefoot Bag' NAO estao); poison 0/171 (0%) e mutagen 0/70 (0%) -- NAO EXISTE NENHUM documento desses dois tracos em pack nenhum do Fusion hoje, porque NAO EXISTE pack 'consumables-core': equipment-core so aceita consumable de category potion/elixir/talisman (o predicado exclui poison/mutagen por construcao). Sem essa base, os feats de bomba (ex.: Debilitating Bomb, Directional Bombs, Sticky Bomb), de mutagenico (Regurgitate Mutagen, Revivifying Mutagen, Perfect Mutagen) e de veneno (Double Poison, Pinpoint Poisoner, Tenacious Toxins) nao tem alvo mecanico nenhum na ficha -- e trabalho de outra leva (equipment-core precisa de um novo predicado/categoria para poison+mutagen, ou de um pack novo), NAO desta fase.",
+    "VERSATILE VIAL (o reagente-base de toda a classe: bombas, Field Vials, Quick Alchemy) JA ESTA no pack -- em weapons-core (type:'weapon' no vendor, nao 'equipment'; sourceId ljT5pe8D7rudJqus confirmado por cruzamento direto). Corrijo aqui uma hipotese inicial errada da minha propria sessao de levantamento: cheguei a marcar Versatile Vial como 'critical gap' por so ter olhado equipment-core: 'Formula Book (Blank)' (a segunda peca de equipamento central, GrantItem-alvo de 'Formula Book') TAMBEM ja esta em equipment-core (sourceId qCEOZ6109Yo34tRx). As DUAS pecas de chassi ja existem; o que falta e o CATALOGO de itens craftaveis (bombas/elixires/mutagenicos/venenos em si), nao os dois itens-ferramenta.",
+    "RESEARCH FIELD (eixo) NAO concede formulas via GrantItem -- MEDI e a premissa da tarefa nao se confirma neste ponto especifico: os 4 docs de campo (Bomber/Chirurgeon/Mutagenist/Toxicologist, otherTag alchemist-research-field, 0/4 ja em class-features-core) tem rules[] so com ActiveEffectLike (seta flags.system.alchemist.{fieldDiscovery,advancedVials,greaterFieldDiscovery} para o nome do doc-alvo) e RollOption/ItemAlteration (mecanica de dano do Versatile Vial) -- NENHUM GrantItem de formula. As 'Formulas' iniciais (texto: 'Two common 1st-level alchemical bombs/elixirs.../mutagens/poisons', description.value de cada um dos 4 campos) sao ESCOLHA LIVRE do jogador, do mesmo jeito que 'Formula Book' concede '+2 formulas de nivel comum a escolha' a cada nivel -- nao ha lista fixa a mecanizar, e mesmo que houvesse, o catalogo-alvo (nota acima) nao existe ainda.",
+    "O QUE O RESEARCH FIELD REALMENTE FAZ POR GrantItem DINAMICO (achado novo, mais duro que o previsto): as 3 entradas do items{} 'Field Discovery' (L5), 'Advanced Vials' (L11), 'Greater Field Discovery' (L13) sao CONTAINERS que fazem GrantItem de '{actor|flags.system.alchemist.fieldDiscovery}' etc. -- o alvo real e um entre 4 variantes por campo (12 docs no total: Field Discovery/Advanced Vials/Greater Field Discovery x Bomber/Chirurgeon/Mutagenist/Toxicologist, 0/12 em class-features-core), decidido pela ActiveEffectLike do campo escolhido no L1. E A MESMA FAMILIA de problema que o relatorio do Thaumaturge documentou para Implement Adept/Paragon (SS10.2 do relatorio dele, tambem no ACHADOS-TRANSVERSAIS item 6): 'opcoes calculadas em tempo de execucao a partir de escolhas anteriores', sem consumidor no pipeline atual. Diferenca: aqui NAO ha um segundo ChoiceSet (a variante e determinada, nao escolhida de novo) -- e so um GrantItem cujo alvo depende de uma escolha JA REGISTRADA (a do research field). Mesmo assim, os 12 docs-alvo NAO foram trazidos via extraNames (mesma decisao do Thaumaturge: trazer o documento sem o consumidor certo deixa o pack com peso morto). Os 4 docs de campo (Bomber etc.) ENTRAM automaticamente pelo ramo do eixo (mesmo mecanismo que o Druid usou pra 'druid-order'), entao a metade 'de onde vem a flag' ja fica pronta; a metade 'o que a flag aponta' e a divida.",
+    "'ALCHEMY' (items{} nivel 1) E UM CONTAINER: seu rules[] faz GrantItem de 5 sub-features -- Alchemical Crafting (feat categoria 'skill', trait general+skill SEM trait alchemist, JA em feats-core por sourceId is3Oz9wt11lNq62K, resolve sem acao nenhuma), Formula Book, Advanced Alchemy, Versatile Vials, Quick Alchemy. As 4 ultimas sao INCONDICIONAIS (todo Alchemist ganha as 4 no L1, sem ChoiceSet, sem depender do research field) -- por isso trouxe as 4 via classFeatures.extraNames, no mesmo padrao que thaumaturge.json usou para os 10 'Initiate Benefit'. 'Formula Book' faz GrantItem de 'Formula Book (Blank)', um item de EQUIPAMENTO (nao class-feature) -- responde a pergunta especifica da tarefa: o pipeline TEM precedente de GrantItem cross-pack de item de equipamento (build-mvp-subset.mjs:1110, EQUIPMENT_CORE_GRANT_TARGET_IDS + GRANT_TARGET_CLASS_FEATURE_NAMES, usados para ancestry/general feats hoje) e o alvo 'Formula Book (Blank)' JA esta em equipment-core -- mas o mecanismo e MANUAL (arquivo compartilhado com um Set de ids/nomes fixos), nao automatico a partir da curadoria de classe; trazer 'Formula Book' via extraNames NAO basta sozinho, a integracao central precisa decidir se estende esse Set ou generaliza a resolucao cross-pack por sourceId (que o comentario do transform.mjs sobre UUID post-pass sugere ja ser pack-agnostica).",
+    "'Advanced Alchemy' (CraftingAbility, maxSlots 4+INT) e 'Versatile Vials' (SpecialResource, max 2+INT) sao RECURSOS/MOTORES (nao 'voce ganha um item'), sem alvo de documento a resolver -- so precisam do rule-element correspondente existir no schema de regras do Fusion (fora do escopo desta curadoria, e nao investigado aqui: nao vi CraftingAbility/SpecialResource no REQ-CMP-035 do topo do transform.mjs; 'GrantItem' e 'ActiveEffectLike' aparecem la, essas duas chaves nao apareceram na varredura -- registrado como pergunta, nao resolvido).",
+    "PERPETUAL INFUSIONS/POTENCY/PERFECTION (achado novo): familia de 15 docs (3 genericos + 12 variantes) presente em class-features/ do vendor com o MESMO padrao dinamico do Field Discovery, MAS confirmada FORA do chassi atual do Alchemist -- ausente da tabela oficial 'Class Features' do journal (journals/classes.json, pagina Alchemist) e do items{} do doc de classe. So aparece como prerequisito de 'Perpetual Breadth' (candidato L8, publication.remaster=false). Nao trazida para o pack (nem generica nem variantes) -- ver prerequisites.referencesOutsideSelection.",
+    "15/65 (23%) dos candidatos exclusivos tem publication.remaster=false no vendor -- proporcao bem maior que o Fighter (3/72, 4%, ja publicado sem ressalva). Nao inventei exclusao a partir disso (ver dedupe.collisionsDetected) -- fica registrado para a integracao central decidir se o campo remaster merece virar filtro em algum ponto do pipeline (hoje NAO e lido em lugar nenhum de transform.mjs/build-mvp-subset.mjs, confirmado por grep).",
+    "attacks.other = {name:'Alchemical Bombs', rank:1} e a trilha de proficiencia dele (Alchemical Weapon Expertise L7 rank2, Alchemical Weapon Mastery L15 rank3, via rules[].path='system.proficiencies.attacks.weapon-base-alchemical-bomb.rank') NAO sao lidos por transform.mjs hoje (grep vazio) -- mesma familia de risco do classDC ambiguo do Fighter (SS10 do relatorio dele), mas aqui e uma trilha de ataque nomeada, nao classDC. classDC do Alchemist, ao contrario do Fighter, esta RESOLVIDO com prova textual: Alchemical Expertise (L9, subfeatures.proficiencies.alchemist.rank=2) e Alchemical Mastery (L17, rank=3) tem descricao explicita 'Your proficiency rank for your alchemist class DC increases to...' -- mesmo padrao que thaumaturge.json ja confirmou resolvido (transform.mjs aplica default classDC:1 quando o doc de classe nao declara, linha ~2035).",
+    "REMASTER-CHANGES: journals/remaster-changes.json, pagina 'Feats' (210 linhas de tabela apos parse do HTML por regex de <tr><td>), tem EXATAMENTE 2 linhas com Main Trait='Alchemist': 'Alchemical Savant' -> renomeado para 'Alchemical Assessment', e 'Subtle Delivery' -> renomeado para 'Blowgun Poisoner'. Cruzei os dois nomes ANTIGOS ('Alchemical Savant', 'Subtle Delivery') contra os 67 textos de prerequisites.value dos candidatos -- ZERO ocorrencias (verificacao negativa). Os dois nomes NOVOS ja aparecem no candidate set com esses nomes (o vendor ja usa a nomenclatura pos-remaster) -- nenhum prerequisiteFixes necessario.",
+    "CONFERENCIA NAO-CIRCULAR com o pregen Fumbus (iconics/fumbus/, research field Bomber): niveis 1/3/5 batem integralmente com a curadoria -- L1 tem Alchemy+Research Field+Bomber (+ os 4 sub-features Formula Book/Advanced Alchemy/Versatile Vials/Quick Alchemy) e o class feat 'Quick Bomber' (L1); L3 soma 'Far Lobber' (segundo class feat, disponivel desde L1 mas escolhido no slot L2); L5 soma 'Healing Bomb' (terceiro class feat, L4), a feature 'Field Discovery' + a variante dinamica 'Field Discovery (Bomber)' (confirma na pratica o GrantItem dinamico descrito acima) e 'Powerful Alchemy'. Todo item alquimico do inventario de Fumbus (Acid Flask, Alchemist's Fire, Elixir of Life, Cheetah's Elixir, Versatile Vial) tem trait alchemical -- consistente com a divida de catalogo registrada acima.",
+    "MULTICLASSE (plano SS4.1): gate derivado para os 65 exclusivos = class_level:{alchemist:>=N}, sem ambiguidade (0/65 com trait de outra classe, 0/65 com trait archetype). Os 2 compartilhados (Poison Resistance, Inured to Alchemy) repetem a mesma pergunta 'any entre as classes do trait' ja registrada 3x em fighter.json/druid.json/thaumaturge.json -- 4a ocorrencia, nao resolvida aqui."
+  ]
+}

@@ -1,0 +1,302 @@
+{
+  "class": "oracle",
+  "displayName": "Oracle",
+  "vendorClassFile": "classes/oracle.json",
+  "keyAbilityOptions": ["cha"],
+  "hp": 8,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "oracle-mystery",
+      "featureNameInItemsMap": "Mystery",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 11,
+      "slotType": "mystery"
+    }
+  ],
+  "classFeats": {
+    "trait": "oracle",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [
+      "Curse of Ancestral Meddling",
+      "Curse of Creeping Ashes",
+      "Curse of Engulfing Flames",
+      "Curse of Inclement Headwinds",
+      "Curse of Inevitable Rot",
+      "Curse of Outpouring Life",
+      "Curse of the Living Death",
+      "Curse of the Mortal Warrior",
+      "Curse of the Sky's Call",
+      "Curse of Torrential Knowledge",
+      "Curse of Turbulent Moments"
+    ],
+    "sharedWithOtherClasses": [
+      "Spell Repertoire",
+      "Signature Spells",
+      "Expert Spellcaster",
+      "Magical Fortitude",
+      "Weapon Expertise",
+      "Light Armor Expertise",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "alreadyInPacks": [
+      "Spell Repertoire",
+      "Signature Spells",
+      "Expert Spellcaster",
+      "Magical Fortitude",
+      "Weapon Expertise",
+      "Light Armor Expertise",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "missingFromPacks": [
+      "Oracle Spellcasting",
+      "Mystery",
+      "Oracular Curse",
+      "Revelation Spells",
+      "Mysterious Resolve",
+      "Oracular Senses",
+      "Major Curse",
+      "Divine Access",
+      "Premonition Reflexes",
+      "Greater Mysterious Resolve",
+      "Extreme Curse",
+      "Oracular Clarity",
+      "Curse of Ancestral Meddling",
+      "Curse of Creeping Ashes",
+      "Curse of Engulfing Flames",
+      "Curse of Inclement Headwinds",
+      "Curse of Inevitable Rot",
+      "Curse of Outpouring Life",
+      "Curse of the Living Death",
+      "Curse of the Mortal Warrior",
+      "Curse of the Sky's Call",
+      "Curse of Torrential Knowledge",
+      "Curse of Turbulent Moments"
+    ]
+  },
+  "spellcasting": {
+    "tradition": "divine",
+    "type": "spontaneous",
+    "ability": "cha",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, entry kzxu2dI7tFxv6Ix6, página bqaqOx3naiwTozBX (\"Oracle\"), SEGUNDA tabela da página (a de conjuração; a primeira é a de features por nível) — transcrita célula a célula (12 colunas x 20 linhas, parse do HTML, não a olho). CONFERIDA contra a ficha pregen oficial da icônica KORAKAI (packs/iconics/korakai/korakai-level-{1,3,5}.json), a única pregen de Oracle do vendor (descoberta pelo item type=\"class\" de cada ator, não pelo nome): a entrada \"Divine Spontaneous Spells\" confirma tradition=divine, prepared.value=spontaneous, ability=cha, e bate célula a célula em L1 (slot1.max=3) e em L5 (slot1=4, slot2=4, slot3=3). DIVERGÊNCIA MEDIDA E RESOLVIDA em L3: korakai-level-3.json traz slot3={max:3,value:3}, que o journal não tem (rank 3 só a partir do nível 5). Não se escolheu \"a fonte mais bonita\" — três evidências independentes apontam a pregen como defeituosa: (a) o repertório da própria ficha L3 não tem NENHUMA magia de rank 3 (maior rank presente = 2), então o slot3 seria vazio por construção; (b) a linha 3 da tabela de features do MESMO journal diz \"2nd-rank spells\", e \"3rd-rank spells\" só aparece na linha 5; (c) o slot3 de L3 é idêntico ao de L5 ({max:3,value:3}), assinatura de cópia não-limpa entre as duas fichas. TERCEIRA FONTE INDEPENDENTE: esta tabela é IDÊNTICA célula a célula (20/20 linhas, 0 diferenças, conferido por script) à de sorcerer.json desta mesma pasta, curada em outra rodada a partir de outro journal — as duas conjuradoras espontâneas plenas do remaster compartilham 5 truques + 3/4 slots. bard.json NÃO bate (2/3 slots), o que descarta a hipótese de eu ter transcrito a tabela errada da página.",
+    "table": [
+      { "level": 1, "cantrips": 5, "slots": { "1": 3 } },
+      { "level": 2, "cantrips": 5, "slots": { "1": 4 } },
+      { "level": 3, "cantrips": 5, "slots": { "1": 4, "2": 3 } },
+      { "level": 4, "cantrips": 5, "slots": { "1": 4, "2": 4 } },
+      { "level": 5, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 3 } },
+      { "level": 6, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4 } },
+      { "level": 7, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4, "4": 3 } },
+      { "level": 8, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4, "4": 4 } },
+      { "level": 9, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 3 } },
+      { "level": 10, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4 } },
+      { "level": 11, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 3 } },
+      { "level": 12, "cantrips": 5, "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4 } },
+      {
+        "level": 13,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 3 }
+      },
+      {
+        "level": 14,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4 }
+      },
+      {
+        "level": 15,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 3 }
+      },
+      {
+        "level": 16,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4 }
+      },
+      {
+        "level": 17,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4, "9": 3 }
+      },
+      {
+        "level": 18,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4, "9": 4 }
+      },
+      {
+        "level": 19,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4, "9": 4, "10": 1 }
+      },
+      {
+        "level": 20,
+        "cantrips": 5,
+        "slots": { "1": 4, "2": 4, "3": 4, "4": 4, "5": 4, "6": 4, "7": 4, "8": 4, "9": 4, "10": 1 }
+      }
+    ]
+  },
+  "focusSpells": {
+    "names": [
+      "Accelerated Decomposition",
+      "Access Lore",
+      "Ancestral Defense",
+      "Ancestral Form",
+      "Ancestral Touch",
+      "Armor of Bones",
+      "Ash Form",
+      "Ashen Wind",
+      "Battlefield Persistence",
+      "Brain Drain",
+      "Call to Arms",
+      "Claim Undead",
+      "Debilitating Dichotomy",
+      "Delay Affliction",
+      "Dread Secret",
+      "Flaming Fusillade",
+      "Heroic Feat",
+      "Incendiary Ashes",
+      "Incendiary Aura",
+      "Interstellar Void",
+      "Life Link",
+      "Life-Giving Form",
+      "Manifold Lives",
+      "Moonlight Bridge",
+      "Purging Toxins",
+      "Revel in Retribution",
+      "Soul Siphon",
+      "Spray of Stars",
+      "Tempest Form",
+      "Tempest Touch",
+      "Temporal Distortion",
+      "Thunderburst",
+      "Time Skip",
+      "Ulcerous Canker",
+      "Vision of Weakness",
+      "Weapon Trance",
+      "Whirling Flames"
+    ],
+    "alreadyInPacks": [
+      "Accelerated Decomposition",
+      "Access Lore",
+      "Ancestral Defense",
+      "Ancestral Form",
+      "Ancestral Touch",
+      "Armor of Bones",
+      "Ash Form",
+      "Ashen Wind",
+      "Battlefield Persistence",
+      "Brain Drain",
+      "Call to Arms",
+      "Claim Undead",
+      "Debilitating Dichotomy",
+      "Delay Affliction",
+      "Dread Secret",
+      "Flaming Fusillade",
+      "Heroic Feat",
+      "Incendiary Ashes",
+      "Incendiary Aura",
+      "Interstellar Void",
+      "Life Link",
+      "Life-Giving Form",
+      "Manifold Lives",
+      "Moonlight Bridge",
+      "Purging Toxins",
+      "Revel in Retribution",
+      "Soul Siphon",
+      "Spray of Stars",
+      "Tempest Form",
+      "Tempest Touch",
+      "Temporal Distortion",
+      "Thunderburst",
+      "Time Skip",
+      "Ulcerous Canker",
+      "Vision of Weakness",
+      "Weapon Trance",
+      "Whirling Flames"
+    ]
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Domain Fluency", "Domain Acumen"],
+      ["Lighter than Air", "Water Walker"],
+      ["Sacral Monarch", "Sacral Lord"],
+      ["Diverse Mystery", "Advanced Revelation"],
+      ["Paradoxical Mystery", "Greater Revelation"],
+      ["Oracular Providence", "Oracular Clarity"],
+      ["Knowledge of Shapes", "Reach Spell"],
+      ["Knowledge of Shapes", "Widen Spell"]
+    ],
+    "referencesOutsideSelection": [
+      "22 dos 56 candidatos têm system.prerequisites não vazio (medido). SEIS apontam para uma OPÇÃO DO EIXO pelo texto '<mistério em minúsculas> mystery' — exatamente o formato 'animal order' do Druid e 'dragon instinct' do Barbarian (texto == nome da opção em minúsculas + o sufixo do eixo), e NÃO a armadilha do Psychic. Casos: 'On Borrowed Time' (L10) -> 'time mystery'; 'Roll the Bones of Fate' (L10) -> 'bones or lore mystery'; 'The Dead Walk' (L10) -> 'ancestors or battle mystery'; 'Trial by Skyfire' (L10) -> 'cosmos or flames mystery'; 'Waters of Creation' (L10) -> 'life or tempest mystery'; 'Conduit of Void and Vitality' (L16) -> 'any oracle mystery' (curinga, não nomeia opção). Os 11 docs de mistério entram em class-features-core nesta rodada, então o casamento case-insensitive resolve os cinco primeiros; nada hoje lê pré-requisito de opção de eixo, então fica DECLARADO, não mecanizado.",
+      "DISJUNÇÃO já numa entrada só — nenhum caso é prerequisiteFixes kind 'merge' (o defeito da issue #30 era o oposto: duas entradas lidas como AND). 'Knowledge of Shapes' (L4) -> 'Reach Spell or Widen Spell' (os DOIS alvos estão no conjunto dos 56 e já em feats-core); os quatro talentos de L10 acima -> pares de mistério numa string só; 'Sacral Lord' (L4) -> 'trained in Occultism or Religion'; 'Sacral Monarch' (L14) -> segunda entrada 'master in Occultism or Religion'.",
+      "REFERÊNCIA A MAGIA DE REVELAÇÃO, não a documento nomeado: 'Advanced Revelation' (L6) e 'Greater Revelation' (L12) exigem 'initial revelation spell'. O vínculo mistério -> magia de revelação (inicial/avançada/maior) NÃO existe estruturado em lugar nenhum do vendor: só na PROSA HTML de cada doc de mistério, como @UUID[Compendium.pf2e.spells-srd.Item.<nome>]. Foi extraído por parse (os 33 pares estão em notes[]), mas não há campo no schema de curadoria para gravá-lo. Dívida declarada, mesma família do domínio->magia de domínio que cleric.json registrou.",
+      "ATRIBUTO DO NÓ (proficiência/posse/capacidade), não referência a documento: 'divine spells' ('Prayer-Touched Weapon' L4, 'Purifying Breeze' L14); 'ability to cast focus spells' ('Consecrate Spell' L10); 'you follow a good-aligned deity' ('Prayer-Touched Weapon'); 'able to create or control undead' / 'ability to create or control undead' / 'ability to permanently create or control undead' ('Undying Conviction' L4, \"Necromancer's Visage\" L12, 'Sepulchral Sublimation' L14); 'trained in Occultism or Religion'; 'master in Occultism or Religion'. Todos preservados como texto de requisito, sem predicado inventado (REQ-BC-034).",
+      "REFERÊNCIA CRUZADA A OUTRA CLASSE, dentro da mesma entrada: os TRÊS talentos de mortos-vivos ('Undying Conviction', \"Necromancer's Visage\", 'Sepulchral Sublimation') repetem a entrada 'cleric with a negative font, oracle of bones, or necromancer wizard' — disjunção que mistura classe alheia (cleric/wizard) com uma opção do eixo desta classe escrita num SEGUNDO formato ('oracle of bones', diferente de 'bones mystery'). Não mecanizável hoje; é a única família em que a mesma opção de eixo aparece com dois textos distintos no vendor.",
+      "'Oracular Providence' (L20) -> 'oracular clarity' em MINÚSCULAS: casa com a class feature 'Oracular Clarity' do items{} (L19) por comparação case-insensitive, mesma forma de 'bravery'/'shield block' no Fighter. Registrado em internalChains já com o nome canônico."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "Reach Spell",
+      "Widen Spell",
+      "Cantrip Expansion",
+      "Bespell Strikes",
+      "Prayer-Touched Weapon",
+      "Sacral Lord",
+      "Undying Conviction",
+      "Detonating Spell",
+      "Steady Spellcasting",
+      "Chaotic Spell",
+      "Consecrate Spell",
+      "Quickened Casting",
+      "Magic Sense",
+      "Necromancer's Visage",
+      "Purifying Breeze",
+      "Sacral Monarch",
+      "Sepulchral Sublimation"
+    ],
+    "collisionsDetected": [
+      "TRAIT-DUPLO, com coincidência EXATA: 17 dos 56 class feats carregam trait de 2+ classes, e são EXATAMENTE os mesmos 17 que já estão em feats-core por sourceId (medido nos dois sentidos: a interseção é 17/17; nenhum dos 39 exclusivos está no pack e nenhum dos 17 compartilhados falta). Os compartilhados do Oracle já vieram todos por Cleric/Sorcerer/Wizard/Bard/Druid/Champion em rodadas anteriores; os 39 exclusivos são 100% novos. O gate class_level derivado por trait fica AMBÍGUO nesses 17 — o predicado correto é 'any' sobre as classes do trait, nunca uma escolha arbitrária (mesmo padrão já registrado em wizard.json, cleric.json, barbarian.json, psychic.json e druid.json). Ex.: 'Reach Spell' = bard+cleric+druid+oracle+sorcerer+witch+wizard (7 classes); 'Sacral Lord'/'Sacral Monarch' = champion+oracle.",
+      "TRÊS divergências entre o nível do items{} e o nível genérico do arquivo de class-features (a armadilha do plano; o certo é sempre o do items{}): 'Magical Fortitude' genérico 5 -> Oracle 9; 'Weapon Expertise' genérico 5 -> Oracle 11; 'Weapon Specialization' genérico 7 -> Oracle 13. As três são compartilhadas com 4/14/25 outras classes, então o arquivo genérico carrega o nível de OUTRA classe. Nenhuma das outras 18 diverge.",
+      "'Spell Repertoire (Oracle)' (id cFe6vFb3gSDyNeS9, class-features/spell-repertoire-oracle.json, trait oracle, L1, Player Core 2) é um SEGUNDO documento com o mesmo papel do genérico 'Spell Repertoire' (id 1RfnAiyQ5FR7vnuH) que o items{} realmente aponta. NÃO entra no pack (o nome não está no items{} e ele não tem otherTag de eixo) — decisão certa, porque o genérico é o que o vendor liga à classe. Consequência medida: o texto do genérico é um ItemAlteration com @Localize['...SpellRepertoire.{actor|class.slug}.PartOne'] que o nosso pipeline NÃO resolve, enquanto o doc '(Oracle)' tem a prosa literal — e os NÚMEROS do repertório — e fica de fora. Mesma família do 'spell-repertoire-psychic' de psychic.json e da issue #10 do Waybuilder.",
+      "NOMES DE UMA PALAVRA no eixo: as 11 opções chamam-se Ancestors, Ashes, Battle, Blight, Bones, Cosmos, Flames, Life, Lore, Tempest e Time — alta colisão potencial com documentos de outros tipos (a magia de foco 'Ash Form', o domínio 'life', etc.). Identidade é por flags.fusion.sourceId, nunca por nome; ids medidos: Ancestors qvRlih3u7vK3FYUR, Ashes g3HTg0z3doXZZzAV, Battle gjOGOR30Czpnx3tM, Blight 1PHDn7WJFtR3NgTr, Bones IaxmCkdsPlA52spu, Cosmos RI2EMRBBPNSoTJXu, Flames GTSvbFb36InvuH0w, Life o1gGG36wpn9mxeop, Lore tZBb3Kh4nJcNoUFI, Tempest W9cF7wZztLDb1WGY, Time EslxR2sbDK9XJaAl.",
+      "attacks.other ZERADO: classes/oracle.json tem system.attacks.other = {name:\"\", rank:0} (medido), como o Druid e diferente de Cleric (arma da divindade) e Gunslinger. transform.mjs descarta a chave e não perde nada; o Oracle não produz divergência 'classSystem.attacks.other' em pregen-parity.",
+      "classDC AUSENTE no doc do vendor ('classDC' in system === false, medido) embora o journal diga \"Trained in oracle class DC\" — transform aplica o default 1, mesmo caminho de Cleric/Magus/Wizard/Sorcerer/Psychic/Druid. E NENHUMA das 21 features do items{} tem chave de subfeature 'oracle': o class DC do Oracle nasce treinado e NUNCA sobe, ao contrário do Fighter (cuja chave 'fighter' vira upgrade de classDC). Medido, não suposto.",
+      "LICENÇA: 9 dos 56 candidatos são OGL (não ORC) e uncommon/rare — mas 8 já estão em feats-core, e o pack já tem 613 documentos OGL contra 1592 ORC, ou seja, não há política de exclusão vigente. O ÚNICO documento OGL NOVO que esta curadoria acrescenta é 'Scapegoat Parallel Self' (L20, exclusivo, uncommon, 'Pathfinder #168: King of the Mountain'). Registrado para a integração central decidir; não excluído aqui porque excluir mudaria a regra vigente do pack em vez de segui-la.",
+      "PUBLICAÇÃO das 11 opções + 11 maldições: 16 são 'Pathfinder Player Core 2', 4 são 'Pathfinder Lost Omens Divine Mysteries' (Ashes, Blight, Curse of Creeping Ashes, Curse of Inevitable Rot) e 2 são 'Pathfinder Dark Archive (Remastered)' (Time, Curse of Turbulent Moments) — todas ORC. isClassFeaturesCoreDoc não filtra por publicação, então as 22 entram; registrado porque um filtro futuro por PLAYER_CORE_PUBLICATION_TITLE cortaria 6 e deixaria o eixo com 9 opções em vez de 11, sem ninguém perceber."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE (spec 31 §4.3).",
+    "PROFICIÊNCIAS INICIAIS medidas em classes/oracle.json: perception=1, savingThrows fort=1/reflex=1/will=2 (will já EXPERT no nível 1, padrão de Cleric/Wizard/Sorcerer/Psychic/Druid), attacks simple=1 e unarmed=1 (martial=0, advanced=0), defenses light=1 e unarmored=1 (medium=0, heavy=0 — conjuradora de armadura LEVE, ao contrário do Druid, que tem média), spellcasting=1, trainedSkills {value:['religion'], additional:3} (TRÊS livres, não duas: é o número do vendor e bate com o journal, 'trained in a number of additional skills equal to 3 plus your Intelligence modifier'), classDC ausente (default 1). featLevels: ancestry [1,5,9,13,17], class [2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19] — idênticos a Cleric/Wizard/Druid.",
+    "CLASS FEATURES (items{} do vendor): 21 entradas, e o nome canônico (segmento final da uuid) == entry.name em 21/21 — sem a armadilha do Magus/Cleric. 9 das 21 JÁ estão em class-features-core com o MESMO doc reusado de outras classes (Spell Repertoire, Signature Spells, Expert Spellcaster, Magical Fortitude, Weapon Expertise, Light Armor Expertise, Weapon Specialization, Master Spellcaster, Legendary Spellcaster — conferido por flags.fusion.sourceId, não por nome). As 12 restantes são exclusivas e faltam: Oracle Spellcasting, Mystery, Oracular Curse, Revelation Spells, Mysterious Resolve, Oracular Senses, Major Curse, Divine Access, Premonition Reflexes, Greater Mysterious Resolve, Extreme Curse, Oracular Clarity. Mais 11 opções de mistério (ramo de eixo) e 11 maldições (classFeatures.extraNames): total NOVO em class-features-core = 34 documentos.",
+    "EIXO — 1 só, nível 1: `oracle-mystery` (categoria derivada 'mystery'), 11 opções CONTADAS por varredura da otherTag em class-features/ (842 arquivos, varredura recursiva): Ancestors, Ashes, Battle, Blight, Bones, Cosmos, Flames, Life, Lore, Tempest, Time. NENHUMA carrega 'class-archetype' (todas têm traits [oracle] e system.category 'classfeature'), então optionCount=11 vale para todo caminho — diferente de 'Battle Creed' no eixo cleric-doctrine. O ChoiceSet do doc 'Mystery' filtra por 'item:tag:oracle-mystery' e faz GrantItem do escolhido: é a forma canônica que o contrato já cobre.",
+    "AS 11 MALDIÇÕES SÃO O ACHADO ESTRUTURAL DESTA CLASSE. Cada opção de mistério faz TRÊS coisas por rule: (1) ActiveEffectLike que treina a perícia do mistério; (2) GrantItem de um talento de nível 1 com trait cursebound (alvo dentro dos 56 — caso feliz, resolvido pelo trait); (3) GrantItem de uma class-feature 'Curse of ...' que NÃO está no items{} da classe e NÃO carrega a otherTag do eixo. Sem declaração explícita, esse terceiro grant materializa em NADA (é o caso da issue #16). Foram declaradas em classFeatures.extraNames — o mesmo mecanismo que cleric.json usou para as 12 doutrinas, e que curatedClassFeatureNames() já lê. Mapa medido (mistério -> perícia | talento L1 | maldição): Ancestors -> Society | Whispers of Weakness | Curse of Ancestral Meddling; Ashes -> Occultism | Whispers of Weakness | Curse of Creeping Ashes; Battle -> Athletics | Oracular Warning | Curse of the Mortal Warrior; Blight -> Nature | Whispers of Weakness | Curse of Inevitable Rot; Bones -> Medicine | Nudge the Scales | Curse of the Living Death; Cosmos -> Nature | Oracular Warning | Curse of the Sky's Call; Flames -> Acrobatics | Foretell Harm | Curse of Engulfing Flames; Life -> Medicine | Nudge the Scales | Curse of Outpouring Life; Lore -> Occultism | Whispers of Weakness | Curse of Torrential Knowledge; Tempest -> Nature | Foretell Harm | Curse of Inclement Headwinds; Time -> Occultism | Trance of Celerity | Curse of Turbulent Moments. Os 5 talentos-alvo distintos são todos L1, trait [cursebound, divine, oracle], em feats/class/oracle/level-1/.",
+    "CURSEBOUND — a CONDIÇÃO JÁ EXISTE no Fusion: 'Cursebound' está em systems/pf2e/packs/conditions/documents.json (43 docs; id do vendor zXZjC8HLaRoLR17U). Isso é o que torna a espinha da classe mecanizável em vez de fantasia. O que É dado hoje: 16 dos 56 class feats carregam o trait 'cursebound' (todos exclusivos: Foretell Harm, Nudge the Scales, Oracular Warning, Trance of Celerity, Whispers of Weakness (L1); Meddling Futures (L2); Knowledge of Shapes, Thousand Visions (L4); Debilitating Dichotomy (L8); On Borrowed Time, Roll the Bones of Fate, The Dead Walk, Trial by Skyfire, Waters of Creation (L10); Conduit of Void and Vitality (L16); Mystery Conduit (L20)) e 5 das 37 magias de foco também (Ash Form, Call to Arms, Debilitating Dichotomy, Heroic Feat, Vision of Weakness). O EFEITO por nível de maldição vive nas 11 'Curse of ...' como rules com predicado sobre self:condition:cursebound (ex.: Curse of Inclement Headwinds = Weakness electricity com fórmula ternary(gte(@actor.conditions.cursebound.value,3),5+@actor.level,2), FlatModifier -2 em ranged-attack-roll a partir de cursebound 2, -10 de speed em cursebound 4). O doc 'Oracular Curse' NÃO tem mecânica: é só um ItemAlteration que injeta duas notas de descrição nos talentos cursebound (teto de 1/2/3/4 conforme Major Curse/Extreme Curse). DÍVIDA DECLARADA: o Fusion não tem motor de condição com valor escalar nem avaliador de fórmula (@actor.level, ternary/gte), então os documentos entram COM os rules preservados e sem consumidor — não foi inventado predicado nenhum (REQ-BC-034).",
+    "TABELA DE CONJURAÇÃO: conjuradora ESPONTÂNEA plena divina — 5 truques do nível 1 ao 20 e 3 slots no nível 1, 4 por rank dali em diante (nunca 2, ao contrário de Bard e Psychic; idêntica ao Sorcerer). Rank 10 nos níveis 19-20 vem da class feature Oracular Clarity (1 slot, marcado com * no journal, 'works differently from other spell slots'), não da progressão normal — mesmo padrão do Miraculous Spell do Cleric, do Primal Hierophant do Druid e do Archwizard's Spellcraft do Wizard; só o slot base 10:1 está na tabela. Níveis 1 a 3, explícitos: L1 = 5 truques + 3 slots de rank 1; L2 = 5 + 4 de rank 1; L3 = 5 + 4 de rank 1 + 3 de rank 2. Ver `spellcasting.source` para a divergência L3 contra a pregen e como foi resolvida.",
+    "REPERTÓRIO NÃO CABE NO SCHEMA — PERGUNTA PARA A INTEGRAÇÃO CENTRAL. `spellcasting` de transform.mjs emite apenas {tradition, type, ability, cantripsKnown[], slots[]}; não há campo para o TAMANHO DO REPERTÓRIO (quantas magias o conjurador espontâneo CONHECE por rank), que no Oracle é diferente do número de slots. Medido no doc 'Spell Repertoire (Oracle)' (cFe6vFb3gSDyNeS9): 'At 1st level, you learn TWO 1st-rank divine spells of your choice and FIVE divine cantrips' — 2 conhecidas contra 3 slots no nível 1 — e depois 'each time you get a spell slot, you add a spell of the same rank'. A lacuna NÃO é do Oracle: bard.json, sorcerer.json e psychic.json também são espontâneos e nenhum dos três declara repertório. Portanto `type: \"spontaneous\"` hoje diz só 'não prepara'; a ficha não sabe quantas magias o jogador escolhe. Duas saídas possíveis (nenhuma decidida aqui): (a) novo campo `repertoire: [{level, known:{rank:count}}]` no schema, preenchido pelas 4 classes espontâneas de uma vez; (b) derivar do próprio `slots[]` com um delta declarado por classe (no Oracle o delta é -1 no rank 1 do nível 1). Enquanto isso, quem montar a ficha de Oracle vai oferecer slots sem saber o limite de magias conhecidas.",
+    "MAGIAS DE FOCO — as 37 com trait 'oracle' JÁ ESTÃO 100% em spells-core, conferido por flags.fusion.sourceId (não por nome), 37/37. Esta rodada não toca spells-core e não precisa tocar. O que FALTA é o VÍNCULO mistério -> magia de revelação, que não existe estruturado em lugar nenhum: só na prosa HTML de cada doc de mistério, em @UUID[...spells-srd.Item.<nome>], sob os rótulos 'initial'/'advanced'/'greater'. Extraído por parse (33 pares, todos os 33 alvos conferidos presentes em spells-core): Ancestors -> Ancestral Touch/Ancestral Defense/Ancestral Form; Ashes -> Ashen Wind/Incendiary Ashes/Ash Form; Battle -> Weapon Trance/Battlefield Persistence/Revel in Retribution; Blight -> Ulcerous Canker/Purging Toxins/Accelerated Decomposition; Bones -> Soul Siphon/Armor of Bones/Claim Undead; Cosmos -> Spray of Stars/Interstellar Void/Moonlight Bridge; Flames -> Incendiary Aura/Whirling Flames/Flaming Fusillade; Life -> Life Link/Delay Affliction/Life-Giving Form; Lore -> Brain Drain/Access Lore/Dread Secret; Tempest -> Tempest Touch/Thunderburst/Tempest Form; Time -> Temporal Distortion/Time Skip/Manifold Lives. Não há campo de curadoria onde gravar isso; fica como dívida declarada, mesma família do domínio->magia de domínio de cleric.json.",
+    "MAGIAS CONCEDIDAS PELO MISTÉRIO (não são de foco): cada mistério adiciona 4 magias divinas normais ao repertório (1 truque + 3 de ranks fixos). São 41 distintas; 34 já estão em spells-core e SETE FALTAM, medidas nome a nome: Dreaming Potential (Ancestors, 5º), Hydraulic Torrent (Tempest, 4º), Hypercognition (Lore, 3º), Ill Omen (Ancestors, 1º), Moon Frenzy (Cosmos, 5º), Soothe (Life, 1º) e Vitality Lash (Life, truque). É exatamente o buraco de tradição divina que o plano §9 manda DECLARAR e não fechar nesta fase. Consequência concreta: 6 dos 11 místérios ficam com pelo menos uma magia concedida sem documento no pack — e 'Vitality Lash' é truque, ou seja, aparece já no nível 1 (a própria Korakai tem 'Vitality Lash' na ficha de nível 1).",
+    "proficiencyUpgrades DERIVÁVEIS de subfeatures.proficiencies — 12 linhas, todas com o nível do items{} (nunca o genérico): Mysterious Resolve will rank3 @L7; Expert Spellcaster spellcasting rank2 @L7; Magical Fortitude fortitude rank2 @L9; Oracular Senses perception rank2 @L11; Weapon Expertise weapons.simple + weapons.unarmed rank2 @L11 (DUAS linhas); Premonition Reflexes reflex rank2 @L13; Light Armor Expertise armor.light + armor.unarmored rank2 @L13 (DUAS linhas); Master Spellcaster spellcasting rank3 @L15; Greater Mysterious Resolve will rank4 @L17; Legendary Spellcaster spellcasting rank4 @L19. Nenhum proficiencyUpgradeExtras foi necessário. 'Weapon Specialization' (L13), 'Oracular Clarity' (L19), 'Major Curse' (L11), 'Extreme Curse' (L17) e 'Divine Access' (L11) não produzem linha (subfeatures vazio). PERFIL RESULTANTE, conferido contra a progressão do remaster fora do pack: Will é o único stat que chega a LEGENDARY (rank 4 @L17, via Greater Mysterious Resolve — a defesa-assinatura da classe), spellcasting chega a legendary @L19, Fortitude e Reflex param em expert (9 e 13), Perception para em expert (11), armadura para em expert leve (13) e arma para em expert (11). O Oracle nunca fica master em Fortitude nem em Perception.",
+    "'Diverse Mystery' (L16) e 'Paradoxical Mystery' (L20) são ESCOLHA ANINHADA que o planVM não expressa hoje. 'Diverse Mystery' tem ChoiceSet com filtro declarativo sobre magias ({itemType:'spell', filter:['item:trait:focus','item:trait:oracle',{lte:['item:rank',3]}]}) MAIS 10 rules condicionais por magia escolhida (Weakness, FlatModifier, GrantItem de condição) — é a forma de REQ-BC-024 com filtro, mas sobre SPELL, e GRANTED_FEAT_FILTERS do planVM.ts só sabe filtrar feat. 'Paradoxical Mystery' é escolha diária (por preparação), que nada no Fusion modela. Ambos classificados 'pendente' em choiceSetInventory.ts. Os alvos já existem no pack (as 37 magias de foco), então quando o consumidor existir o dado está lá.",
+    "'Divine Access' (L11) e 'Domain Acumen' (L2, talento) dependem de DOMÍNIOS: 'Choose one deity who grants one of your mystery's granted domains... add up to three cleric spells' e 'Choose one of the domains associated with your mystery... You gain an initial domain spell'. Os domínios de cada mistério estão só na prosa (medidos: Ancestors death/duty/family/soul; Ashes destruction/dust/fire/nothingness; Battle destruction/might/protection/zeal; Blight death/decay/disorientation/plague; Bones death/decay/undeath/vigil; Cosmos darkness/moon/nothingness/star; Flames dust/fire/star/sun; Life death/healing/pain/soul; Lore knowledge/magic/secrecy/truth; Tempest air/cold/lightning/water; Time change/fate/nothingness/time). É a MESMA lacuna domínio->magia que cleric.json já registrou; nada novo a mecanizar aqui, mas o Oracle é o segundo consumidor dela — o que a promove de lacuna de uma classe a lacuna de contrato.",
+    "MULTICLASSE (plano r21 §4.1): o gate derivado dos 56 class feats é class_level:oracle, sem ambiguidade em 39 deles; para os 17 com trait de 2+ classes o predicado correto é 'any' sobre as classes do trait. 'Oracle Dedication' NÃO entra nesta rodada: carrega traits [archetype, dedication, multiclass] sem o trait 'oracle', então nenhum predicado a alcança — mesma decisão do Druid. Nenhum dos 56 tem trait 'archetype' (varredura completa), então não existe aqui o conflito archetype-vence-classe que fez wizard.json e druid.json excluírem os 10 talentos '* Mask'; excludeNames fica vazio.",
+    "REBUILD: as 11 opções do eixo entram em class-features-core APENAS pelo ramo axisCategories.has(doc.system.category) de isClassFeaturesCoreDoc, e system.category só vira 'mystery' quando transform.mjs roda COM esta curadoria no disco (axisCategoryByOtherTag). As 11 maldições entram pelo ramo classFeatureNames (extraNames). Logo NÃO basta rodar build-mvp-subset.mjs sobre um out/ antigo: é obrigatório reprocessar o transform com classes E class-features no MESMO --packs, senão o eixo sai com 0 opções e transform.test.mjs reprova em 'eixo sem nenhuma opção no pack'.",
+    "GATE QUE ESTA CURADORIA ACIONA: pregen-parity.test.ts monta PREGENS filtrando os ícones pelas classes que estão em classes-core (hoje 15, sem Oracle). A icônica do Oracle é KORAKAI (descoberta pelo item type='class' das fichas, não pelo nome do diretório), com ficha oficial nos níveis 1/3/5 — publicar a classe traz Korakai para dentro do gate #48, verificação externa de graça. ATENÇÃO: a ficha de nível 3 dela tem slot3 espúrio (ver spellcasting.source); se o teste comparar slots célula a célula, essa linha vai acusar divergência REAL do dado do vendor, não da nossa curadoria — candidata a KNOWN_DIVERGENCES ('Oracle/spellSlots@3'), na mesma prateleira das entradas de Gunslinger e Psychic. O it.each de teto de aumento de perícia (issue #49) deve produzir 'Oracle/skillIncreaseCeiling' como toda classe.",
+    "FIAÇÃO PENDENTE NO CLIENT (fora do escopo desta fase, igual ao piloto do Druid): 4 linhas em planVM.ts (PlanSlotType ganha 'mystery'; SLOT_TYPE_LABELS; CLASS_CHOICE_SLOTS['Mystery'] = 'mystery'; CLASS_CHOICE_SLOT_OPTIONS.mystery = {packSlug:'class-features-core', category:'mystery'}) e as entradas de choiceSetInventory.ts para o ChoiceSet de 'Mystery' (resolvido) e os de 'Diverse Mystery'/'Paradoxical Mystery' (pendentes). Sem isso o pack fica correto e o builder não oferece a escolha.",
+    "PERÍCIA DO MISTÉRIO não é modelada, mesma dívida do Druid: o journal diz 'Trained in one or more skills determined by your mystery' ALÉM de Religion e das 3+Int livres, e cada doc de mistério carrega o ActiveEffectLike que a concede (mapeado nesta nota acima). trainedSkills.additional continua 3 no doc de classe — é o número do vendor e está certo, porque a perícia do mistério é fixa por opção, não uma escolha livre. Quem tem de aplicá-la é o consumidor da opção de eixo escolhida; hoje nenhum aplica."
+  ]
+}
