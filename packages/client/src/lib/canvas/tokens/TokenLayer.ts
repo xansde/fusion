@@ -52,6 +52,7 @@ import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { TokenSprite } from "./TokenSprite.js";
 import type { VisionPolygonResult } from "../vision/vision-state.js";
 import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
+import { footprintRegistry } from "./footprintRegistry.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -143,6 +144,22 @@ export class TokenLayer {
   private _lastDisplayPrefs = tokenDisplayPrefs.current;
 
   /**
+   * The size→footprint table last reconciled against (R5).
+   *
+   * `footprintRegistry` is filled by the `system:footprint` ack (TK041), which
+   * is ASYNCHRONOUS: the canvas mounts, sprites reconcile against an empty
+   * table — `footprintOf` fails open to 1×1 (REQ-TOK-012, DEC-TOK-03) — and
+   * the answer lands a round-trip later. `_reconcileTokens` only runs on a
+   * Scene or Actor mirror change, so before this field a "grande" creature
+   * stayed 1×1 until some unrelated broadcast touched the scene; #194's
+   * `_loadedSceneId` guard removed the scene reload that used to hide it.
+   * Same mechanism as `_lastDisplayPrefs` above: the registry publishes a NEW
+   * Map whenever the table changes, so a reference inequality in `tick()` is
+   * exactly "the table changed since last frame".
+   */
+  private _lastFootprintTable = footprintRegistry.sizeToFootprint;
+
+  /**
    * Current vision polygons for the player (set via setVisionPolygons).
    * Used to filter token visibility: tokens outside vision are hidden for players.
    * REQ-VIS-080: explored-but-not-visible area hides tokens.
@@ -208,6 +225,17 @@ export class TokenLayer {
    * @param zoom     Current camera zoom scale (for LOD updates).
    */
   tick(deltaMs: number, zoom: number): void {
+    // R5: the size→footprint table can land after the sprites were first
+    // drawn (see `_lastFootprintTable`). Re-reconcile the active scene once,
+    // on the first frame after it changes — `TokenSprite.update` re-derives
+    // the footprint and repaints when it differs (REQ-TOK-012/017).
+    const footprintTable = footprintRegistry.sizeToFootprint;
+    if (footprintTable !== this._lastFootprintTable) {
+      this._lastFootprintTable = footprintTable;
+      const scene = this._mirror.getDoc<SceneDocument>("Scene", this._sceneId);
+      if (scene) this._reconcileTokens(scene.tokens);
+    }
+
     for (const sprite of this._sprites.values()) {
       sprite.tick(deltaMs);
     }
