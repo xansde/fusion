@@ -150,7 +150,15 @@ export class FusionCanvas {
     await app.init({
       width: Math.max(width, 1),
       height: Math.max(height, 1),
-      preference: "webgpu", // WebGPU first, falls back to WebGL automatically
+      // Fixed to WebGL, not "webgpu" (REQ-CNV-001's automatic fallback would
+      // suggest). PIXI v8.19's WebGPU backend has a confirmed black-screen
+      // bug that resurfaces on this line's history: a redraw mid-session
+      // (e.g. a token drag) intermittently paints nothing — no console
+      // error, no exception, just a blank frame for a few seconds before it
+      // recovers on its own. It's the same failure the render-group
+      // workaround below (_buildHierarchy) exists for, just not fully fixed
+      // by that workaround alone. Forcing WebGL sidesteps it entirely.
+      preference: "webgl",
       antialias: false, // disable for performance; enable per scene if needed
       resolution: window.devicePixelRatio || 1,
       autoDensity: true,
