@@ -244,6 +244,10 @@ describe("TokenInteractionManager live ownership (R2, REQ-TOK-032/034)", () => {
     simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 220, 220);
     expect(layer.applyLocalMove).toHaveBeenCalledTimes(1);
 
+    // Let the move's ack settle, so the second drag below is refused by the
+    // permission check and not merely by the "one move at a time" guard.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     owned = new Set<string>();
 
     simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 320, 320);

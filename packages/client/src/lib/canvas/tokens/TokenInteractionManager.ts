@@ -457,6 +457,25 @@ export class TokenInteractionManager {
   }
 
   // ---------------------------------------------------------------------------
+  // Public — scene grid updates
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Adopt a new grid cell size (R4).
+   *
+   * `gridConfig` is a COPY of the scene's grid, handed in once at
+   * construction. Since #194's `_loadedSceneId` guard the manager is not
+   * rebuilt when the Scene document changes, so without this setter a grid
+   * edited with the scene's pencil left the drop target on the old cell size
+   * while the sprites (re-laid by `SceneOrchestrator` →
+   * `TokenLayer.setGridSize`) moved to the new one — the ghost and the drop
+   * would disagree. Called by the orchestrator's `onGridSizeChange`.
+   */
+  setGridSize(gridSize: number): void {
+    this._opts.gridConfig = { ...this._opts.gridConfig, size: gridSize };
+  }
+
+  // ---------------------------------------------------------------------------
   // Public — teardown
   // ---------------------------------------------------------------------------
 

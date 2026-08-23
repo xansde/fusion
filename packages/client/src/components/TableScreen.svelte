@@ -657,6 +657,14 @@
       lightingRenderer,
       fogState,
       combatController,
+      // R4: the orchestrator is the one thing subscribed to the Scene
+      // document, so it is what notices the grid being edited with the
+      // scene's pencil. It re-lays the sprites itself (TokenLayer.setGridSize);
+      // this hands the same number to the drag snap, which keeps its own copy
+      // of the cell size in `gridConfig`.
+      onGridSizeChange: (size: number) => {
+        _tokenInteraction?.setGridSize(size);
+      },
     });
   }
 

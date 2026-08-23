@@ -299,6 +299,7 @@ export class TokenSprite {
     const oldActor = this._actor;
     const oldAttitude = this._actorAttitude;
     const oldFootprint = this._footprint;
+    const oldGridSize = this._gridSize;
     this._doc = newDoc;
     this._gridSize = gridSize;
     this._actor = this._resolveActor(newDoc);
@@ -372,8 +373,15 @@ export class TokenSprite {
       );
     const barsChanged = bar1Changed || bar2Changed;
 
-    // Re-draw visuals if anything else changed
+    // Re-draw visuals if anything else changed.
+    // R4: `gridSize` counts. The footprint is measured in CELLS, so a scene
+    // whose grid goes from 100px to 140px leaves it untouched while every
+    // pixel dimension below (`pixelW`/`pixelH`, the hit rectangle, the ring,
+    // the bars) doubles or shrinks — without this term the sprite kept its
+    // old pixel size and only a full canvas rebuild (which #194 removed) put
+    // it right.
     const visualChanged =
+      oldGridSize !== gridSize ||
       this._footprint.width !== oldFootprint.width ||
       this._footprint.height !== oldFootprint.height ||
       newDoc.disposition !== oldDoc.disposition ||
