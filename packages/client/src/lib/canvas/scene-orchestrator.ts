@@ -1,28 +1,21 @@
 /**
  * scene-orchestrator.ts — Live integration layer between DocumentMirror and PIXI renderers.
  *
- * Spec: 06-canvas-e-renderizacao.md (layer composition), 07-visao-iluminacao-fog.md (vision/fog),
+ * Spec: 06-canvas-e-renderizacao.md (layer composition),
  *       10-combate-e-iniciativa.md (combat turn marker)
  *
- * GAP CLOSURE (M3-C): This module is the missing orchestrator that was absent since M2-A.
- * All vision/fog/token/combat modules existed and passed unit tests but had no central
- * driver connecting them to the DocumentMirror. This class is that driver.
+ * DEC-SEP-05 (F2, 2026-08-23): this module used to be the central driver for
+ * vision/fog/lighting too (VisionStateComputer, TokenLayer.setVisionPolygons,
+ * LightingRenderer.render, FogState) — see `docs/design/separacao-repos/
+ * design.md`. That wiring was removed along with the rest of the fog/vision
+ * pipeline; what is left is exactly what survives DEC-SEP-05's fronteira:
+ * grid-size fan-out (R4) and the combat controller tick/destroy.
  *
  * Responsibilities:
- *   - Subscribe to DocumentMirror for Scene (tokens, walls, lights), Combat.
- *   - On scene data change:
- *       · Compute vision polygons (VisionStateComputer) from controlled tokens + walls
- *       · Feed results to TokenLayer.setVisionPolygons (hides tokens outside vision)
- *       · Feed results to LightingRenderer.render (darkness, fog mask, lights)
- *       · Feed current vision polygons to FogState.updateVision (accumulation + persist)
- *   - On scene activation (scene change):
- *       · Tear down previous orchestrator state (no PIXI leaks)
- *       · Load fog from server (FogState.load) for new scene
- *   - On combat update:
- *       · Drive CombatCanvasController (turn marker position, auto-pan)
- *   - GM bypasses fog: no fog mask, no fog accumulation.
- *   - Invalidation: wall/door/light change busts ALL vision caches; token-only
- *     change busts only that token's cache (VisionStateComputer.invalidateToken).
+ *   - Subscribe to DocumentMirror for Scene (grid size changes).
+ *   - On a scene grid change: re-lay TokenLayer sprites and notify the grid
+ *     consumer (TokenInteractionManager's drag-snap config).
+ *   - On combat update: drive CombatCanvasController (turn marker position, auto-pan).
  *
  * Design constraints:
  *   - NO PIXI import here — renderers are injected as interfaces (testable in Node).
@@ -32,28 +25,17 @@
  *
  * Usage (from TableScreen.svelte):
  *   const orch = new SceneOrchestrator(opts);
- *   await orch.setup(); // loads fog, computes initial state
+ *   await orch.setup();
  *   // In ticker:
  *   orch.tick(deltaMs, cameraZoom);
  *   // On scene change:
  *   orch.teardown();
  *
- * REQ-VIS-020..087, REQ-CBT-050..052, REQ-CNV-025..033
+ * REQ-CBT-050..052, REQ-CNV-025..033
  */
 
-import type { SceneDocument, TokenDocument, Ownership } from "@fusion/shared";
-import { OwnershipLevel, getUserLevel } from "@fusion/shared";
+import type { SceneDocument, TokenDocument } from "@fusion/shared";
 import type { DocumentMirror } from "../docs/DocumentMirror.js";
-import {
-  VisionStateComputer,
-  buildTokenVisionConfig,
-  buildTokenLightConfig,
-  buildAmbientLightConfig,
-  type TokenSourceConfig,
-  type VisionStateResult,
-} from "./vision/vision-state.js";
-import type { FogState, FogRenderState } from "./vision/fog-state.js";
-import type { VisionPolygonResult } from "./vision/vision-state.js";
 import { effectiveGridSize } from "./sceneCoords.js";
 
 // ---------------------------------------------------------------------------
@@ -65,7 +47,6 @@ import { effectiveGridSize } from "./sceneCoords.js";
  * Implemented by the real TokenLayer; spy-able in tests.
  */
 export interface ITokenLayer {
-  setVisionPolygons(polygons: VisionPolygonResult[], fogEnabled: boolean): void;
   /**
    * Re-lay the sprites on a new grid cell size (R4). Declared here because
    * the orchestrator is the only thing already subscribed to the Scene
@@ -75,19 +56,6 @@ export interface ITokenLayer {
    */
   setGridSize(gridSize: number, tokens: TokenDocument[]): void;
   tick(deltaMs: number, zoom: number): void;
-  destroy(): void;
-}
-
-/**
- * Minimal interface for LightingRenderer that the orchestrator drives.
- */
-export interface ILightingRenderer {
-  render(
-    state: VisionStateResult,
-    fogState?: FogRenderState | null,
-    debugMode?: boolean,
-    restrictionActive?: boolean,
-  ): void;
   destroy(): void;
 }
 
@@ -108,16 +76,8 @@ export interface SceneOrchestratorOptions {
   scene: SceneDocument;
   /** DocumentMirror singleton (worldMirror). */
   mirror: DocumentMirror;
-  /** Whether the local user is GM. GM bypasses fog entirely. */
-  isGm: boolean;
-  /** Local user id (for controlled token resolution). */
-  userId: string;
   /** Injected token layer renderer. */
   tokenLayer: ITokenLayer;
-  /** Injected lighting renderer. */
-  lightingRenderer: ILightingRenderer;
-  /** Injected fog state manager. Null for GM (no fog). */
-  fogState: FogState | null;
   /** Injected combat controller. Null if no active combat. */
   combatController: ICombatController | null;
   /**
@@ -144,12 +104,8 @@ export interface SceneOrchestratorOptions {
 export class SceneOrchestrator {
   private _scene: SceneDocument;
   private _mirror: DocumentMirror;
-  private _isGm: boolean;
-  private _userId: string;
 
   private _tokenLayer: ITokenLayer;
-  private _lightingRenderer: ILightingRenderer;
-  private _fogState: FogState | null;
   private _combatController: ICombatController | null;
   private _onGridSizeChange: ((gridSize: number) => void) | null;
 
@@ -163,51 +119,27 @@ export class SceneOrchestrator {
    */
   private _prevGridSize: number;
 
-  private _visionComputer = new VisionStateComputer();
-
-  /** Last computed vision result (to avoid redundant renders). */
-  private _lastVisionResult: VisionStateResult | null = null;
-
   /** Unsubscribe functions from DocumentMirror subscriptions. */
   private _unsubscribes: Array<() => void> = [];
-
-  /** Tracks which walls/tokens changed to do selective cache invalidation. */
-  private _prevWallHash = "";
-  private _prevTokenPositions = new Map<string, string>(); // tokenId → "x:y"
 
   /** Whether setup() has been called. */
   private _ready = false;
 
   /**
-   * Set by `teardown()`, checked by `setup()`'s continuation after its
-   * `FogState.load()` await (defect 2, Fase 1 e2e). `TableScreen.svelte`
+   * Set by `teardown()`, checked by `setup()`'s continuation. `TableScreen.svelte`
    * recreates the orchestrator on every Scene mutation reaching the client —
    * including a brand-new token embedding — via a `$effect` that tears down
-   * the CURRENT orchestrator and builds a new one. If that `$effect` re-runs
-   * again (another Scene mutation) while an earlier `setup()` call is still
-   * awaiting `fog.load()`'s round-trip, `teardown()` runs on THIS instance —
-   * destroying its `_tokenLayer`/`_lightingRenderer` — before that `setup()`
-   * continuation resumes. Without this guard the continuation went on to call
-   * `_onSceneChange` → `this._lightingRenderer.render(...)` against an
-   * already-destroyed renderer, which threw (LightingRenderer's own
-   * `_darknessOverlay.clear()` on a destroyed Graphics — the exact exception
-   * the e2e's console capture recorded). The orchestrator that superseded
-   * this one is unaffected either way (it owns its own renderer), but without
-   * this guard the throw happened AFTER this instance would otherwise have
-   * subscribed to the mirror below, leaking a subscription that keeps firing
-   * into destroyed PIXI objects on every future Scene change. Bailing out
-   * here — before that subscribe call — avoids the leak too.
+   * the CURRENT orchestrator and builds a new one. Bailing out in `setup()`
+   * before it subscribes to the mirror avoids leaking a subscription that
+   * keeps firing into destroyed state if `teardown()` already ran on this
+   * same instance by the time an earlier `setup()` resumes.
    */
   private _destroyed = false;
 
   constructor(opts: SceneOrchestratorOptions) {
     this._scene = opts.scene;
     this._mirror = opts.mirror;
-    this._isGm = opts.isGm;
-    this._userId = opts.userId;
     this._tokenLayer = opts.tokenLayer;
-    this._lightingRenderer = opts.lightingRenderer;
-    this._fogState = opts.fogState;
     this._combatController = opts.combatController;
     this._onGridSizeChange = opts.onGridSizeChange ?? null;
     this._prevGridSize = effectiveGridSize(opts.scene);
@@ -218,24 +150,20 @@ export class SceneOrchestrator {
   // ---------------------------------------------------------------------------
 
   /**
-   * Initialize: load fog from server (player only) and run initial render.
-   * Subscribes to DocumentMirror for reactive updates.
+   * Initialize: subscribe to DocumentMirror for reactive updates and run the
+   * initial grid-size check.
+   *
+   * DEC-SEP-05 (F2): used to be `async` because of the `FogState.load()`
+   * await it ran before subscribing (and the `_destroyed` guard below existed
+   * to protect that await's continuation, see the field's own doc comment).
+   * Nothing here awaits anything any more, but `TableScreen.svelte` still
+   * calls `await orch.setup()` — `await` on a non-Promise is a plain no-op,
+   * so the caller needs no change.
    */
-  async setup(): Promise<void> {
-    // Load persisted fog exploration from server (REQ-VIS-084)
-    if (this._fogState) {
-      await this._fogState.load().catch((err: unknown) => {
-        console.warn("[SceneOrchestrator] fog load failed:", err);
-      });
-    }
-
-    // Defect 2 (Fase 1 e2e): teardown() may have already run on THIS instance
-    // while the await above was in flight — see `_destroyed`'s doc comment.
-    // Resuming past this point would subscribe/render against renderers this
-    // instance's own teardown() already destroyed.
+  setup(): void {
     if (this._destroyed) return;
 
-    // Subscribe to Scene document changes (tokens, walls, lights embedded)
+    // Subscribe to Scene document changes (grid config)
     const offScene = this._mirror.subscribe<SceneDocument>("Scene", (scenes) => {
       const scene = scenes.find((s) => s._id === this._scene._id);
       if (scene) {
@@ -246,7 +174,7 @@ export class SceneOrchestrator {
 
     this._unsubscribes.push(offScene);
 
-    // Run initial vision computation from current mirror state
+    // Run initial check from current mirror state
     const currentScene = this._mirror.getDoc<SceneDocument>("Scene", this._scene._id);
     if (currentScene) {
       this._scene = currentScene;
@@ -259,9 +187,8 @@ export class SceneOrchestrator {
   /**
    * Tear down all subscriptions and owned resources.
    * Call before this scene is replaced by a new one.
-   * Flushes pending fog state to server before destroying.
-   * Idempotent — a second call, or one racing a not-yet-finished `setup()`
-   * (defect 2, Fase 1 e2e), is a no-op past the first.
+   * Idempotent — a second call, or one racing a not-yet-finished `setup()`,
+   * is a no-op past the first.
    */
   teardown(): void {
     if (this._destroyed) return;
@@ -272,15 +199,9 @@ export class SceneOrchestrator {
     }
     this._unsubscribes = [];
 
-    // Flush fog (beforeunload or scene switch — REQ-VIS-083)
-    this._fogState?.persistNow();
-    this._fogState?.destroy();
-
     this._combatController?.destroy();
     this._tokenLayer.destroy();
-    this._lightingRenderer.destroy();
 
-    this._visionComputer.clearAll();
     this._ready = false;
   }
 
@@ -300,53 +221,12 @@ export class SceneOrchestrator {
 
   /**
    * Called whenever the scene document changes in the mirror.
-   * Determines what changed (walls/lights vs tokens only) and recomputes vision.
+   * Detects a grid-size change (R4) and fans it out.
    */
   private _onSceneChange(scene: SceneDocument): void {
-    const walls = scene.walls;
     const tokens = scene.tokens;
-    const ambientLights = (scene as Record<string, unknown>)["lights"] as
-      | Array<{
-          _id: string;
-          x: number;
-          y: number;
-          brightRadius?: number;
-          dimRadius?: number;
-          angle?: number;
-          rotation?: number;
-          color?: string;
-          intensity?: number;
-          enabled?: boolean;
-        }>
-      | undefined;
 
-    // Detect wall changes (any wall mutation busts all caches)
-    const wallHash = _hashWalls(walls);
-    const wallsChanged = wallHash !== this._prevWallHash;
-    if (wallsChanged) {
-      this._prevWallHash = wallHash;
-      this._visionComputer.clearAll();
-    } else {
-      // Selective cache invalidation: only invalidate tokens that moved/changed
-      this._invalidateMovedTokens(tokens);
-    }
-
-    // Build TokenSourceConfig array from scene tokens
-    const tokenSources = this._buildTokenSources(tokens);
-
-    // Build scene bounds
-    const sceneBounds = {
-      x: 0,
-      y: 0,
-      width: scene.width,
-      height: scene.height,
-    };
-
-    // Compute vision state. The SceneDocument type declares `grid` as always
-    // present (Zod default), but minimal/legacy/partial-diff scenes can arrive
-    // without it at runtime — reading `.size` then throws (and a literal `0`
-    // would zero out footprint × gridSize elsewhere). `effectiveGridSize`
-    // guards both — see `sceneCoords.ts`.
+    // See note above: `grid` can be runtime-absent despite the non-nullish type.
     const gridSize = effectiveGridSize(scene);
 
     // R4: the Mestre changed the scene's grid with the scene pencil. Sprites
@@ -360,140 +240,6 @@ export class SceneOrchestrator {
       this._tokenLayer.setGridSize(gridSize, tokens);
       this._onGridSizeChange?.(gridSize);
     }
-
-    const darkness = scene.darkness;
-    const globalLight = scene.globalLight;
-
-    const visionResult = this._visionComputer.compute(
-      walls,
-      tokenSources,
-      sceneBounds,
-      this._isGm,
-      darkness,
-      globalLight,
-    );
-
-    // Add ambient lights from scene (they are embedded in scene doc)
-    if (ambientLights !== undefined && ambientLights.length > 0) {
-      const ambientConfigs = ambientLights.map((l) => buildAmbientLightConfig(l, gridSize));
-      const ambientPolygons = this._visionComputer.computeAmbientLights(
-        ambientConfigs,
-        walls,
-        sceneBounds,
-      );
-      // Merge ambient light polygons into the result
-      visionResult.lightPolygons.push(...ambientPolygons);
-    }
-
-    // A005 fix (ajustes r1, item 24), revised in the Ajustes r1 — Fase 0 review:
-    // REQ-VIS-085 (specs/07-visao-iluminacao-fog.md:238) defines TWO independent
-    // flags, not one — "Cada cena DEVE ter uma flag fog habilitado e uma
-    // política de token vision habilitado: com fog desabilitado, toda a cena é
-    // visível a todos [...]; com token vision habilitado, jogadores são
-    // limitados ao que seus tokens veem." CA-20 (specs/07:524) makes the first
-    // clause unconditional: "Em uma cena com fog desabilitado, todos os
-    // jogadores veem o mapa inteiro sem névoa" — no exception for tokenVision.
-    // The schema doc-comments on both fields (`packages/shared/src/scene.ts`)
-    // independently say the same thing: EITHER flag being false means the
-    // whole map is visible. So restriction requires BOTH flags true:
-    //   - `fogEnabled: false`  → never restricted (CA-20), regardless of
-    //     tokenVision — fixes the "Fog" toggle in the perception window
-    //     (REQ-CEN-021) being a dead switch for players.
-    //   - `tokenVision: false` → never restricted (schema doc-comment on the
-    //     field itself), regardless of fogEnabled — this is what the original
-    //     A005 fix already covered (a brand-new scene, both flags at their
-    //     `false` default, must not paint the player's screen black).
-    // `restrictionActive` stays the single source of truth threaded through
-    // TokenLayer/FogState/LightingRenderer below: GM never restricted; a
-    // player only restricted when the scene opted into BOTH fog and token
-    // vision.
-    // Legacy/partial scenes persisted before these fields existed can carry
-    // `tokenVision`/`fogEnabled` as `undefined` at runtime even though the
-    // type says boolean; coerce so restriction stays off (REQ-VIS-085).
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
-    const restrictionActive = !this._isGm && !!scene.tokenVision && !!scene.fogEnabled;
-
-    // Feed vision polygons to TokenLayer (hides tokens outside vision for players)
-    this._tokenLayer.setVisionPolygons(visionResult.visionPolygons, restrictionActive);
-
-    // Update fog accumulation with current vision polygons (player only, and
-    // only while the scene actually restricts — no point accumulating
-    // exploration for a scene nobody is being masked in).
-    if (this._fogState && restrictionActive) {
-      const rawPolygons = visionResult.visionPolygons.map((vp) => vp.polygon);
-      this._fogState.updateVision(rawPolygons);
-    }
-
-    // Render lighting/fog overlay
-    const fogRenderState =
-      this._fogState && restrictionActive ? this._fogState.getRenderState() : null;
-    this._lightingRenderer.render(visionResult, fogRenderState, false, restrictionActive);
-
-    this._lastVisionResult = visionResult;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Internal — token source building
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Convert scene TokenDocuments to TokenSourceConfig for the VisionStateComputer.
-   * A token is "controlled" if: GM (sees all) OR the token belongs to the local user.
-   */
-  private _buildTokenSources(tokens: TokenDocument[]): TokenSourceConfig[] {
-    // See note above: `grid` can be runtime-absent despite the non-nullish type.
-    const gridSize = effectiveGridSize(this._scene);
-    const sources: TokenSourceConfig[] = [];
-
-    for (const token of tokens) {
-      // Determine if this token is controlled by the local user.
-      // REQ-TOK-013/034/032/USR-013: "controlled" IS "OWNER of the actor" —
-      // there is no separate token-control predicate. GM already bypasses
-      // via `this._isGm` (mirrors the privileged-role short-circuit
-      // `isRolePrivileged` gives the server).
-      const controlled = this._isGm || _isTokenControlledByUser(token, this._userId, this._mirror);
-
-      const vision = buildTokenVisionConfig(token, gridSize);
-
-      const light = buildTokenLightConfig(token._id, token.light, token.x, token.y, gridSize);
-
-      sources.push({
-        id: token._id,
-        x: token.x,
-        y: token.y,
-        vision,
-        light,
-        controlled,
-      });
-    }
-
-    return sources;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Internal — selective cache invalidation
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Detect tokens that moved or changed vision config since last frame
-   * and call VisionStateComputer.invalidateToken for each.
-   * Avoids full cache bust when only tokens move (walls unchanged).
-   */
-  private _invalidateMovedTokens(tokens: TokenDocument[]): void {
-    const nextPositions = new Map<string, string>();
-
-    for (const token of tokens) {
-      const key = token._id;
-      const posKey = `${String(token.x)}:${String(token.y)}:${String(token.rotation)}`;
-      nextPositions.set(key, posKey);
-
-      const prev = this._prevTokenPositions.get(key);
-      if (prev !== posKey) {
-        this._visionComputer.invalidateToken(token._id);
-      }
-    }
-
-    this._prevTokenPositions = nextPositions;
   }
 
   // ---------------------------------------------------------------------------
@@ -509,56 +255,4 @@ export class SceneOrchestrator {
   get sceneId(): string {
     return this._scene._id;
   }
-
-  /** Last vision result (null until first compute). */
-  get lastVisionResult(): VisionStateResult | null {
-    return this._lastVisionResult;
-  }
 }
-
-// ---------------------------------------------------------------------------
-// Module-level helpers (pure functions, easily testable)
-// ---------------------------------------------------------------------------
-
-/**
- * Fast wall set hash used to detect structural wall changes.
- * Matches the same approach used internally by VisionStateComputer.
- */
-function _hashWalls(walls: Array<{ _id: string; doorState?: string }>): string {
-  let h = 0;
-  for (const w of walls) {
-    for (let i = 0; i < w._id.length; i++) {
-      h = (h ^ w._id.charCodeAt(i)) * 31;
-    }
-    if (w.doorState && w.doorState !== "closed") h ^= 0xdeadbeef;
-  }
-  return h.toString(16);
-}
-
-/**
- * Determine if a token is controlled by the given userId.
- *
- * REQ-TOK-013: `TokenDocument` has no `ownership`/`userId` field — those were
- * never real fields the schema defines (REQ-DOC-025 forbids them), so reading
- * them off the wire object always produced `undefined` and this predicate
- * returned `false` for every non-GM user (#164). REQ-TOK-034 is explicit that
- * "controle de token" is not a concept distinct from "OWNER do ator": the
- * posse DEVE ser resolvida sobre o `Actor` referenciado (REQ-TOK-013,
- * REQ-USR-013), the same way `resolveOwnership` on the server does — GM
- * already short-circuits at the call site above, so this only needs the base
- * `getUserLevel` resolution `packages/server/src/documents/ownership.ts`
- * itself wraps (folder-chain INHERIT is server-only defense-in-depth per
- * REQ-TOK-033; this is a client-side hint, never the enforcement).
- */
-function _isTokenControlledByUser(
-  token: TokenDocument,
-  userId: string,
-  mirror: DocumentMirror,
-): boolean {
-  const actor = mirror.getDoc<{ ownership?: Ownership }>("Actor", token.actorId);
-  if (!actor) return false;
-  return getUserLevel(actor.ownership ?? {}, userId) >= OwnershipLevel.OWNER;
-}
-
-// Re-export the hash helper for tests
-export { _hashWalls as hashWallsForTest, _isTokenControlledByUser as isTokenControlledForTest };

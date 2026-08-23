@@ -609,9 +609,9 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
       expect((ack["result"] as Record<string, unknown>)["nonce"]).toBe("player-ping");
     });
 
-    // NOTE: visual canvas rendering (TokenLayer, fog, illumination) requires
-    // a browser context. Manual verification: open http://localhost:33000 in a
-    // browser after running the server. Confirm scene renders with fog+tokens.
+    // NOTE: visual canvas rendering (TokenLayer) requires a browser context.
+    // Manual verification: open http://localhost:33000 in a browser after
+    // running the server. Confirm scene renders with tokens.
   });
 
   // -------------------------------------------------------------------------
@@ -1034,12 +1034,6 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         ids: [docId],
       });
       expect(deleteAck["ok"]).toBe(true);
-    });
-
-    it("M2: fog:get returns ok for a scene", async () => {
-      expect(shared.sceneId).toBeTruthy();
-      const fogAck = await sendQuery(gm, "fog:get", { sceneId: shared.sceneId });
-      expect(fogAck["ok"]).toBe(true);
     });
 
     it("M2: compendium search with level filter works (REQ-CMP-014)", async () => {

@@ -1,21 +1,26 @@
 /**
- * sceneWindows.ts — the four scene dialogs as WINDOWS of the window manager
+ * sceneWindows.ts — the scene dialogs as WINDOWS of the window manager
  * (spec 44 §5.7, DEC-CEN-09).
  *
  * The drawer is 300px wide and never widens (REQ-GAV-012, DEC-GAV-04), so anything
- * with a form in it opens OUTSIDE the drawer. Until this module existed the three
- * dialogs that already existed in `components/scenes/` were mounted inline by the
+ * with a form in it opens OUTSIDE the drawer. Until this module existed the dialogs
+ * that already existed in `components/scenes/` were mounted inline by the
  * tab as their own `<dialog>` + backdrop — a second, private window system living
  * next to `lib/windows/window-manager.ts` (REQ-UIF-009). This module is the wiring
  * the plan asked for: the same components, opened as real windows.
  *
- * Four windows, four singleton keys (REQ-UIF-014 — asking twice focuses the one
+ * Three windows, three singleton keys (REQ-UIF-014 — asking twice focuses the one
  * that is already open instead of stacking a duplicate):
- *   - create      (REQ-CEN-060)  one per world, no scene attached yet;
- *   - config      (REQ-CEN-061)  one per scene;
- *   - perception  (REQ-CEN-062)  one per scene, reachable from the config window
- *                                and from the head of the panel;
- *   - delete      (REQ-CEN-063)  one per scene.
+ *   - create  (REQ-CEN-060)  one per world, no scene attached yet;
+ *   - config  (REQ-CEN-061)  one per scene;
+ *   - delete  (REQ-CEN-063)  one per scene.
+ *
+ * DEC-SEP-05 (F2, 2026-08-23): a fourth window used to live here — perception
+ * (REQ-CEN-062, `ScenePerceptionDialog`), the UI that tuned darkness/fog/global
+ * light/token vision on a Scene. It was removed along with the rest of the
+ * fog/vision pipeline (`docs/design/separacao-repos/design.md`); the fields it
+ * used to write (`darkness`, `fogEnabled`, `globalLight`, `globalLightThreshold`,
+ * `tokenVision`) stay on the Scene schema, inert, for the eventual rebuild.
  *
  * What the delete confirmation SAYS (REQ-CEN-063/064) is a pure rule and lives in
  * `sceneDelete.ts`, so the confirmation component can read it without importing this
@@ -28,30 +33,24 @@ import type { SceneDocument } from "@fusion/shared";
 import { windowManager } from "../windows/window-manager.js";
 import { t } from "../i18n/i18n.js";
 import SceneCreateDialog from "../../components/scenes/SceneCreateDialog.svelte";
-import ScenePerceptionDialog from "../../components/scenes/ScenePerceptionDialog.svelte";
 import SceneDeleteConfirm from "../../components/scenes/SceneDeleteConfirm.svelte";
 
 // ---------------------------------------------------------------------------
 // i18n keys
 // ---------------------------------------------------------------------------
 
-/** Window titles and the two doors into the perception window. */
+/** Window titles. */
 export const SCENE_WINDOW_KEYS = {
   create: "FUSION.Scene.Window.Create",
   config: "FUSION.Scene.Window.Config",
-  perception: "FUSION.Scene.Window.Perception",
   delete: "FUSION.Scene.Window.Delete",
-  /** The door inside the configuration window (REQ-CEN-062). */
-  openPerception: "FUSION.Scene.Window.OpenPerception",
-  /** The door on the head of the panel (REQ-CEN-062). */
-  headPerception: "FUSION.Scene.Window.HeadPerception",
 } as const;
 
 // ---------------------------------------------------------------------------
 // Singleton keys
 // ---------------------------------------------------------------------------
 
-export type SceneWindowKind = "create" | "config" | "perception" | "delete";
+export type SceneWindowKind = "create" | "config" | "delete";
 
 /**
  * The key that makes a second request focus the open window instead of opening a
@@ -67,7 +66,6 @@ export function sceneWindowKey(kind: SceneWindowKind, sceneId?: string | null): 
 const SIZES: Readonly<Record<SceneWindowKind, { width: number; height: number }>> = {
   create: { width: 460, height: 520 },
   config: { width: 460, height: 560 },
-  perception: { width: 500, height: 480 },
   delete: { width: 420, height: 380 },
 };
 
@@ -131,26 +129,7 @@ export function openSceneConfigWindow(socket: Socket, scene: SceneDocument): voi
       socket,
       onClose: close,
       onSuccess: close,
-      // REQ-CEN-062: one of the two doors into perception. Injected, so the form
-      // never imports this module back (and there is no import cycle to reason about).
-      onOpenPerception: () => {
-        openScenePerceptionWindow(socket, scene);
-      },
     },
-  });
-}
-
-/** REQ-CEN-062: darkness, global light, threshold and token vision, in a window. */
-export function openScenePerceptionWindow(socket: Socket, scene: SceneDocument): void {
-  const close = (): void => {
-    closeSceneWindow("perception", scene._id);
-  };
-  windowManager.open({
-    singletonKey: sceneWindowKey("perception", scene._id),
-    title: t(SCENE_WINDOW_KEYS.perception, { name: scene.name }),
-    position: SIZES.perception,
-    component: ScenePerceptionDialog,
-    componentProps: { scene, socket, onClose: close, onSuccess: close },
   });
 }
 
