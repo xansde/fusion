@@ -107,7 +107,10 @@ describe("DEC-MC-01 — Elfo Ancião sem dedicação de multiclasse", () => {
   });
 
   it("a herança continua no pack, sem nenhuma concessão ativa", () => {
-    expect(ancientElf, "Ancient Elf sumiu do heritages-core — desativar não é apagar").toBeDefined();
+    expect(
+      ancientElf,
+      "Ancient Elf sumiu do heritages-core — desativar não é apagar",
+    ).toBeDefined();
     const grants = (ancientElf?.system?.rules ?? []).filter(
       (r) => r.kind === "grant-item" || r.raw?.key === "GrantItem",
     );

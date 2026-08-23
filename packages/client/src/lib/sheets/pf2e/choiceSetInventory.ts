@@ -55,12 +55,7 @@
  */
 
 /** Estado de tratamento de uma escolha do vendor no builder. */
-export type ChoiceSetState =
-  | "eixo"
-  | "sub-slot"
-  | "fora-do-builder"
-  | "pendente"
-  | "desativado";
+export type ChoiceSetState = "eixo" | "sub-slot" | "fora-do-builder" | "pendente" | "desativado";
 
 /**
  * Chave: `<pack>/<nome do documento>/<flag do ChoiceSet>` (flag `-` quando o

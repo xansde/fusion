@@ -18,15 +18,15 @@ que vai cair.
 
 ## O que a herança fazia (e por que não funcionava)
 
-Pelas regras: *"Escolha uma classe diferente da sua. Você ganha o talento de dedicação
-de multiclasse daquela classe, mesmo sem cumprir o pré-requisito de nível."*
+Pelas regras: _"Escolha uma classe diferente da sua. Você ganha o talento de dedicação
+de multiclasse daquela classe, mesmo sem cumprir o pré-requisito de nível."_
 
 O vendor modela isso como um par de rule elements:
 
-| Rule element | Papel | Estado no Fusion |
-| --- | --- | --- |
-| `ChoiceSet` (flag `ancientElf`) | pergunta ao jogador **qual** dedicação | **nunca convertido** — a escolha jamais chegou a aparecer na ficha |
-| `GrantItem` → `{item\|flags.system.rulesSelections.ancientElf}` | concede **o que foi escolhido** | ativo, apontando para uma escolha que ninguém faz |
+| Rule element                                                    | Papel                                  | Estado no Fusion                                                   |
+| --------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| `ChoiceSet` (flag `ancientElf`)                                 | pergunta ao jogador **qual** dedicação | **nunca convertido** — a escolha jamais chegou a aparecer na ficha |
+| `GrantItem` → `{item\|flags.system.rulesSelections.ancientElf}` | concede **o que foi escolhido**        | ativo, apontando para uma escolha que ninguém faz                  |
 
 O resultado prático: a concessão apontava para um placeholder que nunca era resolvido.
 Toda vez que a herança entrava numa ficha, o `grantMaterializer` do client registrava a

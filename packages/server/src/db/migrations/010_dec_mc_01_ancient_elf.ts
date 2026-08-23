@@ -51,9 +51,7 @@ function disableAncientElfGrant(doc: EmbeddedLike): boolean {
   const rules = doc.system?.rules;
   if (!Array.isArray(rules)) return false;
 
-  const index = rules.findIndex(
-    (r) => (r as { uuid?: string } | null)?.uuid === GRANT_UUID,
-  );
+  const index = rules.findIndex((r) => (r as { uuid?: string } | null)?.uuid === GRANT_UUID);
   if (index === -1) return false; // já migrado, ou nunca teve a concessão
 
   const [rule] = rules.splice(index, 1);
