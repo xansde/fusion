@@ -44,6 +44,7 @@ import { session } from "../../session.svelte.js";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { footprintOf, type TokenFootprint } from "./footprint.js";
+import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
 import {
   tokenPixelSize,
   tokenCenter,
@@ -402,21 +403,32 @@ export class TokenSprite {
   }
 
   /**
-   * Update LOD visibility based on current camera zoom.
-   * Called by TokenLayer on every zoom change.
+   * Update LOD visibility based on current camera zoom AND the user's own
+   * display preferences (REQ-TOK-074/075, TK080, DEC-TOK-11) — a pure AND,
+   * never an OR: the preference only ever SUBTRACTS from what the zoom-based
+   * LOD would already show, it can never reveal a nameplate/bar the LOD (or,
+   * further upstream, the server's redaction) withheld. Called by
+   * TokenLayer on every zoom change AND whenever the user toggles a display
+   * preference (tokenDisplayPrefsStore.svelte.ts).
    */
   updateLod(zoom: number): void {
     const lod = computeLod(zoom);
+    const prefs = tokenDisplayPrefs.current;
+    const effective: LodState = {
+      showNameplate: lod.showNameplate && prefs.showNames,
+      showBars: lod.showBars && prefs.showBars,
+      showBarDetail: lod.showBarDetail && prefs.showBars,
+    };
     if (
-      lod.showNameplate === this._lastLod.showNameplate &&
-      lod.showBars === this._lastLod.showBars &&
-      lod.showBarDetail === this._lastLod.showBarDetail
+      effective.showNameplate === this._lastLod.showNameplate &&
+      effective.showBars === this._lastLod.showBars &&
+      effective.showBarDetail === this._lastLod.showBarDetail
     ) {
       return;
     }
-    this._lastLod = lod;
-    this._nameplate.visible = lod.showNameplate;
-    this._barsContainer.visible = lod.showBars;
+    this._lastLod = effective;
+    this._nameplate.visible = effective.showNameplate;
+    this._barsContainer.visible = effective.showBars;
   }
 
   /**

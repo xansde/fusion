@@ -51,6 +51,7 @@ import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { TokenSprite } from "./TokenSprite.js";
 import type { VisionPolygonResult } from "../vision/vision-state.js";
+import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -133,6 +134,15 @@ export class TokenLayer {
   private _lastZoom = 1;
 
   /**
+   * The display-preferences object last applied to every sprite (for LOD) —
+   * TK080/REQ-TOK-074: `tokenDisplayPrefsStore.svelte.ts` hands out a NEW
+   * object every time the user toggles a preference, so a reference
+   * inequality here is exactly "the preference changed since last tick",
+   * with no extra event wiring needed from the Configurações drawer.
+   */
+  private _lastDisplayPrefs = tokenDisplayPrefs.current;
+
+  /**
    * Current vision polygons for the player (set via setVisionPolygons).
    * Used to filter token visibility: tokens outside vision are hidden for players.
    * REQ-VIS-080: explored-but-not-visible area hides tokens.
@@ -202,9 +212,13 @@ export class TokenLayer {
       sprite.tick(deltaMs);
     }
 
-    // Update LOD only when zoom changes by a non-trivial amount
-    if (Math.abs(zoom - this._lastZoom) > 0.01) {
+    // Update LOD when zoom changes by a non-trivial amount, OR when the
+    // user's display preferences changed (TK080) — either one can move the
+    // effective (zoom AND preference) visibility TokenSprite.updateLod computes.
+    const prefsChanged = tokenDisplayPrefs.current !== this._lastDisplayPrefs;
+    if (Math.abs(zoom - this._lastZoom) > 0.01 || prefsChanged) {
       this._lastZoom = zoom;
+      this._lastDisplayPrefs = tokenDisplayPrefs.current;
       for (const sprite of this._sprites.values()) {
         sprite.updateLod(zoom);
       }

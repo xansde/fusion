@@ -3,12 +3,19 @@
    * PreferencesSection.svelte — "Minhas preferências" (spec 37 §5.3, G101).
    *
    * The one section every seat sees, privileged or not (REQ-CFG-005): the three audio
-   * channels (REQ-CFG-020, REQ-AUD-015) and the client's notification toggles
-   * (REQ-CFG-021). Deliberately no `socket` prop and no import of `sendOp`/`socket.io` —
-   * everything here reads and writes `lib/settings/clientPrefs.ts`, which never leaves
-   * the device (REQ-CFG-022, REQ-CFG-072, RNF-CFG-01). Deliberately no locale or theme
-   * control either (REQ-CFG-023) — those are portable, server-side preferences owned by
-   * a different section entirely.
+   * channels (REQ-CFG-020, REQ-AUD-015), the client's notification toggles
+   * (REQ-CFG-021), and — since TK080 (spec 41-token.md REQ-TOK-074, DEC-TOK-11) — the
+   * two token display toggles (names, bars). Deliberately no `socket` prop and no import
+   * of `sendOp`/`socket.io` — everything here reads and writes `lib/settings/clientPrefs.ts`,
+   * which never leaves the device (REQ-CFG-022, REQ-CFG-072, RNF-CFG-01). Deliberately no
+   * locale or theme control either (REQ-CFG-023) — those are portable, server-side
+   * preferences owned by a different section entirely.
+   *
+   * The token-display toggle ALSO writes through `tokenDisplayPrefsStore.svelte.ts` (not
+   * just `clientPrefs.ts` directly) so the already-rendered canvas updates immediately —
+   * see that module's docstring. REQ-TOK-075/076: this can only ever hide a name/bar the
+   * server already emitted, never reveal one it did not — the store is read-only from the
+   * canvas's side.
    */
 
   import { t } from "../../lib/i18n/i18n.js";
@@ -17,8 +24,10 @@
     setNotificationPreference,
     setVolumeChannel,
     type NotificationPreferences,
+    type TokenDisplayPreferences,
     type VolumeChannel,
   } from "../../lib/settings/clientPrefs.js";
+  import { setTokenDisplayPref } from "../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
 
   interface Props {
     worldId: string;
@@ -51,6 +60,10 @@
 
   function handleNotificationToggle(key: keyof NotificationPreferences, checked: boolean): void {
     prefs = setNotificationPreference(worldId, userId, key, checked);
+  }
+
+  function handleTokenDisplayToggle(key: keyof TokenDisplayPreferences, checked: boolean): void {
+    prefs = setTokenDisplayPref(worldId, userId, key, checked);
   }
 </script>
 
@@ -102,6 +115,32 @@
         }}
       />
       <span>{t("FUSION.Settings.Preferences.Notifications.TurnAlert")}</span>
+    </label>
+  </fieldset>
+
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Settings.Preferences.TokenDisplayTitle")}</legend>
+
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        checked={prefs.tokenDisplay.showNames}
+        onchange={(event) => {
+          handleTokenDisplayToggle("showNames", (event.currentTarget as HTMLInputElement).checked);
+        }}
+      />
+      <span>{t("FUSION.Settings.Preferences.TokenDisplay.ShowNames")}</span>
+    </label>
+
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        checked={prefs.tokenDisplay.showBars}
+        onchange={(event) => {
+          handleTokenDisplayToggle("showBars", (event.currentTarget as HTMLInputElement).checked);
+        }}
+      />
+      <span>{t("FUSION.Settings.Preferences.TokenDisplay.ShowBars")}</span>
     </label>
   </fieldset>
 </div>

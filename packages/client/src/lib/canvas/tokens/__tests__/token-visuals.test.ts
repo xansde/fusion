@@ -5,6 +5,8 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import {
   dispositionColor,
   DISPOSITION_COLORS,
@@ -337,10 +339,25 @@ describe("formatElevation", () => {
 // tokenAlpha
 // ---------------------------------------------------------------------------
 
+// TK083 (spec 41-token.md REQ-TOK-085, CA-TOK-018): `tokenAlpha`'s signature
+// is the whole proof — it takes `hidden`/`isGm`/`baseAlpha` and NOTHING about
+// whether the local user controls (owns) the token. A token the viewer does
+// not control is never dimmed/desaturated for that reason: it either arrives
+// and draws like any other (this describe block), or it does not arrive at
+// all (REQ-TOK-051, server redaction) — there is no third, degraded state.
 describe("tokenAlpha", () => {
   it("returns baseAlpha for visible token", () => {
     expect(tokenAlpha(false, false, 1)).toBe(1);
     expect(tokenAlpha(false, true, 0.8)).toBeCloseTo(0.8);
+  });
+
+  it("REQ-TOK-085/CA-TOK-018: a visible token draws at full alpha whether or not the viewer controls it — no third parameter exists for that", () => {
+    // Same call for a token the viewer owns and one it does not: `tokenAlpha`
+    // has no "controlled" input to even branch on.
+    const uncontrolledTokenAlpha = tokenAlpha(false, false, 1);
+    const controlledTokenAlpha = tokenAlpha(false, false, 1);
+    expect(uncontrolledTokenAlpha).toBe(controlledTokenAlpha);
+    expect(uncontrolledTokenAlpha).toBe(1);
   });
 
   it("returns HIDDEN_ALPHA for hidden token visible to GM", () => {
@@ -431,5 +448,23 @@ describe("isInViewport", () => {
   it("returns true when just touching right edge", () => {
     // token at x=750, width=50: tokenX + width = 800 > vpLeft=0 and tokenX=750 < vpRight=800
     expect(isInViewport(750, 100, 50, 50, 0, 0, 800, 600)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TK084 (spec 41-token.md REQ-TOK-083, DEC-TOK-19) — condition icons are not
+// drawn on the token.
+// ---------------------------------------------------------------------------
+
+describe("REQ-TOK-083/DEC-TOK-19: the token never draws condition icons", () => {
+  it("TokenSprite.ts has no condition-icon drawing code — a structural guarantee, not just this test run", () => {
+    // DEC-TOK-19 (spec 41-token.md, TK002 Fase 0 amending REQ-CNV-029, which
+    // is retired): condition icons on the token were never built and are not
+    // reintroduced. Where a condition shows is a decision for whoever owns
+    // the HUD (REQ-SYS-043 still registers the condition itself) — never this
+    // module.
+    const path = fileURLToPath(new URL("../TokenSprite.ts", import.meta.url));
+    const source = readFileSync(path, "utf-8");
+    expect(source).not.toMatch(/condition/i);
   });
 });
