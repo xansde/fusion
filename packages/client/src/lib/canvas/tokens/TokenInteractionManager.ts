@@ -39,14 +39,15 @@ import type {
   DocCreatePayload,
   DocDeletePayload,
 } from "@fusion/shared";
-import { createDocumentId } from "@fusion/shared";
+import { createDocumentId, resolveEffectiveActor } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
 import type { TokenLayer } from "./TokenLayer.js";
-import { footprintOf } from "./footprint.js";
+import { footprintOf, type FootprintActorInput } from "./footprint.js";
+import type { ActorDocument } from "../../actors/actorDirectory.js";
 import {
   canMoveToken,
   snapTokenToGrid,
@@ -166,8 +167,8 @@ export class TokenInteractionManager {
    * token with no actor is no longer a representable state (DEC-TOK-04) — and
    * the payload carries no `name`/`texture`/`width`/`height` of its own: name
    * and art come from the actor (REQ-TOK-060, REQ-CNV-091), and the footprint
-   * is a schema-less placeholder (`footprintOf`, TK041) used here only to
-   * center the drop.
+   * (`footprintOf`, TK041, REQ-TOK-012/017) is derived from the actor's size
+   * category, used here only to center the drop.
    *
    * @param actorId  The Actor this token is linked to.
    */
@@ -183,7 +184,7 @@ export class TokenInteractionManager {
     const centerSy = viewRect.height / 2;
     const world = screenToWorld(centerSx, centerSy, camera);
 
-    const footprint = footprintOf(undefined, undefined);
+    const footprint = footprintOf(undefined, this._getActor(actorId));
     const snapped = snapTokenToGrid(
       world.x - (footprint.width * this._opts.gridConfig.size) / 2,
       world.y - (footprint.height * this._opts.gridConfig.size) / 2,
@@ -397,7 +398,7 @@ export class TokenInteractionManager {
         const token = this._getToken(this._pointerDown.tokenId);
         if (!token) return;
 
-        const footprint = footprintOf(token, undefined);
+        const footprint = footprintOf(token, this._getEffectiveActor(token));
         const snapped = snapTokenToGrid(
           world.x - (footprint.width * this._opts.gridConfig.size) / 2,
           world.y - (footprint.height * this._opts.gridConfig.size) / 2,
@@ -646,6 +647,38 @@ export class TokenInteractionManager {
   private _getToken(tokenId: string): TokenDocument | undefined {
     const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
     return scene?.tokens.find((t) => t._id === tokenId);
+  }
+
+  /**
+   * TK041 (REQ-TOK-012, REQ-TOK-043): the base Actor `footprintOf` derives a
+   * footprint from, for snapping when adding a brand-new token (no
+   * `TokenDocument` exists yet, so there is no delta to apply). `undefined`
+   * when the actor is not (yet) in the mirror — `footprintOf` already treats
+   * that the same as "no size declared" and falls back to 1×1.
+   */
+  private _getActor(actorId: string): FootprintActorInput | undefined {
+    return this._opts.mirror.getDoc<ActorDocument>("Actor", actorId);
+  }
+
+  /**
+   * F187-4 (TK041, REQ-TOK-012/017/043, RNF-TOK-01): the EFFECTIVE actor for
+   * an EXISTING token, used to derive the drag-snap footprint. Unlike
+   * `_getActor`, this applies the token's `actorDelta` through the one
+   * shared function (`resolveEffectiveActor`, `@fusion/shared`) — the same
+   * function `TokenSprite._resolveActor` uses for the sprite's own footprint
+   * and hitArea. Reading the raw base actor here (the bug this fixes) made
+   * an unlinked token's drag-snap footprint disagree with what the sprite
+   * itself drew, whenever the delta changed `system.traits.size`.
+   * `undefined` when the base actor is not (yet) in the mirror.
+   */
+  private _getEffectiveActor(token: TokenDocument): FootprintActorInput | undefined {
+    const baseActor = this._opts.mirror.getDoc<ActorDocument>("Actor", token.actorId);
+    if (!baseActor) return undefined;
+    return resolveEffectiveActor(token, {
+      name: baseActor.name,
+      img: baseActor.img ?? null,
+      system: baseActor.system ?? {},
+    });
   }
 
   private _getTokenIdFromTarget(target: Container | null): string | null {

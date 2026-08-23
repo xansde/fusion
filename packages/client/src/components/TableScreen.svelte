@@ -45,6 +45,7 @@
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
+  import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
@@ -261,6 +262,13 @@
       cleanupChatSync = attachChatSync(sock, session.worldInfo?.id ?? "");
       cleanupChatMessageSync?.();
       cleanupChatMessageSync = attachChatMessageSync(sock);
+
+      // TK041 (REQ-SYS-009, spec 41-token.md DEC-TOK-03): the active system's
+      // size→footprint table — every TokenSprite render and every drag/add
+      // snap (TokenInteractionManager) reads it through footprintOf(). Fire
+      // once per seat; fails open (empty map → every token stays 1×1) so a
+      // slow or absent answer never blocks the canvas.
+      void ensureFootprintRegistry(sock);
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).

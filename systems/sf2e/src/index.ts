@@ -151,6 +151,18 @@ export const sf2eSystem = defineSystem(
       { lang: "pt-BR", name: "Português (Brasil)", path: "lang/pt-BR.json" },
       { lang: "en", name: "English", path: "lang/en.json" },
     ],
+    // REQ-SYS-009 (spec 15, DEC-TOK-03/D7) — same size categories and
+    // space-per-size rule as systems/pf2e (both share the `traits.size` enum
+    // from schema-primitives.ts / SIZES); see systems/pf2e/src/index.ts for
+    // the full rationale.
+    sizeToFootprint: {
+      tiny: { width: 1, height: 1 },
+      sm: { width: 1, height: 1 },
+      med: { width: 1, height: 1 },
+      lg: { width: 2, height: 2 },
+      huge: { width: 3, height: 3 },
+      grg: { width: 4, height: 4 },
+    },
   },
 
   (registrar) => {

@@ -14,7 +14,7 @@
  *   - Animation interpolation: lerp position over time (for remote updates).
  */
 
-import type { TokenDocument } from "@fusion/shared";
+import type { TokenDocument, ActorAttitude } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Disposition color map (REQ-CNV-027)
@@ -30,21 +30,40 @@ export const DISPOSITION_COLORS: Record<DispositionValue, number> = {
   "1": 0x33bc4e, // friendly — green
 };
 
-/** Secret / no-actor disposition ring color. */
-export const SECRET_RING_COLOR = 0x555555;
+/**
+ * Return the ring border color for a token's disposition.
+ *
+ * Disposition -1 = hostile, 0 = neutral, 1 = friendly — exactly three values
+ * (DEC-TOK-12, REQ-TOK-080). `SECRET_RING_COLOR` — the pre-TK042 fallback for
+ * "any other value", which was also what painted a token with no actor
+ * (DEC-TOK-04 has since made that state unrepresentable) — is gone: there is
+ * no fourth case left to fall back to, so the parameter type itself rules it
+ * out at compile time instead of a runtime branch nothing can reach.
+ */
+export function dispositionColor(disposition: DispositionValue): number {
+  return DISPOSITION_COLORS[disposition];
+}
 
 /**
- * Return the ring border color for a token.
- * When `showRing` is false, callers should skip rendering the ring entirely.
+ * Resolve the disposition a token actually draws with (REQ-TOK-080, TK042):
+ * the token's own `disposition` when set, else herdada do ator — the base
+ * Actor's attitude towards the party (spec 42 §5.5, `flags.fusion.attitude`,
+ * REQ-NPC-037), else neutral when the actor carries none (e.g. a player
+ * character, which has no attitude flag — party members are never "towards
+ * the party").
  *
- * Disposition -1 = hostile, 0 = neutral, 1 = friendly.
- * Any other value → secret gray.
+ * `attitude` maps 1:1 onto disposition — the same three-way split (spec 42's
+ * enemy/neutral/ally is spec 41's hostile/neutral/friendly, DEC-TOK-12) — so
+ * this is the inheritance REQ-TOK-080 requires, not a new vocabulary.
  */
-export function dispositionColor(disposition: number): number {
-  if (disposition === -1) return DISPOSITION_COLORS[-1];
-  if (disposition === 0) return DISPOSITION_COLORS[0];
-  if (disposition === 1) return DISPOSITION_COLORS[1];
-  return SECRET_RING_COLOR;
+export function resolveDisposition(
+  tokenDisposition: DispositionValue | null | undefined,
+  actorAttitude: ActorAttitude | undefined,
+): DispositionValue {
+  if (tokenDisposition !== null && tokenDisposition !== undefined) return tokenDisposition;
+  if (actorAttitude === "enemy") return -1;
+  if (actorAttitude === "ally") return 1;
+  return 0;
 }
 
 // ---------------------------------------------------------------------------

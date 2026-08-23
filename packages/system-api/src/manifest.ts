@@ -6,6 +6,7 @@
  *              documentTypes, languages.
  * REQ-SYS-004: Optional fields: grid, initiative, primaryBarAttribute, secondaryBarAttribute.
  * REQ-SYS-005: Manifest must declare packs[].
+ * REQ-SYS-009: Optional field: sizeToFootprint (size category → token footprint).
  */
 import { z } from "zod";
 import semver from "semver";
@@ -127,6 +128,27 @@ export const SystemManifestSchema = z.object({
 
   /** Path to the secondary token bar attribute. */
   secondaryBarAttribute: z.string().optional(),
+
+  /**
+   * Size category → token footprint (grid cells occupied), e.g.
+   * `{ med: { width: 1, height: 1 }, lg: { width: 2, height: 2 } }`.
+   *
+   * REQ-SYS-009 (spec 15, emenda obrigada por 41-token.md DEC-TOK-03): the
+   * `TokenDocument` carries no footprint field of its own — the engine derives
+   * occupied cells from the effective actor's size category through this
+   * mapping, never arbitrating the conversion itself. Optional; a system that
+   * declares nothing produces no multi-cell footprint (every token occupies
+   * one cell).
+   */
+  sizeToFootprint: z
+    .record(
+      z.string(),
+      z.object({
+        width: z.number().int().positive(),
+        height: z.number().int().positive(),
+      }),
+    )
+    .optional(),
 });
 
 export type SystemManifest = z.infer<typeof SystemManifestSchema>;

@@ -36,8 +36,8 @@ import {
   type Texture,
 } from "pixi.js";
 
-import type { TokenDocument } from "@fusion/shared";
-import { resolveEffectiveActor } from "@fusion/shared";
+import type { TokenDocument, ActorAttitude } from "@fusion/shared";
+import { resolveEffectiveActor, readActorAttitude } from "@fusion/shared";
 import { resolveAssetUrl } from "../../assets/assetApi.js";
 import { fusionApi } from "../../api.js";
 import { session } from "../../session.svelte.js";
@@ -60,6 +60,7 @@ import {
   barYOffset,
   resolveBarAttribute,
   barAttributeEquals,
+  resolveDisposition,
   computeLod,
   animDuration,
   stepAnimation,
@@ -124,6 +125,15 @@ export class TokenSprite {
   private _mirror: DocumentMirror;
   /** The effective actor resolved from `_doc` — recomputed whenever `_doc` changes. */
   private _actor: TokenSpriteActor | undefined;
+  /**
+   * The base Actor's attitude towards the party (spec 42 §5.5), read
+   * straight off the base actor — never through `resolveEffectiveActor`,
+   * because attitude is not a delta field (DEC-DOC-08's patch has no `flags`)
+   * and is a party-wide trait of the actor's identity, unaffected by an
+   * unlinked token's overrides. `undefined` when the actor carries none (a
+   * player character, or an actor not yet in the mirror) — TK042/REQ-TOK-080.
+   */
+  private _actorAttitude: ActorAttitude | undefined;
   /** This token's footprint (grid cells) — recomputed alongside `_actor`. */
   private _footprint: TokenFootprint;
 
@@ -165,6 +175,7 @@ export class TokenSprite {
     this._isGm = isGm;
     this._mirror = mirror;
     this._actor = this._resolveActor(doc);
+    this._actorAttitude = this._resolveAttitude(doc);
     this._footprint = footprintOf(doc, this._actor);
 
     this.container = new Container();
@@ -285,10 +296,12 @@ export class TokenSprite {
   update(newDoc: TokenDocument, gridSize: number): void {
     const oldDoc = this._doc;
     const oldActor = this._actor;
+    const oldAttitude = this._actorAttitude;
     const oldFootprint = this._footprint;
     this._doc = newDoc;
     this._gridSize = gridSize;
     this._actor = this._resolveActor(newDoc);
+    this._actorAttitude = this._resolveAttitude(newDoc);
     this._footprint = footprintOf(newDoc, this._actor);
 
     const { pixelW, pixelH } = tokenPixelSize(
@@ -363,6 +376,7 @@ export class TokenSprite {
       this._footprint.width !== oldFootprint.width ||
       this._footprint.height !== oldFootprint.height ||
       newDoc.disposition !== oldDoc.disposition ||
+      this._actorAttitude !== oldAttitude ||
       newName !== oldName ||
       newDoc.elevation !== oldDoc.elevation ||
       newDoc.hidden !== oldDoc.hidden ||
@@ -521,6 +535,17 @@ export class TokenSprite {
   }
 
   /**
+   * The base Actor's attitude towards the party, read straight off the base
+   * document (never through `resolveEffectiveActor` — `flags` is not a delta
+   * field, DEC-DOC-08). `undefined` when the actor is not in the mirror yet
+   * or carries no attitude flag (e.g. a player character) — TK042/REQ-TOK-080.
+   */
+  private _resolveAttitude(doc: TokenDocument): ActorAttitude | undefined {
+    const baseActor = this._mirror.getDoc<ActorDocument>("Actor", doc.actorId);
+    return baseActor ? readActorAttitude(baseActor) : undefined;
+  }
+
+  /**
    * The name to draw: `doc.name` when set, else the effective actor's name
    * (REQ-TOK-060 — `null` means "herda do ator"), else empty.
    *
@@ -629,14 +654,15 @@ export class TokenSprite {
     const g = this._ringGraphics;
     g.clear();
 
-    // TK024/REQ-TOK-080: `null` means "herda do ator" — resolving that
-    // inheritance is TK042 (Fase 3), out of this task's scope. Until then a
-    // null disposition falls back to neutral (0), the value the schema
-    // defaulted to before TK024 made the field nullable (DEC-TOK-12: three
-    // real dispositions, `secret` is not one of them) — NOT the gray
-    // `SECRET_RING_COLOR`, which `dispositionColor` only reaches for a
-    // genuinely out-of-range number and which TK042 removes outright.
-    const color = dispositionColor(this._doc.disposition ?? 0);
+    // TK024/TK042, REQ-TOK-080: `null` means "herda do ator" — the base
+    // Actor's attitude towards the party (spec 42 §5.5, `flags.fusion.attitude`),
+    // which maps 1:1 onto disposition (enemy/neutral/ally ↔ hostile/neutral/
+    // friendly, DEC-TOK-12). An actor with no attitude flag at all (a player
+    // character — party members have no attitude "towards the party") falls
+    // back to neutral (0), never the gray `SECRET_RING_COLOR`, which TK042
+    // removed outright (there is no fourth case left: `dispositionColor`
+    // only accepts -1/0/1 now).
+    const color = dispositionColor(resolveDisposition(this._doc.disposition, this._actorAttitude));
     g.roundRect(
       RING_THICKNESS / 2,
       RING_THICKNESS / 2,
