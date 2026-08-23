@@ -259,7 +259,7 @@ export function validateTokenUpdateDerivedFields(
  *
  * Only the literal `"npc"` subtype is special-cased, on purpose: REQ-DOC-061
  * names `npc` specifically (mirrored by DEC-DOC-12's "seis esqueletos"
- * example), not "any non-playable subtype" — `hazard`/`antagonista`/`loot`
+ * example), not "any non-playable subtype" — `hazard`/`loot`
  * are deliberately left at the `true` (linked) default this function falls
  * back to. This is a narrower rule than `documents/knowledge.ts`'s
  * `NON_PLAYABLE_SUBTYPES`, which answers a different question (who

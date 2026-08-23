@@ -2,7 +2,7 @@
 
 VTT (virtual tabletop) web próprio, construído em **clean-room** e inspirado no comportamento do Foundry VTT. O servidor roda na máquina do GM; os jogadores conectam pelo navegador.
 
-Sistemas de jogo suportados: **Pathfinder 2e (remaster)**, **Starfinder 2e** e **Etmos RPG**.
+Sistemas de jogo suportados: **Pathfinder 2e (remaster)** e **Starfinder 2e**. (Etmos RPG: legado, vive na linha `build/app`.)
 
 ## Pré-requisitos
 
@@ -77,7 +77,7 @@ packages/
   client/       Svelte 5 (Runes) + Vite + PIXI.js v8
 systems/
   engine-2e/    Núcleo de regras 2e, compartilhado entre PF2e e SF2e
-  pf2e/  sf2e/  etmos/  stub/
+  pf2e/  sf2e/  stub/
 tools/
   importer-pf2e/  translate-packs/  release/  boundary-test/
 specs/          Especificações (fonte de verdade — índice em specs/README.md)
@@ -115,4 +115,4 @@ Ver [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [MIT](LICENSE).
 
-A licença cobre o **código** deste repositório. Conteúdo de sistemas de jogo tem regime próprio: regras de Pathfinder 2e e Starfinder 2e são publicadas pela Paizo sob suas próprias licenças, e o material do Etmos RPG pertence à Editora Balde Galáctico. Ver `specs/26-licencas-e-legal.md`.
+A licença cobre o **código** deste repositório. Conteúdo de sistemas de jogo tem regime próprio: regras de Pathfinder 2e e Starfinder 2e são publicadas pela Paizo sob suas próprias licenças. (O material do Etmos RPG, de propriedade da Editora Balde Galáctico, pertence ao sistema legado — ver nota acima.) Ver `specs/26-licencas-e-legal.md`.

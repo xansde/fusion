@@ -15,9 +15,6 @@
 
 import { resolveEffectiveActor } from "@fusion/shared";
 
-/** Actor subtypes served by the Etmos sheets rather than the default ones. */
-const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
-
 /** The only fields this module reads off a token. */
 export interface TokenSheetTokenInput {
   readonly _id: string;
@@ -37,8 +34,6 @@ export interface TokenSheetPlan {
   readonly actorId: string;
   /** The document the sheet renders: the EFFECTIVE actor (REQ-TOK-112). */
   readonly doc: Record<string, unknown>;
-  /** Which family of sheets serves this subtype. */
-  readonly family: "etmos" | "default";
   /** Window identity (REQ-CNV-094). */
   readonly singletonKey: string;
   /** Ownership handed to the sheet component: 3 edits, 0 reads. */
@@ -82,15 +77,11 @@ export function planTokenSheet(
     baseActor as never,
   ) as unknown as Record<string, unknown>;
 
-  const rawType = effective["type"];
-  const subtype = typeof rawType === "string" ? rawType : "";
-
   const mayEdit = viewer.isGm || viewer.isOwner;
 
   return {
     actorId: token.actorId,
     doc: effective,
-    family: ETMOS_SUBTYPES.has(subtype) ? "etmos" : "default",
     singletonKey: hasDelta ? `sheet:Token:${token._id}` : `sheet:Actor:${token.actorId}`,
     ownership: hasDelta ? 0 : mayEdit ? 3 : 0,
     readOnly: hasDelta,

@@ -79,16 +79,4 @@ describe("planTokenSheet (REQ-TOK-110/112): the sheet the gesture opens", () => 
       planTokenSheet(linkedToken(), BASE_ACTOR, { isGm: true, isOwner: false }).ownership,
     ).toBe(3);
   });
-
-  it("routes an Etmos subtype to the Etmos opener and everything else to the default one", () => {
-    const etmos = planTokenSheet(
-      linkedToken(),
-      { ...BASE_ACTOR, type: "orador" },
-      { isGm: true, isOwner: true },
-    );
-    expect(etmos.family).toBe("etmos");
-
-    const pf2e = planTokenSheet(linkedToken(), BASE_ACTOR, { isGm: true, isOwner: true });
-    expect(pf2e.family).toBe("default");
-  });
 });

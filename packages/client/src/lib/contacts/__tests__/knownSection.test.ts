@@ -97,13 +97,6 @@ const ARMADILHA: ContactActorDoc = {
   type: "hazard",
 };
 
-/** Etmos names its non-playable actor `antagonista` (`systems/etmos/src/index.ts`). */
-const ANTAGONISTA: ContactActorDoc = {
-  _id: "act-antagonis1",
-  name: "O Silêncio",
-  type: "antagonista",
-};
-
 /**
  * The chest: pf2e declares the `loot` subtype, and spec 42 keeps it out of every
  * list, count and knowledge window (DEC-NPC-05, DEC-NPC-08). It reaches a player
@@ -142,20 +135,19 @@ describe("who the Conhecidos section lists (REQ-CTT-040)", () => {
   });
 
   it("REQ-CTT-040: membership is an allow-list of non-playable subtypes, so the chest is not a contact", () => {
-    // The section lists "os não-jogadores" — `npc`/`hazard` (spec 42 §3) and, in
-    // Etmos, `antagonista`. `loot` is the chest, which DEC-NPC-08 keeps out of every
-    // list and count; the complement of "is a character" would have filed it here.
+    // The section lists "os não-jogadores" — `npc`/`hazard` (spec 42 §3). `loot`
+    // is the chest, which DEC-NPC-08 keeps out of every list and count; the
+    // complement of "is a character" would have filed it here.
     expect(isKnownContact(BANDIDO)).toBe(true);
     expect(isKnownContact(ARMADILHA)).toBe(true);
-    expect(isKnownContact(ANTAGONISTA)).toBe(true);
     expect(isKnownContact(BAU_DA_COMITIVA)).toBe(false);
 
     const section = buildKnownSection({
-      actors: [FOFURINHA_DOC, BAU_DA_COMITIVA, ARMADILHA, ANTAGONISTA],
+      actors: [FOFURINHA_DOC, BAU_DA_COMITIVA, ARMADILHA, BANDIDO],
       isPrivileged: false,
     });
     const ids = section.groups.flatMap((group) => group.contacts.map((card) => card.id));
-    expect(ids.sort()).toEqual(["act-antagonis1", "act-armadilha1"]);
+    expect(ids.sort()).toEqual(["act-armadilha1", "act-bandido001"]);
     expect(section.total).toBe(2);
   });
 });

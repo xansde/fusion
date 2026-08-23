@@ -174,8 +174,8 @@ export interface CombatRegistrar {
    *   - a bare `InitiativeFormulaFn` (legacy/simple form — unchanged; PF2e
    *     and SF2e both call it this way and require NO changes), OR
    *   - an `{ roll, compare? }` object (M5-A E3), letting a system supply a
-   *     non-monotonic `compare()` alongside the roll function (e.g. Etmos:
-   *     "players beat NPCs" — REQ-ETM-022).
+   *     non-monotonic `compare()` alongside the roll function (e.g. "players
+   *     beat NPCs" regardless of total initiative value).
    *
    * At most one formula per combatType: registering the same combatType twice
    * is a programming error and MUST throw (the engine surfaces a clear message).

@@ -673,9 +673,9 @@ export function contactKnowledgeSourceFromStore(store: DocumentStore): ContactKn
     listCharacterOwnership(): readonly CharacterOwnershipRow[] {
       const rows: CharacterOwnershipRow[] = [];
       // One indexed read per playable subtype: which subtype is playable is the
-      // system's word, not the engine's (`PLAYER_CHARACTER_SUBTYPES`), so an
-      // Etmos world answers with its `orador`s exactly as a pf2e world answers
-      // with its `character`s.
+      // system's word, not the engine's (`PLAYER_CHARACTER_SUBTYPES`), so a
+      // future system with a different vocabulary would answer with its own
+      // subtype exactly as a pf2e world answers with its `character`s.
       for (const subtype of PLAYER_CHARACTER_SUBTYPES) {
         for (const doc of store.getAll("actors", { type: subtype })) {
           const id = doc["_id"];

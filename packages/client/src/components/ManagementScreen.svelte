@@ -21,7 +21,7 @@
   let copiedStep: 1 | 2 | null = $state(null);
   let checking = $state(false);
 
-  const CREATE_CMD = "fusion world create <slug> --system pf2e|sf2e|etmos";
+  const CREATE_CMD = "fusion world create <slug> --system pf2e|sf2e";
   const SERVE_CMD = "fusion serve --world <slug>";
 
   async function copy(cmd: string, step: 1 | 2): Promise<void> {

@@ -62,7 +62,6 @@
 
   import type { Socket } from "socket.io-client";
   import type { ChatMessage as ChatMessageType } from "@fusion/shared";
-  import { ConjuracaoCardSchema } from "@fusion/system-etmos";
   import { SpellCastCardSchema, AbilityCardSchema, adaptSpellCastToAbilityCard } from "@fusion/shared";
   import { t } from "$lib/i18n/i18n.js";
   import {
@@ -84,7 +83,6 @@
   import { sendChatInvalidate } from "../../lib/chat/chatStore.svelte.js";
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
-  import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
   import AbilityCard from "./pf2e/AbilityCard.svelte";
 
   const {
@@ -113,7 +111,7 @@
      * guesses it, because it cannot see its neighbours.
      */
     continuesPrevious?: boolean;
-    /** Optional — only required to render system cards with actionable buttons (e.g. Etmos ConjuracaoCard). */
+    /** Optional — only required to render system cards with actionable buttons (e.g. SpellCastCard). */
     socket?: Socket;
     isGm?: boolean;
     userId?: string;
@@ -147,23 +145,6 @@
   );
 
   const meta = $derived(getMessageDisplayMeta(message));
-
-  // Etmos Compositor de Magias card — flags.etmos.conjuracao (design doc
-  // m5-etmos-compositor.md §3.1/§3.4). NOT a `message.card` (CardData) —
-  // buildCardMessage (conjuracao-handlers.ts) stores the state machine
-  // payload directly under flags, so this is detected separately from the
-  // generic declarative ChatCard path. Validated (not just cast) with the
-  // SAME Zod schema the server uses (readCard's ConjuracaoCardSchema) —
-  // a malformed/foreign flag silently falls through to the text renderer
-  // instead of crashing the chat log.
-  const conjuracaoCard = $derived.by(() => {
-    const raw = (message.flags as Record<string, Record<string, unknown>> | undefined)?.["etmos"]?.[
-      "conjuracao"
-    ];
-    if (raw === undefined) return null;
-    const result = ConjuracaoCardSchema.safeParse(raw);
-    return result.success ? result.data : null;
-  });
 
   // PF2e interactive ability card — flags.pf2e.abilityCard (r20-X1), the
   // generalization of the r17-P2 spell-cast card. Rides on a plain "text"
@@ -464,9 +445,6 @@
 
       </div>
     {/each}
-  {:else if message.type === "system" && conjuracaoCard}
-    <!-- Etmos Compositor de Magias card (flags.etmos.conjuracao) -->
-    <ConjuracaoCard card={conjuracaoCard} messageId={message._id} {socket} {isGm} {userId} />
   {:else if message.type === "system" && message.card}
     <!-- Chat card (declarative, no innerHTML) -->
     <ChatCard card={message.card} messageId={message._id} />

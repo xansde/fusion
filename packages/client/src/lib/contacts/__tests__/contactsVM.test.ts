@@ -18,7 +18,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { etmosSystem } from "@fusion/system-etmos";
+import { pf2eSystem } from "@fusion/system-pf2e";
+import { sf2eSystem } from "@fusion/system-sf2e";
 
 import {
   buildContactConditions,
@@ -514,28 +515,50 @@ describe("the conditions a card shows (REQ-CTT-020)", () => {
  * and drawn by another, so a card the server delivered would never reach "Na
  * mesa" (REQ-CTT-014/REQ-CTT-020).
  *
- * Etmos is the system the client really can import, and the one whose names
- * differ from pf2e's, so its manifest is read here as data — a third source
- * both mirrors answer to, never the mirror compared to itself.
+ * pf2e and sf2e are read here as data — a third source both mirrors answer
+ * to, never the mirror compared to itself. Mirrors contacts-knowledge.test.ts's
+ * server-side SYSTEMS suite.
  */
-describe("Actor subtype mirror vs. the etmos manifest (REQ-CTT-014, REQ-CTT-020)", () => {
-  const ETMOS_ACTOR_SUBTYPES = etmosSystem.manifest.documentTypes["Actor"] ?? [];
+describe("Actor subtype mirror vs. the system manifests (REQ-CTT-014, REQ-CTT-020)", () => {
+  const SYSTEMS = [
+    { id: "pf2e", subtypes: pf2eSystem.manifest.documentTypes["Actor"] ?? [] },
+    { id: "sf2e", subtypes: sf2eSystem.manifest.documentTypes["Actor"] ?? [] },
+  ];
 
-  it("REQ-CTT-014: the playable Actor etmos declares first is read as a character, never as a contact", () => {
-    const playable = ETMOS_ACTOR_SUBTYPES[0] ?? "";
-    expect({
-      playable,
-      isCharacter: isPlayerCharacter({ _id: "a", type: playable }),
-      isContact: isNonPlayableActor({ _id: "a", type: playable }),
-    }).toEqual({ playable: "orador", isCharacter: true, isContact: false });
+  /**
+   * Subtypes deliberately classified as NEITHER a character nor a contact: the
+   * chest (`loot`, DEC-NPC-08) and a companion (`familiar`, DEC-CTT-06), both
+   * of which answer to `ownership` alone. Naming them here is the decision;
+   * what the test refuses is SILENCE about a subtype nobody decided.
+   */
+  const DECIDED_AS_NEITHER = new Set(["loot", "familiar"]);
+
+  it("REQ-CTT-014: the playable Actor each system declares first is read as a character, never as a contact", () => {
+    const verdicts = SYSTEMS.map((system) => {
+      const playable = system.subtypes[0] ?? "";
+      return {
+        id: system.id,
+        playable,
+        isCharacter: isPlayerCharacter({ _id: "a", type: playable }),
+        isContact: isNonPlayableActor({ _id: "a", type: playable }),
+      };
+    });
+    expect(verdicts).toEqual([
+      { id: "pf2e", playable: "character", isCharacter: true, isContact: false },
+      { id: "sf2e", playable: "character", isCharacter: true, isContact: false },
+    ]);
   });
 
-  it("REQ-CTT-020: every Actor subtype etmos declares is classified — none falls through unnoticed", () => {
-    const unclassified = ETMOS_ACTOR_SUBTYPES.filter(
-      (subtype) =>
-        !isPlayerCharacter({ _id: "a", type: subtype }) &&
-        !isNonPlayableActor({ _id: "a", type: subtype }),
-    );
+  it("REQ-CTT-020: every Actor subtype a system declares is classified — none falls through unnoticed", () => {
+    const unclassified: string[] = [];
+    for (const system of SYSTEMS) {
+      for (const subtype of system.subtypes) {
+        const doc = { _id: "a", type: subtype };
+        if (isPlayerCharacter(doc) || isNonPlayableActor(doc)) continue;
+        if (DECIDED_AS_NEITHER.has(subtype)) continue;
+        unclassified.push(`${system.id}:${subtype}`);
+      }
+    }
     expect(unclassified).toEqual([]);
   });
 });

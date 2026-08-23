@@ -26,7 +26,6 @@
     "@fusion/engine-2e": "workspace:*",
     "@fusion/shared": "workspace:*",
     "@fusion/system-api": "workspace:*",
-    "@fusion/system-etmos": "workspace:*",
     "@fusion/system-pf2e": "workspace:*",
     "@fusion/system-sf2e": "workspace:*",
     "@fusion/system-stub": "workspace:*",

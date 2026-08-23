@@ -351,8 +351,9 @@ export interface RegisteredRollData extends RollDataDefinition {
  *
  * `degree` is a system-defined string — each system owns its own set (e.g.
  * PF2e/SF2e keep using the 4-degree engine-2e helper via their existing
- * pipeline; Etmos registers "success"/"failure" in M5-B). `meta` carries any
- * extra system-specific data (e.g. margin) alongside the degree.
+ * pipeline; a non-2e-family system could register a simpler "success"/
+ * "failure" pair instead). `meta` carries any extra system-specific data
+ * (e.g. margin) alongside the degree.
  */
 export interface DegreeOfSuccessResult {
   readonly degree: string;
@@ -369,8 +370,8 @@ export type DegreeOfSuccessContext = Record<string, unknown>;
  * Definition of a registered degree-of-success comparator.
  *
  * A system registers `compute(total, dc, ctx)` to classify a roll result
- * against a difficulty class using its own rules (e.g. Etmos's binary
- * success/failure + margin, REQ-ROL-038/039, spec 19 D6).
+ * against a difficulty class using its own rules (e.g. a binary
+ * success/failure + margin classification, REQ-ROL-038/039).
  *
  * Aditive/retrocompatible: this is a NEW, independent registry keyed by `id`
  * (not by documentType/subtype) — it does not replace or require migrating
@@ -381,7 +382,7 @@ export type DegreeOfSuccessContext = Record<string, unknown>;
  * calling `calculateDegreeOfSuccess` from `@fusion/engine-2e` directly).
  */
 export interface DegreeOfSuccessDefinition {
-  /** Machine-readable stable identifier (e.g. "etmos.conjuracao"). */
+  /** Machine-readable stable identifier (e.g. "pf2e.strike"). */
   readonly id: string;
   /** Classify a roll total against a DC. Pure function. */
   compute(total: number, dc: number, ctx?: DegreeOfSuccessContext): DegreeOfSuccessResult;
@@ -400,7 +401,7 @@ export interface DegreeOfSuccessDefinition {
  * from `system-api`).
  *
  * A 2e-family system's materializer returns actual `EffectSource[]` values
- * (structurally compatible with this type); a non-2e system (e.g. Etmos) may
+ * (structurally compatible with this type); a non-2e-family system may
  * return an empty array or a different rule vocabulary entirely — the
  * `rules` field only needs to satisfy `EffectRule[]`'s discriminated shape,
  * consumption of those rules is entirely up to whatever engine the caller

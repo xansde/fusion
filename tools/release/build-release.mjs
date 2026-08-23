@@ -352,8 +352,8 @@ async function phasePackAssets(assetKeys) {
   } else {
     // --multi-dir requires at least one --entry; write an empty archive
     // directly rather than special-casing the packer script for a scenario
-    // that should never happen in this repo (pf2e/sf2e/etmos always ship
-    // packs) but must not crash the whole pipeline if it ever did.
+    // that should never happen in this repo (pf2e/sf2e always ship packs)
+    // but must not crash the whole pipeline if it ever did.
     mkdirSync(dirname(systemPacksArchive), { recursive: true });
     const emptyIndex = Buffer.from(JSON.stringify({ entries: [] }), "utf8");
     const lenBuf = Buffer.alloc(8);

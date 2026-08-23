@@ -263,8 +263,7 @@ export function broadcastCombatUpdate(
  * it attempts would be rejected as STALE_WRITE forever — the same failure
  * mode T032 closed for Scene (sync-handlers.ts's
  * broadcastSceneVersionUpdates) and Actor (this module's own
- * `broadcastActorUpdate` re-export point, mirrored again in
- * etmos/reacao-handler.ts). This is the SAME fix, same shape
+ * `broadcastActorUpdate` re-export point). This is the SAME fix, same shape
  * (`{documentType, documents}`), same "push to opBuffer before emit"
  * ordering (REQ-NET-062), for Combat.
  *
@@ -277,11 +276,9 @@ export function broadcastCombatUpdate(
  * broadcastCombatUpdate above already uses — never a second strip
  * implementation, so the two paths cannot drift apart.
  *
- * Exported so etmos/reacao-handler.ts's two combat:updated call sites (the
- * turnStart Reação reset and the etmos:reacao:usar spend) can reuse this
- * exact redaction-aware broadcast instead of re-deriving it — a hand
- * duplicate risks silently regressing REQ-CBT-031 the day only one copy
- * gets updated.
+ * Exported for reuse by other combat:updated call sites needing this exact
+ * redaction-aware broadcast instead of re-deriving it — a hand duplicate
+ * risks silently regressing REQ-CBT-031 the day only one copy gets updated.
  *
  * Volume tradeoff (deliberate, written down per T036's ask): this fires on
  * EVERY combat write, once per existing combat:updated emission — doubling

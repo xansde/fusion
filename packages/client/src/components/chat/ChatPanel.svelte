@@ -70,7 +70,7 @@
     socket: Socket;
     worldId: string;
     visible?: boolean;
-    /** Forwarded to ChatLog/ChatMessage so system cards (e.g. Etmos ConjuracaoCard) can gate role-specific buttons. */
+    /** Forwarded to ChatLog/ChatMessage so system cards (e.g. SpellCastCard) can gate role-specific buttons. */
     isGm?: boolean;
     userId?: string;
   } = $props();
