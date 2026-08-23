@@ -9,7 +9,7 @@
   - `11-ui-framework-e-fichas.md` — janelas (REQ-UIF-009..016), sistema de fichas, escala de z (REQ-UIF-008).
   - `02-modelo-de-dados.md` — flags namespaced (REQ-DOC-009), semântica de merge e deleteKey (REQ-DOC-037).
   - `26-licencas-e-legal.md` — atribuição obrigatória de arte de terceiros.
-  - `37-configuracoes.md` — aba Configurações (REQ-CFG-*), entry point do avatar a partir da F5 (DEC-AVT-07).
+  - `37-configuracoes.md` — aba Configurações (REQ-CFG-\*), entry point do avatar a partir da F5 (DEC-AVT-07).
 
 > **Não é o retrato.** O retrato (`doc.img`) é um arquivo de imagem que o dono
 > sobe; o avatar é uma **figura montada** peça por peça, que anima e fica no canto
@@ -69,7 +69,7 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ### Criador
 
-- **REQ-AVT-010** [MVP] O criador abre na seção Avatar da aba Configurações (REQ-CFG-*).
+- **REQ-AVT-010** [MVP] O criador abre na seção Avatar da aba Configurações (REQ-CFG-\*).
   O acesso é pela aba, sem entrada separada por ficha (DEC-AVT-07).
 - **REQ-AVT-011** [MVP] Navegação em dois níveis: aba por grupo (rótulo pt-BR do
   próprio catálogo, ordem vinda da árvore de prioridade) e um slot por vez.
@@ -167,20 +167,20 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 **A partir da F5 (DEC-AVT-07):** este pacote vive no repositório externo `fusion-avatar` (consumido pelo core `fusion` como `@fusion/avatar` por tag git). O contrato do flag continua em `@fusion/shared`.
 
-| Papel                       | Arquivo / Pacote                                              |
-| --------------------------- | ------------------------------------------------------------- |
-| Contrato do flag            | `@fusion/shared` / `packages/shared/src/avatar.ts`            |
-| Resolução de paleta/recolor | `@fusion/avatar` / `packages/client/src/lib/avatar/paletas.ts` |
-| Tempo/ciclo de animação     | `@fusion/avatar` / `packages/client/src/lib/avatar/animacao.ts` |
-| Carga do acervo (HTTP)      | `@fusion/avatar` / `packages/client/src/lib/avatar/acervo.ts` |
-| Lógica do criador (pura)    | `@fusion/avatar` / `packages/client/src/lib/avatar/criador.ts` |
-| Diff de gravação (podado)   | `@fusion/avatar` / `packages/client/src/lib/avatar/patch.ts`  |
-| Desenho em canvas           | `@fusion/avatar` / `packages/client/src/lib/avatar/desenhar.ts` |
-| Quem é "meu" avatar         | `@fusion/avatar` / `packages/client/src/lib/avatar/meuAvatar.ts` |
-| Sprite reutilizável         | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarSprite.svelte` |
+| Papel                       | Arquivo / Pacote                                                                |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| Contrato do flag            | `@fusion/shared` / `packages/shared/src/avatar.ts`                              |
+| Resolução de paleta/recolor | `@fusion/avatar` / `packages/client/src/lib/avatar/paletas.ts`                  |
+| Tempo/ciclo de animação     | `@fusion/avatar` / `packages/client/src/lib/avatar/animacao.ts`                 |
+| Carga do acervo (HTTP)      | `@fusion/avatar` / `packages/client/src/lib/avatar/acervo.ts`                   |
+| Lógica do criador (pura)    | `@fusion/avatar` / `packages/client/src/lib/avatar/criador.ts`                  |
+| Diff de gravação (podado)   | `@fusion/avatar` / `packages/client/src/lib/avatar/patch.ts`                    |
+| Desenho em canvas           | `@fusion/avatar` / `packages/client/src/lib/avatar/desenhar.ts`                 |
+| Quem é "meu" avatar         | `@fusion/avatar` / `packages/client/src/lib/avatar/meuAvatar.ts`                |
+| Sprite reutilizável         | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarSprite.svelte`  |
 | Seção Avatar (aba Config)   | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarSection.svelte` |
-| Overlay do canto            | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarCorner.svelte` |
-| Publicação de `/avatar/*`   | `@fusion/avatar` / `packages/client/vite-plugins/waybuilder-avatar.ts` |
+| Overlay do canto            | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarCorner.svelte`  |
+| Publicação de `/avatar/*`   | `@fusion/avatar` / `packages/client/vite-plugins/waybuilder-avatar.ts`          |
 
 ## 6. Verificação
 

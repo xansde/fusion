@@ -116,14 +116,14 @@ REQ-USR-008 é renderizada como **uma linha por permissão**, nunca como tabela.
 
 ### DEC-CFG-05 — Seis seções, com corte por papel na entrada (emendada F5 — DEC-SEP-06)
 
-| Seção                   | Quem vê   |
-| ----------------------- | --------- |
-| **Minhas preferências** | todos     |
-| **Avatar**              | todos     |
-| **Mundo**               | GAMEMASTER|
-| **Permissões**          | GAMEMASTER|
-| **Usuários**            | GAMEMASTER|
-| **Mods**                | GAMEMASTER|
+| Seção                   | Quem vê    |
+| ----------------------- | ---------- |
+| **Minhas preferências** | todos      |
+| **Avatar**              | todos      |
+| **Mundo**               | GAMEMASTER |
+| **Permissões**          | GAMEMASTER |
+| **Usuários**            | GAMEMASTER |
+| **Mods**                | GAMEMASTER |
 
 O jogador abre a aba e vê um índice com **duas** entradas: Minhas preferências e Avatar. **Mundo, Permissões, Usuários e Mods não aparecem para o jogador** (DEC-SEP-06 move o avatar da ficha para a aba).
 
@@ -387,19 +387,19 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 
 ## 7. Onde cada coisa é gravada
 
-| O quê                                           | Onde                                   | Quem escreve | Referência                         |
-| ----------------------------------------------- | -------------------------------------- | ------------ | ---------------------------------- |
-| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02            |
-| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10             |
-| Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074       |
+| O quê                                           | Onde                                   | Quem escreve | Referência                           |
+| ----------------------------------------------- | -------------------------------------- | ------------ | ------------------------------------ |
+| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02              |
+| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10               |
+| Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074         |
 | Avatar (seleção de peças e cores)               | `flags.fusion.avatar` do Actor         | o próprio    | REQ-CFG-027, REQ-AVT-001, DEC-AVT-07 |
-| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047           |
-| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                         |
-| Numeração de peças do mesmo ator                | `Setting` de mundo                     | GAMEMASTER   | REQ-CFG-036, DEC-TOK-16            |
-| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009                    |
-| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031                   |
-| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02           |
-| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]                   |
+| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047             |
+| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                           |
+| Numeração de peças do mesmo ator                | `Setting` de mundo                     | GAMEMASTER   | REQ-CFG-036, DEC-TOK-16              |
+| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009                      |
+| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031                     |
+| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02             |
+| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]                     |
 
 Settings declaradas com escopo `user` (permitidas por REQ-SYS-047) **não têm casa nesta
 aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
@@ -475,14 +475,14 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 (`CONVENCOES.md` §2):
 
-| Spec | O que muda                                                                                                                                                                         |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spec | O que muda                                                                                                                                                                                                                                                            |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `35` | Emendada em paralelo pela mesma DEC-SEP-06 (não por esta spec): REQ-AVT-010 reescrito, nova DEC-AVT-07 — entrada pela aba Configurações, não pela ficha; §5 lista "onde vive" com pacote externo `@fusion/avatar`. Citada aqui só para deixar as duas emendas juntas. |
-| `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec. |
-| `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                |
-| `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                    |
-| `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.          |
-| `15` | REQ-SYS-047 ganha `requiresConfirmOnDisable?` e `countAffectedActors?` na forma pública de `SettingDefinition`, para servir REQ-CFG-082; `countAffectedActors` é server-only.      |
+| `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec.                                                                                    |
+| `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                                                                                                   |
+| `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                                                                                                       |
+| `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.                                                                                             |
+| `15` | REQ-SYS-047 ganha `requiresConfirmOnDisable?` e `countAffectedActors?` na forma pública de `SettingDefinition`, para servir REQ-CFG-082; `countAffectedActors` é server-only.                                                                                         |
 
 ## 13. Referências
 
