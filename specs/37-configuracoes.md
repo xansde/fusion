@@ -8,6 +8,7 @@
   - `05-usuarios-e-permissoes.md` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (administração de usuários), que hoje não têm nenhuma tela.
   - `15-api-de-sistemas.md` — DEC-SYS-08 e REQ-SYS-047: o motor de settings declaradas, que existe e nunca teve volante.
   - `13-audio-e-playlists.md` — REQ-AUD-015/016 e DEC-AUD-02: os três canais de volume, já decididos como locais.
+  - `35-avatar-do-personagem.md` — seção Avatar da aba, entry point do criador do avatar (DEC-SEP-06).
   - Protótipo `packages/client/prototypes/settings-tab.prototype.html` — variante 4 (índice → seção), aprovada em 2026-08-15 sem os ícones.
 
 > **Spec-filha da 36.** Esta spec é dona do **conteúdo** da aba Configurações. Ela não
@@ -113,22 +114,20 @@ REQ-USR-008 é renderizada como **uma linha por permissão**, nunca como tabela.
   rolo assim que mods declararem settings); _segmentos no topo_ (os rótulos não cabem
   quando as seções passam de quatro).
 
-### DEC-CFG-05 — Cinco seções, com corte por papel na entrada
+### DEC-CFG-05 — Seis seções, com corte por papel na entrada (emendada F5 — DEC-SEP-06)
 
-| Seção                   | Quem vê       |
-| ----------------------- | ------------- |
-| **Minhas preferências** | todos         |
-| **Mundo**               | só GAMEMASTER |
-| **Permissões**          | só GAMEMASTER |
-| **Usuários**            | só GAMEMASTER |
-| **Mods**                | só GAMEMASTER |
+| Seção                   | Quem vê   |
+| ----------------------- | --------- |
+| **Minhas preferências** | todos     |
+| **Avatar**              | todos     |
+| **Mundo**               | GAMEMASTER|
+| **Permissões**          | GAMEMASTER|
+| **Usuários**            | GAMEMASTER|
+| **Mods**                | GAMEMASTER|
 
-O jogador abre a aba e vê um índice com **uma** entrada. **Mods não aparece para o
-jogador** nem em leitura.
+O jogador abre a aba e vê um índice com **duas** entradas: Minhas preferências e Avatar. **Mundo, Permissões, Usuários e Mods não aparecem para o jogador** (DEC-SEP-06 move o avatar da ficha para a aba).
 
-- **Racional:** o jogador não decide o que a mesa usa, e uma lista de mods que ele não
-  pode mudar só levanta perguntas para o GM responder. Índice de um item é honesto:
-  mostra que existe exatamente uma coisa que é dele.
+- **Racional:** o jogador configura o próprio avatar fora da ficha, na aba Configurações, que também abriga as suas preferências (DEC-SEP-06). Mods não aparece para o jogador porque ele não decide o que a mesa usa. Índice de um item é honesto (ou dois, com avatar) — mostra exatamente o que é dele.
 
 ### DEC-CFG-06 — Minhas preferências é 100% local; sem idioma e sem tema no MVP
 
@@ -258,6 +257,14 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   > (DEC-UIF-10), na mesma régua dos volumes de REQ-CFG-020..023: gravadas no
   > `localStorage`, nunca em Document, nunca geram operação de rede (REQ-CFG-022).
 
+### 5.3a Avatar
+
+- **REQ-CFG-027** [MVP] A seção Avatar DEVE hospedar o criador do avatar do personagem (REQ-AVT-010), acessível a **todos** via aba Configurações, não pela ficha (DEC-SEP-06).
+- **REQ-CFG-028** [MVP] O criador DEVE validar e exibir mensagens de erro quando o acervo mudar — peças desaparecidas, cores inválidas, corpo não disponível — em vez de falhar silenciosamente.
+- **REQ-CFG-029** [MVP] A seção DEVE oferecer um estado vazio se o jogador não tiver um personagem ou se o avatar não estiver inicializado, com uma mensagem legível.
+
+  > **Emenda de 2026-08-23** — obrigada pela separação de repos (DEC-SEP-06). O avatar sai da ficha e passa a ser entrada pela aba Configurações, consumido como pacote externo `@fusion/avatar`.
+
 ### 5.4 Mundo
 
 - **REQ-CFG-030** [MVP] A seção DEVE listar exatamente as settings de escopo `world`
@@ -380,18 +387,19 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 
 ## 7. Onde cada coisa é gravada
 
-| O quê                                           | Onde                                   | Quem escreve | Referência                   |
-| ----------------------------------------------- | -------------------------------------- | ------------ | ---------------------------- |
-| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02      |
-| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10       |
-| Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074 |
-| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047     |
-| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                   |
-| Numeração de peças do mesmo ator                | `Setting` de mundo                     | GAMEMASTER   | REQ-CFG-036, DEC-TOK-16      |
-| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009              |
-| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031             |
-| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02     |
-| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]             |
+| O quê                                           | Onde                                   | Quem escreve | Referência                         |
+| ----------------------------------------------- | -------------------------------------- | ------------ | ---------------------------------- |
+| Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02            |
+| Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10             |
+| Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074       |
+| Avatar (seleção de peças e cores)               | `flags.fusion.avatar` do Actor         | o próprio    | REQ-CFG-027, REQ-AVT-001, DEC-SEP-06 |
+| Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047           |
+| Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                         |
+| Numeração de peças do mesmo ator                | `Setting` de mundo                     | GAMEMASTER   | REQ-CFG-036, DEC-TOK-16            |
+| Permissões (papel mínimo por ação)              | conforme `05-usuarios-e-permissoes.md` | GAMEMASTER   | REQ-USR-008/009                    |
+| Usuários                                        | tabela `users` do mundo                | GAMEMASTER   | REQ-USR-025..031                   |
+| Personagem que nasce com o usuário              | Document `Actor` (subtipo `character`) | GAMEMASTER   | REQ-USR-025a, DEC-NPC-02           |
+| Mods ligados/desligados                         | a definir pela spec da API de Mods     | GAMEMASTER   | REQ-CFG-062 [V2]                   |
 
 Settings declaradas com escopo `user` (permitidas por REQ-SYS-047) **não têm casa nesta
 aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
@@ -411,6 +419,7 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 ## 9. Dependências (specs irmãs)
 
+- `35` — REQ-AVT-010 (criador do avatar), REQ-AVT-001..006 (contrato do flag), DEC-AVT-02..06 (decisões do avatar): a seção Avatar hospeda o criador de avatar, consumido do pacote `@fusion/avatar` (DEC-SEP-06).
 - `36` — contêiner, registro de abas (REQ-GAV-030), largura (REQ-GAV-012), gesto de
   recolher (DEC-GAV-03), badge (DEC-GAV-06), fronteira de segurança (REQ-GAV-034).
 - `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-025a..025d (o
@@ -468,6 +477,7 @@ Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 
 | Spec | O que muda                                                                                                                                                                         |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `35` | REQ-AVT-010 reescrito (F5 — DEC-SEP-06): entrada pela aba Configurações, não pela ficha; §5 lista "onde vive" com pacote externo `@fusion/avatar`.                              |
 | `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec. |
 | `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                |
 | `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                    |
