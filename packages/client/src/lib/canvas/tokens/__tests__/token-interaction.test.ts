@@ -553,6 +553,23 @@ describe("isEditableTarget", () => {
     expect(isEditableTarget({ tagName: "input" })).toBe(true);
   });
 
+  // P2 (post-#194 audit, REQ-A11-036): an `<input type="checkbox">` (the
+  // side drawer has several) is not something the user TYPES into, so the
+  // keyboard-alternative actions it guards (Backspace/arrows/KeyD on the
+  // selected token) must still fire when one of those has focus. Only a
+  // textual `type` should block them.
+  it("gates INPUT by `type`: non-textual types are not editable, textual ones are", () => {
+    expect(isEditableTarget({ tagName: "INPUT", type: "checkbox" })).toBe(false);
+    expect(isEditableTarget({ tagName: "INPUT", type: "radio" })).toBe(false);
+    expect(isEditableTarget({ tagName: "INPUT", type: "button" })).toBe(false);
+    expect(isEditableTarget({ tagName: "INPUT", type: "range" })).toBe(false);
+
+    expect(isEditableTarget({ tagName: "INPUT", type: "text" })).toBe(true);
+    expect(isEditableTarget({ tagName: "INPUT" })).toBe(true); // no `type` defaults to "text"
+    expect(isEditableTarget({ tagName: "INPUT", type: "search" })).toBe(true);
+    expect(isEditableTarget({ tagName: "INPUT", type: "number" })).toBe(true);
+  });
+
   it("returns true for a contenteditable element (e.g. TipTap's chat composer)", () => {
     expect(isEditableTarget({ tagName: "DIV", isContentEditable: true })).toBe(true);
   });

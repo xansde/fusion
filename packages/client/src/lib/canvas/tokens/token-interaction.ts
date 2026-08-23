@@ -384,8 +384,10 @@ export function canStartDrag(machine: DragMachine, _tokenId: string): boolean {
 
 /**
  * Whether `target` — a `KeyboardEvent.target` — is something the user is
- * actively typing INTO: a text input/textarea/select, or any element with
- * `contenteditable` (TipTap's chat editor, notably).
+ * actively typing INTO: a TEXTUAL `<input>` (see `TEXTUAL_INPUT_TYPES` —
+ * `checkbox`/`radio`/`button`/`range`/etc. don't count, REQ-A11-036),
+ * a `<textarea>`, a `<select>`, or any element with `contenteditable`
+ * (TipTap's chat editor, notably).
  *
  * TokenInteractionManager attaches its keydown listener on `window`
  * (REQ-A11-036, spec 23: a non-drag keyboard alternative is required for
@@ -406,12 +408,43 @@ export function canStartDrag(machine: DragMachine, _tokenId: string): boolean {
  * `EventTarget` (`addEventListener`/`dispatchEvent`/…), which a `node`
  * environment doesn't have a real implementation of anyway.
  */
+/**
+ * `<input>` `type`s that accept typed text — the ones where Backspace/arrow
+ * keys/letters must reach the field undisturbed instead of acting on the
+ * selected token. An absent `type` defaults to "text" per the HTML spec.
+ *
+ * P2 (post-#194 audit, REQ-A11-036): every `<input>` used to count as
+ * editable regardless of `type`. The side drawer has several
+ * checkbox/radio/button/range inputs — none of them receive typed text — so
+ * focusing one silently swallowed the token's keyboard alternatives
+ * (Backspace to delete, arrows to move, KeyD to duplicate) with no text
+ * field actually capturing the keystroke.
+ */
+const TEXTUAL_INPUT_TYPES = new Set([
+  "text",
+  "search",
+  "url",
+  "tel",
+  "email",
+  "password",
+  "number",
+  "date",
+  "datetime-local",
+  "month",
+  "week",
+  "time",
+]);
+
 export function isEditableTarget(target: unknown): boolean {
   if (target === null || target === undefined) return false;
-  const el = target as { tagName?: unknown; isContentEditable?: unknown };
+  const el = target as { tagName?: unknown; type?: unknown; isContentEditable?: unknown };
   if (typeof el.tagName === "string") {
     const tag = el.tagName.toUpperCase();
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (tag === "INPUT") {
+      const type = typeof el.type === "string" ? el.type.toLowerCase() : "text";
+      return TEXTUAL_INPUT_TYPES.has(type);
+    }
   }
   return el.isContentEditable === true;
 }
