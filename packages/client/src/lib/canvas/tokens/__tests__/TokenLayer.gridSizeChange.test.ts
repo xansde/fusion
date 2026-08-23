@@ -18,7 +18,6 @@
  * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033; 41-token.md REQ-TOK-012.
  */
 
-
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createDocumentId, defaultTokenDocument, defaultSceneDocument } from "@fusion/shared";
 import type { Container } from "pixi.js";
@@ -127,9 +126,8 @@ vi.mock("../../../session.svelte.js", () => ({ session: { user: { id: "user-1" }
 
 const { TokenLayer } = await import("../TokenLayer.js");
 const { DocumentMirror } = await import("../../../docs/DocumentMirror.js");
-const { resetFootprintRegistry, seedFootprintRegistry } = await import(
-  "../footprintRegistry.svelte.js"
-);
+const { resetFootprintRegistry, seedFootprintRegistry } =
+  await import("../footprintRegistry.svelte.js");
 
 // ---------------------------------------------------------------------------
 

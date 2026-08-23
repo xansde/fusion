@@ -131,9 +131,8 @@ vi.mock("../../../session.svelte.js", () => ({ session: { user: { id: "user-1" }
 
 const { TokenLayer } = await import("../TokenLayer.js");
 const { DocumentMirror } = await import("../../../docs/DocumentMirror.js");
-const { resetFootprintRegistry, seedFootprintRegistry } = await import(
-  "../footprintRegistry.svelte.js"
-);
+const { resetFootprintRegistry, seedFootprintRegistry } =
+  await import("../footprintRegistry.svelte.js");
 
 // ---------------------------------------------------------------------------
 
