@@ -25,7 +25,16 @@
  * REQ-CNV-037: remote updates animate; local drag does not re-animate.
  */
 
-import { Container, Graphics, Text, TextStyle, Assets, Sprite, type Texture } from "pixi.js";
+import {
+  Container,
+  Graphics,
+  Rectangle,
+  Text,
+  TextStyle,
+  Assets,
+  Sprite,
+  type Texture,
+} from "pixi.js";
 
 import type { TokenDocument } from "@fusion/shared";
 import { resolveEffectiveActor } from "@fusion/shared";
@@ -202,6 +211,14 @@ export class TokenSprite {
     this._renderX = doc.x;
     this._renderY = doc.y;
 
+    // PIXI hit-testing (EventBoundary.hitTestFn) only accepts a Container as a
+    // target when it has an explicit hitArea — a plain Container has no
+    // containsPoint of its own, so `eventMode = "static"` alone never made
+    // this clickable. Without this, every click on a token silently fell
+    // through to the tokens-layer's always-true hitArea (used to detect
+    // empty-canvas clicks), and _getTokenIdFromTarget always returned null.
+    this.container.hitArea = new Rectangle(0, 0, pixelW, pixelH);
+
     this._applyPosition(doc.x, doc.y);
     this._drawRing(pixelW, pixelH);
     this._drawBars(doc, pixelW, pixelH);
@@ -353,6 +370,7 @@ export class TokenSprite {
       newDoc.rotation !== oldDoc.rotation;
 
     if (visualChanged || xChanged) {
+      this.container.hitArea = new Rectangle(0, 0, pixelW, pixelH);
       this._drawRing(pixelW, pixelH);
       this._drawBars(newDoc, pixelW, pixelH);
       this._drawNameplate(newDoc, pixelW, pixelH);
