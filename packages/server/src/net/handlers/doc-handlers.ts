@@ -2079,14 +2079,34 @@ function broadcastToWorld(
         documentType: string;
         documents: Record<string, unknown>[];
       };
-      const playerEnvelope: Envelope = {
-        ...envelope,
-        payload: {
-          ...payload,
-          documents: redactSceneDocsForNonPrivileged(payload.documents),
-        },
-      };
-      emitByRole(ns, envelope, playerEnvelope);
+      // Scene envelopes ALSO go per-socket, and per USER rather than per
+      // role, for the same reason the Actor branch below does: REQ-TOK-050's
+      // `seenBy` exception list is per USER, so two players on the same role
+      // can be owed different token sets from the identical Scene write
+      // (spec 41-token.md TK070). Mirrors the Actor branch's `byUser` cache
+      // — one redacted copy per user, not per socket.
+      const byUser = new Map<string, Envelope>();
+      for (const [, socket] of ns.sockets) {
+        if (socketIsPrivileged(socket)) {
+          socket.emit("op", envelope);
+          continue;
+        }
+        const data = socket.data as Record<string, unknown> | null | undefined;
+        const rawUserId = data?.["userId"];
+        const userId = typeof rawUserId === "string" ? rawUserId : "";
+        let playerEnvelope = byUser.get(userId);
+        if (!playerEnvelope) {
+          playerEnvelope = {
+            ...envelope,
+            payload: {
+              ...payload,
+              documents: redactSceneDocsForNonPrivileged(payload.documents, userId),
+            },
+          };
+          byUser.set(userId, playerEnvelope);
+        }
+        socket.emit("op", playerEnvelope);
+      }
       return;
     }
 

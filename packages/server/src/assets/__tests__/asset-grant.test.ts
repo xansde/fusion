@@ -1107,16 +1107,20 @@ describe("grant — the Actor branch is redactActorDocsForViewer, and nothing el
     });
   });
 
-  it("does NOT sign the portrait of a contact the viewer has merely GLIMPSED", async () => {
-    // THE LEAK. The snapshot delivers a glimpsed contact through
-    // `glimpsedContactView`: no name, no title, no portrait (REQ-CTT-081).
-    // Gating the mint on ownership alone signed that portrait's FILENAME —
-    // usually the slug of the NPC — and then served its bytes. Proved by
-    // execution with `grantEnforce: true`; the file came back 200.
-    //
-    // This channel did not exist before T025: the snapshot strips `img`, and
-    // `GET /api/assets` needs TRUSTED. A gate that opens a door the thing it
-    // replaces kept shut is not a gate.
+  it("DOES sign the portrait of a contact the viewer has merely GLIMPSED (TK003, spec 41-token.md)", async () => {
+    // NOT a leak, as of TK003 (spec 41-token.md DEC-TOK-09/§12, 2026-08-17,
+    // amending DEC-CTT-04): `glimpsedContactView` now carries `img` on
+    // purpose — no name, no title, no system data, but the portrait DOES
+    // travel, because a token on the map needs the art to be drawable even
+    // for an actor the viewer has only glimpsed (REQ-TOK-010/011/060,
+    // CA-TOK-008). Before TK003 this test pinned the opposite: the snapshot
+    // stripped `img` entirely, and signing it was the leak this test used to
+    // catch (see the OLD comment preserved in git history at this line).
+    // Now that the live/broadcast/snapshot paths legitimately deliver `img`
+    // for a glimpsed contact, refusing to sign it here would be the mint
+    // withholding what the client already received — exactly the "TOO
+    // CLOSED" failure mode `visibleGrantBody`'s doc comment (routes.ts)
+    // warns about for identified contacts, now also true of glimpsed ones.
     insertDoc(ctx.db, "actors", "contactGlimpsed001", {
       name: "O Vilão",
       type: "npc",
@@ -1134,8 +1138,7 @@ describe("grant — the Actor branch is redactActorDocsForViewer, and nothing el
 
     const { status, body } = await mint(ctx, ctx.player.token, "actors", "contactGlimpsed001");
     expect(status).toBe(200);
-    expect(Object.keys(body.grants)).toEqual([]);
-    expect(JSON.stringify(body)).not.toContain("segredo.jpg");
+    expect(Object.keys(body.grants)).toEqual(["segredo.jpg"]);
   });
 
   it("answers 404 for a HIDDEN contact, however generous its ownership is", async () => {

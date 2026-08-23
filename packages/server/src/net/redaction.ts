@@ -1,18 +1,51 @@
 /**
  * Canonical redaction for non-GM clients.
  *
- * Invariants (specs 04/05/07/39/44):
- *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path.
+ * Invariants (specs 04/05/07/39/41/44):
+ *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path,
+ *     UNLESS the viewer is in that token's `seenBy` exception list
+ *     (spec 41-token.md REQ-TOK-050/051/052, DEC-TOK-08 — TK070).
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
  *   - The scene LIST itself is privileged: only the scene on air may reach a
  *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
  *   - A contact the viewer only GLIMPSED carries no name, title, portrait or
  *     system data, a contact that is HIDDEN is not delivered at all, and the
  *     knowledge map itself never reaches a non-privileged socket
- *     (REQ-CTT-081..084).
+ *     (REQ-CTT-081..084). A token inherits this for free (REQ-TOK-060/061/063,
+ *     TK073): it carries no name field of its own, only the effective actor's
+ *     `name` — which is simply absent from a GLIMPSED actor's payload — so
+ *     "the token shows no name" is a consequence of the Actor redaction
+ *     above, never a second rule written against the Token document.
  *   - The ATTITUDE of an actor towards the party never reaches a socket without
  *     a privileged role (REQ-NPC-082): learning that the smith is hostile
  *     before the scene says so is metagame.
+ *   - The HIT POINTS of an actor never reach a socket that is neither
+ *     privileged nor OWNER (3) of it (spec 41-token.md REQ-TOK-070/071/072,
+ *     DEC-TOK-10 — TK072, `stripActorHp`), on every surface that shows vida,
+ *     which today means every Actor emission (the bar a token draws reads the
+ *     mirror's copy of the effective actor, so a stripped `system.attributes.hp`
+ *     is what makes `TokenSprite`'s bar omit itself for a non-owner, without a
+ *     token-specific rule). An UNLINKED token's own `actorDelta` is a SEPARATE
+ *     cut (REQ-DOC-062, `stripTokenActorDeltaHp`/`redactTokenActorDeltaHp`):
+ *     a delta's `system.attributes.hp` override travels inside the Scene
+ *     document, a different emission funnel from the Actor one the cut above
+ *     lives on. This second cut is fail-closed and BY ROLE, not by ownership
+ *     of the base Actor — tasks.md's Fase 6 header flagged DEC-DOC-12
+ *     (specs/02:292-301, a role-only cut) against DEC-TOK-10 (an
+ *     ownership-only cut) as unreconciled; the resolution recorded there is
+ *     "papel primeiro": REQ-DOC-062's own text already says so ("o corte é
+ *     por papel, não por ownership do Actor base"), and the known cost is
+ *     that even the OWNER of the base Actor (an unlinked familiar posted on
+ *     the map) reads the base actor's hp, never the token's own delta —
+ *     refining that is V2 work, not this cut's job.
+ *   - Ocultar (`hidden`, this module, SERVER) is not the same guarantee as not
+ *     estar enxergando (fog/vision, CLIENT, a future spec — REQ-TOK-053,
+ *     DEC-TOK-08): a hidden token never leaves the server for a socket outside
+ *     `seenBy`, so a leak here is a real information leak; a token outside a
+ *     viewer's vision radius (when vision exists) still arrives on the wire
+ *     and is merely not drawn — the fog protects the screen, never the
+ *     network. Nothing in `docs/design/spec-41-token/` should be read as fog
+ *     "protecting" a position the way this module's redaction does.
  *   - The result of a blind roll must never reach a non-privileged socket — not
  *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
  *
@@ -254,22 +287,37 @@ function docHasTargetAc(doc: unknown): boolean {
  * Strip hidden tokens from a single Scene document for non-GM players.
  *
  * Returns a shallow copy of the scene with the `tokens` array filtered to
- * exclude any token whose `hidden` field is `true`.  When the scene has no
- * `tokens` array, or no token is hidden, the original object is returned
+ * exclude any token whose `hidden` field is `true` — UNLESS `userId` is in
+ * that token's `seenBy` exception list (REQ-TOK-050/051/052, spec
+ * 41-token.md, DEC-TOK-08). When the scene has no `tokens` array, or nothing
+ * would be removed for this viewer, the original object is returned
  * unchanged (no allocation) so callers can cheaply detect "nothing redacted"
  * via referential equality.
  *
+ * `userId` is optional so a caller with no per-user identity available (a
+ * defensive/test-only path) still gets the historical, more conservative
+ * behaviour: EVERY hidden token is stripped, `seenBy` or not. Every real
+ * production caller has a userId — see the per-socket loop in
+ * `broadcastToWorld`'s Scene branch (doc-handlers.ts), which mirrors the
+ * Actor branch right below it (REQ-CTT-071's "per user, not per role").
+ *
  * Fine-grained per-actor ownership visibility (e.g. tokens whose actor the
- * player does not own) is deferred to a later milestone; only the `hidden`
- * flag is honoured here.
+ * player does not own) is deferred to a later milestone; only `hidden` +
+ * `seenBy` are honoured here.
  */
-export function stripHiddenTokens(scene: Record<string, unknown>): Record<string, unknown> {
+export function stripHiddenTokens(
+  scene: Record<string, unknown>,
+  userId?: string,
+): Record<string, unknown> {
   const rawTokens = scene["tokens"];
   if (!Array.isArray(rawTokens)) return scene;
 
-  const filtered = (rawTokens as Record<string, unknown>[]).filter(
-    (token) => token["hidden"] !== true,
-  );
+  const filtered = (rawTokens as Record<string, unknown>[]).filter((token) => {
+    if (token["hidden"] !== true) return true;
+    if (userId === undefined) return false;
+    const seenBy = token["seenBy"];
+    return Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId);
+  });
 
   // Only allocate a new object when something was actually removed.
   if (filtered.length === rawTokens.length) return scene;
@@ -392,16 +440,95 @@ export function sceneIsInvisibleToRole(role: number, sceneDoc: unknown): boolean
  * mirror gates ops on a contiguous seq and fires its gap detector on a jump,
  * so a swallowed envelope would trigger a resync loop for every player whenever
  * the GM edits a scene that is off air.
+ *
+ * `userId` is threaded through to {@link stripHiddenTokens} so a token's
+ * `seenBy` exception (REQ-TOK-050/051) is honoured — omit it only from a
+ * caller with no per-user identity (see that function's own doc comment).
  */
 export function redactSceneDocsForNonPrivileged(
   documents: Record<string, unknown>[],
+  userId?: string,
 ): Record<string, unknown>[] {
   const result: Record<string, unknown>[] = [];
   for (const doc of documents) {
     if (!sceneIsOnAir(doc)) continue;
-    result.push(redactSecretDoors(stripHiddenTokens(doc)));
+    result.push(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId))));
   }
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// Unlinked token actorDelta hp redaction (REQ-DOC-062, REQ-TOK-072 — TK072)
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove `system.attributes.hp` from a single Token's OWN `actorDelta`, when
+ * present (REQ-DOC-062, REQ-TOK-072).
+ *
+ * This is a DIFFERENT cut from {@link stripActorHp}: that one strips the base
+ * Actor's own hp, gated by OWNER-or-privileged (TK072's per-viewer rule); this
+ * one strips the Token's `actorDelta` override, unconditionally, for every
+ * caller — the caller (this module's own {@link redactSceneDocsForNonPrivileged}
+ * and the ack path below) only ever invokes it once role has already been
+ * established as non-privileged, so there is no viewer-specific branch here to
+ * get wrong.
+ *
+ * Returns the original reference when there is nothing to strip (no delta, or
+ * a delta whose `system.attributes` carries no `hp`), so callers can cheaply
+ * detect "unchanged".
+ */
+export function stripTokenActorDeltaHp(token: Record<string, unknown>): Record<string, unknown> {
+  const delta = token["actorDelta"];
+  if (!isPlainObject(delta)) return token;
+  const system = delta["system"];
+  if (!isPlainObject(system)) return token;
+  const attributes = system["attributes"];
+  if (!isPlainObject(attributes) || !("hp" in attributes)) return token;
+
+  const nextAttributes: Record<string, unknown> = { ...attributes };
+  Reflect.deleteProperty(nextAttributes, "hp");
+  const nextSystem = { ...system, attributes: nextAttributes };
+  return { ...token, actorDelta: { ...delta, system: nextSystem } };
+}
+
+/**
+ * Scene-level counterpart of {@link stripTokenActorDeltaHp}: apply it to every
+ * token in the scene's `tokens` array.
+ *
+ * Mirrors {@link stripHiddenTokens}'s shape (a Scene-in, Scene-out function
+ * composed inside {@link redactSceneDocsForNonPrivileged} and the ack path) so
+ * the two cuts — hidden tokens and an unlinked token's delta hp — read as
+ * siblings, not as a bolt-on. Returns the original scene reference when no
+ * token needed stripping (zero allocation on the fast path — most scenes have
+ * no unlinked token carrying a delta hp at all).
+ */
+export function redactTokenActorDeltaHp(scene: Record<string, unknown>): Record<string, unknown> {
+  const rawTokens = scene["tokens"];
+  if (!Array.isArray(rawTokens)) return scene;
+
+  const tokens = rawTokens as Record<string, unknown>[];
+  if (!tokens.some((token) => stripTokenActorDeltaHp(token) !== token)) return scene;
+
+  return { ...scene, tokens: tokens.map((token) => stripTokenActorDeltaHp(token)) };
+}
+
+/**
+ * Return true when a scene document contains at least one token whose
+ * `actorDelta.system.attributes` carries an `hp` key. Structural fast-path
+ * guard for the ack path, mirroring {@link sceneDocHasHiddenTokens}.
+ */
+function sceneDocHasTokenActorDeltaHp(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const tokens = (doc as Record<string, unknown>)["tokens"];
+  if (!Array.isArray(tokens)) return false;
+  return (tokens as Record<string, unknown>[]).some((t) => {
+    const delta = t["actorDelta"];
+    if (!isPlainObject(delta)) return false;
+    const system = delta["system"];
+    if (!isPlainObject(system)) return false;
+    const attributes = system["attributes"];
+    return isPlainObject(attributes) && "hp" in attributes;
+  });
 }
 
 /**
@@ -721,30 +848,94 @@ export function stripAttitude(doc: Record<string, unknown>): Record<string, unkn
 }
 
 /**
+ * Remove `system.attributes.hp` from a document (spec 41-token.md
+ * REQ-TOK-070..072, DEC-TOK-10 — "vida é do dono").
+ *
+ * `system.attributes.hp` is the canonical path every engine-2e-based system
+ * (pf2e, sf2e — `systems/pf2e/src/derivations/build.ts`,
+ * `systems/pf2e/src/derivations/character.ts`) writes and reads hit points
+ * through; this is the field REQ-TOK-070 means by "pontos de vida". Returns
+ * the original reference when there is nothing to strip, so callers can
+ * cheaply detect "unchanged".
+ */
+export function stripActorHp(doc: Record<string, unknown>): Record<string, unknown> {
+  const system = doc["system"];
+  if (!isPlainObject(system)) return doc;
+  const attributes = system["attributes"];
+  if (!isPlainObject(attributes) || !("hp" in attributes)) return doc;
+
+  const nextAttributes: Record<string, unknown> = { ...attributes };
+  Reflect.deleteProperty(nextAttributes, "hp");
+  return { ...doc, system: { ...system, attributes: nextAttributes } };
+}
+
+/**
+ * Whether `viewer` may see `doc`'s hit points (REQ-TOK-070/071, DEC-TOK-10).
+ *
+ * OWNER (3) of the Actor, or a privileged role — the SAME cut on EVERY
+ * surface that shows vida (REQ-TOK-071: "não deve existir régua diferente
+ * por tela"), because this predicate is the only place that decides it.
+ * `ownershipLevelFor` reads the document's OWN `ownership` map — the same
+ * one every other per-viewer Actor rule in this module reads — so an
+ * unlinked token's `actorDelta` never enters the decision (REQ-TOK-072: the
+ * cut is read from the base `Actor`, never from what the token/delta says).
+ */
+function viewerOwnsActorHp(doc: Record<string, unknown>, viewer: ContactViewer): boolean {
+  if (isRolePrivileged(viewer.role)) return true;
+  return ownershipLevelFor(doc, viewer) >= OwnershipLevel.OWNER;
+}
+
+/**
  * Everything an Actor document loses on its way to a NON-PRIVILEGED socket,
  * whatever the emission path and whatever the viewer's knowledge of it:
- * the knowledge map (REQ-CTT-084) and the attitude (REQ-NPC-082).
+ * the knowledge map (REQ-CTT-084), the attitude (REQ-NPC-082) and — when
+ * `viewer` is supplied and is not OWNER — the hit points (REQ-TOK-070..072).
  *
- * One function rather than two calls at each site, so a future third
- * privileged field is added in ONE place and cannot reach a path someone forgot
- * to update. Returns the original reference when nothing was stripped.
+ * One function rather than several calls at each site, so a future privileged
+ * field is added in ONE place and cannot reach a path someone forgot to
+ * update. Returns the original reference when nothing was stripped.
+ *
+ * `viewer` is optional so the knowledge-map/attitude behaviour stays callable
+ * without one (a handful of call sites in this module echo an ack whose
+ * writer's identity the caller does not thread through — see
+ * `redactAckResultForNonPrivileged`'s embedded-Item branch, where writing to
+ * the parent Actor already required OWNER, so there is no viewer who could
+ * fail the hp check on that path in the first place). Every real production
+ * caller has a viewer — see `redactActorDocsForViewer` below, the single
+ * funnel REQ-NET-096's four emission paths share.
  */
-export function stripPrivilegedActorFields(doc: Record<string, unknown>): Record<string, unknown> {
-  return stripAttitude(stripKnowledgeMap(doc));
+export function stripPrivilegedActorFields(
+  doc: Record<string, unknown>,
+  viewer?: ContactViewer,
+): Record<string, unknown> {
+  const stripped = stripAttitude(stripKnowledgeMap(doc));
+  if (!viewer || viewerOwnsActorHp(stripped, viewer)) return stripped;
+  return stripActorHp(stripped);
 }
 
 /**
  * The payload of a contact the viewer has only GLIMPSED (REQ-CTT-081).
  *
  * An ALLOW-list, deliberately: a deny-list would leak every field a future
- * milestone adds to Actor, and "no name, no title, no portrait, no system data"
- * is a promise about the whole document, not about four keys. What survives
- * identifies nothing:
+ * milestone adds to Actor, and "no name, no title, no system data — but the
+ * PORTRAIT does travel" is a promise about the whole document, not about four
+ * keys. What survives:
  *   - `_id`    — the client mirror is keyed by it, and it is already the key
  *                the GM's ops travel under;
  *   - `type`   — "an unidentified someone", not who;
  *   - `_stats` — the mirror gates upserts on `_stats.version`; without it the
- *                document would look permanently stale and never settle.
+ *                document would look permanently stale and never settle;
+ *   - `img`    — spec 39 DEC-CTT-04 §"Consequência dura", AMENDED by spec
+ *                41-token.md DEC-TOK-09/§12 (2026-08-17, TK003): "o retrato
+ *                (AssetRef) não é redigido: ele sempre viaja no payload do
+ *                contato, porque uma peça no mapa precisa da arte para ser
+ *                desenhada." Before this the token of a glimpsed NPC had no
+ *                art to draw at all — REQ-TOK-010/011/060 and CA-TOK-008
+ *                ("recebe o token e a arte dele, e não recebe o nome")
+ *                require exactly the split this view now makes: identity
+ *                redacted, appearance not. The silhouette a contact CARD
+ *                shows instead of the portrait is that screen's own
+ *                presentation choice, never a second server-side redaction.
  * `ownership` is dropped on purpose: a glimpsed contact offers no sheet
  * (REQ-CTT-042), and an absent map resolves to NONE on the client too.
  *
@@ -755,6 +946,11 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
   const view: Record<string, unknown> = { _id: doc["_id"] };
   if (typeof doc["type"] === "string") view["type"] = doc["type"];
   if (isPlainObject(doc["_stats"])) view["_stats"] = doc["_stats"];
+  // TK003 (spec 41-token.md DEC-TOK-09/§12): the portrait is not redacted —
+  // only `undefined`/absent stays absent, `null` (explicitly "no art") still
+  // travels as `null` rather than being dropped, so the client cannot
+  // mistake "the field was never sent" for "this actor has no art".
+  if ("img" in doc) view["img"] = doc["img"];
   // An explicit marker so the panel can draw "não identificado" without having
   // to infer it from an absence (REQ-CTT-041).
   view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { glimpsed: true } };
@@ -817,7 +1013,7 @@ export function redactActorDocsForViewer(
         if (typeof id === "string") removedIds.push(id);
         continue;
       }
-      result.push(stripPrivilegedActorFields(doc));
+      result.push(stripPrivilegedActorFields(doc, viewer));
       continue;
     }
     const state = resolveUserKnowledge(doc, viewer.ownedCharacterIds);
@@ -830,7 +1026,7 @@ export function redactActorDocsForViewer(
       result.push(glimpsedContactView(doc));
       continue;
     }
-    result.push(stripPrivilegedActorFields(doc));
+    result.push(stripPrivilegedActorFields(doc, viewer));
   }
   return { documents: result, removedIds };
 }
@@ -971,6 +1167,14 @@ export function redactAckResultForNonPrivileged(
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));
   const parentNeedsHiddenTokenRedaction = sceneDocHasHiddenTokens(parent);
 
+  // REQ-DOC-062: an unlinked token's own actorDelta hp rides the ack echo
+  // exactly like the other Scene-shaped cuts above — same structural
+  // detector-then-strip shape as the hidden-token pair right above it.
+  const documentsNeedTokenDeltaHpRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => sceneDocHasTokenActorDeltaHp(d));
+  const parentNeedsTokenDeltaHpRedaction = sceneDocHasTokenActorDeltaHp(parent);
+
   const documentsNeedSecretDoorRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasSecretDoors(d));
   const parentNeedsSecretDoorRedaction = sceneHasSecretDoors(parent);
@@ -989,10 +1193,14 @@ export function redactAckResultForNonPrivileged(
 
   const documentsNeedsRedaction =
     documentsNeedHiddenTokenRedaction ||
+    documentsNeedTokenDeltaHpRedaction ||
     documentsNeedSecretDoorRedaction ||
     documentsNeedCombatRedaction;
   const parentNeedsRedaction =
-    parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction || parentNeedsCombatRedaction;
+    parentNeedsHiddenTokenRedaction ||
+    parentNeedsTokenDeltaHpRedaction ||
+    parentNeedsSecretDoorRedaction ||
+    parentNeedsCombatRedaction;
 
   if (
     !documentsNeedsRedaction &&
@@ -1014,7 +1222,9 @@ export function redactAckResultForNonPrivileged(
       .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
       .map((d) => {
         let redacted = d;
-        if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
+        if (Array.isArray(d["tokens"])) {
+          redacted = redactTokenActorDeltaHp(stripHiddenTokens(redacted, contactCtx?.userId));
+        }
         if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
         if (Array.isArray(redacted["combatants"])) {
           redacted = stripHiddenCombatantsFromCombat(redacted);
@@ -1029,7 +1239,12 @@ export function redactAckResultForNonPrivileged(
     newBody["parent"] = null;
   } else if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
-    if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
+    if (parentNeedsHiddenTokenRedaction) {
+      redactedParent = stripHiddenTokens(redactedParent, contactCtx?.userId);
+    }
+    if (parentNeedsTokenDeltaHpRedaction) {
+      redactedParent = redactTokenActorDeltaHp(redactedParent);
+    }
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
     if (parentNeedsCombatRedaction) {
       redactedParent = stripHiddenCombatantsFromCombat(redactedParent);

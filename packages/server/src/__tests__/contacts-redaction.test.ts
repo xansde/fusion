@@ -563,7 +563,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     joiner.disconnect();
   });
 
-  it("REQ-CTT-081/REQ-CTT-013: a glimpsed contact arrives with no name, title, portrait or system data", async () => {
+  it("REQ-CTT-081/REQ-CTT-013: a glimpsed contact arrives with no name, title or system data — but the portrait DOES travel (TK003, REQ-TOK-060/CA-TOK-008)", async () => {
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
@@ -573,13 +573,17 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === glimpsedId);
     expect(doc).toBeDefined();
     expect(doc).not.toHaveProperty("name");
-    expect(doc).not.toHaveProperty("img");
     expect(doc).not.toHaveProperty("system");
+    // TK003 (spec 41-token.md DEC-TOK-09/§12, amending DEC-CTT-04): the
+    // portrait is NOT redacted — a glimpsed NPC's token still needs its art
+    // to be drawable (REQ-TOK-010/011, CA-TOK-008 "recebe o token e a arte
+    // dele, e não recebe o nome"). This is the opposite of the pre-TK003
+    // behaviour this test used to pin.
+    expect(doc?.["img"]).toBe(GLIMPSED_PORTRAIT);
     // REQ-CTT-013: with no name in the payload there is nothing for a search to
     // match — the whole traffic never spells it out, under any key.
     expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_NAME);
     expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_TITLE);
-    expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_PORTRAIT);
     joiner.disconnect();
   });
 
