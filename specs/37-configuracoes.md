@@ -8,7 +8,7 @@
   - `05-usuarios-e-permissoes.md` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (administração de usuários), que hoje não têm nenhuma tela.
   - `15-api-de-sistemas.md` — DEC-SYS-08 e REQ-SYS-047: o motor de settings declaradas, que existe e nunca teve volante.
   - `13-audio-e-playlists.md` — REQ-AUD-015/016 e DEC-AUD-02: os três canais de volume, já decididos como locais.
-  - `35-avatar-do-personagem.md` — seção Avatar da aba, entry point do criador do avatar (DEC-SEP-06).
+  - `35-avatar-do-personagem.md` — seção Avatar da aba, entry point do criador do avatar (DEC-AVT-07).
   - Protótipo `packages/client/prototypes/settings-tab.prototype.html` — variante 4 (índice → seção), aprovada em 2026-08-15 sem os ícones.
 
 > **Spec-filha da 36.** Esta spec é dona do **conteúdo** da aba Configurações. Ela não
@@ -259,7 +259,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 
 ### 5.3a Avatar
 
-- **REQ-CFG-027** [MVP] A seção Avatar DEVE hospedar o criador do avatar do personagem (REQ-AVT-010), acessível a **todos** via aba Configurações, não pela ficha (DEC-SEP-06).
+- **REQ-CFG-027** [MVP] A seção Avatar DEVE hospedar o criador do avatar do personagem (REQ-AVT-010), acessível a **todos** via aba Configurações, não pela ficha (DEC-AVT-07).
 - **REQ-CFG-028** [MVP] O criador DEVE validar e exibir mensagens de erro quando o acervo mudar — peças desaparecidas, cores inválidas, corpo não disponível — em vez de falhar silenciosamente.
 - **REQ-CFG-029** [MVP] A seção DEVE oferecer um estado vazio se o jogador não tiver um personagem ou se o avatar não estiver inicializado, com uma mensagem legível.
 
@@ -392,7 +392,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 | Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02            |
 | Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10             |
 | Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074       |
-| Avatar (seleção de peças e cores)               | `flags.fusion.avatar` do Actor         | o próprio    | REQ-CFG-027, REQ-AVT-001, DEC-SEP-06 |
+| Avatar (seleção de peças e cores)               | `flags.fusion.avatar` do Actor         | o próprio    | REQ-CFG-027, REQ-AVT-001, DEC-AVT-07 |
 | Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047           |
 | Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                         |
 | Numeração de peças do mesmo ator                | `Setting` de mundo                     | GAMEMASTER   | REQ-CFG-036, DEC-TOK-16            |
@@ -419,7 +419,7 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 ## 9. Dependências (specs irmãs)
 
-- `35` — REQ-AVT-010 (criador do avatar), REQ-AVT-001..006 (contrato do flag), DEC-AVT-02..06 (decisões do avatar): a seção Avatar hospeda o criador de avatar, consumido do pacote `@fusion/avatar` (DEC-SEP-06).
+- `35` — REQ-AVT-010 (criador do avatar), REQ-AVT-001..006 (contrato do flag), DEC-AVT-02..07 (decisões do avatar): a seção Avatar hospeda o criador de avatar, consumido do pacote `@fusion/avatar` (DEC-AVT-07).
 - `36` — contêiner, registro de abas (REQ-GAV-030), largura (REQ-GAV-012), gesto de
   recolher (DEC-GAV-03), badge (DEC-GAV-06), fronteira de segurança (REQ-GAV-034).
 - `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-025a..025d (o
@@ -477,7 +477,7 @@ Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 
 | Spec | O que muda                                                                                                                                                                         |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `35` | REQ-AVT-010 reescrito (F5 — DEC-SEP-06): entrada pela aba Configurações, não pela ficha; §5 lista "onde vive" com pacote externo `@fusion/avatar`.                              |
+| `35` | Emendada em paralelo pela mesma DEC-SEP-06 (não por esta spec): REQ-AVT-010 reescrito, nova DEC-AVT-07 — entrada pela aba Configurações, não pela ficha; §5 lista "onde vive" com pacote externo `@fusion/avatar`. Citada aqui só para deixar as duas emendas juntas. |
 | `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec. |
 | `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                |
 | `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                    |

@@ -1,7 +1,7 @@
 # 35 — Avatar do Personagem
 
 - **Título:** Avatar do personagem — boneco montável do acervo Waybuilder, no canto da mesa
-- **Status:** implementado v0.1 (rodada de 2026-08-08); entrada pela aba Configurações (F5 — DEC-SEP-06)
+- **Status:** implementado v0.1 (rodada de 2026-08-08); entrada pela aba Configurações (F5 — DEC-AVT-07)
 - **Data:** 2026-08-08
 - **Baseada em:**
   - [`igoresramos/waybuilder-avatar`](https://github.com/igoresramos/waybuilder-avatar) — o acervo e o renderer puro que esta feature consome. Pin: `b071c8fd10e79f5cc09af897cff9c9753f4dd790`, catálogo no pin LPC `0f898bb6`.
@@ -9,7 +9,7 @@
   - `11-ui-framework-e-fichas.md` — janelas (REQ-UIF-009..016), sistema de fichas, escala de z (REQ-UIF-008).
   - `02-modelo-de-dados.md` — flags namespaced (REQ-DOC-009), semântica de merge e deleteKey (REQ-DOC-037).
   - `26-licencas-e-legal.md` — atribuição obrigatória de arte de terceiros.
-  - `37-configuracoes.md` — aba Configurações (REQ-CFG-*), entry point do avatar a partir da F5 (DEC-SEP-06).
+  - `37-configuracoes.md` — aba Configurações (REQ-CFG-*), entry point do avatar a partir da F5 (DEC-AVT-07).
 
 > **Não é o retrato.** O retrato (`doc.img`) é um arquivo de imagem que o dono
 > sobe; o avatar é uma **figura montada** peça por peça, que anima e fica no canto
@@ -28,7 +28,7 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ### 2.1 Inclui
 
-- Seção Avatar na aba Configurações (entrada via gaveta lateral, não pela ficha — DEC-SEP-06).
+- Seção Avatar na aba Configurações (entrada via gaveta lateral, não pela ficha — DEC-AVT-07).
 - Criador com o acervo completo: 627 peças, 11 grupos, ~100 slots, 6 variantes de
   corpo, recolor em runtime por canal de cor.
 - Grade de escolha em que **cada célula compõe o personagem inteiro** com a peça
@@ -70,7 +70,7 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 ### Criador
 
 - **REQ-AVT-010** [MVP] O criador abre na seção Avatar da aba Configurações (REQ-CFG-*).
-  O acesso é pela aba, sem entrada separada por ficha (DEC-SEP-06).
+  O acesso é pela aba, sem entrada separada por ficha (DEC-AVT-07).
 - **REQ-AVT-011** [MVP] Navegação em dois níveis: aba por grupo (rótulo pt-BR do
   próprio catálogo, ordem vinda da árvore de prioridade) e um slot por vez.
 - **REQ-AVT-012** [MVP] A ordem de abas e de slots é **determinística**: dois
@@ -139,8 +139,6 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ## 4. Decisões
 
-- **DEC-SEP-06 — Avatar: repositório próprio, entrada pela aba Configurações (F5).** O avatar nunca entra na alfa por merge — nasce como repo `fusion-avatar` a partir do porte existente, e o core o consome como pacote (mesmo padrão de "repo externo consumido por artefato"). Entrada de UI: **aba Configurações da gaveta** (não mais botão na ficha). O "behind 63" da worktree deixa de importar: só o ponto de integração precisa da alfa atual. Ver design em `docs/design/separacao-repos/design.md` § DEC-SEP-06.
-
 - **DEC-AVT-01 — O acervo é dependência, não vendor.** Pin de commit no
   `package.json` do client + plugin Vite publicando `/avatar/*`. Descarta
   submodule (todo clone/CI precisaria de `--recurse-submodules`) e vendor (2.813
@@ -157,10 +155,17 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   cache de quadros: as células reaproveitam os tiles das camadas em comum.
 - **DEC-AVT-06 — Frente apenas.** O corte de direção do acervo tira 75% do peso;
   girar o boneco não é possível sem refazer o recorte.
+- **DEC-AVT-07 — Repositório próprio, entrada pela aba Configurações (F5).** Motivada por
+  DEC-SEP-06 (decisão da separação de repos, fora de `specs/` — ver
+  `docs/design/separacao-repos/design.md` § DEC-SEP-06): o avatar nunca entra na alfa por
+  merge — nasce como repo `fusion-avatar` a partir do porte existente, e o core o consome
+  como pacote (mesmo padrão de "repo externo consumido por artefato"). Entrada de UI:
+  **aba Configurações da gaveta** (não mais botão na ficha). O "behind 63" da worktree
+  deixa de importar: só o ponto de integração precisa da alfa atual.
 
 ## 5. Onde vive
 
-**A partir da F5 (DEC-SEP-06):** este pacote vive no repositório externo `fusion-avatar` (consumido pelo core `fusion` como `@fusion/avatar` por tag git). O contrato do flag continua em `@fusion/shared`.
+**A partir da F5 (DEC-AVT-07):** este pacote vive no repositório externo `fusion-avatar` (consumido pelo core `fusion` como `@fusion/avatar` por tag git). O contrato do flag continua em `@fusion/shared`.
 
 | Papel                       | Arquivo / Pacote                                              |
 | --------------------------- | ------------------------------------------------------------- |
