@@ -89,6 +89,10 @@
     readNpcDragPayload,
     type MovableActor,
   } from "../../lib/npcs/moveActor.js";
+  import {
+    NPC_DRAG_EFFECT_ALLOWED,
+    NPC_FOLDER_DROP_EFFECT,
+  } from "../../lib/canvas/dragEffects.js";
   import { openNpcCreateWindow } from "../../lib/npcs/npcCreateWindow.js";
   import { openNpcDeleteWindow } from "../../lib/npcs/npcDeleteWindow.js";
   import { isDeletableNpcSubtype } from "../../lib/npcs/deleteNpc.js";
@@ -368,7 +372,11 @@
   function onNpcDragStart(event: DragEvent, doc: MovableActor): void {
     if (!event.dataTransfer) return;
     event.dataTransfer.setData(NPC_DRAG_MIME, JSON.stringify(buildNpcDragPayload(doc)));
-    event.dataTransfer.effectAllowed = "move";
+    // The row travels to two destinations with opposite verbs — a folder (move,
+    // REQ-NPC-028/029) and the map (copy, REQ-NPC-063) — so it has to allow both.
+    // Allowing only "move" made the browser resolve the drop on the canvas to no
+    // operation at all and never fire `drop`, with no error anywhere (TK042a).
+    event.dataTransfer.effectAllowed = NPC_DRAG_EFFECT_ALLOWED;
   }
 
   /**
@@ -379,7 +387,7 @@
   function onFolderDragOver(event: DragEvent, folderId: string): void {
     if (!event.dataTransfer?.types.includes(NPC_DRAG_MIME)) return;
     event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
+    event.dataTransfer.dropEffect = NPC_FOLDER_DROP_EFFECT;
     dragOverFolder = folderId;
   }
 
