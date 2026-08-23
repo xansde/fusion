@@ -109,6 +109,9 @@
   "FUSION.Settings.Preferences.NotificationsTitle": "Notificações",
   "FUSION.Settings.Preferences.Notifications.ChatSound": "Tocar som ao receber mensagem no chat",
   "FUSION.Settings.Preferences.Notifications.TurnAlert": "Avisar quando for o meu turno",
+  "FUSION.Settings.Preferences.TokenDisplayTitle": "Exibição de tokens",
+  "FUSION.Settings.Preferences.TokenDisplay.ShowNames": "Mostrar nomes dos tokens no mapa",
+  "FUSION.Settings.Preferences.TokenDisplay.ShowBars": "Mostrar barras de vida/recurso dos tokens no mapa",
   "FUSION.Settings.World.Empty": "O sistema ativo não declarou nenhuma setting de mundo.",
   "FUSION.Settings.World.ConfirmDisable": {
     "1": "1 personagem tem escolhas que dependem desta regra. Desligar mesmo assim?",

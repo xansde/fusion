@@ -45,6 +45,8 @@
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
+  import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
+  import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
@@ -262,6 +264,19 @@
       cleanupChatSync = attachChatSync(sock, session.worldInfo?.id ?? "");
       cleanupChatMessageSync?.();
       cleanupChatMessageSync = attachChatMessageSync(sock);
+
+      // TK041 (REQ-SYS-009, spec 41-token.md DEC-TOK-03): the active system's
+      // size→footprint table — every TokenSprite render and every drag/add
+      // snap (TokenInteractionManager) reads it through footprintOf(). Fire
+      // once per seat; fails open (empty map → every token stays 1×1) so a
+      // slow or absent answer never blocks the canvas.
+      void ensureFootprintRegistry(sock);
+
+      // TK080 (REQ-TOK-074): this user's saved name/bar display preferences,
+      // loaded once per seat into the live store TokenSprite reads through
+      // (tokenDisplayPrefsStore.svelte.ts) — 100% client-local, no socket
+      // round-trip (unlike the footprint table above, which is server data).
+      initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
@@ -422,7 +437,7 @@
           // Build a minimal actor payload to reuse buildTokenFromActorFields
           const fakePayload: ActorDragPayload = {
             kind: "actor",
-            uuid: createdId,
+            _id: createdId,
             documentType: "Actor",
             subtype: accepted.subtype ?? "npc",
             name: accepted.name,
@@ -559,10 +574,6 @@
     // send ops on, so interaction stays unwired for this scene load rather
     // than silently queuing/dropping every gesture.
     if (sock) {
-      const ownedActorIds = ownedActorIdsOf(
-        worldMirror.getByType<Record<string, unknown>>("Actor"),
-        userId,
-      );
       _tokenInteraction = new TokenInteractionManager({
         tokenContainer: canvas.getLayer("tokens"),
         tokenLayer,
@@ -572,7 +583,16 @@
         socket: sock,
         userId,
         userRole: session.user?.role ?? 0,
-        ownedActorIds,
+        // R2: read live, never a snapshot. This manager is built once per
+        // scene LOAD (see `_loadedSceneId`), so a set captured here would
+        // freeze "which actors are mine" at canvas-mount time — and since
+        // fase 5 that set is the only client-side predicate for moving a
+        // token (REQ-TOK-032/034). A player whose Actor snapshot lands after
+        // the canvas mounted, or who is granted OWNER during the session,
+        // would be refused by the interface until F5 while the server would
+        // have accepted the move.
+        getOwnedActorIds: () =>
+          ownedActorIdsOf(worldMirror.getByType<Record<string, unknown>>("Actor"), userId),
         gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
         onError: (msg) => {
           dropRefusal = msg;
@@ -641,6 +661,14 @@
       lightingRenderer,
       fogState,
       combatController,
+      // R4: the orchestrator is the one thing subscribed to the Scene
+      // document, so it is what notices the grid being edited with the
+      // scene's pencil. It re-lays the sprites itself (TokenLayer.setGridSize);
+      // this hands the same number to the drag snap, which keeps its own copy
+      // of the cell size in `gridConfig`.
+      onGridSizeChange: (size: number) => {
+        _tokenInteraction?.setGridSize(size);
+      },
     });
   }
 

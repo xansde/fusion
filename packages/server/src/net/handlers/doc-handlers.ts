@@ -1301,6 +1301,15 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // still exists cannot be wrong about which scenes it touches, and a NOT_FOUND
     // halfway through the delete loop then leaves no scene already rewritten for
     // a delete that never happened.
+    //
+    // spec 41-token.md TK091/DEC-TOK-17: this is a DELIBERATE exception to
+    // DEC-DOC-11 (soft-reference-by-default for a Document referencing
+    // another). A token's `actorId` is NOT a soft reference that survives its
+    // target's deletion — REQ-TOK-093 requires the token to go with it, in
+    // EVERY scene of the world, not just be left pointing at a ghost. Do not
+    // "fix" this back into a soft reference: an orphaned token with no actor
+    // to draw, name, or check ownership against is exactly the state
+    // REQ-TOK-002/DEC-TOK-04 already refuse a token from ever entering.
     const presenceRemovals = planPresenceRemoval(deps.store, deletedActorIds);
 
     const onAirSceneIds = new Set<string>();
@@ -1891,7 +1900,8 @@ function handleEmbeddedDelete(
     return ackError("NOT_FOUND", `Parent not found: ${parent.type}/${parent.id}`);
   }
 
-  // Permission: GM/ASSISTANT or actor owner
+  // Permission: GM/ASSISTANT or actor owner — EXCEPT Token, which is
+  // role-only (see below).
   //
   // Item (embedded directly in Actor, parent.type === "Actor") is checked
   // against the parent Actor's OWN ownership map — there is no separate
@@ -1903,6 +1913,21 @@ function handleEmbeddedDelete(
     const level = resolveOwnership(ownership, ctx.userId, ctx.role);
     if (level < OwnershipLevel.OWNER) {
       return ackError("PERMISSION_DENIED", `No OWNER access to parent Actor/${parent.id}`);
+    }
+  } else if (embeddedType === "Token") {
+    // REQ-TOK-031 (spec 41-token.md, DEC-TOK-06): excluir um token exige
+    // papel privilegiado, com a MESMA régua de REQ-TOK-030 (criar) — nunca
+    // ownership do ator. Antes desta checagem, um jogador OWNER do próprio
+    // personagem conseguia excluir o próprio token direto por aqui (a
+    // ownership-of-actor branch abaixo, que este `else if` substitui para
+    // Token, aceitava). TOKEN_DELETE espelha o floor configurável que
+    // TOKEN_CREATE já usa (REQ-CFG-040..042, world-permissions.ts),
+    // GM sempre passa independente do floor (mesma disciplina de
+    // handleEmbeddedCreate acima).
+    const minRole = resolvePermissionMinRole(deps.store, "TOKEN_DELETE");
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
+      return ackError("PERMISSION_DENIED", "Insufficient role to delete tokens");
     }
   } else if (!isPrivileged(ctx.role)) {
     const collKey = embeddedType.toLowerCase() + "s";
@@ -2063,14 +2088,34 @@ function broadcastToWorld(
         documentType: string;
         documents: Record<string, unknown>[];
       };
-      const playerEnvelope: Envelope = {
-        ...envelope,
-        payload: {
-          ...payload,
-          documents: redactSceneDocsForNonPrivileged(payload.documents),
-        },
-      };
-      emitByRole(ns, envelope, playerEnvelope);
+      // Scene envelopes ALSO go per-socket, and per USER rather than per
+      // role, for the same reason the Actor branch below does: REQ-TOK-050's
+      // `seenBy` exception list is per USER, so two players on the same role
+      // can be owed different token sets from the identical Scene write
+      // (spec 41-token.md TK070). Mirrors the Actor branch's `byUser` cache
+      // — one redacted copy per user, not per socket.
+      const byUser = new Map<string, Envelope>();
+      for (const [, socket] of ns.sockets) {
+        if (socketIsPrivileged(socket)) {
+          socket.emit("op", envelope);
+          continue;
+        }
+        const data = socket.data as Record<string, unknown> | null | undefined;
+        const rawUserId = data?.["userId"];
+        const userId = typeof rawUserId === "string" ? rawUserId : "";
+        let playerEnvelope = byUser.get(userId);
+        if (!playerEnvelope) {
+          playerEnvelope = {
+            ...envelope,
+            payload: {
+              ...payload,
+              documents: redactSceneDocsForNonPrivileged(payload.documents, userId),
+            },
+          };
+          byUser.set(userId, playerEnvelope);
+        }
+        socket.emit("op", playerEnvelope);
+      }
       return;
     }
 

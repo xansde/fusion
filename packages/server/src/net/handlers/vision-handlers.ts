@@ -1,9 +1,10 @@
 /**
- * M2-A Vision handlers — walls, ambient lights, door state, token move collision.
+ * M2-A Vision handlers — walls, ambient lights, door state, token movement.
  *
  * Spec references:
- *  - 07-visao-iluminacao-fog.md §REQ-VIS-001..007, REQ-VIS-040, REQ-VIS-091
+ *  - 07-visao-iluminacao-fog.md §REQ-VIS-001..007, REQ-VIS-040
  *  - 05-usuarios-e-permissoes.md — GM-only wall/light CRUD; any user opens unlocked door
+ *  - 41-token.md §5.5 (REQ-TOK-040..044, DEC-TOK-07) — token:move's own rules
  *
  * Handler architecture:
  *   Walls and AmbientLights are embedded in Scene, just like Tokens.
@@ -14,10 +15,16 @@
  *     - The permission model differs per doorType/doorState transition
  *     - It should not go through the generic doc:update path (cleaner semantics)
  *
- *   Token move collision:
- *     The token:move handler is extended to validate movement against walls.
- *     When movement would cross a wall with move:"normal" and the door is not open,
- *     the server rejects with MOVE_BLOCKED (unless force:true AND GM).
+ *   Token move (TK062, spec 41-token.md):
+ *     token:move validates ONLY the permission of REQ-TOK-032 — no wall
+ *     collision, no elevation, no distance travelled (REQ-TOK-042). Wall
+ *     collision (REQ-VIS-091, ex-M2-A) was REMOVED here, not fixed: D24/D25
+ *     (docs/design/spec-41-token/decisoes.md) put vision/fog/lighting/wall
+ *     collision entirely out of spec 41's scope, deferred whole to spec 07
+ *     when it lands. `wallsBlockingMovement`/`moveBlocked`
+ *     (packages/shared/src/vision/walls.ts) stay defined — spec 07's future
+ *     collision will need the same math — but nothing in this file calls
+ *     them anymore.
  *
  * Redaction of secret doors:
  *   Secret doors (doorType:"secret") must be redacted for non-GM clients, appearing
@@ -47,8 +54,6 @@ import {
   type Ack,
   type Envelope,
   createDocumentId,
-  wallsBlockingMovement,
-  moveBlocked,
 } from "@fusion/shared";
 import { broadcastToWorld } from "./doc-handlers.js";
 import { sceneIsInvisibleToRole } from "../redaction.js";
@@ -467,17 +472,30 @@ export function buildDoorStateHandler(deps: VisionHandlerDeps): HandlerFn {
 }
 
 // ---------------------------------------------------------------------------
-// token:move — with wall collision validation
-// REQ-VIS-091: server validates movement against walls; rejects with MOVE_BLOCKED
+// token:move
+// TK062 (spec 41-token.md, DEC-TOK-07): the ONLY validation left is permission
+// (REQ-TOK-032). Scene-bounds enforcement (the other half of REQ-TOK-042) is
+// NOT implemented by this handler: no write path (this handler or the
+// doc:update path in doc-handlers.ts) reads scene.width/height. Pending a
+// product decision on what "bounds" means in the padded coordinate space
+// before it is added.
+// Wall collision (REQ-VIS-091) is REMOVED, not fixed: D24/D25
+// (docs/design/spec-41-token/decisoes.md) close Q-TOK-04 — vision, fog,
+// lighting and wall collision are OUT of spec 41's scope, deferred whole to a
+// future spec. Issue #166 (collision ignoring footprint) is therefore not a
+// bug to fix here: the code it would have fixed is gone. `force` (the
+// GM-only collision bypass flag) is gone from TokenMovePayloadSchema for the
+// same reason — nothing is left for it to bypass.
 // ---------------------------------------------------------------------------
 
 /**
- * Build the token:move handler with wall collision validation.
+ * Build the token:move handler.
  *
- * If the movement path crosses a wall with move:"normal" (and door is not open),
- * the server rejects with code MOVE_BLOCKED.
- *
- * GM/ASSISTANT can pass force:true to bypass the collision check.
+ * REQ-TOK-042 (DEC-TOK-07): validates ONLY the permission of REQ-TOK-032 —
+ * no collision, no elevation, no distance travelled. A token with a
+ * multi-cell footprint stays grid-snapped (REQ-TOK-043) by construction: the
+ * client always sends grid-aligned coordinates, and this handler persists
+ * them as-is.
  */
 export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
   return (rawPayload, ctx) => {
@@ -485,7 +503,7 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
     if (!parsed.success) {
       return ackError("VALIDATION_FAILED", parsed.error.message);
     }
-    const { sceneId, tokenId, x, y, rotation, force } = parsed.data;
+    const { sceneId, tokenId, x, y, rotation } = parsed.data;
 
     // Load the scene
     const { scene, err } = loadScene(deps.store, sceneId, ctx.role);
@@ -528,32 +546,6 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
         }
       } catch {
         return ackError("PERMISSION_DENIED", `Actor not found for token ${tokenId}`);
-      }
-    }
-
-    // Collision check (REQ-VIS-091)
-    // GM with force:true bypasses the check
-    const bypassCollision = isPrivileged && force === true;
-
-    if (!bypassCollision) {
-      // Load walls from the scene
-      const walls = getCollection<WallDocument>(scene, "walls");
-
-      // Filter walls that block movement
-      const blockingWalls = wallsBlockingMovement(walls);
-
-      // Current token position (center point based on width/height defaults to top-left)
-      const fromX = typeof token["x"] === "number" ? token["x"] : 0;
-      const fromY = typeof token["y"] === "number" ? token["y"] : 0;
-
-      const from = { x: fromX, y: fromY };
-      const to = { x, y };
-
-      if (moveBlocked(from, to, blockingWalls)) {
-        return ackError(
-          "MOVE_BLOCKED",
-          `Movement from (${String(fromX)},${String(fromY)}) to (${String(x)},${String(y)}) is blocked by a wall`,
-        );
       }
     }
 

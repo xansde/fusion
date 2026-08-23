@@ -97,6 +97,21 @@ export const pf2eSystem = defineSystem(
       { lang: "pt-BR", name: "Português (Brasil)", path: "lang/pt-BR.json" },
       { lang: "en", name: "English", path: "lang/en.json" },
     ],
+    // REQ-SYS-009 (spec 15, DEC-TOK-03/D7): the token's footprint is derived
+    // from the effective actor's size category through this mapping — the
+    // engine never arbitrates the conversion. Categories match the
+    // `traits.size` enum every pf2e/sf2e actor schema already uses
+    // (schema-primitives.ts SIZES); the space-per-size rule (tiny/sm/med =
+    // 1x1, lg = 2x2, huge = 3x3, grg = 4x4) is a PF2e Remaster rules fact
+    // (ORC), not text or code copied from any proprietary source.
+    sizeToFootprint: {
+      tiny: { width: 1, height: 1 },
+      sm: { width: 1, height: 1 },
+      med: { width: 1, height: 1 },
+      lg: { width: 2, height: 2 },
+      huge: { width: 3, height: 3 },
+      grg: { width: 4, height: 4 },
+    },
   },
 
   (registrar) => {

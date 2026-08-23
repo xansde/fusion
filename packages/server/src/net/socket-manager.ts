@@ -25,6 +25,7 @@ import {
   systemPingHandler,
   buildWhoAmIHandler,
   buildSystemConditionsHandler,
+  buildSystemFootprintHandler,
 } from "./handlers/system.js";
 import {
   buildSettingsDeclarationsHandler,
@@ -303,6 +304,9 @@ export class SocketManager {
     const cursorRateLimiter = new EphemeralRateLimiter(50);
     // ping: 2/s max = 500 ms minimum interval
     const pingRateLimiter = new EphemeralRateLimiter(500);
+    // REQ-NET-044: token:preview throttled like cursors — a drag is
+    // effectively a cursor carrying a token, same target frequency.
+    const previewRateLimiter = new EphemeralRateLimiter(50);
 
     // REQ-NET-005: track current scene room per socket (socketId → sceneId).
     // Updated by ephemeral-handlers when a cursor event carries a new sceneId.
@@ -350,6 +354,12 @@ export class SocketManager {
     // (REQ-CTT-031/032/034) and the client cannot import a game system, so the
     // declaration reaches the drawer through here.
     registry.register("system:conditions", buildSystemConditionsHandler(systemModule));
+    // Spec 15 REQ-SYS-009 / spec 41-token.md TK041/DEC-TOK-03: the active
+    // system's size→footprint table. A token's occupied cells are derived
+    // from its effective actor's size category, never a field on the token
+    // (REQ-TOK-012/017), and the client cannot import a game system — same
+    // door shape as `system:conditions` above.
+    registry.register("system:footprint", buildSystemFootprintHandler(systemModule));
     // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's
     // Mundo section renders purely from what the active system declared —
     // this is the door that declaration crosses (settings ENGINE already
@@ -690,6 +700,7 @@ export class SocketManager {
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
         cursorRateLimiter,
         pingRateLimiter,
+        previewRateLimiter,
         sceneRooms,
       });
 
@@ -701,6 +712,7 @@ export class SocketManager {
         // Evict rate limiter state for this socket to free memory
         cursorRateLimiter.evict(socket.id);
         pingRateLimiter.evict(socket.id);
+        previewRateLimiter.evict(socket.id);
         // Evict scene room tracking for this socket
         sceneRooms.delete(socket.id);
         // REQ-NET-043: re-broadcast the roster minus this socket — `ns.sockets`
@@ -825,6 +837,7 @@ export class SocketManager {
     rateLimiters: {
       cursorRateLimiter: EphemeralRateLimiter;
       pingRateLimiter: EphemeralRateLimiter;
+      previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
     },
@@ -991,6 +1004,7 @@ export class SocketManager {
           logger,
           cursorRateLimiter: rateLimiters.cursorRateLimiter,
           pingRateLimiter: rateLimiters.pingRateLimiter,
+          previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
         },
       );

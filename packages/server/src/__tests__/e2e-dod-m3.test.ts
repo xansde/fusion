@@ -670,7 +670,6 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         sceneId: moveSceneId,
         x: 100,
         y: 100,
-        force: true,
       });
       const rtt = Date.now() - t0;
       expect(ack["ok"]).toBe(true);
@@ -709,9 +708,10 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         x: 300,
         y: 300,
       });
-      // Server must reject — any of these error codes are acceptable
+      // Server must reject — TK062 removed wall collision from token:move, so
+      // MOVE_BLOCKED can no longer be a valid outcome here (REQ-TOK-042).
       expect(moveAck["ok"]).toBe(false);
-      expect(["PERMISSION_DENIED", "MOVE_BLOCKED", "NOT_FOUND"]).toContain(moveAck["code"]);
+      expect(["PERMISSION_DENIED", "NOT_FOUND"]).toContain(moveAck["code"]);
     });
   });
 

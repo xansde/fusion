@@ -78,10 +78,11 @@ describe("buildActorDragPayload()", () => {
     expect(payload.documentType).toBe("Actor");
   });
 
-  it("sets uuid to actor._id", () => {
+  it("sets _id to actor._id — never a uuid (#170)", () => {
     const actor = makeActor("Aaaa0000000000a1", "Valeros");
     const payload = buildActorDragPayload(actor);
-    expect(payload.uuid).toBe("Aaaa0000000000a1");
+    expect(payload._id).toBe("Aaaa0000000000a1");
+    expect(payload).not.toHaveProperty("uuid");
   });
 
   it("sets subtype from actor.type", () => {
@@ -132,7 +133,7 @@ describe("buildTokenFromActorFields()", () => {
     expect(Object.keys(fields).sort()).toEqual(["actorId", "x", "y"]);
   });
 
-  it("sets actorId from payload.uuid", () => {
+  it("sets actorId from payload._id", () => {
     const fields = buildTokenFromActorFields({
       payload,
       sceneId: "SceneXXXXXXXXXXXX",

@@ -49,6 +49,12 @@ export const EnvelopeTypeSchema = z.union([
   // paints what the system declared — and the client cannot import a game
   // system package, so the dictionary travels over the wire.
   z.literal("system:conditions"),
+  // Spec 15 REQ-SYS-009 / spec 41-token.md TK041/DEC-TOK-03: the active
+  // system's size→footprint table. A token's occupied cells are derived from
+  // its effective actor's size category (REQ-TOK-012/017), never a field on
+  // the token, and the client cannot import a game system — same "the
+  // declaration travels over the wire" reasoning as system:conditions above.
+  z.literal("system:footprint"),
   // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's Mundo
   // section renders purely from what the active system declared with escopo
   // `world` — same "the client cannot import a game system" reasoning as
@@ -285,15 +291,17 @@ export const TokenMovePayloadSchema = z.object({
       y: z.number(),
     })
     .optional(),
-  /**
-   * GM-only flag to bypass wall collision check.
-   * When true and the requester is GM/ASSISTANT, movement is allowed even
-   * if it would cross a blocking wall (spec 07 §REQ-VIS-091).
-   */
-  force: z.boolean().optional(),
 });
 
 export type TokenMovePayload = z.infer<typeof TokenMovePayloadSchema>;
+
+// `token:preview` (REQ-NET-044) is an EPHEMERAL event (the `ephemeral` socket
+// channel, not `op`) — its payload schema lives with the rest of the
+// ephemeral payloads in `packages/server/src/net/ephemeral-handlers.ts`
+// (`TokenPreviewPayloadSchema`), matching where `CursorMovePayloadSchema` /
+// `MapPingPayloadSchema` / `RulerUpdatePayloadSchema` already live. Only the
+// `EnvelopeTypeSchema` literal above is shared — every other ephemeral
+// payload schema is intentionally NOT duplicated into this `op`-channel file.
 
 // ---------------------------------------------------------------------------
 // Door state payloads

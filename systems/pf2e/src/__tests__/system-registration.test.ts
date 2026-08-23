@@ -69,6 +69,21 @@ describe("pf2eSystem manifest", () => {
     const ptBr = langs.find((l) => l.lang === "pt-BR");
     expect(ptBr).toBeDefined();
   });
+
+  // REQ-SYS-009 (spec 15, TK041/DEC-TOK-03): Médio = 1x1, Grande = 2x2 — the
+  // exact PF2e example D7 names. Every category has an entry: a footprint
+  // lookup that falls through to a default 1x1 for an UNDECLARED category is
+  // still a real gap for a declared one, and this pins the whole table.
+  it("declares sizeToFootprint with Médio 1x1 and Grande 2x2 (REQ-SYS-009)", () => {
+    expect(pf2eSystem.manifest.sizeToFootprint).toEqual({
+      tiny: { width: 1, height: 1 },
+      sm: { width: 1, height: 1 },
+      med: { width: 1, height: 1 },
+      lg: { width: 2, height: 2 },
+      huge: { width: 3, height: 3 },
+      grg: { width: 4, height: 4 },
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -401,7 +401,7 @@
     dragOverFolder = null;
     const payload = readNpcDragPayload(event.dataTransfer?.getData(NPC_DRAG_MIME));
     if (payload === null) return;
-    const doc = npcs.find((candidate) => candidate._id === payload.uuid);
+    const doc = npcs.find((candidate) => candidate._id === payload._id);
     if (doc === undefined) return;
     void moveNpc(doc._id, normalizeFolderId(doc.folder), folderId);
   }

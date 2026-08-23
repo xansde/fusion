@@ -10,7 +10,7 @@
  * M1-E: REQ-NET-040..044
  */
 
-import type { RemoteCursor, MapPing, RulerState, OnlineUser } from "./types.js";
+import type { RemoteCursor, MapPing, RulerState, OnlineUser, RemoteTokenPreview } from "./types.js";
 import {
   applyCursorUpdate,
   pruneStale,
@@ -25,6 +25,14 @@ import {
 const PING_DURATION_MS = 2000;
 const CURSOR_PRUNE_INTERVAL_MS = 1000;
 
+/**
+ * A token:preview is considered stale (dragger went silent — connection
+ * drop, or the drop's doc:update simply superseded it) after this many ms
+ * with no fresh preview. Generous relative to the ~50ms emit throttle: this
+ * only needs to catch "dragger disappeared", not measure normal jitter.
+ */
+const TOKEN_PREVIEW_STALE_MS = 3000;
+
 // ---------------------------------------------------------------------------
 // State (Svelte 5 runes)
 // ---------------------------------------------------------------------------
@@ -34,11 +42,14 @@ export const presenceState: {
   pings: MapPing[];
   remoteRulers: Map<string, RulerState>;
   onlineUsers: OnlineUser[];
+  /** REQ-NET-044: token:preview broadcasts from OTHER users, keyed by tokenId. */
+  remoteTokenPreviews: Map<string, RemoteTokenPreview>;
 } = $state({
   remoteCursors: new Map<string, RemoteCursor>(),
   pings: [] as MapPing[],
   remoteRulers: new Map<string, RulerState>(),
   onlineUsers: [] as OnlineUser[],
+  remoteTokenPreviews: new Map<string, RemoteTokenPreview>(),
 });
 
 // ---------------------------------------------------------------------------
@@ -151,6 +162,46 @@ export function clearRemoteRuler(userId: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// Token drag preview (REQ-NET-044)
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply a received token:preview from another user (REQ-NET-044).
+ * Called from the socket 'ephemeral' handler.
+ */
+export function applyRemoteTokenPreview(update: {
+  tokenId: string;
+  sceneId: string;
+  userId: string;
+  x: number;
+  y: number;
+}): void {
+  presenceState.remoteTokenPreviews.set(update.tokenId, {
+    ...update,
+    receivedAtMs: Date.now(),
+  });
+}
+
+/** Remove a specific token's preview (e.g. once its authoritative move lands). */
+export function clearRemoteTokenPreview(tokenId: string): void {
+  presenceState.remoteTokenPreviews.delete(tokenId);
+}
+
+/**
+ * Remove token previews that have not been refreshed within
+ * TOKEN_PREVIEW_STALE_MS — mirrors pruneStaleCursors, called from the same
+ * background interval.
+ */
+export function pruneStaleTokenPreviews(): void {
+  const now = Date.now();
+  for (const [tokenId, preview] of presenceState.remoteTokenPreviews) {
+    if (now - preview.receivedAtMs > TOKEN_PREVIEW_STALE_MS) {
+      presenceState.remoteTokenPreviews.delete(tokenId);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Online users
 // ---------------------------------------------------------------------------
 
@@ -171,6 +222,11 @@ export function markUserOffline(userId: string): void {
   // Remove their cursor and ruler
   removeCursor(userId);
   clearRemoteRuler(userId);
+  // Remove any token preview they were mid-drag on (REQ-NET-044) — a
+  // disconnected user's ghost should not linger on other clients' screens.
+  for (const [tokenId, preview] of presenceState.remoteTokenPreviews) {
+    if (preview.userId === userId) presenceState.remoteTokenPreviews.delete(tokenId);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -187,6 +243,7 @@ export function startPresenceBackground(): () => void {
 
   _pruneInterval = setInterval(() => {
     pruneStaleCursors();
+    pruneStaleTokenPreviews();
   }, CURSOR_PRUNE_INTERVAL_MS);
 
   return stopPresenceBackground;
@@ -200,4 +257,4 @@ export function stopPresenceBackground(): void {
 }
 
 // Export for testing
-export { CURSOR_STALE_MS, PING_DURATION_MS };
+export { CURSOR_STALE_MS, PING_DURATION_MS, TOKEN_PREVIEW_STALE_MS };

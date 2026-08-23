@@ -26,7 +26,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { SceneOrchestrator } from "../scene-orchestrator.js";
+import { SceneOrchestrator, isTokenControlledForTest } from "../scene-orchestrator.js";
 import type {
   ITokenLayer,
   ILightingRenderer,
@@ -87,8 +87,12 @@ function makeToken(
     rotation: 0,
     vision: { enabled: true, range: null, angle: 360, rotation: 0, visionMode: "basic" },
     light: null,
-    // ownership: userId → 3 so it counts as controlled for player tests
-    ownership: { "user-1": 3 },
+    // TK030 (#164): `TokenDocument` has no `ownership` field (REQ-TOK-013, REQ-TOK-032, REQ-TOK-034) —
+    // control is resolved from the ACTOR referenced by `actorId` (see the
+    // "REQ-TOK-013, REQ-TOK-034: token control" describe block below, which sets up a
+    // real Actor with `ownership` in the mirror). None of the tests above
+    // that block assert on vision CONTENT gated by `controlled` — only that
+    // setVisionPolygons/render were called — so they do not need an Actor.
     ...overrides,
   } as unknown as TokenDocument;
 }
@@ -127,6 +131,9 @@ function makeTokenLayer(): ITokenLayer & { calls: { fn: string; args: unknown[] 
     calls,
     setVisionPolygons(polygons, fogEnabled) {
       calls.push({ fn: "setVisionPolygons", args: [polygons, fogEnabled] });
+    },
+    setGridSize(gridSize, tokens) {
+      calls.push({ fn: "setGridSize", args: [gridSize, tokens] });
     },
     tick(deltaMs, zoom) {
       calls.push({ fn: "tick", args: [deltaMs, zoom] });
@@ -242,6 +249,7 @@ function makeOrchestrator(
     userId: string;
     fogState: FogState | null;
     combatController: ICombatController | null;
+    onGridSizeChange: (gridSize: number) => void;
   }> = {},
 ): {
   orchestrator: SceneOrchestrator;
@@ -260,6 +268,7 @@ function makeOrchestrator(
     lightingRenderer,
     fogState: opts.fogState !== undefined ? opts.fogState : makeFogState(opts.isGm ?? false),
     combatController: opts.combatController ?? null,
+    ...(opts.onGridSizeChange !== undefined ? { onGridSizeChange: opts.onGridSizeChange } : {}),
   };
 
   const orchestrator = new SceneOrchestrator(options);
@@ -614,6 +623,91 @@ describe("SceneOrchestrator", () => {
     });
   });
 
+  // R4 (integração pós-#194): before this, `TokenLayer.setGridSize` had NO
+  // production caller at all, and #194's `_loadedSceneId` guard stopped the
+  // canvas reload that used to rebuild everything — so changing a scene's grid
+  // size with the scene's pencil left sprites (and the interaction manager's
+  // snap) on the old size until F5. The orchestrator is the one thing already
+  // subscribed to the Scene document, so it is where the new size is fanned out.
+  describe("grid size change → TokenLayer + interaction manager (R4)", () => {
+    it("a scene grid change repasses the new size to the TokenLayer and to the grid consumer", async () => {
+      const scene = makeScene("scene-1", { tokens: [makeToken("tok-1")] });
+      const mirror = makeMirror("scene-1", scene);
+      const gridSizes: number[] = [];
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: true,
+        fogState: null,
+        onGridSizeChange: (size) => gridSizes.push(size),
+      });
+      await orchestrator.setup();
+
+      const sceneWithNewGrid = makeScene("scene-1", {
+        tokens: [makeToken("tok-1")],
+        grid: { type: "square", size: 140 },
+      });
+      mirror.feedOp({
+        seq: 2,
+        type: "doc:update",
+        ts: Date.now(),
+        payload: {
+          documentType: "Scene",
+          documents: [sceneWithNewGrid as unknown as Record<string, unknown>],
+        },
+      });
+
+      const gridCalls = tokenLayer.calls.filter((c) => c.fn === "setGridSize");
+      expect(gridCalls).toHaveLength(1);
+      expect(gridCalls[0]?.args[0]).toBe(140);
+      expect(gridCalls[0]?.args[1]).toEqual(sceneWithNewGrid.tokens);
+      expect(gridSizes).toEqual([140]);
+
+      orchestrator.teardown();
+    });
+
+    it("a scene change that does NOT touch the grid leaves both alone", async () => {
+      const scene = makeScene("scene-1", { tokens: [makeToken("tok-1", 100, 100)] });
+      const mirror = makeMirror("scene-1", scene);
+      const gridSizes: number[] = [];
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: true,
+        fogState: null,
+        onGridSizeChange: (size) => gridSizes.push(size),
+      });
+      await orchestrator.setup();
+
+      // A plain token move — the commonest Scene broadcast there is.
+      const sceneMoved = makeScene("scene-1", { tokens: [makeToken("tok-1", 300, 300)] });
+      mirror.feedOp({
+        seq: 2,
+        type: "doc:update",
+        ts: Date.now(),
+        payload: {
+          documentType: "Scene",
+          documents: [sceneMoved as unknown as Record<string, unknown>],
+        },
+      });
+
+      expect(tokenLayer.calls.filter((c) => c.fn === "setGridSize")).toHaveLength(0);
+      expect(gridSizes).toEqual([]);
+
+      orchestrator.teardown();
+    });
+
+    it("a scene with no grid at all falls back to the default size without churning", async () => {
+      const scene = makeScene("scene-1", { grid: null, tokens: [makeToken("tok-1")] });
+      const mirror = makeMirror("scene-1", scene);
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: true,
+        fogState: null,
+      });
+      await orchestrator.setup();
+
+      expect(tokenLayer.calls.filter((c) => c.fn === "setGridSize")).toHaveLength(0);
+
+      orchestrator.teardown();
+    });
+  });
+
   describe("wall/door change → cache invalidation", () => {
     it("wall change triggers a full cache bust (clearAll path)", async () => {
       const scene = makeScene("scene-1");
@@ -957,6 +1051,82 @@ describe("SceneOrchestrator", () => {
       expect(tokenLayer1.calls.length).toBe(tokenLayer1CallsAfterResume);
 
       orch2.teardown();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // TK030 (#164) — REQ-TOK-013, REQ-TOK-032, REQ-TOK-034, REQ-USR-013: token control IS OWNER
+  // of the actor. The old predicate read `token.ownership`/`token.userId`,
+  // fields `TokenDocument` never had (REQ-DOC-025) — always `undefined`, so
+  // every non-GM user got `false`. This resolves ownership on the ACTOR the
+  // mirror holds by `token.actorId`, the same shape the server's
+  // `documents/ownership.ts` resolves against.
+  // ---------------------------------------------------------------------------
+  describe("_isTokenControlledByUser (TK030, #164, REQ-TOK-013, REQ-TOK-034)", () => {
+    function makeMirrorWithActor(
+      sceneId: string,
+      scene: SceneDocument,
+      actor: { _id: string; ownership: Record<string, number> },
+    ): DocumentMirror {
+      const mirror = new DocumentMirror();
+      mirror.applySnapshot({
+        seq: 1,
+        activeSceneId: sceneId,
+        documents: {
+          Scene: [scene as unknown as Record<string, unknown>],
+          Actor: [{ _id: actor._id, name: "Fixture Actor", ownership: actor.ownership }],
+        },
+      });
+      return mirror;
+    }
+
+    it("a player who is OWNER of the token's actor controls the token", () => {
+      const token = { _id: "tok-1", actorId: "actor-pc" } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirrorWithActor("scene-1", scene, {
+        _id: "actor-pc",
+        ownership: { default: 0, "user-1": 3 }, // OwnershipLevel.OWNER = 3
+      });
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(true);
+    });
+
+    it("a player is NOT OWNER of an NPC's actor — does not control that token", () => {
+      const token = { _id: "tok-npc", actorId: "actor-npc" } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirrorWithActor("scene-1", scene, {
+        _id: "actor-npc",
+        ownership: { default: 0 }, // no OWNER entry for user-1
+      });
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(false);
+    });
+
+    it("reading token.ownership/token.userId directly (the old #164 bug) is not consulted at all", () => {
+      // Even if a legacy/malformed doc carries these forbidden fields
+      // (REQ-DOC-025), they must have zero effect — only the actor's real
+      // ownership decides.
+      const token = {
+        _id: "tok-legacy",
+        actorId: "actor-npc",
+        ownership: { "user-1": 3 },
+        userId: "user-1",
+      } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirrorWithActor("scene-1", scene, {
+        _id: "actor-npc",
+        ownership: { default: 0 },
+      });
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(false);
+    });
+
+    it("returns false when the token's actor is not (yet) in the mirror", () => {
+      const token = { _id: "tok-1", actorId: "actor-missing" } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirror("scene-1", scene); // no Actor collection at all
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(false);
     });
   });
 });

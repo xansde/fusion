@@ -509,7 +509,15 @@ describe("REQ-NPC-052: a combat that has not ended refuses the deletion", () => 
 // ---------------------------------------------------------------------------
 
 describe("REQ-NPC-053 / REQ-NPC-054: once deleted, it vanishes from every scene and the knowledge ends", () => {
-  it("REQ-NPC-053: presences vanish from EVERY scene, with a delta and no reload", async () => {
+  it("REQ-NPC-053: presences vanish from EVERY scene, with a delta and no reload (TK091, REQ-TOK-092/093, CA-TOK-015, spec 41-token.md)", async () => {
+    // spec 41-token.md TK091/DEC-TOK-17: this cascade — planPresenceRemoval/
+    // applyPresenceRemoval in documents/actor-deletion.ts, wired into the
+    // Actor branch of doc:delete (doc-handlers.ts) — is what makes
+    // REQ-TOK-092 ("excluir um token não altera o ator") and REQ-TOK-093
+    // ("excluir um ator remove todos os tokens dele, em todas as cenas, com
+    // broadcast de cada cena tocada") true. It already existed here, built
+    // for REQ-NPC-053 (spec 42) before the 41 was written — this test is
+    // shared proof for both specs, not a duplicate.
     const taverna = await createScene("Taverna");
     const porao = await createScene("Porão");
     const bandido = await createActor("Bandido Encapuzado", "npc");

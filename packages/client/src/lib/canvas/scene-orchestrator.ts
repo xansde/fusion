@@ -41,7 +41,8 @@
  * REQ-VIS-020..087, REQ-CBT-050..052, REQ-CNV-025..033
  */
 
-import type { SceneDocument, TokenDocument } from "@fusion/shared";
+import type { SceneDocument, TokenDocument, Ownership } from "@fusion/shared";
+import { OwnershipLevel, getUserLevel } from "@fusion/shared";
 import type { DocumentMirror } from "../docs/DocumentMirror.js";
 import {
   VisionStateComputer,
@@ -65,6 +66,14 @@ import { effectiveGridSize } from "./sceneCoords.js";
  */
 export interface ITokenLayer {
   setVisionPolygons(polygons: VisionPolygonResult[], fogEnabled: boolean): void;
+  /**
+   * Re-lay the sprites on a new grid cell size (R4). Declared here because
+   * the orchestrator is the only thing already subscribed to the Scene
+   * document, so it is what notices the Mestre changing the grid with the
+   * scene's pencil — before this the real `TokenLayer.setGridSize` had no
+   * production caller at all.
+   */
+  setGridSize(gridSize: number, tokens: TokenDocument[]): void;
   tick(deltaMs: number, zoom: number): void;
   destroy(): void;
 }
@@ -111,6 +120,15 @@ export interface SceneOrchestratorOptions {
   fogState: FogState | null;
   /** Injected combat controller. Null if no active combat. */
   combatController: ICombatController | null;
+  /**
+   * Called when the scene's effective grid cell size changes (R4), so the
+   * things that hold a COPY of it — `TokenInteractionManager.gridConfig`,
+   * which decides where a drag snaps — can follow. A plain callback rather
+   * than another injected renderer interface: the orchestrator has no
+   * business knowing what a token interaction manager is, only that someone
+   * downstream cares about the number.
+   */
+  onGridSizeChange?: (gridSize: number) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +151,17 @@ export class SceneOrchestrator {
   private _lightingRenderer: ILightingRenderer;
   private _fogState: FogState | null;
   private _combatController: ICombatController | null;
+  private _onGridSizeChange: ((gridSize: number) => void) | null;
+
+  /**
+   * The grid cell size the sprites are currently laid out on (R4).
+   *
+   * Seeded from the scene this orchestrator was built for — `TableScreen`
+   * constructs the TokenLayer and the interaction manager with that same
+   * value — so the initial `_onSceneChange` does not fire a redundant
+   * full reconcile; only a genuine change does.
+   */
+  private _prevGridSize: number;
 
   private _visionComputer = new VisionStateComputer();
 
@@ -180,6 +209,8 @@ export class SceneOrchestrator {
     this._lightingRenderer = opts.lightingRenderer;
     this._fogState = opts.fogState;
     this._combatController = opts.combatController;
+    this._onGridSizeChange = opts.onGridSizeChange ?? null;
+    this._prevGridSize = effectiveGridSize(opts.scene);
   }
 
   // ---------------------------------------------------------------------------
@@ -317,6 +348,19 @@ export class SceneOrchestrator {
     // would zero out footprint × gridSize elsewhere). `effectiveGridSize`
     // guards both — see `sceneCoords.ts`.
     const gridSize = effectiveGridSize(scene);
+
+    // R4: the Mestre changed the scene's grid with the scene pencil. Sprites
+    // and the interaction manager's snap config both hold a COPY of the cell
+    // size, and #194's `_loadedSceneId` guard removed the canvas reload that
+    // used to rebuild them — without this they stay on the old size until F5.
+    // Guarded on a real change: `_onSceneChange` also runs on every token
+    // move, and a full re-reconcile per move would be pure waste.
+    if (gridSize !== this._prevGridSize) {
+      this._prevGridSize = gridSize;
+      this._tokenLayer.setGridSize(gridSize, tokens);
+      this._onGridSizeChange?.(gridSize);
+    }
+
     const darkness = scene.darkness;
     const globalLight = scene.globalLight;
 
@@ -402,10 +446,12 @@ export class SceneOrchestrator {
     const sources: TokenSourceConfig[] = [];
 
     for (const token of tokens) {
-      // Determine if this token is controlled by the local user
-      // A token is controlled if: its actorId actor is owned by userId, or token.userId matches.
-      // In MVP: if isGm, all tokens count as "controllable"; otherwise check ownership.
-      const controlled = this._isGm || _isTokenControlledByUser(token, this._userId);
+      // Determine if this token is controlled by the local user.
+      // REQ-TOK-013/034/032/USR-013: "controlled" IS "OWNER of the actor" —
+      // there is no separate token-control predicate. GM already bypasses
+      // via `this._isGm` (mirrors the privileged-role short-circuit
+      // `isRolePrivileged` gives the server).
+      const controlled = this._isGm || _isTokenControlledByUser(token, this._userId, this._mirror);
 
       const vision = buildTokenVisionConfig(token, gridSize);
 
@@ -492,28 +538,26 @@ function _hashWalls(walls: Array<{ _id: string; doorState?: string }>): string {
 /**
  * Determine if a token is controlled by the given userId.
  *
- * MVP logic: a token is controlled if it has explicit ownership for the userId
- * (ownership[userId] === 3) or if there is no specific ownership set and the
- * token is in the user's possession (userId matches token's actorId controller).
- *
- * The server already filters which tokens appear in the snapshot for players;
- * this predicate determines vision, not visibility.
+ * REQ-TOK-013: `TokenDocument` has no `ownership`/`userId` field — those were
+ * never real fields the schema defines (REQ-DOC-025 forbids them), so reading
+ * them off the wire object always produced `undefined` and this predicate
+ * returned `false` for every non-GM user (#164). REQ-TOK-034 is explicit that
+ * "controle de token" is not a concept distinct from "OWNER do ator": the
+ * posse DEVE ser resolvida sobre o `Actor` referenciado (REQ-TOK-013,
+ * REQ-USR-013), the same way `resolveOwnership` on the server does — GM
+ * already short-circuits at the call site above, so this only needs the base
+ * `getUserLevel` resolution `packages/server/src/documents/ownership.ts`
+ * itself wraps (folder-chain INHERIT is server-only defense-in-depth per
+ * REQ-TOK-033; this is a client-side hint, never the enforcement).
  */
-function _isTokenControlledByUser(token: TokenDocument, userId: string): boolean {
-  // Check token-level ownership field if present (actor ownership propagated)
-  const doc = token as Record<string, unknown>;
-  const ownership = doc["ownership"] as Record<string, number> | undefined;
-  if (ownership) {
-    // 3 = OWNER level
-    if (ownership[userId] === 3) return true;
-    // default ownership
-    if (ownership["default"] === 3) return true;
-  }
-  // Fallback: check if token.userId matches (some VTT approaches store the owning user)
-  const tokenUserId = doc["userId"] as string | undefined;
-  if (tokenUserId && tokenUserId === userId) return true;
-
-  return false;
+function _isTokenControlledByUser(
+  token: TokenDocument,
+  userId: string,
+  mirror: DocumentMirror,
+): boolean {
+  const actor = mirror.getDoc<{ ownership?: Ownership }>("Actor", token.actorId);
+  if (!actor) return false;
+  return getUserLevel(actor.ownership ?? {}, userId) >= OwnershipLevel.OWNER;
 }
 
 // Re-export the hash helper for tests
