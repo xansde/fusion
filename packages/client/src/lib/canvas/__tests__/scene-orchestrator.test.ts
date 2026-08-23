@@ -132,6 +132,9 @@ function makeTokenLayer(): ITokenLayer & { calls: { fn: string; args: unknown[] 
     setVisionPolygons(polygons, fogEnabled) {
       calls.push({ fn: "setVisionPolygons", args: [polygons, fogEnabled] });
     },
+    setGridSize(gridSize, tokens) {
+      calls.push({ fn: "setGridSize", args: [gridSize, tokens] });
+    },
     tick(deltaMs, zoom) {
       calls.push({ fn: "tick", args: [deltaMs, zoom] });
     },
@@ -246,6 +249,7 @@ function makeOrchestrator(
     userId: string;
     fogState: FogState | null;
     combatController: ICombatController | null;
+    onGridSizeChange: (gridSize: number) => void;
   }> = {},
 ): {
   orchestrator: SceneOrchestrator;
@@ -264,6 +268,7 @@ function makeOrchestrator(
     lightingRenderer,
     fogState: opts.fogState !== undefined ? opts.fogState : makeFogState(opts.isGm ?? false),
     combatController: opts.combatController ?? null,
+    ...(opts.onGridSizeChange !== undefined ? { onGridSizeChange: opts.onGridSizeChange } : {}),
   };
 
   const orchestrator = new SceneOrchestrator(options);
@@ -614,6 +619,91 @@ describe("SceneOrchestrator", () => {
       await orchestrator.setup();
 
       expect(fogState.updateVisionCalls).toBe(0);
+      orchestrator.teardown();
+    });
+  });
+
+  // R4 (integração pós-#194): before this, `TokenLayer.setGridSize` had NO
+  // production caller at all, and #194's `_loadedSceneId` guard stopped the
+  // canvas reload that used to rebuild everything — so changing a scene's grid
+  // size with the scene's pencil left sprites (and the interaction manager's
+  // snap) on the old size until F5. The orchestrator is the one thing already
+  // subscribed to the Scene document, so it is where the new size is fanned out.
+  describe("grid size change → TokenLayer + interaction manager (R4)", () => {
+    it("a scene grid change repasses the new size to the TokenLayer and to the grid consumer", async () => {
+      const scene = makeScene("scene-1", { tokens: [makeToken("tok-1")] });
+      const mirror = makeMirror("scene-1", scene);
+      const gridSizes: number[] = [];
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: true,
+        fogState: null,
+        onGridSizeChange: (size) => gridSizes.push(size),
+      });
+      await orchestrator.setup();
+
+      const sceneWithNewGrid = makeScene("scene-1", {
+        tokens: [makeToken("tok-1")],
+        grid: { type: "square", size: 140 },
+      });
+      mirror.feedOp({
+        seq: 2,
+        type: "doc:update",
+        ts: Date.now(),
+        payload: {
+          documentType: "Scene",
+          documents: [sceneWithNewGrid as unknown as Record<string, unknown>],
+        },
+      });
+
+      const gridCalls = tokenLayer.calls.filter((c) => c.fn === "setGridSize");
+      expect(gridCalls).toHaveLength(1);
+      expect(gridCalls[0]?.args[0]).toBe(140);
+      expect(gridCalls[0]?.args[1]).toEqual(sceneWithNewGrid.tokens);
+      expect(gridSizes).toEqual([140]);
+
+      orchestrator.teardown();
+    });
+
+    it("a scene change that does NOT touch the grid leaves both alone", async () => {
+      const scene = makeScene("scene-1", { tokens: [makeToken("tok-1", 100, 100)] });
+      const mirror = makeMirror("scene-1", scene);
+      const gridSizes: number[] = [];
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: true,
+        fogState: null,
+        onGridSizeChange: (size) => gridSizes.push(size),
+      });
+      await orchestrator.setup();
+
+      // A plain token move — the commonest Scene broadcast there is.
+      const sceneMoved = makeScene("scene-1", { tokens: [makeToken("tok-1", 300, 300)] });
+      mirror.feedOp({
+        seq: 2,
+        type: "doc:update",
+        ts: Date.now(),
+        payload: {
+          documentType: "Scene",
+          documents: [sceneMoved as unknown as Record<string, unknown>],
+        },
+      });
+
+      expect(tokenLayer.calls.filter((c) => c.fn === "setGridSize")).toHaveLength(0);
+      expect(gridSizes).toEqual([]);
+
+      orchestrator.teardown();
+    });
+
+    it("a scene with no grid at all falls back to the default size without churning", async () => {
+      const scene = makeScene("scene-1", { grid: null, tokens: [makeToken("tok-1")] });
+      const mirror = makeMirror("scene-1", scene);
+      const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
+        isGm: true,
+        fogState: null,
+      });
+      await orchestrator.setup();
+
+      expect(tokenLayer.calls.filter((c) => c.fn === "setGridSize")).toHaveLength(0);
+
       orchestrator.teardown();
     });
   });

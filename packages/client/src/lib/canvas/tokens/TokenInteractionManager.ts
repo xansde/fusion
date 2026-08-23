@@ -22,7 +22,7 @@
  * Usage (wiring in TableScreen or sceneLoader):
  *   const mgr = new TokenInteractionManager({
  *     tokenLayer, mirror, sceneId, canvas, socket, userId, userRole,
- *     ownedActorIds, gridConfig,
+ *     getOwnedActorIds, gridConfig,
  *   });
  *   // In FusionCanvas ticker:
  *   // (nothing — interaction is event-driven)
@@ -88,8 +88,23 @@ export interface TokenInteractionOptions {
   userId: string;
   /** Logged-in user's role (1=PLAYER, 2=TRUSTED, 3=ASSISTANT, 4=GAMEMASTER). */
   userRole: number;
-  /** Set of actor IDs the user owns (for move permission check). */
-  ownedActorIds: ReadonlySet<string>;
+  /**
+   * The actor IDs the user owns RIGHT NOW, for the move-permission check —
+   * a getter, deliberately not a `ReadonlySet` captured once (R2).
+   *
+   * `TableScreen.svelte` builds this manager once per scene load, and #194's
+   * `_loadedSceneId` guard stopped rebuilding the canvas on every Scene
+   * mutation, so the manager routinely outlives the arrival of the Actor
+   * documents this set is derived from. Since TK093 (fase 5) removed
+   * `canMoveToken`'s `flags.fusion.owner` fallback, `has(token.actorId)` is
+   * the ONE client-side predicate for "may I move this?" (REQ-TOK-032,
+   * REQ-TOK-034, DEC-TOK-06) — frozen at construction it answers "no"
+   * forever for a player whose Actor snapshot lands after the canvas mounted,
+   * or who is granted OWNER mid-session, while the server (which resolves
+   * ownership live) would accept the very same move. REQ-TOK-033 lets the
+   * interface ANTICIPATE the server's answer, not contradict it.
+   */
+  getOwnedActorIds: () => ReadonlySet<string>;
   /** Current grid config for snapping. */
   gridConfig: GridSnapConfig;
   /** Whether to attach global keyboard listeners (default: true). */
@@ -345,7 +360,12 @@ export class TokenInteractionManager {
     const original = scene.tokens.find((t) => t._id === selectedId);
     if (!original) return;
 
-    const footprint = footprintOf(original, this._getActor(original.actorId));
+    // P1 (post-#194 audit): `original` is an EXISTING TokenDocument, which
+    // may carry an `actorDelta` — `_getActor` reads only the base Actor and
+    // ignores it, so an unlinked token whose delta grows its size computed
+    // this offset from the wrong (smaller) box. `_getEffectiveActor` applies
+    // the delta (RNF-TOK-01), matching the footprint the sprite itself draws.
+    const footprint = footprintOf(original, this._getEffectiveActor(original));
     const offset = this._opts.gridConfig.size;
     const snapped = snapTokenToGrid(
       original.x + offset,
@@ -442,6 +462,25 @@ export class TokenInteractionManager {
   }
 
   // ---------------------------------------------------------------------------
+  // Public — scene grid updates
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Adopt a new grid cell size (R4).
+   *
+   * `gridConfig` is a COPY of the scene's grid, handed in once at
+   * construction. Since #194's `_loadedSceneId` guard the manager is not
+   * rebuilt when the Scene document changes, so without this setter a grid
+   * edited with the scene's pencil left the drop target on the old cell size
+   * while the sprites (re-laid by `SceneOrchestrator` →
+   * `TokenLayer.setGridSize`) moved to the new one — the ghost and the drop
+   * would disagree. Called by the orchestrator's `onGridSizeChange`.
+   */
+  setGridSize(gridSize: number): void {
+    this._opts.gridConfig = { ...this._opts.gridConfig, size: gridSize };
+  }
+
+  // ---------------------------------------------------------------------------
   // Public — teardown
   // ---------------------------------------------------------------------------
 
@@ -459,9 +498,17 @@ export class TokenInteractionManager {
     this._pendingCleanup?.();
     this._pendingCleanup = null;
 
-    // Detach PIXI events
+    // Detach PIXI events and give the layer back as FusionCanvas built it
+    // (R9). `_attachContainerEvents` opts the shared tokens container into
+    // interaction (`eventMode = "static"`) and installs an always-true
+    // `hitArea` so a click on empty canvas still reaches this manager;
+    // leaving both behind means the layer keeps swallowing every pointer hit
+    // test over the whole map after teardown, with nobody listening.
+    // `FusionCanvas._buildHierarchy` creates every layer inert — restore that.
     const { tokenContainer } = this._opts;
     tokenContainer.removeAllListeners();
+    tokenContainer.eventMode = "none";
+    tokenContainer.hitArea = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -490,8 +537,8 @@ export class TokenInteractionManager {
       const token = this._getToken(tokenId);
       if (!token) return;
 
-      const { userId, userRole, ownedActorIds } = this._opts;
-      const canMove = canMoveToken(token, userId, userRole, ownedActorIds);
+      const { userId, userRole } = this._opts;
+      const canMove = canMoveToken(token, userId, userRole, this._opts.getOwnedActorIds());
 
       // Always select on click (regardless of move permission)
       this._selectToken(tokenId);
@@ -732,8 +779,8 @@ export class TokenInteractionManager {
       const token = this._getToken(selectedId);
       if (!token) return;
 
-      const { userId, userRole, ownedActorIds } = this._opts;
-      if (!canMoveToken(token, userId, userRole, ownedActorIds)) return;
+      const { userId, userRole } = this._opts;
+      if (!canMoveToken(token, userId, userRole, this._opts.getOwnedActorIds())) return;
       if (!canStartDrag(this._drag, selectedId)) return;
 
       e.preventDefault(); // prevent scroll

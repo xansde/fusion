@@ -66,6 +66,14 @@ import { effectiveGridSize } from "./sceneCoords.js";
  */
 export interface ITokenLayer {
   setVisionPolygons(polygons: VisionPolygonResult[], fogEnabled: boolean): void;
+  /**
+   * Re-lay the sprites on a new grid cell size (R4). Declared here because
+   * the orchestrator is the only thing already subscribed to the Scene
+   * document, so it is what notices the Mestre changing the grid with the
+   * scene's pencil — before this the real `TokenLayer.setGridSize` had no
+   * production caller at all.
+   */
+  setGridSize(gridSize: number, tokens: TokenDocument[]): void;
   tick(deltaMs: number, zoom: number): void;
   destroy(): void;
 }
@@ -112,6 +120,15 @@ export interface SceneOrchestratorOptions {
   fogState: FogState | null;
   /** Injected combat controller. Null if no active combat. */
   combatController: ICombatController | null;
+  /**
+   * Called when the scene's effective grid cell size changes (R4), so the
+   * things that hold a COPY of it — `TokenInteractionManager.gridConfig`,
+   * which decides where a drag snaps — can follow. A plain callback rather
+   * than another injected renderer interface: the orchestrator has no
+   * business knowing what a token interaction manager is, only that someone
+   * downstream cares about the number.
+   */
+  onGridSizeChange?: (gridSize: number) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -134,6 +151,17 @@ export class SceneOrchestrator {
   private _lightingRenderer: ILightingRenderer;
   private _fogState: FogState | null;
   private _combatController: ICombatController | null;
+  private _onGridSizeChange: ((gridSize: number) => void) | null;
+
+  /**
+   * The grid cell size the sprites are currently laid out on (R4).
+   *
+   * Seeded from the scene this orchestrator was built for — `TableScreen`
+   * constructs the TokenLayer and the interaction manager with that same
+   * value — so the initial `_onSceneChange` does not fire a redundant
+   * full reconcile; only a genuine change does.
+   */
+  private _prevGridSize: number;
 
   private _visionComputer = new VisionStateComputer();
 
@@ -181,6 +209,8 @@ export class SceneOrchestrator {
     this._lightingRenderer = opts.lightingRenderer;
     this._fogState = opts.fogState;
     this._combatController = opts.combatController;
+    this._onGridSizeChange = opts.onGridSizeChange ?? null;
+    this._prevGridSize = effectiveGridSize(opts.scene);
   }
 
   // ---------------------------------------------------------------------------
@@ -318,6 +348,19 @@ export class SceneOrchestrator {
     // would zero out footprint × gridSize elsewhere). `effectiveGridSize`
     // guards both — see `sceneCoords.ts`.
     const gridSize = effectiveGridSize(scene);
+
+    // R4: the Mestre changed the scene's grid with the scene pencil. Sprites
+    // and the interaction manager's snap config both hold a COPY of the cell
+    // size, and #194's `_loadedSceneId` guard removed the canvas reload that
+    // used to rebuild them — without this they stay on the old size until F5.
+    // Guarded on a real change: `_onSceneChange` also runs on every token
+    // move, and a full re-reconcile per move would be pure waste.
+    if (gridSize !== this._prevGridSize) {
+      this._prevGridSize = gridSize;
+      this._tokenLayer.setGridSize(gridSize, tokens);
+      this._onGridSizeChange?.(gridSize);
+    }
+
     const darkness = scene.darkness;
     const globalLight = scene.globalLight;
 

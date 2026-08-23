@@ -1,17 +1,21 @@
 /**
- * TokenInteractionManager.dragFootprint.test.ts
+ * TokenInteractionManager.duplicateFootprint.test.ts
  *
- * F187-4: the drag-snap footprint TokenInteractionManager reads while dragging
- * must come from the token's EFFECTIVE actor (base actor + actorDelta,
- * resolved through `resolveEffectiveActor`, RNF-TOK-01), not from the raw
- * base Actor document. `TokenSprite` already resolves the effective actor
- * for its own footprint/hitArea (TokenSprite.ts `_resolveActor`); before this
- * fix, `TokenInteractionManager._getActor` skipped the delta entirely, so an
- * unlinked token whose delta grows its size (e.g. a "grande" spell effect)
- * snapped to the wrong grid cell during drag while the sprite itself drew at
- * the correct (larger) footprint — the ghost and the drop target disagreed.
+ * P1 (post-#194 integration audit): `duplicateSelectedToken` computed the
+ * duplicate's spawn offset from the ORIGINAL token's footprint using
+ * `_getActor` (base Actor only) instead of `_getEffectiveActor` (base +
+ * `actorDelta`, resolved through `resolveEffectiveActor`, RNF-TOK-01).
+ * `original` here is an EXISTING `TokenDocument` that may carry a delta —
+ * unlike `addToken`'s brand-new placement, where `_getActor` is the correct
+ * helper because no token/delta exists yet (see `_getActor`'s own docstring).
  *
- * Spec: 41-token.md REQ-TOK-012, REQ-TOK-017, REQ-TOK-043 (TK041); RNF-TOK-01.
+ * Concretely: duplicating an unlinked token whose delta grows its size
+ * ("med" -> "lg") derived the spawn offset from a 1x1 box while the token
+ * itself — and its copy — render at the sprite's actual 2x2 footprint, so
+ * the duplicate spawned visibly off from where its sprite sits.
+ *
+ * Spec: 41-token.md REQ-TOK-090, REQ-TOK-091 (duplicate modes), REQ-TOK-012
+ * (footprint derives from the effective actor, never a token-level field).
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -21,13 +25,27 @@ import type { TokenInteractionOptions } from "../TokenInteractionManager.js";
 import { resetFootprintRegistry, seedFootprintRegistry } from "../footprintRegistry.svelte.js";
 
 // ---------------------------------------------------------------------------
-// Minimal fakes — no PIXI required (mirrors token-manager-contract.test.ts)
+// Minimal fakes — no PIXI required (mirrors dragFootprint.test.ts)
 // ---------------------------------------------------------------------------
 
-function makeFakeSocket(): Socket {
+interface CapturedEmit {
+  type: string;
+  requestId?: string;
+  payload: unknown;
+}
+
+/** Fake socket that captures "op" emissions and ACKs doc:create with a server id. */
+function makeFakeSocket(captured: CapturedEmit[]): Socket {
   return {
-    emit(event: string, _envelope: unknown, ack?: (result: unknown) => void) {
-      if (event === "op") ack?.({ ok: true, result: null });
+    emit(event: string, envelope: unknown, ack?: (result: unknown) => void) {
+      if (event !== "op") return;
+      const env = envelope as CapturedEmit;
+      captured.push(env);
+      if (env.type === "doc:create") {
+        ack?.({ ok: true, result: { documents: [{ _id: "srv-created-0" }] } });
+        return;
+      }
+      ack?.({ ok: true, result: null });
     },
   } as unknown as Socket;
 }
@@ -71,7 +89,6 @@ function makeFakeTokenLayer() {
 
 function makeFakeCanvas() {
   return {
-    // Identity camera transform: screenToWorld(sx, sy) === (sx, sy).
     camera: { tx: 0, ty: 0, scale: 1 },
     _container: {
       getBoundingClientRect() {
@@ -81,17 +98,12 @@ function makeFakeCanvas() {
   };
 }
 
-/** Fake PIXI Container that records the handler registered for each event. */
 function makeFakeContainer() {
-  const handlers = new Map<string, (e: unknown) => void>();
   return {
     eventMode: "none",
     hitArea: null,
-    on: vi.fn((event: string, cb: (e: unknown) => void) => {
-      handlers.set(event, cb);
-    }),
+    on: vi.fn(),
     removeAllListeners: vi.fn(),
-    _handlers: handlers,
   };
 }
 
@@ -140,10 +152,9 @@ function buildOpts(
   socket: Socket,
   mirror: ReturnType<typeof makeFakeMirror>,
   tokenLayer: ReturnType<typeof makeFakeTokenLayer>,
-  container: ReturnType<typeof makeFakeContainer>,
 ): TokenInteractionOptions {
   return {
-    tokenContainer: container as never,
+    tokenContainer: makeFakeContainer() as never,
     tokenLayer: tokenLayer as never,
     mirror: mirror as never,
     sceneId: SCENE_ID,
@@ -162,33 +173,13 @@ const PF2E_TABLE = {
   lg: { width: 2, height: 2 },
 };
 
-/** Dispatch pointerdown then a pointermove past the drag threshold. */
-function simulateDrag(
-  container: ReturnType<typeof makeFakeContainer>,
-  target: unknown,
-  downX: number,
-  downY: number,
-  moveX: number,
-  moveY: number,
-): void {
-  const down = container._handlers.get("pointerdown");
-  const move = container._handlers.get("pointermove");
-  down?.({ button: 0, target, clientX: downX, clientY: downY, stopPropagation: () => {} });
-  move?.({ clientX: moveX, clientY: moveY });
-}
-
-/** A fake PIXI target container labeled "token:<id>", as _getTokenIdFromTarget expects. */
-function makeFakeTarget(tokenId: string) {
-  return { label: `token:${tokenId}`, parent: null };
-}
-
-describe("TokenInteractionManager drag-snap footprint (F187-4, RNF-TOK-01)", () => {
+describe("TokenInteractionManager.duplicateSelectedToken — footprint (P1, RNF-TOK-01)", () => {
   beforeEach(() => {
     resetFootprintRegistry();
     seedFootprintRegistry(PF2E_TABLE);
   });
 
-  it("snaps to the EFFECTIVE actor's footprint, not the base actor's, for an unlinked token with a size-growing delta", async () => {
+  it("spawns the duplicate offset by the EFFECTIVE footprint, not the base actor's, for an unlinked token with a size-growing delta", async () => {
     const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
 
     const baseActor: FakeActor = {
@@ -198,32 +189,37 @@ describe("TokenInteractionManager drag-snap footprint (F187-4, RNF-TOK-01)", () 
     };
     const token = makeToken({
       actorLink: false,
-      actorDelta: { system: { traits: { size: "lg" } } }, // delta: 2x2
+      actorDelta: { system: { traits: { size: "lg" } } }, // effective: 2x2
       x: 0,
       y: 0,
     });
 
+    const captured: CapturedEmit[] = [];
+    const socket = makeFakeSocket(captured);
     const mirror = makeFakeMirror(SCENE_ID, [token], [baseActor]);
     const layer = makeFakeTokenLayer();
-    const container = makeFakeContainer();
-    const socket = makeFakeSocket();
-    const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer, container));
+    const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
+    (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
 
-    // Cursor world position (identity camera): (220, 220). `snapTokenToGrid`
-    // snaps the cursor itself to the nearest cell CENTER — 220 falls in cell
-    // [200,300), whose center is 250 — then offsets by half the footprint's
-    // bounding box to get the top-left. A 2x2 footprint (grid size 100, half
-    // = 100) lands at 250 - 100 = 150. A 1x1 footprint (the bug: reading the
-    // BASE actor's "med" instead of the effective "lg") would instead offset
-    // by half = 50, landing at 250 - 50 = 200 — a visibly different cell.
-    simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 220, 220);
+    await mgr.duplicateSelectedToken("raw");
 
-    expect(layer.applyLocalMove).toHaveBeenCalledWith(TOKEN_ID, 150, 150);
+    const createEmission = captured.find((e) => e.type === "doc:create");
+    expect(createEmission).toBeDefined();
+    const data = (createEmission!.payload as { data: Record<string, unknown>[] }).data[0];
+
+    // Original sits at (0,0); the spawn offset is one grid cell (100) in
+    // each axis, then `snapTokenToGrid` centers the footprint's bounding
+    // box on the nearest cell center. With the correct 2x2 EFFECTIVE
+    // footprint that lands at (150, 150). The bug — reading the BASE
+    // actor's "med" via `_getActor`, footprint 1x1 — instead lands at
+    // (100, 100), a visibly different (and wrong) cell.
+    expect(data?.["x"]).toBe(150);
+    expect(data?.["y"]).toBe(150);
 
     mgr.destroy();
   });
 
-  it("still snaps to the base actor's footprint for a linked token (no delta)", async () => {
+  it("still offsets by the base actor's footprint for a linked token (no delta)", async () => {
     const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
 
     const baseActor: FakeActor = {
@@ -233,15 +229,20 @@ describe("TokenInteractionManager drag-snap footprint (F187-4, RNF-TOK-01)", () 
     };
     const token = makeToken({ actorLink: true, actorDelta: null, x: 0, y: 0 });
 
+    const captured: CapturedEmit[] = [];
+    const socket = makeFakeSocket(captured);
     const mirror = makeFakeMirror(SCENE_ID, [token], [baseActor]);
     const layer = makeFakeTokenLayer();
-    const container = makeFakeContainer();
-    const socket = makeFakeSocket();
-    const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer, container));
+    const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
+    (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
 
-    simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 220, 220);
+    await mgr.duplicateSelectedToken("raw");
 
-    expect(layer.applyLocalMove).toHaveBeenCalledWith(TOKEN_ID, 150, 150);
+    const createEmission = captured.find((e) => e.type === "doc:create");
+    const data = (createEmission!.payload as { data: Record<string, unknown>[] }).data[0];
+
+    expect(data?.["x"]).toBe(150);
+    expect(data?.["y"]).toBe(150);
 
     mgr.destroy();
   });

@@ -196,7 +196,7 @@ function buildOpts(
     socket,
     userId: "user-gm",
     userRole: 4, // GAMEMASTER
-    ownedActorIds: new Set(),
+    getOwnedActorIds: () => new Set<string>(),
     gridConfig: { size: 100, offsetX: 0, offsetY: 0 },
     attachKeyboard: false,
   };
