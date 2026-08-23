@@ -25,12 +25,19 @@
  *     which today means every Actor emission (the bar a token draws reads the
  *     mirror's copy of the effective actor, so a stripped `system.attributes.hp`
  *     is what makes `TokenSprite`'s bar omit itself for a non-owner, without a
- *     token-specific rule). This is a KNOWN GAP for an unlinked token's own
- *     `actorDelta` (REQ-DOC-062): a delta's `system.attributes.hp` override
- *     travels inside the Scene document, a different emission funnel from the
- *     Actor one this cut lives on, and is not yet redacted by ownership here —
- *     see the Fase 6 PR body for the explicit "decisão tomada sem o Alexandre"
- *     on this gap (tasks.md flags DEC-DOC-12 vs DEC-TOK-10 as unreconciled).
+ *     token-specific rule). An UNLINKED token's own `actorDelta` is a SEPARATE
+ *     cut (REQ-DOC-062, `stripTokenActorDeltaHp`/`redactTokenActorDeltaHp`):
+ *     a delta's `system.attributes.hp` override travels inside the Scene
+ *     document, a different emission funnel from the Actor one the cut above
+ *     lives on. This second cut is fail-closed and BY ROLE, not by ownership
+ *     of the base Actor — tasks.md's Fase 6 header flagged DEC-DOC-12
+ *     (specs/02:292-301, a role-only cut) against DEC-TOK-10 (an
+ *     ownership-only cut) as unreconciled; the resolution recorded there is
+ *     "papel primeiro": REQ-DOC-062's own text already says so ("o corte é
+ *     por papel, não por ownership do Actor base"), and the known cost is
+ *     that even the OWNER of the base Actor (an unlinked familiar posted on
+ *     the map) reads the base actor's hp, never the token's own delta —
+ *     refining that is V2 work, not this cut's job.
  *   - Ocultar (`hidden`, this module, SERVER) is not the same guarantee as not
  *     estar enxergando (fog/vision, CLIENT, a future spec — REQ-TOK-053,
  *     DEC-TOK-08): a hidden token never leaves the server for a socket outside
@@ -445,9 +452,83 @@ export function redactSceneDocsForNonPrivileged(
   const result: Record<string, unknown>[] = [];
   for (const doc of documents) {
     if (!sceneIsOnAir(doc)) continue;
-    result.push(redactSecretDoors(stripHiddenTokens(doc, userId)));
+    result.push(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId))));
   }
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// Unlinked token actorDelta hp redaction (REQ-DOC-062, REQ-TOK-072 — TK072)
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove `system.attributes.hp` from a single Token's OWN `actorDelta`, when
+ * present (REQ-DOC-062, REQ-TOK-072).
+ *
+ * This is a DIFFERENT cut from {@link stripActorHp}: that one strips the base
+ * Actor's own hp, gated by OWNER-or-privileged (TK072's per-viewer rule); this
+ * one strips the Token's `actorDelta` override, unconditionally, for every
+ * caller — the caller (this module's own {@link redactSceneDocsForNonPrivileged}
+ * and the ack path below) only ever invokes it once role has already been
+ * established as non-privileged, so there is no viewer-specific branch here to
+ * get wrong.
+ *
+ * Returns the original reference when there is nothing to strip (no delta, or
+ * a delta whose `system.attributes` carries no `hp`), so callers can cheaply
+ * detect "unchanged".
+ */
+export function stripTokenActorDeltaHp(token: Record<string, unknown>): Record<string, unknown> {
+  const delta = token["actorDelta"];
+  if (!isPlainObject(delta)) return token;
+  const system = delta["system"];
+  if (!isPlainObject(system)) return token;
+  const attributes = system["attributes"];
+  if (!isPlainObject(attributes) || !("hp" in attributes)) return token;
+
+  const nextAttributes: Record<string, unknown> = { ...attributes };
+  Reflect.deleteProperty(nextAttributes, "hp");
+  const nextSystem = { ...system, attributes: nextAttributes };
+  return { ...token, actorDelta: { ...delta, system: nextSystem } };
+}
+
+/**
+ * Scene-level counterpart of {@link stripTokenActorDeltaHp}: apply it to every
+ * token in the scene's `tokens` array.
+ *
+ * Mirrors {@link stripHiddenTokens}'s shape (a Scene-in, Scene-out function
+ * composed inside {@link redactSceneDocsForNonPrivileged} and the ack path) so
+ * the two cuts — hidden tokens and an unlinked token's delta hp — read as
+ * siblings, not as a bolt-on. Returns the original scene reference when no
+ * token needed stripping (zero allocation on the fast path — most scenes have
+ * no unlinked token carrying a delta hp at all).
+ */
+export function redactTokenActorDeltaHp(scene: Record<string, unknown>): Record<string, unknown> {
+  const rawTokens = scene["tokens"];
+  if (!Array.isArray(rawTokens)) return scene;
+
+  const tokens = rawTokens as Record<string, unknown>[];
+  if (!tokens.some((token) => stripTokenActorDeltaHp(token) !== token)) return scene;
+
+  return { ...scene, tokens: tokens.map((token) => stripTokenActorDeltaHp(token)) };
+}
+
+/**
+ * Return true when a scene document contains at least one token whose
+ * `actorDelta.system.attributes` carries an `hp` key. Structural fast-path
+ * guard for the ack path, mirroring {@link sceneDocHasHiddenTokens}.
+ */
+function sceneDocHasTokenActorDeltaHp(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const tokens = (doc as Record<string, unknown>)["tokens"];
+  if (!Array.isArray(tokens)) return false;
+  return (tokens as Record<string, unknown>[]).some((t) => {
+    const delta = t["actorDelta"];
+    if (!isPlainObject(delta)) return false;
+    const system = delta["system"];
+    if (!isPlainObject(system)) return false;
+    const attributes = system["attributes"];
+    return isPlainObject(attributes) && "hp" in attributes;
+  });
 }
 
 /**
@@ -1086,6 +1167,14 @@ export function redactAckResultForNonPrivileged(
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));
   const parentNeedsHiddenTokenRedaction = sceneDocHasHiddenTokens(parent);
 
+  // REQ-DOC-062: an unlinked token's own actorDelta hp rides the ack echo
+  // exactly like the other Scene-shaped cuts above — same structural
+  // detector-then-strip shape as the hidden-token pair right above it.
+  const documentsNeedTokenDeltaHpRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => sceneDocHasTokenActorDeltaHp(d));
+  const parentNeedsTokenDeltaHpRedaction = sceneDocHasTokenActorDeltaHp(parent);
+
   const documentsNeedSecretDoorRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasSecretDoors(d));
   const parentNeedsSecretDoorRedaction = sceneHasSecretDoors(parent);
@@ -1104,10 +1193,14 @@ export function redactAckResultForNonPrivileged(
 
   const documentsNeedsRedaction =
     documentsNeedHiddenTokenRedaction ||
+    documentsNeedTokenDeltaHpRedaction ||
     documentsNeedSecretDoorRedaction ||
     documentsNeedCombatRedaction;
   const parentNeedsRedaction =
-    parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction || parentNeedsCombatRedaction;
+    parentNeedsHiddenTokenRedaction ||
+    parentNeedsTokenDeltaHpRedaction ||
+    parentNeedsSecretDoorRedaction ||
+    parentNeedsCombatRedaction;
 
   if (
     !documentsNeedsRedaction &&
@@ -1129,7 +1222,9 @@ export function redactAckResultForNonPrivileged(
       .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
       .map((d) => {
         let redacted = d;
-        if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted, contactCtx?.userId);
+        if (Array.isArray(d["tokens"])) {
+          redacted = redactTokenActorDeltaHp(stripHiddenTokens(redacted, contactCtx?.userId));
+        }
         if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
         if (Array.isArray(redacted["combatants"])) {
           redacted = stripHiddenCombatantsFromCombat(redacted);
@@ -1146,6 +1241,9 @@ export function redactAckResultForNonPrivileged(
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) {
       redactedParent = stripHiddenTokens(redactedParent, contactCtx?.userId);
+    }
+    if (parentNeedsTokenDeltaHpRedaction) {
+      redactedParent = redactTokenActorDeltaHp(redactedParent);
     }
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
     if (parentNeedsCombatRedaction) {
