@@ -61,6 +61,7 @@ import {
   rollbackMove,
   resetToIdle,
   canStartDrag,
+  isEditableTarget,
   type GridSnapConfig,
   type ArrowDirection,
   type DragMachine,
@@ -95,6 +96,17 @@ export interface TokenInteractionOptions {
   attachKeyboard?: boolean;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
+}
+
+/**
+ * The shape of a `doc:create` ack's `result` for an embedded document (e.g.
+ * Token) — `documents[0]._id` is the server-assigned id (F192-1: never the
+ * client's own, see duplicateSelectedToken's docstring). Mirrors
+ * npcsFooter.ts's identical local interface for the same reason: the wire
+ * ack has no shared named type of its own.
+ */
+interface DocCreateResult {
+  readonly documents: readonly { readonly _id: string }[];
 }
 
 // ---------------------------------------------------------------------------
@@ -309,6 +321,20 @@ export class TokenInteractionManager {
    * keyboard handler below binds two different keys to two different
    * effects only where a linked token would notice the difference — for a
    * linked token both keys reach this same single-write path).
+   *
+   * F192-1: the embedded `_id` an embedded-doc `doc:create` is sent with is
+   * NEVER what ends up persisted — the server always mints its own for an
+   * embedded document and ignores the client's (doc-handlers.ts's
+   * `handleEmbeddedCreate`: "_id is always generated server-side for
+   * embedded documents"). So no `_id` is sent here at all, and the
+   * follow-up `doc:update` (identical mode) targets whatever id the
+   * doc:create ACK actually returned (`ack.result.documents[0]._id`) — using
+   * a client-guessed id there would always miss with NOT_FOUND. The two
+   * `sendOp` calls are also in separate try/catch blocks: a failure in the
+   * first means nothing was created (the original generic message fits); a
+   * failure in the second means the token DOES exist on the scene already,
+   * just without its life total copied — a different, more specific message
+   * so the user doesn't go looking for a token that isn't there.
    */
   async duplicateSelectedToken(mode: "raw" | "identical"): Promise<void> {
     const [selectedId] = this._selectedIds;
@@ -329,9 +355,7 @@ export class TokenInteractionManager {
       this._opts.gridConfig,
     );
 
-    const newTokenId = createDocumentId();
     const newToken: Partial<TokenDocument> = {
-      _id: newTokenId,
       actorId: original.actorId,
       actorLink: original.actorLink,
       x: snapped.x,
@@ -352,31 +376,55 @@ export class TokenInteractionManager {
       parent: { type: "Scene", id: this._opts.sceneId },
     };
 
+    let createdTokenId: string;
     try {
-      await sendOp(this._opts.socket, { type: "doc:create", payload: createPayload });
-
-      // "identical" only matters for an unlinked token with a non-null delta —
-      // a linked token has no actorDelta to copy (collapses to the same op as
-      // "raw", per DEC-TOK-14).
-      if (mode === "identical" && !original.actorLink && original.actorDelta !== null) {
-        const deltaPayload: DocUpdatePayload = {
-          documentType: "Token",
-          updates: [
-            {
-              _id: newTokenId,
-              diff: { actorDelta: original.actorDelta },
-              embedded: { type: "Token", id: this._opts.sceneId },
-            },
-          ],
-        };
-        await sendOp(this._opts.socket, { type: "doc:update", payload: deltaPayload });
+      const created = await sendOp<DocCreateResult>(this._opts.socket, {
+        type: "doc:create",
+        payload: createPayload,
+      });
+      const createdDoc = created.documents[0];
+      if (!createdDoc) {
+        this._opts.onError?.("Failed to duplicate token: server returned no document");
+        return;
       }
+      createdTokenId = createdDoc._id;
     } catch (err) {
       this._opts.onError?.(
         err instanceof OpError
           ? `Failed to duplicate token: ${err.message}`
           : "Failed to duplicate token",
       );
+      return;
+    }
+
+    // "identical" only matters for an unlinked token with a non-null delta —
+    // a linked token has no actorDelta to copy (collapses to the same op as
+    // "raw", per DEC-TOK-14).
+    if (mode === "identical" && !original.actorLink && original.actorDelta !== null) {
+      const deltaPayload: DocUpdatePayload = {
+        documentType: "Token",
+        updates: [
+          {
+            _id: createdTokenId,
+            diff: { actorDelta: original.actorDelta },
+            embedded: { type: "Token", id: this._opts.sceneId },
+          },
+        ],
+      };
+      try {
+        await sendOp(this._opts.socket, { type: "doc:update", payload: deltaPayload });
+      } catch (err) {
+        // The token itself was created successfully above — only its life
+        // total failed to copy. Say so, instead of the generic duplicate
+        // failure message, so the user doesn't hunt for a token that IS
+        // there (and can fix the HP by hand instead of retrying the whole
+        // duplicate).
+        this._opts.onError?.(
+          err instanceof OpError
+            ? `Token duplicated, but its life total was not copied: ${err.message}`
+            : "Token duplicated, but its life total was not copied. Adjust its HP manually.",
+        );
+      }
     }
   }
 
@@ -643,6 +691,18 @@ export class TokenInteractionManager {
 
   private _handleKeyDown(e: KeyboardEvent): void {
     if (this._destroyed) return;
+
+    // R3 (spec 23 REQ-A11-036, spec 41-token.md REQ-TOK-090/091): this
+    // listener is attached on `window` (constructor, above), so it sees
+    // EVERY keydown in the app, not just ones aimed at the canvas — typing
+    // "dado" in the chat composer with a token selected would otherwise
+    // fire KeyD (duplicate) on every "d", Backspace would delete the token
+    // instead of a character, and the arrow keys would move the token
+    // instead of the text cursor. Bail out before touching drag state,
+    // sending any op, or calling preventDefault when the keystroke is
+    // actually going into a text field/contenteditable — see
+    // isEditableTarget's docstring in token-interaction.ts.
+    if (isEditableTarget(e.target)) return;
 
     // ESC — cancel drag or deselect
     if (e.code === "Escape") {
