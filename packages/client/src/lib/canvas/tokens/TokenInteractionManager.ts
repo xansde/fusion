@@ -474,9 +474,17 @@ export class TokenInteractionManager {
     this._pendingCleanup?.();
     this._pendingCleanup = null;
 
-    // Detach PIXI events
+    // Detach PIXI events and give the layer back as FusionCanvas built it
+    // (R9). `_attachContainerEvents` opts the shared tokens container into
+    // interaction (`eventMode = "static"`) and installs an always-true
+    // `hitArea` so a click on empty canvas still reaches this manager;
+    // leaving both behind means the layer keeps swallowing every pointer hit
+    // test over the whole map after teardown, with nobody listening.
+    // `FusionCanvas._buildHierarchy` creates every layer inert — restore that.
     const { tokenContainer } = this._opts;
     tokenContainer.removeAllListeners();
+    tokenContainer.eventMode = "none";
+    tokenContainer.hitArea = null;
   }
 
   // ---------------------------------------------------------------------------
