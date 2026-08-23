@@ -42,6 +42,7 @@ import type {
 } from "./characterSheetVM.js";
 import { translatePrerequisite } from "../../compendium/prerequisiteTranslation.js";
 import { isLoreSlug, legacyLoreSlug, loreSlug, migrateLoreSlug } from "./loreSlug.js";
+import { KNOWN_CLASS_TRAITS } from "./classTraits.js";
 import {
   MAX_ISEKAI_ARCHETYPES,
   getIsekaiArchetype,
@@ -2100,35 +2101,6 @@ export function isFeatEligible(
       return false;
   }
 }
-
-/**
- * Known class trait slugs used to distinguish "this class feat belongs to a
- * DIFFERENT class" from "this is a shared/general class feat" in
- * isFeatEligible's classFeat branch. MVP set — extend as new classes ship.
- */
-const KNOWN_CLASS_TRAITS = new Set([
-  "magus",
-  "alchemist",
-  "barbarian",
-  "bard",
-  "champion",
-  "cleric",
-  "druid",
-  "fighter",
-  "gunslinger",
-  "inventor",
-  "investigator",
-  "kineticist",
-  "monk",
-  "oracle",
-  "ranger",
-  "rogue",
-  "sorcerer",
-  "summoner",
-  "swashbuckler",
-  "witch",
-  "wizard",
-]);
 
 /**
  * CLASS_CHOICE_SLOT_OPTIONS — for every class-choice slot type whose OPTIONS
