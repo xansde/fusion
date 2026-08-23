@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 728 | 37% |
-| Citados só por código de produção | 318 | 16% |
-| Sem nenhuma citação | 912 | 47% |
+| Citados por algum teste | 724 | 37% |
+| Citados só por código de produção | 319 | 16% |
+| Sem nenhuma citação | 915 | 47% |
 | **Total [MVP]** | **1958** | |
 
 ## Por spec
@@ -30,7 +30,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 9 | 21 | 18 | 19% |
 | [05](05-usuarios-e-permissoes.md) | 40 | 19 | 11 | 10 | 48% |
-| [06](06-canvas-e-renderizacao.md) | 86 | 14 | 28 | 44 | 16% |
+| [06](06-canvas-e-renderizacao.md) | 86 | 13 | 29 | 44 | 15% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 21 | 20 | 27% |
 | [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
 | [09](09-chat-e-mensagens.md) | 49 | 13 | 10 | 26 | 27% |
@@ -47,7 +47,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
-| [23](23-acessibilidade-e-dispositivos.md) | 45 | 2 | 0 | 43 | 4% |
+| [23](23-acessibilidade-e-dispositivos.md) | 45 | 1 | 0 | 44 | 2% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
@@ -62,7 +62,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
-| [41](41-token.md) | 61 | 26 | 3 | 32 | 43% |
+| [41](41-token.md) | 61 | 24 | 3 | 34 | 39% |
 | [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 61 | 59 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 54 | 1 | 3 | 93% |
