@@ -1,14 +1,20 @@
 /**
- * ScenesTabWindows.test.ts — the four scene dialogs, as the panel and the windows
+ * ScenesTabWindows.test.ts — the scene dialogs, as the panel and the windows
  * draw them (plan G085, spec 44 §5.7).
  *
  * The RULE — which window opens, one per what, and what the delete confirmation says
  * — is asserted in `lib/scenes/__tests__/sceneWindows.test.ts`, against the real
  * `windowManager`. What only markup can answer is here: that the panel OFFERS the three
  * verbs and mounts no form of its own inside a 300px drawer, that no dialog paints a
- * frame of its own any more (the window owns it), that the configuration form really
+ * frame of its own any more (the window owns it), and that the configuration form really
  * carries REQ-CEN-061's six fields, and that the confirmation prints the cascade and
  * the refusal.
+ *
+ * DEC-SEP-05 (F2, 2026-08-23): a fourth dialog used to live here too — perception
+ * (REQ-CEN-062, `ScenePerceptionDialog`). It was removed along with the rest of the
+ * fog/vision pipeline — see `docs/design/separacao-repos/design.md` — so every
+ * assertion about it (and the door into it from the configuration window) is gone
+ * too, not adapted.
  *
  * The client's Vitest runs in a node environment (no DOM), so what a click DOES is
  * never asserted from the markup: the openers are named module functions
@@ -16,7 +22,7 @@
  * (`lib/scenes/sceneDelete.ts`), both exercised as functions. What is asserted from the
  * markup is only that the control exists, by its accessible name.
  *
- * Covers REQ-CEN-060, REQ-CEN-061, REQ-CEN-062, REQ-CEN-063, REQ-CEN-064, REQ-CEN-067.
+ * Covers REQ-CEN-060, REQ-CEN-061, REQ-CEN-063, REQ-CEN-064, REQ-CEN-067.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -28,10 +34,8 @@ import type { SceneDocument } from "@fusion/shared";
 import ScenesTab from "../ScenesTab.svelte";
 import SceneCreateDialog from "../SceneCreateDialog.svelte";
 import SceneDeleteConfirm from "../SceneDeleteConfirm.svelte";
-import ScenePerceptionDialog from "../ScenePerceptionDialog.svelte";
 import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import { activeSceneState } from "../../../lib/docs/activeScene.svelte.js";
-import { SCENE_WINDOW_KEYS } from "../../../lib/scenes/sceneWindows.js";
 import {
   SCENE_DELETE_KEYS,
   buildSceneDeleteVM,
@@ -122,9 +126,8 @@ describe("ScenesTab — the verbs open windows (REQ-CEN-060, REQ-CEN-061, REQ-CE
     // What each verb opens is a window of the manager (asserted against the real
     // `windowManager` in `lib/scenes/__tests__/sceneWindows.test.ts`); the panel itself
     // draws no form, because a form does not fit in 300px and the drawer never widens
-    // (DEC-GAV-04, REQ-GAV-012). None of the three dialog bodies is in this markup:
+    // (DEC-GAV-04, REQ-GAV-012). None of the dialog bodies is in this markup:
     expect(html).not.toContain(t("FUSION.Scene.Dialog.GridSize"));
-    expect(html).not.toContain(t("FUSION.Scene.Perception.TokenVision"));
     expect(html).not.toContain(t(SCENE_DELETE_KEYS.cascadeTitle));
   });
 
@@ -144,12 +147,8 @@ describe("ScenesTab — the verbs open windows (REQ-CEN-060, REQ-CEN-061, REQ-CE
 // ---------------------------------------------------------------------------
 
 describe("the dialogs became window bodies (DEC-CEN-09)", () => {
-  for (const file of [
-    "SceneCreateDialog.svelte",
-    "ScenePerceptionDialog.svelte",
-    "SceneDeleteConfirm.svelte",
-  ]) {
-    it(`REQ-CEN-060/061/062/063: ${file} has no backdrop, no <dialog> and no close of its own`, () => {
+  for (const file of ["SceneCreateDialog.svelte", "SceneDeleteConfirm.svelte"]) {
+    it(`REQ-CEN-060/061/063: ${file} has no backdrop, no <dialog> and no close of its own`, () => {
       const source = sourceOf(file);
 
       // A second window system beside `lib/windows/window-manager.ts` is exactly what
@@ -160,24 +159,14 @@ describe("the dialogs became window bodies (DEC-CEN-09)", () => {
       expect(source).not.toContain("&#x2715;");
     });
   }
-
-  it("REQ-CEN-062: the perception window is real UI, in the table's language", () => {
-    const html = render(ScenePerceptionDialog, {
-      props: { scene: ON_AIR, socket: {} as never, onClose: () => {}, onSuccess: () => {} },
-    }).body;
-
-    expect(html).toContain(t("FUSION.Scene.Perception.Darkness", { percent: 0 }));
-    expect(html).toContain(t("FUSION.Scene.Perception.GlobalLight"));
-    expect(html).toContain(t("FUSION.Scene.Perception.TokenVision"));
-  });
 });
 
 // ---------------------------------------------------------------------------
 // Configuration: the six fields REQ-CEN-061 names
 // ---------------------------------------------------------------------------
 
-describe("SceneCreateDialog — configuring a scene (REQ-CEN-061, REQ-CEN-062)", () => {
-  function renderForm(mode: "create" | "edit", withPerception = false): string {
+describe("SceneCreateDialog — configuring a scene (REQ-CEN-061)", () => {
+  function renderForm(mode: "create" | "edit"): string {
     return render(SceneCreateDialog, {
       props: {
         mode,
@@ -185,7 +174,6 @@ describe("SceneCreateDialog — configuring a scene (REQ-CEN-061, REQ-CEN-062)",
         socket: {} as never,
         onClose: () => {},
         onSuccess: () => {},
-        ...(withPerception ? { onOpenPerception: () => {} } : {}),
       },
     }).body;
   }
@@ -206,63 +194,17 @@ describe("SceneCreateDialog — configuring a scene (REQ-CEN-061, REQ-CEN-062)",
     expect(html).toContain("Masmorras");
     expect(html).toContain(t(SCENE_SHELF_KEYS.noFolder));
   });
-
-  it("REQ-CEN-062: the configuration window offers the door to perception, and only when there is a scene", () => {
-    expect(renderForm("edit", true)).toContain(t(SCENE_WINDOW_KEYS.openPerception));
-    // A scene that does not exist yet has no perception to tune.
-    expect(renderForm("create")).not.toContain(t(SCENE_WINDOW_KEYS.openPerception));
-  });
-});
-
-// ---------------------------------------------------------------------------
-// The head's second door into perception — retired 2026-08-17 (REQ-CEN-062, item 25)
-// ---------------------------------------------------------------------------
-
-describe("ScenesTab head — the perception door is retired (REQ-CEN-062, item 25 of the r1 test)", () => {
-  it("REQ-CEN-062: the head of the scene on air no longer opens the perception window", () => {
-    // Alexandre's r1 test, item 25 (2026-08-17): the head's DIRECT door into
-    // perception is out, along with the REQ-CEN-020..025 environment shortcuts —
-    // decision, not a bug (see `specs/44-aba-cenas.md`, note after REQ-CEN-062). The
-    // remaining door is the configuration window, asserted below.
-    const html = renderTab(ON_AIR._id);
-
-    // Anchor that the "on-air" branch actually rendered — otherwise the negatives
-    // below would pass just as well over the "pending"/"nothing on air" markup,
-    // which never carried `scene-head__perception` either (see the test right
-    // after this one, over `renderTab(null)`).
-    expect(html).toContain("scene-head__info");
-    expect(html).toContain(ON_AIR.name);
-
-    expect(html).not.toContain("scene-head__perception");
-    expect(html).not.toContain(`aria-label="${t(SCENE_WINDOW_KEYS.headPerception)}"`);
-  });
-
-  it("REQ-CEN-062: with nothing on air there was never a door to begin with", () => {
-    const html = renderTab(null);
-
-    expect(html).not.toContain("scene-head__perception");
-  });
-
-  it("the head's stylesheet no longer carries a rule for the retired door", () => {
-    const style = styleOf("ScenesTab.svelte");
-
-    // Anchor the negative: prove the block that WOULD have carried the retired rule
-    // is actually there, so the assertion below can't pass by matching nothing.
-    expect(style).toMatch(/\.scene-head\s*\{/);
-    expect(style).not.toMatch(/\.scene-head__perception\s*\{/);
-  });
 });
 
 // ---------------------------------------------------------------------------
 // The head's OTHER door — into configuration — restored (Ajustes r1 review, 2026-08-17)
 // ---------------------------------------------------------------------------
 
-describe("ScenesTab head — the configuration door (REQ-CEN-061, REQ-CEN-062, Ajustes r1 review)", () => {
-  it("REQ-CEN-061/062: the scene on air has a reachable door into configuration", () => {
+describe("ScenesTab head — the configuration door (REQ-CEN-061, Ajustes r1 review)", () => {
+  it("REQ-CEN-061: the scene on air has a reachable door into configuration", () => {
     // REQ-CEN-036: the archive never repeats the scene ON AIR — so without a door in
-    // the head itself, that scene had NO way to reach `openSceneConfigWindow` (and,
-    // through its injected `onOpenPerception`, no way to reach perception either).
-    // This button is that door.
+    // the head itself, that scene had NO way to reach `openSceneConfigWindow`. This
+    // button is that door.
     const html = renderTab(ON_AIR._id);
 
     expect(html).toContain("scene-head__config");
@@ -284,12 +226,23 @@ describe("ScenesTab head — the configuration door (REQ-CEN-061, REQ-CEN-062, A
   });
 
   it("does not reintroduce the retired direct perception door or the environment group", () => {
-    // The button opens `openSceneConfigWindow`, never `openScenePerceptionWindow`
-    // directly — item 25's retirement of REQ-CEN-020..025 stays in force.
+    // The button opens `openSceneConfigWindow`; item 25's retirement of the head's
+    // REQ-CEN-020..025 environment shortcuts stays in force, and DEC-SEP-05 (F2)
+    // removed the perception door and its window kind entirely — neither can come
+    // back through this button.
     const html = renderTab(ON_AIR._id);
 
     expect(html).not.toContain("scene-head__perception");
     expect(html).not.toContain("scene-head__env");
+  });
+
+  it("the head's stylesheet carries no rule for the retired perception door", () => {
+    const style = styleOf("ScenesTab.svelte");
+
+    // Anchor the negative: prove the block that WOULD have carried the retired rule
+    // is actually there, so the assertion below can't pass by matching nothing.
+    expect(style).toMatch(/\.scene-head\s*\{/);
+    expect(style).not.toMatch(/\.scene-head__perception\s*\{/);
   });
 });
 

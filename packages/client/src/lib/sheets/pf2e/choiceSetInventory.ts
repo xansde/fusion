@@ -31,6 +31,12 @@
  *   (habilidade de familiar, ação de criatura). Não é dívida.
  * - `pendente` — **a escolha não aparece na ficha hoje.** É dívida declarada,
  *   com o jogador perdendo uma decisão que as regras dão a ele.
+ * - `desativado` — **decisão nossa de não oferecer a escolha**, não dívida. O
+ *   dado do vendor continua no pack; o que a decisão desliga é a regra que
+ *   dependia dela (ver `flags.fusion.disabledRules` do documento e
+ *   `tools/importer-pf2e/src/curation/disabled-rules.mjs`). Diferente de
+ *   `pendente` em intenção, não em efeito: `pendente` é fila de trabalho,
+ *   `desativado` é escopo fechado — só volta se a decisão mudar.
  *
  * ## O que está pendente e mais dói (medido)
  *
@@ -49,7 +55,7 @@
  */
 
 /** Estado de tratamento de uma escolha do vendor no builder. */
-export type ChoiceSetState = "eixo" | "sub-slot" | "fora-do-builder" | "pendente";
+export type ChoiceSetState = "eixo" | "sub-slot" | "fora-do-builder" | "pendente" | "desativado";
 
 /**
  * Chave: `<pack>/<nome do documento>/<flag do ChoiceSet>` (flag `-` quando o
@@ -248,11 +254,18 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Natural Skill/skillTwo": "pendente",
   "feats-core/Viking Shieldbearer/weapon": "pendente",
   // issue #1 — heritage-level parameterized choices for the 8 core
-  // ancestries (Ancient Elf picks an elf-lineage bonus feat; Skilled Human
-  // picks a trained skill; Versatile Human picks a general-feat-eligible
-  // bonus feat) — same unresolved-ChoiceSet shape as Skilled Human's
-  // background cousins above.
-  "heritages-core/Ancient Elf/ancientElf": "pendente",
+  // ancestries (Skilled Human picks a trained skill; Versatile Human picks a
+  // general-feat-eligible bonus feat) — same unresolved-ChoiceSet shape as
+  // Skilled Human's background cousins above.
+  //
+  // DEC-MC-01 (2026-08-23): o Ancient Elf sai dessa fila. A escolha dele é
+  // "qual dedicação de multiclasse você ganha" — e a multiclasse vai ser
+  // refeita do zero, então oferecer a escolha agora seria construir em cima
+  // do desenho que vai cair. A concessão (`GrantItem`) foi DESATIVADA no
+  // pack; o ChoiceSet continua registrado em `unconvertedRules` porque é o
+  // que o vendor manda, e é dele que este inventário se alimenta. Ver
+  // docs/design/decisao-elfo-anciao-dedicacao.md.
+  "heritages-core/Ancient Elf/ancientElf": "desativado",
   "heritages-core/Skilled Human/skill": "pendente",
   "heritages-core/Versatile Human/versatileHeritage": "pendente",
 };

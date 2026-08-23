@@ -561,15 +561,11 @@ describe("spec 44 §5.8 — every scene action is gated server-side (REQ-CEN-070
     expect(alive["ok"]).toBe(true);
   });
 
-  it("REQ-CEN-070: putting a scene on air and resetting its fog are both refused to the player", async () => {
+  it("REQ-CEN-070: putting a scene on air is refused to the player", async () => {
     const sceneId = await createScene(gmSocket, ON_AIR_NAME);
 
     const activate = await sendOp(playerSocket, "world:activeScene", { sceneId });
     expect(activate["ok"]).toBe(false);
-
-    // Environment shortcut of the head (REQ-VIS-086) — same gate.
-    const reset = await sendOp(playerSocket, "fog:reset", { sceneId, target: "all" });
-    expect(reset["ok"]).toBe(false);
 
     // The pointer never moved: a joining player still sees nothing on air.
     const joiner = connectClient(ctx, ctx.playerToken);

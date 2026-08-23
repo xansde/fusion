@@ -44,6 +44,9 @@ import { fileURLToPath } from "node:url";
 // r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
 import { acharDuplicatas, formatarErroDeDuplicata } from "./curation/duplicata.mjs";
+// DEC-MC-01: regras do vendor que uma DECISÃO nossa desliga (≠ regra que o
+// importer não soube converter). Ver curation/disabled-rules.mjs.
+import { applyDisabledRules, assertAllDisabledRulesApplied } from "./curation/disabled-rules.mjs";
 import { withResolvedAudience } from "./pack-audience.mjs";
 import {
   applyPrerequisiteFixes,
@@ -1137,6 +1140,9 @@ function filterToMvpSubset(docs, selectedPf2eIds) {
 
 const _docsEmitidos = [];
 
+/** slug do pack escrito → `docName`s desativados nele (cobrado no fim de main). */
+const _disabledRulesTouched = new Map();
+
 /** Registra os docs de um pack para o portão rodar sobre o conjunto todo. */
 function registrarParaPortaoDeDuplicata(slug, docs) {
   for (const doc of docs) {
@@ -1164,6 +1170,12 @@ function portaoDeDuplicataSemantica() {
 
 function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
   registrarParaPortaoDeDuplicata(slug, docs);
+  // DEC-MC-01: aplicado aqui, e não em cada bloco de pack, porque desativar é
+  // decisão sobre CONTEÚDO — vale para qualquer pack (pf2e ou sf2e) sem
+  // depender de alguém lembrar de chamar no bloco novo. Muta os mesmos objetos
+  // que o índice logo abaixo lê, então documents.json e index.json saem
+  // coerentes.
+  _disabledRulesTouched.set(slug, applyDisabledRules(slug, docs));
   const packDir = join(packsOutDir, slug);
   mkdirSync(packDir, { recursive: true });
 
@@ -2007,6 +2019,11 @@ async function main() {
   // emitidos nesta execução, depois de escritos — se falhar, o erro nomeia os
   // pares e a saída não é considerada boa.
   portaoDeDuplicataSemantica();
+
+  // DEC-MC-01: desativação declarada para um pack desta execução que não achou
+  // seu documento é declaração obsoleta — falha aqui em vez de virar no-op que
+  // ressuscita a regra em silêncio.
+  assertAllDisabledRulesApplied(_disabledRulesTouched);
 }
 
 main().catch((err) => {

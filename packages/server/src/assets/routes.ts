@@ -1232,8 +1232,8 @@ function visibleGrantBody(
  * What it MUST keep identical to the store version is the notion of "a player
  * character", which is the system's word and not the engine's — hence the same
  * `PLAYER_CHARACTER_SUBTYPES` set, imported, never a `type = 'character'`
- * literal in the SQL. An Etmos world answers with its `orador`s here exactly as
- * it does on the socket paths.
+ * literal in the SQL. A future system naming its playable Actor differently
+ * answers with that subtype here exactly as it does on the socket paths.
  *
  * Read lazily and at most once per mint: the closure caches its own answer, so
  * a document with forty bearer fields still scans the table once, and a mint for

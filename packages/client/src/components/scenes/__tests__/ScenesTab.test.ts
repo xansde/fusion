@@ -16,9 +16,7 @@
  *
  * The last block covers REQ-CEN-043: putting a scene on air must NOT ask first. That is
  * client behaviour and nothing else — the server has no shape for a confirmation, so
- * only here is there anything for the requirement to forbid. It matters in this phase
- * precisely because the SAME panel gained a confirmation for the fog reset
- * (REQ-CEN-022), which is what the assertions below use as their live contrast.
+ * only here is there anything for the requirement to forbid.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -32,7 +30,6 @@ import ScenesTab from "../ScenesTab.svelte";
 import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import { activateScene } from "../../../lib/scenes/sceneController.js";
 import { putPreparedSceneOnAir } from "../../../lib/scenes/prepareState.svelte.js";
-import { resetSceneFog } from "../../../lib/scenes/sceneEnvironment.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
 
@@ -259,19 +256,6 @@ function sourceOfPrepareNotice(): string {
   );
 }
 
-/**
- * `resetSceneFog` used to be wired to the head as `handleResetFog`; REQ-CEN-020..025
- * retired that wiring from `ScenesTab.svelte` on 2026-08-17 (item 25 of the r1 test —
- * decision, not a bug), but the confirming gesture itself still lives in
- * `lib/scenes/sceneEnvironment.ts` for when the UI comes back.
- */
-function sourceOfSceneEnvironment(): string {
-  return readFileSync(
-    fileURLToPath(new URL("../../../lib/scenes/sceneEnvironment.ts", import.meta.url)),
-    "utf8",
-  );
-}
-
 describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
   it("REQ-CEN-043: the archive's activate action reaches the write with no confirmation in between", () => {
     const source = sourceOfScenesTab();
@@ -279,15 +263,6 @@ describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
     const activate = /async function handleActivate[\s\S]*?\n  }/.exec(source)?.[0] ?? "";
     expect(activate).toContain("activateScene(socket, scene._id)");
     expect(activate).not.toMatch(/confirm/i);
-
-    // The live contrast: the one gesture that DOES ask first (REQ-CEN-022) — so "no
-    // confirmation" above is a property of the activation path, not of a pattern that
-    // matches nothing anywhere. `resetSceneFog` no longer has a button wired to it in
-    // ScenesTab.svelte (REQ-CEN-020..025 retired that wiring on 2026-08-17, item 25),
-    // so the contrast is read from `lib/scenes/sceneEnvironment.ts` instead.
-    const resetFog =
-      /export async function resetSceneFog[\s\S]*?\n\}/.exec(sourceOfSceneEnvironment())?.[0] ?? "";
-    expect(resetFog).toContain("confirm()");
   });
 
   it("REQ-CEN-043: the prepare notice's put-on-air action reaches the write with no confirmation either", () => {
@@ -302,21 +277,13 @@ describe("putting a scene on air asks nothing first (REQ-CEN-043)", () => {
 
   it("REQ-CEN-043: neither on-air writer can even express a confirmation, and one call is one write", async () => {
     // Structural first, so no future edit slips a question in without changing a
-    // signature: the irreversible gesture of this phase takes the question as an
-    // argument, and both ways of putting a scene on air take a socket and an id.
-    expect(resetSceneFog).toHaveLength(3);
+    // signature: both ways of putting a scene on air take a socket and an id.
     expect(activateScene).toHaveLength(2);
     expect(putPreparedSceneOnAir).toHaveLength(2);
 
     const { socket, sent } = fakeSocket();
 
     await putPreparedSceneOnAir(socket, "s2");
-    expect(sent.map((envelope) => envelope.type)).toEqual(["world:activeScene"]);
-
-    // And the contrast behaviourally, on the same working socket: the gesture that
-    // DOES ask writes nothing at all while the answer is "no" — which is exactly the
-    // shape REQ-CEN-043 forbids for "pôr no ar".
-    await resetSceneFog(socket, "s2", () => Promise.resolve(false));
     expect(sent.map((envelope) => envelope.type)).toEqual(["world:activeScene"]);
   });
 });

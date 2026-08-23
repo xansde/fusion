@@ -1,40 +1,34 @@
 /**
  * T032 — writes that bump `_stats.version` MUST emit a matching `doc:update`.
  *
- * Two server writes were found (recon, Fase 2) that call `store.update(...)`
+ * A server write was found (recon, Fase 2) that calls `store.update(...)`
  * on a document — which increments `_stats.version` — while broadcasting
  * only a bespoke event, never the `doc:update` a connected client's
  * DocumentMirror needs to pick up the change. Without a `doc:update`, the
  * client mirror is stuck on the stale version FOREVER — no event ever
  * arrives to trigger a resync.
  *
- *   1. reacao-handler.ts's `applyEstresseCost` — the Agilidade Mental 2ª
- *      Reação cost writes `system.estresse`/`system.fadiga` on an Actor;
- *      the caller only ever emitted `combat:updated`.
- *   2. sync-handlers.ts's `buildActiveSceneHandler` — writes `active` on up
- *      to two Scenes; the caller only ever emitted `world:activeScene`
- *      (`{ sceneId }`, no document body at all).
+ * sync-handlers.ts's `buildActiveSceneHandler` writes `active` on up to two
+ * Scenes; the caller only ever emitted `world:activeScene` (`{ sceneId }`,
+ * no document body at all).
  *
  * This is the pre-requisite for T013 (making `expectedVersion` mandatory):
  * an affected player would otherwise take a PERMANENT `STALE_WRITE` on their
  * own sheet with no way to recover.
  *
  * Coverage:
- *   1. Actor case: after `applyEstresseCost` runs, a client entitled to see
- *      the Actor receives a `doc:update` whose document's version matches
- *      what is ACTUALLY in the database (not just what the handler claims).
- *   2. Scene case: after `world:activeScene`, a client receives `doc:update`
+ *   1. Scene case: after `world:activeScene`, a client receives `doc:update`
  *      for the affected scenes with the new version.
- *   3. Redaction: a player with NO ownership on a scene (ownership.default =
+ *   2. Redaction: a player with NO ownership on a scene (ownership.default =
  *      NONE) never receives that scene's `doc:update` — the fix must not
  *      turn into the T025 class of leak (an unrevealed map broadcast to
  *      everyone).
- *   4. The pre-existing events (`combat:updated`, `world:activeScene`)
- *      are still emitted — this is an ADDITION, not a replacement.
+ *   3. The pre-existing event (`world:activeScene`) is still emitted — this
+ *      is an ADDITION, not a replacement.
  *
- * Infrastructure mirrors e2e-etmos-m5e.test.ts: real `boot()`, real
- * socket.io GM + PLAYER sockets, real `op` envelopes — not manual
- * SocketManager wiring — so the fix is proven reachable end-to-end.
+ * Infrastructure: real `boot()`, real socket.io GM + PLAYER sockets, real
+ * `op` envelopes — not manual SocketManager wiring — so the fix is proven
+ * reachable end-to-end.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
@@ -52,10 +46,10 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
-import { etmosSystem } from "@fusion/system-etmos";
+import { stubSystem } from "@fusion/system-stub";
 
 // ---------------------------------------------------------------------------
-// Test infrastructure (mirrors e2e-etmos-m5e.test.ts)
+// Test infrastructure
 // ---------------------------------------------------------------------------
 
 function makeTempDir(): string {
@@ -117,7 +111,7 @@ async function buildCtx(): Promise<Ctx> {
     authContext: {
       worldId,
       worldTitle: "Version Broadcast World",
-      worldSystemId: "etmos",
+      worldSystemId: "stub",
       db: fusionDb.raw,
       secret,
     },
@@ -127,8 +121,8 @@ async function buildCtx(): Promise<Ctx> {
       secret,
       authService,
       origin: "http://127.0.0.1",
-      systemId: "etmos",
-      systemModule: etmosSystem,
+      systemId: "stub",
+      systemModule: stubSystem,
     },
   });
 
@@ -200,7 +194,6 @@ async function createActor(socket: ClientSocket, name: string): Promise<string> 
 
 /**
  * Wait for the next broadcast `op` envelope matching `predicate` on `socket`.
- * Mirrors e2e-etmos-m5e.test.ts's helper of the same name.
  */
 function waitForOp(
   socket: ClientSocket,
@@ -266,147 +259,7 @@ describe("T032 — writes that bump _stats.version must emit doc:update", () => 
   });
 
   // -------------------------------------------------------------------------
-  // 1. Actor case — applyEstresseCost (reacao-handler.ts)
-  // -------------------------------------------------------------------------
-
-  describe("etmos:reacao:usar — Agilidade Mental 2ª Reação applies Estresse cost", () => {
-    it("broadcasts doc:update for the Actor with the version actually persisted, and still emits combat:updated", async () => {
-      const actorAck = await sendOp(gm, "doc:create", {
-        documentType: "Actor",
-        data: [
-          {
-            name: "Reação AM Orador",
-            type: "orador",
-            ownership: { default: 0, [ctx.playerId]: 3 },
-            system: { atributos: { corpo: { value: 3, max: 6 } } },
-          },
-        ],
-      });
-      expect(actorAck["ok"]).toBe(true);
-      const actorId = (actorAck["result"] as { documents: Array<Record<string, unknown>> })
-        .documents[0]!["_id"] as string;
-
-      // Embed "Agilidade Mental" so maxReacoes(actor) === 2 (reacao.ts).
-      const itemAck = await sendOp(gm, "doc:create", {
-        documentType: "Item",
-        parent: { type: "Actor", id: actorId },
-        data: [{ name: "Agilidade Mental", type: "habilidade", system: { categoria: "pratica" } }],
-      });
-      expect(itemAck["ok"]).toBe(true);
-
-      const sceneAck = await sendOp(gm, "doc:create", {
-        documentType: "Scene",
-        data: [{ name: "Reação AM Scene", grid: { type: "square", size: 100 }, active: false }],
-      });
-      const sceneId = (sceneAck["result"] as { documents: Array<Record<string, unknown>> })
-        .documents[0]!["_id"] as string;
-
-      const tokenAck = await sendOp(gm, "doc:create", {
-        documentType: "Token",
-        parent: { type: "Scene", id: sceneId },
-        data: [
-          {
-            actorId,
-            name: "Reação AM Orador",
-            x: 0,
-            y: 0,
-            hidden: false,
-            disposition: 1,
-          },
-        ],
-      });
-      const tokenId = (tokenAck["result"] as { documents: Array<Record<string, unknown>> })
-        .documents[0]!["_id"] as string;
-
-      const combatAck = await sendOp(gm, "combat:create", { sceneId });
-      const combatId = (combatAck["result"] as { combat: Record<string, unknown> }).combat[
-        "_id"
-      ] as string;
-
-      const addAck = await sendOp(gm, "combat:addCombatant", { combatId, tokenId });
-      const combatantId = (
-        (addAck["result"] as { combatant: Record<string, unknown> }).combatant as Record<
-          string,
-          unknown
-        >
-      )["_id"] as string;
-
-      // combat:beginCombat fires the real turnStart lifecycle event, which
-      // resets this combatant's Reação to { atual: 2, max: 2 } (Agilidade
-      // Mental). Wait for that follow-up broadcast before spending.
-      const reacaoResetPromise = waitForOp(gm, "combat:updated", (env) => {
-        const payload = env["payload"] as Record<string, unknown> | undefined;
-        const diff = payload?.["diff"] as Record<string, unknown> | undefined;
-        const cs = diff?.["combatants"] as Array<Record<string, unknown>> | undefined;
-        const target = cs?.find((c) => c["_id"] === combatantId);
-        const flags = target?.["flags"] as Record<string, Record<string, unknown>> | undefined;
-        return flags?.["etmos"]?.["reacoes"] !== undefined;
-      });
-      const beginAck = await sendOp(gm, "combat:beginCombat", { combatId });
-      expect(beginAck["ok"]).toBe(true);
-      await reacaoResetPromise;
-
-      // 1st spend: 2 -> 1, no cost yet.
-      const usar1 = await sendOp(player, "etmos:reacao:usar", { combatId, combatantId });
-      expect(usar1["ok"]).toBe(true);
-      const usar1Result = usar1["result"] as {
-        state: { atual: number; max: number };
-        segundaReacaoComCusto: boolean;
-      };
-      expect(usar1Result.state).toEqual({ atual: 1, max: 2 });
-      expect(usar1Result.segundaReacaoComCusto).toBe(false);
-
-      // Before the 2nd (costed) spend, arm listeners for BOTH the pre-existing
-      // combat:updated broadcast AND the doc:update this fix adds — proving
-      // the fix is an ADDITION, not a replacement (requirement #4).
-      const actorDocUpdatePromise = waitForOp(player, "doc:update", (env) => {
-        const payload = env["payload"] as Record<string, unknown> | undefined;
-        if (payload?.["documentType"] !== "Actor") return false;
-        const documents = payload["documents"] as Array<Record<string, unknown>> | undefined;
-        return documents?.some((d) => d["_id"] === actorId) ?? false;
-      });
-      const combatUpdatedSpendPromise = waitForOp(gm, "combat:updated", (env) => {
-        const payload = env["payload"] as Record<string, unknown> | undefined;
-        const diff = payload?.["diff"] as Record<string, unknown> | undefined;
-        const cs = diff?.["combatants"] as Array<Record<string, unknown>> | undefined;
-        const target = cs?.find((c) => c["_id"] === combatantId);
-        const flags = target?.["flags"] as Record<string, Record<string, unknown>> | undefined;
-        const reacoes = flags?.["etmos"]?.["reacoes"] as { atual: number } | undefined;
-        return reacoes?.atual === 0;
-      });
-
-      const usar2 = await sendOp(player, "etmos:reacao:usar", { combatId, combatantId });
-      expect(usar2["ok"]).toBe(true);
-      const usar2Result = usar2["result"] as {
-        state: { atual: number; max: number };
-        segundaReacaoComCusto: boolean;
-      };
-      expect(usar2Result.state).toEqual({ atual: 0, max: 2 });
-      expect(usar2Result.segundaReacaoComCusto).toBe(true);
-
-      // combat:updated is STILL emitted (requirement #4).
-      await combatUpdatedSpendPromise;
-
-      // doc:update for the Actor is NOW emitted too (the fix).
-      const actorDocUpdate = await actorDocUpdatePromise;
-      const payload = actorDocUpdate["payload"] as Record<string, unknown>;
-      const documents = payload["documents"] as Array<Record<string, unknown>>;
-      const receivedActor = documents.find((d) => d["_id"] === actorId)!;
-      const receivedStats = receivedActor["_stats"] as { version: number };
-
-      // Compare against the DATABASE, not against what the handler claims.
-      const dbVersion = readVersion(ctx.fusionDb, "actors", actorId);
-      expect(receivedStats.version).toBe(dbVersion);
-
-      // The document also actually carries the Estresse cost (+3).
-      const sys = receivedActor["system"] as Record<string, unknown>;
-      const estresse = sys["estresse"] as Record<string, unknown>;
-      expect(estresse["atual"]).toBe(3);
-    }, 30000);
-  });
-
-  // -------------------------------------------------------------------------
-  // 2/3. Scene case — buildActiveSceneHandler (sync-handlers.ts)
+  // Scene case — buildActiveSceneHandler (sync-handlers.ts)
   // -------------------------------------------------------------------------
 
   describe("world:activeScene — active mirror flips broadcast doc:update, filtered by ownership", () => {

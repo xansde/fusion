@@ -16,7 +16,6 @@ import {
   type TokenSheetViewer,
 } from "./tokenSheetPlan.js";
 import { openActorSheet } from "./pf2e/registerPf2eSheets.js";
-import { openEtmosActorSheet } from "./etmos/registerEtmosSheets.js";
 
 export interface OpenTokenSheetContext extends TokenSheetViewer {
   readonly userId: string;
@@ -49,6 +48,5 @@ export function openTokenSheet(
     ...(ctx.sendOpFn !== undefined ? { sendOpFn: ctx.sendOpFn } : {}),
   };
 
-  if (plan.family === "etmos") openEtmosActorSheet(plan.actorId, plan.doc, opts);
-  else openActorSheet(plan.actorId, plan.doc, opts);
+  openActorSheet(plan.actorId, plan.doc, opts);
 }

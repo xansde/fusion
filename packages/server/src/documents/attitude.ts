@@ -16,8 +16,7 @@
  * The subtype allow-list is hand-mirrored here for the same reason
  * `NON_PLAYABLE_SUBTYPES` in ./knowledge.ts is: the server package must not
  * import a system package (arch boundary), and each system names its own
- * non-playable Actor — pf2e/sf2e say `npc` and `hazard`, etmos says
- * `antagonista`.
+ * non-playable Actor — pf2e/sf2e say `npc` and `hazard`.
  */
 
 import {
@@ -35,7 +34,7 @@ import {
  * — attitude is a stance TOWARDS the party, and the party is not its own
  * stranger.
  */
-export const ATTITUDE_CAPABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "antagonista"]);
+export const ATTITUDE_CAPABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc"]);
 
 /** True for an Actor document whose subtype may hold an attitude. */
 export function actorAcceptsAttitude(doc: Record<string, unknown>): boolean {

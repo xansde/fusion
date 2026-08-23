@@ -42,19 +42,18 @@ import type { DocumentStore, AuthorContext } from "./store.js";
  * The Actor subtypes whose ids may appear as exception keys (spec 39 §5.8).
  *
  * Spec 39 says "personagem", not "um subtipo chamado `character`": each system
- * names its playable Actor itself, and the manifests disagree — pf2e and sf2e
- * call it `character`, etmos calls it `orador`
- * (`documentTypes.Actor` in `systems/etmos/src/index.ts`). Reading a single
- * literal would leave an Etmos world with no characters at all: no exception
- * would ever apply (REQ-CTT-071), every other player's character would be
- * filtered out of the payload (REQ-CTT-014) and the grid could not be edited
- * (REQ-CTT-064).
+ * names its playable Actor itself — pf2e and sf2e both call it `character`
+ * today, but nothing stops a future system from choosing a different word.
+ * Reading a single hardcoded literal would leave such a world with no
+ * characters at all: no exception would ever apply (REQ-CTT-071), every other
+ * player's character would be filtered out of the payload (REQ-CTT-014) and
+ * the grid could not be edited (REQ-CTT-064).
  *
  * The server package does not import a system package (arch boundary), so the
  * playable subtypes are mirrored by hand here — the same mirror
  * `packages/client/src/lib/contacts/contactsVM.ts` keeps for the panel.
  */
-export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character", "orador"]);
+export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character"]);
 
 /** True for an Actor document that is a player character, in any system. */
 export function isCharacterActor(doc: Record<string, unknown>): boolean {
@@ -69,14 +68,14 @@ export function isCharacterActor(doc: Record<string, unknown>): boolean {
  * allow-list for the same reason the client keeps one: the complement of "is a
  * character" is a different, larger set. pf2e also declares `loot` (the chest,
  * DEC-NPC-08) and `familiar` (a companion, DEC-CTT-06); spec 42 §3 names the
- * non-playable vocabulary as `npc`/`hazard`, and etmos calls it `antagonista`.
+ * non-playable vocabulary as `npc`/`hazard`.
  *
  * Subjecting `loot` to the knowledge filter would take an actor a player already
  * reaches through `ownership` — a party stash shared at OBSERVER — away from him
  * until the Mestre wrote knowledge on it, which is knowledge RESTRICTING what
  * ownership granted for a document knowledge was never about (REQ-CTT-074).
  */
-export const NON_PLAYABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "hazard", "antagonista"]);
+export const NON_PLAYABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "hazard"]);
 
 /** True for an Actor document that is a non-playable character, in any system. */
 export function isNonPlayableActor(doc: Record<string, unknown>): boolean {

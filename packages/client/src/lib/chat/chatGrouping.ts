@@ -98,15 +98,14 @@ export function groupChatMessages(messages: readonly ChatMessage[]): GroupedChat
 // ---------------------------------------------------------------------------
 
 /**
- * True when the message renders as a CARD: a declarative `card` payload, an
- * Etmos conjuration, or a PF2e ability/spell-cast card riding on a plain text
- * announcement. A card is a block with its own frame — stacking one under
- * another message's header would make it look like part of that message.
+ * True when the message renders as a CARD: a declarative `card` payload, or a
+ * PF2e ability/spell-cast card riding on a plain text announcement. A card is
+ * a block with its own frame — stacking one under another message's header
+ * would make it look like part of that message.
  */
 export function isCardMessage(msg: ChatMessage): boolean {
   if (msg.card !== undefined) return true;
   const flags = msg.flags as Record<string, Record<string, unknown> | undefined> | undefined;
-  if (flags?.["etmos"]?.["conjuracao"] !== undefined) return true;
   const pf2e = flags?.["pf2e"];
   return pf2e?.["abilityCard"] !== undefined || pf2e?.["spellCast"] !== undefined;
 }

@@ -1,5 +1,10 @@
 # 19 — Sistema Etmos RPG
 
+> **LEGADO** — o sistema Etmos foi movido para espaço legado em 2026-08-23
+> (design em docs/design/separacao-repos/design.md): vive na linha build/app e
+> NÃO está implementado na linha alfa/beta/stable. Esta spec permanece como
+> registro; nenhum REQ-ETM é exigível na linha alfa.
+
 - **Título:** Sistema Etmos RPG
 - **Status:** draft v0.1
 - **Data:** 2026-06-11

@@ -55,7 +55,6 @@
     ensureConditionRegistry,
   } from "../../lib/conditions/conditionRegistry.svelte.js";
   import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
-  import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
   import {
     ACTOR_FOLDER_TYPE,
     type FolderDeleteResult,
@@ -438,9 +437,6 @@
   // The line of the non-playable (spec 42 §5.4)
   // -------------------------------------------------------------------------
 
-  /** Etmos subtypes route through their own opener (same table as the 39). */
-  const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
-
   /**
    * REQ-NPC-035: the sheet opens in a floating window (REQ-UIF-009), from the
    * double-click on the row and from the button a keyboard can reach — the same
@@ -459,8 +455,7 @@
       sendOpFn: makeSendOpFn(() => getSocket() ?? socket),
     };
     const raw = doc as unknown as Record<string, unknown>;
-    if (ETMOS_SUBTYPES.has(row.subtype)) openEtmosActorSheet(row.id, raw, opts);
-    else openActorSheet(row.id, raw, opts);
+    openActorSheet(row.id, raw, opts);
   }
 
   /** Id of the row whose title is being rewritten, or null (REQ-NPC-032). */

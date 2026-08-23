@@ -10,7 +10,6 @@ export default defineWorkspace([
   "systems/engine-2e/vitest.config.ts",
   "systems/pf2e/vitest.config.ts",
   "systems/sf2e/vitest.config.ts",
-  "systems/etmos/vitest.config.ts",
   "packages/server/vitest.config.ts",
   "packages/client/vitest.config.ts",
   "tools/boundary-test/vitest.config.ts",

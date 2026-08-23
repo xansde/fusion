@@ -80,7 +80,6 @@
     type ContactCategories,
   } from "../../lib/contacts/categories.js";
   import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
-  import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
   import { sendOp, toEnvelope, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
@@ -89,9 +88,6 @@
   import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
 
   const { socket, worldId, userId, isGm }: SidebarPanelProps = $props();
-
-  /** Etmos subtypes route through their own opener (the sheet registry's table). */
-  const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
 
   let query = $state("");
   // Seeded from the mirror at construction, not inside the effect: the panel is
@@ -309,11 +305,7 @@
       sendOpFn: makeSendOpFn(() => getSocket() ?? socket),
     };
     const raw = doc as unknown as Record<string, unknown>;
-    if (ETMOS_SUBTYPES.has(doc.type ?? "")) {
-      openEtmosActorSheet(doc._id, raw, opts);
-    } else {
-      openActorSheet(doc._id, raw, opts);
-    }
+    openActorSheet(doc._id, raw, opts);
   }
 
   // -------------------------------------------------------------------------

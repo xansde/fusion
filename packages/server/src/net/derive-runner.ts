@@ -13,7 +13,7 @@
  *   1. Resolve the DeriveSteps registered for (documentType="Actor", subtype)
  *      from `SystemModule.deriveSteps`. If none are registered, this is a
  *      no-op (e.g. subtype has no derivation, or the active system doesn't
- *      derive at all — stub system, Etmos before M5, etc).
+ *      derive at all — the stub system, for instance).
  *   2. Run "base" phase steps (pure functions over the doc).
  *   3. Materialize EffectSources generically from the actor's embedded
  *      Condition items (`doc.items[]` where `type === "condition"`), using
@@ -55,8 +55,8 @@
  * hardcodes 2e semantics — it imports collectEffects from @fusion/engine-2e
  * directly and materializes the "template value -1 = placeholder" condition
  * convention inline (resolveConditionModifierValue). That is correct for
- * pf2e/sf2e (both 2e-family systems sharing engine-2e), but Etmos (M5) is not
- * a 2e-family system and needs a different (or no) effects-materialization
+ * pf2e/sf2e (both 2e-family systems sharing engine-2e), but a future
+ * non-2e-family system would need a different (or no) effects-materialization
  * pipeline.
  *
  * Since M5-A, a system can register its OWN materializer via
@@ -67,7 +67,7 @@
  * over the 2e-family fallback below. When no materializer matches, the
  * fallback (collectEffects + actorConditionsToEffectSources) runs exactly as
  * before M5-A — pf2e/sf2e do not register one, so their behaviour is
- * byte-for-byte unchanged. Etmos (M5-B) registers its own materializer,
+ * byte-for-byte unchanged. A future system may register its own materializer,
  * overriding the fallback entirely for its Actor subtypes.
  */
 
