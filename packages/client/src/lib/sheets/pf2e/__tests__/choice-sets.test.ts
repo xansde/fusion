@@ -34,7 +34,8 @@ const PACKS = join(
 
 interface PackDoc {
   name: string;
-  flags?: { fusion?: { unconvertedRules?: unknown[] } };
+  system?: { rules?: { kind?: string; raw?: { key?: string } }[] };
+  flags?: { fusion?: { unconvertedRules?: unknown[]; disabledRules?: { decision?: string }[] } };
 }
 
 /** Toda escolha presente nos packs hoje, na chave `<pack>/<doc>/<flag>`. */
@@ -64,7 +65,7 @@ describe("inventário de escolhas do vendor (ChoiceSet)", () => {
     expect(
       naoClassificadas,
       "escolha nova nos packs sem entrada em choiceSetInventory.ts — classifique como " +
-        "'eixo' | 'sub-slot' | 'fora-do-builder' | 'pendente' antes de seguir. " +
+        "'eixo' | 'sub-slot' | 'fora-do-builder' | 'pendente' | 'desativado' antes de seguir. " +
         "Escolha não classificada é escolha que some da ficha sem ninguém perceber.",
     ).toEqual([]);
   });
@@ -85,5 +86,39 @@ describe("inventário de escolhas do vendor (ChoiceSet)", () => {
         pendentes.join("\n  "),
     );
     expect(Array.isArray(pendentes)).toBe(true);
+  });
+});
+
+/**
+ * DEC-MC-01 — o Elfo Ancião concede, pelas regras, uma dedicação de
+ * multiclasse. Como a multiclasse vai ser refeita, a concessão está desativada
+ * no pack: a escolha deixa de ser dívida ("pendente", fila de trabalho) e vira
+ * escopo fechado ("desativado"). Ver docs/design/decisao-elfo-anciao-dedicacao.md.
+ */
+describe("DEC-MC-01 — Elfo Ancião sem dedicação de multiclasse", () => {
+  const heritages = JSON.parse(
+    readFileSync(join(PACKS, "heritages-core", "documents.json"), "utf8"),
+  ) as PackDoc[];
+  const ancientElf = heritages.find((d) => d.name === "Ancient Elf");
+
+  it("a escolha está classificada como desativada, não como dívida pendente", () => {
+    expect(CHOICE_SET_INVENTORY["heritages-core/Ancient Elf/ancientElf"]).toBe("desativado");
+    expect(pendingChoiceSets()).not.toContain("heritages-core/Ancient Elf/ancientElf");
+  });
+
+  it("a herança continua no pack, sem nenhuma concessão ativa", () => {
+    expect(ancientElf, "Ancient Elf sumiu do heritages-core — desativar não é apagar").toBeDefined();
+    const grants = (ancientElf?.system?.rules ?? []).filter(
+      (r) => r.kind === "grant-item" || r.raw?.key === "GrantItem",
+    );
+    expect(
+      grants,
+      "a dedicação de multiclasse voltou ao pack — regeneração sem curation/disabled-rules.mjs?",
+    ).toEqual([]);
+  });
+
+  it("a concessão está preservada como desativada, com a decisão que a desligou", () => {
+    const disabled = ancientElf?.flags?.fusion?.disabledRules ?? [];
+    expect(disabled.map((d) => d.decision)).toEqual(["DEC-MC-01"]);
   });
 });
