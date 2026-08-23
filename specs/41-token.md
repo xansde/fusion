@@ -1,7 +1,7 @@
 # 41 — Token
 
 - **Título:** Token — a manifestação de um ator numa cena
-- **Status:** draft v0.2 (2026-08-23) — emenda: §5.12 e DEC-TOK-22 (abrir a ficha pela peça)
+- **Status:** draft v0.2 (2026-08-23) — emenda: §5.12 e DEC-TOK-23 (abrir a ficha pela peça)
 - **Nível:** Área (ver DEC-TOK-01)
 - **Baseada em:**
   - `45-atores.md` — o que a presença **herda** do ator: facetas, identidade, o ator-base como molde e não como valor vivo (REQ-ATR-070..073, DEC-ATR-14). Esta spec diz o que a presença **é**.
@@ -402,7 +402,7 @@ o destrava.
 - **Arraste simultâneo, trava efêmera e last-writer-wins** são problema de servidor e rede. Esta
   spec não os herda nem os cita como requisito seu.
 
-### DEC-TOK-22 — A peça abre a ficha do ator, com a mesma régua que a move
+### DEC-TOK-23 — A peça abre a ficha do ator, com a mesma régua que a move
 
 Dois cliques numa peça abrem a ficha do **ator efetivo** dela. O gesto é da peça; a ficha continua
 sendo do ator, e esta spec não define nenhuma "ficha de token".
@@ -590,7 +590,7 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 - **REQ-TOK-103** [MVP] O token DEVE permanecer embutido na cena; a revisão dessa forma fica
   condicionada ao gatilho de DEC-TOK-21.
 
-### 5.12 Abrir a ficha pela peça _(emenda de 2026-08-23, DEC-TOK-22)_
+### 5.12 Abrir a ficha pela peça _(emenda de 2026-08-23, DEC-TOK-23)_
 
 - **REQ-TOK-110** [MVP] Dois cliques sobre uma peça, próximos no tempo, DEVEM abrir a ficha do ator
   efetivo dela; um clique isolado DEVE continuar significando apenas seleção (REQ-CNV-034), e um
@@ -603,7 +603,7 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 - **REQ-TOK-113** [MVP] A janela aberta a partir de peça **desvinculada com delta** DEVE ser
   identificada pela **peça**, não pelo ator (REQ-CNV-094), e DEVE abrir sem escrita enquanto
   REQ-DOC-034 (`token:updateActor`) não existir; NÃO DEVE, em nenhuma hipótese, gravar a edição no
-  ator-base (DEC-TOK-22).
+  ator-base (DEC-TOK-23).
 - **REQ-TOK-114** [MVP] O gesto DEVE estar ligado à cena que está no ar — não basta existir como
   função: a peça na tela DEVE ser o gatilho (REQ-UIF-046 e a lição do #194, em que a interação com
   peças existia em código e não estava instanciada em tela alguma).
@@ -807,7 +807,7 @@ citados por código e teste.
 | `20`            | **REQ-AST-043** passa a dizer que o `AssetRef` de arte de criatura vive no `Actor`, nunca no token (DEC-TOK-02).                                                                                                                                                                                                                                                                                                                                                          |
 | `37`            | Hospeda o **setting de mundo** da numeração (DEC-TOK-16) e as **duas preferências de usuário** de exibição de nome e barras (REQ-TOK-074).                                                                                                                                                                                                                                                                                                                                |
 | `42`            | **REQ-NPC-061** ainda diz que o baú NÃO DEVE ser ator, contra a DEC-ATR-09 da `45`, que decidiu o oposto. A emenda é da `45`; esta spec apenas registra que depende dela para que o baú tenha token.                                                                                                                                                                                                                                                                      |
-| `06`            | **REQ-CNV-094** já dizia o que a ficha aberta a partir de um token mostra e como identifica a janela; ganha agora o **gesto** que a abre (REQ-TOK-110) e o registro de que, sem REQ-DOC-034, a ficha de peça desvinculada com delta abre em leitura (REQ-TOK-113) — emenda registrada em 2026-08-23 por DEC-TOK-22. Nada em REQ-CNV-094 é revogado.                                                                                                                       |
+| `06`            | **REQ-CNV-094** já dizia o que a ficha aberta a partir de um token mostra e como identifica a janela; ganha agora o **gesto** que a abre (REQ-TOK-110) e o registro de que, sem REQ-DOC-034, a ficha de peça desvinculada com delta abre em leitura (REQ-TOK-113) — emenda registrada em 2026-08-23 por DEC-TOK-23. Nada em REQ-CNV-094 é revogado.                                                                                                                       |
 | `23`            | A linha `Double-tap em token → Abrir sheet do token`, hoje [MVP-stretch] na tabela de gestos de toque, deixa de ser a única menção ao gesto no corpo de specs: o gesto passa a ser [MVP] por REQ-TOK-110 no ponteiro/mouse, e a linha da `23` segue valendo apenas para o **equivalente em toque**, que continua [MVP-stretch] — emenda registrada em 2026-08-23.                                                                                                         |
 | `44`, `45`      | As citações de "presença na cena" permanecem válidas e passam a apontar para esta spec (DEC-TOK-01). Nenhum requisito delas muda.                                                                                                                                                                                                                                                                                                                                         |
 | `CONVENCOES.md` | O item "41 — Token" sai de §7 (lacunas conhecidas). A lacuna **Ficha de não-jogável** e a **API de Módulos** continuam abertas.                                                                                                                                                                                                                                                                                                                                           |
