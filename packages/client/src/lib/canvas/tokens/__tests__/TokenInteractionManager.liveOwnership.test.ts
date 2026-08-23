@@ -141,6 +141,17 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
   } as unknown as TokenDocument;
 }
 
+/**
+ * TK110 note: since two clicks on the same token within
+ * DOUBLE_CLICK_WINDOW_MS open its sheet (REQ-TOK-110), consecutive synthetic
+ * gestures in one test would land on the same millisecond and read as one
+ * double click. Each simulated gesture therefore advances a controlled clock,
+ * which is what separates two deliberate gestures from one double click in
+ * real use — the manager's own drag detection also forgets a press that
+ * became a drag.
+ */
+let fakeNow = 1_000_000;
+
 function simulateDrag(
   container: ReturnType<typeof makeFakeContainer>,
   target: unknown,
@@ -149,6 +160,7 @@ function simulateDrag(
   moveX: number,
   moveY: number,
 ): void {
+  fakeNow += 1_000;
   const down = container._handlers.get("pointerdown");
   const move = container._handlers.get("pointermove");
   const up = container._handlers.get("pointerup");
@@ -166,6 +178,8 @@ function makeFakeTarget(tokenId: string) {
 
 describe("TokenInteractionManager live ownership (R2, REQ-TOK-032/034)", () => {
   beforeEach(() => {
+    fakeNow += 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => fakeNow);
     resetFootprintRegistry();
     seedFootprintRegistry({ med: { width: 1, height: 1 } });
   });

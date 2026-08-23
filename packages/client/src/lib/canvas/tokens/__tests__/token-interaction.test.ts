@@ -25,6 +25,9 @@ import {
   ROLE_ASSISTANT,
   ROLE_GAMEMASTER,
   isEditableTarget,
+  canOpenTokenSheet,
+  registerTokenClick,
+  DOUBLE_CLICK_WINDOW_MS,
   type GridSnapConfig,
 } from "../token-interaction.js";
 import type { TokenDocument } from "@fusion/shared";
@@ -578,5 +581,82 @@ describe("isEditableTarget", () => {
     expect(isEditableTarget({ tagName: "BODY" })).toBe(false);
     expect(isEditableTarget({ tagName: "DIV", isContentEditable: false })).toBe(false);
     expect(isEditableTarget({ tagName: "CANVAS" })).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TK110 — the gesture that opens the sheet (REQ-TOK-110..113)
+// ---------------------------------------------------------------------------
+
+describe("registerTokenClick (REQ-TOK-110): two clicks on the SAME token, close in time", () => {
+  it("the first click is never a double click", () => {
+    const first = registerTokenClick(null, "tok1", 1_000);
+    expect(first.isDoubleClick).toBe(false);
+    expect(first.tracker).not.toBeNull();
+  });
+
+  it("a second click on the same token inside the window IS a double click", () => {
+    const first = registerTokenClick(null, "tok1", 1_000);
+    const second = registerTokenClick(first.tracker, "tok1", 1_000 + DOUBLE_CLICK_WINDOW_MS - 1);
+    expect(second.isDoubleClick).toBe(true);
+  });
+
+  it("a second click on a DIFFERENT token is not a double click, and re-arms on the new token", () => {
+    const first = registerTokenClick(null, "tok1", 1_000);
+    const second = registerTokenClick(first.tracker, "tok2", 1_050);
+    expect(second.isDoubleClick).toBe(false);
+
+    const third = registerTokenClick(second.tracker, "tok2", 1_100);
+    expect(third.isDoubleClick).toBe(true);
+  });
+
+  it("a second click after the window closed is a fresh first click", () => {
+    const first = registerTokenClick(null, "tok1", 1_000);
+    const late = registerTokenClick(first.tracker, "tok1", 1_000 + DOUBLE_CLICK_WINDOW_MS + 1);
+    expect(late.isDoubleClick).toBe(false);
+    expect(late.tracker).not.toBeNull();
+  });
+
+  it("a THIRD rapid click does not open a second sheet — the pair is consumed", () => {
+    const c1 = registerTokenClick(null, "tok1", 1_000);
+    const c2 = registerTokenClick(c1.tracker, "tok1", 1_100);
+    expect(c2.isDoubleClick).toBe(true);
+    // The double click consumed the tracker: click 3 starts a NEW pair.
+    const c3 = registerTokenClick(c2.tracker, "tok1", 1_200);
+    expect(c3.isDoubleClick).toBe(false);
+    const c4 = registerTokenClick(c3.tracker, "tok1", 1_300);
+    expect(c4.isDoubleClick).toBe(true);
+  });
+});
+
+describe("canOpenTokenSheet (REQ-TOK-111): the same rule as moving, never a second predicate", () => {
+  const token = makeToken({ actorId: "actor001" });
+
+  it("a privileged role opens the sheet of any token", () => {
+    expect(canOpenTokenSheet(token, "gm", ROLE_GAMEMASTER, new Set())).toBe(true);
+    expect(canOpenTokenSheet(token, "gm", ROLE_ASSISTANT, new Set())).toBe(true);
+  });
+
+  it("a player opens the sheet of an actor they own", () => {
+    expect(canOpenTokenSheet(token, "p1", 1, new Set(["actor001"]))).toBe(true);
+  });
+
+  it("a player does NOT open the sheet of an actor they do not own (REQ-TOK-070)", () => {
+    expect(canOpenTokenSheet(token, "p1", 1, new Set(["actor999"]))).toBe(false);
+  });
+
+  it("answers exactly what canMoveToken answers, for every combination", () => {
+    const cases: { role: number; owned: Set<string> }[] = [
+      { role: 1, owned: new Set() },
+      { role: 1, owned: new Set(["actor001"]) },
+      { role: 2, owned: new Set() },
+      { role: ROLE_ASSISTANT, owned: new Set() },
+      { role: ROLE_GAMEMASTER, owned: new Set() },
+    ];
+    for (const c of cases) {
+      expect(canOpenTokenSheet(token, "u", c.role, c.owned)).toBe(
+        canMoveToken(token, "u", c.role, c.owned),
+      );
+    }
   });
 });

@@ -55,6 +55,7 @@
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
+  import { openTokenSheet } from "../lib/sheets/openTokenSheet.js";
   import {
     buildActorDropTokenOp,
     buildTokenFromActorFields,
@@ -594,6 +595,40 @@
         getOwnedActorIds: () =>
           ownedActorIdsOf(worldMirror.getByType<Record<string, unknown>>("Actor"), userId),
         gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
+        // TK110 (REQ-TOK-110): two clicks on a token open its sheet. The
+        // manager already decided the gesture happened and that this user may
+        // see the sheet (REQ-TOK-111); everything read here is read NOW, from
+        // the live mirror, so the window never opens on a snapshot taken when
+        // the canvas mounted (same reasoning as getOwnedActorIds above).
+        onOpenSheet: (tokenId) => {
+          const currentScene = worldMirror.getDoc<SceneDocument>("Scene", scene._id);
+          const token = currentScene?.tokens?.find((candidate) => candidate._id === tokenId);
+          if (!token) return;
+          const baseActor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+          if (!baseActor) return;
+
+          const owned = ownedActorIdsOf(
+            worldMirror.getByType<Record<string, unknown>>("Actor"),
+            userId,
+          );
+
+          openTokenSheet(
+            token as unknown as Parameters<typeof openTokenSheet>[0],
+            baseActor,
+            {
+              userId,
+              isGm: currentIsGm,
+              isOwner: owned.has(token.actorId),
+              worldId: session.worldInfo?.id ?? "",
+              socket: sock,
+              // Lazy socket accessor: a captured socket goes stale across a
+              // reconnect (same pattern as the NPCs tab).
+              sendOpFn: (op: unknown) => {
+                void sendOp(getSocket() ?? sock, op as Parameters<typeof sendOp>[1]);
+              },
+            },
+          );
+        },
         onError: (msg) => {
           dropRefusal = msg;
           window.setTimeout(() => {

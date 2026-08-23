@@ -97,6 +97,14 @@ export function openActorSheet(
     worldId?: string;
     socket?: Socket;
     sendOpFn?: (op: unknown) => void;
+    /**
+     * Window identity, when the caller needs one other than the actor's.
+     * A sheet opened FROM an unlinked token must be keyed by the TOKEN
+     * (REQ-CNV-094): six skeletons sharing one `Actor` would otherwise
+     * collapse into a single window. Never forwarded to the sheet component
+     * — it is about the window, not about the actor.
+     */
+    singletonKey?: string;
   },
 ): void {
   // Lazy import to avoid circular imports when this module is loaded server-side.
@@ -111,7 +119,8 @@ export function openActorSheet(
     // second, ad-hoc read of the raw (EN-pure) doc.name.
     const resolvedName = displayName(actorDoc);
     const name = resolvedName.length > 0 ? resolvedName : "Actor";
-    const singletonKey = `sheet:Actor:${actorId}`;
+    const { singletonKey: requestedKey, ...sheetProps } = _opts;
+    const singletonKey = requestedKey ?? `sheet:Actor:${actorId}`;
 
     const reg = sheetRegistry.resolve("Actor", subtype);
     if (!reg) {
@@ -136,7 +145,7 @@ export function openActorSheet(
       componentProps: {
         actorId,
         doc: actorDoc,
-        ..._opts,
+        ...sheetProps,
       },
     });
   });

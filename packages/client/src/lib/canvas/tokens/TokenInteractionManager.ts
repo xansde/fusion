@@ -62,6 +62,9 @@ import {
   resetToIdle,
   canStartDrag,
   isEditableTarget,
+  canOpenTokenSheet,
+  registerTokenClick,
+  type TokenClickTracker,
   type GridSnapConfig,
   type ArrowDirection,
   type DragMachine,
@@ -111,6 +114,20 @@ export interface TokenInteractionOptions {
   attachKeyboard?: boolean;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
+  /**
+   * Called when the user asks for a token's sheet with two clicks on it
+   * (TK110, REQ-TOK-110). Receives the TOKEN id — never a document snapshot:
+   * the caller reads the token and its actor from the live mirror at the
+   * moment it opens the window, so a sheet never opens on state that was
+   * already stale when this manager was built (the same reasoning as
+   * `getOwnedActorIds` above).
+   *
+   * The manager decides WHETHER the gesture happened and whether this user may
+   * see the sheet (REQ-TOK-111); it deliberately does not know what a sheet is
+   * — the window manager, the sheet registry and Svelte all live on the other
+   * side of this callback.
+   */
+  onOpenSheet?: (tokenId: string) => void;
 }
 
 /**
@@ -146,6 +163,9 @@ export class TokenInteractionManager {
 
   /** Drag state machine. */
   private _drag: DragMachine = createDragMachine();
+
+  /** The click waiting for a partner, for the two-click gesture (TK110). */
+  private _clickTracker: TokenClickTracker | null = null;
 
   /** Pointer capture state for drag detection. */
   private _pointerDown: {
@@ -529,7 +549,10 @@ export class TokenInteractionManager {
 
       const tokenId = this._getTokenIdFromTarget(e.target);
       if (!tokenId) {
-        // Click on empty canvas — deselect
+        // Click on empty canvas — deselect, and break any pending click pair:
+        // a click that landed on the map is a click that did not land on the
+        // token, so it cannot be half of that token's double click (TK110).
+        this._clickTracker = null;
         this.deselectAll();
         return;
       }
@@ -538,10 +561,27 @@ export class TokenInteractionManager {
       if (!token) return;
 
       const { userId, userRole } = this._opts;
-      const canMove = canMoveToken(token, userId, userRole, this._opts.getOwnedActorIds());
+      const owned = this._opts.getOwnedActorIds();
+      const canMove = canMoveToken(token, userId, userRole, owned);
 
       // Always select on click (regardless of move permission)
       this._selectToken(tokenId);
+
+      // TK110 (REQ-TOK-110): two clicks on the same token open its sheet. The
+      // check runs BEFORE the drag bookkeeping below and returns, so the
+      // second click of the pair opens the window instead of also picking the
+      // token up — otherwise a hand that drifts a few pixels while opening a
+      // sheet would send a move op nobody asked for.
+      const click = registerTokenClick(this._clickTracker, tokenId, Date.now());
+      this._clickTracker = click.tracker;
+      if (click.isDoubleClick) {
+        this._pointerDown = null;
+        if (canOpenTokenSheet(token, userId, userRole, owned)) {
+          this._opts.onOpenSheet?.(tokenId);
+        }
+        e.stopPropagation();
+        return;
+      }
 
       if (!canMove) return;
       if (!canStartDrag(this._drag, tokenId)) return;
@@ -573,7 +613,14 @@ export class TokenInteractionManager {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (!this._pointerDown.dragging && dist > DRAG_THRESHOLD_PX) {
-        // Threshold exceeded — start a real drag
+        // Threshold exceeded — start a real drag.
+        //
+        // TK110: a press that turned into a DRAG is not half of a double
+        // click (REQ-TOK-110). Without forgetting it here, "drag the token,
+        // then click it" would open the sheet, and — worse — dragging twice
+        // in quick succession would too, because both presses landed on the
+        // same token inside the pairing window.
+        this._clickTracker = null;
         const tokenId = this._pointerDown.tokenId;
         const token = this._getToken(tokenId);
         if (!token) return;
