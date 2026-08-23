@@ -200,7 +200,7 @@ export interface CombatDocument {
 
   /**
    * Discriminator for the type of encounter.
-   * "standard" covers PF2e/Etmos normal combats.
+   * "standard" covers PF2e normal combats.
    * "starship" is reserved for SF2e cinematic starship scenes [V2].
    * Systems may register custom combat types via the system API.
    * REQ-CBT-012: fórmula de iniciativa é delegada pela system API por combatType.
@@ -402,8 +402,9 @@ export interface InitiativeRollResult {
  * Passed to InitiativeFormula.compare() for non-monotonic tiebreaking.
  *
  * DEC-CBT-04: compare(a, b) is preferred over tiebreaker for desempates
- * that cannot be expressed as a single number (e.g. "players before NPCs"
- * in Etmos, regardless of total initiative value).
+ * that cannot be expressed as a single number (e.g. a rule where every
+ * player character outranks every NPC, regardless of total initiative
+ * value).
  */
 export interface InitiativeEntry {
   readonly combatant: CombatantDocument;
@@ -421,7 +422,7 @@ export interface InitiativeEntry {
  * combatant.initiative, `statistic` as combatant.initiativeStatistic, and uses
  * `tiebreaker` for the default comparator.
  *
- * Non-monotonic tiebreaking (e.g. Etmos "players beat NPCs") is supplied as a
+ * Non-monotonic tiebreaking (e.g. "players beat NPCs") is supplied as a
  * `compare(a, b)` on the registered InitiativeFormula, NOT here (see
  * 15-api-de-sistemas.md REQ-SYS-042).
  *
@@ -510,7 +511,7 @@ export interface InitiativeFormula {
    * comparator (see defaultInitiativeComparator).
    *
    * REQ-CBT-013: compare has precedence over tiebreaker.
-   * DEC-CBT-04: supports non-monotonic rules (e.g. Etmos "players beat NPCs").
+   * DEC-CBT-04: supports non-monotonic rules (e.g. "players beat NPCs").
    */
   compare?: (a: InitiativeEntry, b: InitiativeEntry) => number;
 }

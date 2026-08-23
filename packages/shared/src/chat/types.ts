@@ -210,9 +210,9 @@ export type SpellSaveType = z.infer<typeof SpellSaveTypeSchema>;
 /**
  * Structured payload for an interactive spell-cast chat card (r17-P2).
  *
- * Stored under `flags.pf2e.spellCast` of a ChatMessage (mirroring the Etmos
- * ConjuracaoCard's `flags.etmos.conjuracao` pattern — NOT a declarative
- * `message.card`/CardData). Rendered by <SpellCastCard>, which shows:
+ * Stored under `flags.pf2e.spellCast` of a ChatMessage (a system-namespaced
+ * flag pattern — NOT a declarative `message.card`/CardData). Rendered by
+ * <SpellCastCard>, which shows:
  *   - "Fazer teste de resistência" when {saveType + dcValue} are present — any
  *     player may click; the TARGET rolls the save with THEIR actor.
  *   - "Rolar dano" when {damageFormula} is present — visible only to the caster's

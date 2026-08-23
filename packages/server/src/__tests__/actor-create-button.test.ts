@@ -20,9 +20,9 @@
  *      and surfaces failures. This file proves the SERVER side of the
  *      contract: a correctly-shaped minimal Actor (name + subtype +
  *      ownership + flags, NO `system`) is accepted, persisted, and
- *      broadcast — for both pf2e ("character") and etmos ("orador"), since
- *      the client no longer hardcodes pf2e's subtype (a world may run any
- *      target system — see project CLAUDE.md "Sistemas-alvo").
+ *      broadcast — for both pf2e ("character") and the stub system ("dummy"),
+ *      since the client no longer hardcodes pf2e's subtype (a world may run
+ *      any target system — see project CLAUDE.md "Sistemas-alvo").
  *
  * Boots through the real boot() sequence (same pattern as
  * derive-wiring.test.ts / augmentation-slot-limit.test.ts) — no mocking of
@@ -46,7 +46,7 @@ import { AuthService } from "../auth/service.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION, DocCreatePayloadSchema } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
-import { etmosSystem } from "@fusion/system-etmos";
+import { stubSystem } from "@fusion/system-stub";
 import type { SystemModule } from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
@@ -262,12 +262,12 @@ describe("doc:create Actor — minimal '+Novo' button payload (pf2e)", () => {
   });
 });
 
-describe("doc:create Actor — minimal '+Novo' button payload (etmos)", () => {
+describe("doc:create Actor — minimal '+Novo' button payload (stub)", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
 
   beforeAll(async () => {
-    ctx = await buildCtx("actor_create_btn_etmos", "etmos", etmosSystem);
+    ctx = await buildCtx("actor_create_btn_stub", "stub", stubSystem);
     gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
     gm.connect();
     await waitForConnect(gm);
@@ -278,10 +278,10 @@ describe("doc:create Actor — minimal '+Novo' button payload (etmos)", () => {
     await teardown(ctx);
   });
 
-  it("creates a minimal orador Actor (etmos default subtype, not pf2e's character)", async () => {
+  it("creates a minimal dummy Actor (stub system's subtype, not pf2e's character)", async () => {
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Actor",
-      data: [minimalActorData("Novo Ator", "orador")],
+      data: [minimalActorData("Novo Ator", "dummy")],
     });
 
     expect(ack["ok"]).toBe(true);
@@ -290,7 +290,7 @@ describe("doc:create Actor — minimal '+Novo' button payload (etmos)", () => {
       documents: Array<Record<string, unknown>>;
     };
     const doc = result.documents[0]!;
-    expect(doc["type"]).toBe("orador");
+    expect(doc["type"]).toBe("dummy");
     expect(doc["_id"]).toEqual(expect.any(String));
   });
 });

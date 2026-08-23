@@ -29,8 +29,8 @@
  * rendered raw translation keys ("FUSION.Setup.Title" etc.) instead of
  * pt-BR text — the shared singleton was simply never populated on that path.
  * The main App tree happened to reach the barrel incidentally, through a
- * dynamically-registered Etmos character sheet several hops away, which is
- * NOT a reliable load-bearing path either. Importing the barrel here, once,
+ * dynamically-registered character sheet several hops away, which is NOT a
+ * reliable load-bearing path either. Importing the barrel here, once,
  * for its registerBundle() side effect, guarantees both entry points always
  * have translations loaded before anything calls t().
  *

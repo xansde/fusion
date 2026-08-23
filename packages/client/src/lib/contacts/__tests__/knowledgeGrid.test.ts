@@ -39,7 +39,7 @@ import type { ContactActorDoc } from "../contactsVM.js";
 
 const FOFURINHA = { _id: "act-fofurinha01", name: "Fofurinha", type: "character" };
 const TOBIAS = { _id: "act-tobias00001", name: "Tobias", type: "character" };
-const BRUXA = { _id: "act-bruxa00001", name: "Bruxa da Ponte", type: "orador" };
+const BRUXA = { _id: "act-bruxa00001", name: "Bruxa da Ponte", type: "character" };
 
 function contact(
   id: string,
@@ -122,11 +122,10 @@ describe("the grid is contacts by characters (REQ-CTT-061)", () => {
     expect(grid.rows.map((row) => row.id)).toEqual([armadilha._id, TAVERNEIRA._id]);
   });
 
-  it("REQ-CTT-061: a character of any system is a column, in pt-BR alphabetical order", () => {
+  it("REQ-CTT-061: characters are columns, in pt-BR alphabetical order", () => {
     const grid = buildKnowledgeGrid([TOBIAS, BRUXA, FOFURINHA, FERREIRO]);
 
-    // "Bruxa" before "Fofurinha" before "Tobias" — and the etmos `orador` is a
-    // character just like the pf2e `character`.
+    // "Bruxa" before "Fofurinha" before "Tobias", regardless of input order.
     expect(grid.columns.map((column) => column.name)).toEqual([
       "Bruxa da Ponte",
       "Fofurinha",

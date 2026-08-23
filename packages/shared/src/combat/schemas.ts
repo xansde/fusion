@@ -172,7 +172,7 @@ export const CombatDocumentSchema = z.object({
 
   /**
    * Combat type discriminator.
-   * "standard" = normal encounter (PF2e, Etmos).
+   * "standard" = normal encounter (PF2e).
    * "starship" = SF2e cinematic scene [V2].
    * Systems may register additional types via the system API.
    * REQ-CBT-012.

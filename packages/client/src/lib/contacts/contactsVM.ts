@@ -75,18 +75,19 @@ export interface ContactActorDoc {
  * "Na mesa" section.
  *
  * Mirrors the first (playable) entry of each system manifest's `documentTypes.Actor`:
- * pf2e/sf2e call it `character`, etmos calls it `orador`. The client package may not
- * import a system package (arch boundary), so the list is mirrored by hand here.
+ * pf2e/sf2e both call it `character` today, but nothing stops a future system from
+ * choosing a different word. The client package may not import a system package
+ * (arch boundary), so the list is mirrored by hand here.
  */
-export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character", "orador"]);
+export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["character"]);
 
 /**
  * Actor subtypes that stand for a NON-PLAYABLE character — the population of the
  * "Conhecidos" section (REQ-CTT-040).
  *
  * An allow-list on purpose, mirrored by hand from the manifests exactly like
- * {@link PLAYER_CHARACTER_SUBTYPES}: pf2e/sf2e declare `npc` and `hazard`, etmos
- * declares `antagonista` (`documentTypes.Actor` in each system's `src/index.ts`).
+ * {@link PLAYER_CHARACTER_SUBTYPES}: pf2e/sf2e declare `npc` and `hazard`
+ * (`documentTypes.Actor` in each system's `src/index.ts`).
  *
  * The complement of "is a character" would be a different, wrong set. The
  * manifests also declare `loot` — the container behind the Mestre's chest, which
@@ -95,7 +96,7 @@ export const PLAYER_CHARACTER_SUBTYPES: ReadonlySet<string> = new Set(["characte
  * without anyone deciding it should. Spec 42 §3 fixes the vocabulary this list
  * mirrors: "Não-jogável — Ator que não é personagem de jogador: `npc` ou `hazard`".
  */
-export const NON_PLAYABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "hazard", "antagonista"]);
+export const NON_PLAYABLE_SUBTYPES: ReadonlySet<string> = new Set(["npc", "hazard"]);
 
 /**
  * The Actor subtype every companion uses in the MVP (spec 29), and the link the

@@ -132,7 +132,7 @@ describe("REQ-NPC-043 / REQ-NPC-044: the door that asks for a subtype and a name
   it("REQ-NPC-044: character, familiar, loot and a vehicle are refused by this door", () => {
     // `character` is born with the player, `familiar` glued to a master, `loot`
     // is the chest — and a vehicle was never declared by any system at all.
-    for (const subtype of ["character", "familiar", "loot", "vehicle", "orador"]) {
+    for (const subtype of ["character", "familiar", "loot", "vehicle"]) {
       expect(isNpcCreatableSubtype(subtype)).toBe(false);
       expect(buildCreateNpcOp({ name: "Qualquer", subtype })).toBeNull();
     }

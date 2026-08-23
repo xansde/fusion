@@ -140,7 +140,7 @@ export async function ensureClientDistExtracted(options: EnsureClientDistOptions
  * `<root>/systems/<systemId>/packs`. Inside a SEA executable on a clean
  * machine there is no monorepo checkout next to the exe — that walk always
  * returns null, so `compendium:list` silently returns `[]` even though the
- * committed pf2e/sf2e/etmos packs exist and are small (well under the
+ * committed pf2e/sf2e packs exist and are small (well under the
  * REQ-DST-046 150 MB budget; the whole systems tree of packs directories is
  * ~850 KB as of this batch).
  *
@@ -169,7 +169,7 @@ export interface EnsureSystemPacksOptions {
 /**
  * Directory {@link ensureSystemPacksExtracted} extracts into. This directory
  * itself IS a valid `resolveSystemPacksDir` "packsRoot" — it contains one
- * subdirectory per system id (`pf2e/`, `sf2e/`, `etmos/`), each holding that
+ * subdirectory per system id (`pf2e/`, `sf2e/`), each holding that
  * system's `packs/` tree exactly as `systems/<id>/packs/` does in the
  * monorepo checkout.
  */

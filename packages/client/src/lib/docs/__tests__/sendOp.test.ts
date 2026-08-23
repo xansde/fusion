@@ -154,7 +154,7 @@ describe("makeSendOpFn", () => {
     const { socket, triggerAck } = makeMockSocket();
     const fn = makeSendOpFn(socket);
 
-    fn({ type: "etmos:conjuracao:propor", conjuradorActorId: "actor1", frase: { foo: "bar" } });
+    fn({ type: "sheet:customAction:propor", conjuradorActorId: "actor1", frase: { foo: "bar" } });
     triggerAck({ ok: true, result: null });
 
     expect(socket.emit).toHaveBeenCalledOnce();
@@ -163,7 +163,7 @@ describe("makeSendOpFn", () => {
       { type: string; payload: unknown },
     ];
     expect(event).toBe("op");
-    expect(envelope.type).toBe("etmos:conjuracao:propor");
+    expect(envelope.type).toBe("sheet:customAction:propor");
     expect(envelope.payload).toEqual({ conjuradorActorId: "actor1", frase: { foo: "bar" } });
   });
 

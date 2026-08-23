@@ -107,7 +107,7 @@ describe("REQ-NPC-050 / REQ-NPC-055: what this tab may delete", () => {
   });
 
   it("REQ-NPC-055: a player's character is not deleted here, and NOTHING goes on the wire", async () => {
-    for (const subtype of ["character", "orador", "familiar", "loot"]) {
+    for (const subtype of ["character", "familiar", "loot"]) {
       const sent: Sent[] = [];
       const done = await deleteNpc(fakeSocket(sent), "act-fofurinha001", subtype);
 

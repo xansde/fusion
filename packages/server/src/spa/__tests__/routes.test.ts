@@ -3,8 +3,8 @@
  *
  * Regression coverage for the M6/B0-B1 bug: Vite's dynamic-import preload
  * helper (`__vite__mapDeps`) resolves lazy-loaded chunk deps (every game
- * system's character sheet — CharacterSheet/NpcSheet/OradorSheet/
- * AntagonistaSheet/Compositor) independently of index.html's own markup, as
+ * system's character sheet — CharacterSheet/NpcSheet and friends)
+ * independently of index.html's own markup, as
  * `"/" + assetsDir + "/" + filename`. A serve-time HTML rewrite of
  * index.html alone cannot fix that — only building the client with
  * `build.assetsDir: "assets-client"` (packages/client/vite.config.ts) makes

@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 753 | 38% |
-| Citados só por código de produção | 321 | 16% |
-| Sem nenhuma citação | 889 | 45% |
+| Citados por algum teste | 721 | 37% |
+| Citados só por código de produção | 317 | 16% |
+| Sem nenhuma citação | 925 | 47% |
 | **Total [MVP]** | **1963** | |
 
 ## Por spec
@@ -32,7 +32,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [05](05-usuarios-e-permissoes.md) | 40 | 19 | 11 | 10 | 48% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 15 | 28 | 43 | 17% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 15 | 22 | 19 | 27% |
-| [08](08-motor-de-rolagens.md) | 49 | 15 | 11 | 23 | 31% |
+| [08](08-motor-de-rolagens.md) | 49 | 14 | 11 | 24 | 29% |
 | [09](09-chat-e-mensagens.md) | 49 | 13 | 10 | 26 | 27% |
 | [10](10-combate-e-iniciativa.md) | 45 | 16 | 28 | 1 | 36% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
@@ -43,7 +43,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
 | [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
-| [19](19-sistema-etmos.md) | 46 | 31 | 6 | 9 | 67% |
+| [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 18 | 9 | 14 | 44% |
