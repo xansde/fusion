@@ -64,6 +64,7 @@
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
+  import { CANVAS_DROP_EFFECT } from "../lib/canvas/dragEffects.js";
   import { effectiveGridSize, sceneContentOffset } from "../lib/canvas/sceneCoords.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
@@ -341,7 +342,10 @@
       return;
     }
     event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+    // Dropping an actor on the map COPIES it into a token — the actor stays in its
+    // list. Every source that targets the canvas has to allow this operation, or the
+    // browser refuses the drop even after this `preventDefault()` (see dragEffects.ts).
+    if (event.dataTransfer) event.dataTransfer.dropEffect = CANVAS_DROP_EFFECT;
   }
 
   function handleCanvasDrop(event: DragEvent): void {
