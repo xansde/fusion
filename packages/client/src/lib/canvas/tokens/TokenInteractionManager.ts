@@ -360,7 +360,12 @@ export class TokenInteractionManager {
     const original = scene.tokens.find((t) => t._id === selectedId);
     if (!original) return;
 
-    const footprint = footprintOf(original, this._getActor(original.actorId));
+    // P1 (post-#194 audit): `original` is an EXISTING TokenDocument, which
+    // may carry an `actorDelta` — `_getActor` reads only the base Actor and
+    // ignores it, so an unlinked token whose delta grows its size computed
+    // this offset from the wrong (smaller) box. `_getEffectiveActor` applies
+    // the delta (RNF-TOK-01), matching the footprint the sprite itself draws.
+    const footprint = footprintOf(original, this._getEffectiveActor(original));
     const offset = this._opts.gridConfig.size;
     const snapped = snapTokenToGrid(
       original.x + offset,
