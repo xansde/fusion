@@ -570,10 +570,6 @@
     // send ops on, so interaction stays unwired for this scene load rather
     // than silently queuing/dropping every gesture.
     if (sock) {
-      const ownedActorIds = ownedActorIdsOf(
-        worldMirror.getByType<Record<string, unknown>>("Actor"),
-        userId,
-      );
       _tokenInteraction = new TokenInteractionManager({
         tokenContainer: canvas.getLayer("tokens"),
         tokenLayer,
@@ -583,7 +579,16 @@
         socket: sock,
         userId,
         userRole: session.user?.role ?? 0,
-        ownedActorIds,
+        // R2: read live, never a snapshot. This manager is built once per
+        // scene LOAD (see `_loadedSceneId`), so a set captured here would
+        // freeze "which actors are mine" at canvas-mount time — and since
+        // fase 5 that set is the only client-side predicate for moving a
+        // token (REQ-TOK-032/034). A player whose Actor snapshot lands after
+        // the canvas mounted, or who is granted OWNER during the session,
+        // would be refused by the interface until F5 while the server would
+        // have accepted the move.
+        getOwnedActorIds: () =>
+          ownedActorIdsOf(worldMirror.getByType<Record<string, unknown>>("Actor"), userId),
         gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
         onError: (msg) => {
           dropRefusal = msg;
