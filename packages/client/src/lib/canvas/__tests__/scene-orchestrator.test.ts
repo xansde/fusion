@@ -26,7 +26,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { SceneOrchestrator } from "../scene-orchestrator.js";
+import { SceneOrchestrator, isTokenControlledForTest } from "../scene-orchestrator.js";
 import type {
   ITokenLayer,
   ILightingRenderer,
@@ -87,8 +87,12 @@ function makeToken(
     rotation: 0,
     vision: { enabled: true, range: null, angle: 360, rotation: 0, visionMode: "basic" },
     light: null,
-    // ownership: userId → 3 so it counts as controlled for player tests
-    ownership: { "user-1": 3 },
+    // TK030 (#164): `TokenDocument` has no `ownership` field (REQ-TOK-013, REQ-TOK-032, REQ-TOK-034) —
+    // control is resolved from the ACTOR referenced by `actorId` (see the
+    // "REQ-TOK-013, REQ-TOK-034: token control" describe block below, which sets up a
+    // real Actor with `ownership` in the mirror). None of the tests above
+    // that block assert on vision CONTENT gated by `controlled` — only that
+    // setVisionPolygons/render were called — so they do not need an Actor.
     ...overrides,
   } as unknown as TokenDocument;
 }
@@ -957,6 +961,82 @@ describe("SceneOrchestrator", () => {
       expect(tokenLayer1.calls.length).toBe(tokenLayer1CallsAfterResume);
 
       orch2.teardown();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // TK030 (#164) — REQ-TOK-013, REQ-TOK-032, REQ-TOK-034, REQ-USR-013: token control IS OWNER
+  // of the actor. The old predicate read `token.ownership`/`token.userId`,
+  // fields `TokenDocument` never had (REQ-DOC-025) — always `undefined`, so
+  // every non-GM user got `false`. This resolves ownership on the ACTOR the
+  // mirror holds by `token.actorId`, the same shape the server's
+  // `documents/ownership.ts` resolves against.
+  // ---------------------------------------------------------------------------
+  describe("_isTokenControlledByUser (TK030, #164, REQ-TOK-013, REQ-TOK-034)", () => {
+    function makeMirrorWithActor(
+      sceneId: string,
+      scene: SceneDocument,
+      actor: { _id: string; ownership: Record<string, number> },
+    ): DocumentMirror {
+      const mirror = new DocumentMirror();
+      mirror.applySnapshot({
+        seq: 1,
+        activeSceneId: sceneId,
+        documents: {
+          Scene: [scene as unknown as Record<string, unknown>],
+          Actor: [{ _id: actor._id, name: "Fixture Actor", ownership: actor.ownership }],
+        },
+      });
+      return mirror;
+    }
+
+    it("a player who is OWNER of the token's actor controls the token", () => {
+      const token = { _id: "tok-1", actorId: "actor-pc" } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirrorWithActor("scene-1", scene, {
+        _id: "actor-pc",
+        ownership: { default: 0, "user-1": 3 }, // OwnershipLevel.OWNER = 3
+      });
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(true);
+    });
+
+    it("a player is NOT OWNER of an NPC's actor — does not control that token", () => {
+      const token = { _id: "tok-npc", actorId: "actor-npc" } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirrorWithActor("scene-1", scene, {
+        _id: "actor-npc",
+        ownership: { default: 0 }, // no OWNER entry for user-1
+      });
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(false);
+    });
+
+    it("reading token.ownership/token.userId directly (the old #164 bug) is not consulted at all", () => {
+      // Even if a legacy/malformed doc carries these forbidden fields
+      // (REQ-DOC-025), they must have zero effect — only the actor's real
+      // ownership decides.
+      const token = {
+        _id: "tok-legacy",
+        actorId: "actor-npc",
+        ownership: { "user-1": 3 },
+        userId: "user-1",
+      } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirrorWithActor("scene-1", scene, {
+        _id: "actor-npc",
+        ownership: { default: 0 },
+      });
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(false);
+    });
+
+    it("returns false when the token's actor is not (yet) in the mirror", () => {
+      const token = { _id: "tok-1", actorId: "actor-missing" } as unknown as TokenDocument;
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirror("scene-1", scene); // no Actor collection at all
+
+      expect(isTokenControlledForTest(token, "user-1", mirror)).toBe(false);
     });
   });
 });

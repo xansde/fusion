@@ -137,7 +137,7 @@ describe("REQ-NPC-028: the drag carries the typed payload of REQ-UIF-044", () =>
 
     expect(payload).toEqual({
       kind: "actor",
-      uuid: "act-lobo",
+      _id: "act-lobo",
       documentType: "Actor",
       subtype: "npc",
       name: "Lobo",
@@ -155,7 +155,7 @@ describe("REQ-NPC-028: the drag carries the typed payload of REQ-UIF-044", () =>
     expect(readNpcDragPayload(JSON.stringify({ kind: "compendium-actor", uuid: "x" }))).toBeNull();
     expect(readNpcDragPayload(JSON.stringify({ kind: "actor", documentType: "Item" }))).toBeNull();
     expect(
-      readNpcDragPayload(JSON.stringify({ kind: "actor", documentType: "Actor", uuid: "" })),
+      readNpcDragPayload(JSON.stringify({ kind: "actor", documentType: "Actor", _id: "" })),
     ).toBeNull();
   });
 });

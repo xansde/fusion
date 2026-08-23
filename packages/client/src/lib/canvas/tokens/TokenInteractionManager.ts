@@ -44,6 +44,7 @@ import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
+import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
 import type { TokenLayer } from "./TokenLayer.js";
 import { footprintOf } from "./footprint.js";
 import {
@@ -409,6 +410,17 @@ export class TokenInteractionManager {
 
         // Move ghost (optimistic preview during drag — before drop)
         this._opts.tokenLayer.applyLocalMove(this._pointerDown.tokenId, snapped.x, snapped.y);
+
+        // REQ-NET-044: broadcast the drag target to other clients (throttled,
+        // ephemeral — never persisted). This is purely informational for
+        // OTHER users; the dragger's own screen already updated above.
+        emitTokenPreview(
+          this._opts.socket,
+          this._opts.sceneId,
+          this._pointerDown.tokenId,
+          snapped.x,
+          snapped.y,
+        );
       }
     });
 

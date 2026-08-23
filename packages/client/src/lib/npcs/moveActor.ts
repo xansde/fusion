@@ -34,10 +34,18 @@ import { UNFILED_FOLDER_ID, type FolderTree, type FolderTreeNode } from "./folde
  */
 export const NPC_DRAG_MIME = "application/fusion-actor";
 
-/** The typed payload of REQ-UIF-044, as this tab writes it. */
+/**
+ * The typed payload of REQ-UIF-044, as this tab writes it.
+ *
+ * Wire-compatible with `ActorDragPayload` (`lib/actors/actorDirectory.ts`) —
+ * both carry the `"application/fusion-actor"` MIME and are parsed by the
+ * same `TableScreen._getActorDragPayload` when an NPC row is dropped on the
+ * canvas, not just on a folder. `_id`, not `uuid` (#170): this field only
+ * ever carried `actor._id`, never a UUID.
+ */
 export interface NpcDragPayload {
   readonly kind: "actor";
-  readonly uuid: string;
+  readonly _id: string;
   readonly documentType: "Actor";
   readonly subtype: string;
   readonly name: string;
@@ -57,7 +65,7 @@ export interface MovableActor {
 export function buildNpcDragPayload(actor: MovableActor): NpcDragPayload {
   return {
     kind: "actor",
-    uuid: actor._id,
+    _id: actor._id,
     documentType: "Actor",
     subtype: actor.type ?? "npc",
     name: actor.name ?? "",
@@ -75,11 +83,11 @@ export function readNpcDragPayload(raw: string | null | undefined): NpcDragPaylo
     const candidate = parsed as Record<string, unknown>;
     if (candidate["kind"] !== "actor") return null;
     if (candidate["documentType"] !== "Actor") return null;
-    const uuid = candidate["uuid"];
-    if (typeof uuid !== "string" || uuid.length === 0) return null;
+    const id = candidate["_id"];
+    if (typeof id !== "string" || id.length === 0) return null;
     return {
       kind: "actor",
-      uuid,
+      _id: id,
       documentType: "Actor",
       subtype: typeof candidate["subtype"] === "string" ? candidate["subtype"] : "npc",
       name: typeof candidate["name"] === "string" ? candidate["name"] : "",

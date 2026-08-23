@@ -227,6 +227,48 @@ export function barFraction(value: number, max: number): number {
   return Math.max(0, Math.min(1, value / max));
 }
 
+/** The `{ value, max }` shape a resource bar reads off the effective actor's `system`. */
+export interface BarAttributeValue {
+  readonly value: number;
+  readonly max: number;
+}
+
+/**
+ * Resolve a dot-path bar attribute (e.g. `"attributes.hp"`) against the
+ * effective actor's `system` object, reading it as `{ value, max }`
+ * (REQ-CNV-090).
+ *
+ * Returns `undefined` when `system` is missing, `path` is null/empty, the
+ * path does not resolve to an object, or that object lacks numeric
+ * `value`/`max` — every one of these is the "caminho não resolve" case
+ * REQ-CNV-090 says must leave the bar **absent**, never drawn full as a
+ * placeholder.
+ */
+export function resolveBarAttribute(
+  system: Record<string, unknown> | undefined,
+  path: string | null | undefined,
+): BarAttributeValue | undefined {
+  if (!system || !path) return undefined;
+  let cur: unknown = system;
+  for (const part of path.split(".")) {
+    if (cur == null || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  if (cur == null || typeof cur !== "object") return undefined;
+  const { value, max } = cur as Record<string, unknown>;
+  if (typeof value !== "number" || typeof max !== "number") return undefined;
+  return { value, max };
+}
+
+/** Structural equality for `BarAttributeValue | undefined` — used to detect a bar-worthy change. */
+export function barAttributeEquals(
+  a: BarAttributeValue | undefined,
+  b: BarAttributeValue | undefined,
+): boolean {
+  if (a === undefined || b === undefined) return a === b;
+  return a.value === b.value && a.max === b.max;
+}
+
 /**
  * Compute bar Y position relative to the bottom of the token bounding box.
  * bar1 is at the bottom, bar2 just above it.
