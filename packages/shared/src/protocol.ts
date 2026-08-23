@@ -103,11 +103,6 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("light:update"),
   z.literal("light:delete"),
   z.literal("scene:doorState"),
-  // M2-B: fog of war
-  z.literal("fog:update"),
-  z.literal("fog:get"),
-  z.literal("fog:reset"),
-  z.literal("fog:wasReset"),
   // M2-C: combat (spec 10 §API e Eventos)
   // client → server
   z.literal("combat:create"),

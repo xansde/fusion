@@ -49,8 +49,6 @@
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
-  import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
-  import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
@@ -67,7 +65,7 @@
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
   import { CANVAS_DROP_EFFECT } from "../lib/canvas/dragEffects.js";
-  import { effectiveGridSize, sceneContentOffset } from "../lib/canvas/sceneCoords.js";
+  import { effectiveGridSize } from "../lib/canvas/sceneCoords.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -535,9 +533,7 @@
    * The orchestrator is "thin assembly" — all logic lives in the .ts modules;
    * this function just instantiates and connects them.
    *
-   * M3-C: fog:get and fog:update are routed through the active socket.
-   *       CombatCanvasController is wired if the canvas is available.
-   *       GM gets no FogState (fog bypassed entirely).
+   * CombatCanvasController is wired if the canvas is available.
    */
   function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
     const sock = getSocket();
@@ -632,45 +628,6 @@
       });
     }
 
-    // --- LightingRenderer ---
-    const { padX, padY } = sceneContentOffset(scene);
-    const lightingRenderer = new LightingRenderer(
-      canvas.getLayer("lighting"),
-      scene.width,
-      scene.height,
-      padX,
-      padY,
-    );
-
-    // --- FogState (player only) ---
-    let fogState: FogState | null = null;
-    if (!currentIsGm && sock) {
-      fogState = new FogState(
-        scene._id,
-        userId,
-        false,
-        // persistFn: send fog:update op
-        (payload) => {
-          sock.emit("op", { type: "fog:update", ts: Date.now(), payload });
-        },
-        // getFn: request fog:get op via ack
-        (payload) =>
-          new Promise((resolve, reject) => {
-            sock.emit(
-              "op",
-              { type: "fog:get", ts: Date.now(), payload },
-              (ack: { ok: boolean; result?: unknown }) => {
-                if (ack.ok) {
-                  resolve(ack.result as import("@fusion/shared").FogGetResponsePayload);
-                } else {
-                  reject(new Error("fog:get failed"));
-                }
-              },
-            );
-          }),
-      );
-    }
-
     // --- CombatCanvasController ---
     const combatController = new CombatCanvasController(
       canvas,
@@ -684,11 +641,7 @@
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
-      isGm: currentIsGm,
-      userId,
       tokenLayer,
-      lightingRenderer,
-      fogState,
       combatController,
       // R4: the orchestrator is the one thing subscribed to the Scene
       // document, so it is what notices the grid being edited with the
@@ -702,7 +655,7 @@
   }
 
   /**
-   * Tear down the current orchestrator (flush fog, destroy PIXI objects, unsubscribe).
+   * Tear down the current orchestrator (destroy PIXI objects, unsubscribe).
    * Also removes the PIXI ticker callback to prevent stale closures from accumulating
    * across scene switches (fixes ticker leak — bug fix #2).
    * Safe to call when orchestrator is null.

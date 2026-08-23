@@ -9,9 +9,10 @@
  *
  * A third surface used to live here too: the environment shortcuts of the head
  * (REQ-CEN-023). They were retired from the UI on 2026-08-17 (item 25 of Alexandre's r1
- * test — see `specs/44-aba-cenas.md`, note after REQ-CEN-025); the refusal RULE that
- * fed their message region still exists and is exercised directly against
- * `lib/scenes/sceneEnvironment.ts` below, with no button left to wire it to.
+ * test — see `specs/44-aba-cenas.md`, note after REQ-CEN-025), and DEC-SEP-05 (F2,
+ * 2026-08-23) removed the underlying rule too (`lib/scenes/sceneEnvironment.ts` is
+ * gone) along with the rest of the fog/vision pipeline — see `docs/design/
+ * separacao-repos/design.md`. There is nothing left of that surface to exercise here.
  *
  * The two halves of REQ-CEN-045 are asserted apart:
  *  - the MESSAGE — the refusal must arrive as an `OpError` carrying the server's own
@@ -29,25 +30,14 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { render } from "svelte/server";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { Socket } from "socket.io-client";
 import type { Envelope, SceneDocument } from "@fusion/shared";
 
-import ScenesTab from "../ScenesTab.svelte";
-import { sceneListState } from "../../../lib/scenes/scenesState.svelte.js";
 import { activateScene, OpError } from "../../../lib/scenes/sceneController.js";
 import { buildSceneHeadVM } from "../../../lib/scenes/scenesTabVM.js";
-import {
-  SCENE_ENV_KEYS,
-  buildSceneEnvironmentVM,
-  describeEnvironmentError,
-  resetSceneFog,
-  toggleSceneFog,
-} from "../../../lib/scenes/sceneEnvironment.js";
 import "../../../lib/i18n/index.js";
-import { t } from "../../../lib/i18n/i18n.js";
 import { persistSceneOrder, reorderWithinGroup } from "../../../lib/scenes/sceneShelf.js";
 
 // ---------------------------------------------------------------------------
@@ -99,24 +89,6 @@ function refusingSocket(code = "NOT_FOUND", message = REFUSAL): RefusingSocket {
 /** The component's own source — for the template rules a node run cannot render. */
 function sourceOfScenesTab(): string {
   return readFileSync(fileURLToPath(new URL("../ScenesTab.svelte", import.meta.url)), "utf8");
-}
-
-/**
- * Server-rendered markup of the panel — same technique `ScenesTab.test.ts` uses
- * (`svelte/server`, no DOM needed). `sceneListState` is the global the component reads
- * its list from, so every caller must set it first.
- */
-function renderTab(activeSceneId: string | null): string {
-  const { body } = render(ScenesTab, {
-    props: {
-      socket: {} as never,
-      worldId: "world-1",
-      userId: "user-1",
-      isGm: true,
-      activeSceneId,
-    },
-  });
-  return body;
 }
 
 // ---------------------------------------------------------------------------
@@ -175,65 +147,6 @@ describe("a refused activation (REQ-CEN-045)", () => {
     expect(source).toMatch(
       /\{#if activateError\}[\s\S]{0,200}class="scenes-tab__error"[\s\S]{0,80}role="alert"/,
     );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// The environment shortcuts — REQ-CEN-023
-// ---------------------------------------------------------------------------
-
-describe("a refused environment write (REQ-CEN-023)", () => {
-  it("REQ-CEN-023: the refusal is a message, and the control keeps the server's state", async () => {
-    const { socket, sent } = refusingSocket("PERMISSION_DENIED", "Refused by the server");
-
-    const before = buildSceneEnvironmentVM({ scenes: WORLD, activeSceneId: ON_AIR._id });
-    expect(before?.fog.pressed).toBe(false);
-
-    await expect(toggleSceneFog(socket, ON_AIR)).rejects.toThrow("Refused by the server");
-    expect(sent).toHaveLength(1);
-
-    // The document never changed, so the control recomputed from it is still OFF — a
-    // pressed toggle here would be the optimistic state the requirement forbids.
-    const after = buildSceneEnvironmentVM({ scenes: WORLD, activeSceneId: ON_AIR._id });
-    expect(after?.fog.pressed).toBe(false);
-    expect(after).toEqual(before);
-  });
-
-  it("REQ-CEN-022 / REQ-CEN-023: a refused fog reset also arrives as the server's message", async () => {
-    const { socket } = refusingSocket("PERMISSION_DENIED", "Refused by the server");
-
-    await expect(resetSceneFog(socket, ON_AIR._id, () => Promise.resolve(true))).rejects.toThrow(
-      "Refused by the server",
-    );
-  });
-
-  it("REQ-CEN-023: the refusal turns into the server's own words, and anything else into a failure message", () => {
-    // What the panel puts in its message region, exercised directly: the server's words
-    // when it said why, the generic failure otherwise — and never a state.
-    expect(
-      describeEnvironmentError(new OpError("PERMISSION_DENIED", "Refused by the server")),
-    ).toBe("Refused by the server");
-
-    const generic = describeEnvironmentError(new TypeError("socket exploded"));
-    expect(generic).toBe(t(SCENE_ENV_KEYS.failed));
-    expect(generic).not.toBe(SCENE_ENV_KEYS.failed);
-    expect(generic).not.toContain("socket exploded");
-  });
-
-  it("REQ-CEN-020..025: the rendered head offers no environment gesture (retirado da UI em 2026-08-17, item 25)", () => {
-    // The three controls that used to feed this message region are out of the head
-    // (`specs/44-aba-cenas.md`, note after REQ-CEN-025). Asserted against what the
-    // panel actually draws — the translated label of each gesture — rather than
-    // against a variable name in the source, which would survive a rename of the
-    // retired code and could break on an unrelated comment mentioning the same words.
-    sceneListState.scenes = WORLD;
-    const html = renderTab(ON_AIR._id);
-    sceneListState.scenes = [];
-
-    expect(html).toContain(ON_AIR.name);
-    expect(html).not.toContain(t(SCENE_ENV_KEYS.darkness));
-    expect(html).not.toContain(t(SCENE_ENV_KEYS.fog));
-    expect(html).not.toContain(t(SCENE_ENV_KEYS.fogReset));
   });
 });
 

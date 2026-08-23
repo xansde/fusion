@@ -1,5 +1,5 @@
 /**
- * sceneWindows.test.ts — the four scene dialogs as WINDOWS (plan G085, spec 44 §5.7).
+ * sceneWindows.test.ts — the scene dialogs as WINDOWS (plan G085, spec 44 §5.7).
  *
  * What is asserted here is the rule, not the pixels: that asking for a dialog produces
  * a window of the ONE window manager (REQ-UIF-009) instead of a private modal, that
@@ -7,7 +7,12 @@
  * and what the delete confirmation is obliged to SAY (REQ-CEN-063) and to REFUSE
  * (REQ-CEN-064).
  *
- * Covers REQ-CEN-060, REQ-CEN-061, REQ-CEN-062, REQ-CEN-063, REQ-CEN-064.
+ * DEC-SEP-05 (F2, 2026-08-23): a fourth window used to live here too — perception
+ * (REQ-CEN-062, `ScenePerceptionDialog`). It was removed along with the rest of the
+ * fog/vision pipeline (`docs/design/separacao-repos/design.md`), and every assertion
+ * about it below went with it.
+ *
+ * Covers REQ-CEN-060, REQ-CEN-061, REQ-CEN-063, REQ-CEN-064.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -18,16 +23,13 @@ import {
   openSceneConfigWindow,
   openSceneCreateWindow,
   openSceneDeleteWindow,
-  openScenePerceptionWindow,
   closeSceneWindow,
-  isSceneWindowOpen,
   sceneWindowKey,
   SCENE_WINDOW_KEYS,
 } from "../sceneWindows.js";
 import { SCENE_DELETE_KEYS, buildSceneDeleteVM } from "../sceneDelete.js";
 import { t } from "../../i18n/i18n.js";
 import SceneCreateDialog from "../../../components/scenes/SceneCreateDialog.svelte";
-import ScenePerceptionDialog from "../../../components/scenes/ScenePerceptionDialog.svelte";
 import SceneDeleteConfirm from "../../../components/scenes/SceneDeleteConfirm.svelte";
 import "../../i18n/index.js";
 
@@ -86,32 +88,6 @@ describe("the four dialogs are windows of the window manager (DEC-CEN-09)", () =
     expect(props["scene"]).toBe(TAVERN);
   });
 
-  it("REQ-CEN-062: perception is reachable from the configuration window, as its own window", () => {
-    openSceneConfigWindow(socket, TAVERN);
-
-    const openPerception = propsOf(sceneWindowKey("config", TAVERN._id))["onOpenPerception"];
-    expect(typeof openPerception).toBe("function");
-
-    (openPerception as () => void)();
-
-    expect(isSceneWindowOpen("perception", TAVERN._id)).toBe(true);
-    const perception = [...windowManager.windows.values()].find(
-      (entry) => entry.singletonKey === sceneWindowKey("perception", TAVERN._id),
-    );
-    expect(perception?.component).toBe(ScenePerceptionDialog);
-    // And the configuration window it came from is still open behind it.
-    expect(isSceneWindowOpen("config", TAVERN._id)).toBe(true);
-  });
-
-  it("REQ-CEN-062: perception can also be opened directly, one window per scene", () => {
-    openScenePerceptionWindow(socket, TAVERN);
-    openScenePerceptionWindow(socket, TAVERN);
-    openScenePerceptionWindow(socket, CRYPT);
-
-    expect(openWindows()).toHaveLength(2);
-    expect(propsOf(sceneWindowKey("perception", CRYPT._id))["scene"]).toBe(CRYPT);
-  });
-
   it("REQ-CEN-063: deleting opens the confirmation as a window of its own", () => {
     openSceneDeleteWindow(socket, CRYPT);
 
@@ -136,14 +112,13 @@ describe("the four dialogs are windows of the window manager (DEC-CEN-09)", () =
     expect(openWindows()).toHaveLength(0);
   });
 
-  it("REQ-CEN-060/061/062/063: the four kinds never collide on one key", () => {
+  it("REQ-CEN-060/061/063: the three kinds never collide on one key", () => {
     const keys = new Set([
       sceneWindowKey("create"),
       sceneWindowKey("config", TAVERN._id),
-      sceneWindowKey("perception", TAVERN._id),
       sceneWindowKey("delete", TAVERN._id),
     ]);
-    expect(keys.size).toBe(4);
+    expect(keys.size).toBe(3);
   });
 });
 
@@ -192,10 +167,9 @@ describe("the texts these windows show are actually interpolated, not printed ra
     expect(resolved).not.toMatch(/\{\{?\w+\}?\}/);
   }
 
-  it("REQ-CEN-061/062/063: each window title carries the scene's real name", () => {
+  it("REQ-CEN-061/063: each window title carries the scene's real name", () => {
     const titles = [
       t(SCENE_WINDOW_KEYS.config, { name: CRYPT.name }),
-      t(SCENE_WINDOW_KEYS.perception, { name: CRYPT.name }),
       t(SCENE_WINDOW_KEYS.delete, { name: CRYPT.name }),
     ];
     for (const title of titles) {
@@ -210,15 +184,5 @@ describe("the texts these windows show are actually interpolated, not printed ra
 
     expect(reason).toContain("Taverna");
     assertNoPlaceholderLeft(reason);
-  });
-
-  it("REQ-CEN-062: the perception sliders show their number, not the variable's name", () => {
-    const darkness = t("FUSION.Scene.Perception.Darkness", { percent: 40 });
-    const threshold = t("FUSION.Scene.Perception.Threshold", { percent: 75 });
-
-    expect(darkness).toContain("40");
-    expect(threshold).toContain("75");
-    assertNoPlaceholderLeft(darkness);
-    assertNoPlaceholderLeft(threshold);
   });
 });
