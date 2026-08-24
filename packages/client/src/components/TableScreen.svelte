@@ -51,7 +51,7 @@
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
-  import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { registerPf2eSheets } from "../systems/pf2e/index.js";
   import { openTokenSheet } from "../lib/sheets/openTokenSheet.js";
   import {
     buildActorDropTokenOp,

@@ -15,7 +15,7 @@ import {
   type TokenSheetTokenInput,
   type TokenSheetViewer,
 } from "./tokenSheetPlan.js";
-import { openActorSheet } from "./pf2e/registerPf2eSheets.js";
+import { openActorSheet } from "./openActorSheet.js";
 
 export interface OpenTokenSheetContext extends TokenSheetViewer {
   readonly userId: string;

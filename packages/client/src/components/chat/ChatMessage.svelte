@@ -62,7 +62,6 @@
 
   import type { Socket } from "socket.io-client";
   import type { ChatMessage as ChatMessageType } from "@fusion/shared";
-  import { SpellCastCardSchema, AbilityCardSchema, adaptSpellCastToAbilityCard } from "@fusion/shared";
   import { t } from "$lib/i18n/i18n.js";
   import {
     getMessageDisplayMeta,
@@ -83,7 +82,7 @@
   import { sendChatInvalidate } from "../../lib/chat/chatStore.svelte.js";
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
-  import AbilityCard from "./pf2e/AbilityCard.svelte";
+  import { resolveChatCardExtension } from "../../lib/chat/chatCardExtensionRegistry.svelte.js";
 
   const {
     message,
@@ -146,27 +145,15 @@
 
   const meta = $derived(getMessageDisplayMeta(message));
 
-  // PF2e interactive ability card — flags.pf2e.abilityCard (r20-X1), the
-  // generalization of the r17-P2 spell-cast card. Rides on a plain "text"
-  // announcement (so old clients still see the text). Validated with the SAME
-  // Zod schema the server uses; a malformed/foreign flag falls through to the
-  // plain text renderer. READ COMPAT: a message persisted before r20-X1 carries
-  // `flags.pf2e.spellCast` (a SpellCastCard) instead — it is adapted here to a
-  // spell AbilityCard so old chat renders through the unified <AbilityCard>.
-  const abilityCard = $derived.by(() => {
-    const flags = message.flags as Record<string, Record<string, unknown>> | undefined;
-    const rawAbility = flags?.["pf2e"]?.["abilityCard"];
-    if (rawAbility !== undefined) {
-      const result = AbilityCardSchema.safeParse(rawAbility);
-      if (result.success) return result.data;
-    }
-    const rawSpell = flags?.["pf2e"]?.["spellCast"];
-    if (rawSpell !== undefined) {
-      const legacy = SpellCastCardSchema.safeParse(rawSpell);
-      if (legacy.success) return adaptSpellCastToAbilityCard(legacy.data);
-    }
-    return null;
-  });
+  // System interactive card extension — e.g. PF2e's ability card
+  // (flags.pf2e.abilityCard, r20-X1; or the legacy flags.pf2e.spellCast it
+  // adapts). Rides on a plain "text" announcement (so old clients still see
+  // the text). This core component never imports a system's card component
+  // or flag shape directly (F3, DEC-SEP-02) — it asks the
+  // chatCardExtensionRegistry, which the active system populated at boot
+  // (systems/pf2e's registerPf2eSheets()). A world with no matching
+  // extension (or no system at all) simply falls through to plain text.
+  const cardExtension = $derived(resolveChatCardExtension(message));
 
   // Formatted rolls for the roll type
   const formattedRolls = $derived<FormattedRoll[]>(
@@ -448,13 +435,21 @@
   {:else if message.type === "system" && message.card}
     <!-- Chat card (declarative, no innerHTML) -->
     <ChatCard card={message.card} messageId={message._id} />
-  {:else if abilityCard}
-    <!-- PF2e interactive ability card (flags.pf2e.abilityCard, or adapted legacy
-         flags.pf2e.spellCast) — text announcement + save/damage buttons -->
+  {:else if cardExtension}
+    <!-- System interactive card extension (e.g. PF2e's ability card) —
+         text announcement + save/damage buttons, mounted via the registry. -->
     {#if message.content}
       <p class="msg__content">{message.content}</p>
     {/if}
-    <AbilityCard card={abilityCard} messageId={message._id} {worldId} {socket} {isGm} {userId} />
+    {@const CardExtensionComponent = cardExtension.component}
+    <CardExtensionComponent
+      card={cardExtension.card}
+      messageId={message._id}
+      {worldId}
+      {socket}
+      {isGm}
+      {userId}
+    />
   {:else}
     <!-- text / whisper / system (no card) -->
     <p class="msg__content">{message.content}</p>

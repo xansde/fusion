@@ -40,7 +40,7 @@
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import type { ViewerRole } from "./combatVisibility.js";
 import { addableTokens, type AddableTokenActor } from "./combatTracker.js";
-import { skillNamePt } from "../sheets/pf2e/skillNames.js";
+import { skillDisplayName } from "./skillNameRegistry.js";
 
 // ---------------------------------------------------------------------------
 // The three states of the panel (REQ-CBA-010)
@@ -275,9 +275,10 @@ export interface InitiativeStatisticOption {
  * other way, what moves is where this list is rendered, not how the choice is carried.
  *
  * The source is the actor's own derived skills, read the way the sheets read them — and named
- * the way the sheets name them: `skillNamePt()` is the table the character sheet already uses
- * for exactly these slugs, so the drawer and the sheet call a skill by the same word, Lore
- * included ("Saber (…)"), and an unknown slug degrades to itself instead of disappearing.
+ * the way the sheets name them: `skillDisplayName()` resolves through the active system's
+ * registered resolver (`skillNameRegistry.ts` — PF2e registers its `skillNamePt()` table at
+ * boot), so the drawer and the sheet call a skill by the same word, Lore included ("Saber (…)"),
+ * and an unknown slug (or no system registered yet) degrades to itself instead of disappearing.
  * The ordering follows the label, not the slug: what the reader scans is the label, and in
  * pt-BR the two orders are not the same list.
  *
@@ -298,7 +299,7 @@ export function initiativeStatisticOptions(
 
   return Object.keys(skills as Record<string, unknown>)
     .filter((slug) => slug.length > 0)
-    .map((slug) => ({ id: slug, label: skillNamePt(slug) }))
+    .map((slug) => ({ id: slug, label: skillDisplayName(slug) }))
     .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
 }
 
