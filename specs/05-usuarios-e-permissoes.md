@@ -720,7 +720,7 @@ export const PERMISSIONS: Record<string, PermissionDefinition> = {
 | `20-assets-e-midia.md`            | Permission `FILES_BROWSE` / `FILES_UPLOAD`; diretórios por role                                                                                                         |
 | `21-seguranca.md`                 | Rate limiting de login/WebSocket; validação de Origin (CSWSH); TLS                                                                                                      |
 | `22-instalacao-e-distribuicao.md` | Admin Key; `fusion.json` (hostname, port, proxySSL); instruções de port-forwarding/túnel para URL de convite                                                            |
-| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054); seção Minhas preferências — o formulário que executa REQ-USR-040..042 (REQ-CFG-027)  |
+| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054); seção Minhas preferências — o formulário que executa REQ-USR-040..042 (REQ-CFG-090)  |
 | `42-aba-npcs.md`                  | DEC-NPC-02: personagem de jogador nasce com o usuário, não na aba NPCs (REQ-NPC-044, REQ-NPC-055a); excluir personagem de jogador não é gesto daquela aba (REQ-NPC-055) |
 
 ---
