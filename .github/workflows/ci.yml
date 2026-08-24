@@ -24,6 +24,15 @@ jobs:
           # @fusion/system-pf2e, @fusion/sheets-pf2e etc. without it checked
           # out for real.
           submodules: true
+          # fusion-systems-2e is a PRIVATE repo — the default GITHUB_TOKEN is
+          # an installation token scoped only to THIS repo (`fusion`), so it
+          # cannot clone a second private repo even under the same owner
+          # (found running this for real: "remote: Repository not found").
+          # FUSION_SYSTEMS_2E_TOKEN is a PAT (same account, xansde) with repo
+          # access to fusion-systems-2e — actions/checkout uses whatever
+          # `token` it's given for submodule fetching too, as long as the
+          # submodule is on the same host (github.com).
+          token: ${{ secrets.FUSION_SYSTEMS_2E_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
