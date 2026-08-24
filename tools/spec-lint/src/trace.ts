@@ -15,8 +15,17 @@ import { join } from "node:path";
 
 import { parseSpecs, specFiles } from "./index.ts";
 
-/** Directories scanned for requirement citations. */
-export const CODE_ROOTS = ["packages", "systems", "tools"];
+/**
+ * Directories scanned for requirement citations.
+ *
+ * F4 (DEC-SEP-09): `external/fusion-systems-2e` is a git submodule — the
+ * fusion-systems-2e repo's `systems/`, `sheets/` and `tools/` checked out
+ * for real inside the core's tree. REQs covered by tests over there (the
+ * ficha, the pf2e/sf2e rule engines, the importer/translate-packs tools)
+ * still need to count here — that's the "covered externally" note from
+ * DEC-SEP-07, without changing how coverage is measured.
+ */
+export const CODE_ROOTS = ["packages", "systems", "tools", "external/fusion-systems-2e"];
 
 /** This package's own fixtures quote synthetic ids on purpose. */
 const IGNORED_PATHS = /tools[/\\]spec-lint[/\\]/;

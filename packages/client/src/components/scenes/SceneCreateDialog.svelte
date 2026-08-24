@@ -34,7 +34,7 @@
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { nextSortInFolder, SCENE_SHELF_KEYS } from "../../lib/scenes/sceneShelf.js";
   import { fusionApi } from "../../lib/api.js";
-  import FilePicker from "../assets/FilePicker.svelte";
+  import FilePicker from "$lib/components/assets/FilePicker.svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
   // ---- Props ----

@@ -14,6 +14,7 @@
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
     "@fusion/shared": "workspace:*",
+    "@fusion/sheets-pf2e": "workspace:*",
     "@tiptap/core": "^3.27.1",
     "@tiptap/extension-link": "^3.27.1",
     "@tiptap/extension-text-style": "^3.27.1",

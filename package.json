@@ -7,7 +7,7 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "lint:boundaries": "depcruise --config .dependency-cruiser.cjs packages systems tools",
+    "lint:boundaries": "depcruise --config .dependency-cruiser.cjs packages systems tools external/fusion-systems-2e/systems external/fusion-systems-2e/sheets",
     "test": "vitest run --workspace vitest.workspace.ts",
     "test:watch": "vitest --workspace vitest.workspace.ts",
     "spec:report": "node --experimental-strip-types tools/spec-lint/bin/report.ts",

@@ -9,6 +9,8 @@
   - `docs/research/10-pf2e-sistema-internals.md`
   - `docs/research/12b-etmos-fontes-locais.md`
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Os sistemas de jogo (`systems/{engine-2e,pf2e,sf2e}`) e as fichas que eles entregam junto vivem no repo satélite `xansde/fusion-systems-2e`, consumido pelo core como git submodule pinado por tag. O contrato desta spec (system API) não muda; muda só onde os pacotes que o implementam moram no disco. Sem handlers de servidor por sistema (o Etmos legado era o único caso e saiu da linha alfa, DEC-SEP-04). Ver `docs/design/separacao-repos/design.md`.
+
 > **Aviso clean-room.** Esta spec descreve uma API própria do Fusion. Onde
 > menciona o Foundry VTT ou o sistema `foundryvtt/pf2e`, refere-se apenas a
 > comportamento e conceitos observáveis publicamente (Foundry) ou a conhecimento

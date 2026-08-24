@@ -7,6 +7,8 @@
   - `docs/research/08-foundry-ui-aplicacoes.md`
   - `docs/research/94-accessibility-mobile-tablet.md`
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** A ficha do sistema PF2e (componentes Svelte + VMs, REQ-UIF-018/019) vive no repo satélite `xansde/fusion-systems-2e` (pacote `@fusion/sheets-pf2e`), consumido pelo core como git submodule pinado por tag. O core mantém o framework — `windowManager`, `sheetRegistry`, ficha genérica fallback — e resolve a ficha registrada pelo pacote do sistema. Ver `docs/design/separacao-repos/design.md`, DEC-SEP-02/09.
+
 > **Aviso clean-room.** Esta spec descreve o framework de UI do Fusion, próprio,
 > construído em Svelte 5 (Runes). Onde menciona o Foundry VTT (ApplicationV2,
 > Sidebar, SceneControls, DialogV2, ProseMirror etc.), refere-se apenas a

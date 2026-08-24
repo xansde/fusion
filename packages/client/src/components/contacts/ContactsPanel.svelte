@@ -83,7 +83,7 @@
   import { sendOp, toEnvelope, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
-  import ActorPortrait from "../common/ActorPortrait.svelte";
+  import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
   import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
 

@@ -46,7 +46,7 @@
   import { getSocket } from "../../lib/session.svelte.js";
   import { Dialog } from "../../lib/windows/dialogs.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
-  import ActorPortrait from "../common/ActorPortrait.svelte";
+  import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
   import NpcsFooter from "./NpcsFooter.svelte";
   import NpcKnowledgeCount from "./NpcKnowledgeCount.svelte";
