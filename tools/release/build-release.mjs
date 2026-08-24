@@ -130,7 +130,8 @@ function platformArchLabel() {
   const platform = process.platform;
   const arch = process.arch;
 
-  const platformLabel = platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
+  const platformLabel =
+    platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
   if (arch !== "x64" && arch !== "arm64") {
     throw new Error(`Unsupported build arch: "${arch}". Expected x64 or arm64.`);
   }
@@ -178,10 +179,7 @@ function phaseVersionDrift() {
 }
 
 function readFusionVersion() {
-  const versionTs = readFileSync(
-    join(repoRoot, "packages", "shared", "src", "version.ts"),
-    "utf8",
-  );
+  const versionTs = readFileSync(join(repoRoot, "packages", "shared", "src", "version.ts"), "utf8");
   const match = /export const FUSION_VERSION = "([^"]+)";/.exec(versionTs);
   if (match === null) throw new Error("Could not read FUSION_VERSION from version.ts");
   return match[1];
@@ -192,7 +190,9 @@ function readFusionVersion() {
 // ---------------------------------------------------------------------------
 
 function phaseWorkspaceBuild() {
-  log("Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)");
+  log(
+    "Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)",
+  );
   run("pnpm", ["-r", "build"]);
 }
 
@@ -263,7 +263,14 @@ function phaseBundle() {
 // ---------------------------------------------------------------------------
 
 async function loadAssetKeyConstants() {
-  const nativeLoaderPath = join(repoRoot, "packages", "server", "dist", "runtime", "native-loader.js");
+  const nativeLoaderPath = join(
+    repoRoot,
+    "packages",
+    "server",
+    "dist",
+    "runtime",
+    "native-loader.js",
+  );
   const seaAssetsPath = join(repoRoot, "packages", "server", "dist", "runtime", "sea-assets.js");
   if (!existsSync(nativeLoaderPath) || !existsSync(seaAssetsPath)) {
     throw new Error(
@@ -272,7 +279,9 @@ async function loadAssetKeyConstants() {
     );
   }
   const { NATIVE_PACKAGES } = await import(pathToFileURL(nativeLoaderPath).href);
-  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(pathToFileURL(seaAssetsPath).href);
+  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(
+    pathToFileURL(seaAssetsPath).href
+  );
   return { NATIVE_PACKAGES, CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY };
 }
 
@@ -305,7 +314,12 @@ async function phasePackAssets(assetKeys) {
       );
     }
     const nestArgs = nestFlags.flatMap((n) => ["--nest", n]);
-    run(process.execPath, [join(__dirname, "pack-native.mjs"), pkg.specifier, archivePath, ...nestArgs]);
+    run(process.execPath, [
+      join(__dirname, "pack-native.mjs"),
+      pkg.specifier,
+      archivePath,
+      ...nestArgs,
+    ]);
     nativeAssetPaths[pkg.assetKey] = archivePath;
   }
 
@@ -323,7 +337,21 @@ async function phasePackAssets(assetKeys) {
   // format as the two native-addon packs above — guaranteeing this pipeline
   // can never write a client-dist archive in a format native-loader.ts's
   // extraction code (sea-assets.ts) does not understand.
-  run(process.execPath, [join(__dirname, "pack-native.mjs"), "--dir", clientDistDir, clientDistArchive]);
+  //
+  // --exclude "*.map" (issue #128): vite.config.ts builds the client with
+  // sourcemap: true (kept for browser devtools debugging of a served dist),
+  // but the release .exe never needs those .map files at runtime — packing
+  // them was the single biggest contributor pushing the artifact over the
+  // REQ-DST-046 150 MB budget. Filtering here, not in vite.config.ts, keeps
+  // sourcemaps available for the normal (non-SEA) served build.
+  run(process.execPath, [
+    join(__dirname, "pack-native.mjs"),
+    "--dir",
+    clientDistDir,
+    clientDistArchive,
+    "--exclude",
+    "*.map",
+  ]);
 
   // B3-FIXES MÉDIA B: pack every game system's committed packs/ directory
   // into ONE archive, each nested under "<systemId>/packs/..." — the exact
@@ -407,7 +435,13 @@ function phaseAssembleSea(bundlePath, assets, version) {
   // these keys cannot drift from native-loader.ts/sea-assets.ts (BAIXA (b)).
   const assetArgs = Object.entries(assets).flatMap(([key, path]) => ["--asset", `${key}=${path}`]);
 
-  run(process.execPath, [join(__dirname, "make-sea-config.mjs"), bundlePath, seaConfigPath, seaBlobPath, ...assetArgs]);
+  run(process.execPath, [
+    join(__dirname, "make-sea-config.mjs"),
+    bundlePath,
+    seaConfigPath,
+    seaBlobPath,
+    ...assetArgs,
+  ]);
 
   run(process.execPath, ["--experimental-sea-config", seaConfigPath]);
   if (!existsSync(seaBlobPath)) {

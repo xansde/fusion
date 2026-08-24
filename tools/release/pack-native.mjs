@@ -74,7 +74,15 @@
  */
 
 import { createRequire } from "node:module";
-import { readdirSync, statSync, lstatSync, readFileSync, writeFileSync, mkdirSync, realpathSync } from "node:fs";
+import {
+  readdirSync,
+  statSync,
+  lstatSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  realpathSync,
+} from "node:fs";
 import { join, dirname, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -97,21 +105,44 @@ function resolvePackageDir(specifier, fromDir) {
 }
 
 /**
+ * Translate a simple glob (only `*` as a wildcard, matched against the bare
+ * file/directory NAME — no path separators involved) into an anchored
+ * RegExp. Good enough for the one real use case (issue #128 — excluding
+ * `*.map` sourcemaps from the packed client-dist archive so the release
+ * .exe stays under the REQ-DST-046 150 MB budget); not a full minimatch.
+ */
+function globToRegExp(pattern) {
+  const escaped = pattern
+    .split("*")
+    .map((part) => part.replace(/[.+^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${escaped}$`);
+}
+
+function isExcluded(name, excludeGlobs) {
+  return excludeGlobs.some((pattern) => globToRegExp(pattern).test(name));
+}
+
+/**
  * Recursively copy `sourceDir` into the in-memory entry list, following
  * symlinks (pnpm store links) and rewriting their paths to be relative to
  * `archiveRootDir` (which may differ from `sourceDir` when embedding the
  * platform package as a nested node_modules — see `--platform-package`).
+ * `excludeGlobs` (issue #128) skips any file OR directory whose bare name
+ * matches one of the glob patterns (e.g. "*.map") — checked before the
+ * `lstatSync` call so an excluded directory is never even descended into.
  */
-function collectEntries(sourceDir, archiveRootDir, entries, chunks) {
+function collectEntries(sourceDir, archiveRootDir, entries, chunks, excludeGlobs = []) {
   for (const name of readdirSync(sourceDir).sort()) {
     if (name === ".bin") continue; // never needed at runtime
+    if (isExcluded(name, excludeGlobs)) continue;
     const full = join(sourceDir, name);
     const lst = lstatSync(full);
     const real = lst.isSymbolicLink() ? realpathSync(full) : full;
     const st = statSync(real);
 
     if (st.isDirectory()) {
-      collectEntries(real, join(archiveRootDir, name), entries, chunks);
+      collectEntries(real, join(archiveRootDir, name), entries, chunks, excludeGlobs);
       continue;
     }
     if (!st.isFile()) continue;
@@ -123,13 +154,13 @@ function collectEntries(sourceDir, archiveRootDir, entries, chunks) {
   }
 }
 
-function packToArchive(rootDirLabel, sourceDir, extraDirs) {
+function packToArchive(rootDirLabel, sourceDir, extraDirs, excludeGlobs = []) {
   const entries = [];
   const chunks = [];
 
-  collectEntries(sourceDir, rootDirLabel, entries, chunks);
+  collectEntries(sourceDir, rootDirLabel, entries, chunks, excludeGlobs);
   for (const { archiveSubdir, dir } of extraDirs) {
-    collectEntries(dir, archiveSubdir, entries, chunks);
+    collectEntries(dir, archiveSubdir, entries, chunks, excludeGlobs);
   }
 
   const index = { entries };
@@ -149,7 +180,9 @@ function main() {
   if (args[0] === "--multi-dir") {
     const outFile = args[1];
     if (outFile === undefined) {
-      process.stderr.write("Usage: node pack-native.mjs --multi-dir <outFile> --entry <subdir>=<dirPath>...\n");
+      process.stderr.write(
+        "Usage: node pack-native.mjs --multi-dir <outFile> --entry <subdir>=<dirPath>...\n",
+      );
       process.exit(1);
     }
 
@@ -191,18 +224,34 @@ function main() {
   }
 
   // --dir mode: pack an arbitrary directory verbatim, no package resolution.
-  // Fixed positional order: `--dir <dirPath> <outFile>`.
+  // Fixed positional order: `--dir <dirPath> <outFile> [--exclude <glob>]...`.
+  // `--exclude` (repeatable, issue #128) drops files whose bare name matches
+  // a glob — used by build-release.mjs to strip `*.map` sourcemaps from the
+  // packed packages/client/dist archive so the release .exe stays under the
+  // REQ-DST-046 150 MB budget (see globToRegExp's doc comment for the glob's
+  // limited "*"-only syntax).
   if (args[0] === "--dir") {
     const dirPath = args[1];
     const outFile = args[2];
     if (dirPath === undefined || outFile === undefined) {
-      process.stderr.write("Usage: node pack-native.mjs --dir <path> <outFile>\n");
+      process.stderr.write(
+        "Usage: node pack-native.mjs --dir <path> <outFile> [--exclude <glob>]...\n",
+      );
       process.exit(1);
     }
-    const archive = packToArchive("", dirPath, []);
+    const excludeGlobs = [];
+    for (let i = 3; i < args.length; i++) {
+      if (args[i] === "--exclude" && args[i + 1] !== undefined) {
+        excludeGlobs.push(args[i + 1]);
+        i++;
+      }
+    }
+    const archive = packToArchive("", dirPath, [], excludeGlobs);
     mkdirSync(dirname(outFile), { recursive: true });
     writeFileSync(outFile, archive);
-    process.stdout.write(`[pack-native] packed dir ${dirPath} -> ${outFile} (${String(archive.length)} bytes)\n`);
+    process.stdout.write(
+      `[pack-native] packed dir ${dirPath} -> ${outFile} (${String(archive.length)} bytes)\n`,
+    );
     return;
   }
 
@@ -256,7 +305,13 @@ function main() {
     }
     const childDir = resolvePackageDir(childSpecifier, parentDir);
     extraDirs.push({
-      archiveSubdir: join(rootLabel, "node_modules", parentSpecifier, "node_modules", childSpecifier),
+      archiveSubdir: join(
+        rootLabel,
+        "node_modules",
+        parentSpecifier,
+        "node_modules",
+        childSpecifier,
+      ),
       dir: childDir,
     });
   }
