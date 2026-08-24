@@ -47,6 +47,8 @@ const PLAN_VM_PATH = join(
   "packages",
   "client",
   "src",
+  "systems",
+  "pf2e",
   "lib",
   "sheets",
   "pf2e",
