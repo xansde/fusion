@@ -113,7 +113,17 @@ export async function loadSceneDocument(
   );
   canvas.setGrid(gridCfg);
   cleanupFns.push(() => {
-    canvas.setGrid(null);
+    // BUG FIX (#81 follow-up): the grid is GLOBAL FusionCanvas state, not
+    // scoped to this load. If this cleanup runs because sceneLoadGuard found
+    // THIS load stale (superseded by a newer scene switch that already
+    // installed its own grid via canvas.setGrid()), an unconditional
+    // `canvas.setGrid(null)` here would wipe out the winning generation's
+    // grid — the grade of the scene now on screen would silently disappear
+    // and never come back until the next scene switch (the $effect that
+    // would normally re-run is gated on _loadedSceneId, which the winning
+    // load already set). clearGridIf() only clears when `gridCfg` is still
+    // the config actually installed, so a stale cleanup is a no-op here.
+    canvas.clearGridIf(gridCfg);
   });
 
   // ---- Camera ----
