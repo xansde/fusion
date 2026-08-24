@@ -15,8 +15,8 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 709 | 36% |
-| Citados só por código de produção | 317 | 16% |
+| Citados por algum teste | 710 | 36% |
+| Citados só por código de produção | 316 | 16% |
 | Sem nenhuma citação | 944 | 48% |
 | **Total [MVP]** | **1970** | |
 
@@ -50,7 +50,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [23](23-acessibilidade-e-dispositivos.md) | 45 | 2 | 0 | 43 | 4% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
-| [26](26-licencas-e-legal.md) | 23 | 1 | 1 | 21 | 4% |
+| [26](26-licencas-e-legal.md) | 23 | 2 | 0 | 21 | 9% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
 | [29](29-pets-companions-familiars.md) | 16 | 3 | 6 | 7 | 19% |
