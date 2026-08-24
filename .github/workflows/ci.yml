@@ -69,13 +69,11 @@ jobs:
       # CLAUDE.md). F4 (DEC-SEP-09): that test moved with the ficha to
       # sheets/pf2e in the fusion-systems-2e submodule
       # (external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/
-      # __tests__/pregen-parity.test.ts) and sheets/pf2e has no
-      # vitest.config.ts of its own yet (its `$lib/*` alias needs
-      # packages/client's Vite config — see the satellite's README.md,
-      # "Ficha (sheets/pf2e)") — it isn't in vitest.workspace.ts, so `pnpm
-      # test` below never reaches it, and the vendor-pf2e-iconics step this
-      # repo used to run for it is gone too. Wiring sheets/pf2e's own tests
-      # (including this one) into a CI is follow-up work, not F4 scope.
+      # __tests__/pregen-parity.test.ts). sheets/pf2e now has its own
+      # vitest.config.ts (satellite PR #43, 24/08/2026), wired into
+      # vitest.workspace.ts, so `pnpm test` below reaches it — the test
+      # itself self-skips at runtime when tools/importer-pf2e/vendor/ isn't
+      # present (it isn't, here — same as before F4).
       #
       # tools/{importer-pf2e,translate-packs} also moved to the satellite —
       # "Test tools (node:test)" ran them here before F4; they now run in
