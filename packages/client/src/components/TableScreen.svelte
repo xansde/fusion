@@ -25,6 +25,7 @@
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
+  import { createSceneLoadGuard } from "../lib/canvas/sceneLoadGuard.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
@@ -87,6 +88,11 @@
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
+  // BUG FIX (#81): decides whether an in-flight scene load's result is still
+  // wanted by the time it resolves — see sceneLoadGuard.ts doc comment. Must
+  // be created once here (module/component scope), not inside the $effect
+  // below, so the generation counter survives across effect re-runs.
+  const sceneLoadGuard = createSceneLoadGuard();
   let cleanupCombatSync: (() => void) | null = null;
   let cleanupChatSync: (() => void) | null = null;
   let cleanupChatMessageSync: (() => void) | null = null;
@@ -481,6 +487,18 @@
    * init()), which re-triggers this effect and performs the (now safe) load —
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
+   *
+   * BUG FIX (#81): this effect used to clean up the PREVIOUS scene
+   * (`cleanupScene?.()`) synchronously at the top of its own execution, but
+   * only learned the NEW scene's cleanup after an `await` — so two scene
+   * switches close together raced: the second run's top-of-execution cleanup
+   * found `cleanupScene` still null (the first load hadn't resolved yet), and
+   * whichever load resolved LAST won unconditionally, silently overwriting
+   * whatever the other had assigned (leaked content, orphaned orchestrator).
+   * sceneLoadGuard pairs each in-flight load with the generation that started
+   * it: after every `await`, isCurrent(generation) says whether this load's
+   * result is still wanted. A stale result disposes of itself immediately
+   * instead of being installed — see sceneLoadGuard.ts for the full writeup.
    */
   $effect(() => {
     const canvas = fusionCanvas;
@@ -501,18 +519,40 @@
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
 
-    // Cleanup previous scene content
+    // Cleanup previous scene content — whatever the last WINNING generation
+    // installed (a still in-flight loser has nothing here yet: it discards
+    // itself below, on its own generation check, the moment it resolves).
     cleanupScene?.();
     cleanupScene = null;
     _loadedSceneId = null;
 
+    // Bump the generation BEFORE the async work starts, synchronously, so a
+    // concurrent effect re-run always sees a strictly newer generation.
+    const generation = sceneLoadGuard.begin();
+
     void (async () => {
       try {
         if (scene) {
-          cleanupScene = await loadSceneDocument(canvas, scene);
+          const cleanup = await loadSceneDocument(canvas, scene);
+          if (!sceneLoadGuard.isCurrent(generation)) {
+            // Superseded while in flight: this result is stale. Nobody else
+            // holds a reference to it, so this is the only chance to release
+            // it — and cleanupScene/sceneOrchestrator belong to whichever
+            // generation is current now, so they are left untouched.
+            cleanup?.();
+            return;
+          }
+          cleanupScene = cleanup;
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
+          if (!sceneLoadGuard.isCurrent(generation)) {
+            // Superseded during setup(): the newer effect run already tore
+            // down sceneOrchestrator/cleanupScene synchronously above, so
+            // there is nothing left to release here — just don't mark this
+            // stale scene as loaded.
+            return;
+          }
           _loadedSceneId = scene._id;
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
