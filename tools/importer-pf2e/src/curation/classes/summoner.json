@@ -1,0 +1,182 @@
+{
+  "class": "summoner",
+  "displayName": "Summoner",
+  "vendorClassFile": "classes/summoner.json",
+  "keyAbilityOptions": ["cha"],
+  "hp": 10,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "summoner-eidolon",
+      "featureNameInItemsMap": "Eidolon",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 13,
+      "slotType": "eidolon"
+    }
+  ],
+  "classFeats": {
+    "trait": "summoner",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Weapon Specialization",
+      "Expert Spellcaster",
+      "Master Spellcaster",
+      "Spell Repertoire",
+      "Defensive Robes",
+      "Simple Weapon Expertise"
+    ],
+    "alreadyInPacks": [
+      "Spell Repertoire",
+      "Expert Spellcaster",
+      "Weapon Specialization",
+      "Defensive Robes",
+      "Master Spellcaster"
+    ],
+    "missingFromPacks": [
+      "Eidolon",
+      "Evolution Feat",
+      "Summoner Spellcasting",
+      "Link Spells",
+      "Shared Vigilance",
+      "Unlimited Signature Spells",
+      "Eidolon Unarmed Expertise",
+      "Eidolon Symbiosis",
+      "Eidolon Weapon Specialization",
+      "Shared Reflexes",
+      "Eidolon Defensive Expertise",
+      "Twin Juggernauts",
+      "Simple Weapon Expertise",
+      "Eidolon Unarmed Mastery",
+      "Shared Resolve",
+      "Greater Eidolon Specialization",
+      "Eidolon Transcendence",
+      "Instant Manifestation",
+      "Eidolon Defensive Mastery"
+    ]
+  },
+  "spellcasting": {
+    "tradition": null,
+    "traditionByBloodline": {
+      "angel eidolon": "divine",
+      "anger phantom eidolon": "occult",
+      "beast eidolon": "primal",
+      "construct eidolon": "arcane",
+      "demon eidolon": "divine",
+      "devotion phantom eidolon": "occult",
+      "dragon eidolon": "arcane",
+      "elemental eidolon": "primal",
+      "fey eidolon": "primal",
+      "plant eidolon": "primal",
+      "psychopomp eidolon": "divine",
+      "swarm eidolon": "primal",
+      "undead eidolon": "divine"
+    },
+    "type": "spontaneous",
+    "ability": "cha",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, entry kzxu2dI7tFxv6Ix6, página gA4Ud8oSUGkkLwAi (\"Summoner\"), 2ª tabela da página (12 colunas x 21 linhas, incluindo cabeçalho) — transcrita célula a célula por parse do HTML (<table> nº 1 da página, <tr>/<td>), não a olho. A página NÃO tem <caption>; a tabela foi identificada pelo cabeçalho literal [\"Your Level\",\"Cantrips\",\"1st\",...,\"10th\"]. NÃO HÁ FICHA PREGEN: a varredura dos 85 arquivos de packs/pf2e/iconics/ (25 icônicos) não encontrou NENHUM ator cujo item de tipo `class` seja Summoner — a classe não tem icônica no vendor (a de Secrets of Magic não foi portada). Conferida então contra DUAS outras fontes independentes: (a) a prosa de class-features/summoner-spellcasting.json — arquivo DIFERENTE do journal — que afirma literalmente \"Each day, you can cast one 1st-rank spell and five cantrips\" (= linha L1 da tabela: 5 truques + 1 slot de rank 1), \"you begin to lose lower-rank spell slots once you reach 5th level\" (= o rank 1 desaparece em L5) e \"The maximum number of spell slots you get from the summoner class is four, starting when you reach 4th level\" (= 2+2 do L4 em diante); (b) o registro wb:class/summoner da base do Waybuilder do Igor (~/pessoal/Wayfinder/pipeline/base/index.json, 20.083 registros), cujo `slots_per_level` bate CÉLULA A CÉLULA com o journal nos 20 níveis, e cujo `prov.spellcasting` declara proveniência \"waybuilder (PDF, Secrets of Magic p.55)\" — ou seja, transcrição do PDF, não do Foundry. O Waybuilder também confirma type=spontaneous, key_ability=cha e a progressão de proficiência de conjuração (trained@1, expert@9, master@17), idêntica à derivada do items{}. ZERO divergência entre as três fontes.",
+    "table": [
+      { "level": 1, "cantrips": 5, "slots": { "1": 1 } },
+      { "level": 2, "cantrips": 5, "slots": { "1": 2 } },
+      { "level": 3, "cantrips": 5, "slots": { "1": 2, "2": 1 } },
+      { "level": 4, "cantrips": 5, "slots": { "1": 2, "2": 2 } },
+      { "level": 5, "cantrips": 5, "slots": { "2": 2, "3": 2 } },
+      { "level": 6, "cantrips": 5, "slots": { "2": 2, "3": 2 } },
+      { "level": 7, "cantrips": 5, "slots": { "3": 2, "4": 2 } },
+      { "level": 8, "cantrips": 5, "slots": { "3": 2, "4": 2 } },
+      { "level": 9, "cantrips": 5, "slots": { "4": 2, "5": 2 } },
+      { "level": 10, "cantrips": 5, "slots": { "4": 2, "5": 2 } },
+      { "level": 11, "cantrips": 5, "slots": { "5": 2, "6": 2 } },
+      { "level": 12, "cantrips": 5, "slots": { "5": 2, "6": 2 } },
+      { "level": 13, "cantrips": 5, "slots": { "6": 2, "7": 2 } },
+      { "level": 14, "cantrips": 5, "slots": { "6": 2, "7": 2 } },
+      { "level": 15, "cantrips": 5, "slots": { "7": 2, "8": 2 } },
+      { "level": 16, "cantrips": 5, "slots": { "7": 2, "8": 2 } },
+      { "level": 17, "cantrips": 5, "slots": { "8": 2, "9": 2 } },
+      { "level": 18, "cantrips": 5, "slots": { "8": 2, "9": 2 } },
+      { "level": 19, "cantrips": 5, "slots": { "8": 2, "9": 2 } },
+      { "level": 20, "cantrips": 5, "slots": { "8": 2, "9": 2 } }
+    ]
+  },
+  "focusSpells": {
+    "names": [
+      "Boost Eidolon",
+      "Eidolon's Wrath",
+      "Evolution Surge",
+      "Extend Boost",
+      "Lifelink Surge",
+      "Reinforce Eidolon",
+      "Unfetter Eidolon"
+    ],
+    "alreadyInPacks": [
+      "Eidolon's Wrath",
+      "Evolution Surge",
+      "Extend Boost",
+      "Lifelink Surge",
+      "Unfetter Eidolon"
+    ]
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Dual Energy Heart", "Energy Heart"],
+      ["Energy Resistance", "Energy Heart"],
+      ["Blood Frenzy", "Bloodletting Claws"],
+      ["Magical Adept", "Magical Understudy"],
+      ["Share Eidolon Magic", "Magical Understudy"],
+      ["Magical Master", "Magical Adept"],
+      ["Miniaturize", "Shrink Down"],
+      ["Towering Size", "Hulking Size"],
+      ["Airborne Form", "Glider Form"],
+      ["Legendary Summoner", "Master Summoner"],
+      ["Link Focus", "Link Spells"]
+    ],
+    "referencesOutsideSelection": [
+      "MEDIDO: apenas 13 dos 60 class feats têm `system.prerequisites.value` não vazio, e TODOS os 13 têm UMA única entrada (nenhum caso de duas entradas lidas como AND, que foi o defeito da issue #30). Dos 13: 11 resolvem DENTRO do conjunto da classe (10 apontam para outro class feat com o nome exato; 'Link Focus' (L12) aponta para 'link spells' em minúsculas, que é a class feature 'Link Spells' do items{} — mesmo formato case-insensitive de 'shield block' no Fighter), e 2 apontam para fora. É a menor densidade de pré-requisito entre as classes curadas até aqui (21,7% contra 34,5% do Fighter).",
+      "FORA (1) — 'Phase Out' (L6) -> 'your eidolon is a phantom'. NÃO É REFERÊNCIA A DOCUMENTO: é um predicado sobre o TRAIT do eidolon escolhido. E o trait 'phantom' NÃO EXISTE COMO DADO: medido, `system.traits.value` de anger-phantom-eidolon.json e devotion-phantom-eidolon.json é literalmente [\"summoner\"] — a palavra 'phantom' só aparece na PROSA da descrição ('Traits eidolon, ethereal, phantom'). Mecanizar exigiria inventar um trait que o vendor não declara (REQ-BC-034 proíbe). Dívida declarada: o requisito fica como texto preservado. Se um dia for mecanizado, o predicado correto é 'a opção de eixo escolhida é Anger Phantom Eidolon OU Devotion Phantom Eidolon' — as duas únicas de 13.",
+      "FORA (2) — 'Protective Pose' (L8) -> 'trained in Medicine'. ATRIBUTO DO NÓ (proficiência), não referência a documento. Mesma família dos 10 não-mecanizáveis do Fighter. Texto preservado, sem predicado inventado.",
+      "ARQUÉTIPO DE MULTICLASSE FORA DE ESCOPO (plano r29 §9): os 9 talentos de feats/archetype/summoner/ (Summoner Dedication L2, Basic/Advanced/Signature Synergy, Basic/Expert/Master Summoner Spellcasting, Initial Eidolon Ability, Expert Combat Eidolon) NÃO entram. 'Summoner Dedication' carrega traits [archetype, dedication, multiclass] SEM o trait 'summoner' — nenhum predicado desta curadoria a alcança, exatamente como 'Druid Dedication'. Registrado porque DOIS deles carregam pré-requisito textual sobre a tradição do eidolon ('master in the skill associated with your eidolon's tradition', 'legendary in ...'), que é a mesma dívida de tradição-variável do bloco `spellcasting`."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": ["Effortless Concentration"],
+    "collisionsDetected": [
+      "TRÊS divergências nível-genérico × nível-do-items{} (o nível do arquivo mente; vale o do items{} da classe): 'Expert Spellcaster' diz 7 no arquivo genérico e o Summoner concede no 9; 'Weapon Specialization' diz 7 e o Summoner concede no 13; 'Master Spellcaster' diz 15 e o Summoner concede no 17. As três são o perfil de meio-conjurador: o Summoner é a ÚNICA das 16 classes curadas que atrasa TODA a escada de conjuração em 2 níveis, e a única conjuradora que NUNCA chega a Legendary em conjuração (o items{} não tem 'Legendary Spellcaster' — para em Master no 17). As outras 21 entradas do items{} não divergem.",
+      "trait-duplo: 1 dos 60 class feats carrega trait de mais de uma classe — 'Effortless Concentration' (L16, traits bard/druid/sorcerer/summoner/witch/wizard), e ele JÁ ESTÁ em feats-core (sourceId rgs6OZJYCgi5At8J), reusado de Bard/Wizard/Sorcerer/Druid. O gate class_level derivado por trait fica AMBÍGUO nesse único caso — o predicado correto é 'any' sobre as 6 classes do trait, nunca uma escolha arbitrária (mesmo padrão de wizard.json, cleric.json, barbarian.json, psychic.json e druid.json). Os outros 59 têm trait de classe único ('summoner'), então o gate class_level:summoner é inequívoco em 59 de 60. NENHUM dos 60 carrega trait 'archetype' (varredura completa) — não há aqui o conflito archetype-vence-classe que o Druid teve com os 10 talentos '* Mask'.",
+      "CINCO NOMES DUPLOS entre feats-core e spells-core (o dobro do caso 'Untamed Form' que druid.json registrou): 'Extend Boost' (feat L1 + magia de foco), 'Unfetter Eidolon' (feat L1 + magia de foco), 'Reinforce Eidolon' (feat L2 + truque de vínculo), 'Lifelink Surge' (feat L4 + magia de foco), \"Eidolon's Wrath\" (feat L6 + magia de foco). São documentos DISTINTOS em packs distintos: o talento concede a magia homônima. Identidade é por flags.fusion.sourceId, nunca por nome — nenhum consumidor casa feat com spell por nome hoje, então não há colisão real; registrado porque qualquer casamento por nome futuro (resolver pré-requisito, montar grafo) confundiria os dois em CINCO pontos.",
+      "DOC LEGADO ÓRFÃO: existe class-features/spell-repertoire-summoner.json ('Spell Repertoire (Summoner)', _id Ju2Tp5s5iBB76tQO, Secrets of Magic, remaster=false), que NÃO é referenciado pelo items{} de NENHUMA das 27 classes (varredura completa), NÃO carrega a otherTag 'summoner-eidolon' e NÃO está em class-features-core. O items{} remasterizado aponta para o doc GENÉRICO 'Spell Repertoire' (1RfnAiyQ5FR7vnuH, compartilhado com Bard/Oracle/Psychic/Sorcerer, já no pack). O órfão NÃO entra. É exatamente a issue #10 do Waybuilder ('eixos tortos'): a base dele monta um eixo falso 'outras-opcoes' cuja única opção é justamente wb:class-feature/spell-repertoire-summoner — mesmo achado que psychic.json registrou para 'spell-repertoire-psychic' e druid.json para 'druid-weapon-expertise'.",
+      "attacks.other vazio: classes/summoner.json tem system.attacks.other = {name: \"\", rank: 0} (medido). Como o Druid e ao contrário de Cleric/Gunslinger, o campo está ZERADO — transform.mjs descarta a chave 'other' e não perde nada. O Summoner NÃO produz divergência 'classSystem.attacks.other' em pregen-parity (a #50 não o alcança). keyAbility declarada como [\"cha\"] (medido) — nada do buraco de array vazio do Psychic.",
+      "GATE QUEBRADO PELA PUBLICAÇÃO — pregen-parity.test.ts: a suíte tem a asserção literal `expect(CLASSES_WITHOUT_PREGEN).toEqual([\"Magus\"])`. O Summoner NÃO TEM ICÔNICA no vendor (varredura de 85 arquivos em iconics/, 25 personagens: nenhum com item de classe 'Summoner'), então publicar a classe faz essa lista virar [\"Magus\",\"Summoner\"] e o teste REPROVA até alguém atualizar a asserção. Diferente do Druid, que trouxe a Lini para dentro do gate: o Summoner é a SEGUNDA classe publicada sem verificação externa gratuita — a conferência da tabela veio do Waybuilder e da prosa do vendor (ver spellcasting.source), não de um pregen.",
+      "isSpellsCoreDoc NÃO ALCANÇA 2 das 7 magias: 'Boost Eidolon' (HStu2Yhw3iQER9tY) e 'Reinforce Eidolon' (TYbCj4dgXDOZou9k) são LINK CANTRIPS — carregam traits [cantrip, concentrate, summoner], SEM o trait 'focus' e sem tradição. O predicado de build-mvp-subset.mjs seleciona por sourceId existente, tradição arcane, trait 'focus', Player Core 2, ou trait 'composition'; nenhum ramo pega essas duas. É EXATAMENTE a mesma forma do quirk dos 10 truques de composição do Bard (r22), e a mesma solução se aplica: um ramo novo (o único trait comum às duas é 'summoner'; não há um trait 'link' no vendor). As outras 5 já estão no pack. Sem esse ramo, 'Boost Eidolon' — que a class feature Link Spells CONCEDE no nível 1 a todo Summoner — não existe no pack."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE (plano §4.3).",
+    "PROFICIÊNCIAS INICIAIS medidas em classes/summoner.json: perception=1, savingThrows fort=2/reflex=1/will=2 (fortitude E vontade já EXPERT no nível 1 — perfil único entre as curadas: as outras conjuradoras têm só will expert), attacks simple=1 e unarmed=1 (martial=0, advanced=0), defenses unarmored=1 APENAS (light=0, medium=0, heavy=0 — é a classe com a defesa mais fraca do conjunto curado, sem NENHUMA armadura treinada), spellcasting=1, trainedSkills {value: [], additional: 3} (nenhuma perícia fixa e TRÊS livres — o vendor não fixa perícia de classe; a perícia temática vem do eidolon, ver nota PERÍCIA DO EIDOLON), classDC ausente no vendor (transform aplica o default 1, mesmo caminho de Cleric/Magus/Wizard/Sorcerer/Psychic/Druid). featLevels: ancestry [1,5,9,13,17], class [2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19] — idênticos a Cleric/Wizard/Druid. Todos os 12 campos conferidos, um a um, contra o registro wb:class/summoner do Waybuilder: batem 12/12.",
+    "CLASSE LEGADO (não remasterizada) — a SEGUNDA do conjunto curado, depois do Magus. publication = {license: 'OGL', remaster: false, title: 'Pathfinder Secrets of Magic'}. Medido no conteúdo: 58 dos 60 class feats são OGL/não-remaster (as exceções são 'Effortless Concentration', Player Core, e 'Protective Pose', Tian Xia Character Guide — o único feat de raridade `uncommon` dos 60); 19 das 24 class features do items{} são OGL/não-remaster (as 5 remaster são justamente as 5 compartilhadas que já estão no pack); 11 das 13 opções de eidolon são não-remaster (as 2 remaster são Elemental Eidolon, Rage of Elements, e Swarm Eidolon, Battlecry!). CONSEQUÊNCIA CONCRETA para a tradução pt-BR e para a consistência de regras: a prosa das opções de eidolon ainda usa VOCABULÁRIO PRÉ-REMASTER — 'Alignment must be good', 'Home Plane Nirvana/Elysium/Heaven', dano 'good'/'evil' (medido em angel-eidolon.json e demon-eidolon.json). Alinhamento não existe no remaster. Não é dívida desta fase (tradução está fora do escopo, §9), mas é a mesma classe de decisão que o Magus já obrigou a tomar, agora em 11 documentos de opção de eixo.",
+    "CLASS FEATURES (items{} do vendor): 24 entradas, e o nome canônico da uuid == entry.name em 24/24 (sem a armadilha do Magus/Cleric). 5 das 24 JÁ estão em class-features-core com o MESMO doc reusado de outras classes: Spell Repertoire (compartilhado com Bard/Oracle/Psychic/Sorcerer — 5 classes), Expert Spellcaster e Master Spellcaster (10 classes cada), Weapon Specialization (25 classes), Defensive Robes (4 classes: Sorcerer/Summoner/Witch/Wizard). 'Simple Weapon Expertise' é compartilhada com o Animist (2 classes) mas NÃO está no pack ainda. As outras 18 são exclusivas do Summoner. Total novo em class-features-core: 19 (do items{}) + 13 (opções de eidolon, que entram pelo ramo de axisCategories) = 32 documentos.",
+    "O SUMMONER NÃO USA AS FEATURES GENÉRICAS DE SALVAGUARDA. Onde Druid/Cleric/Wizard concedem 'Perception Expertise', 'Fortitude Expertise', 'Reflex Expertise' e 'Wild/Resolute Willpower' (docs compartilhados entre muitas classes), o Summoner tem QUATRO documentos exclusivos com o mesmo efeito mecânico: Shared Vigilance (perception rank2 @L3), Shared Reflexes (reflex rank2 @L9), Twin Juggernauts (fortitude rank3 @L11) e Shared Resolve (will rank3 @L15). Isso é dado do vendor, não erro — mas significa que a classe adiciona 4 docs novos onde outra classe reusaria 4 existentes, e que a derivação genérica de proficiencyUpgrades funciona igual (as subfeatures.proficiencies estão preenchidas nos quatro).",
+    "proficiencyUpgrades DERIVÁVEIS de subfeatures.proficiencies — 9 linhas, nenhuma exceção: perception rank2 @L3 (Shared Vigilance); spellcasting rank2 @L9 (Expert Spellcaster); reflex rank2 @L9 (Shared Reflexes); weapons.simple rank2 + weapons.unarmed rank2 @L11 (Simple Weapon Expertise, DUAS linhas); fortitude rank3 @L11 (Twin Juggernauts); armor.unarmored rank2 @L13 (Defensive Robes, UMA linha só — o doc traz apenas 'unarmored', não light/medium, porque o Summoner não é treinado em armadura nenhuma); will rank3 @L15 (Shared Resolve); spellcasting rank3 @L17 (Master Spellcaster). Nenhum proficiencyUpgradeExtras necessário. As outras 15 features do items{} têm subfeatures.proficiencies VAZIO: 9 delas afetam o EIDOLON (ver dívida abaixo), 'Weapon Specialization' é bônus de dano (mesma observação de Wizard/Sorcerer/Druid) e as 5 restantes (Eidolon, Evolution Feat, Link Spells, Spell Repertoire, Summoner Spellcasting, Unlimited Signature Spells, Instant Manifestation) são regra de texto. TETOS: o Summoner NÃO chega a Legendary em nada — para em Master em conjuração (L17), fortitude (L11) e vontade (L15), e em Expert em percepção, reflexos, armas simples e desarmado. Também nunca sobe armadura acima de Expert-em-desarmado. Confirmado contra a progressão do Waybuilder (trained@1/expert@9/master@17 para conjuração).",
+    "EIXO — 1 só, nível 1: `summoner-eidolon` (categoria derivada 'eidolon', 13 opções CONTADAS por varredura da otherTag nos 842 arquivos de class-features/): Angel, Anger Phantom, Beast, Construct, Demon, Devotion Phantom, Dragon, Elemental, Fey, Plant, Psychopomp, Swarm, Undead. NENHUMA carrega 'class-archetype' (varredura completa) — optionCount=13 vale para todo caminho. O granter é class-features/eidolon.json, cujo ChoiceSet filtra exatamente por ['item:tag:summoner-eidolon'] e cujo GrantItem seguinte resolve '{item|flags.system.rulesSelections.eidolon}' — o filtro do vendor É a otherTag, não uma lista de uuids. O Waybuilder confirma as mesmas 13 opções, uma a uma.",
+    "TRADIÇÃO VARIÁVEL — a maior pendência de contrato desta curadoria. O Summoner NÃO TEM tradição fixa: cada opção de eidolon define a tradição do conjurador. Medido lendo a prosa dos 13 docs (o vendor escreve 'Tradition <x>' no corpo; NÃO existe campo estruturado — as `rules` das 13 opções são só dois ActiveEffectLike de perícia): arcane = Construct, Dragon (2); divine = Angel, Demon, Psychopomp, Undead (4); occult = Anger Phantom, Devotion Phantom (2); primal = Beast, Elemental, Fey, Plant, Swarm (5). Fey Eidolon diz 'primal (but see Fey Gift Spells below)' — contabilizado como primal. O Waybuilder registra o mesmo com todas as letras: tradition = 'variavel (definida pela escolha de eidolon; nao ha tradicao fixa na class-feature)'. O SCHEMA JÁ SUPORTA isso — `tradition: null` + mapa por opção de eixo, precedente do Sorcerer (r22) — mas o VEÍCULO ESTÁ CHUMBADO NO SORCERER em dois pontos MEDIDOS no planVM.ts: (1) a chave se chama `traditionByBloodline` (transform.mjs só encaminha ESSA chave; qualquer nome novo é descartado em silêncio), e (2) `chooseClassChoice` tem um `if (slotType === \"bloodline\")` literal que dispara `bloodlineSpellcastingOps`. CONSEQUÊNCIA MEDIDA se nada for wired: `applyClass` só cria a entrada de conjuração quando `classSystem.spellcasting.tradition` é verdadeiro; com `tradition: null` e sem o ramo para o slotType 'eidolon', o Summoner ficaria SEM NENHUMA entrada de conjuração e SEM pool de foco — pior que uma tradição errada. Por isso o mapa acima está preenchido sob a chave `traditionByBloodline` (único canal que chega ao pack) e chaveado pelo NOME DO DOC EM MINÚSCULAS ('angel eidolon', ...), que é exatamente o que `bloodlineSlugFromDocName` produz para um doc sem o prefixo 'Bloodline: '. NÃO foi escolhida uma tradição arbitrária (o plano proíbe) e NADA foi wired (§9 proíbe). PERGUNTA PARA A INTEGRAÇÃO, em duas partes: (a) renomear `traditionByBloodline` -> `traditionByAxisOption` (o mapa acima migra verbatim, e o Sorcerer também), e (b) generalizar o `if (slotType === \"bloodline\")` para 'todo eixo cuja curadoria declare o mapa'. Enquanto isso não acontecer, o Summoner é conjurador sem entrada de conjuração.",
+    "EVOLUTION FEAT — forma NOVA de escolha, não vista nas 15 classes curadas. A class feature 'Evolution Feat' (L1, no items{}) carrega um ChoiceSet cujo filtro é DECLARATIVO: [{lte:['item:level',1]}, 'item:category:class', 'item:trait:evolution'] + GrantItem do escolhido. Os três predicados são EXATAMENTE os três que `GrantedFeatPredicate` do planVM.ts já sabe expressar (levelAtMost, category, trait) — ao contrário do 'Voice of Nature' do Druid, que tem lista literal e por isso ficou 'pendente'. MAS a tabela que os consome (`GRANTED_FEAT_CHOICES`) é chaveada por nome de TALENTO concedente, e aqui o concedente é uma class FEATURE do items{} — nenhuma das duas fiações existentes (CLASS_CHOICE_SLOTS, que oferece docs de class-feature marcados por otherTag; GRANTED_FEAT_CHOICES, que é sub-slot de talento) cobre 'feature do items{} que escolhe um TALENTO por filtro declarativo'. É a terceira forma. Os 35 talentos com trait 'evolution' (dos 60) entram no pack pelo laço normal de trait 'summoner', então os 4 alvos de nível 1 (Advanced Weaponry, Energy Heart, Expanded Senses, Glider Form) já estarão lá quando o consumidor existir. Dívida declarada, não inventada.",
+    "CHOICESETS NOVOS — 3 entradas para choiceSetInventory.ts (medidas varrendo os 60 feats + 24 features + 13 opções): 'class-features-core/Eidolon/eidolon' (o eixo -> estado 'eixo'), 'class-features-core/Evolution Feat/evolutionFeat' (a forma nova acima -> 'pendente' hoje) e 'feats-core/Ranged Combatant/rangedCombatant' (o talento L2 escolhe um tipo de dano entre 10 opções literais -> 'pendente'). Nenhuma das 13 opções de eidolon tem ChoiceSet (só ActiveEffectLike de perícia). Só 1 dos 60 talentos tem ChoiceSet — densidade muito menor que a média.",
+    "GRANTITEM DE ALVO FIXO — 4 casos, TODOS já resolvidos nos packs atuais (medido): a feature 'Eidolon' concede três ações de actionspf2e (Manifest Eidolon; Act Together e Share Senses, estas duas com predicate ['class:summoner']) e as três JÁ ESTÃO em actions-core (521 docs); o talento 'Eternal Boost' (L20) concede a condição Quickened, JÁ em conditions (43 docs). Nenhuma entrada em GRANT_TARGET_* é necessária.",
+    "PERÍCIA DO EIDOLON não é modelada: `trainedSkills` do doc de classe é {value: [], additional: 3} — nenhuma perícia fixa. Cada opção de eidolon carrega DOIS ActiveEffectLike que treinam duas perícias (Angel->Diplomacy+Religion, Anger Phantom->Intimidation+Occultism, Beast->Intimidation+Nature, Construct->Arcana+Crafting, Demon->Intimidation+Religion, Devotion Phantom->Medicine+Occultism, Dragon->Arcana+Intimidation, Elemental/Plant/Swarm->Nature+Survival, Fey->Deception+Nature, Psychopomp/Undead->Intimidation+Religion — medidos um a um). ATENÇÃO: esses ActiveEffectLike escrevem em `system.skills.<x>.rank` do ATOR-EIDOLON, não do Summoner (o eidolon tem ficha própria). Quem os aplica é o consumidor da opção de eixo escolhida — hoje nenhum aplica, e não há ator para aplicar. Mesma família da dívida 'proficiência por opção de eixo' que cleric.json (doutrina) e druid.json (ordem) já pediram.",
+    "O EIDOLON COMO CRIATURA — a dívida dominante desta classe, e maior que a do companheiro animal do Druid. O eidolon é um ATOR SEPARADO com ficha, atributos, ataques e progressão próprios; nada disso existe nos packs do Fusion e está FORA desta fase (plano §9). MEDIDO o tamanho do buraco: 55 dos 60 class feats (91,7%) mencionam o eidolon no nome ou no texto — só 5 não (Lifelink Surge, Master Summoner, Link Focus, Effortless Concentration, Legendary Summoner); desses 55, 35 carregam o trait 'evolution', ou seja, existem SÓ para customizar o eidolon. Do lado das features, 9 das 24 do items{} agem exclusivamente sobre o eidolon e por isso têm subfeatures.proficiencies VAZIO (Eidolon L1, Eidolon Unarmed Expertise L5, Eidolon Symbiosis L7, Eidolon Weapon Specialization L7, Eidolon Defensive Expertise L11, Eidolon Unarmed Mastery L13, Greater Eidolon Specialization L15, Eidolon Transcendence L17, Eidolon Defensive Mastery L19) — a derivação genérica não perde nada porque não há o que derivar: o alvo é outro ator. Somando: 64 dos 84 documentos jogáveis da classe (60 feats + 24 features) só produzem efeito quando existir ator-eidolon. O talento/feature entra como documento; a criatura não nasce. Sem ator-eidolon o Summoner é publicável e a ficha fecha (chassi, salvaguardas, conjuração), mas é a classe com a menor fração de conteúdo VIVO de todas as curadas.",
+    "TABELA DE CONJURAÇÃO — ATÍPICA E TRANSCRITA COMO ESTÁ, sem 'corrigir'. O Summoner NÃO segue o padrão de 3-4 slots por rank das outras conjuradoras: são sempre 5 truques e no MÁXIMO 4 slots no dia inteiro, 2 em cada um dos DOIS ranks mais altos que ele pode lançar. Slots de rank inferior DESAPARECEM (o rank 1 some no nível 5, o rank 2 no 7, e assim por diante) — a armadilha 'slot de rank descartado não persiste' do plano §8 aqui não é armadilha, é o mecanismo central da classe, e a prosa de summoner-spellcasting.json confirma com todas as letras ('you begin to lose lower-rank spell slots once you reach 5th level'). E NÃO HÁ SLOT DE RANK 10 em nenhum nível: a coluna '10th' do journal está vazia nas 20 linhas, e os níveis 19 e 20 são idênticos aos 17 e 18 (2 de rank 8 + 2 de rank 9). Não há capstone de conjuração (nada equivalente ao Miraculous Spell do Cleric, Primal Hierophant do Druid ou Archwizard's Spellcraft do Wizard) — o nível 19 dá 'Instant Manifestation' e 'Eidolon Defensive Mastery', ambas sobre o eidolon. Níveis 1 a 5, explícitos: L1 = 5 truques + 1 slot de rank 1; L2 = 5 + 2 de rank 1; L3 = 5 + 2 de rank 1 + 1 de rank 2; L4 = 5 + 2 de rank 1 + 2 de rank 2; L5 = 5 + 2 de rank 2 + 2 de rank 3 (rank 1 some).",
+    "MAGIAS DE FOCO / VÍNCULO — 7 magias com trait 'summoner' (varredura dos 1.797 arquivos de spells/), 5 já em spells-core: Eidolon's Wrath, Evolution Surge, Extend Boost, Lifelink Surge, Unfetter Eidolon. FALTAM 2: 'Boost Eidolon' e 'Reinforce Eidolon' — ver dedupe.collisionsDetected para a causa (são link CANTRIPS, sem o trait 'focus' que o predicado exige). Isso dói de verdade: a class feature 'Link Spells' (L1) concede EXPLICITAMENTE duas magias a todo Summoner de nível 1 — 'Evolution Surge' (magia de vínculo, já no pack) e 'Boost Eidolon' (truque de vínculo, FORA do pack). Ou seja, metade da concessão de nível 1 não existe hoje. Focus pool: base 1, teto 3, concedido por Link Spells (confirmado no Waybuilder). O VÍNCULO eidolon -> magia inicial não é problema aqui (ao contrário de ordem->magia no Druid e domínio->magia no Cleric): as duas magias de nível 1 são as mesmas para todos os 13 eidolons.",
+    "MULTICLASSE (plano r21 §4.1): o gate derivado dos 60 class feats é class_level:summoner, sem ambiguidade em 59 deles; para 'Effortless Concentration' (trait de 6 classes) o predicado correto é 'any' sobre as classes do trait. 'Summoner Dedication' NÃO entra (traits [archetype, dedication, multiclass] sem o trait 'summoner') — ver prerequisites.referencesOutsideSelection.",
+    "REBUILD: as 13 opções do eixo entram em class-features-core APENAS pelo ramo `axisCategories.has(doc.system.category)` de isClassFeaturesCoreDoc — elas não estão no items{} da classe. E `system.category` só vira 'eidolon' quando transform.mjs roda com esta curadoria no disco (axisCategoryByOtherTag). Logo NÃO basta rodar build-mvp-subset.mjs sobre um out/ antigo: é obrigatório reprocessar o transform com classes E class-features no MESMO --packs. Se alguém rodar só o pack, o eixo sai com 0 opções e transform.test.mjs reprova em 'eixo sem nenhuma opção no pack'.",
+    "CONFERÊNCIA COM O WAYBUILDER (wb:class/summoner, base local em ~/pessoal/Wayfinder/pipeline/base/index.json): bate em hp_per_level=10, nas quatro linhas de proficiência inicial, em skill_training {free:3}, nos quatro feat_slot, no skill_increase, em key_ability=['cha'], nas 13 opções de eidolon e na tabela de conjuração inteira (20 níveis, célula a célula). DUAS divergências, as duas a favor do vendor: (1) a `progressao` dele lista 25 concessões contra as 24 do items{} — a extra é 'ability-boosts' no nível 5 apenas (o vendor não põe aumentos de atributo no items{}, e listar só o nível 5 e não 10/15/20 é a issue #10 dele); (2) o eixo falso 'outras-opcoes' construído a partir do doc legado 'Spell Repertoire (Summoner)' (ver dedupe). Ponto FORTE dele nesta classe, ao contrário do que aconteceu no Druid: o bloco `spellcasting` está COMPLETO (não é a issue #3 aqui) e com proveniência declarada de PDF (Secrets of Magic p.55), o que o torna a segunda fonte independente que a icônica inexistente não pôde dar."
+  ]
+}

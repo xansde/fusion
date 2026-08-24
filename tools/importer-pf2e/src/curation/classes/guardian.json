@@ -1,0 +1,100 @@
+{
+  "class": "guardian",
+  "displayName": "Guardian",
+  "vendorClassFile": "classes/guardian.json",
+  "keyAbilityOptions": ["str"],
+  "hp": 12,
+  "choiceAxes": [],
+  "classFeats": {
+    "trait": "guardian",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Shield Block",
+      "Weapon Expertise",
+      "Reflex Expertise",
+      "Battle Hardened",
+      "Weapon Specialization",
+      "Weapon Mastery",
+      "Greater Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Shield Block",
+      "Weapon Expertise",
+      "Reflex Expertise",
+      "Battle Hardened",
+      "Weapon Specialization",
+      "Weapon Mastery",
+      "Greater Weapon Specialization"
+    ],
+    "missingFromPacks": [
+      "Guardian's Armor",
+      "Guardian's Techniques",
+      "Taunt",
+      "Tough To Kill",
+      "Unbreakable Expertise",
+      "Reaction Time",
+      "Guardian Expertise",
+      "Unbreakable Mastery",
+      "Unbreakable Legend",
+      "Unyielding Resolve",
+      "Guardian Mastery"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Devastating Shield Wallop", "Shield Wallop"],
+      ["Not So Fast!", "Hampering Stance"],
+      ["Lock Down", "Hampering Stance"],
+      ["Repositioning Block", "Shield Block"],
+      ["Improved Reflexive Shield", "Reflexive Shield"],
+      ["Shield from Spells", "Shield from Arrows"],
+      ["Get Behind Me!", "Intercept Attack"],
+      ["Armored Counterattack", "Intercept Attack"],
+      ["Energy Interceptor", "Intercept Attack"],
+      ["Disarming Intercept", "Intercept Attack"],
+      ["Quick Vengeance", "Intercept Attack or Shield Block"]
+    ],
+    "referencesOutsideSelection": [
+      "Phalanx Formation -> Guardian or Knight Vigilant Dedication (archetype, feats/archetype/knight-vigilant/)",
+      "Mighty Bulwark -> Guardian or Sentinel Dedication (archetype, feats/archetype/sentinel/)"
+    ]
+  },
+  "dedupe": {
+    "featsAlreadyInPacks": [],
+    "collisionsDetected": [
+      "Reflex Expertise: nivel generico do arquivo (system.level=3) diverge do nivel no items{} do Guardian (7) -- usar 7. Confirmado tambem pela tabela do journal (Class Features, linha nivel 7).",
+      "Weapon Specialization: nivel generico do arquivo (system.level=7) diverge do nivel no items{} do Guardian (11) -- usar 11. Mesma feature ja tinha essa divergencia catalogada pelo Fighter (fighter.json usa 11 tambem); confirmado de novo pela tabela do journal do Guardian (linha nivel 11).",
+      "Greater Weapon Specialization: nivel generico do arquivo (system.level=15) diverge do nivel no items{} do Guardian (17) -- usar 17. No Fighter esta mesma feature NAO diverge (Fighter usa o generico 15); e o Fighter quem diverge de Greater Weapon Specialization em outra feature (Armor Mastery). Confirmado pela tabela do journal (linha nivel 17).",
+      "Vendor ja desambigua homonimos entre classes com sufixo '(Guardian)' em 1 dos 65 feats candidatos (Larger Than Life (Guardian)) -- nenhuma outra 'Larger Than Life' sem sufixo foi encontrada em feats/, entao nao ha colisao real, so a marca preventiva do vendor.",
+      "ACHADO DE VENDOR (fora do escopo desta curadoria, nao afeta o JSON): a pagina do journal 'Guardian' (journals/classes.json) embeda, na secao 'Unbreakable Expertise', o UUID Compendium.pf2e.classfeatures.Item.VCJVuqByBxnUxQoH -- que e 'Military Expertise' (feature do COMMANDER, trait commander, martial+simple+unarmed rank2), nao a 'Unbreakable Expertise' do proprio Guardian (_id 2mVEzA3OtfLMBNRm, armor.heavy+armor.medium rank2). E um erro de copy-paste do proprio vendor no HTML do journal; o items{} do classes/guardian.json aponta corretamente para 'Unbreakable Expertise' pelo nome canonico (segmento final da uuid), entao a curadoria nao herda o erro. Reportado porque so apareceu ao cruzar contra a fonte independente (journal), exatamente o tipo de achado que a conferencia nao-circular existe para pegar."
+    ]
+  },
+  "notes": [
+    "Classe nova (Pathfinder Battlecry!, 2024): system.publication = {license:'ORC', remaster:true, title:'Pathfinder Battlecry!'}. Varredura de journals/remaster-changes.json por 'guardian' (case-insensitive) retornou 0 ocorrencias -- confirma que a classe nasceu remaster, sem tabela de mudancas a aplicar.",
+    "keyAbilityOptions = ['str'] (unico, nao 'str-dex' como Exemplar): system.keyAbility.value = ['str'], selected:null, sem outra opcao no doc do vendor.",
+    "choiceAxes: [] confirmado por varredura recursiva dos 842 arquivos de class-features/**.json E dos 65 feats candidatos (56 exclusivos + 9 compartilhados) procurando system.traits.otherTags com prefixo 'guardian' -- lista vazia nos dois casos. Guardian nao tem eixo de sub-escolha.",
+    "hp: 12 confirmado no doc do vendor E no texto do journal ('Hit Points: 12 plus your Constitution modifier'). DIVERGENCIA CONTRA A MEDICAO PRELIMINAR: 12 NAO e unico -- Barbarian tambem tem hp 12 (medido nos 27 classes/*.json). Guardian e EMPATADO no topo, nao o maior sozinho.",
+    "18 features no items{} confirmadas (bate com a preliminar). Todos os 18 nomes canonicos (segmento final da uuid) batem exatamente com o campo 'name' da entrada -- nenhum caso Magus/Lightning-Reflexes aqui.",
+    "3 divergencias de nivel generico x items{} encontradas (preliminar nao citava nenhuma para Guardian): Reflex Expertise (3->7), Weapon Specialization (7->11), Greater Weapon Specialization (15->17). As tres foram confirmadas por uma SEGUNDA fonte independente: a tabela HTML 'Class Features' da pagina Guardian em journals/classes.json, que lista a feature no nivel que o items{} diz, nao no nivel generico do arquivo da feature -- ver dedupe.collisionsDetected para o detalhe de cada uma.",
+    "65 class feats candidatos confirmados (56 exclusivos em feats/class/guardian/level-*/ + 9 de feats/class/shared-class-feats/level-*/ com trait guardian). Os 9 compartilhados sao Defensive Advance, Reactive Shield, Paragon's Guard, Opening Stance, Improved Reflexive Shield, Aggressive Block, Boundless Reprisals, Reactive Strike, Reflexive Shield -- todos os 9 ja estao em feats-core, confirmado por flags.fusion.sourceId (nao so por nome), batendo exatamente com a medicao preliminar (9 ja em feats-core).",
+    "Todos os 65 candidatos tem system.category === 'class' e nenhum tem trait 'archetype' -- sem ambiguidade archetype-vs-classe, mesmo padrao do Fighter.",
+    "9 dos 65 candidatos (exatamente os 9 compartilhados acima) tambem carregam trait de outra classe (fighter em 7 deles, champion em 1, e Reactive Strike com 6 traits de classe: barbarian/champion/commander/exemplar/guardian/magus/swashbuckler). E a MESMA pergunta em aberto ja levantada pelo Fighter na r21 e repetida por Thaumaturge/Exemplar (ACHADOS-TRANSVERSAIS item 9): o gate de multiclasse deveria virar 'any' entre as classes-trait presentes? Nao decidido aqui.",
+    "'Taunt', 'Intercept Strike' e 'Mitigate Harm' citados na medicao preliminar como reacoes a conferir: 'Intercept Strike' e 'Mitigate Harm' NAO EXISTEM no vendor (varredura em actions/, feats/class/guardian/, feats/class/shared-class-feats/ e class-features/ nao encontrou nenhum arquivo ou ocorrencia de texto 'Mitigate Harm'; o nome real da reacao concedida por Guardian's Techniques e 'Intercept Attack', actions/class/guardian/intercept-attack.json). As duas reacoes reais do kit base (Taunt, actions/class/guardian/taunt.json; Intercept Attack) tem system.rules = [] -- nao carregam nenhum upgrade de proficiencia para deriveProficiencyUpgrades ler. As duas sao referenciadas como prerequisito de texto por 5 feats (ver prerequisites.internalChains) mas, como Guardian's Techniques e Taunt sao ambas features de nivel 1 que TODO guardian recebe, esses prerequisitos sao trivialmente satisfeitos por qualquer personagem guardian -- nao sao gates reais dentro da classe.",
+    "ACHADO NOVO (nao levantado pelo Fighter): a chave de subfeature 'guardian' (igual ao slug da propria classe) aparece em Guardian Expertise (items{} nivel 9, rank2) e Guardian Mastery (items{} nivel 19, rank3), no mesmo padrao ambiguo que o Fighter deixou em aberto para 'fighter'->classDC. Aqui, porem, a pagina do journal RESOLVE a ambiguidade: a secao 'Initial Proficiencies' do journal diz explicitamente 'Class DC: Trained in guardian class DC' como proficiencia inicial de nivel 1. Isso confirma que a chave 'guardian' mapeia para classDC e que o Guardian deveria emitir um classDC inicial (rank 1) -- exatamente a decisao que o relatorio do Fighter deixou nao resolvida. Reportado para a integracao central resolver as duas classes juntas (e verificar se o mesmo texto de journal existe para o Fighter).",
+    "Weapon Expertise (items{} nivel 5) so declara simple+unarmed rank2 em subfeatures.proficiencies; o upgrade de martial rank2 vem de um rule ActiveEffectLike com path 'system.proficiencies.attacks.martial.rank', mode 'upgrade', value 2 (numero literal), predicado {or:['class:champion','class:exemplar','class:guardian','class:investigator','class:magus','class:swashbuckler','class:thaumaturge']} -- ESSE E O MESMO MECANISMO 'Fonte 2' que proficiency-upgrades.mjs (upgradesFromRules/predicateAdmitsClass) ja implementa (comentario do proprio arquivo cita weapon-expertise.json como o caso que obrigou a existencia dessa fonte). Nao precisou de proficiencyUpgradeExtras: a derivacao generica ja cobre este caso sem configuracao extra na curadoria do Guardian.",
+    "levelBasis: 'class' (spec 31 4.3) -- todos os niveis acima (items{}, class feats, prerequisites) sao niveis de classe do Guardian.",
+    "Conferencia nao-circular (R21/R29): nao ha ficha pregen de Guardian em iconics/ (classe nova) -- confirmado, nenhum arquivo em iconics/*/ com 'guardian' no nome/trait. Em vez disso, usei DUAS fontes independentes da estrutura items{}/class-features: (1) o texto/tabela HTML da pagina 'Guardian' em journals/classes.json (Hit Points, Key Attribute, Initial Proficiencies, tabela 'Your Level -> Class Features'), que reproduz de forma redigida a MESMA informacao que o classes/guardian.json estrutural -- usada para confirmar hp, keyAbility, proficiencias iniciais e os 3 niveis divergentes; e (2) o proprio pregen-parity.test.ts, cujo array literal CLASSES_WITHOUT_PREGEN hoje so contem 'Magus' -- publicar o Guardian vai reprovar esse teste ate a lista incluir 'Guardian' tambem (mesmo gate ja documentado pelo Summoner no ACHADOS-TRANSVERSAIS item 7)."
+  ],
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "levelBasis": "class"
+}

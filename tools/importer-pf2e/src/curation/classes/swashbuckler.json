@@ -1,0 +1,131 @@
+{
+  "class": "swashbuckler",
+  "displayName": "Swashbuckler",
+  "vendorClassFile": "classes/swashbuckler.json",
+  "keyAbilityOptions": ["dex"],
+  "hp": 10,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "swashbuckler-style",
+      "featureNameInItemsMap": "Swashbuckler's Style",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 6,
+      "slotType": "style"
+    }
+  ],
+  "classFeats": {
+    "trait": "swashbuckler",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Weapon Specialization",
+      "Weapon Expertise",
+      "Greater Weapon Specialization",
+      "Perception Mastery",
+      "Light Armor Mastery",
+      "Light Armor Expertise",
+      "Fortitude Expertise",
+      "Martial Weapon Mastery"
+    ],
+    "alreadyInPacks": [
+      "Weapon Specialization",
+      "Weapon Expertise",
+      "Greater Weapon Specialization",
+      "Perception Mastery",
+      "Light Armor Mastery",
+      "Light Armor Expertise",
+      "Fortitude Expertise",
+      "Martial Weapon Mastery"
+    ],
+    "missingFromPacks": [
+      "Panache",
+      "Precise Strike",
+      "Confident Finisher",
+      "Stylish Combatant",
+      "Swashbuckler's Style",
+      "Opportune Riposte",
+      "Stylish Tricks",
+      "Vivacious Speed",
+      "Confident Evasion",
+      "Exemplary Finisher",
+      "Swashbuckler Expertise",
+      "Continuous Flair",
+      "Assured Evasion",
+      "Reinforced Ego",
+      "Eternal Confidence",
+      "Keen Flair"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Flying Blade", "precise strike"],
+      ["Twirling Throw", "Flying Blade"],
+      ["Precise Finisher", "Confident Finisher"],
+      ["Flashy Roll", "Flashy Dodge"],
+      ["Dueling Dance (Swashbuckler)", "Extravagant Parry"],
+      ["Reflexive Riposte", "Opportune Riposte"],
+      ["Impossible Riposte", "Opportune Riposte"],
+      ["Parry and Riposte", "Opportune Riposte"],
+      ["Incredible Luck (Swashbuckler)", "Charmed Life"],
+      ["Vivacious Afterimage", "vivacious speed"],
+      ["Flamboyant Leap", "Flamboyant Athlete"],
+      ["Pirouette", "Masquerade of Seasons Stance"],
+      ["Grand Dance", "Masquerade of Seasons Stance"]
+    ],
+    "referencesOutsideSelection": [
+      "Focused Fascination -> Fascinating Performance (feat geral/skill, categoria 'skill', ja em feats-core; nao carrega trait swashbuckler, fica fora do conjunto de classFeats mesmo sendo concedido pelo estilo Battledancer)",
+      "Twinned Defense (Swashbuckler) -> Twin Parry (feat exclusivo do Fighter, trait fighter, fora da selecao do Swashbuckler)"
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "You're Next",
+      "Corpse-Killer's Defiance",
+      "Dazzling Display",
+      "Fane's Fourberie",
+      "Devrin's Dazzling Diversion",
+      "Masquerade of Seasons Stance",
+      "Pirouette",
+      "Reactive Strike",
+      "Stella's Stab and Snag",
+      "Grand Dance",
+      "Knight's Retaliation"
+    ],
+    "collisionsDetected": [
+      "Perception Mastery: nivel generico do arquivo (class-features/perception-mastery.json, system.level.value=7) diverge do nivel no items{} do Swashbuckler (11) -- usar 11.",
+      "Armadilha entry.name != uuid tail (familia Magus/Lightning Reflexes), confirmada em 2 das 24 entradas do items{}: o label 'Vigilant Senses' (items{} nivel 11) aponta pela uuid para a feature canonica 'Perception Mastery' (a mesma da colisao de nivel acima); o label 'Weapon Mastery' (items{} nivel 13) aponta para a feature canonica 'Martial Weapon Mastery' (aqui sem divergencia de nivel: generico 13 == items{} 13). Nome canonico usado em toda parte deste arquivo = segmento final da uuid, nunca entry.name.",
+      "journals/remaster-changes.json (pagina 'Feats') tem exatamente 4 entradas citando Swashbuckler, todas kind 'Renamed': Buckler Expertise->Elegant Buckler, Dueling Parry->Extravagant Parry, Nimble Dodge->Flashy Dodge, Nimble Roll->Flashy Roll. Cruzado contra os 31 textos de system.prerequisites.value dos 73 candidatos (incluindo os 2 que citam justamente Extravagant Parry e Flashy Dodge -- Dueling Dance (Swashbuckler) e Flashy Roll): ZERO usa o nome antigo. Intersecao vazia, registrada como resultado (nao como omissao) -- prerequisiteFixes fica [].",
+      "11 dos 73 candidatos (todos de shared-class-feats, ver dedupe.featsAlreadyInPacks) carregam trait de 2+ classes e JA estao em feats-core, reusados de Barbarian/Bard/Champion/Commander/Exemplar/Fighter/Guardian/Magus/Ranger/Rogue (curados em rodadas anteriores). O gate class_level derivado por trait fica AMBIGUO nesses 11 -- mesma pergunta ja registrada em fighter.json/druid.json/thaumaturge.json, nao resolvida aqui (decisao da integracao central)."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "CONFIRMA a medicao preliminar do orquestrador: hp 10, keyAbility dex (opcao unica, nao par dex-str como Fighter/Exemplar), 24 features no items{} (8 ja nos packs por sourceId: Weapon Specialization, Weapon Expertise, Greater Weapon Specialization, Perception Mastery, Light Armor Mastery, Light Armor Expertise, Fortitude Expertise, Martial Weapon Mastery), 73 class feats candidatos (62 exclusivos em feats/class/swashbuckler/level-*/ + 11 de shared-class-feats com trait swashbuckler, todos os 11 ja em feats-core), eixo swashbuckler-style com 6 opcoes (Battledancer, Braggart, Fencer, Gymnast, Rascal, Wit), sem conjuracao (system.spellcasting=0, 0 magias com trait swashbuckler em 1797 arquivos varridos). E de fato a classe com mais class feats candidatos entre as 12 desta rodada (73 > 67 do Alchemist, o segundo maior citado no PLANO).",
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level sao niveis de CLASSE do Swashbuckler (spec 31 4.3).",
+    "PROFICIENCIAS INICIAIS medidas em classes/swashbuckler.json: perception=2 (expert em L1, incomum -- maioria das classes marciais comeca trained), savingThrows fortitude=1(trained)/reflex=2(expert)/will=2(expert) -- o Swashbuckler comeca com DOIS saves em expert (reflex e will) e so fortitude fica para tras, corrigido em L3 por Fortitude Expertise; attacks simple=1/martial=1/unarmed=1 (trained, advanced=0); defenses light=1/unarmored=1 (trained, medium=0/heavy=0); trainedSkills {value:['acrobatics'], additional:4}; classDC ausente no vendor (mesmo padrao de Fighter/Thaumaturge, transform aplica default 1).",
+    "QUIRK MEDIDO, nao suposto: skillFeatLevels do vendor e [2,3,4,6,7,8,10,12,14,15,16,18,20] (13 entradas), diferente da progressao padrao [2,4,6,8,10,12,14,16,18,20] (10 entradas) que Fighter/Thaumaturge/Druid usam. Tres niveis extras de skill feat (3, 7, 15) alem do padrao -- confirmado lendo system.skillFeatLevels.value diretamente do vendor, nao e erro de transcricao.",
+    "ITEMS{} (24 entradas): 22/24 com entry.name == uuid tail; 2 divergem (ver dedupe.collisionsDetected) -- 'Vigilant Senses'->'Perception Mastery' (tambem diverge em nivel: generico 7, usar 11) e 'Weapon Mastery'->'Martial Weapon Mastery' (sem divergencia de nivel). Nivel 13 e o mais carregado: tres features simultaneas (Assured Evasion, Light Armor Expertise, Martial Weapon Mastery).",
+    "PANACHE E ESTADO DE JOGO, NAO SELECAO (confirmado, nao refutado) -- medido nos 73 candidatos: 31/73 (42%) mencionam panache na descricao ou nas rules; dentro desses, 15/73 usam de fato um PREDICADO mecanizado 'self:effect:panache' num RollOption 'disabledIf' (Derring-Do, Stumbling/Targeting/Mobile/Perfect/Revitalizing/Lethal/Retreating/Unbalancing/Bleeding/Dual/Stunning Finisher, Flamboyant Athlete, Impaling Finisher, Twirling Throw) e mais 2 referenciam o item de efeito diretamente via Note (Elegant Buckler, Flashy Dodge); os 16 restantes so mencionam panache em prosa, sem predicado. ZERO dos 73 usa panache em system.prerequisites.value -- e estado de turno-a-turno (o actor tem ou nao o efeito 'Effect: Panache' ativo agora), nunca um requisito de SELECAO do feat. Nenhum predicado de selecao foi inventado; o texto de estado ficou como esta nas rules/descricao originais (REQ-BC-034).",
+    "DIVIDA DECLARADA -- o 'Effect: Panache' que sustenta o predicado self:effect:panache vive no pack do vendor 'feat-effects' (Compendium.pf2e.feat-effects.Item.Effect: Panache), pasta que NAO faz parte da varredura desta rodada (class-features/feats/spells/journals/iconics, per PLANO 6). A feature 'Panache' (items{} nivel 1, canonica) e um class-feature normal e ENTRA nesta curadoria; o efeito de ATOR que liga/desliga em combate (ganhar/perder panache) e um documento de outro pack, fora do escopo. Sem ele, os 15 feats com predicado self:effect:panache carregam uma condicao que nunca resolve true/false -- registrado para a integracao central decidir se feat-effects entra numa rodada futura.",
+    "FINISHER: 14/73 candidatos carregam o trait 'finisher' (Stumbling/Targeting/Mobile/Perfect/Revitalizing/Lethal/Retreating/Unbalancing/Bleeding/Dual/Illimitable Finisher, Impaling Finisher, Twirling Throw). Nenhuma dependencia INTERNA entre finishers (nenhum finisher tem outro finisher como prerequisite) -- a unica cadeia envolvendo um finisher e Twirling Throw->Flying Blade (Flying Blade nao e finisher). 'Lethal Finisher' (L18) tem prerequisite textual 'precise strike 6d6' -- nao e referencia a documento, e uma condicao de escala de dano da feature Precise Strike (a mesma familia de 'master in Survival'/'Strength +4' que Druid ja registrou); preservado como texto, sem predicado inventado. 'Illimitable Finisher' (L20) e o unico finisher SEM o predicado self:effect:panache (RollOption 'finisher:illimitable' e independente) -- por design ele deixa de exigir panache, e sua descricao referencia @UUID a feature 'Panache' (items{} L1) diretamente, nao o Effect.",
+    "EIXO swashbuckler-style: 6 opcoes confirmadas por varredura completa de otherTags com prefixo 'swashbuckler' nos 842 arquivos de class-features (0 outras opcoes fora das 6). A feature concessora 'Swashbuckler's Style' (items{} nivel 1) e um ChoiceSet com filter ['item:tag:swashbuckler-style'] + GrantItem do escolhido -- mesma forma exata do druid-order. CADA style muda uma pericia DIFERENTE para trained via ActiveEffectLike (path system.skills.<skill>.rank, mode upgrade, value 1): Battledancer->Performance, Braggart->Intimidation, Fencer->Deception, Gymnast->Athletics, Rascal->Thievery, Wit->Diplomacy. MESMA DIVIDA que o Druid registrou para a pericia da ordem: nada no pipeline hoje aplica treino de pericia vindo de uma opcao de eixo escolhida. CONFIRMADO nao-circular pela ficha da Jirelle (iconics/jirelle/): ela escolhe o style Fencer (treina Deception) E tem o class feat 'Goading Feint' (L1, prerequisite 'trained in Deception') -- a propria pregen oficial so faz sentido mecanico SE a pericia do style for aplicada; e prova viva de que a divida nao e so teorica.",
+    "3 dos 6 styles TAMBEM concedem um feat geral/skill gratis via GrantItem com predicate ['class:swashbuckler']: Battledancer->Fascinating Performance, Rascal->Dirty Trick, Wit->Bon Mot (Braggart/Fencer/Gymnast nao concedem feat extra, so a pericia + trait bravado nas acoes). Os 3 alvos JA estao em feats-core (categoria 'skill', trait 'general'+'skill', trazidos por outra curadoria anterior -- nao fazem parte do trait swashbuckler e ficam fora de classFeats mesmo assim). Caminho feliz, sem divida: os 3 documentos ja existem no pack, so falta o consumidor de GrantItem materializa-los (mesmo mecanismo ja usado pelas ordens do Druid).",
+    "classDC RESOLVIDO (diferente da ambiguidade aberta do Fighter, igual ao Thaumaturge): 'Swashbuckler Expertise' (items{} L9) e 'Eternal Confidence' (items{} L19) carregam subfeatures.proficiencies com chave 'swashbuckler' (== slug da classe) mapeando para classDC, com prova TEXTUAL na descricao ('Your proficiency rank for your swashbuckler class DC increases to expert/master'). O doc de classe nao tem system.classDC (confirmado 'classDC' in system -> false, mesmo padrao do Fighter/Thaumaturge), mas transform.mjs ja aplica default 1 -- nenhuma decisao pendente aqui.",
+    "Weapon Expertise (doc compartilhado, ja confirmado por champion.json/magus.json/thaumaturge.json): subfeatures.proficiencies só declara simple+unarmed rank2, mas rules[0] e um ActiveEffectLike com predicate {or:[...,'class:swashbuckler',...]} que TAMBEM sobe weapons.martial para rank2 -- confirmando de novo que a derivacao central precisa ler rules[], nao so subfeatures, para o Swashbuckler tambem.",
+    "TABELA DE proficiencyUpgrades esperada (derivacao automatica a partir de subfeatures+rules, sem necessidade de proficiencyUpgradeExtras): L3 fortitude rank2 (Fortitude Expertise); L5 weapons.simple/unarmed rank2 + weapons.martial rank2 via rules (Weapon Expertise); L7 reflex rank3 (Confident Evasion); L9 classDC rank2 (Swashbuckler Expertise); L11 perception rank3 (Perception Mastery, nivel genérico 7 mas usar 11 -- ver collisionsDetected); L13 armor.light/unarmored rank2 (Light Armor Expertise) + weapons.martial/simple/unarmed rank3 (Martial Weapon Mastery) + reflex rank4 (Assured Evasion); L17 will rank3 (Reinforced Ego); L19 armor.light/unarmored rank3 (Light Armor Mastery) + classDC rank3 (Eternal Confidence). Weapon Specialization (L7) e Greater Weapon Specialization (L15) nao produzem linha (bonus de dano, subfeatures vazio -- mesmo padrao ja visto em Wizard/Sorcerer/Druid/Thaumaturge).",
+    "MULTICLASSE (plano r21 4.1): gate derivado para os 62 exclusivos e class_level:{swashbuckler:{>=:N}}, sem ambiguidade -- 0/62 com trait de outra classe e 0/73 com trait archetype ('Swashbuckler Dedication' nao entra nesta rodada, fora do escopo 9 do plano). Para os 11 compartilhados a ambiguidade any-entre-classes ja esta registrada (ver dedupe.collisionsDetected) e nao resolvida aqui -- mesma pergunta em aberto ha 3 curadorias.",
+    "CONFERENCIA NAO-CIRCULAR (iconics/jirelle/, niveis 1/3/5): confirma o doc de classe ('Swashbuckler'), confirma o style Fencer escolhido em L1 (junto com Goading Feint, Confident Finisher, Panache, Precise Strike, Stylish Combatant -- todas L1 do items{}), confirma Fortitude Expertise/Opportune Riposte/Stylish Tricks/Vivacious Speed entrando em L3 (bate com items{}), confirma Weapon Expertise entrando em L5 (bate com items{}) e o feat compartilhado 'Swaggering Initiative' aparecendo em L5. Nenhuma divergencia entre a ficha da Jirelle e o items{}/classFeats medidos aqui."
+  ]
+}

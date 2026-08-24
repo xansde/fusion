@@ -1,0 +1,154 @@
+{
+  "class": "thaumaturge",
+  "displayName": "Thaumaturge",
+  "vendorClassFile": "classes/thaumaturge.json",
+  "keyAbilityOptions": ["cha"],
+  "hp": 8,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "thaumaturge-implement",
+      "featureNameInItemsMap": "First Implement and Esoterica",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 10,
+      "slotType": "implement"
+    },
+    {
+      "otherTag": "thaumaturge-implement",
+      "featureNameInItemsMap": "Second Implement",
+      "level": 5,
+      "choose": 1,
+      "optionCount": 10,
+      "slotType": "implement"
+    },
+    {
+      "otherTag": "thaumaturge-implement",
+      "featureNameInItemsMap": "Third Implement",
+      "level": 15,
+      "choose": 1,
+      "optionCount": 10,
+      "slotType": "implement"
+    }
+  ],
+  "classFeats": {
+    "trait": "thaumaturge",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [
+      "Initiate Benefit (Amulet)",
+      "Initiate Benefit (Bell)",
+      "Initiate Benefit (Chalice)",
+      "Initiate Benefit (Lantern)",
+      "Initiate Benefit (Mirror)",
+      "Initiate Benefit (Regalia)",
+      "Initiate Benefit (Shield)",
+      "Initiate Benefit (Tome)",
+      "Initiate Benefit (Wand)",
+      "Initiate Benefit (Weapon)"
+    ],
+    "sharedWithOtherClasses": [
+      "Greater Weapon Specialization",
+      "Medium Armor Expertise",
+      "Weapon Mastery",
+      "Weapon Expertise",
+      "Perception Mastery",
+      "Weapon Specialization",
+      "Medium Armor Mastery",
+      "Reflex Expertise"
+    ],
+    "alreadyInPacks": [
+      "Greater Weapon Specialization",
+      "Medium Armor Expertise",
+      "Weapon Mastery",
+      "Weapon Expertise",
+      "Perception Mastery",
+      "Weapon Specialization",
+      "Medium Armor Mastery",
+      "Reflex Expertise"
+    ],
+    "missingFromPacks": [
+      "Unlimited Esoterica",
+      "First Implement and Esoterica",
+      "Second Adept",
+      "Esoteric Lore",
+      "Third Implement",
+      "Implement's Empowerment",
+      "Earned Resilience",
+      "Implement Paragon",
+      "Intensify Vulnerability",
+      "Thaumaturgic Expertise",
+      "Second Implement",
+      "Perfected Mind",
+      "Implement Adept",
+      "Thaumaturgic Mastery",
+      "Exploit Vulnerability",
+      "Disciplined Mind"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Esoteric Warden", "Exploit Vulnerability"],
+      ["Breached Defenses", "Exploit Vulnerability"],
+      ["Cursed Effigy", "Exploit Vulnerability"],
+      ["Trespass Teleportation", "Exploit Vulnerability"],
+      ["Sympathetic Vulnerabilities", "Exploit Vulnerability"],
+      ["Share Weakness", "Exploit Vulnerability"],
+      ["Scroll Esoterica", "Scroll Thaumaturgy"],
+      ["Elaborate Scroll Esoterica", "Scroll Esoterica"],
+      ["Grand Scroll Esoterica", "Elaborate Scroll Esoterica"],
+      ["Elaborate Talisman Esoterica", "Talisman Esoterica"],
+      ["Grand Talisman Esoterica", "Talisman Esoterica"],
+      ["Shared Warding", "Esoteric Warden"],
+      ["Seven-Part Link", "Paired Link"],
+      ["Ubiquitous Weakness", "Share Weakness"],
+      ["Unlimited Demesne", "Thaumaturge's Demesne"],
+      ["Incredible Familiar", "Enhanced Familiar"]
+    ],
+    "referencesOutsideSelection": [
+      "Know-It-All (compartilhado com Bard, traits bard+thaumaturge) exige 'enigma muse' -- aponta para a opção 'Enigma' do eixo de musa do Bard, fora do conjunto do Thaumaturge e fora desta rodada (Bard não está entre as 12 classes curadas em r29). Não resolvido; registrado como referência externa, mesmo padrão do 'Master of Many Styles -> Reflexive Stance (Monk)' do fighter.json.",
+      "Sympathetic Vulnerabilities (L6), Share Weakness (L10) e Twin Weakness (L10) têm uma SEGUNDA entrada em prerequisites.value que não é nome de documento: 'mortal weakness or personal antithesis' / 'mortal weakness'. São os dois MODOS nomeados na descrição da própria feature Exploit Vulnerability (L1) -- 'Mortal Weakness' e 'Personal Antithesis' -- não feats nem features separadas. Preservado como texto, sem predicado inventado (REQ-BC-034).",
+      "Enhanced Familiar (L2, compartilhado com Animist/Druid/Magus/Sorcerer/Witch/Wizard) exige 'a familiar' -- posse de estado, não documento. Mesmo padrão já registrado em druid.json/wizard.json para o mesmo feat.",
+      "Thaumaturge's Investiture (L10) exige 'Charisma +3' -- valor de atributo, não documento. Mesma família de druid.json (Perfect Form Control -> 'Strength +4').",
+      "Esoteric Reflexes (L14) exige 'an implement that grants a reaction' -- posse condicional a QUAL implemento foi escolhido e a qual benefício ele concede (alguns Adept Benefit concedem reação), não um nome de documento fixo. Não mecanizável sem resolver primeiro a árvore dinâmica de Adept/Paragon Benefit (ver notes).",
+      "Wonder Worker (L20) exige 'legendary in Arcana, Nature, Occultism, or Religion' -- proficiência de perícia, disjunção entre 4 perícias (não uma só), não documento."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": ["Familiar", "Enhanced Familiar", "Know-It-All"],
+    "collisionsDetected": [
+      "Perception Mastery: nível genérico do arquivo (system.level.value=7) diverge do nível no items{} do Thaumaturge (9) -- usar 9. Mesma família da armadilha Armor Expertise/Armor Mastery do Fighter e Reflex/Perception Expertise do Champion (arquivo genérico mente).",
+      "Medium Armor Mastery: nível genérico do arquivo (system.level.value=17) diverge do nível no items{} do Thaumaturge (19) -- usar 19.",
+      "Weapon Expertise (doc compartilhado, JÁ em class-features-core, sourceId 9XLUh9iMepZesdmc): subfeatures.proficiencies só declara weapons.simple+weapons.unarmed rank2, mas system.rules[0] é um ActiveEffectLike com predicate {or:[class:champion,class:exemplar,class:guardian,class:investigator,class:magus,class:swashbuckler,class:thaumaturge]} que TAMBÉM sobe weapons.martial para rank2 -- o Thaumaturge ESTÁ no predicate (confirmado por leitura direta do arquivo). Uma derivação que lesse só subfeatures perderia essa linha para o Thaumaturge. NÃO é achado novo: champion.json (linha ~227) e magus.json (linha ~80) já documentaram exatamente este mecanismo e confirmam que a integração central já lê rules[], não só subfeatures.",
+      "classDC: a chave de subfeature 'thaumaturge' em thaumaturgic-expertise.json (L9, rank2) e thaumaturgic-mastery.json (L17, rank3) mapeia para 'classDC' -- e, ao contrário da mesma ambiguidade deixada em aberto no fighter.json, aqui a prova é TEXTUAL: a descrição de ambos os docs diz literalmente 'Your proficiency rank for your thaumaturge class DC increases to expert/master'. O doc de classe do vendor (classes/thaumaturge.json) também não tem system.classDC (igual ao Fighter), mas transform.mjs já aplica default 1 (linha 2035: classDC: src.classDC ?? system.classDC ?? 1) -- portanto NENHUMA decisão pendente aqui.",
+      "4 dos 42 class feats candidatos carregam trait de 2+ classes (Familiar: magus/sorcerer/thaumaturge/wizard; Enhanced Familiar: animist/druid/magus/sorcerer/thaumaturge/witch/wizard; Incredible Familiar: thaumaturge/witch; Know-It-All: bard/thaumaturge) -- mesma ambiguidade do gate class_level já registrada em fighter.json/druid.json (deveria virar 'any' entre as classes do trait?). Nenhum carrega trait archetype.",
+      "attacks.other vazio {name:'',rank:0} e keyAbility de opção única ['cha'] -- sem correção necessária, mesma checagem feita em druid.json.",
+      "choiceAxes repete o mesmo otherTag 'thaumaturge-implement' em 3 entradas (L1/L5/L15) -- nenhuma das 14 classes já curadas repete otherTag em 2+ entradas (Champion/Psychic/Wizard têm 2 eixos, mas com otherTag DIFERENTE cada). Verificado contra curation/index.mjs que isso é seguro com os dados de hoje (ver notes) mas é padrão inédito -- reportado como pergunta em aberto, não decisão."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "PROFICIÊNCIAS INICIAIS medidas em classes/thaumaturge.json: hp=8, keyAbility=['cha'] (opção única, sem par tipo dex/str do Fighter), perception=2 (expert em L1), savingThrows fortitude=2/reflex=1/will=2 (fort e will já EXPERT em L1, reflex apenas trained), attacks simple=1/martial=1/unarmed=1 (advanced=0 -- treinado em martial desde L1, diferente de Druid/Wizard), defenses light=1/medium=1/unarmored=1 (heavy=0), spellcasting=0 (sem conjuração), trainedSkills {value:['arcana','nature','occultism','religion'], additional:3, custom:'Esoteric Lore'}. O campo 'custom' é exclusivo do Thaumaturge entre as classes já lidas -- é a perícia Lore fixa que a class feature 'Esoteric Lore' (L1, items{}) concede via FlatModifier+GrantItem, à parte de trainedSkills.value. featLevels: ancestry [1,5,9,13,17], class [1,2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19].",
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE do Thaumaturge (spec 31 §4.3).",
+    "ITEMS{} (24 entradas, medido em classes/thaumaturge.json): nome canônico da uuid == entry.name em 24/24 (sem a armadilha do Magus/Champion, onde entry.name diverge da uuid tail -- confirmado por comparação direta v.name===uuid.split('.').pop() para as 24). 8 das 24 JÁ estão em class-features-core, reusadas de outras classes: Greater Weapon Specialization, Medium Armor Expertise, Weapon Mastery, Weapon Expertise, Perception Mastery, Weapon Specialization, Medium Armor Mastery, Reflex Expertise. As 16 restantes são exclusivas do Thaumaturge e faltam: Unlimited Esoterica, First Implement and Esoterica, Second Adept, Esoteric Lore, Third Implement, Implement's Empowerment, Earned Resilience, Implement Paragon, Intensify Vulnerability, Thaumaturgic Expertise, Second Implement, Perfected Mind, Implement Adept, Thaumaturgic Mastery, Exploit Vulnerability, Disciplined Mind.",
+    "EIXO thaumaturge-implement -- 10 opções (Amulet, Bell, Chalice, Lantern, Mirror, Regalia, Shield, Tome, Wand, Weapon), TODAS com category='classfeature'/level=1/otherTags=['thaumaturge-implement'] no vendor (confirmado lendo os 10 arquivos diretamente) e NENHUMA das 10 já em class-features-core (0/10 por sourceId). Diferente das ordens do Druid, os 10 docs NÃO vêm com level zerado. A escolha se REPETE em 3 pontos de concessão distintos do items{} da classe: 'First Implement and Esoterica' (L1), 'Second Implement' (L5), 'Third Implement' (L15) -- os três filtram exatamente pelo mesmo otherTag (system.rules[].choices.filter=['item:tag:thaumaturge-implement'], confirmado lendo os três docs) e NENHUM exclui implementos já escolhidos por predicate. CONFERÊNCIA INDEPENDENTE (iconics/mios/): a ficha pregen oficial do Thaumaturge (Mios) prova a repetição na prática -- nível 1 ele escolhe Lantern (features 'First Implement and Esoterica' + 'Lantern' + 'Initiate Benefit (Lantern)' + \"Implement's Empowerment\"), nível 5 ele escolhe Weapon, um implemento DIFERENTE do primeiro (features somam 'Second Implement' + 'Weapon' + 'Initiate Benefit (Weapon)' + 'Weapon Expertise'). Confirma que o eixo reabre no nível 5, que dá para escolher implemento diferente do já escolhido, e que cada pick auto-concede 'Initiate Benefit (<Implemento>)'.",
+    "INADEQUAÇÃO DO SCHEMA (pergunta para integração central): choiceAxes é um array de objetos com UM 'level' cada -- não há como declarar 'mesmo otherTag, 3 níveis de concessão, sem repetir opção escolhida' num único objeto. Representei como TRÊS entradas de choiceAxes com o MESMO otherTag ('thaumaturge-implement'), featureNameInItemsMap diferente por entrada (as três features concessoras do items{}), optionCount=10 e choose=1 em todas. Li (não rodei) curation/index.mjs e transform.mjs para checar que isso é SEGURO com os dados de hoje: (a) axisCategoryByOtherTag()/axisLevelByOtherTag() são Maps por otherTag -- as 3 entradas escrevem o MESMO valor de category ('implement', derivado deterministicamente de axisCategoryFromOtherTag), sem conflito; (b) axisLevelByOtherTag() só é consultado por transform.mjs quando o level BRUTO do doc-opção é 0 (mecanismo criado para as ordens zeradas do Druid) -- os 10 docs de implemento já vêm com level=1 (não-zerado) no vendor, então esse fallback nunca dispara para eles hoje e o 'último valor escrito' no Map (a entrada processada por último no array) fica dormente, não usado; (c) transform.test.mjs (lido, não executado) filtra opções por category e soma optionCount por eixo -- como as 3 entradas apontam para a mesma category, a asserção '10 opções no pack' seria checada 3 vezes de forma redundante, sem quebrar. NENHUMA das 14 classes já curadas repete o mesmo otherTag em 2+ entradas de choiceAxes (Champion/Psychic/Wizard têm 2 eixos cada, mas com otherTag DIFERENTE) -- é padrão inédito. Pergunta: essa é a representação desejada, ou o schema precisa de um campo tipo 'grantLevels:[1,5,15]' num único objeto de eixo (mudaria validateClassCuration, fora do escopo desta rodada)?",
+    "A ÁRVORE Adept/Paragon (dívida declarada -- achado além do previsto no plano): cada um dos 10 docs de implemento, ao ser escolhido, concede automaticamente e SEM escolha extra o doc 'Initiate Benefit (<Implemento>)' (10 docs, category classfeature, trait thaumaturge, level 1, nenhum ainda em packs -- confirmado por sourceId). Sem esses 10 docs o próprio pick de implemento fica mecanicamente incompleto -- a ficha do Mios confirma que ele carrega o Initiate Benefit junto do implemento escolhido. Trouxe os 10 via classFeatures.extraNames (não são alcançados por fromItemsMap nem pela varredura de otherTag do eixo, porque eles mesmos não carregam 'thaumaturge-implement'). ALÉM disso, cada implemento também empurra uma entrada dinâmica para a flag do ator flags.system.thaumaturge.adeptChoices (via ActiveEffectLike mode:'add', confirmado em amulet.json) apontando para 'Adept Benefit (<Implemento>)'. Essa lista SÓ existe em tempo de jogo, computada a partir de quais implementos o personagem JÁ tem. As features 'Implement Adept' (L7) e 'Second Adept' (L11) -- ambas já no items{} da classe e portanto já trazidas por fromItemsMap -- são ChoiceSets cujas opções vêm dessa flag dinâmica (system.rules[].choices === a STRING 'flags.system.thaumaturge.adeptChoices', não um array/filtro estático), e 'Implement Paragon' (L17, também no items{}) lê 'flags.system.thaumaturge.paragonChoices' do mesmo jeito. Os 20 docs-alvo (10 'Adept Benefit (*)' + 10 'Paragon Benefit (*)', nenhum em packs) NÃO entraram nesta curadoria: não há como expressar 'opções calculadas em tempo de execução a partir de escolhas anteriores' no choiceAxes atual (que espera um otherTag ESTÁTICO), e forçar via extraNames deixaria os 20 docs no pack sem consumidor capaz de oferecer a escolha certa (a lista de opções válidas muda por personagem). Dívida declarada, sem predicado inventado (REQ-BC-034) -- é o 'miolo mecânico provavelmente não mecanizável agora' que o plano antecipou, só que a peça mais dura não é Exploit Vulnerability (mecanizável como ação simples, ver nota seguinte), é este sistema Adept/Paragon de 3 camadas.",
+    "EXPLOIT VULNERABILITY (feature L1, items{}, sourceId uwLNfBprqZw2osTb): concede a ação 'Exploit Vulnerability' via um único GrantItem (rules=['GrantItem']) -- a ação em si não tem sub-mecanismo estruturado no vendor. A descrição nomeia DOIS modos ('Mortal Weakness', 'Personal Antithesis') que são escolhas de efeito dentro da própria ação, não documentos. Referenciada como pré-requisito por 6 feats (Esoteric Warden, Breached Defenses, Cursed Effigy, Trespass Teleportation, Sympathetic Vulnerabilities, Share Weakness) -- a feature em si entra em internalChains; os dois modos citados como segunda exigência em Sympathetic Vulnerabilities/Share Weakness/Twin Weakness ficam em referencesOutsideSelection, como texto preservado.",
+    "FOCUS SPELLS / CONJURAÇÃO: zero. system.spellcasting do doc de classe = 0 (confirmado); varredura das 1797 magias do vendor por trait 'thaumaturge' retornou 0 arquivos. spellcasting: null, focusSpells: {names:[], alreadyInPacks:[]}.",
+    "CLASS FEATS: 42 candidatos totais -- 38 exclusivos em feats/class/thaumaturge/level-*/ (distribuição por nível: L1=6, L2=4, L4=4, L6=3, L8=2, L10=3, L12=4, L14=3, L16=3, L18=3, L20=3) + 4 de shared-class-feats com trait thaumaturge (Familiar L1, Enhanced Familiar L2, Incredible Familiar L8, Know-It-All L8). Todos category='class'. 3 dos 4 compartilhados JÁ estão em feats-core por sourceId (Familiar, Enhanced Familiar, Know-It-All -- trazidos por Magus/Sorcerer/Wizard/Bard, já curados). O que falta é 'Incredible Familiar' (trait thaumaturge+witch): NENHum dos dois traits pertence a uma classe já curada (nem Thaumaturge nem Witch estavam curados antes desta rodada), então ele nunca entrou -- passa a entrar agora pelo trait thaumaturge desta curadoria.",
+    "PRÉ-REQUISITOS: 22 dos 42 candidatos têm system.prerequisites.value não vazio. 16 resolvem para um nó DENTRO do conjunto (14 puros + 2 mistos que também carregam um segundo texto não mecanizável -- Sympathetic Vulnerabilities e Share Weakness). 1 aponta para fora do conjunto curado (Know-It-All -> 'enigma muse', opção de musa do Bard). 5 são puramente não-mecanizáveis (Enhanced Familiar, Thaumaturge's Investiture, Twin Weakness, Esoteric Reflexes, Wonder Worker). Medido explicitamente: NENHUM dos 42 feats tem prerequisites.value citando o NOME de um implemento específico (ex.: 'Wand' ou 'Amulet') -- ao contrário do que a hipótese de 'feat condicionado ao implement escolhido' sugeria, os únicos gates ligados a implemento são textos de REQUISITOS EM TEMPO DE JOGO ('You're holding an implement', 'an implement that grants a reaction'), não prerequisites.value de seleção, e por isso não bloqueiam a disponibilidade do feat na ficha -- só o efeito dele em jogo.",
+    "MULTICLASSE (plano §8): gate {\"class_level\":{\"thaumaturge\":{\">=\":N}}} para os 38 feats exclusivos, sem ambiguidade. Os 4 compartilhados têm a mesma ambiguidade 'any entre as classes do trait' já registrada em fighter.json/druid.json (Familiar: 4 classes; Enhanced Familiar: 7 classes; Incredible Familiar: 2; Know-It-All: 2). Nenhum feat com trait archetype. 'Thaumaturge Dedication' (arquétipo de multiclasse) não entra nesta rodada -- fora do escopo (plano §9).",
+    "CONFERÊNCIA COM O ICONIC (Mios, packs/iconics/mios/mios-level-{1,3,5}.json -- fonte independente, não o próprio pack sendo montado): bate 100% com a curadoria medida. Feats na ficha: Root to Life (L1) e Diverse Lore (L1) já no L1; Turn Away Misfortune (feat L2 no vendor) aparece na ficha do L3; Paired Link (feat L4 no vendor) aparece na ficha do L5 -- ambos consistentes com 'ganho até este nível', não 'ganho neste nível exato'. Features na ficha: First Implement and Esoterica + Esoteric Lore + Exploit Vulnerability + Implement's Empowerment no L1 (todos items{} L1); +Reflex Expertise no L3 (items{} L3); +Second Implement e Weapon Expertise no L5 (items{} L5). Nenhuma divergência encontrada.",
+    "REBUILD: as 10 opções do eixo (Amulet..Weapon) só entram em class-features-core pelo ramo axisCategories.has(doc.system.category) de isClassFeaturesCoreDoc -- exige rodar transform.mjs com classes E class-features no MESMO --packs, com esta curadoria no disco (mesma advertência que druid.json já registrou); rodar só um pack antigo deixa o eixo com 0 opções."
+  ]
+}

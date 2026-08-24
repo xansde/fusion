@@ -1,0 +1,128 @@
+{
+  "class": "investigator",
+  "displayName": "Investigator",
+  "vendorClassFile": "classes/investigator.json",
+  "keyAbilityOptions": ["int"],
+  "hp": 8,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "investigator-methodology",
+      "featureNameInItemsMap": "Methodology",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 5,
+      "slotType": "methodology"
+    }
+  ],
+  "classFeats": {
+    "trait": "investigator",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Perception Legend",
+      "Fortitude Expertise",
+      "Martial Weapon Mastery",
+      "Weapon Expertise",
+      "Perception Mastery",
+      "Light Armor Mastery",
+      "Greater Weapon Specialization",
+      "Light Armor Expertise",
+      "Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Perception Legend",
+      "Fortitude Expertise",
+      "Martial Weapon Mastery",
+      "Weapon Expertise",
+      "Perception Mastery",
+      "Light Armor Mastery",
+      "Greater Weapon Specialization",
+      "Light Armor Expertise",
+      "Weapon Specialization"
+    ],
+    "missingFromPacks": [
+      "Deductive Improvisation",
+      "Dogged Will",
+      "On the Case",
+      "Keen Recollection",
+      "Methodology",
+      "Investigator Expertise",
+      "Savvy Reflexes",
+      "Master Detective",
+      "Devise a Stratagem",
+      "Strategic Strike",
+      "Skillful Lessons",
+      "Greater Dogged Will"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Ongoing Strategy", "Strategic Strike"],
+      ["Suspect of Opportunity", "Person of Interest"],
+      ["Didactic Strike", "Shared Stratagem"],
+      ["Implausible Purchase (Investigator)", "Predictive Purchase (Investigator)"],
+      ["Lead Investigator", "Clue Them All In"],
+      ["Just the Facts", "Thorough Research"],
+      ["Greenwatcher", "Defy Fey"],
+      ["Defy Fey", "Greenwatch Initiate"],
+      ["Fey Tracker", "Greenwatch Initiate"]
+    ],
+    "referencesOutsideSelection": [
+      "NOME DE OPÇÃO DE EIXO em minúsculas — 6 talentos apontam para uma opção de `investigator-methodology` pelo texto (nome da metodologia em minúsculas, sem a palavra 'Methodology'): Empiricist's Eye (L12) -> 'empiricism methodology'; Make 'Em Sweat (L12) -> 'interrogation methodology'; Share Tincture (L12) -> 'alchemical sciences methodology'; Surgical Shock (L12) -> 'forensic medicine methodology'; Alchemical Discoveries (L4) -> 'alchemical sciences methodology'; Scalpel's Point (L4) -> 'forensic medicine methodology'. É o MESMO formato já registrado em druid.json para 'animal order'/'leaf order'/etc (texto == nome da opção em minúsculas, sem a armadilha de sufixo do Psychic). Nenhum consumidor hoje lê pré-requisito de opção de eixo; fica declarado, sem predicado inventado.",
+      "DISJUNÇÃO em UMA entrada: 'Lie Detector' (L4) -> 'empiricism or interrogation methodology' — o vendor escreve as duas metodologias alternativas numa string só (mesma forma já registrada em druid.json para 'flame stone storm or wave order'), não duas entradas lidas erroneamente como AND (issue #30).",
+      "ATRIBUTO DO NÓ (proficiência de perícia), não referência a documento — 4 casos: 'Athletic Strategist' (L2) -> 'trained in Athletics'; 'Strategic Repose' (L4) -> 'trained in Religion'; 'Greenwatch Initiate' (L4, compartilhado com Gunslinger/Ranger) -> 'trained in Survival'; 'Blind-Fight' (L8, compartilhado com Fighter/Ranger/Rogue) -> 'master in Perception'. Preservados como texto, sem predicado inventado (REQ-BC-034)."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "Trap Finder",
+      "Greenwatcher",
+      "Sense the Unseen",
+      "Reconstruct the Scene",
+      "Trickster's Ace",
+      "Greenwatch Initiate",
+      "Defy Fey",
+      "Fey Tracker",
+      "Blind-Fight",
+      "Greenwatch Veteran",
+      "Unseen Passage"
+    ],
+    "collisionsDetected": [
+      "Fortitude Expertise: nível genérico do arquivo (system.level.value=3) diverge do nível no items{} do Investigator (9) -- usar 9. Mesma família da armadilha Armor Expertise/Armor Mastery do Fighter e Perception Mastery/Medium Armor Mastery do Thaumaturge (arquivo genérico mente). As outras 20 entradas do items{} NÃO divergem do nível genérico (medido 1 a 1).",
+      "CINCO divergências entry.name x uuid tail (o padrão do Magus) -- a PIOR taxa medida até agora entre as classes já curadas (Fighter 0/16, Druid 0/17, Thaumaturge 0/24): 'Vigilant Senses' (items{} L7) -> uuid aponta para classfeatures.Item.'Perception Mastery'; 'Weapon Mastery' (items{} L13) -> uuid aponta para 'Martial Weapon Mastery'; 'Incredible Senses' (items{} L13) -> uuid aponta para 'Perception Legend'; 'Greater Weapon Specialization (Level 15)' (items{} L15) -> uuid aponta para 'Greater Weapon Specialization'; 'Light Armor Mastery (Level 19)' (items{} L19) -> uuid aponta para 'Light Armor Mastery'. Usado o nome canônico (segmento final da uuid) em TODO lugar deste arquivo -- casar por entry.name criaria 5 documentos fantasma.",
+      "Weapon Expertise (doc compartilhado, JÁ em class-features-core, sourceId 9XLUh9iMepZesdmc): subfeatures.proficiencies só declara weapons.simple+weapons.unarmed rank2, mas system.rules[0] é um ActiveEffectLike com predicate {or:[class:champion,class:exemplar,class:guardian,class:investigator,class:magus,class:swashbuckler,class:thaumaturge]} que TAMBÉM sobe weapons.martial para rank2 -- Investigator ESTÁ no predicate (confirmado por leitura direta). NÃO é achado novo: champion.json, magus.json e thaumaturge.json já documentaram exatamente este mecanismo; citado aqui só para confirmar que a derivação central já lê rules[], não só subfeatures. Sem essa leitura, o Investigator ficaria com weapons.martial preso em rank1 (trained) entre o L5 e o L13 (Martial Weapon Mastery), quando na verdade sobe para expert no L5 junto de simple/unarmed.",
+      "classDC: a chave de subfeature 'investigator' em investigator-expertise.json (L9, rank2) e master-detective.json (L19, rank3) mapeia para 'classDC' -- prova TEXTUAL em ambos os docs ('Your proficiency rank for your investigator class DC increases to expert/master'). O doc de classe do vendor (classes/investigator.json) não tem system.classDC (igual a Fighter/Thaumaturge), mas transform.mjs já aplica default 1 -- nenhuma decisão pendente aqui, mesmo caso resolvido do Thaumaturge.",
+      "Eixo investigator-methodology tem 5 opções, e a 5a ('Palatine Detective') carrega otherTags=['class-archetype','investigator-methodology'] -- é o MESMO padrão de 'Battle Creed' no eixo cleric-doctrine (doc de arquétimo -- Palatine Eye -- reusando a otherTag de eixo de uma classe core). A política já fixada pela integração central (r22, ver cleric.json) para esse padrão é INCLUIR a opção de arquétipo no optionCount, não excluir ('nada é descartado, requisito sugere, nunca bloqueia' -- mesmo critério de Avenger/Bloodrager/Runelord/Vindicator). optionCount=5 (Alchemical Sciences, Empiricism, Forensic Medicine, Interrogation, Palatine Detective), seguindo essa política. Palatine Detective concede 'Quick Identification' (feat geral, já em feats-core) e um GrantItem condicional (self:level>=2) para 'Palatine Detective Dedication' (feat de arquétipo, fora dos packs) -- mesma dívida aceita de Battle Harbinger Dedication no cleric.json.",
+      "11 dos 56 class feats candidatos carregam trait de 2+ classes -- são exatamente os 11 de shared-class-feats (Trap Finder: investigator+rogue; Greenwatcher/Greenwatch Initiate/Defy Fey/Fey Tracker/Greenwatch Veteran/Unseen Passage: gunslinger+investigator+ranger; Sense the Unseen: investigator+ranger+rogue; Reconstruct the Scene/Trickster's Ace: investigator+rogue; Blind-Fight: fighter+investigator+ranger+rogue) e TODOS os 11 já estão em feats-core, reusados de Rogue/Ranger/Gunslinger/Fighter (as 4 classes já curadas com o trait correspondente e includeSharedClassFeats:true). Mesma ambiguidade do gate class_level já registrada em fighter.json/druid.json/thaumaturge.json -- não resolvida aqui, decisão da integração central. Nenhum dos 56 carrega trait archetype.",
+      "'Implausible Purchase (Investigator)' (L16) exige 'Predictive Purchase' no texto do vendor, mas o doc real é 'Predictive Purchase (Investigator)' (L6) -- o vendor omite o sufixo desambiguador '(Investigator)' que ele mesmo usa no nome do documento (Rogue tem sua própria 'Predictive Purchase (Rogue)'/'Implausible Purchase (Rogue)'). Mesma família de druid.json ('Mature Animal Companion (Druid)') e psychic.json -- candidato a prerequisiteFixes kind 'rename', NÃO aplicado nesta rodada pelo mesmo motivo (mudaria a prosa pt-BR sem que nada na ficha-alvo dependa disso).",
+      "journals/remaster-changes.json (página 'Feats') tem EXATAMENTE 1 entrada para Investigator: 'Red Herring' -> Renamed -> 'Eliminate Red Herrings'. Cruzado contra os 56 candidatos: o doc já existe no vendor com o nome NOVO ('Eliminate Red Herrings', L1, um dos 45 exclusivos) e NENHUM dos 20 prerequisites.value medidos cita o nome antigo 'Red Herring' -- interseção zero com prerequisiteFixes, resultado registrado conforme pedido (zero interseção também é resultado).",
+      "attacks.other vazio {name:'',rank:0} e keyAbility de opção única ['int'] -- sem correção necessária, mesma checagem feita em druid.json/thaumaturge.json. Attacks iniciais JÁ incluem martial=1 (trained) desde o L1 -- diferente de Fighter/Druid/Thaumaturge, o Investigator nasce treinado em armas marciais, não só simples.",
+      "skillFeatLevels E skillIncreaseLevels do doc de classe (classes/investigator.json) são IDÊNTICOS: ambos [2,3,4,5,...,20] (19 níveis, todo nível de 2 a 20), medido diretamente do JSON bruto do vendor (não é bug do script de leitura -- conferido por grep no arquivo cru). A cadência extra de SKILL FEAT é explicada pela class feature 'Skillful Lessons' (items{} L3, rules=[] -- puramente textual: 'At 3rd level and every odd-numbered level thereafter, you gain a skill feat'), que casa com REQ-MCL-043 (spec 30, 'cadência extra concedida pela classe'). MAS a cadência extra de SKILL INCREASE (normal seria só [3,5,7,...,19], 9 níveis) não tem NENHUMA class feature textual correspondente entre as 21 do items{} -- nenhuma das 21 descrições menciona 'skill increase'. REQ-MCL-043 cita 'Investigador: skill increase' (não skill feat) como a cadência extra documentada -- o dado medido sugere que é o OPOSTO ou AMBOS: skillFeatLevels tem explicação textual clara (Skillful Lessons), skillIncreaseLevels não tem nenhuma. Divergência entre o dado medido e o texto da spec 30 -- reportada, não resolvida (esses dois campos não fazem parte do schema de curadoria; são lidos direto do doc de classe pelo transform, então não há nada a corrigir AQUI, só a registrar para quem for reconciliar a spec 30 com o dado real)."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "PROFICIÊNCIAS INICIAIS medidas em classes/investigator.json: hp=8, keyAbility=['int'] (opção única), perception=2 (expert em L1), savingThrows fortitude=1(trained)/reflex=2(expert)/will=2(expert), attacks simple=1/martial=1/unarmed=1 (trained, advanced=0 -- treinado em martial desde L1, diferente de Druid/Wizard/Thaumaturge), defenses light=1/unarmored=1 (trained, medium=0/heavy=0 -- nunca chega a armadura média), spellcasting=0 (sem conjuração), trainedSkills {value:['society'], additional:4} (a perícia extra da metodologia é ALÉM disso, ver METODOLOGIA abaixo). featLevels: ancestry [1,5,9,13,17], class [1,2,4,6,8,10,12,14,16,18,20] (feat de classe já no L1, como Fighter/Ranger/Gunslinger), general [3,7,11,15,19]; skillFeatLevels e skillIncreaseLevels são um achado próprio, ver dedupe.collisionsDetected (cadência estendida [2..20] nos dois campos, só skillFeatLevels tem explicação textual).",
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE do Investigator (spec 31 §4.3).",
+    "ITEMS{} (21 entradas, medido em classes/investigator.json, CONFIRMA a medição preliminar): nome canônico da uuid == entry.name em 16/21 -- as 5 divergências (a maior taxa medida até agora nesta rodada) estão detalhadas em dedupe.collisionsDetected. 9 das 21 JÁ estão em class-features-core, reusadas de outras classes (listadas em classFeatures.alreadyInPacks, usando SEMPRE o nome canônico, nunca o entry.name do Investigator). As 12 restantes são exclusivas e faltam: Deductive Improvisation, Dogged Will, On the Case, Keen Recollection, Methodology, Investigator Expertise, Savvy Reflexes, Master Detective, Devise a Stratagem, Strategic Strike, Skillful Lessons, Greater Dogged Will.",
+    "METODOLOGIA (eixo investigator-methodology, L1) -- a armadilha citada na tarefa, medida a fundo: a feature concessora 'Methodology' (items{} L1) é um ChoiceSet filtrado por otherTag 'investigator-methodology' + GrantItem do escolhido. Medi as 5 opções uma a uma: Alchemical Sciences (crafting rank1 FIXO + GrantItem feat 'Alchemical Crafting' + GrantItem ação 'Quick Tincture' + GrantItem equipamento 'Formula Book (Blank)' + SpecialResource 'Versatile Vials' -- é o kit do Alchemist inteiro, ver dívida abaixo); Empiricism (GrantItem feat 'That's Odd' + GrantItem ação 'Expeditious Inspection' + ChoiceSet de perícia entre arcana/crafting/occultism/society + upgrade rank1 na escolhida); Forensic Medicine (medicine rank1 FIXO + GrantItem feat 'Forensic Acumen' + GrantItem feat 'Battle Medicine'); Interrogation (diplomacy rank1 FIXO + GrantItem feat 'No Cause for Alarm' + GrantItem ação 'Pointed Question'); Palatine Detective (arquétipo, ver dedupe -- ChoiceSet occultism/religion + upgrade + GrantItem feat 'Quick Identification' + GrantItem condicional da Dedication). RESULTADO-CHAVE: TODOS os documentos concedidos (Alchemical Crafting, Battle Medicine, Forensic Acumen, No Cause for Alarm, Quick Identification -- feats gerais de perícia, categoria 'skill', NÃO 'class'; Quick Tincture, Expeditious Inspection, Pointed Question, Devise a Stratagem, Pursue a Lead, Clue In -- ações; Formula Book (Blank) -- equipamento) JÁ EXISTEM em feats-core/actions-core/equipment-core (confirmado por sourceId, um a um) -- vieram do import completo do SRD, não de curadoria por classe. 'That's Odd' também já está nos 45 exclusivos do Investigator (feat de classe pickável independentemente da metodologia). CONCLUSÃO PARA A ARMADILHA: ao contrário do Thaumaturge (cujos 10 'Initiate Benefit (*)' são docs NOVOS que exigiram classFeatures.extraNames), a Metodologia do Investigator NÃO precisa de nenhum extraNames -- nenhum documento concedido está faltando nos packs. O único ponto NÃO mecanizado é o treino de perícia FIXO por metodologia (Alchemical Sciences->crafting, Forensic Medicine->medicine, Interrogation->diplomacy) e a escolha de perícia da Empiricism/Palatine Detective -- mesma dívida já registrada em druid.json para 'perícia da ordem não aplicada' (nenhum consumidor hoje aplica proficiência por opção de eixo). Devise a Stratagem (items{} L1) é uma AÇÃO com mecânica de rolagem antecipada (rola 1d20 agora, substitui o resultado num ataque ou teste de perícia futuro -- 'Attack Stratagem'/'Skill Stratagem') -- não é uma seleção, é comportamento de combate; incluída via fromItemsMap como feature (que só concede a ação via GrantItem), sem tentar mecanizar a rolagem antecipada em si (fora do escopo de curadoria de conteúdo, dívida declarada sem predicado inventado).",
+    "CLASS FEATS: 56 candidatos totais -- 45 exclusivos em feats/class/investigator/level-*/ (L1=7, L2=6, L4=7, L6=4, L8=3, L10=3, L12=7, L14=2, L16=2, L18=1, L20=3 -- soma 45) + 11 de shared-class-feats com trait investigator (todos já em feats-core, ver dedupe.featsAlreadyInPacks e collisionsDetected para a lista de qual classe trouxe cada um). CONFIRMA os 56 e os 11 já-em-pack da medição preliminar EXATAMENTE.",
+    "PRÉ-REQUISITOS: 20 dos 56 candidatos têm system.prerequisites.value não vazio. 9 resolvem para DENTRO do conjunto (feat ou feature própria do Investigator, ver prerequisites.internalChains). 11 são referências a opção do eixo methodology em minúsculas (6 diretas + 1 disjunção contando 2 metodologias) ou atributo de perícia não-mecanizável (4) -- ver prerequisites.referencesOutsideSelection. ZERO apontam para uma classe diferente do Investigator (diferente de Fighter->Monk e Thaumaturge->Bard) -- resultado medido, registrado mesmo sendo 'nenhum achado'.",
+    "FOCUS SPELLS / CONJURAÇÃO: zero. system.spellcasting do doc de classe = 0 (confirmado); varredura das 1797 magias do vendor por trait 'investigator' retornou 0 arquivos. spellcasting: null, focusSpells: {names: [], alreadyInPacks: []}.",
+    "MULTICLASSE (plano §8): gate {\"class_level\":{\"investigator\":{\">=\":N}}} para os 45 feats exclusivos, sem ambiguidade. Os 11 compartilhados têm a mesma ambiguidade 'any entre as classes do trait' já registrada em fighter.json/druid.json/thaumaturge.json -- não resolvida aqui. Nenhum feat com trait archetype. 'Investigator Dedication' (arquétipo de multiclasse) não entra nesta rodada (fora do escopo §9 do plano).",
+    "CONFERÊNCIA COM O ICONIC (Quinn, packs/iconics/quinn/quinn-level-{1,3,5}.json -- fonte independente, não-circular): bate com a curadoria medida. L1: Quinn tem On the Case + Methodology + Devise a Stratagem + Strategic Strike (items{} L1) + Empiricism Methodology + That's Odd (GrantItem da Empiricism) + Known Weaknesses (feat de classe pickável, L1) -- confirma que a metodologia escolhida (Empiricism) concede exatamente o que a leitura do arquivo previu. L3: ganha Keen Recollection + Skillful Lessons (items{} L3) + feats de nível ímpar extra via Skillful Lessons (Read Lips, Quiet Allies) -- confirma a cadência extra de skill feat na prática. L5: ganha Weapon Expertise (items{} L5) + Clever Improviser/Untrained Improvisation/Dirty Trick/Glean Contents (feats extras via Skillful Lessons em L3/L5 combinados) -- consistente com 'skill feat todo nível ímpar desde L3'. Nenhuma divergência encontrada contra a curadoria.",
+    "CONFERÊNCIA COM O WAYBUILDER: tentei cruzar contra ~/pessoal/Wayfinder/pipeline/base/index.json (20083 registros) -- ZERO entradas para Investigator (nenhuma chave contendo 'investigator', maiúsculo ou minúsculo). Diferente do Druid (que bateu 100% no chassi), o Waybuilder simplesmente não cobre esta classe -- não serve de segunda fonte aqui; a conferência independente ficou só com o iconic (Quinn), que já é suficiente e não-circular.",
+    "REBUILD: a opção do eixo (Alchemical Sciences..Palatine Detective) só entra em class-features-core pelo ramo axisCategories.has(doc.system.category) de isClassFeaturesCoreDoc -- exige rodar transform.mjs com classes E class-features no MESMO --packs, com esta curadoria no disco (mesma advertência que druid.json/thaumaturge.json já registraram); rodar só um pack antigo deixa o eixo com 0 opções."
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "class": "exemplar",
+  "displayName": "Exemplar",
+  "vendorClassFile": "classes/exemplar.json",
+  "keyAbilityOptions": ["dex", "str"],
+  "hp": 10,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "exemplar-ikon",
+      "featureNameInItemsMap": "Divine Spark and Ikons",
+      "level": 1,
+      "choose": 3,
+      "optionCount": 21,
+      "slotType": "ikon"
+    },
+    {
+      "otherTag": "exemplar-root-epithet",
+      "featureNameInItemsMap": "Root Epithet",
+      "level": 3,
+      "choose": 1,
+      "optionCount": 6,
+      "slotType": "rootEpithet"
+    },
+    {
+      "otherTag": "exemplar-dominion-epithet",
+      "featureNameInItemsMap": "Dominion Epithet",
+      "level": 7,
+      "choose": 1,
+      "optionCount": 8,
+      "slotType": "dominionEpithet"
+    },
+    {
+      "otherTag": "exemplar-sovereignty-epithet",
+      "featureNameInItemsMap": "Sovereignty Epithet",
+      "level": 15,
+      "choose": 1,
+      "optionCount": 4,
+      "slotType": "sovereigntyEpithet"
+    }
+  ],
+  "classFeats": {
+    "trait": "exemplar",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Shield Block",
+      "Weapon Expertise",
+      "Perception Expertise",
+      "Perception Mastery"
+    ],
+    "alreadyInPacks": [
+      "Shield Block",
+      "Weapon Expertise",
+      "Perception Expertise",
+      "Perception Mastery"
+    ],
+    "missingFromPacks": [
+      "Burnished Armor Mastery",
+      "Divine Premonition",
+      "Sovereignty Epithet",
+      "Greater Spirit Striking",
+      "Mortality Reforged",
+      "Deific Mastery",
+      "Root Epithet",
+      "Greater Unassailable Soul",
+      "Divine Weapon Mastery",
+      "Burnished Armor Expertise",
+      "Spirit Striking",
+      "Humble Strikes",
+      "Unassailable Soul",
+      "Dominion Epithet",
+      "Divine Spark and Ikons",
+      "Godly Expertise"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [["Remake the World", "Strike Rivers, Seize Winds"]],
+    "referencesOutsideSelection": [
+      "CINCO pre-requisitos textuais apontam para o NOME DE UMA OPCAO do eixo exemplar-dominion-epithet em minusculas -- mesmo formato do druid-order (texto == nome da opcao em minusculas, ver druid.json), nao mecanizado porque nada hoje le pre-requisito de opcao de eixo. Casos (todos L8, um nivel apos Dominion Epithet L7): 'As a Thousand Soldiers' -> \"plunderer of the hive's riches\"; 'Battle Hymn to the Lost' -> \"of verse unbroken or peerless under heaven\" (disjuncao, vendor escreve as duas opcoes numa string so, sem marcador OR estruturado); 'Forward Gaze Into Life' -> \"trespasser in death's realm\"; 'Raise Island' -> \"born of the bones of the earth or restless as the tide\" (disjuncao); 'Rejoice in Solstice Storm' -> \"whose cry is thunder or dancer in the seasons\" (disjuncao). Juntos os 5 textos cobrem as 8 das 8 opcoes de exemplar-dominion-epithet.",
+      "'Vow of Mortal Defiance' (L1) -> \"You are not sanctified with the holy or unholy trait\": condicao NEGATIVA de trait do personagem, nao referencia nenhum documento -- nao mecanizavel nesta rodada, sem predicado inventado (REQ-BC-034)."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": ["Lightning Swap", "Reactive Strike"],
+    "collisionsDetected": [
+      "Perception Expertise: nivel generico do arquivo (system.level=3) diverge do nivel no items{} do Exemplar (9) -- usar 9.",
+      "Perception Mastery: nivel generico do arquivo (system.level=7) diverge do nivel no items{} do Exemplar (17) -- usar 17.",
+      "'Reactive Strike' e NOME DUPLO em pastas/categorias distintas do vendor: existe a class-feature 'Reactive Strike' (class-features/reactive-strike.json, category classfeature, concedida automaticamente ao Fighter e outras via items{} -- NAO faz parte do items{} do Exemplar) e o class FEAT 'Reactive Strike' (feats/class/shared-class-feats/level-6/reactive-strike.json, category class, trait inclui exemplar -- um dos 49 candidatos desta curadoria, ja em feats-core por sourceId NMWXHGWUcZGoLDKb). Dois documentos diferentes com o mesmo nome; identidade por sourceId, nunca por nome (mesma familia do homonimo 'Untamed Form' que druid.json ja documentou)."
+    ]
+  },
+  "notes": [
+    "POR QUE O EXEMPLAR (r29): uma das 12 classes sem curadoria fechadas pela r21/r22. E classe pos-remaster recente (War of Immortals, pg. 28) sem baggage de versao legada -- nada presumido por analogia com classes antigas; toda medicao abaixo veio de leitura direta do vendor.",
+    "PROFICIENCIAS INICIAIS medidas em classes/exemplar.json: hp=10, keyAbility=['dex','str'] (par, sem ordem preferencial), perception=1 (trained em L1), savingThrows fortitude=2/reflex=1/will=2 (fort e will JA expert em L1, reflex so trained -- padrao raro, so 2 saves fortes desde o inicio), attacks simple=1/martial=1/unarmed=1 (advanced=0), defenses light=1/medium=1/unarmored=1 (heavy=0), trainedSkills {value:['religion'], additional:3}, spellcasting=0 (nao conjura), classDC ausente no doc do vendor (ver nota classDC abaixo). featLevels: ancestry [1,5,9,13,17], class [1,2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19] -- identicos ao Fighter (mesmo perfil marcial de 11 class-feat-levels).",
+    "CONFERENCIA INDEPENDENTE (fonte 2, fora do vendor pf2e e fora deste pack): o Exemplar NAO TEM ficha iconica em vendor/pf2e/packs/pf2e/iconics/ (classe nova demais para este snapshot) -- ao contrario de Fighter/Druid/Thaumaturge, nao ha pregen oficial para cruzar. A UNICA fonte independente disponivel e o registro `wb:class/exemplar` do waybuilder do Igor (~/pessoal/Wayfinder/pipeline/base/index.json), que bate CAMPO A CAMPO com a leitura do vendor: hp_per_level=10, perception trained, fort expert/reflex trained/will expert, simple+martial+unarmed trained/advanced untrained, light+medium+unarmored trained/heavy untrained, skill_training {auto:['religion'], free:3}, os quatro feat_slot e o skill_increase, key_ability [dex,str], spellcasting=false. Nenhuma divergencia.",
+    "ITEMS{} (20 entradas, medido em classes/exemplar.json): nome canonico da uuid == entry.name em 20/20 (sem a armadilha do Magus/Champion, confirmado por comparacao direta v.name===uuid.split('.').pop() para as 20). 4 das 20 JA estao em class-features-core, reusadas de outras classes por sourceId: Shield Block, Weapon Expertise, Perception Expertise, Perception Mastery. As 16 restantes sao exclusivas do Exemplar. DUAS features tem nivel divergente entre o generico do arquivo e o nivel real no items{} (o generico mente, mesmo padrao do Fighter/Champion): Perception Expertise (generico 3, Exemplar 9) e Perception Mastery (generico 7, Exemplar 17) -- ver dedupe.collisionsDetected. CONFERIDO NIVEL A NIVEL contra o `progressao` do waybuilder (20 entradas, wb:class-feature/<slug> por nivel): bate exatamente, incluindo as duas divergencias (perception-expertise em L9, perception-mastery em L17 no registro dele tambem) -- fonte independente, nao o proprio pack sendo montado.",
+    "WEAPON EXPERTISE (L5) -- MARCIAL NAO E LACUNA, CONFERIDO: subfeatures.proficiencies do doc compartilhado so lista simple+unarmed rank2, mas class-features/weapon-expertise.json tem um rules[0] ActiveEffectLike (mode:upgrade, path:system.proficiencies.attacks.martial.rank, value:2) com predicate {or:[class:champion,class:exemplar,class:guardian,class:investigator,class:magus,class:swashbuckler,class:thaumaturge]} -- Exemplar ESTA no predicate (leitura direta do arquivo). E EXATAMENTE o mesmo mecanismo ja documentado em champion.json (linha ~227), magus.json (linha ~80) e thaumaturge.json (linha ~130): a derivacao generica (proficiency-upgrades.mjs) ja le rules[] como segunda fonte, alem de subfeatures.proficiencies. Rodei deriveProficiencyUpgrades de verdade (mesma funcao importada por transform.mjs) contra os dados do vendor para esta classe: 20 linhas de upgrade, `missing: []`, `ignoredRules: []` -- zero gaps, nenhum proficiencyUpgradeExtras necessario. Tabela completa: L5 weapons.simple/unarmed rank2 (subfeatures) + weapons.martial rank2 (rule); L7 will rank3 (Unassailable Soul); L9 perception rank2 (Perception Expertise, nivel usado=9), reflex rank2 (Divine Premonition), classDC rank2 (Godly Expertise); L13 armor.light/medium/unarmored rank2 (Burnished Armor Expertise), weapons.simple/martial/unarmed rank3 (Divine Weapon Mastery), will rank4 (Greater Unassailable Soul); L15 fortitude rank3 (Mortality Reforged); L17 classDC rank3 (Deific Mastery), perception rank3 (Perception Mastery, nivel usado=17); L19 armor.light/medium/unarmored rank3 (Burnished Armor Mastery). Will chega a LEGENDARY em L13 (Greater Unassailable Soul) -- unico stat que chega a rank4; medido, nao suposto, mas sem segunda fonte alem do proprio vendor+waybuilder para essa linha especifica (nenhum dos dois tem tabela de rank por nivel pronta, so o rules[]/subfeatures cru).",
+    "CLASSDC (Godly Expertise L9 rank2, Deific Mastery L17 rank3) -- AMBIGUIDADE DO RELATORIO DO FIGHTER (r21) RESOLVIDA, NAO SE APLICA AQUI: medi os 27 docs de classe do vendor e NENHUM (nem Magus, nem Kineticist) tem campo system.classDC -- a suposicao do relatorio do Fighter de que Magus/Kineticist tem 'classDC:1' no doc nao se confirma pela leitura direta. transform.mjs:2035 ja aplica `classDC: src.classDC ?? system.classDC ?? 1` como default UNIFORME para toda classe, e proficiency-upgrades.mjs ja documenta a regra 'qualquer chave de subfeatures que nao seja save/perception/spellcasting/arma/armadura e o slug da propria classe, e vira classDC'. A chave 'exemplar' em Godly Expertise/Deific Mastery cai exatamente nessa regra -- confirmado pela mesma rodada real de deriveProficiencyUpgrades (L9 classDC rank2, L17 classDC rank3). Nenhuma pergunta em aberto aqui.",
+    "OS 7 GRUPOS DE otherTags NAO SAO 7 EIXOS -- SAO 4: medi a intersecao real dos 21 arquivos com otherTags incluindo 'exemplar-ikon' e confirmei que exemplar-worn-ikon(8) + exemplar-weapon-ikon(9) + exemplar-body-ikon(4) = 21 particiona exatamente o conjunto exemplar-ikon (todo doc worn/weapon/body TAMBEM tem exemplar-ikon; todo doc exemplar-ikon tem EXATAMENTE um subtipo). As 3 ChoiceSets de 'Divine Spark and Ikons' (e a 4a, do feat 'Additional Ikon' L8) filtram TODAS por 'item:tag:exemplar-ikon' -- nunca pelos subtipos. Varri feats+class-features+actions+equipment inteiros procurando 'exemplar-worn-ikon'/'exemplar-weapon-ikon'/'exemplar-body-ikon' fora dos 21 docs conhecidos: ZERO ocorrencias -- os subtipos sao metadado descritivo (ex.: 'ikon de corpo nao pode ser desarmada'), nunca criterio de escolha. Por isso o axis declarado e SO 'exemplar-ikon' (choose:3, 21 opcoes), nao 4 eixos de ikon. CONFIRMADO por fonte independente: ~/pessoal/Wayfinder/pipeline/base/relatorio_eixo_de_ikon.md (pipeline do Igor, escrito sem consultar esta curadoria) registra os mesmos numeros -- 1 classe com o eixo, 21 opcoes, escolhe 3, prosa 'Select three ikons', e explicitamente nota que o 4o ikon vem do feat wb:feat/additional-ikon (= nosso 'Additional Ikon', L8, um dos 49 candidatos) e NAO faz parte do eixo base.",
+    "OS 3 EPITHETS NAO SE ANINHAM (diferente da hipotese de 'idem aos ikons' aventada na medicao preliminar): root-epithet(L3,6 opcoes)/dominion-epithet(L7,8 opcoes)/sovereignty-epithet(L15,4 opcoes) sao 3 eixos PARALELOS e INDEPENDENTES, cada um ligado a sua propria class-feature em seu proprio nivel do items{} -- verificado que nenhum doc carrega mais de uma das 3 tags (zero cross-tagging) e que os niveis dentro de cada grupo sao uniformes (3/7/15 respectivamente). CONFIRMADO por 2 fontes independentes do waybuilder: relatorio_eixo_por_tag.md (root:L3/6opcoes, dominion:L7/8opcoes, sovereignty:L15/4opcoes -- numeros identicos) e relatorio_subclasses.md ('Exemplar: progressao 38 -> 20 concedidas; outras-opcoes 6@L3, 8@L7, 4@L15').",
+    "'Additional Ikon' (L8, um dos 49 class feats candidatos) tem sua PROPRIA ChoiceSet filtrando 'item:tag:exemplar-ikon' (4o ikon, alem dos 3 da class-feature base) -- nao modelado em choiceAxes.choose (que fica em 3, so a concessao base); mesma familia de divida 'feat concede uma escolha' que bard.json ja documentou para as muses (a-feat-concede-feat-de-graca) -- registrado, nao resolvido.",
+    "Ao menos uma opcao de eixo tem SUA PROPRIA sub-escolha aninhada: 'Born of the Bones of the Earth' (exemplar-dominion-epithet) tem um ChoiceSet literal de 2 itens (earth/fire, flag 'energizedSpark') que concede o feat 'Energized Spark' pre-selecionado -- mesma forma da 'Voice of Nature' do Druid (lista literal, nao filtro declarativo). NAO auditado exhaustivamente nas 39 opcoes de eixo (21 ikon + 6 root + 8 dominion + 4 sovereignty); classificar cada uma fica para quem for wiring os eixos, mesma pendencia que druid.json ja registrou para choiceSetInventory.ts.",
+    "IMANENCIA/TRANSCENDENCIA -- A DIVIDA CENTRAL DA CLASSE, DECLARADA E NAO MECANIZADA: 'Divine Spark and Ikons' concede a acao 'Shift Immanence' (GrantItem, Compendium.pf2e.actionspf2e.Item.Shift Immanence) que move a 'divine spark' do personagem entre os ikons escolhidos. Cada ikon tem um efeito PASSIVO (immanence, ativo so enquanto a spark esta nele) e uma acao ATIVA (transcendence, que EXPULSA a spark do ikon ao ser usada). Isso e ESTADO por-ikon (qual ikon tem a spark agora), nao um predicado estatico -- nao existe hoje vocabulario de predicado/efeito no Fusion para 'a spark esta neste item'. Praticamente toda feature de nivel alto do Exemplar referencia esse estado (Spirit Striking, Unassailable Soul, Divine Weapon Mastery, Burnished Armor Expertise/Mastery, Godly Expertise, Deific Mastery todas mencionam ikon/spark na prosa). Nenhum predicado foi inventado (REQ-BC-034); os 21 documentos de ikon e as features entram no pack como TEXTO correto, mas a mecanica de troca de spark fica de fora, igual ao companheiro animal do Druid e ao eidolon do Summoner.",
+    "'Shift Immanence' (a acao GrantItem acima) esta arquivada no vendor em actions/class/commander/shift-immanence.json (pasta ERRADA -- ela carrega trait ['divine','exemplar'], nao 'commander') -- provavel artefato de organizacao do PDF de origem (War of Immortals mistura Commander e Exemplar no mesmo capitulo). Nao afeta o pack: isActionsCoreDoc (build-mvp-subset.mjs) seleciona por system.fusionCategory='class', nao pela pasta, entao a acao entra automaticamente no actions-core independente desta curadoria. Registrado so para quem procurar a acao pela pasta 'exemplar' e nao achar.",
+    "CLASS FEATS: 49 candidatos (47 exclusivos em feats/class/exemplar/level-*/ + 2 de shared-class-feats com trait exemplar: 'Lightning Swap' L2 e 'Reactive Strike' L6). 2/49 ja em feats-core por sourceId (os mesmos 2 compartilhados -- Lightning Swap tambem tem trait fighter, Reactive Strike tambem tem trait barbarian/champion/commander/guardian/magus/swashbuckler). Zero nomes duplicados dentro dos 49, zero sufixo '(Exemplar)' de desambiguacao (nenhum outro doc do vendor colide por nome com os 47 exclusivos). Zero candidatos com trait 'archetype' -- a cadeia de dedicacao 'Exemplar Dedication' (com feats como 'Exemplar Resiliency', confirmado no vendor em feats/archetype/exemplar/exemplar-resiliency.json) vive numa pasta TOTALMENTE separada (feats/archetype/exemplar/, nao feats/class/exemplar/) e corretamente NAO aparece nos 49 candidatos -- consistente com o plano §9 (arquetipos de multiclasse ficam de fora desta rodada). Distribuicao por nivel: L1=4, L2=4, L4=5, L6=6, L8=6, L10=5, L12=4, L14=3, L16=5, L18=4, L20=3 (soma 49).",
+    "PRE-REQUISITOS: 7/49 candidatos. 1 cadeia interna (Remake the World L20 exige Strike Rivers, Seize Winds L16, ambos no conjunto dos 49). 5 apontam para nome de opcao de exemplar-dominion-epithet em minusculas (ver prerequisites.referencesOutsideSelection). 1 e condicao de trait negativa, nao mecanizavel (Vow of Mortal Defiance). ZERO apontam para fora do conjunto do Exemplar (nenhuma referencia a feat/feature de outra classe, diferente do 'Master of Many Styles->Reflexive Stance (Monk)' do Fighter).",
+    "MULTICLASSE (plano r21 §4.1): gate derivado trait exemplar + category:class -> class_level:{exemplar:>=N}. 2/49 candidatos carregam trait de 2+ classes (Lightning Swap: +fighter; Reactive Strike: +barbarian/champion/commander/guardian/magus/swashbuckler) -- mesma ambiguidade 'any entre as classes do trait' ja registrada por fighter.json/champion.json, nao re-decidida aqui.",
+    "CONJURACAO: zero. spellcasting=0 no doc do vendor; varredura de spells/**/*.json por trait 'exemplar' retornou 0 arquivos -- Exemplar nao tem magias de foco nem tradicao."
+  ],
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {}
+}

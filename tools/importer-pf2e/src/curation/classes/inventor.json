@@ -1,0 +1,209 @@
+{
+  "class": "inventor",
+  "displayName": "Inventor",
+  "vendorClassFile": "classes/inventor.json",
+  "levelBasis": "class",
+  "keyAbilityOptions": ["int"],
+  "hp": 8,
+  "choiceAxes": [
+    {
+      "otherTag": "inventor-innovation",
+      "featureNameInItemsMap": "Innovation",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 4,
+      "optionNames": [
+        "Armor Innovation",
+        "Construct Innovation",
+        "Light Mortar Innovation",
+        "Weapon Innovation"
+      ],
+      "category": "innovation",
+      "slotType": "innovation",
+      "notes": "optionCount=4 MEDIDO: os 4 arquivos de class-features/ com traits.otherTags 'inventor-innovation' (armor-innovation.json, construct-innovation.json, light-mortar-innovation.json, weapon-innovation.json). O granter e class-features/innovation.json (items{} nivel 1, chave canonica 'Innovation'), cujo ChoiceSet filtra exatamente por ['item:tag:inventor-innovation'] e cujo GrantItem seguinte resolve '{item|flags.system.rulesSelections.innovation}' -- igual ao mecanismo ja documentado no gunslinger.json para 'gunslinger-way'. MESMO PADRAO do Gunslinger tambem na 4a opcao: 'Light Mortar Innovation' carrega TAMBEM a otherTag 'class-archetype' (publicacao 'Pathfinder Battlecry!', nao Guns & Gears) -- e um ajuste de 'Munitions Master' que troca a inovacao normal por um mortar leve E reordena Inventive Expertise (9->7) e Inventive Mastery (17->15) via subfeatures.suppressedFeatures, alem de forcar o feat de nivel 2 para 'Munitions Master Dedication' (GrantItem condicionado a self:level>=2). Pela politica ja estabelecida na r21/r22/r29 (gunslinger.json: 'nada e descartado; requisito sugere, nunca bloqueia'), CONTA como 4a opcao real do eixo -- e devidamente mais complexa que as outras 3 (ver notes[] para o que fica de divida)."
+    }
+  ],
+  "classFeats": {
+    "trait": "inventor",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": [],
+    "measuredTotal": 54,
+    "measuredExclusiveDir": 54,
+    "measuredSharedWithInventorTrait": 0,
+    "byLevel": {
+      "1": 7,
+      "2": 6,
+      "4": 6,
+      "6": 6,
+      "8": 6,
+      "10": 5,
+      "12": 6,
+      "14": 4,
+      "16": 3,
+      "18": 3,
+      "20": 2
+    }
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Shield Block",
+      "Weapon Specialization",
+      "Reflex Expertise",
+      "Perception Expertise",
+      "Medium Armor Mastery",
+      "Greater Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Shield Block",
+      "Weapon Specialization",
+      "Reflex Expertise",
+      "Perception Expertise",
+      "Medium Armor Mastery",
+      "Greater Weapon Specialization"
+    ],
+    "missingFromPacks": [
+      "Peerless Inventor",
+      "Explode",
+      "Overdrive",
+      "Innovation",
+      "Reconfigure",
+      "Expert Overdrive",
+      "Inventor Weapon Expertise",
+      "Breakthrough Innovation",
+      "Master Overdrive",
+      "Inventive Expertise",
+      "Offensive Boost",
+      "Medium Armor Expertise (Inventor)",
+      "Churning Mind",
+      "Complete Reconfiguration",
+      "Inventor Weapon Mastery",
+      "Revolutionary Innovation",
+      "Legendary Overdrive",
+      "Anvil's Hardness",
+      "Inventive Mastery",
+      "Infinite Invention"
+    ],
+    "levelDivergences": [
+      {
+        "feature": "Reflex Expertise",
+        "genericFileLevel": 3,
+        "inventorItemsMapLevel": 7,
+        "sourceGenericFile": "class-features/reflex-expertise.json (system.level.value)",
+        "sourceInventorLevel": "classes/inventor.json system.items{}",
+        "decision": "usar 7 (nivel do items{} da classe). O arquivo generico assume o nivel de outra classe (ex.: Champion concede em 3); o Inventor concede a mesma feature 4 niveis depois."
+      },
+      {
+        "feature": "Perception Expertise",
+        "genericFileLevel": 3,
+        "inventorItemsMapLevel": 13,
+        "sourceGenericFile": "class-features/perception-expertise.json (system.level.value)",
+        "sourceInventorLevel": "classes/inventor.json system.items{}",
+        "decision": "usar 13 (nivel do items{} da classe). Maior divergencia de nivel encontrada nesta rodada (10 niveis de distancia) -- o arquivo generico assume o nivel de uma classe que concede muito mais cedo (ex.: Champion/Cleric)."
+      },
+      {
+        "feature": "Medium Armor Mastery",
+        "genericFileLevel": 17,
+        "inventorItemsMapLevel": 19,
+        "sourceGenericFile": "class-features/medium-armor-mastery.json (system.level.value)",
+        "sourceInventorLevel": "classes/inventor.json system.items{}",
+        "decision": "usar 19 (nivel do items{} da classe). Mesma divergencia (17->19) que gunslinger.json ja registrou para a propria classe -- confirmada de forma independente aqui."
+      }
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": {
+    "names": [],
+    "alreadyInPacks": [],
+    "notes": "Zero. system.spellcasting do doc de classe = 0; varredura das 1796 magias do vendor por trait 'inventor' = 0 arquivos. O Inventor nao conjura e nao tem pool de foco."
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Contingency Gadgets", "Gadget Specialist"],
+      ["Gigavolt", "Megavolt"],
+      ["Shared Overdrive", "Overdrive Ally"],
+      ["Ubiquitous Overdrive", "Shared Overdrive"],
+      ["Xidao Sea Mine Drop", "Diving Armor"],
+      ["Gigaton Strike", "Megaton Strike"],
+      ["Incredible Construct Companion", "Advanced Construct Companion"],
+      ["Ubiquitous Gadgets", "Gadget Specialist"],
+      ["Overdrive Ally", "Overdrive"],
+      ["Distracting Explosion", "Offensive Boost"],
+      ["Helpful Tinkering", "Offensive Boost"],
+      ["Boost Modulation", "Offensive Boost"],
+      ["Persistent Boost", "Offensive Boost"],
+      ["Dual-Form Weapon", "Expert Overdrive"],
+      ["Paragon Companion", "Incredible Construct Companion"]
+    ],
+    "axisOptionReferences": [
+      ["No! No! I Created You!", "Construct Innovation"],
+      ["Advanced Construct Companion", "Construct Innovation"],
+      ["Electrify Armor", "Armor Innovation"],
+      ["Geobukseon Retaliation", "Armor Innovation"],
+      ["Lock On", "Construct Innovation"],
+      ["Celestial Cacophony", "Weapon Innovation"],
+      ["Explosive Maneuver", "Weapon Innovation"],
+      ["Soaring Armor", "Armor Innovation"],
+      ["Devastating Weaponry", "Weapon Innovation"],
+      ["Engine of Destruction", "Construct Innovation"],
+      ["Negate Damage", "Armor Innovation"],
+      ["Collapse Armor", "Armor Innovation"],
+      ["Collapse Construct", "Construct Innovation"],
+      ["Oil Fire", "Armor Innovation"],
+      ["Wukong Extension", "Weapon Innovation"],
+      ["Diving Armor", "Armor Innovation"],
+      ["Dual-Form Weapon", "Weapon Innovation"],
+      ["Duo Dragon Kick", "Construct Innovation"],
+      ["Construct Shell", "Construct Innovation"],
+      ["Full Automation", "{any: [Armor Innovation, Construct Innovation, Weapon Innovation]}"],
+      ["Megaton Strike", "{any: [Armor Innovation, Construct Innovation, Weapon Innovation]}"],
+      ["Clockwork Celerity", "{any: [Armor Innovation, Construct Innovation, Weapon Innovation]}"],
+      ["Silk Bracelet", "{any: [Armor Innovation, Construct Innovation, Weapon Innovation]}"],
+      ["Guardian Lion Roar", "{any: [Armor Innovation, Construct Innovation, Weapon Innovation]}"]
+    ],
+    "measuredInternalChainCount": 15,
+    "measuredAxisOptionReferenceCount": 24,
+    "measuredFeatsWithPrereqText": 41,
+    "referencesOutsideSelection": [
+      "Manifold Modifications -> 'initial modification': referencia DINAMICA a arvore de modificacoes (46 docs de class-feature com otherTags weapon-innovation-modification/armor-innovation-modification, granted via ChoiceSet+allowedDrops em armor-innovation.json/weapon-innovation.json/breakthrough-innovation.json/revolutionary-innovation.json), que esta DECLARADA COMO DIVIDA nesta curadoria (ver notes[]) -- nao ha um doc fixo para apontar, o requisito e 'ter QUALQUER modificacao inicial', nao mecanizavel enquanto a arvore nao entrar no pack."
+    ],
+    "nonMechanizable": {
+      "count": 2,
+      "pattern": "'trained/expert in Crafting' (Reverse Engineer -> trained in Crafting; Gadget Specialist -> expert in Crafting)."
+    }
+  },
+  "prerequisiteFixes": [
+    {
+      "featName": "Paragon Companion",
+      "kind": "rename",
+      "from": "Incredible Companion",
+      "to": "Incredible Construct Companion"
+    }
+  ],
+  "dedupe": {
+    "featsAlreadyInPacks": [],
+    "collisionsDetected": [
+      "entry.name != nome canonico da uuid (mesmo padrao ja documentado no gunslinger.json): o items{} do Inventor, entrada de nivel 15, tem entry.name 'Greater Weapon Specialization (Level 15)' e uuid '...classfeatures.Item.Greater Weapon Specialization'. Casar por entry.name criaria documento FANTASMA com sufixo '(Level 15)'; classFeatureNameFromUuid resolve corretamente para 'Greater Weapon Specialization', ja em class-features-core (compartilhado com 12 outras classes).",
+      "Medium Armor Expertise (Inventor) NAO e um caso de nome divergente -- e um ARQUIVO PROPRIO do vendor (class-features/medium-armor-expertise-inventor.json, _id esyKPSDbFQPB4lhq), mecanicamente IDENTICO ao generico Medium Armor Expertise (class-features/medium-armor-expertise.json, _id esyKPSDbFQPB4lhq != TUOeATt52P43r5W0 do generico -- ids DIFERENTES, ambos nivel 11, mesmo subfeatures.proficiencies {light:2,medium:2,unarmored:2}). O vendor optou por duplicar o documento em vez de reusar o generico usado por Alchemist/Barbarian/Druid/Gunslinger/Magus/Ranger. Tratado como feature EXCLUSIVA do Inventor (nao entra em sharedWithOtherClasses), por R2/identidade-por-sourceId: e um doc diferente, ainda que a regra mecanica seja a mesma.",
+      "3 divergencias de nivel generico x items{} (ver classFeatures.levelDivergences para o detalhe completo): Reflex Expertise (3->7), Perception Expertise (3->13, a MAIOR distancia medida nesta rodada), Medium Armor Mastery (17->19, mesma divergencia ja vista no gunslinger.json)."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "MEDICAO PRELIMINAR DO ORQUESTRADOR CONFIRMADA em quase tudo, com UMA correcao: hp=8, keyAbility=['int'], eixo inventor-innovation com 4 opcoes -- confirmados. items{} tem 26 entradas (o maior volume da rodada) com 6 ja nos packs -- confirmado. Class feats: 54 exclusivos + 0 de shared-class-feats (candidato total 54) -- CONFIRMADO, nao refutado (ver item seguinte). A unica correcao e de detalhe, nao de numero: o plano cita '0 ja em feats-core' -- medido e confirmado tambem (0/54 por sourceId E por nome).",
+    "ANOMALIA 'zero feats compartilhados e zero ja nos packs' -- CONFIRMADA, explicada, nao e defeito de medicao. Duas medicoes independentes provam: (a) varredura recursiva de feats/class/shared-class-feats/level-*/ (113 arquivos) filtrando trait 'inventor' = 0 resultados -- nenhum feat compartilhado do vendor carrega o trait inventor; (b) varredura dos 54 feats exclusivos do Inventor procurando um SEGUNDO trait de classe (barbarian/bard/champion/.../witch/wizard) = 0 resultados -- nenhum feat do Inventor tem trait de outra classe tambem (compare: Thaumaturge tem 4/42 assim, Fighter tem 38/110). Ou seja, nao e que a medicao errou -- e que o livro Guns & Gears (e as expansoes posteriores) NUNCA deram ao Inventor um feat cross-classe (nem Familiar, nem Enhanced Familiar, nem nenhum dos padroes que Thaumaturge/Witch/Sorcerer compartilham). O Inventor e a UNICA das 12 classes desta rodada com esse isolamento total. Confirma tambem que 0/54 tem trait 'archetype' -- nenhum e feat de dedicacao.",
+    "A INOVACAO E UM ITEM (armadura/arma/construto), nao so uma feature -- confirmado e medido em detalhe. 'Armor Innovation' concede, via ChoiceSet+GrantItem, uma de DUAS armaduras-base do vendor (Compendium.pf2e.equipment-srd.Item.Power Suit / Subterfuge Suit, ambas nivel 0) -- NENHUMA das duas esta em systems/pf2e/packs/equipment-core/documents.json hoje (249 docs, 0 match por nome). MESMA DIVIDA DE CONTEUDO que o Alchemist ja registrou para os itens base de formula. 'Weapon Innovation' concede uma arma simples/marcial de nivel 0 escolhida pelo jogador (ChoiceSet sobre o inventario de armas, nao um item fixo -- sem divida aqui, o filtro e generico). 'Construct Innovation' nao concede item nenhum (rules=[{ActiveEffectLike override innovationId null}]) -- o 'item' dela e o proprio companheiro de construto (fora do escopo desta rodada, junto com companheiro animal/eidolon, conforme PLANO.md secao 9).",
+    "ARVORE DE MODIFICACOES (Initial/Breakthrough/Revolutionary Weapon/Armor Modification) -- DIVIDA DECLARADA, medida com precisao, NAO incluida em classFeatures nem em choiceAxes. Sao 46 docs UNICOS de class-feature (dedup: 'Rune Capacity' carrega as duas tags weapon+armor) espalhados em 3 niveis -- L1 (18 docs, 'initial'), L7 (14 docs, 'breakthrough', concedido pela feature ja presente no items{} 'Breakthrough Innovation'), L15 (14 docs, 'revolutionary', concedido por 'Revolutionary Innovation', tambem ja no items{}) -- 0/46 ja em class-features-core. O granter (armor-innovation.json/weapon-innovation.json/breakthrough-innovation.json/revolutionary-innovation.json) resolve a lista de opcoes por um ChoiceSet com allowedDrops + predicate DINAMICO sobre tags do proprio innovation escolhido (ex.: 'weapon-innovation:melee', 'weapon-innovation:category:advanced', '{not: feature:dense-plating}' para excluir modificacao ja escolhida) -- exatamente a MESMA classe de limitacao que o item 4 do ACHADOS-TRANSVERSAIS ja registrou para o Thaumaturge (arvore Adept/Paragon): 'opcoes calculadas em tempo de execucao a partir de escolhas anteriores' nao tem representacao em choiceAxes hoje. Diferente do Thaumaturge, aqui a filtragem depende NAO SO da escolha do eixo mas de PROPRIEDADES do item escolhido dentro dela (que arma; se e corpo-a-corpo; se e avancada) -- um grau a mais de dinamismo. Forcar via extraNames traria 46 docs sem consumidor capaz de oferecer a escolha certa, mesmo raciocinio que o Thaumaturge ja registrou para Adept/Paragon.",
+    "CONSTRUCT INNOVATION tem sua PROPRIA lista de 7 modificacoes iniciais (Accelerated Mobility, Amphibious Construction, Increased Size, Manual Dexterity, Projectile Launcher, Sensory Array, Wonder Gears) mas -- ao contrario de weapon/armor -- elas NAO sao documentos separados: estao em PROSA (bullet list) dentro da propria description de construct-innovation.json, sem nenhum @UUID apontando para class-feature nenhuma. Dai a divida aqui e DIFERENTE e MAIOR: nem como 46 docs existentes-mas-nao-linkados (caso weapon/armor); precisaria de TRANSCRICAO do texto para virar mecanica, o que esta fora do escopo de levantamento (§9 do PLANO: 'o que nao da pra mecanizar agora... vira nota explicita').",
+    "LIGHT MORTAR INNOVATION (a 4a opcao do eixo) tem sua PROPRIA lista de modificacoes tambem em prosa (Contained Shrapnel, Enhanced Shrapnel, Spring-Loaded / Blanching Chamber, Earthbreaker, Narrow Blast / Enhanced Damage, Impossible Alloy, Precise Blast) -- mesma divida de transcricao do Construct. Alem disso ela SUPRIME e REORDENA duas features ja presentes no items{} (Inventive Expertise 9->7, Inventive Mastery 17->15, via subfeatures.suppressedFeatures) e FORCA 'Munitions Master Dedication' como feat obrigatorio de nivel 2 -- nenhuma dessas 3 mudancas de progressao esta refletida no classFeatures/classFeats desta curadoria (que segue o items{} PADRAO da classe, sem o ajuste de Munitions Master). Registrado como divida explicita: um personagem que escolher Light Mortar Innovation na ficha do Fusion vai ver a progressao errada (Inventive Expertise em 9, nao 7) ate a integracao central decidir como representar variantes de progressao por opcao de eixo -- MESMA extensao de contrato que cleric.json (Cloistered vs Warpriest) e gunslinger.json (Way of the Spellshot muda atributo do class DC) ja pediram.",
+    "UNSTABLE / OVERDRIVE -- confirmado como mecanica de risco por uso, DIVIDA DECLARADA, sem predicado inventado. 'Overdrive' (items{} L1) concede a acao 'Overdrive' (actions/class/inventor/overdrive.json): Check[crafting] com DC de nivel, 4 graus de sucesso (critico: dano extra por 1 minuto + acao trava por 1 minuto; sucesso: metade do dano extra; falha: 1 dano de fogo extra; falha critica: dano de fogo ao PROPRIO inventor + acao trava 1d4 rodadas). O trait 'unstable' e formal no vendor -- 7 dos 54 feats do Inventor o carregam (Explosive Leap, Haphazard Repair, Geobukseon Retaliation, Oil Fire, Searing Restoration, Wukong Extension, Clockwork Celerity), todos ligados a variacoes do Overdrive. Nada disto tem onde morar no schema de curadoria hoje (nao e proficiencyUpgrade, nao e choiceAxes, nao e classDC) -- fica como nota, igual ao Overdrive/Explode ja citados no items{} sem rules[] especiais alem de GrantItem da acao.",
+    "PEERLESS INVENTOR (items{} L1) concede, via GrantItem, o FEAT DE PERICIA 'Inventor' (Compendium.pf2e.feats-srd.Item.Inventor, category='skill') automaticamente, mesmo sem os pre-requisitos normais dele. Colisao de NOME com a propria classe (um feat de pericia chamado 'Inventor' dentro da classe Inventor) -- nao e um class feat (nao tem trait inventor nem category=class, confirmado: 0 dos 54 candidatos se chama so 'Inventor'), entao nao entra nesta curadoria; citado aqui para a integracao central nao estranhar se aparecer via GrantItem de Peerless Inventor quando os feats de pericia forem curados.",
+    "CRUZAMENTO INDEPENDENTE, NAO-CIRCULAR (antidoto da issue #48) -- REFUTANDO a premissa da tarefa: 'Nao ha pregen de Inventor nos iconics/' esta ERRADO. tools/importer-pf2e/vendor/pf2e/packs/pf2e/iconics/droven/ E o iconic do Inventor (Droven, humano Dromaar, com o companheiro de construto 'Whirp' como personagem PROPRIO/anexo -- droven-level-{1,3,5}.json e whirp-level-{1,3,5}.json). Usei os 3 niveis da ficha do Droven como fonte de conferencia. Confirma, item a item, TUDO que este arquivo declara: nivel 1 -- Peerless Inventor, Shield Block, Explode, Overdrive, Innovation (todos items{} L1) + escolheu Construct Innovation (eixo) + Built-In Tools/Explosive Leap (class feats L1, o segundo com trait unstable); nivel 3 -- Reconfigure, Expert Overdrive (items{} L3, ambos batem) + Searing Restoration (class feat L2, trait unstable); nivel 5 -- Inventor Weapon Expertise (items{} L5) + Advanced Construct Companion (class feat L4). Nenhuma divergencia encontrada entre a ficha do Droven e os dados medidos aqui.",
+    "PEER REVIEW do gunslinger.json (par mais proximo, pedido explicito da tarefa) -- NENHUM DEFEITO ENCONTRADO. Spot-check contra vendor fresco: (1) total de class feats 74 = 66 exclusivos (medido: feats/class/gunslinger/level-*/, byLevel {1:7,2:5,4:5,6:10,8:5,10:8,12:7,14:8,16:4,18:4,20:3}) + 8 compartilhados com trait gunslinger -- bate exatamente com measuredExclusiveDir=66 declarado, e o byLevel COMBINADO do arquivo (74 total) reconcilia com a diferenca exclusivo-vs-combinado nivel a nivel (diffs em L2,L4,L6,L8,L10 somam exatamente 8); (2) eixo gunslinger-way: 6 arquivos com otherTags 'gunslinger-way' -- bate optionCount=6 e optionNames; (3) items{} do Gunslinger tem 17 entradas -- bate a soma sharedWithOtherClasses(6)+missingFromPacks(11); (4) as 3 levelDivergences declaradas (Medium Armor Expertise 11->13, Medium Armor Mastery 17->19, Perception Legend 13->19) reproduzem exatamente contra leitura fresca dos 3 arquivos genericos (11/17/13 respectivamente). Nao encontrei o padrao do defeito da r28 (36 docs de Gunslinger/Psychic sem descricao pt-BR) porque esta curadoria nao carrega descricao nenhuma -- e um arquivo de MEDICAO (nomes/niveis/contagens), a traducao acontece em fase posterior do pipeline; nao ha onde esse defeito se manifestar neste artefato.",
+    "classDC resolvido sem ambiguidade (ao contrario do Fighter): Inventive Expertise (items{} L9, subfeatures.proficiencies {inventor:{rank:2}}) e Inventive Mastery (items{} L17, {inventor:{rank:3}}) mapeiam para classDC via a mesma convencao ja usada por Kineticist/Magus/Thaumaturge -- SEM divergencia de nivel entre generico e items{} para essas duas (unico caso limpo entre as 3 features de progressao alta do Inventor). O doc de classe nao tem system.classDC (igual a todas as outras classes ja medidas) -- transform.mjs ja cobre com default 1."
+  ]
+}

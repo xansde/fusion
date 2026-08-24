@@ -1,0 +1,344 @@
+{
+  "class": "witch",
+  "displayName": "Witch",
+  "vendorClassFile": "classes/witch.json",
+  "keyAbilityOptions": ["int"],
+  "hp": 6,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "witch-patron",
+      "featureNameInItemsMap": "Patron",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 16,
+      "slotType": "patron"
+    },
+    {
+      "otherTag": "witch-lesson",
+      "featureNameInItemsMap": "Basic Lesson",
+      "level": 2,
+      "choose": 1,
+      "optionCount": 19,
+      "slotType": "lesson"
+    }
+  ],
+  "classFeats": {
+    "trait": "witch",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Magical Fortitude",
+      "Expert Spellcaster",
+      "Reflex Expertise",
+      "Perception Expertise",
+      "Weapon Expertise",
+      "Defensive Robes",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "alreadyInPacks": [
+      "Magical Fortitude",
+      "Expert Spellcaster",
+      "Reflex Expertise",
+      "Perception Expertise",
+      "Weapon Expertise",
+      "Defensive Robes",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "missingFromPacks": [
+      "Patron",
+      "Witch Spellcasting",
+      "Familiar (Witch)",
+      "Hex Spells",
+      "Will of the Pupil",
+      "Patron's Gift"
+    ]
+  },
+  "spellcasting": {
+    "tradition": null,
+    "type": "prepared",
+    "ability": "int",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, entry kzxu2dI7tFxv6Ix6, página fYJruhQfzs4dj0mp (\"Witch\"), segunda tabela da página (a que segue o cabeçalho \"Witch Spellcasting\"; 12 colunas x 20 linhas + linha de rodapé) — transcrita célula a célula por parse do HTML, nunca a olho. CONFERIDA contra DUAS fontes independentes, sem nenhuma divergência: (a) as fichas pregen oficiais da icônica FEIYA (packs/iconics/feiya/feiya-level-{1,3,5}.json — a icônica foi descoberta lendo o item type=class de cada ator, não pelo nome), cujas spellcastingEntry batem célula a célula nos três níveis (L1 slot0.max=5 slot1.max=2; L3 slot0=5 slot1=3 slot2=2; L5 slot0=5 slot1=3 slot2=3 slot3=2) e confirmam prepared=prepared e ability=int nos três; (b) o registro wb:class/witch do waybuilder do Igor (~/pessoal/Wayfinder/pipeline/base/index.json), cujo slots_per_level bate nos 20 níveis, inclusive o \"1*\" de rank 10 nos níveis 19-20 (ele preserva o asterisco em ranks_raw). ATENÇÃO: `tradition` é null DE PROPÓSITO — ver traditionByBloodline abaixo e a nota TRADIÇÃO DEPENDE DO PATRON.",
+    "traditionByBloodline": {
+      "baba yaga": "occult",
+      "choir politic": "divine",
+      "cobyslarni": "occult",
+      "devourer of decay": "primal",
+      "faith's flamekeeper": "divine",
+      "mosquito witch": "primal",
+      "paradox of opposites": "divine",
+      "ripple in the deep": "primal",
+      "silence in snow": "primal",
+      "spinner of threads": "occult",
+      "starless shadow": "occult",
+      "the inscribed one": "arcane",
+      "the resentment": "occult",
+      "the unseen broker": "occult",
+      "whisper of wings": "primal",
+      "wilding steward": "primal"
+    },
+    "table": [
+      { "level": 1, "cantrips": 5, "slots": { "1": 2 } },
+      { "level": 2, "cantrips": 5, "slots": { "1": 3 } },
+      { "level": 3, "cantrips": 5, "slots": { "1": 3, "2": 2 } },
+      { "level": 4, "cantrips": 5, "slots": { "1": 3, "2": 3 } },
+      { "level": 5, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 2 } },
+      { "level": 6, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3 } },
+      { "level": 7, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 2 } },
+      { "level": 8, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3 } },
+      { "level": 9, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 2 } },
+      { "level": 10, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3 } },
+      { "level": 11, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 2 } },
+      { "level": 12, "cantrips": 5, "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3 } },
+      {
+        "level": 13,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 2 }
+      },
+      {
+        "level": 14,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3 }
+      },
+      {
+        "level": 15,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 2 }
+      },
+      {
+        "level": 16,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3 }
+      },
+      {
+        "level": 17,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 2 }
+      },
+      {
+        "level": 18,
+        "cantrips": 5,
+        "slots": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 3, "6": 3, "7": 3, "8": 3, "9": 3 }
+      },
+      {
+        "level": 19,
+        "cantrips": 5,
+        "slots": {
+          "1": 3,
+          "2": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3,
+          "10": 1
+        }
+      },
+      {
+        "level": 20,
+        "cantrips": 5,
+        "slots": {
+          "1": 3,
+          "2": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3,
+          "10": 1
+        }
+      }
+    ]
+  },
+  "focusSpells": {
+    "names": [
+      "Blood Ward",
+      "Blood in the Water",
+      "Buzzing Bites",
+      "Cackle",
+      "Censure Falsehoods",
+      "Clinging Ice",
+      "Curse of Death",
+      "Deceiver's Cloak",
+      "Discern Secrets",
+      "Elemental Betrayal",
+      "Evil Eye",
+      "Glacial Heart",
+      "Information Overload",
+      "Life Boost",
+      "Malicious Shadow",
+      "Manifest Will",
+      "Murmuration",
+      "Mycological Malady",
+      "Needle of Vengeance",
+      "Nudge Fate",
+      "Over the Coals",
+      "Pact Broker",
+      "Patron's Puppet",
+      "Personal Blizzard",
+      "Phase Familiar",
+      "Restorative Moment",
+      "Return the Favor",
+      "Scrounger's Glee",
+      "Share Vision",
+      "Sheltering Wings",
+      "Shroud of Night",
+      "Spirit Object",
+      "Sting of the Sea",
+      "Stoke the Heart",
+      "Stumbling Curse",
+      "Trade Death for Life",
+      "Unravel Knowledge",
+      "Veil of Dreams",
+      "Wilding Word"
+    ],
+    "alreadyInPacks": [
+      "Blood Ward",
+      "Blood in the Water",
+      "Cackle",
+      "Censure Falsehoods",
+      "Curse of Death",
+      "Deceiver's Cloak",
+      "Elemental Betrayal",
+      "Glacial Heart",
+      "Life Boost",
+      "Malicious Shadow",
+      "Mycological Malady",
+      "Needle of Vengeance",
+      "Over the Coals",
+      "Patron's Puppet",
+      "Personal Blizzard",
+      "Phase Familiar",
+      "Restorative Moment",
+      "Return the Favor",
+      "Sheltering Wings",
+      "Stumbling Curse",
+      "Unravel Knowledge",
+      "Veil of Dreams"
+    ]
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Sympathetic Strike", "Witch's Armaments"],
+      ["Wild Witch's Armaments", "Witch's Armaments"],
+      ["Witch's Bottle", "Cauldron"],
+      ["Double, Double", "Cauldron"],
+      ["Witch's Communion", "Witch's Charge"],
+      ["Incredible Familiar", "Enhanced Familiar"],
+      ["Patron's Truth", "Patron's Gift"],
+      ["Reflect Spell", "Counterspell (Prepared)"],
+      ["Syu Tak-nwa's Skillful Tresses", "Witch's Armaments"],
+      ["Syu Tak-nwa's Deadly Hair", "Witch's Armaments"],
+      ["Syu Tak-nwa's Hexed Locks", "Witch's Armaments"],
+      ["Demon's Hair", "Witch's Armaments"]
+    ],
+    "referencesOutsideSelection": [
+      "MEDIDO: 19 dos 53 class feats têm system.prerequisites.value não vazio (20 entradas de texto no total, porque 'Divine Emissary' tem duas e é o único). 12 entradas resolvem DENTRO do conjunto (internalChains acima) — 8 diretamente, 4 depois dos prerequisiteFixes de 'Living Hair' (ver LIVING HAIR abaixo), e uma nona apenas em documentação (Counterspell, ver COUNTERSPELL). As 8 restantes caem em QUATRO famílias (4+2+1+1), nenhuma mecanizada, todas com o texto do vendor preservado (REQ-BC-034).",
+      "(1) ATRIBUTO DO NÓ 'a familiar' — 4 entradas: Familiar's Language (L2), Enhanced Familiar (L2, compartilhado), Divine Emissary (L6, compartilhado, primeira entrada), Familiar's Eyes (L12). Não aponta para documento nenhum: é a posse de um familiar, que TODA Witch tem desde o nível 1 pela feature 'Familiar (Witch)'. Para a Witch pura o predicado é sempre verdadeiro; para as outras classes que compartilham esses feats, não. Mesma família do 'a familiar' que druid.json já registrou em Enhanced Familiar.",
+      "LIVING HAIR — RESOLVIDO por prerequisiteFixes, com evidência documental. 4 entradas citavam 'Living Hair': Syu Tak-nwa's Skillful Tresses (L4), Syu Tak-nwa's Deadly Hair (L6), Syu Tak-nwa's Hexed Locks (L8), Demon's Hair (L20). MEDIDO: (a) 'Living Hair' NÃO é um doc em lugar nenhum do vendor; (b) os quatro feats são PRÉ-REMASTER (system.publication license OGL, remaster false, Pathfinder #166 'Despair on Danger Island' e #168 'King of the Mountain'); (c) o journal `journals/remaster-changes.json` (entry 6L2eweJuM8W7OCf2, página 'Feats') tem a linha literal ['Living Hair', 'Witch', 'Merged', '@UUID[...Item.Witch's Armaments]'] — o nome antigo foi FUNDIDO em 'Witch's Armaments' (ORC, Player Core, L1), que está no conjunto dos 53. Logo é o caso canônico de prerequisiteFixes kind 'rename' (issues #26/#28/#30/#46), e não dívida: os 4 fixes estão declarados. RESSALVA HONESTA, medida: 'Living Hair' também sobrevive como RÓTULO de uma das três opções literais do ChoiceSet de 'Witch's Armaments' (rollOption 'witchs-armaments', valores nails/teeth/hair, cada um habilitando um rule Strike diferente). O rename torna a aresta resolúvel, mas fica MAIS PERMISSIVO que o RAW: quem pegou Witch's Armaments com Eldritch Nails passa a satisfazer um pré-requisito que exigia a opção do cabelo. O predicado exato seria sobre a SELEÇÃO dentro do outro feat ('witchs-armaments:hair'), que nenhum consumidor sabe ler hoje. Escolhido o alvo que o PRÓPRIO VENDOR prescreve na tabela do remaster, em vez de inventar predicado (REQ-BC-034).",
+      "(3) TRADIÇÃO DA OPÇÃO DE EIXO — 2 entradas: 'Spirit Familiar (Witch)' (L8) -> 'divine or occult patron'; 'Stitched Familiar' (L8) -> 'arcane or primal patron'. Não aponta para um patron nomeado, e sim para o ATRIBUTO tradição do patron escolhido (medido: 6 patrons occult, 6 primal, 3 divine, 1 arcane). Só resolve depois que a integração central decidir onde a tradição por opção de eixo vive — a mesma pendência que este arquivo levanta em spellcasting. Família NOVA.",
+      "(4) PROFICIÊNCIA DE PERÍCIA — 1 entrada: 'Helt's Spelldance' (L8, compartilhado) -> 'expert in Performance'. Texto preservado, sem predicado inventado.",
+      "(5) NARRATIVO/PRÉ-REMASTER — 1 entrada: 'Divine Emissary' (L6, compartilhado, segunda entrada) -> 'you follow a good-aligned deity or patron'. Linguagem de alinhamento, que o remaster aposentou; não mecanizável e nem sequer conferível contra os dados do pack.",
+      "COUNTERSPELL: 'Reflect Spell' (L14, compartilhado sorcerer+witch+wizard) declara prerequisites.value = 'Counterspell', mas o doc do conjunto da Witch chama-se 'Counterspell (Prepared)' (EpBG4CFMNSZQx7vI, traits [witch, wizard], JÁ em feats-core desde a r22 pelo Wizard). MEDIDO, E CORRIGINDO UM REGISTRO EXISTENTE: sorcerer.json afirma '(Spontaneous para Sorcerer/Witch, Prepared para Wizard)' — está ERRADO para a Witch. O único Counterspell no conjunto de 53 feats da Witch é o (Prepared); 'Counterspell (Spontaneous)' (deoHKUzpzT7iwWhL) tem trait sorcerer e NÃO alcança a Witch. A aresta interna está declarada em internalChains, mas prerequisiteFixes continua VAZIO de propósito: 'Reflect Spell' é um doc COMPARTILHADO já no pack e o alvo certo do rename depende da classe que concedeu o Counterspell (Prepared para Witch/Wizard, Spontaneous para Sorcerer) — um fix escrito aqui reescreveria a prosa de um doc que a curadoria do Wizard e a do Sorcerer também governam. Mesma decisão de wizard.json, que registrou o caso sem aplicar fix.",
+      "'Patron's Truth' (L20) -> \"patron's gift\" em MINÚSCULAS: aponta para a class feature 'Patron's Gift' (L19, cDnFXfl3i5Z2l7JP), que entra em class-features-core nesta rodada. Casamento case-insensitive resolve; declarado em internalChains.",
+      "'Witch Dedication' (y0vdu6DGhKKElmE6) NÃO entra nesta rodada: carrega traits [archetype, dedication, multiclass] sem o trait 'witch', então nenhum predicado de classFeats a alcança. Mesma decisão do druid.json — a curadoria mede a classe PURA. Nota de contrato: o ChoiceSet dela filtra 'item:tag:witch-patron' EXCLUINDO 'item:tag:class-archetype', enquanto a feature 'Patron' da classe base filtra só a tag — irrelevante hoje porque MEDIDO: nenhum dos 16 patrons carrega 'class-archetype'."
+    ]
+  },
+  "prerequisiteFixes": [
+    {
+      "featName": "Syu Tak-nwa's Skillful Tresses",
+      "kind": "rename",
+      "from": "Living Hair",
+      "to": "Witch's Armaments"
+    },
+    {
+      "featName": "Syu Tak-nwa's Deadly Hair",
+      "kind": "rename",
+      "from": "Living Hair",
+      "to": "Witch's Armaments"
+    },
+    {
+      "featName": "Syu Tak-nwa's Hexed Locks",
+      "kind": "rename",
+      "from": "Living Hair",
+      "to": "Witch's Armaments"
+    },
+    {
+      "featName": "Demon's Hair",
+      "kind": "rename",
+      "from": "Living Hair",
+      "to": "Witch's Armaments"
+    }
+  ],
+  "dedupe": {
+    "featsAlreadyInPacks": [
+      "Cantrip Expansion",
+      "Chaotic Spell",
+      "Conceal Spell",
+      "Counterspell (Prepared)",
+      "Detonating Spell",
+      "Divine Emissary",
+      "Effortless Concentration",
+      "Enhanced Familiar",
+      "Helt's Spelldance",
+      "Quickened Casting",
+      "Reach Spell",
+      "Reflect Spell",
+      "Steady Spellcasting",
+      "Widen Spell"
+    ],
+    "collisionsDetected": [
+      "ARMADILHA DO MAGUS CONFIRMADA (1 de 15): a entrada `sbys9` do items{} tem entry.name = 'Hexes' mas a uuid é 'Compendium.pf2e.classfeatures.Item.Hex Spells'. O nome canônico é HEX SPELLS. Casar por entry.name criaria um documento fantasma chamado 'Hexes' que não existe em class-features/ (medido: nenhum doc com esse nome nos 841 arquivos). É o mesmo defeito de 'Lightning Reflexes' -> 'Reflex Expertise' do magus.json. Nas outras 14 entradas entry.name == cauda da uuid.",
+      "QUATRO divergências nível-genérico x items{} (o nível do items{} é a fonte de verdade): Reflex Expertise diz 3 no arquivo genérico e a Witch concede no 9; Perception Expertise diz 3 e a Witch concede no 11; Weapon Expertise diz 5 e a Witch concede no 11; Weapon Specialization diz 7 e a Witch concede no 13. É o dobro do que o Fighter encontrou (2) e a maior contagem registrada até agora — a Witch tem a progressão mais TARDIA entre as conjuradoras curadas.",
+      "EIXO FANTASMA `witch-elementalist-patron`: a medição preliminar da rodada contava 3 eixos. São DOIS. Medido: as 7 opções de `witch-elementalist-patron` (Devourer of Decay, Mosquito Witch, Ripple in the Deep, Silence in Snow, The Inscribed One, Whisper of Wings, Wilding Steward) carregam TAMBÉM `witch-patron` — são um SUBCONJUNTO dos 16 patrons, não um eixo paralelo. E a varredura de quem CONSOME a tag (feats/, class-features/, classes/, campaign-effects/, feat-effects/, familiar-abilities/) devolveu ZERO: nenhum ChoiceSet, predicado ou filtro no vendor inteiro lê `witch-elementalist-patron`. É tag de catalogação morta. Declará-la como eixo QUEBRARIA o pack: transform.mjs resolve a category por `otherTags.map(t => axisCategories.get(t)).find(Boolean)` e o array do vendor vem na ordem ['witch-elementalist-patron','witch-patron'], então os 7 sairiam com category 'elementalistPatron' e o eixo patron ficaria com 9 opções — reprovando a asserção de optionCount de transform.test.mjs (9 != 16).",
+      "EIXO `witch-lesson` NÃO TEM CONCESSORA NO items{} — primeiro caso em 16 classes curadas. Patron está no items{} (nível 1, forma idêntica ao 'Druidic Order': ChoiceSet com filter por tag + GrantItem '{item|flags.system.rulesSelections....}'). Lesson NÃO: quem hospeda o ChoiceSet são TRÊS CLASS FEATS — Basic Lesson (L2, filtro 'item:level:2'), Greater Lesson (L6, filtro lte item:level 6) e Major Lesson (L10, filtro lte item:level 10). O campo obrigatório `featureNameInItemsMap` foi preenchido com 'Basic Lesson' (a primeira concessora) porque o schema exige string e não existe entrada de items{} para apontar — o campo hoje só alimenta rótulos de pré-requisito em grafo-de-feats.mjs, então o valor não corrompe pack nenhum, mas o CONTRATO está esticado e isso é pergunta aberta para a integração central (ver notes).",
+      "TRAIT DE 2+ CLASSES em 15 dos 53 class feats (Reach Spell = bard/cleric/druid/oracle/sorcerer/witch/wizard; Cantrip Expansion = 8 classes; Enhanced Familiar = 7; Counterspell (Prepared) = witch+wizard; Divine Emissary = sorcerer+witch; Incredible Familiar = thaumaturge+witch; etc.). 14 dos 15 JÁ estão em feats-core, reusados de Wizard/Sorcerer/Bard/Cleric. O gate class_level derivado por trait fica AMBÍGUO nesses 15 — o predicado correto é 'any' sobre as classes do trait, nunca uma escolha arbitrária (mesmo padrão de wizard.json, cleric.json, sorcerer.json, druid.json). 'Incredible Familiar' (L8, thaumaturge+witch, Joy1e6pdqx6fN9mH) é o 15º e entra AGORA — não estava.",
+      "HOMÔNIMOS-COM-SUFIXO: 'Improved Familiar (Witch)' (L4, 2VKV7jLRTxWyVjGa) e 'Spirit Familiar (Witch)' (L8, FCivW0HZhm7PoxrC). Os pares do vendor são 'Improved Familiar (Familiar Master)' (arquétipo, L6) e 'Spirit Familiar (Animist)' (L1) — MEDIDO: nenhum dos quatro está em feats-core hoje, então não há duplicata a resolver, só a família registrada. Caso inverso no mesmo conjunto: 'Incredible Familiar' entra SEM sufixo (é a versão thaumaturge+witch) e convive com 'Incredible Familiar (Animist)' e 'Incredible Familiar (Familiar Master)', que ficam de fora — identidade é sourceId, nunca nome.",
+      "17 DOS 39 HEXES SÃO INVISÍVEIS PARA isSpellsCoreDoc. Medido: as 39 magias com trait 'witch' são TODAS trait 'hex' e vivem em spells/focus/. 22 carregam também o trait 'focus' e por isso já entraram em spells-core; as outras 17 carregam 'cantrip' no lugar de 'focus' (Buzzing Bites, Clinging Ice, Discern Secrets, Evil Eye, Information Overload, Manifest Will, Murmuration, Nudge Fate, Pact Broker, Scrounger's Glee, Share Vision, Shroud of Night, Spirit Object, Sting of the Sea, Stoke the Heart, Trade Death for Life, Wilding Word) e o predicado hasTrait(doc,'focus') não as vê. É EXATAMENTE o defeito dos 'composition cantrips' do Bard, que a r22 fechou acrescentando um ramo hasTrait(doc,'composition') a isSpellsCoreDoc. O ramo equivalente aqui é hasTrait(doc,'hex') — superconjunto estrito dos 22 já capturados, então nenhum doc dobra. build-mvp-subset.mjs é arquivo COMPARTILHADO: isto é achado, não edição.",
+      "16 dos 17 hexes ausentes são exatamente o HEX INICIAL DE CADA UM DOS 16 PATRONS (medido cruzando o @UUID de spell citado na descrição de cada patron com o pack). O 17º é 'Manifest Will', que pertence ao arquétipo de classe Seneschal (War of Immortals), fora desta curadoria. Consequência direta: publicar a Witch sem esse ramo entrega 16 patrons cujo hex inicial não existe no pack — e a ficha oficial da Feiya nível 1 tem 'Evil Eye', que é um deles.",
+      "attacks.other ZERADO: classes/witch.json tem system.attacks.other = {name: \"\", rank: 0} (medido). Igual ao Druid e diferente de Cleric/Gunslinger — isMeaningfulChassisEntry do pregen-parity.test.ts descarta placeholder vazio, então a Witch NÃO produz a divergência 'Witch/classSystem.attacks.other' da issue #50.",
+      "classDC AUSENTE no doc do vendor ('classDC' in system === false) e NENHUMA das 15 features carrega uma chave de subfeature igual ao slug 'witch' — logo o classDC da Witch nunca sobe de treinado, e o transform aplica o default 1 (mesmo caminho de Cleric/Magus/Wizard/Sorcerer/Psychic/Druid). O journal confirma: 'Class DC — Trained in witch class DC', sem upgrade em nível nenhum.",
+      "keyAbility do vendor é ['int'] (medido) e as três fichas da Feiya trazem ability=int nas duas spellcastingEntry — a tradição varia com o patron, o ATRIBUTO NÃO. A hipótese de trabalho da rodada ('cada patron define tradição E atributo de conjuração') está REFUTADA: varredura das rules dos 16 patrons por qualquer path que toque system.abilities/keyAbility/attribute/spellcasting.*.ability devolveu ZERO.",
+      "RODAPÉ DO JOURNAL DESATUALIZADO: a nota de asterisco da tabela de conjuração diz que o slot de rank 10 vem da class feature 'patron conduit'. Medido: não existe nenhum doc com esse nome em class-features/; a feature de nível 19 do items{} chama-se 'Patron's Gift' (cDnFXfl3i5Z2l7JP), e é a linha 19 da PRIMEIRA tabela da mesma página que a nomeia corretamente. Divergência de NOME dentro do próprio journal, não de número — o valor 1 no rank 10 nos níveis 19-20 é idêntico nas três fontes.",
+      "CRUZAMENTO COM `journals/remaster-changes.json` (entry 6L2eweJuM8W7OCf2, 560 linhas de dado em 5 páginas): a Witch tem SEIS linhas, mais que qualquer outra classe desta rodada — ['Witch Patron Themes', Class Features, Replaced, 'See Witch']; ['Cauldron', Feats, Altered mechanics, '—']; ['Eldritch Nails', Feats, Renamed, 'Witch's Armaments']; ['Hex Wellspring', Feats, Removed, '—']; ['Living Hair', Feats, Merged, 'Witch's Armaments']; ['Temporary Potions', Feats, Merged, 'Cauldron']. Cruzadas contra as 20 entradas de pré-requisito medidas, a interseção é de SEIS ocorrências em DOIS nomes: 'Living Hair' (4x -> vira prerequisiteFixes, ver prerequisites) e 'Cauldron' (2x: Witch's Bottle L8 e Double, Double L10). O caso 'Cauldron' NÃO precisa de fix: o status é 'Altered mechanics' com alvo '—', ou seja, o NOME não mudou — 'Cauldron' (zUtdBd3IbM7UX0AD, ORC, Player Core, L1) está no conjunto dos 53 e a aresta já resolve internamente. Verificação negativa registrada para as outras três linhas: nenhum dos 53 feats cita 'Eldritch Nails', 'Hex Wellspring' ou 'Temporary Potions' em pré-requisito, e nenhum dos 53 CARREGA um nome que a tabela marque como renomeado/removido (a única linha que casa por nome é a do próprio 'Cauldron', que manteve o nome).",
+      "A LINHA 'Witch Patron Themes | Replaced' EXPLICA o doc órfão 'Patron Theme' (nocYmxbi4rqCC2qS, L1, trait witch, sem rules e sem otherTags): é o resíduo pré-remaster do mecanismo de patron, substituído pela feature 'Patron' + as 16 opções tagueadas. Confirma que deixá-lo fora do pack é o certo, e não uma omissão.",
+      "DUAS class-features com trait 'witch' ficam FORA do pack, e é o comportamento correto: 'Seneschal' (DFDonF73QRMkEPu7, otherTag 'class-archetype', concede a dedicação Seneschal Witch a partir do nível 2) e 'Patron Theme' (nocYmxbi4rqCC2qS, L1, sem otherTags e sem rules). Nenhuma das duas está no items{} nem carrega otherTag de eixo, então isClassFeaturesCoreDoc não as seleciona. Registrado porque 'Seneschal' é o análogo witch do 'Battle Creed' do Cleric — com a diferença decisiva de que ele NÃO reusa a otherTag do eixo, então aqui não há a ambiguidade de optionCount que cleric.json teve."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE (plano §4.3).",
+    "PROFICIÊNCIAS INICIAIS medidas em classes/witch.json: perception=1; savingThrows fort=1/reflex=1/will=2 (will já EXPERT no nível 1, mesmo padrão de Cleric/Wizard/Sorcerer/Psychic/Druid); attacks simple=1 e unarmed=1 (martial=0, advanced=0); defenses unarmored=1 e light=medium=heavy=0 — a Witch não tem NENHUMA proficiência de armadura, nem leve (mesmo perfil de Wizard/Sorcerer/Psychic; o Druid tinha média). spellcasting=1; trainedSkills {value: [], additional: 3} — value VAZIO, ao contrário do Druid (['nature']), porque a perícia fixa da Witch vem do PATRON, não da classe. classDC ausente no vendor. featLevels: ancestry [1,5,9,13,17], class [2,4,6,8,10,12,14,16,18,20], general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19]. Tudo conferido contra o texto 'Initial Proficiencies' do journal, que bate campo a campo, e contra o registro wb:class/witch do waybuilder, que bate nas cinco linhas de proficiência, no skill_training {free:3} e nos quatro feat_slot.",
+    "A TRADIÇÃO DEPENDE DO PATRON — o achado central desta classe. O doc de classe tem system.spellcasting = 1 e NENHUM campo de tradição; a feature 'Witch Spellcasting' tem rules: [] e subfeatures: null (não carrega nada), e sua prosa diz literalmente 'you can cast spells of your patron's tradition'. Quem define a tradição é CADA UM DOS 16 PATRONS, por um ActiveEffectLike mode 'override' priority 39 no path `system.proficiencies.aliases.witch` com valor 'occult' | 'divine' | 'primal' | 'arcane'. Medido, patron a patron: occult 6 (Baba Yaga, Cobyslarni, Spinner of Threads, Starless Shadow, The Resentment, The Unseen Broker), primal 6 (Devourer of Decay, Mosquito Witch, Ripple in the Deep, Silence in Snow, Whisper of Wings, Wilding Steward), divine 3 (Choir Politic, Faith's Flamekeeper, Paradox of Opposites), arcane 1 (The Inscribed One). O ATRIBUTO não varia: é int para todos (ver collisionsDetected). Confirmado por duas fontes independentes: (a) a Feiya, cujo patron é 'The Resentment' (occult) e cujas duas spellcastingEntry são tradition=occult/ability=int nos três níveis; (b) o waybuilder, que descreve o campo como 'variavel (definida pela escolha de patron; nao ha tradicao fixa na class-feature)'.",
+    "COMO A TRADIÇÃO FOI DECLARADA, E POR QUE ISSO É PERGUNTA E NÃO DECISÃO FECHADA. O ClassSpellcastingSchema aceita `tradition: null` + um mapa `traditionByBloodline` (opção de eixo -> tradição), criado na r22 para o Sorcerer. É o ÚNICO canal que sobrevive ao pipeline: spellcastingFor() em transform.mjs propaga `tradition`, `type`, `ability`, a tabela e — nominalmente — `traditionByBloodline`; QUALQUER outra chave dentro de `spellcasting` é descartada em silêncio (e validateClassCuration não valida o interior de `spellcasting`, então um typo ali sai como pack silenciosamente sem tradição). Por isso o mapa dos 16 patrons foi escrito nesse campo, com as chaves em MINÚSCULAS do nome exibido do patron — exatamente o que bloodlineSlugFromDocName() do planVM.ts produz (ela faz replace(/^Bloodline:\\s*/) + toLowerCase(), e nome de patron não tem o prefixo). NENHUMA tradição arbitrária foi escolhida: `tradition` é null. O que FALTA, e é decisão da integração central: (a) o nome do campo mente para a Witch — 'bloodline' não existe aqui; o certo é renomear para algo como `traditionByAxisOption` (com alias de compatibilidade), tocando schema + transform + planVM, que são arquivos compartilhados; (b) planVM.ts (linha ~4099) dispara bloodlineSpellcastingOps() apenas quando `slotType === \"bloodline\"`, então com o slotType 'patron' a Witch NÃO ganha entrada de conjuração nenhuma — falha visível, não valor errado, mas falha; (c) resolveBloodlineTradition() cai em 'arcane' quando não acha a chave, default que para a Witch estaria errado em 15 dos 16 patrons.",
+    "EIXOS — DOIS, não três. (1) `witch-patron`, nível 1, 16 opções, concessora 'Patron' no items{}. (2) `witch-lesson`, 19 opções distribuídas por nível de opção (6 de nível 2, 9 de nível 6, 4 de nível 10 — medido), REPETÍVEL e comprada com TALENTO DE CLASSE: Basic Lesson (L2) só oferece as de nível 2 (filtro 'item:level:2' = 6 opções), Greater Lesson (L6) oferece as de nível <= 6 (15) e Major Lesson (L10) oferece todas (19). Uma Witch pode acumular até TRÊS lições, e nenhuma automaticamente — se não gastar talento de classe, fica com zero. Isso não cabe no par (level, choose) do schema de eixo, que assume uma concessora fixa num nível fixo. Declarado level 2 / choose 1 / optionCount 19 porque optionCount é o único dos três que a asserção de transform.test.mjs consome (optionCount vs. nº de docs com a category no pack); os outros dois números ficam nesta nota, não no campo. A ficha da Feiya nível 5 confirma a forma: ela tem o TALENTO 'Basic Lesson' (category class, L2) mais a class-feature 'Lesson of Life' (otherTags ['witch-lesson']) como itens separados.",
+    "`witch-elementalist-patron` NÃO foi declarado como eixo — ver dedupe.collisionsDetected. É subconjunto de `witch-patron` e ninguém no vendor o lê.",
+    "CLASS FEATURES (items{} do vendor): 15 entradas. 9 JÁ estão em class-features-core com o MESMO doc reusado de outras classes (Magical Fortitude compartilhada com 4 classes, Expert Spellcaster com 10, Reflex Expertise com 12, Perception Expertise com 12, Weapon Expertise com 14, Defensive Robes com 4, Weapon Specialization com 25, Master Spellcaster com 10, Legendary Spellcaster com 8 — contagem pela união dos items{} das 27 classes do vendor). As 6 restantes são EXCLUSIVAS da Witch (nenhuma outra classe as referencia) e faltam: Patron, Witch Spellcasting, Familiar (Witch), Hex Spells, Will of the Pupil, Patron's Gift. Mais as 16 opções de patron e as 19 de lição, que entram pelo ramo de eixo (não estão no items{}). TOTAL NOVO em class-features-core: 41 documentos (6 + 16 + 19).",
+    "CLASS FEATS: 53 candidatos (38 exclusivos em feats/class/witch/level-*/ + 15 de shared-class-feats com o trait 'witch'), todos com system.category === 'class', nenhum com trait 'archetype', e nenhum com system.level.value diferente do nível da pasta. Quebra por nível (exclusivos + compartilhados): L1 7 (4+3), L2 6 (3+3), L4 5 (5+0), L6 8 (5+3), L8 8 (5+3), L10 4 (3+1), L12 4 (4+0), L14 3 (2+1), L16 2 (1+1), L18 2 (2+0), L20 4 (4+0). 14 dos 53 JÁ estão em feats-core por sourceId (e por nome — os dois conjuntos coincidem, sem homônimo de sourceId diferente); 39 são novos. NOTA: existem 7 class feats de nível 1, mas classFeatLevels da Witch começa em 2 — a Witch só compra o primeiro talento de classe no nível 2 (é o dado do vendor e do journal, não defeito).",
+    "proficiencyUpgrades DERIVÁVEIS de subfeatures.proficiencies — 10 linhas, com missing=[] e ignoredRules=[] (medidas importando deriveProficiencyUpgrades de curation/proficiency-upgrades.mjs e rodando-a sobre os docs do vendor, sem executar o importer): L5 fortitude rank2 (Magical Fortitude); L7 spellcasting rank2 (Expert Spellcaster); L9 reflex rank2 (Reflex Expertise); L11 perception rank2 (Perception Expertise); L11 weapons.simple rank2 e L11 weapons.unarmed rank2 (Weapon Expertise, DUAS linhas); L13 armor.unarmored rank2 (Defensive Robes); L15 spellcasting rank3 (Master Spellcaster); L17 will rank3 (Will of the Pupil); L19 spellcasting rank4 (Legendary Spellcaster). Nenhum proficiencyUpgradeExtras foi necessário — a derivação genérica cobre a classe inteira, como aconteceu com o Druid e ao contrário de Cleric e Gunslinger. Não produzem linha: Weapon Specialization (bônus de dano, subfeatures null — mesma observação de Wizard/Sorcerer/Druid), Witch Spellcasting, Hex Spells, Patron, Familiar (Witch) e Patron's Gift (slot especial de rank 10, mesmo padrão do Primal Hierophant e do Miraculous Spell). A Witch nunca chega a legendary em nada exceto conjuração; para em EXPERT em armadura (só unarmored, nível 13) e em armas (simples/desarmado, nível 11), e em MASTER em Will (nível 17).",
+    "O RULE QUE A DERIVAÇÃO DESCARTA EM SILÊNCIO, e por que está certo: o override de `system.proficiencies.aliases.witch` de cada patron não casa com nenhum padrão de PROFICIENCY_PATHS, então statFromRulePath devolve null e o rule é ignorado sem sequer entrar em ignoredRules (é o caminho 'não é proficiência: fora do escopo'). Consequência: a TRADIÇÃO, que trafega justamente por esse path, é jogada fora pelo pipeline de proficiências. Não é defeito da derivação — é a razão de o mapa por patron ter de viajar pela curadoria, como está feito aqui.",
+    "PERÍCIA DO PATRON não é modelada — dívida declarada. O journal diz 'Trained in one skill determined by your patron' ALÉM das 3+Int livres, e cada patron carrega o ActiveEffectLike que a concede (medido, um a um: occultism para Baba Yaga/Cobyslarni/Spinner of Threads/Starless Shadow/The Resentment/The Unseen Broker; nature para os 6 primal; religion para Faith's Flamekeeper e Paradox of Opposites; society para Choir Politic; arcana para The Inscribed One). trainedSkills.additional continua 3 no doc de classe (é o número do vendor e está certo: a perícia do patron não é escolha livre). Mesma família do 'proficiência por opção de eixo' que cleric.json pediu para Cloistered/Warpriest, gunslinger.json para o way e druid.json para a ordem — quarta classe a pedir a mesma extensão de contrato.",
+    "VÍNCULO OPÇÃO -> HEX INICIAL não existe como DADO em lugar nenhum. Medido: os 19 docs de lição têm rules: [] (ZERO GrantItem, zero regra de qualquer tipo) e nenhum dos 16 patrons tem GrantItem. O vínculo só existe na PROSA: a descrição de cada lição/patron cita o hex por @UUID. Extraído dessas descrições — patron -> hex inicial: Baba Yaga->Spirit Object, Choir Politic->Share Vision, Cobyslarni->Information Overload, Devourer of Decay->Scrounger's Glee, Faith's Flamekeeper->Stoke the Heart, Mosquito Witch->Buzzing Bites, Paradox of Opposites->Trade Death for Life, Ripple in the Deep->Sting of the Sea, Silence in Snow->Clinging Ice, Spinner of Threads->Nudge Fate, Starless Shadow->Shroud of Night, The Inscribed One->Discern Secrets, The Resentment->Evil Eye, The Unseen Broker->Pact Broker, Whisper of Wings->Murmuration, Wilding Steward->Wilding Word. Lição -> hex: Calamity->Stumbling Curse, Dreams->Veil of Dreams, Elements->Elemental Betrayal, Life->Life Boost, Protection->Blood Ward, Vengeance->Needle of Vengeance, Decay->Mycological Malady, Favors->Return the Favor, Memory->Unravel Knowledge, Mischief->Deceiver's Cloak, Shadow->Malicious Shadow, Snow->Personal Blizzard, the Flock->Sheltering Wings, the Shark->Blood in the Water, Vows->Censure Falsehoods, Bargains->Over the Coals, Death->Curse of Death, Renewal->Restorative Moment, the Frozen Queen->Glacial Heart. Cada lição/patron concede AINDA uma magia comum para a lista da Witch (ex.: Calamity->Ill Omen, Baba Yaga->Chilling Spray) — também só na prosa. Mesma lacuna que cleric.json (domínio->magia de domínio) e druid.json (ordem->magia de foco) registraram. Dívida declarada.",
+    "OS 19 HEXES DE LIÇÃO JÁ ESTÃO 100% EM spells-core; os 16 hexes de patron estão 100% FORA. Conferência: as 22 magias com trait witch presentes no pack = 19 hexes de lição + Cackle + Phase Familiar + Patron's Puppet (os dois últimos são os hexes citados pela feature 'Hex Spells'; Cackle é o hex do talento homônimo de nível 1). Esta rodada NÃO toca spells-core (a importação de magia nova é dívida a declarar, não a fechar aqui — plano §9).",
+    "FAMILIAR — a dívida é MENOR do que parecia. Medido: familiar-abilities-core tem 111 docs e o vendor tem 111 arquivos em familiar-abilities/ — cobertura 111/111 por sourceId, pack COMPLETO. Os feats 'Pet' (6yPrvbSDaa8glLjn) e 'Familiar' (bcxIg7wi8ZAhvhOD) também já estão em feats-core, e 'Pet' é justamente o GrantItem da feature 'Familiar (Witch)' (a ficha da Feiya nível 5 confirma: ela tem 'Pet' como talento geral). O que FALTA é (a) o familiar como ATOR (não existe pack de pets no Fusion, e o vendor não tem um pack de criaturas familiares — o bicho é montado a partir das habilidades), e (b) a fórmula de número de habilidades: 'Familiar (Witch)' tem um ActiveEffectLike em system.attributes.familiarAbilities.value = '2 + min(3,floor(@actor.level / 6))' com predicado 'class:witch' — valor NÃO literal, então nenhuma derivação atual o lê. Existe petsVM.ts no client (familiares), então a fronteira é onde parar, não se dá para começar. 6 dos 53 talentos dependem disso para ter efeito (Familiar's Language, Improved Familiar (Witch), Spirit Familiar (Witch), Stitched Familiar, Incredible Familiar, Familiar's Eyes).",
+    "CONFERÊNCIA COM O WAYBUILDER (wb:class/witch, base local em ~/pessoal/Wayfinder/pipeline/base/index.json, 20.083 registros): bate em hp_per_level=6, key_ability ['int'], nas cinco linhas de proficiência inicial, em skill_training {free:3}, nos quatro feat_slot, no skill_increase e na TABELA DE CONJURAÇÃO INTEIRA (20 níveis, célula a célula, incluindo o '1*' de rank 10 preservado em ranks_raw). TRÊS divergências, as três a favor do vendor e todas da família da issue #10 dele ('eixos tortos em 11 de 27 classes'): (1) a `progressao` dele OMITE 'hex-spells' no nível 1 (lista só familiar-witch, patron e witch-spellcasting, quando o items{} tem quatro features de nível 1) e INVENTA 'lesson-of-elements' como concessão automática de nível 2 — lição é escolha comprada com talento, não grant; (2) `subclasses` declara UM eixo 'lesson' (nível 2, escolhe 1, 19 opções), achatando os três degraus Basic/Greater/Major, e NÃO declara o eixo patron — que é a subclasse de verdade da Witch; (3) o array de opções de lição tem 19 entradas mas uma delas é 'wb:lesson/lesson-of-the-elements', duplicata de kind diferente do 'wb:class-feature/lesson-of-elements' (ele mesmo a marca como 'so_catalogo'). Conclusão: o Waybuilder confirmou o chassi e a tabela — inclusive dizendo com todas as letras que a tradição é variável por patron — mas não substituiu a leitura do vendor para a estrutura dos eixos.",
+    "GATE QUE ESTA CURADORIA ACIONA: pregen-parity.test.ts monta PREGENS filtrando os ícones pelas classes que estão em classes-core, e o comentário do arquivo cita a Witch nominalmente como excluída hoje. Publicar a classe traz a FEIYA (fichas oficiais nos níveis 1/3/5) para dentro do gate #48 — verificação externa de graça, e é ela que prova esta curadoria (ver `source` de spellcasting). Nada em KNOWN_DIVERGENCES precisa nascer por causa da Witch pelo que foi medido: attacks.other é placeholder vazio (descartado por isMeaningfulChassisEntry), e hp/perception/saves/attacks/defenses/keyAbility batem campo a campo com a ficha. A asserção `CLASSES_WITHOUT_PREGEN === ['Magus']` continua valendo, porque a Witch TEM pregen.",
+    "MULTICLASSE (plano r21 §4.1): o gate derivado dos 53 class feats é class_level:witch, sem ambiguidade em 38 deles; para os 15 com trait de 2+ classes o predicado correto é 'any' sobre as classes do trait. 'Witch Dedication' não entra (ver prerequisites).",
+    "REBUILD: as 16 opções de patron e as 19 de lição entram em class-features-core APENAS pelo ramo `axisCategories.has(doc.system.category)` de isClassFeaturesCoreDoc — nenhuma delas está no items{} da classe. E `system.category` só vira 'patron'/'lesson' quando transform.mjs roda com ESTA curadoria no disco (axisCategoryByOtherTag). Logo NÃO basta rodar build-mvp-subset.mjs sobre um out/ antigo: é obrigatório reprocessar o transform com classes E class-features no MESMO --packs, senão os eixos saem com 0 opções e transform.test.mjs reprova em 'eixo sem nenhuma opção no pack'. Nenhuma opção de eixo tem system.level.value = 0 (patrons vêm com 1; lições com 2/6/10), então o backfill de axisLevelByOtherTag não é acionado aqui."
+  ]
+}

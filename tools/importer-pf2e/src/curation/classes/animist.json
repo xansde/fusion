@@ -1,0 +1,392 @@
+{
+  "class": "animist",
+  "displayName": "Animist",
+  "vendorClassFile": "classes/animist.json",
+  "keyAbilityOptions": ["wis"],
+  "hp": 8,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "animist-apparition",
+      "featureNameInItemsMap": "Apparition Attunement",
+      "level": 1,
+      "choose": 2,
+      "optionCount": 13,
+      "category": "apparition",
+      "slotType": "apparition"
+    },
+    {
+      "otherTag": "animistic-practice",
+      "featureNameInItemsMap": "Animistic Practice",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 4,
+      "category": "animisticPractice",
+      "slotType": "animisticPractice"
+    }
+  ],
+  "classFeats": {
+    "trait": "animist",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Fortitude Expertise",
+      "Expert Spellcaster",
+      "Perception Expertise",
+      "Simple Weapon Expertise",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "alreadyInPacks": [
+      "Fortitude Expertise",
+      "Expert Spellcaster",
+      "Perception Expertise",
+      "Weapon Specialization",
+      "Master Spellcaster",
+      "Legendary Spellcaster"
+    ],
+    "missingFromPacks": [
+      "Apparition Attunement",
+      "Animistic Practice",
+      "Animist & Apparition Spellcasting",
+      "Third Apparition",
+      "Expert Protections",
+      "Simple Weapon Expertise",
+      "Master of Mind and Spirit",
+      "Fourth Apparition",
+      "Supreme Incarnation"
+    ]
+  },
+  "spellcasting": {
+    "tradition": "divine",
+    "type": "prepared",
+    "ability": "wis",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, entry kzxu2dI7tFxv6Ix6, página ThFPVuxGiZ2Asgyr (\"Animist\"), segunda tabela da página (12 colunas x 20 linhas + rodapé) — transcrita célula a célula por parse do HTML, nunca a olho. ATENÇÃO: a tabela do Animist é DUPLA — cada célula tem a forma \"A+B\", onde A são os slots da conjuração ANIMISTA (preparada, divina) e B os slots da conjuração de APARIÇÃO (espontânea, com repertório dado pelas aparições atuneadas); o próprio rodapé do journal explica a notação. `table` abaixo carrega SOMENTE a metade A, porque ClassSpellcastingSchema (systems/pf2e/src/schemas/item-equipment.ts) tem um único `type` e um único array `slots` — a metade B está transcrita por extenso em notes[] e no relatório, como dívida declarada. CONFERIDA contra fonte independente: as fichas pregen oficiais do icônico Samo (packs/iconics/samo/samo-level-{1,3,5}.json), cuja entrada \"Animist Spells\" (tradition=divine, prepared=prepared, ability=wis) bate célula a célula na metade A — L1 slot0.max=2 slot1.max=1; L3 slot0=2 slot1=2 slot2=1; L5 slot0=2 slot1=2 slot2=2 slot3=1 — e cuja entrada \"Apparition Spells\" (prepared=spontaneous) bate célula a célula na metade B nos mesmos níveis (L1 slot1=1; L3 slot1=1 slot2=1; L5 slot1=1 slot2=1 slot3=1). ÚNICA divergência entre as duas fontes: a entrada \"Apparition Spells\" do Samo declara tradition=primal, enquanto a prosa da própria class feature \"Animist & Apparition Spellcasting\" diz \"Any of these spells that aren't normally on the divine list are still divine spells if you cast them this way\" e o journal lista uma única linha de conjuração. Adotado DIVINE (3 fontes contra 1: journal, prosa da feature e a entrada primária do próprio Samo); a divergência está registrada em dedupe.collisionsDetected e não toca nenhum número da tabela.",
+    "table": [
+      {
+        "level": 1,
+        "cantrips": 2,
+        "slots": {
+          "1": 1
+        }
+      },
+      {
+        "level": 2,
+        "cantrips": 2,
+        "slots": {
+          "1": 2
+        }
+      },
+      {
+        "level": 3,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 1
+        }
+      },
+      {
+        "level": 4,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2
+        }
+      },
+      {
+        "level": 5,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 1
+        }
+      },
+      {
+        "level": 6,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2
+        }
+      },
+      {
+        "level": 7,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 1
+        }
+      },
+      {
+        "level": 8,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2
+        }
+      },
+      {
+        "level": 9,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 1
+        }
+      },
+      {
+        "level": 10,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2
+        }
+      },
+      {
+        "level": 11,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 1
+        }
+      },
+      {
+        "level": 12,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2
+        }
+      },
+      {
+        "level": 13,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 1
+        }
+      },
+      {
+        "level": 14,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        }
+      },
+      {
+        "level": 15,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 1
+        }
+      },
+      {
+        "level": 16,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2
+        }
+      },
+      {
+        "level": 17,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 1
+        }
+      },
+      {
+        "level": 18,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2
+        }
+      },
+      {
+        "level": 19,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2
+        }
+      },
+      {
+        "level": 20,
+        "cantrips": 2,
+        "slots": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2
+        }
+      }
+    ]
+  },
+  "focusSpells": {
+    "names": [
+      "Crown of Prophets",
+      "Darkened Forest Form",
+      "Devouring Dark Form",
+      "Discomfiting Whispers",
+      "Earth's Bile",
+      "Embodiment of Battle",
+      "Garden of Healing",
+      "Gift of the Anemos",
+      "Nymph's Grace",
+      "River Carving Mountains",
+      "Store Time",
+      "Traveling Workshop",
+      "Trickster's Mirrors",
+      "Wish Market"
+    ],
+    "alreadyInPacks": [
+      "Crown of Prophets",
+      "Darkened Forest Form",
+      "Devouring Dark Form",
+      "Discomfiting Whispers",
+      "Earth's Bile",
+      "Embodiment of Battle",
+      "Garden of Healing",
+      "Gift of the Anemos",
+      "Nymph's Grace",
+      "River Carving Mountains",
+      "Store Time",
+      "Traveling Workshop",
+      "Trickster's Mirrors",
+      "Wish Market"
+    ]
+  },
+  "prerequisites": {
+    "internalChains": [
+      ["Channeled Protection", "Channeler's Stance"],
+      ["Instinctive Maneuvers", "Relinquish Control"],
+      ["Spirit Walk", "Apparition Sense"],
+      ["Wind Seeker", "Walk the Wilds"],
+      ["Incredible Familiar (Animist)", "Enhanced Familiar"]
+    ],
+    "referencesOutsideSelection": [
+      "MEDIDO: 9 dos 39 class feats têm system.prerequisites.value não vazio. 5 resolvem DENTRO do conjunto da classe (ver internalChains). Os 4 restantes estão descritos abaixo.",
+      "(1) NOME SEM O SUFIXO DO VENDOR — 'Apparition Cloud' (L12) exige 'Spirit Familiar', mas o documento se chama 'Spirit Familiar (Animist)' (o sufixo é do próprio vendor). Não é erro de prosa: a descrição do Shaman escreve @UUID[...Item.Spirit Familiar (Animist)]{Spirit Familiar}, ou seja, o vendor EXIBE 'Spirit Familiar' de propósito. Candidato natural a prerequisiteFixes kind 'rename' — NÃO aplicado nesta rodada, mesma decisão registrada em druid.json para 'Mature Animal Companion (Druid)'/'Incredible Companion (Druid)': mudaria a prosa exibida sem que nada na ficha-alvo dependa disso, e nenhum consumidor hoje resolve pré-requisito por nome.",
+      "(2) NOME DIVERGENTE + IDENTIDADE DE CLASSE — 'Echoing Channel' (L18, compartilhado animist+cleric, JÁ em feats-core) exige 'Embodiment of Balance or Cleric'. O documento do Animist se chama 'Embodiment of the Balance' (COM o artigo), então nem por nome exato ele casa. cleric.json já registrou este pré-requisito (issue #46) e o classificou como prosa legítima do vendor, não mecanizável — CORREÇÃO A REPORTAR: a nota de cleric.json diz que 'Embodiment of Balance é feature do Animist'; medido aqui, é um CLASS FEAT de nível 2 (feats/class/animist/level-2/embodiment-of-the-balance.json, _id 8Y9DCalsSnXHDCeV, trait animist, category class), não uma class feature. Nada a corrigir no dado; a imprecisão está na nota de cleric.json.",
+      "(3) OPÇÃO DE EIXO EM MINÚSCULAS + ATRIBUTO NÃO MECANIZÁVEL, NA MESMA STRING — 'Cycle of Souls' (L18) tem UMA entrada de pré-requisito com DUAS exigências separadas por vírgula: 'liturgist practice, at least one animist stance'. A primeira aponta para a opção 'Liturgist' do eixo animistic-practice pelo texto em minúsculas + a palavra 'practice' (mesmo formato de 'animal order' do Druid e 'dragon instinct' do Barbarian; um casamento case-insensitive resolveria quando alguém ler pré-requisito de opção de eixo — hoje ninguém lê). A segunda é atributo do nó: MEDIDO, existem 4 feats com o trait 'stance' entre os 39 (Channeler's Stance L1, Forest's Heart L16, Jester's Gambol L16, Spiritual Spellshape Stance L16), então a exigência é satisfazível, mas não há predicado que a expresse. É o caso INVERSO da issue #30 (lá duas entradas foram lidas como AND; aqui um AND real vem colado numa entrada só) — não é kind 'merge', e nenhum fix é aplicável sem inventar.",
+      "(4) ATRIBUTO DO NÓ (posse), não referência a documento — 'Enhanced Familiar' (L2, compartilhado, já em feats-core) exige 'a familiar'. Idêntico ao já registrado em druid.json. Preservado como texto, sem predicado inventado (REQ-BC-034).",
+      "NENHUM dos 39 aponta para documento de OUTRA classe (o Fighter tinha 1, 'Reflexive Stance (Monk)'). E não existe Animist Dedication no vendor — varredura de feats/**: zero documentos com 'Animist' no nome fora de feats/class/animist/ —, então não há a família de pré-requisito 'X Dedication' que o Druid tinha."
+    ]
+  },
+  "prerequisiteFixes": [],
+  "dedupe": {
+    "featsAlreadyInPacks": ["Conceal Spell", "Enhanced Familiar", "Echoing Channel"],
+    "collisionsDetected": [
+      "DUAS divergências de nível entre o items{} da classe e o nível genérico do arquivo de class-feature (a armadilha do plano, medida): 'Perception Expertise' (perception-expertise.json diz 3; o Animist concede no 9) e 'Weapon Specialization' (weapon-specialization.json diz 7; o Animist concede no 13). As outras 13 entradas do items{} batem. A fonte de verdade é o items{} da classe, como manda o contrato.",
+      "trait-duplo: 3 dos 39 class feats carregam trait de 2+ classes — 'Conceal Spell' (animist+witch+wizard), 'Enhanced Familiar' (animist+druid+magus+sorcerer+thaumaturge+witch+wizard) e 'Echoing Channel' (animist+cleric). Os TRÊS já estão em feats-core, reusados de Wizard/Witch/Druid/Cleric. O gate class_level derivado por trait fica AMBÍGUO nesses 3: o predicado correto é 'any' sobre as classes do trait, nunca uma escolha arbitrária (mesmo padrão registrado em wizard.json, cleric.json, barbarian.json, psychic.json e druid.json). Os outros 36 são exclusivos — 7,7% de trait-duplo, a menor taxa medida até agora (Druid 17%, Fighter 35%): classe nova, quase nada dela foi retrocompartilhado.",
+      "attacks.other zerado: classes/animist.json tem system.attacks.other = {name: \"\", rank: 0} (medido). Mesmo caso do Druid, diferente de Cleric/Gunslinger — transform.mjs descarta a chave \"other\" e não perde nada. O Animist NÃO produz divergência \"classSystem.attacks.other\" em pregen-parity (a #50 não o alcança).",
+      "keyAbility: o vendor declara ['wis'] (medido) — nada do buraco do Psychic (array vazio). classDC AUSENTE no doc do vendor (system.classDC undefined), embora o journal diga 'Trained in animist class DC': transform aplica o default 1, mesmo caminho de Cleric/Magus/Wizard/Sorcerer/Psychic/Druid. E o Animist NUNCA sobe classDC acima de trained — a derivação de proficiencyUpgrades não produz nenhuma linha classDC (medido).",
+      "PERÍCIAS INICIAIS: o vendor declara trainedSkills {value:['religion'], additional:2}, mas o journal diz 'Trained in Religion AND EITHER NATURE OR OCCULTISM' + 2+Int adicionais. A escolha Nature-ou-Occultism NÃO existe como dado em lugar nenhum do vendor (nem rule element, nem ChoiceSet) — é lacuna do vendor, não do nosso pipeline. Mesma família da 'perícia da ordem' que druid.json declarou. Dívida declarada; nada inventado.",
+      "'Simple Weapon Expertise' (L11) é o ÚNICO documento desta curadoria com publication.license = 'OGL' E publication.remaster = FALSE (Pathfinder Secrets of Magic; o outro OGL do conjunto, 'Perception Expertise' de Rage of Elements, já está em class-features-core e é remaster:true). É compartilhado com o Summoner (ainda sem curadoria), então entra em class-features-core PELO ANIMIST. Registrado porque é a primeira entrada remaster:false do pack por esta via — a integração central decide se isso importa para a política de licença/remaster do projeto.",
+      "AS 13 OPÇÕES DO EIXO animist-apparition NÃO VÊM TODAS DO MESMO LIVRO: 11 são de 'Pathfinder War of Immortals' e 2 — 'Shepherd of Errant Winds' e 'Speaker in Sibilance' — são de 'Pathfinder #216: The Acropolis Pyre' (adventure path). Ambas carregam a otherTag e são common, então entram pelo mesmo ramo; e as duas escrevem 'Apparition Skill' (singular) onde as 11 escrevem 'Apparition Skills'. optionCount=13 é o número da tag, que é o que transform.test.mjs confere; o 11+2 fica registrado caso a integração queira recortar por livro.",
+      "'Wish Market' é ÓRFÃ: é a 14ª magia com traits 'animist'+'focus' (spells/focus/wish-market.json, _id cYW9M2yE16dTTnCF, rarity UNCOMMON), mas NÃO é a vessel spell de nenhuma das 13 aparições, e a varredura de feats/**, class-features/**, spells/**, classes/**, journals/**, equipment/**, heritages/**, ancestries/** e backgrounds/** não achou UM ÚNICO documento que a referencie. Provavelmente a vessel spell de uma aparição ainda não publicada neste snapshot. Já está em spells-core (selecionada pelo trait 'focus'), então nada a fazer — registrada para que ninguém a leia como defeito num teste futuro.",
+      "NOME COM '&': a class feature de nível 1 se chama literalmente 'Animist & Apparition Spellcasting' — o único nome canônico com ampersand em toda a curadoria. O segmento final da uuid é idêntico ao entry.name (verificado nas 15 entradas do items{}: 15/15, sem a armadilha do Magus), e o journal já escreve '&amp;' no HTML. Registrado porque qualquer casamento por nome que passe por escape/unescape de HTML quebra exatamente aqui.",
+      "DIVERGÊNCIA DE FONTE (não afeta números): a ficha do Samo declara a entrada 'Apparition Spells' com tradition=primal (e a entrada de foco como 'Arcane Focus Spells' no nível 1, 'Focus Spells'/primal nos níveis 3 e 5). A prosa da class feature diz que TUDO que o animista lança é divino. Adotado divine; a divergência é de rótulo de tradição nas entradas secundárias da pregen, não de contagem de slot — as contagens batem 100% nos três níveis."
+    ]
+  },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "levelBasis: class. featuresByLevel[].level e proficiencyUpgrades[].level são níveis de CLASSE (plano r29 §5 / spec 31 §4.3).",
+    "PROFICIÊNCIAS INICIAIS medidas em classes/animist.json: perception=1, savingThrows fort=1/reflex=1/will=2 (will já EXPERT no nível 1, mesmo padrão de Cleric/Wizard/Sorcerer/Psychic/Druid), attacks simple=1 e unarmed=1 (martial=0, advanced=0), defenses light=1, medium=1, unarmored=1 (heavy=0 — segunda conjuradora plena curada com armadura MÉDIA treinada, ao lado do Druid), spellcasting=1, trainedSkills {value:['religion'], additional:2}, classDC ausente. featLevels: ancestry [1,5,9,13,17], class [2,4,6,8,10,12,14,16,18,20] (SEM talento de classe no nível 1 — o nível 1 é todo gasto nas três features), general [3,7,11,15,19], skill [2,4,6,8,10,12,14,16,18,20]; skillIncreaseLevels [3,5,7,9,11,13,15,17,19]. Idênticos a Cleric/Wizard/Druid.",
+    "CLASS FEATURES (items{} do vendor): 15 entradas, nome canônico da uuid == entry.name em 15/15. 6 das 15 JÁ estão em class-features-core, reusadas de outras classes (Fortitude Expertise, Expert Spellcaster, Perception Expertise, Weapon Specialization, Master Spellcaster, Legendary Spellcaster). As 9 restantes faltam. Mais as 13 aparições e as 4 práticas, que entram pelo ramo de eixo (não estão no items{}). Total novo em class-features-core: 26 documentos.",
+    "DOIS EIXOS, não um (a medição preliminar da rodada previa um). `animist-apparition` (13 opções, nível 1) e `animistic-practice` (4 opções: Liturgist, Medium, Seer, Shaman; nível 1). A segunda tag QUEBRA a convenção `<classe>-<eixo>` do plano §4 R3: é 'animistic-practice', adjetivo, não 'animist-practice'. axisCategoryFromOtherTag('animistic-practice','animist') devolve 'animisticPractice' (o prefixo 'animist-' não casa, então a tag inteira vira camelCase) — o valor é utilizável, e foi DECLARADO explicitamente em choiceAxes[].category para que a intenção não dependa desse detalhe de string matching. NENHUMA das 17 opções carrega 'class-archetype'; todas são common.",
+    "O EIXO DE APARIÇÃO NÃO É UMA ESCOLHA PERMANENTE — e o schema de choiceAxes não sabe representá-lo. São três desvios simultâneos do que otherTag/featureNameInItemsMap/level/choose/optionCount modelam: (a) escolhem-se DUAS aparições, não uma (choose: 2 declarado aqui; as 15 curadorias anteriores usam choose: 1 e NADA no pipeline lê o campo hoje — grep: só curation/index.mjs o normaliza); (b) o número CRESCE com o nível — 2 no nível 1, 3 no 7 pela class feature 'Third Apparition', 4 no 15 pela 'Fourth Apparition' — e `level`+`choose` são escalares únicos, não uma progressão; (c) a escolha é REFEITA a cada preparação diária, e ainda existe uma sub-escolha de aparição 'primária' entre as atuneadas (que dá a vessel spell e, no 19, a forma de avatar), trocável a cada Refocus. Ou seja: não é 'escolha 1 de 13 no nível 1', é 'escolha N de 13 por dia, com um destaque re-selecionável'. Declarado como está para não inventar; a forma correta é PERGUNTA ABERTA para a integração central (relatório §10).",
+    "O VENDOR NÃO MECANIZA A ESCOLHA DE APARIÇÃO: 'Apparition Attunement' tem rules: [] e a literal 'animist-apparition' aparece em EXATAMENTE 13 arquivos do vendor — os 13 documentos de aparição —, nenhum ChoiceSet a consome. É o oposto de 'Animistic Practice', que tem ChoiceSet {filter:['item:tag:animistic-practice'], itemType:'feat'} + GrantItem. A tag do eixo de aparição existe só como marcação, e quem for oferecer a escolha na ficha vai ter de fazê-lo sem apoio de rule element.",
+    "AS 4 PRÁTICAS CONCEDEM TALENTOS POR GrantItem, e todos os alvos entram em feats-core pelo próprio laço da classe (trait animist): Liturgist->Circle of Spirits (L1), Medium->Relinquish Control (L1), Seer->Apparition Sense (L1), Shaman->Spirit Familiar (Animist) (L1) + Enhanced Familiar (L2, predicado self:level>=2) + Incredible Familiar (Animist) (predicado self:level>=9). Nenhuma entrada em GRANT_TARGET_DEDICATION_NAMES ou GRANT_TARGET_CLASS_FEATURE_NAMES é necessária: é o caso feliz que o contrato já cobre. Cadeia de segunda ordem: 'Spirit Familiar (Animist)' concede o talento geral 'Pet' (feats/general/level-1/pet.json, _id 6yPrvbSDaa8glLjn), que JÁ está em feats-core — a cadeia fecha.",
+    "DIVERGÊNCIA DE NÍVEL NA PRÓPRIA PROSA DO VENDOR: a descrição do Shaman diz 'Invocation of Growth (9th): ... You gain the Incredible Familiar feat' e o GrantItem usa predicado self:level>=9; mas o documento 'Incredible Familiar (Animist)' é de NÍVEL 10 (feats/class/animist/level-10/). Registrado, não corrigido — mexer no nível do feat seria alterar o dado do vendor.",
+    "CONJURAÇÃO — O ACHADO ESTRUTURAL DESTA CLASSE: o Animist tem DUAS conjurações simultâneas e de TIPOS DIFERENTES. (a) Animist spellcasting: PREPARADA, tradição divina, wis, 2 truques fixos e 2 slots por rank (nunca 3 — é o padrão do Psychic, não o do Cleric/Druid), rank 10 = ZERO. (b) Apparition spellcasting: ESPONTÂNEA, repertório vindo das aparições atuneadas (cada aparição dá 1 truque + 1 magia de rank 1 a 9), com slots próprios, todas as magias sendo signature spells, e o slot de rank 10 no nível 19 vindo da class feature 'Supreme Incarnation'. As duas NÃO se misturam (prosa explícita: \"you can't cast your animist spells using your apparition spell slots or vice versa\"). ClassSpellcastingSchema tem um único `type` e um único `slots`: só a metade (a) foi emitida. Metade (b) transcrita por extenso na nota seguinte.",
+    "TABELA DA CONJURAÇÃO DE APARIÇÃO (metade B, NÃO emitida — dívida declarada). Truques: 2 nos níveis 1-6, 3 nos 7-14, 4 nos 15-20 (um por aparição atuneada). Slots por nível, no formato rank:quantidade — L1 {1:1}; L2 {1:1}; L3 {1:1,2:1}; L4 {1:1,2:1}; L5 {1:1,2:1,3:1}; L6 {1:1,2:1,3:1}; L7 {1:1,2:1,3:1,4:1}; L8 = L7; L9 {1:1,2:1,3:1,4:1,5:1}; L10 {1:2,2:2,3:2,4:1,5:1}; L11 {1:2,2:2,3:2,4:2,5:1,6:1}; L12 = L11; L13 {1:2,2:2,3:2,4:2,5:2,6:1,7:1}; L14 = L13; L15 {1:2,2:2,3:2,4:2,5:2,6:2,7:1,8:1}; L16 = L15; L17 {1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:1,9:1}; L18 = L17; L19 {1:2,2:2,3:2,4:2,5:2,6:2,7:2,8:2,9:1,10:1}; L20 = L19. O slot de rank 10 vem de 'Supreme Incarnation' (marcado com * no journal, 'works a bit differently') — mesmo padrão do Primal Hierophant do Druid e do Miraculous Spell do Cleric.",
+    "MAGIAS DE FOCO — as 14 com trait 'animist' JÁ ESTÃO 100% em spells-core (conferido por flags.fusion.sourceId, não por nome): 13 são vessel spells, uma por aparição (Crafter in the Vault->Traveling Workshop, Custodian of Groves and Gardens->Garden of Healing, Echo of Lost Moments->Store Time, Impostor in Hidden Places->Discomfiting Whispers, Lurker in Devouring Dark->Devouring Dark Form, Monarch of the Fey Courts->Nymph's Grace, Reveler in Lost Glee->Trickster's Mirrors, Shepherd of Errant Winds->Gift of the Anemos, Speaker in Sibilance->Crown of Prophets, Stalker in Darkened Boughs->Darkened Forest Form, Steward of Stone and Fire->Earth's Bile, Vanguard of Roaring Waters->River Carving Mountains, Witness to Ancient Battles->Embodiment of Battle) e a 14ª é a órfã 'Wish Market' (ver dedupe). O VÍNCULO aparição -> vessel spell só existe como PROSA na descrição de cada aparição — não há dado estruturado, exatamente a mesma lacuna que druid.json registrou para ordem->magia de foco e cleric.json para domínio->magia de domínio. Dívida declarada.",
+    "REPERTÓRIO DE APARIÇÃO — 118 magias distintas, extraídas por parse do bloco 'Apparition Spells' das 13 aparições (13 x 10 = 130 referências, 118 únicas). 102 já estão em spells-core por sourceId; 16 FALTAM: Canticle of Everlasting Grief (r8), Field of Life (r6), Gentle Breeze (r2), Hydraulic Torrent (r4), Hypercognition (r3), Ill Omen (r1), Moment of Renewal (r8), Moon Frenzy (r5), Punishing Winds (r8), Rousing Splash (r1), Snake Fangs (r4), Unfathomable Song (r9), Unfettered Pack (r7), Volcanic Eruption (r7), Wails of the Damned (r9), Wrathful Storm (r9). A maioria é primal-only ou occult-only — exatamente o buraco de tradição que o plano r29 §9 manda DECLARAR, não fechar aqui. Sem essas 16, TODAS as 13 aparições ficam com repertório incompleto (nenhuma escapa).",
+    "PROFICIENCY UPGRADES DERIVÁVEIS de subfeatures.proficiencies — 12 linhas, com missing=[] e ignoredRules=[] (medidas rodando deriveProficiencyUpgrades sobre os docs crus de class-features/ do vendor): Fortitude Expertise fortitude rank2 @L3; Expert Spellcaster spellcasting rank2 @L7; Perception Expertise perception rank2 @L9; Expert Protections armor.light + armor.medium + armor.unarmored + reflex rank2 @L11 (QUATRO linhas de um doc só); Simple Weapon Expertise weapons.simple + weapons.unarmed rank2 @L11 (DUAS linhas); Master of Mind and Spirit will rank3 @L13; Master Spellcaster spellcasting rank3 @L15; Legendary Spellcaster spellcasting rank4 @L19. Nenhum proficiencyUpgradeExtras foi necessário. 'Weapon Specialization' (L13, bônus de dano), as três features de nível 1 e 'Supreme Incarnation' (L19) não produzem linha — subfeatures vazio. O Animist para em EXPERT em armadura e em armas simples, chega a MASTER em Will (L13) e a LEGENDARY só em conjuração (L19): perfil de conjurador pleno com armadura média e Vontade forte.",
+    "POOL DE FOCO NÃO É MODELADO. A prosa diz 'you start with a focus pool of 1 Focus Point', e 'Third Apparition' (L7) e 'Fourth Apparition' (L15) carregam um ActiveEffectLike em system.resources.focus.max (+1 cada, teto 3). O ponto inicial NÃO tem rule element em lugar nenhum (Apparition Attunement e Animist & Apparition Spellcasting têm rules: []) — a ficha do Samo simplesmente traz resources.focus.value = 1. statFromRulePath() não reconhece o path de foco (não é proficiência), então a derivação genérica ignora os dois ActiveEffectLike corretamente. Dívida declarada: quem for modelar pool de foco terá de tratar o ponto inicial como regra da classe, não como dado do vendor.",
+    "MULTICLASSE (plano r21 §4.1): o gate derivado dos 39 class feats é class_level:animist, sem ambiguidade em 36 deles; para os 3 com trait de 2+ classes o predicado correto é 'any' sobre as classes do trait. NÃO EXISTE 'Animist Dedication' neste snapshot do vendor (varredura de feats/** por nome contendo 'animist' fora de feats/class/animist/: zero resultados), então, ao contrário de Druid/Psychic, não há nem a decisão de incluí-la em classFeats.extraNames — a rota de arquétipo do Animist simplesmente não existe como dado.",
+    "CONSUMIDORES QUE ESTA CURADORIA EXIGE (nenhum arquivo tocado aqui — todos são compartilhados): (a) planVM.ts KNOWN_CLASS_TRAITS não contém 'animist' — com os 39 class feats no pack, isFeatEligible() passa a OFERECER talentos de Animist para qualquer outra classe; regressão muda que nenhum teste pega hoje (idêntica à que psychic.json registrou, e 'psychic' também continua fora do Set). (b) planVM.ts CLASS_CHOICE_SLOTS não tem 'Apparition Attunement' nem 'Animistic Practice', e PlanSlotType não tem 'apparition' nem 'animisticPractice' — sem essas linhas de fiação, os dois eixos de nível 1 não viram slot pickável. (c) o slot de aparição, além disso, precisa de 'escolha 2' e de crescer para 3/4 — CLASS_CHOICE_SLOTS mapeia nome->tipo, um slot por feature, e não expressa cardinalidade.",
+    "REBUILD: as 17 opções dos dois eixos entram em class-features-core APENAS pelo ramo axisCategories.has(doc.system.category) de isClassFeaturesCoreDoc — não estão no items{} da classe. E system.category só vira 'apparition'/'animisticPractice' quando transform.mjs roda com esta curadoria no disco. Logo NÃO basta rodar build-mvp-subset.mjs sobre um out/ antigo: é obrigatório reprocessar o transform com classes E class-features no MESMO --packs, senão os eixos saem com 0 opções e transform.test.mjs reprova em 'eixo sem nenhuma opção no pack'.",
+    "GATE QUE ESTA CURADORIA ACIONA: pregen-parity.test.ts monta PREGENS filtrando os icônicos pelas classes que estão em classes-core. O icônico do Animist é SAMO (packs/iconics/samo/, níveis 1/3/5) — publicar a classe traz Samo para dentro do gate #48, verificação externa de graça, e é ele que prova a metade animista da tabela (ver spellcasting.source). Nada indica divergência nova: attacks.other é zerado (não repete a #50 de Cleric/Gunslinger) e a #49 já saiu inteira do baseline."
+  ]
+}

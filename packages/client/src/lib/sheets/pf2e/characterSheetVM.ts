@@ -30,6 +30,7 @@ import { t, i18n } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
 import { isLoreSlug, loreSubject } from "./loreSlug.js";
 import { translateDamageType } from "../../compendium/documentDetails.js";
+import { KNOWN_CLASS_TRAITS } from "./classTraits.js";
 import {
   effectiveSpellRank,
   computeHeightenedSpell,
@@ -2942,38 +2943,6 @@ export interface SpellPickerFilters {
   /** Case-insensitive substring match against the spell name. */
   search?: string;
 }
-
-/**
- * Known class trait slugs (mirrors planVM.ts's `KNOWN_CLASS_TRAITS` — kept in
- * sync by hand, same pattern as `SKILL_ABILITY`/`CANONICAL_SKILL_SLUGS`
- * between these two files; planVM already imports FROM this module, so the
- * reverse import would cycle). Distinguishes "this spell belongs to a
- * DIFFERENT class" from "this is a shared/general focus spell" in
- * `filterSpellPicker`'s `classTrait` filter (issue #7).
- */
-const KNOWN_CLASS_TRAITS = new Set([
-  "magus",
-  "alchemist",
-  "barbarian",
-  "bard",
-  "champion",
-  "cleric",
-  "druid",
-  "fighter",
-  "gunslinger",
-  "inventor",
-  "investigator",
-  "kineticist",
-  "monk",
-  "oracle",
-  "ranger",
-  "rogue",
-  "sorcerer",
-  "summoner",
-  "swashbuckler",
-  "witch",
-  "wizard",
-]);
 
 function pickerSpellLevel(entry: SpellPickerEntry): number {
   // The "spell" item schema stores level as a flat number at system.level
