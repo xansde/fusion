@@ -1,7 +1,7 @@
 # 35 — Avatar do Personagem
 
 - **Título:** Avatar do personagem — boneco montável do acervo Waybuilder, no canto da mesa
-- **Status:** implementado v0.1 (rodada de 2026-08-08)
+- **Status:** implementado v0.1 (rodada de 2026-08-08); entrada pela aba Configurações (F5 — DEC-AVT-07)
 - **Data:** 2026-08-08
 - **Baseada em:**
   - [`igoresramos/waybuilder-avatar`](https://github.com/igoresramos/waybuilder-avatar) — o acervo e o renderer puro que esta feature consome. Pin: `b071c8fd10e79f5cc09af897cff9c9753f4dd790`, catálogo no pin LPC `0f898bb6`.
@@ -9,6 +9,7 @@
   - `11-ui-framework-e-fichas.md` — janelas (REQ-UIF-009..016), sistema de fichas, escala de z (REQ-UIF-008).
   - `02-modelo-de-dados.md` — flags namespaced (REQ-DOC-009), semântica de merge e deleteKey (REQ-DOC-037).
   - `26-licencas-e-legal.md` — atribuição obrigatória de arte de terceiros.
+  - `37-configuracoes.md` — aba Configurações (REQ-CFG-\*), entry point do avatar a partir da F5 (DEC-AVT-07).
 
 > **Não é o retrato.** O retrato (`doc.img`) é um arquivo de imagem que o dono
 > sobe; o avatar é uma **figura montada** peça por peça, que anima e fica no canto
@@ -27,7 +28,7 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ### 2.1 Inclui
 
-- Botão na ficha do personagem que abre o criador em janela própria.
+- Seção Avatar na aba Configurações (entrada via gaveta lateral, não pela ficha — DEC-AVT-07).
 - Criador com o acervo completo: 627 peças, 11 grupos, ~100 slots, 6 variantes de
   corpo, recolor em runtime por canal de cor.
 - Grade de escolha em que **cada célula compõe o personagem inteiro** com a peça
@@ -68,8 +69,8 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ### Criador
 
-- **REQ-AVT-010** [MVP] Abre em janela própria com `singletonKey`
-  `avatar:Actor:<id>`; clicar duas vezes foca a janela aberta.
+- **REQ-AVT-010** [MVP] O criador abre na seção Avatar da aba Configurações (REQ-CFG-\*).
+  O acesso é pela aba, sem entrada separada por ficha (DEC-AVT-07).
 - **REQ-AVT-011** [MVP] Navegação em dois níveis: aba por grupo (rótulo pt-BR do
   próprio catálogo, ordem vinda da árvore de prioridade) e um slot por vez.
 - **REQ-AVT-012** [MVP] A ordem de abas e de slots é **determinística**: dois
@@ -154,23 +155,32 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   cache de quadros: as células reaproveitam os tiles das camadas em comum.
 - **DEC-AVT-06 — Frente apenas.** O corte de direção do acervo tira 75% do peso;
   girar o boneco não é possível sem refazer o recorte.
+- **DEC-AVT-07 — Repositório próprio, entrada pela aba Configurações (F5).** Motivada por
+  DEC-SEP-06 (decisão da separação de repos, fora de `specs/` — ver
+  `docs/design/separacao-repos/design.md` § DEC-SEP-06): o avatar nunca entra na alfa por
+  merge — nasce como repo `fusion-avatar` a partir do porte existente, e o core o consome
+  como pacote (mesmo padrão de "repo externo consumido por artefato"). Entrada de UI:
+  **aba Configurações da gaveta** (não mais botão na ficha). O "behind 63" da worktree
+  deixa de importar: só o ponto de integração precisa da alfa atual.
 
 ## 5. Onde vive
 
-| Papel                       | Arquivo                                                      |
-| --------------------------- | ------------------------------------------------------------ |
-| Contrato do flag            | `packages/shared/src/avatar.ts`                              |
-| Resolução de paleta/recolor | `packages/client/src/lib/avatar/paletas.ts`                  |
-| Tempo/ciclo de animação     | `packages/client/src/lib/avatar/animacao.ts`                 |
-| Carga do acervo (HTTP)      | `packages/client/src/lib/avatar/acervo.ts`                   |
-| Lógica do criador (pura)    | `packages/client/src/lib/avatar/criador.ts`                  |
-| Diff de gravação (podado)   | `packages/client/src/lib/avatar/patch.ts`                    |
-| Desenho em canvas           | `packages/client/src/lib/avatar/desenhar.ts`                 |
-| Quem é "meu" avatar         | `packages/client/src/lib/avatar/meuAvatar.ts`                |
-| Sprite reutilizável         | `packages/client/src/components/avatar/AvatarSprite.svelte`  |
-| Popup de criação            | `packages/client/src/components/avatar/AvatarCreator.svelte` |
-| Overlay do canto            | `packages/client/src/components/avatar/AvatarCorner.svelte`  |
-| Publicação de `/avatar/*`   | `packages/client/vite-plugins/waybuilder-avatar.ts`          |
+**A partir da F5 (DEC-AVT-07):** este pacote vive no repositório externo `fusion-avatar` (consumido pelo core `fusion` como `@fusion/avatar` por tag git). O contrato do flag continua em `@fusion/shared`.
+
+| Papel                       | Arquivo / Pacote                                                                |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| Contrato do flag            | `@fusion/shared` / `packages/shared/src/avatar.ts`                              |
+| Resolução de paleta/recolor | `@fusion/avatar` / `packages/client/src/lib/avatar/paletas.ts`                  |
+| Tempo/ciclo de animação     | `@fusion/avatar` / `packages/client/src/lib/avatar/animacao.ts`                 |
+| Carga do acervo (HTTP)      | `@fusion/avatar` / `packages/client/src/lib/avatar/acervo.ts`                   |
+| Lógica do criador (pura)    | `@fusion/avatar` / `packages/client/src/lib/avatar/criador.ts`                  |
+| Diff de gravação (podado)   | `@fusion/avatar` / `packages/client/src/lib/avatar/patch.ts`                    |
+| Desenho em canvas           | `@fusion/avatar` / `packages/client/src/lib/avatar/desenhar.ts`                 |
+| Quem é "meu" avatar         | `@fusion/avatar` / `packages/client/src/lib/avatar/meuAvatar.ts`                |
+| Sprite reutilizável         | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarSprite.svelte`  |
+| Seção Avatar (aba Config)   | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarSection.svelte` |
+| Overlay do canto            | `@fusion/avatar` / `packages/client/src/components/avatar/AvatarCorner.svelte`  |
+| Publicação de `/avatar/*`   | `@fusion/avatar` / `packages/client/vite-plugins/waybuilder-avatar.ts`          |
 
 ## 6. Verificação
 
