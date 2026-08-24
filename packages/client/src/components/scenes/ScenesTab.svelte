@@ -17,10 +17,10 @@
    *    answering "what is the table looking at right now" before "which scenes exist"
    *    (DEC-CEN-01). Its rule lives in `lib/scenes/scenesTabVM.ts`; what is here is
    *    markup and the asset-token dance the VM deliberately does not do.
-   *  - the four dialogs as WINDOWS (REQ-CEN-060..064): creating, configuring,
-   *    perception and the delete confirmation open through
-   *    `lib/scenes/sceneWindows.ts` — a form does not fit in 300px and the drawer
-   *    never widens (DEC-CEN-09, DEC-GAV-04);
+   *  - the dialogs as WINDOWS (REQ-CEN-060/061/063): creating, configuring
+   *    and the delete confirmation open through `lib/scenes/sceneWindows.ts` — a
+   *    form does not fit in 300px and the drawer never widens (DEC-CEN-09,
+   *    DEC-GAV-04);
    *  - the archive (REQ-CEN-030..037, REQ-CEN-039): the other scenes of the world,
    *    grouped by folder in the manual order of the document, from
    *    `lib/scenes/sceneShelf.ts`. The scene on air is NOT repeated here — it lives in
@@ -31,15 +31,15 @@
    *
    * REQ-CEN-020..025 (the environment shortcuts and the perception door of the head)
    * were retired from this UI on 2026-08-17 — Alexandre's r1 test, item 25 ("fora por
-   * enquanto", a decision, not a bug). The server-side logic they used to trigger
-   * (`toggleSceneDarkness`/`toggleSceneFog`/`resetSceneFog` in `lib/scenes/
-   * sceneEnvironment.ts`, and `openScenePerceptionWindow` in `lib/scenes/
-   * sceneWindows.ts`) is untouched, but reachability by UI is now UNEVEN between the
-   * three gestures: `toggleSceneDarkness`/`toggleSceneFog` stay reachable from the
-   * configuration window's perception door (REQ-CEN-062); `resetSceneFog` has NO UI
-   * door at all — the perception window only ever wrote value fields via `doc:update`
-   * and never called `fog:reset` (Q-CEN-07 in `specs/44-aba-cenas.md`). See
-   * `specs/44-aba-cenas.md` §5.3 for the emended requirements.
+   * enquanto", a decision, not a bug). DEC-SEP-05 (F2, 2026-08-23) went further and
+   * REMOVED the server-side logic they used to trigger (`sceneEnvironment.ts`'s
+   * darkness/fog/fog-reset gestures, and the perception window itself,
+   * `ScenePerceptionDialog` + `openScenePerceptionWindow`) along with the rest of
+   * the fog/vision pipeline — see `docs/design/separacao-repos/design.md`. The
+   * configuration window's own door into perception is gone too: the only
+   * surviving door out of this tab is `.scene-head__config`, straight into
+   * `openSceneConfigWindow`. See `specs/44-aba-cenas.md` §5.3 (and its
+   * DEC-SEP-05 banner) for the emended requirements.
    *
    * Content permission: the whole tab is group "gm" in the rail, but that is
    * ergonomics, not a boundary (REQ-GAV-034, DEC-CEN-11). Both halves are closed
@@ -359,9 +359,10 @@
       </div>
       <!-- REQ-CEN-020..025: the perception door and the three environment gestures
            that used to float here were retired from the head's UI on 2026-08-17
-           (Alexandre's r1 test, item 25 — a decision, not a bug). The server-side
-           logic stays; the door into it is still the configuration window
-           (REQ-CEN-062). See `specs/44-aba-cenas.md` §5.3. -->
+           (Alexandre's r1 test, item 25 — a decision, not a bug). DEC-SEP-05 (F2,
+           2026-08-23) removed the server-side logic too, along with the rest of
+           the fog/vision pipeline — see `docs/design/separacao-repos/design.md`.
+           See `specs/44-aba-cenas.md` §5.3. -->
       <!-- Ajustes r1, item 27: the "no ar" flag is its own element, pinned to the
            head's TOP edge (`position: absolute; top: 0.4rem`) — a sibling of
            `.scene-head__info`, never nested inside it, so it stays isolated from the
@@ -373,14 +374,14 @@
         <span class="scene-head__flag-dot" aria-hidden="true"></span>
         {t("FUSION.Scene.Head.OnAir")}
       </span>
-      <!-- Ajustes r1 review (2026-08-17), REQ-CEN-061/062: the archive never repeats
+      <!-- Ajustes r1 review (2026-08-17), REQ-CEN-061: the archive never repeats
            the scene ON AIR (REQ-CEN-036), so once item 25 took the head's direct
-           perception door out, this button became the ONLY reachable door into that
-           scene's configuration — and, through it (`onOpenPerception`,
-           `lib/scenes/sceneWindows.ts`), into perception too. Out of flow, opposite
-           corner from the flag, so it cannot add a pixel to the fixed head
-           (REQ-CEN-013). Same pencil glyph as the archive row's edit action, so
-           "configure" reads as one verb across the whole tab. -->
+           perception door out, this button became the ONLY reachable door into
+           that scene's configuration (DEC-SEP-05, F2: the configuration window's
+           own door into perception is gone too — see `lib/scenes/sceneWindows.ts`).
+           Out of flow, opposite corner from the flag, so it cannot add a pixel to
+           the fixed head (REQ-CEN-013). Same pencil glyph as the archive row's
+           edit action, so "configure" reads as one verb across the whole tab. -->
       <button
         class="scene-head__config"
         title="{t('FUSION.Scene.Dialog.EditScene')} {head.name}"
@@ -776,12 +777,14 @@
 
   /* REQ-CEN-020..025: the environment row and the DIRECT perception door that used to
      float in the corners of the head were retired from this UI on 2026-08-17 (item 25
-     — decision, not a bug). Their rules stayed in `lib/scenes/sceneEnvironment.ts` and
-     `lib/scenes/sceneWindows.ts` for when the UI comes back. `.scene-head__config`
-     below is a DIFFERENT door — it opens the configuration window, not perception
-     directly — restored the same day (Ajustes r1 review) because without it the
-     archive's exclusion of the scene on air (REQ-CEN-036) left that scene with no
-     reachable door at all, contradicting REQ-CEN-061/062. */
+     — decision, not a bug). DEC-SEP-05 (F2, 2026-08-23) removed their underlying rules
+     too (`lib/scenes/sceneEnvironment.ts` is gone; `lib/scenes/sceneWindows.ts` no
+     longer has a perception window kind) along with the rest of the fog/vision
+     pipeline. `.scene-head__config` below is a DIFFERENT door — it opens the
+     configuration window, never perception — restored on 2026-08-17 (Ajustes r1
+     review) because without it the archive's exclusion of the scene on air
+     (REQ-CEN-036) left that scene with no reachable door at all, contradicting
+     REQ-CEN-061. */
 
   /* TK022-client: the token-add door, sharing the head's top-right corner with
      `.scene-head__config` — same fixed size and vertical position as that button,

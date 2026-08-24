@@ -34,7 +34,7 @@
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { nextSortInFolder, SCENE_SHELF_KEYS } from "../../lib/scenes/sceneShelf.js";
   import { fusionApi } from "../../lib/api.js";
-  import FilePicker from "../assets/FilePicker.svelte";
+  import FilePicker from "$lib/components/assets/FilePicker.svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
   // ---- Props ----
@@ -44,19 +44,12 @@
     scene = null,
     onClose,
     onSuccess,
-    onOpenPerception = undefined,
     socket,
   }: {
     mode?: "create" | "edit";
     scene?: SceneDocument | null;
     onClose: () => void;
     onSuccess: () => void;
-    /**
-     * REQ-CEN-062: the door to the perception window, injected by whoever opened
-     * this one. Injected rather than imported so the form never has to know the
-     * window manager exists.
-     */
-    onOpenPerception?: (() => void) | undefined;
     socket: Socket;
   } = $props();
 
@@ -326,18 +319,6 @@
   {/if}
 
   <footer class="dialog__footer">
-    <!-- REQ-CEN-062: the door to the perception window. Only for a scene that already
-         exists — perception is a property of a saved scene, not of a form. -->
-    {#if onOpenPerception}
-      <button
-        type="button"
-        class="btn btn--ghost dialog__footer-start"
-        onclick={onOpenPerception}
-        disabled={submitting}
-      >
-        {t("FUSION.Scene.Window.OpenPerception")}
-      </button>
-    {/if}
     <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
       {t("FUSION.Scene.Dialog.Cancel")}
     </button>
@@ -480,10 +461,6 @@
     gap: 0.5rem;
     justify-content: flex-end;
     padding-top: 0.9rem;
-  }
-
-  .dialog__footer-start {
-    margin-right: auto;
   }
 
   /* Buttons (inline — avoids deep import of global .btn) */

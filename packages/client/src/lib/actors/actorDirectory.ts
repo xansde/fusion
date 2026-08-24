@@ -54,8 +54,15 @@ export interface ActorDocument extends BaseDocument {
 export interface ActorDragPayload {
   /** Discriminator — allows drop zones to identify this as an actor drag. */
   readonly kind: "actor";
-  /** UUID of the Actor document (nanoid 16-char _id). */
-  readonly uuid: string;
+  /**
+   * The Actor document's `_id` (nanoid 16-char).
+   *
+   * Named `_id`, not `uuid` (#170): this field never carried a UUID — it was
+   * always `actor._id` — and document identity in this codebase is
+   * `flags.fusion.sourceId` (DEC-ATR-11), never `_id` and never an invented
+   * uuid. The old `uuid` name invited exactly that wrong comparison.
+   */
+  readonly _id: string;
   /** documentType always "Actor". */
   readonly documentType: "Actor";
   /** Actor subtype (e.g. "character", "npc"). */
@@ -75,7 +82,7 @@ export interface ActorDragPayload {
 export function buildActorDragPayload(actor: ActorDocument): ActorDragPayload {
   return {
     kind: "actor",
-    uuid: actor._id,
+    _id: actor._id,
     documentType: "Actor",
     subtype: actor.type,
     name: actor.name,
@@ -142,7 +149,7 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
   }
 
   return {
-    actorId: opts.payload.uuid,
+    actorId: opts.payload._id,
     x,
     y,
   };

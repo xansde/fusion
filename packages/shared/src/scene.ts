@@ -252,15 +252,31 @@ export const TokenDocumentSchema = z.object({
 
   /**
    * Vision configuration for this token.
-   * REQ-VIS-060: enabled, range, angle, visionMode, detectionModes.
-   * Render on client only; server uses enabled/range for movement validation context.
+   *
+   * TK100 (spec 41-token.md REQ-TOK-101/102, DEC-TOK-18, D24): as far as
+   * spec 41 is concerned this field is an INERT declaration — a place
+   * reserved for whichever vision/fog spec eventually claims it, not a
+   * requirement spec 41 defines behaviour for. Field name is `vision`,
+   * never `sight` (REQ-TOK-102/REQ-VIS-093). Spec 07's own live vision
+   * system (`lib/canvas/vision/vision-state.ts`) already reads this field
+   * for real — that is spec 07's territory, not spec 41's; "tirar de
+   * verdade" (removing the behaviour project-wide) is explicitly registered
+   * as OUT of spec 41's scope (D24: doing so would also amend specs 00/07/27
+   * and CLAUDE.md, none of which this spec touches).
+   *
+   * `token:move` (`vision-handlers.ts`) does NOT read this field — TK062
+   * (Fase 5) removed wall-collision validation from movement entirely;
+   * the stale claim that used to sit here ("server uses enabled/range for
+   * movement validation context") stopped being true then.
    */
   vision: TokenVisionSchema.default(() => TokenVisionSchema.parse({})),
 
   /**
    * Light emission configuration for this token.
-   * REQ-VIS-041: token emits light with same parameters as AmbientLight.
-   * Position comes from token x/y; render on client only.
+   *
+   * TK100 (spec 41-token.md REQ-TOK-101, DEC-TOK-18, D24): same inert-as-
+   * far-as-spec-41-is-concerned status as `vision` above — see that field's
+   * comment for the full rationale.
    */
   light: TokenLightSchema.default(() => TokenLightSchema.parse({})),
 });

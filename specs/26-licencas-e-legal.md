@@ -8,6 +8,8 @@
   - `docs/research/12b-etmos-fontes-locais.md` — licença do SRD ETMOS (todos os direitos reservados presumido), autoria/créditos da Balde Galáctico, símbolos rúnicos como assets proprietários
   - `docs/research/10-pf2e-sistema-internals.md` — três camadas de licença do `foundryvtt/pf2e` (código Apache-2.0, dados ORC/OGL, arte Paizo proibida), metadados de `publication`, separação regras-puras vs. acoplamento ao Foundry, relação SF2e
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Packs ORC/OGL e material de licença aberta do PF2e/SF2e vivem no repo satélite `xansde/fusion-systems-2e` (git submodule pinado por tag do core). O Etmos permanece legado, fora da linha alfa (DEC-SEP-04). As obrigações e a matriz de risco desta spec não mudam de conteúdo — mudou só onde os arquivos que ela normatiza moram.
+
 > Esta spec é a **fonte normativa legal** do Fusion. Ela é referenciada por
 > praticamente todas as specs irmãs (notadamente `00-visao-e-escopo.md`,
 > `16-compendiums-e-importacao.md`, `17-sistema-pf2e.md`, `18-sistema-sf2e.md`,

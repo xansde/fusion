@@ -97,8 +97,9 @@ interface RegistrarAccumulator {
  *   - `setting(def)` — register a setting (REQ-SYS-047).
  *   - `stackingRules(table)` — declare modifier stacking rules (REQ-SYS-085).
  *
- * New in M5-A (foundation for Etmos — aditive, retrocompatible):
- *   - `rollData(def)` — register a roll-data builder (E1, REQ-ETM-015).
+ * New in M5-A (aditive, retrocompatible — lets a non-2e-family system plug
+ * into the same registries without depending on engine-2e):
+ *   - `rollData(def)` — register a roll-data builder (E1).
  *   - `degreeOfSuccess(def)` — register a degree-of-success comparator (E2).
  *   - `effectsMaterializer(def)` — register an EffectSource materializer (E4).
  *   - `registerInitiativeFormula` (in CombatRegistrar) now also accepts an
@@ -211,11 +212,11 @@ export interface SystemRegistrar extends CombatRegistrar {
    * Register a degree-of-success comparator.
    *
    * The `degree` returned by `compute()` is a system-defined string (each
-   * system owns its own set — e.g. Etmos registers "success"/"failure").
-   * This is a NEW, independent, aditive surface: PF2e/SF2e are NOT required
-   * to migrate to it and keep resolving degree-of-success via their existing
-   * pipeline (the engine-2e `calculateDegreeOfSuccess` helper called from
-   * their actions) — see M5-A E2.
+   * system owns its own set — e.g. a simpler "success"/"failure" pair for a
+   * non-2e-family system). This is a NEW, independent, aditive surface:
+   * PF2e/SF2e are NOT required to migrate to it and keep resolving
+   * degree-of-success via their existing pipeline (the engine-2e
+   * `calculateDegreeOfSuccess` helper called from their actions) — see M5-A E2.
    *
    * Calling this twice with the same `id` is a programming error and MUST
    * throw.

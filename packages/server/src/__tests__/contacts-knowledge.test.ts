@@ -39,7 +39,6 @@ import {
 import type { KnowledgeMap } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
 import { sf2eSystem } from "@fusion/system-sf2e";
-import { etmosSystem } from "@fusion/system-etmos";
 import { isCharacterActor, isNonPlayableActor } from "../documents/knowledge.js";
 import { reserveFreePort } from "./helpers/ports.js";
 
@@ -674,38 +673,6 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     });
   });
 
-  it("REQ-CTT-070/REQ-CTT-076: an etmos `orador` is a character — the exception is accepted, and deleting it sweeps", async () => {
-    // The playable Actor subtype is the system's word: pf2e/sf2e say
-    // "character", etmos says "orador" (`documentTypes.Actor`). Refusing the
-    // exception here would leave the grid uneditable in every Etmos world.
-    const oradorId = await createActor({
-      name: "Voz do Bosque",
-      type: "orador",
-      ownership: { default: 0, [ctx.playerAId]: 3 },
-    });
-
-    const ack = await sendOp(gm, "actor:setKnowledge", {
-      updates: [
-        {
-          actorId: contactId,
-          general: KnowledgeState.Hidden,
-          clearExceptions: true,
-          exceptions: { [oradorId]: KnowledgeState.Known },
-        },
-      ],
-    });
-    expect(ack["ok"]).toBe(true);
-    expect(mapOf(readFromStore(contactId)).exceptions[oradorId]).toBe(KnowledgeState.Known);
-
-    // REQ-CTT-076: and it sweeps like any other character when deleted.
-    const del = await sendOp(gm, "doc:delete", { documentType: "Actor", ids: [oradorId] });
-    expect(del["ok"]).toBe(true);
-    expect(mapOf(readFromStore(contactId))).toEqual({
-      general: KnowledgeState.Hidden,
-      exceptions: {},
-    });
-  });
-
   it("REQ-CTT-071: the payload a user receives follows the HIGHEST state among the characters they own", async () => {
     // Player B owns two characters. The general rule stays `oculto` throughout,
     // so the ONLY thing that can put this contact on player B's socket is a
@@ -925,7 +892,6 @@ describe("Actor subtype mirrors vs. the system manifests (REQ-CTT-071, REQ-CTT-0
   const SYSTEMS = [
     { id: "pf2e", subtypes: pf2eSystem.manifest.documentTypes["Actor"] ?? [] },
     { id: "sf2e", subtypes: sf2eSystem.manifest.documentTypes["Actor"] ?? [] },
-    { id: "etmos", subtypes: etmosSystem.manifest.documentTypes["Actor"] ?? [] },
   ];
 
   /**
@@ -950,8 +916,10 @@ describe("Actor subtype mirrors vs. the system manifests (REQ-CTT-071, REQ-CTT-0
   });
 
   it("REQ-CTT-071: the playable Actor each system declares first is read as a character, never as a contact", () => {
-    // The manifests put the player's own Actor first: pf2e/sf2e `character`,
-    // etmos `orador`. Reading only one of those literals is the bug this guards.
+    // The manifests put the player's own Actor first: pf2e/sf2e both call it
+    // `character` today. Reading it off the manifest (not a hardcoded
+    // literal) is what this guards — a future system naming it differently
+    // must still be classified correctly.
     const verdicts = SYSTEMS.map((system) => {
       const playable = system.subtypes[0] ?? "";
       return {
@@ -964,7 +932,6 @@ describe("Actor subtype mirrors vs. the system manifests (REQ-CTT-071, REQ-CTT-0
     expect(verdicts).toEqual([
       { id: "pf2e", playable: "character", isCharacter: true, isContact: false },
       { id: "sf2e", playable: "character", isCharacter: true, isContact: false },
-      { id: "etmos", playable: "orador", isCharacter: true, isContact: false },
     ]);
   });
 });

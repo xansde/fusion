@@ -1144,16 +1144,19 @@ function readGrantableDocument(
  * registered the contact-knowledge redaction as a KNOWN GAP. The adversarial
  * review proved that gap ran BOTH ways, and one of them was a new leak:
  *
- *   TOO OPEN — a contact the viewer merely GLIMPSED reaches him through
- *     `glimpsedContactView` with no name and no `img` at all (REQ-CTT-081), and
- *     a contact whose state is HIDDEN is dropped outright (REQ-CTT-082). Gating
- *     on ownership alone signed the portrait of both. Proved by execution: a
- *     glimpsed `npc` with `{"default":2}` answered
- *     `200 {"grants":{"retrato-do-vilao.png":"…"}}`, and the file came back 200.
- *     A filename is usually the slug of the NPC, so the MINT ALONE identified
- *     the "unidentified" — and this channel did not exist before T025 (the
- *     snapshot strips `img`; `GET /api/assets` needs TRUSTED). A gate that opens
- *     a channel the thing it replaces did not have is not a gate.
+ *   TOO OPEN (at the time of the original review) — a contact whose state is
+ *     HIDDEN is dropped outright (REQ-CTT-082) and must answer 404, not the
+ *     200 an ownership-only gate produced. Gating on ownership alone signed
+ *     its portrait too. This part of the finding still stands.
+ *
+ *     A GLIMPSED contact is DIFFERENT since TK003 (spec 41-token.md
+ *     DEC-TOK-09/§12, 2026-08-17, amending DEC-CTT-04): `glimpsedContactView`
+ *     now carries `img` on purpose — a token needs the art to be drawable
+ *     even for an actor the viewer has only glimpsed (REQ-TOK-010/011/060,
+ *     CA-TOK-008). Signing that portrait is therefore no longer a leak: it is
+ *     exactly what the live/broadcast/snapshot paths already deliver to this
+ *     viewer (see the TOO CLOSED half below, which was already the rule for
+ *     identified contacts and now applies to glimpsed ones too).
  *
  *   TOO CLOSED — `redactActorDocsForViewer` delivers TWO populations that
  *     ownership says nothing about: every player CHARACTER, unconditionally
@@ -1194,7 +1197,7 @@ function visibleGrantBody(
 
   if (table === "scenes") {
     if (privileged) return doc;
-    const [redacted] = redactSceneDocsForNonPrivileged([doc]);
+    const [redacted] = redactSceneDocsForNonPrivileged([doc], userId);
     return redacted ?? null;
   }
 
@@ -1207,9 +1210,9 @@ function visibleGrantBody(
   if (table === "actors") {
     // The whole rule, in one call. `documents[0]` is the body this viewer is
     // owed — the full document, `stripKnowledgeMap`-ed, or the anonymous
-    // `glimpsedContactView` (which carries no `img`, so the projection below
-    // finds nothing to sign). An empty array is "you are owed nothing", which
-    // is the same 404 a missing row produces.
+    // `glimpsedContactView` (which, since TK003, DOES carry `img` — see the
+    // long note above). An empty array is "you are owed nothing", which is
+    // the same 404 a missing row produces.
     const viewer = buildContactViewer(knowledge, userId, role);
     return redactActorDocsForViewer([doc], viewer).documents[0] ?? null;
   }
@@ -1229,8 +1232,8 @@ function visibleGrantBody(
  * What it MUST keep identical to the store version is the notion of "a player
  * character", which is the system's word and not the engine's — hence the same
  * `PLAYER_CHARACTER_SUBTYPES` set, imported, never a `type = 'character'`
- * literal in the SQL. An Etmos world answers with its `orador`s here exactly as
- * it does on the socket paths.
+ * literal in the SQL. A future system naming its playable Actor differently
+ * answers with that subtype here exactly as it does on the socket paths.
  *
  * Read lazily and at most once per mint: the closure caches its own answer, so
  * a document with forty bearer fields still scans the table once, and a mint for

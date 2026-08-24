@@ -150,7 +150,15 @@ export class FusionCanvas {
     await app.init({
       width: Math.max(width, 1),
       height: Math.max(height, 1),
-      preference: "webgpu", // WebGPU first, falls back to WebGL automatically
+      // Fixed to WebGL, not "webgpu" (REQ-CNV-001's automatic fallback would
+      // suggest). PIXI v8.19's WebGPU backend has a confirmed black-screen
+      // bug that resurfaces on this line's history: a redraw mid-session
+      // (e.g. a token drag) intermittently paints nothing — no console
+      // error, no exception, just a blank frame for a few seconds before it
+      // recovers on its own. It's the same failure the render-group
+      // workaround below (_buildHierarchy) exists for, just not fully fixed
+      // by that workaround alone. Forcing WebGL sidesteps it entirely.
+      preference: "webgl",
       antialias: false, // disable for performance; enable per scene if needed
       resolution: window.devicePixelRatio || 1,
       autoDensity: true,
@@ -246,6 +254,30 @@ export class FusionCanvas {
   setGrid(config: GridRenderConfig | null): void {
     this._currentGridConfig = config;
     this._gridRenderer?.update(config);
+  }
+
+  /**
+   * Clear the grid, but only if `config` is still the one installed.
+   *
+   * BUG FIX (#81 follow-up): the grid is GLOBAL canvas state — it does not
+   * belong to any single scene load. A scene load's cleanup used to call
+   * `setGrid(null)` unconditionally, which is correct when it tears down the
+   * load that is still current, but wrong when sceneLoadGuard finds the load
+   * stale (superseded by a newer scene switch): the stale cleanup would wipe
+   * out whatever the WINNING load had already installed. Comparing by
+   * reference against `_currentGridConfig` makes the clear a no-op unless
+   * `config` is still the active one, so a stale cleanup can never clobber a
+   * newer generation's grid. See sceneLoader.ts's use of this method.
+   */
+  clearGridIf(config: GridRenderConfig | null): void {
+    if (this._currentGridConfig === config) {
+      this.setGrid(null);
+    }
+  }
+
+  /** The grid config currently installed (null when no grid is shown). */
+  getGridConfig(): GridRenderConfig | null {
+    return this._currentGridConfig;
   }
 
   // ---------------------------------------------------------------------------

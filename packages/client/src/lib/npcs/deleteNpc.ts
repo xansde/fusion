@@ -42,8 +42,8 @@ import { NON_PLAYABLE_SUBTYPES } from "./folderTree.js";
  * True for a subtype this tab may delete (REQ-NPC-050, REQ-NPC-055).
  *
  * The list is the tab's own listing list, borrowed rather than repeated: a
- * `character` (or an Etmos `orador`) is not a row of this tab, so it is not a
- * deletion of this tab either — in any role, including the Mestre's.
+ * `character` is not a row of this tab, so it is not a deletion of this tab
+ * either — in any role, including the Mestre's.
  */
 export function isDeletableNpcSubtype(subtype: string | null | undefined): boolean {
   return typeof subtype === "string" && NON_PLAYABLE_SUBTYPES.includes(subtype);

@@ -20,7 +20,7 @@
 
 import { describe, it, expect, afterEach } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -179,5 +179,44 @@ console.log(JSON.stringify({ okCorrect, okWrong }));
         { encoding: "utf8" },
       ),
     ).toThrow();
+  });
+});
+
+describe("pack-native.mjs --dir mode with --exclude (issue #128 — REQ-DST-046 size budget)", () => {
+  it("omits files matching the glob pattern from the archive, keeping the rest", () => {
+    const dir = makeTempDir();
+    const srcDir = join(dir, "client-dist-fixture");
+    mkdirSync(join(srcDir, "assets-client"), { recursive: true });
+    writeFileSync(join(srcDir, "index.html"), "<html></html>");
+    writeFileSync(join(srcDir, "assets-client", "App-abc123.js"), "console.log('app');");
+    writeFileSync(join(srcDir, "assets-client", "App-abc123.js.map"), "{}");
+    writeFileSync(
+      join(srcDir, "assets-client", "world.offscreen-def456.js"),
+      "console.log('world');",
+    );
+    writeFileSync(join(srcDir, "assets-client", "world.offscreen-def456.js.map"), "{}");
+
+    const archivePath = join(dir, "client-dist.bin");
+    execFileSync(
+      process.execPath,
+      [scriptPath, "--dir", srcDir, archivePath, "--exclude", "*.map"],
+      {
+        encoding: "utf8",
+      },
+    );
+
+    const archive = readFileSync(archivePath);
+    const indexLen = Number(archive.readBigUInt64LE(0));
+    const index = JSON.parse(archive.subarray(8, 8 + indexLen).toString("utf8")) as {
+      entries: { path: string }[];
+    };
+    const paths = index.entries.map((e) => e.path).sort();
+
+    expect(paths).toEqual([
+      "assets-client/App-abc123.js",
+      "assets-client/world.offscreen-def456.js",
+      "index.html",
+    ]);
+    expect(paths.some((p) => p.endsWith(".map"))).toBe(false);
   });
 });

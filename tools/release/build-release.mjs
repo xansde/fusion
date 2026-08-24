@@ -130,7 +130,8 @@ function platformArchLabel() {
   const platform = process.platform;
   const arch = process.arch;
 
-  const platformLabel = platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
+  const platformLabel =
+    platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
   if (arch !== "x64" && arch !== "arm64") {
     throw new Error(`Unsupported build arch: "${arch}". Expected x64 or arm64.`);
   }
@@ -178,10 +179,7 @@ function phaseVersionDrift() {
 }
 
 function readFusionVersion() {
-  const versionTs = readFileSync(
-    join(repoRoot, "packages", "shared", "src", "version.ts"),
-    "utf8",
-  );
+  const versionTs = readFileSync(join(repoRoot, "packages", "shared", "src", "version.ts"), "utf8");
   const match = /export const FUSION_VERSION = "([^"]+)";/.exec(versionTs);
   if (match === null) throw new Error("Could not read FUSION_VERSION from version.ts");
   return match[1];
@@ -192,7 +190,9 @@ function readFusionVersion() {
 // ---------------------------------------------------------------------------
 
 function phaseWorkspaceBuild() {
-  log("Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)");
+  log(
+    "Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)",
+  );
   run("pnpm", ["-r", "build"]);
 }
 
@@ -263,7 +263,14 @@ function phaseBundle() {
 // ---------------------------------------------------------------------------
 
 async function loadAssetKeyConstants() {
-  const nativeLoaderPath = join(repoRoot, "packages", "server", "dist", "runtime", "native-loader.js");
+  const nativeLoaderPath = join(
+    repoRoot,
+    "packages",
+    "server",
+    "dist",
+    "runtime",
+    "native-loader.js",
+  );
   const seaAssetsPath = join(repoRoot, "packages", "server", "dist", "runtime", "sea-assets.js");
   if (!existsSync(nativeLoaderPath) || !existsSync(seaAssetsPath)) {
     throw new Error(
@@ -272,7 +279,9 @@ async function loadAssetKeyConstants() {
     );
   }
   const { NATIVE_PACKAGES } = await import(pathToFileURL(nativeLoaderPath).href);
-  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(pathToFileURL(seaAssetsPath).href);
+  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(
+    pathToFileURL(seaAssetsPath).href
+  );
   return { NATIVE_PACKAGES, CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY };
 }
 
@@ -305,7 +314,12 @@ async function phasePackAssets(assetKeys) {
       );
     }
     const nestArgs = nestFlags.flatMap((n) => ["--nest", n]);
-    run(process.execPath, [join(__dirname, "pack-native.mjs"), pkg.specifier, archivePath, ...nestArgs]);
+    run(process.execPath, [
+      join(__dirname, "pack-native.mjs"),
+      pkg.specifier,
+      archivePath,
+      ...nestArgs,
+    ]);
     nativeAssetPaths[pkg.assetKey] = archivePath;
   }
 
@@ -323,7 +337,21 @@ async function phasePackAssets(assetKeys) {
   // format as the two native-addon packs above — guaranteeing this pipeline
   // can never write a client-dist archive in a format native-loader.ts's
   // extraction code (sea-assets.ts) does not understand.
-  run(process.execPath, [join(__dirname, "pack-native.mjs"), "--dir", clientDistDir, clientDistArchive]);
+  //
+  // --exclude "*.map" (issue #128): vite.config.ts builds the client with
+  // sourcemap: true (kept for browser devtools debugging of a served dist),
+  // but the release .exe never needs those .map files at runtime — packing
+  // them was the single biggest contributor pushing the artifact over the
+  // REQ-DST-046 150 MB budget. Filtering here, not in vite.config.ts, keeps
+  // sourcemaps available for the normal (non-SEA) served build.
+  run(process.execPath, [
+    join(__dirname, "pack-native.mjs"),
+    "--dir",
+    clientDistDir,
+    clientDistArchive,
+    "--exclude",
+    "*.map",
+  ]);
 
   // B3-FIXES MÉDIA B: pack every game system's committed packs/ directory
   // into ONE archive, each nested under "<systemId>/packs/..." — the exact
@@ -331,16 +359,24 @@ async function phasePackAssets(assetKeys) {
   // "packsRoot" to have. Only systems that actually ship packs are included
   // (engine-2e/stub have none); missing/empty is fine, `--multi-dir` just
   // gets fewer --entry flags.
-  const systemsRootDir = join(repoRoot, "systems");
-  const systemPackEntries = existsSync(systemsRootDir)
-    ? readdirSync(systemsRootDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
-        .filter(({ packsDir }) => existsSync(packsDir))
-    : [];
+  //
+  // F4 (DEC-SEP-09): pf2e/sf2e moved to the fusion-systems-2e submodule —
+  // scan BOTH systems/ (stub, still in the core) and
+  // external/fusion-systems-2e/systems/ (pf2e, sf2e) for packs/.
+  const systemsRoots = [join(repoRoot, "systems"), join(repoRoot, "external", "fusion-systems-2e", "systems")];
+  const systemPackEntries = systemsRoots.flatMap((systemsRootDir) =>
+    existsSync(systemsRootDir)
+      ? readdirSync(systemsRootDir, { withFileTypes: true })
+          .filter((d) => d.isDirectory())
+          .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
+          .filter(({ packsDir }) => existsSync(packsDir))
+      : [],
+  );
 
   if (systemPackEntries.length === 0) {
-    log("No systems/<id>/packs directories found — system-packs asset will be empty");
+    log(
+      "No systems/<id>/packs or external/fusion-systems-2e/systems/<id>/packs directories found — system-packs asset will be empty",
+    );
   }
 
   const multiDirArgs = [join(__dirname, "pack-native.mjs"), "--multi-dir", systemPacksArchive];
@@ -352,8 +388,8 @@ async function phasePackAssets(assetKeys) {
   } else {
     // --multi-dir requires at least one --entry; write an empty archive
     // directly rather than special-casing the packer script for a scenario
-    // that should never happen in this repo (pf2e/sf2e/etmos always ship
-    // packs) but must not crash the whole pipeline if it ever did.
+    // that should never happen in this repo (pf2e/sf2e always ship packs)
+    // but must not crash the whole pipeline if it ever did.
     mkdirSync(dirname(systemPacksArchive), { recursive: true });
     const emptyIndex = Buffer.from(JSON.stringify({ entries: [] }), "utf8");
     const lenBuf = Buffer.alloc(8);
@@ -407,7 +443,13 @@ function phaseAssembleSea(bundlePath, assets, version) {
   // these keys cannot drift from native-loader.ts/sea-assets.ts (BAIXA (b)).
   const assetArgs = Object.entries(assets).flatMap(([key, path]) => ["--asset", `${key}=${path}`]);
 
-  run(process.execPath, [join(__dirname, "make-sea-config.mjs"), bundlePath, seaConfigPath, seaBlobPath, ...assetArgs]);
+  run(process.execPath, [
+    join(__dirname, "make-sea-config.mjs"),
+    bundlePath,
+    seaConfigPath,
+    seaBlobPath,
+    ...assetArgs,
+  ]);
 
   run(process.execPath, ["--experimental-sea-config", seaConfigPath]);
   if (!existsSync(seaBlobPath)) {

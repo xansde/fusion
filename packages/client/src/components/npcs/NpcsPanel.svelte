@@ -46,7 +46,7 @@
   import { getSocket } from "../../lib/session.svelte.js";
   import { Dialog } from "../../lib/windows/dialogs.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
-  import ActorPortrait from "../common/ActorPortrait.svelte";
+  import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
   import NpcsFooter from "./NpcsFooter.svelte";
   import NpcKnowledgeCount from "./NpcKnowledgeCount.svelte";
@@ -54,8 +54,7 @@
     conditionRegistry,
     ensureConditionRegistry,
   } from "../../lib/conditions/conditionRegistry.svelte.js";
-  import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
-  import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
+  import { openActorSheet } from "../../lib/sheets/openActorSheet.js";
   import {
     ACTOR_FOLDER_TYPE,
     type FolderDeleteResult,
@@ -89,6 +88,10 @@
     readNpcDragPayload,
     type MovableActor,
   } from "../../lib/npcs/moveActor.js";
+  import {
+    NPC_DRAG_EFFECT_ALLOWED,
+    NPC_FOLDER_DROP_EFFECT,
+  } from "../../lib/canvas/dragEffects.js";
   import { openNpcCreateWindow } from "../../lib/npcs/npcCreateWindow.js";
   import { openNpcDeleteWindow } from "../../lib/npcs/npcDeleteWindow.js";
   import { isDeletableNpcSubtype } from "../../lib/npcs/deleteNpc.js";
@@ -368,7 +371,11 @@
   function onNpcDragStart(event: DragEvent, doc: MovableActor): void {
     if (!event.dataTransfer) return;
     event.dataTransfer.setData(NPC_DRAG_MIME, JSON.stringify(buildNpcDragPayload(doc)));
-    event.dataTransfer.effectAllowed = "move";
+    // The row travels to two destinations with opposite verbs — a folder (move,
+    // REQ-NPC-028/029) and the map (copy, REQ-NPC-063) — so it has to allow both.
+    // Allowing only "move" made the browser resolve the drop on the canvas to no
+    // operation at all and never fire `drop`, with no error anywhere (TK042a).
+    event.dataTransfer.effectAllowed = NPC_DRAG_EFFECT_ALLOWED;
   }
 
   /**
@@ -379,7 +386,7 @@
   function onFolderDragOver(event: DragEvent, folderId: string): void {
     if (!event.dataTransfer?.types.includes(NPC_DRAG_MIME)) return;
     event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
+    event.dataTransfer.dropEffect = NPC_FOLDER_DROP_EFFECT;
     dragOverFolder = folderId;
   }
 
@@ -393,7 +400,7 @@
     dragOverFolder = null;
     const payload = readNpcDragPayload(event.dataTransfer?.getData(NPC_DRAG_MIME));
     if (payload === null) return;
-    const doc = npcs.find((candidate) => candidate._id === payload.uuid);
+    const doc = npcs.find((candidate) => candidate._id === payload._id);
     if (doc === undefined) return;
     void moveNpc(doc._id, normalizeFolderId(doc.folder), folderId);
   }
@@ -430,9 +437,6 @@
   // The line of the non-playable (spec 42 §5.4)
   // -------------------------------------------------------------------------
 
-  /** Etmos subtypes route through their own opener (same table as the 39). */
-  const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
-
   /**
    * REQ-NPC-035: the sheet opens in a floating window (REQ-UIF-009), from the
    * double-click on the row and from the button a keyboard can reach — the same
@@ -451,8 +455,7 @@
       sendOpFn: makeSendOpFn(() => getSocket() ?? socket),
     };
     const raw = doc as unknown as Record<string, unknown>;
-    if (ETMOS_SUBTYPES.has(row.subtype)) openEtmosActorSheet(row.id, raw, opts);
-    else openActorSheet(row.id, raw, opts);
+    openActorSheet(row.id, raw, opts);
   }
 
   /** Id of the row whose title is being rewritten, or null (REQ-NPC-032). */

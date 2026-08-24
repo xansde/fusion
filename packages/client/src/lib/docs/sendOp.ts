@@ -445,20 +445,18 @@ async function sendPrimaryDocUpdate(
 }
 
 /**
- * Every sheet VM (CharacterSheetVM, OradorSheetVM, CompositorVM, ...) builds
- * "op" objects shaped as `{ type: "...", ...fields }` (flat — see e.g.
- * DocUpdatePayload in oradorSheetVM.ts or EtmosConjuracaoProporOp in
- * compositorVM.ts) and every sheet component takes a `sendOpFn?: (op) => void`
- * prop with a no-op default (injected for testability, mirroring
- * CharacterSheet.svelte's pattern).
+ * Every sheet VM (CharacterSheetVM, ...) builds "op" objects shaped as
+ * `{ type: "...", ...fields }` (flat — see e.g. DocUpdatePayload) and every
+ * sheet component takes a `sendOpFn?: (op) => void` prop with a no-op default
+ * (injected for testability, mirroring CharacterSheet.svelte's pattern).
  *
  * `sendOp()` itself expects the split `{ type, payload }` envelope shape.
  * This adapter is the ONE place that bridges the two: split `type` from the
  * rest of the flat op and forward to `sendOp(socket, { type, payload })`.
  *
- * Callers that open a sheet/window (ContactsPanel.svelte, registerEtmosSheets.ts)
- * should build `sendOpFn` via this helper instead of leaving the prop
- * unset — an unset `sendOpFn` silently no-ops (see each sheet's default),
+ * Callers that open a sheet/window (ContactsPanel.svelte, ...) should build
+ * `sendOpFn` via this helper instead of leaving the prop unset — an unset
+ * `sendOpFn` silently no-ops (see each sheet's default),
  * which would make every button that only calls `sendOpFn(...)` (autosave,
  * rolls, "Propor ao Narrador") appear to do nothing.
  *

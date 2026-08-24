@@ -1507,6 +1507,7 @@ function findTokenById(
   db: Db,
   tokenId: string,
   privileged: boolean,
+  userId?: string,
 ): { name: string; actorId: string | null } | null {
   let rows: { data: string }[];
   try {
@@ -1525,7 +1526,7 @@ function findTokenById(
 
     // What this requester is allowed to read of this scene — nothing at all for
     // a player when the scene is off air.
-    const visibleScenes = privileged ? [scene] : redactSceneDocsForNonPrivileged([scene]);
+    const visibleScenes = privileged ? [scene] : redactSceneDocsForNonPrivileged([scene], userId);
 
     for (const visible of visibleScenes) {
       const tokens = visible["tokens"];
@@ -1588,7 +1589,7 @@ function resolveTargetPortrait(db: Db, ref: ChatTargetRef, ctx: HandlerContext):
   let actorId: string | null = ref.actorId ?? null;
 
   if (ref.tokenId !== undefined) {
-    const token = findTokenById(db, ref.tokenId, privileged);
+    const token = findTokenById(db, ref.tokenId, privileged, ctx.userId);
     if (token === null) return null;
     name = token.name;
     actorId = token.actorId ?? ref.actorId ?? null;

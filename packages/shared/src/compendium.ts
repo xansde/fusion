@@ -57,7 +57,7 @@ export type PackLicense = z.infer<typeof PackLicenseSchema>;
 // ---------------------------------------------------------------------------
 
 export const PackSourceSchema = z.object({
-  /** Source repository — null for editorial packs (Etmos). */
+  /** Source repository — null for editorial (non-imported) packs. */
   repo: z.string().nullable(),
   /** Release/version from the source repo — null for editorial. */
   version: z.string().nullable(),
@@ -98,7 +98,7 @@ export type PackAudience = z.infer<typeof PackAudienceSchema>;
 export const PackManifestSchema = z.object({
   /**
    * Stable pack identifier in the format "<systemId>.<packSlug>".
-   * Example: "pf2e.bestiary-core", "etmos.particles".
+   * Example: "pf2e.bestiary-core", "sf2e.starship-weapons".
    */
   id: z.string(),
   /** Human-readable label for the UI. */
@@ -116,7 +116,7 @@ export const PackManifestSchema = z.object({
     "Scene",
     "Playlist",
   ]),
-  /** System that owns this pack ("pf2e" | "sf2e" | "etmos"). */
+  /** System that owns this pack ("pf2e" | "sf2e" | "stub"). */
   systemId: z.string(),
   /**
    * Extra JSON paths to include in the index for filtering.

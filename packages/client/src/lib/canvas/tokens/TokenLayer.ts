@@ -4,7 +4,12 @@
  * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §REQ-CNV-037, §D5, §D8
  * Spec: 05-usuarios-e-permissoes.md — hidden tokens; GM sees all
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050/051/052 — optimistic move
- * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-080 — token visibility filter
+ *
+ * DEC-SEP-05 (F2, 2026-08-23): the vision-based visibility filter that used to
+ * live here (`setVisionPolygons`/`_applyVisionFilter`, REQ-VIS-080) was removed
+ * with the rest of the fog/vision pipeline — see `docs/design/separacao-repos/
+ * design.md`. Every non-hidden token is now visible to every role; hidden
+ * tokens keep the separate (and unrelated) GM-only redaction below.
  *
  * Responsibilities:
  *   - Subscribe to DocumentMirror "Token" (embedded in active SceneDocument).
@@ -23,10 +28,6 @@
  *   - Optimistic move API: TokenLayer.applyLocalMove() snaps a sprite
  *     immediately and marks it so the next mirror reconcile skips animation.
  *   - Rollback API: TokenLayer.rollbackMove() reverts a sprite to a given pos.
- *   - Vision filter (M2-B): setVisionPolygons() feeds the current vision rings
- *     so tokens outside the current vision polygon are hidden for players.
- *     REQ-VIS-080: tokens in explored-but-not-visible areas are NOT visible.
- *     GM always sees all tokens regardless of vision.
  *
  * This class does NOT own the PIXI ticker — it receives deltaMs from the
  * FusionCanvas ticker callback. The sceneLoader (or TableScreen) wires this up.
@@ -35,8 +36,6 @@
  *   const layer = new TokenLayer(container, mirror, sceneId, gridSize, isGm);
  *   // In ticker:
  *   layer.tick(ticker.deltaMS, camera.scale);
- *   // On vision update (M2-B):
- *   layer.setVisionPolygons(visionResult.visionPolygons, fogEnabled);
  *   // On local drag confirm:
  *   layer.applyLocalMove(tokenId, newX, newY);
  *   // On rollback (ack rejected):
@@ -50,38 +49,8 @@ import type { TokenDocument, SceneDocument } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { TokenSprite } from "./TokenSprite.js";
-import type { VisionPolygonResult } from "../vision/vision-state.js";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Test whether a point (px, py) is inside any of the given vision polygons.
- * Uses ray-casting algorithm on each polygon's vertices.
- * Returns true if the point is in at least one polygon.
- * Called client-side only for the token visibility filter.
- */
-function pointInAnyPolygon(px: number, py: number, polygons: VisionPolygonResult[]): boolean {
-  for (const vp of polygons) {
-    const verts = vp.polygon.vertices;
-    const n = verts.length;
-    if (n < 3) continue;
-    let inside = false;
-    let j = n - 1;
-    for (let i = 0; i < n; i++) {
-      const vi = verts[i];
-      const vj = verts[j];
-      j = i;
-      if (!vi || !vj) continue;
-      if (vi.y > py !== vj.y > py && px < ((vj.x - vi.x) * (py - vi.y)) / (vj.y - vi.y) + vi.x) {
-        inside = !inside;
-      }
-    }
-    if (inside) return true;
-  }
-  return false;
-}
+import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
+import { footprintRegistry } from "./footprintRegistry.svelte.js";
 
 // ---------------------------------------------------------------------------
 // TokenLayer
@@ -133,17 +102,29 @@ export class TokenLayer {
   private _lastZoom = 1;
 
   /**
-   * Current vision polygons for the player (set via setVisionPolygons).
-   * Used to filter token visibility: tokens outside vision are hidden for players.
-   * REQ-VIS-080: explored-but-not-visible area hides tokens.
+   * The display-preferences object last applied to every sprite (for LOD) —
+   * TK080/REQ-TOK-074: `tokenDisplayPrefsStore.svelte.ts` hands out a NEW
+   * object every time the user toggles a preference, so a reference
+   * inequality here is exactly "the preference changed since last tick",
+   * with no extra event wiring needed from the Configurações drawer.
    */
-  private _visionPolygons: VisionPolygonResult[] = [];
+  private _lastDisplayPrefs = tokenDisplayPrefs.current;
 
   /**
-   * Whether fog/token-vision is active for this user.
-   * When false (GM or fog disabled), all tokens are visible.
+   * The size→footprint table last reconciled against (R5).
+   *
+   * `footprintRegistry` is filled by the `system:footprint` ack (TK041), which
+   * is ASYNCHRONOUS: the canvas mounts, sprites reconcile against an empty
+   * table — `footprintOf` fails open to 1×1 (REQ-TOK-012, DEC-TOK-03) — and
+   * the answer lands a round-trip later. `_reconcileTokens` only runs on a
+   * Scene or Actor mirror change, so before this field a "grande" creature
+   * stayed 1×1 until some unrelated broadcast touched the scene; #194's
+   * `_loadedSceneId` guard removed the scene reload that used to hide it.
+   * Same mechanism as `_lastDisplayPrefs` above: the registry publishes a NEW
+   * Map whenever the table changes, so a reference inequality in `tick()` is
+   * exactly "the table changed since last frame".
    */
-  private _fogActive = false;
+  private _lastFootprintTable = footprintRegistry.sizeToFootprint;
 
   constructor(
     container: Container,
@@ -157,7 +138,6 @@ export class TokenLayer {
     this._sceneId = sceneId;
     this._gridSize = gridSize;
     this._isGm = isGm;
-    this._fogActive = !isGm;
 
     // Subscribe to Scene collection changes; tokens are embedded in Scene.
     this._unsubscribe = mirror.subscribe<SceneDocument>("Scene", (scenes) => {
@@ -198,13 +178,28 @@ export class TokenLayer {
    * @param zoom     Current camera zoom scale (for LOD updates).
    */
   tick(deltaMs: number, zoom: number): void {
+    // R5: the size→footprint table can land after the sprites were first
+    // drawn (see `_lastFootprintTable`). Re-reconcile the active scene once,
+    // on the first frame after it changes — `TokenSprite.update` re-derives
+    // the footprint and repaints when it differs (REQ-TOK-012/017).
+    const footprintTable = footprintRegistry.sizeToFootprint;
+    if (footprintTable !== this._lastFootprintTable) {
+      this._lastFootprintTable = footprintTable;
+      const scene = this._mirror.getDoc<SceneDocument>("Scene", this._sceneId);
+      if (scene) this._reconcileTokens(scene.tokens);
+    }
+
     for (const sprite of this._sprites.values()) {
       sprite.tick(deltaMs);
     }
 
-    // Update LOD only when zoom changes by a non-trivial amount
-    if (Math.abs(zoom - this._lastZoom) > 0.01) {
+    // Update LOD when zoom changes by a non-trivial amount, OR when the
+    // user's display preferences changed (TK080) — either one can move the
+    // effective (zoom AND preference) visibility TokenSprite.updateLod computes.
+    const prefsChanged = tokenDisplayPrefs.current !== this._lastDisplayPrefs;
+    if (Math.abs(zoom - this._lastZoom) > 0.01 || prefsChanged) {
       this._lastZoom = zoom;
+      this._lastDisplayPrefs = tokenDisplayPrefs.current;
       for (const sprite of this._sprites.values()) {
         sprite.updateLod(zoom);
       }
@@ -262,30 +257,6 @@ export class TokenLayer {
    */
   getSprite(tokenId: string): TokenSprite | undefined {
     return this._sprites.get(tokenId);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Public — vision filter update (M2-B)
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Update the current vision polygons and fog active state.
-   *
-   * Called after each VisionStateComputer.compute() to apply the token
-   * visibility filter: tokens outside the current vision polygon are
-   * hidden for non-GM players (REQ-VIS-080).
-   *
-   * The fog overlay (LightingRenderer) already hides the terrain in unexplored /
-   * explored-but-not-visible areas; this filter hides TOKENS in those areas
-   * so they don't bleed through the fog overlay.
-   *
-   * @param polygons - Current vision polygons from VisionStateResult.
-   * @param fogEnabled - Whether fog/token-vision is active.
-   */
-  setVisionPolygons(polygons: VisionPolygonResult[], fogEnabled: boolean): void {
-    this._visionPolygons = polygons;
-    this._fogActive = !this._isGm && fogEnabled;
-    this._applyVisionFilter();
   }
 
   // ---------------------------------------------------------------------------
@@ -362,10 +333,6 @@ export class TokenLayer {
         this._sprites.delete(id);
       }
     }
-
-    // After reconciliation, apply vision filter to ensure new sprites are
-    // correctly hidden/shown based on current vision state.
-    this._applyVisionFilter();
   }
 
   private _clearAll(): void {
@@ -373,42 +340,5 @@ export class TokenLayer {
       sprite.destroy();
     }
     this._sprites.clear();
-  }
-
-  // ---------------------------------------------------------------------------
-  // Private — vision filter
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Apply the vision-based visibility filter to all active sprites.
-   *
-   * REQ-VIS-080: tokens outside the current vision polygon are invisible
-   * to non-GM players, even in explored areas.
-   *
-   * Only affects non-GM players when fog is active. GM and disabled fog
-   * always show all tokens.
-   */
-  private _applyVisionFilter(): void {
-    if (this._isGm || !this._fogActive) {
-      // Restore all sprites to visible
-      for (const sprite of this._sprites.values()) {
-        sprite.container.visible = true;
-      }
-      return;
-    }
-
-    // No vision polygons → player has no tokens with vision → see nothing
-    if (this._visionPolygons.length === 0) {
-      for (const sprite of this._sprites.values()) {
-        sprite.container.visible = false;
-      }
-      return;
-    }
-
-    for (const sprite of this._sprites.values()) {
-      const pos = sprite.container;
-      const visible = pointInAnyPolygon(pos.x, pos.y, this._visionPolygons);
-      sprite.container.visible = visible;
-    }
   }
 }

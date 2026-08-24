@@ -14,6 +14,7 @@ import {
   DEFAULT_CLIENT_PREFERENCES,
   loadClientPreferences,
   setNotificationPreference,
+  setTokenDisplayPreference,
   setVolumeChannel,
 } from "../clientPrefs.js";
 
@@ -141,9 +142,44 @@ describe("REQ-CFG-022 / REQ-CFG-072 / RNF-CFG-01: no network operation, ever", (
 });
 
 describe("REQ-CFG-023: no locale or theme control lives in this module", () => {
-  it("the preference shape has exactly volume + notifications — nothing else", () => {
+  it("the preference shape has exactly volume + notifications + tokenDisplay — nothing else", () => {
     const prefs = loadClientPreferences("world-a", "user-1");
-    expect(Object.keys(prefs).sort()).toEqual(["notifications", "volume"]);
+    expect(Object.keys(prefs).sort()).toEqual(["notifications", "tokenDisplay", "volume"]);
     expect(Object.keys(prefs.notifications).sort()).toEqual(["chatSound", "turnAlert"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TK080 (spec 41-token.md REQ-TOK-074/075/076, DEC-TOK-11) — the two token
+// display toggles live in this same client-local module.
+// ---------------------------------------------------------------------------
+
+describe("REQ-TOK-074: token display preferences — names, bars", () => {
+  it("defaults both to on when nothing was ever saved", () => {
+    const prefs = loadClientPreferences("world-a", "user-1");
+    expect(prefs.tokenDisplay).toEqual({ showNames: true, showBars: true });
+  });
+
+  it("persists one toggle without disturbing the other", () => {
+    setTokenDisplayPreference("world-a", "user-1", "showNames", false);
+    const prefs = loadClientPreferences("world-a", "user-1");
+    expect(prefs.tokenDisplay.showNames).toBe(false);
+    expect(prefs.tokenDisplay.showBars).toBe(true);
+  });
+
+  it("does not hand one user's toggle to another on the same device", () => {
+    setTokenDisplayPreference("world-a", "gm-1", "showBars", false);
+    expect(loadClientPreferences("world-a", "player-1").tokenDisplay.showBars).toBe(true);
+  });
+
+  it("does not carry a toggle from one world to another", () => {
+    setTokenDisplayPreference("world-a", "user-1", "showNames", false);
+    expect(loadClientPreferences("world-b", "user-1").tokenDisplay.showNames).toBe(true);
+  });
+
+  it("REQ-CFG-022/RNF-CFG-01: never touches a socket", () => {
+    const socket = { emit: vi.fn(), on: vi.fn(), off: vi.fn() };
+    setTokenDisplayPreference("world-a", "user-1", "showBars", false);
+    expect(socket.emit).not.toHaveBeenCalled();
   });
 });

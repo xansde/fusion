@@ -130,13 +130,6 @@ export async function runServe(args: ServeArgs): Promise<void> {
     logger.warn({ err }, "Could not load @fusion/system-sf2e — sf2e system not available");
   }
 
-  try {
-    const { etmosSystem } = await import("@fusion/system-etmos");
-    registry.register(etmosSystem);
-  } catch (err) {
-    logger.warn({ err }, "Could not load @fusion/system-etmos — etmos system not available");
-  }
-
   logger.info({ systems: registry.list() }, "Systems registered");
 
   // Phase 2.6 — world manager (validates system IDs on world creation)

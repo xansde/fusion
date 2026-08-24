@@ -42,6 +42,7 @@ import { migration006 } from "./migrations/006_constraints.js";
 import { migration007 } from "./migrations/007_indexes.js";
 import { migration008 } from "./migrations/008_scene_active.js";
 import { migration009 } from "./migrations/009_assets.js";
+import { migration010 } from "./migrations/010_dec_mc_01_ancient_elf.js";
 
 registerMigrations([
   migration001,
@@ -53,4 +54,5 @@ registerMigrations([
   migration007,
   migration008,
   migration009,
+  migration010,
 ]);

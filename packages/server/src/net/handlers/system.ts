@@ -154,3 +154,65 @@ export function buildSystemConditionsHandler(
     return { ok: true, result: { systemId: systemModule.manifest.id, conditions } };
   };
 }
+
+// --------------------------------------------------------------------------
+// system:footprint
+// --------------------------------------------------------------------------
+
+/** One size category's occupied cells, as declared by the manifest. */
+export interface FootprintEntry {
+  width: number;
+  height: number;
+}
+
+export interface SystemFootprintResult {
+  /** Id of the world's active system, or `null` when no system is resolved. */
+  systemId: string | null;
+  /** Size category → footprint (REQ-SYS-009). Empty when the system declares none. */
+  sizeToFootprint: Record<string, FootprintEntry>;
+}
+
+export type SystemFootprintPayload = Record<string, never>;
+
+/**
+ * Source of the world's `sizeToFootprint` mapping — the `SystemModule`'s own
+ * manifest, narrowed to what this handler reads (same shape discipline as
+ * `ConditionRegistrySource`, so tests need nothing else).
+ */
+export interface FootprintManifestSource {
+  manifest: { id: string; sizeToFootprint?: Record<string, FootprintEntry> | undefined };
+}
+
+/**
+ * `system:footprint` — hand the client the active system's size→footprint
+ * table (REQ-SYS-009, spec 41-token.md TK041/DEC-TOK-03).
+ *
+ * Why this exists: a token's occupied cells are DERIVED from its effective
+ * actor's size category (REQ-TOK-012/REQ-TOK-017) — never a field on the
+ * token, never baked in at creation (unlike `bar1`/`bar2`, REQ-SYS-004). The
+ * canvas needs the conversion table to draw a token at all, and the client
+ * package cannot import a game system (only the server resolves one, per
+ * world) — this is that door, same shape as `system:conditions`.
+ *
+ * No role gate, on purpose: this is the system's static table, the same for
+ * every seat. A world whose system declared no `sizeToFootprint` (or that has
+ * no system at all) answers with an empty map rather than an error — the
+ * canvas degrades to every token occupying one cell (`footprint.ts`'s
+ * pre-TK041 default), never left without an answer to wait for.
+ */
+export function buildSystemFootprintHandler(
+  systemModule?: FootprintManifestSource,
+): HandlerFn<SystemFootprintPayload, SystemFootprintResult> {
+  return () => {
+    if (!systemModule) {
+      return { ok: true, result: { systemId: null, sizeToFootprint: {} } };
+    }
+    return {
+      ok: true,
+      result: {
+        systemId: systemModule.manifest.id,
+        sizeToFootprint: systemModule.manifest.sizeToFootprint ?? {},
+      },
+    };
+  };
+}

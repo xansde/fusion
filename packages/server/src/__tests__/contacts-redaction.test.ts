@@ -395,10 +395,10 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
         return (
           rows
             .map((r) => JSON.parse(r.data) as Record<string, unknown>)
-            // "character" (pf2e/sf2e) and "orador" (etmos) are both playable
-            // subtypes — the oracle spells them out instead of importing the
-            // server's own list, so it stays an independent reading.
-            .filter((doc) => doc["type"] === "character" || doc["type"] === "orador")
+            // "character" (pf2e/sf2e) is the playable subtype — the oracle
+            // spells it out instead of importing the server's own list, so it
+            // stays an independent reading.
+            .filter((doc) => doc["type"] === "character")
             .map((doc) => ({ id: doc["_id"] as string, ownership: doc["ownership"] }))
         );
       },
@@ -563,7 +563,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     joiner.disconnect();
   });
 
-  it("REQ-CTT-081/REQ-CTT-013: a glimpsed contact arrives with no name, title, portrait or system data", async () => {
+  it("REQ-CTT-081/REQ-CTT-013: a glimpsed contact arrives with no name, title or system data — but the portrait DOES travel (TK003, REQ-TOK-060/CA-TOK-008)", async () => {
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
@@ -573,13 +573,17 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const doc = actorDocsIn(traffic).find((d) => d["_id"] === glimpsedId);
     expect(doc).toBeDefined();
     expect(doc).not.toHaveProperty("name");
-    expect(doc).not.toHaveProperty("img");
     expect(doc).not.toHaveProperty("system");
+    // TK003 (spec 41-token.md DEC-TOK-09/§12, amending DEC-CTT-04): the
+    // portrait is NOT redacted — a glimpsed NPC's token still needs its art
+    // to be drawable (REQ-TOK-010/011, CA-TOK-008 "recebe o token e a arte
+    // dele, e não recebe o nome"). This is the opposite of the pre-TK003
+    // behaviour this test used to pin.
+    expect(doc?.["img"]).toBe(GLIMPSED_PORTRAIT);
     // REQ-CTT-013: with no name in the payload there is nothing for a search to
     // match — the whole traffic never spells it out, under any key.
     expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_NAME);
     expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_TITLE);
-    expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_PORTRAIT);
     joiner.disconnect();
   });
 
@@ -680,83 +684,15 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
   });
 
   // -------------------------------------------------------------------------
-  // A character is whatever the SYSTEM calls a character (spec 39 §5.8)
+  // A character is whatever the SYSTEM calls a character (spec 39 §5.8).
   //
-  // Etmos names its playable Actor `orador`, pf2e/sf2e name it `character`.
-  // Reading a single literal would make an Etmos world a world with no
-  // characters at all — every player would read only the general rule, and the
-  // other players' own characters would be filtered out of their payload.
+  // Reading a single hardcoded literal would leave a future system with a
+  // different vocabulary as a world with no characters at all — every player
+  // would read only the general rule, and the other players' own characters
+  // would be filtered out of their payload. Today pf2e/sf2e both call it
+  // `character`; the generic "read it off the manifest" guarantee itself is
+  // covered by contacts-knowledge.test.ts's system-manifest suite.
   // -------------------------------------------------------------------------
-
-  it("REQ-CTT-071: an exception on an etmos `orador` its owner holds reaches that owner's payload", async () => {
-    // Player A's character in an Etmos world: same role in the model as
-    // Fofurinha, different subtype because the system says so.
-    const oradorId = await createActor({
-      name: "Voz do Bosque",
-      type: "orador",
-      ownership: { default: 0, [ctx.playerAId]: 3 },
-    });
-    // The contact is hidden to everybody EXCEPT that orador, so the delivery
-    // can only come from the exception being resolved against it.
-    const ack = await sendOp(gmSocket, "actor:setKnowledge", {
-      updates: [
-        {
-          actorId: knownId,
-          general: KnowledgeState.Hidden,
-          clearExceptions: true,
-          exceptions: { [oradorId]: KnowledgeState.Known },
-        },
-      ],
-    });
-    expect(ack["ok"]).toBe(true);
-
-    const joiner = connectClient(ctx, ctx.playerAToken);
-    const traffic = recordEnvelopes(joiner);
-    joiner.connect();
-    await waitForConnect(joiner);
-    await waitForJoinBatch(traffic);
-
-    const doc = actorDocsIn(traffic).find((d) => d["_id"] === knownId);
-    expect(doc?.["name"]).toBe(KNOWN_NAME);
-
-    // Player B owns no orador, so the same contact stays hidden for them —
-    // the exception is the character's, never the world's.
-    const other = connectClient(ctx, ctx.playerBToken);
-    const otherTraffic = recordEnvelopes(other);
-    other.connect();
-    await waitForConnect(other);
-    await waitForJoinBatch(otherTraffic);
-    // Anchor: player B's snapshot arrived and carried their own character, so
-    // the missing contact below is a refusal and not an unfinished delivery.
-    expect(actorDocsIn(otherTraffic).some((d) => d["_id"] === charBId)).toBe(true);
-    expect(actorDocsIn(otherTraffic).some((d) => d["_id"] === knownId)).toBe(false);
-
-    joiner.disconnect();
-    other.disconnect();
-  });
-
-  it("REQ-CTT-020/REQ-CTT-082: another player's `orador` is not a contact — it arrives whole, never filtered", async () => {
-    // Visible by ownership (OBSERVER by default) and carrying no knowledge map
-    // at all — a fresh map reads `hidden`, so running the contact filter over
-    // it would drop it from the payload and empty the "Na mesa" section.
-    const OTHER_ORADOR = "Guardiã das Marés";
-    const oradorId = await createActor({
-      name: OTHER_ORADOR,
-      type: "orador",
-      ownership: { default: 2, [ctx.playerBId]: 3 },
-    });
-
-    const joiner = connectClient(ctx, ctx.playerAToken);
-    const traffic = recordEnvelopes(joiner);
-    joiner.connect();
-    await waitForConnect(joiner);
-    await waitForJoinBatch(traffic);
-
-    const doc = actorDocsIn(traffic).find((d) => d["_id"] === oradorId);
-    expect(doc).toBeDefined();
-    expect(doc?.["name"]).toBe(OTHER_ORADOR);
-    joiner.disconnect();
-  });
 
   // -------------------------------------------------------------------------
   // Per user, not per role (REQ-CTT-071 through the funnel)

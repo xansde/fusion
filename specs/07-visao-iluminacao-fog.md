@@ -1,5 +1,35 @@
 # 07 — Visão, Iluminação e Fog of War
 
+> **ARRANCADA DO CORE — será refeita do zero.** Decisão do Alexandre em
+> 2026-08-23 (DEC-SEP-05, design em `docs/design/separacao-repos/design.md`):
+> o fog/visão/iluminação dinâmica foi removido da linha alfa/beta/stable (fase
+> F2 da separação de repositórios). Nenhum REQ-VIS desta spec sobre visão,
+> iluminação ou fog é implementado ou exigível na linha alfa — esta spec
+> permanece como registro para a reconstrução futura, que renasce a partir
+> dela. Consequência aceita: o jogador vê o mapa inteiro e todos os tokens
+> não-ocultos até a reconstrução acontecer (esconder token continua possível
+> via `hidden` por token — mecanismo de redação/roll-mode, não fog — e segue
+> ativo).
+>
+> O que **sobreviveu** à remoção, porque é dado e não pipeline de
+> renderização: o modelo de `Wall`/`AmbientLight` como documentos de cena com
+> CRUD GM-only (`packages/shared/src/vision/`, `packages/server/src/net/
+handlers/vision-handlers.ts`), a geometria pura de sweep/visibilidade
+> (`packages/shared/src/vision/{primitives,sweep,walls}.ts` — a futura
+> reconstrução precisa da mesma matemática), `token:move` (realocado para
+> `vision-handlers.ts`, sem colisão), os campos de percepção no schema do
+> `Scene` (`darkness`, `fogEnabled`, `globalLight`, `globalLightThreshold`,
+> `tokenVision` — inertes, para não invalidar cenas persistidas) e a migration
+> 003 (`fog_exploration`, dormente).
+>
+> O que **saiu**: `packages/server/src/fog/` + os handlers de fog + os 4
+> eventos de protocolo `fog:*` + `packages/shared/src/fog/` (bitmap/serialização
+> de exploração) + o pipeline de renderização do client
+> (`packages/client/src/lib/canvas/vision/` — `vision-state.ts`, `fog-state.ts`,
+> `LightingRenderer.ts` — e o filtro de visibilidade por token no
+> `TokenLayer`) + a UI de percepção (`ScenePerceptionDialog` e os gatilhos que
+> a abriam na aba Cenas).
+
 - **Título:** Visão, Iluminação e Fog of War
 - **Status:** draft v0.1
 - **Data:** 2026-06-11

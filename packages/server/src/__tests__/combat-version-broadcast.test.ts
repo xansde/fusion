@@ -13,9 +13,9 @@
  * with `expectedVersion` — so once T013 makes that field mandatory, every
  * write against a Combat document would be rejected as STALE_WRITE forever.
  *
- * The fix (combat-handlers.ts's `broadcastCombatVersionUpdate`, reused by
- * etmos/reacao-handler.ts's two call sites) mirrors the T032 fix already
- * proven for Scene/Actor in version-broadcast.test.ts.
+ * The fix is combat-handlers.ts's shared `broadcastCombatVersionUpdate`
+ * helper, and mirrors the T032 fix already proven for Scene/Actor in
+ * version-broadcast.test.ts.
  *
  * Coverage:
  *   1. combat-handlers.ts's shared `broadcastUpdate` funnel (exercised via
@@ -27,12 +27,6 @@
  *      version-sync guarantee, PLUS the redaction invariant this path must
  *      never break — a player never receives a hidden combatant via the new
  *      `doc:update`, while the GM does.
- *   3. etmos/reacao-handler.ts's two call sites — the turnStart Reação reset
- *      (registerReacaoResetOnTurnStart) and the etmos:reacao:usar spend
- *      (buildReacaoUsarHandler) — each also emits the version-sync
- *      `doc:update`, distinguished from each other and from the earlier
- *      combat:beginCombat's own version bump by matching on the Reação
- *      flags/state the respective write actually produces.
  *
  * Infrastructure mirrors version-broadcast.test.ts: real `boot()`, real
  * socket.io GM + PLAYER sockets, real `op` envelopes — not manual
@@ -54,7 +48,7 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
-import { etmosSystem } from "@fusion/system-etmos";
+import { stubSystem } from "@fusion/system-stub";
 
 // ---------------------------------------------------------------------------
 // Test infrastructure (mirrors version-broadcast.test.ts)
@@ -117,7 +111,7 @@ async function buildCtx(): Promise<Ctx> {
     authContext: {
       worldId,
       worldTitle: "Combat Version Broadcast World",
-      worldSystemId: "etmos",
+      worldSystemId: "stub",
       db: fusionDb.raw,
       secret,
     },
@@ -127,8 +121,8 @@ async function buildCtx(): Promise<Ctx> {
       secret,
       authService,
       origin: "http://127.0.0.1",
-      systemId: "etmos",
-      systemModule: etmosSystem,
+      systemId: "stub",
+      systemModule: stubSystem,
     },
   });
 
@@ -477,141 +471,6 @@ describe("T036 — Combat writes that bump _stats.version must emit doc:update",
         expect(combatants.some((c) => c["hidden"] === true)).toBe(false);
         expect(combatants.some((c) => c["_id"] === pcCombatantId)).toBe(true);
       }
-    }, 30000);
-  });
-
-  // -------------------------------------------------------------------------
-  // 3. etmos/reacao-handler.ts's two call sites.
-  // -------------------------------------------------------------------------
-
-  describe("etmos/reacao-handler.ts — turnStart reset and etmos:reacao:usar spend", () => {
-    it("both call sites broadcast doc:update with the version actually persisted, and combat:updated keeps firing", async () => {
-      const actorAck = await sendOp(gm, "doc:create", {
-        documentType: "Actor",
-        data: [
-          {
-            name: "Reação Version Orador",
-            type: "orador",
-            ownership: { default: 0, [ctx.playerId]: 3 },
-            system: { atributos: { corpo: { value: 3, max: 6 } } },
-          },
-        ],
-      });
-      const actorId = (actorAck["result"] as { documents: Array<Record<string, unknown>> })
-        .documents[0]!["_id"] as string;
-
-      const sceneAck = await sendOp(gm, "doc:create", {
-        documentType: "Scene",
-        data: [
-          { name: "Reação Version Scene", grid: { type: "square", size: 100 }, active: false },
-        ],
-      });
-      const sceneId = (sceneAck["result"] as { documents: Array<Record<string, unknown>> })
-        .documents[0]!["_id"] as string;
-
-      const tokenAck = await sendOp(gm, "doc:create", {
-        documentType: "Token",
-        parent: { type: "Scene", id: sceneId },
-        data: [
-          {
-            actorId,
-            name: "Reação Version Orador",
-            x: 0,
-            y: 0,
-            hidden: false,
-            disposition: 1,
-          },
-        ],
-      });
-      const tokenId = (tokenAck["result"] as { documents: Array<Record<string, unknown>> })
-        .documents[0]!["_id"] as string;
-
-      const combatAck = await sendOp(gm, "combat:create", { sceneId });
-      const combatId = (combatAck["result"] as { combat: Record<string, unknown> }).combat[
-        "_id"
-      ] as string;
-
-      const addAck = await sendOp(gm, "combat:addCombatant", { combatId, tokenId });
-      const combatantId = (
-        (addAck["result"] as { combatant: Record<string, unknown> }).combatant as Record<
-          string,
-          unknown
-        >
-      )["_id"] as string;
-
-      function reacoesOf(doc: Record<string, unknown>): { atual: number; max: number } | undefined {
-        const combatants = doc["combatants"] as Array<Record<string, unknown>> | undefined;
-        const target = combatants?.find((c) => c["_id"] === combatantId);
-        const flags = target?.["flags"] as Record<string, Record<string, unknown>> | undefined;
-        return flags?.["etmos"]?.["reacoes"] as { atual: number; max: number } | undefined;
-      }
-
-      // --- Call site 1: registerReacaoResetOnTurnStart --------------------
-      // combat:beginCombat itself ALSO goes through broadcastUpdate() (case
-      // 1's funnel), which fires its own doc:update for {started:true, ...}
-      // before the turnStart lifecycle event even runs. Distinguish "the
-      // reset's own doc:update" by matching on the flags it actually writes
-      // (same predicate style as e2e-etmos-m5e.test.ts's combat:updated
-      // matcher for this exact write).
-      const resetCombatUpdatedPromise = waitForOp(gm, "combat:updated", (env) => {
-        const payload = env["payload"] as Record<string, unknown> | undefined;
-        const diff = payload?.["diff"] as Record<string, unknown> | undefined;
-        const cs = diff?.["combatants"] as Array<Record<string, unknown>> | undefined;
-        const target = cs?.find((c) => c["_id"] === combatantId);
-        const flags = target?.["flags"] as Record<string, Record<string, unknown>> | undefined;
-        return flags?.["etmos"]?.["reacoes"] !== undefined;
-      });
-      const resetDocUpdatePromise = waitForOp(gm, "doc:update", (env) => {
-        const doc = findCombatDoc(env, combatId);
-        return doc !== undefined && reacoesOf(doc) !== undefined;
-      });
-
-      const beginAck = await sendOp(gm, "combat:beginCombat", { combatId });
-      expect(beginAck["ok"]).toBe(true);
-
-      // combat:updated (the pre-existing event) still fires — requirement.
-      await resetCombatUpdatedPromise;
-
-      const resetDocUpdateEnv = await resetDocUpdatePromise;
-      const resetCombat = findCombatDoc(resetDocUpdateEnv, combatId)!;
-      expect(reacoesOf(resetCombat)).toEqual({ atual: 1, max: 1 });
-      const resetDbVersion = readCombatVersion(ctx.fusionDb, combatId);
-      expect((resetCombat["_stats"] as { version: number }).version).toBe(resetDbVersion);
-
-      // --- Call site 2: buildReacaoUsarHandler -----------------------------
-      const usarCombatUpdatedPromise = waitForOp(gm, "combat:updated", (env) => {
-        const payload = env["payload"] as Record<string, unknown> | undefined;
-        const diff = payload?.["diff"] as Record<string, unknown> | undefined;
-        const cs = diff?.["combatants"] as Array<Record<string, unknown>> | undefined;
-        const target = cs?.find((c) => c["_id"] === combatantId);
-        const flags = target?.["flags"] as Record<string, Record<string, unknown>> | undefined;
-        const reacoes = flags?.["etmos"]?.["reacoes"] as { atual: number } | undefined;
-        return reacoes?.atual === 0;
-      });
-      const usarDocUpdatePromise = waitForOp(gm, "doc:update", (env) => {
-        const doc = findCombatDoc(env, combatId);
-        return doc !== undefined && reacoesOf(doc)?.atual === 0;
-      });
-
-      const usarAck = await sendOp(player, "etmos:reacao:usar", { combatId, combatantId });
-      expect(usarAck["ok"]).toBe(true);
-      const usarResult = usarAck["result"] as {
-        state: { atual: number; max: number };
-        segundaReacaoComCusto: boolean;
-      };
-      expect(usarResult.state).toEqual({ atual: 0, max: 1 });
-
-      // combat:updated (the pre-existing event) still fires — requirement.
-      await usarCombatUpdatedPromise;
-
-      const usarDocUpdateEnv = await usarDocUpdatePromise;
-      const usarCombat = findCombatDoc(usarDocUpdateEnv, combatId)!;
-      const usarDbVersion = readCombatVersion(ctx.fusionDb, combatId);
-      expect((usarCombat["_stats"] as { version: number }).version).toBe(usarDbVersion);
-
-      // The two doc:update broadcasts are genuinely distinct writes, not the
-      // same envelope matched twice.
-      expect(usarDbVersion).toBeGreaterThan(resetDbVersion);
     }, 30000);
   });
 });

@@ -13,7 +13,7 @@
  * REQ-CBA-070 (once running, nobody reads it).
  */
 
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import { defaultTokenDocument } from "@fusion/shared";
 
@@ -28,6 +28,12 @@ import {
   initiativeStatisticOptions,
 } from "../combatSetup.js";
 import { controlsState } from "../combatTracker.js";
+import { registerSkillNameResolver, resetSkillNameResolver } from "../skillNameRegistry.js";
+// Test-only fixture: the core registry (skillNameRegistry.ts) is what
+// combatSetup.ts actually depends on; PF2e's own table is registered into it
+// here only to exercise the REQ-CBA-066 assertions with real pt-BR labels,
+// the same way PF2e's registerPf2eSheets() would at boot.
+import { skillNamePt } from "@fusion/sheets-pf2e";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -411,6 +417,9 @@ describe("as células de um encontro inteiro (REQ-CBA-064, REQ-CBA-067, REQ-CBA-
 // ---------------------------------------------------------------------------
 
 describe("escolha da estatística de iniciativa (REQ-CBA-066)", () => {
+  beforeAll(() => registerSkillNameResolver(skillNamePt));
+  afterAll(() => resetSkillNameResolver());
+
   const actor = {
     _id: "a1",
     system: {

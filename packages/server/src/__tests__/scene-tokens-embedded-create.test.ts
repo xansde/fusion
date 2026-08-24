@@ -276,7 +276,15 @@ describe("A004 — landing a token on a scene: $push and whole-array doc:update 
     expect(tokens[0]?.["_id"]).toBe("tokenlobo0000001");
   });
 
-  it("the WHOLE-ARRAY doc:update is ALSO refused — proving that is not the fix either", async () => {
+  it("the WHOLE-ARRAY doc:update is ALSO refused — proving that is not the fix either (TK082, REQ-TOK-016/084, CA-TOK-016)", async () => {
+    // spec 41-token.md TK082: TokenDocument has no ordering field (REQ-TOK-016)
+    // — the collection's own array order IS the draw order (REQ-TOK-084), and
+    // this refusal is the guard that makes that real: the ONLY writer of
+    // `Scene.tokens` is the embedded-doc machinery (append on create, filter
+    // on delete, in-place patch on update), which never reorders. A caller who
+    // could replace the whole array — this very payload — could otherwise
+    // resubmit it in any order it liked and silently move a token in front of
+    // another one created before it.
     const currentTokens = (ctx.store.get("scenes", sceneId)["tokens"] as unknown[]) ?? [];
     const ack = await sendOp(gm, "doc:update", {
       documentType: "Scene",

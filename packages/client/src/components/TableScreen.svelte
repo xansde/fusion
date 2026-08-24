@@ -25,6 +25,7 @@
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
+  import { createSceneLoadGuard } from "../lib/canvas/sceneLoadGuard.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
@@ -45,12 +46,14 @@
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
-  import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
-  import { FogState } from "../lib/canvas/vision/fog-state.js";
+  import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
+  import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
+  import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
-  import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
-  import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
+  import { registerPf2eSheets } from "@fusion/sheets-pf2e";
+  import { openTokenSheet } from "../lib/sheets/openTokenSheet.js";
   import {
     buildActorDropTokenOp,
     buildTokenFromActorFields,
@@ -62,7 +65,8 @@
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
-  import { effectiveGridSize, sceneContentOffset } from "../lib/canvas/sceneCoords.js";
+  import { CANVAS_DROP_EFFECT } from "../lib/canvas/dragEffects.js";
+  import { effectiveGridSize } from "../lib/canvas/sceneCoords.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -84,6 +88,11 @@
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
+  // BUG FIX (#81): decides whether an in-flight scene load's result is still
+  // wanted by the time it resolves — see sceneLoadGuard.ts doc comment. Must
+  // be created once here (module/component scope), not inside the $effect
+  // below, so the generation counter survives across effect re-runs.
+  const sceneLoadGuard = createSceneLoadGuard();
   let cleanupCombatSync: (() => void) | null = null;
   let cleanupChatSync: (() => void) | null = null;
   let cleanupChatMessageSync: (() => void) | null = null;
@@ -146,6 +155,34 @@
   // Stored here so _teardownOrchestrator and onDestroy can remove it cleanly,
   // preventing accumulation of stale callbacks across scene switches (leak fix).
   let _tickerDisposer: (() => void) | null = null;
+  // Click-to-select, drag-to-move, arrow-key move, duplicate/delete (TK030,
+  // TK050/051, TK060-062, TK090) — was built and unit-tested but never
+  // instantiated anywhere in the running app until this wiring. Lives outside
+  // SceneOrchestrator, same as _tickerDisposer above, for the same reason:
+  // it is bound 1:1 to canvas.getLayer("tokens") + the socket for THIS scene
+  // load, not part of the orchestrator's own render/tick contract.
+  let _tokenInteraction: TokenInteractionManager | null = null;
+  /**
+   * The `_id` of the scene the canvas currently has loaded — tracked so the
+   * scene-reload $effect below can tell "the GM switched scenes" (reload)
+   * apart from "something INSIDE the same scene changed" (no reload).
+   *
+   * Every embedded Token op (move/create/delete/hide — TK030+) is broadcast
+   * by the server as a `{ documentType: "Scene" }` update (sync-handlers.ts:
+   * embedded ops re-send the FULL parent Scene), because that's what the
+   * client's Scene collection actually stores. `worldSync.ts` reacts to any
+   * such broadcast by re-deriving `activeSceneState.scene` from the mirror —
+   * a fresh object every time, whether or not the change was token-related.
+   * Without this guard, `canvasScene` (which is exactly that derived value)
+   * changes identity on every single token drag, and the effect below tore
+   * down and rebuilt the ENTIRE canvas for it: re-running loadSceneDocument
+   * (black screen while art reloads) and re-centering the camera via
+   * canvas.panTo/fitToScene (zoom reset) — on every drag frame's ack.
+   * TokenLayer already reconciles token-only changes on its own mirror
+   * subscription (see TokenLayer.ts's `mirror.subscribe("Scene", ...)`), so
+   * a full reload here is both wrong and redundant for that case.
+   */
+  let _loadedSceneId: string | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -231,6 +268,19 @@
       cleanupChatSync = attachChatSync(sock, session.worldInfo?.id ?? "");
       cleanupChatMessageSync?.();
       cleanupChatMessageSync = attachChatMessageSync(sock);
+
+      // TK041 (REQ-SYS-009, spec 41-token.md DEC-TOK-03): the active system's
+      // size→footprint table — every TokenSprite render and every drag/add
+      // snap (TokenInteractionManager) reads it through footprintOf(). Fire
+      // once per seat; fails open (empty map → every token stays 1×1) so a
+      // slow or absent answer never blocks the canvas.
+      void ensureFootprintRegistry(sock);
+
+      // TK080 (REQ-TOK-074): this user's saved name/bar display preferences,
+      // loaded once per seat into the live store TokenSprite reads through
+      // (tokenDisplayPrefsStore.svelte.ts) — 100% client-local, no socket
+      // round-trip (unlike the footprint table above, which is server data).
+      initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
@@ -238,14 +288,23 @@
     registerPf2eSheets().catch((err) => {
       console.warn("[TableScreen] registerPf2eSheets failed:", err);
     });
-
-    // Register Etmos sheets (orador/antagonista) — same pattern as PF2e above.
-    registerEtmosSheets().catch((err) => {
-      console.warn("[TableScreen] registerEtmosSheets failed:", err);
-    });
   });
 
   onDestroy(() => {
+    // BUG FIX (#81 follow-up): invalidate any scene load still in flight
+    // BEFORE tearing down. Without this, a load that started just before
+    // unmount is still `isCurrent` when it resolves after onDestroy has
+    // already run: it would assign `cleanupScene = cleanup` after this
+    // function already set `cleanupScene = null` below — a cleanup nobody
+    // ever calls again — and would build/setup a fresh SceneOrchestrator on
+    // the `canvas` closed over by the effect, which `fusionCanvas?.destroy()`
+    // below has already torn down (that call resolves but fails silently in
+    // its own try/catch, leaving orphaned renderers on nothing). Calling
+    // begin() bumps the generation with no paired load, so isCurrent() is
+    // false for every load already in flight and each one discards itself
+    // instead of installing. The returned generation id is unused — only
+    // the side effect (invalidation) matters here.
+    sceneLoadGuard.begin();
     _teardownOrchestrator();
     cleanupScene?.();
     cleanupCombatSync?.();
@@ -311,7 +370,10 @@
       return;
     }
     event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+    // Dropping an actor on the map COPIES it into a token — the actor stays in its
+    // list. Every source that targets the canvas has to allow this operation, or the
+    // browser refuses the drop even after this `preventDefault()` (see dragEffects.ts).
+    if (event.dataTransfer) event.dataTransfer.dropEffect = CANVAS_DROP_EFFECT;
   }
 
   function handleCanvasDrop(event: DragEvent): void {
@@ -388,7 +450,7 @@
           // Build a minimal actor payload to reuse buildTokenFromActorFields
           const fakePayload: ActorDragPayload = {
             kind: "actor",
-            uuid: createdId,
+            _id: createdId,
             documentType: "Actor",
             subtype: accepted.subtype ?? "npc",
             name: accepted.name,
@@ -439,6 +501,18 @@
    * init()), which re-triggers this effect and performs the (now safe) load —
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
+   *
+   * BUG FIX (#81): this effect used to clean up the PREVIOUS scene
+   * (`cleanupScene?.()`) synchronously at the top of its own execution, but
+   * only learned the NEW scene's cleanup after an `await` — so two scene
+   * switches close together raced: the second run's top-of-execution cleanup
+   * found `cleanupScene` still null (the first load hadn't resolved yet), and
+   * whichever load resolved LAST won unconditionally, silently overwriting
+   * whatever the other had assigned (leaked content, orphaned orchestrator).
+   * sceneLoadGuard pairs each in-flight load with the generation that started
+   * it: after every `await`, isCurrent(generation) says whether this load's
+   * result is still wanted. A stale result disposes of itself immediately
+   * instead of being installed — see sceneLoadGuard.ts for the full writeup.
    */
   $effect(() => {
     const canvas = fusionCanvas;
@@ -449,20 +523,57 @@
     // REQ-CEN-050/053: the prepared scene when there is one, the scene on air otherwise.
     const scene = canvasScene;
 
+    // Same scene still active — only its content mutated (e.g. a token moved,
+    // an embedded doc:update echoed back as a Scene broadcast). TokenLayer and
+    // the other per-doc reconcilers already pick this up on their own mirror
+    // subscriptions; a full canvas teardown/reload here would only cause a
+    // black-screen flash and reset the camera for no reason. See _loadedSceneId.
+    if (scene && scene._id === _loadedSceneId) return;
+
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
 
-    // Cleanup previous scene content
+    // Cleanup previous scene content — whatever the last WINNING generation
+    // installed (a still in-flight loser has nothing here yet: it discards
+    // itself below, on its own generation check, the moment it resolves).
     cleanupScene?.();
     cleanupScene = null;
+    _loadedSceneId = null;
+
+    // Bump the generation BEFORE the async work starts, synchronously, so a
+    // concurrent effect re-run always sees a strictly newer generation.
+    const generation = sceneLoadGuard.begin();
 
     void (async () => {
       try {
         if (scene) {
-          cleanupScene = await loadSceneDocument(canvas, scene);
+          const cleanup = await loadSceneDocument(canvas, scene);
+          if (!sceneLoadGuard.isCurrent(generation)) {
+            // Superseded while in flight: this result is stale. Nobody else
+            // holds a reference to it, so this is the only chance to release
+            // the PIXI objects THIS load added (sprite/graphics — see
+            // cleanupFns in sceneLoader.ts) — cleanupScene/sceneOrchestrator
+            // belong to whichever generation is current now, so they are
+            // left untouched. Note this cleanup is NOT fully self-contained:
+            // it also clears the grid, which is global FusionCanvas state,
+            // not scoped to this load — FusionCanvas.clearGridIf() guards
+            // that specific step so it only acts if this load's grid config
+            // is still the one installed (see its doc comment).
+            cleanup?.();
+            return;
+          }
+          cleanupScene = cleanup;
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
+          if (!sceneLoadGuard.isCurrent(generation)) {
+            // Superseded during setup(): the newer effect run already tore
+            // down sceneOrchestrator/cleanupScene synchronously above, so
+            // there is nothing left to release here — just don't mark this
+            // stale scene as loaded.
+            return;
+          }
+          _loadedSceneId = scene._id;
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
         // by the Svelte template. Dev-scene is only used in the initial mount
@@ -482,9 +593,7 @@
    * The orchestrator is "thin assembly" — all logic lives in the .ts modules;
    * this function just instantiates and connects them.
    *
-   * M3-C: fog:get and fog:update are routed through the active socket.
-   *       CombatCanvasController is wired if the canvas is available.
-   *       GM gets no FogState (fog bypassed entirely).
+   * CombatCanvasController is wired if the canvas is available.
    */
   function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
     const sock = getSocket();
@@ -511,43 +620,72 @@
     };
     _tickerDisposer = canvas.addTicker(tickerCb);
 
-    // --- LightingRenderer ---
-    const { padX, padY } = sceneContentOffset(scene);
-    const lightingRenderer = new LightingRenderer(
-      canvas.getLayer("lighting"),
-      scene.width,
-      scene.height,
-      padX,
-      padY,
-    );
-
-    // --- FogState (player only) ---
-    let fogState: FogState | null = null;
-    if (!currentIsGm && sock) {
-      fogState = new FogState(
-        scene._id,
+    // --- TokenInteractionManager (click-to-select, drag/arrow move, duplicate, delete) ---
+    // Requires a live socket — with none (disconnected), there is nothing to
+    // send ops on, so interaction stays unwired for this scene load rather
+    // than silently queuing/dropping every gesture.
+    if (sock) {
+      _tokenInteraction = new TokenInteractionManager({
+        tokenContainer: canvas.getLayer("tokens"),
+        tokenLayer,
+        mirror: worldMirror,
+        sceneId: scene._id,
+        canvas,
+        socket: sock,
         userId,
-        false,
-        // persistFn: send fog:update op
-        (payload) => {
-          sock.emit("op", { type: "fog:update", ts: Date.now(), payload });
-        },
-        // getFn: request fog:get op via ack
-        (payload) =>
-          new Promise((resolve, reject) => {
-            sock.emit(
-              "op",
-              { type: "fog:get", ts: Date.now(), payload },
-              (ack: { ok: boolean; result?: unknown }) => {
-                if (ack.ok) {
-                  resolve(ack.result as import("@fusion/shared").FogGetResponsePayload);
-                } else {
-                  reject(new Error("fog:get failed"));
-                }
+        userRole: session.user?.role ?? 0,
+        // R2: read live, never a snapshot. This manager is built once per
+        // scene LOAD (see `_loadedSceneId`), so a set captured here would
+        // freeze "which actors are mine" at canvas-mount time — and since
+        // fase 5 that set is the only client-side predicate for moving a
+        // token (REQ-TOK-032/034). A player whose Actor snapshot lands after
+        // the canvas mounted, or who is granted OWNER during the session,
+        // would be refused by the interface until F5 while the server would
+        // have accepted the move.
+        getOwnedActorIds: () =>
+          ownedActorIdsOf(worldMirror.getByType<Record<string, unknown>>("Actor"), userId),
+        gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
+        // TK110 (REQ-TOK-110): two clicks on a token open its sheet. The
+        // manager already decided the gesture happened and that this user may
+        // see the sheet (REQ-TOK-111); everything read here is read NOW, from
+        // the live mirror, so the window never opens on a snapshot taken when
+        // the canvas mounted (same reasoning as getOwnedActorIds above).
+        onOpenSheet: (tokenId) => {
+          const currentScene = worldMirror.getDoc<SceneDocument>("Scene", scene._id);
+          const token = currentScene?.tokens?.find((candidate) => candidate._id === tokenId);
+          if (!token) return;
+          const baseActor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+          if (!baseActor) return;
+
+          const owned = ownedActorIdsOf(
+            worldMirror.getByType<Record<string, unknown>>("Actor"),
+            userId,
+          );
+
+          openTokenSheet(
+            token as unknown as Parameters<typeof openTokenSheet>[0],
+            baseActor,
+            {
+              userId,
+              isGm: currentIsGm,
+              isOwner: owned.has(token.actorId),
+              worldId: session.worldInfo?.id ?? "",
+              socket: sock,
+              // Lazy socket accessor: a captured socket goes stale across a
+              // reconnect (same pattern as the NPCs tab).
+              sendOpFn: (op: unknown) => {
+                void sendOp(getSocket() ?? sock, op as Parameters<typeof sendOp>[1]);
               },
-            );
-          }),
-      );
+            },
+          );
+        },
+        onError: (msg) => {
+          dropRefusal = msg;
+          window.setTimeout(() => {
+            dropRefusal = null;
+          }, DROP_REFUSAL_MS);
+        },
+      });
     }
 
     // --- CombatCanvasController ---
@@ -563,17 +701,21 @@
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
-      isGm: currentIsGm,
-      userId,
       tokenLayer,
-      lightingRenderer,
-      fogState,
       combatController,
+      // R4: the orchestrator is the one thing subscribed to the Scene
+      // document, so it is what notices the grid being edited with the
+      // scene's pencil. It re-lays the sprites itself (TokenLayer.setGridSize);
+      // this hands the same number to the drag snap, which keeps its own copy
+      // of the cell size in `gridConfig`.
+      onGridSizeChange: (size: number) => {
+        _tokenInteraction?.setGridSize(size);
+      },
     });
   }
 
   /**
-   * Tear down the current orchestrator (flush fog, destroy PIXI objects, unsubscribe).
+   * Tear down the current orchestrator (destroy PIXI objects, unsubscribe).
    * Also removes the PIXI ticker callback to prevent stale closures from accumulating
    * across scene switches (fixes ticker leak — bug fix #2).
    * Safe to call when orchestrator is null.
@@ -583,6 +725,9 @@
     // callback cannot fire against a half-destroyed tokenLayer.
     _tickerDisposer?.();
     _tickerDisposer = null;
+
+    _tokenInteraction?.destroy();
+    _tokenInteraction = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();

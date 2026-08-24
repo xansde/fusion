@@ -36,8 +36,8 @@ import type { TokenDocument, ScenePoint } from "@fusion/shared";
  *
  * canMoveToken: returns true if the given user can move the given token.
  *   - GM (role >= ASSISTANT=3) can move any token.
- *   - Player can move tokens they own: token.actorId matches one of their
- *     owned actor IDs, OR if an explicit ownership map is provided.
+ *   - Player can move a token only when `token.actorId` is one of their owned
+ *     actor IDs (REQ-TOK-032/034, DEC-TOK-06) — no other predicate exists.
  *
  * @param token        The token to check.
  * @param userId       The user's ID (string).
@@ -57,11 +57,16 @@ export function canMoveToken(
   // Players can only move tokens linked to actors they own
   if (ownedActorIds.has(token.actorId)) return true;
 
-  // Fallback: check if token was explicitly assigned to this user via flags
-  // (future-proof hook — not used in M1-C but prevents stale errors)
-  const flagOwner = token.flags["fusion"]?.["owner"];
-  if (typeof flagOwner === "string" && flagOwner === userId) return true;
-
+  // TK093 (spec 41-token.md REQ-TOK-100, DEC-TOK-20): there used to be a
+  // fallback here reading an "owner" key nested inside the reserved
+  // namespace of the token's own flags — a second, ad-hoc "control"
+  // predicate. Removed — REQ-TOK-034/DEC-TOK-06 forbid any predicate for
+  // who controls a token other than "OWNER of the effective actor", and
+  // REQ-TOK-100 forbids the engine interpreting flags content at all. The
+  // server had no matching concept either (this was client-only), so the
+  // branch could only ever grant a permission the server would then refuse
+  // — the opposite of REQ-TOK-033's "the interface MAY anticipate the
+  // result, but MUST NOT be the only guard".
   return false;
 }
 
@@ -371,4 +376,154 @@ export function canStartDrag(machine: DragMachine, _tokenId: string): boolean {
   // If dragging/pending a DIFFERENT token, we can start dragging this one
   // (multi-token drag is [V2]; for now only single-token).
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Keyboard target guard (R3 / F192 fase 8)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether `target` — a `KeyboardEvent.target` — is something the user is
+ * actively typing INTO: a TEXTUAL `<input>` (see `TEXTUAL_INPUT_TYPES` —
+ * `checkbox`/`radio`/`button`/`range`/etc. don't count, REQ-A11-036),
+ * a `<textarea>`, a `<select>`, or any element with `contenteditable`
+ * (TipTap's chat editor, notably).
+ *
+ * TokenInteractionManager attaches its keydown listener on `window`
+ * (REQ-A11-036, spec 23: a non-drag keyboard alternative is required for
+ * every drag-only token action, so the listener has to be able to fire from
+ * anywhere the canvas has focus-adjacent UI, not scoped to the canvas
+ * element itself) — which means every keystroke in the whole app, including
+ * the chat composer or any text field, reaches `_handleKeyDown` first.
+ * Without this guard, typing the word "dado" in chat with a token selected
+ * fires KeyD (duplicate — TK090, REQ-TOK-090/091) on every "d", Backspace
+ * deletes the selected token instead of a character, and the arrow keys
+ * move the token instead of the text cursor.
+ *
+ * No DOM global (`instanceof HTMLElement`) is used here — the client test
+ * suite runs under Vitest's `node` environment (no jsdom), so this checks
+ * the shape of `target` by duck-typing instead. Typed `unknown` (rather
+ * than `EventTarget | null`) for the same reason: it lets a test pass a
+ * plain `{ tagName: "INPUT" }` mock object directly instead of a full
+ * `EventTarget` (`addEventListener`/`dispatchEvent`/…), which a `node`
+ * environment doesn't have a real implementation of anyway.
+ */
+/**
+ * `<input>` `type`s that accept typed text — the ones where Backspace/arrow
+ * keys/letters must reach the field undisturbed instead of acting on the
+ * selected token. An absent `type` defaults to "text" per the HTML spec.
+ *
+ * P2 (post-#194 audit, REQ-A11-036): every `<input>` used to count as
+ * editable regardless of `type`. The side drawer has several
+ * checkbox/radio/button/range inputs — none of them receive typed text — so
+ * focusing one silently swallowed the token's keyboard alternatives
+ * (Backspace to delete, arrows to move, KeyD to duplicate) with no text
+ * field actually capturing the keystroke.
+ */
+const TEXTUAL_INPUT_TYPES = new Set([
+  "text",
+  "search",
+  "url",
+  "tel",
+  "email",
+  "password",
+  "number",
+  "date",
+  "datetime-local",
+  "month",
+  "week",
+  "time",
+]);
+
+export function isEditableTarget(target: unknown): boolean {
+  if (target === null || target === undefined) return false;
+  const el = target as { tagName?: unknown; type?: unknown; isContentEditable?: unknown };
+  if (typeof el.tagName === "string") {
+    const tag = el.tagName.toUpperCase();
+    if (tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (tag === "INPUT") {
+      const type = typeof el.type === "string" ? el.type.toLowerCase() : "text";
+      return TEXTUAL_INPUT_TYPES.has(type);
+    }
+  }
+  return el.isContentEditable === true;
+}
+
+// ---------------------------------------------------------------------------
+// TK110 — opening the sheet from the map (REQ-TOK-110..113)
+// ---------------------------------------------------------------------------
+
+/**
+ * How long after a click a second click on the SAME token still counts as
+ * "two clicks" (REQ-TOK-110). 400 ms is the platform default range for a
+ * double click (Windows' default is 500 ms, GTK's is 400 ms); the shorter of
+ * the two is deliberate here, because the gesture competes with dragging:
+ * every millisecond this window stays open is a millisecond in which a slow
+ * "click, then pick up and move" reads as "open the sheet".
+ */
+export const DOUBLE_CLICK_WINDOW_MS = 400;
+
+/**
+ * The one click already seen, waiting for a partner — or `null` when nothing
+ * is pending. Deliberately a value, not internal mutable state: the manager
+ * owns exactly one of these and hands it back on every click, so the rule
+ * itself stays a pure function that a test can drive with a fake clock.
+ */
+export interface TokenClickTracker {
+  readonly tokenId: string;
+  readonly at: number;
+}
+
+/**
+ * Feed a click into the double-click detector.
+ *
+ * REQ-TOK-110: two clicks on the same token, within `windowMs`, are one
+ * gesture. A click on a DIFFERENT token is never the partner of the previous
+ * one — it re-arms on the token just clicked, so alternating between two
+ * tokens can never open a sheet.
+ *
+ * The pair is **consumed**: a detected double click returns `tracker: null`,
+ * so a third rapid click starts a fresh pair instead of opening a second
+ * sheet on every click of a fast drum roll.
+ *
+ * @param prev     The tracker from the previous call (`null` on the first).
+ * @param tokenId  The token just clicked.
+ * @param nowMs    Current time in ms (injected — never read from a clock here).
+ * @param windowMs Pairing window; defaults to DOUBLE_CLICK_WINDOW_MS.
+ */
+export function registerTokenClick(
+  prev: TokenClickTracker | null,
+  tokenId: string,
+  nowMs: number,
+  windowMs: number = DOUBLE_CLICK_WINDOW_MS,
+): { tracker: TokenClickTracker | null; isDoubleClick: boolean } {
+  if (prev !== null && prev.tokenId === tokenId && nowMs - prev.at <= windowMs) {
+    return { tracker: null, isDoubleClick: true };
+  }
+  return { tracker: { tokenId, at: nowMs }, isDoubleClick: false };
+}
+
+/**
+ * May this user open the sheet of this token?
+ *
+ * REQ-TOK-111: the rule is **the same** as the one for moving it — privileged
+ * role, or OWNER of the effective actor. This function exists for the name at
+ * the call site, not for a second rule: REQ-TOK-034 / DEC-TOK-06 forbid any
+ * predicate about a token other than "OWNER of the actor", so it delegates to
+ * `canMoveToken` instead of restating the check. If the two ever need to
+ * diverge, that divergence has to be decided in the spec first, and this
+ * delegation is where it would show up.
+ *
+ * Why players are refused at all: the sheet of an actor a player does not own
+ * would show hit points the server deliberately redacted out of their copy
+ * (REQ-TOK-070/071) — the gesture must not be a side door into data the wire
+ * never delivered.
+ */
+export function canOpenTokenSheet(
+  token: TokenDocument,
+  userId: string,
+  userRole: number,
+  ownedActorIds: ReadonlySet<string>,
+): boolean {
+  return canMoveToken(token, userId, userRole, ownedActorIds);
 }

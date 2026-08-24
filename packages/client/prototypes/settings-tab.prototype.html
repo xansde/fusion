@@ -209,7 +209,7 @@ const OTHER = {
 /* ================= estado mock ================= */
 const params = new URLSearchParams(location.search);
 let role   = params.get('role')==='player' ? 'player' : 'gm';
-let system = params.get('sys')==='etmos' ? 'etmos' : 'pf2e';
+let system = params.get('sys')==='sf2e' ? 'sf2e' : 'pf2e';
 let modsOn = params.get('mods')==='1';
 let active='settings', open=true, sec=null, confirming=null;
 
@@ -219,7 +219,7 @@ const DECLARED = {
     {key:'pf2e.variantRules.freeArchetype', label:'Arquétipo livre', hint:'Um talento de arquétipo extra em todo nível par', on:true,  affected:3},
     {key:'pf2e.variantRules.classLevels',   label:'Multiclasse por nível', hint:'Divide os níveis entre classes, sem dedicação', on:false, affected:1},
   ],
-  etmos:[],
+  sf2e:[],
 };
 const PERMS = [
   {n:'Criar tokens',            r:'Jogador'},
@@ -254,7 +254,7 @@ function secPrefs(){
 function secWorld(){
   const list = DECLARED[system];
   if(!list.length){
-    return `<div class="vazio">O sistema ativo (<b>${system==='etmos'?'Etmos':'PF2e'}</b>) não tem regras configuráveis.</div>`;
+    return `<div class="vazio">O sistema ativo (<b>${system==='sf2e'?'SF2e':'PF2e'}</b>) não tem regras configuráveis.</div>`;
   }
   return `<p class="sec-hint">Valem para todos nesta mesa. Vêm declaradas pelo sistema — a aba não conhece nenhuma delas.</p>
   ${list.map((s,i)=>{
@@ -352,7 +352,7 @@ function render(){
   root.querySelectorAll('.toggle:not([data-world])').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
 
   document.getElementById('role').textContent = isGm?'ver como jogador':'ver como GM';
-  document.getElementById('sys').textContent  = system==='pf2e'?'sistema: PF2e':'sistema: Etmos';
+  document.getElementById('sys').textContent  = system==='pf2e'?'sistema: PF2e':'sistema: SF2e';
   document.getElementById('mods').textContent = modsOn?'mods: instalados':'mods: nenhum';
   document.getElementById('lbl').textContent  = isGm
     ? 'GM: 5 seções · troque o sistema para ver o estado vazio de Mundo'
@@ -363,12 +363,12 @@ function render(){
   history.replaceState(null,'',u);
 }
 document.getElementById('role').onclick=()=>{role=role==='gm'?'player':'gm';sec=null;confirming=null;render();};
-document.getElementById('sys').onclick =()=>{system=system==='pf2e'?'etmos':'pf2e';confirming=null;render();};
+document.getElementById('sys').onclick =()=>{system=system==='pf2e'?'sf2e':'pf2e';confirming=null;render();};
 document.getElementById('mods').onclick=()=>{modsOn=!modsOn;render();};
 document.addEventListener('keydown',e=>{
   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
   if(e.key==='p'||e.key==='P'){role=role==='gm'?'player':'gm';sec=null;confirming=null;render();}
-  if(e.key==='s'||e.key==='S'){system=system==='pf2e'?'etmos':'pf2e';confirming=null;render();}
+  if(e.key==='s'||e.key==='S'){system=system==='pf2e'?'sf2e':'pf2e';confirming=null;render();}
   if(e.key==='m'||e.key==='M'){modsOn=!modsOn;render();}
 });
 render();

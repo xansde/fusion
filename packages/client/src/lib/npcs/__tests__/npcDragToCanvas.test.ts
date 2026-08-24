@@ -91,7 +91,7 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     const payload = readNpcDragPayload(wire);
 
     expect(payload).not.toBeNull();
-    expect(payload?.uuid).toBe("act-lobo00000001");
+    expect(payload?._id).toBe("act-lobo00000001");
     expect(payload?.documentType).toBe("Actor");
     expect(payload?.name).toBe("Lobo");
     expect(payload?.img).toBe("worlds/img/lobo.webp");
@@ -104,7 +104,7 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     const fields = buildTokenFromActorFields({
       payload: {
         kind: "actor",
-        uuid: payload!.uuid,
+        _id: payload!._id,
         documentType: "Actor",
         subtype: payload!.subtype,
         name: payload!.name,
@@ -165,7 +165,7 @@ describe("REQ-NPC-063: dragging a row onto the canvas creates a presence", () =>
     const op = buildActorDropTokenOp({
       payload: {
         kind: "actor",
-        uuid: LOBO._id,
+        _id: LOBO._id,
         documentType: "Actor",
         subtype: "npc",
         name: LOBO.name,

@@ -190,7 +190,7 @@ describe("aggregateModifiers", () => {
     expect(aggregateModifiers([], pf2eTable)).toBe(0);
   });
 
-  it("fully additive table (e.g., Etmos) sums everything", () => {
+  it("fully additive table (a non-2e-family system, e.g.) sums everything", () => {
     const allAdditive: StackingTable = [
       { type: "circumstance", bonusBehaviour: "additive", penaltyBehaviour: "additive" },
     ];
@@ -211,16 +211,16 @@ describe("aggregateModifiers", () => {
   });
 
   it("CA-06 from spec: engine does not hardcode PF2e rule", () => {
-    // Configure a table that makes everything stack (Etmos-style)
-    const ethosTable: StackingTable = [
+    // Configure a table that makes everything stack (fully additive style)
+    const fullyAdditiveTable: StackingTable = [
       { type: "circumstance", bonusBehaviour: "additive", penaltyBehaviour: "additive" },
     ];
     const mods = [
       { value: 2, type: "circumstance" },
       { value: 3, type: "circumstance" },
     ];
-    // Etmos table: 2 + 3 = 5 (no "highest only" rule)
-    expect(aggregateModifiers(mods, ethosTable)).toBe(5);
+    // Fully additive table: 2 + 3 = 5 (no "highest only" rule)
+    expect(aggregateModifiers(mods, fullyAdditiveTable)).toBe(5);
 
     // PF2e table: max(2, 3) = 3 (highest only)
     expect(aggregateModifiers(mods, pf2eTable)).toBe(3);

@@ -27,10 +27,28 @@ export interface NotificationPreferences {
   readonly turnAlert: boolean;
 }
 
+/**
+ * Token display toggles (spec 41-token.md REQ-TOK-074, TK080, DEC-TOK-11).
+ *
+ * Pure client-local ergonomy — the SAME contract as everything else in this
+ * module: never sent to the server, never changes what a payload contains.
+ * REQ-TOK-075/076 (CA-TOK-011) is the hard requirement this exists to keep
+ * true: the preference may only ever SUBTRACT from what the user's own
+ * socket already received (server redaction, `net/redaction.ts`) — turning
+ * it on must never reveal a name or a bar the server did not already emit.
+ * `TokenSprite`/`TokenLayer` are the only readers; this module writes
+ * nothing to the canvas itself.
+ */
+export interface TokenDisplayPreferences {
+  readonly showNames: boolean;
+  readonly showBars: boolean;
+}
+
 /** The whole shape of "Minhas preferências". */
 export interface ClientPreferences {
   readonly volume: Readonly<Record<VolumeChannel, number>>;
   readonly notifications: NotificationPreferences;
+  readonly tokenDisplay: TokenDisplayPreferences;
 }
 
 /** Volume is a `[0, 1]` multiplier (REQ-AUD-017); sliders in the UI show 0–100%. */
@@ -41,9 +59,16 @@ export const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   turnAlert: true,
 };
 
+/** Both on by default — the preference only ever hides what would otherwise show. */
+export const DEFAULT_TOKEN_DISPLAY: TokenDisplayPreferences = {
+  showNames: true,
+  showBars: true,
+};
+
 export const DEFAULT_CLIENT_PREFERENCES: ClientPreferences = {
   volume: { music: DEFAULT_VOLUME, environment: DEFAULT_VOLUME, interface: DEFAULT_VOLUME },
   notifications: DEFAULT_NOTIFICATIONS,
+  tokenDisplay: DEFAULT_TOKEN_DISPLAY,
 };
 
 /** Key prefix, following the `fusion:<thing>` convention used across the client. */
@@ -94,6 +119,19 @@ function parseNotifications(record: Record<string, unknown>): NotificationPrefer
   };
 }
 
+function parseTokenDisplay(record: Record<string, unknown>): TokenDisplayPreferences {
+  const raw = record["tokenDisplay"];
+  const source = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
+  return {
+    showNames:
+      typeof source["showNames"] === "boolean"
+        ? source["showNames"]
+        : DEFAULT_TOKEN_DISPLAY.showNames,
+    showBars:
+      typeof source["showBars"] === "boolean" ? source["showBars"] : DEFAULT_TOKEN_DISPLAY.showBars,
+  };
+}
+
 /**
  * This user's saved preferences in this world, or the defaults when there is nothing
  * usable (never saved, storage unavailable, corrupt JSON, no world/user identity yet).
@@ -112,6 +150,7 @@ export function loadClientPreferences(worldId: string, userId: string): ClientPr
     return {
       volume: parseVolume(record),
       notifications: parseNotifications(record),
+      tokenDisplay: parseTokenDisplay(record),
     };
   } catch {
     /* localStorage unavailable or unparseable — fall back to defaults. */
@@ -165,6 +204,28 @@ export function setNotificationPreference(
   const next: ClientPreferences = {
     ...current,
     notifications: { ...current.notifications, [key]: value },
+  };
+  persist(worldId, userId, next);
+  return next;
+}
+
+/**
+ * Set one token-display toggle (REQ-TOK-074, TK080) and persist the whole
+ * preference object. Same client-only contract as the setters above
+ * (REQ-CFG-022, RNF-CFG-01) — and REQ-TOK-076's own contract on top: this
+ * function never touches a socket, so the payload every socket already
+ * received is exactly as unaffected as `setVolumeChannel`'s.
+ */
+export function setTokenDisplayPreference(
+  worldId: string,
+  userId: string,
+  key: keyof TokenDisplayPreferences,
+  value: boolean,
+): ClientPreferences {
+  const current = loadClientPreferences(worldId, userId);
+  const next: ClientPreferences = {
+    ...current,
+    tokenDisplay: { ...current.tokenDisplay, [key]: value },
   };
   persist(worldId, userId, next);
   return next;

@@ -573,7 +573,7 @@ describe("M2-C combat unit (direct handlers)", () => {
     const npcActor = createActor(h, "Big NPC"); // no player owner
     const pcActor = createActor(h, "Small PC", playerUser); // player-owned
 
-    // Register an Etmos-style "players beat NPCs" comparator on combatType.
+    // Register a "players beat NPCs" comparator on combatType.
     const proPlayerFormula: InitiativeFormula = {
       id: "pro-player",
       label: "Pro Player",
@@ -626,26 +626,27 @@ describe("M2-C combat unit (direct handlers)", () => {
 
   it("propagates a system-registered { roll, compare } (M5-A E3, defineSystem → registerSystemFormulas) end-to-end", async () => {
     const sceneId = createScene(h);
-    const playerUser = "etmos-pc-owner";
+    const playerUser = "custom-tiebreak-pc-owner";
     const npcActor = createActor(h, "Big NPC"); // no player owner
     const pcActor = createActor(h, "Small PC", playerUser); // player-owned
 
-    // A minimal Etmos-shaped fake system, registered via the real
-    // registrar surface (defineSystem → registrar.registerInitiativeFormula
-    // with the { roll, compare } object form — E3).
-    const etmosLikeSystem = defineSystem(
+    // A minimal fake system with a non-monotonic tiebreak rule, registered
+    // via the real registrar surface (defineSystem →
+    // registrar.registerInitiativeFormula with the { roll, compare } object
+    // form — E3).
+    const customTiebreakSystem = defineSystem(
       {
-        id: "etmos-like-test",
-        title: "Etmos-like Test System",
+        id: "custom-tiebreak-test",
+        title: "Custom Tiebreak Test System",
         version: "0.1.0",
         engineCompat: ">=0.1.0 <2.0.0",
         authors: [{ name: "Test" }],
-        documentTypes: { Actor: ["orador"] },
+        documentTypes: { Actor: ["hero"] },
         languages: [{ lang: "en", name: "English", path: "lang/en.json" }],
       },
       (r) => {
-        r.defineModel({ documentType: "Actor", subtype: "orador", schema: z.object({}) });
-        r.registerInitiativeFormula("etmos-like", {
+        r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
+        r.registerInitiativeFormula("custom-tiebreak", {
           roll: () => ({ formula: "1", statistic: "Corpo" }), // total = 1 for everyone
           compare: (x, y) => {
             const xPlayer = x.combatant.hasPlayerOwner ? 1 : 0;
@@ -661,18 +662,20 @@ describe("M2-C combat unit (direct handlers)", () => {
     // initiativeFormulas AND initiativeCompares.
     registerSystemFormulas(
       h.formulaRegistry,
-      etmosLikeSystem.manifest.id,
-      etmosLikeSystem.combat.initiativeFormulas,
+      customTiebreakSystem.manifest.id,
+      customTiebreakSystem.combat.initiativeFormulas,
       new RollService({ db: h.fusionDb.raw }),
       "unit-world",
-      etmosLikeSystem.combat.initiativeCompares,
+      customTiebreakSystem.combat.initiativeCompares,
     );
 
     const create = buildCombatCreateHandler(h.combatDeps);
     const add = buildCombatAddCombatantHandler(h.combatDeps);
     const roll = buildCombatRollInitiativeHandler(h.combatDeps);
 
-    const combat = combatFromAck(await run(create, { sceneId, combatType: "etmos-like" }, GM_CTX));
+    const combat = combatFromAck(
+      await run(create, { sceneId, combatType: "custom-tiebreak" }, GM_CTX),
+    );
     const combatId = combat._id;
     const addNpc = await run(add, { combatId, tokenId: "t-npc", actorId: npcActor }, GM_CTX);
     const npcId = ((addNpc.result as Record<string, unknown>)["combatant"] as CombatantDocument)

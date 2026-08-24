@@ -13,6 +13,9 @@
  *   presence:cursor  — cursor position; rebroadcast to room EXCEPT sender (~20/s server limit)
  *   presence:ping    — map ping; rebroadcast to room INCLUDING sender; rate-limited
  *   presence:ruler   — ruler:update / ruler:clear; rebroadcast to room INCLUDING sender
+ *   token:preview    — token drag target position; rebroadcast to room EXCEPT sender
+ *                       (same shape as presence:cursor — the dragger already renders its
+ *                       own optimistic ghost locally); rate-limited (REQ-NET-044)
  *   presence:online  — connected-user roster; server-initiated (connect/disconnect), not
  *                       client-triggered, so it is built by `buildPresenceOnlineBroadcast`
  *                       below and emitted directly by socket-manager.ts rather than routed
@@ -21,6 +24,7 @@
  * REQ-NET-040: cursors throttled ≤ 30 msg/s per user (server enforces ~20/s = 50 ms min gap)
  * REQ-NET-041: ping to room with rate limit
  * REQ-NET-043: presence:online roster (active/color) updated on connect/disconnect
+ * REQ-NET-044: token:preview — throttled, ephemeral, scene-room-scoped drag preview
  * REQ-NET-071: ephemeral rate limiting, silent drop
  */
 
@@ -56,6 +60,22 @@ export type RulerUpdatePayload = z.infer<typeof RulerUpdatePayloadSchema>;
 
 export const RulerClearPayloadSchema = z.object({}).optional();
 export type RulerClearPayload = z.infer<typeof RulerClearPayloadSchema>;
+
+/**
+ * token:preview payload — REQ-NET-044. Declared here, not in
+ * `@fusion/shared`'s `protocol.ts`, matching this module's existing pattern:
+ * every other ephemeral payload schema is local to this file too
+ * (`CursorMovePayloadSchema`, `MapPingPayloadSchema`, ...) — `@fusion/shared`
+ * only needs the `token:preview` string in `EnvelopeTypeSchema`'s literal
+ * union, not this validation.
+ */
+export const TokenPreviewPayloadSchema = z.object({
+  sceneId: z.string(),
+  tokenId: z.string(),
+  x: z.number().finite(),
+  y: z.number().finite(),
+});
+export type TokenPreviewPayload = z.infer<typeof TokenPreviewPayloadSchema>;
 
 // ---------------------------------------------------------------------------
 // Rate limiter (token bucket per socket per event type)
@@ -132,6 +152,8 @@ export interface EphemeralHandlerOptions {
   cursorRateLimiter: EphemeralRateLimiter;
   /** Ping rate limiter. */
   pingRateLimiter: EphemeralRateLimiter;
+  /** token:preview rate limiter (REQ-NET-044). */
+  previewRateLimiter: EphemeralRateLimiter;
   /**
    * Mutable record tracking the current scene room for each socket.
    * Maps socketId → current sceneId (or undefined if not in a scene).
@@ -155,7 +177,7 @@ export function handleEphemeralEnvelope(
   ctx: EphemeralContext,
   opts: EphemeralHandlerOptions,
 ): boolean {
-  const { ns, logger, cursorRateLimiter, pingRateLimiter, sceneRooms } = opts;
+  const { ns, logger, cursorRateLimiter, pingRateLimiter, previewRateLimiter, sceneRooms } = opts;
   const now = Date.now();
 
   /**
@@ -212,6 +234,39 @@ export function handleEphemeralEnvelope(
       } else {
         socket.broadcast.emit("ephemeral", broadcast);
       }
+      return true;
+    }
+
+    case "token:preview": {
+      // REQ-NET-044: rate-limited drag-preview broadcast, scene-room-scoped,
+      // EXCLUDING the sender — the dragging client already renders its own
+      // optimistic ghost locally (TokenInteractionManager.applyLocalMove),
+      // the same reasoning presence:cursor uses for its own sender exclusion.
+      if (!previewRateLimiter.allow(socket.id, "token:preview", now)) {
+        return false;
+      }
+
+      const parsed = TokenPreviewPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) {
+        logger.debug({ userId: ctx.userId, type: "token:preview" }, "Invalid preview payload");
+        return false;
+      }
+
+      const previewPayload: TokenPreviewPayload & { userId: string } = {
+        ...parsed.data,
+        userId: ctx.userId,
+      };
+      const broadcast: Envelope<TokenPreviewPayload & { userId: string }> = {
+        type: "token:preview",
+        ts: now,
+        payload: previewPayload,
+      };
+
+      // Scoped to the DRAGGED TOKEN's scene (parsed.data.sceneId), not the
+      // sender's tracked room — a preview always names the scene it belongs
+      // to explicitly (unlike presence:cursor, which infers/updates
+      // `sceneRooms` from its own payload).
+      socket.broadcast.to(`scene:${parsed.data.sceneId}`).emit("ephemeral", broadcast);
       return true;
     }
 

@@ -226,7 +226,10 @@ function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
     // (REQ-CEN-071..073) — the same rule the live broadcast applies, so a
     // player who reconnects cannot read from the buffer what the live path
     // refused to send.
-    const stripped = redactSceneDocsForNonPrivileged(documents as Record<string, unknown>[]);
+    const stripped = redactSceneDocsForNonPrivileged(
+      documents as Record<string, unknown>[],
+      viewer.userId,
+    );
     // If nothing changed (same length, all same references), return the original op.
     const changed =
       stripped.length !== documents.length || stripped.some((doc, i) => doc !== documents[i]);
@@ -394,7 +397,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         // The on-air rule is at once stricter — no off-air scene passes,
         // whatever its ownership map claims (REQ-CEN-071, REQ-CEN-073) — and
         // sufficient, and it carries the hidden-token / secret-door redaction.
-        visible = redactSceneDocsForNonPrivileged(all);
+        visible = redactSceneDocsForNonPrivileged(all, userId);
       } else {
         visible = all.filter((doc) => {
           const ownership = getOwnershipFromDoc(doc);
@@ -661,8 +664,9 @@ function broadcastSceneVersionUpdates(
   deps.opBuffer.push(fullEnvelope);
 
   for (const [, socket] of deps.ns.sockets) {
-    const data = socket.data as { role?: unknown } | null | undefined;
+    const data = socket.data as { role?: unknown; userId?: unknown } | null | undefined;
     const role = typeof data?.role === "number" ? data.role : 0;
+    const userId = typeof data?.userId === "string" ? data.userId : undefined;
 
     if (isPrivileged(role)) {
       socket.emit("op", fullEnvelope);
@@ -672,8 +676,9 @@ function broadcastSceneVersionUpdates(
     // REQ-CEN-071..073: same funnel as every other Scene emission — off-air
     // scenes are dropped for the player (the envelope still goes out, possibly
     // with empty `documents`, to keep the seq contiguous), the on-air scene
-    // keeps its hidden-token / secret-door redaction.
-    const redacted = redactSceneDocsForNonPrivileged(scenes);
+    // keeps its hidden-token / secret-door redaction (which honours a
+    // token's `seenBy` exception, REQ-TOK-050/051 — hence per-socket userId).
+    const redacted = redactSceneDocsForNonPrivileged(scenes, userId);
     socket.emit("op", {
       ...fullEnvelope,
       payload: { documentType: "Scene", documents: redacted },

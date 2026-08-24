@@ -25,16 +25,26 @@
  * REQ-CNV-037: remote updates animate; local drag does not re-animate.
  */
 
-import { Container, Graphics, Text, TextStyle, Assets, Sprite, type Texture } from "pixi.js";
+import {
+  Container,
+  Graphics,
+  Rectangle,
+  Text,
+  TextStyle,
+  Assets,
+  Sprite,
+  type Texture,
+} from "pixi.js";
 
-import type { TokenDocument } from "@fusion/shared";
-import { resolveEffectiveActor } from "@fusion/shared";
+import type { TokenDocument, ActorAttitude } from "@fusion/shared";
+import { resolveEffectiveActor, readActorAttitude } from "@fusion/shared";
 import { resolveAssetUrl } from "../../assets/assetApi.js";
 import { fusionApi } from "../../api.js";
 import { session } from "../../session.svelte.js";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { footprintOf, type TokenFootprint } from "./footprint.js";
+import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
 import {
   tokenPixelSize,
   tokenCenter,
@@ -49,6 +59,9 @@ import {
   BAR_FILL_COLORS,
   barFraction,
   barYOffset,
+  resolveBarAttribute,
+  barAttributeEquals,
+  resolveDisposition,
   computeLod,
   animDuration,
   stepAnimation,
@@ -113,6 +126,15 @@ export class TokenSprite {
   private _mirror: DocumentMirror;
   /** The effective actor resolved from `_doc` — recomputed whenever `_doc` changes. */
   private _actor: TokenSpriteActor | undefined;
+  /**
+   * The base Actor's attitude towards the party (spec 42 §5.5), read
+   * straight off the base actor — never through `resolveEffectiveActor`,
+   * because attitude is not a delta field (DEC-DOC-08's patch has no `flags`)
+   * and is a party-wide trait of the actor's identity, unaffected by an
+   * unlinked token's overrides. `undefined` when the actor carries none (a
+   * player character, or an actor not yet in the mirror) — TK042/REQ-TOK-080.
+   */
+  private _actorAttitude: ActorAttitude | undefined;
   /** This token's footprint (grid cells) — recomputed alongside `_actor`. */
   private _footprint: TokenFootprint;
 
@@ -154,6 +176,7 @@ export class TokenSprite {
     this._isGm = isGm;
     this._mirror = mirror;
     this._actor = this._resolveActor(doc);
+    this._actorAttitude = this._resolveAttitude(doc);
     this._footprint = footprintOf(doc, this._actor);
 
     this.container = new Container();
@@ -199,6 +222,14 @@ export class TokenSprite {
     );
     this._renderX = doc.x;
     this._renderY = doc.y;
+
+    // PIXI hit-testing (EventBoundary.hitTestFn) only accepts a Container as a
+    // target when it has an explicit hitArea — a plain Container has no
+    // containsPoint of its own, so `eventMode = "static"` alone never made
+    // this clickable. Without this, every click on a token silently fell
+    // through to the tokens-layer's always-true hitArea (used to detect
+    // empty-canvas clicks), and _getTokenIdFromTarget always returned null.
+    this.container.hitArea = new Rectangle(0, 0, pixelW, pixelH);
 
     this._applyPosition(doc.x, doc.y);
     this._drawRing(pixelW, pixelH);
@@ -266,10 +297,13 @@ export class TokenSprite {
   update(newDoc: TokenDocument, gridSize: number): void {
     const oldDoc = this._doc;
     const oldActor = this._actor;
+    const oldAttitude = this._actorAttitude;
     const oldFootprint = this._footprint;
+    const oldGridSize = this._gridSize;
     this._doc = newDoc;
     this._gridSize = gridSize;
     this._actor = this._resolveActor(newDoc);
+    this._actorAttitude = this._resolveAttitude(newDoc);
     this._footprint = footprintOf(newDoc, this._actor);
 
     const { pixelW, pixelH } = tokenPixelSize(
@@ -318,11 +352,40 @@ export class TokenSprite {
     const newName = this._displayName(newDoc, this._actor);
     const artChanged = (oldActor?.img ?? null) !== (this._actor?.img ?? null);
 
-    // Re-draw visuals if anything else changed
+    // REQ-CNV-092: the bar must repaint whenever the effective actor's
+    // resolved value changes — including a LINKED token whose base Actor was
+    // damaged directly (no op ever touches the TokenDocument in that case,
+    // so this `update()` call is driven by the Actor subscription reconcile,
+    // not by `newDoc` differing from `oldDoc` at all). Compared independently
+    // of `visualChanged` below so a bar-only change repaints just the bars,
+    // never the whole sprite (no re-render espúrio).
+    const bar1Changed =
+      newDoc.bar1.attribute !== oldDoc.bar1.attribute ||
+      !barAttributeEquals(
+        resolveBarAttribute(oldActor?.system, oldDoc.bar1.attribute),
+        resolveBarAttribute(this._actor?.system, newDoc.bar1.attribute),
+      );
+    const bar2Changed =
+      newDoc.bar2.attribute !== oldDoc.bar2.attribute ||
+      !barAttributeEquals(
+        resolveBarAttribute(oldActor?.system, oldDoc.bar2.attribute),
+        resolveBarAttribute(this._actor?.system, newDoc.bar2.attribute),
+      );
+    const barsChanged = bar1Changed || bar2Changed;
+
+    // Re-draw visuals if anything else changed.
+    // R4: `gridSize` counts. The footprint is measured in CELLS, so a scene
+    // whose grid goes from 100px to 140px leaves it untouched while every
+    // pixel dimension below (`pixelW`/`pixelH`, the hit rectangle, the ring,
+    // the bars) doubles or shrinks — without this term the sprite kept its
+    // old pixel size and only a full canvas rebuild (which #194 removed) put
+    // it right.
     const visualChanged =
+      oldGridSize !== gridSize ||
       this._footprint.width !== oldFootprint.width ||
       this._footprint.height !== oldFootprint.height ||
       newDoc.disposition !== oldDoc.disposition ||
+      this._actorAttitude !== oldAttitude ||
       newName !== oldName ||
       newDoc.elevation !== oldDoc.elevation ||
       newDoc.hidden !== oldDoc.hidden ||
@@ -330,6 +393,7 @@ export class TokenSprite {
       newDoc.rotation !== oldDoc.rotation;
 
     if (visualChanged || xChanged) {
+      this.container.hitArea = new Rectangle(0, 0, pixelW, pixelH);
       this._drawRing(pixelW, pixelH);
       this._drawBars(newDoc, pixelW, pixelH);
       this._drawNameplate(newDoc, pixelW, pixelH);
@@ -340,25 +404,39 @@ export class TokenSprite {
       if (artChanged) {
         void this._loadArt(newDoc, pixelW, pixelH);
       }
+    } else if (barsChanged) {
+      // Bar-only change: repaint just the bars (REQ-CNV-092), not the whole sprite.
+      this._drawBars(newDoc, pixelW, pixelH);
     }
   }
 
   /**
-   * Update LOD visibility based on current camera zoom.
-   * Called by TokenLayer on every zoom change.
+   * Update LOD visibility based on current camera zoom AND the user's own
+   * display preferences (REQ-TOK-074/075, TK080, DEC-TOK-11) — a pure AND,
+   * never an OR: the preference only ever SUBTRACTS from what the zoom-based
+   * LOD would already show, it can never reveal a nameplate/bar the LOD (or,
+   * further upstream, the server's redaction) withheld. Called by
+   * TokenLayer on every zoom change AND whenever the user toggles a display
+   * preference (tokenDisplayPrefsStore.svelte.ts).
    */
   updateLod(zoom: number): void {
     const lod = computeLod(zoom);
+    const prefs = tokenDisplayPrefs.current;
+    const effective: LodState = {
+      showNameplate: lod.showNameplate && prefs.showNames,
+      showBars: lod.showBars && prefs.showBars,
+      showBarDetail: lod.showBarDetail && prefs.showBars,
+    };
     if (
-      lod.showNameplate === this._lastLod.showNameplate &&
-      lod.showBars === this._lastLod.showBars &&
-      lod.showBarDetail === this._lastLod.showBarDetail
+      effective.showNameplate === this._lastLod.showNameplate &&
+      effective.showBars === this._lastLod.showBars &&
+      effective.showBarDetail === this._lastLod.showBarDetail
     ) {
       return;
     }
-    this._lastLod = lod;
-    this._nameplate.visible = lod.showNameplate;
-    this._barsContainer.visible = lod.showBars;
+    this._lastLod = effective;
+    this._nameplate.visible = effective.showNameplate;
+    this._barsContainer.visible = effective.showBars;
   }
 
   /**
@@ -477,12 +555,29 @@ export class TokenSprite {
   }
 
   /**
-   * The name to draw: `doc.name` when set, else the effective actor's name
-   * (REQ-TOK-060 — `null` means "herda do ator"), else empty.
+   * The base Actor's attitude towards the party, read straight off the base
+   * document (never through `resolveEffectiveActor` — `flags` is not a delta
+   * field, DEC-DOC-08). `undefined` when the actor is not in the mirror yet
+   * or carries no attitude flag (e.g. a player character) — TK042/REQ-TOK-080.
+   */
+  private _resolveAttitude(doc: TokenDocument): ActorAttitude | undefined {
+    const baseActor = this._mirror.getDoc<ActorDocument>("Actor", doc.actorId);
+    return baseActor ? readActorAttitude(baseActor) : undefined;
+  }
+
+  /**
+   * The name to draw: `doc.name` when set — REQ-TOK-062/074 (TK074): the
+   * peça's own label is DISPLAY, never an identity-hiding mechanism, so it
+   * always prevails when set, with no knowledge check gating it here — else
+   * the effective actor's name (REQ-TOK-060 — `null` means "herda do ator"),
+   * else empty.
    *
-   * WHO gets to see this name (REQ-TOK-073, redaction) is a server concern —
-   * this is display-only, drawing whatever the mirror already handed the
-   * client.
+   * WHO gets to see the ACTOR's name (REQ-TOK-061/063, TK073, redaction) is a
+   * server concern, already decided before this code runs: `actor?.name` is
+   * simply absent from the mirror's copy of a GLIMPSED/HIDDEN actor
+   * (`glimpsedContactView`, `net/redaction.ts`), so falling through to `""`
+   * here is a consequence of what arrived, never a second rule written
+   * against the Token.
    */
   private _displayName(doc: TokenDocument, actor: TokenSpriteActor | undefined): string {
     return doc.name ?? actor?.name ?? "";
@@ -585,14 +680,15 @@ export class TokenSprite {
     const g = this._ringGraphics;
     g.clear();
 
-    // TK024/REQ-TOK-080: `null` means "herda do ator" — resolving that
-    // inheritance is TK042 (Fase 3), out of this task's scope. Until then a
-    // null disposition falls back to neutral (0), the value the schema
-    // defaulted to before TK024 made the field nullable (DEC-TOK-12: three
-    // real dispositions, `secret` is not one of them) — NOT the gray
-    // `SECRET_RING_COLOR`, which `dispositionColor` only reaches for a
-    // genuinely out-of-range number and which TK042 removes outright.
-    const color = dispositionColor(this._doc.disposition ?? 0);
+    // TK024/TK042, REQ-TOK-080: `null` means "herda do ator" — the base
+    // Actor's attitude towards the party (spec 42 §5.5, `flags.fusion.attitude`),
+    // which maps 1:1 onto disposition (enemy/neutral/ally ↔ hostile/neutral/
+    // friendly, DEC-TOK-12). An actor with no attitude flag at all (a player
+    // character — party members have no attitude "towards the party") falls
+    // back to neutral (0), never the gray `SECRET_RING_COLOR`, which TK042
+    // removed outright (there is no fourth case left: `dispositionColor`
+    // only accepts -1/0/1 now).
+    const color = dispositionColor(resolveDisposition(this._doc.disposition, this._actorAttitude));
     g.roundRect(
       RING_THICKNESS / 2,
       RING_THICKNESS / 2,
@@ -624,11 +720,14 @@ export class TokenSprite {
     const barConfig = doc[barKey];
     if (!barConfig.attribute) return; // bar disabled
 
-    // For M1-C, bars read static value/max from token (actor integration is M3).
-    // The bar config only has `attribute` (a dot-path string) — without an actor,
-    // we render a full bar as a placeholder until actor data arrives.
-    // Real values will come from actor in M3.
-    const fraction = 1; // placeholder: full bar
+    // REQ-CNV-090: the bar reads the REAL value off the effective actor's
+    // `system`, resolved as a dot-path, and is ABSENT (nothing drawn — not
+    // even the background) when the path does not resolve or `max <= 0`.
+    // Never draw a full bar as a "no data yet" placeholder.
+    const barValue = resolveBarAttribute(this._actor?.system, barConfig.attribute);
+    if (!barValue || barValue.max <= 0) return;
+
+    const fraction = barFraction(barValue.value, barValue.max);
     const fillColor = BAR_FILL_COLORS[barKey];
     const y = barYOffset(barIndex, pixelH);
 
@@ -637,7 +736,7 @@ export class TokenSprite {
     g.fill({ color: BAR_BG_COLOR, alpha: 0.7 });
 
     // Fill
-    const fillW = Math.max(0, pixelW * barFraction(fraction, 1));
+    const fillW = Math.max(0, pixelW * fraction);
     if (fillW > 0) {
       g.rect(0, y, fillW, BAR_HEIGHT_PX - BAR_GAP_PX);
       g.fill({ color: fillColor, alpha: 0.9 });

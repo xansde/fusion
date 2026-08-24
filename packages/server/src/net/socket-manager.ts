@@ -25,6 +25,7 @@ import {
   systemPingHandler,
   buildWhoAmIHandler,
   buildSystemConditionsHandler,
+  buildSystemFootprintHandler,
 } from "./handlers/system.js";
 import {
   buildSettingsDeclarationsHandler,
@@ -49,12 +50,6 @@ import {
   buildDoorStateHandler,
   buildTokenMoveHandler,
 } from "./handlers/vision-handlers.js";
-import {
-  buildFogUpdateHandler,
-  buildFogGetHandler,
-  buildFogResetHandler,
-} from "./handlers/fog-handlers.js";
-import { FogStore } from "../fog/index.js";
 import {
   buildCombatCreateHandler,
   buildCombatStartHandler,
@@ -88,17 +83,6 @@ import {
   buildChatInvalidateHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
-import {
-  buildConjuracaoProporHandler,
-  buildConjuracaoArbitrarHandler,
-  buildConjuracaoRolarHandler,
-  buildConjuracaoResolverHandler,
-  buildConjuracaoCancelarHandler,
-  buildContestadoHandler,
-  buildReacaoUsarHandler,
-  registerReacaoResetOnTurnStart,
-  buildProgressaoConfirmarHandler,
-} from "../etmos/index.js";
 import {
   redactAckResultForNonPrivileged,
   registerContactKnowledgeSource,
@@ -303,6 +287,9 @@ export class SocketManager {
     const cursorRateLimiter = new EphemeralRateLimiter(50);
     // ping: 2/s max = 500 ms minimum interval
     const pingRateLimiter = new EphemeralRateLimiter(500);
+    // REQ-NET-044: token:preview throttled like cursors — a drag is
+    // effectively a cursor carrying a token, same target frequency.
+    const previewRateLimiter = new EphemeralRateLimiter(50);
 
     // REQ-NET-005: track current scene room per socket (socketId → sceneId).
     // Updated by ephemeral-handlers when a cursor event carries a new sceneId.
@@ -350,6 +337,12 @@ export class SocketManager {
     // (REQ-CTT-031/032/034) and the client cannot import a game system, so the
     // declaration reaches the drawer through here.
     registry.register("system:conditions", buildSystemConditionsHandler(systemModule));
+    // Spec 15 REQ-SYS-009 / spec 41-token.md TK041/DEC-TOK-03: the active
+    // system's size→footprint table. A token's occupied cells are derived
+    // from its effective actor's size category, never a field on the token
+    // (REQ-TOK-012/017), and the client cannot import a game system — same
+    // door shape as `system:conditions` above.
+    registry.register("system:footprint", buildSystemFootprintHandler(systemModule));
     // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's
     // Mundo section renders purely from what the active system declared —
     // this is the door that declaration crosses (settings ENGINE already
@@ -418,13 +411,6 @@ export class SocketManager {
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
 
-    // Register M2-B fog-of-war handlers
-    const fogStore = new FogStore(db);
-    const fogDeps = { fogStore, ns };
-    registry.register("fog:update", buildFogUpdateHandler(fogDeps));
-    registry.register("fog:get", buildFogGetHandler(fogDeps));
-    registry.register("fog:reset", buildFogResetHandler(fogDeps));
-
     // Register M2-C combat handlers
     const combatRollService = new RollService({ db });
     const formulaRegistry = new InitiativeFormulaRegistry(combatRollService, worldId, systemId);
@@ -475,12 +461,6 @@ export class SocketManager {
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
-    // REQ-ETM-023: reset each Etmos combatant's Reação counter at the start
-    // of their own turn. Registered unconditionally (same rationale as the
-    // etmos:conjuracao:* handlers below) — the listener itself no-ops for
-    // non-orador/antagonista combatants, so non-Etmos worlds are unaffected.
-    registerReacaoResetOnTurnStart(eventBus, { store, seqStore, opBuffer, ns });
-
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();
     const compDeps = {
@@ -523,42 +503,6 @@ export class SocketManager {
     // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
     // by OWNER of the destination actor, inside the service.
     registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
-
-    // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).
-    // Only meaningful when the active world system is "etmos" — registered
-    // unconditionally like the other system-agnostic handlers; clients of
-    // non-Etmos worlds simply never emit these envelope types.
-    const conjuracaoDeps = {
-      store,
-      db,
-      ns,
-      seqStore,
-      opBuffer,
-      worldId,
-      ...(systemModule !== undefined ? { systemModule } : {}),
-    };
-    registry.register("etmos:conjuracao:propor", buildConjuracaoProporHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:arbitrar", buildConjuracaoArbitrarHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:rolar", buildConjuracaoRolarHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:resolver", buildConjuracaoResolverHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:cancelar", buildConjuracaoCancelarHandler(conjuracaoDeps));
-
-    // REQ-ETM-021/CA-6: Teste Contestado — one-shot two-roll action, same deps
-    // shape (store/db/ns/seqStore/opBuffer/worldId) as the Compositor handlers.
-    registry.register("etmos:teste:contestado", buildContestadoHandler(conjuracaoDeps));
-
-    // REQ-ETM-023: Reação por rodada — spend half (reset half is
-    // registerReacaoResetOnTurnStart above, wired directly to the CombatEventBus).
-    registry.register(
-      "etmos:reacao:usar",
-      buildReacaoUsarHandler({ store, db, ns, seqStore, opBuffer, worldId }),
-    );
-
-    // REQ-ETM-035..039/CA-11: Marcos de Crescimento level-up confirmation.
-    registry.register(
-      "etmos:progressao:confirmar",
-      buildProgressaoConfirmarHandler({ store, ns, seqStore, opBuffer, worldId }),
-    );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {
@@ -690,6 +634,7 @@ export class SocketManager {
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
         cursorRateLimiter,
         pingRateLimiter,
+        previewRateLimiter,
         sceneRooms,
       });
 
@@ -701,6 +646,7 @@ export class SocketManager {
         // Evict rate limiter state for this socket to free memory
         cursorRateLimiter.evict(socket.id);
         pingRateLimiter.evict(socket.id);
+        previewRateLimiter.evict(socket.id);
         // Evict scene room tracking for this socket
         sceneRooms.delete(socket.id);
         // REQ-NET-043: re-broadcast the roster minus this socket — `ns.sockets`
@@ -825,6 +771,7 @@ export class SocketManager {
     rateLimiters: {
       cursorRateLimiter: EphemeralRateLimiter;
       pingRateLimiter: EphemeralRateLimiter;
+      previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
     },
@@ -991,6 +938,7 @@ export class SocketManager {
           logger,
           cursorRateLimiter: rateLimiters.cursorRateLimiter,
           pingRateLimiter: rateLimiters.pingRateLimiter,
+          previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
         },
       );
