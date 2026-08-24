@@ -2,7 +2,7 @@
  * Condition toggle — real handler path integration test (T034).
  *
  * The sheet's condition toggle (CharacterSheetVM.toggleCondition /
- * NpcSheetVM.toggleCondition, packages/client/src/lib/sheets/pf2e/) used to
+ * NpcSheetVM.toggleCondition, packages/client/src/systems/pf2e/lib/sheets/pf2e/) used to
  * build a doc:update Actor op with synthetic dot-path diff keys
  * ("items.-<id>" to remove, "items.+" to add). The server never implemented
  * those operators: applyDotPathDiff expands the path literally to
@@ -22,7 +22,7 @@
  * packages/server/package.json), so the ops below are REPLICATED by hand
  * from characterSheetVM.ts's toggleCondition, not produced by calling the
  * real VM function. `condition-toggle-op-shape.test.ts` on the client side
- * (packages/client/src/lib/sheets/pf2e/__tests__/) asserts the VM actually
+ * (packages/client/src/systems/pf2e/lib/sheets/pf2e/__tests__/) asserts the VM actually
  * returns objects matching this exact shape, closing the gap between "what
  * this file sends" and "what the VM really produces".
  *

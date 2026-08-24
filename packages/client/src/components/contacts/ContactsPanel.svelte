@@ -79,7 +79,7 @@
     saveContactCategories,
     type ContactCategories,
   } from "../../lib/contacts/categories.js";
-  import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { openActorSheet } from "../../lib/sheets/openActorSheet.js";
   import { sendOp, toEnvelope, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";

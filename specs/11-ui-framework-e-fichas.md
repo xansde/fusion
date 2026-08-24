@@ -477,6 +477,15 @@ subtype, component, options)` para associar um componente Svelte a um par
   usando o framework de drag & drop (REQ-UIF-046) e validando permissão/tipo antes
   de aceitar.
 
+> **Onde vive (emenda F3, 2026-08-23).** A ficha de cada sistema é um pacote
+> registrado via `sheetRegistry` (REQ-UIF-018/019); o core mantém só o
+> framework (window manager, `sheetRegistry`, sheet default genérica). A ficha
+> PF2e vive em `packages/client/src/systems/pf2e/`, atrás de um entry point
+> único (`systems/pf2e/index.ts`) — o core nunca importa o restante daquele
+> diretório diretamente (regra `client-core-must-not-import-system-sheets` no
+> `.dependency-cruiser.cjs`). Ver `docs/design/separacao-repos/design.md`
+> (DEC-SEP-02/03, fase F3/F4).
+
 ### Componentes base — Dialogs
 
 - **REQ-UIF-027** [MVP] Deve existir `Dialog.confirm({ title, content })` que

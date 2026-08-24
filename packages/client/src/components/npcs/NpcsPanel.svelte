@@ -54,7 +54,7 @@
     conditionRegistry,
     ensureConditionRegistry,
   } from "../../lib/conditions/conditionRegistry.svelte.js";
-  import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { openActorSheet } from "../../lib/sheets/openActorSheet.js";
   import {
     ACTOR_FOLDER_TYPE,
     type FolderDeleteResult,

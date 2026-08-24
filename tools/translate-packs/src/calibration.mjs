@@ -1,7 +1,7 @@
 /**
  * calibration.mjs — labelKey assignment for known granting feats.
  *
- * `GRANTED_FEAT_CHOICES` in packages/client/src/lib/sheets/pf2e/planVM.ts is
+ * `GRANTED_FEAT_CHOICES` in packages/client/src/systems/pf2e/lib/sheets/pf2e/planVM.ts is
  * keyed by `nameToSlug(grantingFeat.name)` (e.g. "basic concoction") and
  * carries a `labelKey` used by the Plan column's i18n for the sub-slot's
  * label. The mechanics overlay must reproduce the SAME labelKey for the
@@ -19,7 +19,7 @@
 /**
  * nameToSlug — mirrors planVM.ts's own `nameToSlug` EXACTLY:
  *   `name?.trim().toLowerCase() || undefined;`
- * (packages/client/src/lib/sheets/pf2e/planVM.ts:526). Kept in sync
+ * (packages/client/src/systems/pf2e/lib/sheets/pf2e/planVM.ts:526). Kept in sync
  * manually; mechanics-parity.test.mjs asserts this against the live file.
  */
 export function nameToSlug(name) {
