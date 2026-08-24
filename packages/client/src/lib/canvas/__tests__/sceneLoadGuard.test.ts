@@ -25,6 +25,9 @@ function makeHarness() {
   let active: (() => void) | null = null;
 
   return {
+    // Exposed so a test can mirror onDestroy's unpaired begin() call — the
+    // rest of the harness only ever calls begin() paired with a load.
+    guard,
     async run(load: Promise<() => void>): Promise<void> {
       active?.();
       active = null;
@@ -120,6 +123,28 @@ describe("createSceneLoadGuard", () => {
     expect(cleanupB).toHaveBeenCalledTimes(1);
     expect(cleanupC).not.toHaveBeenCalled();
     expect(harness.getActive()).toBe(cleanupC);
+  });
+
+  it("begin() with no paired load (e.g. component unmount) invalidates everything still in flight", async () => {
+    // Mirrors TableScreen.svelte's onDestroy: it calls sceneLoadGuard.begin()
+    // with no load of its own, purely to bump the generation so any load
+    // still in flight discards itself when it resolves instead of installing
+    // (BUG FIX #81 follow-up — see onDestroy's comment in TableScreen.svelte).
+    const cleanupA = vi.fn();
+    const defA = deferred<() => void>();
+    const harness = makeHarness();
+
+    const runA = harness.run(defA.promise);
+
+    // Unmount happens while A is still in flight: bump the generation with
+    // no load of its own.
+    harness.guard.begin();
+
+    defA.resolve(cleanupA);
+    await runA;
+
+    expect(cleanupA).toHaveBeenCalledTimes(1);
+    expect(harness.getActive()).toBeNull();
   });
 
   it("never calls the same generation's cleanup twice across further supersessions", async () => {

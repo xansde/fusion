@@ -291,6 +291,20 @@
   });
 
   onDestroy(() => {
+    // BUG FIX (#81 follow-up): invalidate any scene load still in flight
+    // BEFORE tearing down. Without this, a load that started just before
+    // unmount is still `isCurrent` when it resolves after onDestroy has
+    // already run: it would assign `cleanupScene = cleanup` after this
+    // function already set `cleanupScene = null` below — a cleanup nobody
+    // ever calls again — and would build/setup a fresh SceneOrchestrator on
+    // the `canvas` closed over by the effect, which `fusionCanvas?.destroy()`
+    // below has already torn down (that call resolves but fails silently in
+    // its own try/catch, leaving orphaned renderers on nothing). Calling
+    // begin() bumps the generation with no paired load, so isCurrent() is
+    // false for every load already in flight and each one discards itself
+    // instead of installing. The returned generation id is unused — only
+    // the side effect (invalidation) matters here.
+    sceneLoadGuard.begin();
     _teardownOrchestrator();
     cleanupScene?.();
     cleanupCombatSync?.();
@@ -537,8 +551,14 @@
           if (!sceneLoadGuard.isCurrent(generation)) {
             // Superseded while in flight: this result is stale. Nobody else
             // holds a reference to it, so this is the only chance to release
-            // it — and cleanupScene/sceneOrchestrator belong to whichever
-            // generation is current now, so they are left untouched.
+            // the PIXI objects THIS load added (sprite/graphics — see
+            // cleanupFns in sceneLoader.ts) — cleanupScene/sceneOrchestrator
+            // belong to whichever generation is current now, so they are
+            // left untouched. Note this cleanup is NOT fully self-contained:
+            // it also clears the grid, which is global FusionCanvas state,
+            // not scoped to this load — FusionCanvas.clearGridIf() guards
+            // that specific step so it only acts if this load's grid config
+            // is still the one installed (see its doc comment).
             cleanup?.();
             return;
           }

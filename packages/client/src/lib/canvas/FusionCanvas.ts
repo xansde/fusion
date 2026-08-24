@@ -256,6 +256,30 @@ export class FusionCanvas {
     this._gridRenderer?.update(config);
   }
 
+  /**
+   * Clear the grid, but only if `config` is still the one installed.
+   *
+   * BUG FIX (#81 follow-up): the grid is GLOBAL canvas state — it does not
+   * belong to any single scene load. A scene load's cleanup used to call
+   * `setGrid(null)` unconditionally, which is correct when it tears down the
+   * load that is still current, but wrong when sceneLoadGuard finds the load
+   * stale (superseded by a newer scene switch): the stale cleanup would wipe
+   * out whatever the WINNING load had already installed. Comparing by
+   * reference against `_currentGridConfig` makes the clear a no-op unless
+   * `config` is still the active one, so a stale cleanup can never clobber a
+   * newer generation's grid. See sceneLoader.ts's use of this method.
+   */
+  clearGridIf(config: GridRenderConfig | null): void {
+    if (this._currentGridConfig === config) {
+      this.setGrid(null);
+    }
+  }
+
+  /** The grid config currently installed (null when no grid is shown). */
+  getGridConfig(): GridRenderConfig | null {
+    return this._currentGridConfig;
+  }
+
   // ---------------------------------------------------------------------------
   // Layer access
   // ---------------------------------------------------------------------------
