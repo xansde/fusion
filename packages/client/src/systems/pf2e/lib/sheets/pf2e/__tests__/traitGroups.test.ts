@@ -107,7 +107,11 @@ describe("groupTraits()", () => {
 describe("Live pack coverage (spells-core, feats-core, class-features-core)", () => {
   function loadPackTraits(packRelativePath: string): string[] {
     const here = path.dirname(fileURLToPath(import.meta.url));
-    const absPath = path.resolve(here, "../../../../../../../../../systems/pf2e/packs", packRelativePath);
+    const absPath = path.resolve(
+      here,
+      "../../../../../../../../../systems/pf2e/packs",
+      packRelativePath,
+    );
     const docs = JSON.parse(readFileSync(absPath, "utf8")) as Array<{
       system?: { traits?: { value?: unknown } };
     }>;
