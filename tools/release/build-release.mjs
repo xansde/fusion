@@ -331,16 +331,24 @@ async function phasePackAssets(assetKeys) {
   // "packsRoot" to have. Only systems that actually ship packs are included
   // (engine-2e/stub have none); missing/empty is fine, `--multi-dir` just
   // gets fewer --entry flags.
-  const systemsRootDir = join(repoRoot, "systems");
-  const systemPackEntries = existsSync(systemsRootDir)
-    ? readdirSync(systemsRootDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
-        .filter(({ packsDir }) => existsSync(packsDir))
-    : [];
+  //
+  // F4 (DEC-SEP-09): pf2e/sf2e moved to the fusion-systems-2e submodule —
+  // scan BOTH systems/ (stub, still in the core) and
+  // external/fusion-systems-2e/systems/ (pf2e, sf2e) for packs/.
+  const systemsRoots = [join(repoRoot, "systems"), join(repoRoot, "external", "fusion-systems-2e", "systems")];
+  const systemPackEntries = systemsRoots.flatMap((systemsRootDir) =>
+    existsSync(systemsRootDir)
+      ? readdirSync(systemsRootDir, { withFileTypes: true })
+          .filter((d) => d.isDirectory())
+          .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
+          .filter(({ packsDir }) => existsSync(packsDir))
+      : [],
+  );
 
   if (systemPackEntries.length === 0) {
-    log("No systems/<id>/packs directories found — system-packs asset will be empty");
+    log(
+      "No systems/<id>/packs or external/fusion-systems-2e/systems/<id>/packs directories found — system-packs asset will be empty",
+    );
   }
 
   const multiDirArgs = [join(__dirname, "pack-native.mjs"), "--multi-dir", systemPacksArchive];

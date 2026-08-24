@@ -39,6 +39,89 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
+  external/fusion-systems-2e/sheets/pf2e:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      svelte:
+        specifier: ^5.0.0
+        version: 5.56.3(@typescript-eslint/types@8.61.0)
+    devDependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../../systems/engine-2e
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../../systems/pf2e
+      socket.io-client:
+        specifier: ^4.8.3
+        version: 4.8.3
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/engine-2e:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/pf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/sf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../pf2e
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/tools/importer-pf2e: {}
+
+  external/fusion-systems-2e/tools/translate-packs: {}
+
   packages/client:
     dependencies:
       '@3d-dice/dice-box':
@@ -47,6 +130,9 @@ importers:
       '@fusion/shared':
         specifier: workspace:*
         version: link:../shared
+      '@fusion/sheets-pf2e':
+        specifier: workspace:*
+        version: link:../../external/fusion-systems-2e/sheets/pf2e
       '@tiptap/core':
         specifier: ^3.27.1
         version: 3.27.1(@tiptap/pm@3.27.1)
@@ -77,10 +163,10 @@ importers:
     devDependencies:
       '@fusion/system-pf2e':
         specifier: workspace:*
-        version: link:../../systems/pf2e
+        version: link:../../external/fusion-systems-2e/systems/pf2e
       '@fusion/system-sf2e':
         specifier: workspace:*
-        version: link:../../systems/sf2e
+        version: link:../../external/fusion-systems-2e/systems/sf2e
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
         version: 5.1.1(svelte@5.56.3(@typescript-eslint/types@8.61.0))(vite@6.4.3(@types/node@22.19.21))
@@ -107,7 +193,7 @@ importers:
         version: 10.0.0
       '@fusion/engine-2e':
         specifier: workspace:*
-        version: link:../../systems/engine-2e
+        version: link:../../external/fusion-systems-2e/systems/engine-2e
       '@fusion/shared':
         specifier: workspace:*
         version: link:../shared
@@ -116,10 +202,10 @@ importers:
         version: link:../system-api
       '@fusion/system-pf2e':
         specifier: workspace:*
-        version: link:../../systems/pf2e
+        version: link:../../external/fusion-systems-2e/systems/pf2e
       '@fusion/system-sf2e':
         specifier: workspace:*
-        version: link:../../systems/sf2e
+        version: link:../../external/fusion-systems-2e/systems/sf2e
       '@fusion/system-stub':
         specifier: workspace:*
         version: link:../../systems/stub
@@ -211,60 +297,6 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
-  systems/engine-2e:
-    dependencies:
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
-  systems/pf2e:
-    dependencies:
-      '@fusion/engine-2e':
-        specifier: workspace:*
-        version: link:../engine-2e
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
-  systems/sf2e:
-    dependencies:
-      '@fusion/engine-2e':
-        specifier: workspace:*
-        version: link:../engine-2e
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-      '@fusion/system-pf2e':
-        specifier: workspace:*
-        version: link:../pf2e
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
   systems/stub:
     dependencies:
       '@fusion/system-api':
@@ -288,8 +320,6 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
-  tools/importer-pf2e: {}
-
   tools/release:
     dependencies:
       '@fusion/shared':
@@ -308,8 +338,6 @@ importers:
       vitest:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
-
-  tools/translate-packs: {}
 
 packages:
 

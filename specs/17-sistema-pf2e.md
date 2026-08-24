@@ -7,6 +7,8 @@
   - `docs/research/10-pf2e-sistema-internals.md` — internals do sistema `foundryvtt/pf2e` (Apache-2.0): tipos de actor/item, Rule Elements, synthetics, ciclo de preparação de dados, checks/degrees of success, ConditionManager, IWR, spellcasting, packs.
   - `docs/research/13-pf2e-sf2e-mecanicas-nucleo.md` — mecânicas centrais do PF2e Remaster: economia de ações, MAP, degrees of success, TEML, DCs, skills, dano/defesas, condições completas, morte/recuperação, magia, runas, mapa de automação VTT.
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Este sistema (`systems/pf2e`, packs, `tools/importer-pf2e`/`tools/translate-packs`, e a ficha PF2e) vive no repo satélite `xansde/fusion-systems-2e`, consumido pelo core como git submodule pinado por tag em `external/fusion-systems-2e/`. Ver `docs/design/separacao-repos/design.md`.
+
 > **Aviso clean-room.** Esta spec descreve o sistema de jogo PF2e do Fusion,
 > reimplementado do zero sobre a system API própria (`ver 15-api-de-sistemas.md`).
 > A lógica de regras (algoritmos de cálculo, estruturas de dados, motor de

@@ -18,6 +18,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # F4 (DEC-SEP-09): fusion-systems-2e is a git submodule pinned by
+          # tag at external/fusion-systems-2e/ — the workspace can't resolve
+          # @fusion/system-pf2e, @fusion/sheets-pf2e etc. without it checked
+          # out for real.
+          submodules: true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -48,34 +54,25 @@ jobs:
       - name: Lint boundaries
         run: pnpm lint:boundaries
 
-      # pregen-parity.test.ts (issue #48) compares our derivation against data
-      # WE DID NOT PRODUCE: Paizo's official pregen sheets, which live in the
-      # gitignored `vendor/` clone (Paizo content must not be committed — see
-      # CLAUDE.md). Without this step the suite dies on ENOENT and the gate the
-      # #48 exists to install never runs on the runner. Sparse checkout keeps it
-      # at ~12 MB instead of cloning the whole pf2e system.
-      - name: Cache pf2e iconics (vendor)
-        id: vendor-cache
-        uses: actions/cache@v4
-        with:
-          path: tools/importer-pf2e/vendor/pf2e
-          key: pf2e-iconics-v1
-
-      - name: Vendor pf2e iconics (gate da #48)
-        if: steps.vendor-cache.outputs.cache-hit != 'true'
-        run: |
-          git clone --depth 1 --filter=blob:none --sparse \
-            https://github.com/foundryvtt/pf2e tools/importer-pf2e/vendor/pf2e
-          git -C tools/importer-pf2e/vendor/pf2e \
-            sparse-checkout set packs/pf2e/iconics
-
+      # pregen-parity.test.ts (issue #48) used to run here against the
+      # gitignored `vendor/` clone of Paizo's pregen sheets (sparse
+      # checkout, ~12 MB — Paizo content must not be committed, see
+      # CLAUDE.md). F4 (DEC-SEP-09): that test moved with the ficha to
+      # sheets/pf2e in the fusion-systems-2e submodule
+      # (external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/
+      # __tests__/pregen-parity.test.ts) and sheets/pf2e has no
+      # vitest.config.ts of its own yet (its `$lib/*` alias needs
+      # packages/client's Vite config — see the satellite's README.md,
+      # "Ficha (sheets/pf2e)") — it isn't in vitest.workspace.ts, so `pnpm
+      # test` below never reaches it, and the vendor-pf2e-iconics step this
+      # repo used to run for it is gone too. Wiring sheets/pf2e's own tests
+      # (including this one) into a CI is follow-up work, not F4 scope.
+      #
+      # tools/{importer-pf2e,translate-packs} also moved to the satellite —
+      # "Test tools (node:test)" ran them here before F4; they now run in
+      # fusion-systems-2e's own CI (scripts/setup-core.sh + ci.yml there).
       - name: Test
         run: pnpm test
-
-      - name: Test tools (node:test)
-        run: |
-          pnpm --filter @fusion/translate-packs test
-          pnpm --filter @fusion/importer-pf2e test
 
       - name: Coverage (shared ≥80%)
         run: pnpm --filter @fusion/shared run test:coverage

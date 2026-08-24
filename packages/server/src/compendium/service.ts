@@ -1729,7 +1729,10 @@ export function findMonorepoRoot(startDir: string): string | null {
 }
 
 /**
- * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`.
+ * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`
+ * for a system that still lives in the core (`stub`), or
+ * `<root>/external/fusion-systems-2e/systems/<systemId>/packs` for a system
+ * extracted to the satellite submodule (`pf2e`, `sf2e` — F4, DEC-SEP-09).
  *
  * Resolution order (B3-FIXES MÉDIA B added step 2 — the other two were the
  * original M3 behaviour):
@@ -1744,8 +1747,10 @@ export function findMonorepoRoot(startDir: string): string | null {
  *      running the packaged exe there IS no monorepo checkout next to it —
  *      step 3 always returns null in that case, which is exactly the gap
  *      this step closes (compendium:list was returning [] in the exe).
- *   3. `<monorepoRoot>/systems/<systemId>/packs` discovered from this module's
- *      location via {@link findMonorepoRoot} — dev/test/non-SEA path.
+ *   3. `<monorepoRoot>/systems/<systemId>/packs`, then
+ *      `<monorepoRoot>/external/fusion-systems-2e/systems/<systemId>/packs`
+ *      (F4) — both discovered from this module's location via
+ *      {@link findMonorepoRoot} — dev/test/non-SEA path.
  *
  * Returns null when the directory cannot be located or does not exist; callers
  * should treat that as "no packs available" and continue (REQ-CMP-006).
@@ -1773,6 +1778,18 @@ export function resolveSystemPacksDir(systemId: string, packsDirOverride?: strin
   const root = findMonorepoRoot(here);
   if (root === null) return null;
 
-  const packsDir = join(root, "systems", systemId, "packs");
-  return existsSync(packsDir) ? packsDir : null;
+  const corePacksDir = join(root, "systems", systemId, "packs");
+  if (existsSync(corePacksDir)) return corePacksDir;
+
+  // F4 (DEC-SEP-09): pf2e/sf2e's packs moved to the fusion-systems-2e
+  // submodule, checked out for real at external/fusion-systems-2e/.
+  const satellitePacksDir = join(
+    root,
+    "external",
+    "fusion-systems-2e",
+    "systems",
+    systemId,
+    "packs",
+  );
+  return existsSync(satellitePacksDir) ? satellitePacksDir : null;
 }

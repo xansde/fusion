@@ -7,6 +7,8 @@
   - `docs/research/11-starfinder2e-foundry.md`
   - `docs/research/13-pf2e-sf2e-mecanicas-nucleo.md`
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Este sistema (`systems/sf2e`, packs) vive no repo satélite `xansde/fusion-systems-2e`, consumido pelo core como git submodule pinado por tag em `external/fusion-systems-2e/`. Ver `docs/design/separacao-repos/design.md`.
+
 > Esta spec é clean-room: descreve a implementação do sistema SF2e no Fusion
 > inspirada no _comportamento_ observável e em dados abertos (ORC/Apache-2.0),
 > sem copiar código proprietário do Foundry VTT ou da Paizo.

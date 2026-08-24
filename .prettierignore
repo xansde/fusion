@@ -30,3 +30,8 @@ packages/client/public/dice-assets/**
 
 # Gerado por `pnpm spec:report`; o teste de frescor compara byte a byte.
 specs/RASTREABILIDADE.md
+
+# F4 (DEC-SEP-09): fusion-systems-2e is a git submodule — its own repo, its
+# own format/lint gate in its own CI. The core's format:check must not
+# reformat (or fail on) content it doesn't own.
+external/fusion-systems-2e/**
