@@ -385,6 +385,28 @@ tem todas as sessões revogadas imediatamente e não aparece na tela de join.
 - Indicador de latência para usuários conectados (RTT medido via ping/pong WebSocket).
 - Alerta visual para usuários sem senha quando o servidor detectar acessos de IPs fora da subnet LAN.
 
+### Autoatendimento de senha
+
+> **Adicionada em 2026-08-17** — fecha a lacuna registrada pela `docs/design/gaveta-lateral/tasks-ajustes-r1.md`
+> (item 30, A061): nem esta spec nem a `37-configuracoes.md` mencionavam troca da própria senha. O único
+> fluxo de senha documentado até aqui era o reset **pelo GM sobre outro usuário** (REQ-USR-027,
+> REQ-CFG-051/053) — não havia self-service. Estes três requisitos e o endpoint correspondente fecham a
+> spec; a implementação (campo em `PreferencesSection.svelte` + handler do endpoint) é PR seguinte,
+> fora do escopo deste ajuste.
+
+**REQ-USR-040** [MVP] Qualquer usuário autenticado (qualquer role, inclusive `PLAYER`) deve poder trocar a
+própria senha informando a senha atual como confirmação. O servidor deve verificar a senha atual com
+Argon2id (DEC-USR-02) antes de gravar a nova; senha atual incorreta deve ser recusada com HTTP 401, sem
+revelar se o usuário tem ou não senha cadastrada.
+
+**REQ-USR-041** [MVP] Trocar a própria senha NÃO DEVE depender de outro usuário nem exigir role
+`GAMEMASTER`; é um fluxo distinto do reset de senha por terceiro (REQ-USR-027), que continua exclusivo do
+GM e não exige a senha atual.
+
+**REQ-USR-042** [MVP] Ao trocar a própria senha com sucesso, o servidor deve revogar todas as demais
+sessões ativas do usuário (mesma régua de REQ-USR-027), mantendo válida apenas a sessão que originou a
+troca.
+
 ### Presença e Estado Online
 
 **REQ-USR-032** [MVP] Ao conectar via WebSocket, o servidor deve emitir evento `userConnected` para
@@ -658,6 +680,7 @@ export const PERMISSIONS: Record<string, PermissionDefinition> = {
 | `POST`   | `/api/users`                    | Bearer (GM) | Criar novo usuário                                                              |
 | `PATCH`  | `/api/users/:id`                | Bearer (GM) | Editar usuário (name, role, color, avatar, active)                              |
 | `POST`   | `/api/users/:id/reset-password` | Bearer (GM) | Resetar senha; retorna nova senha temporária                                    |
+| `POST`   | `/api/users/me/password`        | Bearer      | Trocar a própria senha (exige senha atual; REQ-USR-040)                         |
 | `DELETE` | `/api/users/:id`                | Bearer (GM) | Desativar usuário (soft delete — `active: false`)                               |
 | `POST`   | `/api/users/:id/kick`           | Bearer (GM) | Kick imediato de usuário conectado                                              |
 | `GET`    | `/api/permissions`              | Bearer      | Retorna mapa atual de permissions (base + overrides)                            |
@@ -697,7 +720,7 @@ export const PERMISSIONS: Record<string, PermissionDefinition> = {
 | `20-assets-e-midia.md`            | Permission `FILES_BROWSE` / `FILES_UPLOAD`; diretórios por role                                                                                                         |
 | `21-seguranca.md`                 | Rate limiting de login/WebSocket; validação de Origin (CSWSH); TLS                                                                                                      |
 | `22-instalacao-e-distribuicao.md` | Admin Key; `fusion.json` (hostname, port, proxySSL); instruções de port-forwarding/túnel para URL de convite                                                            |
-| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054)                                                                                       |
+| `37-configuracoes.md`             | Seção Usuários da gaveta — a tela que executa REQ-USR-025..029 (REQ-CFG-050..054); seção Minhas preferências — o formulário que executa REQ-USR-040..042 (REQ-CFG-090)  |
 | `42-aba-npcs.md`                  | DEC-NPC-02: personagem de jogador nasce com o usuário, não na aba NPCs (REQ-NPC-044, REQ-NPC-055a); excluir personagem de jogador não é gesto daquela aba (REQ-NPC-055) |
 
 ---
@@ -744,6 +767,11 @@ no mundo, o jogador enxerga o personagem (REQ-USR-025, REQ-USR-025a).
 desativa e faz kick de um jogador: o personagem desse jogador continua existindo, com o mesmo
 `ownership` (REQ-USR-025d).
 
+**CA-USR-13** Um usuário `PLAYER` autenticado troca a própria senha informando a senha atual correta; o
+servidor aceita, revoga as demais sessões ativas do usuário, e um login subsequente só funciona com a
+nova senha. O mesmo usuário tenta trocar de novo informando a senha atual errada: recebe HTTP 401, a
+senha antiga continua válida e nenhuma sessão é revogada.
+
 ---
 
 ## Questões em Aberto
@@ -780,6 +808,64 @@ desativa e faz kick de um jogador: o personagem desse jogador continua existindo
    `ASSISTANT` ou `GAMEMASTER` que também joga fica sem personagem, e promover/rebaixar um usuário
    não muda isso (REQ-USR-025d). Se a mesa precisar do caso, o gesto de criar personagem para quem
    já existe é o mesmo [V2] de REQ-NPC-055a — ou esta regra se estende a todo papel?
+
+---
+
+## Anexo A — Auditoria de origem das permissões (A060, 2026-08-17)
+
+> Registrada pela `docs/design/gaveta-lateral/tasks-ajustes-r1.md` (item 29, A060), a pedido do
+> Alexandre, para revisão **futura** — este anexo não muda comportamento nenhum. Mapeia cada
+> `Permission Key` de REQ-USR-008 ao(s) handler(s) que efetivamente a consomem hoje, e separa isso do
+> uso de `isRolePrivileged` (limiar por role, binário) em pontos do servidor que não pertencem à matriz
+> de REQ-USR-008/009. A tarefa futura, item a item: decidir se cada uma das 13 chaves sem gate deveria
+> ganhar um gate granular, e se algum uso de `isRolePrivileged` abaixo deveria migrar para uma
+> `Permission Key` nova.
+
+### A.1 — As 19 `Permission Key` de REQ-USR-008 (fonte: `world-permissions.ts`)
+
+| Permission Key    | Gate atual                                                         | Handler                                                         |
+| ----------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `ACTOR_CREATE`    | Granular — `resolvePermissionMinRole` (REQ-CFG-040..042)           | `doc-handlers.ts` (`CREATE_PERMISSION_KEY_BY_TYPE`, ~L200/L785) |
+| `ITEM_CREATE`     | Granular — `resolvePermissionMinRole`                              | `doc-handlers.ts` (idem)                                        |
+| `TABLE_CREATE`    | Granular — `resolvePermissionMinRole`                              | `doc-handlers.ts` (idem)                                        |
+| `PLAYLIST_CREATE` | Granular — `resolvePermissionMinRole`                              | `doc-handlers.ts` (idem)                                        |
+| `JOURNAL_CREATE`  | Granular — `resolvePermissionMinRole` (fluxo próprio, ~L818–840)   | `doc-handlers.ts`                                               |
+| `TOKEN_CREATE`    | Granular — `resolvePermissionMinRole` (fluxo próprio, ~L1418–1439) | `doc-handlers.ts`                                               |
+| `DRAWING_CREATE`  | **Nenhum** — sem operação de gate correspondente ainda             | —                                                               |
+| `FILES_BROWSE`    | **Nenhum**                                                         | —                                                               |
+| `FILES_UPLOAD`    | **Nenhum**                                                         | —                                                               |
+| `MACRO_SCRIPT`    | **Nenhum**                                                         | —                                                               |
+| `MANUAL_ROLLS`    | **Nenhum**                                                         | —                                                               |
+| `MESSAGE_WHISPER` | **Nenhum**                                                         | —                                                               |
+| `NOTE_CREATE`     | **Nenhum**                                                         | —                                                               |
+| `PING_CANVAS`     | **Nenhum**                                                         | —                                                               |
+| `SHOW_CURSOR`     | **Nenhum**                                                         | —                                                               |
+| `SHOW_RULER`      | **Nenhum**                                                         | —                                                               |
+| `TOKEN_CONFIGURE` | **Nenhum**                                                         | —                                                               |
+| `TOKEN_DELETE`    | **Nenhum**                                                         | —                                                               |
+| `WALL_DOORS`      | **Nenhum**                                                         | —                                                               |
+
+Só 6 das 19 chaves (as de criação de Document via `doc-handlers.ts`) têm um gate real por
+`Permission Key` hoje; as outras 13 aparecem na seção Permissões (REQ-CFG-040, "listar **as**
+permissões", literal) e são ajustáveis pelo GM, mas nenhuma operação do servidor ainda as lê — a
+feature correspondente (ex.: `DRAWING_CREATE`) não tem uma trava dedicada, e sim, quando tem alguma,
+um `isRolePrivileged` genérico (tabela A.2) que não é a mesma coisa.
+
+### A.2 — Uso de `isRolePrivileged` fora da matriz de REQ-USR-008 (limiar por role, não por Permission Key)
+
+| Arquivo                              | Uso                                                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actor-delete-handlers.ts:33`        | `isRolePrivileged` — exclusão de ator (REQ-NPC-050)                                                                                                              |
+| `doc-handlers.ts`                    | `isRolePrivileged` (linhas 70, 287, 1878); `isGamemasterStrict` (1891, seções de mesa da Config.); `role >= minRole` (780, permissões configuráveis REQ-USR-010) |
+| `fog-handlers.ts:78,120,154`         | `isRolePrivileged` — fog of war                                                                                                                                  |
+| `folder-handlers.ts:88`              | `isRolePrivileged` — CRUD de pastas                                                                                                                              |
+| `knowledge-handlers.ts:55`           | `isRolePrivileged` — conhecimento/contatos                                                                                                                       |
+| `settings-handlers.ts:201`           | comentário aponta REQ-CFG-070 (`role === GAMEMASTER` no servidor)                                                                                                |
+| `sync-handlers.ts:74,665`            | `isRolePrivileged` — sincronização/redação de snapshot                                                                                                           |
+| `vision-handlers.ts` (6 ocorrências) | `isRolePrivileged` — visão/iluminação                                                                                                                            |
+
+Nenhuma linha acima consome `PERMISSION_KEYS`/`resolvePermissionMinRole` — são checagens de role fixo,
+não settings configuráveis pelo GM, e ficam fora do escopo de REQ-USR-008/009 como está hoje.
 
 ---
 

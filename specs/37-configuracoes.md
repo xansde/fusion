@@ -239,7 +239,9 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   cliente (no mínimo: som ao receber mensagem de chat; aviso quando for o turno do
   usuário), gravadas no dispositivo.
 - **REQ-CFG-022** [MVP] Toda preferência desta seção DEVE ser gravada exclusivamente
-  no cliente (DEC-UIF-10); nenhuma DEVE gerar operação de rede ou Document.
+  no cliente (DEC-UIF-10); nenhuma DEVE gerar operação de rede ou Document — exceto o
+  formulário de troca de senha (REQ-CFG-090), que afeta autenticação e por isso é a
+  única exceção explícita a esta regra.
 - **REQ-CFG-023** [MVP] A seção NÃO DEVE oferecer seleção de idioma nem de tema.
 - **REQ-CFG-024** [MVP] Preferências declaradas por um mod ativo DEVEM aparecer nesta
   seção quando seu escopo for de cliente, identificadas com o nome do mod de origem, e
@@ -256,6 +258,19 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   > preferências de exibição de nome e barras na cena são ergonomia local do aparelho
   > (DEC-UIF-10), na mesma régua dos volumes de REQ-CFG-020..023: gravadas no
   > `localStorage`, nunca em Document, nunca geram operação de rede (REQ-CFG-022).
+
+- **REQ-CFG-090** [MVP] A seção DEVE oferecer um formulário de troca da própria senha
+  (senha atual + nova senha), disponível a qualquer usuário logado (GM ou player),
+  gravado via `POST /api/users/me/password` (REQ-USR-040). Senha atual incorreta DEVE
+  ser recusada sem alterar a senha; sucesso NÃO DEVE derrubar a sessão que originou a
+  troca (REQ-USR-042 revoga só as demais).
+
+  > **Emenda de 2026-08-17** — fecha a lacuna registrada pela
+  > `docs/design/gaveta-lateral/tasks-ajustes-r1.md` (item 30, A061): nem esta spec nem
+  > a `05-usuarios-e-permissoes.md` mencionavam troca da própria senha; o único fluxo de
+  > senha documentado era o reset **pelo GM sobre outro usuário** (REQ-CFG-051/053,
+  > REQ-USR-027). Este REQ e REQ-USR-040..042 fecham a spec; a implementação do campo em
+  > `PreferencesSection.svelte` e do endpoint é PR seguinte, fora deste ajuste.
 
 ### 5.3a Avatar
 
@@ -424,7 +439,8 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
   recolher (DEC-GAV-03), badge (DEC-GAV-06), fronteira de segurança (REQ-GAV-034).
 - `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-025a..025d (o
   personagem que nasce com o usuário), REQ-USR-030 (o limite de papel), REQ-USR-003 (o
-  campo `preferences`, que segue sem UI).
+  campo `preferences`, que segue sem UI), REQ-USR-040..042 (troca da própria senha,
+  hospedada em Minhas preferências — REQ-CFG-090).
 - `42` — DEC-NPC-02: a aba NPCs não cria personagem de jogador (REQ-NPC-044), e por isso a
   criação vive na seção Usuários desta aba (REQ-NPC-055a); excluir personagem de jogador
   segue sem tela em lugar nenhum (REQ-NPC-055, Q-NPC-06).
@@ -442,20 +458,21 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 ## 10. Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                     |
-| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                         |
-| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                            |
-| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                           |
-| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.             |
-| CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar.   |
-| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.             |
-| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                          |
-| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                       |
-| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                              |
-| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                   |
-| CA-CFG-012 | O GM cria um usuário `PLAYER` na seção Usuários: nenhuma janela abre, o GM continua na gaveta, e o jogador entra no mundo já com um personagem em branco do qual é `OWNER` (REQ-USR-025a). |
+| ID         | Critério                                                                                                                                                                                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                                                                                                                      |
+| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                                                                                                                          |
+| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                                                                                                                             |
+| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                                                                                                                            |
+| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.                                                                                                              |
+| CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar.                                                                                                    |
+| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.                                                                                                              |
+| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                                                                                                                           |
+| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                                                                                                                        |
+| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                                                                                                                               |
+| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                                                                                                                    |
+| CA-CFG-012 | O GM cria um usuário `PLAYER` na seção Usuários: nenhuma janela abre, o GM continua na gaveta, e o jogador entra no mundo já com um personagem em branco do qual é `OWNER` (REQ-USR-025a).                                                                                                  |
+| CA-CFG-013 | Um jogador troca a própria senha em Minhas preferências informando a senha atual correta: a operação é aceita e o formulário confirma sucesso sem derrubar a sessão atual. Informando a senha atual errada, a troca é recusada e a senha antiga continua válida (REQ-CFG-027, REQ-USR-040). |
 
 ## 11. Questões em aberto
 
@@ -483,6 +500,7 @@ Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 | `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                                                                                                       |
 | `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.                                                                                             |
 | `15` | REQ-SYS-047 ganha `requiresConfirmOnDisable?` e `countAffectedActors?` na forma pública de `SettingDefinition`, para servir REQ-CFG-082; `countAffectedActors` é server-only.                                                                                         |
+| `05` | Ganha REQ-USR-040..042 (troca da própria senha) e o endpoint `POST /api/users/me/password`, fechando a lacuna do item 30/A061 (`tasks-ajustes-r1.md`); ganha também o Anexo A (A060) mapeando cada Permission Key de REQ-USR-008 ao gate atual, sem mudança de comportamento. |
 
 ## 13. Referências
 
