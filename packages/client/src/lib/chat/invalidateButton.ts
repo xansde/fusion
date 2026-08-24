@@ -13,7 +13,7 @@
  * REQ-ACH-082: invalidating (`invalid === false` → wants `true`) is offered to
  * the GAMEMASTER (role === GAMEMASTER, strictly — callers pass the same `isGm`
  * TableScreen computes, `session.user.role === 4`, not `isRolePrivileged`,
- * which also admits ASSISTANT_GM and governs a different question:
+ * which also admits ASSISTANT and governs a different question:
  * visibility) and to the AUTHOR of the message.
  * REQ-ACH-083: revalidating (`invalid === true` → wants `false`) is offered to
  * the GM always; to the author ONLY when the standing invalidation carries his
