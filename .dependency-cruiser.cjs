@@ -114,6 +114,36 @@ module.exports = {
       from: { path: "^systems/sf2e" },
       to: { path: "^packages/client" },
     },
+    {
+      name: "client-core-must-not-import-system-sheets",
+      comment:
+        "The core client (packages/client/src, outside systems/) must not " +
+        "import a system's sheet territory directly — only the system's own " +
+        "registered entry point (packages/client/src/systems/pf2e/index.ts). " +
+        "F3, DEC-SEP-02: this is the boundary that lets F4 extract " +
+        "systems/pf2e/ into the fusion-systems-2e repo without touching the " +
+        "core. __tests__ are exempt (fixtures may reach into a system for " +
+        "assertions, e.g. combatSetup.test.ts seeding the real PF2e skill table).",
+      severity: "error",
+      from: { path: "^packages/client/src/(?!systems/)", pathNot: "__tests__" },
+      to: { path: "^packages/client/src/systems/pf2e/(?!index\\.ts$)" },
+    },
+    {
+      name: "client-core-must-not-import-system-packages",
+      comment:
+        "The core client must not import a game-system package " +
+        "(@fusion/system-pf2e, @fusion/system-sf2e) directly — that is " +
+        "pre-F4 territory reserved for code living under " +
+        "packages/client/src/systems/*/ (F3, DEC-SEP-02/03). __tests__ are " +
+        "exempt (e.g. lib/contacts/__tests__/contactsVM.test.ts uses the " +
+        "real system packages as fixtures).",
+      severity: "error",
+      from: {
+        path: "^packages/client/src/(?!systems/)",
+        pathNot: "__tests__",
+      },
+      to: { path: "^systems/(pf2e|sf2e)/" },
+    },
   ],
   options: {
     doNotFollow: {

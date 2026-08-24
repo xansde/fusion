@@ -3,7 +3,7 @@
  * §3.a): the mechanics.json overlay generated for "Basic Concoction" MUST
  * reproduce exactly the same filter as the hardcoded
  * `GRANTED_FEAT_CHOICES["basic concoction"]` table in
- * packages/client/src/lib/sheets/pf2e/planVM.ts — same category, same
+ * packages/client/src/systems/pf2e/lib/sheets/pf2e/planVM.ts — same category, same
  * trait, same maxLevel, same labelKey. A divergence here is a talent-gating
  * bug (see the design contract's "Notas de risco").
  *

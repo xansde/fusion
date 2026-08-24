@@ -64,11 +64,13 @@ import { DOCUMENT_NAMES_PT } from "./documentNamesPt.js";
 
 /**
  * The 16 canonical PF2e skills, EN → pt-BR. Deliberately a local copy rather
- * than importing `packages/client/src/lib/sheets/pf2e/skillNames.ts`: that
- * module lives in the sheets/pf2e "territory" (see its own header comment on
- * avoiding cross-territory edits) while this one lives in compendium/,
- * mirroring documentDetails.ts's existing SAVE_LABELS_PT pattern of a small
- * local map rather than a cross-module import for a handful of fixed terms.
+ * than importing `packages/client/src/systems/pf2e/lib/sheets/pf2e/skillNames.ts`:
+ * since F3 (DEC-SEP-02) that module lives in the `systems/pf2e/` satellite
+ * territory the core (compendium/ included) must never import outside the
+ * one registered entry point (`systems/pf2e/index.ts`) — the dependency-cruiser
+ * rule `client-core-must-not-import-system-sheets` enforces it. This mirrors
+ * documentDetails.ts's existing SAVE_LABELS_PT pattern of a small local map
+ * rather than a cross-module import for a handful of fixed terms.
  */
 const SKILL_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   acrobatics: "Acrobacia",
