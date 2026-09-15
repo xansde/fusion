@@ -34,7 +34,7 @@
  *
  * REQ-ARQ-005: system-api must NOT import from server or client.
  */
-import type { Predicate } from "./derive.js";
+import type { Predicate, Synthetics } from "./derive.js";
 
 // ---------------------------------------------------------------------------
 // Rule element type keys (discriminator enum)
@@ -363,13 +363,76 @@ export class UnsupportedRuleElementLog {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Rule element registry contract
+// REQ-SYS-089: rule element kinds are handlers registered in a compiled
+// registry (no dynamic plugins); the engine dispatches by `kind`.
+// ---------------------------------------------------------------------------
+
 /**
- * Determine whether a given rule element type is supported in the MVP.
+ * Canonical processing phases, in execution order.
+ *
+ * - `pre-base`: runs to a fixed point before anything else (roll options).
+ * - `synthetics`: writes into the Synthetics accumulator.
+ * - `item` / `strike` / `roll`: reserved for item alterations, derived strikes
+ *   and roll-time adjustments.
+ */
+export const RULE_PHASES = ["pre-base", "synthetics", "item", "strike", "roll"] as const;
+
+export type RulePhase = (typeof RULE_PHASES)[number];
+
+/**
+ * Mutable context handed to a handler's `apply`.
+ *
+ * `rollOptions` is the actor's accumulated option set: `pre-base` handlers add
+ * to it (the engine iterates that phase until the set stops growing), later
+ * phases read the final set for build-time predicates.
+ */
+export interface RuleApplyContext {
+  /** Stable id of the EffectSource that owns the rule. */
+  readonly sourceId: string;
+  /** Display label of the EffectSource. */
+  readonly label: string;
+  readonly synthetics: Synthetics;
+  readonly rollOptions: Set<string>;
+  /** Conditions to toggle on the actor (slug to value). */
+  readonly conditionsToToggle: Map<string, number | undefined>;
+}
+
+/** Processes one rule element kind. REQ-SYS-089. */
+export interface RuleElementHandler<R extends EffectRule = EffectRule> {
+  /** Rule `type` this handler owns. */
+  readonly kind: string;
+  readonly phase: RulePhase;
+  /** Turn raw rule data into the typed rule; `null` sends it to the unsupported log. */
+  normalize(raw: Record<string, unknown>): R | null;
+  apply(rule: R, ctx: RuleApplyContext): void;
+}
+
+/** Compiled registry of rule element handlers. REQ-SYS-089. */
+export interface RuleElementRegistry {
+  /** Throws when `h.kind` is already registered. */
+  register(h: RuleElementHandler): void;
+  get(kind: string): RuleElementHandler | undefined;
+  /** Handlers of one phase, in registration order. */
+  handlersFor(phase: RulePhase): readonly RuleElementHandler[];
+  kinds(): ReadonlySet<string>;
+}
+
+/**
+ * Determine whether a given rule element type is supported.
+ *
+ * With a registry, the answer is whatever kinds it has registered
+ * (REQ-SYS-089). Without one, the static MVP key set is used — it matches the
+ * engine's default registry.
  *
  * Unknown types should be passed to UnsupportedRuleElementLog and skipped.
  */
-export function isMvpRuleType(type: string): boolean {
-  return MVP_EFFECT_RULE_KEYS.has(type);
+export function isMvpRuleType(
+  type: string,
+  registry?: Pick<RuleElementRegistry, "kinds">,
+): boolean {
+  return (registry ? registry.kinds() : MVP_EFFECT_RULE_KEYS).has(type);
 }
 
 // ---------------------------------------------------------------------------
