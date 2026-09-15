@@ -306,6 +306,26 @@ de Foundry.
 - **Racional:** reusar o _packer_ (JSON-fonte → `pack.db` + índice + licença) evita
   duplicar pipeline; o trabalho editorial humano produz os JSON-fonte.
 
+### DEC-CMP-11 — Packs privados: mesmo formato, raiz fora do repo, nunca sobrescrevem pack oficial
+
+O Mestre pode curar conteúdo que não pode ir para o GitHub (ex.: classes de playtest da
+Paizo — mesma restrição de `docs/etmos-fontes/`, `ver CLAUDE.md` do core). Em vez de um
+formato paralelo, o servidor DEVE descobrir uma **segunda raiz** de packs, no mesmo
+formato dos packs do sistema (REQ-CMP-002/003), fora da árvore git: `<dataDir>/private-packs/
+<systemId>/<slug>/` (override por `FUSION_PRIVATE_PACKS_DIR`, apontando para a raiz que
+contém `<systemId>/`).
+
+- **Rejeitado: um segundo mecanismo de carregamento.** Reusar `discoverPacks`
+  (REQ-CMP-006) sobre a segunda raiz evita duplicar parsing/validação de `pack.json` e
+  mantém plateia (REQ-CMP-004a/010a) e todo o resto da leitura idênticos.
+- **Racional do `slug` prefixado (`private-*`) e da ordem de descoberta:** a raiz oficial é
+  sempre descoberta primeiro; a privada depois, e um `packId` que já exista **não é
+  sobrescrito** — fica logado e ignorado. Isso impede que um pack privado malformado ou
+  mal-nomeado apague silenciosamente um pack oficial versionado.
+- **Racional de "diretório ausente não é erro":** a maioria das instalações do Fusion
+  nunca terá `private-packs/` — é um recurso do Mestre que cura conteúdo próprio, não uma
+  etapa obrigatória do boot (mesmo espírito de REQ-CMP-006 para pack ausente/corrompido).
+
 ## Requisitos funcionais
 
 > Tags: **[MVP]** alinhado à definição de MVP global (jogar uma sessão de PF2e com
@@ -373,6 +393,20 @@ de Foundry.
   presentes em textos importados (`docs/research/10-...md` §9.3) DEVEM ser
   preservados e resolvíveis; quando o alvo não existir, a UI DEVE degradar para o
   label textual (soft reference, `ver 02-`, DEC-DOC-11).
+
+### Packs privados (fora de controle de versão)
+
+- **REQ-CMP-056** [MVP] Além da raiz oficial (REQ-CMP-002), o servidor DEVE, na
+  abertura, tentar descobrir uma **segunda raiz** de packs em
+  `<dataDir>/private-packs/<systemId>/` (override por env `FUSION_PRIVATE_PACKS_DIR`
+  apontando para a raiz que contém `<systemId>/`), no mesmo formato de diretório
+  (`pack.json` + `documents.json`, `index.json`/`i18n.pt-BR.json` opcionais). Diretório
+  ausente NÃO DEVE gerar erro nem log de aviso — é o caso comum (DEC-CMP-11).
+- **REQ-CMP-057** [MVP] Ao descobrir um pack cujo `id` já esteja registrado (de
+  qualquer raiz descoberta antes), o servidor NÃO DEVE sobrescrever o pack já
+  registrado — DEVE logar a colisão e ignorar o duplicado. A raiz oficial é sempre
+  descoberta antes da privada, então um `packId` colidente nunca apaga um pack oficial
+  (DEC-CMP-11).
 
 ### Compendium browser (UI)
 
