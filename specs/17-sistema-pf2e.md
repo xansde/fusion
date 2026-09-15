@@ -723,6 +723,30 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   | `onTurnStart`                               | `pf2e.afflictionStage`  | 70         | F6            |
   | todos                                       | `pf2e.reactionOffers`   | 0          | F7            |
 
+### Normalização de itens de efeito importados (packs)
+
+> **Emenda de 2026-09-15** (ALQ-F2-02, onda 1 do Alquimista). O importador
+> (`tools/importer-pf2e`) publica o pack `equipment-effects-core` com os efeitos de
+> item alquímico (poções, elixires, venenos) do vendor. O vendor usa formas que o
+> `EffectSystemSchema` do Fusion não aceita — este requisito fixa a normalização que
+> fecha essa lacuna na fronteira do importador, não no motor.
+
+- **REQ-PF2-221** [MVP] O importador DEVE normalizar `system.duration` de todo item
+  de efeito publicado em `equipment-effects-core` antes da validação contra
+  `EffectSystemSchema`:
+  - `unit` no plural do vendor (`"minutes"`, `"hours"`, `"rounds"`, `"days"`) DEVE
+    virar a forma singular do schema (`"minute"`, `"hour"`, `"round"`, `"day"`);
+    `"encounter"` e `"unlimited"` já são singulares/invariantes e passam sem
+    alteração, e uma unidade não reconhecida passa inalterada (fail-open: um erro
+    de validação do schema é preferível a uma duração silenciosamente errada).
+  - `unit: "unlimited"` DEVE resultar em `value: -1` (o sentinel de
+    permanente/ilimitado do schema) independente do `value` recebido do vendor, e
+    `expiry` DEVE ser forçado a `null` — um efeito ilimitado nunca expira num
+    limite de turno.
+  - Toda duração finita (qualquer outra `unit`) com `expiry: null` DEVE receber
+    `expiry: "turn-start"` como default — sem essa correção o efeito fica sem
+    limite de turno para `resolveExpirations` (§2.5) jamais expirar.
+
 ### Plateia dos packs publicados
 
 > **Emenda de 2026-08-16**, obrigada pela `43` §12 (DEC-CPD-04, REQ-CPD-072). É

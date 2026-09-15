@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1993 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **1995 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 710 | 36% |
+| Citados por algum teste | 712 | 36% |
 | Citados só por código de produção | 316 | 16% |
-| Sem nenhuma citação | 967 | 49% |
-| **Total [MVP]** | **1993** | |
+| Sem nenhuma citação | 967 | 48% |
+| **Total [MVP]** | **1995** | |
 
 ## Por spec
 
@@ -39,9 +39,9 @@ porque ainda não foram prometidos para nenhum marco.
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 68 | 18 | 29 | 21 | 26% |
+| [15](15-api-de-sistemas.md) | 69 | 19 | 29 | 21 | 28% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
-| [17](17-sistema-pf2e.md) | 83 | 42 | 14 | 27 | 51% |
+| [17](17-sistema-pf2e.md) | 84 | 43 | 14 | 27 | 51% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |

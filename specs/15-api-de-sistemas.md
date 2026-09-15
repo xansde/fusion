@@ -764,6 +764,22 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
   no momento da aplicação DEVEM ser ignorados sem erro (no-op), e a desativação
   via `ignored` DEVE removê-los do processamento.
 
+> **Emenda de 2026-09-15** (ALQ-F4-02, onda 1 do Alquimista). `collectEffects`
+> passa a despachar por um `RuleElementRegistry` (`register/get/handlersFor/kinds`)
+> em vez do `switch` fixo da REQ-SYS-082 — mesmo conjunto de `type`s canônicos do
+> MVP, comportamento observável idêntico (regressão coberta por
+> `ruleElementRegistry.test.ts` e pelo snapshot de derivação de classes da
+> ALQ-F4-03). O registro é o mecanismo que a REQ-SYS-089 ([V2], effects
+> plugáveis) vai consumir; a garantia de isolamento por `kind` abaixo é o que
+> torna aquele [V2] seguro de habilitar depois.
+
+- **REQ-SYS-149** [MVP] Registrar um handler novo no `RuleElementRegistry` NÃO
+  DEVE alterar a derivação de nenhum ator cujo `EffectRule.type`/`kind` não seja o
+  do handler registrado — um handler é escopado ao seu próprio `kind` e não pode
+  vazar estado (cache, acumulador) entre chamadas de `collectEffects` de atores
+  diferentes. Regressão de classe já publicada por causa de um handler novo é o
+  defeito que este requisito proíbe.
+
 ### Versionamento e migrações
 
 - **REQ-SYS-100** [MVP] Um `SystemDataModel` PODE declarar `migrations:
