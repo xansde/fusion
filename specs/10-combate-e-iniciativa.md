@@ -167,6 +167,54 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 
 ---
 
+### DEC-CBT-09 — Hooks de turno do sistema aguardados em série no servidor
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). Refina DEC-CBT-05 sem
+> substituí-la: o EventBus continua existindo para ouvintes do core.
+
+**Decisão:** As automações de turno registradas por sistemas (`15-api-de-sistemas.md`,
+REQ-SYS-138, DEC-SYS-11) são executadas pelo servidor **em série e aguardadas**, na ordem
+`turnEnd(atual) → roundEnd → roundStart → turnStart(próximo)`, **depois** de persistir a
+transição e **antes** do broadcast dela; `combatEnd` roda ao encerrar, antes de arquivar.
+Os ouvintes internos do `CombatEventBus` seguem notificados como hoje.
+
+**Alternativas rejeitadas:**
+
+- _Disparar hooks de sistema pelo EventBus sem aguardar_: o cliente recebe o turno novo
+  antes do dano persistente ou do recovery check ser aplicado, e duas automações que
+  escrevem no mesmo ator correm em paralelo.
+- _Rodar `turnEnd` antes de persistir, como REQ-CBT-026 descreve para o EventBus_: um erro
+  numa automação deixaria o combate sem avançar; o callback recebe explicitamente o
+  combatente cujo turno terminou, então não precisa do estado antigo em memória.
+
+**Racional:** Decisão de desenho herdada pelo plano do Alquimista (DF-04/DF-05): o estado
+visto pelo cliente depois de "Próximo turno" já inclui o efeito das automações daquele
+turno, e a ordem entre elas é determinística.
+
+### DEC-CBT-10 — A mensagem de rolagem grava a foto dos alvos do autor
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01).
+
+**Decisão:** Ao persistir uma mensagem de rolagem, o servidor copia a seleção de alvos
+**viva** do autor para `flags.fusion.targetSnapshot`. A foto é imutável: não muda quando o
+autor desmarca alvos, quando a seleção é limpa no fim do turno (REQ-CBT-055) nem quando o
+token some. Toda automação que age "nos alvos da ação" (aplicar dano do card, respingo,
+veneno, save) lê a foto, nunca a seleção viva. A seleção viva continua **por usuário** e
+efêmera (resposta à questão em aberto 6: limpar é por `userId`).
+
+**Alternativas rejeitadas:**
+
+- _Ler a seleção viva no momento de aplicar_: entre rolar e clicar o jogador pode ter
+  mudado de alvo, ou o turno pode ter acabado e limpado a seleção.
+- _Aceitar a lista de alvos do cliente no op_: o jogador escolheria em quem aplicar
+  depois de ver o resultado.
+
+**Racional:** Decisão do Alexandre de 2026-09-15 (plano do Alquimista, D-02): o jogador
+aperta "Aplicar" e o dano vai para todos os alvos daquela ação. A foto é o que torna
+"daquela ação" verificável no servidor.
+
+---
+
 ## Requisitos Funcionais
 
 > **Convenção de numeração:** os IDs de requisito seguem blocos de dezena por seção — 001–009 (Gerenciamento de Encontros), 010–019 (Iniciativa), 020–029 (Fluxo de Turno e Rodada), 030–039 (Visibilidade e Permissões), 040–049 (UI do Tracker), 050–059 (Canvas — Combat Turn Marker e Targeting). Lacunas dentro de um bloco são intencionais e reservam espaço para requisitos futuros sem causar renumeração em cascata.
@@ -230,6 +278,24 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 **REQ-CBT-028** [MVP] Ao final de cada rodada (quando `turnIndex` volta a `0`), o servidor DEVE emitir `roundEnd(combat)` e depois `roundStart(combat)` antes do primeiro turno da nova rodada.
 
 **REQ-CBT-029** [MVP] A system API DEVE poder registrar handlers para `turnStart` e `turnEnd` para processar automações (ex.: decrementar condições numéricas como Frightened, processar Persistent Damage, executar Recovery Check para Dying).
+
+> **Reinterpretação de 2026-09-15** (plano do Alquimista, ALQ-F1-01; DEC-CBT-09). Os
+> "handlers" deste requisito são o registro com id e prioridade de `15-api-de-sistemas.md`
+> (REQ-SYS-138..141), não um slot único. REQ-CBT-026 e REQ-CBT-027 continuam valendo para
+> o `CombatEventBus` do core; para os hooks de sistema, o momento é o de REQ-CBT-058.
+
+### Hooks de sistema aguardados
+
+> Numeração fora do bloco 020–029 porque ele se esgotou (ver a convenção acima); os
+> requisitos abaixo são do fluxo de turno.
+
+**REQ-CBT-057** [MVP] Ao avançar turno (`combat:nextTurn`), o servidor DEVE executar os hooks de sistema na ordem `turnEnd` do combatente que encerrou → `roundEnd` e `roundStart` apenas quando a rodada virar (REQ-CBT-028) → `turnStart` do combatente que passou a agir. Ao iniciar o encontro, DEVE executar `roundStart` e depois `turnStart` do primeiro combatente. Dentro de cada evento, a ordem entre callbacks é a de REQ-SYS-139. Combatente pulado por `skipDefeated` (REQ-CBT-023) NÃO DEVE receber `turnStart` nem `turnEnd`.
+
+**REQ-CBT-058** [MVP] Os hooks de REQ-CBT-057 DEVEM rodar **depois** de persistir a transição de combate e **antes** do broadcast de `combat:updated`/`combat:turnChange`; o ack do op que causou a transição DEVE voltar só depois do último callback. Erro de callback DEVE ser logado e isolado (REQ-SYS-139): a transição persistida permanece e o broadcast acontece mesmo assim. As escritas feitas pelos callbacks DEVEM chegar aos clientes pelos próprios eventos de documento, antes do broadcast da transição.
+
+**REQ-CBT-059** [MVP] Quando uma aplicação de dano (`15-api-de-sistemas.md`, REQ-SYS-142) devolver `flags.dead` para um ator que é combatente do encontro ativo da cena, o servidor DEVE marcar esse combatente como `defeated: true`, com o mesmo efeito e broadcast de `combat:setDefeated` (REQ-CBT-024), no mesmo op. O GM continua podendo desmarcar (REQ-CBT-025).
+
+**REQ-CBT-060** [MVP] Ao encerrar o encontro, o servidor DEVE executar os hooks `combatEnd` com os `actorIds` de todos os combatentes com ator, sem repetição, aguardados e **antes** de remover ou arquivar o documento (refina REQ-CBT-006).
 
 **REQ-CBT-030** [V2] O sistema DEVE suportar as ações de turno `Delay` (postergar o turno para depois de outro Combatant na mesma rodada) e `Ready` (declarar uma reação com trigger).
 
@@ -306,6 +372,8 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 > REQ-CBT-053, REQ-CBT-054 e REQ-CBT-055 continuam válidos e inalterados. O que a spec 40
 > fixa é o **lugar** do gesto: marcar e limpar alvo é operação do canvas, onde os alvos
 > estão, e o painel de Combate da gaveta NÃO DEVE oferecer esses controles (REQ-CBA-076).
+
+**REQ-CBT-056** [MVP] Ao persistir uma `ChatMessage` com rolagem, o servidor DEVE gravar em `flags.fusion.targetSnapshot` a seleção de alvos viva do **autor** naquele instante, como `Array<{ tokenId: string; actorId: string | null; sceneId: string }>` (`[]` quando não há alvo), e DEVE descartar qualquer valor desse campo enviado pelo cliente. A foto NÃO DEVE mudar depois (DEC-CBT-10): nem por `combat:target`, nem pela limpeza de REQ-CBT-055, nem por remoção do token. A seleção viva DEVE ser por usuário: `token:targeted` de outro usuário NÃO DEVE entrar na seleção de quem recebe. O cliente DEVE expor às fichas `getMyTargets()` (reativo, só do próprio usuário, com `tokenId`, `actorId` e `name`) e `setMyTargets(tokenIds)`, que ajusta a seleção em lote por `combat:target`. No servidor, `resolveTargetSelection(userId)` DEVE ser a única fonte da foto e da checagem de seleção viva usada por `actor:applyCondition` (REQ-SYS-142).
 
 ---
 
@@ -482,6 +550,12 @@ interface CombatSystemHooks {
 }
 ```
 
+> **Emenda de 2026-09-15** (ALQ-F1-01). `CombatSystemHooks`/`registerCombatHooks` acima é
+> a forma **legada**, mantida como adaptador (`15-api-de-sistemas.md`, REQ-SYS-141). A
+> forma canônica das automações de turno é
+> `registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, { priority })`
+> com `TurnHookContext` (REQ-SYS-138..140), executada conforme REQ-CBT-057..058 e REQ-CBT-060.
+
 ---
 
 ## Dependências (Specs Irmãs)
@@ -505,20 +579,23 @@ interface CombatSystemHooks {
 
 ## Critérios de Aceitação
 
-| ID         | Critério                                                                                                                                                                                                    |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CA-CBT-001 | GM cria encontro na cena ativa, adiciona 4 tokens; todos aparecem no tracker como Combatants com initiative `null`.                                                                                         |
-| CA-CBT-002 | GM clica "Roll All"; servidor executa rolagens autoritativas para todos os 4 Combatants; fila é ordenada descrescentemente; resultado aparece no chat.                                                      |
-| CA-CBT-003 | GM clica "Begin Combat"; round exibe "1", turno do primeiro Combatant é destacado no tracker e o combat turn marker aparece sobre o token no canvas.                                                        |
-| CA-CBT-004 | GM clica "Next Turn" 4 vezes; round incrementa para "2" e o ciclo recomeça corretamente.                                                                                                                    |
-| CA-CBT-005 | GM marca um Combatant como Defeated; com skipDefeated ativo, esse Combatant é pulado nas chamadas subsequentes de "Next Turn".                                                                              |
-| CA-CBT-006 | GM seta hidden em um NPC; cliente de jogador não vê esse Combatant no tracker; GM o vê com indicador de "oculto".                                                                                           |
-| CA-CBT-007 | Jogador arrasta sua linha no tracker para uma posição diferente; a fila é reordenada e o servidor persiste a nova ordem; outros clientes refletem a mudança em ≤ 200 ms.                                    |
-| CA-CBT-008 | Um cliente se desconecta e reconecta durante o combate; ao reconectar, recebe o estado atual (round, turnIndex, lista de Combatants com iniciativas) sem necessidade de ação do GM.                         |
-| CA-CBT-009 | Sistema PF2e registra fórmula de iniciativa via Stealth (Avoid Notice); ao rolar iniciativa de um PC com essa opção selecionada, o servidor usa a fórmula correta e salva `initiativeStatistic: "stealth"`. |
-| CA-CBT-010 | Pan automático habilitado: ao avançar turno, canvas centraliza no token ativo; ao desabilitar, canvas não se move.                                                                                          |
-| CA-CBT-011 | GM encerra encontro; evento `combatEnd` é disparado; documento Combat é arquivado; tracker exibe estado vazio.                                                                                              |
-| CA-CBT-012 | Handler `turnEnd` registrado pelo PF2e decrementa condição `Frightened` do Combatant ao final do seu turno; atualização do ator é persistida e transmitida a todos.                                         |
+| ID         | Critério                                                                                                                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CA-CBT-001 | GM cria encontro na cena ativa, adiciona 4 tokens; todos aparecem no tracker como Combatants com initiative `null`.                                                                                                                                                                        |
+| CA-CBT-002 | GM clica "Roll All"; servidor executa rolagens autoritativas para todos os 4 Combatants; fila é ordenada descrescentemente; resultado aparece no chat.                                                                                                                                     |
+| CA-CBT-003 | GM clica "Begin Combat"; round exibe "1", turno do primeiro Combatant é destacado no tracker e o combat turn marker aparece sobre o token no canvas.                                                                                                                                       |
+| CA-CBT-004 | GM clica "Next Turn" 4 vezes; round incrementa para "2" e o ciclo recomeça corretamente.                                                                                                                                                                                                   |
+| CA-CBT-005 | GM marca um Combatant como Defeated; com skipDefeated ativo, esse Combatant é pulado nas chamadas subsequentes de "Next Turn".                                                                                                                                                             |
+| CA-CBT-006 | GM seta hidden em um NPC; cliente de jogador não vê esse Combatant no tracker; GM o vê com indicador de "oculto".                                                                                                                                                                          |
+| CA-CBT-007 | Jogador arrasta sua linha no tracker para uma posição diferente; a fila é reordenada e o servidor persiste a nova ordem; outros clientes refletem a mudança em ≤ 200 ms.                                                                                                                   |
+| CA-CBT-008 | Um cliente se desconecta e reconecta durante o combate; ao reconectar, recebe o estado atual (round, turnIndex, lista de Combatants com iniciativas) sem necessidade de ação do GM.                                                                                                        |
+| CA-CBT-009 | Sistema PF2e registra fórmula de iniciativa via Stealth (Avoid Notice); ao rolar iniciativa de um PC com essa opção selecionada, o servidor usa a fórmula correta e salva `initiativeStatistic: "stealth"`.                                                                                |
+| CA-CBT-010 | Pan automático habilitado: ao avançar turno, canvas centraliza no token ativo; ao desabilitar, canvas não se move.                                                                                                                                                                         |
+| CA-CBT-011 | GM encerra encontro; evento `combatEnd` é disparado; documento Combat é arquivado; tracker exibe estado vazio.                                                                                                                                                                             |
+| CA-CBT-012 | Handler `turnEnd` registrado pelo PF2e decrementa condição `Frightened` do Combatant ao final do seu turno; atualização do ator é persistida e transmitida a todos.                                                                                                                        |
+| CA-CBT-013 | Jogador marca T1 e T2 e rola; a mensagem grava `targetSnapshot` [T1, T2]. Ele desmarca T2 e o turno do seu ator termina: a seleção viva esvazia e o snapshot da mensagem continua [T1, T2]. (REQ-CBT-056)                                                                                  |
+| CA-CBT-014 | Com dois hooks `turnStart` de prioridades 10 e 0 e um `turnEnd`, "Next Turn" na virada de rodada gera o log `turnEnd:A, roundEnd, roundStart, turnStart(10):B, turnStart(0):B`; um callback que lança não impede o seguinte, e o ack só volta depois do último. (REQ-CBT-057, REQ-CBT-058) |
+| CA-CBT-015 | Dano que leva um NPC combatente a 0 PV marca o combatente como `defeated` e o token recebe o overlay no mesmo op; o GM desmarca e o NPC volta a ter turno. (REQ-CBT-059)                                                                                                                   |
 
 ---
 
@@ -537,6 +614,8 @@ interface CombatSystemHooks {
 6. **Targeting cross-user:** se dois jogadores miram o mesmo token e um limpa o targeting ao final do turno, o targeting do outro deve ser preservado? A atual proposta limpa por `userId`, o que preserva outros usuários' targeti. Confirmar se essa é a semântica desejada.
 
 7. **Archival automático de encontros encerrados:** definir período de retenção e se o `world.db` deve manter histórico ou apenas a sessão corrente.
+
+8. **Hooks de sistema em `previousTurn`:** REQ-CBT-057 cobre avançar turno, iniciar e encerrar. Recuar turno é correção do GM; reexecutar `turnStart` repetiria dano persistente ou recovery check já aplicados. _Proposta provisória: `previousTurn` não dispara hooks de sistema._ Aguarda decisão.
 
 ---
 
