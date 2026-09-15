@@ -730,6 +730,16 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
 > item alquímico (poções, elixires, venenos) do vendor. O vendor usa formas que o
 > `EffectSystemSchema` do Fusion não aceita — este requisito fixa a normalização que
 > fecha essa lacuna na fronteira do importador, não no motor.
+>
+> **Emenda de 2026-09-15** (revisão adversarial da onda 1, achado importante). A
+> redação original desta REQ dizia que `"encounter"` "passa sem alteração" e, na
+> frase seguinte, tratava toda duração que não fosse `unit` como finita e forçava
+> `expiry: "turn-start"` nela — as duas afirmações se contradizem para
+> `"encounter"`, e o vendor de fato ship `expiry: "turn-start"` em efeitos
+> `encounter` (ex.: "Magnetic Bola (Speed Penalty)"). Isso violava DF-07/§2.5
+> (`docs/design/alquimista/tasks.md`): um efeito `encounter` sai só no
+> `combatEnd`, nunca num limite de turno. `unit` continua passando sem alteração
+> (só o `expiry` muda) — corrigido abaixo.
 
 - **REQ-PF2-221** [MVP] O importador DEVE normalizar `system.duration` de todo item
   de efeito publicado em `equipment-effects-core` antes da validação contra
@@ -743,9 +753,14 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
     permanente/ilimitado do schema) independente do `value` recebido do vendor, e
     `expiry` DEVE ser forçado a `null` — um efeito ilimitado nunca expira num
     limite de turno.
-  - Toda duração finita (qualquer outra `unit`) com `expiry: null` DEVE receber
-    `expiry: "turn-start"` como default — sem essa correção o efeito fica sem
-    limite de turno para `resolveExpirations` (§2.5) jamais expirar.
+  - `unit: "encounter"` DEVE ter `expiry` forçado a `null` também (mesmo quando o
+    vendor manda um `expiry` explícito) — DF-07/§2.5: um efeito `encounter` expira
+    só no `combatEnd`, nunca num `turn-start`/`turn-end`/`round-end`. Diferente de
+    `unlimited`, `value` NÃO é forçado a `-1`: é dado do vendor que sobrevive.
+  - Toda duração finita (qualquer `unit` que não seja `unlimited` nem `encounter`)
+    com `expiry: null` DEVE receber `expiry: "turn-start"` como default — sem essa
+    correção o efeito fica sem limite de turno para `resolveExpirations` (§2.5)
+    jamais expirar.
 
 ### Plateia dos packs publicados
 

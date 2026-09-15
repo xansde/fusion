@@ -50,7 +50,7 @@
 | DF-12 | Recurso de classe é dado (descritor `special-resource`), avaliador sem `eval`                                       | F2 D-09                      |
 | DF-13 | Item infundido carrega `system.fusion.infused`; DC por `max(DC impressa, Class DC)`                                 | F2 D-11, F6 Powerful Alchemy |
 | DF-14 | 16 equipamentos sem estrutura saem com `automation:"manual"` e nota de mesa                                         | F2 D-12                      |
-| DF-15 | Registro de RE por `kind` normalizado do importer; fases `pre-base → synthetics → item → strike → roll`             | F4 D1/D2/D4                  |
+| DF-15 | Registro de RE por `kind` normalizado do importer¹; fases `pre-base → synthetics → item → strike → roll`            | F4 D1/D2/D4                  |
 | DF-16 | AEL nunca persiste e tem allowlist de path                                                                          | F4 D5                        |
 | DF-17 | Contexto de rolagem vai no op; notas, grau e ajustes resolvidos no servidor                                         | F4 D6                        |
 | DF-18 | Texto de nota é curadoria pt-BR clean-room por `sourceId` + índice                                                  | F4 D8                        |
@@ -61,6 +61,29 @@
 | DF-23 | Motor puro em `engine-2e` (aflição, counteract); testes pela regra, nunca pelo pack                                 | F6 DD-03                     |
 | DF-24 | Critério G/A/N (reuso, determinismo, dado pronto: 2 de 3) para talentos exóticos                                    | F6 DD-06                     |
 | DF-25 | Additive é carimbo único `flags.fusion.additive` no item criado                                                     | F7 DD-08                     |
+
+> ¹ **Emenda de 2026-09-15** (revisão adversarial da onda 1, achado importante #6).
+> A ALQ-F4-02 (já mergeada) registrou os cinco handlers MVP com `kind` **camelCase**
+> (`flatModifier`/`rollOption`/`note`/`toggleCondition`/`iwr` —
+> `systems/engine-2e/src/ruleElementRegistry.ts`), não o kebab-case do importer que
+> DF-15 e o exemplo de §2.8 sugerem (`"flat-modifier"`, `"roll-note"`,
+> `"adjust-degree-of-success"`, `"item-alteration"`). Motivo: o código pf2e/sf2e
+> já existente ANTES da F4-02 (condições em `systems/{pf2e,sf2e}/src/conditions.ts`,
+> derivações como `speed.ts`/`embeddedModifiers.ts`/`elementalBlast.ts`) constrói
+> `EffectRule` literais com `type` camelCase — renomear os cinco MVP para
+> kebab-case teria que tocar esses arquivos de produção também (fora do escopo
+> desta correção, alto risco). **Convenção fixada**: o formato de FIO (pack
+> `documents.json`, campo `kind`) continua kebab-case; os cinco handlers MVP
+> mantêm seu `kind` camelCase por compatibilidade com o código pré-F4-02; um
+> materializador (pack items → `EffectSource[]`) faz a ponte entre os dois pelos
+> três `kind`s que hoje têm handler (`flat-modifier→flatModifier`,
+> `roll-option→rollOption`, `roll-note→note` — ver
+> `classBuildHarness.ts::adaptPackRule`/`PACK_KIND_TO_ENGINE_TYPE`, satélite).
+> **Daqui pra frente (F4-04+): todo handler NOVO registra com o `kind` kebab-case
+> do importer diretamente** (sem entrada na tabela de adaptação) — só os cinco
+> MVP já lançados ficam com o nome antigo. A `EffectRuleSchema` de validação
+> (`systems/pf2e/src/schema-primitives.ts`) já era agnóstica a essa escolha desde
+> antes (aceita `kind` OU `type` como discriminador, `.passthrough()`).
 
 ### 1.3 Numeração de specs
 
@@ -322,10 +345,16 @@ interface CurrencyPort { requestCost(req: { actorId: string; amount: { gp: numbe
 
 ### 2.8 `RuleElementRegistry` e `RollNotes`
 
+Ver nota¹ na seção 1.2 (DF-15): os cinco handlers MVP já lançados (ALQ-F4-02) usam
+`kind` camelCase (`flatModifier`/`rollOption`/`note`/`toggleCondition`/`iwr`); um
+adaptador na fronteira pack→EffectSource faz a ponte com o `kind` kebab-case do
+importer para esses três que colidem. Handler NOVO (F4-04+) registra com o `kind`
+kebab-case do importer diretamente, como o exemplo abaixo já mostrava.
+
 ```ts
 type RulePhase = "pre-base" | "synthetics" | "item" | "strike" | "roll";
 interface RuleElementHandler<R extends EffectRule = EffectRule> {
-  kind: string; // "flat-modifier", "roll-note", "adjust-degree-of-success", "item-alteration"…
+  kind: string; // "flat-modifier", "roll-note", "adjust-degree-of-success", "item-alteration"… (F4-04+; os 5 handlers MVP já lançados usam kind camelCase — ver nota¹ acima)
   phase: RulePhase;
   normalize(raw: Record<string, unknown>): R | null; // null => unsupportedLog
   apply(rule: R, ctx: RuleApplyContext): void;

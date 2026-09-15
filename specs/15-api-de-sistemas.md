@@ -599,23 +599,23 @@ interface TurnHookContext {
 
 // socket "actor:applyDamage" — ActorApplyDamagePayloadSchema (@fusion/shared)
 interface DamageInstanceInput {
-  type: string; // "fire" | "piercing" | "healing" | "temp-hp" | …
-  category?: "persistent" | "splash" | "precision";
+  type: string; // "fire" | "piercing" | "healing" | "temp-hp" | … — com `source`, só o servidor decide (REQ-SYS-142 passo 2b)
+  category?: "persistent" | "splash" | "precision"; // idem — relido de `source`, nunca do cliente
   amount?: number; // só papel privilegiado ou actingAs "system"
   source?: { messageId: string; rollIndex: number }; // o servidor relê o total gravado
-  traits?: string[]; // exceções de IWR (magical, silver…)
-  materials?: string[]; // cold-iron, silver…
-  critical?: boolean;
-  nonlethal?: boolean;
+  traits?: string[]; // exceções de IWR (magical, silver…) — com `source`, relido, não recebido (idem)
+  materials?: string[]; // cold-iron, silver… — com `source`, relido, não recebido (idem)
+  critical?: boolean; // com `source`, relido do degreeOfSuccess gravado, não recebido (idem)
+  nonlethal?: boolean; // com `source`, relido, não recebido (idem)
 }
 interface ActorApplyDamagePayload {
   instances: DamageInstanceInput[]; // mesmo tipo no mesmo payload soma antes do IWR
   targetTokenIds?: string[]; // só papel privilegiado (override)
   selfActorId?: string;
-  multiplier?: 0 | 0.5 | 1 | 2;
-  basicSave?: { degree: DegreeOfSuccess };
-  hardness?: number;
-  ignoreResistance?: { type: string; value: number }[];
+  multiplier?: 0 | 0.5 | 1 | 2; // não privilegiado: validado contra o degreeOfSuccess gravado (REQ-SYS-142 passo 2c)
+  basicSave?: { degree: DegreeOfSuccess }; // não privilegiado: DEVE bater com o degreeOfSuccess gravado (idem)
+  hardness?: number; // só papel privilegiado ou actingAs "system" (idem)
+  ignoreResistance?: { type: string; value: number }[]; // só papel privilegiado ou actingAs "system" (idem)
 }
 
 // socket "actor:applyCondition"
@@ -669,6 +669,21 @@ interface ActorMechanicsPatch {
   registro de REQ-SYS-138 com id `legacy` e prioridade `0`, convivendo com registros por
   `onX`. Chamá-lo mais de uma vez continua sendo erro. Nenhum sistema já existente DEVE
   precisar mudar para continuar funcionando.
+
+  > **Emenda de 2026-09-15** (revisão adversarial da onda 1 do Alquimista, achado
+  > bloqueante). A redação original só protegia `amount` e `targetTokenIds` contra o
+  > cliente — o resto do shape que muda o montante final continuava vindo do jogador
+  > sem checagem nenhuma: `type` (trocar o tipo de dano por um sem resistência),
+  > `critical`/`nonlethal` (declarar um crítico que a rolagem gravada não teve),
+  > `traits`/`materials` (fingir `cold-iron` para disparar uma fraqueza), `multiplier`
+  > (×2 numa rolagem normal), `basicSave.degree` (declarar falha crítica do alvo),
+  > `ignoreResistance` e `hardness` (bypassar RD/dureza). Isso contradiz DF-03
+  > ("montante vem da mensagem gravada, nunca do cliente") e o racional da DEC-SYS-12
+  > ("um jogador aplicaria qualquer valor"). Os passos 2b/2c abaixo fecham essa
+  > lacuna: para usuário sem papel privilegiado, **todo** campo que muda o montante
+  > final vem do servidor — relido da rolagem gravada ou validado contra ela — nunca
+  > aceito como o cliente mandou.
+
 - **REQ-SYS-142** [MVP] O `registrar` DEVE expor `registerActorMechanics({ applyDamage,
 applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os ops
   `actor:applyDamage` e `actor:applyCondition` por meio de um único
@@ -679,13 +694,35 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
   2. com `source`, reler o total da rolagem gravada e **ignorar** qualquer `amount`
      recebido; `amount` sem `source` só DEVE ser aceito de papel privilegiado ou
      `actingAs: "system"` — de outro usuário DEVE responder `FORBIDDEN`;
+     2b. para usuário sem papel privilegiado e `actingAs` diferente de `"system"`, o
+     servidor DEVE também reler `type`, `category`, `critical`, `nonlethal`, `traits`
+     e `materials` da rolagem gravada em `source` (`08-motor-de-rolagens.md`,
+     `RollResult`), **ignorando** os mesmos campos recebidos no payload — a mesma
+     regra de `amount` do passo 2, agora para o resto do shape de
+     `DamageInstanceInput`. Instância sem `source` nesse caso DEVE responder
+     `FORBIDDEN` (não há de onde reler);
+     2c. `ignoreResistance` e `hardness` só DEVEM ser aceitos de papel privilegiado ou
+     `actingAs: "system"`; de outro usuário, DEVEM ser ignorados mesmo se presentes
+     no payload. `multiplier` e `basicSave.degree`, de usuário sem papel
+     privilegiado, DEVEM ser validados contra o `degreeOfSuccess` já gravado na
+     rolagem de `source` (o mesmo campo que o passo 2b relê) — um valor que não bate
+     com o grau gravado DEVE responder `FORBIDDEN`, nunca ser silenciosamente
+     corrigido (silenciosamente aceitar um valor errado esconderia do jogador que o
+     cliente e o servidor divergiram);
   3. resolver os alvos: papel privilegiado PODE informar `targetTokenIds`; de outro
      usuário, `targetTokenIds` DEVE ser ignorado e os alvos DEVEM ser **todos** os de
      `flags.fusion.targetSnapshot` da mensagem de origem (REQ-CBT-056), desde que ele seja
      dono do ator que rolou; mensagem sem snapshot, ou usuário que não é dono desse ator,
-     DEVE responder `FORBIDDEN`. `selfActorId` dispensa snapshot e exige ownership OWNER
-     do próprio ator. Para `actor:applyCondition`, sem mensagem de origem, os alvos de
-     usuário não privilegiado DEVEM estar na sua seleção viva (REQ-CBT-056);
+     DEVE responder `FORBIDDEN`. **Toda instância do payload DEVE compartilhar um único
+     `source.messageId`** — de usuário sem papel privilegiado, um payload cujas instâncias
+     apontem para `messageId`s diferentes DEVE responder `VALIDATION_FAILED` antes mesmo
+     de resolver alvos (impede combinar o total de uma rolagem de outro personagem com o
+     snapshot da própria mensagem); e esse `messageId` único DEVE ser de uma mensagem cujo
+     ator de origem o usuário possui como **OWNER** (mesma checagem de ownership do dono
+     do ator que rolou, acima — não apenas "dono de _algum_ ator"). `selfActorId` dispensa
+     snapshot e exige ownership OWNER do próprio ator. Para `actor:applyCondition`, sem
+     mensagem de origem, os alvos de usuário não privilegiado DEVEM estar na sua seleção
+     viva (REQ-CBT-056);
   4. chamar a mecânica registrada **por alvo**, persistir `diff` e embutidos do ator de
      forma atômica, publicar o resumo (`09-chat-e-mensagens.md`, REQ-CHT-053) e, para
      `flags.dead`, marcar o combatente como derrotado (REQ-CBT-059);
@@ -694,6 +731,15 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
 
   O ack devolvido a usuário sem papel privilegiado DEVE seguir a mesma redação do resumo:
   sem `hp` do alvo.
+
+  **Idempotência de reaplicação** (emenda de 2026-09-15, revisão adversarial, achado
+  importante — fecha REQ-CHT-052 junto): o serviço DEVE marcar cada
+  `(messageId, rollIndex, multiplier)` já aplicado por instância/alvo, e uma segunda
+  aplicação da MESMA chave por usuário sem papel privilegiado DEVE responder
+  `FORBIDDEN` sem reaplicar o dano — só papel privilegiado ou `actingAs: "system"`
+  PODE reaplicar a mesma chave (mesa corrigindo um erro). Sem essa marca, o dono do
+  ator reenviaria o mesmo op e aplicaria o mesmo dano gravado repetidas vezes em
+  todos os alvos do snapshot.
 
 ### Motor de modifiers/effects data-driven
 

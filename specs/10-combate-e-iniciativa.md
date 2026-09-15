@@ -375,6 +375,19 @@ aperta "Aplicar" e o dano vai para todos os alvos daquela ação. A foto é o qu
 
 **REQ-CBT-056** [MVP] Ao persistir uma `ChatMessage` com rolagem, o servidor DEVE gravar em `flags.fusion.targetSnapshot` a seleção de alvos viva do **autor** naquele instante, como `Array<{ tokenId: string; actorId: string | null; sceneId: string }>` (`[]` quando não há alvo), e DEVE descartar qualquer valor desse campo enviado pelo cliente. A foto NÃO DEVE mudar depois (DEC-CBT-10): nem por `combat:target`, nem pela limpeza de REQ-CBT-055, nem por remoção do token. A seleção viva DEVE ser por usuário: `token:targeted` de outro usuário NÃO DEVE entrar na seleção de quem recebe. O cliente DEVE expor às fichas `getMyTargets()` (reativo, só do próprio usuário, com `tokenId`, `actorId` e `name`) e `setMyTargets(tokenIds)`, que ajusta a seleção em lote por `combat:target`. No servidor, `resolveTargetSelection(userId)` DEVE ser a única fonte da foto e da checagem de seleção viva usada por `actor:applyCondition` (REQ-SYS-142).
 
+> **Emenda de 2026-09-15** (revisão adversarial da onda 1, achado importante). O
+> `flags.fusion.targetSnapshot` completo (com `tokenId`/`actorId` de todo alvo,
+> inclusive token oculto) viaja no `document:create` da própria `ChatMessage` a
+> **todo** cliente elegível — só a linha "Alvos: …" (REQ-CHT-052) tinha redação de
+> nome, o snapshot bruto por trás dela não. Isso revela a existência e a contagem
+> de um token oculto a quem não deveria vê-lo. **`flags.fusion.targetSnapshot` DEVE
+> passar pelo mesmo caminho de redação do resto do broadcast**
+> (`packages/server/src/net/redaction.ts` + `isRolePrivileged`,
+> `documents/ownership.ts` — REQ-CHT-053 já usa esse par, e NÃO DEVE existir um
+> segundo predicado aqui): para destinatário sem papel privilegiado e sem
+> visibilidade do token, a entrada correspondente DEVE ser removida do array (não
+> só do nome exibido) antes do broadcast — nunca só depois, no cliente.
+
 ---
 
 ## Requisitos Não-Funcionais
