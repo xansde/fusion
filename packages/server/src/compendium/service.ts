@@ -217,6 +217,18 @@ export class CompendiumService {
           continue;
         }
 
+        // REQ-CMP-057: a packId already registered (from a root discovered
+        // earlier — e.g. the official root, discovered before the private
+        // one, see DEC-CMP-11) is never overwritten. Log and skip instead of
+        // letting a private/misnamed pack silently replace an official one.
+        if (this.packs.has(manifest.id)) {
+          this.logger?.warn(
+            { packId: manifest.id, packDir },
+            "Pack id already registered — skipping duplicate (collision with a pack discovered earlier)",
+          );
+          continue;
+        }
+
         const indexPath = join(packDir, "index.json");
         const i18nPtBRPath = join(packDir, "i18n.pt-BR.json");
         const mechanicsPath = join(packDir, "mechanics.json");
@@ -1792,4 +1804,39 @@ export function resolveSystemPacksDir(systemId: string, packsDirOverride?: strin
     "packs",
   );
   return existsSync(satellitePacksDir) ? satellitePacksDir : null;
+}
+
+/**
+ * Resolve the **private** packs directory for a game system (DEC-CMP-11,
+ * REQ-CMP-056): a second, non-versioned root the GM can point the server at
+ * to load compendium content that must never reach git (e.g. Paizo playtest
+ * classes — same restriction as `docs/etmos-fontes/`).
+ *
+ * Layout mirrors {@link resolveSystemPacksDir}'s target: `<root>/<systemId>/`
+ * contains `<slug>/pack.json` + `documents.json` (+ optional `index.json` /
+ * `i18n.pt-BR.json`), same as `systems/<systemId>/packs/` — so it is
+ * discovered by the exact same {@link CompendiumService.discoverPacks}.
+ *
+ * Resolution order:
+ *   1. `FUSION_PRIVATE_PACKS_DIR` env var, if set — the root that contains
+ *      `<systemId>/` (analogous to `FUSION_PACKS_DIR`'s override role for
+ *      {@link resolveSystemPacksDir}).
+ *   2. `<dataDir>/private-packs/<systemId>/` — the default, next to the
+ *      world data the GM already keeps out of any repo.
+ *
+ * Returns `null` when the directory does not exist — this is the expected,
+ * silent case for the overwhelming majority of installs (REQ-CMP-056: no
+ * error, no warning log).
+ *
+ * @param dataDir  the server's resolved data directory (`config.dataDir`).
+ * @param systemId active world system id (e.g. "pf2e").
+ */
+export function resolvePrivatePacksDir(dataDir: string, systemId: string): string | null {
+  const overrideRoot = process.env["FUSION_PRIVATE_PACKS_DIR"];
+  const privateRoot =
+    overrideRoot !== undefined && overrideRoot.length > 0
+      ? overrideRoot
+      : join(dataDir, "private-packs");
+  const dir = join(privateRoot, systemId);
+  return existsSync(dir) ? dir : null;
 }

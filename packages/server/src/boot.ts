@@ -675,7 +675,8 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     // so compendium:list / index / get / import work over the real boot path
     // (not only when the service is wired manually in tests). REQ-CMP-006..012.
     // ----------------------------------------------------------------------
-    const { CompendiumService, resolveSystemPacksDir } = await import("./compendium/index.js");
+    const { CompendiumService, resolveSystemPacksDir, resolvePrivatePacksDir } =
+      await import("./compendium/index.js");
     const compendiumService = new CompendiumService(logger);
     if (netContext.systemId !== undefined) {
       const packsDir = resolveSystemPacksDir(netContext.systemId, netContext.packsDir);
@@ -696,6 +697,28 @@ export async function boot(options: BootOptions): Promise<BootResult> {
         logger.warn(
           { systemId: netContext.systemId, packsDirOverride: netContext.packsDir },
           "Compendium packs directory not found — compendium:list will be empty",
+        );
+      }
+
+      // Private packs (DEC-CMP-11, REQ-CMP-056/057): a second, non-versioned
+      // root the GM can point the server at (default
+      // `<dataDir>/private-packs/<systemId>/`, override via
+      // FUSION_PRIVATE_PACKS_DIR) to load content that must never reach git —
+      // e.g. Paizo playtest classes, same restriction as docs/etmos-fontes/.
+      // Discovered AFTER the official root above, so a colliding packId
+      // (REQ-CMP-057) never overwrites an official pack. Missing directory is
+      // the expected, silent common case — no warning log.
+      const privatePacksDir = resolvePrivatePacksDir(config.dataDir, netContext.systemId);
+      if (privatePacksDir !== null) {
+        const beforeCount = compendiumService.listPacks(UserRole.GAMEMASTER).length;
+        compendiumService.discoverPacks(privatePacksDir, netContext.systemId);
+        logger.info(
+          {
+            systemId: netContext.systemId,
+            privatePacksDir,
+            packs: compendiumService.listPacks(UserRole.GAMEMASTER).length - beforeCount,
+          },
+          "Private compendium packs discovered",
         );
       }
     } else {
