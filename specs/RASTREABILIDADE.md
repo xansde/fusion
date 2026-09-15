@@ -8,7 +8,7 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1970 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **1993 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
@@ -17,8 +17,8 @@ porque ainda não foram prometidos para nenhum marco.
 | --- | ---: | ---: |
 | Citados por algum teste | 710 | 36% |
 | Citados só por código de produção | 316 | 16% |
-| Sem nenhuma citação | 944 | 48% |
-| **Total [MVP]** | **1970** | |
+| Sem nenhuma citação | 967 | 49% |
+| **Total [MVP]** | **1993** | |
 
 ## Por spec
 
@@ -33,15 +33,15 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 86 | 14 | 28 | 44 | 16% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 11 | 24 | 29% |
-| [09](09-chat-e-mensagens.md) | 49 | 13 | 10 | 26 | 27% |
-| [10](10-combate-e-iniciativa.md) | 45 | 16 | 28 | 1 | 36% |
+| [09](09-chat-e-mensagens.md) | 51 | 13 | 10 | 28 | 25% |
+| [10](10-combate-e-iniciativa.md) | 50 | 16 | 28 | 6 | 32% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 63 | 18 | 29 | 16 | 29% |
+| [15](15-api-de-sistemas.md) | 68 | 18 | 29 | 21 | 26% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
-| [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
+| [17](17-sistema-pf2e.md) | 83 | 42 | 14 | 27 | 51% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |

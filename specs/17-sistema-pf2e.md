@@ -307,6 +307,15 @@ dano/metade/dobro/cura por botões no card de dano.
 auditabilidade; o breakdown explica ao jogador por que o número final difere do
 rolado.
 
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). O pipeline desta decisão
+> passa a ser a mecânica registrada por `registerActorMechanics` e chamada pelo op do core
+> (`15-api-de-sistemas.md`, DEC-SYS-12, REQ-SYS-142). Duas precisões: o montante **não**
+> chega como `{ amount }` do cliente — vem da rolagem gravada, e os alvos vêm da foto na
+> mensagem (`10-combate-e-iniciativa.md`, DEC-CBT-10); e quem aperta os botões do card é
+> também o jogador dono do ator que rolou, não só o GM (`09-chat-e-mensagens.md`,
+> DEC-CHT-12). O "prompt de mitigação" (Shield Block e afins) não é tocado por esta emenda.
+> Requisitos em REQ-PF2-209..216.
+
 ### DEC-PF2-09 — Ficha de personagem por abas (referência ficha oficial); NPC enxuta
 
 **Decisão:** A character sheet é organizada em abas — **Character** (resumo/skills/
@@ -550,6 +559,12 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   processar `slowed`/`stunned` na contagem de ações, oferecer recovery check de
   Dying e aplicar persistent damage.
 
+  > **Emenda de 2026-09-15** (ALQ-F1-01). Os handlers deste requisito DEVEM ser
+  > registrados como hooks com id e prioridade (`15-api-de-sistemas.md`, REQ-SYS-138),
+  > um por automação, conforme a tabela de REQ-PF2-216. Recovery check e decaimento de
+  > `frightened` estão fixados em REQ-PF2-214 e REQ-PF2-216; dano persistente segue
+  > REQ-PF2-061 e é escrito pela fase do plano que o implementa.
+
 ### Ações de skill e inline
 
 - **REQ-PF2-100** [MVP] O sistema DEVE prover as **ações básicas de skill** mais
@@ -603,6 +618,110 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   (+1/+2/+3 dados de dano), armor potency (+1/+2/+3 AC), resilient (+1/+2/+3 saves).
 - **REQ-PF2-131** [V2] Runas de **propriedade** com efeitos automatizados
   (flaming, frost, etc.) e seus limites por potência; transferência de runas.
+
+### Talentos: legado, pré-requisito e proficiência extra
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). Absorve as emendas que
+> estavam soltas nas tarefas ALQ-F0-03, ALQ-F0-08 e ALQ-F0-09. Os exemplos numéricos são
+> calculados pela regra do Player Core / Player Core 2 (remaster), não lidos do pack.
+
+- **REQ-PF2-206** [MVP] Talento pré-remaster DEVE permanecer no pack, marcado com a trait
+  `legacy`; NÃO DEVE ser removido. Nenhum documento remaster DEVE receber a trait. O
+  picker de talentos do builder DEVE exibir o selo **"Legado"** em todo documento com a
+  trait e oferecer o filtro **"Esconder legado"**. A regra DEVE ser genérica por trait,
+  NÃO uma lista por classe: os 16 talentos pré-remaster do Alquimista (Perpetual Breadth,
+  Wish Alchemy…) são o primeiro caso, não o único. O compêndio (`43-aba-compendio.md`)
+  continua mostrando todos. **Critério verificável:** com o filtro ligado, Wish Alchemy
+  some da lista e Mega Bomb fica; com o filtro desligado os dois aparecem e só Wish
+  Alchemy tem o selo.
+- **REQ-PF2-207** [MVP] Proficiência em categoria de ataque que não seja simples, marcial,
+  avançada ou desarmada DEVE ser modelada como **mapa por chave**
+  `system.proficiencies.attacks[<chave>] = { rank, label, predicate }` (ex.:
+  `weapon-base-alchemical-bomb`), e o strike DEVE usar o maior `rank` entre a categoria da
+  arma e as entradas cujo `predicate` casar com ela. Efeito que melhora essa proficiência
+  DEVE só alterar o `rank` da entrada existente. O documento de classe DEVE preservar a
+  categoria extra na importação. **Critério verificável:** Alquimista nível 1 com Int +4 e
+  Des +2, treinado em bombas alquímicas e na CD de classe: CD de classe = 10 + 4 + (2 + 1) =
+  17; ataque com Acid Flask = 2 + (2 + 1) = +5, antes de bônus de item.
+- **REQ-PF2-208** [MVP] O picker de talentos DEVE mostrar **desabilitado, com o motivo**, o
+  talento cujo pré-requisito reconhecível falha. Reconhecedores obrigatórios: (a) talento ou
+  dedicação possuído, identificado por `flags.fusion.sourceId` e nunca pelo nome; (b)
+  atributo mínimo (ex.: "Inteligência +2"). Pré-requisito em texto livre não reconhecido
+  NÃO DEVE bloquear: o talento fica elegível e exibe o aviso. **Critério verificável:**
+  Guerreiro com Int +0 não pode escolher Alchemist Dedication e com Int +2 pode; Basic
+  Concoction é inelegível sem a dedicação.
+
+### Aplicar dano, condições e automação de turno
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01; decisões do Alexandre D-02,
+> D-03 e D-04). O op, a permissão e a leitura da mensagem são do core
+> (`15-api-de-sistemas.md`, REQ-SYS-142; `10-combate-e-iniciativa.md`, REQ-CBT-056); o
+> resumo no chat é de `09-chat-e-mensagens.md` (REQ-CHT-053). Aqui fica a **regra**, como
+> função pura `(actor, instances, opts) → ActorMechanicsPatch` registrada por
+> `registerActorMechanics`. As decisões de efeito, duração, strike de bomba e munição
+> alquímica (DF-06..DF-10 do plano) são escritas pela tarefa ALQ-F2-01, que consome os
+> hooks e o `TurnHookContext` fixados aqui.
+
+- **REQ-PF2-209** [MVP] O sistema DEVE registrar `applyDamage` calculando o dano **por
+  instância** com IWR (REQ-PF2-060): instâncias do mesmo `type` no mesmo payload DEVEM ser
+  somadas **antes** do IWR; exceções de imunidade/fraqueza/resistência DEVEM considerar
+  `traits` e `materials` da instância (ex.: fraqueza 5 a ferro frio só com
+  `materials: ["cold-iron"]`); `ignoreResistance` DEVE reduzir a resistência daquele tipo
+  pelo valor dado, sem ficar abaixo de 0. Imunidade DEVE zerar a instância com uma linha no
+  `breakdown`. A função NÃO DEVE ler montante nem alvo de outro lugar que não os
+  argumentos, e NÃO DEVE escrever: devolve o `ActorMechanicsPatch`.
+- **REQ-PF2-210** [MVP] `basicSave.degree` DEVE virar multiplicador pela tabela de
+  REQ-PF2-041 (sucesso crítico 0, sucesso ½, falha 1, falha crítica 2); `multiplier` DEVE
+  ser aplicado como veio. O multiplicador DEVE incidir **antes** de fraqueza e resistência
+  (REQ-PF2-062), e a metade DEVE arredondar para baixo. `hardness` DEVE ser subtraída
+  depois do IWR (REQ-PF2-023).
+- **REQ-PF2-211** [MVP] Dano DEVE consumir primeiro o PV temporário e depois o PV. Instância
+  `temp-hp` DEVE definir o PV temporário como o **maior** entre o atual e o novo, sem somar
+  (REQ-PF2-022). Instância `healing` DEVE somar ao PV até o máximo e NUNCA ao temporário.
+  **Critério verificável:** PV 20 e temporário 5, 12 de fogo com resistência a fogo 5 →
+  temporário 0, PV 18; temporário 4 e "PV temporário 3" → temporário 4.
+- **REQ-PF2-212** [MVP] Character que chega a 0 PV DEVE ganhar `dying` pelas regras de
+  REQ-PF2-070 (1, ou 2 com `critical`, somando `wounded`), dano recebido enquanto `dying`
+  DEVE somar conforme REQ-PF2-072, e `doomed` DEVE reduzir o máximo (REQ-PF2-074); chegar ao
+  máximo DEVE aplicar `dead`. Cura que tira o character de 0 PV DEVE remover `dying` e
+  aplicar `wounded` +1 (REQ-PF2-073). Dano com `nonlethal: true` que leva a 0 DEVE aplicar
+  `unconscious` sem `dying`. O patch DEVE marcar `droppedToZero`, `dyingChanged` e `dead`.
+  **Critério verificável:** PV 3 com `wounded 1`, 10 de dano crítico → PV 0, `dying 3`;
+  `dying 2` e cura 5 → `dying` removido, `wounded` +1, PV 5.
+- **REQ-PF2-213** [MVP] NPC que chega a 0 PV DEVE ganhar a condição `dead`, exibida como
+  badge no token, e o patch DEVE marcar `dead: true` para que o core marque o combatente
+  como derrotado (`10-combate-e-iniciativa.md`, REQ-CBT-059). Com `nonlethal: true`, DEVE
+  ganhar `unconscious` em vez de `dead`. O sistema DEVE registrar `dead` como condição
+  (REQ-SYS-043) com `tone: "special"`, `critical: true` e sem modifiers.
+- **REQ-PF2-214** [MVP] O sistema DEVE registrar o hook `onTurnStart("pf2e.recoveryCheck")`
+  com prioridade 80: se o ator do turno tem `dying`, o servidor DEVE rolar o flat check de
+  CD `10 + dying` por `ctx.roll`, ajustar `dying`/`wounded` pelos graus de REQ-PF2-071 via
+  `ctx.applyCondition`, aplicar `dead` (e portanto `defeated`) ao atingir o máximo e postar o
+  card por `ctx.chat`. O teste é **rolado automaticamente** no início do turno; isto
+  concretiza o "oferecer" de REQ-PF2-071. **Critério verificável:** `dying 1` e d20 = 15
+  contra CD 11 → sucesso, `dying` 0 e `wounded 1`; `dying 3` e d20 = 1 → falha crítica,
+  `dying` 5 ≥ 4 → morto.
+- **REQ-PF2-215** [MVP] O sistema DEVE registrar `applyCondition` com os modos `add`,
+  `remove`, `set`, `increase` e `decrease`. `add` de condição com valor DEVE manter o maior
+  valor (REQ-PF2-054): `frightened 1` sobre `frightened 3` não muda nada, `frightened 2`
+  sobre `frightened 1` vira 2. Condição a que o ator é imune NÃO DEVE ser aplicada e o ack
+  DEVE trazer a nota (REQ-PF2-053). `dying` com valor maior que 0 DEVE trazer `unconscious`
+  junto. `remove` de condição ausente DEVE ser no-op com sucesso. `data` e `expiry` DEVEM ser
+  gravados no item de condição (`system.fusion.expiry` para `expiry`) sem interpretação
+  nesta fase. Os slugs aceitos DEVEM ser os das condições registradas mais `dead`.
+- **REQ-PF2-216** [MVP] O sistema DEVE registrar o hook `onTurnEnd("pf2e.frightenedDecay")`
+  com prioridade 50, que reduz `frightened` em 1 **só no ator cujo turno terminou**
+  (REQ-PF2-051). Os ids e prioridades das automações de turno do PF2e são reservados
+  assim, e fase posterior que registrar uma delas DEVE usar o id e a prioridade da tabela:
+
+  | Evento                                      | Id                      | Prioridade | Fase do plano |
+  | ------------------------------------------- | ----------------------- | ---------- | ------------- |
+  | `onTurnEnd`                                 | `pf2e.persistentDamage` | 100        | F5            |
+  | `onTurnEnd`                                 | `pf2e.frightenedDecay`  | 50         | F1            |
+  | `onTurnEnd` / `onTurnStart` / `onCombatEnd` | `pf2e.effectExpiry`     | 40         | F2            |
+  | `onTurnStart`                               | `pf2e.recoveryCheck`    | 80         | F1            |
+  | `onTurnStart`                               | `pf2e.afflictionStage`  | 70         | F6            |
+  | todos                                       | `pf2e.reactionOffers`   | 0          | F7            |
 
 ### Plateia dos packs publicados
 
@@ -880,15 +999,23 @@ interface EffectSystem {
 | `registerDegreeOfSuccess(fn)`                                      | Cálculo de grau a partir de `RollResult` + DC (REQ-PF2-040).                                           |
 | `registerActionMacros(list)`                                       | Strike, Seek, Recall Knowledge, Demoralize, Trip, etc. (REQ-PF2-100).                                  |
 | `registerInlineEnrichers(handlers)`                                | `@Check`, `@Damage`, `@Template`, `@UUID` (REQ-PF2-102).                                               |
+| `registerActorMechanics({ applyDamage, applyCondition })`          | Regra de dano, cura, PV temporário, dying/`dead` e condições (REQ-PF2-209..213, REQ-PF2-215).          |
+| `onTurnStart/onTurnEnd/onCombatEnd(id, fn, { priority })`          | Automações de turno com id e prioridade (REQ-PF2-214, REQ-PF2-216; REQ-SYS-138).                       |
 
 ### Eventos de ciclo de vida consumidos (`ver 10-combate-e-iniciativa.md`)
 
-| Evento                        | Ação do PF2e                                                                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `onTurnStart(combatant)`      | Resetar MAP; processar `slowed`/`stunned` na contagem de ações; oferecer recovery check de Dying; aplicar persistent damage pendente. |
-| `onTurnEnd(combatant)`        | Decrementar `frightened` (e outras que reduzem ao fim do turno); resolver persistent damage do tipo "fim de turno".                   |
-| `onRoundStart` / `onRoundEnd` | Reservado para efeitos de duração em rodadas.                                                                                         |
-| `onCombatEnd`                 | Limpar efeitos com duração "encounter".                                                                                               |
+| Evento                        | Ação do PF2e                                                                                                                                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onTurnStart(combatant)`      | Resetar MAP; processar `slowed`/`stunned` na contagem de ações; rolar o recovery check de Dying (`pf2e.recoveryCheck`, 80, REQ-PF2-214); expirar efeitos (`pf2e.effectExpiry`, 40).            |
+| `onTurnEnd(combatant)`        | Dano persistente com flat check (`pf2e.persistentDamage`, 100); decrementar `frightened` do próprio ator (`pf2e.frightenedDecay`, 50, REQ-PF2-216); expirar efeitos (`pf2e.effectExpiry`, 40). |
+| `onRoundStart` / `onRoundEnd` | Reservado para efeitos de duração em rodadas.                                                                                                                                                  |
+| `onCombatEnd`                 | Limpar efeitos com duração "encounter" (`pf2e.effectExpiry`, 40).                                                                                                                              |
+
+> **Emenda de 2026-09-15** (ALQ-F1-01). Cada ação da tabela é um hook próprio com id e
+> prioridade (REQ-PF2-216, `15-api-de-sistemas.md` REQ-SYS-138), aguardado no servidor na
+> ordem de `10-combate-e-iniciativa.md` REQ-CBT-057; a coluna acima nomeia o id e a
+> prioridade reservados. Dano persistente pela condição remaster no fim do turno é da fase
+> F5 do plano; reset de MAP e contagem de `slowed`/`stunned` não mudam com esta emenda.
 
 ### Métodos do ator (expostos pela system API ao runtime/macros)
 

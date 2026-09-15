@@ -292,6 +292,62 @@ sistema fornece os dados e, opcionalmente, effects.
 
 ---
 
+### DEC-SYS-11 — Hooks de turno são um registro com id e prioridade, aguardados no servidor
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). Complementa DEC-SYS-07 para
+> os hooks de combate; não substitui os hooks tipados de Document nem de rolagem.
+
+**Decisão:** O sistema registra automações de combate por evento com
+`registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, { priority })`.
+Cada evento aceita **vários** callbacks; o `id` é estável e nomeia a automação
+(`pf2e.recoveryCheck`), e a `priority` ordena (maior primeiro, depois ordem de registro).
+O servidor **aguarda** os callbacks em série, depois de persistir a transição de combate
+e antes do broadcast, e isola o erro de cada um. O callback recebe um `TurnHookContext`
+com serviços (aplicar dano/condição, rolar, postar no chat, escrever no ator) em nome do
+sistema. O `registerCombatHooks(hooks)` de slot único vira um **adaptador**: suas funções
+entram no registro com id `legacy` e prioridade `0`.
+
+**Alternativas rejeitadas:**
+
+- _Slot único por sistema (`registerCombatHooks` como está)_: cada automação nova (dano
+  persistente, expiração de efeito, recovery check, aflição, oferta de reação) disputaria
+  o mesmo objeto e a ordem entre elas viraria ordem de `if` dentro de uma função.
+- _Ouvintes do `CombatEventBus` disparados sem aguardar_: o broadcast sai antes do dano
+  persistente ser aplicado, o cliente vê o turno mudar com a vida velha, e duas automações
+  que escrevem no mesmo ator correm em paralelo.
+- _Rodar os hooks no cliente_: rejeitado por DEC-CBT-05 — automação de turno acontece com
+  ou sem o dono conectado.
+
+**Racional:** O plano do Alquimista tem pelo menos seis automações de turno de fases
+diferentes (ver `17-sistema-pf2e.md`, REQ-PF2-216). Ordem explícita por prioridade torna o
+resultado determinístico (dano persistente antes da expiração do efeito que o causou) e
+o id permite testar e registrar cada automação no próprio arquivo.
+
+### DEC-SYS-12 — Aplicar dano e condição é op do core; a conta é superfície registrada pelo sistema
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01).
+
+**Decisão:** `actor:applyDamage` e `actor:applyCondition` são ops de servidor do **core**
+(`ActorMechanicsService`): validam payload e permissão, releem montante e alvos da
+mensagem gravada, persistem e publicam. A **regra** (IWR, dureza, PV temporário, dying,
+imunidade a condição, maior valor) é uma função pura registrada pelo sistema via
+`registrar.registerActorMechanics({ applyDamage, applyCondition })`, que devolve um
+`ActorMechanicsPatch` e nunca escreve nada. O mesmo serviço é injetado no
+`TurnHookContext` e em qualquer handler posterior, com `actingAs: "system"`.
+
+**Alternativas rejeitadas:**
+
+- _Cada sistema expõe seu próprio socket de dano_: permissão e anti-cheat seriam
+  reescritos por sistema, e a redação do resumo teria segundo predicado.
+- _O core conhece IWR/dying_: contraria REQ-SYS-136 (a engine não hardcoda regra de jogo).
+- _Montante enviado pelo cliente_: um jogador aplicaria qualquer valor; o montante vem da
+  rolagem gravada (DEC-CHT-12).
+
+**Racional:** Separa o que é segurança e persistência (igual para todo sistema) do que é
+regra (específica do jogo), e deixa a regra testável sem servidor.
+
+---
+
 ## Requisitos funcionais
 
 Prefixo `REQ-SYS`. Cada requisito é testável. Tag `[MVP]`/`[V2]` alinhada à
@@ -506,6 +562,138 @@ label, hint?, requiresReload?, requiresConfirmOnDisable?, countAffectedActors?,
 - **REQ-SYS-067** [MVP] A lista canônica de hooks (nome, payload, fase,
   cancelável, onde dispara) DEVE estar documentada e versionada com a engine; a
   remoção/renomeação de um hook é breaking change semver-major.
+
+### Hooks de turno aguardados e mecânica de ator
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01; DEC-SYS-11, DEC-SYS-12). Os
+> contratos abaixo são canônicos: fases posteriores consomem estes nomes e shapes. A
+> ordem das transições é de `10-combate-e-iniciativa.md` (REQ-CBT-057, REQ-CBT-058).
+
+```ts
+// packages/system-api — registrar
+registrar.onTurnStart(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
+registrar.onTurnEnd(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
+registrar.onRoundStart(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
+registrar.onRoundEnd(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
+registrar.onCombatEnd(id: string, fn: CombatEndHookFn, opts?: { priority?: number }): void;
+registrar.onDamageApplied(id: string, fn: DamageAppliedHookFn, opts?: { priority?: number }): void;
+registrar.registerActorMechanics(m: ActorMechanics): void;
+
+type TurnHookFn = (
+  e: { combat: CombatDocument; combatant: CombatantDocument & { actorId: string | null }; actor: Record<string, unknown> | null },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+type RoundHookFn = (e: { combat: CombatDocument; round: number }, ctx: TurnHookContext) => void | Promise<void>;
+type CombatEndHookFn = (e: { combat: CombatDocument; actorIds: string[] }, ctx: TurnHookContext) => void | Promise<void>;
+
+interface TurnHookContext {
+  applyDamage(p: ActorApplyDamagePayload): Promise<ApplyDamageAck>; // actingAs "system"
+  applyCondition(p: ActorApplyConditionPayload): Promise<ApplyConditionAck>;
+  roll(formula: string, opts: { flavor: string; speakerActorId?: string; rollMode?: RollMode }): Promise<RollResultData>;
+  chat(card: { content: string; flags?: Record<string, unknown>; speakerActorId?: string }): Promise<void>;
+  updateActor(actorId: string, diff: Record<string, unknown>): Promise<void>;
+  createEmbedded(actorId: string, items: Record<string, unknown>[]): Promise<void>;
+  deleteEmbedded(actorId: string, itemIds: string[]): Promise<void>;
+  worldTime: { round: number; turn: number };
+}
+
+// socket "actor:applyDamage" — ActorApplyDamagePayloadSchema (@fusion/shared)
+interface DamageInstanceInput {
+  type: string; // "fire" | "piercing" | "healing" | "temp-hp" | …
+  category?: "persistent" | "splash" | "precision";
+  amount?: number; // só papel privilegiado ou actingAs "system"
+  source?: { messageId: string; rollIndex: number }; // o servidor relê o total gravado
+  traits?: string[]; // exceções de IWR (magical, silver…)
+  materials?: string[]; // cold-iron, silver…
+  critical?: boolean;
+  nonlethal?: boolean;
+}
+interface ActorApplyDamagePayload {
+  instances: DamageInstanceInput[]; // mesmo tipo no mesmo payload soma antes do IWR
+  targetTokenIds?: string[]; // só papel privilegiado (override)
+  selfActorId?: string;
+  multiplier?: 0 | 0.5 | 1 | 2;
+  basicSave?: { degree: DegreeOfSuccess };
+  hardness?: number;
+  ignoreResistance?: { type: string; value: number }[];
+}
+
+// socket "actor:applyCondition"
+interface ActorApplyConditionPayload {
+  targetTokenIds: string[];
+  selfActorId?: string;
+  slug: string; // condições registradas pelo sistema (+ "dead" no PF2e)
+  mode: "add" | "remove" | "set" | "increase" | "decrease";
+  value?: number | null;
+  data?: Record<string, unknown>; // ex.: instância de dano persistente
+  expiry?: FusionExpiry; // ancoragem por dono; o shape é da fase de efeitos
+  source?: { messageId?: string; itemUuid?: string; effectItemId?: string };
+}
+
+interface ActorMechanics {
+  applyDamage(actor: ActorSnapshot, instances: ResolvedDamageInstance[], opts: ApplyDamageOptions): ActorMechanicsPatch;
+  applyCondition(actor: ActorSnapshot, req: ActorApplyConditionPayload): ActorMechanicsPatch;
+}
+interface ActorMechanicsPatch {
+  diff: Record<string, unknown>;
+  embeddedCreate: Item[];
+  embeddedDelete: string[];
+  breakdown: DamageBreakdownStep[];
+  flags: { droppedToZero: boolean; dead: boolean; dyingChanged: boolean };
+}
+// server: ActorMechanicsService.applyDamage(payload, { actingAs: { userId, role } | "system" })
+//         ActorMechanicsService.applyCondition(payload, { actingAs })
+```
+
+- **REQ-SYS-138** [MVP] O `registrar` DEVE expor `onTurnStart`, `onTurnEnd`,
+  `onRoundStart`, `onRoundEnd` e `onCombatEnd` com a assinatura
+  `(id, fn, opts?: { priority?: number })`, aceitando **vários** callbacks por evento.
+  `priority` DEVE ter default `0`. Registrar duas vezes o mesmo `id` no mesmo evento, no
+  mesmo sistema, DEVE lançar erro em `defineSystem` nomeando o id. Os registros DEVEM ficar
+  inspecionáveis no `SystemModule` (REQ-SYS-137), já ordenados como REQ-SYS-139 manda.
+- **REQ-SYS-139** [MVP] Dentro de um evento, o servidor DEVE executar os callbacks em
+  **prioridade decrescente** e, no empate, na **ordem de registro**; em **série**, aguardando
+  cada `Promise` antes do seguinte. Um callback que lança ou rejeita DEVE ter o erro logado
+  com o id do sistema e o id do hook e NÃO DEVE impedir os callbacks seguintes nem desfazer
+  a transição de combate (REQ-SYS-066 vale aqui). O momento da execução em relação a
+  persistência, ack e broadcast é o de REQ-CBT-058.
+- **REQ-SYS-140** [MVP] O servidor DEVE entregar a cada callback o payload do evento e um
+  `TurnHookContext` com os serviços do bloco acima. `onTurnStart`/`onTurnEnd` DEVEM receber o
+  combatente cujo turno começa ou termina, seu `actorId` (ou `null`) e o ator; `onCombatEnd`
+  DEVE receber os `actorIds` de todos os combatentes com ator, sem repetição. Toda escrita
+  feita pelo contexto DEVE passar pelo mesmo caminho de validação, persistência e broadcast
+  dos ops de cliente, com `actingAs: "system"`; o contexto NÃO DEVE oferecer acesso direto
+  ao banco. `ctx.roll` DEVE usar o RNG do servidor (`08-motor-de-rolagens.md`).
+- **REQ-SYS-141** [MVP] `registerCombatHooks(hooks)` DEVE continuar aceito como
+  **adaptador**: cada função presente (`turnStart`, `turnEnd`, `roundStart`) DEVE entrar no
+  registro de REQ-SYS-138 com id `legacy` e prioridade `0`, convivendo com registros por
+  `onX`. Chamá-lo mais de uma vez continua sendo erro. Nenhum sistema já existente DEVE
+  precisar mudar para continuar funcionando.
+- **REQ-SYS-142** [MVP] O `registrar` DEVE expor `registerActorMechanics({ applyDamage,
+applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os ops
+  `actor:applyDamage` e `actor:applyCondition` por meio de um único
+  `ActorMechanicsService`, também injetado no `TurnHookContext`. O serviço DEVE:
+  1. validar o payload pelo schema de `@fusion/shared`; instância sem `source` e sem
+     `amount` DEVE ser rejeitada (`VALIDATION_FAILED`); `basicSave` e `multiplier` juntos
+     DEVEM ser rejeitados;
+  2. com `source`, reler o total da rolagem gravada e **ignorar** qualquer `amount`
+     recebido; `amount` sem `source` só DEVE ser aceito de papel privilegiado ou
+     `actingAs: "system"` — de outro usuário DEVE responder `FORBIDDEN`;
+  3. resolver os alvos: papel privilegiado PODE informar `targetTokenIds`; de outro
+     usuário, `targetTokenIds` DEVE ser ignorado e os alvos DEVEM ser **todos** os de
+     `flags.fusion.targetSnapshot` da mensagem de origem (REQ-CBT-056), desde que ele seja
+     dono do ator que rolou; mensagem sem snapshot, ou usuário que não é dono desse ator,
+     DEVE responder `FORBIDDEN`. `selfActorId` dispensa snapshot e exige ownership OWNER
+     do próprio ator. Para `actor:applyCondition`, sem mensagem de origem, os alvos de
+     usuário não privilegiado DEVEM estar na sua seleção viva (REQ-CBT-056);
+  4. chamar a mecânica registrada **por alvo**, persistir `diff` e embutidos do ator de
+     forma atômica, publicar o resumo (`09-chat-e-mensagens.md`, REQ-CHT-053) e, para
+     `flags.dead`, marcar o combatente como derrotado (REQ-CBT-059);
+  5. executar os callbacks de `onDamageApplied` uma vez por alvo, na ordem de REQ-SYS-139;
+  6. sem mecânica registrada, responder `NOT_SUPPORTED` sem escrever nada.
+
+  O ack devolvido a usuário sem papel privilegiado DEVE seguir a mesma redação do resumo:
+  sem `hp` do alvo.
 
 ### Motor de modifiers/effects data-driven
 
@@ -854,15 +1042,18 @@ interface InitiativeEntry {
 
 ### Superfície pública (resumo)
 
-| Símbolo                                                 | Tipo   | Descrição                            |
-| ------------------------------------------------------- | ------ | ------------------------------------ |
-| `defineSystem(manifest, build)`                         | função | Constrói e retorna o `SystemModule`. |
-| `game.system`                                           | objeto | `SystemModule` ativo do mundo.       |
-| `game.settings.get/set(sysId, key)`                     | função | Get/set tipado de setting.           |
-| `hooks.on/once/off(name, listener)`                     | função | Barramento de hooks tipado.          |
-| `i18n.localize/format(key, data?)`                      | função | Localização namespaced.              |
-| `actor.increase/decrease/toggle/setCondition(slug, v?)` | método | Condições.                           |
-| `validateSystemModule(module)`                          | função | Harness de contract test.            |
+| Símbolo                                                                              | Tipo   | Descrição                                        |
+| ------------------------------------------------------------------------------------ | ------ | ------------------------------------------------ |
+| `defineSystem(manifest, build)`                                                      | função | Constrói e retorna o `SystemModule`.             |
+| `game.system`                                                                        | objeto | `SystemModule` ativo do mundo.                   |
+| `game.settings.get/set(sysId, key)`                                                  | função | Get/set tipado de setting.                       |
+| `hooks.on/once/off(name, listener)`                                                  | função | Barramento de hooks tipado.                      |
+| `i18n.localize/format(key, data?)`                                                   | função | Localização namespaced.                          |
+| `actor.increase/decrease/toggle/setCondition(slug, v?)`                              | método | Condições.                                       |
+| `validateSystemModule(module)`                                                       | função | Harness de contract test.                        |
+| `registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, opts?)` | função | Hooks de turno aguardados (REQ-SYS-138..140).    |
+| `registrar.onDamageApplied(id, fn, opts?)`                                           | função | Pós-aplicação de dano, por alvo (REQ-SYS-142).   |
+| `registrar.registerActorMechanics(m)`                                                | função | Regra de dano/condição do sistema (REQ-SYS-142). |
 
 ### Lista canônica de hooks (MVP)
 
@@ -890,6 +1081,10 @@ Nomes alinhados a `02-modelo-de-dados.md`. `<Type>` ∈ tipos de Document.
 
 Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat —
 `ver 04-`, `ver 21-`); `preRoll`/`postRoll` definidos por `08-motor-de-rolagens.md`.
+
+Os hooks de combate desta tabela são **notificações** pós-transição. As automações de
+turno de um sistema NÃO usam `hooks.on`: usam o registro aguardado de REQ-SYS-138..141
+(DEC-SYS-11), que roda antes do broadcast.
 
 ## Dependências (specs irmãs)
 
