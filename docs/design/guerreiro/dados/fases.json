@@ -1,0 +1,79 @@
+{
+  "_doc": "Fases cumulativas do plano do Guerreiro. Ordem: dependência técnica primeiro, depois volume destravado. Um documento 'fecha' na fase em que o ÚLTIMO mecanismo pendente dele passa a existir.",
+  "fases": [
+    {
+      "id": "F1",
+      "tema": "O golpe que acerta e machuca",
+      "mecanismos": ["WEAPON-STRIKE", "TARGET-OTHER", "APPLY-DAMAGE", "IWR", "CONDITION"]
+    },
+    {
+      "id": "F2",
+      "tema": "A regra escrita no talento sai do papel",
+      "mecanismos": [
+        "EFFECT-SOURCE-ITEMS",
+        "AEL",
+        "MOD-ADJUST",
+        "NOTE",
+        "ROLL-OPTION",
+        "DOS-ADJUST",
+        "ITEM-ALTER",
+        "DAMAGE-ALT",
+        "EFFECT-DUR",
+        "PROF-TRACK",
+        "GRANT-DYN",
+        "CHOICE",
+        "PREREQ"
+      ]
+    },
+    {
+      "id": "F3",
+      "tema": "MAP e posição no mapa",
+      "mecanismos": ["MAP-TRACK", "OFF-GUARD-POS", "NEW-RANGE-CHECK", "NEW-COVER", "AREA"]
+    },
+    {
+      "id": "F4",
+      "tema": "Reações",
+      "mecanismos": ["REACTION", "REACTION-TRIGGER", "NEW-SPELL-REFLECT", "COUNTERACT"]
+    },
+    {
+      "id": "F5",
+      "tema": "Escudo, manobras e mãos",
+      "mecanismos": [
+        "RAISE-SHIELD",
+        "SHIELD-BLOCK",
+        "MANEUVER",
+        "NEW-HAND-STATE",
+        "NEW-SKILL-VS-DC"
+      ]
+    },
+    {
+      "id": "F6",
+      "tema": "Postura, grupo de arma e crítico",
+      "mecanismos": [
+        "STANCE",
+        "WEAPON-GROUP",
+        "CRIT-SPEC",
+        "DEADLY-FATAL",
+        "MOVEMENT",
+        "SENSE",
+        "FLAT-CHECK",
+        "AFFLICTION",
+        "NEW-VIRULENT",
+        "TEMP-HP",
+        "MULTI-TARGET-STRIKE",
+        "NEW-DAMAGE-LOG"
+      ]
+    },
+    {
+      "id": "F7",
+      "tema": "Escolha diária e economia de ações",
+      "mecanismos": [
+        "DAILY-CHOICE",
+        "ACTION-ECON",
+        "NEW-FREQUENCY",
+        "NEW-LAST-ACTION",
+        "NEW-ACTION-RESTRICT"
+      ]
+    }
+  ]
+}
