@@ -5,9 +5,10 @@
     "regra": "Atacar um inimigo com a arma que você empunha: escolher o alvo, rolar 1d20 + bônus de ataque contra a CA dele, descobrir o grau de sucesso e aplicar o dano — com o crítico decidido pela regra, não pelo jogador.",
     "evidencia": [
       "A derivação do strike é real e roda no pipeline: `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:224-340` (deriveStrikeFromWeapon), chamado por `derivations/character.ts:1056` (stepCharStrikes)",
-      "A ficha tem botões reais: `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:1016,1026,1035` (MAP 0/1/2, Dano, Crítico) — mas `lib/sheets/pf2e/characterSheetVM.ts:2222-2251` só posta fórmula crua no chat (`/r 1d20+N # Strike (MAP i)`), sem ler CA de alvo",
+      "O golpe da ficha de personagem JÁ sai como card interativo: `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:272` chama `vm.strikeCard(...)` (`lib/sheets/pf2e/characterSheetVM.ts:2263-2284`), que monta `flags.pf2e.abilityCard` com `kind:\"strike\"` e dispara o ataque aninhado; os botões \"Dano\" e \"Crítico\" vivem no card. O `rollStrike` de fórmula crua (`:2222-2233`) é o caminho de fallback. O que o card NÃO carrega é alvo — e por isso o servidor nunca grada",
       "Existem DUAS graduações de ataque prontas e sem chamador: `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:361-391` (resolveStrikeAttack, só em teste) e `packages/server/src/chat/chat-handler.ts:451-507,1620-1625` (computeAttackDegree, real e testado com socket, mas nada no client popula `payload.target`)",
-      "NPC é mais pobre: `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/npcSheetVM.ts:511-525` rola bônus fixo sem variante de MAP, e o dano em `NpcSheet.svelte:294-298` é texto sem onclick"
+      "NPC é mais pobre: `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/npcSheetVM.ts:511-525` rola bônus fixo sem variante de MAP, e o dano em `NpcSheet.svelte:294-298` é texto sem onclick",
+      "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a leitura anterior de que a ficha \"só posta fórmula crua\" estava desatualizada — o caminho de produção é o `strikeCard` (r20-X1). E o contrato já está aberto para receber o resto: `CheckContextSchema` (`packages/shared/src/chat/types.ts:389-398`) é união discriminada cujo comentário diz, literalmente, que `kind` fica aberto para \"attack/skill checks without a breaking change\". Ou seja, o trabalho restante é menor do que este inventário sugeria: falta o alvo e o uso do grau, não o card"
     ],
     "o_que_falta": "Ligar as pontas que já existem: um gesto de mira no canvas que chame `combatActions.target()`, o payload de rolagem da ficha carregando esse alvo, e a escolha entre as duas graduações (a do servidor no core já é anti-cheat e testada). Enquanto isso não existe, o crítico é escolha manual do jogador — ele clica no botão \"Crítico\" em vez de \"Dano\".",
     "depende_de": [
@@ -55,7 +56,8 @@
       "É a condição mais citada pelos talentos do Guerreiro: Off-Guard aparece 16 vezes nos textos das 128 regras",
       "Nenhuma geometria de jogo existe: busca por `flank|adjacent|reach|cover` em `packages/client/src/lib/canvas` e `packages/server/src` devolve só falsos positivos de inglês comum (`token-visuals.ts:41`, `tokens/tokenValidation.ts:328`, `compendium/service.ts:1256`)",
       "Off-guard só existe como condição estática alternada à mão: `packages/server/src/__tests__/condition-toggle.test.ts:335` usa `buildAddConditionOpFixed(actorId, \"off-guard\", \"Off-Guard\")`, o mesmo toggle genérico de qualquer condição",
-      "O grid existe para desenho e movimento, mas nenhum consumidor liga posição de token a regra de combate"
+      "O grid existe para desenho e movimento, mas nenhum consumidor liga posição de token a regra de combate",
+      "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a geometria de jogo EXISTE e é testada, só não é consumida por regra nenhuma — `packages/shared/src/grid/math.ts` tem `chebyshevDistance:262`, `squareCellDistance:320`, `squareMeasurePath:368`, `squareNeighborhoodCells:223` e os realces de círculo/linha/cone; `packages/shared/src/vision/` tem `segmentIntersect:125`, `computeVisibilityPolygon:250` e `isInLOS:437`; e as paredes são EmbeddedCollection da cena (`packages/shared/src/scene.ts:474-475`, REQ-VIS-001). O único consumidor de produção é a régua (`packages/client/src/lib/presence/rulerState.ts:143`). Falta a ponte entre posição e regra, não a matemática"
     ],
     "o_que_falta": "Cálculo de adjacência/linha entre tokens no canvas, a regra de flanqueio derivando a condição automaticamente, e o -2 na CA entrando de fato na rolagem de ataque.",
     "depende_de": [
@@ -203,7 +205,8 @@
     "regra": "Estar atrás de um obstáculo dá bônus de CA (e de Reflexos) contra ataques à distância; alguns talentos do Guerreiro interagem com isso.",
     "evidencia": [
       "Busca por `cover`/`cobertura` em `packages/server/src` e `packages/client/src`: só falsos positivos de \"coverage\" em comentários de teste",
-      "Não existe conceito de obstáculo opaco a projétil no canvas, nem bônus de CA associado"
+      "Não existe conceito de obstáculo opaco a projétil no canvas, nem bônus de CA associado",
+      "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a geometria de jogo EXISTE e é testada, só não é consumida por regra nenhuma — `packages/shared/src/grid/math.ts` tem `chebyshevDistance:262`, `squareCellDistance:320`, `squareMeasurePath:368`, `squareNeighborhoodCells:223` e os realces de círculo/linha/cone; `packages/shared/src/vision/` tem `segmentIntersect:125`, `computeVisibilityPolygon:250` e `isInLOS:437`; e as paredes são EmbeddedCollection da cena (`packages/shared/src/scene.ts:474-475`, REQ-VIS-001). O único consumidor de produção é a régua (`packages/client/src/lib/presence/rulerState.ts:143`). Falta a ponte entre posição e regra, não a matemática"
     ],
     "o_que_falta": "Tudo. É o mesmo eixo de geometria que falta para flanqueio.",
     "depende_de": [
@@ -243,7 +246,8 @@
     "evidencia": [
       "O alcance está no dado: `external/fusion-systems-2e/systems/pf2e/src/schemas/item-weapon.ts:57-58` (`range`, nulo = corpo a corpo)",
       "Mas ele só é usado para decidir se a arma é à distância — e portanto qual atributo usa: `systems/pf2e/src/actions/strikes.ts:168,186,242` e `derivations/character.ts:1011`",
-      "Não existe medição de distância entre dois tokens para fins de regra em nenhum dos dois repos (mesma ausência de geometria de [[mec-off-guard-pos]])"
+      "Não existe medição de distância entre dois tokens para fins de regra em nenhum dos dois repos (mesma ausência de geometria de [[mec-off-guard-pos]])",
+      "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a geometria de jogo EXISTE e é testada, só não é consumida por regra nenhuma — `packages/shared/src/grid/math.ts` tem `chebyshevDistance:262`, `squareCellDistance:320`, `squareMeasurePath:368`, `squareNeighborhoodCells:223` e os realces de círculo/linha/cone; `packages/shared/src/vision/` tem `segmentIntersect:125`, `computeVisibilityPolygon:250` e `isInLOS:437`; e as paredes são EmbeddedCollection da cena (`packages/shared/src/scene.ts:474-475`, REQ-VIS-001). O único consumidor de produção é a régua (`packages/client/src/lib/presence/rulerState.ts:143`). Falta a ponte entre posição e regra, não a matemática"
     ],
     "o_que_falta": "Medir a distância no canvas entre atacante e alvo e devolvê-la ao fluxo de ataque. É a mesma peça de geometria que falta para flanqueio e cobertura.",
     "depende_de": [
