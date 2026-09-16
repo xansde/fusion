@@ -1080,7 +1080,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     // em diante). Count exato de propósito: trait novo no glossário exige
     // regenerar via tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(217);
+    expect(keys.length).toBe(226);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);

@@ -14,18 +14,22 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (217 traits).
+ * Trait slug → pt-BR chip label (226 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
   acid: "ácido",
+  additive: "aditivo",
+  additive2: "aditivo2",
   agile: "ágil",
   air: "ar",
   alchemist: "alquimista",
+  amp: "amplificado",
   anadi: "anadi",
   android: "androide",
   animal: "animal",
   animist: "animista",
+  apparition: "aparicao",
   arcane: "arcano",
   archetype: "arquétipo",
   ardande: "ardande",
@@ -78,6 +82,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   emotion: "emoção",
   esoterica: "esotérica",
   evil: "maligno",
+  evolution: "evolucao",
   exemplar: "exemplar",
   exploration: "exploração",
   extradimensional: "extradimensional",
@@ -108,6 +113,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   holy: "sagrado",
   human: "humano",
   humanoid: "humanoide",
+  ikon: "icone",
   illusion: "ilusão",
   impulse: "impulso",
   incapacitation: "incapacitação",
@@ -131,8 +137,10 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   mental: "mental",
   metal: "metal",
   mindless: "sem-mente",
+  mindshift: "mudanca-de-mente",
   minotaur: "minotauro",
   misfortune: "azar",
+  modification: "modificacao",
   monk: "monge",
   morph: "metamorfose",
   move: "movimento",
@@ -229,6 +237,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   vitality: "vitalidade",
   void: "vazio",
   "volley-30": "salva-30",
+  wandering: "errante",
   water: "água",
   witch: "bruxo",
   wizard: "mago",
