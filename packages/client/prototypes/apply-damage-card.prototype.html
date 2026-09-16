@@ -471,7 +471,7 @@
       <span class="pill">🧪 Alquimista</span>
       <span class="spacer"></span>
       <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
-      <span class="who" id="who"></span>
+      <span class="who"><b>●</b> Gamemaster · <span style="color: var(--muted)">Mestre</span></span>
       <button class="btn">Sair</button>
     </div>
 
@@ -637,9 +637,8 @@
       </div>
     </div>
 
-    <!-- Switcher -->
+    <!-- Informational note -->
     <div class="switcher">
-      <button id="roleBtn">papel</button>
       <span class="lbl" id="lbl"></span>
     </div>
 
@@ -648,9 +647,6 @@
       const lbl = document.getElementById("lbl");
       lbl.textContent =
         "Protótipo com ambas as visões lado a lado (D-04): o jogador não recebe dados de PV na implementação real";
-
-      // Hide switcher button since we're not toggling anymore
-      document.getElementById("roleBtn").style.display = "none";
     </script>
   </body>
 </html>
