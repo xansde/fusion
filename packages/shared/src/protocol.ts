@@ -84,6 +84,13 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("chat:context"),
   // Invalidate/revalidate one message — REQ-CHT-005 (nothing is ever deleted)
   z.literal("chat:invalidate"),
+  // Spec 15 REQ-SYS-138..142 / spec 09 REQ-CHT-052/053 (plan do Alquimista,
+  // ALQ-F1-01/02, DEC-SYS-12): apply damage/condition to an actor is a CORE
+  // op (ActorMechanicsService) — the system only supplies the pure rule via
+  // registrar.registerActorMechanics. NOT a chat op even though its usual
+  // trigger is a damage-roll card's buttons (REQ-CHT-052).
+  z.literal("actor:applyDamage"),
+  z.literal("actor:applyCondition"),
   // Spec 39 — contact knowledge (general rule + per-character exceptions).
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
@@ -184,6 +191,23 @@ export const ErrorCodeSchema = z.union([
   z.literal("INTERNAL_ERROR"),
   /** M2-A: returned when a token:move is blocked by a wall. */
   z.literal("MOVE_BLOCKED"),
+  /**
+   * Spec 15 REQ-SYS-142 / spec 41 alquimista (ALQ-F1-01/02): a target/ownership
+   * assertion failed for `actor:applyDamage`/`actor:applyCondition` — e.g. a
+   * non-privileged caller referenced a `source.messageId` they do not OWNER-own,
+   * a payload with no snapshot to fall back to, or `assertTargetsSelected`
+   * (plan §2.3) finding a requested tokenId outside the caller's live selection.
+   * Deliberately distinct from `PERMISSION_DENIED` (coarser role gate used
+   * elsewhere): FORBIDDEN is always about "you don't own/target this specific
+   * thing", never about lacking a role outright.
+   */
+  z.literal("FORBIDDEN"),
+  /**
+   * Spec 15 REQ-SYS-142 step 6: `actor:applyDamage`/`actor:applyCondition`
+   * reached the ActorMechanicsService but no system registered
+   * `registerActorMechanics` — the op is a no-op, nothing is written.
+   */
+  z.literal("NOT_SUPPORTED"),
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -472,3 +496,272 @@ export type WorldActiveScenePayload = z.infer<typeof WorldActiveScenePayloadSche
 // keep the public surface minimal. If an explicit EmbeddedAddress type is
 // needed in M1-C, re-introduce it aligned with the actual payload schemas.
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// ApplyDamage / ApplyCondition — REQ-SYS-138..142 (spec 15), REQ-CHT-052/053
+// (spec 09), plan do Alquimista §2.1/§2.4 (ALQ-F1-01/02, DEC-SYS-12).
+//
+// `actor:applyDamage` and `actor:applyCondition` are CORE ops
+// (ActorMechanicsService, packages/server) — validated/authorized here, the
+// game-specific rule (IWR, dying, condition immunity…) is a pure function a
+// system registers via `registrar.registerActorMechanics`
+// (packages/system-api/src/actor-mechanics.ts). This file carries only the
+// wire contract: what a client may send and what the server broadcasts back.
+// The op HANDLER itself (ActorMechanicsService) is server behavior for
+// ALQ-F1-05/F1-08 — out of scope here.
+// ---------------------------------------------------------------------------
+
+/**
+ * Generic degree-of-success label (e.g. PF2e's four-degree remaster set).
+ * Deliberately a plain string, never a fixed enum — the engine does not
+ * hardcode a game system's rules (DEC-SYS-12; mirrors
+ * `RollResultData.degreeOfSuccess` in `chat/types.ts` and
+ * `DegreeOfSuccessResult.degree` in `@fusion/system-api`'s registries.ts,
+ * both `string` for the exact same reason).
+ */
+export type DegreeOfSuccess = string;
+
+/**
+ * A single damage/healing component of an `actor:applyDamage` instance.
+ *
+ * With `source` present, the server REREADS `type`/`category`/`critical`/
+ * `nonlethal`/`traits`/`materials`/`amount` from the roll gravada
+ * (`08-motor-de-rolagens.md` RollResult) for any non-privileged caller and
+ * IGNORES whatever the client sent for those fields (REQ-SYS-142 step 2b) —
+ * this schema stays PERMISSIVE (accepts them alongside `source`) on purpose:
+ * rejecting them here would reject exactly the shape a well-behaved
+ * privileged client (GM / `actingAs:"system"`) is allowed to send outright,
+ * and a non-privileged client sending them is a server-side "ignore", never a
+ * schema-level "reject" (REQ-SYS-142 is explicit that the response for that
+ * case is to silently reread, not to refuse the envelope). Permission-gated
+ * fields (`amount` without `source`, `traits`/`materials`/`critical`/
+ * `nonlethal` without `source`) are enforced by ActorMechanicsService, not by
+ * this schema — it has no caller role to check against.
+ */
+export const DamageInstanceInputSchema = z
+  .object({
+    /** Damage type slug ("fire", "piercing"…) or "healing" / "temp-hp". */
+    type: z.string().min(1).max(60),
+    category: z.enum(["persistent", "splash", "precision"]).optional(),
+    /** Only honoured from a privileged caller or `actingAs:"system"` without `source`. */
+    amount: z.number().optional(),
+    /** The server rereads the total (and, non-privileged, the rest of this shape) from here. */
+    source: z
+      .object({
+        messageId: z.string().min(1),
+        rollIndex: z.number().int().nonnegative(),
+      })
+      .strict()
+      .optional(),
+    /** IWR exceptions (e.g. "magical", "silver"). */
+    traits: z.array(z.string().min(1)).optional(),
+    /** cold-iron, silver… (F5-09). */
+    materials: z.array(z.string().min(1)).optional(),
+    critical: z.boolean().optional(),
+    nonlethal: z.boolean().optional(),
+  })
+  .strict()
+  .refine((instance) => instance.source !== undefined || instance.amount !== undefined, {
+    message: "DamageInstanceInput requires either `source` or `amount`",
+  });
+
+export type DamageInstanceInput = z.infer<typeof DamageInstanceInputSchema>;
+
+/**
+ * `actor:applyDamage` — client → server. REQ-SYS-142, REQ-CHT-052.
+ *
+ * `targetTokenIds`/`hardness`/`ignoreResistance` are GM-only overrides (or
+ * `actingAs:"system"`); a non-privileged caller applies to every token in the
+ * originating roll's `flags.fusion.targetSnapshot` instead — enforced by
+ * ActorMechanicsService (permission context isn't available to this schema).
+ * `multiplier` and `basicSave` ARE mutually exclusive at the schema level
+ * (REQ-SYS-142 step 1: "basicSave e multiplier juntos DEVEM ser rejeitados").
+ */
+export const ActorApplyDamagePayloadSchema = z
+  .object({
+    /** Same type in the same payload sums before IWR. */
+    instances: z.array(DamageInstanceInputSchema).min(1),
+    targetTokenIds: z.array(z.string().min(1)).optional(),
+    selfActorId: z.string().min(1).optional(),
+    multiplier: z.union([z.literal(0), z.literal(0.5), z.literal(1), z.literal(2)]).optional(),
+    basicSave: z
+      .object({ degree: z.string().min(1) })
+      .strict()
+      .optional(),
+    hardness: z.number().optional(),
+    /** Exploitive Bomb-style overrides. */
+    ignoreResistance: z
+      .array(z.object({ type: z.string().min(1), value: z.number() }).strict())
+      .optional(),
+  })
+  .strict()
+  .refine((payload) => !(payload.multiplier !== undefined && payload.basicSave !== undefined), {
+    message: "multiplier and basicSave are mutually exclusive",
+  });
+
+export type ActorApplyDamagePayload = z.infer<typeof ActorApplyDamagePayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// FusionExpiry — plan §2.5 (owner: ALQ-F2-01/EffectItem). Minimal forward
+// declaration: ActorApplyConditionPayload (this task, §2.4) references it for
+// `expiry`, and §2.5 already fixes the exact shape (not "contrato ausente" —
+// just owned by a later task). If F2-01 wants it elsewhere, move it; keep
+// this one in sync or re-export to avoid a duplicate/divergent definition.
+// ---------------------------------------------------------------------------
+
+export const ExpiryOnSchema = z.enum([
+  "turn-start",
+  "turn-end",
+  "round-end",
+  "combat-end",
+  "daily-prep",
+  "never",
+]);
+
+export type ExpiryOn = z.infer<typeof ExpiryOnSchema>;
+
+export const FusionExpirySchema = z
+  .object({
+    on: ExpiryOnSchema,
+    ownerActorId: z.string().min(1),
+    remainingRounds: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+export type FusionExpiry = z.infer<typeof FusionExpirySchema>;
+
+/**
+ * `actor:applyCondition` — client → server. REQ-SYS-142, spec 09 (chat
+ * protocol table), plan §2.4.
+ *
+ * GM on any actor; player on their own actor or on their live target
+ * selection (REQ-CBT-056) — enforced server-side, not by this schema.
+ */
+export const ActorApplyConditionPayloadSchema = z
+  .object({
+    targetTokenIds: z.array(z.string().min(1)),
+    selfActorId: z.string().min(1).optional(),
+    /** A condition slug the active system registered (+ "dead" for PF2e). */
+    slug: z.string().min(1),
+    mode: z.enum(["add", "remove", "set", "increase", "decrease"]),
+    value: z.number().nullable().optional(),
+    /** e.g. `{ instance: PersistentDamageInstance }` — opaque to the core. */
+    data: z.record(z.string(), z.unknown()).optional(),
+    expiry: FusionExpirySchema.optional(),
+    source: z
+      .object({
+        messageId: z.string().min(1).optional(),
+        itemUuid: z.string().min(1).optional(),
+        effectItemId: z.string().min(1).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export type ActorApplyConditionPayload = z.infer<typeof ActorApplyConditionPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// actor:damageApplied — NOT a socket envelope type. Per spec 09's own
+// protocol table, the summary is delivered as a `ChatMessage` (document:create)
+// whose card carries this shape — mirroring how `AbilityCardSchema` rides
+// `flags.pf2e.abilityCard` (packages/shared/src/chat/types.ts): this one is
+// core-level (DF-02: ApplyDamage is a core op), so it travels under
+// `flags.fusion.damageApplied`, the same "fusion" namespace as
+// `flags.fusion.targetSnapshot`/`rollContext`/`rollNotes` used throughout the
+// plan. Wiring this into ChatMessageSchema/ChatSendFlagsSchema is server
+// behavior (ALQ-F1-05/F1-08) — out of this task's scope; this only fixes the
+// payload SHAPE those flags will carry (REQ-CHT-053).
+// ---------------------------------------------------------------------------
+
+export const DamageAppliedTypeBreakdownSchema = z
+  .object({
+    type: z.string().min(1),
+    amount: z.number(),
+    /** Present when a resistance/weakness of this type applied. */
+    resistanceApplied: z.number().optional(),
+  })
+  .strict();
+
+export type DamageAppliedTypeBreakdown = z.infer<typeof DamageAppliedTypeBreakdownSchema>;
+
+/**
+ * One target's line in the `actor:damageApplied` summary (REQ-CHT-053: "uma
+ * linha por alvo"). `hpBefore`/`hpAfter`/`tempHpAfter`/`deathCondition` are
+ * PRIVILEGED-only — present for GM/owner, stripped by
+ * `packages/server/src/net/redaction.ts` before broadcast to a non-privileged
+ * viewer, who sees only `byType`/`total` (D-04, REQ-CHT-053). Optional here so
+ * a redacted payload still parses.
+ */
+export const DamageAppliedTargetSchema = z
+  .object({
+    tokenId: z.string().min(1),
+    actorId: z.string().min(1),
+    name: z.string().min(1),
+    byType: z.array(DamageAppliedTypeBreakdownSchema),
+    total: z.number(),
+    hpBefore: z.number().optional(),
+    hpAfter: z.number().optional(),
+    tempHpAfter: z.number().optional(),
+    /** null clears a previously-shown death condition. Privileged-only, like the HP fields above. */
+    deathCondition: z.enum(["dead", "dying", "unconscious"]).nullable().optional(),
+  })
+  .strict();
+
+export type DamageAppliedTarget = z.infer<typeof DamageAppliedTargetSchema>;
+
+export const ActorDamageAppliedPayloadSchema = z
+  .object({
+    sourceMessageId: z.string().min(1),
+    targets: z.array(DamageAppliedTargetSchema).min(1),
+  })
+  .strict();
+
+export type ActorDamageAppliedPayload = z.infer<typeof ActorDamageAppliedPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// Acks — TurnHookContext.applyDamage/applyCondition (system-api combat.ts)
+// resolve these. REQ-SYS-142: "o ack devolvido a usuário sem papel
+// privilegiado DEVE seguir a mesma redação do resumo" — ApplyDamageAck reuses
+// the same shape as the broadcast card for exactly that reason. Neither shape
+// is spelled out verbatim in plan §2.1 or spec 15 (both are illustrative,
+// "não-normativas em detalhes de campo" per spec 15's own disclaimer) — this
+// is this task's minimal, documented choice; ALQ-F1-05/F1-08 (the server op)
+// may refine it.
+// ---------------------------------------------------------------------------
+
+export type ApplyDamageAck = Ack<ActorDamageAppliedPayload>;
+
+export const ActorConditionAppliedResultSchema = z
+  .object({
+    actorId: z.string().min(1),
+    slug: z.string().min(1),
+    mode: z.enum(["add", "remove", "set", "increase", "decrease"]),
+    value: z.number().nullable().optional(),
+  })
+  .strict();
+
+export type ActorConditionAppliedResult = z.infer<typeof ActorConditionAppliedResultSchema>;
+
+export type ApplyConditionAck = Ack<{ targets: ActorConditionAppliedResult[] }>;
+
+// ---------------------------------------------------------------------------
+// Target-selection assertion — REQ-CBT-056, plan §2.3. TYPE ONLY: the plan
+// places the implementation at packages/server/src/combat/target-selection.ts
+// (server behavior — out of ALQ-F1-02's scope, which delivers types/schemas).
+// Not present in specs/15-api-de-sistemas.md's own contract block — registered
+// as an open divergence (see this task's report): the plan §2.3 is the only
+// normative source for this exact signature today.
+// ---------------------------------------------------------------------------
+
+/**
+ * Pure assertion ActorMechanicsService (REQ-SYS-142 step 3) uses before
+ * resolving `actor:applyCondition` targets from a non-privileged caller's LIVE
+ * target selection: every requested `tokenId` must be part of that user's
+ * current selection (REQ-CBT-056), or the op is FORBIDDEN.
+ */
+export type AssertTargetsSelectedFn = (
+  userId: string,
+  role: string,
+  tokenIds: readonly string[],
+) => { ok: true } | { ok: false; code: "FORBIDDEN"; missing: string[] };

@@ -24,6 +24,12 @@ import type {
   CombatantDocument,
   InitiativeEntry,
   InitiativeFormulaFn,
+  ActorApplyDamagePayload,
+  ActorApplyConditionPayload,
+  ApplyDamageAck,
+  ApplyConditionAck,
+  RollMode,
+  RollResultData,
 } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -97,6 +103,121 @@ export interface CombatSystemHooks {
 }
 
 // ---------------------------------------------------------------------------
+// Turn hooks — DEC-SYS-11 / DF-05: a registry with id + priority (NOT the
+// single CombatSystemHooks slot above), aguardado em série pelo servidor,
+// depois de persistir a transição de combate e antes do broadcast.
+//
+// `registerCombatHooks` (above) is NOT replaced: REQ-SYS-141 turns it into an
+// ADAPTER whose `turnStart`/`turnEnd`/`roundStart` functions each become one
+// entry here with id "legacy" and priority 0 (system-module.ts wires this).
+//
+// TYPE-LEVEL ONLY (ALQ-F1-02): the server that awaits/executes these hooks is
+// ALQ-F1-05/F1-08, out of this task's scope.
+//
+// Spec: 15-api-de-sistemas.md REQ-SYS-138..141 (verbatim shapes, including
+// `RoundHookFn`/`CombatEndHookFn` and `opts` on `onCombatEnd` — spec 15's own
+// code block defines these; plan §2.2 references `RoundHookFn` by name
+// without spelling it out and omits `opts` on its `onCombatEnd` line. Spec is
+// a strict, compatible superset here, so this file follows it — see this
+// task's report for the registered divergence against plan §2.2).
+// ---------------------------------------------------------------------------
+
+/**
+ * Hook invoked when a combatant's turn starts or ends.
+ *
+ * `combatant.actorId` mirrors `CombatantDocument.actorId` — the intersection
+ * is redundant today (the field is already `string | null` there) but kept
+ * verbatim to match the spec/plan contract text exactly.
+ */
+export type TurnHookFn = (
+  e: {
+    combat: CombatDocument;
+    combatant: CombatantDocument & { actorId: string | null };
+    actor: Record<string, unknown> | null;
+  },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+
+/** Hook invoked when a round starts or ends. Spec 15 (not in plan §2.2's own snippet). */
+export type RoundHookFn = (
+  e: { combat: CombatDocument; round: number },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+
+/** Hook invoked when a combat encounter ends. Spec 15's named form of plan §2.2's inline type. */
+export type CombatEndHookFn = (
+  e: { combat: CombatDocument; actorIds: string[] },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+
+/**
+ * Services available to a turn/round/combatEnd hook, acting on behalf of the
+ * system (`actingAs: "system"` — DEC-SYS-12). Every write goes through the
+ * SAME validation/persistence/broadcast path as a client op (REQ-SYS-140):
+ * the context does not offer direct database access.
+ */
+export interface TurnHookContext {
+  /** actingAs "system" — REQ-SYS-140. */
+  applyDamage(p: ActorApplyDamagePayload): Promise<ApplyDamageAck>;
+  applyCondition(p: ActorApplyConditionPayload): Promise<ApplyConditionAck>;
+  roll(
+    formula: string,
+    opts: { flavor: string; speakerActorId?: string; rollMode?: RollMode },
+  ): Promise<RollResultData>;
+  chat(card: {
+    content: string;
+    flags?: Record<string, unknown>;
+    speakerActorId?: string;
+  }): Promise<void>;
+  updateActor(actorId: string, diff: Record<string, unknown>): Promise<void>;
+  createEmbedded(actorId: string, items: Record<string, unknown>[]): Promise<void>;
+  deleteEmbedded(actorId: string, itemIds: string[]): Promise<void>;
+  worldTime: { round: number; turn: number };
+}
+
+/**
+ * One entry in a sorted, inspectable turn-hook registry (REQ-SYS-137:
+ * "um SystemModule é um valor puro ... inspecionável em teste de unidade").
+ */
+export interface RegisteredTurnHook<Fn> {
+  readonly id: string;
+  readonly priority: number;
+  readonly fn: Fn;
+}
+
+/**
+ * The five turn-hook registries carried on a built SystemModule, each already
+ * sorted per REQ-SYS-139 (priority descending, then registration order).
+ *
+ * Spec: 15-api-de-sistemas.md §"Hooks de turno aguardados e mecânica de ator".
+ */
+export interface TurnHookRegistrations {
+  readonly onTurnStart: ReadonlyArray<RegisteredTurnHook<TurnHookFn>>;
+  readonly onTurnEnd: ReadonlyArray<RegisteredTurnHook<TurnHookFn>>;
+  readonly onRoundStart: ReadonlyArray<RegisteredTurnHook<RoundHookFn>>;
+  readonly onRoundEnd: ReadonlyArray<RegisteredTurnHook<RoundHookFn>>;
+  readonly onCombatEnd: ReadonlyArray<RegisteredTurnHook<CombatEndHookFn>>;
+}
+
+/**
+ * The turn-hook registration surface added to SystemRegistrar (DEC-SYS-11).
+ *
+ * Every event accepts MULTIPLE callbacks (DF-05) — registering the same `id`
+ * twice for the SAME event, in the same system, MUST throw (REQ-SYS-138);
+ * the same `id` MAY be reused across DIFFERENT events (each event keeps its
+ * own id namespace). `priority` defaults to 0; within an event, callbacks run
+ * in priority-descending order, tie-broken by registration order
+ * (REQ-SYS-139).
+ */
+export interface TurnHookRegistrar {
+  onTurnStart(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
+  onTurnEnd(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
+  onRoundStart(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
+  onRoundEnd(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
+  onCombatEnd(id: string, fn: CombatEndHookFn, opts?: { priority?: number }): void;
+}
+
+// ---------------------------------------------------------------------------
 // Initiative formula registration — roll fn + optional compare (M5-A / E3)
 // ---------------------------------------------------------------------------
 
@@ -164,9 +285,13 @@ export function isInitiativeFormulaRegistrationObject(
  * initiative formulas and lifecycle hooks. The accumulated registrations are
  * exposed on the resulting SystemModule.combat.
  *
+ * Extends TurnHookRegistrar (DEC-SYS-11) so a system declares initiative
+ * formulas, the legacy lifecycle-hook slot, AND the id+priority turn hooks
+ * through the SAME registrar object.
+ *
  * Spec: 10-combate-e-iniciativa.md §system API.
  */
-export interface CombatRegistrar {
+export interface CombatRegistrar extends TurnHookRegistrar {
   /**
    * Register the initiative formula for a given combatType.
    *
@@ -215,6 +340,11 @@ export interface CombatRegistrar {
  * compare" signal (falls back to `defaultInitiativeComparator`).
  *
  * `hooks` is the single (optional) CombatSystemHooks for the system.
+ *
+ * `turnHooks` (DEC-SYS-11) is the id+priority registry described above —
+ * ALWAYS present (each of its five arrays is empty when the system
+ * registered nothing for that event), already merged with whatever
+ * `registerCombatHooks` contributed as `id: "legacy"` entries (REQ-SYS-141).
  */
 export interface SystemCombatConfig {
   /** combatType → InitiativeFormulaFn. One formula per combatType. Unchanged since before M5-A. */
@@ -226,4 +356,6 @@ export interface SystemCombatConfig {
   readonly initiativeCompares: ReadonlyMap<string, InitiativeCompareFn>;
   /** Lifecycle hooks, or null when the system registered none. */
   readonly hooks: CombatSystemHooks | null;
+  /** Sorted turn/round/combatEnd hook registrations (DEC-SYS-11, REQ-SYS-138..141). */
+  readonly turnHooks: TurnHookRegistrations;
 }
