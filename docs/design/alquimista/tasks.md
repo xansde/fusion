@@ -1082,6 +1082,66 @@ interface AdditiveDefinition { slug: string; featSlug: string; appliesTo(draft: 
 - **Lote e2e**: L1
 - **Decisão**: D-09 (decidido: pack novo `alchemical-items-core` + porte dos 35 itens do #107)
 
+### ALQ-F2-16 — Guard de skip do importer: a suíte de efeitos não pode falhar por falta de `out/`
+
+- **Repo**: satélite
+- **Onde**: `tools/importer-pf2e/src/__tests__/transform.test.mjs` (`OUT_DIR` 34, `OUT_MISSING` 44, e as 10 suítes declaradas com `{ skip: OUT_MISSING }`)
+- **Entrega**: O guard passa a checar o **arquivo** que cada suíte lê (`out/<pack>/transformed.json`), não a existência da pasta `out/`. Hoje `existsSync(OUT_DIR)` dá verdadeiro numa máquina cujo `out/` tem só `fusion-uuid-map.json`, a suíte não pula e os 7 subtestes de `effect duration normalization (ALQ-F2-02)` falham com `File not found`. Medido na onda 1: base `9945849f` = 115 pass / 52 fail; `feat/alquimista` = 128 pass / **59 fail**, e as 7 falhas novas são exatamente essa suíte.
+- **Depende de**: —
+- **Paralelo com**: qualquer tarefa da onda 2
+- **Modelo / esforço**: haiku / low — conserto localizado de guard, com medição antes e depois.
+- **Teste (TDD)**: rodar `node --test tools/importer-pf2e/src/__tests__/transform.test.mjs` antes (59 falhas) e depois (52 falhas, as 7 da F2-02 pulando com motivo). As duas suítes unitárias novas da F2-02 (`normalizeEffectDuration — encounter`, 4 testes; `normalizeEffectSystem — automation`, 3 testes) continuam rodando e passando — elas não leem `out/`.
+- **Prova visual (print)**: Sem UI.
+- **Spec/REQ**: —
+- **Tamanho**: P
+- **Onda**: 2
+- **Lote e2e**: L1
+
+### ALQ-F2-18 — Compêndio: pré-visualização mostra a duração do efeito
+
+- **Repo**: core
+- **Onde**: `packages/client/src/lib/compendium/documentDetails.ts::buildMechanicalFields` (≈1296-1315)
+- **Entrega**: `buildMechanicalFields()` ganha o caso `type: "effect"` e renderiza a duração em linguagem de mesa ("10 minutos", "1 rodada", "enquanto durar o encontro", "ilimitado"), respeitando `expiry` e `sustained`. Hoje não existe nenhum `case` para efeito: um documento com `duration: {unit:'minute', value:10}` abre sem campo de duração nenhum, e a linha da lista mostra só o rótulo cru `Unit minute`. É o que impediu a prova visual pedida pela ALQ-F2-02.
+- **Depende de**: ALQ-F2-02
+- **Paralelo com**: ALQ-F2-19
+- **Modelo / esforço**: sonnet / medium — UI com dado já pronto no pack.
+- **Teste (TDD)**: teste de `documentDetails` com os quatro shapes de duração do pack (`minute`/`round`/`encounter`/`unlimited`), asserindo o texto exibido pela regra do PF2e remaster, não pela string do vendor.
+- **Prova visual (print)**: Compêndio (GM) com "Effect: Elixir of Life" aberto mostrando a duração; depois da ALQ-F2-06/07, o mesmo print em pt-BR fecha a dívida da F2-02.
+- **Spec/REQ**: —
+- **Tamanho**: P
+- **Onda**: 3
+- **Lote e2e**: L1
+
+### ALQ-F2-19 — Compêndio: descrição sem HTML cru na pré-visualização
+
+- **Repo**: core
+- **Onde**: `packages/client/src/components/compendium/CompendiumPreviewWindow.svelte:267`
+- **Entrega**: A descrição deixa de aparecer com as tags literais na tela. Hoje a linha é `<p class="compendium-preview__description">{preview.description}</p>`, e como Svelte escapa a interpolação o jogador lê `<p>Granted by @UUID[...]</p>` na janela. Decidir entre sanitizar e renderizar o HTML ou converter para texto limpo antes de exibir — e tratar os `@UUID[...]` do vendor, que também vazam crus. Defeito **pré-existente**, observado no print `03-preview-elixir-of-life.png` da onda 1.
+- **Depende de**: —
+- **Paralelo com**: ALQ-F2-18
+- **Modelo / esforço**: sonnet / medium — decisão de render com risco de XSS se mal feita.
+- **Teste (TDD)**: teste de componente/VM com descrição contendo `<p>`, `<em>` e `@UUID[...]`, asserindo que o texto exibido não contém marcação crua e que nada executável sobrevive à sanitização.
+- **Prova visual (print)**: Mesma janela do print `03-preview-elixir-of-life.png`, agora sem tags na tela.
+- **Spec/REQ**: —
+- **Tamanho**: P
+- **Onda**: 3
+- **Lote e2e**: L1
+
+### ALQ-F2-20 — Curadoria: confirmar os dois Aeon Stones do `equipment-effects-core`
+
+- **Repo**: satélite
+- **Onde**: `tools/importer-pf2e/src/build-mvp-subset.mjs` (lista curada do pack, ≈782); exige o clone de `tools/importer-pf2e/vendor/`
+- **Entrega**: `Effect: Aeon Stone (Pink Rhomboid)` e `Effect: Aeon Stone Resonance (Black Disc)` entraram no pack na ALQ-F2-02 e podem ser pré-remaster/OGL. Rodar extract+transform com o vendor presente, checar a `publication` de cada um e decidir: sai do pack ou fica documentado como ORC. `Aura: Demon's Knot` já foi confirmado pré-remaster (Pathfinder #195) e está documentado. Achado da revisão adversarial da onda 1, deixado em aberto por falta do vendor na máquina.
+- **Depende de**: ALQ-F2-02
+- **Paralelo com**: qualquer tarefa da onda 4
+- **Modelo / esforço**: haiku / low — medição no vendor e ajuste de lista.
+- **Teste (TDD)**: teste de política do pack: todo documento publicado tem `publication.remaster === true` ou consta na lista explícita de exceções documentadas.
+- **Prova visual (print)**: Sem UI.
+- **Spec/REQ**: —
+- **Tamanho**: P
+- **Onda**: 4
+- **Lote e2e**: L1
+
 ### F3 — Núcleo alquímico
 
 ### ALQ-F3-01 — Spec nova `47-fabricacao-e-alquimia.md` (FAB) + emendas 15/17

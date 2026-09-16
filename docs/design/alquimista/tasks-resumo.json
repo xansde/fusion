@@ -498,6 +498,54 @@
     "decisoes": ["D-09"]
   },
   {
+    "id": "ALQ-F2-16",
+    "fase": 2,
+    "titulo": "Guard de skip do importer: a suíte de efeitos não pode falhar por falta de `out/`",
+    "repo": "satélite",
+    "modelo": "haiku",
+    "esforco": "low",
+    "onda": 2,
+    "lote": "L1",
+    "depende": [],
+    "decisoes": []
+  },
+  {
+    "id": "ALQ-F2-18",
+    "fase": 2,
+    "titulo": "Compêndio: pré-visualização mostra a duração do efeito",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L1",
+    "depende": ["ALQ-F2-02"],
+    "decisoes": []
+  },
+  {
+    "id": "ALQ-F2-19",
+    "fase": 2,
+    "titulo": "Compêndio: descrição sem HTML cru na pré-visualização",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L1",
+    "depende": [],
+    "decisoes": []
+  },
+  {
+    "id": "ALQ-F2-20",
+    "fase": 2,
+    "titulo": "Curadoria: confirmar os dois Aeon Stones do `equipment-effects-core`",
+    "repo": "satélite",
+    "modelo": "haiku",
+    "esforco": "low",
+    "onda": 4,
+    "lote": "L1",
+    "depende": ["ALQ-F2-02"],
+    "decisoes": []
+  },
+  {
     "id": "ALQ-F3-01",
     "fase": 3,
     "titulo": "Spec nova `47-fabricacao-e-alquimia.md` (FAB) + emendas 15/17",
