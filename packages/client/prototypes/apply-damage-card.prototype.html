@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROTOTYPE — AbilityCard com Aplicar Dano (ALQ-F1-03)</title>
+    <!--
+  PROTOTYPE — throwaway. Protótipo do cartão de habilidade com opções de aplicação
+  de dano, mostrado após uma rolagem bem-sucedida. A especificação é implícita em
+  docs/design/alquimista/tasks.md, decisão D-04.
+
+  ESCOPO:
+    · AbilityCard: exibe o nome, nível de alura do alquimista, descrição curtida.
+    · Botões de aplicação: "Aplicar", "½", "×2", "Curar", "PV temporário".
+    · Lista de alvos: exibe os tokens selecionados no momento da rolagem (foto
+      dos alvos gravada na mensagem, nunca reavaliada).
+    · Card-resumo com DUAS VISÕES (D-04):
+        – GM vê: nome do alvo, PV restantes, dano causado, resistências aplicadas.
+        – Player vê: APENAS o dano causado (sem PV, sem identidade do NPC).
+      A diferença entre as duas visões é o ponto desta tarefa.
+    · Seletor de condição: "em mim" / "nos alvos" com campo de valor para
+      condições parametrizadas (ex.: assustado 2, envenenado 3).
+    · Não faz parte do design: switcher no rodapé para alternar papel (apenas
+      para demonstração do protótipo).
+
+  NÃO É CÓDIGO DE PRODUÇÃO; não importar nada daqui sem reescrever.
+-->
+    <style>
+      :root {
+        --bg: #0e0e12;
+        --surface: #18181f;
+        --surface-alt: #1f1f2a;
+        --border: #2e2e3d;
+        --text: #e8e8f0;
+        --muted: #8888a0;
+        --subtle: #55556a;
+        --accent: #7c5cfc;
+        --accent-hover: #9b7ffe;
+        --accent-dim: rgba(124, 92, 252, 0.15);
+        --danger: #ff5c5c;
+        --warn: #e5b83b;
+        --ok: #3ddc84;
+        --radius-sm: 4px;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 14px;
+        overflow: hidden;
+      }
+
+      /* Header (mock) */
+      .header {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        z-index: 200;
+      }
+      .header .bolt {
+        color: #f5a623;
+      }
+      .header .world {
+        font-weight: 600;
+      }
+      .header .pill {
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        color: var(--accent-hover);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .header .spacer {
+        flex: 1;
+      }
+      .header .status {
+        color: var(--muted);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+      .header .who {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: 0.8rem;
+      }
+      .header .who b {
+        color: var(--danger);
+      }
+      .header .who.player b {
+        color: var(--ok);
+      }
+      .header .btn {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 0.2rem 0.6rem;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+
+      /* Main stage */
+      .stage {
+        position: absolute;
+        top: 48px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #0b0b0f;
+        overflow: auto;
+        padding: 2rem;
+        display: flex;
+        gap: 2rem;
+      }
+
+      /* Ability Card */
+      .card-container {
+        flex: 0 0 400px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        height: fit-content;
+      }
+
+      .card-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .card-header .title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 0.25rem;
+      }
+      .card-header .subtitle {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .card-body {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: var(--text);
+        margin-bottom: 1rem;
+      }
+
+      /* Buttons row */
+      .buttons-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .btn-apply {
+        background: var(--accent);
+        color: #fff;
+        border: 0;
+        border-radius: var(--radius-sm);
+        padding: 0.4rem 0.8rem;
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        flex: 1;
+        min-width: 80px;
+      }
+      .btn-apply:hover {
+        background: var(--accent-hover);
+      }
+      .btn-mod {
+        background: var(--surface-alt);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.4rem 0.6rem;
+        font: inherit;
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+      .btn-mod:hover {
+        background: var(--border);
+      }
+
+      /* Targets list */
+      .targets-section {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .targets-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+      .targets-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .target-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: var(--surface-alt);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+      }
+      .target-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--accent-dim);
+        border: 1px solid var(--accent);
+        flex-shrink: 0;
+      }
+      .target-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .target-name {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+      .target-type {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 0.1rem;
+      }
+
+      /* Damage Summary (D-04: two views) */
+      .summary-section {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .summary-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+
+      /* GM View: complete breakdown */
+      .summary-gm {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .summary-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.4rem 0;
+        font-size: 0.8rem;
+        line-height: 1.4;
+      }
+      .summary-row .label {
+        color: var(--muted);
+        min-width: 100px;
+        flex-shrink: 0;
+      }
+      .summary-row .value {
+        color: var(--text);
+        flex: 1;
+      }
+      .summary-row.pv-full {
+        background: var(--surface-alt);
+        padding: 0.4rem 0.5rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+      }
+      .pv-bar {
+        height: 16px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 0.25rem;
+      }
+      .pv-bar .fill {
+        height: 100%;
+        background: var(--ok);
+        transition: width 0.3s;
+      }
+      .pv-bar.low .fill {
+        background: var(--warn);
+      }
+      .pv-bar.critical .fill {
+        background: var(--danger);
+      }
+
+      /* Player View: only damage caused */
+      .summary-player {
+        background: var(--surface-alt);
+        border: 1px solid var(--accent-dim);
+        border-radius: var(--radius);
+        padding: 0.75rem;
+        text-align: center;
+      }
+      .summary-player .damage-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--warn);
+        line-height: 1;
+      }
+      .summary-player .damage-desc {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.25rem;
+      }
+      .summary-player .resistance-note {
+        font-size: 0.75rem;
+        color: var(--subtle);
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border);
+      }
+
+      /* Condition selector */
+      .condition-section {
+        padding-bottom: 0;
+      }
+      .condition-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+      .condition-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .condition-row {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .condition-select {
+        flex: 1;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.5rem;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+      .condition-value {
+        width: 60px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--radius-sm);
+        padding: 0.35rem 0.5rem;
+        font: inherit;
+        font-size: 0.8rem;
+      }
+      .condition-row.self .condition-select::after {
+        content: " (em mim)";
+      }
+      .condition-row.targets .condition-select::after {
+        content: " (nos alvos)";
+      }
+
+      /* Switcher (not part of design) */
+      .switcher {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff;
+        color: #111;
+        border-radius: 999px;
+        padding: 0.35rem 0.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .switcher button {
+        border: 0;
+        background: #111;
+        color: #fff;
+        height: 28px;
+        padding: 0 0.7rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 600;
+      }
+      .switcher .lbl {
+        padding: 0 0.5rem;
+        color: #555;
+        font-weight: 400;
+        font-size: 0.72rem;
+        max-width: 300px;
+      }
+
+      /* Hidden states */
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <span class="bolt">⚡</span>
+      <span class="world">teste_xande</span>
+      <span class="pill">🧪 Alquimista</span>
+      <span class="spacer"></span>
+      <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+      <span class="who" id="who"></span>
+      <button class="btn">Sair</button>
+    </div>
+
+    <div class="stage">
+      <!-- Ability Card -->
+      <div class="card-container">
+        <div class="card-header">
+          <h2 class="title">Bomba Ácida</h2>
+          <p class="subtitle">Alquimista 4 · Ação · Magia Primária</p>
+        </div>
+
+        <div class="card-body">
+          <p>
+            Você lança uma bomba instável que explode em um nuvem de ácido causador de ferimentos
+            queimante.
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="buttons-row">
+          <button class="btn-apply">Aplicar</button>
+          <button class="btn-mod">½</button>
+          <button class="btn-mod">×2</button>
+          <button class="btn-mod">Curar</button>
+          <button class="btn-mod">PV temp</button>
+        </div>
+
+        <!-- Targets -->
+        <div class="targets-section">
+          <div class="targets-label">Alvos da ação</div>
+          <div class="targets-list">
+            <div class="target-item">
+              <div class="target-avatar" style="background: #d4a574; color: #000">G</div>
+              <div class="target-info">
+                <div class="target-name">Goblin Guerreiro</div>
+                <div class="target-type">NPC · Humanóide</div>
+              </div>
+            </div>
+            <div class="target-item">
+              <div class="target-avatar" style="background: #8b7355; color: #fff">O</div>
+              <div class="target-info">
+                <div class="target-name">Ogre Feiticeiro</div>
+                <div class="target-type">NPC · Humanóide</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary (D-04: Different views for GM vs Player) -->
+        <div class="summary-section">
+          <div class="summary-label">Resumo do dano</div>
+
+          <!-- GM View -->
+          <div id="summaryGm" class="summary-gm">
+            <div class="summary-row pv-full">
+              <span class="label">Goblin Guerreiro</span>
+              <span class="value">PV: 12 / 28</span>
+            </div>
+            <div
+              style="
+                background: var(--surface-alt);
+                padding: 0.4rem 0.5rem;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+              "
+            >
+              <div class="summary-row">
+                <span class="label">Dano causado:</span>
+                <span class="value" style="color: var(--warn); font-weight: 600">16</span>
+              </div>
+              <div class="pv-bar">
+                <div class="fill" style="width: 43%"></div>
+              </div>
+              <div class="summary-row" style="margin-top: 0.4rem; font-size: 0.75rem">
+                <span class="label">Resistência ácido:</span>
+                <span class="value">−5</span>
+              </div>
+            </div>
+            <div class="summary-row pv-full">
+              <span class="label">Ogre Feiticeiro</span>
+              <span class="value">PV: 8 / 32</span>
+            </div>
+            <div
+              style="
+                background: var(--surface-alt);
+                padding: 0.4rem 0.5rem;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+              "
+            >
+              <div class="summary-row">
+                <span class="label">Dano causado:</span>
+                <span class="value" style="color: var(--warn); font-weight: 600">21</span>
+              </div>
+              <div class="pv-bar">
+                <div class="fill" style="width: 66%"></div>
+              </div>
+              <div class="summary-row" style="margin-top: 0.4rem; font-size: 0.75rem">
+                <span class="label">Imunidade ácido:</span>
+                <span class="value">nenhum dano</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player View (D-04: only damage, no HP remaining) -->
+          <div id="summaryPlayer" class="summary-player hidden">
+            <div class="damage-value">16</div>
+            <div class="damage-desc">dano causado ao alvo 1 (ácido)</div>
+            <div class="resistance-note">Resistência aplicada: −5</div>
+            <div
+              style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border)"
+            >
+              <div
+                class="damage-value"
+                style="font-size: 1.4rem; color: var(--ok); margin-bottom: 0.25rem"
+              >
+                21
+              </div>
+              <div class="damage-desc">dano causado ao alvo 2 (ácido)</div>
+              <div class="resistance-note">Sem resistência ou imunidade</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Condition Selector -->
+        <div class="condition-section">
+          <div class="condition-label">Aplicar condição</div>
+          <div class="condition-controls">
+            <div class="condition-row self">
+              <select class="condition-select">
+                <option>— em mim</option>
+                <option>Envenenado</option>
+                <option>Assustado</option>
+                <option>Enfraquecido</option>
+                <option>Enfermo</option>
+              </select>
+              <input type="number" class="condition-value" placeholder="valor" min="0" max="10" />
+            </div>
+            <div class="condition-row targets">
+              <select class="condition-select">
+                <option>— nos alvos</option>
+                <option>Envenenado</option>
+                <option>Assustado</option>
+                <option>Enfraquecido</option>
+                <option>Enfermo</option>
+              </select>
+              <input type="number" class="condition-value" placeholder="valor" min="0" max="10" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Switcher -->
+    <div class="switcher">
+      <button id="roleBtn">papel</button>
+      <span class="lbl" id="lbl"></span>
+    </div>
+
+    <script>
+      let role = new URLSearchParams(location.search).get("role") === "player" ? "player" : "gm";
+
+      function updateView() {
+        const isGm = role === "gm";
+
+        // Update header
+        const who = document.getElementById("who");
+        who.className = isGm ? "who" : "who player";
+        who.innerHTML = isGm
+          ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
+          : '<b>●</b> Fofurinha · <span style="color:var(--muted)">Jogador</span>';
+
+        // Update summary visibility (D-04)
+        document.getElementById("summaryGm").classList.toggle("hidden", !isGm);
+        document.getElementById("summaryPlayer").classList.toggle("hidden", isGm);
+
+        // Update label
+        const lbl = document.getElementById("lbl");
+        if (isGm) {
+          lbl.textContent = "GM: vê PV restante e completo resumo (D-04)";
+        } else {
+          lbl.textContent = "Jogador: vê só dano causado, sem PV (D-04)";
+        }
+
+        // Update URL
+        const u = new URL(location);
+        u.searchParams.set("role", role);
+        history.replaceState(null, "", u);
+      }
+
+      document.getElementById("roleBtn").onclick = () => {
+        role = role === "gm" ? "player" : "gm";
+        updateView();
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "SELECT"].includes(document.activeElement.tagName)) return;
+        if (e.key === "p" || e.key === "P") {
+          role = role === "gm" ? "player" : "gm";
+          updateView();
+        }
+      });
+
+      updateView();
+    </script>
+  </body>
+</html>
