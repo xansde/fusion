@@ -8,19 +8,24 @@
   de dano, mostrado após uma rolagem bem-sucedida. A especificação é implícita em
   docs/design/alquimista/tasks.md, decisão D-04.
 
+  ATENÇÃO IMPLEMENTADORES (F1-10/F1-11): Este arquivo mostra as duas visões (GM e Player)
+  lado a lado por conveniência de comparação, mas é um mockup ESTÁTICO. Na implementação real:
+  - O resumo do jogador é REDIGIDO NO SERVIDOR (REQ-CHT-053, packages/server/src/net/redaction.ts)
+  - Usa isRolePrivileged de documents/ownership.ts para incluir/excluir campos
+  - O PV restante do alvo NÃO É ENVIADO ao cliente do jogador — esconder por CSS seria
+    antipadrão e uma brecha de segurança. O servidor não envia o dado.
+  - O resumo do GM vai sem filtro; o resumo do jogador é um documento separado redigido.
+
   ESCOPO:
-    · AbilityCard: exibe o nome, nível de alura do alquimista, descrição curtida.
+    · AbilityCard: exibe o nome, nível do alquimista, descrição.
     · Botões de aplicação: "Aplicar", "½", "×2", "Curar", "PV temporário".
-    · Lista de alvos: exibe os tokens selecionados no momento da rolagem (foto
-      dos alvos gravada na mensagem, nunca reavaliada).
-    · Card-resumo com DUAS VISÕES (D-04):
-        – GM vê: nome do alvo, PV restantes, dano causado, resistências aplicadas.
-        – Player vê: APENAS o dano causado (sem PV, sem identidade do NPC).
-      A diferença entre as duas visões é o ponto desta tarefa.
-    · Seletor de condição: "em mim" / "nos alvos" com campo de valor para
-      condições parametrizadas (ex.: assustado 2, envenenado 3).
-    · Não faz parte do design: switcher no rodapé para alternar papel (apenas
-      para demonstração do protótipo).
+    · Lista de alvos: tokens selecionados na rolagem (captura gravada, nunca reavaliada).
+    · Card-resumo com DUAS VISÕES lado a lado (D-04):
+        – Mestre: nome do alvo, PV restantes, dano causado, resistências/imunidades.
+        – Jogador: APENAS nome do alvo e dano causado (sem PV restantes, sempre).
+      A diferença é estrutural: o jogador vê um documento diferente, redigido no servidor.
+    · Seletor de condição: "em mim" / "nos alvos" com campo de valor.
+    · Switcher no rodapé (não é parte do design) para alternar papel, se quiser comparar.
 
   NÃO É CÓDIGO DE PRODUÇÃO; não importar nada daqui sem reescrever.
 -->
@@ -271,6 +276,23 @@
         padding-bottom: 1rem;
         border-bottom: 1px solid var(--border);
       }
+      .summary-views {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .summary-view {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .summary-view-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--accent);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
       .summary-label {
         font-size: 0.75rem;
         font-weight: 700;
@@ -440,11 +462,6 @@
         font-size: 0.72rem;
         max-width: 300px;
       }
-
-      /* Hidden states */
-      .hidden {
-        display: none !important;
-      }
     </style>
   </head>
   <body>
@@ -468,7 +485,7 @@
 
         <div class="card-body">
           <p>
-            Você lança uma bomba instável que explode em um nuvem de ácido causador de ferimentos
+            Você lança uma bomba instável que explode em uma nuvem de ácido causador de ferimentos
             queimante.
           </p>
         </div>
@@ -507,74 +524,86 @@
         <div class="summary-section">
           <div class="summary-label">Resumo do dano</div>
 
-          <!-- GM View -->
-          <div id="summaryGm" class="summary-gm">
-            <div class="summary-row pv-full">
-              <span class="label">Goblin Guerreiro</span>
-              <span class="value">PV: 12 / 28</span>
+          <div class="summary-views">
+            <!-- GM View: complete breakdown -->
+            <div class="summary-view">
+              <div class="summary-view-title">Visão do Mestre</div>
+              <div class="summary-gm">
+                <div class="summary-row pv-full">
+                  <span class="label">Goblin Guerreiro</span>
+                  <span class="value">PV: 12 / 28</span>
+                </div>
+                <div
+                  style="
+                    background: var(--surface-alt);
+                    padding: 0.4rem 0.5rem;
+                    border-radius: var(--radius-sm);
+                    border: 1px solid var(--border);
+                  "
+                >
+                  <div class="summary-row">
+                    <span class="label">Dano causado:</span>
+                    <span class="value" style="color: var(--warn); font-weight: 600">16</span>
+                  </div>
+                  <div class="pv-bar">
+                    <div class="fill" style="width: 43%"></div>
+                  </div>
+                  <div class="summary-row" style="margin-top: 0.4rem; font-size: 0.75rem">
+                    <span class="label">Resistência ácido:</span>
+                    <span class="value">−5</span>
+                  </div>
+                </div>
+                <div class="summary-row pv-full">
+                  <span class="label">Ogre Feiticeiro</span>
+                  <span class="value">PV: 16 / 32</span>
+                </div>
+                <div
+                  style="
+                    background: var(--surface-alt);
+                    padding: 0.4rem 0.5rem;
+                    border-radius: var(--radius-sm);
+                    border: 1px solid var(--border);
+                  "
+                >
+                  <div class="summary-row">
+                    <span class="label">Dano causado:</span>
+                    <span class="value" style="color: var(--warn); font-weight: 600">16</span>
+                  </div>
+                  <div class="pv-bar">
+                    <div class="fill" style="width: 50%"></div>
+                  </div>
+                  <div class="summary-row" style="margin-top: 0.4rem; font-size: 0.75rem">
+                    <span class="label">Sem resistência ou imunidade:</span>
+                    <span class="value">dano total</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div
-              style="
-                background: var(--surface-alt);
-                padding: 0.4rem 0.5rem;
-                border-radius: var(--radius-sm);
-                border: 1px solid var(--border);
-              "
-            >
-              <div class="summary-row">
-                <span class="label">Dano causado:</span>
-                <span class="value" style="color: var(--warn); font-weight: 600">16</span>
-              </div>
-              <div class="pv-bar">
-                <div class="fill" style="width: 43%"></div>
-              </div>
-              <div class="summary-row" style="margin-top: 0.4rem; font-size: 0.75rem">
-                <span class="label">Resistência ácido:</span>
-                <span class="value">−5</span>
-              </div>
-            </div>
-            <div class="summary-row pv-full">
-              <span class="label">Ogre Feiticeiro</span>
-              <span class="value">PV: 8 / 32</span>
-            </div>
-            <div
-              style="
-                background: var(--surface-alt);
-                padding: 0.4rem 0.5rem;
-                border-radius: var(--radius-sm);
-                border: 1px solid var(--border);
-              "
-            >
-              <div class="summary-row">
-                <span class="label">Dano causado:</span>
-                <span class="value" style="color: var(--warn); font-weight: 600">21</span>
-              </div>
-              <div class="pv-bar">
-                <div class="fill" style="width: 66%"></div>
-              </div>
-              <div class="summary-row" style="margin-top: 0.4rem; font-size: 0.75rem">
-                <span class="label">Imunidade ácido:</span>
-                <span class="value">nenhum dano</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- Player View (D-04: only damage, no HP remaining) -->
-          <div id="summaryPlayer" class="summary-player hidden">
-            <div class="damage-value">16</div>
-            <div class="damage-desc">dano causado ao alvo 1 (ácido)</div>
-            <div class="resistance-note">Resistência aplicada: −5</div>
-            <div
-              style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border)"
-            >
-              <div
-                class="damage-value"
-                style="font-size: 1.4rem; color: var(--ok); margin-bottom: 0.25rem"
-              >
-                21
+            <!-- Player View: only damage, no HP -->
+            <div class="summary-view">
+              <div class="summary-view-title">Visão do Jogador</div>
+              <div class="summary-player">
+                <div class="damage-value">16</div>
+                <div class="damage-desc">dano causado a Goblin Guerreiro (ácido)</div>
+                <div class="resistance-note">Resistência aplicada: −5</div>
+                <div
+                  style="
+                    margin-top: 0.75rem;
+                    padding-top: 0.75rem;
+                    border-top: 1px solid var(--border);
+                  "
+                >
+                  <div
+                    class="damage-value"
+                    style="font-size: 1.4rem; color: var(--ok); margin-bottom: 0.25rem"
+                  >
+                    16
+                  </div>
+                  <div class="damage-desc">dano causado a Ogre Feiticeiro (ácido)</div>
+                  <div class="resistance-note">Sem resistência ou imunidade</div>
+                </div>
               </div>
-              <div class="damage-desc">dano causado ao alvo 2 (ácido)</div>
-              <div class="resistance-note">Sem resistência ou imunidade</div>
             </div>
           </div>
         </div>
@@ -615,50 +644,13 @@
     </div>
 
     <script>
-      let role = new URLSearchParams(location.search).get("role") === "player" ? "player" : "gm";
+      // Informational label only — both views are always visible for comparison
+      const lbl = document.getElementById("lbl");
+      lbl.textContent =
+        "Protótipo com ambas as visões lado a lado (D-04): o jogador não recebe dados de PV na implementação real";
 
-      function updateView() {
-        const isGm = role === "gm";
-
-        // Update header
-        const who = document.getElementById("who");
-        who.className = isGm ? "who" : "who player";
-        who.innerHTML = isGm
-          ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
-          : '<b>●</b> Fofurinha · <span style="color:var(--muted)">Jogador</span>';
-
-        // Update summary visibility (D-04)
-        document.getElementById("summaryGm").classList.toggle("hidden", !isGm);
-        document.getElementById("summaryPlayer").classList.toggle("hidden", isGm);
-
-        // Update label
-        const lbl = document.getElementById("lbl");
-        if (isGm) {
-          lbl.textContent = "GM: vê PV restante e completo resumo (D-04)";
-        } else {
-          lbl.textContent = "Jogador: vê só dano causado, sem PV (D-04)";
-        }
-
-        // Update URL
-        const u = new URL(location);
-        u.searchParams.set("role", role);
-        history.replaceState(null, "", u);
-      }
-
-      document.getElementById("roleBtn").onclick = () => {
-        role = role === "gm" ? "player" : "gm";
-        updateView();
-      };
-
-      document.addEventListener("keydown", (e) => {
-        if (["INPUT", "SELECT"].includes(document.activeElement.tagName)) return;
-        if (e.key === "p" || e.key === "P") {
-          role = role === "gm" ? "player" : "gm";
-          updateView();
-        }
-      });
-
-      updateView();
+      // Hide switcher button since we're not toggling anymore
+      document.getElementById("roleBtn").style.display = "none";
     </script>
   </body>
 </html>
