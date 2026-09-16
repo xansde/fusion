@@ -68,6 +68,10 @@ import {
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
+import {
+  createTurnHookRunner,
+  createStubTurnHookContextServices,
+} from "../combat/turn-hook-runner.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
 import {
@@ -427,6 +431,16 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
+    // alongside (not instead of) the fire-and-forget CombatEventBus above.
+    // `services` are stubs until ALQ-F1-08 (applyDamage/ActorMechanicsService)
+    // and ALQ-F1-09 (applyCondition) land the real implementations — see
+    // combat/turn-hook-runner.ts's header comment.
+    const turnHookRunner = createTurnHookRunner({
+      systemModule,
+      services: createStubTurnHookContextServices(),
+      logger: this.logger,
+    });
     const combatDeps = {
       store,
       seqStore,
@@ -434,6 +448,7 @@ export class SocketManager {
       ns,
       formulaRegistry,
       eventBus,
+      turnHookRunner,
       db,
       worldId,
       logger: this.logger,
