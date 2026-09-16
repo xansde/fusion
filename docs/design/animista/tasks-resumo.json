@@ -1,0 +1,632 @@
+[
+  {
+    "id": "ANI-F0-01",
+    "fase": 0,
+    "titulo": "Spec 50 (REQ-ANI) + emendas da 17",
+    "repo": "core",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 1,
+    "lote": "L1",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-02",
+    "fase": 0,
+    "titulo": "Validar o PR #57 no recorte do Animista",
+    "repo": "satélite",
+    "modelo": "haiku",
+    "esforco": "low",
+    "onda": 1,
+    "lote": "L1",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-03",
+    "fase": 0,
+    "titulo": "Pin do satélite e varredura de regressão das 27 classes",
+    "repo": "core",
+    "modelo": "haiku",
+    "esforco": "low",
+    "onda": 2,
+    "lote": "L1",
+    "depende": [
+      "ANI-F0-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-04",
+    "fase": 0,
+    "titulo": "pt-BR da classe, práticas, aparições e features (lote A)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L1",
+    "depende": [
+      "ANI-F0-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-05",
+    "fase": 0,
+    "titulo": "pt-BR dos 39 talentos de classe (lote B)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 4,
+    "lote": "L1",
+    "depende": [
+      "ANI-F0-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-06",
+    "fase": 0,
+    "titulo": "Eixo \"Prática Animista\" no picker",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 5,
+    "lote": "L1",
+    "depende": [
+      "ANI-F0-03",
+      "ANI-F0-04"
+    ],
+    "dependeExterno": [
+      "ALQ-F0-07"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-07",
+    "fase": 0,
+    "titulo": "Proficiência de conjuração que progride (transversal)",
+    "repo": "satélite",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L1",
+    "depende": [
+      "ANI-F0-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F0-08",
+    "fase": 0,
+    "titulo": "Roteiro tutorial-e2e da A-F0",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 6,
+    "lote": "L1",
+    "depende": [
+      "ANI-F0-06",
+      "ANI-F0-07"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-01",
+    "fase": 1,
+    "titulo": "Motor de tipos de conjuração no engine-2e (D-A06)",
+    "repo": "satélite",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 1,
+    "lote": "L2",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-02",
+    "fase": 1,
+    "titulo": "Uma classe pode declarar N progressões",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 3,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-01",
+      "ANI-F0-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-03",
+    "fase": 1,
+    "titulo": "Escolher a classe cria as duas entradas",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 4,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-04",
+    "fase": 1,
+    "titulo": "Repertório espontâneo: schema e derivação",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 4,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-05",
+    "fase": 1,
+    "titulo": "Aba de aparição: espaços genéricos e escolha de patamar",
+    "repo": "satélite",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-03",
+      "ANI-F1-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-06",
+    "fase": 1,
+    "titulo": "Curadoria do Animista com as duas metades",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 4,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-07",
+    "fase": 1,
+    "titulo": "Abrir o spells-core para todas as tradições (D-A01)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 4,
+    "lote": "L2",
+    "depende": [
+      "ANI-F0-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-08",
+    "fase": 1,
+    "titulo": "pt-BR das 488 magias novas",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-07"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F1-09",
+    "fase": 1,
+    "titulo": "Roteiro tutorial-e2e da A-F1",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 8,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-05",
+      "ANI-F1-08"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-01",
+    "fase": 2,
+    "titulo": "Estado de sintonia no ator",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 3,
+    "lote": "L2",
+    "depende": [
+      "ANI-F0-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-02",
+    "fase": 2,
+    "titulo": "Sintonia como etapa da preparação diária (D-A05)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 6,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F3-05"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-03",
+    "fase": 2,
+    "titulo": "Painel de sintonia (descanso e ajuste manual)",
+    "repo": "satélite",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 7,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-A05"
+    ]
+  },
+  {
+    "id": "ANI-F2-04",
+    "fase": 2,
+    "titulo": "Lore temporária da sintonia",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 6,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-05",
+    "fase": 2,
+    "titulo": "Repertório derivado das aparições sintonizadas",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 7,
+    "lote": "L2",
+    "depende": [
+      "ANI-F1-04",
+      "ANI-F2-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-06",
+    "fase": 2,
+    "titulo": "Magia de vaso da primária",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 9,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-05",
+      "ANI-F2-07"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-07",
+    "fase": 2,
+    "titulo": "Pool de foco derivado",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 8,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F4-06"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-08",
+    "fase": 2,
+    "titulo": "Refocar como botão (D-A07)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 10,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-07",
+      "ANI-F2-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-09",
+    "fase": 2,
+    "titulo": "Talentos trocáveis na preparação (wandering)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 8,
+    "lote": "L3",
+    "depende": [
+      "ANI-F2-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-10",
+    "fase": 2,
+    "titulo": "Requisito ligado à Lore da aparição",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 9,
+    "lote": "L3",
+    "depende": [
+      "ANI-F2-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F2-11",
+    "fase": 2,
+    "titulo": "Roteiro tutorial-e2e da A-F2",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 11,
+    "lote": "L2",
+    "depende": [
+      "ANI-F2-08",
+      "ANI-F2-06"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-01",
+    "fase": 3,
+    "titulo": "Ação Sustentar (D-A08)",
+    "repo": "ambos",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 6,
+    "lote": "L3",
+    "depende": [],
+    "dependeExterno": [
+      "ALQ-F2-09",
+      "ALQ-F1-04"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-02",
+    "fase": 3,
+    "titulo": "Anotação no canto para magia sustentada",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 7,
+    "lote": "L3",
+    "depende": [
+      "ANI-F3-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F6-10"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-03",
+    "fase": 3,
+    "titulo": "Postura com exclusividade (D-A09)",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high.",
+    "onda": 8,
+    "lote": "L3",
+    "depende": [],
+    "dependeExterno": [
+      "ALQ-F2-08"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-04",
+    "fase": 3,
+    "titulo": "Emanação ancorada no token (D-A10)",
+    "repo": "ambos",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 9,
+    "lote": "L3",
+    "depende": [],
+    "dependeExterno": [
+      "ALQ-F5-05",
+      "ALQ-F5-06"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-05",
+    "fase": 3,
+    "titulo": "Pulso de aura ao sustentar",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high.",
+    "onda": 10,
+    "lote": "L3",
+    "depende": [
+      "ANI-F3-04",
+      "ANI-F3-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F1-06"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-06",
+    "fase": 3,
+    "titulo": "Teste simples (flat check) genérico",
+    "repo": "ambos",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 7,
+    "lote": "L3",
+    "depende": [],
+    "dependeExterno": [
+      "ALQ-F1-12"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F3-07",
+    "fase": 3,
+    "titulo": "Roteiro tutorial-e2e da A-F3",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 11,
+    "lote": "L3",
+    "depende": [
+      "ANI-F3-05",
+      "ANI-F3-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F4-01",
+    "fase": 4,
+    "titulo": "Cartão de forma de batalha (D-A11)",
+    "repo": "satélite",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 10,
+    "lote": "L3",
+    "depende": [
+      "ANI-F3-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F4-16"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F4-02",
+    "fase": 4,
+    "titulo": "Avatar no nível 19",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high.",
+    "onda": 11,
+    "lote": "L3",
+    "depende": [
+      "ANI-F4-01",
+      "ANI-F2-06",
+      "ANI-F1-07"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F4-03",
+    "fase": 4,
+    "titulo": "Fortune e misfortune",
+    "repo": "ambos",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 10,
+    "lote": "L3",
+    "depende": [
+      "ANI-F3-06"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F4-04",
+    "fase": 4,
+    "titulo": "Talentos de forma e de postura de nível alto",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 11,
+    "lote": "L3",
+    "depende": [
+      "ANI-F4-01",
+      "ANI-F3-03",
+      "ANI-F2-10"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "ANI-F4-05",
+    "fase": 4,
+    "titulo": "Roteiro tutorial-e2e da A-F4 + fechamento",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium.",
+    "onda": 12,
+    "lote": "L3",
+    "depende": [
+      "ANI-F4-02",
+      "ANI-F4-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-A02",
+      "D-A11",
+      "D-A01"
+    ]
+  }
+]

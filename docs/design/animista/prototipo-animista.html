@@ -1,0 +1,821 @@
+<meta charset="utf-8" />
+<title>Telas-alvo do Animista</title>
+<style>
+  /* Tokens copiados de packages/client/src/styles/base.css — o protótipo tem que
+     parecer a ficha, não um mock genérico. Dois tokens são novos e existem só
+     aqui: --ani-divina e --ani-aparicao, a fita que separa as duas conjurações.
+     O Fusion é dark-only por design; não há bloco de tema claro de propósito. */
+  :root {
+    --fusion-bg: #0e0e12;
+    --fusion-surface: #18181f;
+    --fusion-surface-alt: #1f1f2a;
+    --fusion-border: #2e2e3d;
+    --fusion-text: #e8e8f0;
+    --fusion-text-muted: #8888a0;
+    --fusion-text-subtle: #55556a;
+    --fusion-accent: #7c5cfc;
+    --fusion-accent-hover: #9b7ffe;
+    --fusion-accent-dim: rgba(124, 92, 252, 0.15);
+    --fusion-success: #3ddc84;
+    --fusion-warning: #ffc857;
+    --fusion-danger: #ff5c5c;
+    --fusion-success-dim: rgba(61, 220, 132, 0.14);
+    --fusion-warning-dim: rgba(255, 200, 87, 0.14);
+    --fusion-danger-dim: rgba(255, 92, 92, 0.14);
+    --fusion-on-accent: #fff;
+    --fusion-radius-sm: 4px;
+    --fusion-radius: 8px;
+    --fusion-radius-lg: 12px;
+    --fusion-radius-pill: 999px;
+    --fusion-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    /* Novos: a metade preparada é fria e litúrgica, a de aparição puxa o roxo
+       espiritual do accent. A cor nunca é a única pista — todo bloco também diz
+       por escrito de que conjuração é. */
+    --ani-divina: #5fb3d9;
+    --ani-divina-dim: rgba(95, 179, 217, 0.13);
+    --ani-aparicao: #b58cff;
+    --ani-aparicao-dim: rgba(181, 140, 255, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--fusion-bg);
+    color: var(--fusion-text);
+    font-family: var(--fusion-font);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .page { padding-block: 24px 64px; padding-left: 16px; padding-right: 16px; max-width: 1180px; margin: 0 auto; }
+
+  .doc-head { border-bottom: 1px solid var(--fusion-border); padding-bottom: 18px; margin-bottom: 8px; }
+  .doc-head h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: 0.2px; text-wrap: balance; }
+  .doc-head p { margin: 0 0 4px; color: var(--fusion-text-muted); max-width: 72ch; }
+  .doc-head code { font-family: var(--fusion-font-mono); font-size: 12.5px; color: var(--fusion-text); }
+
+  .toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
+  .toc a {
+    font-size: 12px; padding: 4px 11px; border-radius: var(--fusion-radius-pill);
+    border: 1px solid var(--fusion-border); color: var(--fusion-text-muted); text-decoration: none;
+  }
+  .toc a:hover { border-color: var(--fusion-accent); color: var(--fusion-text); }
+
+  .frame { margin-top: 40px; }
+  .frame > h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--fusion-text-muted); margin: 0 0 4px; font-weight: 700;
+  }
+  .frame > .sub { margin: 0 0 14px; color: var(--fusion-text-subtle); font-size: 13px; max-width: 78ch; }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---- moldura de janela da ficha ---- */
+  .win { background: var(--fusion-surface); border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-lg); overflow: hidden; }
+  .win__bar {
+    display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    background: var(--fusion-surface-alt); border-bottom: 1px solid var(--fusion-border);
+  }
+  .win__title { font-size: 12.5px; font-weight: 600; }
+  .win__title small { color: var(--fusion-text-subtle); font-weight: 400; }
+  .win__spacer { flex: 1; }
+  .win__body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tab {
+    font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: var(--fusion-radius-pill);
+    border: 1px solid var(--fusion-border); color: var(--fusion-text-muted); background: transparent;
+  }
+  .tab--on { background: var(--fusion-accent-dim); border-color: var(--fusion-accent); color: var(--fusion-accent); }
+  .tab--divina.tab--on { background: var(--ani-divina-dim); border-color: var(--ani-divina); color: var(--ani-divina); }
+  .tab--apar.tab--on { background: var(--ani-aparicao-dim); border-color: var(--ani-aparicao); color: var(--ani-aparicao); }
+  .tab--off { opacity: 0.45; }
+
+  .statsbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 18px;
+    background: var(--fusion-surface-alt); border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius); padding: 10px 14px;
+  }
+  .statsbar--divina { border-left: 3px solid var(--ani-divina); }
+  .statsbar--apar { border-left: 3px solid var(--ani-aparicao); }
+  .stat { display: flex; flex-direction: column; gap: 1px; }
+  .stat__label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fusion-text-subtle); }
+  .stat__value { font-size: 15px; font-weight: 700; font-family: var(--fusion-font-mono); }
+
+  .prof { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 700; font-family: var(--fusion-font-mono); }
+  .prof--e { background: var(--fusion-success-dim); border: 1px solid rgba(61, 220, 132, 0.4); color: var(--fusion-success); }
+
+  .sec { display: flex; flex-direction: column; gap: 8px; }
+  .sec__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .sec__label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fusion-text-muted); margin: 0; }
+  .sec__hint { font-size: 10.5px; color: var(--fusion-text-subtle); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px;
+    border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius); background: var(--fusion-surface-alt); font-size: 12.5px;
+  }
+  .chip__cost { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-subtle); }
+
+  .btn {
+    font: inherit; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: var(--fusion-radius-sm);
+    border: 1px solid var(--fusion-border); background: transparent; color: var(--fusion-text-muted); cursor: default;
+  }
+  .btn--primary { background: var(--fusion-accent); border-color: var(--fusion-accent); color: var(--fusion-on-accent); }
+  .btn--apar { background: var(--ani-aparicao); border-color: var(--ani-aparicao); color: #1b1024; }
+  .btn--divina { background: var(--ani-divina); border-color: var(--ani-divina); color: #06222e; }
+  .btn--ghost { background: transparent; }
+  .btn--lg { font-size: 12.5px; padding: 6px 14px; }
+
+  .rankrow { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: start; }
+  @media (max-width: 560px) { .rankrow { grid-template-columns: minmax(0, 1fr); } }
+  .rankrow__label { font-size: 11px; font-weight: 700; color: var(--fusion-text-muted); padding-top: 7px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .rankrow__slots { display: flex; align-items: center; gap: 6px; font-family: var(--fusion-font-mono); font-size: 13px; color: var(--fusion-text-muted); }
+  .pip { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 1px solid var(--ani-aparicao); }
+  .pip--full { background: var(--ani-aparicao); }
+  .pip--focus { border-color: var(--fusion-warning); }
+  .pip--focus.pip--full { background: var(--fusion-warning); }
+
+  .slotcard {
+    display: flex; align-items: center; gap: 9px; padding: 7px 10px; background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius); font-size: 12.5px;
+  }
+  .slotcard--empty { border-style: dashed; color: var(--fusion-text-subtle); }
+  .slotcard--spent { opacity: 0.45; text-decoration: line-through; }
+  .slotcard__name { font-weight: 600; }
+  .slotcard__spacer { flex: 1; }
+
+  .badge {
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;
+    padding: 2px 7px; border-radius: var(--fusion-radius-pill); border: 1px solid;
+  }
+  .badge--sig { color: var(--ani-aparicao); border-color: rgba(181, 140, 255, 0.45); background: var(--ani-aparicao-dim); }
+  .badge--prim { color: var(--fusion-warning); border-color: rgba(255, 200, 87, 0.45); background: var(--fusion-warning-dim); }
+  .badge--new { color: var(--fusion-success); border-color: rgba(61, 220, 132, 0.45); background: var(--fusion-success-dim); }
+  .badge--off { color: var(--fusion-text-subtle); border-color: var(--fusion-border); }
+
+  .rankpick { display: inline-flex; gap: 3px; align-items: center; }
+  .rankpick__opt {
+    font-family: var(--fusion-font-mono); font-size: 11px; width: 22px; height: 22px; line-height: 20px; text-align: center;
+    border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-sm); color: var(--fusion-text-muted);
+  }
+  .rankpick__opt--on { border-color: var(--ani-aparicao); background: var(--ani-aparicao-dim); color: var(--ani-aparicao); font-weight: 700; }
+  .rankpick__opt--off { opacity: 0.3; }
+
+  /* ---- sintonia ---- */
+  .attgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 10px; }
+  .att {
+    border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius); padding: 10px 12px;
+    background: var(--fusion-surface-alt); display: flex; flex-direction: column; gap: 6px;
+  }
+  .att--on { border-color: var(--ani-aparicao); background: var(--ani-aparicao-dim); }
+  .att--prim { border-color: var(--fusion-warning); background: var(--fusion-warning-dim); }
+  .att__name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .att__meta { font-size: 11.5px; color: var(--fusion-text-muted); }
+  .att__meta b { color: var(--fusion-text); font-weight: 600; }
+
+  .counter { font-family: var(--fusion-font-mono); font-size: 12px; color: var(--fusion-text-muted); }
+
+  /* ---- anotação de canto ---- */
+  .corner {
+    position: relative; border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius);
+    background: var(--fusion-surface-alt); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; max-width: 320px;
+  }
+  .corner--sustain { border-left: 3px solid var(--ani-aparicao); }
+  .corner--stance { border-left: 3px solid var(--fusion-success); }
+  .corner__title { font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .corner__meta { font-size: 11.5px; color: var(--fusion-text-muted); font-family: var(--fusion-font-mono); }
+  .corner__row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ---- cena / token ---- */
+  .scene {
+    position: relative; height: 230px; border-radius: var(--fusion-radius); border: 1px solid var(--fusion-border);
+    background-color: #12161a;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 38px 38px; overflow: hidden;
+  }
+  .tok { position: absolute; width: 34px; height: 34px; border-radius: 50%; border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--fusion-font-mono); }
+  .tok--self { border-color: var(--ani-aparicao); background: rgba(181, 140, 255, 0.28); color: #fff; }
+  .tok--ally { border-color: var(--fusion-success); background: rgba(61, 220, 132, 0.22); color: #fff; }
+  .tok--foe { border-color: var(--fusion-danger); background: rgba(255, 92, 92, 0.2); color: #fff; }
+  .emana {
+    position: absolute; border-radius: 50%; border: 1px dashed rgba(181, 140, 255, 0.75);
+    background: radial-gradient(circle, rgba(181, 140, 255, 0.17) 0%, rgba(181, 140, 255, 0.05) 70%, transparent 71%);
+  }
+  .emana__tag {
+    position: absolute; left: 50%; transform: translateX(-50%); top: 4px; font-size: 10px; font-family: var(--fusion-font-mono);
+    color: var(--ani-aparicao); background: rgba(14, 14, 18, 0.8); padding: 1px 6px; border-radius: var(--fusion-radius-pill); white-space: nowrap;
+  }
+
+  /* ---- nota lateral ---- */
+  .note { border-left: 2px solid var(--fusion-border); padding: 2px 0 2px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .note h3 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fusion-text-subtle); }
+  .note p { margin: 0; font-size: 12.5px; color: var(--fusion-text-muted); }
+  .note p b { color: var(--fusion-text); font-weight: 600; }
+  .note code { font-family: var(--fusion-font-mono); font-size: 11.5px; color: var(--fusion-text); }
+  .note .hoje { color: var(--fusion-danger); font-weight: 600; }
+  .note .alvo { color: var(--fusion-success); font-weight: 600; }
+
+  .ab { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .opt { border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-lg); overflow: hidden; }
+  .opt__head { padding: 9px 13px; background: var(--fusion-surface-alt); border-bottom: 1px solid var(--fusion-border); display: flex; align-items: center; gap: 9px; }
+  .opt__letter { width: 20px; height: 20px; border-radius: 50%; background: var(--fusion-accent); color: var(--fusion-on-accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .opt__name { font-size: 12.5px; font-weight: 700; }
+  .opt__body { padding: 13px; display: flex; flex-direction: column; gap: 10px; }
+  .kv { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 4px 10px; font-size: 12px; }
+  .kv dt { color: var(--fusion-text-subtle); }
+  .kv dd { margin: 0; font-family: var(--fusion-font-mono); }
+
+  .decision { border: 1px solid var(--fusion-warning); background: var(--fusion-warning-dim); border-radius: var(--fusion-radius); padding: 11px 13px; margin-top: 12px; }
+  .decision b { color: var(--fusion-warning); }
+  .decision p { margin: 0; font-size: 12.5px; color: var(--fusion-text); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: 12px; color: var(--fusion-text-muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+</style>
+
+<div class="page">
+  <div class="doc-head">
+    <h1>Telas-alvo do Animista</h1>
+    <p>
+      Objetivo final das telas da classe Animista no Fusion — o que o jogador deve ver quando a
+      classe estiver pronta, não o que existe hoje. Serve de lente de revisão obrigatória do
+      <code>docs/design/PROCESSO-UI.md</code> (P1) e de referência para as tarefas de UI do plano.
+    </p>
+    <p>
+      Personagem de exemplo: <b>Nayara</b>, animista de nível 7, prática Liturgista, três aparições
+      sintonizadas. Cores e tipografia são os tokens reais da ficha
+      (<code>packages/client/src/styles/base.css</code>).
+    </p>
+    <div class="legend">
+      <span><i class="swatch" style="background: var(--ani-divina)"></i> conjuração animista — preparada, divina</span>
+      <span><i class="swatch" style="background: var(--ani-aparicao)"></i> conjuração de aparição — espontânea</span>
+      <span><i class="swatch" style="background: var(--fusion-warning)"></i> aparição primária e pontos de foco</span>
+    </div>
+    <nav class="toc">
+      <a href="#t1">1 · Aparição (espontânea)</a>
+      <a href="#t2">2 · Animista (preparada)</a>
+      <a href="#t3">3 · Sintonia no descanso</a>
+      <a href="#t4">4 · Foco e Refocar</a>
+      <a href="#t5">5 · Sustentar e postura</a>
+      <a href="#t6">6 · Aura no token</a>
+      <a href="#t7">7 · Avatar: A ou B</a>
+    </nav>
+  </div>
+
+  <!-- ============================= 1 ============================= -->
+  <section class="frame" id="t1">
+    <h2>1 · Aba Magias — metade de aparição (espontânea)</h2>
+    <p class="sub">
+      A tela que não existe em nenhuma classe hoje: repertório de magias conhecidas, espaços genéricos
+      por patamar e escolha do patamar na hora de lançar.
+    </p>
+    <div class="split">
+      <div class="win">
+        <div class="win__bar">
+          <span class="win__title">Nayara <small>· Animista 7</small></span>
+          <span class="win__spacer"></span>
+          <span class="btn">Descansar</span>
+          <span class="btn">Editar</span>
+        </div>
+        <div class="win__body">
+          <div class="tabs">
+            <span class="tab">Principal</span>
+            <span class="tab">Perícias</span>
+            <span class="tab">Ações</span>
+            <span class="tab tab--on">Magias</span>
+            <span class="tab">Inventário</span>
+            <span class="tab">Talentos</span>
+          </div>
+          <div class="tabs" style="margin-top: -4px">
+            <span class="tab tab--divina">Magias Animistas</span>
+            <span class="tab tab--apar tab--on">Magias de Aparição</span>
+            <span class="tab">Foco</span>
+            <span class="tab tab--off">Rituais</span>
+          </div>
+
+          <div class="statsbar statsbar--apar">
+            <div class="stat"><span class="stat__label">CD de Magia</span><span class="stat__value">25</span></div>
+            <div class="stat"><span class="stat__label">Ataque</span><span class="stat__value">+15</span></div>
+            <div class="stat"><span class="stat__label">Tradição</span><span class="stat__value" style="font-size: 13px">Divina</span></div>
+            <div class="stat"><span class="stat__label">Sabedoria</span><span class="stat__value">+4</span></div>
+            <div class="stat">
+              <span class="stat__label">Proficiência</span>
+              <span class="prof prof--e">E</span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">Repertório sintonizado</h3>
+              <span class="sec__hint">vem das 3 aparições do dia · todas contam como signature</span>
+            </div>
+            <div class="chips">
+              <span class="chip"><b>Escudo</b><span class="chip__cost">◆</span><span class="badge badge--sig">truque</span></span>
+              <span class="chip"><b>Golpe Certeiro</b><span class="chip__cost">◆</span><span class="badge badge--sig">1º</span></span>
+              <span class="chip"><b>Ampliar</b><span class="chip__cost">◆◆</span><span class="badge badge--sig">2º</span></span>
+              <span class="chip"><b>Arma Espectral</b><span class="chip__cost">◆◆</span><span class="badge badge--sig">3º</span></span>
+              <span class="chip"><b>Tempestade de Armas</b><span class="chip__cost">◆◆</span><span class="badge badge--sig">4º</span></span>
+              <span class="chip" style="opacity: 0.55"><b>Jardim da Cura</b><span class="badge badge--off">vaso · aba Foco</span></span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">Espaços de magia</h3>
+              <span class="sec__hint">o espaço é do patamar, não da magia — você escolhe ao lançar</span>
+            </div>
+            <div class="rankrow">
+              <span class="rankrow__label">1º patamar</span>
+              <div class="rankrow__slots"><i class="pip pip--full"></i><i class="pip"></i> <span>1 de 2</span></div>
+            </div>
+            <div class="rankrow">
+              <span class="rankrow__label">2º patamar</span>
+              <div class="rankrow__slots"><i class="pip pip--full"></i><i class="pip pip--full"></i> <span>2 de 2</span></div>
+            </div>
+            <div class="rankrow">
+              <span class="rankrow__label">3º patamar</span>
+              <div class="rankrow__slots"><i class="pip pip--full"></i> <span>1 de 1</span></div>
+            </div>
+            <div class="rankrow">
+              <span class="rankrow__label">4º patamar</span>
+              <div class="rankrow__slots"><i class="pip pip--full"></i> <span>1 de 1</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head"><h3 class="sec__label">Lançar</h3></div>
+            <div class="slotcard">
+              <span class="slotcard__name">Golpe Certeiro</span>
+              <span class="badge badge--sig">signature</span>
+              <span class="slotcard__spacer"></span>
+              <span class="counter" style="margin-right: 4px">patamar</span>
+              <span class="rankpick">
+                <span class="rankpick__opt">1</span>
+                <span class="rankpick__opt">2</span>
+                <span class="rankpick__opt rankpick__opt--on">3</span>
+                <span class="rankpick__opt">4</span>
+              </span>
+              <span class="btn btn--apar">Lançar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <h3>O que esta tela prova</h3>
+        <p>
+          A metade de aparição gasta <b>espaço genérico do patamar</b> e escolhe a magia na hora — não
+          existe "preparar esta magia neste espaço".
+        </p>
+        <p>
+          Como todo o repertório é <b>signature</b>, o seletor de patamar é a peça central: lançar
+          Golpe Certeiro no 3º é gesto de todo turno, não exceção.
+        </p>
+        <h3>Contra o que existe hoje</h3>
+        <p>
+          <span class="hoje">Hoje</span> qualquer entrada — Bardo, Feiticeiro — usa a grade de
+          preparada, e o patamar vem do espaço em que a magia foi encaixada
+          (<code>SpellsTab.svelte:783-811</code> só exibe o selo). Não há como escolher o patamar.
+        </p>
+        <p>
+          <span class="alvo">Alvo</span> Bardo e Feiticeiro herdam esta mesma tela — o ganho não é só
+          do Animista.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= 2 ============================= -->
+  <section class="frame" id="t2">
+    <h2>2 · Aba Magias — metade animista (preparada)</h2>
+    <p class="sub">A outra metade, na mesma ficha e no mesmo dia. Dois pools que nunca se pagam.</p>
+    <div class="split">
+      <div class="win">
+        <div class="win__bar">
+          <span class="win__title">Nayara <small>· Animista 7</small></span>
+          <span class="win__spacer"></span>
+          <span class="btn">Descansar</span>
+        </div>
+        <div class="win__body">
+          <div class="tabs">
+            <span class="tab tab--divina tab--on">Magias Animistas</span>
+            <span class="tab tab--apar">Magias de Aparição</span>
+            <span class="tab">Foco</span>
+            <span class="tab tab--off">Rituais</span>
+          </div>
+
+          <div class="statsbar statsbar--divina">
+            <div class="stat"><span class="stat__label">CD de Magia</span><span class="stat__value">25</span></div>
+            <div class="stat"><span class="stat__label">Ataque</span><span class="stat__value">+15</span></div>
+            <div class="stat"><span class="stat__label">Tradição</span><span class="stat__value" style="font-size: 13px">Divina</span></div>
+            <div class="stat"><span class="stat__label">Preparação</span><span class="stat__value" style="font-size: 13px">Diária</span></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">Truques</h3>
+              <span class="sec__hint">elevados ao patamar mais alto disponível</span>
+            </div>
+            <div class="chips">
+              <span class="chip"><b>Estabilizar</b><span class="chip__cost">◆◆</span></span>
+              <span class="chip"><b>Luz</b><span class="chip__cost">◆◆</span></span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">1º patamar</h3>
+              <span class="sec__hint">2 espaços</span>
+            </div>
+            <div class="slotcard"><span class="slotcard__name">Curar</span><span class="slotcard__spacer"></span><span class="btn btn--divina">Lançar</span></div>
+            <div class="slotcard slotcard--spent"><span class="slotcard__name">Curar</span><span class="slotcard__spacer"></span><span class="badge badge--off">gasto</span></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">4º patamar</h3>
+              <span class="sec__hint">1 espaço</span>
+            </div>
+            <div class="slotcard slotcard--empty">
+              <span>Espaço de magia disponível</span>
+              <span class="slotcard__spacer"></span>
+              <span class="btn btn--ghost">Preparar do grimório…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <h3>O que esta tela prova</h3>
+        <p>
+          Duas progressões de espaços <b>na mesma classe</b>: esta prepara da lista divina, a outra é
+          espontânea. Gastar um espaço aqui não tira nada de lá.
+        </p>
+        <p>A tabela desta metade nunca chega ao 10º patamar; a de aparição chega, no nível 19.</p>
+        <h3>Contra o que existe hoje</h3>
+        <p>
+          <span class="hoje">Hoje</span> uma classe declara <b>uma</b> progressão só — o teto está em
+          três camadas: curadoria (<code>transform.mjs:1848</code>), schema
+          (<code>item-equipment.ts:432</code>) e criação da entrada
+          (<code>planVM.ts:3166</code>). A curadoria do Animista no PR #57 já transcreve só a metade
+          preparada e registra a outra como dívida.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= 3 ============================= -->
+  <section class="frame" id="t3">
+    <h2>3 · Sintonia das aparições — durante o descanso</h2>
+    <p class="sub">
+      Onde o dia do animista começa. Sai do botão Descansar, com ajuste manual a qualquer momento
+      para cobrir exceção de mesa.
+    </p>
+    <div class="split">
+      <div class="win">
+        <div class="win__bar">
+          <span class="win__title">Descanso — preparação do dia <small>· Nayara</small></span>
+          <span class="win__spacer"></span>
+          <span class="counter">passo 3 de 4</span>
+        </div>
+        <div class="win__body">
+          <div class="sec__head">
+            <h3 class="sec__label">Sintonizar aparições</h3>
+            <span class="counter">3 de 3 escolhidas · 1 primária</span>
+          </div>
+          <div class="attgrid">
+            <div class="att att--prim">
+              <span class="att__name">Testemunha de Batalhas Antigas <span class="badge badge--prim">primária</span></span>
+              <span class="att__meta">Saber: <b>Campos de Batalha</b>, <b>Heráldica</b></span>
+              <span class="att__meta">Vaso: <b>Encarnação da Batalha</b></span>
+              <span class="att__meta">Repertório: Escudo, Golpe Certeiro, Ampliar, Arma Espectral…</span>
+            </div>
+            <div class="att att--on">
+              <span class="att__name">Custódia de Bosques e Jardins</span>
+              <span class="att__meta">Saber: <b>Agricultura</b>, <b>Herbalismo</b></span>
+              <span class="att__meta">Vaso: Jardim da Cura <span class="badge badge--off">só como primária</span></span>
+            </div>
+            <div class="att att--on">
+              <span class="att__name">Vanguarda das Águas Bramantes</span>
+              <span class="att__meta">Saber: <b>Rios</b>, <b>Navegação</b></span>
+              <span class="att__meta">Vaso: Rio que Talha Montanhas <span class="badge badge--off">só como primária</span></span>
+            </div>
+            <div class="att">
+              <span class="att__name">Zeladora da Pedra e do Fogo</span>
+              <span class="att__meta">Saber: <b>Vulcões</b>, <b>Montanhas</b></span>
+            </div>
+            <div class="att">
+              <span class="att__name">Eco dos Momentos Perdidos</span>
+              <span class="att__meta">Saber: <b>História</b>, <b>Tempo</b></span>
+            </div>
+            <div class="att">
+              <span class="att__name">Voz no Sibilar</span>
+              <span class="att__meta">Saber: <b>Montanhas</b>, <b>Serpentes</b></span>
+            </div>
+          </div>
+          <div class="sec" style="margin-top: 2px">
+            <div class="slotcard">
+              <span>Ao confirmar: 6 perícias de Saber entram na ficha, o repertório de aparição é
+                recalculado e <b>Encarnação da Batalha</b> fica disponível na aba Foco.</span>
+            </div>
+            <div class="corner__row">
+              <span class="btn btn--primary btn--lg">Confirmar o dia</span>
+              <span class="btn btn--lg">Ajustar manualmente…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <h3>O que esta tela prova</h3>
+        <p>
+          A sintonia é <b>escolha refeita todo dia</b>, não escolha de criação de personagem: 2 no
+          nível 1, 3 no 7, 4 no 15, sempre com uma primária.
+        </p>
+        <p>
+          Trocar a sintonia troca <b>três coisas ao mesmo tempo</b>: as perícias de Saber, o
+          repertório espontâneo e a magia de vaso.
+        </p>
+        <p><b>Ajustar manualmente</b> reabre este painel fora do descanso, para exceção de mesa.</p>
+        <h3>Contra o que existe hoje</h3>
+        <p>
+          <span class="hoje">Hoje</span> o descanso só devolve PV, espaços e foco
+          (<code>characterSheetVM.ts:2733-2805</code>) e não existe nenhum tipo de escolha que se
+          refaça por dia. É o maior bloqueador da classe: 26 documentos.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= 4 ============================= -->
+  <section class="frame" id="t4">
+    <h2>4 · Pontos de foco e Refocar</h2>
+    <p class="sub">O teto do pool sai das features da classe, e Refocar é um botão.</p>
+    <div class="split">
+      <div class="win">
+        <div class="win__bar">
+          <span class="win__title">Nayara <small>· aba Foco</small></span>
+        </div>
+        <div class="win__body">
+          <div class="statsbar">
+            <div class="stat">
+              <span class="stat__label">Pontos de Foco</span>
+              <span class="stat__value" style="display: flex; align-items: center; gap: 6px">
+                <i class="pip pip--focus pip--full"></i><i class="pip pip--focus"></i>
+                <span style="font-size: 13px">1 / 2</span>
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat__label">Máximo derivado de</span>
+              <span class="stat__value" style="font-size: 12px; font-family: var(--fusion-font)">1 base · +1 Terceira Aparição</span>
+            </div>
+            <span class="win__spacer"></span>
+            <span class="btn btn--primary btn--lg">Refocar (+1)</span>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">Magia de vaso</h3>
+              <span class="sec__hint">vem da aparição primária do dia</span>
+            </div>
+            <div class="slotcard">
+              <span class="slotcard__name">Encarnação da Batalha</span>
+              <span class="chip__cost">◆</span>
+              <span class="badge badge--prim">Testemunha de Batalhas Antigas</span>
+              <span class="slotcard__spacer"></span>
+              <span class="btn btn--apar">Lançar</span>
+            </div>
+            <div class="slotcard slotcard--empty">
+              <span>Jardim da Cura — indisponível: <b>Custódia de Bosques e Jardins</b> não é a primária de hoje</span>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec__head">
+              <h3 class="sec__label">Trocar a primária</h3>
+              <span class="sec__hint">ao Refocar, sem refazer a sintonia</span>
+            </div>
+            <div class="chips">
+              <span class="chip"><b>Testemunha de Batalhas Antigas</b><span class="badge badge--prim">primária</span></span>
+              <span class="chip"><b>Custódia de Bosques e Jardins</b><span class="btn">Tornar primária</span></span>
+              <span class="chip"><b>Vanguarda das Águas Bramantes</b><span class="btn">Tornar primária</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <h3>O que esta tela prova</h3>
+        <p>
+          O teto do pool é <b>derivado</b> e mostra de onde veio. Nível 7 = 2 pontos; nível 15 = 3, o
+          teto do jogo.
+        </p>
+        <p>Trocar a primária no Refocar <b>troca a magia de vaso disponível</b> — é decisão tática.</p>
+        <h3>Contra o que existe hoje</h3>
+        <p>
+          <span class="hoje">Hoje</span> <code>focusPoints</code> nasce <code>{value:0, max:0}</code> e
+          nada nunca escreve o máximo: os pips ficam inertes até alguém digitar o número à mão. E
+          "Refocar" é um texto informativo, sem botão.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= 5 ============================= -->
+  <section class="frame" id="t5">
+    <h2>5 · Sustentar e postura — anotações vivas no canto</h2>
+    <p class="sub">
+      O que está correndo agora aparece no canto da tela para o Mestre e para quem é afetado, com a
+      ação junto. Mesmo padrão já decidido para estados temporizados.
+    </p>
+    <div class="split">
+      <div class="win">
+        <div class="win__bar">
+          <span class="win__title">Mesa — canto inferior direito <small>· visão da jogadora</small></span>
+        </div>
+        <div class="win__body" style="align-items: flex-end">
+          <div class="corner corner--sustain">
+            <span class="corner__title">Jardim da Cura <span class="badge badge--sig">sustentada</span></span>
+            <span class="corner__meta">rodada 3 de 10 · emanação de 3 m · pulso já usado nesta rodada</span>
+            <span class="corner__meta" style="color: var(--fusion-text-subtle)">termina se você não sustentar</span>
+            <div class="corner__row">
+              <span class="btn btn--apar">Sustentar ◆</span>
+              <span class="btn btn--ghost">Encerrar</span>
+            </div>
+          </div>
+
+          <div class="corner corner--stance">
+            <span class="corner__title">Postura do Canalizador <span class="badge badge--new">ativa</span></span>
+            <span class="corner__meta">+1 de status por patamar no dano de energia e na cura inicial</span>
+            <span class="corner__meta" style="color: var(--fusion-text-subtle)">entrar em outra postura encerra esta</span>
+            <div class="corner__row">
+              <span class="btn btn--ghost">Sair da postura</span>
+            </div>
+          </div>
+
+          <div class="corner" style="border-left: 3px solid var(--fusion-warning)">
+            <span class="corner__title">Encarnação da Batalha</span>
+            <span class="corner__meta">rodada 1 de 10 · +1 em ataque e dano · −2 em ataque e CD de magia</span>
+            <div class="corner__row">
+              <span class="btn btn--apar">Sustentar ◆</span>
+              <span class="btn btn--ghost">Encerrar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <h3>O que esta tela prova</h3>
+        <p>
+          A ação de <b>sustentar nasce da conjuração</b>: lançou algo sustentado, a anotação aparece
+          com o botão. Não é um botão que vive escondido numa aba.
+        </p>
+        <p>
+          A anotação também é o relógio: em que rodada está, quando acaba, e — no caso do Jardim — se
+          o pulso da rodada já saiu.
+        </p>
+        <p>Postura é <b>uma por vez</b>: entrar em outra encerra a anterior, sem o jogador precisar lembrar.</p>
+        <h3>Contra o que existe hoje</h3>
+        <p>
+          <span class="hoje">Hoje</span> nada disso existe: o campo <code>sustained</code> está no
+          schema e nenhum código o lê, e nenhum efeito tem duração que corra.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= 6 ============================= -->
+  <section class="frame" id="t6">
+    <h2>6 · Aura acompanhando o token</h2>
+    <p class="sub">A emanação anda com quem a criou e diz quem está dentro dela.</p>
+    <div class="split">
+      <div class="win">
+        <div class="win__bar">
+          <span class="win__title">Cena — Jardim da Cura <small>· emanação de 3 m</small></span>
+          <span class="win__spacer"></span>
+          <span class="counter">2 aliados dentro</span>
+        </div>
+        <div class="win__body">
+          <div class="scene">
+            <div class="emana" style="left: 120px; top: 44px; width: 152px; height: 152px">
+              <span class="emana__tag">Jardim da Cura · 3 m</span>
+            </div>
+            <div class="tok tok--self" style="left: 179px; top: 103px">NAY</div>
+            <div class="tok tok--ally" style="left: 140px; top: 142px">BRU</div>
+            <div class="tok tok--ally" style="left: 222px; top: 70px">TAU</div>
+            <div class="tok tok--foe" style="left: 320px; top: 150px">G1</div>
+            <div class="tok tok--foe" style="left: 360px; top: 96px">G2</div>
+          </div>
+          <div class="slotcard">
+            <span>Ao sustentar: <b>2 criaturas</b> na emanação recebem 1d4 de cura.</span>
+            <span class="slotcard__spacer"></span>
+            <span class="btn btn--apar">Sustentar e curar ◆</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <h3>O que esta tela prova</h3>
+        <p>
+          A aura é <b>presa ao token</b>, não a um ponto do mapa: Nayara anda, o círculo anda, e a
+          lista de quem está dentro é recalculada.
+        </p>
+        <p>
+          O efeito não cai sozinho em ninguém — quem sustenta aperta o botão e o sistema já sabe
+          <b>em quem</b> aplicar. Automatiza a conta, não a decisão.
+        </p>
+        <h3>Contra o que existe hoje</h3>
+        <p>
+          <span class="hoje">Hoje</span> a camada de templates do canvas existe e está vazia, a
+          matemática de círculo e cone não tem quem a chame, e emanação não tem cálculo próprio.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= 7 ============================= -->
+  <section class="frame" id="t7">
+    <h2>7 · Avatar no nível 19 — duas formas de resolver</h2>
+    <p class="sub">
+      No nível 19 a animista lança Avatar e vira a forma de batalha da aparição primária: criatura
+      Enorme, CA 25 + nível, 30 PV temporários, ataque fixo +33, deslocamento e golpe próprios da
+      aparição. A pergunta é <b>quem faz a conta</b>.
+    </p>
+    <div class="ab">
+      <div class="opt">
+        <div class="opt__head">
+          <span class="opt__letter">A</span>
+          <span class="opt__name">Cartão assistido — a ficha continua a sua</span>
+        </div>
+        <div class="opt__body">
+          <div class="corner" style="max-width: none; border-left: 3px solid var(--fusion-warning)">
+            <span class="corner__title">Avatar — General das Batalhas Sem Fim</span>
+            <span class="corner__meta">rodada 2 de 10 · forma da Testemunha de Batalhas Antigas</span>
+            <dl class="kv">
+              <dt>Classe de armadura</dt><dd>44</dd>
+              <dt>PV temporários</dt><dd>30</dd>
+              <dt>Deslocamento</dt><dd>21 m</dd>
+              <dt>Golpe</dt><dd>+33 · 6d8+6 corte</dd>
+              <dt>Imune a</dt><dd>imobilizado</dd>
+            </dl>
+            <div class="corner__row">
+              <span class="btn btn--apar">Rolar o golpe</span>
+              <span class="btn btn--ghost">Encerrar forma</span>
+            </div>
+          </div>
+          <p class="note" style="border: 0; padding: 0; font-size: 12.5px; color: var(--fusion-text-muted)">
+            Os números da forma ficam no cartão, prontos para rolar. A ficha por baixo não muda:
+            acabou a forma, o cartão some e nada precisa ser desfeito.
+          </p>
+        </div>
+      </div>
+
+      <div class="opt">
+        <div class="opt__head">
+          <span class="opt__letter" style="background: var(--fusion-success); color: #06210f">B</span>
+          <span class="opt__name">Troca automática — a ficha vira a criatura</span>
+        </div>
+        <div class="opt__body">
+          <div class="win" style="border-radius: var(--fusion-radius)">
+            <div class="win__bar">
+              <span class="win__title">Nayara <small>· em forma de Avatar</small></span>
+              <span class="win__spacer"></span>
+              <span class="badge badge--prim">forma ativa</span>
+            </div>
+            <div class="win__body" style="gap: 8px">
+              <div class="statsbar" style="gap: 14px">
+                <div class="stat"><span class="stat__label">CA</span><span class="stat__value">44</span></div>
+                <div class="stat"><span class="stat__label">PV temp.</span><span class="stat__value">30</span></div>
+                <div class="stat"><span class="stat__label">Desloc.</span><span class="stat__value">21 m</span></div>
+                <div class="stat"><span class="stat__label">Tamanho</span><span class="stat__value" style="font-size: 13px">Enorme</span></div>
+              </div>
+              <div class="slotcard">
+                <span class="slotcard__name">Golpe final</span>
+                <span class="slotcard__spacer"></span>
+                <span class="counter">+33 · 6d8+6</span>
+                <span class="btn btn--apar">Atacar</span>
+              </div>
+            </div>
+          </div>
+          <p class="note" style="border: 0; padding: 0; font-size: 12.5px; color: var(--fusion-text-muted)">
+            A ficha inteira passa a mostrar a criatura, e os seus ataques normais somem enquanto
+            durar. Mais imersivo e mais caro: exige guardar e restaurar o personagem inteiro.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="decision">
+      <p>
+        <b>Decisão pendente.</b> A recomendação é a <b>A</b> nesta primeira volta: entrega o nível 19
+        jogável sem abrir o subsistema de troca de estatísticas, que hoje não existe em lugar nenhum
+        do Fusion e serviria a três magias da classe. A <b>B</b> continua possível depois, reusando o
+        mesmo cartão como fonte dos números.
+      </p>
+    </div>
+  </section>
+</div>
