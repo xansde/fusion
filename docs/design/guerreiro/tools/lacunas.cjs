@@ -55,7 +55,14 @@ const linhas = Object.entries(uso)
       const pend = [...new Set([...doc.bloq, ...doc.parciais])];
       return pend.length === 1 && pend[0] === id;
     }).length;
-    return { id, status: u.status, bloqueia, unico, fase: fases[faseIdx[id]] ? fases[faseIdx[id]].id : "—", total: u.docs.length };
+    return {
+      id,
+      status: u.status,
+      bloqueia,
+      unico,
+      fase: fases[faseIdx[id]] ? fases[faseIdx[id]].id : "—",
+      total: u.docs.length,
+    };
   })
   .sort((a, b) => b.bloqueia - a.bloqueia || b.total - a.total);
 
@@ -79,7 +86,7 @@ L.push(
     docs.filter((d) => d.kind === "habilidade").length +
     " habilidades) cruzado com o status das notas de mecanismo. Referência: Fusion `alfa/app` + `fusion-systems-2e` pin v0.1.1, em " +
     HOJE +
-    ". Recalcular quando um mecanismo mudar de status (`node lacunas.cjs`)."
+    ". Recalcular quando um mecanismo mudar de status (`node lacunas.cjs`).",
 );
 L.push("");
 L.push("## Leitura rápida");
@@ -89,16 +96,14 @@ L.push("");
 L.push("## Ordem sugerida (fases cumulativas)");
 L.push("");
 L.push(
-  'Critério: dependência técnica primeiro, depois volume destravado. "Funciona" = todos os mecanismos exigidos existem; os 🟡 da fase precisam ser completados nela.'
+  'Critério: dependência técnica primeiro, depois volume destravado. "Funciona" = todos os mecanismos exigidos existem; os 🟡 da fase precisam ser completados nela.',
 );
 L.push("");
 L.push("| Fase | Tema | Mecanismos | Passam a funcionar | Acumulado |");
 L.push("|---|---|---|---|---|");
 let acc = hoje.length;
 if (hoje.length) {
-  L.push(
-    "| — | Já funciona hoje | — | " + hoje.length + " | " + acc + " / " + docs.length + " |"
-  );
+  L.push("| — | Já funciona hoje | — | " + hoje.length + " | " + acc + " / " + docs.length + " |");
 }
 fases.forEach((f, i) => {
   acc += porFase[i].length;
@@ -116,7 +121,7 @@ fases.forEach((f, i) => {
       acc +
       " / " +
       docs.length +
-      " |"
+      " |",
   );
 });
 L.push("");
@@ -135,7 +140,7 @@ fases.forEach((f, i) => {
           .sort((a, b) => a.nivel - b.nivel)
           .map((d) => "[[" + d.slug + "]]")
           .join(" · ")
-      : "_Nenhum documento fecha nesta fase._"
+      : "_Nenhum documento fecha nesta fase._",
   );
   L.push("");
 });
@@ -149,7 +154,7 @@ if (semFase.length) {
 L.push("## Bloqueadores por mecanismo");
 L.push("");
 L.push(
-  '"Bloqueia" = documentos em que o mecanismo está ausente ou parcial. "Único" = documentos em que ele é o único pendente.'
+  '"Bloqueia" = documentos em que o mecanismo está ausente ou parcial. "Único" = documentos em que ele é o único pendente.',
 );
 L.push("");
 L.push("| Mecanismo | Status | Bloqueia | Único | Fase |");
@@ -157,7 +162,17 @@ L.push("|---|---|---|---|---|");
 for (const l of linhas) {
   if (!l.bloqueia) continue;
   L.push(
-    "| " + link(l.id) + " | " + ICON[l.status] + " | " + l.bloqueia + " | " + l.unico + " | " + l.fase + " |"
+    "| " +
+      link(l.id) +
+      " | " +
+      ICON[l.status] +
+      " | " +
+      l.bloqueia +
+      " | " +
+      l.unico +
+      " | " +
+      l.fase +
+      " |",
   );
 }
 L.push("");
@@ -167,7 +182,7 @@ L.push(
   linhas
     .filter((l) => l.status === "funciona")
     .map((l) => link(l.id) + " (" + l.total + ")")
-    .join(" · ") || "_nenhum_"
+    .join(" · ") || "_nenhum_",
 );
 L.push("");
 L.push("## Dependências entre mecanismos");
@@ -176,7 +191,9 @@ L.push("```mermaid");
 L.push("graph LR");
 for (const [id, m] of Object.entries(novos)) {
   for (const d of m.depende_de || []) {
-    L.push("  " + d.replace(/-/g, "_") + "[" + d + "] --> " + id.replace(/-/g, "_") + "[" + id + "]");
+    L.push(
+      "  " + d.replace(/-/g, "_") + "[" + d + "] --> " + id.replace(/-/g, "_") + "[" + id + "]",
+    );
   }
 }
 L.push("```");
@@ -195,7 +212,7 @@ const leitura = fs.existsSync(path.join(S, "leitura-rapida.md"))
 fs.writeFileSync(
   path.join(OUT, "guerreiro-lacunas.md"),
   L.join("\n").replace("__LEITURA_RAPIDA__", leitura),
-  "utf8"
+  "utf8",
 );
 
 // ---------- carimbo nas notas compartilhadas
@@ -225,11 +242,14 @@ for (const [id, u] of Object.entries(uso)) {
   if (/^usado_por_guerreiro:/m.test(t)) {
     t = t.replace(/^usado_por_guerreiro:.*$/m, "usado_por_guerreiro: " + u.docs.length);
   } else {
-    t = t.replace(/^usado_por_total:(.*)$/m, "usado_por_total:$1\nusado_por_guerreiro: " + u.docs.length);
+    t = t.replace(
+      /^usado_por_total:(.*)$/m,
+      "usado_por_total:$1\nusado_por_guerreiro: " + u.docs.length,
+    );
   }
   // tag guerreiro
   t = t.replace(/^tags: \[([^\]]*)\]$/m, (mm, inner) =>
-    inner.includes("guerreiro") ? mm : "tags: [" + inner + ", guerreiro]"
+    inner.includes("guerreiro") ? mm : "tags: [" + inner + ", guerreiro]",
   );
   t = t.replace(/^updated:.*$/m, "updated: " + HOJE);
 
@@ -253,6 +273,6 @@ console.log(
     " · jogáveis hoje: " +
     hoje.length +
     " · notas compartilhadas carimbadas: " +
-    carimbadas
+    carimbadas,
 );
 if (semFase.length) console.log("ATENÇÃO — docs sem fase: " + semFase.length);

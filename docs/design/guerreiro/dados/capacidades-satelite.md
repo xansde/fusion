@@ -9,6 +9,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** parcial
 **Evidência:**
+
 - `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:224-340` (`deriveStrikeFromWeapon`) — calcula attackBonus/damage dice/deadly-fatal; chamado de verdade por `external/fusion-systems-2e/systems/pf2e/src/derivations/character.ts:1056` (`stepCharStrikes`, roda no pipeline de derivação real).
 - `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:361-391` (`resolveStrikeAttack`, compara contra `targetAc` e calcula `DegreeOfSuccess`) e `:412-473` (`computeStrikeDamage`, crit doubling) — **zero chamadores de produção**; só aparecem em `systems/pf2e/src/__tests__/actions-strikes.test.ts`.
 - `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:1016` — botão real `onclick={() => rollStrike(strike.sourceId, i as 0|1|2)}`.
@@ -26,6 +27,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** ausente
 **Evidência:**
+
 - `external/fusion-systems-2e/systems/engine-2e/src/map.ts:31-36` — `calculateMapPenalty(attackNumber, weaponAgile)` é uma função pura e sem estado; quem escolhe `attackNumber` é sempre o chamador.
 - `external/fusion-systems-2e/systems/pf2e/src/derivations/character.ts:1066` — pré-computa as 3 variantes (m0/m1/m2) sempre, incondicionalmente, a cada derive.
 - `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:1013-1021` — `{#each strike.variants as variant, i}`; o índice `i` do loop (0,1,2) É o `attackNumber`, escolhido pelo clique do jogador.
@@ -40,6 +42,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** ausente
 **Evidência:**
+
 - `fighter-features.json` → "Fighter Weapon Mastery" (nível 5), campo `unconverted[1]`: `{"key":"CriticalSpecialization", "predicate":[{"gte":["item:proficiency:rank",3]}], "_conversionState":"unsupported"}` — o **próprio importador** marca a regra como não convertida.
 - O ChoiceSet companheiro ("escolha um grupo de arma") na mesma feature também está em `unconverted` com `_conversionState:"unsupported"`.
 - Busca por `criticalSpec|CriticalSpecialization` em `systems/`/`sheets/` (fora de `packs/*.json`): zero código.
@@ -54,6 +57,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** funciona (com ressalva de fidelidade à regra — ver abaixo)
 **Evidência:**
+
 - `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:311-312` — `extractTraitDie` lê `deadly-dN`/`fatal-dN` dos traits da arma dentro de `deriveStrikeFromWeapon` (chamador real: `stepCharStrikes`).
 - `external/fusion-systems-2e/systems/pf2e/src/derivations/character.ts:954-963` (`renderCritDamageRoll`) — monta a STRING de rolagem: `(dados base)*2` + `+1<deadlyDie|fatalDie>` fora da duplicação; usada em `:1101-1102` para preencher `critDamageRoll`.
 - `characterSheetVM.ts:2242-2251` (`rollStrikeDamage(id, crit=true)`) lê `strike.critDamageRoll` e envia ao chat; botão real em `CharacterSheet.svelte:1035-1036` ("Crítico").
@@ -67,6 +71,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** ausente
 **Evidência:**
+
 - `external/fusion-systems-2e/systems/pf2e/src/schemas/item-equipment.ts:94-101` — schema do escudo TEM `hardness`, `brokenThreshold` e um comentário para `acBonus` "while raised" — mas é só schema (dado), sem consumidor.
 - `external/fusion-systems-2e/systems/pf2e/src/actions/damage.ts:159-165` — `applyDamagePipeline` tem um passo genérico de `hardness` — mas este pipeline **não tem chamador de produção** (fato já verificado no briefing).
 - Busca por `raise-shield|shield-block|ShieldBlock|RaiseAShield` em `systems/`/`sheets/`: só aparece como STRING de teste (`planVM.test.ts:227,1787`, nomes de fixture) e como referência de prosa dentro do texto de outros talentos (ex.: Everstand Stance cita `@UUID[...Shield Block]`).
@@ -81,6 +86,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** ausente
 **Evidência:**
+
 - `external/fusion-systems-2e/systems/pf2e/src/derivations/character.ts:279-300` (`stepCharAc`) lê **somente** `doc["_equippedArmor"]` (categoria/acBonus/dexCap/potência da ARMADURA) — nenhuma referência a escudo, "raised" ou item de categoria shield em lugar nenhum do cálculo de CA.
 - `external/fusion-systems-2e/systems/pf2e/src/derivations/equipment.ts` — grep por `shield`/`acBonus`/`raised`: os únicos hits de `acBonus` são os da ARMADURA (linhas 85,126), não do escudo.
 
@@ -93,6 +99,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** ausente
 **Evidência:**
+
 - `external/fusion-systems-2e/systems/pf2e/src/actions/` contém só `conditions-manager.ts`, `damage.ts`, `strikes.ts`, `index.ts` — nenhum módulo de manobra.
 - Busca por trip/grapple/shove/disarm/reposition/escape em `systems/`/`sheets/`: zero hits reais (só falsos-positivos de `e.key === "Escape"` em ~15 componentes `.svelte`, todos manipuladores de tecla ESC de diálogo).
 - As 6 manobras + "Raise a Shield" **existem como documentos navegáveis** em `systems/pf2e/packs/actions-core/documents.json` (confirmado: Trip, Grapple, Shove, Disarm, Reposition, Escape, Raise a Shield todos presentes, `actionType:"action"`).
@@ -107,6 +114,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** ausente (confirmado também para o eixo marcial — e aqui o impacto é maior que no Animista)
 **Evidência:**
+
 - Varredura de `fighter-feats.json`: **14 talentos** do Guerreiro carregam o trait `stance` (Everstand Stance, Point Blank Stance, Haft Striker Stance, Disarming Stance, Ricochet Stance, Impassable Wall Stance, Mobile Shot Stance, Disruptive Stance, Dueling Dance, Lunging Stance, Paragon's Guard, Graceful Poise, Multishot Stance, Twinned Defense).
 - "Everstand Stance" tem `rules: []`, `rulesFull: []`, `unconverted: []` — o próprio pack do vendor não codifica NENHUM mecanismo para a postura (dependeria de um item "Effect: Nome da Postura" vinculado, e não existe pack de efeitos no Fusion).
 - `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/traitGroups.ts:192` — "stance" só aparece como entrada de uma lista de traits para exibir badge, não como lógica.
@@ -121,11 +129,13 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** parcial — eixo de CATEGORIA funciona; eixo de GRUPO/arma nomeada ausente
 **Evidência (categoria — funciona):**
+
 - `external/fusion-systems-2e/systems/pf2e/src/schemas/actor-character.ts:118-124` — `ProficiencyBlockSchema.weapons` tem exatamente 4 chaves fixas: `unarmed/simple/martial/advanced`. **Não existe slot de grupo nem de arma nomeada no schema.**
 - `external/fusion-systems-2e/systems/pf2e/src/derivations/build.ts:406-426` — aplica o mapa `attacks` da classe (Guerreiro: `unarmed:2, simple:2, martial:2, advanced:1`, de `fighter-class.json`) nessas 4 categorias, mais os saltos de `system.proficiencyUpgrades` por nível (ex.: nível 13 do Guerreiro: `weapons.advanced→2`, `weapons.martial/simple→3`).
 - `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:249-252` lê `proficiencies.weapons[weaponCategory]` de verdade, dentro de `deriveStrikeFromWeapon` (chamador real).
 
 **Evidência (grupo — ausente):**
+
 - "Fighter Weapon Mastery" (nível 5) e "Weapon Legend" (nível 13) carregam `kind:"proficiency"` (`MartialProficiency`, ver JSON completo abaixo) — busca por `MartialProficiency` em todo `systems/`/`sheets/`: **zero hits de código**.
 - Mesmo que houvesse consumidor, não haveria onde escrever o resultado: o schema de proficiências só tem as 4 categorias acima.
 - O ChoiceSet "escolha um grupo de arma" de ambas as features está em `unconverted`, `_conversionState:"unsupported"`.
@@ -139,6 +149,7 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 **Status:** parcial/ausente — ver detalhamento por `kind`
 **Evidência estrutural (achado central, vale para TODOS os kinds):**
+
 - `external/fusion-systems-2e/systems/engine-2e/src/effectsEngine.ts:140-180` (`collectEffects`) só reconhece 5 tipos internos (camelCase): `rollOption/flatModifier/note/toggleCondition/iwr`.
 - **`collectEffects(` não tem NENHUM chamador de produção em todo o satélite** — só aparece na própria `effectsEngine.ts`, no teste `effectsEngine.test.ts`, e no harness de teste `classBuildHarness.ts`.
 - `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/__tests__/helpers/classBuildHarness.ts:188` — o harness que "runs the REAL server-side derivation pipeline" (linha 171) chama `collectEffects([], new Set<string>())` — **array de EffectSource VAZIO, sempre**.
@@ -146,14 +157,14 @@ Todo caminho abaixo é relativo à raiz do core e já vem prefixado com `externa
 
 Em vez do engine genérico, existem leitores pontuais que leem o `kind` kebab-case cru de `doc.items` para UM propósito específico cada:
 
-| kind (vendor) | Fighter usa (n) | Consumidor real | Alcança o Guerreiro? |
-|---|---|---|---|
-| `flat-modifier` | 45 | `embeddedModifiers.ts:75-82` (`isFlatModifierRule`), chamado só por `hp.ts:90` (selector `"hp"`) e `speed.ts:144` (selector `"land-speed"/"speed"`) | **Não.** Seletores do Guerreiro: `ac`(5), `strike-damage`(13), `ranged-attack-roll`(4), `melee-strike-attack-roll`(1), `melee-strike-damage`(2), `saving-throw`(1), `skill-check`(1), `reflex`(1), `initiative`(1), `shield-boss/spikes-damage`(1), `unarmed/weapon-damage`(1), indefinido(11), nulo(3) — nenhum é `hp` nem `speed`. (`ac`/`saving-throw`/`skill-check` até são lidos em outro lugar, mas só de `ctx.synthetics` — que, pela citação acima, só recebe CONDIÇÕES, nunca feats.) |
-| `roll-option` | 17 (16 `toggleable:true`) | só o loop de ponto-fixo de `collectEffects` | **Não** (collectEffects nunca roda com dado real). |
-| `roll-note` | 10 | só `processNote`/`resolveNotesForSelector` dentro de `collectEffects` | **Não.** |
-| `set-property` (subkind item-alteration) | 6 | `itemAlterations.ts:69-79` — MVP restrito a `selector==="damage-dice-faces", mode==="upgrade"` | **Não.** Seletores do Guerreiro: `traits`(2), `description`(2), `system.attributes.reach.base`(1), `system.proficiencies.defenses.heavy.rank`(1) — nenhum é `damage-dice-faces`. |
-| `proficiency` | 5 (todos `MartialProficiency`) | nenhum | **Não** — zero código consome, e não há campo no schema para guardar o resultado (ver WEAPON-GROUP). |
-| `grant-item` | 3 (Weapon Supremacy, Reactive Strike, Shield Block) | `grantMaterializer.ts:136-163` (`parseGrantItems`) + `materializeGrants` (`:497`), consumido de verdade por `planVM.ts` (5 pontos de uso) | **Sim.** É o único kind do Guerreiro com efeito real. |
+| kind (vendor)                            | Fighter usa (n)                                     | Consumidor real                                                                                                                                     | Alcança o Guerreiro?                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `flat-modifier`                          | 45                                                  | `embeddedModifiers.ts:75-82` (`isFlatModifierRule`), chamado só por `hp.ts:90` (selector `"hp"`) e `speed.ts:144` (selector `"land-speed"/"speed"`) | **Não.** Seletores do Guerreiro: `ac`(5), `strike-damage`(13), `ranged-attack-roll`(4), `melee-strike-attack-roll`(1), `melee-strike-damage`(2), `saving-throw`(1), `skill-check`(1), `reflex`(1), `initiative`(1), `shield-boss/spikes-damage`(1), `unarmed/weapon-damage`(1), indefinido(11), nulo(3) — nenhum é `hp` nem `speed`. (`ac`/`saving-throw`/`skill-check` até são lidos em outro lugar, mas só de `ctx.synthetics` — que, pela citação acima, só recebe CONDIÇÕES, nunca feats.) |
+| `roll-option`                            | 17 (16 `toggleable:true`)                           | só o loop de ponto-fixo de `collectEffects`                                                                                                         | **Não** (collectEffects nunca roda com dado real).                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `roll-note`                              | 10                                                  | só `processNote`/`resolveNotesForSelector` dentro de `collectEffects`                                                                               | **Não.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `set-property` (subkind item-alteration) | 6                                                   | `itemAlterations.ts:69-79` — MVP restrito a `selector==="damage-dice-faces", mode==="upgrade"`                                                      | **Não.** Seletores do Guerreiro: `traits`(2), `description`(2), `system.attributes.reach.base`(1), `system.proficiencies.defenses.heavy.rank`(1) — nenhum é `damage-dice-faces`.                                                                                                                                                                                                                                                                                                               |
+| `proficiency`                            | 5 (todos `MartialProficiency`)                      | nenhum                                                                                                                                              | **Não** — zero código consome, e não há campo no schema para guardar o resultado (ver WEAPON-GROUP).                                                                                                                                                                                                                                                                                                                                                                                           |
+| `grant-item`                             | 3 (Weapon Supremacy, Reactive Strike, Shield Block) | `grantMaterializer.ts:136-163` (`parseGrantItems`) + `materializeGrants` (`:497`), consumido de verdade por `planVM.ts` (5 pontos de uso)           | **Sim.** É o único kind do Guerreiro com efeito real.                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 **Gatilho na UI:** só `grant-item` tem um — tomar o talento/feature no Plan materializa o item concedido no personagem.
 **O que falta:** os outros 5 kinds (83 de 86 regras do Guerreiro) não alcançam nenhum pipeline ativo.
@@ -164,6 +175,7 @@ Em vez do engine genérico, existem leitores pontuais que leem o `kind` kebab-ca
 
 **Status:** ausente
 **Evidência:**
+
 - Busca por `toggleable` em todo `external/fusion-systems-2e/sheets/pf2e/src`: **zero ocorrências** fora de `__tests__`.
 - Busca por `toggleCondition` em `sheets/pf2e/src`: aparece em `CharacterSheet.svelte`, `NpcSheet.svelte`, `characterSheetVM.ts`, `npcSheetVM.ts` — mas é o mecanismo de CONDIÇÃO (chips), não de roll-option de talento.
 - Os 16 talentos toggleable do Guerreiro (Double Slice, Vicious Swing, Assisting Shot, Lunge, United Assault, Double Shot, Dual-Handed Assault, Farabellus Flip, Advantageous Assault, Dazing Blow, Triple Shot, Incredible Aim, Cut From the Air, Brutal Finish, Overwhelming Blow, Agile Shield Grip) não têm nenhum switch renderizado.
@@ -177,6 +189,7 @@ Em vez do engine genérico, existem leitores pontuais que leem o `kind` kebab-ca
 
 **Status:** parcial
 **Evidência:**
+
 - Campo `hp.temp` existe no schema e atravessa todas as etapas de derivação de HP: `external/fusion-systems-2e/systems/pf2e/src/derivations/hp.ts:109`, `character.ts:219,829`, `npc.ts:106`, `familiar.ts:108,135`, `build.ts:641` — sempre repassando um valor já existente, nunca concedendo um novo.
 - `external/fusion-systems-2e/systems/pf2e/src/actions/damage.ts:170-182` implementa a absorção de PV temporário ANTES do PV normal (REQ-PF2-022) dentro de `applyDamagePipeline` — sem chamador de produção (fato já verificado).
 - `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:598-600` — exibição **somente leitura**: `{#if vm.hpTemp > 0}<span class="sheet-hp__temp">(+{vm.hpTemp})</span>{/if}`.
@@ -191,6 +204,7 @@ Em vez do engine genérico, existem leitores pontuais que leem o `kind` kebab-ca
 
 **Status:** ausente
 **Evidência:**
+
 - `fighter-features.json` → "Combat Flexibility" (nível 9): `rules: []`, `rulesFull: []`, `unconverted: []` — o pack do vendor não codifica NENHUM rule element; é descrição pura ("gain one fighter feat of 8th level or lower... until your next daily preparations").
 - `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/characterSheetVM.ts:2733-2805` (`restAll()`) — o único fluxo de "preparação diária" do Fusion, disparado pelo botão real "Descansar" (`CharacterSheet.svelte:358-359,571`) — só recupera PV, desexpende slots de magia preparada e reabastece focus points. Nenhuma menção a talento/feat temporário.
 
@@ -203,6 +217,7 @@ Em vez do engine genérico, existem leitores pontuais que leem o `kind` kebab-ca
 
 **Status:** funciona (para o que o harness efetivamente prova — ver ressalva)
 **Evidência:**
+
 - `fighter-class.json` → `system.featuresByLevel` lista as 16 class features com o nível correto: 1 (Reactive Strike, Shield Block), 3 (Bravery), 5 (Fighter Weapon Mastery), 7 (Battlefield Surveyor, Weapon Specialization), 9 (Battle Hardened, Combat Flexibility), 11 (Fighter Expertise, Armor Expertise), 13 (Weapon Legend), 15 (Tempered Reflexes, Improved Flexibility, Greater Weapon Specialization), 17 (Armor Mastery), 19 (Versatile Legend) — bate com as "16 class features" do briefing.
 - `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/planVM.ts` consome `featuresByLevel` em produção (ex.: linhas 890, 1489, 2479) para dirigir os "autoFeature chips" no level-up.
 - `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/__tests__/helpers/classBuildHarness.ts:65-70` — usa os construtores REAIS de `planVM.ts` (`applyClass`, `levelUp`, etc.) e roda o pipeline de derivação REAL (`pf2eSystem.deriveSteps`, importado do pacote publicado `@fusion/system-pf2e`, linha 171).

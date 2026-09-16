@@ -1,0 +1,710 @@
+[
+  {
+    "id": "GUE-F0-01",
+    "fase": 0,
+    "titulo": "Spec 51 (`REQ-GUE`) do combate marcial + emendas 10/06/09/17/15",
+    "repo": "core",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 1,
+    "lote": "L1",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F0-02",
+    "fase": 0,
+    "titulo": "Armor Expertise e Armor Mastery no nível certo do Guerreiro",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 1,
+    "lote": "L1",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F0-03",
+    "fase": 0,
+    "titulo": "`weapons-core`: os cinco grupos que faltam e os traits `fatal` e `free-hand`",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 1,
+    "lote": "L1",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F0-04",
+    "fase": 0,
+    "titulo": "Crítico: `fatal` eleva o dado base",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 2,
+    "lote": "L1",
+    "depende": [
+      "GUE-F0-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F0-05",
+    "fase": 0,
+    "titulo": "Arquétipo do Guerreiro publicado e traduzido",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 1,
+    "lote": "L1",
+    "depende": [],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F0-06",
+    "fase": 0,
+    "titulo": "Protótipo das telas do combate marcial",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 2,
+    "lote": "L1",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F0-07",
+    "fase": 0,
+    "titulo": "Roteiro `tutorial-e2e` da G-F0",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L1",
+    "depende": [
+      "GUE-F0-02",
+      "GUE-F0-03",
+      "GUE-F0-04",
+      "GUE-F0-05",
+      "GUE-F0-06"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F1-01",
+    "fase": 1,
+    "titulo": "Mirar no canvas: o gesto que faltou",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 2,
+    "lote": "L2",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F1-05"
+    ],
+    "decisoes": [
+      "D-G01"
+    ]
+  },
+  {
+    "id": "GUE-F1-02",
+    "fase": 1,
+    "titulo": "O golpe carrega o alvo mirado",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L2",
+    "depende": [
+      "GUE-F1-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F1-03",
+    "fase": 1,
+    "titulo": "O sistema decide o crítico",
+    "repo": "ambos",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 4,
+    "lote": "L2",
+    "depende": [
+      "GUE-F1-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-G02"
+    ]
+  },
+  {
+    "id": "GUE-F1-04",
+    "fase": 1,
+    "titulo": "O servidor conta o ataque múltiplo",
+    "repo": "core",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 2,
+    "lote": "L2",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F1-04"
+    ],
+    "decisoes": [
+      "D-G03"
+    ]
+  },
+  {
+    "id": "GUE-F1-05",
+    "fase": 1,
+    "titulo": "O botão de golpe já sabe o MAP",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L2",
+    "depende": [
+      "GUE-F1-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F1-06",
+    "fase": 1,
+    "titulo": "Golpe de NPC com MAP e com dano clicável",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 5,
+    "lote": "L2",
+    "depende": [
+      "GUE-F1-03",
+      "GUE-F1-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F1-07",
+    "fase": 1,
+    "titulo": "Roteiro `tutorial-e2e` da G-F1",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 6,
+    "lote": "L2",
+    "depende": [
+      "GUE-F1-05",
+      "GUE-F1-06"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F2-01",
+    "fase": 2,
+    "titulo": "Seletores de ataque, dano e defesa no pipeline de efeitos",
+    "repo": "satélite",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 2,
+    "lote": "L3",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F2-08",
+      "ALQ-F4-19"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F2-02",
+    "fase": 2,
+    "titulo": "Predicados do eixo marcial",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L3",
+    "depende": [
+      "GUE-F2-01",
+      "GUE-F5-04",
+      "GUE-F6-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F2-03",
+    "fase": 2,
+    "titulo": "As 83 regras inertes do Guerreiro, dirigidas por dado",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 6,
+    "lote": "L3",
+    "depende": [
+      "GUE-F2-01",
+      "GUE-F2-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F2-04",
+    "fase": 2,
+    "titulo": "Roteiro `tutorial-e2e` da G-F2",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 7,
+    "lote": "L3",
+    "depende": [
+      "GUE-F2-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F3-01",
+    "fase": 3,
+    "titulo": "Consultas de posição no servidor (distância, ameaça, flanqueio, cobertura)",
+    "repo": "core",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 2,
+    "lote": "L2",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F3-02",
+    "fase": 3,
+    "titulo": "Flanqueio gera desprevenido",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L2",
+    "depende": [
+      "GUE-F3-01",
+      "GUE-F1-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-G06"
+    ]
+  },
+  {
+    "id": "GUE-F3-03",
+    "fase": 3,
+    "titulo": "Alcance da arma contra a distância do alvo",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 5,
+    "lote": "L2",
+    "depende": [
+      "GUE-F3-01",
+      "GUE-F1-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F3-04",
+    "fase": 3,
+    "titulo": "Roteiro `tutorial-e2e` da G-F3",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 6,
+    "lote": "L2",
+    "depende": [
+      "GUE-F3-02",
+      "GUE-F3-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F4-01",
+    "fase": 4,
+    "titulo": "Economia de reação: uma por rodada, reset no turno",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 3,
+    "lote": "L4",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F7-05",
+      "ALQ-F1-04"
+    ],
+    "decisoes": [
+      "D-G14"
+    ]
+  },
+  {
+    "id": "GUE-F4-02",
+    "fase": 4,
+    "titulo": "Gatilhos de reação percebidos pelo servidor",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L4",
+    "depende": [
+      "GUE-F4-01",
+      "GUE-F3-01",
+      "GUE-F1-03"
+    ],
+    "dependeExterno": [
+      "ALQ-F7-05"
+    ],
+    "decisoes": [
+      "D-G05"
+    ]
+  },
+  {
+    "id": "GUE-F4-03",
+    "fase": 4,
+    "titulo": "Oferta de reação como anotação no canto",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 6,
+    "lote": "L4",
+    "depende": [
+      "GUE-F4-02"
+    ],
+    "dependeExterno": [
+      "ALQ-F6-10"
+    ],
+    "decisoes": [
+      "D-G04"
+    ]
+  },
+  {
+    "id": "GUE-F4-04",
+    "fase": 4,
+    "titulo": "Golpe Reativo e Ripostar em Duelo ponta a ponta",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 7,
+    "lote": "L4",
+    "depende": [
+      "GUE-F4-01",
+      "GUE-F4-02",
+      "GUE-F4-03",
+      "GUE-F1-04",
+      "GUE-F3-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F7-05"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F4-05",
+    "fase": 4,
+    "titulo": "Roteiro `tutorial-e2e` da G-F4",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 8,
+    "lote": "L4",
+    "depende": [
+      "GUE-F4-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F5-01",
+    "fase": 5,
+    "titulo": "Escudo na CA e a ação Erguer o Escudo",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L4",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F2-09"
+    ],
+    "decisoes": [
+      "D-G07"
+    ]
+  },
+  {
+    "id": "GUE-F5-02",
+    "fase": 5,
+    "titulo": "Bloqueio de Escudo: dureza, PV do escudo e quebra",
+    "repo": "ambos",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 7,
+    "lote": "L4",
+    "depende": [
+      "GUE-F5-01",
+      "GUE-F4-01",
+      "GUE-F4-02",
+      "GUE-F4-03"
+    ],
+    "dependeExterno": [
+      "ALQ-F1-06",
+      "ALQ-F1-08"
+    ],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F5-03",
+    "fase": 5,
+    "titulo": "As seis manobras executáveis na aba Ações",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 6,
+    "lote": "L4",
+    "depende": [
+      "GUE-F5-01",
+      "GUE-F5-05",
+      "GUE-F1-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F1-09",
+      "ALQ-F1-11"
+    ],
+    "decisoes": [
+      "D-G08"
+    ]
+  },
+  {
+    "id": "GUE-F5-04",
+    "fase": 5,
+    "titulo": "Estado de mãos e empunhadura",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 3,
+    "lote": "L4",
+    "depende": [
+      "GUE-F0-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-G11"
+    ]
+  },
+  {
+    "id": "GUE-F5-05",
+    "fase": 5,
+    "titulo": "Perícia rolada contra a CD de outra criatura (genérico)",
+    "repo": "core",
+    "modelo": "opus",
+    "esforco": "high",
+    "onda": 5,
+    "lote": "L4",
+    "depende": [
+      "GUE-F1-03",
+      "GUE-F1-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F5-06",
+    "fase": 5,
+    "titulo": "Roteiro `tutorial-e2e` da G-F5",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 8,
+    "lote": "L4",
+    "depende": [
+      "GUE-F5-01",
+      "GUE-F5-02",
+      "GUE-F5-03",
+      "GUE-F5-04",
+      "GUE-F5-05"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F6-01",
+    "fase": 6,
+    "titulo": "Postura do Guerreiro sobre o mecanismo de exclusividade",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 4,
+    "lote": "L3",
+    "depende": [
+      "GUE-F0-01",
+      "GUE-F2-01",
+      "GUE-F5-04"
+    ],
+    "dependeExterno": [
+      "ANI-F3-03"
+    ],
+    "decisoes": [
+      "D-G12"
+    ]
+  },
+  {
+    "id": "GUE-F6-02",
+    "fase": 6,
+    "titulo": "Grupo de arma como eixo de proficiência",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 4,
+    "lote": "L3",
+    "depende": [
+      "GUE-F0-01",
+      "GUE-F0-03"
+    ],
+    "dependeExterno": [
+      "ALQ-F1-01",
+      "ALQ-F0-07"
+    ],
+    "decisoes": [
+      "D-G09"
+    ]
+  },
+  {
+    "id": "GUE-F6-03",
+    "fase": 6,
+    "titulo": "Especialização crítica por grupo",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 6,
+    "lote": "L3",
+    "depende": [
+      "GUE-F6-02",
+      "GUE-F1-03"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-G10"
+    ]
+  },
+  {
+    "id": "GUE-F6-04",
+    "fase": 6,
+    "titulo": "Um ataque contra vários alvos",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 4,
+    "lote": "L3",
+    "depende": [
+      "GUE-F1-01",
+      "GUE-F1-02",
+      "GUE-F3-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": [
+      "D-G13"
+    ]
+  },
+  {
+    "id": "GUE-F6-05",
+    "fase": 6,
+    "titulo": "Roteiro `tutorial-e2e` da G-F6",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 7,
+    "lote": "L3",
+    "depende": [
+      "GUE-F6-01",
+      "GUE-F6-02",
+      "GUE-F6-03",
+      "GUE-F6-04"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F7-01",
+    "fase": 7,
+    "titulo": "Flexibilidade de Combate: talento temporário na preparação diária",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "high",
+    "onda": 4,
+    "lote": "L3",
+    "depende": [
+      "GUE-F0-01",
+      "GUE-F2-01"
+    ],
+    "dependeExterno": [
+      "ALQ-F3-05"
+    ],
+    "decisoes": [
+      "D-G15"
+    ]
+  },
+  {
+    "id": "GUE-F7-02",
+    "fase": 7,
+    "titulo": "Frequência de uso limitada",
+    "repo": "satélite",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 4,
+    "lote": "L3",
+    "depende": [
+      "GUE-F0-01",
+      "GUE-F2-01"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  },
+  {
+    "id": "GUE-F7-03",
+    "fase": 7,
+    "titulo": "Roteiro `tutorial-e2e` da G-F7 e fechamento do plano",
+    "repo": "core",
+    "modelo": "sonnet",
+    "esforco": "medium",
+    "onda": 7,
+    "lote": "L3",
+    "depende": [
+      "GUE-F7-01",
+      "GUE-F7-02"
+    ],
+    "dependeExterno": [],
+    "decisoes": []
+  }
+]

@@ -142,7 +142,7 @@ function notaRegra(d) {
           (p.talento_classe ? "sim" : "—") +
           " | " +
           (p.outros || "—") +
-          " |"
+          " |",
       );
     }
     L.push("");
@@ -229,14 +229,13 @@ function notaMecanismo(id, m, usos) {
   L.push("## Depende de");
   L.push("");
   if ((m.depende_de || []).length)
-    for (const dd of m.depende_de)
-      L.push("- " + link(dd) + " — " + ((MEC[dd] || {}).name || dd));
+    for (const dd of m.depende_de) L.push("- " + link(dd) + " — " + ((MEC[dd] || {}).name || dd));
   else L.push("_Nenhuma dependência direta identificada — mecanismo de base._");
   L.push("");
   L.push("## Usado por");
   L.push("");
   L.push(
-    "Total: **" + usos.length + "** documentos (" + nTal + " talentos, " + nHab + " habilidades)."
+    "Total: **" + usos.length + "** documentos (" + nTal + " talentos, " + nHab + " habilidades).",
   );
   L.push("");
   if (usos.length) {
@@ -248,7 +247,7 @@ function notaMecanismo(id, m, usos) {
     L.push(
       dependentes.length
         ? "Nenhum documento o cita diretamente — ele é base de: " + dependentes.join(" · ")
-        : "_Nenhum documento o cita diretamente._"
+        : "_Nenhum documento o cita diretamente._",
     );
   }
   L.push("");
@@ -287,11 +286,11 @@ if (!DRY) {
             name: (MEC[id] || {}).name,
             docs: us.map((u) => ({ slug: u.slug, kind: u.kind, nivel: u.nivel, name: u.name })),
           },
-        ])
+        ]),
       ),
       null,
-      1
-    )
+      1,
+    ),
   );
   fs.writeFileSync(
     path.join(S, "docs-derivados.json"),
@@ -308,8 +307,8 @@ if (!DRY) {
         manual: d.manual,
       })),
       null,
-      1
-    )
+      1,
+    ),
   );
 }
 

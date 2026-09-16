@@ -9,7 +9,21 @@
     {
       "id": "F2",
       "tema": "A regra escrita no talento sai do papel",
-      "mecanismos": ["EFFECT-SOURCE-ITEMS", "AEL", "MOD-ADJUST", "NOTE", "ROLL-OPTION", "DOS-ADJUST", "ITEM-ALTER", "DAMAGE-ALT", "EFFECT-DUR", "PROF-TRACK", "GRANT-DYN", "CHOICE", "PREREQ"]
+      "mecanismos": [
+        "EFFECT-SOURCE-ITEMS",
+        "AEL",
+        "MOD-ADJUST",
+        "NOTE",
+        "ROLL-OPTION",
+        "DOS-ADJUST",
+        "ITEM-ALTER",
+        "DAMAGE-ALT",
+        "EFFECT-DUR",
+        "PROF-TRACK",
+        "GRANT-DYN",
+        "CHOICE",
+        "PREREQ"
+      ]
     },
     {
       "id": "F3",
@@ -24,17 +38,42 @@
     {
       "id": "F5",
       "tema": "Escudo, manobras e mãos",
-      "mecanismos": ["RAISE-SHIELD", "SHIELD-BLOCK", "MANEUVER", "NEW-HAND-STATE", "NEW-SKILL-VS-DC"]
+      "mecanismos": [
+        "RAISE-SHIELD",
+        "SHIELD-BLOCK",
+        "MANEUVER",
+        "NEW-HAND-STATE",
+        "NEW-SKILL-VS-DC"
+      ]
     },
     {
       "id": "F6",
       "tema": "Postura, grupo de arma e crítico",
-      "mecanismos": ["STANCE", "WEAPON-GROUP", "CRIT-SPEC", "DEADLY-FATAL", "MOVEMENT", "SENSE", "FLAT-CHECK", "AFFLICTION", "NEW-VIRULENT", "TEMP-HP", "MULTI-TARGET-STRIKE", "NEW-DAMAGE-LOG"]
+      "mecanismos": [
+        "STANCE",
+        "WEAPON-GROUP",
+        "CRIT-SPEC",
+        "DEADLY-FATAL",
+        "MOVEMENT",
+        "SENSE",
+        "FLAT-CHECK",
+        "AFFLICTION",
+        "NEW-VIRULENT",
+        "TEMP-HP",
+        "MULTI-TARGET-STRIKE",
+        "NEW-DAMAGE-LOG"
+      ]
     },
     {
       "id": "F7",
       "tema": "Escolha diária e economia de ações",
-      "mecanismos": ["DAILY-CHOICE", "ACTION-ECON", "NEW-FREQUENCY", "NEW-LAST-ACTION", "NEW-ACTION-RESTRICT"]
+      "mecanismos": [
+        "DAILY-CHOICE",
+        "ACTION-ECON",
+        "NEW-FREQUENCY",
+        "NEW-LAST-ACTION",
+        "NEW-ACTION-RESTRICT"
+      ]
     }
   ]
 }

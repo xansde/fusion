@@ -38,7 +38,7 @@ ancestries-core, ancestry-features-core, backgrounds-core, bestiary-core, classe
 class-features-core, conditions, equipment-core, familiar-abilities-core, feats-core,
 heritages-core, spells-core, weapons-core, + build-report.json) — **nenhum chamado
 `effects`/`feat-effects`/`other-effects`/`equipment-effects-core`**. Confirma o achado do
-inventário do Animista: Fusion não publica pack de efeitos neste pin. Existe só o *tipo* de
+inventário do Animista: Fusion não publica pack de efeitos neste pin. Existe só o _tipo_ de
 documento (`schemas/item-effect.ts`, sem dados) e o motor de rule elements de efeito
 (`engine-2e/src/effectsEngine.ts`) — nenhum dos dois é um pack de conteúdo.
 
@@ -60,19 +60,19 @@ mais teórico que prático por ora.
 
 **Contagem por trait relevante** (de 30 armas, por trait ou prefixo `trait-dX`):
 
-| Trait | Contagem | Observação |
-|---|---|---|
-| `agile` | 5 | Dagger, Dart, Hatchet, Kukri, Shortsword |
-| `finesse` | 5 | Dagger, Kukri, Rapier, Shortsword, Whip |
-| `deadly` | 5 | Composite Longbow/Shortbow, Longbow, Shortbow (`deadly-d10`), Rapier (`deadly-d8`) |
-| `fatal` | **0** | nenhuma arma do pack tem `fatal-dX` |
-| `reach` | 3 | Bo Staff, Gnome Flickmace, Whip |
-| `two-hand` | 2 | Bastard Sword (`two-hand-d12`), Staff (`two-hand-d8`) |
-| `thrown` | 7 | Club, Dagger, Dart, Hatchet, Javelin, Spear, Trident |
-| `free-hand` | **0** | nenhuma arma do pack tem esse trait |
-| `shove` | 2 | Maul, Warhammer |
-| `trip` | 4 | Bo Staff, Flail, Kukri, Whip |
-| `disarm` | 3 | Flail, Rapier, Whip |
+| Trait       | Contagem | Observação                                                                         |
+| ----------- | -------- | ---------------------------------------------------------------------------------- |
+| `agile`     | 5        | Dagger, Dart, Hatchet, Kukri, Shortsword                                           |
+| `finesse`   | 5        | Dagger, Kukri, Rapier, Shortsword, Whip                                            |
+| `deadly`    | 5        | Composite Longbow/Shortbow, Longbow, Shortbow (`deadly-d10`), Rapier (`deadly-d8`) |
+| `fatal`     | **0**    | nenhuma arma do pack tem `fatal-dX`                                                |
+| `reach`     | 3        | Bo Staff, Gnome Flickmace, Whip                                                    |
+| `two-hand`  | 2        | Bastard Sword (`two-hand-d12`), Staff (`two-hand-d8`)                              |
+| `thrown`    | 7        | Club, Dagger, Dart, Hatchet, Javelin, Spear, Trident                               |
+| `free-hand` | **0**    | nenhuma arma do pack tem esse trait                                                |
+| `shove`     | 2        | Maul, Warhammer                                                                    |
+| `trip`      | 4        | Bo Staff, Flail, Kukri, Whip                                                       |
+| `disarm`    | 3        | Flail, Rapier, Whip                                                                |
 
 **O que falta:** `fatal` e `free-hand` são os dois buracos totais — nenhuma arma do pack carrega
 esses traits, então qualquer talento/regra do Guerreiro que teste `fatal` (crítico com dado extra

@@ -31,14 +31,14 @@ Cruzando por pré-requisito de texto ("Fighter Dedication", "Basic Maneuver" etc
 do arquétipo do Guerreiro (remaster) estão todos lá**, com conversão de regra quase limpa (só 3
 rule elements não convertidos no total, todos ChoiceSets de escolha de atributo/perícia):
 
-| Talento | Nível | `unconvertedRules` |
-|---|---|---|
-| Fighter Dedication | 2 | 2 |
-| Basic Maneuver | 4 | 1 |
-| Fighter Resiliency | 4 | 0 |
-| Reactive Striker | 4 | 0 |
-| Advanced Maneuver | 6 | 0 |
-| Diverse Weapon Expert | 12 | 0 |
+| Talento               | Nível | `unconvertedRules` |
+| --------------------- | ----- | ------------------ |
+| Fighter Dedication    | 2     | 2                  |
+| Basic Maneuver        | 4     | 1                  |
+| Fighter Resiliency    | 4     | 0                  |
+| Reactive Striker      | 4     | 0                  |
+| Advanced Maneuver     | 6     | 0                  |
+| Diverse Weapon Expert | 12    | 0                  |
 
 Nenhum dos 6 tem campo `name_pt` — zero tradução pt-BR. Nenhum está em pack nenhum publicado
 (nem no core, nem no submodule) — é saída crua do importador, parada no meio do pipeline.

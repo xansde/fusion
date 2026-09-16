@@ -8,6 +8,13 @@ existe para isso não se repetir.
 
 Levantado em 2026-09-16, contra `alfa/app` + submodule `fusion-systems-2e` pin v0.1.1.
 
+## O plano de tarefas
+
+`tasks.md` (com `tasks-resumo.json` ao lado) é o plano de implementação derivado deste
+inventário: sete fases cumulativas, decisões `D-G*`, contratos canônicos e uma ficha por tarefa.
+Quem executa é a skill `/guerreiro`, sobre os scripts genéricos de `.claude/skills/_frentes/`;
+o estado de execução vive em `estado.json`, escrito pelo `record.mjs`, e nunca à mão.
+
 ## Como recalcular
 
 Depois de mudar o status de um mecanismo (em `dados/mecanismos-guerreiro.json`) ou de acrescentar
@@ -28,17 +35,17 @@ lado.
 
 ## O que é cada arquivo
 
-| Arquivo | O que é |
-|---|---|
-| `dados/docs-feats-n1-6.json`, `docs-feats-n8-20.json` | os 112 talentos, com os mecanismos que cada um exige e por quê |
-| `dados/docs-features.json` | a classe + as 16 habilidades (a entrada da classe traz a progressão 1–20 lida do pack) |
-| `dados/mecanismos-guerreiro.json` | os 21 mecanismos novos do eixo marcial: regra, status, evidência `arquivo:linha`, o que falta, dependências |
-| `dados/mapa-mecanismos.json` | os 86 mecanismos herdados dos inventários do Alquimista e do Animista (fonte única do status, não duplicada) |
-| `dados/fases.json` | as 7 fases cumulativas — mudar a ordem aqui e rodar `lacunas.cjs` refaz o plano inteiro |
-| `dados/capacidades-core.md`, `capacidades-satelite.md` | os dois levantamentos de código que fundamentam os status |
-| `dados/conteudo.md`, `arquetipo.md` | cobertura de dado: armas, ações, condições, efeitos, arquétipo |
-| `dados/BRIEFING.md` | o método e a régua de evidência usados no levantamento |
-| `dados/uso-por-mecanismo.json`, `docs-derivados.json` | saídas do `gen.cjs`, consumidas pelo `lacunas.cjs` |
+| Arquivo                                                | O que é                                                                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `dados/docs-feats-n1-6.json`, `docs-feats-n8-20.json`  | os 112 talentos, com os mecanismos que cada um exige e por quê                                               |
+| `dados/docs-features.json`                             | a classe + as 16 habilidades (a entrada da classe traz a progressão 1–20 lida do pack)                       |
+| `dados/mecanismos-guerreiro.json`                      | os 21 mecanismos novos do eixo marcial: regra, status, evidência `arquivo:linha`, o que falta, dependências  |
+| `dados/mapa-mecanismos.json`                           | os 86 mecanismos herdados dos inventários do Alquimista e do Animista (fonte única do status, não duplicada) |
+| `dados/fases.json`                                     | as 7 fases cumulativas — mudar a ordem aqui e rodar `lacunas.cjs` refaz o plano inteiro                      |
+| `dados/capacidades-core.md`, `capacidades-satelite.md` | os dois levantamentos de código que fundamentam os status                                                    |
+| `dados/conteudo.md`, `arquetipo.md`                    | cobertura de dado: armas, ações, condições, efeitos, arquétipo                                               |
+| `dados/BRIEFING.md`                                    | o método e a régua de evidência usados no levantamento                                                       |
+| `dados/uso-por-mecanismo.json`, `docs-derivados.json`  | saídas do `gen.cjs`, consumidas pelo `lacunas.cjs`                                                           |
 
 ## A régua
 

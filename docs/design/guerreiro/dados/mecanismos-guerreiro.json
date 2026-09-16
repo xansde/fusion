@@ -11,10 +11,7 @@
       "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a leitura anterior de que a ficha \"só posta fórmula crua\" estava desatualizada — o caminho de produção é o `strikeCard` (r20-X1). E o contrato já está aberto para receber o resto: `CheckContextSchema` (`packages/shared/src/chat/types.ts:389-398`) é união discriminada cujo comentário diz, literalmente, que `kind` fica aberto para \"attack/skill checks without a breaking change\". Ou seja, o trabalho restante é menor do que este inventário sugeria: falta o alvo e o uso do grau, não o card"
     ],
     "o_que_falta": "Ligar as pontas que já existem: um gesto de mira no canvas que chame `combatActions.target()`, o payload de rolagem da ficha carregando esse alvo, e a escolha entre as duas graduações (a do servidor no core já é anti-cheat e testada). Enquanto isso não existe, o crítico é escolha manual do jogador — ele clica no botão \"Crítico\" em vez de \"Dano\".",
-    "depende_de": [
-      "TARGET-OTHER",
-      "APPLY-DAMAGE"
-    ]
+    "depende_de": ["TARGET-OTHER", "APPLY-DAMAGE"]
   },
   "MAP-TRACK": {
     "name": "Penalidade de ataque múltiplo contada pelo sistema",
@@ -27,10 +24,7 @@
       "Não há onde zerar: `packages/server/src/combat/target-handler.ts:169-180` é o ÚNICO consumidor de `onLifecycle(\"turnEnd\")` em todo o servidor"
     ],
     "o_que_falta": "Um contador de ataques por combatente na rodada, um listener de `turnStart` que o zere (o bus já existe e é testado) e a marcação de quais ataques não contam. O ponto de encaixe está pronto — falta o listener.",
-    "depende_de": [
-      "NEW-TURN-CYCLE",
-      "WEAPON-STRIKE"
-    ]
+    "depende_de": ["NEW-TURN-CYCLE", "WEAPON-STRIKE"]
   },
   "MANEUVER": {
     "name": "Manobras de combate (Derrubar, Agarrar, Empurrar, Desarmar, Reposicionar, Escapar)",
@@ -42,11 +36,7 @@
       "Não existe rolagem contra CD de outro ator fora do caminho de ataque: `packages/server/src/chat/chat-handler.ts:451-507` grada contra CA, e o caminho de salvamento é do lançador de magia"
     ],
     "o_que_falta": "Tudo: a ação executável, a CD do alvo lida do servidor, o efeito por grau de sucesso e a condição resultante aplicada ao alvo (que depende de CONDITION em alvo, também ausente).",
-    "depende_de": [
-      "TARGET-OTHER",
-      "CONDITION",
-      "DOS-ADJUST"
-    ]
+    "depende_de": ["TARGET-OTHER", "CONDITION", "DOS-ADJUST"]
   },
   "OFF-GUARD-POS": {
     "name": "Desprevenido por posição (flanqueio) e por efeito",
@@ -60,10 +50,7 @@
       "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a geometria de jogo EXISTE e é testada, só não é consumida por regra nenhuma — `packages/shared/src/grid/math.ts` tem `chebyshevDistance:262`, `squareCellDistance:320`, `squareMeasurePath:368`, `squareNeighborhoodCells:223` e os realces de círculo/linha/cone; `packages/shared/src/vision/` tem `segmentIntersect:125`, `computeVisibilityPolygon:250` e `isInLOS:437`; e as paredes são EmbeddedCollection da cena (`packages/shared/src/scene.ts:474-475`, REQ-VIS-001). O único consumidor de produção é a régua (`packages/client/src/lib/presence/rulerState.ts:143`). Falta a ponte entre posição e regra, não a matemática"
     ],
     "o_que_falta": "Cálculo de adjacência/linha entre tokens no canvas, a regra de flanqueio derivando a condição automaticamente, e o -2 na CA entrando de fato na rolagem de ataque.",
-    "depende_de": [
-      "CONDITION",
-      "WEAPON-STRIKE"
-    ]
+    "depende_de": ["CONDITION", "WEAPON-STRIKE"]
   },
   "SHIELD-BLOCK": {
     "name": "Bloquear com escudo (dureza, PV e limiar de quebra)",
@@ -75,11 +62,7 @@
       "Shield Block é uma das 3 regras `grant-item` que funcionam — o item chega à ficha como documento inerte (`external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/grantMaterializer.ts:136-163,497`), sem nenhum efeito mecânico"
     ],
     "o_que_falta": "Escudo como item com estado (erguido, dano acumulado, quebrado), a reação em si, e a divisão de dano — que depende de APPLY-DAMAGE.",
-    "depende_de": [
-      "REACTION-TRIGGER",
-      "APPLY-DAMAGE",
-      "RAISE-SHIELD"
-    ]
+    "depende_de": ["REACTION-TRIGGER", "APPLY-DAMAGE", "RAISE-SHIELD"]
   },
   "RAISE-SHIELD": {
     "name": "Erguer o escudo",
@@ -91,10 +74,7 @@
       "Não há efeito com duração \"até o começo do seu próximo turno\" no Fusion (EFFECT-DUR está ausente no catálogo, e o bus de turno tem um único consumidor)"
     ],
     "o_que_falta": "A ação com gatilho na ficha, o bônus entrando na CA derivada, e a expiração automática no início do próximo turno.",
-    "depende_de": [
-      "EFFECT-DUR",
-      "NEW-TURN-CYCLE"
-    ]
+    "depende_de": ["EFFECT-DUR", "NEW-TURN-CYCLE"]
   },
   "CRIT-SPEC": {
     "name": "Especialização crítica por grupo de arma",
@@ -106,11 +86,7 @@
       "O crítico hoje nem é decidido pelo sistema: o jogador escolhe clicar em \"Crítico\" na ficha (`CharacterSheet.svelte:1035`)"
     ],
     "o_que_falta": "Converter a regra no importador, ter grupo de arma disponível na derivação (WEAPON-GROUP) e um ponto no fluxo de dano onde o efeito por grupo seja aplicado ao alvo.",
-    "depende_de": [
-      "WEAPON-GROUP",
-      "WEAPON-STRIKE",
-      "CONDITION"
-    ]
+    "depende_de": ["WEAPON-GROUP", "WEAPON-STRIKE", "CONDITION"]
   },
   "MULTI-TARGET-STRIKE": {
     "name": "Um ataque contra vários alvos",
@@ -121,10 +97,7 @@
       "Nenhuma UI de seleção múltipla de alvo existe no canvas (`packages/client/src/lib/canvas/tokens/TokenInteractionManager.ts` não trata mira, nem simples nem múltipla)"
     ],
     "o_que_falta": "Rever a decisão da REQ-ACH-074 para o caso de ataque, ou um caminho separado que emita N ataques correlacionados a partir de uma ação só.",
-    "depende_de": [
-      "WEAPON-STRIKE",
-      "TARGET-OTHER"
-    ]
+    "depende_de": ["WEAPON-STRIKE", "TARGET-OTHER"]
   },
   "REACTION-TRIGGER": {
     "name": "Reação: economia e gatilho oferecido pelo servidor",
@@ -137,9 +110,7 @@
       "Não há nenhuma UI de pergunta/interrupção ao jogador em lugar nenhum"
     ],
     "o_que_falta": "Tudo: campo de reação disponível resetado por turno, eventos de gatilho no servidor (alguém se moveu, alguém atacou, alguém foi atingido), e a janela de resposta na tela do jogador.",
-    "depende_de": [
-      "NEW-TURN-CYCLE"
-    ]
+    "depende_de": ["NEW-TURN-CYCLE"]
   },
   "TEMP-HP": {
     "name": "Pontos de vida temporários",
@@ -152,9 +123,7 @@
       "No core, o modelo de vida lido pelo combat tracker é só `{current, max}` (`packages/client/src/lib/combat/combatVitals.ts:89-122`)"
     ],
     "o_que_falta": "Uma fonte que conceda (efeito de talento/magia) e um controle de UI para definir e consumir. O Guerreiro não tem talento nativo que conceda PV temporário, então aqui ele é consumidor de terceiros, não a causa.",
-    "depende_de": [
-      "APPLY-DAMAGE"
-    ]
+    "depende_de": ["APPLY-DAMAGE"]
   },
   "WEAPON-GROUP": {
     "name": "Grupo de arma / arma nomeada como eixo de proficiência",
@@ -168,10 +137,7 @@
       "O pack `weapons-core` tem 30 armas cobrindo 11 dos 16 grupos do PF2e — faltam Bomb, Brawling, Firearm, Pick, Polearm e Shield inteiros"
     ],
     "o_que_falta": "Converter o ChoiceSet no importador, criar o eixo de proficiência por grupo/arma nomeada no schema e na derivação, e oferecer a escolha na ficha.",
-    "depende_de": [
-      "PROF-TRACK",
-      "CHOICE"
-    ]
+    "depende_de": ["PROF-TRACK", "CHOICE"]
   },
   "DEADLY-FATAL": {
     "name": "Dados extras de crítico por trait de arma (deadly, fatal)",
@@ -209,9 +175,7 @@
       "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a geometria de jogo EXISTE e é testada, só não é consumida por regra nenhuma — `packages/shared/src/grid/math.ts` tem `chebyshevDistance:262`, `squareCellDistance:320`, `squareMeasurePath:368`, `squareNeighborhoodCells:223` e os realces de círculo/linha/cone; `packages/shared/src/vision/` tem `segmentIntersect:125`, `computeVisibilityPolygon:250` e `isInLOS:437`; e as paredes são EmbeddedCollection da cena (`packages/shared/src/scene.ts:474-475`, REQ-VIS-001). O único consumidor de produção é a régua (`packages/client/src/lib/presence/rulerState.ts:143`). Falta a ponte entre posição e regra, não a matemática"
     ],
     "o_que_falta": "Tudo. É o mesmo eixo de geometria que falta para flanqueio.",
-    "depende_de": [
-      "OFF-GUARD-POS"
-    ]
+    "depende_de": ["OFF-GUARD-POS"]
   },
   "EFFECT-SOURCE-ITEMS": {
     "name": "Rule element de item/talento vira fonte de efeito",
@@ -250,9 +214,7 @@
       "CORREÇÃO DE EVIDÊNCIA (plano de tarefas, 2026-09-16): a geometria de jogo EXISTE e é testada, só não é consumida por regra nenhuma — `packages/shared/src/grid/math.ts` tem `chebyshevDistance:262`, `squareCellDistance:320`, `squareMeasurePath:368`, `squareNeighborhoodCells:223` e os realces de círculo/linha/cone; `packages/shared/src/vision/` tem `segmentIntersect:125`, `computeVisibilityPolygon:250` e `isInLOS:437`; e as paredes são EmbeddedCollection da cena (`packages/shared/src/scene.ts:474-475`, REQ-VIS-001). O único consumidor de produção é a régua (`packages/client/src/lib/presence/rulerState.ts:143`). Falta a ponte entre posição e regra, não a matemática"
     ],
     "o_que_falta": "Medir a distância no canvas entre atacante e alvo e devolvê-la ao fluxo de ataque. É a mesma peça de geometria que falta para flanqueio e cobertura.",
-    "depende_de": [
-      "OFF-GUARD-POS"
-    ]
+    "depende_de": ["OFF-GUARD-POS"]
   },
   "NEW-SKILL-VS-DC": {
     "name": "Perícia rolada contra a CD de outra criatura",
@@ -263,10 +225,7 @@
       "A rolagem de perícia da ficha posta uma fórmula no chat como qualquer outra, sem alvo"
     ],
     "o_que_falta": "Resolver a CD do alvo no servidor (como já é feito com a CA) e graduar a rolagem de perícia contra ela.",
-    "depende_de": [
-      "TARGET-OTHER",
-      "MANEUVER"
-    ]
+    "depende_de": ["TARGET-OTHER", "MANEUVER"]
   },
   "NEW-DAMAGE-LOG": {
     "name": "Histórico de quem feriu o alvo",
@@ -276,10 +235,7 @@
       "Não existe aplicação de dano para registrar (ver [[mec-apply-damage]]), e nenhum estado por combatente guarda histórico: os handlers de combate (`packages/server/src/combat/combat-handlers.ts:548-1598`) não gravam nada além de ordem, iniciativa, derrotado e oculto"
     ],
     "o_que_falta": "Registrar cada aplicação de dano com origem e momento, e limpar a lista no fim do turno do alvo (o bus de turno já existe).",
-    "depende_de": [
-      "APPLY-DAMAGE",
-      "NEW-TURN-CYCLE"
-    ]
+    "depende_de": ["APPLY-DAMAGE", "NEW-TURN-CYCLE"]
   },
   "NEW-SPELL-REFLECT": {
     "name": "Refletir a magia de volta em quem lançou",
@@ -291,10 +247,7 @@
       "A conjuração já anuncia e oferece salvamento (`SPELL-CAST` funciona), mas não há ponto no fluxo onde um terceiro intercepte a magia em voo"
     ],
     "o_que_falta": "Uma janela de interceptação no fluxo de conjuração, e a capacidade de reexecutar a magia trocando alvo e origem.",
-    "depende_de": [
-      "REACTION-TRIGGER",
-      "COUNTERACT"
-    ]
+    "depende_de": ["REACTION-TRIGGER", "COUNTERACT"]
   },
   "GUE-CLASS-PUBLISHED": {
     "name": "Classe Guerreiro publicada e montável",

@@ -11,6 +11,7 @@ entrada e parei. Todos os caminhos abaixo são relativos à raiz do core.
 **Status:** parcial
 
 **Evidência:**
+
 - `packages/server/src/chat/chat-handler.ts:451-507` — o handler do comando `roll` (usado
   por QUALQUER rolagem, não só Strike) rola o dado no servidor (`rollService.roll`,
   anti-cheat), e se `payload.target` veio preenchido e não é um save, resolve a AC do alvo
@@ -58,6 +59,7 @@ algo equivalente por fora do core (item para o outro agente).
 **Status:** parcial
 
 **Evidência:**
+
 - `packages/server/src/combat/target-handler.ts:92-114` (`buildCombatTargetHandler`) —
   handler real: qualquer usuário autenticado marca/desmarca um token como seu alvo; userId
   é server-authoritative (nunca vem do payload); transmite `token:targeted` só quando o
@@ -103,6 +105,7 @@ que ficou pela metade.
 **Status:** ausente
 
 **Evidência:**
+
 - `packages/server/src/net/handlers/doc-handlers.ts` (arquivo completo, 105KB): zero
   ocorrências de `"hp"` — nenhum handler dedicado de dano/cura; HP só existe como campo
   opaco dentro do doc genérico.
@@ -132,12 +135,13 @@ no core hoje) que chame esse handler.
 
 ## Combate e turnos — NEW-TURN-CYCLE (iniciativa, ordem, começar/terminar turno)
 
-*ID novo: nenhum mecanismo do catálogo ou do vocabulário novo cobre o ciclo de turno em si
-(MAP-TRACK é só o contador de penalidade, não o ciclo).*
+_ID novo: nenhum mecanismo do catálogo ou do vocabulário novo cobre o ciclo de turno em si
+(MAP-TRACK é só o contador de penalidade, não o ciclo)._
 
 **Status:** funciona
 
 **Evidência:**
+
 - `packages/server/src/combat/combat-handlers.ts:548-1598` — conjunto completo de handlers
   reais: `buildCombatCreateHandler`, `buildCombatStartHandler`,
   `buildCombatAddCombatantHandler`/`buildCombatRemoveCombatantHandler`,
@@ -173,6 +177,7 @@ de avançar no `TurnHead` quando é a vez do seu combatente (`canEndOwnTurn`).
 **Status:** ausente
 
 **Evidência:**
+
 - Busca (case-sensitive, para não pegar "map" de mapa/cartografia) por `\bMAP\b` em
   `packages/server/src` e `packages/client/src`: **zero** ocorrências.
 - Busca por `multiple.?attack|attack.?penalty` (case-insensitive) nos mesmos dois pacotes:
@@ -204,6 +209,7 @@ próxima rolagem — nada disso existe no core.
 **Status:** ausente
 
 **Evidência:**
+
 - Busca por `\breaction\b|\breactions\b` (case-insensitive) em `packages/server/src`: as
   únicas ocorrências são em `compendium/service.ts:1303,1304,1602,1605,1631-1632` — formatação
   do CUSTO de ação de um documento de compêndio para exibição ("1", "2", "reaction", "free"),
@@ -236,6 +242,7 @@ pergunte "usar Reação de Oportunidade?" a um jogador.
 **Status:** ausente
 
 **Evidência:**
+
 - Busca por `\bflank(ing|ed)?\b|\badjacent\b|off-?guard|offGuard|\breach\b|\bcover\b`
   (case-insensitive) em `packages/client/src/lib/canvas`: os únicos 3 arquivos com match
   (`token-visuals.ts:41`, `token-interaction.ts:395,413`, `TokenInteractionManager.ts:358,871`)
@@ -265,11 +272,12 @@ aplique off-guard automaticamente quando dois aliados flanqueiam um inimigo.
 
 **Status:** ausente
 
-*(O catálogo já registra `CONDITION` como "parcial" pelo toggle na própria ficha, no
+_(O catálogo já registra `CONDITION` como "parcial" pelo toggle na própria ficha, no
 satélite — self, não outro ator. Esta seção cobre especificamente o sub-caso pedido: aplicar
-a um ALVO a partir do mapa/combate/chat, que é o que falta.)*
+a um ALVO a partir do mapa/combate/chat, que é o que falta.)_
 
 **Evidência:**
+
 - `packages/client/src/components/combat/CombatQueue.svelte:37-38,188-190,340-362` — a fila
   de combate MOSTRA os chips de condição de cada combatente (`ConditionChip`), mas é
   leitura pura: não há botão de adicionar/remover ali, só iteração sobre
@@ -302,6 +310,7 @@ token no canvas, linha da fila de combate, ou card de chat — que o chame.
 **Status:** ausente
 
 **Evidência:**
+
 - Busca por `temp.?[hH][pP]|temporaryHp|temp_hp` em TODO `packages/` (server, client, shared,
   system-api): **zero arquivos**.
 - `packages/client/src/lib/combat/combatVitals.ts:89-122` (`readActorHealth`) — o modelo de
@@ -324,12 +333,13 @@ temp primeiro".
 
 ## NEW-COVER — cobertura
 
-*ID novo: nenhum mecanismo do catálogo cobre cobertura; é puramente ausente e não teria
-onde se encaixar em nenhum ID existente.*
+_ID novo: nenhum mecanismo do catálogo cobre cobertura; é puramente ausente e não teria
+onde se encaixar em nenhum ID existente._
 
 **Status:** ausente
 
 **Evidência:**
+
 - Busca por `\bcover\b` (case-insensitive) em `packages/server/src` e `packages/client/src`:
   todas as ocorrências são falsos positivos de "coverage"/"não cobre" em comentários de teste
   (`tokenValidation.ts:328`, `compendium/service.ts:1256`, `boot.ts:324`,
