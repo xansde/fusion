@@ -19,6 +19,7 @@ import {
   buildSpellFields,
   buildFeatFields,
   buildClassFeatureFields,
+  buildEffectFields,
   buildMechanicalFields,
   buildDetailsHeader,
   DocumentDetailsCache,
@@ -808,6 +809,156 @@ describe("buildClassFeatureFields", () => {
   });
 });
 
+// ALQ-F2-18: system.duration is a structured { value, unit, sustained,
+// expiry } (EffectItemSystem, Alquimista plan §2.5) — never the free-text
+// string a spell's duration uses — so these fixtures mirror the real shapes
+// found in equipment-effects-core (`external/fusion-systems-2e/systems/pf2e/
+// packs/equipment-effects-core/documents.json`), not an invented shape:
+//   - "Effect: Elixir of Life"                    -> minute, value 10
+//   - "Aura: Demon's Knot"                        -> round, value 1
+//   - "Effect: Magnetic Bola (Speed Penalty)"     -> encounter, value -1 (sentinel)
+//   - "Effect: Aeon Stone Resonance (Black Disc)" -> unlimited, value -1 (sentinel)
+//   - "Effect: Ablative Armor Plating (Greater)"  -> hour, value 1
+//   - "Effect: Aeon Stone (Pink Rhomboid)"        -> day, value 1
+describe("buildEffectFields (EN, default locale)", () => {
+  it("renders a countable minute duration", () => {
+    const fields = buildEffectFields({
+      duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "10 minutes" }]);
+  });
+
+  it("renders a countable round duration, singular", () => {
+    const fields = buildEffectFields({
+      duration: { value: 1, unit: "round", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 round" }]);
+  });
+
+  it("renders the semantic 'encounter' duration without its -1 sentinel value", () => {
+    const fields = buildEffectFields({
+      duration: { value: -1, unit: "encounter", sustained: false, expiry: null },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "until the encounter ends" }]);
+  });
+
+  it("renders the semantic 'unlimited' duration without its -1 sentinel value", () => {
+    const fields = buildEffectFields({
+      duration: { value: -1, unit: "unlimited", sustained: false, expiry: null },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "unlimited" }]);
+  });
+
+  it("pluralizes countable units for value > 1 (never hardcodes the singular)", () => {
+    const fields = buildEffectFields({
+      duration: { value: 2, unit: "round", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "2 rounds" }]);
+  });
+
+  it("renders the hour and day units too (same countable branch, real pack data)", () => {
+    expect(
+      noKey(
+        buildEffectFields({
+          duration: { value: 1, unit: "hour", sustained: false, expiry: "turn-start" },
+        }),
+      ),
+    ).toEqual([{ label: "Duration", value: "1 hour" }]);
+    expect(
+      noKey(
+        buildEffectFields({
+          duration: { value: 1, unit: "day", sustained: false, expiry: "turn-start" },
+        }),
+      ),
+    ).toEqual([{ label: "Duration", value: "1 day" }]);
+  });
+
+  it("appends a sustained suffix when duration.sustained is true", () => {
+    const fields = buildEffectFields({
+      duration: { value: 1, unit: "minute", sustained: true, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 minute (sustained)" }]);
+  });
+
+  it("omits the duration field when system.duration is missing or not an object", () => {
+    expect(buildEffectFields({})).toEqual([]);
+    expect(buildEffectFields({ duration: "1 minute" })).toEqual([]);
+  });
+});
+
+describe("buildEffectFields (pt-BR)", () => {
+  // The four shapes ALQ-F2-18 asks for, asserted against the PF2e remaster
+  // table-language text a GM/player reads at the table — never the raw
+  // vendor/importer label ("Unit minute") the picker used to fall back to.
+  it("renders '10 minutos' for the Elixir of Life shape (minute, value 10)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "10 minutos" },
+    ]);
+  });
+
+  it("renders '1 rodada' for the Demon's Knot shape (round, value 1)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 1, unit: "round", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "1 rodada" },
+    ]);
+  });
+
+  it("renders 'enquanto durar o encontro' for the encounter shape", () => {
+    const fields = buildEffectFields(
+      { duration: { value: -1, unit: "encounter", sustained: false, expiry: null } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Duration",
+        label: "Duração",
+        value: "enquanto durar o encontro",
+      },
+    ]);
+  });
+
+  it("renders 'ilimitado' for the unlimited shape", () => {
+    const fields = buildEffectFields(
+      { duration: { value: -1, unit: "unlimited", sustained: false, expiry: null } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "ilimitado" },
+    ]);
+  });
+
+  it("pluralizes countable units in pt-BR (2 rodadas, not 2 rodada)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 2, unit: "round", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "2 rodadas" },
+    ]);
+  });
+
+  it("appends '(sustentada)' when duration.sustained is true", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 1, unit: "minute", sustained: true, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Duration",
+        label: "Duração",
+        value: "1 minuto (sustentada)",
+      },
+    ]);
+  });
+});
+
 describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildSpellFields for type 'spell'", () => {
     const fields = buildMechanicalFields({ type: "spell", system: { range: "touch" } });
@@ -832,6 +983,17 @@ describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildClassFeatureFields for type 'classFeature'", () => {
     const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } });
     expect(noKey(fields)).toEqual([{ label: "Level", value: "3" }]);
+  });
+
+  // ALQ-F2-18: before this task, "effect" fell through to the `default: []`
+  // branch below — a document with `duration: {unit:'minute', value:10}`
+  // opened with no duration field at all.
+  it("dispatches to buildEffectFields for type 'effect'", () => {
+    const fields = buildMechanicalFields({
+      type: "effect",
+      system: { duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" } },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "10 minutes" }]);
   });
 
   it("threads contextLevel through to buildClassFeatureFields for type 'classFeature' (issue #58)", () => {

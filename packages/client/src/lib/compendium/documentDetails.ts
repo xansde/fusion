@@ -22,8 +22,8 @@
  *      — V2 per the task's item 2). No raw enricher syntax ever leaks.
  *   2. buildMechanicalFields — extracts the type-specific mechanical fields
  *      (spell: time/range/area/target/duration/save/damage/heighten; feat:
- *      prerequisites/frequency; classFeature: level) from a full document's
- *      `system` block, for display above the description.
+ *      prerequisites/frequency; classFeature: level; effect: duration) from a
+ *      full document's `system` block, for display above the description.
  *
  * Clean-room: description prose is rendered verbatim (already
  * license-gated at import time — W2-C1/stripFlavorProse, ORC/OGL only);
@@ -1281,6 +1281,93 @@ export function buildClassFeatureFields(
 }
 
 /**
+ * pt-BR/EN phrase for the two non-numeric ("semantic") duration units an
+ * effect can have. Per the canonical `EffectItemSystem.duration` contract
+ * (Alquimista plan `docs/design/alquimista/tasks.md` §2.5), both `encounter`
+ * and `unlimited` carry a sentinel `value: -1` in the packs (confirmed
+ * against `equipment-effects-core`'s "Effect: Magnetic Bola (Speed Penalty)"
+ * and "Effect: Aeon Stone Resonance (Black Disc)") — the number is never
+ * meaningful and is never displayed for either.
+ */
+const EFFECT_SEMANTIC_DURATION: Record<"encounter" | "unlimited", { pt: string; en: string }> = {
+  encounter: { pt: "enquanto durar o encontro", en: "until the encounter ends" },
+  unlimited: { pt: "ilimitado", en: "unlimited" },
+};
+
+/** EN singular/plural for the four countable `EffectItemSystem.duration` units. */
+function countableDurationUnitEn(unit: "round" | "minute" | "hour" | "day", value: number): string {
+  return value === 1 ? unit : `${unit}s`;
+}
+
+/**
+ * Build the effect-specific mechanical fields: table-language duration
+ * (ALQ-F2-18, REQ absent — see plan). `system.duration` is a structured
+ * `{ value, unit, sustained, expiry }` (the canonical `EffectItemSystem`,
+ * plan §2.5), never a free-text string like a spell's `system.duration.
+ * value` — so it needs its own reader rather than reusing
+ * {@link buildSpellFields}'s duration handling.
+ *
+ * `unit: "encounter" | "unlimited"` render a fixed phrase (their packed
+ * `value` is an unused `-1` sentinel, see {@link EFFECT_SEMANTIC_DURATION}).
+ * The four countable units (round/minute/hour/day) render as "<value>
+ * <unit(s)>", pluralized in EN and then translated through the same
+ * {@link translateValueTokens} word-boundary vocabulary the rest of this
+ * module already uses for range/target/duration text — so "1 round"/
+ * "10 minutes" become "1 rodada"/"10 minutos" without a second, duplicate
+ * translation table. Before this task, `effect` had no case at all here: a
+ * document with `duration: {unit:"minute", value:10}` opened with no
+ * duration field, and the compendium row fell back to a raw vendor-shaped
+ * label ("Unit minute") instead of table language.
+ *
+ * `sustained` appends the same "(sustentada)"/"(sustained)" suffix
+ * {@link buildSpellFields} uses for a spell's sustained duration — no effect
+ * in the current packs sets it, but the field is part of the canonical
+ * contract and a future Quick Alchemy/mutagen effect may.
+ *
+ * `expiry` (`"turn-start" | "turn-end" | "round-end" | null`) governs *when*,
+ * mechanically, the duration decrements server-side (`resolveExpirations`,
+ * plan §2.5) — it never changes the table-language text itself: real pack
+ * data (`equipment-effects-core`) confirms it's always non-null for the four
+ * countable units and always null for encounter/unlimited, so the countable/
+ * semantic branch above already reflects its effect on display.
+ */
+export function buildEffectFields(
+  system: Record<string, unknown>,
+  locale: SupportedLocale = "en",
+): MechanicalField[] {
+  const fields: MechanicalField[] = [];
+  const isPt = locale === "pt-BR";
+
+  const duration = system["duration"];
+  if (isRecord(duration)) {
+    const unit = str(duration["unit"]);
+    const value = duration["value"];
+    const sustained = duration["sustained"] === true;
+
+    let base: string | null = null;
+    if (unit === "encounter" || unit === "unlimited") {
+      const phrase = EFFECT_SEMANTIC_DURATION[unit];
+      base = isPt ? phrase.pt : phrase.en;
+    } else if (
+      (unit === "round" || unit === "minute" || unit === "hour" || unit === "day") &&
+      typeof value === "number"
+    ) {
+      base = translateValueTokens(
+        `${String(value)} ${countableDurationUnitEn(unit, value)}`,
+        locale,
+      );
+    }
+
+    if (base) {
+      const durValue = sustained ? `${base} ${isPt ? "(sustentada)" : "(sustained)"}` : base;
+      fields.push(field(FIELD_KEYS.duration, isPt ? "Duração" : "Duration", durValue));
+    }
+  }
+
+  return fields;
+}
+
+/**
  * Dispatch to the right per-type field builder based on the document's
  * `type` (falls back to an empty list for unrecognized types — the panel
  * still shows name/traits/description). `locale` threads through so the
@@ -1309,6 +1396,8 @@ export function buildMechanicalFields(
       return buildFeatFields(system, locale);
     case "classFeature":
       return buildClassFeatureFields(system, locale, contextLevel);
+    case "effect":
+      return buildEffectFields(system, locale);
     default:
       return [];
   }
