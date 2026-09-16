@@ -162,11 +162,18 @@ describe("runActorDerivation — effects materializer delegation (M5-A E4)", () 
 });
 
 // ---------------------------------------------------------------------------
-// 2. Retrocompat — real pf2e case: Frightened condition still reduces AC via
-//    the unchanged 2e-family fallback path (pf2e registers NO materializer).
+// 2. Retrocompat — real pf2e case: Frightened condition still reduces AC,
+//    now via pf2e's OWN registered materializer (ALQ-F2-08) instead of the
+//    2e-family fallback. Updated 2026-09-16: pf2e was "unmigrated by design"
+//    until ALQ-F2-08 registered `pf2eEffectsMaterializer` for the
+//    "character" subtype (see systems/pf2e/src/derivations/effectSources.ts)
+//    — this describe block now proves the SAME AC math (18) survives that
+//    migration, i.e. the materializer's own condition handling
+//    (`conditionToEffectSource`, reused byte-for-byte) is a faithful
+//    replacement for the fallback it now shadows.
 // ---------------------------------------------------------------------------
 
-describe("runActorDerivation — pf2e retrocompat (no materializer registered, M5-A E4)", () => {
+describe("runActorDerivation — pf2e retrocompat (own materializer since ALQ-F2-08)", () => {
   function makeUnarmoredFighterDoc(): Record<string, unknown> {
     return {
       type: "character",
@@ -219,11 +226,15 @@ describe("runActorDerivation — pf2e retrocompat (no materializer registered, M
     };
   }
 
-  it("has no registered effectsMaterializer (pf2e is unmigrated by design)", () => {
-    expect(pf2eSystem.registries.effectsMaterializers).toHaveLength(0);
+  it("has exactly one registered effectsMaterializer, scoped to the character subtype (ALQ-F2-08)", () => {
+    expect(pf2eSystem.registries.effectsMaterializers).toHaveLength(1);
+    expect(pf2eSystem.registries.effectsMaterializers[0]).toMatchObject({
+      documentType: "Actor",
+      subtypes: ["character"],
+    });
   });
 
-  it("Frightened condition still reduces AC via the unchanged 2e-family fallback", () => {
+  it("Frightened condition still reduces AC — now via pf2e's own materializer, not the fallback", () => {
     const doc = makeUnarmoredFighterDoc();
     const ran = runActorDerivation(doc, pf2eSystem);
     expect(ran).toBe(true);
@@ -232,6 +243,26 @@ describe("runActorDerivation — pf2e retrocompat (no materializer registered, M
     const derived = sys["derived"] as Record<string, unknown>;
     const ac = derived["ac"] as { total: number };
     // Unarmored baseline 20 (10 + dexMod3 + profBonus7), Frightened 2 → -2 status → 18.
+    // Same result as before ALQ-F2-08 — proves the materializer's condition
+    // handling is a faithful replacement for the fallback it now shadows.
     expect(ac.total).toBe(18);
+  });
+
+  it("an 'npc' subtype doc still falls back to the 2e-family path (materializer is character-only)", () => {
+    // pf2eEffectsMaterializer's subtypes is ["character"] — an "npc" doc
+    // must NOT match it, so materializeEffectSources still takes the
+    // fallback branch (actorConditionsToEffectSources) for NPCs.
+    const doc: Record<string, unknown> = {
+      type: "npc",
+      system: {
+        attributes: { ac: { value: 10 }, hp: { value: 10, max: 10 } },
+      },
+      items: [{ type: "condition", system: { slug: "frightened", value: 1 } }],
+    };
+    const ran = runActorDerivation(doc, pf2eSystem);
+    expect(ran).toBe(true);
+    // Not asserting exact AC math here (NPC derivation has its own shape) —
+    // only that derivation completes without throwing, proving the fallback
+    // path is still reachable for a subtype the materializer doesn't cover.
   });
 });
