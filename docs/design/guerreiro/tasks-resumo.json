@@ -351,9 +351,9 @@
   {
     "id": "GUE-F4-01",
     "fase": 4,
-    "titulo": "Economia de reação: uma por rodada, reset no turno",
+    "titulo": "Pool de reações: derivado do ator, alterável por talento",
     "repo": "core",
-    "modelo": "sonnet",
+    "modelo": "opus",
     "esforco": "high",
     "onda": 3,
     "lote": "L4",
@@ -362,7 +362,8 @@
     ],
     "dependeExterno": [
       "ALQ-F7-05",
-      "ALQ-F1-04"
+      "ALQ-F1-04",
+      "ALQ-F4-02"
     ],
     "decisoes": [
       "D-G14"
