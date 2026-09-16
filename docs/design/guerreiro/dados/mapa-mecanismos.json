@@ -1,0 +1,518 @@
+{
+ "ACTION-ECON": {
+  "file": "mec-action-econ",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Economia de ações"
+ },
+ "ADDITIVE": {
+  "file": "mec-additive",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Additive"
+ },
+ "ADV-ALCH": {
+  "file": "mec-adv-alch",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Advanced Alchemy"
+ },
+ "AEL": {
+  "file": "mec-ael",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"ActiveEffectLike"
+ },
+ "AFFLICTION": {
+  "file": "mec-affliction",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Aflição (veneno/doença)"
+ },
+ "ALCH-ITEMS-PACK": {
+  "file": "mec-alch-items-pack",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Pack de itens alquímicos"
+ },
+ "APPLY-DAMAGE": {
+  "file": "mec-apply-damage",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Aplicar dano/cura ao alvo"
+ },
+ "APPLY-POISON": {
+  "file": "mec-apply-poison",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Aplicar veneno de injeção"
+ },
+ "ARCHETYPE": {
+  "file": "mec-archetype",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Dedicação/multiclasse"
+ },
+ "AREA": {
+  "file": "mec-area",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Área/template"
+ },
+ "CHOICE": {
+  "file": "mec-choice",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Escolha persistente"
+ },
+ "CLASS-DC-ITEM": {
+  "file": "mec-class-dc-item",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"DC do item pela Class DC"
+ },
+ "CLASS-PUBLISHED": {
+  "file": "mec-class-published",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Classe publicada"
+ },
+ "CONDITION": {
+  "file": "mec-condition",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Aplicar/remover condição"
+ },
+ "CONSUME": {
+  "file": "mec-consume",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Consumir item"
+ },
+ "COUNTERACT": {
+  "file": "mec-counteract",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Contra-ataque (counteract)"
+ },
+ "CRAFT-ACT": {
+  "file": "mec-craft-act",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Atividade Craft"
+ },
+ "DAILY-PREP": {
+  "file": "mec-daily-prep",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Preparação diária"
+ },
+ "DAMAGE-ALT": {
+  "file": "mec-damage-alt",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"DamageAlteration/DamageDice"
+ },
+ "DOS-ADJUST": {
+  "file": "mec-dos-adjust",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Ajustar grau de sucesso"
+ },
+ "DYING": {
+  "file": "mec-dying",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Morte/morrendo"
+ },
+ "EFFECT-DUR": {
+  "file": "mec-effect-dur",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Efeito com duração"
+ },
+ "EFFECTS-PACK": {
+  "file": "mec-effects-pack",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Pack de efeitos"
+ },
+ "FAMILIAR": {
+  "file": "mec-familiar",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Familiar"
+ },
+ "FORMULA-BOOK": {
+  "file": "mec-formula-book",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Livro de fórmulas"
+ },
+ "GRANT-DYN": {
+  "file": "mec-grant-dyn",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"GrantItem dinâmico"
+ },
+ "HEAL": {
+  "file": "mec-heal",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Cura"
+ },
+ "INGEST-POISON": {
+  "file": "mec-ingest-poison",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Veneno sem strike"
+ },
+ "ITEM-ALTER": {
+  "file": "mec-item-alter",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Alterar propriedades de item"
+ },
+ "ITEM-STRIKE": {
+  "file": "mec-item-strike",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Strike com item de inventário"
+ },
+ "IWR": {
+  "file": "mec-iwr",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Imunidades/resistências/fraquezas"
+ },
+ "MOD-ADJUST": {
+  "file": "mec-mod-adjust",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"AdjustModifier"
+ },
+ "MOVEMENT": {
+  "file": "mec-movement",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Movimento/deslocamento"
+ },
+ "MUTAGEN": {
+  "file": "mec-mutagen",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Mutágeno"
+ },
+ "NEW-AUTO-SUCCESS-CONCEALED": {
+  "file": "mec-new-auto-success-concealed",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Sucesso automático vs. concealed"
+ },
+ "NEW-COMPOSITE-EFFECT": {
+  "file": "mec-new-composite-effect",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Item = dois efeitos completos"
+ },
+ "NEW-CRAFT-DC-RANK": {
+  "file": "mec-new-craft-dc-rank",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Redirecionamento para PROF-TRACK"
+ },
+ "NEW-FLAT-CHECK-DAMAGE": {
+  "file": "mec-new-flat-check-damage",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Flat check com dano condicional"
+ },
+ "NEW-ITEM-SLOT-TRACK": {
+  "file": "mec-new-item-slot-track",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Rastreio de itens preparados hoje"
+ },
+ "NEW-MATERIAL-GRADE": {
+  "file": "mec-new-material-grade",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Grau de material precioso dinâmico"
+ },
+ "NEW-NO-STRUCTURE": {
+  "file": "mec-new-no-structure",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Equipamento sem padrão de campos"
+ },
+ "NEW-QUICKENED": {
+  "file": "mec-new-quickened",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Quickened restrito a um uso"
+ },
+ "NEW-SINGLE-MUTAGEN-LIMIT": {
+  "file": "mec-new-single-mutagen-limit",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Um mutágeno ativo por vez"
+ },
+ "NEW-VIRULENT": {
+  "file": "mec-new-virulent",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Trait virulent"
+ },
+ "NOTE": {
+  "file": "mec-note",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Nota de rolagem"
+ },
+ "PERSIST": {
+  "file": "mec-persist",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Dano persistente"
+ },
+ "PREREQ": {
+  "file": "mec-prereq",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Pré-requisito de talento"
+ },
+ "PROF-TRACK": {
+  "file": "mec-prof-track",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Progressão de proficiência (TEML)"
+ },
+ "QUICK-ALCH": {
+  "file": "mec-quick-alch",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Quick Alchemy"
+ },
+ "REACTION": {
+  "file": "mec-reaction",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Reação"
+ },
+ "RESOURCE": {
+  "file": "mec-resource",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Recurso de classe genérico"
+ },
+ "ROLL-OPTION": {
+  "file": "mec-roll-option",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Toggle / roll option"
+ },
+ "SENSE": {
+  "file": "mec-sense",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Sentidos/visibilidade"
+ },
+ "SPELL-LIKE": {
+  "file": "mec-spell-like",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Efeito tipo magia"
+ },
+ "SPLASH": {
+  "file": "mec-splash",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Dano de respingo"
+ },
+ "STRIKE-MOD": {
+  "file": "mec-strike-mod",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"AdjustStrike"
+ },
+ "TARGET-OTHER": {
+  "file": "mec-target-other",
+  "pasta": "alquimista",
+  "status": "parcial",
+  "name": "\"Aplicar efeito a outro ator"
+ },
+ "TEMP-ITEM": {
+  "file": "mec-temp-item",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Item temporário/infundido"
+ },
+ "VIALS": {
+  "file": "mec-vials",
+  "pasta": "alquimista",
+  "status": "ausente",
+  "name": "\"Versatile vials"
+ },
+ "ANI-ARQ-PUBLISHED": {
+  "file": "mec-ani-arq-published",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Arquétipo Animist publicado nos packs"
+ },
+ "ANI-CLASS-PUBLISHED": {
+  "file": "mec-ani-class-published",
+  "pasta": "animista",
+  "status": "parcial",
+  "name": "\"Classe Animist publicada nos packs"
+ },
+ "APPARITION-SPELLS-PACK": {
+  "file": "mec-apparition-spells-pack",
+  "pasta": "animista",
+  "status": "parcial",
+  "name": "\"Magias das listas de aparição em spells-core"
+ },
+ "AURA": {
+  "file": "mec-aura",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Aura/emanação que acompanha a criatura"
+ },
+ "DAILY-CHOICE": {
+  "file": "mec-daily-choice",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Escolha re-selecionável na preparação diária"
+ },
+ "FLAT-CHECK": {
+  "file": "mec-flat-check",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Teste simples (flat check) com CD"
+ },
+ "FOCUS-SPELL": {
+  "file": "mec-focus-spell",
+  "pasta": "animista",
+  "status": "parcial",
+  "name": "\"Magia de foco e Focus Points"
+ },
+ "FORTUNE": {
+  "file": "mec-fortune",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Efeitos fortune/misfortune"
+ },
+ "HEIGHTEN": {
+  "file": "mec-heighten",
+  "pasta": "animista",
+  "status": "funciona",
+  "name": "\"Intensificar magia"
+ },
+ "NEW-ACTION-RESTRICT": {
+  "file": "mec-new-action-restrict",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Restringir ações permitidas durante um efeito"
+ },
+ "NEW-APPARITION-SKILL-GATE": {
+  "file": "mec-new-apparition-skill-gate",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Requisito ligado à Lore da aparição sintonizada"
+ },
+ "NEW-EXPLORATION-ACTIVITY": {
+  "file": "mec-new-exploration-activity",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Atividade de exploração contínua"
+ },
+ "NEW-FREQUENCY": {
+  "file": "mec-new-frequency",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Frequência de uso limitada"
+ },
+ "NEW-LAST-ACTION": {
+  "file": "mec-new-last-action",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Saber qual foi a ação anterior"
+ },
+ "NEW-RANDOM-TABLE": {
+  "file": "mec-new-random-table",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Resultado sorteado numa tabela"
+ },
+ "POLYMORPH": {
+  "file": "mec-polymorph",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Forma de batalha / morph"
+ },
+ "SPELL-CAST": {
+  "file": "mec-spell-cast",
+  "pasta": "animista",
+  "status": "funciona",
+  "name": "\"Lançar magia pela ficha"
+ },
+ "SPELL-MULTI-ENTRY": {
+  "file": "mec-spell-multi-entry",
+  "pasta": "animista",
+  "status": "parcial",
+  "name": "\"Múltiplas entradas de conjuração no mesmo ator"
+ },
+ "SPELL-PREPARED": {
+  "file": "mec-spell-prepared",
+  "pasta": "animista",
+  "status": "funciona",
+  "name": "\"Conjuração preparada"
+ },
+ "SPELL-SPONTANEOUS": {
+  "file": "mec-spell-spontaneous",
+  "pasta": "animista",
+  "status": "parcial",
+  "name": "\"Conjuração espontânea"
+ },
+ "SPELLS-DIVINE-PACK": {
+  "file": "mec-spells-divine-pack",
+  "pasta": "animista",
+  "status": "parcial",
+  "name": "\"Lista divina em spells-core"
+ },
+ "SPELLSHAPE": {
+  "file": "mec-spellshape",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Ação spellshape"
+ },
+ "STANCE": {
+  "file": "mec-stance",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Postura (trait stance)"
+ },
+ "SUMMON": {
+  "file": "mec-summon",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Criar/invocar ator temporário controlado"
+ },
+ "SUSTAIN": {
+  "file": "mec-sustain",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Ação Sustain"
+ },
+ "TEMP-SKILL": {
+  "file": "mec-temp-skill",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Treino temporário de perícia/Lore"
+ },
+ "WANDERING-FEAT": {
+  "file": "mec-wandering-feat",
+  "pasta": "animista",
+  "status": "ausente",
+  "name": "\"Talento trocável (trait wandering)"
+ }
+}

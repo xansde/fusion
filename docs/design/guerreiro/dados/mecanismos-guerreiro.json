@@ -1,0 +1,308 @@
+{
+  "WEAPON-STRIKE": {
+    "name": "Strike com arma equipada, ponta a ponta",
+    "status": "parcial",
+    "regra": "Atacar um inimigo com a arma que você empunha: escolher o alvo, rolar 1d20 + bônus de ataque contra a CA dele, descobrir o grau de sucesso e aplicar o dano — com o crítico decidido pela regra, não pelo jogador.",
+    "evidencia": [
+      "A derivação do strike é real e roda no pipeline: `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:224-340` (deriveStrikeFromWeapon), chamado por `derivations/character.ts:1056` (stepCharStrikes)",
+      "A ficha tem botões reais: `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:1016,1026,1035` (MAP 0/1/2, Dano, Crítico) — mas `lib/sheets/pf2e/characterSheetVM.ts:2222-2251` só posta fórmula crua no chat (`/r 1d20+N # Strike (MAP i)`), sem ler CA de alvo",
+      "Existem DUAS graduações de ataque prontas e sem chamador: `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:361-391` (resolveStrikeAttack, só em teste) e `packages/server/src/chat/chat-handler.ts:451-507,1620-1625` (computeAttackDegree, real e testado com socket, mas nada no client popula `payload.target`)",
+      "NPC é mais pobre: `external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/npcSheetVM.ts:511-525` rola bônus fixo sem variante de MAP, e o dano em `NpcSheet.svelte:294-298` é texto sem onclick"
+    ],
+    "o_que_falta": "Ligar as pontas que já existem: um gesto de mira no canvas que chame `combatActions.target()`, o payload de rolagem da ficha carregando esse alvo, e a escolha entre as duas graduações (a do servidor no core já é anti-cheat e testada). Enquanto isso não existe, o crítico é escolha manual do jogador — ele clica no botão \"Crítico\" em vez de \"Dano\".",
+    "depende_de": [
+      "TARGET-OTHER",
+      "APPLY-DAMAGE"
+    ]
+  },
+  "MAP-TRACK": {
+    "name": "Penalidade de ataque múltiplo contada pelo sistema",
+    "status": "ausente",
+    "regra": "O segundo ataque do turno sofre -5 (-4 com arma ágil) e o terceiro em diante -10 (-8), zerando no começo do seu próximo turno. Alguns ataques declaradamente não contam para essa conta (Reactive Strike, por exemplo).",
+    "evidencia": [
+      "O cálculo existe e é puro: `external/fusion-systems-2e/systems/engine-2e/src/map.ts:31` (calculateMapPenalty), usado em `systems/pf2e/src/actions/strikes.ts:367` — mas o `attackNumber` vem de fora, sempre pré-computado",
+      "A ficha oferece TRÊS botões fixos por strike (MAP 0/1/2) em `sheets/pf2e/src/components/sheets/pf2e/CharacterSheet.svelte:1016`: quem conta é o jogador, escolhendo o botão",
+      "Zero ocorrências de `\\bMAP\\b` ou `multiple.?attack` em `packages/server/src` e `packages/client/src`; o rótulo `FUSION.Sheet.Chat.StrikeMap` existe nos bundles de i18n e nunca é chamado",
+      "Não há onde zerar: `packages/server/src/combat/target-handler.ts:169-180` é o ÚNICO consumidor de `onLifecycle(\"turnEnd\")` em todo o servidor"
+    ],
+    "o_que_falta": "Um contador de ataques por combatente na rodada, um listener de `turnStart` que o zere (o bus já existe e é testado) e a marcação de quais ataques não contam. O ponto de encaixe está pronto — falta o listener.",
+    "depende_de": [
+      "NEW-TURN-CYCLE",
+      "WEAPON-STRIKE"
+    ]
+  },
+  "MANEUVER": {
+    "name": "Manobras de combate (Derrubar, Agarrar, Empurrar, Desarmar, Reposicionar, Escapar)",
+    "status": "ausente",
+    "regra": "Ação de ataque que rola contra a CD de um alvo (Reflexos, Fortitude ou CA, conforme a manobra) e aplica um efeito por grau de sucesso: derrubado, agarrado, empurrado N metros, arma desarmada. É a base de dezenas de talentos do Guerreiro.",
+    "evidencia": [
+      "As ações existem como DOCUMENTO navegável no pack `actions-core` (Trip, Grapple, Shove, Disarm, Reposition, Escape são referenciadas 5, 3, 4, 5, 4 e 1 vez pelos talentos do Guerreiro)",
+      "A aba Ações da ficha é um browser de descrição, não um executor — confirmado pelo comentário do próprio `external/fusion-systems-2e/sheets/pf2e/src/components/sheets/pf2e/ActionsTab.svelte`",
+      "Não existe rolagem contra CD de outro ator fora do caminho de ataque: `packages/server/src/chat/chat-handler.ts:451-507` grada contra CA, e o caminho de salvamento é do lançador de magia"
+    ],
+    "o_que_falta": "Tudo: a ação executável, a CD do alvo lida do servidor, o efeito por grau de sucesso e a condição resultante aplicada ao alvo (que depende de CONDITION em alvo, também ausente).",
+    "depende_de": [
+      "TARGET-OTHER",
+      "CONDITION",
+      "DOS-ADJUST"
+    ]
+  },
+  "OFF-GUARD-POS": {
+    "name": "Desprevenido por posição (flanqueio) e por efeito",
+    "status": "ausente",
+    "regra": "Quando dois aliados flanqueiam um inimigo — em lados opostos, ambos ameaçando — ele fica desprevenido (-2 na CA) para os dois. Muitos talentos do Guerreiro impõem desprevenido de outras formas, e vários só valem contra um alvo desprevenido.",
+    "evidencia": [
+      "É a condição mais citada pelos talentos do Guerreiro: Off-Guard aparece 16 vezes nos textos das 128 regras",
+      "Nenhuma geometria de jogo existe: busca por `flank|adjacent|reach|cover` em `packages/client/src/lib/canvas` e `packages/server/src` devolve só falsos positivos de inglês comum (`token-visuals.ts:41`, `tokens/tokenValidation.ts:328`, `compendium/service.ts:1256`)",
+      "Off-guard só existe como condição estática alternada à mão: `packages/server/src/__tests__/condition-toggle.test.ts:335` usa `buildAddConditionOpFixed(actorId, \"off-guard\", \"Off-Guard\")`, o mesmo toggle genérico de qualquer condição",
+      "O grid existe para desenho e movimento, mas nenhum consumidor liga posição de token a regra de combate"
+    ],
+    "o_que_falta": "Cálculo de adjacência/linha entre tokens no canvas, a regra de flanqueio derivando a condição automaticamente, e o -2 na CA entrando de fato na rolagem de ataque.",
+    "depende_de": [
+      "CONDITION",
+      "WEAPON-STRIKE"
+    ]
+  },
+  "SHIELD-BLOCK": {
+    "name": "Bloquear com escudo (dureza, PV e limiar de quebra)",
+    "status": "ausente",
+    "regra": "Reação que usa o escudo para absorver dano: a dureza reduz o golpe, o resto é dividido entre você e o escudo, e o escudo quebra ao passar do limiar. É habilidade de nível 1 do Guerreiro e base de sete talentos dele.",
+    "evidencia": [
+      "O dado existe no schema (dureza, limiar de quebra) mas ninguém o lê: `stepCharAc` não considera escudo nenhum na derivação de CA",
+      "Não existe reação em lugar nenhum dos dois repos (ver REACTION-TRIGGER)",
+      "Shield Block é uma das 3 regras `grant-item` que funcionam — o item chega à ficha como documento inerte (`external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/grantMaterializer.ts:136-163,497`), sem nenhum efeito mecânico"
+    ],
+    "o_que_falta": "Escudo como item com estado (erguido, dano acumulado, quebrado), a reação em si, e a divisão de dano — que depende de APPLY-DAMAGE.",
+    "depende_de": [
+      "REACTION-TRIGGER",
+      "APPLY-DAMAGE",
+      "RAISE-SHIELD"
+    ]
+  },
+  "RAISE-SHIELD": {
+    "name": "Erguer o escudo",
+    "status": "ausente",
+    "regra": "Ação que dá o bônus de CA do escudo até o começo do seu próximo turno — o pré-requisito de todo bloqueio, e condição de vários talentos do Guerreiro.",
+    "evidencia": [
+      "`stepCharAc` (derivação de CA em `external/fusion-systems-2e/systems/pf2e/src/derivations/character.ts`) não lê escudo equipado",
+      "Raise a Shield é referenciada 4 vezes pelos talentos do Guerreiro e existe só como documento de ação navegável no pack `actions-core`",
+      "Não há efeito com duração \"até o começo do seu próximo turno\" no Fusion (EFFECT-DUR está ausente no catálogo, e o bus de turno tem um único consumidor)"
+    ],
+    "o_que_falta": "A ação com gatilho na ficha, o bônus entrando na CA derivada, e a expiração automática no início do próximo turno.",
+    "depende_de": [
+      "EFFECT-DUR",
+      "NEW-TURN-CYCLE"
+    ]
+  },
+  "CRIT-SPEC": {
+    "name": "Especialização crítica por grupo de arma",
+    "status": "ausente",
+    "regra": "No acerto crítico, a arma aplica um efeito extra conforme o grupo dela (machado atinge um segundo alvo, maça derruba, espada deixa desprevenido...). O Guerreiro ganha isso cedo e vários talentos dele o ampliam.",
+    "evidencia": [
+      "O próprio importador marca `CriticalSpecialization` como regra não convertida (`unconverted`/`unsupported`) nos documentos afetados",
+      "Zero código consumidor em qualquer um dos dois repos",
+      "O crítico hoje nem é decidido pelo sistema: o jogador escolhe clicar em \"Crítico\" na ficha (`CharacterSheet.svelte:1035`)"
+    ],
+    "o_que_falta": "Converter a regra no importador, ter grupo de arma disponível na derivação (WEAPON-GROUP) e um ponto no fluxo de dano onde o efeito por grupo seja aplicado ao alvo.",
+    "depende_de": [
+      "WEAPON-GROUP",
+      "WEAPON-STRIKE",
+      "CONDITION"
+    ]
+  },
+  "MULTI-TARGET-STRIKE": {
+    "name": "Um ataque contra vários alvos",
+    "status": "ausente",
+    "regra": "Talentos como Golpe Redemoinho, Salva Impossível e Tiro Duplo atingem várias criaturas com uma ação, cada uma com sua própria rolagem contra sua própria CA.",
+    "evidencia": [
+      "A API de ataque exclui isso POR DESIGN, não por omissão: `packages/server/src/chat/chat-handler.ts:496-506` e a REQ-ACH-074 dizem que a lista de alvos da mensagem existe para magia de área com salvamento — um ataque carrega exatamente um alvo",
+      "Nenhuma UI de seleção múltipla de alvo existe no canvas (`packages/client/src/lib/canvas/tokens/TokenInteractionManager.ts` não trata mira, nem simples nem múltipla)"
+    ],
+    "o_que_falta": "Rever a decisão da REQ-ACH-074 para o caso de ataque, ou um caminho separado que emita N ataques correlacionados a partir de uma ação só.",
+    "depende_de": [
+      "WEAPON-STRIKE",
+      "TARGET-OTHER"
+    ]
+  },
+  "REACTION-TRIGGER": {
+    "name": "Reação: economia e gatilho oferecido pelo servidor",
+    "status": "ausente",
+    "regra": "Ter uma reação por rodada, o servidor perceber o gatilho (\"uma criatura ao seu alcance faz um ataque à distância\", \"você é atingido\") e oferecer ao jogador a chance de usá-la na hora certa.",
+    "evidencia": [
+      "12 dos 112 talentos do Guerreiro são reações, mais as habilidades Reactive Strike e Shield Block (nível 1)",
+      "O conceito não existe no modelo de dados: o estado de combate não tem campo de reação disponível, e `packages/server/src/combat/combat-event-bus.ts:1-27` só emite combatStart/turnStart/turnEnd/roundStart/roundEnd/combatEnd",
+      "Em `packages/server/src`, \"reaction\" só aparece como rótulo de custo de ação no compêndio (`compendium/service.ts:1303-1632`); no client, só como glifo na navegação de compêndio",
+      "Não há nenhuma UI de pergunta/interrupção ao jogador em lugar nenhum"
+    ],
+    "o_que_falta": "Tudo: campo de reação disponível resetado por turno, eventos de gatilho no servidor (alguém se moveu, alguém atacou, alguém foi atingido), e a janela de resposta na tela do jogador.",
+    "depende_de": [
+      "NEW-TURN-CYCLE"
+    ]
+  },
+  "TEMP-HP": {
+    "name": "Pontos de vida temporários",
+    "status": "parcial",
+    "regra": "Vida extra que absorve dano antes do PV normal e não se acumula com outra fonte.",
+    "evidencia": [
+      "O campo existe e atravessa a derivação: `external/fusion-systems-2e/systems/pf2e/src/derivations/hp.ts:109`, `character.ts:219,829`, `npc.ts:106`, `familiar.ts:108,135` — sempre repassando valor existente, nunca concedendo",
+      "A absorção está implementada em `external/fusion-systems-2e/systems/pf2e/src/actions/damage.ts:170-182` (REQ-PF2-022), dentro do applyDamagePipeline que não tem chamador",
+      "Na ficha é somente leitura: `CharacterSheet.svelte:598-600` exibe `(+N)` e `characterSheetVM.ts` só permite editar `hp.value` e `hp.max`",
+      "No core, o modelo de vida lido pelo combat tracker é só `{current, max}` (`packages/client/src/lib/combat/combatVitals.ts:89-122`)"
+    ],
+    "o_que_falta": "Uma fonte que conceda (efeito de talento/magia) e um controle de UI para definir e consumir. O Guerreiro não tem talento nativo que conceda PV temporário, então aqui ele é consumidor de terceiros, não a causa.",
+    "depende_de": [
+      "APPLY-DAMAGE"
+    ]
+  },
+  "WEAPON-GROUP": {
+    "name": "Grupo de arma / arma nomeada como eixo de proficiência",
+    "status": "ausente",
+    "regra": "Maestria com Armas e Lenda em Armas fazem o Guerreiro escolher um grupo de armas (espadas, machados, arcos...) e subir a proficiência só dele. Vários talentos testam o grupo ou um trait da arma.",
+    "evidencia": [
+      "O eixo de CATEGORIA (desarmado/simples/marcial/avançada) funciona ponta a ponta, mas não existe eixo de grupo nem campo no schema para guardá-lo",
+      "É lacuna de DADO além de motor: o ChoiceSet que faria o jogador escolher o grupo não foi convertido pelo importador",
+      "Os 5 rule elements `proficiency` dos talentos do Guerreiro (todos MartialProficiency) não têm nenhum consumidor",
+      "`weaponGroup` está marcado `[V2]` reservado no schema (`external/fusion-systems-2e/systems/pf2e/src/schemas/item-weapon.ts:54`) e o motor não tem predicado `item:group`/`item:category`",
+      "O pack `weapons-core` tem 30 armas cobrindo 11 dos 16 grupos do PF2e — faltam Bomb, Brawling, Firearm, Pick, Polearm e Shield inteiros"
+    ],
+    "o_que_falta": "Converter o ChoiceSet no importador, criar o eixo de proficiência por grupo/arma nomeada no schema e na derivação, e oferecer a escolha na ficha.",
+    "depende_de": [
+      "PROF-TRACK",
+      "CHOICE"
+    ]
+  },
+  "DEADLY-FATAL": {
+    "name": "Dados extras de crítico por trait de arma (deadly, fatal)",
+    "status": "parcial",
+    "regra": "Armas com deadly somam um dado extra no crítico; com fatal, o dado base da arma é elevado e ainda soma um dado extra.",
+    "evidencia": [
+      "Deadly funciona de verdade no botão \"Crítico\" da ficha: `external/fusion-systems-2e/systems/pf2e/src/derivations/character.ts:948-966` (renderCritDamageRoll) dobra o dado base e soma o dado extra sem dobrar",
+      "Fatal NÃO segue a regra: o comentário do próprio código (`character.ts:952-955`) declara \"fatal does NOT replace the base die — same as the display formula above\" — pelo RAW, fatal troca o dado da arma pelo dado fatal em todo o dano crítico, e só depois soma o extra",
+      "Existe um cálculo correto de fatal em `external/fusion-systems-2e/systems/pf2e/src/actions/strikes.ts:426-431` (computeStrikeDamage), mas essa função não tem chamador de produção — só teste",
+      "E não há como ver a diferença hoje: das 30 armas do pack `weapons-core`, **nenhuma** tem trait `fatal` (deadly aparece em 5)"
+    ],
+    "o_que_falta": "Corrigir fatal no caminho da ficha (elevar o dado base antes de dobrar) e publicar armas com o trait — hoje o defeito é invisível porque o pack não tem nenhuma arma fatal. Deadly, esse sim, já produz valor certo na tela.",
+    "depende_de": []
+  },
+  "NEW-TURN-CYCLE": {
+    "name": "Ciclo de combate: iniciativa, ordem e turno",
+    "status": "funciona",
+    "regra": "Criar o combate, rolar iniciativa, ordenar os combatentes, avançar e voltar turnos, encerrar — e emitir os eventos de começo/fim de turno e de rodada.",
+    "evidencia": [
+      "Conjunto completo de handlers reais em `packages/server/src/combat/combat-handlers.ts:548-1598` (criar, iniciar, adicionar/remover combatente, rolar/definir/zerar iniciativa, próximo/anterior, derrotado, oculto, reordenar, encerrar)",
+      "Bus de ciclo de vida real e testado: `packages/server/src/combat/combat-event-bus.ts:1-27`, emitido em `combat-handlers.ts:523,532,536,540,665-666,1589,1598`",
+      "Jogador encerra o próprio turno com anti-cheat no servidor: `packages/server/src/__tests__/combat-own-turn.test.ts` (G054, socket real; op forjado é recusado)",
+      "UI real: `packages/client/src/components/combat/CombatPanel.svelte:400-445` (GM) e `TurnHead.svelte:60,72,90-94,292-298` (avançar quando é a sua vez)"
+    ],
+    "o_que_falta": "Nada para o uso básico. O que sobra é aproveitamento: o bus tem um único consumidor de produção hoje (limpeza de mira), e é onde MAP-TRACK, expiração de efeito e dano persistente deveriam se plugar.",
+    "depende_de": []
+  },
+  "NEW-COVER": {
+    "name": "Cobertura",
+    "status": "ausente",
+    "regra": "Estar atrás de um obstáculo dá bônus de CA (e de Reflexos) contra ataques à distância; alguns talentos do Guerreiro interagem com isso.",
+    "evidencia": [
+      "Busca por `cover`/`cobertura` em `packages/server/src` e `packages/client/src`: só falsos positivos de \"coverage\" em comentários de teste",
+      "Não existe conceito de obstáculo opaco a projétil no canvas, nem bônus de CA associado"
+    ],
+    "o_que_falta": "Tudo. É o mesmo eixo de geometria que falta para flanqueio.",
+    "depende_de": [
+      "OFF-GUARD-POS"
+    ]
+  },
+  "EFFECT-SOURCE-ITEMS": {
+    "name": "Rule element de item/talento vira fonte de efeito",
+    "status": "ausente",
+    "regra": "Para uma regra escrita num talento, habilidade ou item ter efeito, o documento precisa virar uma fonte de efeito que o motor leia na derivação do ator. É o degrau anterior a qualquer rule element funcionar.",
+    "evidencia": [
+      "O motor RODA em produção: `packages/server/src/net/derive-runner.ts:289` chama `collectEffects` a cada derivação de ator (corrige a leitura de que ele nunca é chamado)",
+      "Mas só recebe CONDIÇÕES: `packages/server/src/net/derive-runner.ts:162,231` (`actorConditionsToEffectSources`) é o fallback, e nenhum sistema registra um materializador — a API existe em `packages/system-api/src/system-module.ts:441` e pf2e/sf2e nunca a usam (dito no comentário de `derive-runner.ts:212-214`)",
+      "O próprio satélite documenta a consequência: `external/fusion-systems-2e/systems/pf2e/src/derivations/embeddedModifiers.ts:10-13` — \"NOTHING in the generic EffectSource/Synthetics pipeline visits these item types (only type:'condition' items become EffectSources)\"",
+      "A função de condição avisa que o resultado deveria ir acompanhado: `external/fusion-systems-2e/systems/pf2e/src/conditions.ts:537` — \"Pass the result to collectEffects alongside item EffectSources\", que não existem",
+      "Efeito no Guerreiro: 83 das 86 regras dos seus documentos (45 flat-modifier, 17 roll-option, 10 roll-note, 6 set-property, 5 proficiency) ficam inertes; só as 3 `grant-item` funcionam, por um caminho próprio (`sheets/pf2e/src/lib/sheets/pf2e/grantMaterializer.ts:136-163,497`)"
+    ],
+    "o_que_falta": "Um materializador que transforme os itens do ator (talentos, habilidades, equipamento, efeitos) em EffectSource — registrado via `registrar.effectsMaterializer(...)` ou ampliando o fallback. É uma peça só, e ela destrava de uma vez a maior parte das regras passivas de TODAS as classes, não só do Guerreiro.",
+    "depende_de": []
+  },
+  "NEW-HAND-STATE": {
+    "name": "Mãos livres e empunhadura",
+    "status": "ausente",
+    "regra": "Saber, em tempo real, o que cada mão do personagem está segurando: empunhar com uma ou duas mãos, ter uma mão livre, largar/trocar de arma no meio do turno. Catorze talentos do Guerreiro dependem disso (Aparo em Duelo, Aparo Duplo, Golpe Enganchador, Ataque Bimanual, Empunhadura Ágil de Escudo...).",
+    "evidencia": [
+      "O campo existe, mas só como default de schema: `external/fusion-systems-2e/systems/pf2e/src/schemas/item-weapon.ts:73-74` e `item-equipment.ts:41` (`usage: \"held-in-one-hand\"`)",
+      "Nenhum consumidor real: o único uso fora do schema é um literal na derivação de desarmado (`systems/pf2e/src/derivations/character.ts:882`)",
+      "O inventário não modela mãos: `_equippedWeapons` (equipment.ts:189-195) marca a arma como equipada, sem dizer em qual mão nem quantas ela ocupa"
+    ],
+    "o_que_falta": "Estado de mãos no ator (o que cada mão segura), a pegada escolhida ao equipar, e uma ação de trocar/largar que atualize isso — mais o predicado para as regras testarem.",
+    "depende_de": []
+  },
+  "NEW-RANGE-CHECK": {
+    "name": "Distância até o alvo contra o alcance da arma",
+    "status": "ausente",
+    "regra": "Comparar a distância entre atacante e alvo com o alcance (ou o incremento de alcance) da arma, para saber se o ataque é possível e qual penalidade se aplica.",
+    "evidencia": [
+      "O alcance está no dado: `external/fusion-systems-2e/systems/pf2e/src/schemas/item-weapon.ts:57-58` (`range`, nulo = corpo a corpo)",
+      "Mas ele só é usado para decidir se a arma é à distância — e portanto qual atributo usa: `systems/pf2e/src/actions/strikes.ts:168,186,242` e `derivations/character.ts:1011`",
+      "Não existe medição de distância entre dois tokens para fins de regra em nenhum dos dois repos (mesma ausência de geometria de [[mec-off-guard-pos]])"
+    ],
+    "o_que_falta": "Medir a distância no canvas entre atacante e alvo e devolvê-la ao fluxo de ataque. É a mesma peça de geometria que falta para flanqueio e cobertura.",
+    "depende_de": [
+      "OFF-GUARD-POS"
+    ]
+  },
+  "NEW-SKILL-VS-DC": {
+    "name": "Perícia rolada contra a CD de outra criatura",
+    "status": "ausente",
+    "regra": "Rolar uma perícia contra uma CD derivada de outro ator fora das manobras básicas — Atletismo contra a CD de Fortitude de vários inimigos numa investida, Saber contra a CD de Conhecimento do alvo.",
+    "evidencia": [
+      "O servidor grada rolagem contra CA (`packages/server/src/chat/chat-handler.ts:451-507`); não há caminho equivalente que resolva uma CD de salvaguarda/perícia do alvo para uma rolagem de perícia",
+      "A rolagem de perícia da ficha posta uma fórmula no chat como qualquer outra, sem alvo"
+    ],
+    "o_que_falta": "Resolver a CD do alvo no servidor (como já é feito com a CA) e graduar a rolagem de perícia contra ela.",
+    "depende_de": [
+      "TARGET-OTHER",
+      "MANEUVER"
+    ]
+  },
+  "NEW-DAMAGE-LOG": {
+    "name": "Histórico de quem feriu o alvo",
+    "status": "ausente",
+    "regra": "Guardar, por criatura, quem a feriu desde o fim do último turno dela — o Assalto Unido só vale se um aliado diferente já tiver ferido aquele inimigo.",
+    "evidencia": [
+      "Não existe aplicação de dano para registrar (ver [[mec-apply-damage]]), e nenhum estado por combatente guarda histórico: os handlers de combate (`packages/server/src/combat/combat-handlers.ts:548-1598`) não gravam nada além de ordem, iniciativa, derrotado e oculto"
+    ],
+    "o_que_falta": "Registrar cada aplicação de dano com origem e momento, e limpar a lista no fim do turno do alvo (o bus de turno já existe).",
+    "depende_de": [
+      "APPLY-DAMAGE",
+      "NEW-TURN-CYCLE"
+    ]
+  },
+  "NEW-SPELL-REFLECT": {
+    "name": "Refletir a magia de volta em quem lançou",
+    "status": "ausente",
+    "regra": "Reação que pega a magia recebida e a devolve contra o conjurador, com os mesmos efeitos (Escudo Espelhado, Réplica Refletora).",
+    "evidencia": [
+      "Nenhum código de reflexão/redirecionamento de magia nos dois repos (os hits de `redirect` em `packages/server/src/admin/` são redirecionamento HTTP)",
+      "Depende de duas peças que também faltam: reação com gatilho ([[mec-reaction-trigger]]) e o contra-ataque/anulação de efeito ([[mec-counteract]], ausente desde o inventário do Alquimista)",
+      "A conjuração já anuncia e oferece salvamento (`SPELL-CAST` funciona), mas não há ponto no fluxo onde um terceiro intercepte a magia em voo"
+    ],
+    "o_que_falta": "Uma janela de interceptação no fluxo de conjuração, e a capacidade de reexecutar a magia trocando alvo e origem.",
+    "depende_de": [
+      "REACTION-TRIGGER",
+      "COUNTERACT"
+    ]
+  },
+  "GUE-CLASS-PUBLISHED": {
+    "name": "Classe Guerreiro publicada e montável",
+    "status": "funciona",
+    "regra": "A classe existir nos packs do pin, com suas habilidades no nível certo, e o construtor de ficha montar um Guerreiro do 1º ao 20º sem perder nada pelo caminho.",
+    "evidencia": [
+      "`external/fusion-systems-2e/systems/pf2e/packs/classes-core` traz o Fighter entre as 12 classes publicadas do pin v0.1.1, com `featuresByLevel` completo (16 habilidades, níveis 1 a 19)",
+      "112 talentos com trait `fighter` em `feats-core` e 16 habilidades em `class-features-core` — pt-BR **112/112 e 16/16**",
+      "`external/fusion-systems-2e/sheets/pf2e/src/lib/sheets/pf2e/planVM.ts` consome `featuresByLevel` em produção no level-up; a varredura dirigida por dado `varredura-classes.test.ts` roda sobre o Fighter e passou **6/6** quando executada nesta sessão",
+      "A varredura r22 já havia conferido as proficiências do Fighter contra o texto RAW do vendor: fechou com zero divergência"
+    ],
+    "o_que_falta": "Nada para montar a ficha. Duas ressalvas de dado: `class-features-core` dá a **Armor Expertise nível 7 e Armor Mastery nível 13** (níveis do Campeão/Bárbaro, features compartilhadas), enquanto o `featuresByLevel` da classe diz **11 e 17** — quem ler o nível do documento erra; e não existe fixture de paridade contra pregen oficial da Paizo para o Fighter.",
+    "depende_de": []
+  }
+}
