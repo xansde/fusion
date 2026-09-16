@@ -59,21 +59,8 @@
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": [
-        "ALQ-F0-01",
-        "ALQ-F1-01",
-        "ALQ-F2-02",
-        "ALQ-F2-17",
-        "ALQ-F4-02",
-        "ALQ-F4-03"
-      ],
-      "integradas": [
-        "ALQ-F0-01",
-        "ALQ-F1-01",
-        "ALQ-F2-02",
-        "ALQ-F4-02",
-        "ALQ-F4-03"
-      ],
+      "tarefas": ["ALQ-F0-01", "ALQ-F1-01", "ALQ-F2-02", "ALQ-F2-17", "ALQ-F4-02", "ALQ-F4-03"],
+      "integradas": ["ALQ-F0-01", "ALQ-F1-01", "ALQ-F2-02", "ALQ-F4-02", "ALQ-F4-03"],
       "gate": true,
       "revisao": {
         "achados": 17,
@@ -93,12 +80,8 @@
     },
     {
       "onda": 1,
-      "tarefas": [
-        "ALQ-F2-17"
-      ],
-      "integradas": [
-        "ALQ-F2-17"
-      ],
+      "tarefas": ["ALQ-F2-17"],
+      "integradas": ["ALQ-F2-17"],
       "gate": true,
       "revisao": {
         "achados": 11,
