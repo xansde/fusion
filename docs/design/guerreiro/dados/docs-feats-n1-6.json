@@ -1,0 +1,2188 @@
+[
+ {
+  "slug": "gue-tal-agile-shield-grip",
+  "kind": "talento",
+  "name": "Agile Shield Grip",
+  "name_pt": "Empunhadura Ágil de Escudo",
+  "nivel": 1,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "champion",
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha um escudo com shield boss ou shield spikes"
+  ],
+  "resumo": "Alterna a empunhadura do escudo: reduz o dado de dano do shield boss/spikes para 1d4 e ganha a trait agile enquanto ativo; usar de novo reverte.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "shield boss/spikes precisam funcionar como Strikes de arma de verdade"
+   },
+   {
+    "id": "ITEM-ALTER",
+    "porque": "troca o dado de dano da arma e adiciona a trait agile condicionalmente enquanto o toggle está ligado"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `agile-shield-grip` + flat-modifier/DamageDice override dieSize→d4 (predicate no toggle) + set-property/ItemAlteration adicionando trait `agile` ao shield-boss/spikes",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de reduzir o dado pra 1d4 e valer a trait agile enquanto ligado, mas é fácil esquecer de desligar depois",
+  "observacao": "o set-property/ItemAlteration que adiciona a trait agile está em `unconverted` — dívida de dado, o importador não converteu"
+ },
+ {
+  "slug": "gue-tal-combat-assessment",
+  "kind": "talento",
+  "name": "Combat Assessment",
+  "name_pt": "Avaliação de Combate",
+  "nivel": 1,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "commander",
+   "fighter"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike corpo a corpo que permite Recall Knowledge imediato sobre o alvo na mesma ação, com +2 de circunstância se o Strike foi crítico; o alvo fica imune ao talento por 1 dia.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike corpo a corpo que dispara tudo"
+   },
+   {
+    "id": "NEW-SKILL-VS-DC",
+    "porque": "Recall Knowledge é uma perícia rolada contra a CD do alvo, encadeada na mesma ação do Strike"
+   },
+   {
+    "id": "NEW-LAST-ACTION",
+    "porque": "o +2 no Recall Knowledge só se aplica se o Strike (mesma ativação) foi crítico — precisa saber o grau de sucesso do passo anterior"
+   }
+  ],
+  "rule_elements": "flat-modifier circunstância +2 no skill-check, predicate [action:recall-knowledge, critical-assessment] — o roll-option `critical-assessment` não é definido dentro deste talento, deve vir de um Effect externo ausente no dado",
+  "referencias": [
+   "actionspf2e.Item.Recall Knowledge"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "dá pra rolar Strike e Recall Knowledge separados na mesa; o que se perde é o +2 automático amarrado ao crítico e a imunidade de 1 dia por alvo",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-double-slice",
+  "kind": "talento",
+  "name": "Double Slice",
+  "name_pt": "Corte Duplo",
+  "nivel": 1,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você está empunhando duas armas corpo a corpo, uma em cada mão"
+  ],
+  "resumo": "Dois Strikes, um com cada arma empunhada em mãos diferentes; o segundo sofre -2 se a arma não for agile, e ambos contam para o MAP como dois ataques com dano combinado.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "dois ataques reais contra o alvo, cada um com sua arma"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "os dois Strikes usam o MAP corrente e contam como dois ataques na contagem"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `double-slice-second` + flat-modifier -2 no segundo ataque corpo a corpo, predicate [toggle, arma sem trait agile]",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "dá para resolver na mesa: dois cliques de Strike e o Mestre soma o dano na mão",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-everstand-stance",
+  "kind": "talento",
+  "name": "Everstand Stance",
+  "name_pt": "Postura Inabalável",
+  "nivel": 1,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "champion",
+   "fighter",
+   "stance"
+  ],
+  "prerequisitos": [
+   "Você empunha um escudo"
+  ],
+  "resumo": "Postura de escudo empunhado com as duas mãos: aumenta em um degrau o dado do shield boss/spikes e soma +2 de Dureza ao escudo ao usar Shield Block.",
+  "mecanismos": [
+   {
+    "id": "STANCE",
+    "porque": "efeito que persiste enquanto a postura estiver ativa"
+   },
+   {
+    "id": "DAMAGE-ALT",
+    "porque": "aumenta o dado de dano do shield boss/spikes em um degrau"
+   },
+   {
+    "id": "SHIELD-BLOCK",
+    "porque": "o bônus de +2 de Dureza só entra na conta na hora de resolver a reação Shield Block"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "só vale enquanto o escudo estiver empunhado com as duas mãos"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro descrito só em texto (rules/rulesFull vazios)",
+  "referencias": [
+   "feats-srd.Item.Shield Block"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "postura fácil de lembrar, mas o Mestre precisa ajustar manualmente o dado do escudo e a Dureza durante o Shield Block",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-exacting-strike",
+  "kind": "talento",
+  "name": "Exacting Strike",
+  "name_pt": "Golpe Exato",
+  "nivel": 1,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [],
+  "resumo": "Um Strike cuja falha não conta para a penalidade de ataque múltiplo.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "na falha, este ataque precisa ser excluído da contagem de MAP — exceção condicionada ao grau de sucesso"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "um clique de Strike; se falhar, o Mestre só não soma no MAP do próximo ataque",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-point-blank-stance",
+  "kind": "talento",
+  "name": "Point Blank Stance",
+  "name_pt": "Postura à Queima-Roupa",
+  "nivel": 1,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "stance"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma à distância"
+  ],
+  "resumo": "Postura com arma à distância: remove a penalidade de volley e dá +2 de circunstância no dano contra alvos dentro do primeiro incremento de alcance de armas sem volley.",
+  "mecanismos": [
+   {
+    "id": "STANCE",
+    "porque": "efeito que persiste enquanto a postura estiver ativa"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "precisa checar se a arma equipada tem a trait volley ou não, para saber qual dos dois efeitos aplicar"
+   },
+   {
+    "id": "NEW-RANGE-CHECK",
+    "porque": "o bônus de dano só vale se o alvo estiver dentro do primeiro incremento de alcance da arma — comparação de distância além do alcance básico do Strike"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de tirar a penalidade de volley e somar o +2 a curta distância, mas precisa medir o incremento de alcance a cada ataque",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-reactive-shield",
+  "kind": "talento",
+  "name": "Reactive Shield",
+  "name_pt": "Escudo Reativo",
+  "nivel": 1,
+  "acoes": "reação",
+  "action_type": "reaction",
+  "traits": [
+   "fighter",
+   "guardian"
+  ],
+  "prerequisitos": [
+   "Você empunha um escudo"
+  ],
+  "resumo": "Reação: ao ser atingido por um Strike corpo a corpo, ergue o escudo na hora e aplica o bônus de CA retroativamente ao ataque que disparou a reação.",
+  "mecanismos": [
+   {
+    "id": "REACTION",
+    "porque": "ter e gastar a reação"
+   },
+   {
+    "id": "REACTION-TRIGGER",
+    "porque": "o servidor precisa detectar 'fui atingido por um Strike corpo a corpo' e oferecer a reação ANTES de fechar o resultado do ataque, já que o bônus se aplica retroativamente a ele"
+   },
+   {
+    "id": "RAISE-SHIELD",
+    "porque": "o efeito é literalmente usar Raise a Shield e aplicar o bônus de CA dele"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "actionspf2e.Item.Raise a Shield"
+  ],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "dá pra o Mestre segurar a narração do resultado do ataque e perguntar antes de revelar se acertou",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-snagging-strike",
+  "kind": "talento",
+  "name": "Snagging Strike",
+  "name_pt": "Golpe Enganchador",
+  "nivel": 1,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Uma mão livre, e o alvo ao alcance dela"
+  ],
+  "resumo": "Strike mantendo uma mão livre contra alvo ao alcance dela; se acertar, o alvo fica off-guard até o início do seu próximo turno ou até sair do alcance.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "precisa saber se há uma mão livre no momento do ataque"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "aplica a condição off-guard no alvo"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "o -2 de CA do off-guard precisa entrar na conta dos ataques seguintes"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "a duração é dupla: até o início do próximo turno OU até o alvo sair do alcance da mão livre, o que vier primeiro"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Off-Guard"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "a mão livre e o alcance o Mestre lembra fácil; a expiração dupla (turno ou distância) é chata de rastrear rodada a rodada",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-sudden-charge",
+  "kind": "talento",
+  "name": "Sudden Charge",
+  "name_pt": "Investida Súbita",
+  "nivel": 1,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "barbarian",
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [],
+  "resumo": "Anda duas vezes (ou equivalente, se tiver outro tipo de deslocamento) e faz um Strike se terminar ao alcance de um inimigo.",
+  "mecanismos": [
+   {
+    "id": "MOVEMENT",
+    "porque": "dois Strides no mapa, medindo o alcance final contra inimigos"
+   },
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike final, condicionado a terminar ao alcance"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "dois Strides normais no mapa e um Strike; nada de conta especial",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-vicious-swing",
+  "kind": "talento",
+  "name": "Vicious Swing",
+  "name_pt": "Golpe Violento",
+  "nivel": 1,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike corpo a corpo que conta como dois ataques para o MAP mas causa um dado extra de dano de arma, escalando com o nível (2 aos 10, 3 aos 18).",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "conta como dois ataques na penalidade de ataque múltiplo"
+   },
+   {
+    "id": "DAMAGE-ALT",
+    "porque": "adiciona 1-3 dados extras de dano de arma conforme o nível — a implementação real só cobre upgrade de face do dado da própria arma, não adição de dados extras, então aqui é um gap dentro do próprio mecanismo parcial"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `vicious-swing` (domain damage) + flat-modifier/DamageDice adicionando 1-3 dados d6 conforme `@actor.level`",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre soma o dado extra na mão e marca o MAP duplo; o toggle por nível é só lembrete",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-aggressive-block",
+  "kind": "talento",
+  "name": "Aggressive Block",
+  "name_pt": "Bloqueio Agressivo",
+  "nivel": 2,
+  "acoes": "livre",
+  "action_type": "free",
+  "traits": [
+   "fighter",
+   "guardian"
+  ],
+  "prerequisitos": [],
+  "resumo": "Ao usar Shield Block contra um oponente adjacente do seu tamanho ou menor, empurra 5 pés ou deixa off-guard até o início do próximo turno (o oponente escolhe); se o empurrão bateria num obstáculo, vira off-guard.",
+  "mecanismos": [
+   {
+    "id": "SHIELD-BLOCK",
+    "porque": "o gatilho é literalmente ter acabado de usar a reação Shield Block"
+   },
+   {
+    "id": "MANEUVER",
+    "porque": "aciona o efeito do Shove automaticamente, inclusive a regra de bater em obstáculo virando off-guard"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "uma das duas opções é aplicar off-guard, cujo -2 de CA entra na conta depois"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "aplicar/remover a condição off-guard escolhida"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o off-guard dura até o início do próximo turno"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Off-Guard",
+   "actionspf2e.Item.Shove"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve o Shield Block e escolhe empurrar ou marcar off-guard; a regra de bater em obstáculo exige medir no mapa",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-assisting-shot",
+  "kind": "talento",
+  "name": "Assisting Shot",
+  "name_pt": "Disparo de Apoio",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma à distância"
+  ],
+  "resumo": "Strike à distância que, se acertar, dá +1 (ou +2 em crítico) de circunstância ao próximo aliado que atacar o mesmo alvo antes do seu próximo turno.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike à distância em si"
+   },
+   {
+    "id": "TARGET-OTHER",
+    "porque": "o bônus se aplica ao PRÓXIMO ALIADO que atacar aquele alvo, não a quem usou o talento"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o bônus fica disponível até o início do seu próximo turno, atado ao alvo, não a um ator específico"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `assisting-shot` + roll-note em ranged-attack-roll (crítico/sucesso) — o efeito real depende de @UUID[...Effect: Assisting Shot], que não está no dado extraído",
+  "referencias": [
+   "feat-effects.Item.Effect: Assisting Shot"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de avisar o próximo aliado que atacar aquele alvo do bônus, mas é fácil esquecer entre turnos",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-blade-brake",
+  "kind": "talento",
+  "name": "Blade Brake",
+  "name_pt": "Freio de Lâmina",
+  "nivel": 2,
+  "acoes": "reação",
+  "action_type": "reaction",
+  "traits": [
+   "fighter",
+   "manipulate"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma corpo a corpo e está ao alcance de uma superfície rígida"
+  ],
+  "resumo": "Reação: ao ser deslocado por movimento forçado, crava a arma numa superfície e reduz o deslocamento (20+ pés vira 5, o resto vira 0).",
+  "mecanismos": [
+   {
+    "id": "REACTION",
+    "porque": "ter e gastar a reação"
+   },
+   {
+    "id": "REACTION-TRIGGER",
+    "porque": "o servidor precisa detectar que EU estou prestes a ser deslocado por um efeito de movimento forçado — gatilho invertido do padrão comum (sofrer, não causar)"
+   },
+   {
+    "id": "MOVEMENT",
+    "porque": "precisa interceptar e reduzir a distância de um deslocamento forçado já calculado"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de perguntar antes de aplicar o empurrão/puxão em quem tem a reação disponível",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-brutish-shove",
+  "kind": "talento",
+  "name": "Brutish Shove",
+  "name_pt": "Empurrão Brutamontes",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma corpo a corpo de duas mãos"
+  ],
+  "resumo": "Strike com arma de duas mãos; contra alvo do seu tamanho ou menor, deixa off-guard até o fim do turno e empurra automaticamente (com benefício de crítico); na falha, só o off-guard.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige arma corpo a corpo empunhada com as duas mãos"
+   },
+   {
+    "id": "MANEUVER",
+    "porque": "aciona o Shove automaticamente, inclusive o benefício de crítico"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "tanto sucesso quanto falha aplicam off-guard, cujo -2 de CA entra na conta"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "aplicar/remover a condição off-guard"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o off-guard dura só até o fim do turno atual"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Off-Guard",
+   "actionspf2e.Item.Shove"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve o Strike, aplica off-guard e empurra 5 pés na régua; dá pra fazer na mão sem muito atrito",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-combat-grab",
+  "kind": "talento",
+  "name": "Combat Grab",
+  "name_pt": "Agarrão de Combate",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Uma mão livre, e o alvo ao alcance dela"
+  ],
+  "resumo": "Strike corpo a corpo mantendo uma mão livre; se acertar, agarra o alvo (Grabbed) até o fim do seu próximo turno ou até ele escapar.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "precisa saber se há uma mão livre no momento do ataque"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "aplica a condição Grabbed"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "duração dupla: até o fim do próximo turno OU até o alvo Escapar, o que vier primeiro"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Grabbed",
+   "actionspf2e.Item.Escape"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "grabbed é fácil de marcar; a expiração dupla (turno ou escape) é a parte chata de acompanhar",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-devoted-guardian",
+  "kind": "talento",
+  "name": "Devoted Guardian",
+  "name_pt": "Guardião Devotado",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "champion",
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Sua última ação foi Raise a Shield"
+  ],
+  "resumo": "Exige que a última ação tenha sido Raise a Shield; escolhe um aliado adjacente que ganha +1 (ou +2 com escudo torre) de CA enquanto o escudo estiver erguido e ele permanecer adjacente.",
+  "mecanismos": [
+   {
+    "id": "NEW-LAST-ACTION",
+    "porque": "o requisito de uso exige saber se a última ação foi Raise a Shield"
+   },
+   {
+    "id": "RAISE-SHIELD",
+    "porque": "o efeito só vale enquanto o escudo estiver erguido"
+   },
+   {
+    "id": "TARGET-OTHER",
+    "porque": "aplica o bônus de CA a outro ator escolhido, não a si mesmo"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "condição contínua reavaliada a cada instante — dura enquanto permanecer adjacente E com o escudo erguido, não é um timer fixo"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de manter o bônus enquanto o guerreiro estiver adjacente e de escudo erguido; rastrear os dois junto é chato",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-dragging-strike",
+  "kind": "talento",
+  "name": "Dragging Strike",
+  "name_pt": "Golpe de Arrasto",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike corpo a corpo; contra alvo do seu tamanho ou menor, deixa off-guard até o fim do turno e puxa o alvo 5 pés na sua direção (movendo-se junto, se necessário); na falha, só o off-guard.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "MOVEMENT",
+    "porque": "puxa o alvo 5 pés e move o atacante junto — deslocamento forçado bespoke, sem passar pela manobra Reposition formal"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "aplica off-guard"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "o -2 de CA do off-guard entra na conta dos ataques seguintes"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "off-guard dura só até o fim do turno atual"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Off-Guard"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "puxar 5 pés na régua e marcar off-guard é tranquilo de fazer na mesa",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-dueling-parry",
+  "kind": "talento",
+  "name": "Dueling Parry",
+  "name_pt": "Aparo em Duelo",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha uma única arma de uma mão e nada mais nas mãos"
+  ],
+  "resumo": "Enquanto empunhar uma única arma de uma mão e nada mais nas mãos, ganha +2 de circunstância na CA até o início do próximo turno.",
+  "mecanismos": [
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "o bônus exige checar continuamente 'uma arma de uma mão e nada mais nas mãos', não só no momento de ativar"
+   },
+   {
+    "id": "MOD-ADJUST",
+    "porque": "rule element AdjustModifier (upgrade +2 / override 0 conforme mãos livres) — está em `unconverted`"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o bônus dura até o início do próximo turno, condicionado a manter o requisito"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "flat-modifier/AdjustModifier mode=upgrade +2 predicate hands-free>=1, e mode=override 0 predicate hands-free:0",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra do +2 enquanto a arma continuar sozinha na mão; perder o bônus no meio do turno é fácil de esquecer",
+  "observacao": "as duas entradas AdjustModifier estão em `unconverted` — dívida de dado, o importador não converteu"
+ },
+ {
+  "slug": "gue-tal-intimidating-strike",
+  "kind": "talento",
+  "name": "Intimidating Strike",
+  "name_pt": "Golpe Intimidador",
+  "nivel": 2,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "barbarian",
+   "emotion",
+   "fear",
+   "fighter",
+   "mental"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike corpo a corpo que, ao causar dano, deixa o alvo Frightened 1 (ou 2 em crítico).",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "aplica Frightened com valor que decai automaticamente a cada turno — condição numérica"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Frightened"
+  ],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "um clique de Strike e marcar Frightened 1 ou 2 na ficha",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-lightning-swap",
+  "kind": "talento",
+  "name": "Lightning Swap",
+  "name_pt": "Troca Relâmpago",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "exemplar",
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [],
+  "resumo": "Guarda qualquer número de itens e saca até duas armas (ou escudo+arma) numa única ação de Interact.",
+  "mecanismos": [
+   {
+    "id": "ACTION-ECON",
+    "porque": "trocar vários itens de equipamento em UMA única ação, em vez de um Interact por item — precisa de contagem de custo de ação"
+   }
+  ],
+  "rule_elements": "set-property/ItemAlteration trocando o texto de descrição do item conforme a classe (exemplar/fighter) — cosmético, em `unconverted`",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "o Mestre deixa trocar tudo num Interact só, sem contar item por item",
+  "observacao": "o ItemAlteration que troca o texto de descrição por classe está em `unconverted` — dívida de dado, mas é só flavor text, não afeta a mecânica"
+ },
+ {
+  "slug": "gue-tal-lunge",
+  "kind": "talento",
+  "name": "Lunge",
+  "name_pt": "Investida",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma corpo a corpo"
+  ],
+  "resumo": "Strike corpo a corpo com alcance +5 pés só para aquele ataque; se a arma tiver trait disarm/shove/trip, pode usar a manobra correspondente no lugar do Strike.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike com alcance estendido"
+   },
+   {
+    "id": "AEL",
+    "porque": "rule element ActiveEffectLike aumenta `system.attributes.reach.base` em 5, condicionado ao toggle"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "precisa checar se a arma tem a trait disarm/shove/trip para liberar a manobra alternativa"
+   },
+   {
+    "id": "MANEUVER",
+    "porque": "a opção alternativa de usar Disarm/Shove/Trip no lugar do Strike"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `lunge` + set-property/ActiveEffectLike mode=add path=system.attributes.reach.base value=5, predicate no toggle",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre soma 5 pés de alcance na régua para aquele ataque; a troca por Disarm/Shove/Trip é fácil de lembrar",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-rebounding-toss",
+  "kind": "talento",
+  "name": "Rebounding Toss",
+  "name_pt": "Arremesso Ricocheteante",
+  "nivel": 2,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma de arremesso"
+  ],
+  "resumo": "Strike à distância com arma de arremesso; se acertar, a arma ricocheteia para um segundo inimigo a até 10 pés do primeiro, permitindo um segundo Strike; ambos contam para o MAP, mas a penalidade só sobe depois dos dois.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "os dois Strikes"
+   },
+   {
+    "id": "MULTI-TARGET-STRIKE",
+    "porque": "dois Strikes distintos encadeados a partir de um único arremesso"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "os dois contam para o MAP, mas a penalidade só sobe depois dos dois — ordem de aplicação não trivial"
+   },
+   {
+    "id": "NEW-RANGE-CHECK",
+    "porque": "precisa achar um segundo alvo dentro de 10 pés do PRIMEIRO alvo, medindo distância entre alvos, não entre atacante e alvo"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre mede os 10 pés na régua entre os dois alvos e resolve os dois Strikes; segurar a penalidade de MAP até o fim é o detalhe fácil de errar",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-sleek-reposition",
+  "kind": "talento",
+  "name": "Sleek Reposition",
+  "name_pt": "Reposicionamento Elegante",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma finesse ou de haste (polearm)"
+  ],
+  "resumo": "Strike com arma finesse ou de haste; contra alvo do seu tamanho ou menor, reposiciona automaticamente (com benefício de crítico); na falha, deixa off-guard até o fim do turno.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "exige checar se a arma tem trait finesse ou é do grupo polearm"
+   },
+   {
+    "id": "MANEUVER",
+    "porque": "aciona o Reposition automaticamente, inclusive o benefício de crítico e o uso do alcance da arma"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "na falha, aplica off-guard, cujo -2 de CA entra na conta"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "actionspf2e.Item.Reposition",
+   "conditionitems.Item.Off-Guard"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve o Strike e move o alvo na régua como um Reposition normal; comparar o resultado do crítico é o passo a mais",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-united-assault",
+  "kind": "talento",
+  "name": "United Assault",
+  "name_pt": "Assalto Unido",
+  "nivel": 2,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish",
+   "ranger"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike que ganha bônus de circunstância no dano igual ao número de criaturas diferentes que feriram o alvo desde o fim do último turno dele, até +4.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "NEW-DAMAGE-LOG",
+    "porque": "precisa registrar quais criaturas diferentes causaram dano ao alvo desde o fim do último turno dele, para contar e limitar em +4 — nenhum mecanismo existente rastreia histórico de dano por alvo"
+   },
+   {
+    "id": "MOD-ADJUST",
+    "porque": "rule element AdjustModifier com valor dinâmico vindo da contagem acima — está em `unconverted`"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable com 4 sub-opções (1-4) + flat-modifier circunstância +1 + AdjustModifier override lendo `@item.flags.system.rulesSelections.unitedAssault`",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "não",
+  "manual_nota": "contar quantas criaturas diferentes bateram no alvo desde o fim do turno dele é conta que ninguém guarda de cabeça em combate corrido",
+  "observacao": "o AdjustModifier com valor dinâmico está em `unconverted` — dívida de dado; o valor em si depende do NEW-DAMAGE-LOG inexistente"
+ },
+ {
+  "slug": "gue-tal-barreling-charge",
+  "kind": "talento",
+  "name": "Barreling Charge",
+  "name_pt": "Investida Arrasadora",
+  "nivel": 4,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "barbarian",
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [
+   "Treinado em Atletismo"
+  ],
+  "resumo": "Anda tentando atravessar o espaço de inimigos no caminho, rolando Atletismo contra a CD de Fortitude de cada um (sucesso atravessa, falha para antes); depois faz um Strike.",
+  "mecanismos": [
+   {
+    "id": "MOVEMENT",
+    "porque": "mover através do espaço de outras criaturas — normalmente proibido, precisa de suporte especial no pathing"
+   },
+   {
+    "id": "NEW-SKILL-VS-DC",
+    "porque": "uma rolagem de Atletismo comparada contra a CD de Fortitude de CADA criatura no caminho, individualmente"
+   },
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike final, independente de como terminou o Stride"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve criatura por criatura na régua, comparando cada CD de Fortitude com a rolagem única de Atletismo",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-double-shot",
+  "kind": "talento",
+  "name": "Double Shot",
+  "name_pt": "Tiro Duplo",
+  "nivel": 4,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma à distância com reload 0"
+  ],
+  "resumo": "Duas Strikes à distância contra alvos diferentes, cada uma com -2, usando arma reload 0; ambas contam para o MAP, mas a penalidade só sobe depois das duas.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "os dois Strikes"
+   },
+   {
+    "id": "MULTI-TARGET-STRIKE",
+    "porque": "dois Strikes contra alvos diferentes numa única ativação"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "a penalidade de MAP só sobe depois das duas, não entre elas"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "precisa checar se a arma tem reload 0"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `double-shot` (domain ranged-attack-roll) + flat-modifier -2 predicate [toggle, item:reload:0]",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve os dois Strikes com -2 cada e só soma o MAP depois dos dois",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-dual-handed-assault",
+  "kind": "talento",
+  "name": "Dual-Handed Assault",
+  "name_pt": "Ataque Bimanual",
+  "nivel": 4,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma corpo a corpo de uma mão e tem uma mão livre"
+  ],
+  "resumo": "Strike com arma de uma mão e mão livre, empunhando-a temporariamente com as duas mãos: aumenta o dado em um degrau, ou ganha o bônus da trait two-hand se já a tiver.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige mão livre e muda a pegada da arma temporariamente só para este ataque"
+   },
+   {
+    "id": "DAMAGE-ALT",
+    "porque": "aumenta o dado de dano em um degrau para o ataque"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "precisa checar se a arma já tem a trait two-hand-dX para aplicar o bônus alternativo em vez do upgrade de degrau"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `dual-handed-assault` + 6 flat-modifier/DamageDice condicionais por trait two-hand-d6/d8/d10/d12 + flat-modifier circunstância = `@weapon.system.damage.dice`",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de trocar a pegada só naquele ataque e ajustar o dado; checar a trait two-hand certa é o detalhe fino",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-everstand-strike",
+  "kind": "talento",
+  "name": "Everstand Strike",
+  "name_pt": "Golpe Inabalável",
+  "nivel": 4,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "champion",
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Everstand Stance",
+   "Você empunha um escudo com as duas mãos"
+  ],
+  "resumo": "Exige Everstand Stance e escudo empunhado com as duas mãos: Strike com o escudo que, ao causar dano, também ergue o escudo (Raise a Shield).",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike com o escudo"
+   },
+   {
+    "id": "RAISE-SHIELD",
+    "porque": "ao causar dano, também aciona Raise a Shield"
+   },
+   {
+    "id": "STANCE",
+    "porque": "só funciona com a Everstand Stance ativa"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige escudo empunhado com as duas mãos"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "actionspf2e.Item.Raise a Shield"
+  ],
+  "dependencias": [
+   "gue-tal-everstand-stance"
+  ],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve o Strike com o escudo e depois ergue o escudo normalmente",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-farabellus-flip",
+  "kind": "talento",
+  "name": "Farabellus Flip",
+  "name_pt": "Cambalhota de Farabellus",
+  "nivel": 4,
+  "acoes": "reação",
+  "action_type": "reaction",
+  "traits": [
+   "barbarian",
+   "fighter",
+   "ranger"
+  ],
+  "prerequisitos": [
+   "Treinado em Acrobacia e em armadura média"
+  ],
+  "resumo": "Reação: ao ser alvo de um Strike corpo a corpo, ganha +2 de circunstância na CA contra ele; se ainda assim acertar, pode dar um Step para um espaço aberto ainda ao alcance do atacante.",
+  "mecanismos": [
+   {
+    "id": "REACTION",
+    "porque": "ter e gastar a reação"
+   },
+   {
+    "id": "REACTION-TRIGGER",
+    "porque": "o servidor precisa detectar 'fui alvo de um Strike corpo a corpo' e oferecer a reação a tempo de recalcular a CA"
+   },
+   {
+    "id": "MOVEMENT",
+    "porque": "o Step condicional para um espaço aberto ainda dentro do alcance do atacante"
+   }
+  ],
+  "rule_elements": "flat-modifier circunstância +2 em ac, predicate toggle `farabellus-flip` + roll-option toggleable correspondente",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "o Mestre soma o +2 antes de revelar o resultado e, se ainda acertar, permite o Step",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-haft-striker-stance",
+  "kind": "talento",
+  "name": "Haft Striker Stance",
+  "name_pt": "Postura de Golpe de Cabo",
+  "nivel": 4,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "ranger",
+   "rogue",
+   "stance"
+  ],
+  "prerequisitos": [
+   "Você empunha um martelo, lança ou arma de haste de duas mãos"
+  ],
+  "resumo": "Postura com arma de haste de duas mãos: o cabo vira uma arma simples 1d4 contundente do grupo maça com agile e finesse, compartilhando runas fundamentais, e conta como a segunda arma para talentos que exigem duas armas em mãos diferentes.",
+  "mecanismos": [
+   {
+    "id": "STANCE",
+    "porque": "efeito que persiste enquanto a postura estiver ativa"
+   },
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o cabo precisa ser atacável como uma arma de verdade, com seu próprio perfil"
+   },
+   {
+    "id": "ITEM-ALTER",
+    "porque": "cria um segundo perfil de arma (dano, grupo, traits) derivado da arma principal, inclusive compartilhando runas fundamentais"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "o cabo precisa contar como 'segunda arma em mão diferente' para outros talentos que exigem isso, e checar o grupo/trait da arma base"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "dá pra anotar num papel à parte as stats do cabo (1d4 contundente, grupo maça, agile+finesse) e tratar como arma extra na mesa",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-inured-to-alchemy",
+  "kind": "talento",
+  "name": "Inured to Alchemy",
+  "name_pt": "Insensível à Alquimia",
+  "nivel": 4,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "alchemist",
+   "barbarian",
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Perito em testes de resistência de Fortitude",
+   "Acesso: você é de Alkenstar ou dos Ermos de Mana"
+  ],
+  "resumo": "Sucessos em testes de resistência contra veneno/droga/vício alquímico reduzem o estágio em 2 (1 se virulent); sucessos críticos reduzem em 3 (2 se virulent).",
+  "mecanismos": [
+   {
+    "id": "AFFLICTION",
+    "porque": "reduzir estágio de veneno/droga/vício exige a progressão de estágios da aflição, que hoje não existe"
+   },
+   {
+    "id": "NOTE",
+    "porque": "roll-note anexado ao saving-throw avisando a redução aplicável"
+   },
+   {
+    "id": "NEW-VIRULENT",
+    "porque": "o valor de redução muda se o veneno/droga tiver a trait virulent"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "4x roll-note em saving-throw (success/criticalSuccess × virulent/não-virulent)",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre reduz o estágio manualmente na ficha ao ver o resultado do teste, se estiver rastreando o veneno à parte",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-knock-sense",
+  "kind": "talento",
+  "name": "Knock Sense",
+  "name_pt": "Golpe da Sensatez",
+  "nivel": 4,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "champion",
+   "fighter"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike não-letal (sem a penalidade -2 de arma sem a trait nonlethal) contra aliado Confused; se causar dano, ele passa automaticamente no flat check de remover Confused.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si, contra um aliado"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "lê Confused no aliado e depois remove"
+   },
+   {
+    "id": "FLAT-CHECK",
+    "porque": "o flat check de remover Confused ao tomar dano é garantido como sucesso automático"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "a arma precisa ser tratada como não-letal sem a penalidade -2, mesmo sem a trait nonlethal — checagem de trait"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Confused"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve o Strike sem a penalidade -2 e remove Confused direto, sem rolar o flat check",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-parting-shot",
+  "kind": "talento",
+  "name": "Parting Shot",
+  "name_pt": "Tiro de Despedida",
+  "nivel": 4,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma à distância carregada, ou com reload 0"
+  ],
+  "resumo": "Step seguido de Strike à distância com arma carregada ou reload 0; o alvo fica off-guard só contra esse ataque específico.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "MOVEMENT",
+    "porque": "o Step antes do Strike"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "precisa checar se a arma está carregada (estado dinâmico) ou tem reload 0 (trait estática)"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "off-guard vale só contra este ataque, não como condição persistente — nuance diferente do padrão 'até o fim do turno'"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Off-Guard"
+  ],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "Step e Strike com o -2/off-guard só valendo pra aquele ataque; fácil de resolver na mesa",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-powerful-shove",
+  "kind": "talento",
+  "name": "Powerful Shove",
+  "name_pt": "Empurrão Poderoso",
+  "nivel": 4,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Aggressive Block ou Brutish Shove"
+  ],
+  "resumo": "Exige Aggressive Block ou Brutish Shove: permite usá-los contra criaturas até duas categorias de tamanho maiores; se o empurrão faz a criatura parar por bater em algo, ela sofre dano igual ao modificador de Força.",
+  "mecanismos": [
+   {
+    "id": "MANEUVER",
+    "porque": "estende o alcance de tamanho permitido nas manobras de Aggressive Block/Brutish Shove"
+   },
+   {
+    "id": "APPLY-DAMAGE",
+    "porque": "aplica dano igual ao modificador de Força quando a criatura empurrada bate em um obstáculo"
+   },
+   {
+    "id": "CRIT-SPEC",
+    "porque": "o texto referencia explicitamente o efeito de especialização crítica de escudo/polearm/maça como gatilho alternativo"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "feats-srd.Item.Aggressive Block",
+   "feats-srd.Item.Brutish Shove"
+  ],
+  "dependencias": [
+   "gue-tal-aggressive-block",
+   "gue-tal-brutish-shove"
+  ],
+  "manual": "parcial",
+  "manual_nota": "o Mestre libera o empurrão contra criaturas maiores e aplica o dano de Força se bater em algo — fácil de fazer na régua",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-quick-reversal",
+  "kind": "talento",
+  "name": "Quick Reversal",
+  "name_pt": "Reviravolta Rápida",
+  "nivel": 4,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish",
+   "press"
+  ],
+  "prerequisitos": [
+   "Você está flanqueado por pelo menos dois inimigos"
+  ],
+  "resumo": "Exige estar flanqueado por dois inimigos: Strike contra um deles e um segundo Strike contra o outro flanqueador, com o mesmo MAP do primeiro e sem contar para a penalidade.",
+  "mecanismos": [
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "o requisito exige detectar que EU estou sendo flanqueado — leitura inversa da mecânica de flanqueio"
+   },
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "os dois Strikes"
+   },
+   {
+    "id": "MULTI-TARGET-STRIKE",
+    "porque": "dois Strikes contra os dois flanqueadores numa única ativação"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "o segundo Strike usa o mesmo MAP do primeiro e não conta para a penalidade"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre confirma o flanqueio geométrico e resolve os dois Strikes com o mesmo MAP",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-shielded-stride",
+  "kind": "talento",
+  "name": "Shielded Stride",
+  "name_pt": "Deslocamento Protegido",
+  "nivel": 4,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [],
+  "resumo": "Com o escudo erguido, pode Stride até metade do Speed sem disparar reações de movimento (como Reactive Strike).",
+  "mecanismos": [
+   {
+    "id": "RAISE-SHIELD",
+    "porque": "só funciona com o escudo erguido"
+   },
+   {
+    "id": "MOVEMENT",
+    "porque": "Stride com um limite de distância especial (metade do Speed)"
+   },
+   {
+    "id": "REACTION-TRIGGER",
+    "porque": "precisa SUPRIMIR o gatilho de reações de movimento de terceiros (como Reactive Strike) — o inverso do padrão comum de oferecer reação"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre lembra de não deixar reações de movimento dispararem enquanto o escudo estiver erguido",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-slam-down",
+  "kind": "talento",
+  "name": "Slam Down",
+  "name_pt": "Golpe Derrubador",
+  "nivel": 4,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [
+   "Treinado em Atletismo"
+  ],
+  "resumo": "Strike corpo a corpo que, ao causar dano, permite um teste de Atletismo para Trip (arma de duas mãos dispensa a exigência de mão livre); ambos contam para o MAP, mas a penalidade só sobe depois dos dois.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "MANEUVER",
+    "porque": "o Trip que segue o Strike"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "os dois contam para o MAP, mas a penalidade só sobe depois dos dois"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "arma de duas mãos dispensa a exigência de mão livre do Trip — isenção condicional a checar"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve o Strike e depois o Trip normalmente, segurando a penalidade de MAP até o fim",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-swipe",
+  "kind": "talento",
+  "name": "Swipe",
+  "name_pt": "Rasteira",
+  "nivel": 4,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "barbarian",
+   "fighter",
+   "flourish"
+  ],
+  "prerequisitos": [],
+  "resumo": "Um único Strike comparado contra a CA de até dois inimigos adjacentes entre si e ao seu alcance; o dano é rolado uma vez e aplicado a cada um atingido; conta como dois ataques para o MAP.",
+  "mecanismos": [
+   {
+    "id": "MULTI-TARGET-STRIKE",
+    "porque": "um único resultado de ataque comparado contra a CA de até dois alvos, com dano rolado uma vez e aplicado a cada um"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "conta como dois ataques para o MAP"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "se a arma tiver a trait sweep, o modificador dela se aplica a todos os ataques do Swipe"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre compara o mesmo resultado de ataque contra as duas CAs e aplica o dano uma vez para cada um",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-twin-parry",
+  "kind": "talento",
+  "name": "Twin Parry",
+  "name_pt": "Aparo Duplo",
+  "nivel": 4,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "ranger"
+  ],
+  "prerequisitos": [
+   "Você empunha duas armas corpo a corpo, uma em cada mão"
+  ],
+  "resumo": "Empunhando duas armas corpo a corpo, uma em cada mão, ganha +1 de circunstância na CA até o início do próximo turno (+2 se alguma arma tiver a trait parry); perde o bônus se deixar de cumprir o requisito.",
+  "mecanismos": [
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige checar continuamente duas armas corpo a corpo, uma em cada mão"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "o bônus sobe para +2 se alguma das armas tiver a trait parry"
+   },
+   {
+    "id": "MOD-ADJUST",
+    "porque": "rule element AdjustModifier (upgrade condicional do parry-bonus) — está em `unconverted`"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o bônus dura até o início do próximo turno, condicionado a manter o requisito"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "flat-modifier/AdjustModifier mode=upgrade +2 predicate [hands-free>=1 OR parry-bonus-upgrade:yes] + roll-option não-toggleable `weapon-parry`",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre soma +1 ou +2 conforme a trait parry e lembra de tirar se o requisito deixar de valer no meio do turno",
+  "observacao": "o AdjustModifier está em `unconverted` — dívida de dado, o importador não converteu"
+ },
+ {
+  "slug": "gue-tal-advanced-weapon-training",
+  "kind": "talento",
+  "name": "Advanced Weapon Training",
+  "name_pt": "Treinamento com Armas Avançadas",
+  "nivel": 6,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [],
+  "resumo": "Escolhe um grupo de arma e ganha proficiência marcial com todas as armas avançadas daquele grupo.",
+  "mecanismos": [
+   {
+    "id": "CHOICE",
+    "porque": "escolha persistente do grupo de arma no momento de pegar o talento"
+   },
+   {
+    "id": "PROF-TRACK",
+    "porque": "concede proficiência 'marcial' num grupo específico de armas avançadas — fora da progressão normal de proficiência"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "o grupo de arma escolhido é o seletor de quais armas se beneficiam"
+   }
+  ],
+  "rule_elements": "MartialProficiency selector definition [item:group:{escolha}, item:category:advanced] sameAs martial + ChoiceSet de grupo de arma (unconverted)",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre anota o grupo escolhido e trata como treinado; falta o sistema saber quais armas avançadas pertencem a esse grupo",
+  "observacao": "o ChoiceSet que resolve a escolha do grupo de arma está em `unconverted` — dívida de dado"
+ },
+ {
+  "slug": "gue-tal-advantageous-assault",
+  "kind": "talento",
+  "name": "Advantageous Assault",
+  "name_pt": "Ataque Vantajoso",
+  "nivel": 6,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [],
+  "resumo": "Strike contra alvo Grabbed/Prone/Restrained: ganha bônus de circunstância no dano igual ao número de dados de dano da arma (+2 se empunhada com duas mãos); na falha, ainda causa esse tanto de dano.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "lê Grabbed/Prone/Restrained no alvo como gate do efeito"
+   },
+   {
+    "id": "MOD-ADJUST",
+    "porque": "rule element AdjustModifier soma +2 se a arma estiver em duas mãos — está em `unconverted`"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "o bônus extra de +2 depende de saber se a arma está empunhada com duas mãos"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable (domain strike-damage) + flat-modifier circunstância = `@weapon.system.damage.dice` (predicate condição do alvo + map:increases>0) + AdjustModifier +2 predicate item:hands-held:2",
+  "referencias": [
+   "conditionitems.Item.Grabbed",
+   "conditionitems.Item.Prone",
+   "conditionitems.Item.Restrained"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre soma o número de dados de dano da arma como bônus e confere se está em duas mãos para o +2",
+  "observacao": "o AdjustModifier (+2 se item:hands-held:2) está em `unconverted` — dívida de dado"
+ },
+ {
+  "slug": "gue-tal-dazing-blow",
+  "kind": "talento",
+  "name": "Dazing Blow",
+  "name_pt": "Golpe Atordoante",
+  "nivel": 6,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Você tem uma criatura Grabbed"
+  ],
+  "resumo": "Exige um alvo Grabbed: Strike corpo a corpo (dano contundente) que força um teste de Fortitude contra a Class DC (efeito de incapacitação) para Stunned 1/2/3 conforme o grau de sucesso.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si, com o tipo de dano forçado para contundente"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "exige Grabbed como pré-requisito e aplica Stunned como resultado"
+   },
+   {
+    "id": "DOS-ADJUST",
+    "porque": "a trait incapacitation rebaixa automaticamente o grau de sucesso do save em um passo se o alvo tiver nível maior que a fonte — regra que o PF2e trata como trivial mas exige comparação de nível"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable + flat-modifier/DamageDice override damageType=bludgeoning + roll-note em strike-attack-roll",
+  "referencias": [
+   "conditionitems.Item.Grabbed",
+   "conditionitems.Item.Stunned"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre rola o Strike contundente e o save de Fortitude contra a Class DC, aplicando Stunned por grau de sucesso; a regra de incapacitation é o detalhe que exige atenção manual",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-disarming-stance",
+  "kind": "talento",
+  "name": "Disarming Stance",
+  "name_pt": "Postura Desarmadora",
+  "nivel": 6,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "stance"
+  ],
+  "prerequisitos": [
+   "Treinado em Atletismo",
+   "Você empunha uma única arma de uma mão e nada mais nas mãos"
+  ],
+  "resumo": "Postura com uma única arma de uma mão e nada mais nas mãos: +1 de circunstância em Atletismo para Disarm, +2 na CD de Reflexo contra Disarm, e pode desarmar criaturas até duas categorias maiores.",
+  "mecanismos": [
+   {
+    "id": "STANCE",
+    "porque": "efeito que persiste enquanto a postura estiver ativa"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige checar continuamente uma única arma de uma mão e nada mais nas mãos"
+   },
+   {
+    "id": "MANEUVER",
+    "porque": "afeta tanto o Disarm ofensivo (bônus) quanto o defensivo (CD de Reflexo) e estende o alcance de tamanho"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "actionspf2e.Item.Disarm"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre soma os bônus de Disarm e libera desarmar criaturas maiores enquanto a postura durar",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-furious-focus",
+  "kind": "talento",
+  "name": "Furious Focus",
+  "name_pt": "Foco Furioso",
+  "nivel": 6,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Vicious Swing"
+  ],
+  "resumo": "Exige Vicious Swing: ao usá-lo com arma de duas mãos, conta como um ataque para o MAP em vez de dois.",
+  "mecanismos": [
+   {
+    "id": "MAP-TRACK",
+    "porque": "muda a contagem de MAP de Vicious Swing especificamente, de dois ataques para um"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "a mudança só vale se a arma estiver empunhada com duas mãos"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "feats-srd.Item.Vicious Swing"
+  ],
+  "dependencias": [
+   "gue-tal-vicious-swing"
+  ],
+  "manual": "sim",
+  "manual_nota": "o Mestre só marca um ataque de MAP em vez de dois quando a arma está em duas mãos",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-guardians-deflection",
+  "kind": "talento",
+  "name": "Guardian's Deflection (Fighter)",
+  "name_pt": "Desvio do Guardião (Guerreiro)",
+  "nivel": 6,
+  "acoes": "reação",
+  "action_type": "reaction",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha uma única arma de uma mão e nada mais nas mãos"
+  ],
+  "resumo": "Reação: quando um aliado ao alcance é atingido e +2 de CA mudaria crítico para acerto ou acerto para erro, desvia o golpe com a arma de uma mão, aplicando esse +2 retroativamente ao aliado.",
+  "mecanismos": [
+   {
+    "id": "REACTION",
+    "porque": "ter e gastar a reação"
+   },
+   {
+    "id": "REACTION-TRIGGER",
+    "porque": "o servidor precisa calcular, ANTES de revelar o resultado, se +2 de CA mudaria o grau de sucesso do ataque contra o aliado — cálculo contrafactual para saber se vale oferecer a reação"
+   },
+   {
+    "id": "TARGET-OTHER",
+    "porque": "aplica o bônus de CA a um aliado, não a quem usa a reação"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige uma única arma de uma mão e nada mais nas mãos"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "feat-effects.Item.Effect: Guardian's Deflection"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre calcula de cabeça se o +2 mudaria o resultado antes de revelar; o sistema não oferece a reação automaticamente no momento certo",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-pain-tolerance",
+  "kind": "talento",
+  "name": "Pain Tolerance",
+  "name_pt": "Tolerância à Dor",
+  "nivel": 6,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "barbarian",
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Perito em testes de resistência de Fortitude",
+   "Acesso: você é de Alkenstar ou dos Ermos de Mana"
+  ],
+  "resumo": "Resistência a dano mental igual à metade do nível, e +1 de circunstância em testes de resistência contra efeitos que causariam clumsy, drained ou enfeebled.",
+  "mecanismos": [
+   {
+    "id": "IWR",
+    "porque": "resistência a dano mental, escalando com o nível do personagem"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "o bônus de save é condicionado a efeitos que infligem clumsy/drained/enfeebled — leitura do que o efeito causaria"
+   }
+  ],
+  "rule_elements": "flat-modifier circunstância +1 em saving-throw predicate [inflicts:clumsy/drained/enfeebled] + flat-modifier/Resistance mental = max(1,floor(level/2))",
+  "referencias": [
+   "conditionitems.Item.Clumsy",
+   "conditionitems.Item.Drained",
+   "conditionitems.Item.Enfeebled"
+  ],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "a resistência mental e o +1 contra essas três condições são fáceis de anotar direto na ficha",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-reflexive-shield",
+  "kind": "talento",
+  "name": "Reflexive Shield",
+  "name_pt": "Escudo Reflexivo",
+  "nivel": 6,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "fighter",
+   "guardian"
+  ],
+  "prerequisitos": [],
+  "resumo": "Ao usar Raise a Shield, também ganha o bônus de circunstância do escudo no Reflexo; com Shield Block, dano de um Reflexo malsucedido pode disparar a reação mesmo sem ser físico.",
+  "mecanismos": [
+   {
+    "id": "RAISE-SHIELD",
+    "porque": "o bônus de Reflexo só se aplica enquanto o escudo estiver erguido"
+   },
+   {
+    "id": "SHIELD-BLOCK",
+    "porque": "estende o gatilho de Shield Block para dano não-físico vindo de um Reflexo malsucedido"
+   }
+  ],
+  "rule_elements": "flat-modifier circunstância em reflex = `@actor.system.attributes.shield.ac`, predicate self:effect:raise-a-shield",
+  "referencias": [
+   "actionspf2e.Item.Raise a Shield",
+   "feats-srd.Item.Shield Block"
+  ],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "o Mestre soma o bônus do escudo no Reflexo enquanto erguido e libera o Shield Block em dano não-físico",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-revealing-stab",
+  "kind": "talento",
+  "name": "Revealing Stab",
+  "name_pt": "Estocada Reveladora",
+  "nivel": 6,
+  "acoes": "2",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma corpo a corpo capaz de causar dano perfurante"
+  ],
+  "resumo": "Strike com arma perfurante contra alvo concealed (sem flat check) ou hidden (CD 5); ao causar dano, crava a arma no alvo, revelando sua posição até a arma ser removida (2 Interacts).",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "SENSE",
+    "porque": "lê e altera o estado de percepção do alvo (concealed/hidden/invisible)"
+   },
+   {
+    "id": "FLAT-CHECK",
+    "porque": "suprime o flat check para concealed e fixa a CD em 5 para hidden"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "exige que a arma seja capaz de causar dano perfurante"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o efeito dura até a arma ser removida por 2 Interacts de um adjacente ou do próprio alvo — duração atada a uma ação de terceiro, não a um timer"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Concealed",
+   "conditionitems.Item.Hidden",
+   "conditionitems.Item.Invisible"
+  ],
+  "dependencias": [],
+  "manual": "não",
+  "manual_nota": "amarrar a arma no alvo, ler concealed/hidden/invisible corretamente e restaurar a arma depois de 2 Interacts é contabilidade demais pra confiar de cabeça numa mesa corrida",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-ricochet-stance",
+  "kind": "talento",
+  "name": "Ricochet Stance (Fighter)",
+  "name_pt": "Postura de Ricochete (Guerreiro)",
+  "nivel": 6,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "stance"
+  ],
+  "prerequisitos": [],
+  "resumo": "Postura em que armas de arremesso usadas em Strikes de dano contundente/cortante voltam sozinhas à mão dentro do incremento de alcance (exige mão livre); fora do incremento, voam de volta e caem no chão.",
+  "mecanismos": [
+   {
+    "id": "STANCE",
+    "porque": "efeito que persiste enquanto a postura estiver ativa"
+   },
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "exige arma de arremesso com dano contundente ou cortante"
+   },
+   {
+    "id": "NEW-RANGE-CHECK",
+    "porque": "compara a distância do alvo contra o incremento de alcance da arma para decidir se ela volta à mão ou cai no chão a X pés"
+   },
+   {
+    "id": "NEW-HAND-STATE",
+    "porque": "exige uma mão livre para pegar a arma de volta"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre mede o incremento de alcance na régua e decide se a arma volta à mão ou cai no chão",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-shatter-defenses",
+  "kind": "talento",
+  "name": "Shatter Defenses",
+  "name_pt": "Estilhaçar Defesas",
+  "nivel": 6,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter",
+   "press"
+  ],
+  "prerequisitos": [
+   "Uma criatura Frightened ao seu alcance corpo a corpo"
+  ],
+  "resumo": "Exige um alvo Frightened ao alcance: Strike que, ao causar dano, deixa o alvo off-guard até o Frightened acabar; se ele já estava off-guard para você, o valor de Frightened não pode cair abaixo de 1 até o início do próximo turno.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike em si"
+   },
+   {
+    "id": "CONDITION",
+    "porque": "lê Frightened como pré-requisito e aplica/trava off-guard e o piso do valor de Frightened"
+   },
+   {
+    "id": "OFF-GUARD-POS",
+    "porque": "o -2 de CA do off-guard entra na conta dos ataques seguintes"
+   },
+   {
+    "id": "EFFECT-DUR",
+    "porque": "o off-guard fica atado à duração de OUTRA condição (Frightened) — expiração cruzada entre duas condições, mais o travamento do valor mínimo"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "conditionitems.Item.Frightened",
+   "conditionitems.Item.Off-Guard"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "travar o valor mínimo do Frightened e amarrar a duração do off-guard a ele é conta cruzada difícil de acompanhar rodada a rodada",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-shield-wall",
+  "kind": "talento",
+  "name": "Shield Wall",
+  "name_pt": "Muralha de Escudos",
+  "nivel": 6,
+  "acoes": "reação",
+  "action_type": "reaction",
+  "traits": [
+   "champion",
+   "fighter"
+  ],
+  "prerequisitos": [],
+  "resumo": "Reação: quando um aliado adjacente ergue o escudo enquanto o seu já está erguido, os dois ganham Cobertura Padrão enquanto permanecerem adjacentes e com os escudos erguidos.",
+  "mecanismos": [
+   {
+    "id": "REACTION",
+    "porque": "ter e gastar a reação"
+   },
+   {
+    "id": "REACTION-TRIGGER",
+    "porque": "o servidor precisa detectar que um aliado adjacente acabou de erguer o escudo enquanto o seu já está erguido"
+   },
+   {
+    "id": "RAISE-SHIELD",
+    "porque": "a condição de manutenção do efeito é os dois escudos continuarem erguidos"
+   },
+   {
+    "id": "NEW-COVER",
+    "porque": "Cobertura Padrão é um estado computado entre duas criaturas adjacentes, com bônus de CA/Reflexo enquanto durar — não há ID existente para cobertura"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "other-effects.Item.Effect: Cover",
+   "actionspf2e.Item.Hide",
+   "actionspf2e.Item.Take Cover"
+  ],
+  "dependencias": [],
+  "manual": "parcial",
+  "manual_nota": "o Mestre concede Cobertura Padrão aos dois enquanto ficarem adjacentes com escudo erguido; rastrear isso rodada a rodada é o custo",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-shield-warden",
+  "kind": "talento",
+  "name": "Shield Warden",
+  "name_pt": "Guardião de Escudo",
+  "nivel": 6,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "champion",
+   "commander",
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Shield Block"
+  ],
+  "resumo": "Exige Shield Block: permite usar a reação para proteger um aliado adjacente em vez de si mesmo.",
+  "mecanismos": [
+   {
+    "id": "SHIELD-BLOCK",
+    "porque": "redireciona o alvo do bloqueio, mas continua usando a dureza/PV do mesmo escudo"
+   },
+   {
+    "id": "TARGET-OTHER",
+    "porque": "protege um aliado adjacente em vez de si mesmo"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [
+   "feats-srd.Item.Shield Block"
+  ],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "o Mestre deixa o jogador escolher o alvo do Shield Block entre si mesmo e um aliado adjacente",
+  "observacao": "o pré-requisito 'Shield Block' é uma feature de classe fora deste lote de 54 talentos — não há slug correspondente pra listar em dependencias"
+ },
+ {
+  "slug": "gue-tal-spear-dancer",
+  "kind": "talento",
+  "name": "Spear Dancer",
+  "name_pt": "Dançarino da Lança",
+  "nivel": 6,
+  "acoes": "1",
+  "action_type": "action",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Você empunha uma arma do grupo lança ou arma de haste"
+  ],
+  "resumo": "Empunhando lança ou arma de haste, faz um Step e um Strike (em qualquer ordem).",
+  "mecanismos": [
+   {
+    "id": "WEAPON-GROUP",
+    "porque": "exige arma do grupo lança ou polearm"
+   },
+   {
+    "id": "MOVEMENT",
+    "porque": "o Step"
+   },
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "o Strike"
+   }
+  ],
+  "rule_elements": "nenhum rule element convertido — efeito inteiro em texto",
+  "referencias": [],
+  "dependencias": [],
+  "manual": "sim",
+  "manual_nota": "um Step e um Strike normais, em qualquer ordem",
+  "observacao": null
+ },
+ {
+  "slug": "gue-tal-triple-shot",
+  "kind": "talento",
+  "name": "Triple Shot",
+  "name_pt": "Tiro Triplo",
+  "nivel": 6,
+  "acoes": "passivo",
+  "action_type": "passive",
+  "traits": [
+   "fighter"
+  ],
+  "prerequisitos": [
+   "Double Shot"
+  ],
+  "resumo": "Exige Double Shot: permite mirar os dois ataques no mesmo alvo, e gastar uma ação extra para um terceiro Strike à distância a -4; todos contam para o MAP, mas a penalidade só sobe depois de todos.",
+  "mecanismos": [
+   {
+    "id": "WEAPON-STRIKE",
+    "porque": "os Strikes adicionais"
+   },
+   {
+    "id": "MULTI-TARGET-STRIKE",
+    "porque": "muda a restrição de Double Shot, agora permitindo o mesmo alvo, e adiciona um terceiro Strike opcional"
+   },
+   {
+    "id": "MAP-TRACK",
+    "porque": "todos contam para o MAP, mas a penalidade só sobe depois de todos os ataques"
+   },
+   {
+    "id": "MOD-ADJUST",
+    "porque": "rule element AdjustModifier troca o penalty de Double Shot de -2 para -4 quando os dois toggles estão ativos — está em `unconverted`"
+   },
+   {
+    "id": "EFFECT-SOURCE-ITEMS",
+    "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+   }
+  ],
+  "rule_elements": "roll-option toggleable `triple-shot` (disabledIf sem double-shot) + AdjustModifier override -4 predicate [double-shot, triple-shot]",
+  "referencias": [
+   "feats-srd.Item.Double Shot"
+  ],
+  "dependencias": [
+   "gue-tal-double-shot"
+  ],
+  "manual": "parcial",
+  "manual_nota": "o Mestre resolve os Strikes extras com -4 e só soma o MAP no final",
+  "observacao": "o AdjustModifier que troca o penalty para -4 está em `unconverted` — dívida de dado"
+ }
+]

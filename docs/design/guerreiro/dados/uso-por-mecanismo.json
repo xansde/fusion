@@ -1,0 +1,2976 @@
+{
+ "WEAPON-STRIKE": {
+  "status": "parcial",
+  "file": "mec-weapon-strike",
+  "pasta": "guerreiro",
+  "name": "Strike com arma equipada, ponta a ponta",
+  "docs": [
+   {
+    "slug": "gue-tal-agile-shield-grip",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Agile Shield Grip"
+   },
+   {
+    "slug": "gue-tal-combat-assessment",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Combat Assessment"
+   },
+   {
+    "slug": "gue-tal-double-slice",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Double Slice"
+   },
+   {
+    "slug": "gue-tal-exacting-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Exacting Strike"
+   },
+   {
+    "slug": "gue-hab-reactive-strike",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Reactive Strike"
+   },
+   {
+    "slug": "gue-tal-snagging-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Snagging Strike"
+   },
+   {
+    "slug": "gue-tal-sudden-charge",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Sudden Charge"
+   },
+   {
+    "slug": "gue-tal-vicious-swing",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Vicious Swing"
+   },
+   {
+    "slug": "gue-tal-assisting-shot",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Assisting Shot"
+   },
+   {
+    "slug": "gue-tal-brutish-shove",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Brutish Shove"
+   },
+   {
+    "slug": "gue-tal-combat-grab",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Combat Grab"
+   },
+   {
+    "slug": "gue-tal-dragging-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dragging Strike"
+   },
+   {
+    "slug": "gue-tal-intimidating-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Intimidating Strike"
+   },
+   {
+    "slug": "gue-tal-lunge",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Lunge"
+   },
+   {
+    "slug": "gue-tal-rebounding-toss",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Rebounding Toss"
+   },
+   {
+    "slug": "gue-tal-sleek-reposition",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Sleek Reposition"
+   },
+   {
+    "slug": "gue-tal-united-assault",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "United Assault"
+   },
+   {
+    "slug": "gue-tal-barreling-charge",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Barreling Charge"
+   },
+   {
+    "slug": "gue-tal-double-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Double Shot"
+   },
+   {
+    "slug": "gue-tal-dual-handed-assault",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Dual-Handed Assault"
+   },
+   {
+    "slug": "gue-tal-everstand-strike",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Everstand Strike"
+   },
+   {
+    "slug": "gue-tal-haft-striker-stance",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Haft Striker Stance"
+   },
+   {
+    "slug": "gue-tal-knock-sense",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Knock Sense"
+   },
+   {
+    "slug": "gue-tal-parting-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Parting Shot"
+   },
+   {
+    "slug": "gue-tal-quick-reversal",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Quick Reversal"
+   },
+   {
+    "slug": "gue-tal-slam-down",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Slam Down"
+   },
+   {
+    "slug": "gue-tal-advantageous-assault",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advantageous Assault"
+   },
+   {
+    "slug": "gue-tal-dazing-blow",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Dazing Blow"
+   },
+   {
+    "slug": "gue-tal-revealing-stab",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Revealing Stab"
+   },
+   {
+    "slug": "gue-tal-shatter-defenses",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shatter Defenses"
+   },
+   {
+    "slug": "gue-tal-spear-dancer",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Spear Dancer"
+   },
+   {
+    "slug": "gue-tal-triple-shot",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Triple Shot"
+   },
+   {
+    "slug": "gue-tal-dueling-riposte",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Dueling Riposte"
+   },
+   {
+    "slug": "gue-tal-felling-strike",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Felling Strike"
+   },
+   {
+    "slug": "gue-tal-incredible-aim",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Incredible Aim"
+   },
+   {
+    "slug": "gue-tal-mobile-shot-stance",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Mobile Shot Stance"
+   },
+   {
+    "slug": "gue-tal-positioning-assault",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Positioning Assault"
+   },
+   {
+    "slug": "gue-tal-sudden-leap",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Sudden Leap"
+   },
+   {
+    "slug": "gue-tal-certain-strike",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Certain Strike"
+   },
+   {
+    "slug": "gue-tal-debilitating-shot",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Debilitating Shot"
+   },
+   {
+    "slug": "gue-tal-disarming-twist",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disarming Twist"
+   },
+   {
+    "slug": "gue-tal-flinging-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Flinging Charge"
+   },
+   {
+    "slug": "gue-tal-haft-beatdown",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Haft Beatdown"
+   },
+   {
+    "slug": "gue-tal-twin-riposte",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Twin Riposte"
+   },
+   {
+    "slug": "gue-tal-brutal-finish",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Brutal Finish"
+   },
+   {
+    "slug": "gue-tal-dashing-strike",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Dashing Strike"
+   },
+   {
+    "slug": "gue-tal-incredible-ricochet",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Incredible Ricochet"
+   },
+   {
+    "slug": "gue-tal-guiding-finish",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Guiding Finish"
+   },
+   {
+    "slug": "gue-tal-two-weapon-flurry",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Two-Weapon Flurry"
+   },
+   {
+    "slug": "gue-tal-whirlwind-strike",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Whirlwind Strike"
+   },
+   {
+    "slug": "gue-tal-needle-in-the-gods-eyes",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Needle in the Gods' Eyes"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   },
+   {
+    "slug": "gue-tal-impossible-volley",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Impossible Volley"
+   },
+   {
+    "slug": "gue-tal-sever-space",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Sever Space"
+   }
+  ]
+ },
+ "ITEM-ALTER": {
+  "status": "parcial",
+  "file": "mec-item-alter",
+  "pasta": "alquimista",
+  "name": "\"Alterar propriedades de item",
+  "docs": [
+   {
+    "slug": "gue-tal-agile-shield-grip",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Agile Shield Grip"
+   },
+   {
+    "slug": "gue-tal-haft-striker-stance",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Haft Striker Stance"
+   }
+  ]
+ },
+ "EFFECT-SOURCE-ITEMS": {
+  "status": "ausente",
+  "file": "mec-effect-source-items",
+  "pasta": "guerreiro",
+  "name": "Rule element de item/talento vira fonte de efeito",
+  "docs": [
+   {
+    "slug": "gue-tal-agile-shield-grip",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Agile Shield Grip"
+   },
+   {
+    "slug": "gue-tal-everstand-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Everstand Stance"
+   },
+   {
+    "slug": "gue-tal-vicious-swing",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Vicious Swing"
+   },
+   {
+    "slug": "gue-tal-dueling-parry",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dueling Parry"
+   },
+   {
+    "slug": "gue-tal-lunge",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Lunge"
+   },
+   {
+    "slug": "gue-tal-united-assault",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "United Assault"
+   },
+   {
+    "slug": "gue-hab-bravery",
+    "kind": "habilidade",
+    "nivel": 3,
+    "name": "Bravery"
+   },
+   {
+    "slug": "gue-tal-dual-handed-assault",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Dual-Handed Assault"
+   },
+   {
+    "slug": "gue-tal-haft-striker-stance",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Haft Striker Stance"
+   },
+   {
+    "slug": "gue-tal-inured-to-alchemy",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Inured to Alchemy"
+   },
+   {
+    "slug": "gue-tal-twin-parry",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Twin Parry"
+   },
+   {
+    "slug": "gue-tal-advantageous-assault",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advantageous Assault"
+   },
+   {
+    "slug": "gue-tal-dazing-blow",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Dazing Blow"
+   },
+   {
+    "slug": "gue-tal-triple-shot",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Triple Shot"
+   },
+   {
+    "slug": "gue-hab-weapon-specialization",
+    "kind": "habilidade",
+    "nivel": 7,
+    "name": "Weapon Specialization"
+   },
+   {
+    "slug": "gue-tal-incredible-aim",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Incredible Aim"
+   },
+   {
+    "slug": "gue-tal-resounding-bravery",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Resounding Bravery"
+   },
+   {
+    "slug": "gue-hab-battle-hardened",
+    "kind": "habilidade",
+    "nivel": 9,
+    "name": "Battle Hardened"
+   },
+   {
+    "slug": "gue-tal-certain-strike",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Certain Strike"
+   },
+   {
+    "slug": "gue-tal-crashing-slam",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Crashing Slam"
+   },
+   {
+    "slug": "gue-tal-cut-from-the-air",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Cut From the Air"
+   },
+   {
+    "slug": "gue-tal-fearsome-brute",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Fearsome Brute"
+   },
+   {
+    "slug": "gue-tal-brutal-finish",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Brutal Finish"
+   },
+   {
+    "slug": "gue-hab-greater-weapon-specialization",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Greater Weapon Specialization"
+   },
+   {
+    "slug": "gue-hab-tempered-reflexes",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Tempered Reflexes"
+   },
+   {
+    "slug": "gue-tal-multishot-stance",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Multishot Stance"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   },
+   {
+    "slug": "gue-tal-savage-critical",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Savage Critical"
+   },
+   {
+    "slug": "gue-tal-smash-from-the-air",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Smash from the Air"
+   }
+  ]
+ },
+ "NEW-SKILL-VS-DC": {
+  "status": "ausente",
+  "file": "mec-new-skill-vs-dc",
+  "pasta": "guerreiro",
+  "name": "Perícia rolada contra a CD de outra criatura",
+  "docs": [
+   {
+    "slug": "gue-tal-combat-assessment",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Combat Assessment"
+   },
+   {
+    "slug": "gue-tal-barreling-charge",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Barreling Charge"
+   },
+   {
+    "slug": "gue-tal-dazzling-display",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Dazzling Display"
+   }
+  ]
+ },
+ "NEW-LAST-ACTION": {
+  "status": "ausente",
+  "file": "mec-new-last-action",
+  "pasta": "animista",
+  "name": "\"Saber qual foi a ação anterior",
+  "docs": [
+   {
+    "slug": "gue-tal-combat-assessment",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Combat Assessment"
+   },
+   {
+    "slug": "gue-tal-devoted-guardian",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Devoted Guardian"
+   },
+   {
+    "slug": "gue-tal-dazzling-display",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Dazzling Display"
+   },
+   {
+    "slug": "gue-tal-incredible-ricochet",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Incredible Ricochet"
+   }
+  ]
+ },
+ "MAP-TRACK": {
+  "status": "ausente",
+  "file": "mec-map-track",
+  "pasta": "guerreiro",
+  "name": "Penalidade de ataque múltiplo contada pelo sistema",
+  "docs": [
+   {
+    "slug": "gue-tal-double-slice",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Double Slice"
+   },
+   {
+    "slug": "gue-tal-exacting-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Exacting Strike"
+   },
+   {
+    "slug": "gue-hab-reactive-strike",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Reactive Strike"
+   },
+   {
+    "slug": "gue-tal-vicious-swing",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Vicious Swing"
+   },
+   {
+    "slug": "gue-tal-rebounding-toss",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Rebounding Toss"
+   },
+   {
+    "slug": "gue-tal-double-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Double Shot"
+   },
+   {
+    "slug": "gue-tal-quick-reversal",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Quick Reversal"
+   },
+   {
+    "slug": "gue-tal-slam-down",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Slam Down"
+   },
+   {
+    "slug": "gue-tal-swipe",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Swipe"
+   },
+   {
+    "slug": "gue-tal-furious-focus",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Furious Focus"
+   },
+   {
+    "slug": "gue-tal-triple-shot",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Triple Shot"
+   },
+   {
+    "slug": "gue-tal-agile-grace",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Agile Grace"
+   },
+   {
+    "slug": "gue-tal-haft-beatdown",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Haft Beatdown"
+   },
+   {
+    "slug": "gue-tal-whirlwind-strike",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Whirlwind Strike"
+   },
+   {
+    "slug": "gue-tal-graceful-poise",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Graceful Poise"
+   },
+   {
+    "slug": "gue-tal-needle-in-the-gods-eyes",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Needle in the Gods' Eyes"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   },
+   {
+    "slug": "gue-tal-impossible-volley",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Impossible Volley"
+   }
+  ]
+ },
+ "STANCE": {
+  "status": "ausente",
+  "file": "mec-stance",
+  "pasta": "animista",
+  "name": "\"Postura (trait stance)",
+  "docs": [
+   {
+    "slug": "gue-tal-everstand-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Everstand Stance"
+   },
+   {
+    "slug": "gue-tal-point-blank-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Point Blank Stance"
+   },
+   {
+    "slug": "gue-tal-everstand-strike",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Everstand Strike"
+   },
+   {
+    "slug": "gue-tal-haft-striker-stance",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Haft Striker Stance"
+   },
+   {
+    "slug": "gue-tal-disarming-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Disarming Stance"
+   },
+   {
+    "slug": "gue-tal-ricochet-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Ricochet Stance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-impassable-wall-stance",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Impassable Wall Stance"
+   },
+   {
+    "slug": "gue-tal-mobile-shot-stance",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Mobile Shot Stance"
+   },
+   {
+    "slug": "gue-tal-disruptive-stance",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disruptive Stance"
+   },
+   {
+    "slug": "gue-tal-haft-beatdown",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Haft Beatdown"
+   },
+   {
+    "slug": "gue-tal-dueling-dance",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Dueling Dance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-lunging-stance",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Lunging Stance"
+   },
+   {
+    "slug": "gue-tal-paragons-guard",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Paragon's Guard"
+   },
+   {
+    "slug": "gue-tal-opening-stance",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Opening Stance"
+   },
+   {
+    "slug": "gue-tal-graceful-poise",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Graceful Poise"
+   },
+   {
+    "slug": "gue-tal-master-of-many-styles",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Master of Many Styles"
+   },
+   {
+    "slug": "gue-tal-multishot-stance",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Multishot Stance"
+   },
+   {
+    "slug": "gue-tal-twinned-defense",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Twinned Defense (Fighter)"
+   }
+  ]
+ },
+ "DAMAGE-ALT": {
+  "status": "parcial",
+  "file": "mec-damage-alt",
+  "pasta": "alquimista",
+  "name": "\"DamageAlteration/DamageDice",
+  "docs": [
+   {
+    "slug": "gue-tal-everstand-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Everstand Stance"
+   },
+   {
+    "slug": "gue-tal-vicious-swing",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Vicious Swing"
+   },
+   {
+    "slug": "gue-tal-dual-handed-assault",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Dual-Handed Assault"
+   },
+   {
+    "slug": "gue-tal-certain-strike",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Certain Strike"
+   },
+   {
+    "slug": "gue-tal-brutal-finish",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Brutal Finish"
+   }
+  ]
+ },
+ "SHIELD-BLOCK": {
+  "status": "ausente",
+  "file": "mec-shield-block",
+  "pasta": "guerreiro",
+  "name": "Bloquear com escudo (dureza, PV e limiar de quebra)",
+  "docs": [
+   {
+    "slug": "gue-tal-everstand-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Everstand Stance"
+   },
+   {
+    "slug": "gue-hab-shield-block",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Shield Block"
+   },
+   {
+    "slug": "gue-tal-aggressive-block",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Aggressive Block"
+   },
+   {
+    "slug": "gue-tal-reflexive-shield",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Reflexive Shield"
+   },
+   {
+    "slug": "gue-tal-shield-warden",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shield Warden"
+   },
+   {
+    "slug": "gue-tal-quick-shield-block",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Quick Shield Block"
+   },
+   {
+    "slug": "gue-tal-improved-reflexive-shield",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Improved Reflexive Shield"
+   }
+  ]
+ },
+ "NEW-HAND-STATE": {
+  "status": "ausente",
+  "file": "mec-new-hand-state",
+  "pasta": "guerreiro",
+  "name": "Mãos livres e empunhadura",
+  "docs": [
+   {
+    "slug": "gue-tal-everstand-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Everstand Stance"
+   },
+   {
+    "slug": "gue-tal-snagging-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Snagging Strike"
+   },
+   {
+    "slug": "gue-tal-brutish-shove",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Brutish Shove"
+   },
+   {
+    "slug": "gue-tal-combat-grab",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Combat Grab"
+   },
+   {
+    "slug": "gue-tal-dueling-parry",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dueling Parry"
+   },
+   {
+    "slug": "gue-tal-dual-handed-assault",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Dual-Handed Assault"
+   },
+   {
+    "slug": "gue-tal-everstand-strike",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Everstand Strike"
+   },
+   {
+    "slug": "gue-tal-slam-down",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Slam Down"
+   },
+   {
+    "slug": "gue-tal-twin-parry",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Twin Parry"
+   },
+   {
+    "slug": "gue-tal-advantageous-assault",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advantageous Assault"
+   },
+   {
+    "slug": "gue-tal-disarming-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Disarming Stance"
+   },
+   {
+    "slug": "gue-tal-furious-focus",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Furious Focus"
+   },
+   {
+    "slug": "gue-tal-guardians-deflection",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Guardian's Deflection (Fighter)"
+   },
+   {
+    "slug": "gue-tal-ricochet-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Ricochet Stance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-positioning-assault",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Positioning Assault"
+   },
+   {
+    "slug": "gue-tal-disarming-twist",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disarming Twist"
+   },
+   {
+    "slug": "gue-tal-brutal-finish",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Brutal Finish"
+   },
+   {
+    "slug": "gue-tal-dueling-dance",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Dueling Dance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-guiding-finish",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Guiding Finish"
+   },
+   {
+    "slug": "gue-tal-two-weapon-flurry",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Two-Weapon Flurry"
+   },
+   {
+    "slug": "gue-tal-twinned-defense",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Twinned Defense (Fighter)"
+   }
+  ]
+ },
+ "PROF-TRACK": {
+  "status": "parcial",
+  "file": "mec-prof-track",
+  "pasta": "alquimista",
+  "name": "\"Progressão de proficiência (TEML)",
+  "docs": [
+   {
+    "slug": "gue-hab-classe-fighter",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Fighter"
+   },
+   {
+    "slug": "gue-hab-bravery",
+    "kind": "habilidade",
+    "nivel": 3,
+    "name": "Bravery"
+   },
+   {
+    "slug": "gue-hab-fighter-weapon-mastery",
+    "kind": "habilidade",
+    "nivel": 5,
+    "name": "Fighter Weapon Mastery"
+   },
+   {
+    "slug": "gue-tal-advanced-weapon-training",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advanced Weapon Training"
+   },
+   {
+    "slug": "gue-hab-battlefield-surveyor",
+    "kind": "habilidade",
+    "nivel": 7,
+    "name": "Battlefield Surveyor"
+   },
+   {
+    "slug": "gue-hab-weapon-specialization",
+    "kind": "habilidade",
+    "nivel": 7,
+    "name": "Weapon Specialization"
+   },
+   {
+    "slug": "gue-hab-battle-hardened",
+    "kind": "habilidade",
+    "nivel": 9,
+    "name": "Battle Hardened"
+   },
+   {
+    "slug": "gue-hab-armor-expertise",
+    "kind": "habilidade",
+    "nivel": 11,
+    "name": "Armor Expertise"
+   },
+   {
+    "slug": "gue-hab-fighter-expertise",
+    "kind": "habilidade",
+    "nivel": 11,
+    "name": "Fighter Expertise"
+   },
+   {
+    "slug": "gue-hab-weapon-legend",
+    "kind": "habilidade",
+    "nivel": 13,
+    "name": "Weapon Legend"
+   },
+   {
+    "slug": "gue-hab-tempered-reflexes",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Tempered Reflexes"
+   },
+   {
+    "slug": "gue-hab-armor-mastery",
+    "kind": "habilidade",
+    "nivel": 17,
+    "name": "Armor Mastery"
+   },
+   {
+    "slug": "gue-tal-savage-critical",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Savage Critical"
+   },
+   {
+    "slug": "gue-hab-versatile-legend",
+    "kind": "habilidade",
+    "nivel": 19,
+    "name": "Versatile Legend"
+   }
+  ]
+ },
+ "CHOICE": {
+  "status": "parcial",
+  "file": "mec-choice",
+  "pasta": "alquimista",
+  "name": "\"Escolha persistente",
+  "docs": [
+   {
+    "slug": "gue-hab-classe-fighter",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Fighter"
+   },
+   {
+    "slug": "gue-hab-fighter-weapon-mastery",
+    "kind": "habilidade",
+    "nivel": 5,
+    "name": "Fighter Weapon Mastery"
+   },
+   {
+    "slug": "gue-tal-advanced-weapon-training",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advanced Weapon Training"
+   },
+   {
+    "slug": "gue-hab-weapon-legend",
+    "kind": "habilidade",
+    "nivel": 13,
+    "name": "Weapon Legend"
+   },
+   {
+    "slug": "gue-tal-ultimate-flexibility",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Ultimate Flexibility"
+   }
+  ]
+ },
+ "GUE-CLASS-PUBLISHED": {
+  "status": "funciona",
+  "file": "mec-gue-class-published",
+  "pasta": "guerreiro",
+  "name": "Classe Guerreiro publicada e montável",
+  "docs": [
+   {
+    "slug": "gue-hab-classe-fighter",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Fighter"
+   }
+  ]
+ },
+ "WEAPON-GROUP": {
+  "status": "ausente",
+  "file": "mec-weapon-group",
+  "pasta": "guerreiro",
+  "name": "Grupo de arma / arma nomeada como eixo de proficiência",
+  "docs": [
+   {
+    "slug": "gue-tal-point-blank-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Point Blank Stance"
+   },
+   {
+    "slug": "gue-tal-lunge",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Lunge"
+   },
+   {
+    "slug": "gue-tal-sleek-reposition",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Sleek Reposition"
+   },
+   {
+    "slug": "gue-tal-double-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Double Shot"
+   },
+   {
+    "slug": "gue-tal-dual-handed-assault",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Dual-Handed Assault"
+   },
+   {
+    "slug": "gue-tal-haft-striker-stance",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Haft Striker Stance"
+   },
+   {
+    "slug": "gue-tal-knock-sense",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Knock Sense"
+   },
+   {
+    "slug": "gue-tal-parting-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Parting Shot"
+   },
+   {
+    "slug": "gue-tal-swipe",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Swipe"
+   },
+   {
+    "slug": "gue-tal-twin-parry",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Twin Parry"
+   },
+   {
+    "slug": "gue-hab-fighter-weapon-mastery",
+    "kind": "habilidade",
+    "nivel": 5,
+    "name": "Fighter Weapon Mastery"
+   },
+   {
+    "slug": "gue-tal-advanced-weapon-training",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advanced Weapon Training"
+   },
+   {
+    "slug": "gue-tal-revealing-stab",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Revealing Stab"
+   },
+   {
+    "slug": "gue-tal-ricochet-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Ricochet Stance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-spear-dancer",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Spear Dancer"
+   },
+   {
+    "slug": "gue-tal-agile-grace",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Agile Grace"
+   },
+   {
+    "slug": "gue-hab-weapon-legend",
+    "kind": "habilidade",
+    "nivel": 13,
+    "name": "Weapon Legend"
+   },
+   {
+    "slug": "gue-tal-graceful-poise",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Graceful Poise"
+   },
+   {
+    "slug": "gue-tal-impossible-volley",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Impossible Volley"
+   }
+  ]
+ },
+ "NEW-RANGE-CHECK": {
+  "status": "ausente",
+  "file": "mec-new-range-check",
+  "pasta": "guerreiro",
+  "name": "Distância até o alvo contra o alcance da arma",
+  "docs": [
+   {
+    "slug": "gue-tal-point-blank-stance",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Point Blank Stance"
+   },
+   {
+    "slug": "gue-tal-rebounding-toss",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Rebounding Toss"
+   },
+   {
+    "slug": "gue-tal-ricochet-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Ricochet Stance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-impossible-volley",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Impossible Volley"
+   }
+  ]
+ },
+ "REACTION": {
+  "status": "ausente",
+  "file": "mec-reaction",
+  "pasta": "alquimista",
+  "name": "\"Reação",
+  "docs": [
+   {
+    "slug": "gue-tal-reactive-shield",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Reactive Shield"
+   },
+   {
+    "slug": "gue-tal-blade-brake",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Blade Brake"
+   },
+   {
+    "slug": "gue-tal-farabellus-flip",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Farabellus Flip"
+   },
+   {
+    "slug": "gue-tal-guardians-deflection",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Guardian's Deflection (Fighter)"
+   },
+   {
+    "slug": "gue-tal-shield-wall",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shield Wall"
+   },
+   {
+    "slug": "gue-tal-dueling-riposte",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Dueling Riposte"
+   },
+   {
+    "slug": "gue-tal-knights-retaliation",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Knight's Retaliation"
+   },
+   {
+    "slug": "gue-tal-quick-shield-block",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Quick Shield Block"
+   },
+   {
+    "slug": "gue-tal-cut-from-the-air",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Cut From the Air"
+   },
+   {
+    "slug": "gue-tal-mirror-shield",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Mirror Shield"
+   },
+   {
+    "slug": "gue-tal-tactical-reflexes",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Tactical Reflexes"
+   },
+   {
+    "slug": "gue-tal-twin-riposte",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Twin Riposte"
+   },
+   {
+    "slug": "gue-tal-improved-dueling-riposte",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Improved Dueling Riposte"
+   },
+   {
+    "slug": "gue-tal-desperate-finisher",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Desperate Finisher"
+   },
+   {
+    "slug": "gue-tal-improved-twin-riposte",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Improved Twin Riposte (Fighter)"
+   },
+   {
+    "slug": "gue-tal-boundless-reprisals",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Boundless Reprisals"
+   },
+   {
+    "slug": "gue-tal-reflecting-riposte",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Reflecting Riposte"
+   }
+  ]
+ },
+ "REACTION-TRIGGER": {
+  "status": "ausente",
+  "file": "mec-reaction-trigger",
+  "pasta": "guerreiro",
+  "name": "Reação: economia e gatilho oferecido pelo servidor",
+  "docs": [
+   {
+    "slug": "gue-tal-reactive-shield",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Reactive Shield"
+   },
+   {
+    "slug": "gue-hab-reactive-strike",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Reactive Strike"
+   },
+   {
+    "slug": "gue-hab-shield-block",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Shield Block"
+   },
+   {
+    "slug": "gue-tal-blade-brake",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Blade Brake"
+   },
+   {
+    "slug": "gue-tal-farabellus-flip",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Farabellus Flip"
+   },
+   {
+    "slug": "gue-tal-shielded-stride",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Shielded Stride"
+   },
+   {
+    "slug": "gue-tal-guardians-deflection",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Guardian's Deflection (Fighter)"
+   },
+   {
+    "slug": "gue-tal-shield-wall",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shield Wall"
+   },
+   {
+    "slug": "gue-tal-dueling-riposte",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Dueling Riposte"
+   },
+   {
+    "slug": "gue-tal-impassable-wall-stance",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Impassable Wall Stance"
+   },
+   {
+    "slug": "gue-tal-knights-retaliation",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Knight's Retaliation"
+   },
+   {
+    "slug": "gue-tal-mobile-shot-stance",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Mobile Shot Stance"
+   },
+   {
+    "slug": "gue-tal-cut-from-the-air",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Cut From the Air"
+   },
+   {
+    "slug": "gue-tal-disruptive-stance",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disruptive Stance"
+   },
+   {
+    "slug": "gue-tal-mirror-shield",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Mirror Shield"
+   },
+   {
+    "slug": "gue-tal-twin-riposte",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Twin Riposte"
+   },
+   {
+    "slug": "gue-tal-lunging-stance",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Lunging Stance"
+   },
+   {
+    "slug": "gue-tal-desperate-finisher",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Desperate Finisher"
+   },
+   {
+    "slug": "gue-tal-opening-stance",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Opening Stance"
+   },
+   {
+    "slug": "gue-tal-master-of-many-styles",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Master of Many Styles"
+   },
+   {
+    "slug": "gue-tal-smash-from-the-air",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Smash from the Air"
+   },
+   {
+    "slug": "gue-tal-boundless-reprisals",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Boundless Reprisals"
+   },
+   {
+    "slug": "gue-tal-reflecting-riposte",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Reflecting Riposte"
+   }
+  ]
+ },
+ "RAISE-SHIELD": {
+  "status": "ausente",
+  "file": "mec-raise-shield",
+  "pasta": "guerreiro",
+  "name": "Erguer o escudo",
+  "docs": [
+   {
+    "slug": "gue-tal-reactive-shield",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Reactive Shield"
+   },
+   {
+    "slug": "gue-hab-shield-block",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Shield Block"
+   },
+   {
+    "slug": "gue-tal-devoted-guardian",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Devoted Guardian"
+   },
+   {
+    "slug": "gue-tal-everstand-strike",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Everstand Strike"
+   },
+   {
+    "slug": "gue-tal-shielded-stride",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Shielded Stride"
+   },
+   {
+    "slug": "gue-tal-reflexive-shield",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Reflexive Shield"
+   },
+   {
+    "slug": "gue-tal-shield-wall",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shield Wall"
+   },
+   {
+    "slug": "gue-tal-mirror-shield",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Mirror Shield"
+   },
+   {
+    "slug": "gue-tal-paragons-guard",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Paragon's Guard"
+   },
+   {
+    "slug": "gue-tal-reflecting-riposte",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Reflecting Riposte"
+   }
+  ]
+ },
+ "GRANT-DYN": {
+  "status": "parcial",
+  "file": "mec-grant-dyn",
+  "pasta": "alquimista",
+  "name": "\"GrantItem dinâmico",
+  "docs": [
+   {
+    "slug": "gue-hab-reactive-strike",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Reactive Strike"
+   },
+   {
+    "slug": "gue-hab-shield-block",
+    "kind": "habilidade",
+    "nivel": 1,
+    "name": "Shield Block"
+   },
+   {
+    "slug": "gue-hab-combat-flexibility",
+    "kind": "habilidade",
+    "nivel": 9,
+    "name": "Combat Flexibility"
+   },
+   {
+    "slug": "gue-tal-weapon-supremacy",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Weapon Supremacy"
+   }
+  ]
+ },
+ "CONDITION": {
+  "status": "parcial",
+  "file": "mec-condition",
+  "pasta": "alquimista",
+  "name": "\"Aplicar/remover condição",
+  "docs": [
+   {
+    "slug": "gue-tal-snagging-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Snagging Strike"
+   },
+   {
+    "slug": "gue-tal-aggressive-block",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Aggressive Block"
+   },
+   {
+    "slug": "gue-tal-brutish-shove",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Brutish Shove"
+   },
+   {
+    "slug": "gue-tal-combat-grab",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Combat Grab"
+   },
+   {
+    "slug": "gue-tal-dragging-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dragging Strike"
+   },
+   {
+    "slug": "gue-tal-intimidating-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Intimidating Strike"
+   },
+   {
+    "slug": "gue-hab-bravery",
+    "kind": "habilidade",
+    "nivel": 3,
+    "name": "Bravery"
+   },
+   {
+    "slug": "gue-tal-knock-sense",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Knock Sense"
+   },
+   {
+    "slug": "gue-tal-advantageous-assault",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advantageous Assault"
+   },
+   {
+    "slug": "gue-tal-dazing-blow",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Dazing Blow"
+   },
+   {
+    "slug": "gue-tal-pain-tolerance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Pain Tolerance"
+   },
+   {
+    "slug": "gue-tal-shatter-defenses",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shatter Defenses"
+   },
+   {
+    "slug": "gue-tal-disorienting-opening",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Disorienting Opening"
+   },
+   {
+    "slug": "gue-tal-debilitating-shot",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Debilitating Shot"
+   },
+   {
+    "slug": "gue-tal-disarming-twist",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disarming Twist"
+   },
+   {
+    "slug": "gue-tal-fearsome-brute",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Fearsome Brute"
+   },
+   {
+    "slug": "gue-tal-flinging-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Flinging Charge"
+   },
+   {
+    "slug": "gue-tal-overpowering-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Overpowering Charge"
+   },
+   {
+    "slug": "gue-tal-flinging-shove",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Flinging Shove"
+   },
+   {
+    "slug": "gue-tal-determination",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Determination"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   },
+   {
+    "slug": "gue-tal-weapon-supremacy",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Weapon Supremacy"
+   }
+  ]
+ },
+ "OFF-GUARD-POS": {
+  "status": "ausente",
+  "file": "mec-off-guard-pos",
+  "pasta": "guerreiro",
+  "name": "Desprevenido por posição (flanqueio) e por efeito",
+  "docs": [
+   {
+    "slug": "gue-tal-snagging-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Snagging Strike"
+   },
+   {
+    "slug": "gue-tal-aggressive-block",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Aggressive Block"
+   },
+   {
+    "slug": "gue-tal-brutish-shove",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Brutish Shove"
+   },
+   {
+    "slug": "gue-tal-dragging-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dragging Strike"
+   },
+   {
+    "slug": "gue-tal-sleek-reposition",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Sleek Reposition"
+   },
+   {
+    "slug": "gue-tal-parting-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Parting Shot"
+   },
+   {
+    "slug": "gue-tal-quick-reversal",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Quick Reversal"
+   },
+   {
+    "slug": "gue-tal-shatter-defenses",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shatter Defenses"
+   },
+   {
+    "slug": "gue-tal-blind-fight",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Blind-Fight"
+   },
+   {
+    "slug": "gue-tal-disorienting-opening",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Disorienting Opening"
+   },
+   {
+    "slug": "gue-tal-disarming-twist",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disarming Twist"
+   },
+   {
+    "slug": "gue-tal-flinging-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Flinging Charge"
+   },
+   {
+    "slug": "gue-tal-overpowering-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Overpowering Charge"
+   },
+   {
+    "slug": "gue-tal-flinging-shove",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Flinging Shove"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   }
+  ]
+ },
+ "EFFECT-DUR": {
+  "status": "ausente",
+  "file": "mec-effect-dur",
+  "pasta": "alquimista",
+  "name": "\"Efeito com duração",
+  "docs": [
+   {
+    "slug": "gue-tal-snagging-strike",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Snagging Strike"
+   },
+   {
+    "slug": "gue-tal-aggressive-block",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Aggressive Block"
+   },
+   {
+    "slug": "gue-tal-assisting-shot",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Assisting Shot"
+   },
+   {
+    "slug": "gue-tal-brutish-shove",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Brutish Shove"
+   },
+   {
+    "slug": "gue-tal-combat-grab",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Combat Grab"
+   },
+   {
+    "slug": "gue-tal-devoted-guardian",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Devoted Guardian"
+   },
+   {
+    "slug": "gue-tal-dragging-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dragging Strike"
+   },
+   {
+    "slug": "gue-tal-dueling-parry",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dueling Parry"
+   },
+   {
+    "slug": "gue-tal-twin-parry",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Twin Parry"
+   },
+   {
+    "slug": "gue-tal-revealing-stab",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Revealing Stab"
+   },
+   {
+    "slug": "gue-tal-shatter-defenses",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shatter Defenses"
+   },
+   {
+    "slug": "gue-tal-disorienting-opening",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Disorienting Opening"
+   },
+   {
+    "slug": "gue-tal-dueling-riposte",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Dueling Riposte"
+   },
+   {
+    "slug": "gue-tal-felling-strike",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Felling Strike"
+   },
+   {
+    "slug": "gue-tal-resounding-bravery",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Resounding Bravery"
+   },
+   {
+    "slug": "gue-tal-dazzling-display",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Dazzling Display"
+   },
+   {
+    "slug": "gue-tal-debilitating-shot",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Debilitating Shot"
+   },
+   {
+    "slug": "gue-tal-disarming-twist",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disarming Twist"
+   },
+   {
+    "slug": "gue-tal-flinging-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Flinging Charge"
+   },
+   {
+    "slug": "gue-tal-overpowering-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Overpowering Charge"
+   },
+   {
+    "slug": "gue-tal-twin-riposte",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Twin Riposte"
+   },
+   {
+    "slug": "gue-tal-dueling-dance",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Dueling Dance (Fighter)"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   },
+   {
+    "slug": "gue-tal-twinned-defense",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Twinned Defense (Fighter)"
+   }
+  ]
+ },
+ "MOVEMENT": {
+  "status": "ausente",
+  "file": "mec-movement",
+  "pasta": "alquimista",
+  "name": "\"Movimento/deslocamento",
+  "docs": [
+   {
+    "slug": "gue-tal-sudden-charge",
+    "kind": "talento",
+    "nivel": 1,
+    "name": "Sudden Charge"
+   },
+   {
+    "slug": "gue-tal-blade-brake",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Blade Brake"
+   },
+   {
+    "slug": "gue-tal-dragging-strike",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dragging Strike"
+   },
+   {
+    "slug": "gue-tal-barreling-charge",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Barreling Charge"
+   },
+   {
+    "slug": "gue-tal-farabellus-flip",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Farabellus Flip"
+   },
+   {
+    "slug": "gue-tal-parting-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Parting Shot"
+   },
+   {
+    "slug": "gue-tal-shielded-stride",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Shielded Stride"
+   },
+   {
+    "slug": "gue-tal-spear-dancer",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Spear Dancer"
+   },
+   {
+    "slug": "gue-tal-felling-strike",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Felling Strike"
+   },
+   {
+    "slug": "gue-tal-sudden-leap",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Sudden Leap"
+   },
+   {
+    "slug": "gue-tal-flinging-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Flinging Charge"
+   },
+   {
+    "slug": "gue-tal-dashing-strike",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Dashing Strike"
+   },
+   {
+    "slug": "gue-tal-flinging-shove",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Flinging Shove"
+   },
+   {
+    "slug": "gue-tal-needle-in-the-gods-eyes",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Needle in the Gods' Eyes"
+   },
+   {
+    "slug": "gue-tal-sever-space",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Sever Space"
+   }
+  ]
+ },
+ "MANEUVER": {
+  "status": "ausente",
+  "file": "mec-maneuver",
+  "pasta": "guerreiro",
+  "name": "Manobras de combate (Derrubar, Agarrar, Empurrar, Desarmar, Reposicionar, Escapar)",
+  "docs": [
+   {
+    "slug": "gue-tal-aggressive-block",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Aggressive Block"
+   },
+   {
+    "slug": "gue-tal-brutish-shove",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Brutish Shove"
+   },
+   {
+    "slug": "gue-tal-lunge",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Lunge"
+   },
+   {
+    "slug": "gue-tal-sleek-reposition",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Sleek Reposition"
+   },
+   {
+    "slug": "gue-tal-powerful-shove",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Powerful Shove"
+   },
+   {
+    "slug": "gue-tal-slam-down",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Slam Down"
+   },
+   {
+    "slug": "gue-tal-disarming-stance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Disarming Stance"
+   },
+   {
+    "slug": "gue-tal-dueling-riposte",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Dueling Riposte"
+   },
+   {
+    "slug": "gue-tal-knights-retaliation",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Knight's Retaliation"
+   },
+   {
+    "slug": "gue-tal-positioning-assault",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Positioning Assault"
+   },
+   {
+    "slug": "gue-tal-crashing-slam",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Crashing Slam"
+   },
+   {
+    "slug": "gue-tal-disarming-twist",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disarming Twist"
+   },
+   {
+    "slug": "gue-tal-twin-riposte",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Twin Riposte"
+   },
+   {
+    "slug": "gue-tal-flinging-shove",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Flinging Shove"
+   },
+   {
+    "slug": "gue-tal-guiding-finish",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Guiding Finish"
+   },
+   {
+    "slug": "gue-tal-guiding-riposte",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Guiding Riposte"
+   }
+  ]
+ },
+ "TARGET-OTHER": {
+  "status": "parcial",
+  "file": "mec-target-other",
+  "pasta": "alquimista",
+  "name": "\"Aplicar efeito a outro ator",
+  "docs": [
+   {
+    "slug": "gue-tal-assisting-shot",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Assisting Shot"
+   },
+   {
+    "slug": "gue-tal-devoted-guardian",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Devoted Guardian"
+   },
+   {
+    "slug": "gue-tal-guardians-deflection",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Guardian's Deflection (Fighter)"
+   },
+   {
+    "slug": "gue-tal-shield-warden",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shield Warden"
+   },
+   {
+    "slug": "gue-tal-improved-reflexive-shield",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Improved Reflexive Shield"
+   }
+  ]
+ },
+ "MOD-ADJUST": {
+  "status": "ausente",
+  "file": "mec-mod-adjust",
+  "pasta": "alquimista",
+  "name": "\"AdjustModifier",
+  "docs": [
+   {
+    "slug": "gue-tal-dueling-parry",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Dueling Parry"
+   },
+   {
+    "slug": "gue-tal-united-assault",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "United Assault"
+   },
+   {
+    "slug": "gue-tal-twin-parry",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Twin Parry"
+   },
+   {
+    "slug": "gue-tal-advantageous-assault",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Advantageous Assault"
+   },
+   {
+    "slug": "gue-tal-triple-shot",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Triple Shot"
+   },
+   {
+    "slug": "gue-hab-weapon-specialization",
+    "kind": "habilidade",
+    "nivel": 7,
+    "name": "Weapon Specialization"
+   },
+   {
+    "slug": "gue-tal-fearsome-brute",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Fearsome Brute"
+   },
+   {
+    "slug": "gue-hab-greater-weapon-specialization",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Greater Weapon Specialization"
+   },
+   {
+    "slug": "gue-tal-multishot-stance",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Multishot Stance"
+   }
+  ]
+ },
+ "ACTION-ECON": {
+  "status": "ausente",
+  "file": "mec-action-econ",
+  "pasta": "alquimista",
+  "name": "\"Economia de ações",
+  "docs": [
+   {
+    "slug": "gue-tal-lightning-swap",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Lightning Swap"
+   },
+   {
+    "slug": "gue-tal-impassable-wall-stance",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Impassable Wall Stance"
+   },
+   {
+    "slug": "gue-tal-disruptive-stance",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Disruptive Stance"
+   },
+   {
+    "slug": "gue-tal-brutal-finish",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Brutal Finish"
+   },
+   {
+    "slug": "gue-tal-desperate-finisher",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Desperate Finisher"
+   },
+   {
+    "slug": "gue-tal-weapon-supremacy",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Weapon Supremacy"
+   }
+  ]
+ },
+ "AEL": {
+  "status": "ausente",
+  "file": "mec-ael",
+  "pasta": "alquimista",
+  "name": "\"ActiveEffectLike",
+  "docs": [
+   {
+    "slug": "gue-tal-lunge",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Lunge"
+   },
+   {
+    "slug": "gue-tal-resounding-bravery",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Resounding Bravery"
+   }
+  ]
+ },
+ "MULTI-TARGET-STRIKE": {
+  "status": "ausente",
+  "file": "mec-multi-target-strike",
+  "pasta": "guerreiro",
+  "name": "Um ataque contra vários alvos",
+  "docs": [
+   {
+    "slug": "gue-tal-rebounding-toss",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "Rebounding Toss"
+   },
+   {
+    "slug": "gue-tal-double-shot",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Double Shot"
+   },
+   {
+    "slug": "gue-tal-quick-reversal",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Quick Reversal"
+   },
+   {
+    "slug": "gue-tal-swipe",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Swipe"
+   },
+   {
+    "slug": "gue-tal-triple-shot",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Triple Shot"
+   },
+   {
+    "slug": "gue-tal-haft-beatdown",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Haft Beatdown"
+   },
+   {
+    "slug": "gue-tal-two-weapon-flurry",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Two-Weapon Flurry"
+   },
+   {
+    "slug": "gue-tal-whirlwind-strike",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Whirlwind Strike"
+   },
+   {
+    "slug": "gue-tal-needle-in-the-gods-eyes",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Needle in the Gods' Eyes"
+   },
+   {
+    "slug": "gue-tal-impossible-volley",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Impossible Volley"
+   }
+  ]
+ },
+ "NEW-DAMAGE-LOG": {
+  "status": "ausente",
+  "file": "mec-new-damage-log",
+  "pasta": "guerreiro",
+  "name": "Histórico de quem feriu o alvo",
+  "docs": [
+   {
+    "slug": "gue-tal-united-assault",
+    "kind": "talento",
+    "nivel": 2,
+    "name": "United Assault"
+   }
+  ]
+ },
+ "DOS-ADJUST": {
+  "status": "ausente",
+  "file": "mec-dos-adjust",
+  "pasta": "alquimista",
+  "name": "\"Ajustar grau de sucesso",
+  "docs": [
+   {
+    "slug": "gue-hab-bravery",
+    "kind": "habilidade",
+    "nivel": 3,
+    "name": "Bravery"
+   },
+   {
+    "slug": "gue-tal-dazing-blow",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Dazing Blow"
+   },
+   {
+    "slug": "gue-hab-battle-hardened",
+    "kind": "habilidade",
+    "nivel": 9,
+    "name": "Battle Hardened"
+   },
+   {
+    "slug": "gue-tal-crashing-slam",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Crashing Slam"
+   },
+   {
+    "slug": "gue-hab-tempered-reflexes",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Tempered Reflexes"
+   },
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   },
+   {
+    "slug": "gue-tal-savage-critical",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Savage Critical"
+   }
+  ]
+ },
+ "AFFLICTION": {
+  "status": "ausente",
+  "file": "mec-affliction",
+  "pasta": "alquimista",
+  "name": "\"Aflição (veneno/doença)",
+  "docs": [
+   {
+    "slug": "gue-tal-inured-to-alchemy",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Inured to Alchemy"
+   }
+  ]
+ },
+ "NOTE": {
+  "status": "ausente",
+  "file": "mec-note",
+  "pasta": "alquimista",
+  "name": "\"Nota de rolagem",
+  "docs": [
+   {
+    "slug": "gue-tal-inured-to-alchemy",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Inured to Alchemy"
+   }
+  ]
+ },
+ "NEW-VIRULENT": {
+  "status": "ausente",
+  "file": "mec-new-virulent",
+  "pasta": "alquimista",
+  "name": "\"Trait virulent",
+  "docs": [
+   {
+    "slug": "gue-tal-inured-to-alchemy",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Inured to Alchemy"
+   }
+  ]
+ },
+ "FLAT-CHECK": {
+  "status": "ausente",
+  "file": "mec-flat-check",
+  "pasta": "animista",
+  "name": "\"Teste simples (flat check) com CD",
+  "docs": [
+   {
+    "slug": "gue-tal-knock-sense",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Knock Sense"
+   },
+   {
+    "slug": "gue-tal-revealing-stab",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Revealing Stab"
+   },
+   {
+    "slug": "gue-tal-blind-fight",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Blind-Fight"
+   },
+   {
+    "slug": "gue-tal-incredible-aim",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Incredible Aim"
+   },
+   {
+    "slug": "gue-tal-incredible-ricochet",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Incredible Ricochet"
+   }
+  ]
+ },
+ "APPLY-DAMAGE": {
+  "status": "ausente",
+  "file": "mec-apply-damage",
+  "pasta": "alquimista",
+  "name": "\"Aplicar dano/cura ao alvo",
+  "docs": [
+   {
+    "slug": "gue-tal-powerful-shove",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Powerful Shove"
+   },
+   {
+    "slug": "gue-tal-overpowering-charge",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Overpowering Charge"
+   }
+  ]
+ },
+ "CRIT-SPEC": {
+  "status": "ausente",
+  "file": "mec-crit-spec",
+  "pasta": "guerreiro",
+  "name": "Especialização crítica por grupo de arma",
+  "docs": [
+   {
+    "slug": "gue-tal-powerful-shove",
+    "kind": "talento",
+    "nivel": 4,
+    "name": "Powerful Shove"
+   },
+   {
+    "slug": "gue-hab-fighter-weapon-mastery",
+    "kind": "habilidade",
+    "nivel": 5,
+    "name": "Fighter Weapon Mastery"
+   }
+  ]
+ },
+ "IWR": {
+  "status": "parcial",
+  "file": "mec-iwr",
+  "pasta": "alquimista",
+  "name": "\"Imunidades/resistências/fraquezas",
+  "docs": [
+   {
+    "slug": "gue-tal-pain-tolerance",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Pain Tolerance"
+   },
+   {
+    "slug": "gue-hab-armor-expertise",
+    "kind": "habilidade",
+    "nivel": 11,
+    "name": "Armor Expertise"
+   }
+  ]
+ },
+ "SENSE": {
+  "status": "ausente",
+  "file": "mec-sense",
+  "pasta": "alquimista",
+  "name": "\"Sentidos/visibilidade",
+  "docs": [
+   {
+    "slug": "gue-tal-revealing-stab",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Revealing Stab"
+   },
+   {
+    "slug": "gue-tal-blind-fight",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Blind-Fight"
+   }
+  ]
+ },
+ "NEW-COVER": {
+  "status": "ausente",
+  "file": "mec-new-cover",
+  "pasta": "guerreiro",
+  "name": "Cobertura",
+  "docs": [
+   {
+    "slug": "gue-tal-shield-wall",
+    "kind": "talento",
+    "nivel": 6,
+    "name": "Shield Wall"
+   },
+   {
+    "slug": "gue-tal-incredible-ricochet",
+    "kind": "talento",
+    "nivel": 12,
+    "name": "Incredible Ricochet"
+   }
+  ]
+ },
+ "NEW-ACTION-RESTRICT": {
+  "status": "ausente",
+  "file": "mec-new-action-restrict",
+  "pasta": "animista",
+  "name": "\"Restringir ações permitidas durante um efeito",
+  "docs": [
+   {
+    "slug": "gue-tal-felling-strike",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Felling Strike"
+   },
+   {
+    "slug": "gue-tal-desperate-finisher",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Desperate Finisher"
+   },
+   {
+    "slug": "gue-tal-weapon-supremacy",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Weapon Supremacy"
+   }
+  ]
+ },
+ "ROLL-OPTION": {
+  "status": "parcial",
+  "file": "mec-roll-option",
+  "pasta": "alquimista",
+  "name": "\"Toggle / roll option",
+  "docs": [
+   {
+    "slug": "gue-tal-incredible-aim",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Incredible Aim"
+   },
+   {
+    "slug": "gue-tal-cut-from-the-air",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Cut From the Air"
+   },
+   {
+    "slug": "gue-tal-smash-from-the-air",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Smash from the Air"
+   }
+  ]
+ },
+ "TEMP-HP": {
+  "status": "parcial",
+  "file": "mec-temp-hp",
+  "pasta": "guerreiro",
+  "name": "Pontos de vida temporários",
+  "docs": [
+   {
+    "slug": "gue-tal-resounding-bravery",
+    "kind": "talento",
+    "nivel": 8,
+    "name": "Resounding Bravery"
+   }
+  ]
+ },
+ "DAILY-CHOICE": {
+  "status": "ausente",
+  "file": "mec-daily-choice",
+  "pasta": "animista",
+  "name": "\"Escolha re-selecionável na preparação diária",
+  "docs": [
+   {
+    "slug": "gue-hab-combat-flexibility",
+    "kind": "habilidade",
+    "nivel": 9,
+    "name": "Combat Flexibility"
+   },
+   {
+    "slug": "gue-hab-improved-flexibility",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Improved Flexibility"
+   },
+   {
+    "slug": "gue-tal-ultimate-flexibility",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Ultimate Flexibility"
+   }
+  ]
+ },
+ "PREREQ": {
+  "status": "parcial",
+  "file": "mec-prereq",
+  "pasta": "alquimista",
+  "name": "\"Pré-requisito de talento",
+  "docs": [
+   {
+    "slug": "gue-hab-combat-flexibility",
+    "kind": "habilidade",
+    "nivel": 9,
+    "name": "Combat Flexibility"
+   },
+   {
+    "slug": "gue-hab-improved-flexibility",
+    "kind": "habilidade",
+    "nivel": 15,
+    "name": "Improved Flexibility"
+   }
+  ]
+ },
+ "NEW-FREQUENCY": {
+  "status": "ausente",
+  "file": "mec-new-frequency",
+  "pasta": "animista",
+  "name": "\"Frequência de uso limitada",
+  "docs": [
+   {
+    "slug": "gue-tal-haft-beatdown",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Haft Beatdown"
+   },
+   {
+    "slug": "gue-tal-determination",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Determination"
+   },
+   {
+    "slug": "gue-tal-ultimate-flexibility",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Ultimate Flexibility"
+   }
+  ]
+ },
+ "NEW-SPELL-REFLECT": {
+  "status": "ausente",
+  "file": "mec-new-spell-reflect",
+  "pasta": "guerreiro",
+  "name": "Refletir a magia de volta em quem lançou",
+  "docs": [
+   {
+    "slug": "gue-tal-mirror-shield",
+    "kind": "talento",
+    "nivel": 10,
+    "name": "Mirror Shield"
+   },
+   {
+    "slug": "gue-tal-reflecting-riposte",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Reflecting Riposte"
+   }
+  ]
+ },
+ "COUNTERACT": {
+  "status": "ausente",
+  "file": "mec-counteract",
+  "pasta": "alquimista",
+  "name": "\"Contra-ataque (counteract)",
+  "docs": [
+   {
+    "slug": "gue-tal-determination",
+    "kind": "talento",
+    "nivel": 14,
+    "name": "Determination"
+   },
+   {
+    "slug": "gue-tal-reflecting-riposte",
+    "kind": "talento",
+    "nivel": 20,
+    "name": "Reflecting Riposte"
+   }
+  ]
+ },
+ "DEADLY-FATAL": {
+  "status": "parcial",
+  "file": "mec-deadly-fatal",
+  "pasta": "guerreiro",
+  "name": "Dados extras de crítico por trait de arma (deadly, fatal)",
+  "docs": [
+   {
+    "slug": "gue-tal-overwhelming-blow",
+    "kind": "talento",
+    "nivel": 16,
+    "name": "Overwhelming Blow"
+   }
+  ]
+ },
+ "AREA": {
+  "status": "parcial",
+  "file": "mec-area",
+  "pasta": "alquimista",
+  "name": "\"Área/template",
+  "docs": [
+   {
+    "slug": "gue-tal-impossible-volley",
+    "kind": "talento",
+    "nivel": 18,
+    "name": "Impossible Volley"
+   }
+  ]
+ }
+}
