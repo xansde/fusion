@@ -93,13 +93,17 @@ Animista reservou `REQ-PF2-236..244`, `REQ-SYS-153..158`, `REQ-CNV-097..099`,
 
 | Faixa                                | Tarefa dona                                                        |
 | ------------------------------------ | ------------------------------------------------------------------ |
-| `REQ-GUE-001..200`, `DEC-GUE-01..18` | GUE-F0-01                                                          |
-| `REQ-PF2-245..262`                   | GUE-F0-01 (emendas da 17)                                          |
-| `REQ-CBT-063..072`                   | GUE-F0-01 (emendas da 10: MAP, reação, posição)                    |
-| `REQ-CNV-100..106`                   | GUE-F0-01 (emendas da 06: mira, distância, flanqueio)              |
-| `REQ-CHT-054..057`                   | GUE-F0-01 (emendas da 09: contexto de ataque e de perícia no card) |
-| `REQ-SYS-159..163`                   | GUE-F0-01 (emendas da 15: predicado e reação como mecanismo)       |
+| `REQ-GUE-001..300`, `DEC-GUE-01..18` | GUE-F0-01                                                          |
+| `REQ-PF2-245..278`                   | GUE-F0-01 (emendas da 17)                                          |
+| `REQ-CBT-063..067`                   | GUE-F0-01 (emendas da 10: MAP, reação, posição)                    |
+| `REQ-CNV-100..104`                   | GUE-F0-01 (emendas da 06: mira, distância, flanqueio)              |
+| `REQ-CHT-054..060`                   | GUE-F0-01 (emendas da 09: contexto de ataque e de perícia no card) |
+| `REQ-SYS-159..160`                   | GUE-F0-01 (emendas da 15: predicado e reação como mecanismo)       |
 | `REQ-ACH-093..096`                   | GUE-F6-04 (revisão da REQ-ACH-074, um ataque = um alvo)            |
+
+Os números saem do `tools/reqs.cjs`, que reatribui as faixas na ordem das fichas — a tabela
+acima é o resultado dele, não uma reserva escrita à mão. Ids dentro de uma faixa ficam com a
+ficha que os consumiu; a `GUE-F0-01` declara o bloco inteiro na spec.
 
 **Nenhuma dessas faixas anteriores está escrita nas specs reais ainda** — só a `ALQ-F1-01`
 integrou (até `REQ-PF2-216`). Se um dos dois planos andar antes deste, a `GUE-F0-01` rebaseia a
@@ -382,7 +386,7 @@ interface CritSpecEffect {
 - **Modelo / esforço**: opus / high — é o documento que amarra o resto.
 - **Teste (TDD)**: `spec-lint` verde (prefixo com dono, id único, citação resolvível, req com tag, decisão canônica) + `pnpm spec:report` regenerado.
 - **Prova visual (print)**: sem UI.
-- **Spec/REQ**: `REQ-GUE-001..300`, `DEC-GUE-01..17`, `REQ-CBT-063..072`, `REQ-CNV-100..106`, `REQ-CHT-054..057`, `REQ-PF2-245..262`, `REQ-SYS-159..163`
+- **Spec/REQ**: `REQ-GUE-001..300`, `DEC-GUE-01..17`, `REQ-CBT-063..067`, `REQ-CNV-100..104`, `REQ-CHT-054..060`, `REQ-PF2-245..278`, `REQ-SYS-159..160`
 - **Tamanho**: G
 - **Onda**: 1 · **Lote**: L1
 
@@ -646,7 +650,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: opus / high — é o contrato central que amarra flanqueio, alcance e o gatilho de movimento da reação (§2.8, consumido por GUE-F3-02, GUE-F3-03, GUE-F3-04 e GUE-F4-02).
 - **Teste (TDD)**: `position.test.ts` (não circular — a asserção escreve a regra de grid do PF2e, nunca lê o pack): grade de 5 pés/célula com regra alternada 5-10-5 (REQ-CNV-020) — atacante médio em (0,0) e alvo em (2,1) ficam a 15 pés (duas diagonais: 5+10), não 10; uma criatura Grande (footprint 2×2 ocupando (0,0)-(1,1)) mede pela célula mais próxima do footprint, então um alvo em (3,0) fica a 10 pés (2 células), não 15 como daria medir do centro; `threatens` com alcance 5 cobre as 8 células adjacentes de um atacante médio e recusa uma 2 células adiante, e com alcance 10 cobre essa segunda coroa; `isFlanking` com A em (0,0), alvo em (1,0) e C em (2,0) retorna verdadeiro (lados opostos), e com C em (0,1) (mesmo lado de A) retorna falso; `coverBetween` sempre devolve `"none"`, documentado como stub, não como regra testada.
 - **Prova visual (print)**: sem UI própria — a geometria só aparece indiretamente nos prints de GUE-F3-02/GUE-F3-03/GUE-F3-04.
-- **Spec/REQ**: `REQ-GUE-100..104`, `REQ-CNV-100`
+- **Spec/REQ**: `REQ-GUE-100..104`, `REQ-CNV-103`
 - **Tamanho**: G
 - **Onda**: 2 · **Lote**: L2
 
@@ -660,7 +664,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high — mexe no caminho de ataque autoritativo testado por socket (`chat-target.test.ts`, REQ-ACH-070..092); não pode regredir nenhum desses testes.
 - **Teste (TDD)**: `flanking-ac.test.ts` (helper de porta, socket real): atacante e um aliado em lados opostos de um inimigo, ambos ameaçando → CA efetiva -2 só nessa rolagem, e o documento do ator do inimigo não ganha a condição off-guard (confirmado lendo o doc persistido); aliado do MESMO lado não aplica o ajuste; com `variantRules.autoFlanking` desligado no mundo, o mesmo par não aplica nada; um off-guard já ligado à mão por outra fonte continua valendo e não é tocado por esta tarefa.
 - **Prova visual (print)**: card de golpe no chat mostrando o grau de sucesso da mesma rolagem forçada com e sem flanqueio, visto igual pelo GM e pelo jogador flanqueado.
-- **Spec/REQ**: `REQ-GUE-105..108`, `REQ-CBT-063`
+- **Spec/REQ**: `REQ-GUE-105..108`, `REQ-CBT-066`
 - **Tamanho**: M
 - **Onda**: 5 · **Lote**: L2
 
@@ -720,7 +724,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high — cruza combate, posição e o motor de reação herdado.
 - **Teste (TDD)**: `reaction-triggers-martial.test.ts`: um combatente com Golpe Reativo vê a oferta quando um inimigo deixa uma célula que ele ameaça, chegando só a ele e ao GM (reuso do teste de visibilidade da própria `ALQ-F7-05`); o mesmo movimento fora do alcance da reação não oferece nada, provando que `threatens` é consultado e não só "moveu"; um golpe que resolve como acerto contra um combatente com reação de bloqueio dispara `hit-by-strike`; um golpe que resolve como erro dispara `missed-by-strike` de forma genérica (o filtro por grau crítico específico de Ripostar em Duelo é da GUE-F4-04, não desta tarefa).
 - **Prova visual (print)**: coberta por GUE-F4-04.
-- **Spec/REQ**: `REQ-GUE-133..136`, `REQ-CBT-064`
+- **Spec/REQ**: `REQ-GUE-133..136`, `REQ-CBT-067`
 - **Tamanho**: G
 - **Onda**: 5 · **Lote**: L4
 
@@ -734,7 +738,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / medium — reuso de dois mecanismos já prontos, sem motor novo.
 - **Teste (TDD)**: `reaction-note.test.ts` (três usuários, mesmo desenho do `sustained-note.test.ts` da ANI-F3-02): dono e GM veem a linha da oferta, um terceiro jogador não; duas ofertas simultâneas para o mesmo dono aparecem como duas linhas distintas; aceitar uma não remove a outra da anotação; a linha some quando a `ALQ-F7-05` marca o próximo evento do personagem (D-18), sem nenhum relógio contado no cliente.
 - **Prova visual (print)**: anotação de canto com a oferta de Golpe Reativo, vista pelo dono e pelo GM, e sem a linha para um terceiro jogador.
-- **Spec/REQ**: `REQ-GUE-137..139`, `REQ-CNV-103`
+- **Spec/REQ**: `REQ-GUE-137..139`, `REQ-CNV-104`
 - **Tamanho**: M
 - **Onda**: 6 · **Lote**: L4
 
@@ -778,7 +782,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / medium.
 - **Teste (TDD)**: escudo `acBonus:2` equipado e NÃO erguido → CA igual à de não ter escudo nenhum; após aplicar o efeito `raised-shield` → CA sobe exatamente 2; simulando o lifecycle `turnStart` do dono → o efeito expira e a CA volta ao valor original (prova que é efeito com fim, não campo do ator); escudo `broken:true` erguido → CA NÃO sobe.
 - **Prova visual (print)**: ficha com escudo equipado, CA antes de erguer, aba Ações com "Erguer o Escudo" clicado, CA depois — dois números lado a lado.
-- **Spec/REQ**: `REQ-GUE-170..175`, `REQ-PF2-246..248`
+- **Spec/REQ**: `REQ-GUE-170..175`, `REQ-PF2-250..252`
 - **Tamanho**: M
 - **Onda**: 3 · **Lote**: L4
 
@@ -792,7 +796,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high — cruza reação, dano e estado de item num fluxo só.
 - **Teste (TDD)**: a conta é a regra, não a saída do código — escudo dureza 5, PV 12/12, limiar de quebra 6, sofre 12 de dano com o Bloqueio ativo → absorve 5 (dureza), sobram 7; o portador perde 7 PV (menos, se tiver PV temporário — a diferença fica registrada no breakdown, não escondida) e o escudo perde 7, ficando com 5; 5 ≤ 6 → `broken:true`. Segundo cenário: o mesmo escudo, já quebrado e erguido, toma outro golpe — a CA da rolagem seguinte NÃO inclui o bônus. Terceiro: reação já gasta na rodada (`ReactionEconomy.available:false`) → a oferta de Bloqueio não aparece.
 - **Prova visual (print)**: card de dano recebido com o botão "Bloquear com Escudo" no canto, antes/depois mostrando PV do personagem, PV do escudo e o selo de quebrado.
-- **Spec/REQ**: `REQ-GUE-176..183`, `REQ-PF2-249..252`, `REQ-CHT-054..055`
+- **Spec/REQ**: `REQ-GUE-176..183`, `REQ-PF2-253..256`, `REQ-CHT-057..058`
 - **Tamanho**: G
 - **Onda**: 7 · **Lote**: L4
 
@@ -806,7 +810,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high — seis manobras, volume com regra factual a conferir.
 - **Teste (TDD)**: a asserção escreve a regra confirmada na fonte pública — Atletismo total 24 contra Fortitude DC 20 (bate por 4) executando Agarrar → sucesso → aplica `grabbed`; total 31 (bate por 11, crítico) → aplica `restrained`, efeito DIFERENTE do de sucesso, não o mesmo com rótulo trocado; total 9 (crítico fracasso) → o EXECUTANTE, não o alvo, recebe o efeito adverso. Segundo teste: duas criaturas agarradas por atacantes com Atletismo diferente saem com CDs de Escapar diferentes — prova que Escapar lê a CD gravada na condição, não uma defesa fixa do alvo.
 - **Prova visual (print)**: aba Ações com a linha "Derrubar" clicada tendo um alvo mirado, card de resultado com o grau e o botão de aplicar `prone`.
-- **Spec/REQ**: `REQ-GUE-184..197`, `REQ-PF2-253..256`
+- **Spec/REQ**: `REQ-GUE-184..197`, `REQ-PF2-257..260`
 - **Tamanho**: G
 - **Onda**: 6 · **Lote**: L4
 
@@ -820,7 +824,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / medium.
 - **Teste (TDD)**: personagem com arma `held-in-one-hand` na direita e escudo na esquerda → `free:0`, `twoHanded:false`; larga o escudo → `free:1`; empunha uma arma `held-in-two-hands` → ocupa as DUAS mãos mesmo informando uma só (`twoHanded:true`, `free:0`), e tentar segurar o escudo junto é rejeitado — não é permitido 3 itens em 2 mãos.
 - **Prova visual (print)**: inventário com o seletor de mão ao lado de uma arma equipada, indicador "mãos livres: 1" mudando ao trocar de arma.
-- **Spec/REQ**: `REQ-GUE-198..205`, `REQ-PF2-257..258`
+- **Spec/REQ**: `REQ-GUE-198..205`, `REQ-PF2-261..262`
 - **Tamanho**: M
 - **Onda**: 3 · **Lote**: L4
 
@@ -834,7 +838,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: opus / high — mecanismo genérico, server-autoritativo, base de todo skill-check contra alvo daqui em diante.
 - **Teste (TDD)**: a asserção escreve o grau de sucesso do PF2e, não a saída do código — total do d20+perícia vs CD do alvo: bate por 10+ → sucesso crítico; bate (sem chegar a 10) → sucesso; erra (sem passar de 10) → fracasso; erra por 10+ → fracasso crítico; 20/1 natural ajustam um grau, mesma regra de `computeAttackDegree`. Segundo teste: a MESMA rolagem contra o MESMO alvo, uma vez com `against:"fortitude"` e outra com `against:"reflex"` (defesas diferentes no alvo) sai com graus DIFERENTES — prova que a CD vem da defesa certa, lida do banco, não de um número fixo.
 - **Prova visual (print)**: card de rolagem de perícia com alvo mirado mostrando "CD 19 (Reflexos)" e o grau, ao lado do mesmo card sem alvo (comportamento de hoje, sem grau).
-- **Spec/REQ**: `REQ-GUE-206..211`, `REQ-CHT-056..057`
+- **Spec/REQ**: `REQ-GUE-206..211`, `REQ-CHT-059..060`
 - **Tamanho**: M
 - **Onda**: 5 · **Lote**: L4
 
@@ -878,7 +882,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high — volume em três camadas (importador, schema/derivação, UI de escolha).
 - **Teste (TDD)**: Guerreiro nível 5 que tomou Fighter Weapon Mastery escolhendo o grupo Espada fica Mestre (rank 3) — 2 a mais de proficiência do que o Perito (rank 2) padrão da classe nesse nível — com uma espada longa (grupo espada), e continua só Perito (sem o bônus extra) com um machado (grupo machado), mesmo o machado sendo uma arma marcial qualquer.
 - **Prova visual (print)**: tela do Plano no nível 5 oferecendo a escolha de grupo de arma, e a ficha do mesmo Guerreiro mostrando o bônus de ataque maior com espada longa do que com machado.
-- **Spec/REQ**: `REQ-GUE-226..235`, `REQ-PF2-246..250`
+- **Spec/REQ**: `REQ-GUE-226..235`, `REQ-PF2-263..267`
 - **Tamanho**: G
 - **Onda**: 4 · **Lote**: L3
 
@@ -892,7 +896,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high.
 - **Teste (TDD)**: Guerreiro com Fighter Weapon Mastery e Mestre (rank 3) no grupo Espada acerta um crítico com espada longa: o card oferece o botão de especialização crítica do grupo Espada. O mesmo Guerreiro, com uma arma do grupo Machado (onde só tem Perito, rank 2), acerta um crítico: o card NÃO oferece o botão — abaixo de Mestre não desbloqueia a especialização, o mesmo predicado `gte: item:proficiency:rank, 3` já presente e nunca lido no pack.
 - **Prova visual (print)**: card de golpe crítico com espada longa (grupo Espada, Mestre) mostrando o botão de especialização crítica; o mesmo card com um machado (grupo Machado, Perito) sem o botão.
-- **Spec/REQ**: `REQ-GUE-236..243`, `REQ-PF2-251..253`
+- **Spec/REQ**: `REQ-GUE-236..243`, `REQ-PF2-268..270`
 - **Tamanho**: M
 - **Onda**: 6 · **Lote**: L3
 
@@ -936,7 +940,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / high.
 - **Teste (TDD)**: Guerreiro nível 9 com Combat Flexibility, ao clicar "Descansar", pode escolher um talento de Guerreiro de nível 8 ou menor que ainda não possui; o talento aparece na ficha até o próximo descanso. Um Guerreiro nível 8 (sem a habilidade) não vê a oferta ao descansar. Descansar de novo troca o talento temporário anterior pelo novo — nunca os dois juntos.
 - **Prova visual (print)**: botão "Descansar" clicado num Guerreiro nível 9, abrindo o seletor de talento temporário, e a ficha depois mostrando o talento escolhido entre os permanentes, visualmente distinto.
-- **Spec/REQ**: `REQ-GUE-260..267`, `REQ-PF2-255..257`
+- **Spec/REQ**: `REQ-GUE-260..267`, `REQ-PF2-271..273`
 - **Tamanho**: M
 - **Onda**: 4 · **Lote**: L3
 
@@ -950,7 +954,7 @@ inertes passaram a valer.
 - **Modelo / esforço**: sonnet / medium.
 - **Teste (TDD)**: Determination (`frequency: {max:1, per:"day"}`) permite um uso; usar a habilidade desabilita o botão até o próximo descanso. Uma segunda tentativa de uso, sem ter descansado, é RECUSADA PELO SERVIDOR (não só escondida na UI) — o mesmo padrão anti-cheat já usado pelo MAP e pela reação. Depois de `restAll()`, o botão volta a ficar disponível.
 - **Prova visual (print)**: Determination na ficha mostrando o uso disponível, botão desabilitado depois de usar, e reabilitado depois de clicar "Descansar".
-- **Spec/REQ**: `REQ-GUE-268..275`, `REQ-PF2-258..262`
+- **Spec/REQ**: `REQ-GUE-268..275`, `REQ-PF2-274..278`
 - **Tamanho**: M
 - **Onda**: 4 · **Lote**: L3
 
