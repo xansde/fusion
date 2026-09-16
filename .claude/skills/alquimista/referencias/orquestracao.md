@@ -4,7 +4,7 @@ Referência do Passo 3 da skill `/alquimista`. A sessão principal orquestra; su
 
 ## Fluxo
 
-1. **Implementar (paralelo, até 6)**: um subagente por tarefa de `alq-rodada.json`, com `model` = campo `modelo` da tarefa. Prompt: texto da tarefa (campo `texto`), worktree, branch, lote, as regras abaixo, e o pedido de devolver `status` (pronta|bloqueada), resumo, testes rodados, SHAs dos commits por repo, pacotes tocados, prints.
+1. **Implementar (paralelo, a onda inteira — hoje 3–9 tarefas)**: um subagente por tarefa de `alq-rodada.json`, com `model` = campo `modelo` da tarefa. Prompt: texto da tarefa (campo `texto`), worktree, branch, lote, as regras abaixo, e o pedido de devolver `status` (pronta|bloqueada), resumo, testes rodados, SHAs dos commits por repo, pacotes tocados, prints.
 2. **Verificar (por tarefa, assim que a implementação dela voltar)**: subagente `sonnet`, independente e cético, sem editar nada. Confere o diff da branch contra `origin/feat/alquimista` nos dois repos (entrega, escopo, arquivos indevidos), roda ele mesmo os testes e o typecheck dos pacotes tocados, confere que o teste assere pela regra do PF2e, que há gatilho real na tela quando há UI, que os prints existem e mostram o prometido (tarefas de lote) e que os contratos batem com a seção 2 do plano. Se reprovar: um subagente corretor (mesmo modelo da tarefa; haiku sobe para sonnet) recebe a lista de problemas, e depois uma segunda verificação. Reprovou de novo → tarefa `bloqueada` com o motivo.
 3. **Integrar (um subagente `sonnet`, depois que todas voltaram)**, na worktree `alq-integracao`:
    1. `git pull --ff-only` nos dois repos; anotar `core_base` e `sat_base`.

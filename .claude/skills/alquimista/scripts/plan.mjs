@@ -11,7 +11,11 @@ const root = opt("root");
 const mode = opt("mode", "proxima");
 const out = opt("out");
 const forcedWave = opt("onda") ? Number(opt("onda")) : null;
-const MAX_PER_ROUND = 6;
+// A rodada leva a onda INTEIRA. As ondas do plano têm 3–9 tarefas e cada uma roda em
+// subagente próprio, então um teto por rodada só adiava trabalho — e, pior, truncava em
+// silêncio (a onda 2 tem 7 tarefas e a 7ª sumia sem aviso). `--max N` fica como válvula
+// de escape e avisa quando corta.
+const maxPerRound = opt("max") ? Number(opt("max")) : Infinity;
 
 const INT = join(root, ".claude", "worktrees", "alq-integracao");
 const DOC = join(INT, "docs", "design", "alquimista");
@@ -65,7 +69,12 @@ else if (ready.length) {
   const minWave = Math.min(...ready.map((t) => t.onda));
   pick = ready.filter((t) => t.onda === minWave);
 }
-pick = pick.slice(0, MAX_PER_ROUND);
+if (pick.length > maxPerRound) {
+  console.log(
+    `aviso: --max ${maxPerRound} cortou ${pick.length - maxPerRound} tarefa(s) prontas da onda ${pick[0].onda}`,
+  );
+  pick = pick.slice(0, maxPerRound);
+}
 
 if (!pick.length) {
   const pending = tasks.filter((t) => !done(t.id));
