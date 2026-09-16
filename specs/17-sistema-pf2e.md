@@ -1043,8 +1043,9 @@ resolveExpirations(
   **deriva e exibe** `splash` e `persistent`; a conta do respingo e a condição de dano
   persistente são da fase de dano do plano do Alquimista (REQ-PF2-061). **Critério
   verificável:** um Frasco de Ácido em um alquimista de nível 1, treinado em bombas e com
-  Des +4, mostra ataque +7 (`2 + 1 + 4`), incremento de 20 pés, respingo 1 de ácido e
-  persistente `1d6` de ácido — nenhum desses números lido do pack como total pronto.
+  Des +4, mostra ataque +7 (`2 + 1 + 4`), incremento de 20 pés, **1 de ácido direto** (fixo
+  nos quatro graus — só persistente e respingo escalam), respingo 1 de ácido e persistente
+  `1d6` de ácido — nenhum desses números lido do pack como total pronto.
 - **REQ-PF2-228** [MVP] Munição alquímica DEVE ser importada e tratada como `consumable` com
   `category: "ammo"` (decisão de desenho DF-10 do plano), nunca como arma e nunca como
   subtype novo. Ela NÃO DEVE gerar strike próprio (REQ-PF2-226) e DEVE ser gasta pelo strike
