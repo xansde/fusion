@@ -1071,18 +1071,23 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 226 glossary traits with a non-empty accented value", () => {
+  it("covers all 248 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
     // que ficaram atrás do glossário até esta sincronização) + 9 sincronizados
     // em ALQ-F0-02 (ikon, additive, additive2, apparition, wandering,
-    // modification, mindshift, amp, evolution). Ver traitNames.sync.test.ts
-    // para o gate vivo que evita essa deriva daqui em diante.
+    // modification, mindshift, amp, evolution) + 22 sincronizados na onda 2
+    // do Alquimista (correção do bloqueante B4, 2026-09-16: alchemical, bomb,
+    // mutagen, elixir, splash, infused, as quatro traits de entrega de
+    // veneno — contact/ingested/inhaled/injury — mais virulent e as demais
+    // que alchemical-items-core trouxe e o glossário ainda não tinha). Ver
+    // traitNames.sync.test.ts para o gate vivo que evita essa deriva daqui
+    // em diante.
     // Count exato de propósito: trait novo no glossário exige
     // regenerar via tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(226);
+    expect(keys.length).toBe(248);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
