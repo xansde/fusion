@@ -411,6 +411,28 @@ do item e a rolagem no servidor (a mesma divisão de `ver 15-api-de-sistemas.md`
 DEC-SYS-12), e o strike derivado reaproveita inteiro o pipeline de ataque de
 REQ-PF2-030..035, em vez de abrir um segundo caminho de dano.
 
+> **Emenda de 2026-09-16** (correção do bloqueante B2, onda 2 do plano do Alquimista;
+> decisão do Alexandre — ver `.fusion-build/alquimista/onda-2/correcao-bloqueantes.md`).
+> A alternativa rejeitada "modelar cada bomba como `weapon`" acima é sobre o **documento
+> canônico do pack**, não sobre o schema: `WeaponSystemSchema` já tem `quantity` e já
+> tolera `expend` por `.passthrough()`, então "arma não tem quantidade que decrementa"
+> não é mais o motivo — o motivo é semântico, não técnico (consumo/destruição de item é o
+> plano de REQ-PF2-224, feito para `consumable`; duplicá-lo para `weapon` seria retrabalho
+> sem ganho). Esta emenda fixa três pontos: **(1)** o pack canônico de bomba alquímica
+> emite sempre `type: "consumable"` — é o tipo oficial, alinhado ao RAW remaster (bomba é
+> consumível que se arremessa, não arma que se equipa). **(2)** a forma `WeaponSystem` que
+> `deriveStrikeFromWeapon` (`systems/pf2e/src/actions/strikes.ts`) consome é uma
+> **projeção do motor**, derivada em memória a partir dos campos que o próprio documento
+> consumível já carrega (`damage`, `splashDamage`, `bonus`, `range`, `runes`, `baseItem`,
+> `expend`, `traits`) — nunca escrita de volta como `type: "weapon"` no documento;
+> implementar essa projeção é a **ALQ-F2-13** (onda 4), não esta correção, que só garante
+> que os campos sobrevivem no documento. **(3)** o schema **tolera**, não rejeita, um item
+> cadastrado à mão como `weapon` com a trait `bomb` — é o "permite cadastrar como arma,
+> para facilitar" — e nenhum mundo com uma bomba assim quebra ao carregar; a ALQ-F2-13
+> DEVE aceitar as duas formas de entrada (`consumable`+trait `bomb`, canônica, e
+> `weapon`+trait `bomb`, cadastro manual) para o mesmo strike, sem que uma vire
+> pré-requisito da outra.
+
 ---
 
 ## Requisitos funcionais
@@ -1026,12 +1048,17 @@ resolveExpirations(
 
 - **REQ-PF2-226** [MVP] Item consumível de arremesso — a **bomba alquímica** no MVP — DEVE
   gerar um strike derivado direto do inventário, sem equipar (DEC-PF2-12): um strike por
-  documento de item com a trait `bomb`, listado junto com os strikes de arma. `quantityLeft`
+  documento de item com a trait `bomb`, listado junto com os strikes de arma. O que
+  identifica o item arremessável é a trait `bomb`, não o `type` do documento: o pack
+  canônico emite sempre `type: "consumable"` (nunca `weapon`), mas um item cadastrado à
+  mão como `type: "weapon"` com a mesma trait DEVE gerar o mesmo strike — o schema tolera
+  as duas formas (DEC-PF2-12). `quantityLeft`
   zero DEVE fazer o strike sumir da lista. A rolagem DEVE acontecer por `item:consume` com
   `mode: "strike"` e `mapIndex`, numa única operação que gasta o item e rola o ataque: gastar
   sem rolar, ou rolar sem gastar, NÃO DEVE ser possível pelo cliente. Sacar o item (Interact)
   NÃO DEVE ser contabilizado nem bloqueado — vira nota no card (decisão D-15 do Alexandre).
-  **Critério verificável:** com 2 frascos de ácido, dois arremessos no mesmo turno usam
+  **Critério verificável:** com 2 frascos de ácido (`type: "consumable"`, trait `bomb`),
+  dois arremessos no mesmo turno usam
   `mapIndex` 0 e 1 e deixam o strike fora da lista; o terceiro arremesso responde
   `VALIDATION_FAILED` sem rolar nada.
 - **REQ-PF2-227** [MVP] O strike derivado DEVE expor os campos que o card e a fase de dano
@@ -1039,10 +1066,16 @@ resolveExpirations(
   `itemBonus`, `rangeIncrement`, `splash` (valor e tipo de dano), `persistent` (dados, faces,
   valor e tipo de dano) e `notes`. O ataque DEVE seguir REQ-PF2-032 com a proficiência da
   categoria de ataque do item (REQ-PF2-207 — `weapon-base-alchemical-bomb` no Alquimista), e
-  o dano DEVE seguir REQ-PF2-033 com os dados declarados pelo próprio item. Esta fase
+  o dano DEVE seguir REQ-PF2-033 com os dados declarados pelo próprio item. Os campos que
+  REQ-PF2-032/033 consomem (`damage`, `bonus`, `range`, `runes`, `baseItem`) DEVEM
+  sobreviver no documento fonte — `consumable` ou `weapon` — mesmo sem schema de dano
+  tipado para `consumable` hoje; quem projeta esses campos na forma `WeaponSystem` que
+  `deriveStrikeFromWeapon` (`systems/pf2e/src/actions/strikes.ts`) espera é a
+  implementação da ALQ-F2-13 (onda 4, DEC-PF2-12), não esta spec. Esta fase
   **deriva e exibe** `splash` e `persistent`; a conta do respingo e a condição de dano
   persistente são da fase de dano do plano do Alquimista (REQ-PF2-061). **Critério
-  verificável:** um Frasco de Ácido em um alquimista de nível 1, treinado em bombas e com
+  verificável:** um Frasco de Ácido (`type: "consumable"`, trait `bomb`) em um alquimista
+  de nível 1, treinado em bombas e com
   Des +4, mostra ataque +7 (`2 + 1 + 4`), incremento de 20 pés, **1 de ácido direto** (fixo
   nos quatro graus — só persistente e respingo escalam), respingo 1 de ácido e persistente
   `1d6` de ácido — nenhum desses números lido do pack como total pronto.
@@ -1145,32 +1178,32 @@ plano (`ver 45-atores.md`, DEC-ATR-10).
 > Lista da pesquisa 10 §4.1. Coluna MVP indica o que o MVP precisa entender
 > mecanicamente; itens [V2] podem existir como dados importados mas sem automação.
 
-| Subtype              | MVP?       | Categoria   | Campos centrais                                                                                                                                     |
-| -------------------- | ---------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `weapon`             | ✅         | Equipamento | `damage{dice,die,damageType,modifier,persistent?}`, `category`, `group`, `runes{potency,striking,property[]}`, `range`, `reload`, `traits`, `usage` |
-| `armor`              | ✅         | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}`                         |
-| `shield`             | ✅         | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold`                                                                                                      |
-| `equipment`          | ✅         | Equipamento | `bulk`, `price`, `usage`, `traits`                                                                                                                  |
-| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion/ammo…), `charges`, `autoDestroy`, `spell?`, `fusion.effectRefs[]` (REQ-PF2-224, REQ-PF2-225)                         |
-| `treasure`           | ✅         | Equipamento | `value` (gp/sp/cp)                                                                                                                                  |
-| `container`          | ✅         | Equipamento | `capacity`, `bulkReduction`                                                                                                                         |
-| `condition`          | ✅         | Estado      | `slug`, `value?`, `modifiers[]`, `overrides[]`                                                                                                      |
-| `effect`             | ✅         | Estado      | `duration`, `badge?`, `modifiers[]`, `grantedConditions[]`, `iwr?`, `fusion{origin,startedAt,expiry}` (REQ-PF2-217, REQ-PF2-219)                    |
-| `spell`              | ✅         | Magia       | `level`, `traits{value[],traditions[]}`, `area?`, `range`, `time`, `duration`, `defense?{save{statistic,basic}}`, `damage`, `rules?`                |
-| `spellcastingEntry`  | ✅         | Magia       | `tradition`, `ability`, `proficiency{value}`, `slots{slot0..10{value,max,prepared[]}}`, `prepared{value}` (prepared/spontaneous/innate)             |
-| `feat`               | ✅         | Mecânica    | `level`, `category`, `actionType`, `actions`, `frequency?`, `modifiers[]`, `grantedConditions[]`                                                    |
-| `action` / `ability` | ✅         | Mecânica    | ação/atividade rolável (NPC abilities, basic actions)                                                                                               |
-| `lore`               | ✅         | Perícia     | `rank`, atributo INT                                                                                                                                |
-| `melee`              | ✅         | NPC-only    | ataque de NPC: `bonus`, `damage[]`, `traits`                                                                                                        |
-| `ancestry`           | ⚙️ parcial | Construção  | `hp`, `speed`, `size`, `boosts`, `flaws`, `languages`, `vision`                                                                                     |
-| `heritage`           | ⚙️ parcial | Construção  | herda de ancestry; `modifiers[]`                                                                                                                    |
-| `background`         | ⚙️ parcial | Construção  | `boosts`, skill proficiency                                                                                                                         |
-| `class`              | ⚙️ parcial | Construção  | `hp`/nível, proficiências iniciais, key ability, save progressions                                                                                  |
-| `affliction`         | ⏳ V2      | Estado      | venenos/doenças com `stages[]`                                                                                                                      |
-| `book`               | ⏳ V2      | Equipamento | habilidades contidas                                                                                                                                |
-| `kit`                | ⏳ V2      | Equipamento | bundle de itens                                                                                                                                     |
-| `deity`              | ⏳ V2      | Referência  | domains, edicts, anathemas, spell list                                                                                                              |
-| `campaignFeature`    | ⏳ V2      | Campanha    | feature de AP (kingmaker etc.)                                                                                                                      |
+| Subtype              | MVP?       | Categoria   | Campos centrais                                                                                                                                                                                                                                                                                                                                       |
+| -------------------- | ---------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `weapon`             | ✅         | Equipamento | `damage{dice,die,damageType,modifier,persistent?}`, `category`, `group`, `runes{potency,striking,property[]}`, `range`, `reload`, `traits`, `usage`                                                                                                                                                                                                   |
+| `armor`              | ✅         | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}`                                                                                                                                                                                                                           |
+| `shield`             | ✅         | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold`                                                                                                                                                                                                                                                                                                        |
+| `equipment`          | ✅         | Equipamento | `bulk`, `price`, `usage`, `traits`                                                                                                                                                                                                                                                                                                                    |
+| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion/ammo/bomb…), `charges`, `autoDestroy`, `spell?`, `fusion.effectRefs[]` (REQ-PF2-224, REQ-PF2-225); bomba alquímica (trait `bomb`) carrega também o payload de arma (`damage`, `splashDamage`, `bonus`, `range`, `runes`, `baseItem`, `expend`) que a projeção do strike consome (DEC-PF2-12, REQ-PF2-226, REQ-PF2-227) |
+| `treasure`           | ✅         | Equipamento | `value` (gp/sp/cp)                                                                                                                                                                                                                                                                                                                                    |
+| `container`          | ✅         | Equipamento | `capacity`, `bulkReduction`                                                                                                                                                                                                                                                                                                                           |
+| `condition`          | ✅         | Estado      | `slug`, `value?`, `modifiers[]`, `overrides[]`                                                                                                                                                                                                                                                                                                        |
+| `effect`             | ✅         | Estado      | `duration`, `badge?`, `modifiers[]`, `grantedConditions[]`, `iwr?`, `fusion{origin,startedAt,expiry}` (REQ-PF2-217, REQ-PF2-219)                                                                                                                                                                                                                      |
+| `spell`              | ✅         | Magia       | `level`, `traits{value[],traditions[]}`, `area?`, `range`, `time`, `duration`, `defense?{save{statistic,basic}}`, `damage`, `rules?`                                                                                                                                                                                                                  |
+| `spellcastingEntry`  | ✅         | Magia       | `tradition`, `ability`, `proficiency{value}`, `slots{slot0..10{value,max,prepared[]}}`, `prepared{value}` (prepared/spontaneous/innate)                                                                                                                                                                                                               |
+| `feat`               | ✅         | Mecânica    | `level`, `category`, `actionType`, `actions`, `frequency?`, `modifiers[]`, `grantedConditions[]`                                                                                                                                                                                                                                                      |
+| `action` / `ability` | ✅         | Mecânica    | ação/atividade rolável (NPC abilities, basic actions)                                                                                                                                                                                                                                                                                                 |
+| `lore`               | ✅         | Perícia     | `rank`, atributo INT                                                                                                                                                                                                                                                                                                                                  |
+| `melee`              | ✅         | NPC-only    | ataque de NPC: `bonus`, `damage[]`, `traits`                                                                                                                                                                                                                                                                                                          |
+| `ancestry`           | ⚙️ parcial | Construção  | `hp`, `speed`, `size`, `boosts`, `flaws`, `languages`, `vision`                                                                                                                                                                                                                                                                                       |
+| `heritage`           | ⚙️ parcial | Construção  | herda de ancestry; `modifiers[]`                                                                                                                                                                                                                                                                                                                      |
+| `background`         | ⚙️ parcial | Construção  | `boosts`, skill proficiency                                                                                                                                                                                                                                                                                                                           |
+| `class`              | ⚙️ parcial | Construção  | `hp`/nível, proficiências iniciais, key ability, save progressions                                                                                                                                                                                                                                                                                    |
+| `affliction`         | ⏳ V2      | Estado      | venenos/doenças com `stages[]`                                                                                                                                                                                                                                                                                                                        |
+| `book`               | ⏳ V2      | Equipamento | habilidades contidas                                                                                                                                                                                                                                                                                                                                  |
+| `kit`                | ⏳ V2      | Equipamento | bundle de itens                                                                                                                                                                                                                                                                                                                                       |
+| `deity`              | ⏳ V2      | Referência  | domains, edicts, anathemas, spell list                                                                                                                                                                                                                                                                                                                |
+| `campaignFeature`    | ⏳ V2      | Campanha    | feature de AP (kingmaker etc.)                                                                                                                                                                                                                                                                                                                        |
 
 > **⚙️ parcial (MVP)**: ancestry/heritage/background/class são importáveis e
 > contribuem com HP, proficiências e modifiers **estáticos** declarados; a
