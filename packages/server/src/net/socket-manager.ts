@@ -278,6 +278,10 @@ export class SocketManager {
       metrics: writeMetrics,
       logger: this.logger,
     });
+    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
+    // Constructed here (not next to the combat handlers below) so chat:send
+    // (ALQ-F1-05 / REQ-CBT-056) can also read it for the targetSnapshot photo.
+    const targetingStore = new TargetingStore();
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
@@ -389,7 +393,10 @@ export class SocketManager {
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
 
     // Register M1-D chat + roll handlers
-    const chatDeps = { db, ns, seqStore, worldId };
+    // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
+    // author's live target selection to freeze `flags.fusion.targetSnapshot`
+    // on every roll message.
+    const chatDeps = { db, ns, seqStore, worldId, store, targetingStore };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
     // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
@@ -469,8 +476,7 @@ export class SocketManager {
     registry.register("combat:reorder", buildCombatReorderHandler(combatDeps));
     registry.register("combat:endCombat", buildCombatEndHandler(combatDeps));
 
-    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
-    const targetingStore = new TargetingStore();
+    // targetingStore constructed earlier (near `store`) so chat:send can use it too.
     const targetDeps = { store, seqStore, ns, targetingStore };
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
