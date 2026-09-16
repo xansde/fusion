@@ -346,6 +346,15 @@ imunidade a condição, maior valor) é uma função pura registrada pelo sistem
 **Racional:** Separa o que é segurança e persistência (igual para todo sistema) do que é
 regra (específica do jogo), e deixa a regra testável sem servidor.
 
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01). A mesma divisão vale para o
+> **consumo de item**: `item:consume` é op do core, com permissão, atomicidade e
+> `expectedVersion`; o **plano de consumo** — o que gastar, que efeito aplicar, que dano ou
+> cura rolar, que card postar — é uma função pura registrada pelo sistema
+> (`registerConsumeItem`, REQ-SYS-143), e o ponto de extensão pós-consumo é
+> `registerConsumeHook` (REQ-SYS-144). Não é decisão nova: é o alcance desta, agora que há um
+> segundo op com a mesma forma. A regra do PF2e correspondente está em
+> `17-sistema-pf2e.md`, REQ-PF2-224..228.
+
 ---
 
 ## Requisitos funcionais
@@ -626,7 +635,7 @@ interface ActorApplyConditionPayload {
   mode: "add" | "remove" | "set" | "increase" | "decrease";
   value?: number | null;
   data?: Record<string, unknown>; // ex.: instância de dano persistente
-  expiry?: FusionExpiry; // ancoragem por dono; o shape é da fase de efeitos
+  expiry?: FusionExpiry; // shape em 17-sistema-pf2e.md (REQ-PF2-219)
   source?: { messageId?: string; itemUuid?: string; effectItemId?: string };
 }
 
@@ -740,6 +749,120 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
   PODE reaplicar a mesma chave (mesa corrigindo um erro). Sem essa marca, o dono do
   ator reenviaria o mesmo op e aplicaria o mesmo dano gravado repetidas vezes em
   todos os alvos do snapshot.
+
+### Consumo de item e hooks de consumo
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-SYS-12 e sua emenda). Os
+> contratos abaixo são canônicos: as fases seguintes do plano (fabricação, venenos,
+> mutágenos, aditivos, reações) consomem estes nomes e shapes. A regra de jogo
+> correspondente é de `17-sistema-pf2e.md` (REQ-PF2-224..228).
+
+```ts
+// socket "item:consume" — ItemConsumePayloadSchema (@fusion/shared)
+interface ItemConsumePayload {
+  actorId: string;
+  itemId?: string; // obrigatório em "use" e "strike"
+  resourceSlug?: string; // obrigatório em "resource"
+  mode: "use" | "strike" | "resource";
+  mapIndex?: 0 | 1 | 2; // só em "strike"
+  expectedVersion: number;
+}
+interface ItemConsumeResult {
+  consumed:
+    | { itemId?: string; quantityLeft: number; destroyed: boolean }
+    | { resourceSlug: string; valueLeft: number };
+  appliedEffectIds: string[];
+  chatMessageIds: string[];
+}
+
+// packages/system-api — registrar
+registrar.registerConsumeItem(def: ConsumeItemDefinition): void;
+registrar.registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void;
+
+interface ConsumeItemDefinition {
+  appliesTo(item: ItemSnapshot | null, payload: ItemConsumePayload): boolean;
+  plan(
+    actor: ActorSnapshot,
+    item: ItemSnapshot | null,
+    payload: ItemConsumePayload,
+    ctx: ConsumePlanContext,
+  ): ConsumePlan; // puro: descreve, não escreve
+}
+
+/** Escrita declarada pelo plano e aplicada pelo core; o mesmo tipo serve à preparação
+ * diária e à fabricação das fases seguintes. */
+type DocOp =
+  | { kind: "updateActor"; diff: Record<string, unknown> }
+  | { kind: "createItem"; data: Record<string, unknown> }
+  | { kind: "updateItem"; itemId: string; diff: Record<string, unknown> }
+  | { kind: "deleteItem"; itemId: string };
+
+interface ConsumePlan {
+  writes: DocOp[]; // carga, quantidade, recurso, destruição
+  consumed: ItemConsumeResult["consumed"];
+  effects: PlannedEffect[]; // cópias embutidas a criar (17, REQ-PF2-217)
+  damage: ActorApplyDamagePayload[]; // cura e dano do item, via ActorMechanicsService
+  strike?: PlannedStrike; // só no mode "strike"
+  cards: { content: string; flags?: Record<string, unknown> }[];
+  notes: string[]; // o que o item faz e o sistema não automatiza
+}
+interface PlannedEffect {
+  targetActorId: string;
+  sourceId: string; // documento do pack a copiar
+  packId?: string;
+  origin: { actorId: string; itemSourceId?: string; itemLevel?: number; infused?: boolean };
+  expiry: FusionExpiry; // shape em 17-sistema-pf2e.md (REQ-PF2-219)
+}
+interface PlannedStrike {
+  strikeId: string;
+  mapIndex: 0 | 1 | 2;
+  formula: string;
+  flavor: string;
+  rollContext: Record<string, unknown>; // flags.fusion.rollContext da mensagem
+}
+interface ConsumePlanContext {
+  inCombat: boolean;
+  combatId: string | null;
+  round: number | null;
+  targets: readonly { tokenId: string; actorId: string | null }[];
+}
+type ConsumeHookFn = (
+  e: {
+    actorId: string;
+    item: ItemSnapshot | null;
+    payload: ItemConsumePayload;
+    result: ItemConsumeResult;
+  },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+```
+
+- **REQ-SYS-143** [MVP] O `registrar` DEVE expor `registerConsumeItem(def)`, no máximo uma
+  vez por sistema, e o servidor DEVE expor o op `item:consume` num serviço do **core** que:
+  1. valida o payload pelo schema de `@fusion/shared`: modo `use`/`strike` sem `itemId`, ou
+     modo `resource` sem `resourceSlug`, DEVE responder `VALIDATION_FAILED`;
+  2. exige ownership **OWNER** do ator, ou papel privilegiado (`isRolePrivileged`,
+     `ver 21-seguranca.md`): outro usuário DEVE receber `PERMISSION_DENIED`, e ator ou item
+     inexistente, `NOT_FOUND`;
+  3. recusa com `CONFLICT`, sem escrever nada, quando `expectedVersion` não bate com a versão
+     atual do ator — é o que impede dois clientes gastarem o mesmo último frasco;
+  4. chama `def.plan(...)`, que é puro e não escreve, e aplica `writes`, `effects`, `damage`
+     e `cards` **atomicamente**: nenhuma parte DEVE ficar aplicada se outra falhar. O
+     `damage` do plano DEVE passar pelo `ActorMechanicsService` com `actingAs: "system"`
+     (REQ-SYS-142), nunca por escrita direta no ator;
+  5. devolve `ItemConsumeResult` e publica os cards pelo caminho normal de chat
+     (`ver 09-chat-e-mensagens.md`);
+  6. sem plano registrado, ou com nenhum `appliesTo` verdadeiro, responde `NOT_SUPPORTED` sem
+     escrever nada (mesma postura de REQ-SYS-142 passo 6).
+- **REQ-SYS-144** [MVP] O `registrar` DEVE expor
+  `registerConsumeHook(id, fn, opts?: { priority?: number })`, aceitando **vários** callbacks,
+  executados depois de persistir o consumo e antes do broadcast, com a mesma ordenação,
+  serialização em série e isolamento de erro de REQ-SYS-139, e o mesmo `TurnHookContext` de
+  REQ-SYS-140. O callback recebe o ator, o item consumido (`null` no modo `resource`), o
+  payload e o `ItemConsumeResult`. Registrar duas vezes o mesmo `id` DEVE lançar erro em
+  `defineSystem`, nomeando o id. Este DEVE ser o **ponto único** de extensão pós-consumo: a
+  API NÃO DEVE ganhar `onConsume`/`onConsumed` paralelos, nem o consumo DEVE ser observado
+  por `hooks.on`, que é notificação pós-broadcast.
 
 ### Motor de modifiers/effects data-driven
 
@@ -1104,18 +1227,20 @@ interface InitiativeEntry {
 
 ### Superfície pública (resumo)
 
-| Símbolo                                                                              | Tipo   | Descrição                                        |
-| ------------------------------------------------------------------------------------ | ------ | ------------------------------------------------ |
-| `defineSystem(manifest, build)`                                                      | função | Constrói e retorna o `SystemModule`.             |
-| `game.system`                                                                        | objeto | `SystemModule` ativo do mundo.                   |
-| `game.settings.get/set(sysId, key)`                                                  | função | Get/set tipado de setting.                       |
-| `hooks.on/once/off(name, listener)`                                                  | função | Barramento de hooks tipado.                      |
-| `i18n.localize/format(key, data?)`                                                   | função | Localização namespaced.                          |
-| `actor.increase/decrease/toggle/setCondition(slug, v?)`                              | método | Condições.                                       |
-| `validateSystemModule(module)`                                                       | função | Harness de contract test.                        |
-| `registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, opts?)` | função | Hooks de turno aguardados (REQ-SYS-138..140).    |
-| `registrar.onDamageApplied(id, fn, opts?)`                                           | função | Pós-aplicação de dano, por alvo (REQ-SYS-142).   |
-| `registrar.registerActorMechanics(m)`                                                | função | Regra de dano/condição do sistema (REQ-SYS-142). |
+| Símbolo                                                                              | Tipo   | Descrição                                          |
+| ------------------------------------------------------------------------------------ | ------ | -------------------------------------------------- |
+| `defineSystem(manifest, build)`                                                      | função | Constrói e retorna o `SystemModule`.               |
+| `game.system`                                                                        | objeto | `SystemModule` ativo do mundo.                     |
+| `game.settings.get/set(sysId, key)`                                                  | função | Get/set tipado de setting.                         |
+| `hooks.on/once/off(name, listener)`                                                  | função | Barramento de hooks tipado.                        |
+| `i18n.localize/format(key, data?)`                                                   | função | Localização namespaced.                            |
+| `actor.increase/decrease/toggle/setCondition(slug, v?)`                              | método | Condições.                                         |
+| `validateSystemModule(module)`                                                       | função | Harness de contract test.                          |
+| `registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, opts?)` | função | Hooks de turno aguardados (REQ-SYS-138..140).      |
+| `registrar.onDamageApplied(id, fn, opts?)`                                           | função | Pós-aplicação de dano, por alvo (REQ-SYS-142).     |
+| `registrar.registerActorMechanics(m)`                                                | função | Regra de dano/condição do sistema (REQ-SYS-142).   |
+| `registrar.registerConsumeItem(def)`                                                 | função | Plano de consumo de item do sistema (REQ-SYS-143). |
+| `registrar.registerConsumeHook(id, fn, opts?)`                                       | função | Pós-consumo de item (REQ-SYS-144).                 |
 
 ### Lista canônica de hooks (MVP)
 
@@ -1146,7 +1271,8 @@ Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat
 
 Os hooks de combate desta tabela são **notificações** pós-transição. As automações de
 turno de um sistema NÃO usam `hooks.on`: usam o registro aguardado de REQ-SYS-138..141
-(DEC-SYS-11), que roda antes do broadcast.
+(DEC-SYS-11), que roda antes do broadcast. O mesmo vale para o consumo de item: a extensão
+é `registerConsumeHook` (REQ-SYS-144), não `hooks.on`.
 
 ## Dependências (specs irmãs)
 
