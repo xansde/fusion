@@ -54,6 +54,69 @@
       "resumo": "Entreguei a regressão sobre packs pedida em ALQ-F4-03: novo arquivo `sheets/pf2e/src/lib/sheets/pf2e/__tests__/rule-elements-regression.test.ts` (+ `__snapshots__/rule-elements-regression.test.ts.snap`, gerado, 135 snapshots), no satélite `xansde/fusion-systems-2e`, branch `alq/alq-f4-03`.\n\nDuas entregas, como no texto da tarefa:\n1. Linha de base: para cada uma das 27 classes de `classes-core`, builda personagem completo com `buildCharacterToLevel20` (reuso do harness do issue #48, escolhas default), confere `findings=[]` (sem slot órfão/exceção) e fotografa `system.derived` (o campo real `doc.system.derived`, populado pelo `prepareDerived` — `derivations/types.ts::CharacterDerived`) nos níveis 1/5/10/15/20 via `toMatchSnapshot()`.\n2. Teste de escopo (REQ-SYS-149): compara o handler REAL de nota (`collectEffects`/`processNote` de `engine-2e/effectsEngine.ts`, já corretamente escopado — `Synthetics` novo a cada chamada, sem estado de módulo) contra um handler FALSO definido só no teste que guarda estado num `Map` de módulo (o erro que um `RuleElementHandler` mal escrito cometeria ao fechar sobre estado compartilhado em vez do contexto do ator). O caso real passa normal; o caso falso é `it.fails` (idioma já usado no repo em `varredura-classes.test.ts` para \"isto deve continuar vermelho de propósito\") — a nota de \"Fighter\" vaza para um ator (\"Wizard\") que nunca rodou aquela fonte, provando o ponto por contraste.\n\nDois desvios do texto literal, ambos necessários e documentados no cabeçalho do arquivo:\n- **Path**: o texto pedia `systems/pf2e/src/__tests__/rule-elements-regression.test.ts`, mas `classBuildHarness.ts` (via `planVM.ts`) depende do alias `$lib`, que só `sheets/pf2e/vitest.config.ts` resolve — `systems/pf2e` não tem esse alias e o import quebraria. Coloquei o teste em `sheets/pf2e/src/lib/sheets/pf2e/__tests__/`, ao lado de `varredura-classes.test.ts`/`pregen-parity.test.ts`, que já usam o mesmo harness com sucesso.\n- **Teste de escopo sem RuleElementRegistry**: ALQ-F4-02 (que introduz o `RuleElementRegistry`) é paralela a esta tarefa e ainda não chegou nesta branch — confirmado no código (`effectsEngine.ts` ainda despacha pelos 5 tipos fixos do switch) e no `AGENTS.md` do satélite. Por isso o teste de escopo usa o mecanismo REAL de hoje (`collectEffects`, tipo `\"note\"`) como equivalente ao futuro `kind: \"note\"` do `RuleElementHandler` (contrato §2.8 do tasks.md diz explicitamente que `kind` = `rule.type` normalizado) — o teste vale igual dos dois lados da migração e não precisou de código de produção novo.\n\nRemedir as classes quando o PR #57 (satélite, publicação do Alchemist) entrar é responsabilidade da ALQ-F0-02, como o texto da tarefa já previa.",
       "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
       "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    "ALQ-F0-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Pin verificado (satélite já contém o #57); traitNames.ts regenerado com 9 traits novas; 5 acentos corrigidos na origem (ACCENT_FIXES) e path do gen-client-maps.mjs consertado (quebrado desde a F4). Cliente 3181 verdes, build:release 123,0 MB (teto 150).",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F1-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "Contratos tipados: TurnHookRegistrar com id+prioridade, registerActorMechanics, adaptador legado, actor-mechanics.ts; schemas zod de actor:applyDamage/applyCondition/damageApplied + FusionExpiry. Sem comportamento de servidor. shared 722, system-api 148.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F1-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Protótipo apply-damage-card com 5 botões, alvos, seletor de condição e as duas visões lado a lado (D-04: player sem PV). Nota no topo aponta redação no servidor. Print conferido a olho.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F2-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "opus/high",
+      "resumo": "Specs 17/15: DEC-PF2-11/12, REQ-PF2-217..228 (221 pulado), REQ-PF2-212a (dano massivo), REQ-SYS-143/144, emendas de REQ-PF2-055 e DEC-SYS-12. spec-lint 0 violações; prioridade 40 bate com a tabela da F1-01.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F2-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "Pack alchemical-items-core com 579 docs (recontagem independente confere), ponte pt-BR dos 35 itens do #107 byte-idênticos, assert de cobertura provado vermelho. effectRefs corrigidos depois pela revisão (B1).",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F2-16": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Guard de skip por arquivo (14 suítes) + guarda de execução do main() no transform.mjs. Comando do CI: 283 testes / 279 pass / 0 fail / 4 skip com motivo. Destrava a issue #68.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F4-19": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "Reconhecimento de flat-modifier e item-alteration unificado no RuleElementRegistry; snapshot byte-idêntico (166/166). Os scanners NÃO saíram do código — execução segue em hp.ts/speed.ts/equipment.ts. Risco de contagem dupla transferido à F2-08 (tasks.md emendado, issue #75).",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
     }
   },
   "rodadas": [
@@ -95,6 +158,41 @@
       },
       "core_sha": "b876452250a978f53f2da6d23be325ae088fce47",
       "sat_sha": "67bffa5c7d8e826d2b7f37c7b94436e244e804b3"
+    },
+    {
+      "onda": 2,
+      "tarefas": [
+        "ALQ-F0-02",
+        "ALQ-F1-02",
+        "ALQ-F1-03",
+        "ALQ-F2-01",
+        "ALQ-F2-03",
+        "ALQ-F2-16",
+        "ALQ-F4-19"
+      ],
+      "integradas": [
+        "ALQ-F0-02",
+        "ALQ-F1-02",
+        "ALQ-F1-03",
+        "ALQ-F2-01",
+        "ALQ-F2-03",
+        "ALQ-F2-16",
+        "ALQ-F4-19"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 3,
+        "abertos": [
+          "B2 [BLOQUEANTE, DECISÃO DO ALEXANDRE] As 95 bombas entraram como type:'weapon', que a DEC-PF2-12 (mesma onda) registra como alternativa REJEITADA. Peso técnico favorece manter weapon+trait bomb (schema e os 96 docs já nessa forma; deriveStrikeFromWeapon exige); mudar para consumable exige duplicar bloco de dano e reimportar com vendor (ausente na máquina). Sem decisão, a F2-13 não implementa o strike sem quebrar uma das duas.",
+          "10 achados importantes + 10 menores da revisão adversarial, não endereçados nesta onda — ver revisao.md",
+          "issue #75 (satélite): F4-19 migrou só o reconhecimento; execução segue nos scanners. Pré-requisito da F2-08.",
+          "issue #76 (satélite): WeaponDamageSchema aceita dice>0 sem die e strikes.ts cai em '1d1' silencioso. Inerte no pack atual.",
+          "Vendor do importer é clone de 2026-08-24; 18/579 docs diferem do upstream só em campos não lidos (img, price.per, coloration). Atualizar antes da próxima tarefa de importer.",
+          "eslint.config.js do core não cobre external/fusion-systems-2e/systems/*/src/**."
+        ]
+      },
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
     }
   ],
   "lotes": {}
