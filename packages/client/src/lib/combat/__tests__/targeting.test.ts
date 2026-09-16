@@ -16,7 +16,10 @@ import {
   isTargetedByUser,
   targetedTokens,
   computeReticlePositions,
+  myTargets,
+  diffMyTargets,
   type TokenFootprint,
+  type TargetIdentity,
 } from "../targeting.js";
 
 describe("applyTargeted", () => {
@@ -166,5 +169,106 @@ describe("computeReticlePositions", () => {
   it("returns empty when nothing is targeted", () => {
     const s = createTargetingState();
     expect(computeReticlePositions(s, "me", resolver({}))).toEqual([]);
+  });
+});
+
+describe("myTargets (REQ-CBT-056 — getMyTargets)", () => {
+  const identityResolver =
+    (identities: Record<string, TargetIdentity>) =>
+    (tokenId: string): TargetIdentity | null =>
+      identities[tokenId] ?? null;
+
+  it("excludes a token targeted only by another user — token:targeted from someone else never enters myTargets", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "me");
+    applyTargeted(s, "tok2", true, "other");
+
+    const result = myTargets(
+      s,
+      "me",
+      identityResolver({
+        tok1: { actorId: "actor-1", name: "Alvo 1" },
+        tok2: { actorId: "actor-2", name: "Alvo 2" },
+      }),
+    );
+
+    expect(result).toEqual([{ tokenId: "tok1", actorId: "actor-1", name: "Alvo 1" }]);
+  });
+
+  it("returns empty when the local user has no targets", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "other");
+    expect(myTargets(s, "me", identityResolver({}))).toEqual([]);
+  });
+
+  it("skips a targeted token that cannot be resolved (e.g. removed from the scene)", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "me");
+    expect(myTargets(s, "me", identityResolver({}))).toEqual([]);
+  });
+
+  it("lists every token the local user targets, unaffected by other users also targeting them", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "me");
+    applyTargeted(s, "tok1", true, "other");
+    applyTargeted(s, "tok2", true, "me");
+
+    const result = myTargets(
+      s,
+      "me",
+      identityResolver({
+        tok1: { actorId: "actor-1", name: "Alvo 1" },
+        tok2: { actorId: null, name: "Alvo 2" },
+      }),
+    );
+
+    expect(result).toEqual([
+      { tokenId: "tok1", actorId: "actor-1", name: "Alvo 1" },
+      { tokenId: "tok2", actorId: null, name: "Alvo 2" },
+    ]);
+  });
+});
+
+describe("diffMyTargets (REQ-CBT-056 — setMyTargets batch)", () => {
+  it("marks every desired token not yet in the live selection", () => {
+    const s = createTargetingState();
+    const ops = diffMyTargets(s, "me", ["tok1", "tok2"]);
+    expect(ops.sort((a, b) => a.tokenId.localeCompare(b.tokenId))).toEqual([
+      { tokenId: "tok1", targeted: true },
+      { tokenId: "tok2", targeted: true },
+    ]);
+  });
+
+  it("clears live targets not present in the desired set", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "me");
+    applyTargeted(s, "tok2", true, "me");
+
+    const ops = diffMyTargets(s, "me", ["tok1"]);
+    expect(ops).toEqual([{ tokenId: "tok2", targeted: false }]);
+  });
+
+  it("leaves a token that is already targeted and still desired untouched (no op)", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "me");
+
+    const ops = diffMyTargets(s, "me", ["tok1"]);
+    expect(ops).toEqual([]);
+  });
+
+  it("never touches another user's live selection", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "shared", true, "other");
+
+    const ops = diffMyTargets(s, "me", []);
+    expect(ops).toEqual([]);
+  });
+
+  it("returns an empty diff when the desired set already matches the live selection exactly", () => {
+    const s = createTargetingState();
+    applyTargeted(s, "tok1", true, "me");
+    applyTargeted(s, "tok2", true, "me");
+
+    expect(diffMyTargets(s, "me", ["tok1", "tok2"])).toEqual([]);
   });
 });

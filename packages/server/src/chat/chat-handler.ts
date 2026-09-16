@@ -75,6 +75,9 @@ import {
 } from "../net/redaction.js";
 import { RollService, RollError } from "./roll-service.js";
 import type { RollServiceOptions } from "./roll-service.js";
+import type { DocumentStore } from "../documents/store.js";
+import type { TargetingStore } from "../combat/targeting-store.js";
+import { resolveTargetSelection } from "../combat/target-selection.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -88,6 +91,16 @@ export interface ChatHandlerDeps {
   worldId: string;
   /** Optional RNG override for tests. */
   rollServiceOptions?: Partial<RollServiceOptions>;
+  /**
+   * ALQ-F1-05 / REQ-CBT-056: resolves the author's live target selection for
+   * the `targetSnapshot` photo taken on every roll message (D-02). Optional
+   * so existing chat-only harnesses that don't exercise targeting (spellcast/
+   * abilityCard/parentMessageId/save-degree tests) keep compiling unchanged;
+   * a roll built without both deps records an empty snapshot (`[]` — the
+   * REQ's own "no target" case), never a crash.
+   */
+  store?: DocumentStore;
+  targetingStore?: TargetingStore;
 }
 
 // ---------------------------------------------------------------------------
@@ -537,6 +550,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // spell-cast card carries the announcement's id so the client nests it
       // under that card. Dangling parent → dropped (still delivered top-level).
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
+      attachTargetSnapshot(msg, deps, ctx.userId);
 
       persistChatMessage(deps.db, msg);
       const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
@@ -649,6 +663,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // announcement is a PARENT and carries no parentMessageId, so this is a
       // no-op for it; it only matters for a hypothetical nested text child.
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
+      attachTargetSnapshot(msg, deps, ctx.userId);
 
       // Return the CANONICAL message on the ack (r18-N1): castSpell chains the
       // attack roll under this announcement using result.message._id. The id is
@@ -1637,6 +1652,8 @@ const CHECK_CONTEXT_FLAG_KEY = "checkContext" as const;
 /** flags.fusion.parentMessageId — id of the message this roll nests under (r18-N1). */
 const PARENT_FLAG_NAMESPACE = "fusion" as const;
 const PARENT_MESSAGE_ID_FLAG_KEY = "parentMessageId" as const;
+/** flags.fusion.targetSnapshot — the author's target photo at roll time (ALQ-F1-05, REQ-CBT-056). */
+const TARGET_SNAPSHOT_FLAG_KEY = "targetSnapshot" as const;
 
 /**
  * Resolve a client-provided `flags.parentMessageId` (r18-N1) to a persisted
@@ -1674,6 +1691,34 @@ function attachParentFlag(msg: ChatMessage, parentId: string | undefined): void 
     [PARENT_FLAG_NAMESPACE]: {
       ...msg.flags[PARENT_FLAG_NAMESPACE],
       [PARENT_MESSAGE_ID_FLAG_KEY]: parentId,
+    },
+  };
+}
+
+/**
+ * Attach the author's live target-selection "photo" onto a ChatMessage that
+ * carries at least one roll (D-02, REQ-CBT-056). Called right before
+ * persisting, and NEVER re-derived afterwards: `resolveTargetSelection` is
+ * read exactly once, here, so the stored `flags.fusion.targetSnapshot` cannot
+ * change later — not by a further `combat:target`, not by the REQ-CBT-055
+ * turnEnd cleanup, not by the token being removed from its scene.
+ *
+ * A message with no roll is left untouched (targeting a non-roll message has
+ * no meaning). Missing `store`/`targetingStore` deps (chat-only test
+ * harnesses that don't wire targeting) fall back to an empty snapshot rather
+ * than throwing — `[]` is already the documented "no target" shape.
+ */
+function attachTargetSnapshot(msg: ChatMessage, deps: ChatHandlerDeps, authorId: string): void {
+  if (!msg.rolls || msg.rolls.length === 0) return;
+  const targetSnapshot =
+    deps.store && deps.targetingStore
+      ? resolveTargetSelection(deps.store, deps.targetingStore, authorId)
+      : [];
+  msg.flags = {
+    ...msg.flags,
+    [PARENT_FLAG_NAMESPACE]: {
+      ...msg.flags[PARENT_FLAG_NAMESPACE],
+      [TARGET_SNAPSHOT_FLAG_KEY]: targetSnapshot,
     },
   };
 }

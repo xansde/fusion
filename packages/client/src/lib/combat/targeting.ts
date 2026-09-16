@@ -201,3 +201,82 @@ export function computeReticlePositions(
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// My targets — getMyTargets/setMyTargets (ALQ-F1-05, REQ-CBT-056)
+// ---------------------------------------------------------------------------
+
+/** A targeted token's identity, resolved externally (scene tokens + actor name fallback). */
+export interface TargetIdentity {
+  actorId: string | null;
+  name: string;
+}
+
+/** One entry of the local user's OWN live target selection, as sheets consume it. */
+export interface MyTarget {
+  tokenId: string;
+  actorId: string | null;
+  name: string;
+}
+
+/**
+ * Resolve the local user's own targeted tokens into the shape sheets need
+ * (REQ-CBT-056's `getMyTargets()`): `{tokenId, actorId, name}`.
+ *
+ * Scoped strictly to `localUserId` — a token targeted only by ANOTHER user
+ * (a `token:targeted` broadcast for someone else) never appears here, however
+ * many other users have it targeted too. This is the one property the task's
+ * own acceptance test checks directly.
+ *
+ * `resolve` maps a tokenId to its identity; a tokenId that cannot be resolved
+ * (e.g. the token was removed from the scene) is skipped, mirroring
+ * `computeReticlePositions`' off-scene handling — never a placeholder entry.
+ */
+export function myTargets(
+  state: TargetingState,
+  localUserId: string,
+  resolve: (tokenId: string) => TargetIdentity | null,
+): MyTarget[] {
+  const set = state.byUser.get(localUserId);
+  if (!set || set.size === 0) return [];
+
+  const out: MyTarget[] = [];
+  for (const tokenId of set) {
+    const identity = resolve(tokenId);
+    if (!identity) continue;
+    out.push({ tokenId, actorId: identity.actorId, name: identity.name });
+  }
+  return out;
+}
+
+/** One `combat:target` op needed to reconcile the live selection with a desired set. */
+export interface TargetDiffOp {
+  tokenId: string;
+  targeted: boolean;
+}
+
+/**
+ * Diff `desiredTokenIds` against `localUserId`'s CURRENT live selection,
+ * returning the minimal set of `combat:target` ops that reconcile them
+ * (REQ-CBT-056's `setMyTargets(tokenIds)` — batch used by the area preview).
+ *
+ * Tokens already in the desired set are left alone (no redundant op); tokens
+ * currently targeted but absent from `desiredTokenIds` are cleared.
+ */
+export function diffMyTargets(
+  state: TargetingState,
+  localUserId: string,
+  desiredTokenIds: readonly string[],
+): TargetDiffOp[] {
+  const current = state.byUser.get(localUserId) ?? new Set<string>();
+  const desired = new Set(desiredTokenIds);
+  const ops: TargetDiffOp[] = [];
+
+  for (const tokenId of desired) {
+    if (!current.has(tokenId)) ops.push({ tokenId, targeted: true });
+  }
+  for (const tokenId of current) {
+    if (!desired.has(tokenId)) ops.push({ tokenId, targeted: false });
+  }
+  return ops;
+}

@@ -27,7 +27,7 @@
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { createSceneLoadGuard } from "../lib/canvas/sceneLoadGuard.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { attachCombatSync, setTargetingViewer } from "../lib/combat/combatStore.svelte.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
@@ -82,6 +82,13 @@
   // stays ignorant of every badge rule (REQ-GAV-023).
   $effect(() => {
     setCombatBadgeViewer(session.user?.id ?? null);
+  });
+
+  // REQ-CBT-056: getMyTargets()/setMyTargets() (combatStore) are scoped to a
+  // single user — same reasoning as the badge viewer above, this is the one
+  // place session meets the combat store for it.
+  $effect(() => {
+    setTargetingViewer(session.user?.id ?? null);
   });
 
   let loggingOut = $state(false);
