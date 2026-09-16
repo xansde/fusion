@@ -29,12 +29,13 @@
       "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
     },
     "ALQ-F2-17": {
-      "status": "bloqueada",
-      "tentativas": 1,
+      "status": "integrada",
+      "tentativas": 2,
       "onda": 1,
       "modelo": "haiku/low",
-      "resumo": "commits em alq/alq-f2-17 (sat 67cde6d; core 0d9af53 com pin indevido)",
-      "motivo": "implementador sem relatório estruturado; não verificada nem integrada"
+      "resumo": "Porte dos 35 itens alquimicos do PR #107 (linha build/app) para curadoria por sourceId + chunk pt-BR. A tentativa 1 tinha FABRICADO o pt-BR (descricoes inventadas) porque o i18n.pt-BR.json da build/app e chaveado pelo _id de la, nao pelo sourceId do vendor; e seus dois testes liam de um caminho inexistente (vendor/core-item-types/equipment.json), entao SEMPRE pulavam — cobertura real zero. A tentativa 2 regenerou os 35 a partir do dado real (35/35 byte-identicos a build/app em nome, descricao e sourceHash; 35/35 consistentes com o vendor em nome, nivel, trait e descricao EN), reescreveu o teste de forma nao-circular chamando checkDoc/runQaForPack reais, e estendeu o glob do script test do importer-pf2e, que nao cobria src/curation/__tests__/. A revisao adversarial acrescentou: correcao da colisao de terminologia Concealed/Hidden (o chunk dizia Encoberto/Ocultas, o pack conditions da alfa diz Ocultado/Escondido — trocava os dois ramos do Elixir do Olho de Gato e do Elixir da Forma Nebulosa, fazendo o jogador aplicar a reducao para DC 5 na condicao errada), duas entradas novas no glossary.pt-BR.json para as dependentes F2-04/F2-05 nao replicarem a divergencia em ~540 itens, um bloco de teste que assere o porte contra origin/build/app (o gate que faltava, por onde a fabricacao da tentativa 1 passou verde), assercao de name/level/descricao EN contra o vendor, chave _source com licenca no fixture EN, e bump do core-ref.txt para 24ebb891 (o CI do satelite falhava em 45s no build porque apontava para um core sem os exports da ALQ-F4-02).",
+      "core_sha": "b876452250a978f53f2da6d23be325ae088fce47",
+      "sat_sha": "67bffa5c7d8e826d2b7f37c7b94436e244e804b3"
     },
     "ALQ-F4-02": {
       "status": "integrada",
@@ -58,8 +59,21 @@
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["ALQ-F0-01", "ALQ-F1-01", "ALQ-F2-02", "ALQ-F2-17", "ALQ-F4-02", "ALQ-F4-03"],
-      "integradas": ["ALQ-F0-01", "ALQ-F1-01", "ALQ-F2-02", "ALQ-F4-02", "ALQ-F4-03"],
+      "tarefas": [
+        "ALQ-F0-01",
+        "ALQ-F1-01",
+        "ALQ-F2-02",
+        "ALQ-F2-17",
+        "ALQ-F4-02",
+        "ALQ-F4-03"
+      ],
+      "integradas": [
+        "ALQ-F0-01",
+        "ALQ-F1-01",
+        "ALQ-F2-02",
+        "ALQ-F4-02",
+        "ALQ-F4-03"
+      ],
       "gate": true,
       "revisao": {
         "achados": 17,
@@ -76,6 +90,28 @@
       },
       "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
       "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    {
+      "onda": 1,
+      "tarefas": [
+        "ALQ-F2-17"
+      ],
+      "integradas": [
+        "ALQ-F2-17"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 11,
+        "abertos": [
+          "ALQ17-09 — teste fora da convencao de pasta; sem efeito colateral, nao mexido por decisao.",
+          "ALQ17-10 — no-new-enrichers unidirecional; risco para os ~540 itens das F2-04/F2-05.",
+          "ALQ17-11 — README secao Legal desatualizado; e o documento que a F2-03 vai ler.",
+          "ALQ-F2-16 — o bug de higiene da suite em si (guard inerte + destruicao de arquivo rastreado) segue aberto, com dono.",
+          "CI do satelite vermelho no step Test tools/importer-pf2e, que nao tem continue-on-error ao contrario do step irmao de translate-packs; ficou invisivel enquanto o build falhava antes. Issue xansde/fusion-systems-2e#68."
+        ]
+      },
+      "core_sha": "b876452250a978f53f2da6d23be325ae088fce47",
+      "sat_sha": "67bffa5c7d8e826d2b7f37c7b94436e244e804b3"
     }
   ],
   "lotes": {}
