@@ -1,5 +1,5 @@
 /**
- * Turn-hook registrar — DEC-SYS-11 / DF-05 / REQ-SYS-138..141.
+ * Turn-hook registrar — DEC-SYS-11 / DF-05 / REQ-SYS-138..142.
  *
  * Asserts by the RULE, not by an implementation detail:
  *   - multiple callbacks per event, exposed already sorted by priority
@@ -10,14 +10,21 @@
  *     becomes an adapter entry with id "legacy"/priority 0 (REQ-SYS-141) that
  *     forwards to the original legacy function unchanged;
  *   - `registerActorMechanics` accepts at most one registration per system
- *     (REQ-SYS-142).
+ *     (REQ-SYS-142);
+ *   - `onDamageApplied` (onda 2, adversarial review finding B5 — the F1-02
+ *     delivery omitted this sixth hook even though spec 15:588/:738/:1240
+ *     and docs/design/alquimista/tasks.md:175/:748 already require it) joins
+ *     the SAME id+priority registry, same ordering rule, exposed on the SAME
+ *     `module.combat.turnHooks` — REQ-SYS-144's "single extension point", not
+ *     a second registration mechanism invented ad hoc by whoever wires the
+ *     server behavior (ALQ-F1-08, out of this task's scope).
  *
  * Spec: 15-api-de-sistemas.md REQ-SYS-138..142. Plan: docs/design/alquimista/tasks.md §2.2.
  */
 import { describe, it, expect, vi } from "vitest";
-import type { CombatDocument, CombatantDocument } from "@fusion/shared";
+import type { CombatDocument, CombatantDocument, DamageAppliedTarget } from "@fusion/shared";
 import { defineSystem } from "../system-module.js";
-import type { TurnHookContext, CombatEndHookFn } from "../combat.js";
+import type { TurnHookContext, CombatEndHookFn, DamageAppliedHookFn } from "../combat.js";
 import type { ActorMechanics } from "../actor-mechanics.js";
 
 const VALID_MANIFEST = {
@@ -67,6 +74,20 @@ function makeCombat(overrides: Partial<CombatDocument> = {}): CombatDocument {
     combatants: [],
     flags: {},
     sort: 0,
+    ...overrides,
+  };
+}
+
+/** Mirrors DamageAppliedTargetSchema (@fusion/shared/protocol.ts). */
+function makeDamageAppliedTarget(
+  overrides: Partial<DamageAppliedTarget> = {},
+): DamageAppliedTarget {
+  return {
+    tokenId: "TokenId12345678",
+    actorId: "ActorId12345678",
+    name: "Fighter",
+    byType: [{ type: "fire", amount: 8 }],
+    total: 8,
     ...overrides,
   };
 }
@@ -152,6 +173,70 @@ describe("TurnHookRegistrar — onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/on
       ctxStub,
     );
     expect(received).toEqual(["a1", "a2"]);
+  });
+});
+
+describe("onDamageApplied (onda 2 B5, REQ-SYS-142 step 5)", () => {
+  it("registers with the {target, actor, sourceMessageId} shape and a TurnHookContext, same as the other five hooks", () => {
+    let received: {
+      target: DamageAppliedTarget;
+      actor: Record<string, unknown> | null;
+      sourceMessageId: string;
+    } | null = null;
+    const fn: DamageAppliedHookFn = (e) => {
+      received = e;
+    };
+    const module = defineSystem({ ...VALID_MANIFEST }, (r) => {
+      r.onDamageApplied("pf2e.reactionTrigger", fn);
+    });
+
+    const target = makeDamageAppliedTarget();
+    void module.combat.turnHooks.onDamageApplied[0]!.fn(
+      { target, actor: { name: "Fighter" }, sourceMessageId: "MsgId1234567890" },
+      ctxStub,
+    );
+
+    expect(received).toEqual({
+      target,
+      actor: { name: "Fighter" },
+      sourceMessageId: "MsgId1234567890",
+    });
+  });
+
+  it("is its OWN id+priority registry (DEC-SYS-11/REQ-SYS-144): sorted by priority, id space independent of the other five events", () => {
+    const calls: string[] = [];
+    const module = defineSystem({ ...VALID_MANIFEST }, (r) => {
+      r.onDamageApplied("low", () => void calls.push("low"), { priority: 0 });
+      r.onDamageApplied("high", () => void calls.push("high"), { priority: 10 });
+      // Same id as an onTurnStart registration below — allowed, separate event namespace.
+      r.onTurnStart("high", () => {});
+    });
+
+    const hooks = module.combat.turnHooks.onDamageApplied;
+    expect(hooks.map((h) => h.id)).toEqual(["high", "low"]);
+    expect(hooks.map((h) => h.priority)).toEqual([10, 0]);
+
+    for (const hook of hooks) {
+      void hook.fn(
+        { target: makeDamageAppliedTarget(), actor: null, sourceMessageId: "MsgId1234567890" },
+        ctxStub,
+      );
+    }
+    expect(calls).toEqual(["high", "low"]);
+  });
+
+  it("throws when the same id is registered twice for onDamageApplied", () => {
+    expect(() =>
+      defineSystem({ ...VALID_MANIFEST }, (r) => {
+        r.onDamageApplied("dup", () => {});
+        r.onDamageApplied("dup", () => {});
+      }),
+    ).toThrow(/duplicate "onDamageApplied" hook id "dup"/);
+  });
+
+  it("is empty when no system registers it (no legacy counterpart exists to adapt — REQ-SYS-141 never covered damage)", () => {
+    const module = defineSystem({ ...VALID_MANIFEST }, () => {});
+    expect(module.combat.turnHooks.onDamageApplied).toHaveLength(0);
   });
 });
 

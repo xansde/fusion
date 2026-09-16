@@ -23,6 +23,7 @@ import {
   type TurnHookFn,
   type RoundHookFn,
   type CombatEndHookFn,
+  type DamageAppliedHookFn,
   type RegisteredTurnHook,
   type TurnHookRegistrations,
   isInitiativeFormulaRegistrationObject,
@@ -99,6 +100,8 @@ interface RegistrarAccumulator {
   onRoundStart: HookMap<RoundHookFn>;
   onRoundEnd: HookMap<RoundHookFn>;
   onCombatEnd: HookMap<CombatEndHookFn>;
+  /** Onda 2, finding B5 — same registry discipline, REQ-SYS-142 step 5. */
+  onDamageApplied: HookMap<DamageAppliedHookFn>;
   /** REQ-SYS-142: at most one per system. */
   actorMechanics: ActorMechanics | null;
 }
@@ -268,8 +271,9 @@ export interface SystemRegistrar extends CombatRegistrar {
    *
    * At most once per system: calling this twice is a programming error and
    * MUST throw. `onTurnStart`/`onTurnEnd`/`onRoundStart`/`onRoundEnd`/
-   * `onCombatEnd` (DEC-SYS-11) are inherited from CombatRegistrar via
-   * TurnHookRegistrar — same registrar object, same id+priority discipline.
+   * `onCombatEnd`/`onDamageApplied` (DEC-SYS-11) are inherited from
+   * CombatRegistrar via TurnHookRegistrar — same registrar object, same
+   * id+priority discipline.
    */
   registerActorMechanics(mechanics: ActorMechanics): void;
 }
@@ -421,12 +425,13 @@ export function defineSystem(
     onRoundStart: new Map(),
     onRoundEnd: new Map(),
     onCombatEnd: new Map(),
+    onDamageApplied: new Map(),
     actorMechanics: null,
   };
 
   // Monotonic counter shared by every turn-hook event — only used to
   // tie-break equal priorities WITHIN one event's own map (REQ-SYS-139), so a
-  // single shared counter is equivalent to (and simpler than) five separate
+  // single shared counter is equivalent to (and simpler than) six separate
   // per-event counters.
   let hookOrder = 0;
   const nextHookOrder = (): number => hookOrder++;
@@ -642,6 +647,18 @@ export function defineSystem(
       registerHook(acc.onCombatEnd, manifest.id, "onCombatEnd", id, fn, opts, nextHookOrder);
     },
 
+    onDamageApplied(id: string, fn: DamageAppliedHookFn, opts?: { priority?: number }): void {
+      registerHook(
+        acc.onDamageApplied,
+        manifest.id,
+        "onDamageApplied",
+        id,
+        fn,
+        opts,
+        nextHookOrder,
+      );
+    },
+
     registerActorMechanics(mechanics: ActorMechanics): void {
       if (acc.actorMechanics !== null) {
         throw new Error(
@@ -665,6 +682,7 @@ export function defineSystem(
     onRoundStart: sortHookMap(acc.onRoundStart),
     onRoundEnd: sortHookMap(acc.onRoundEnd),
     onCombatEnd: sortHookMap(acc.onCombatEnd),
+    onDamageApplied: sortHookMap(acc.onDamageApplied),
   };
 
   const combat: SystemCombatConfig = {

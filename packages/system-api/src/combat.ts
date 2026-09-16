@@ -30,6 +30,7 @@ import type {
   ApplyConditionAck,
   RollMode,
   RollResultData,
+  DamageAppliedTarget,
 } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -151,6 +152,36 @@ export type CombatEndHookFn = (
 ) => void | Promise<void>;
 
 /**
+ * Hook invoked once per target after `actor:applyDamage` persists and
+ * broadcasts the summary (REQ-SYS-142 step 5) — "alimenta ReactionTrigger"
+ * (plan §2.1), letting a system react to damage a target just took (e.g. a
+ * Reactive-Shield-style reaction). `target` mirrors the broadcast summary's
+ * per-target line (`DamageAppliedTarget`, @fusion/shared/protocol.ts): same
+ * fields, same privileged-only HP/death fields, same redaction rule (D-04) —
+ * this hook does not get a separate, unredacted view.
+ *
+ * Unlike the five hooks above, this one is NOT combat-scoped: `applyDamage`
+ * has no dependency on an active encounter (a thrown alchemical bomb outside
+ * initiative still applies damage), so the event carries no `combat` field.
+ *
+ * Added 2026-09-16 (onda 2 adversarial review, finding B5): spec 15 already
+ * declared this hook's signature (line ~588) and REQUIRED its execution
+ * (REQ-SYS-142 step 5) before this type/registration existed — F1-02
+ * delivered the other five turn hooks but omitted this one. TYPE-LEVEL AND
+ * REGISTRATION ONLY here: the server that actually INVOKES these callbacks
+ * from ActorMechanicsService.applyDamage is ALQ-F1-08, out of this task's
+ * scope (same split as the five hooks above and `registerActorMechanics`).
+ */
+export type DamageAppliedHookFn = (
+  e: {
+    target: DamageAppliedTarget;
+    actor: Record<string, unknown> | null;
+    sourceMessageId: string;
+  },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+
+/**
  * Services available to a turn/round/combatEnd hook, acting on behalf of the
  * system (`actingAs: "system"` — DEC-SYS-12). Every write goes through the
  * SAME validation/persistence/broadcast path as a client op (REQ-SYS-140):
@@ -186,8 +217,10 @@ export interface RegisteredTurnHook<Fn> {
 }
 
 /**
- * The five turn-hook registries carried on a built SystemModule, each already
- * sorted per REQ-SYS-139 (priority descending, then registration order).
+ * The six turn/damage-hook registries carried on a built SystemModule, each
+ * already sorted per REQ-SYS-139 (priority descending, then registration
+ * order). `onDamageApplied` joined the other five 2026-09-16 (onda 2, finding
+ * B5) — see DamageAppliedHookFn's own doc comment above.
  *
  * Spec: 15-api-de-sistemas.md §"Hooks de turno aguardados e mecânica de ator".
  */
@@ -197,6 +230,7 @@ export interface TurnHookRegistrations {
   readonly onRoundStart: ReadonlyArray<RegisteredTurnHook<RoundHookFn>>;
   readonly onRoundEnd: ReadonlyArray<RegisteredTurnHook<RoundHookFn>>;
   readonly onCombatEnd: ReadonlyArray<RegisteredTurnHook<CombatEndHookFn>>;
+  readonly onDamageApplied: ReadonlyArray<RegisteredTurnHook<DamageAppliedHookFn>>;
 }
 
 /**
@@ -207,7 +241,8 @@ export interface TurnHookRegistrations {
  * the same `id` MAY be reused across DIFFERENT events (each event keeps its
  * own id namespace). `priority` defaults to 0; within an event, callbacks run
  * in priority-descending order, tie-broken by registration order
- * (REQ-SYS-139).
+ * (REQ-SYS-139). `onDamageApplied` (REQ-SYS-142 step 5) follows the exact
+ * same discipline as the other five — REQ-SYS-144's single extension point.
  */
 export interface TurnHookRegistrar {
   onTurnStart(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
@@ -215,6 +250,7 @@ export interface TurnHookRegistrar {
   onRoundStart(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
   onRoundEnd(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
   onCombatEnd(id: string, fn: CombatEndHookFn, opts?: { priority?: number }): void;
+  onDamageApplied(id: string, fn: DamageAppliedHookFn, opts?: { priority?: number }): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +378,7 @@ export interface CombatRegistrar extends TurnHookRegistrar {
  * `hooks` is the single (optional) CombatSystemHooks for the system.
  *
  * `turnHooks` (DEC-SYS-11) is the id+priority registry described above —
- * ALWAYS present (each of its five arrays is empty when the system
+ * ALWAYS present (each of its six arrays is empty when the system
  * registered nothing for that event), already merged with whatever
  * `registerCombatHooks` contributed as `id: "legacy"` entries (REQ-SYS-141).
  */
