@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 712 | 35% |
-| Citados só por código de produção | 316 | 16% |
-| Sem nenhuma citação | 981 | 49% |
+| Citados por algum teste | 716 | 36% |
+| Citados só por código de produção | 321 | 16% |
+| Sem nenhuma citação | 972 | 48% |
 | **Total [MVP]** | **2009** | |
 
 ## Por spec
@@ -33,13 +33,13 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 86 | 14 | 28 | 44 | 16% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 11 | 24 | 29% |
-| [09](09-chat-e-mensagens.md) | 51 | 13 | 10 | 28 | 25% |
-| [10](10-combate-e-iniciativa.md) | 50 | 16 | 28 | 6 | 32% |
+| [09](09-chat-e-mensagens.md) | 51 | 13 | 12 | 26 | 25% |
+| [10](10-combate-e-iniciativa.md) | 50 | 16 | 29 | 5 | 32% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 71 | 19 | 29 | 23 | 27% |
+| [15](15-api-de-sistemas.md) | 71 | 23 | 31 | 17 | 32% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
 | [17](17-sistema-pf2e.md) | 96 | 43 | 14 | 39 | 45% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
