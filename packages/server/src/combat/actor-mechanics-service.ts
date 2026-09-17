@@ -28,7 +28,17 @@
  *     implemented: `RollResultData` (`08-motor-de-rolagens.md`) carries none
  *     of these fields today — there is nothing server-side to reread them
  *     FROM. Only `amount` (via `rolls[].total`) and `basicSave.degree` (via
- *     `rolls[].degreeOfSuccess`, below) are anti-cheat-checked.
+ *     `rolls[].degreeOfSuccess`, below) are anti-cheat-checked; a
+ *     non-privileged caller's `critical`/`nonlethal`/`traits`/`materials`
+ *     travel from the payload UNVERIFIED into `ResolvedDamageInstance`, even
+ *     with `source` set (onda-4 verification finding). Harmless against
+ *     THIS task's fake test mechanic (it ignores them), but a REAL anti-
+ *     cheat gap the moment a mechanic uses them for IWR math: a forged
+ *     `critical: true` doubles damage on a non-crit hit, a forged
+ *     `materials: ["cold-iron"]` fakes triggering a weakness. Cannot be
+ *     closed here without inventing a richer persisted-roll shape — needs a
+ *     design decision alongside ALQ-F1-06 (the real pf2e mechanic), not a
+ *     unilateral fix in this task.
  *   - Step 2c's `multiplier`-vs-`degreeOfSuccess` validation is not
  *     implemented for the same reason (no core-level mapping from a
  *     system-opaque `degreeOfSuccess` string to a legal multiplier exists).
