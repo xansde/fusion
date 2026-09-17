@@ -189,6 +189,69 @@
       "resumo": "Descrição da pré-visualização convertida para texto limpo reusando sanitizeDescriptionToText; sem {@html}, 13 vetores de XSS testados sem sobreviventes.",
       "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
       "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F0-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "16 dos 67 talentos do Alquimista com trait `legacy` por publication.remaster (curadoria genérica, sem lista de nomes); selo 'Legado' e filtro real 'Esconder legado' no CompendiumPickerDialog. Correção da revisão estendeu para 491/491 docs do feats-core.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F1-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "resolveConditionApplication (add/remove/set/increase/decrease), imunidade bloqueia com nota, maior valor prevalece, dying>0 traz unconscious; registrou registerActorMechanics e fiou o applyDamage da F1-06. Duração da condição corrigida na revisão (I5).",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F1-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "Handler actor:applyDamage + ActorMechanicsService: relê o total da rolagem gravada, alvos de não-privilegiado só via targetSnapshot, damageApplied redigido por papel. Revisão fechou B1 (dono da rolagem), B2 (idempotência), B3 parcial, I1 (token oculto) e I4 (defeated).",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F2-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "resolveExpirations puro no engine-2e (duração pelo turno do ator de origem) + hook pf2e.effectExpiry. Estava inerte em produção (deleteEmbedded stub); a correção B4 ligou deleteEmbedded/chat no TurnHookContext com e2e provando a remoção na borda de turno.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F2-13": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "ItemStrike de bomba pela trait (consumable canônico e weapon cadastrado à mão), sem equipar; proficiência nomeada weapon-base-alchemical-bomb via predicate. I6 da revisão corrigiu a queda para Destreinado: bomba é arma marcial.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F2-20": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "haiku/low",
+      "resumo": "Os dois Aeon Stones confirmados OGL/pré-remaster contra o vendor real e mantidos no subset MVP; a revisão cobrou o teste de política do pack, entregue em pack-remaster-policy.test.mjs.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F3-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "opus/high",
+      "resumo": "Spec 47 (FAB) com 40 REQ [MVP], 6 DEC-FAB, 3 RNF, 12 CA; D-06/07/08 refletidas. Emendas: REQ-SYS-145..148 na 15 e Craft saindo do [V2] na 17 (para REQ-FAB-039). spec-lint zerado.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
     }
   },
   "rodadas": [
@@ -302,6 +365,41 @@
       },
       "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
       "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    {
+      "onda": 4,
+      "tarefas": [
+        "ALQ-F0-03",
+        "ALQ-F1-07",
+        "ALQ-F1-08",
+        "ALQ-F2-09",
+        "ALQ-F2-13",
+        "ALQ-F2-20",
+        "ALQ-F3-01"
+      ],
+      "integradas": [
+        "ALQ-F0-03",
+        "ALQ-F1-07",
+        "ALQ-F1-08",
+        "ALQ-F2-09",
+        "ALQ-F2-13",
+        "ALQ-F2-20",
+        "ALQ-F3-01"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 12,
+        "abertos": [
+          "B3 parcial: type/category/traits/materials do payload de dano seguem sem verificação contra a rolagem — RollResultData não carrega esses campos, fechá-los é mudança de contrato. Issue xansde/fusion#225.",
+          "B4 parcial: roll/updateActor/createEmbedded continuam stub no TurnHookContext. Issue xansde/fusion#226.",
+          "Expiração cross-actor: o hook só recebe o ator cujo turno transiciona, nunca o de origem quando são diferentes. Issue xansde/fusion-systems-2e#84.",
+          "Trait legacy ausente em outros 9 packs (1033 documentos). Issue xansde/fusion-systems-2e#85.",
+          "Dívida SF2e do applyCondition. Issue xansde/fusion-systems-2e#83.",
+          "1 citação de REQ sobrevivente na spec 47 (REQ-SEC-020 x DEC-SEC-03) e 7 achados menores em .fusion-build/alquimista/onda-4/REVISAO.md."
+        ]
+      },
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
     }
   ],
   "lotes": {}
