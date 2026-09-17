@@ -679,7 +679,15 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   `@Template[type:burst distance:20]`, `@UUID[...]` — renderizando-os como botões
   clicáveis (`ver 09-chat-e-mensagens.md`, `ver 11-ui-framework-e-fichas.md`).
 - **REQ-PF2-103** [V2] Exploration/downtime activities (Avoid Notice, Scout,
-  Search, Investigate, Craft, Earn Income) com automação.
+  Search, Investigate, Earn Income) com automação.
+
+  > **Emenda de 2026-09-17** (plano do Alquimista, ALQ-F3-01; decisão D-07 do Alexandre).
+  > **Reclassificação:** a atividade **Craft** sai desta lista [V2] e passa a [MVP] sob a spec
+  > `47-fabricacao-e-alquimia.md` (REQ-FAB-039), que a especifica como op de servidor com
+  > rolagem de Crafting contra a DC por nível (REQ-PF2-042) e custo emitido por porta, sem
+  > desconto de moeda. As demais atividades de exploração e downtime continuam [V2] neste
+  > mesmo id — nenhum id é renumerado (`CONVENCOES.md` §4). O que permanece fora de escopo
+  > aqui e lá é a **passagem de tempo**: não há relógio de downtime (REQ-PF2-223).
 
 ### Fichas (sheets)
 
@@ -1476,50 +1484,51 @@ interface EffectSystem {
 > parcial (automação + input manual) · **M** = manual/assistido (sem automação,
 > ferramenta de apoio). Baseado na pesquisa 13 §16.
 
-| Mecânica                                        | MVP       | Notas                                            |
-| ----------------------------------------------- | --------- | ------------------------------------------------ |
-| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                      |
-| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                      |
-| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                 |
-| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                      |
-| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                      |
-| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                      |
-| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                 |
-| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M               |
-| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                      |
-| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                      |
-| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                 |
-| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                      |
-| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                      |
-| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável              |
-| IWR no apply damage                             | A         | REQ-PF2-060                                      |
-| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                 |
-| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                      |
-| Dano massivo (dobro do PV máximo num golpe)     | A         | REQ-PF2-212a                                     |
-| Consumo de item (carga, quantidade, destruição) | A         | REQ-PF2-224                                      |
-| Efeito e cura no uso de consumível              | A         | REQ-PF2-225                                      |
-| Efeito com duração: cópia, contagem, expiração  | A         | em combate; REQ-PF2-217..220                     |
-| Strike de bomba (sem equipar, gasta ao rolar)   | A         | REQ-PF2-226, REQ-PF2-227                         |
-| Respingo e persistente da bomba                 | P         | campos derivados; conta na fase de dano          |
-| Passagem de tempo fora de combate               | M         | sem relógio de mundo, REQ-PF2-223                |
-| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                      |
-| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                      |
-| Focus points + refocus                          | A         | REQ-PF2-083                                      |
-| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                      |
-| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                      |
-| Bulk/encumbrance                                | A         | REQ-PF2-120                                      |
-| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                      |
-| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                      |
-| Iniciativa por skill                            | A         | REQ-PF2-090                                      |
-| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101   |
-| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                      |
-| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052 |
-| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04  |
-| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                 |
-| Exploration/Downtime/Crafting                   | M / A(V2) | REQ-PF2-103                                      |
-| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                 |
-| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                     |
-| Party/Kingmaker                                 | A(V2)     | fora do MVP                                      |
+| Mecânica                                        | MVP       | Notas                                              |
+| ----------------------------------------------- | --------- | -------------------------------------------------- |
+| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                        |
+| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                        |
+| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                   |
+| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                        |
+| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                        |
+| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                        |
+| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                   |
+| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M                 |
+| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                        |
+| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                        |
+| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                   |
+| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                        |
+| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                        |
+| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável                |
+| IWR no apply damage                             | A         | REQ-PF2-060                                        |
+| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                   |
+| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                        |
+| Dano massivo (dobro do PV máximo num golpe)     | A         | REQ-PF2-212a                                       |
+| Consumo de item (carga, quantidade, destruição) | A         | REQ-PF2-224                                        |
+| Efeito e cura no uso de consumível              | A         | REQ-PF2-225                                        |
+| Efeito com duração: cópia, contagem, expiração  | A         | em combate; REQ-PF2-217..220                       |
+| Strike de bomba (sem equipar, gasta ao rolar)   | A         | REQ-PF2-226, REQ-PF2-227                           |
+| Respingo e persistente da bomba                 | P         | campos derivados; conta na fase de dano            |
+| Passagem de tempo fora de combate               | M         | sem relógio de mundo, REQ-PF2-223                  |
+| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                        |
+| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                        |
+| Focus points + refocus                          | A         | REQ-PF2-083                                        |
+| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                        |
+| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                        |
+| Bulk/encumbrance                                | A         | REQ-PF2-120                                        |
+| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                        |
+| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                        |
+| Iniciativa por skill                            | A         | REQ-PF2-090                                        |
+| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101     |
+| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                        |
+| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052   |
+| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04    |
+| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                   |
+| Craft (atividade)                               | A         | rolagem no servidor + custo por porta, REQ-FAB-039 |
+| Exploration/Downtime (demais)                   | M / A(V2) | REQ-PF2-103                                        |
+| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                   |
+| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                       |
+| Party/Kingmaker                                 | A(V2)     | fora do MVP                                        |
 
 ### Fontes de dados
 
