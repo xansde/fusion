@@ -90,17 +90,25 @@
 import type { Namespace } from "socket.io";
 import type { Logger } from "pino";
 import type { Database as Db } from "better-sqlite3";
-import { ActorApplyDamagePayloadSchema, createDocumentId } from "@fusion/shared";
+import {
+  ActorApplyDamagePayloadSchema,
+  ActorApplyConditionPayloadSchema,
+  createDocumentId,
+} from "@fusion/shared";
 import type {
   ActorApplyDamagePayload,
+  ActorApplyConditionPayload,
+  ActorConditionAppliedResult,
   ActorDamageAppliedPayload,
   ApplyDamageAck,
+  ApplyConditionAck,
   ChatSpeaker,
   DamageAppliedTarget,
   DamageAppliedTypeBreakdown,
 } from "@fusion/shared";
 import type {
   ActorMechanicsPatch,
+  ApplyConditionOptions,
   ApplyDamageOptions,
   ResolvedDamageInstance,
   SystemModule,
@@ -124,7 +132,8 @@ import {
   tokenLookupSourceFromStore,
 } from "../net/redaction.js";
 import type { TokenLookupSource } from "../net/redaction.js";
-import { locateToken } from "./target-selection.js";
+import { assertTargetsSelected, locateToken } from "./target-selection.js";
+import type { TargetingStore } from "./targeting-store.js";
 import {
   buildBaseMessage,
   persistChatMessage,
@@ -151,6 +160,12 @@ export interface ActorMechanicsServiceDeps {
    * buffer/broadcast the `combat:updated` envelope when `flags.dead` marks a
    * combatant defeated. */
   opBuffer: OpBuffer;
+  /** ALQ-F1-09 (REQ-CBT-056): `applyCondition`'s own target-resolution gate
+   * for a non-privileged caller — every `targetTokenIds` entry must be in the
+   * caller's CURRENT live TargetSelection (`assertTargetsSelected`,
+   * combat/target-selection.ts). Unused by `applyDamage`, which resolves
+   * targets from the roll message's frozen snapshot instead (D-02). */
+  targetingStore: TargetingStore;
   worldId: string;
   systemModule: SystemModule | undefined;
   logger?: Logger;
@@ -158,6 +173,8 @@ export interface ActorMechanicsServiceDeps {
 
 export interface ActorMechanicsService {
   applyDamage(rawPayload: unknown, caller: ActorMechanicsCaller): Promise<ApplyDamageAck>;
+  /** ALQ-F1-09 — REQ-SYS-142 (applyCondition clause), REQ-PF2-215, REQ-CBT-056. */
+  applyCondition(rawPayload: unknown, caller: ActorMechanicsCaller): Promise<ApplyConditionAck>;
 }
 
 // ---------------------------------------------------------------------------
@@ -282,6 +299,19 @@ function forbidden(message: string): ApplyDamageAck {
 }
 
 function validationFailed(message: string): ApplyDamageAck {
+  return { ok: false, code: "VALIDATION_FAILED", message };
+}
+
+// ALQ-F1-09: condition-flavoured counterparts of the two helpers above. The
+// error branch ({ok:false, code, message}) is structurally identical
+// regardless of the success payload type — kept as separate, tiny functions
+// rather than making `forbidden`/`validationFailed` generic, so this task's
+// diff never touches ALQ-F1-08's own already-reviewed helpers.
+function forbiddenCondition(message: string): ApplyConditionAck {
+  return { ok: false, code: "FORBIDDEN", message };
+}
+
+function validationFailedCondition(message: string): ApplyConditionAck {
   return { ok: false, code: "VALIDATION_FAILED", message };
 }
 
@@ -451,6 +481,120 @@ function resolveTargets(
 }
 
 // ---------------------------------------------------------------------------
+// Target resolution for applyCondition (ALQ-F1-09) — REQ-SYS-142's
+// applyCondition clause of step 3, REQ-CBT-056, plan §2.4.
+// ---------------------------------------------------------------------------
+
+type ConditionTargetResolution =
+  | { ok: true; targets: ResolvedApplyTarget[] }
+  | { ok: false; ack: ApplyConditionAck };
+
+/**
+ * GM may target any actor via `targetTokenIds` (or `selfActorId`, same
+ * OWNER-free privileged path {@link resolveTargets} uses for ApplyDamage); a
+ * non-privileged caller may only target their OWN actor (`selfActorId`,
+ * OWNER-checked) or tokens currently in their OWN live TargetSelection
+ * (`assertTargetsSelected`, plan §2.3). There is no roll message/frozen
+ * snapshot for this op (unlike ApplyDamage) — `targetTokenIds` is read
+ * directly off the payload for EVERY caller; what differs by privilege is the
+ * GATE applied to it, never the source.
+ */
+function resolveConditionTargets(
+  store: DocumentStore,
+  targetingStore: TargetingStore,
+  payload: ActorApplyConditionPayload,
+  privileged: boolean,
+  caller: { userId: string; role: number } | undefined,
+): ConditionTargetResolution {
+  // selfActorId takes precedence over targetTokenIds — same convention
+  // resolveTargets (ApplyDamage) uses above.
+  if (payload.selfActorId !== undefined) {
+    let actor: Record<string, unknown>;
+    try {
+      actor = store.get("actors", payload.selfActorId);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) {
+        return {
+          ok: false,
+          ack: validationFailedCondition(`selfActorId "${payload.selfActorId}" not found`),
+        };
+      }
+      throw err;
+    }
+    if (!privileged) {
+      if (!caller) {
+        return {
+          ok: false,
+          ack: forbiddenCondition("selfActorId requires an authenticated caller"),
+        };
+      }
+      const level = resolveOwnership(readOwnership(actor), caller.userId, caller.role);
+      if (level < OwnershipLevel.OWNER) {
+        return { ok: false, ack: forbiddenCondition("selfActorId requires OWNER ownership") };
+      }
+    }
+    const token = findTokenForActor(store, payload.selfActorId);
+    return {
+      ok: true,
+      targets: [
+        {
+          tokenId: token?.tokenId ?? null,
+          actorId: payload.selfActorId,
+          sceneId: token?.sceneId ?? null,
+        },
+      ],
+    };
+  }
+
+  if (payload.targetTokenIds.length === 0) {
+    return {
+      ok: false,
+      ack: validationFailedCondition(
+        "no target specified (empty targetTokenIds and no selfActorId)",
+      ),
+    };
+  }
+
+  if (!privileged) {
+    if (!caller) {
+      return {
+        ok: false,
+        ack: forbiddenCondition("resolving targets requires an authenticated caller"),
+      };
+    }
+    const assertion = assertTargetsSelected(
+      store,
+      targetingStore,
+      caller.userId,
+      caller.role,
+      payload.targetTokenIds,
+    );
+    if (!assertion.ok) {
+      return {
+        ok: false,
+        ack: forbiddenCondition(
+          `target(s) not in your live selection: ${assertion.missing.join(", ")}`,
+        ),
+      };
+    }
+  }
+
+  const resolved: ResolvedApplyTarget[] = [];
+  for (const tokenId of payload.targetTokenIds) {
+    const loc = locateToken(store, tokenId);
+    if (!loc || loc.actorId === null) continue;
+    resolved.push({ tokenId, actorId: loc.actorId, sceneId: loc.sceneId });
+  }
+  if (resolved.length === 0) {
+    return {
+      ok: false,
+      ack: validationFailedCondition("none of targetTokenIds resolved to an actor-bound token"),
+    };
+  }
+  return { ok: true, targets: resolved };
+}
+
+// ---------------------------------------------------------------------------
 // byType / deathCondition derivation
 // ---------------------------------------------------------------------------
 
@@ -583,6 +727,7 @@ export function createActorMechanicsService(
   const service: ActorMechanicsService = {
     applyDamage: (rawPayload, caller) =>
       applyDamage(deps, service, tokenSource, appliedKeys, rawPayload, caller),
+    applyCondition: (rawPayload, caller) => applyCondition(deps, rawPayload, caller),
   };
   return service;
 }
@@ -913,4 +1058,153 @@ async function runOnDamageAppliedHooks(
       );
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// applyCondition (ALQ-F1-09) — REQ-SYS-142 (applyCondition clause of step 3),
+// REQ-PF2-215, REQ-CBT-056.
+//
+// Same skeleton as applyDamage above: validate payload, resolve privilege,
+// require a registered mechanic, resolve targets, call the mechanic ONCE PER
+// TARGET, persist the patch. Two deliberate differences from applyDamage:
+//   - No roll message / frozen snapshot exists for this op (REQ-PF2-215 names
+//     none) — `targetTokenIds` is read directly off the payload for EVERY
+//     caller; what differs by privilege is the GATE (resolveConditionTargets
+//     above), never the source.
+//   - No REQ-CHT-053 broadcast card: that requirement's own text scopes
+//     itself to `actor:applyDamage` alone ("Toda aplicação aceita de
+//     actor:applyDamage DEVE produzir uma ChatMessage de resumo
+//     actor:damageApplied") — REQ-PF2-215 and the plan's §2.4 contract name
+//     no chat-side effect for applyCondition, so this task publishes none.
+//     The ack (`ApplyConditionAck`) is what the caller consumes directly.
+//
+// KNOWN, DOCUMENTED GAP (same discipline ALQ-F1-08 used for its own
+// divergences, see this module's header): REQ-SYS-142 step 4's "mark the
+// combatant defeated" (REQ-CBT-059) is written once, generically, for "the
+// service" — but REQ-CBT-059 is not in THIS task's own Spec/REQ list (only
+// ALQ-F1-08 names it), and `markCombatantDefeatedForActor` needs deps
+// (`opBuffer`/`ns`/broadcast wiring) this function does not reach for. A GM
+// setting the `dead` slug directly via `actor:applyCondition` (REQ-PF2-215
+// explicitly allows `dead` as a slug) therefore does NOT mark a combatant
+// `defeated` the way a killing `actor:applyDamage` does. Left open for a
+// future task/reviewer decision rather than invented here.
+// ---------------------------------------------------------------------------
+
+/**
+ * `ApplyConditionOptions.now` (I5 fix, plan §2.5) — the server-resolved
+ * combat/round anchor a duration-bearing condition's `system.fusion.startedAt`
+ * needs (system-pf2e's `attachConditionMeta`). Resolved PER TARGET (each
+ * target's token may sit in a different scene, hence a different active
+ * encounter) from the ACTIVE (non-ended) combat of that target's scene — the
+ * same "active encounter of a scene" concept `combat-handlers.ts`'s
+ * `markCombatantDefeatedForActor` (REQ-CBT-059, ALQ-F1-08 I4) already scans
+ * for, duplicated here as a tiny read-only lookup rather than imported, to
+ * avoid pulling that function's broadcast/`DefeatedMarkerDeps` machinery into
+ * a pure read. `{combatId:null, round:null}` when there is no active combat in
+ * that scene, or the target has no resolvable scene at all (e.g. `selfActorId`
+ * on an actor with no token placed anywhere) — D-05 ("fora de combate nada
+ * corre sozinho"): a condition applied outside any encounter gets no round
+ * anchor, matching `resolveConditionApplication`'s own "omitted, not
+ * null-filled" discipline for `startedAt`.
+ */
+function resolveNow(store: DocumentStore, sceneId: string | null): ApplyConditionOptions["now"] {
+  if (sceneId === null) return { combatId: null, round: null };
+  const combat = store
+    .getAll("combats")
+    .find((c) => c["ended"] !== true && c["sceneId"] === sceneId);
+  if (!combat) return { combatId: null, round: null };
+  const combatId = combat["_id"];
+  const round = combat["round"];
+  return {
+    combatId: typeof combatId === "string" ? combatId : null,
+    round: typeof round === "number" ? round : null,
+  };
+}
+
+function computeApplyCondition(
+  deps: ActorMechanicsServiceDeps,
+  rawPayload: unknown,
+  caller: ActorMechanicsCaller,
+): ApplyConditionAck {
+  const parsed = ActorApplyConditionPayloadSchema.safeParse(rawPayload);
+  if (!parsed.success) {
+    return validationFailedCondition(parsed.error.message);
+  }
+  const payload = parsed.data;
+
+  const userCtx = caller === "system" ? undefined : caller;
+  const privileged = caller === "system" || isRolePrivileged(caller.role);
+
+  const mechanics = deps.systemModule?.actorMechanics;
+  if (!mechanics) {
+    return {
+      ok: false,
+      code: "NOT_SUPPORTED",
+      message: "no ActorMechanics registered for the active system",
+    };
+  }
+
+  const targetResolution = resolveConditionTargets(
+    deps.store,
+    deps.targetingStore,
+    payload,
+    privileged,
+    userCtx,
+  );
+  if (!targetResolution.ok) return targetResolution.ack;
+
+  const results: ActorConditionAppliedResult[] = [];
+  for (const target of targetResolution.targets) {
+    let actorBefore: Record<string, unknown>;
+    try {
+      actorBefore = deps.store.get("actors", target.actorId);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) continue;
+      throw err;
+    }
+
+    const opts: ApplyConditionOptions = { now: resolveNow(deps.store, target.sceneId) };
+    const patch = mechanics.applyCondition(actorBefore, payload, opts);
+    applyMechanicsPatch(deps.store, target.actorId, actorBefore, patch);
+
+    // Echo the REQUEST's own slug/mode/value back per target, rather than
+    // reverse-engineering a "final value" out of the patch: the patch's
+    // embedded-item shape is system-owned (DEC-SYS-12 — e.g. pf2e's
+    // `type: "condition"` / `system.slug` convention lives in
+    // conditions-manager.ts, never in this core module), so deriving a value
+    // here would mean this core function learning a system-specific document
+    // shape it has no contract to know. `slug`/`mode`/`value` are exactly the
+    // core-level vocabulary `ActorApplyConditionPayload`/
+    // `ActorMechanics.applyCondition` already commit to.
+    results.push({
+      actorId: target.actorId,
+      slug: payload.slug,
+      mode: payload.mode,
+      ...(payload.value !== undefined ? { value: payload.value } : {}),
+    });
+  }
+
+  if (results.length === 0) {
+    return { ok: false, code: "NOT_FOUND", message: "no target actor could be resolved" };
+  }
+
+  return { ok: true, result: { targets: results } };
+}
+
+/**
+ * Thin Promise wrapper — `ActorMechanicsService.applyCondition` and
+ * `TurnHookContext.applyCondition` (plan §2.2) both declare a
+ * Promise-returning signature (room for a future async mechanic/persist
+ * step), but every step {@link computeApplyCondition} takes today is
+ * synchronous (`DocumentStore` is sync, and the registered mechanic itself is
+ * a pure, sync function) — matching this codebase's own convention for such
+ * cases (see `turn-hook-runner.ts`'s stub services, which return
+ * `Promise.resolve(...)` rather than declaring `async` with no `await`).
+ */
+function applyCondition(
+  deps: ActorMechanicsServiceDeps,
+  rawPayload: unknown,
+  caller: ActorMechanicsCaller,
+): Promise<ApplyConditionAck> {
+  return Promise.resolve(computeApplyCondition(deps, rawPayload, caller));
 }
