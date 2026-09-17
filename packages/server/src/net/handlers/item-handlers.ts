@@ -64,7 +64,7 @@ import { ConsumePlanValidationError } from "@fusion/system-api";
 import type { HandlerContext, HandlerFn } from "../handler-registry.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
 import type { DocumentStoreTransaction, DocumentStore } from "../../documents/store.js";
-import { isRolePrivileged, resolveOwnership } from "../../documents/ownership.js";
+import { isRolePrivileged, resolveOwnership, UserRole } from "../../documents/ownership.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import { broadcastToWorld } from "./doc-handlers.js";
@@ -208,7 +208,6 @@ function applyConsumePlanWrites(
   actorBefore: Record<string, unknown>,
   plan: ConsumePlan,
   planCtx: ConsumePlanContext,
-  viewerRole: number,
 ): ApplyWritesResult {
   let items = readItems(actorBefore);
   let actorDiff: Record<string, unknown> = {};
@@ -242,7 +241,18 @@ function applyConsumePlanWrites(
       );
       continue;
     }
-    const doc = deps.compendium.getDocumentBySourceRef(viewerRole, {
+    // I4 fix (onda-5 adversarial review, `.fusion-build/alquimista/onda-5/
+    // REVISAO.md`): this used to resolve with the CALLER's own role
+    // (`viewerRole`), so a pack marked `audience: "gm"` had its effect
+    // applied for the GM and silently skipped (only a `logger.warn`,
+    // `ack: {ok:true}`) for a player — even one already authorized (OWNER
+    // check above) to consume the item. The audience gate is about what a
+    // client may BROWSE in the compendium (REQ-CPD-071); it has no business
+    // gating a mechanical effect an already-authorized consume plans to
+    // apply. The server resolves this as itself — `UserRole.GAMEMASTER` is
+    // used purely as the "privileged enough to see every pack" sentinel
+    // here, same discipline as `ApplyDamageOptions.actingAs: "system"`.
+    const doc = deps.compendium.getDocumentBySourceRef(UserRole.GAMEMASTER, {
       packName: pe.packId,
       sourceId: pe.sourceId,
     });
@@ -444,7 +454,6 @@ async function consumeItem(
         actor,
         plan,
         planCtx,
-        ctx.role,
       );
 
       return { actorAfter, appliedEffectIds, plan, item };

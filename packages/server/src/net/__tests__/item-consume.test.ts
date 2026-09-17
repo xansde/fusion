@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { io as ioClient } from "socket.io-client";
@@ -35,6 +35,7 @@ import { Role } from "../../auth/user-store.js";
 import { loadOrCreateSecret } from "../../auth/crypto.js";
 import { registerAuthRoutes } from "../../auth/routes.js";
 import { SocketManager } from "../socket-manager.js";
+import { CompendiumService } from "../../compendium/service.js";
 import { reserveFreePort, listeningPort } from "../../__tests__/helpers/ports.js";
 import { PROTOCOL_VERSION, OwnershipLevel, defaultStats } from "@fusion/shared";
 import { defineSystem, ConsumePlanValidationError } from "@fusion/system-api";
@@ -68,6 +69,14 @@ const HOOK_ACTOR_ID = "hookActor0000000";
 const HOOK_ITEM_ID = "hookItem00000000";
 const HEAL_MAX_HP = 20;
 const HEAL_STARTING_HP = 10;
+
+// I4 fix fixtures (onda-5 adversarial review) — an item whose plan() plans
+// an effect living in a pack with `audience: "gm"`.
+const EFFECT_ACTOR_ID = "effectActor00000";
+const EFFECT_ITEM_ID = "effectItem000000";
+const GM_PACK_NAME = "gm-effects";
+const GM_EFFECT_SOURCE_ID = "gmEffectSource01";
+const GM_EFFECT_DOC_ID = "gmEffectDoc00001";
 
 const VALID_MANIFEST = {
   id: "test-system",
@@ -131,6 +140,11 @@ function makeFakeConsumeItemDefinition(): ConsumeItemDefinition {
         uses: { value: number; max: number; autoDestroy: boolean };
         quantity: number;
         damage?: { formula: string; kind: string; type: string };
+        // I4 fix fixture (onda-5 adversarial review): when present, plan()
+        // plans an effect from this (packName, sourceId) — the ONLY way
+        // this suite can exercise `applyConsumePlanWrites`'s
+        // `getDocumentBySourceRef` call, since `effects: []` always before.
+        effectRef?: { packName: string; sourceId: string };
       };
       if (system.uses.value < 1) {
         throw new ConsumePlanValidationError(`item "${itemId}" has no charges left`);
@@ -178,12 +192,24 @@ function makeFakeConsumeItemDefinition(): ConsumeItemDefinition {
         });
       }
 
+      const effects = system.effectRef
+        ? [
+            {
+              targetActorId: actor["_id"] as string,
+              sourceId: system.effectRef.sourceId,
+              packId: system.effectRef.packName,
+              origin: { actorId: actor["_id"] as string },
+              expiry: { on: "never" as const, ownerActorId: actor["_id"] as string },
+            },
+          ]
+        : [];
+
       return {
         writes,
         consumed: destroyed
           ? { itemId, quantityLeft: 0, destroyed: true }
           : { itemId, quantityLeft, destroyed: false },
-        effects: [],
+        effects,
         damage,
         cards: [{ content: `consumiu item ${itemId}` }],
         notes: [],
@@ -293,6 +319,12 @@ function seedActors(db: FusionDatabase, ownerId: string): void {
     makeActor(HOOK_ACTOR_ID, "Alquimista Hook", ownership, [
       consumableItem(HOOK_ITEM_ID, { quantity: 1 }),
     ]),
+    makeActor(EFFECT_ACTOR_ID, "Alquimista Effect", ownership, [
+      consumableItem(EFFECT_ITEM_ID, {
+        quantity: 1,
+        effectRef: { packName: GM_PACK_NAME, sourceId: GM_EFFECT_SOURCE_ID },
+      }),
+    ]),
   ];
 
   for (const actor of fixtures) {
@@ -305,7 +337,54 @@ function seedActors(db: FusionDatabase, ownerId: string): void {
   }
 }
 
-async function buildTestContext(): Promise<TestContext> {
+/**
+ * A minimal on-disk pack with `audience: "gm"` and ONE document, carrying
+ * `flags.fusion.{packName,sourceId}` matching {@link GM_PACK_NAME}/
+ * {@link GM_EFFECT_SOURCE_ID} — I4 fix fixture (onda-5 adversarial review):
+ * `CompendiumService.getDocumentBySourceRef` resolves this document only for
+ * a `viewerRole` `isRolePrivileged` accepts (REQ-CPD-071), which is exactly
+ * the gate `item-handlers.ts` must NOT apply to `plan.effects` resolution.
+ */
+function buildGmAudiencePackCompendium(): { compendium: CompendiumService; packRoot: string } {
+  const packRoot = join(
+    tmpdir(),
+    `fusion-item-consume-gm-pack-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+  );
+  const packDir = join(packRoot, "gm-effects");
+  mkdirSync(packDir, { recursive: true });
+
+  const manifest = {
+    id: "test-system.gm-effects",
+    label: "GM Effects (test)",
+    documentType: "Item",
+    systemId: "test-system",
+    indexFields: [],
+    license: { license: "custom", attribution: "test fixture", reservedNotice: "" },
+    audience: "gm",
+    source: { repo: null, version: null, importerVersion: "test" },
+    documentCount: 1,
+    generatedAt: new Date(0).toISOString(),
+    schemaVersion: 1,
+  };
+  writeFileSync(join(packDir, "pack.json"), JSON.stringify(manifest), "utf8");
+
+  const documents = [
+    {
+      _id: GM_EFFECT_DOC_ID,
+      name: "Efeito de Teste (GM)",
+      type: "effect",
+      system: {},
+      flags: { fusion: { packName: GM_PACK_NAME, sourceId: GM_EFFECT_SOURCE_ID } },
+    },
+  ];
+  writeFileSync(join(packDir, "documents.json"), JSON.stringify(documents), "utf8");
+
+  const compendium = new CompendiumService();
+  compendium.registerPackDir(packDir);
+  return { compendium, packRoot };
+}
+
+async function buildTestContext(opts: { compendiumService?: CompendiumService } = {}): Promise<TestContext> {
   const dataDir = makeTempDir();
   const dbPath = join(dataDir, "world.db");
   const worldId = "test-item-consume-world";
@@ -363,6 +442,7 @@ async function buildTestContext(): Promise<TestContext> {
     authService,
     systemId: "test-system",
     systemModule: makeSystemModule(hookLog),
+    compendiumService: opts.compendiumService,
   });
 
   const port = await reserveFreePort();
@@ -593,6 +673,79 @@ describe("item:consume", () => {
       });
       expect(ack["ok"], JSON.stringify(ack)).toBe(true);
       expect(ctx.hookLog).toEqual([`${HOOK_ACTOR_ID}:${HOOK_ITEM_ID}`]);
+    } finally {
+      socket.disconnect();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// I4 fix (onda-5 adversarial review, `.fusion-build/alquimista/onda-5/
+// REVISAO.md`): `applyConsumePlanWrites` resolved a planned effect's
+// document with `getDocumentBySourceRef(ctx.role, ...)` — the CALLER's own
+// role — so a pack marked `audience: "gm"` had its effect applied for the
+// GM and silently skipped (only a `logger.warn`, `appliedEffectIds: []`,
+// `ack: {ok:true}`) for a player, even though the player was already
+// authorized (OWNER of the actor) to consume the item. The server resolves
+// this as itself, not as the viewer — same discipline as `actingAs:
+// "system"` elsewhere (`ApplyDamageOptions`/`ApplyConditionOptions.now`).
+// Own describe block: needs its own `CompendiumService` (with a real,
+// `audience: "gm"` pack on disk), unlike every other test above, which
+// never touches the compendium at all (default empty service).
+// ---------------------------------------------------------------------------
+
+describe("item:consume — I4 fix: effect resolution must not depend on the caller's role", () => {
+  let ctx: TestContext;
+  let packRoot: string;
+
+  beforeEach(async () => {
+    const { compendium, packRoot: root } = buildGmAudiencePackCompendium();
+    packRoot = root;
+    ctx = await buildTestContext({ compendiumService: compendium });
+  });
+
+  afterEach(async () => {
+    await teardown(ctx);
+    rmSync(packRoot, { recursive: true, force: true });
+  });
+
+  function embeddedEffectFrom(actor: RawActor): Record<string, unknown> | undefined {
+    return actor.items?.find((it) => it["name"] === "Efeito de Teste (GM)");
+  }
+
+  it("um JOGADOR (não-privilegiado, mas OWNER do ator) consumindo o item recebe o efeito de um pack audience:gm", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const ack = await sendOp(socket, "item:consume", {
+        actorId: EFFECT_ACTOR_ID,
+        itemId: EFFECT_ITEM_ID,
+        mode: "use",
+        expectedVersion: 1,
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const result = ack["result"] as { appliedEffectIds: string[] };
+      expect(result.appliedEffectIds).toHaveLength(1);
+      const after = readActorRaw(ctx.fusionDb, EFFECT_ACTOR_ID);
+      expect(embeddedEffectFrom(after)).toBeDefined();
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("o GM consumindo o MESMO item recebe o MESMO efeito -- a mecânica não varia com quem chamou", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const ack = await sendOp(socket, "item:consume", {
+        actorId: EFFECT_ACTOR_ID,
+        itemId: EFFECT_ITEM_ID,
+        mode: "use",
+        expectedVersion: 1,
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const result = ack["result"] as { appliedEffectIds: string[] };
+      expect(result.appliedEffectIds).toHaveLength(1);
+      const after = readActorRaw(ctx.fusionDb, EFFECT_ACTOR_ID);
+      expect(embeddedEffectFrom(after)).toBeDefined();
     } finally {
       socket.disconnect();
     }
