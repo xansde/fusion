@@ -117,6 +117,78 @@
       "resumo": "Reconhecimento de flat-modifier e item-alteration unificado no RuleElementRegistry; snapshot byte-idêntico (166/166). Os scanners NÃO saíram do código — execução segue em hp.ts/speed.ts/equipment.ts. Risco de contagem dupla transferido à F2-08 (tasks.md emendado, issue #75).",
       "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
       "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F0-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "GrantItem dinâmico resolve as duas raízes de placeholder: {item|flags...} (111 grants) e {actor|flags...} (9 grants: Field Discovery/Advanced Vials/GFD do Alquimista + 6 Doctrines do Cleric), via parser compartilhado; sem seleção vira GrantFailure{unresolved-selection}. Escopo estendido pelo orquestrador.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F0-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "Class DC do Alquimista (17 no nív. 1 com Int +4) e proficiência de bombas como mapa por chave system.proficiencies.attacks['weapon-base-alchemical-bomb']; importer passou a preservar attacks.other do vendor.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F1-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "TurnHookRunner aguardado em série (turnEnd→roundEnd?→roundStart?→turnStart) e combatEnd antes de arquivar; erro de callback isolado e logado; ack só volta depois do await.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F1-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "resolveTargetSelection no server e foto imutável dos alvos em flags.fusion.targetSnapshot (D-02); client com getMyTargets/setMyTargets reativos. Vazamento de token oculto no snapshot achado pela revisão e corrigido via redaction.ts.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F1-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "resolveDamageApplication puro: IWR com exceções/materiais, PV temp. não-cumulativo, dying/wounded/doomed, dead no NPC a 0 (D-03), unconscious em não-letal. Correções da revisão: escala sobre o total por tipo e só a maior fraqueza/resistência.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F2-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Materializador pf2e leva efeitos, feats, classFeature, ancestry, heritage e equipamento equipado ao RuleElementRegistry; grantedConditions sem item órfão; gatilho SCAFFOLDING na ficha. Scanners hp/speed/damage-dice-faces ficaram como exceção em vez de migrar (D-10 pendente).",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F2-18": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "buildMechanicalFields ganhou case 'effect' e mostra a duração em linguagem de mesa (minuto/rodada/encontro/ilimitado), respeitando expiry e sustained.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F2-19": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "Descrição da pré-visualização convertida para texto limpo reusando sanitizeDescriptionToText; sem {@html}, 13 vetores de XSS testados sem sobreviventes.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
     }
   },
   "rodadas": [
@@ -193,6 +265,43 @@
       },
       "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
       "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    {
+      "onda": 3,
+      "tarefas": [
+        "ALQ-F0-07",
+        "ALQ-F0-08",
+        "ALQ-F1-04",
+        "ALQ-F1-05",
+        "ALQ-F1-06",
+        "ALQ-F2-08",
+        "ALQ-F2-18",
+        "ALQ-F2-19"
+      ],
+      "integradas": [
+        "ALQ-F0-07",
+        "ALQ-F0-08",
+        "ALQ-F1-04",
+        "ALQ-F1-05",
+        "ALQ-F1-06",
+        "ALQ-F2-08",
+        "ALQ-F2-18",
+        "ALQ-F2-19"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 4,
+        "abertos": [
+          "14 achados menores catalogados em REVISAO.md, sem cenário de falha que justifique consertar agora",
+          "D-10 não cumprida: scanners hp/speed/damage-dice-faces viraram exceção em vez de migrar para o registro; a revisão confirmou que nenhum seletor escapa contando em dobro, mas a justificativa numérica da lane (119/97) não reproduz (medido 134/111) e a interseção real com os scanners é de 3 regras",
+          "Field Discovery não chega a funcionar na tela: falta handler ActiveEffectLike/set-property no RuleElementRegistry para escrever a flag, e os 12 documentos-alvo do Alquimista não existem no pack (o Cleric só tem o primeiro gap)",
+          "Label da proficiência de bombas cai no fallback da chave até o pack classes-core ser regerado",
+          "Entidade duplamente codificada não decodifica 100% em documentDetails.ts (inofensivo hoje: o componente não usa {@html})",
+          "Sub-item de I1: multiplier+basicSave juntos são descartados em silêncio fora do Zod em vez de lançar erro; sem consumidor até F1-08/F5-03"
+        ]
+      },
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
     }
   ],
   "lotes": {}
