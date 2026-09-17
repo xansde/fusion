@@ -631,6 +631,28 @@ export const FusionExpirySchema = z
 export type FusionExpiry = z.infer<typeof FusionExpirySchema>;
 
 /**
+ * How long a condition applied via `actor:applyCondition` is declared to
+ * last (I5 fix, onda 4 revisão adversarial). Same six units as
+ * `EffectItemSystem.duration` (plan §2.5) — deliberately only `value`/`unit`
+ * (no `sustained`/inner `expiry`, which are EffectItem-specific concerns):
+ * `engine-2e`'s `resolveExpirations` (`ExpiryDuration`) only ever reads
+ * those two fields to convert a duration to a round count.
+ *
+ * Declarative "what the rule says" (like `expiry` itself, already
+ * client-declarable above) — never the anchor for "what round is it right
+ * now"; that is `ApplyConditionOptions.now` (`@fusion/system-api`,
+ * server-resolved only, same discipline as `ApplyDamageOptions.actingAs`).
+ */
+export const ConditionDurationSchema = z
+  .object({
+    value: z.number().int(),
+    unit: z.enum(["round", "minute", "hour", "day", "encounter", "unlimited"]),
+  })
+  .strict();
+
+export type ConditionDuration = z.infer<typeof ConditionDurationSchema>;
+
+/**
  * `actor:applyCondition` — client → server. REQ-SYS-142, spec 09 (chat
  * protocol table), plan §2.4.
  *
@@ -648,6 +670,14 @@ export const ActorApplyConditionPayloadSchema = z
     /** e.g. `{ instance: PersistentDamageInstance }` — opaque to the core. */
     data: z.record(z.string(), z.unknown()).optional(),
     expiry: FusionExpirySchema.optional(),
+    /**
+     * I5 fix: how long this condition lasts (e.g. Debilitating Bomb's
+     * `clumsy 1` for 1 minute). Without this, `expiry` alone can't tell
+     * `resolveExpirations` how many rounds to count — it fell back to
+     * "expire on the very first matching turn boundary" (a 10-round
+     * condition lasting 1). Meaningful only together with `expiry`.
+     */
+    duration: ConditionDurationSchema.optional(),
     source: z
       .object({
         messageId: z.string().min(1).optional(),

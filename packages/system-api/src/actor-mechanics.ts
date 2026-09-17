@@ -77,6 +77,25 @@ export interface ApplyDamageOptions {
   readonly ignoreResistance?: ReadonlyArray<{ type: string; value: number }>;
 }
 
+/**
+ * Options accompanying a resolved `applyCondition` call (I5 fix, onda 4
+ * revisão adversarial).
+ *
+ * `now` is the combat/round anchor `resolveExpirations` (@fusion/engine-2e)
+ * needs as `system.fusion.startedAt` to count a declared `duration` from —
+ * without it, a condition's `expiry` had nothing to count from and expired
+ * on the very first matching turn boundary. Server-resolved ONLY, exactly
+ * like `ApplyDamageOptions.actingAs`: unlike `expiry`/`duration` (declarative
+ * "what rule applies", already client-suppliable on the payload), "what
+ * round is it right now" is server truth (DF-03 discipline) — a client that
+ * could assert its own `startedAt` could mint an immortal condition (a
+ * `startedAt.round` far in the future never reaches its threshold).
+ * `null` when no combat is active (D-05: no world clock outside combat).
+ */
+export interface ApplyConditionOptions {
+  readonly now: { readonly combatId: string | null; readonly round: number | null };
+}
+
 // ---------------------------------------------------------------------------
 // DamageBreakdownStep — audit trail shown in the actor:damageApplied summary.
 //
@@ -132,5 +151,9 @@ export interface ActorMechanics {
     instances: ReadonlyArray<ResolvedDamageInstance>,
     opts: ApplyDamageOptions,
   ): ActorMechanicsPatch;
-  applyCondition(actor: ActorSnapshot, req: ActorApplyConditionPayload): ActorMechanicsPatch;
+  applyCondition(
+    actor: ActorSnapshot,
+    req: ActorApplyConditionPayload,
+    opts?: ApplyConditionOptions,
+  ): ActorMechanicsPatch;
 }

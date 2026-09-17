@@ -138,6 +138,30 @@ describe("ActorApplyConditionPayloadSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  // I5 fix (onda 4 revisão adversarial): without a `duration`, a `expiry`
+  // anchor alone can't tell resolveExpirations how many rounds to count.
+  it("accepts a duration alongside expiry (I5 fix)", () => {
+    const result = ActorApplyConditionPayloadSchema.safeParse({
+      targetTokenIds: ["tok1"],
+      slug: "clumsy",
+      mode: "add",
+      value: 1,
+      expiry: { on: "turn-start", ownerActorId: "actor1" },
+      duration: { value: 1, unit: "minute" },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an unknown duration unit", () => {
+    const result = ActorApplyConditionPayloadSchema.safeParse({
+      targetTokenIds: ["tok1"],
+      slug: "clumsy",
+      mode: "add",
+      duration: { value: 1, unit: "fortnight" },
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("ActorDamageAppliedPayloadSchema", () => {
