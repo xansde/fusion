@@ -539,9 +539,14 @@ export function redactDamageAppliedTargetForNonPrivileged(
 /**
  * The `ActorDamageAppliedPayload` a NON-PRIVILEGED viewer may receive —
  * {@link redactDamageAppliedTargetForNonPrivileged} applied to every target
- * line. Used both for the `actor:applyDamage` ack (REQ-SYS-142: "o ack
- * devolvido a usuário sem papel privilegiado DEVE seguir a mesma redação do
- * resumo") and for the broadcast/history copy of the summary ChatMessage.
+ * line. Used for the `actor:applyDamage` ack (REQ-SYS-142: "o ack devolvido a
+ * usuário sem papel privilegiado DEVE seguir a mesma redação do resumo") —
+ * the CALLER's own ack, never a bystander's, so it does NOT drop hidden-token
+ * targets the way {@link redactChatDamageAppliedForNonPrivileged} does for
+ * the broadcast/history copy: that cut needs a per-VIEWER identity and a
+ * token lookup this function is never given (actor-mechanics-service.ts has
+ * neither readily at the ack call site, and the caller already knows which
+ * tokens it named).
  *
  * Returns the SAME reference when nothing needed stripping.
  */
@@ -553,8 +558,60 @@ export function redactDamageAppliedPayloadForNonPrivileged(
   return changed ? { ...payload, targets } : payload;
 }
 
+/**
+ * Render one target's line of the `actor:damageApplied` summary (REQ-CHT-053:
+ * "uma linha por alvo"). Reads only `name`/`total`/`byType` — never the
+ * privileged-only hp/death fields — so it renders identically for the
+ * privileged and the redacted rendering alike; the actual role cut is which
+ * TARGETS reach this function at all (see
+ * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
+ */
+export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
+  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} ${b.type}`).join(" + ")})`;
+}
+
+/**
+ * The full `content` fallback line for an `actor:damageApplied` summary —
+ * one {@link formatDamageAppliedLine} per target, newline-joined. Shared by
+ * `actor-mechanics-service.ts` (building the FULL content at persist time)
+ * and {@link redactChatDamageAppliedForNonPrivileged} (rebuilding it from the
+ * REDACTED target list below) so the two can never drift into two different
+ * renderings of "a line per target".
+ */
+export function formatDamageAppliedContent(payload: ActorDamageAppliedPayload): string {
+  return payload.targets.map(formatDamageAppliedLine).join("\n");
+}
+
 /** Namespace/key `flags.fusion.damageApplied` is stored under (actor-mechanics-service.ts). */
 const CHAT_DAMAGE_APPLIED_FLAG_KEY = "damageApplied";
+
+/**
+ * Whether `target`'s token must not reach `userId` at all (I1 fix, onda-4
+ * adversarial review) — the `actor:damageApplied` counterpart of
+ * {@link redactTargetSnapshotEntries}'s hidden-token cut, with ONE
+ * deliberate difference: an UNRESOLVABLE token here means "keep", not "drop".
+ *
+ * `targetSnapshot` entries always name a token that was, by construction,
+ * live on a scene at roll time (`combat/target-selection.ts::locateToken`),
+ * so failing to resolve one is anomalous and the fail-closed default (drop)
+ * is correct. A `damageApplied` target's `tokenId` has a DIFFERENT, NORMAL
+ * case producing an id that will never resolve: `selfActorId` on an actor
+ * with no token placed anywhere falls back to the actor's own id
+ * (`actor-mechanics-service.ts`: `target.tokenId ?? target.actorId`) — that
+ * is not a hidden token, it is no token, and treating it as "hidden" would
+ * silently drop every self-heal/self-damage summary line a bystander is
+ * otherwise fully entitled to see. Only a token this function can POSITIVELY
+ * CONFIRM is hidden gets cut.
+ */
+function damageAppliedTargetIsHiddenFromViewer(
+  target: DamageAppliedTarget,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): boolean {
+  const token = source?.findToken(target.tokenId);
+  if (!token) return false;
+  return tokenIsHiddenFromViewer(token, userId);
+}
 
 /**
  * The ChatMessage a NON-PRIVILEGED viewer may receive, with
@@ -566,24 +623,61 @@ const CHAT_DAMAGE_APPLIED_FLAG_KEY = "damageApplied";
  * chat:send ack, and history/search/context/join-snapshot's single shared
  * `redactForViewer`).
  *
+ * I1 fix (onda-4 adversarial review): a target whose token IS hidden from
+ * THIS viewer (`userId`, `seenBy`-aware, {@link damageAppliedTargetIsHiddenFromViewer})
+ * is dropped from `targets[]` ENTIRELY — not just its hp fields — because
+ * the line also carries the target's name/tokenId/actorId, exactly the
+ * identity `net/redaction.ts`'s own stated invariant says must never reach a
+ * non-GM socket by any emission path. When dropping a target changes the
+ * set, `content` — the plain-text fallback line every viewer's card renders
+ * from — is REBUILT from the same redacted target list
+ * ({@link formatDamageAppliedContent}): unlike every other field this
+ * summary carries, `content` is NOT role-invariant once a hidden token is in
+ * play, so it cannot be left pointing at a name the payload no longer names.
+ *
+ * `source` is optional so a caller with no `DocumentStore`-backed
+ * `TokenLookupSource` (a chat-only harness) degrades to "nothing looks
+ * hidden" (see {@link damageAppliedTargetIsHiddenFromViewer}) rather than
+ * dropping every target — the opposite failure mode from
+ * {@link redactChatTargetSnapshotForNonPrivileged}, and deliberately so (see
+ * that function's own doc comment on the asymmetry).
+ *
  * Returns the SAME message reference when there is nothing to strip.
  */
-export function redactChatDamageAppliedForNonPrivileged(msg: ChatMessage): ChatMessage {
+export function redactChatDamageAppliedForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
   const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
   const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
   const damageApplied = fusionFlags?.[CHAT_DAMAGE_APPLIED_FLAG_KEY];
   if (!damageApplied || typeof damageApplied !== "object") return msg;
 
-  const redacted = redactDamageAppliedPayloadForNonPrivileged(
-    damageApplied as ActorDamageAppliedPayload,
+  const payload = damageApplied as ActorDamageAppliedPayload;
+  const visibleTargets = payload.targets.filter(
+    (t) => !damageAppliedTargetIsHiddenFromViewer(t, userId, source),
   );
-  if (redacted === damageApplied) return msg;
+  const targetsChanged = visibleTargets.length !== payload.targets.length;
+
+  const redactedTargets = visibleTargets.map(redactDamageAppliedTargetForNonPrivileged);
+  const fieldsChanged = redactedTargets.some((t, i) => t !== visibleTargets[i]);
+
+  if (!targetsChanged && !fieldsChanged) return msg;
+
+  const redactedPayload: ActorDamageAppliedPayload = { ...payload, targets: redactedTargets };
 
   return {
     ...msg,
+    // Only rebuilt when a target actually dropped — the hp-only redaction
+    // (fieldsChanged alone) never removes a name from `content`.
+    ...(targetsChanged ? { content: formatDamageAppliedContent(redactedPayload) } : {}),
     flags: {
       ...flags,
-      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, [CHAT_DAMAGE_APPLIED_FLAG_KEY]: redacted },
+      [CHAT_FUSION_FLAG_NAMESPACE]: {
+        ...fusionFlags,
+        [CHAT_DAMAGE_APPLIED_FLAG_KEY]: redactedPayload,
+      },
     },
   };
 }
