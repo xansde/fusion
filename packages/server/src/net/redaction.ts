@@ -48,6 +48,12 @@
  *     "protecting" a position the way this module's redaction does.
  *   - The result of a blind roll must never reach a non-privileged socket — not
  *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
+ *   - A ChatMessage's `flags.fusion.targetSnapshot` (ALQ-F1-05, REQ-CBT-056)
+ *     answers to the SAME hidden-token cut as the Scene's own `tokens[]`
+ *     (B1 fix): {@link redactChatTargetSnapshotForNonPrivileged} drops any
+ *     entry whose token is hidden from the viewer, on every chat emission
+ *     path — broadcast, history, search, context, the join snapshot, and
+ *     every ack that echoes the message back to its author.
  *
  * There are three emission paths that carry document bodies to clients, and all
  * three MUST funnel non-GM documents through this module:
@@ -284,6 +290,31 @@ function docHasTargetAc(doc: unknown): boolean {
 }
 
 /**
+ * The hidden+`seenBy` predicate for ONE token (REQ-TOK-050/051/052, spec
+ * 41-token.md, DEC-TOK-08): true when this token must NOT reach `userId`.
+ *
+ * Pulled out of {@link stripHiddenTokens} so a SECOND emission path — the
+ * chat `targetSnapshot` redaction below — can share the exact same rule
+ * instead of writing a second strip/predicate (the module's own standing
+ * invariant: "Hidden tokens must NEVER reach a non-GM socket — by ANY
+ * emission path").
+ *
+ * `userId` is optional so a caller with no per-user identity available (a
+ * defensive/test-only path) still gets the historical, more conservative
+ * behaviour: EVERY hidden token is treated as hidden from it, `seenBy` or
+ * not.
+ */
+function tokenIsHiddenFromViewer(
+  token: Record<string, unknown>,
+  userId: string | undefined,
+): boolean {
+  if (token["hidden"] !== true) return false;
+  if (userId === undefined) return true;
+  const seenBy = token["seenBy"];
+  return !(Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId));
+}
+
+/**
  * Strip hidden tokens from a single Scene document for non-GM players.
  *
  * Returns a shallow copy of the scene with the `tokens` array filtered to
@@ -312,16 +343,149 @@ export function stripHiddenTokens(
   const rawTokens = scene["tokens"];
   if (!Array.isArray(rawTokens)) return scene;
 
-  const filtered = (rawTokens as Record<string, unknown>[]).filter((token) => {
-    if (token["hidden"] !== true) return true;
-    if (userId === undefined) return false;
-    const seenBy = token["seenBy"];
-    return Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId);
-  });
+  const filtered = (rawTokens as Record<string, unknown>[]).filter(
+    (token) => !tokenIsHiddenFromViewer(token, userId),
+  );
 
   // Only allocate a new object when something was actually removed.
   if (filtered.length === rawTokens.length) return scene;
   return { ...scene, tokens: filtered };
+}
+
+// ---------------------------------------------------------------------------
+// Chat target-snapshot redaction (B1 fix — ALQ-F1-05, REQ-CBT-056)
+// ---------------------------------------------------------------------------
+//
+// `flags.fusion.targetSnapshot` (chat-handler.ts::attachTargetSnapshot) froze
+// the author's live target selection onto the message so a later
+// ApplyDamage/ApplyCondition can read WHO the roll was aimed at (D-02). That
+// snapshot carries a `tokenId`/`actorId` pair straight from the Scene's own
+// tokens[] — the exact data {@link stripHiddenTokens} exists to keep off a
+// non-GM socket — but it travelled on `flags`, a part of ChatMessage none of
+// the three chat redaction funnels below ever looked at. Fixed here, once,
+// so broadcast, `chat:history`, `chat:search`, `chat:context`, the join
+// snapshot and every chat ack share the SAME cut, per this module's own
+// discipline of never letting an emission path drift out of parity.
+
+/**
+ * One entry of `flags.fusion.targetSnapshot`. Kept structural here —
+ * mirroring {@link ContactViewer}/{@link ContactKnowledgeSource} above —
+ * rather than importing `combat/target-selection.ts`'s `ResolvedTarget`, so
+ * this module's only coupling to the chat feature is "here is an id, look it
+ * up", never a dependency on the combat feature's own types.
+ */
+export interface TargetSnapshotEntry {
+  tokenId: string;
+  actorId: string | null;
+  sceneId: string;
+}
+
+/**
+ * Where the target-snapshot redaction resolves a `tokenId` back to its token
+ * document, so {@link tokenIsHiddenFromViewer} can be asked about it. An
+ * interface — like {@link ContactKnowledgeSource} — so the redaction stays
+ * testable without a live `DocumentStore`.
+ */
+export interface TokenLookupSource {
+  findToken(tokenId: string): Record<string, unknown> | undefined;
+}
+
+/**
+ * The canonical source: scan every Scene's embedded `tokens[]` (DEC-PER-02 —
+ * there is no dedicated token table). This is the SAME scan
+ * `combat/target-selection.ts::locateToken` runs to resolve a snapshot
+ * entry's `actorId`/`sceneId` in the first place; this module reimplements
+ * it (rather than importing that function) purely to stay free of a
+ * dependency on the combat feature, and because the two scans read a
+ * different field off the token they find (`actorId`/`sceneId` there,
+ * `hidden`/`seenBy` here).
+ */
+export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSource {
+  return {
+    findToken(tokenId: string): Record<string, unknown> | undefined {
+      for (const scene of store.getAll("scenes")) {
+        const tokens = scene["tokens"];
+        if (!Array.isArray(tokens)) continue;
+        for (const token of tokens as Record<string, unknown>[]) {
+          if (token["_id"] === tokenId) return token;
+        }
+      }
+      return undefined;
+    },
+  };
+}
+
+/**
+ * The `targetSnapshot` a NON-PRIVILEGED viewer may receive (B1 fix).
+ *
+ * Every entry whose token is hidden from this viewer — the exact hidden +
+ * `seenBy` rule {@link stripHiddenTokens} applies to a Scene's own
+ * `tokens[]` — is dropped. An entry whose token cannot be resolved at all
+ * (deleted since the roll, a foreign id, or no lookup source available) is
+ * ALSO dropped: fail closed, matching this module's stated invariant that a
+ * hidden token must never reach a non-GM socket "by ANY emission path" — an
+ * entry this module cannot prove safe is treated as unsafe, never the
+ * reverse.
+ *
+ * Re-resolves the token's CURRENT state on every call rather than trusting
+ * anything cached at roll time — exactly like every other cut in this
+ * module (a token hidden today was not necessarily hidden when the message
+ * was sent, and vice versa; the funnel always answers with the present).
+ *
+ * Returns the SAME array reference when nothing needed dropping, so callers
+ * can cheaply detect "unchanged" like every other cut in this file.
+ */
+function redactTargetSnapshotEntries(
+  snapshot: readonly TargetSnapshotEntry[],
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): TargetSnapshotEntry[] {
+  const kept = snapshot.filter((entry) => {
+    const token = source?.findToken(entry.tokenId);
+    if (!token) return false;
+    return !tokenIsHiddenFromViewer(token, userId);
+  });
+  return kept.length === snapshot.length ? (snapshot as TargetSnapshotEntry[]) : kept;
+}
+
+/** Namespace/key `flags.fusion.targetSnapshot` is stored under (chat-handler.ts). */
+const CHAT_FUSION_FLAG_NAMESPACE = "fusion";
+const CHAT_TARGET_SNAPSHOT_FLAG_KEY = "targetSnapshot";
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with
+ * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056).
+ *
+ * Composes with {@link redactChatTargetsForNonPrivileged} /
+ * {@link redactBlindRollForNonPrivileged}: together they are everything this
+ * module owns for a non-privileged chat payload. `source` is optional so a
+ * caller with no `DocumentStore` handle (a chat-only harness that never
+ * exercises targeting) degrades to the fail-closed behaviour above — a
+ * present-but-unresolvable snapshot is dropped whole, never forwarded as-is.
+ *
+ * Returns the SAME message reference when there is nothing to strip, so
+ * callers can cheaply detect "unchanged".
+ */
+export function redactChatTargetSnapshotForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const snapshot = fusionFlags?.[CHAT_TARGET_SNAPSHOT_FLAG_KEY];
+  if (!Array.isArray(snapshot) || snapshot.length === 0) return msg;
+
+  const redacted = redactTargetSnapshotEntries(snapshot as TargetSnapshotEntry[], userId, source);
+  if (redacted === snapshot) return msg;
+
+  return {
+    ...msg,
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, [CHAT_TARGET_SNAPSHOT_FLAG_KEY]: redacted },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

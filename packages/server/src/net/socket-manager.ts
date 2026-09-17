@@ -330,8 +330,11 @@ export class SocketManager {
       logger: this.logger,
       ...(systemId !== undefined ? { systemId } : {}),
       ...(systemModule !== undefined ? { systemModule } : {}),
-      // REQ-CHT-033: supply recent chat for join snapshot
-      getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
+      // REQ-CHT-033: supply recent chat for join snapshot. `store` threaded
+      // through so the targetSnapshot B1 redaction can resolve hidden tokens
+      // (ALQ-F1-05).
+      getRecentChat: (userId: string, role: number) =>
+        getRecentChatForUser(db, userId, role, undefined, store),
     };
 
     // Register built-in system handlers

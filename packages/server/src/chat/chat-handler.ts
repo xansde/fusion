@@ -71,8 +71,11 @@ import type { Ownership } from "../documents/ownership.js";
 import {
   redactBlindRollForNonPrivileged,
   redactChatTargetsForNonPrivileged,
+  redactChatTargetSnapshotForNonPrivileged,
   redactSceneDocsForNonPrivileged,
+  tokenLookupSourceFromStore,
 } from "../net/redaction.js";
+import type { TokenLookupSource } from "../net/redaction.js";
 import { RollService, RollError } from "./roll-service.js";
 import type { RollServiceOptions } from "./roll-service.js";
 import type { DocumentStore } from "../documents/store.js";
@@ -258,16 +261,24 @@ function buildPayloadForSocket(
   socket: Socket,
   fullMessage: ChatMessage,
   authorId: string,
+  tokenSource: TokenLookupSource | undefined,
 ): ChatMessage | null {
   const socketData = socket.data as { userId?: string; role?: number } | undefined;
   const socketUserId = socketData?.userId ?? "";
   const socketRole = socketData?.role ?? 0;
   const socketIsPrivileged = isRolePrivileged(socketRole);
 
-  // The target's AC never leaves for a non-privileged socket — the degree of
-  // success does (REQ-ACH-073 / REQ-ACH-092). Applied FIRST so every `return`
-  // below hands out the already-redacted body.
-  const msg = socketIsPrivileged ? fullMessage : redactChatTargetsForNonPrivileged(fullMessage);
+  // The target's AC, and any hidden token named by `flags.fusion.targetSnapshot`
+  // (B1 fix, ALQ-F1-05), never leave for a non-privileged socket — the degree of
+  // success does (REQ-ACH-073 / REQ-ACH-092 / REQ-CBT-056). Applied FIRST so
+  // every `return` below hands out the already-redacted body.
+  const msg = socketIsPrivileged
+    ? fullMessage
+    : redactChatTargetSnapshotForNonPrivileged(
+        redactChatTargetsForNonPrivileged(fullMessage),
+        socketUserId,
+        tokenSource,
+      );
 
   const whisper = msg.whisper;
   const isPublic = whisper.length === 0;
@@ -335,6 +346,7 @@ function broadcastChatMessage(
   msg: ChatMessage,
   authorId: string,
   event: typeof CHAT_BROADCAST_EVENT | typeof CHAT_UPDATE_BROADCAST_EVENT = CHAT_BROADCAST_EVENT,
+  tokenSource?: TokenLookupSource,
 ): number {
   const seq = seqStore.next();
 
@@ -343,7 +355,7 @@ function broadcastChatMessage(
     // is built inside `buildPayloadForSocket`, like every other redaction. It
     // used to be a second body assembled right here, which is exactly how the
     // read paths (history/search/context/ack) ended up shipping the total.
-    const payload = buildPayloadForSocket(socket, msg, authorId);
+    const payload = buildPayloadForSocket(socket, msg, authorId, tokenSource);
 
     if (payload === null) continue;
 
@@ -416,6 +428,10 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
 
   // Rate limiter is scoped to this world instance — no cross-world state bleed.
   const checkRateLimit = createRateLimiter();
+
+  // B1 fix (ALQ-F1-05): built once per handler registration, reused by every
+  // broadcast/ack this handler emits.
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
 
   return (rawPayload, ctx) => {
     // --- Rate limit ---
@@ -553,12 +569,21 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       attachTargetSnapshot(msg, deps, ctx.userId);
 
       persistChatMessage(deps.db, msg);
-      const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
+      const seq = broadcastChatMessage(
+        deps.ns,
+        deps.seqStore,
+        msg,
+        ctx.userId,
+        CHAT_BROADCAST_EVENT,
+        tokenSource,
+      );
 
       return {
         ok: true,
         seq,
-        result: { message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role)) },
+        result: {
+          message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role), tokenSource),
+        },
       };
     }
 
@@ -585,7 +610,14 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       msg.whisper = whisperIds;
 
       persistChatMessage(deps.db, msg);
-      const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
+      const seq = broadcastChatMessage(
+        deps.ns,
+        deps.seqStore,
+        msg,
+        ctx.userId,
+        CHAT_BROADCAST_EVENT,
+        tokenSource,
+      );
 
       return { ok: true, seq, result: { message: msg } };
     }
@@ -594,7 +626,14 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       const content = sanitizeContent(command.message);
       const msg = buildBaseMessage(deps.worldId, speaker, "emote", content);
       persistChatMessage(deps.db, msg);
-      const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
+      const seq = broadcastChatMessage(
+        deps.ns,
+        deps.seqStore,
+        msg,
+        ctx.userId,
+        CHAT_BROADCAST_EVENT,
+        tokenSource,
+      );
       return { ok: true, seq, result: { message: msg } };
     }
 
@@ -669,7 +708,14 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // attack roll under this announcement using result.message._id. The id is
       // already on every ack (`result.message`), so no wire change is needed.
       persistChatMessage(deps.db, msg);
-      const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
+      const seq = broadcastChatMessage(
+        deps.ns,
+        deps.seqStore,
+        msg,
+        ctx.userId,
+        CHAT_BROADCAST_EVENT,
+        tokenSource,
+      );
       return { ok: true, seq, result: { message: msg } };
     }
   };
@@ -680,6 +726,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
 // ---------------------------------------------------------------------------
 
 export function buildChatHistoryHandler(deps: ChatHandlerDeps): HandlerFn {
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
   return (rawPayload, ctx) => {
     const parsed = ChatHistoryRequestSchema.safeParse(rawPayload);
     if (!parsed.success) {
@@ -748,7 +795,7 @@ export function buildChatHistoryHandler(deps: ChatHandlerDeps): HandlerFn {
         continue;
       }
 
-      const redacted = redactForViewer(msg, ctx.userId, privileged);
+      const redacted = redactForViewer(msg, ctx.userId, privileged, tokenSource);
       if (redacted !== null) {
         visible.push(redacted);
       }
@@ -802,6 +849,7 @@ function escapeLikeTerm(term: string): string {
  * the caller is the same; only the cost is.
  */
 export function buildChatSearchHandler(deps: ChatHandlerDeps): HandlerFn {
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
   return (rawPayload, ctx) => {
     const parsed = ChatSearchRequestSchema.safeParse(rawPayload);
     if (!parsed.success) {
@@ -856,7 +904,7 @@ export function buildChatSearchHandler(deps: ChatHandlerDeps): HandlerFn {
       }
 
       // THE predicate — same function as chat:history / join snapshot.
-      const redacted = redactForViewer(msg, ctx.userId, privileged);
+      const redacted = redactForViewer(msg, ctx.userId, privileged, tokenSource);
       if (redacted === null) continue;
 
       // Paging counts VISIBLE results only: an invisible message never takes a
@@ -895,14 +943,19 @@ export function buildChatSearchHandler(deps: ChatHandlerDeps): HandlerFn {
 const CHAT_CONTEXT_SCAN_CAP = 2_000;
 
 /** A stored chat row, parsed and redacted for one viewer. Null when unreadable. */
-function readVisibleRow(data: string, viewerId: string, privileged: boolean): ChatMessage | null {
+function readVisibleRow(
+  data: string,
+  viewerId: string,
+  privileged: boolean,
+  tokenSource?: TokenLookupSource,
+): ChatMessage | null {
   let msg: ChatMessage;
   try {
     msg = JSON.parse(data) as ChatMessage;
   } catch {
     return null;
   }
-  return redactForViewer(msg, viewerId, privileged);
+  return redactForViewer(msg, viewerId, privileged, tokenSource);
 }
 
 /**
@@ -922,6 +975,7 @@ function readVisibleRow(data: string, viewerId: string, privileged: boolean): Ch
  * used as an oracle for "there IS a message here you may not read".
  */
 export function buildChatContextHandler(deps: ChatHandlerDeps): HandlerFn {
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
   return (rawPayload, ctx) => {
     const parsed = ChatContextRequestSchema.safeParse(rawPayload);
     if (!parsed.success) {
@@ -955,7 +1009,7 @@ export function buildChatContextHandler(deps: ChatHandlerDeps): HandlerFn {
 
     if (!anchorRow) return notFound;
 
-    const target = readVisibleRow(anchorRow.data, ctx.userId, privileged);
+    const target = readVisibleRow(anchorRow.data, ctx.userId, privileged, tokenSource);
     // Same answer as a missing id — never leak that a hidden message lives here.
     if (target === null) return notFound;
 
@@ -982,7 +1036,12 @@ export function buildChatContextHandler(deps: ChatHandlerDeps): HandlerFn {
       for (const raw of deps.db
         .prepare(sql)
         .iterate(anchorRow.timestamp, anchorRow.timestamp, anchorRow.id, CHAT_CONTEXT_SCAN_CAP)) {
-        const visible = readVisibleRow((raw as { data: string }).data, ctx.userId, privileged);
+        const visible = readVisibleRow(
+          (raw as { data: string }).data,
+          ctx.userId,
+          privileged,
+          tokenSource,
+        );
         if (visible === null) continue; // invisible: takes no slot, is never signalled
 
         if (messages.length >= req.limit) {
@@ -1099,6 +1158,7 @@ function mayChangeInvalidation(
  * lives at that id.
  */
 export function buildChatInvalidateHandler(deps: ChatHandlerDeps): HandlerFn {
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
   return (rawPayload, ctx) => {
     const parsed = ChatInvalidateRequestSchema.safeParse(rawPayload);
     if (!parsed.success) {
@@ -1141,7 +1201,7 @@ export function buildChatInvalidateHandler(deps: ChatHandlerDeps): HandlerFn {
     // Visibility first, and by THE predicate — a message the caller may not read
     // is a message the caller may not moderate, and the refusal must not double
     // as an oracle for "something private happened here".
-    if (redactForViewer(stored, ctx.userId, privileged) === null) return notFound;
+    if (redactForViewer(stored, ctx.userId, privileged, tokenSource) === null) return notFound;
 
     if (!mayChangeInvalidation(stored, req.invalid, ctx.userId, ctx.role)) {
       return {
@@ -1159,7 +1219,7 @@ export function buildChatInvalidateHandler(deps: ChatHandlerDeps): HandlerFn {
       return {
         ok: true,
         seq: deps.seqStore.peek(),
-        result: { message: redactForViewer(stored, ctx.userId, privileged) },
+        result: { message: redactForViewer(stored, ctx.userId, privileged, tokenSource) },
       };
     }
 
@@ -1190,12 +1250,13 @@ export function buildChatInvalidateHandler(deps: ChatHandlerDeps): HandlerFn {
       updated,
       updated.speaker.userId,
       CHAT_UPDATE_BROADCAST_EVENT,
+      tokenSource,
     );
 
     return {
       ok: true,
       seq,
-      result: { message: redactForViewer(updated, ctx.userId, privileged) },
+      result: { message: redactForViewer(updated, ctx.userId, privileged, tokenSource) },
     };
   };
 }
@@ -1213,8 +1274,10 @@ export function getRecentChatForUser(
   userId: string,
   role: number,
   limit = 50,
+  store?: DocumentStore,
 ): ChatMessage[] {
   const privileged = isRolePrivileged(role);
+  const tokenSource = store ? tokenLookupSourceFromStore(store) : undefined;
   const fetchLimit = limit * 4 + 50;
 
   const rows = db
@@ -1233,7 +1296,7 @@ export function getRecentChatForUser(
     } catch {
       continue;
     }
-    const redacted = redactForViewer(msg, userId, privileged);
+    const redacted = redactForViewer(msg, userId, privileged, tokenSource);
     if (redacted !== null) {
       visible.push(redacted);
     }
@@ -1254,12 +1317,21 @@ function redactForViewer(
   fullMessage: ChatMessage,
   viewerId: string,
   privileged: boolean,
+  tokenSource?: TokenLookupSource,
 ): ChatMessage | null {
-  // Same rule as the live broadcast: the AC of the target is privileged data,
-  // the degree of success is not (REQ-ACH-073 / REQ-ACH-092). Applied FIRST so
-  // history, search, context, the invalidation ack and the join snapshot — every
-  // caller of this function — hand out the same already-redacted body.
-  const msg = privileged ? fullMessage : redactChatTargetsForNonPrivileged(fullMessage);
+  // Same rule as the live broadcast: the AC of the target and any hidden token
+  // named by `flags.fusion.targetSnapshot` (B1 fix) are privileged data, the
+  // degree of success is not (REQ-ACH-073 / REQ-ACH-092 / REQ-CBT-056). Applied
+  // FIRST so history, search, context, the invalidation ack and the join
+  // snapshot — every caller of this function — hand out the same
+  // already-redacted body.
+  const msg = privileged
+    ? fullMessage
+    : redactChatTargetSnapshotForNonPrivileged(
+        redactChatTargetsForNonPrivileged(fullMessage),
+        viewerId,
+        tokenSource,
+      );
 
   const whisper = msg.whisper;
   const isPublic = whisper.length === 0;
@@ -1315,9 +1387,18 @@ function redactForViewer(
  * REQ-ACH-092). A privileged author keeps the full result — his own screen is
  * allowed to show it.
  */
-function redactForAuthor(msg: ChatMessage, authorId: string, privileged: boolean): ChatMessage {
+function redactForAuthor(
+  msg: ChatMessage,
+  authorId: string,
+  privileged: boolean,
+  tokenSource?: TokenLookupSource,
+): ChatMessage {
   if (privileged) return msg;
-  const withoutAc = redactChatTargetsForNonPrivileged(msg);
+  const withoutAc = redactChatTargetSnapshotForNonPrivileged(
+    redactChatTargetsForNonPrivileged(msg),
+    authorId,
+    tokenSource,
+  );
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
     return redactBlindRollForNonPrivileged(withoutAc);
   }
