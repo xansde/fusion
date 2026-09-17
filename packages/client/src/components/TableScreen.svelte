@@ -32,6 +32,7 @@
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
+  import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import ScenePrepareNotice from "./scenes/ScenePrepareNotice.svelte";
@@ -75,6 +76,12 @@
   // drawer mounts because the drawer reads the registry to decide where this seat
   // opens (REQ-GAV-015/016), and it is idempotent, so a remount is harmless.
   registerCoreSidebarTabs();
+
+  // ALQ-F1-10: CORE's own `actor:applyDamage` summary card
+  // (`flags.fusion.damageApplied` — DF-02, core-level, unlike PF2e's
+  // `flags.pf2e.abilityCard`), through the same `chatCardExtensionRegistry`
+  // a system uses. Idempotent, same reasoning as the tabs above.
+  registerCoreChatCardExtensions();
 
   // REQ-CBA-004: the Combate dot goes amber when the participant of the turn belongs
   // to this user, so the badge has to know which seat this is. Who is logged in is the
