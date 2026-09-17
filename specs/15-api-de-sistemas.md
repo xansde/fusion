@@ -864,6 +864,138 @@ type ConsumeHookFn = (
   API NÃO DEVE ganhar `onConsume`/`onConsumed` paralelos, nem o consumo DEVE ser observado
   por `hooks.on`, que é notificação pós-broadcast.
 
+### Preparação diária e fabricação
+
+> **Emenda de 2026-09-17** (plano do Alquimista, ALQ-F3-01; decisões D-06, D-07 e D-08 do
+> Alexandre). Abre os quatro pontos de extensão que a spec `47-fabricacao-e-alquimia.md` exige:
+> etapa de preparação diária, ability de fabricação, hook de rascunho de item e porta de custo.
+> Aqui fica a **superfície** e a disciplina do core (ordem, permissão, atomicidade); a regra do
+> jogo — o que cada etapa faz, quanto custa, que prazo o item recebe — é da `47` (REQ-FAB-010..015,
+> REQ-FAB-025..029, REQ-FAB-039) e da `17`. Nada é revogado: a atomicidade exigida abaixo é
+> exceção **deliberada** ao isolamento de erro de REQ-SYS-139, e o motivo está em DEC-FAB-02.
+> Os shapes são os do plano (§2.7), com `ActorSnapshot`/`ItemSnapshot` no lugar de `actor`/
+> `ItemDoc` para casar com o vocabulário que esta spec já usa em REQ-SYS-143.
+
+```ts
+// packages/system-api — registrar
+registrar.registerDailyPrepStep(def: DailyPrepStepDefinition): void;
+registrar.registerCraftingAbility(def: CraftingAbilityDefinition): void;
+registrar.registerCraftingDraftHook(id: string, fn: CraftingDraftHookFn, opts?: { priority?: number }): void;
+registrar.registerCurrencyPort(port: CurrencyPort): void;
+
+// socket "actor:dailyPrep" — ActorDailyPrepPayloadSchema (@fusion/shared)
+interface ActorDailyPrepPayload {
+  actorId: string;
+  choices?: Record<string, unknown>; // por id de etapa
+  expectedVersion: number;
+}
+interface DailyPrepChoiceSpec {
+  stepId: string;
+  kind: string; // o cliente escolhe o diálogo pelo kind
+  data: Record<string, unknown>;
+}
+interface DailyPrepStepDefinition {
+  id: string;
+  order: number; // pf2e: hp=100, spellSlots=200, focus=300, resources=400, expiry=500, advancedAlchemy=600
+  appliesTo(actor: ActorSnapshot): boolean;
+  needsChoice?(actor: ActorSnapshot): DailyPrepChoiceSpec | null;
+  run(
+    actor: ActorSnapshot,
+    ctx: { choice?: unknown; prepId: string },
+  ): { writes: DocOp[]; summary: string[] }; // puro: descreve, não escreve
+}
+
+// socket "crafting:create" — CraftingCreatePayloadSchema (@fusion/shared)
+interface CraftingCreatePayload {
+  actorId: string;
+  abilitySlug: string;
+  formulaSourceIds: string[];
+  additives?: Record<string, string>;
+  expectedVersion: number;
+}
+interface CraftingAbilityDefinition {
+  slug: string;
+  appliesTo(actor: ActorSnapshot): boolean;
+  maxItemLevel(actor: ActorSnapshot): number;
+  cost(actor: ActorSnapshot, count: number): { resourceSlug: string; amount: number } | null;
+  capacity?(actor: ActorSnapshot): number;
+  maxPerUse?(actor: ActorSnapshot): number;
+  expiry(
+    actor: ActorSnapshot,
+    ctx: { inCombat: boolean; formula: ItemSnapshot },
+  ): FusionExpiry; // shape em 17-sistema-pf2e.md (REQ-PF2-219)
+}
+/** Rascunho do item antes de existir: os dados que serão gravados, ainda alteráveis. */
+type ItemDraft = Record<string, unknown>;
+interface CreationCtx {
+  actorId: string;
+  abilitySlug: string;
+  formulaSourceId: string;
+  additives?: Record<string, string>;
+  inCombat: boolean;
+}
+type CraftingDraftHookFn = (draft: ItemDraft, ctx: CreationCtx) => ItemDraft;
+
+interface CurrencyPort {
+  requestCost(req: {
+    actorId: string;
+    amount: { gp: number; sp: number; cp: number };
+    reason: "craft";
+    messageId: string;
+  }): Promise<{ status: "noted" | "debited" | "insufficient" }>;
+}
+```
+
+- **REQ-SYS-145** [MVP] O `registrar` DEVE expor `registerDailyPrepStep(def)`, aceitando
+  **várias** etapas, e o servidor DEVE expor o op `actor:dailyPrep` num serviço do **core** que:
+  1. valida o payload pelo schema de `@fusion/shared`;
+  2. exige ownership **OWNER** do ator ou papel privilegiado (`isRolePrivileged`,
+     `ver 21-seguranca.md`) — outro usuário recebe `PERMISSION_DENIED`, ator inexistente
+     `NOT_FOUND` — e recusa com `CONFLICT`, sem escrever, quando `expectedVersion` não bate;
+  3. executa as etapas cujo `appliesTo` for verdadeiro, em ordem crescente de `order`,
+     desempatada por `id`, gerando um `prepId` novo para a operação;
+  4. recusa com `VALIDATION_FAILED`, sem escrever, quando alguma etapa declara `needsChoice` e
+     `choices[stepId]` não veio;
+  5. aplica os `writes` de **todas** as etapas **atomicamente**: etapa que lançar DEVE abortar a
+     operação inteira, sem escrita parcial e sem card — diferente de REQ-SYS-139 de propósito
+     (DEC-FAB-02); o erro DEVE nomear a etapa;
+  6. publica **um** card de resumo a partir dos `summary` (`ver 09-chat-e-mensagens.md`).
+
+  Registrar duas etapas com o mesmo `id` DEVE lançar erro em `defineSystem`, nomeando o id.
+
+- **REQ-SYS-146** [MVP] O `registrar` DEVE expor `registerCraftingAbility(def)`, aceitando
+  **várias** abilities identificadas por `slug`, e o servidor DEVE expor o op `crafting:create`
+  num serviço do **core** que resolve a ability pelo `abilitySlug` do payload e, com a mesma
+  permissão, `expectedVersion` e atomicidade de REQ-SYS-145: valida o teto de `maxItemLevel`, a
+  quantidade contra `capacity`/`maxPerUse`, debita o `cost` em recurso, grava os itens com o
+  `FusionExpiry` devolvido por `expiry(...)` e publica um card. `abilitySlug` desconhecido, ou
+  cujo `appliesTo` seja falso, DEVE responder `NOT_SUPPORTED` sem escrever nada. O core NÃO DEVE
+  conhecer regra de fabricação: tudo o que varia entre abilities vem da definição — inclusive as
+  recusas que só o sistema sabe julgar (livro de fórmulas, pré-requisito de classe), que a
+  definição sinaliza **lançando erro de validação** em qualquer um dos seus métodos; o core DEVE
+  convertê-lo em `VALIDATION_FAILED`, com a mensagem da definição, sem escrever nada. Registrar
+  duas abilities com o mesmo `slug` DEVE lançar erro em `defineSystem`.
+
+- **REQ-SYS-147** [MVP] O `registrar` DEVE expor
+  `registerCraftingDraftHook(id, fn, opts?: { priority?: number })`, aceitando **vários**
+  callbacks, executados **antes** de o item ser gravado, em ordem determinística de prioridade e
+  `id`, cada um recebendo o rascunho e devolvendo o rascunho (possivelmente alterado). Hook que
+  lançar DEVE abortar a op de REQ-SYS-146 inteira — nenhum item gravado. Registrar duas vezes o
+  mesmo `id` DEVE lançar erro em `defineSystem`, nomeando o id. Este DEVE ser o **ponto único**
+  de alteração do item fabricado antes da gravação: a API NÃO DEVE ganhar
+  `beforeItemCreated`/`onItemCreated` paralelos, nem o rascunho DEVE ser observável por
+  `hooks.on`, que é notificação pós-broadcast.
+
+- **REQ-SYS-148** [MVP] O `registrar` DEVE expor `registerCurrencyPort(port)`, **no máximo uma
+  vez** por mundo — um segundo registro DEVE lançar erro em `defineSystem`. A ação de fabricação
+  que declara custo em moeda (a atividade Craft da `47`, REQ-FAB-039) DEVE chamar
+  `port.requestCost(...)` **exatamente uma vez** por execução, emitindo junto o evento
+  `crafting:costRequested`. Sem porta registrada, o core DEVE usar uma implementação **no-op**
+  que devolve `{ status: "noted" }` e deixa o valor anotado no card. Nenhum caminho desta API
+  DEVE ler ou escrever moeda do ator (decisão D-07 do plano; DEC-FAB-05 da `47`): a porta
+  **anuncia** o custo, e quem o cobra é quem a implementar. Falha ou rejeição da porta NÃO DEVE
+  desfazer o que já foi aplicado — DEVE virar linha no card.
+
 ### Motor de modifiers/effects data-driven
 
 - **REQ-SYS-080** [MVP] A engine DEVE implementar um motor de effects que processa
@@ -1241,6 +1373,10 @@ interface InitiativeEntry {
 | `registrar.registerActorMechanics(m)`                                                | função | Regra de dano/condição do sistema (REQ-SYS-142).   |
 | `registrar.registerConsumeItem(def)`                                                 | função | Plano de consumo de item do sistema (REQ-SYS-143). |
 | `registrar.registerConsumeHook(id, fn, opts?)`                                       | função | Pós-consumo de item (REQ-SYS-144).                 |
+| `registrar.registerDailyPrepStep(def)`                                               | função | Etapa da preparação diária (REQ-SYS-145).          |
+| `registrar.registerCraftingAbility(def)`                                             | função | Ability de fabricação (REQ-SYS-146).               |
+| `registrar.registerCraftingDraftHook(id, fn, opts?)`                                 | função | Altera o rascunho do item fabricado (REQ-SYS-147). |
+| `registrar.registerCurrencyPort(port)`                                               | função | Porta de custo, sem tocar moeda (REQ-SYS-148).     |
 
 ### Lista canônica de hooks (MVP)
 
@@ -1272,7 +1408,9 @@ Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat
 Os hooks de combate desta tabela são **notificações** pós-transição. As automações de
 turno de um sistema NÃO usam `hooks.on`: usam o registro aguardado de REQ-SYS-138..141
 (DEC-SYS-11), que roda antes do broadcast. O mesmo vale para o consumo de item: a extensão
-é `registerConsumeHook` (REQ-SYS-144), não `hooks.on`.
+é `registerConsumeHook` (REQ-SYS-144), não `hooks.on`; e para a preparação diária e a
+fabricação: `registerDailyPrepStep`, `registerCraftingAbility` e `registerCraftingDraftHook`
+(REQ-SYS-145..147), que rodam dentro da transação, não depois dela.
 
 ## Dependências (specs irmãs)
 
