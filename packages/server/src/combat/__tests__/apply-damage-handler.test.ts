@@ -326,7 +326,10 @@ interface ChatMessageLike {
  * "next ChatMessage" unconditionally could race against it and hand back the
  * roll instead of the summary.
  */
-function nextDamageAppliedMessage(socket: ClientSocket, timeoutMs = 3000): Promise<ChatMessageLike> {
+function nextDamageAppliedMessage(
+  socket: ClientSocket,
+  timeoutMs = 3000,
+): Promise<ChatMessageLike> {
   return new Promise((resolve, reject) => {
     const handler = (envelope: Record<string, unknown>): void => {
       if (envelope["type"] !== "doc:create") return;
