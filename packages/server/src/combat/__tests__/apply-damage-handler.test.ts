@@ -719,7 +719,9 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       const byType = targets[0]?.["byType"] as Array<Record<string, unknown>>;
       // raw 10 -> scaled 5 (½) -> final 2 (resistance 3). Old bug:
       // raw(10) - final(2) = 8. Correct: scaled(5) - final(2) = 3.
-      expect(byType).toEqual([{ type: "cold", amount: 2, resistanceApplied: FAKE_COLD_RESISTANCE }]);
+      expect(byType).toEqual([
+        { type: "cold", amount: 2, resistanceApplied: FAKE_COLD_RESISTANCE },
+      ]);
       expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP - 2);
     } finally {
       gmSocket.disconnect();

@@ -25,12 +25,13 @@ import type { TokenDocument } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import type { TokenInteractionOptions } from "../TokenInteractionManager.js";
 import { resetFootprintRegistry, seedFootprintRegistry } from "../footprintRegistry.svelte.js";
+import type * as CombatStoreModule from "../../../combat/combatStore.svelte.js";
 
 const mockGetMyTargets =
   vi.fn<() => ReadonlyArray<{ tokenId: string; actorId: string | null; name: string }>>();
 
 vi.mock("../../../combat/combatStore.svelte.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../../combat/combatStore.svelte.js")>();
+  const actual = await importOriginal<typeof CombatStoreModule>();
   return { ...actual, getMyTargets: () => mockGetMyTargets() };
 });
 

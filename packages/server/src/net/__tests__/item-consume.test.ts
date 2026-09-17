@@ -384,7 +384,9 @@ function buildGmAudiencePackCompendium(): { compendium: CompendiumService; packR
   return { compendium, packRoot };
 }
 
-async function buildTestContext(opts: { compendiumService?: CompendiumService } = {}): Promise<TestContext> {
+async function buildTestContext(
+  opts: { compendiumService?: CompendiumService } = {},
+): Promise<TestContext> {
   const dataDir = makeTempDir();
   const dbPath = join(dataDir, "world.db");
   const worldId = "test-item-consume-world";
