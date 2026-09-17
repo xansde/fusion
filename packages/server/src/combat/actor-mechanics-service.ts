@@ -88,7 +88,8 @@ import type {
   TurnHookContext,
 } from "@fusion/system-api";
 
-import { DocumentStore, DocumentNotFoundError } from "../documents/store.js";
+import { DocumentNotFoundError } from "../documents/store.js";
+import type { DocumentStore } from "../documents/store.js";
 import {
   OwnershipLevel,
   UserRole,
@@ -185,7 +186,7 @@ function readTargetSnapshot(msg: Record<string, unknown>): TargetSnapshotEntry[]
     const entry = raw as Record<string, unknown>;
     const tokenId = entry["tokenId"];
     if (typeof tokenId !== "string") continue;
-    const actorId = typeof entry["actorId"] === "string" ? (entry["actorId"] as string) : null;
+    const actorId = typeof entry["actorId"] === "string" ? entry["actorId"] : null;
     const sceneId = typeof entry["sceneId"] === "string" ? entry["sceneId"] : "";
     result.push({ tokenId, actorId, sceneId });
   }
@@ -220,7 +221,7 @@ function readOwnership(doc: Record<string, unknown>): Ownership {
   const ownership = doc["ownership"];
   return ownership && typeof ownership === "object"
     ? (ownership as Ownership)
-    : ({ default: OwnershipLevel.NONE } as Ownership);
+    : { default: OwnershipLevel.NONE };
 }
 
 /** Best-effort reverse lookup: the first token anywhere whose `actorId`
@@ -309,11 +310,10 @@ function resolveTargets(
       throw err;
     }
     if (!privileged) {
-      const level = resolveOwnership(
-        readOwnership(actor),
-        caller?.userId ?? null,
-        caller!.role as UserRole,
-      );
+      if (!caller) {
+        return { ok: false, ack: forbidden("selfActorId requires an authenticated caller") };
+      }
+      const level = resolveOwnership(readOwnership(actor), caller.userId, caller.role);
       if (level < OwnershipLevel.OWNER) {
         return { ok: false, ack: forbidden("selfActorId requires OWNER ownership") };
       }
@@ -355,6 +355,12 @@ function resolveTargets(
   }
 
   if (!privileged) {
+    if (!caller) {
+      return {
+        ok: false,
+        ack: forbidden("resolving targets from a source message requires an authenticated caller"),
+      };
+    }
     const casterActorId = readSpeakerActorId(primaryMessage);
     if (!casterActorId) {
       return { ok: false, ack: forbidden("source message has no speaker actor") };
@@ -368,11 +374,7 @@ function resolveTargets(
       }
       throw err;
     }
-    const level = resolveOwnership(
-      readOwnership(casterActor),
-      caller?.userId ?? null,
-      caller!.role as UserRole,
-    );
+    const level = resolveOwnership(readOwnership(casterActor), caller.userId, caller.role);
     if (level < OwnershipLevel.OWNER) {
       return { ok: false, ack: forbidden("not OWNER of the caster actor") };
     }
@@ -531,12 +533,11 @@ async function applyDamage(
   }
   const payload = parsed.data;
 
-  const isSystem = caller === "system";
-  // Re-checks `caller === "system"` directly (rather than branching on the
-  // `isSystem` alias) so the narrowing does not depend on TS's aliased-
-  // condition inference — `userCtx` is unambiguously `{userId, role}` here.
+  // Every check below re-tests `caller === "system"` directly (rather than
+  // branching on a boolean alias) so TS narrows `caller` itself within the
+  // same expression — `userCtx` is unambiguously `{userId, role}` here.
   const userCtx = caller === "system" ? undefined : caller;
-  const privileged = isSystem || isRolePrivileged(userCtx!.role);
+  const privileged = caller === "system" || isRolePrivileged(caller.role);
 
   // Step 2: amount without source is privileged/system-only.
   for (const instance of payload.instances) {
@@ -550,7 +551,9 @@ async function applyDamage(
   // targets so a mixed-message payload never combines one roll's total with
   // another roll's snapshot.
   const sourceMessageIds = new Set(
-    payload.instances.filter((i) => i.source !== undefined).map((i) => i.source!.messageId),
+    payload.instances
+      .map((i) => i.source?.messageId)
+      .filter((messageId): messageId is string => messageId !== undefined),
   );
   if (!privileged && sourceMessageIds.size > 1) {
     return validationFailed("every instance must share the same source.messageId");
@@ -619,7 +622,13 @@ async function applyDamage(
       }
       amount = total;
     } else {
-      amount = instance.amount!;
+      // DamageInstanceInputSchema's refine guarantees `amount` when `source`
+      // is absent (zod refinements are runtime-only — they cannot narrow the
+      // static type), so this is a defensive check, not a real branch.
+      if (instance.amount === undefined) {
+        throw new Error("unreachable: DamageInstanceInputSchema requires amount without source");
+      }
+      amount = instance.amount;
     }
     resolvedInstances.push({
       type: instance.type,
@@ -633,9 +642,10 @@ async function applyDamage(
   }
 
   const opts: ApplyDamageOptions = {
-    actingAs: isSystem
-      ? "system"
-      : { userId: userCtx!.userId, role: UserRole[userCtx!.role] ?? String(userCtx!.role) },
+    actingAs:
+      caller === "system"
+        ? "system"
+        : { userId: caller.userId, role: UserRole[caller.role] ?? String(caller.role) },
     ...(payload.multiplier !== undefined ? { multiplier: payload.multiplier } : {}),
     ...(payload.basicSave !== undefined ? { basicSave: payload.basicSave } : {}),
     ...(privileged && payload.hardness !== undefined ? { hardness: payload.hardness } : {}),
