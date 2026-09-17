@@ -252,6 +252,59 @@
       "resumo": "Spec 47 (FAB) com 40 REQ [MVP], 6 DEC-FAB, 3 RNF, 12 CA; D-06/07/08 refletidas. Emendas: REQ-SYS-145..148 na 15 e Craft saindo do [V2] na 17 (para REQ-FAB-039). spec-lint zerado.",
       "core_sha": "5ad38f41",
       "sat_sha": "d905c4ea"
+    },
+    "ALQ-F0-04": {
+      "status": "bloqueada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "haiku/low",
+      "resumo": "Tradução dos 66 talentos entregue e integrada, depois REVERTIDA pela revisão adversarial: as descrições pt-BR eram fabricadas (Combine Elixirs, Wish Alchemy e Perfect Mutagen descrevem regra diferente do inglês; 3 com fórmula de dado inventada) e o qa.mjs do próprio tools/translate-packs reprova 53/67. O teste que a cobria era tautológico (só asseria PT !== EN), classe da issue #48.",
+      "motivo": "Tradução fabricada, não traduzida: 53/67 reprovados no qa.mjs do próprio pipeline, teste tautológico (PT !== EN). Merge revertido no satélite. Issue xansde/fusion-systems-2e#87 com os dois requisitos para refazer: qa.mjs no gate e teste que confere a regra."
+    },
+    "ALQ-F0-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "evaluateFeatPickerPrerequisite bloqueia no picker o talento cujo prereq reconhecido falha (feat/dedicação possuído por sourceId, ou atributo mínimo); texto livre desconhecido vira aviso não bloqueante. isFeatEligible intocado (DEC-BC-05). 7/7 no teste novo, 1488/1488 em sheets-pf2e. 3 prints conferidos pelo orquestrador. Correção pós-revisão: prereq com alternativas (\"A, B, C, or D Dedication\") era casado pelo sufixo e dava falso bloqueio em 17 talentos reais — agora decomposto com semântica OU.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F1-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "Handler actor:applyCondition + ActorMechanicsService.applyCondition (GM: qualquer ator; player: OWNER via selfActorId ou targetTokenIds validado por assertTargetsSelected), ctx.applyCondition ligado no turnHookRunner. 8/8 no teste novo. Correção pós-revisão: readActorIwrBlock lia system.iwr (caminho inexistente; o schema é system.attributes.iwr), então imunidade a condição (REQ-PF2-053) nunca bloqueava — alvo imune recebia frightened.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F1-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/high",
+      "resumo": "Botões Aplicar/½/×2/Curar/PV temp. no card + linha de alvos por rolagem; card-resumo actor:damageApplied no core via chatCardExtensionRegistry, com redação player×GM (D-04). A lane achou e corrigiu 2 defeitos pré-existentes de ondas anteriores: damage.ts lia/escrevia system.hp/system.iwr no caminho errado e devolvia diff com chaves dotted que o deepMerge nunca expandia (PV nunca persistia de verdade), e computeByType comparava tipo de dano contra nome de etapa do pipeline (resistanceApplied nunca aparecia). 4 prints conferidos pelo orquestrador. Correções pós-revisão: resistanceApplied confundia escala com resistência (½ em alvo sem resistência exibia \"(resistência 5)\"); \"Alvos: eagleToken000001\" no player (nome agora resolvido pelo token da cena); dano multi-tipo atribuía o total ao primeiro tipo; texto do card fora do t(); gatilho SCAFFOLDING de alvo nunca limpava e excluía o GM.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F2-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "Item físico com system.fusion.expiry reusando 100% o resolvedor/hook da F2-09 (zero mudança de produção em expiry.ts/effect-expiry.ts, confirmado por teste); TempItemBadge.svelte no inventário + gatilho SCAFFOLDING \"Criar cópia temporária\". A lane achou e corrigiu um bug de CSS ao tirar os prints (flexbox espremia o nome do item a largura zero). engine-2e 196/196, system-pf2e 784/784. 5 prints, 2 conferidos pelo orquestrador.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F2-11": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/high",
+      "resumo": "Op item:consume nos dois repos (payload/contratos/handler com escrita atômica por expectedVersion em transação IMMEDIATE; consume.ts no satélite). 6/6 no teste do server, 17/17 no unitário, 799/799 em system-pf2e. Pendência do conversor de regra kind:\"strike\" dentro de Effect registrada como issue xansde/fusion-systems-2e#86, por decisão do orquestrador (generalizar o conversor não entrou no escopo). Correção pós-revisão: o efeito era resolvido com getDocumentBySourceRef(viewerRole), então o resultado MECÂNICO dependia do papel do chamador — furo de autoridade do servidor, agora resolvido com papel privilegiado.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
     }
   },
   "rodadas": [
@@ -400,6 +453,26 @@
       },
       "core_sha": "5ad38f41",
       "sat_sha": "d905c4ea"
+    },
+    {
+      "onda": 5,
+      "tarefas": ["ALQ-F0-04", "ALQ-F0-09", "ALQ-F1-09", "ALQ-F1-10", "ALQ-F2-10", "ALQ-F2-11"],
+      "integradas": ["ALQ-F0-09", "ALQ-F1-09", "ALQ-F1-10", "ALQ-F2-10", "ALQ-F2-11"],
+      "gate": true,
+      "revisao": {
+        "achados": 24,
+        "abertos": [
+          "ALQ-F0-04 revertida: refazer a tradução pt-BR dos 66 talentos com qa.mjs no gate e teste que confere a regra. Issue xansde/fusion-systems-2e#87.",
+          "DECISÃO DO ALEXANDRE: gate GAMEMASTER-strict impede o jogador de ler pf2e:freeArchetype — inviabiliza a prova visual de player da F0-09 e trava a ALQ-F0-10. Issue xansde/fusion#230, registrada sem conserto.",
+          "REQ-PF2-224 sem emenda: a prosa cita system.charges/system.autoDestroy, o pack real usa system.uses.{value,max,autoDestroy} (461/579 com uses, 0 com charges). O código seguiu o pack. Issue xansde/fusion#228.",
+          "dead via actor:applyCondition não marca o combatente defeated — dívida legítima (REQ-CBT-059 se auto-escopa a dano). Issue xansde/fusion#229.",
+          "Regra kind:\"strike\" dentro de Effect não tem conversor (stepCharInstinctStrikes só processa classFeature) — mutágeno consumido aplica o efeito mas o golpe não materializa. Issue xansde/fusion-systems-2e#86.",
+          "Ressalva do I1: token sem nome próprio e actor fora do mirror ainda caem no tokenId — gap de visibilidade de servidor, fora do escopo da onda.",
+          "11 achados menores não corrigidos, listados em .fusion-build/alquimista/onda-5/REVISAO.md."
+        ]
+      },
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
     }
   ],
   "lotes": {}
