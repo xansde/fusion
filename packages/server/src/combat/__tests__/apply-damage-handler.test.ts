@@ -42,6 +42,7 @@ import type {
   ActorMechanics,
   ActorMechanicsPatch,
   ResolvedDamageInstance,
+  ApplyDamageOptions,
 } from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
@@ -88,37 +89,76 @@ const VALID_MANIFEST = {
  * target to 0 — a generic, non-pf2e-specific test double just detailed
  * enough to exercise the CORE's own I4 (REQ-CBT-059) defeated-marking.
  */
-/** A hardcoded "resistance 1" this fake applies ONLY to `type: "cold"` — a
+/** A hardcoded "resistance 3" this fake applies ONLY to `type: "cold"` — a
  * sentinel no other test in this file uses (ALQ-F1-10's `computeByType`
- * `resistanceApplied` regression test below is the only caller). Every
- * other type is untouched (raw amount, matching every pre-existing test's
- * expectation of a game-rule-free "subtract the summed amount" double). */
-const FAKE_COLD_RESISTANCE = 1;
+ * `resistanceApplied` regression test below, plus the B2 multiplier ×
+ * resistance crossing tests, are the only callers). Every other type is
+ * untouched (raw amount, matching every pre-existing test's expectation of
+ * a game-rule-free "subtract the summed amount" double). Value picked to
+ * match the onda-5 review's own probe numbers (`.fusion-build/alquimista/
+ * onda-5/REVISAO.md` B3/B2: "resistência 3 real + botão ½"). */
+const FAKE_COLD_RESISTANCE = 3;
+
+/**
+ * B2 fix (onda-5 adversarial review): scale ONLY (multiplier ½/×2, or a
+ * basicSave degree) — the fake's own resistance is applied SEPARATELY,
+ * after this, in `makeFakeActorMechanics`. Deliberately mirrors the generic
+ * d20 vocabulary `ApplyDamageOptions.basicSave.degree` already documents
+ * elsewhere in this file (the B3 tests) — not a pf2e-specific formula, but
+ * the same shape the real satellite pipeline uses (`scaleInstanceAmount`,
+ * `systems/pf2e/src/actions/damage.ts`), which is exactly what this fake
+ * needs to reproduce to exercise `computeByType`'s corrected
+ * `resistanceApplied` derivation (it now reads the breakdown's
+ * `step: "input"` POST-scale baseline, never the raw amount).
+ */
+function scaleFakeAmount(amount: number, opts: ApplyDamageOptions): number {
+  if (opts.basicSave) {
+    switch (opts.basicSave.degree) {
+      case "CriticalSuccess":
+        return 0;
+      case "Success":
+        return Math.floor(amount / 2);
+      case "CriticalFailure":
+        return amount * 2;
+      default:
+        return amount;
+    }
+  }
+  if (opts.multiplier !== undefined) return Math.floor(amount * opts.multiplier);
+  return amount;
+}
 
 function makeFakeActorMechanics(instancesLog: ResolvedDamageInstance[][]): ActorMechanics {
   return {
-    applyDamage(actor, instances, _opts): ActorMechanicsPatch {
+    applyDamage(actor, instances, opts): ActorMechanicsPatch {
       instancesLog.push([...instances]);
       const system = actor["system"] as { attributes?: { hp?: { value?: number } } } | undefined;
       const currentHp = system?.attributes?.hp?.value ?? 0;
-      const finalAmounts = instances.map((i) =>
-        i.type === "cold" ? Math.max(0, i.amount - FAKE_COLD_RESISTANCE) : i.amount,
-      );
+      const breakdown: ActorMechanicsPatch["breakdown"] = [];
+      const finalAmounts = instances.map((i) => {
+        const scaled = scaleFakeAmount(i.amount, opts);
+        // B2 fix fixture: a `step: "input"` entry with the POST-scale,
+        // PRE-resistance amount — same convention the real pf2e
+        // `applyDamagePipeline` uses (Step 1, `damage.ts`) — immediately
+        // before the `step === type` bridge below, so `computeByType` can
+        // pair them and derive `resistanceApplied` from the reduction the
+        // fake's resistance (not the scale) actually caused.
+        breakdown.push({ step: "input", label: `${i.type} input`, amount: scaled });
+        const final = i.type === "cold" ? Math.max(0, scaled - FAKE_COLD_RESISTANCE) : scaled;
+        // ALQ-F1-10 regression fixture: `step === type` (the real pf2e
+        // `damage.ts` convention this task's fix made `computeByType` rely
+        // on) with the FINAL (post-scale, post-fake-resistance) amount —
+        // see `computeByType`'s own doc comment in actor-mechanics-service.ts.
+        breakdown.push({ step: i.type, label: i.type, amount: final });
+        return final;
+      });
       const totalDamage = finalAmounts.reduce((sum, amount) => sum + amount, 0);
       const newHp = Math.max(0, currentHp - totalDamage);
       return {
         diff: { system: { attributes: { hp: { value: newHp } } } },
         embeddedCreate: [],
         embeddedDelete: [],
-        // ALQ-F1-10 regression fixture: `step === type` (the real pf2e
-        // `damage.ts` convention this task's fix made `computeByType` rely
-        // on) with the FINAL (post-fake-resistance) amount — see
-        // `computeByType`'s own doc comment in actor-mechanics-service.ts.
-        breakdown: instances.map((i, idx) => ({
-          step: i.type,
-          label: i.type,
-          amount: finalAmounts[idx] ?? i.amount,
-        })),
+        breakdown,
         flags: { droppedToZero: newHp === 0, dead: newHp === 0, dyingChanged: false },
       };
     },
@@ -637,6 +677,72 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       expect(fireByType[0]).not.toHaveProperty("resistanceApplied");
     } finally {
       playerSocket.disconnect();
+    }
+  });
+
+  // B2 fix (onda-5 adversarial review, `.fusion-build/alquimista/onda-5/
+  // REVISAO.md`): `resistanceApplied` used to be `rawTotal - final`, so any
+  // scale (multiplier ½/×2, basicSave degree) got mislabeled as resistance.
+  // The three cases below are the exact crossing the review flagged as
+  // uncovered — deterministic GM `amount` (no dice) so the expected numbers
+  // match the review's own probe table (raw 10) precisely.
+  it("B2: botão ½ sem resistência não fabrica resistanceApplied", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const ack = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", amount: 10 }],
+        targetTokenIds: [T1_TOKEN_ID],
+        multiplier: 0.5,
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const targets = (ack["result"] as { targets: Array<Record<string, unknown>> }).targets;
+      const byType = targets[0]?.["byType"] as Array<Record<string, unknown>>;
+      // Old bug: raw(10) - final(5) = 5 -> fabricated "(resistência 5)".
+      expect(byType).toEqual([{ type: "fire", amount: 5 }]);
+      expect(byType[0]).not.toHaveProperty("resistanceApplied");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP - 5);
+    } finally {
+      gmSocket.disconnect();
+    }
+  });
+
+  it("B2: botão ½ combinado com resistência 3 real reporta só a resistência (3), não a escala (8)", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const ack = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "cold", amount: 10 }],
+        targetTokenIds: [T1_TOKEN_ID],
+        multiplier: 0.5,
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const targets = (ack["result"] as { targets: Array<Record<string, unknown>> }).targets;
+      const byType = targets[0]?.["byType"] as Array<Record<string, unknown>>;
+      // raw 10 -> scaled 5 (½) -> final 2 (resistance 3). Old bug:
+      // raw(10) - final(2) = 8. Correct: scaled(5) - final(2) = 3.
+      expect(byType).toEqual([{ type: "cold", amount: 2, resistanceApplied: FAKE_COLD_RESISTANCE }]);
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP - 2);
+    } finally {
+      gmSocket.disconnect();
+    }
+  });
+
+  it("B2: basicSave CriticalSuccess (0×) não fabrica resistanceApplied", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const ack = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", amount: 10 }],
+        targetTokenIds: [T1_TOKEN_ID],
+        basicSave: { degree: "CriticalSuccess" },
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const targets = (ack["result"] as { targets: Array<Record<string, unknown>> }).targets;
+      const byType = targets[0]?.["byType"] as Array<Record<string, unknown>>;
+      // Old bug: raw(10) - final(0) = 10 -> fabricated "(resistência 10)".
+      expect(byType).toEqual([{ type: "fire", amount: 0 }]);
+      expect(byType[0]).not.toHaveProperty("resistanceApplied");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+    } finally {
+      gmSocket.disconnect();
     }
   });
 

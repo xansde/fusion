@@ -88,9 +88,23 @@
  * which flagged the gap for ALQ-F1-06 "to confirm or supersede" — it never
  * did, until this task closed it on both ends: `damage.ts` now emits the
  * `step === type` final-amount line, and `computeByType` below derives
- * `resistanceApplied` from it — no new carrier needed, just the difference
- * between the RAW per-type total (`resolvedInstances`, already in scope
- * here) and the FINAL one once a mechanic supplies it).
+ * `resistanceApplied` from it).
+ *
+ * ONDA-5 ADVERSARIAL REVIEW FIX (2026-09-17, `.fusion-build/alquimista/
+ * onda-5/REVISAO.md` B2/B3) — the paragraph above USED TO say the baseline
+ * for `resistanceApplied` was "the RAW per-type total (`resolvedInstances`)
+ * and the FINAL one" (`raw - final`). That conflates two different
+ * reductions: `resolvedInstances` is the total BEFORE `scaleInstanceAmount`
+ * (multiplier ½/×2, or `basicSave.degree`) runs in the system's
+ * `resolveDamageApplication` (satellite) — a step that has nothing to do
+ * with resistance/weakness/immunity. A ½ button against a target with NO
+ * resistance showed a fabricated "(resistência 5)"; a real resistance of 3
+ * combined with a ½ button showed "8" instead of "3". `computeByType` now
+ * derives the baseline from `applyDamagePipeline`'s own `step: "input"`
+ * entry (the POST-scale, PRE-IWR amount for that component, pushed right
+ * before the `step === type` bridge) instead of `resolvedInstances` — the
+ * scale is already backed out by the time it reaches this file, so
+ * `resistanceApplied` reflects only what the IWR pipeline itself reduced.
  *
  * Spec: 15-api-de-sistemas.md REQ-SYS-142. Spec: 09-chat-e-mensagens.md
  * REQ-CHT-052/053. Plan: docs/design/alquimista/tasks.md §2.1, task
@@ -623,25 +637,43 @@ function computeByType(
     totals.set(entry.type, (totals.get(entry.type) ?? 0) + entry.amount);
   }
 
-  // ALQ-F1-10 fix (2026-09-17): `resistanceApplied` used to be "left unset
-  // either way — no structured carrier for it exists yet" (this function's
-  // own module doc comment). It doesn't need a new carrier: when a mechanic
-  // DOES emit the final per-type line (`byTypeStep` non-empty — ALQ-F1-06's
-  // `damage.ts` now does), the RAW pre-IWR total per type is already sitting
-  // right here in `resolvedInstances`. A resistance/weakness note only ever
-  // reduces damage (a weakness increases it — REQ-CHT-053 only documents the
-  // reduced case, "resistência aplicada", so only that direction is surfaced
-  // here); the difference between raw and final IS that reduction.
-  const rawTotals = new Map<string, number>();
-  for (const instance of resolvedInstances) {
-    rawTotals.set(instance.type, (rawTotals.get(instance.type) ?? 0) + instance.amount);
+  // B2 fix (onda-5 adversarial review, see module doc comment above): the
+  // baseline for `resistanceApplied` is the POST-scale, PRE-IWR amount per
+  // type — `applyDamagePipeline`'s `step: "input"` entry — never the RAW
+  // `resolvedInstances` total (that still includes whatever the ½/×2/
+  // basicSave multiplier took off, which is not resistance).
+  //
+  // `breakdown` interleaves pipeline-stage steps with the per-component
+  // sequence `"input"` -> (0-1 `"iwr"`) -> `step === <type>` (the bridge
+  // matched into `byTypeStep` above) — `mergeDamageInstances` (satellite)
+  // groups same-type instances into exactly one component per type before
+  // scaling, so each component's own `"input"` always immediately precedes
+  // its bridge, with no OTHER `"input"` landing in between. A single pass
+  // pairs each `"input"` with the next type-matching step; anything that
+  // is not actually that bridge (e.g. a stray `"healing"`/`"temp-hp"` step
+  // whose name coincides with a damage type in the same payload) is
+  // reached with no `"input"` pending and is safely left unpaired —
+  // `resistanceApplied` simply stays absent for it, same as today.
+  const postScaleBaseline = new Map<string, number>();
+  let pendingInput: number | undefined;
+  for (const step of breakdown) {
+    if (step.step === "input") {
+      pendingInput = step.amount;
+      continue;
+    }
+    const isTypeBridge = resolvedInstances.some((i) => i.type === step.step);
+    if (isTypeBridge && pendingInput !== undefined) {
+      postScaleBaseline.set(step.step, (postScaleBaseline.get(step.step) ?? 0) + pendingInput);
+      pendingInput = undefined;
+    }
   }
   const resistanceCarrierAvailable = byTypeStep.length > 0;
 
   return [...totals.entries()].map(([type, amount]) => {
     if (!resistanceCarrierAvailable) return { type, amount };
-    const raw = rawTotals.get(type);
-    const resistanceApplied = raw !== undefined && raw > amount ? raw - amount : undefined;
+    const baseline = postScaleBaseline.get(type);
+    const resistanceApplied =
+      baseline !== undefined && baseline > amount ? baseline - amount : undefined;
     return resistanceApplied !== undefined ? { type, amount, resistanceApplied } : { type, amount };
   });
 }
