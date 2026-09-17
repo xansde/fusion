@@ -618,11 +618,29 @@ export function sanitizeDescriptionToText(
   const withReadableTags = rewriteInlineTags(withGlyphs);
 
   // Turn block-level boundaries into paragraph breaks before removing tags.
+  // Table rows are treated as blocks too (I3, onda-3 review): a vendor
+  // <table> (e.g. "Earn Income" in actions-core) has no <p>/<li>/<div>
+  // anywhere in it, so before this a whole table silently lost every tag
+  // with NOTHING in its place — see the inline/cell rule below for why that
+  // glued digits together, not just missing a line break.
   const withBreaks = withReadableTags
     .replace(/<\s*br\s*\/?>/gi, "\n")
     .replace(/<\s*hr\s*\/?>/gi, "\n\n---\n\n")
-    .replace(/<\s*\/\s*(p|li|div)\s*>/gi, "\n\n")
-    .replace(/<\s*li[^>]*>/gi, "• ");
+    .replace(/<\s*\/\s*(p|li|div|tr|table)\s*>/gi, "\n\n")
+    .replace(/<\s*table[^>]*>/gi, "\n\n")
+    .replace(/<\s*li[^>]*>/gi, "• ")
+    // Table cells and inline emphasis tags (strong/em/b/i — ALLOWED_TAGS'
+    // own inline subset — plus the action-glyph <span title=...> minted by
+    // convertActionGlyphs) are never block boundaries, but the catch-all
+    // strip below removes them with an EMPTY string. When the source HTML
+    // has no whitespace of its own at that boundary — e.g. vendor markup
+    // like "<strong>Activate</strong><span class=\"action-glyph\">1</span>
+    // (manipulate)" or a table's "<td>0</td><td>1 cp</td>" — that glues the
+    // words/digits on either side together. A single space here is always
+    // safe: it can never merge two paragraphs (only p/li/div/tr/table do
+    // that), and any doubled-up space this creates next to real whitespace
+    // is normalized away below.
+    .replace(/<\s*\/?\s*(td|th|strong|em|b|i|span)(?:\s[^>]*)?>/gi, " ");
 
   // Strip every remaining tag (allow-list tags carry no special meaning in
   // plain-text output — they were only used above to derive breaks).
@@ -632,7 +650,12 @@ export function sanitizeDescriptionToText(
 
   return decoded
     .split(/\n{2,}/)
-    .map((block) => block.replace(/\n+/g, " ").trim())
+    .map((block) =>
+      block
+        .replace(/\n+/g, " ")
+        .replace(/[ \t]{2,}/g, " ")
+        .trim(),
+    )
     .filter((block) => block.length > 0);
 }
 

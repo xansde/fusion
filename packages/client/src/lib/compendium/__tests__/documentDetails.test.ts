@@ -520,6 +520,69 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// I3 (onda-3 adversarial review): `withBreaks` only emitted a separator for
+// br/hr/p/li/div — an inline tag (strong/em/b/i, and the action-glyph span)
+// or a table tag (table/tr/td/th) disappeared with NOTHING in its place,
+// gluing whatever text sat on either side of it. Fixtures below are VERBATIM
+// excerpts from the committed packs (cited per doc), not invented HTML.
+// ---------------------------------------------------------------------------
+
+describe("sanitizeDescriptionToText — tags inline e de tabela não colam palavras (I3, onda-3 review)", () => {
+  it("alchemical-items-core, 'Crackling Bubble Gum': </strong> colado no <span> do glifo não gruda mais a palavra no ícone", () => {
+    // Verbatim from the pack: no whitespace at all between </strong> and the
+    // action-glyph <span> in the source HTML.
+    const html = '<p><strong>Activate</strong><span class="action-glyph">1</span> (manipulate)</p>';
+    const blocks = sanitizeDescriptionToText(html);
+
+    // Hand-derived: <strong>/</strong>/<span>/</span> each become ONE space,
+    // consecutive spaces collapse to one, and the block is trimmed — so the
+    // action glyph reads as its own word, never glued to "Activate".
+    expect(blocks).toEqual(["Activate ◆ (manipulate)"]);
+    expect(blocks[0]).not.toContain("Activate◆");
+  });
+
+  it("spells-core, 'Demon Form': </strong><span> sem espaço nenhum (Ranged) fica igual ao caso que já tinha espaço (Melee)", () => {
+    // Verbatim excerpt: the vendor source has a literal space between Melee's
+    // </strong> and its glyph <span>, and NONE between Ranged's — both must
+    // read identically after the fix (a single space), proving the collapse
+    // handles pre-existing whitespace and the fully-glued case the same way.
+    const html =
+      '<ul><li><strong>Melee</strong> <span class="action-glyph">1</span> claw (agile, magic, unholy), <strong>Damage</strong> 2d6+12 slashing;</li>' +
+      '<li><strong>Ranged</strong><span class="action-glyph">1</span> hurled debris (range increment 20 feet, unholy)</li></ul>';
+    const blocks = sanitizeDescriptionToText(html);
+    const text = blocks.join(" ");
+
+    expect(text).toContain("Melee ◆ claw");
+    expect(text).toContain("Ranged ◆ hurled debris");
+    expect(text).not.toContain("Ranged◆");
+    expect(text).not.toContain("Activate◆");
+    expect(text).not.toMatch(/ {2,}/); // no double spaces left over from the collapse
+  });
+
+  it("actions-core, 'Earn Income' Table 4-2 (truncated to 2 rows): células de tabela não colam dígitos", () => {
+    // Verbatim excerpt of the real table (rows truncated for test size; cell
+    // text is byte-for-byte from the pack).
+    const html =
+      '<table class="pf2e remaster"><thead><tr><th>Task Level</th><th>Failure</th><th>Trained</th>' +
+      "<th>Expert</th><th>Master</th><th>Legendary</th></tr></thead><tbody>" +
+      "<tr><td>0</td><td>1 cp</td><td>5 cp</td><td>5 cp</td><td>5 cp</td><td>5 cp</td></tr>" +
+      "<tr><td>1</td><td>2 cp</td><td>2 sp</td><td>2 sp</td><td>2 sp</td><td>2 sp</td></tr>" +
+      "</tbody></table>";
+    const blocks = sanitizeDescriptionToText(html);
+
+    // Hand-derived: <table> opening and every </tr> (plus </table>) are
+    // paragraph breaks; every <td>/<th> (open AND close) becomes a space, so
+    // each row is its own block with cells space-separated — never the
+    // "015 cp5 cp5 cp..." digit-glued mess the bug produced.
+    expect(blocks).toEqual([
+      "Task Level Failure Trained Expert Master Legendary",
+      "0 1 cp 5 cp 5 cp 5 cp 5 cp",
+      "1 2 cp 2 sp 2 sp 2 sp 2 sp",
+    ]);
+  });
+});
+
 describe("buildSpellFields (EN, default locale)", () => {
   it("extracts cast time, range, target, and requirements", () => {
     const fields = buildSpellFields({
