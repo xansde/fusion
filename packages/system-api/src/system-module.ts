@@ -44,6 +44,8 @@ import {
   type RollDataDefinition,
   type DegreeOfSuccessDefinition,
   type EffectsMaterializerDefinition,
+  type ConsumeItemDefinition,
+  type ConsumeHookFn,
 } from "./registries.js";
 
 // ---------------------------------------------------------------------------
@@ -104,6 +106,10 @@ interface RegistrarAccumulator {
   onDamageApplied: HookMap<DamageAppliedHookFn>;
   /** REQ-SYS-142: at most one per system. */
   actorMechanics: ActorMechanics | null;
+  /** REQ-SYS-144 (ALQ-F2-11): same registry discipline as onDamageApplied. */
+  onConsumed: HookMap<ConsumeHookFn>;
+  /** REQ-SYS-143 (ALQ-F2-11): at most one per system. */
+  consumeItem: ConsumeItemDefinition | null;
 }
 
 /**
@@ -276,6 +282,21 @@ export interface SystemRegistrar extends CombatRegistrar {
    * id+priority discipline.
    */
   registerActorMechanics(mechanics: ActorMechanics): void;
+
+  /**
+   * Register this system's ConsumeItem rule — the pure plan behind
+   * `item:consume` (REQ-SYS-143, plan §2.6, ALQ-F2-11). At most once per
+   * system: calling this twice is a programming error and MUST throw.
+   */
+  registerConsumeItem(def: ConsumeItemDefinition): void;
+
+  /**
+   * Register a post-consume hook (REQ-SYS-144, ALQ-F2-11) — the single
+   * extension point after `item:consume` persists and before it broadcasts.
+   * Accepts MULTIPLE callbacks, same id+priority discipline as the turn
+   * hooks above: duplicate `id` MUST throw.
+   */
+  registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -302,6 +323,16 @@ export interface SystemModule {
    * resolve to `NOT_SUPPORTED` without writing anything.
    */
   readonly actorMechanics: ActorMechanics | null;
+
+  /**
+   * This system's ConsumeItem rule (REQ-SYS-143, ALQ-F2-11), or null when the
+   * system registered none — `item:consume` then resolves to `NOT_SUPPORTED`
+   * without writing anything.
+   */
+  readonly consumeItem: ConsumeItemDefinition | null;
+
+  /** Sorted post-consume hook registrations (REQ-SYS-144, ALQ-F2-11). */
+  readonly onConsumed: ReadonlyArray<RegisteredTurnHook<ConsumeHookFn>>;
 
   /**
    * Derivation step registry.
@@ -427,6 +458,8 @@ export function defineSystem(
     onCombatEnd: new Map(),
     onDamageApplied: new Map(),
     actorMechanics: null,
+    onConsumed: new Map(),
+    consumeItem: null,
   };
 
   // Monotonic counter shared by every turn-hook event — only used to
@@ -667,6 +700,19 @@ export function defineSystem(
       }
       acc.actorMechanics = mechanics;
     },
+
+    registerConsumeItem(def: ConsumeItemDefinition): void {
+      if (acc.consumeItem !== null) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" called registerConsumeItem more than once`,
+        );
+      }
+      acc.consumeItem = def;
+    },
+
+    registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onConsumed, manifest.id, "registerConsumeHook", id, fn, opts, nextHookOrder);
+    },
   };
 
   build(registrar);
@@ -709,6 +755,8 @@ export function defineSystem(
     models: modelsMap,
     combat,
     actorMechanics: acc.actorMechanics,
+    consumeItem: acc.consumeItem,
+    onConsumed: sortHookMap(acc.onConsumed),
     deriveSteps: acc.deriveSteps,
     registries,
   };
