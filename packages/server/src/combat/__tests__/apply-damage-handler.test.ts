@@ -88,19 +88,37 @@ const VALID_MANIFEST = {
  * target to 0 — a generic, non-pf2e-specific test double just detailed
  * enough to exercise the CORE's own I4 (REQ-CBT-059) defeated-marking.
  */
+/** A hardcoded "resistance 1" this fake applies ONLY to `type: "cold"` — a
+ * sentinel no other test in this file uses (ALQ-F1-10's `computeByType`
+ * `resistanceApplied` regression test below is the only caller). Every
+ * other type is untouched (raw amount, matching every pre-existing test's
+ * expectation of a game-rule-free "subtract the summed amount" double). */
+const FAKE_COLD_RESISTANCE = 1;
+
 function makeFakeActorMechanics(instancesLog: ResolvedDamageInstance[][]): ActorMechanics {
   return {
     applyDamage(actor, instances, _opts): ActorMechanicsPatch {
       instancesLog.push([...instances]);
       const system = actor["system"] as { attributes?: { hp?: { value?: number } } } | undefined;
       const currentHp = system?.attributes?.hp?.value ?? 0;
-      const totalDamage = instances.reduce((sum, i) => sum + i.amount, 0);
+      const finalAmounts = instances.map((i) =>
+        i.type === "cold" ? Math.max(0, i.amount - FAKE_COLD_RESISTANCE) : i.amount,
+      );
+      const totalDamage = finalAmounts.reduce((sum, amount) => sum + amount, 0);
       const newHp = Math.max(0, currentHp - totalDamage);
       return {
         diff: { system: { attributes: { hp: { value: newHp } } } },
         embeddedCreate: [],
         embeddedDelete: [],
-        breakdown: instances.map((i) => ({ step: i.type, label: i.type, amount: i.amount })),
+        // ALQ-F1-10 regression fixture: `step === type` (the real pf2e
+        // `damage.ts` convention this task's fix made `computeByType` rely
+        // on) with the FINAL (post-fake-resistance) amount — see
+        // `computeByType`'s own doc comment in actor-mechanics-service.ts.
+        breakdown: instances.map((i, idx) => ({
+          step: i.type,
+          label: i.type,
+          amount: finalAmounts[idx] ?? i.amount,
+        })),
         flags: { droppedToZero: newHp === 0, dead: newHp === 0, dyingChanged: false },
       };
     },
@@ -565,6 +583,60 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       playerSocket.disconnect();
       gmSocket.disconnect();
       observerSocket.disconnect();
+    }
+  });
+
+  it("ALQ-F1-10 regressão: byType carrega resistanceApplied quando o mecanismo emite step===type com o total FINAL (pós-IWR); sem redução, resistanceApplied some", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+
+      // "cold" carries the fake's hardcoded resistance 1 (FAKE_COLD_RESISTANCE).
+      const coldRollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d6+2",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const coldRollMsg = (coldRollAck["result"] as { message: ChatMessageLike }).message;
+      const coldRollTotal = coldRollMsg.rolls?.[0]?.total;
+      expect(typeof coldRollTotal).toBe("number");
+
+      const coldAck = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "cold", source: { messageId: coldRollMsg._id, rollIndex: 0 } }],
+      });
+      expect(coldAck["ok"], JSON.stringify(coldAck)).toBe(true);
+      const coldTargets = (coldAck["result"] as { targets: Array<Record<string, unknown>> })
+        .targets;
+      const coldByType = coldTargets[0]?.["byType"] as Array<Record<string, unknown>>;
+      expect(coldByType).toEqual([
+        {
+          type: "cold",
+          amount: (coldRollTotal as number) - FAKE_COLD_RESISTANCE,
+          resistanceApplied: FAKE_COLD_RESISTANCE,
+        },
+      ]);
+
+      // "fire" carries no reduction in the fake — resistanceApplied absent
+      // (undefined, matching every pre-existing test's byType expectation).
+      const fireRollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d6+2",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const fireRollMsg = (fireRollAck["result"] as { message: ChatMessageLike }).message;
+      const fireRollTotal = fireRollMsg.rolls?.[0]?.total;
+
+      const fireAck = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: fireRollMsg._id, rollIndex: 0 } }],
+      });
+      expect(fireAck["ok"], JSON.stringify(fireAck)).toBe(true);
+      const fireTargets = (fireAck["result"] as { targets: Array<Record<string, unknown>> })
+        .targets;
+      const fireByType = fireTargets[0]?.["byType"] as Array<Record<string, unknown>>;
+      expect(fireByType).toEqual([{ type: "fire", amount: fireRollTotal }]);
+      expect(fireByType[0]).not.toHaveProperty("resistanceApplied");
+    } finally {
+      playerSocket.disconnect();
     }
   });
 
