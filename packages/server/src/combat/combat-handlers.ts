@@ -402,6 +402,89 @@ function withActiveCombatantId(
   };
 }
 
+// ---------------------------------------------------------------------------
+// REQ-CBT-059 — mark a combatant defeated on flags.dead (I4, onda-4 review)
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal deps for {@link markCombatantDefeatedForActor} — deliberately NOT
+ * `CombatHandlerDeps` (which requires `formulaRegistry`/`eventBus`/`db`/
+ * `worldId`, none of which this one write needs): its only caller,
+ * `ActorMechanicsService.applyDamage`, has `store`/`seqStore`/`opBuffer`/`ns`
+ * to offer and nothing else, and fabricating an initiative registry/event bus
+ * just to satisfy a wider type would be manufacturing coupling this write
+ * does not have.
+ */
+export interface DefeatedMarkerDeps {
+  store: DocumentStore;
+  seqStore: SeqStore;
+  opBuffer: OpBuffer;
+  ns: Namespace;
+}
+
+/**
+ * REQ-CBT-059: when `actor:applyDamage` (REQ-SYS-142 step 4) resolves
+ * `flags.dead` for an actor that is a combatant of the ACTIVE (non-ended)
+ * encounter of `sceneId`, mark that combatant `defeated: true` — the same
+ * effect and broadcast as `combat:setDefeated` (REQ-CBT-024), in the SAME op.
+ *
+ * `ActorMechanicsService` calls this synchronously and unconditionally when a
+ * mechanic returns `flags.dead` — there is no role/ownership gate here,
+ * unlike `buildCombatToggleDefeatedHandler`: the caller already authorized
+ * the damage that produced `flags.dead` (only a REGISTERED system mechanic
+ * ever sets that flag — never the client, see actor-mechanics-service.ts),
+ * so this is an automatic consequence of an already-authorized write, not a
+ * fresh privileged action that needs its own re-gate.
+ *
+ * No-op — returns null, burns no seq, broadcasts nothing — when no active
+ * combat has this actor as a combatant (the common case: most damage happens
+ * outside any encounter), or the combatant is already `defeated`.
+ */
+export function markCombatantDefeatedForActor(
+  deps: DefeatedMarkerDeps,
+  actorId: string,
+  sceneId: string | null,
+): { combatId: string; combatantId: string } | null {
+  const combats = deps.store.getAll("combats");
+  const combat = combats.find((c) => {
+    if (c["ended"] === true) return false;
+    if (sceneId !== null && c["sceneId"] !== sceneId) return false;
+    const combatants = c["combatants"];
+    return (
+      Array.isArray(combatants) &&
+      (combatants as Record<string, unknown>[]).some((cbt) => cbt["actorId"] === actorId)
+    );
+  });
+  if (!combat) return null;
+
+  const combatants = combat["combatants"] as Record<string, unknown>[];
+  const combatantIdx = combatants.findIndex((c) => c["actorId"] === actorId);
+  const current = combatants[combatantIdx];
+  if (!current || current["defeated"] === true) return null;
+
+  const updatedCombatants = [...combatants];
+  updatedCombatants[combatantIdx] = { ...current, defeated: true };
+  const diff = withActiveCombatantId(combat as unknown as CombatDocument, {
+    combatants: updatedCombatants as unknown as CombatantDocument[],
+  });
+
+  const updated = deps.store.update("combats", combat["_id"] as string, diff, { userId: null });
+  if (!updated) return null;
+
+  const seq = deps.seqStore.next();
+  const envelope: Envelope = {
+    type: "combat:updated",
+    seq,
+    ts: Date.now(),
+    payload: { combatId: updated["_id"], diff: diff as Record<string, unknown>, seq },
+  };
+  deps.opBuffer.push(envelope);
+  broadcastCombatUpdate(deps.ns, envelope, updated);
+  broadcastCombatVersionUpdate(deps, updated);
+
+  return { combatId: updated["_id"] as string, combatantId: current["_id"] as string };
+}
+
 /**
  * Load a combat document from the store. Throws if not found.
  */
