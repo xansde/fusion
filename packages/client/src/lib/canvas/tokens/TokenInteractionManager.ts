@@ -45,6 +45,7 @@ import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
+import { combatActions } from "../../combat/combatStore.svelte.js";
 import type { TokenLayer } from "./TokenLayer.js";
 import { footprintOf, type FootprintActorInput } from "./footprint.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
@@ -64,6 +65,7 @@ import {
   isEditableTarget,
   canOpenTokenSheet,
   registerTokenClick,
+  ROLE_ASSISTANT,
   type TokenClickTracker,
   type GridSnapConfig,
   type ArrowDirection,
@@ -581,6 +583,21 @@ export class TokenInteractionManager {
         }
         e.stopPropagation();
         return;
+      }
+
+      // SCAFFOLDING (ALQ-F1-10): F1-05 built the live-target store and the
+      // `combat:target` op ("exposto às fichas" — combatStore.svelte.ts),
+      // but no production UI ever calls it — there is still no real click
+      // gatilho to set a combat target anywhere in the client. Until a
+      // proper targeting UX lands (canvas overlay, roster button, whatever
+      // that task decides), a single click on a token this user does NOT
+      // own and is not privileged to move sets it as THEIR live target
+      // (REQ-CBT-056) — just enough for `AbilityCard`'s "Alvos: …" line
+      // (ALQ-F1-10) to have a real `targetSnapshot` to read at roll time.
+      // Fire-and-forget: a rejected op leaves the selection unchanged, same
+      // failure mode as every other click here.
+      if (userRole < ROLE_ASSISTANT && !owned.has(token.actorId)) {
+        void combatActions.target(this._opts.socket, tokenId, true);
       }
 
       if (!canMove) return;
