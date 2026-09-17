@@ -65,6 +65,7 @@ import {
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
+  createDocumentWriteTurnHookContextServices,
   TurnHookContextStubError,
   type TurnHookRunner,
 } from "../turn-hook-runner.js";
@@ -615,5 +616,111 @@ describe("TurnHookRunner wired into combat:beginCombat/nextTurn/endCombat/previo
     const ack = await run(previous, { combatId });
     expect(ack.ok).toBe(true);
     expect(h.log).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// createDocumentWriteTurnHookContextServices — B4 fix (onda-4 adversarial
+// review, .fusion-build/alquimista/onda-4/REVISAO.md). Before this, EVERY
+// hook-driven write except applyDamage rejected in production
+// (createStubTurnHookContextServices), so systems/pf2e/src/hooks/
+// effect-expiry.ts's own ctx.deleteEmbedded/ctx.chat calls never actually
+// removed anything — the resolver found the expired item, the write that
+// would remove it rejected, and this runner's own per-hook isolation
+// swallowed it silently, forever (REQ-SYS-139).
+//
+// The end-to-end test below registers a FAKE hook shaped exactly like that
+// satellite hook's own turn-start call (deleteEmbedded then chat) — a fake,
+// not the real pf2e one, for the same reason apply-damage-handler.test.ts
+// uses a fake ActorMechanics: this suite asserts CORE plumbing, never a game
+// rule, so it can never be circular against the satellite.
+// ---------------------------------------------------------------------------
+
+describe("createDocumentWriteTurnHookContextServices (B4 fix)", () => {
+  let h: Harness;
+
+  afterEach(() => {
+    teardown(h);
+  });
+
+  function services(target: Harness) {
+    return createDocumentWriteTurnHookContextServices({
+      store: target.store,
+      db: target.fusionDb.raw,
+      ns: target.combatDeps.ns,
+      seqStore: target.combatDeps.seqStore,
+      opBuffer: target.combatDeps.opBuffer,
+      worldId: target.combatDeps.worldId,
+    });
+  }
+
+  it("deleteEmbedded removes the item from the actor's persisted items[]", async () => {
+    h = buildHarness();
+    const actorId = createActor(h, "Alquimista");
+    h.store.update("actors", actorId, {
+      items: [
+        { _id: "effectItem000001", type: "effect", name: "Mutagen" },
+        { _id: "effectItem000002", type: "effect", name: "Outro" },
+      ],
+    });
+
+    await services(h).deleteEmbedded(actorId, ["effectItem000001"]);
+
+    const updated = h.store.get("actors", actorId);
+    const items = updated["items"] as Array<{ _id: string }>;
+    expect(items.map((i) => i._id)).toEqual(["effectItem000002"]);
+  });
+
+  it("deleteEmbedded burns no seq when none of the itemIds are present (no-op)", async () => {
+    h = buildHarness();
+    const actorId = createActor(h, "Alquimista");
+    h.store.update("actors", actorId, { items: [] });
+
+    const before = h.combatDeps.seqStore.peek();
+    await services(h).deleteEmbedded(actorId, ["doesNotExist"]);
+    expect(h.combatDeps.seqStore.peek()).toBe(before);
+  });
+
+  it("chat persists a system ChatMessage", async () => {
+    h = buildHarness();
+    await services(h).chat({ content: "Efeito Mutagen terminou em Alquimista." });
+
+    const row = h.fusionDb.raw
+      .prepare(`SELECT data FROM chat_messages ORDER BY created_at DESC LIMIT 1`)
+      .get() as { data: string } | undefined;
+    expect(row).toBeDefined();
+    const msg = JSON.parse(row?.data ?? "{}") as { content: string; speaker: { userId: string } };
+    expect(msg.content).toBe("Efeito Mutagen terminou em Alquimista.");
+    expect(msg.speaker.userId).toBe("system");
+  });
+
+  it("B4 end-to-end: a turnStart hook shaped like effect-expiry.ts's own call (deleteEmbedded then chat) really removes the item from the actor's state", async () => {
+    let hookRan = false;
+    h = buildHarness((r) => {
+      r.onTurnStart("test.expiry", async ({ actor }, ctx) => {
+        if (!actor) return;
+        await ctx.deleteEmbedded(actor["_id"] as string, ["effectItem000001"]);
+        await ctx.chat({ content: "Efeito X terminou." });
+        hookRan = true;
+      });
+    });
+    const actorId = createActor(h, "Alquimista");
+    h.store.update("actors", actorId, {
+      items: [{ _id: "effectItem000001", type: "effect", name: "Mutagen" }],
+    });
+    const actor = h.store.get("actors", actorId);
+
+    const runner = createTurnHookRunner({
+      systemModule: h.combatDeps.systemModule,
+      services: { ...createStubTurnHookContextServices(), ...services(h) },
+      logger: h.logger,
+    });
+
+    await runner.runTurnStart(makeCombat(), makeCombatant({ actorId }), actor);
+
+    expect(hookRan).toBe(true);
+    expect(h.logger.error).not.toHaveBeenCalled();
+    const updated = h.store.get("actors", actorId);
+    expect(updated["items"]).toEqual([]);
   });
 });

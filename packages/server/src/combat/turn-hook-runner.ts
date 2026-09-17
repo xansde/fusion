@@ -42,17 +42,31 @@
  * Plan: docs/design/alquimista/tasks.md §2.2 (TurnHooks), task ALQ-F1-04.
  */
 
+import type { Namespace } from "socket.io";
 import type { Logger } from "pino";
+import type { Database as Db } from "better-sqlite3";
 import type {
   ActorApplyConditionPayload,
   ActorApplyDamagePayload,
   ApplyConditionAck,
   ApplyDamageAck,
+  ChatSpeaker,
   CombatDocument,
   CombatantDocument,
+  Envelope,
   RollResultData,
 } from "@fusion/shared";
 import type { SystemModule, TurnHookContext } from "@fusion/system-api";
+import type { DocumentStore } from "../documents/store.js";
+import type { SeqStore } from "../net/seq-store.js";
+import type { OpBuffer } from "../net/op-buffer.js";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
+import { tokenLookupSourceFromStore } from "../net/redaction.js";
+import {
+  buildBaseMessage,
+  persistChatMessage,
+  broadcastChatMessage,
+} from "../chat/chat-handler.js";
 
 // ---------------------------------------------------------------------------
 // Stub TurnHookContext services (ALQ-F1-08/F1-09 replace these)
@@ -122,6 +136,109 @@ export function createStubTurnHookContextServices(): TurnHookContextServices {
     },
     deleteEmbedded(): Promise<void> {
       return Promise.reject(new TurnHookContextStubError("deleteEmbedded"));
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Production `deleteEmbedded`/`chat` (B4 fix, onda-4 adversarial review)
+//
+// Before this, EVERY hook-driven write except `applyDamage` rejected in
+// production (the stub above) — `systems/pf2e/src/hooks/effect-expiry.ts`
+// (ALQ-F2-09) calls `ctx.deleteEmbedded` then `ctx.chat` on every turn
+// boundary, so no effect ever actually expired: the resolver ran, found the
+// expired item, and the write that would have removed it rejected and was
+// swallowed by this runner's own per-hook isolation (REQ-SYS-139) — silently,
+// forever.
+//
+// Scoped to exactly what a REGISTERED hook calls TODAY: `deleteEmbedded` (the
+// effect leaves the actor's `items[]` for real) and `chat` (the "Efeito X
+// terminou" announcement). `roll`/`updateActor`/`createEmbedded` stay
+// `TurnHookContextStubError` stubs — no hook registered as of this fix calls
+// them, and wiring a service with no caller to prove it against is exactly
+// the untested-branch trap the B1 finding fell into. Tracked as a follow-up
+// issue for whichever task needs them next (F1-12 — recovery check/frightened
+// decay — already names `ctx.roll`/`ctx.chat` in the plan).
+// ---------------------------------------------------------------------------
+
+export interface DocumentWriteTurnHookContextDeps {
+  store: DocumentStore;
+  db: Db;
+  ns: Namespace;
+  seqStore: SeqStore;
+  opBuffer: OpBuffer;
+  worldId: string;
+}
+
+/**
+ * The real `deleteEmbedded`/`chat` services — REQ-SYS-140: every write goes
+ * through the SAME persistence + broadcast path a client `doc:update`/
+ * `chat:send` op uses (`store.update` + `OpBuffer` + `broadcastToWorld`/
+ * `broadcastChatMessage`), `actingAs: "system"` (`{ userId: null }` /
+ * `speaker.userId: "system"`), never a shortcut into the database.
+ *
+ * Spread this AFTER `createStubTurnHookContextServices()` at the call site
+ * (packages/server/src/net/socket-manager.ts) so it overrides only these two
+ * keys and leaves `roll`/`updateActor`/`createEmbedded` on the stub.
+ */
+export function createDocumentWriteTurnHookContextServices(
+  deps: DocumentWriteTurnHookContextDeps,
+): Pick<TurnHookContextServices, "deleteEmbedded" | "chat"> {
+  const tokenSource = tokenLookupSourceFromStore(deps.store);
+
+  return {
+    // Neither method below has anything to `await` — every write it makes
+    // (`store.update`, `persistChatMessage`, `broadcastToWorld`/
+    // `broadcastChatMessage`) is synchronous — but `TurnHookContext.
+    // deleteEmbedded`/`chat` are typed `Promise<void>` (the async
+    // `roll`/`applyDamage`/`applyCondition` services alongside them genuinely
+    // need to be), so each explicitly returns a resolved Promise rather than
+    // using `async` with no `await` (`@typescript-eslint/require-await`).
+    deleteEmbedded(actorId, itemIds) {
+      const actor = deps.store.get("actors", actorId);
+      const existing = Array.isArray(actor["items"])
+        ? (actor["items"] as Record<string, unknown>[])
+        : [];
+      const idSet = new Set(itemIds);
+      const kept = existing.filter((item) => {
+        const id = item["_id"];
+        return typeof id !== "string" || !idSet.has(id);
+      });
+      // Nothing actually removed — do not burn a seq or wake every client.
+      if (kept.length === existing.length) return Promise.resolve();
+
+      const updated = deps.store.update("actors", actorId, { items: kept }, { userId: null });
+      if (!updated) return Promise.resolve();
+
+      const seq = deps.seqStore.next();
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq,
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [updated] },
+      };
+      deps.opBuffer.push(envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
+      return Promise.resolve();
+    },
+
+    chat(card) {
+      const speaker: ChatSpeaker = {
+        userId: "system",
+        alias: "Sistema",
+        ...(card.speakerActorId !== undefined ? { actorId: card.speakerActorId } : {}),
+      };
+      const msg = buildBaseMessage(deps.worldId, speaker, "system", card.content);
+      // TurnHookContext.chat's `flags` is intentionally opaque
+      // (`Record<string, unknown>`, system-api/combat.ts) — the caller (a
+      // hook) owns its own namespace shape, exactly like
+      // effect-expiry.ts's own `{ fusion: { effectExpiry: {...} } }`.
+      if (card.flags !== undefined) {
+        msg.flags = card.flags as Record<string, Record<string, unknown>>;
+      }
+      persistChatMessage(deps.db, msg);
+      broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
+      return Promise.resolve();
     },
   };
 }

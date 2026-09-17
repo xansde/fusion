@@ -20,36 +20,55 @@
  *   7. answers `NOT_SUPPORTED` without writing anything when no system
  *      registered `registerActorMechanics` (step 6).
  *
- * KNOWN, DOCUMENTED GAPS against the full REQ-SYS-142 text (registered here
- * rather than silently skipped — same discipline ALQ-F1-02 used for its own
- * divergences; see this task's report for the full writeup):
- *   - Step 2b (reread `type`/`category`/`critical`/`nonlethal`/`traits`/
- *     `materials` from the recorded roll for a non-privileged caller) is NOT
- *     implemented: `RollResultData` (`08-motor-de-rolagens.md`) carries none
- *     of these fields today — there is nothing server-side to reread them
- *     FROM. Only `amount` (via `rolls[].total`) and `basicSave.degree` (via
- *     `rolls[].degreeOfSuccess`, below) are anti-cheat-checked; a
- *     non-privileged caller's `critical`/`nonlethal`/`traits`/`materials`
- *     travel from the payload UNVERIFIED into `ResolvedDamageInstance`, even
- *     with `source` set (onda-4 verification finding). Harmless against
- *     THIS task's fake test mechanic (it ignores them), but a REAL anti-
- *     cheat gap the moment a mechanic uses them for IWR math: a forged
- *     `critical: true` doubles damage on a non-crit hit, a forged
- *     `materials: ["cold-iron"]` fakes triggering a weakness. Cannot be
- *     closed here without inventing a richer persisted-roll shape — needs a
- *     design decision alongside ALQ-F1-06 (the real pf2e mechanic), not a
- *     unilateral fix in this task.
- *   - Step 2c's `multiplier`-vs-`degreeOfSuccess` validation is not
- *     implemented for the same reason (no core-level mapping from a
- *     system-opaque `degreeOfSuccess` string to a legal multiplier exists).
- *     `basicSave.degree` IS validated (direct string compare) since that
- *     needs no game-specific mapping.
- *   - The idempotency-of-reapplication emenda (marking every
- *     `(messageId, rollIndex, multiplier)` as consumed) is not implemented —
- *     out of this task's own "Entrega"/test list.
- *   - REQ-CBT-059 (marking the combatant `defeated` on `flags.dead`) is not
- *     implemented here — D-03's own "tarefas afetadas" row names F1-01/06/12,
- *     not F1-08.
+ * ONDA-4 ADVERSARIAL REVIEW FIXES (2026-09-17, `.fusion-build/alquimista/
+ * onda-4/REVISAO.md` B1/B2/B3/I4) — closed the anti-cheat/authority gaps the
+ * paragraphs below used to document as open:
+ *   - B1: `selfActorId` used to waive BOTH the snapshot AND the source
+ *     message's speaker-ownership check; it only waives the snapshot
+ *     (`resolveTargets`'s `selfActorId` branch now runs the same
+ *     `requireOwnerOfMessageSpeaker` check the default/snapshot branch
+ *     always ran — a shared helper so the two paths can never drift apart
+ *     again).
+ *   - B2: reapplication idempotency is now enforced — a non-privileged
+ *     caller repeating the same `(messageId, rollIndex, multiplier, actorId)`
+ *     key gets `FORBIDDEN` without reapplying anything (`appliedKeys`,
+ *     in-memory per service instance — a live-session guard, not a durable
+ *     audit log). Privileged/`"system"` callers are exempt (a GM correcting a
+ *     misclick, or `onDamageApplied`'s own recursive `applyDamage` call, must
+ *     still be able to reapply).
+ *   - B3 (partial): a non-privileged caller's `critical` is now REREAD from
+ *     the recorded roll (`degreeOfSuccess === "criticalSuccess"`), never
+ *     trusted from the payload — the one field of step 2b derivable WITHOUT
+ *     a richer roll shape, since `criticalSuccess` is core-level d20
+ *     vocabulary (REQ-ROL-030-family), not PF2e-specific game content
+ *     (DEC-SYS-12 stays intact). `nonlethal` has no persisted carrier at all
+ *     (see the gap below) — for a non-privileged caller it is now always
+ *     forced `false` (the safe default for "cannot verify") rather than
+ *     trusted. A non-privileged `multiplier: 2` (mutually exclusive with
+ *     `basicSave`) is now rejected unless the recorded roll was itself a
+ *     critical success — `0`/`0.5`/`1` are left unvalidated because they can
+ *     only ever REDUCE what the mechanic sees, never inflate it, so they are
+ *     not an anti-cheat concern the way `2` is. `type`/`category`/`traits`/
+ *     `materials` remain payload-trusted — see the gap below, unchanged.
+ *   - I4: `flags.dead` now marks the actor's combatant `defeated: true` in
+ *     the scene's active encounter, via `combat-handlers.ts`'s
+ *     `markCombatantDefeatedForActor` (REQ-CBT-059).
+ *
+ * KNOWN, DOCUMENTED GAPS still open against the full REQ-SYS-142 text
+ * (registered here rather than silently skipped — same discipline ALQ-F1-02
+ * used for its own divergences):
+ *   - Step 2b's reread of `type`/`category`/`traits`/`materials` from the
+ *     recorded roll for a non-privileged caller is NOT implemented:
+ *     `RollResultData` (`08-motor-de-rolagens.md`) carries none of these
+ *     fields today — there is nothing server-side to reread them FROM (only
+ *     `total` and the generic `degreeOfSuccess` string exist on a roll).
+ *     A non-privileged caller's `traits`/`materials`/`type`/`category` still
+ *     travel from the payload UNVERIFIED into `ResolvedDamageInstance` — a
+ *     forged `materials: ["cold-iron"]` still fakes triggering a weakness
+ *     against a REAL pf2e mechanic. Cannot be closed without inventing a
+ *     richer persisted-roll shape — needs a design decision alongside a pf2e
+ *     mechanic task, not a unilateral fix here. Tracked in issue #225
+ *     (xansde/fusion).
  *
  * `ActorMechanicsPatch.breakdown` → `DamageAppliedTarget.byType` convention
  * (undocumented anywhere upstream — `DamageBreakdownStep.step` is explicitly
@@ -98,7 +117,9 @@ import {
 } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
 import type { SeqStore } from "../net/seq-store.js";
+import type { OpBuffer } from "../net/op-buffer.js";
 import {
+  formatDamageAppliedContent,
   redactDamageAppliedPayloadForNonPrivileged,
   tokenLookupSourceFromStore,
 } from "../net/redaction.js";
@@ -110,6 +131,7 @@ import {
   broadcastChatMessage,
 } from "../chat/chat-handler.js";
 import { createStubTurnHookContextServices } from "./turn-hook-runner.js";
+import { markCombatantDefeatedForActor } from "./combat-handlers.js";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -125,6 +147,10 @@ export interface ActorMechanicsServiceDeps {
   db: Db;
   ns: Namespace;
   seqStore: SeqStore;
+  /** I4 fix (REQ-CBT-059): needed by `markCombatantDefeatedForActor` to
+   * buffer/broadcast the `combat:updated` envelope when `flags.dead` marks a
+   * combatant defeated. */
+  opBuffer: OpBuffer;
   worldId: string;
   systemModule: SystemModule | undefined;
   logger?: Logger;
@@ -277,6 +303,50 @@ type TargetResolution =
     }
   | { ok: false; ack: ApplyDamageAck };
 
+/**
+ * REQ-SYS-142 step 3: "esse `messageId` único DEVE ser de uma mensagem cujo
+ * ator de origem o usuário possui como OWNER" — shared by BOTH non-privileged
+ * target-resolution paths that reread a roll's amount (the default snapshot
+ * path and `selfActorId`).
+ *
+ * B1 fix (onda-4 adversarial review): before this helper existed, only the
+ * default/snapshot branch ran this check — `selfActorId` returned straight
+ * after checking ownership of the TARGET actor, never the ownership of the
+ * message it was about to read an amount from. A player owning their own
+ * character could then name ANY `messageId` in the world (another player's
+ * damage roll, the GM's) and have its `total` reread as their own heal/
+ * damage. `selfActorId` waives the SNAPSHOT (REQ-SYS-142's own text), never
+ * this check — folding both call sites through one function is what keeps
+ * them from drifting apart again.
+ */
+function requireOwnerOfMessageSpeaker(
+  store: DocumentStore,
+  primaryMessage: Record<string, unknown> | undefined,
+  caller: { userId: string; role: number },
+): ApplyDamageAck | null {
+  if (!primaryMessage) {
+    return forbidden("no source message to resolve targets from");
+  }
+  const casterActorId = readSpeakerActorId(primaryMessage);
+  if (!casterActorId) {
+    return forbidden("source message has no speaker actor");
+  }
+  let casterActor: Record<string, unknown>;
+  try {
+    casterActor = store.get("actors", casterActorId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) {
+      return forbidden("caster actor not found");
+    }
+    throw err;
+  }
+  const level = resolveOwnership(readOwnership(casterActor), caller.userId, caller.role);
+  if (level < OwnershipLevel.OWNER) {
+    return forbidden("not OWNER of the caster actor");
+  }
+  return null;
+}
+
 function resolveTargets(
   store: DocumentStore,
   payload: ActorApplyDamagePayload,
@@ -317,6 +387,11 @@ function resolveTargets(
       if (level < OwnershipLevel.OWNER) {
         return { ok: false, ack: forbidden("selfActorId requires OWNER ownership") };
       }
+      // B1 fix: selfActorId waives the snapshot, never the source message's
+      // own speaker-ownership check (see requireOwnerOfMessageSpeaker's doc
+      // comment for the exploit this closes).
+      const messageCheck = requireOwnerOfMessageSpeaker(store, primaryMessage, caller);
+      if (messageCheck) return { ok: false, ack: messageCheck };
     }
     const token = findTokenForActor(store, payload.selfActorId);
     return {
@@ -361,23 +436,8 @@ function resolveTargets(
         ack: forbidden("resolving targets from a source message requires an authenticated caller"),
       };
     }
-    const casterActorId = readSpeakerActorId(primaryMessage);
-    if (!casterActorId) {
-      return { ok: false, ack: forbidden("source message has no speaker actor") };
-    }
-    let casterActor: Record<string, unknown>;
-    try {
-      casterActor = store.get("actors", casterActorId);
-    } catch (err) {
-      if (err instanceof DocumentNotFoundError) {
-        return { ok: false, ack: forbidden("caster actor not found") };
-      }
-      throw err;
-    }
-    const level = resolveOwnership(readOwnership(casterActor), caller.userId, caller.role);
-    if (level < OwnershipLevel.OWNER) {
-      return { ok: false, ack: forbidden("not OWNER of the caster actor") };
-    }
+    const messageCheck = requireOwnerOfMessageSpeaker(store, primaryMessage, caller);
+    if (messageCheck) return { ok: false, ack: messageCheck };
   }
 
   const snapshot = readTargetSnapshot(primaryMessage);
@@ -465,21 +525,50 @@ function applyMechanicsPatch(
 }
 
 // ---------------------------------------------------------------------------
-// Chat summary content — plain-text fallback line, ALWAYS the non-privileged
-// (no hp) rendering: the interactive card (ALQ-F1-10) is what shows the
-// privileged extra via the structured `flags.fusion.damageApplied`, which
-// IS redacted per-socket (net/redaction.ts). Keeping `content` itself
-// role-invariant means there is only ONE string to reason about for leaks —
-// no second "does content also need redacting per socket" question.
+// Idempotency of reapplication (B2 fix, onda-4 adversarial review) — spec
+// 15's 2026-09-15 emenda to REQ-SYS-142: "o serviço DEVE marcar cada
+// (messageId, rollIndex, multiplier) já aplicado por instância/alvo, e uma
+// segunda aplicação da MESMA chave por usuário sem papel privilegiado DEVE
+// responder FORBIDDEN sem reaplicar". Tracked per (instance-source,
+// multiplier-or-basicSave-degree, target actor) — the finest grain the spec
+// text names ("por instância/alvo") — in an in-memory Set scoped to this
+// service instance (one per world namespace, living for the namespace's
+// whole lifetime): enough to stop a repeated click/resent op in a live
+// session, not a durable audit log surviving a server restart.
 // ---------------------------------------------------------------------------
 
-function formatSummaryContent(payload: ActorDamageAppliedPayload): string {
-  return payload.targets
-    .map(
-      (t) =>
-        `${t.name} sofreu ${String(t.total)} de dano (${t.byType.map((b) => `${String(b.amount)} ${b.type}`).join(" + ")})`,
-    )
-    .join("\n");
+/** The non-multiplier, non-basicSave part of the key is fixed per call; this
+ * is the part that distinguishes "same roll scaled differently" (a
+ * legitimate ×1 then a corrective ×2 from the GM are different keys) from a
+ * genuine repeat. */
+function multiplierKeyPart(payload: ActorApplyDamagePayload): string {
+  if (payload.multiplier !== undefined) return `x${String(payload.multiplier)}`;
+  if (payload.basicSave !== undefined) return `save:${payload.basicSave.degree}`;
+  return "x1";
+}
+
+/** One idempotency key per (instance with a source, target) pair — the
+ * "por instância/alvo" grain REQ-SYS-142's emenda names. Instances without a
+ * `source` (privileged/system bare `amount`) are not tracked: there is no
+ * recorded roll to guard against replaying. Takes just the actor ids (not the
+ * full `ResolvedApplyTarget[]`) so the SAME function can key either the
+ * candidate target list (for the pre-flight check) or only the targets that
+ * actually resolved to a real actor (for marking after success). */
+function idempotencyKeysFor(
+  payload: ActorApplyDamagePayload,
+  targetActorIds: readonly string[],
+): string[] {
+  const multiplierPart = multiplierKeyPart(payload);
+  const keys: string[] = [];
+  for (const instance of payload.instances) {
+    if (!instance.source) continue;
+    for (const actorId of targetActorIds) {
+      keys.push(
+        `${instance.source.messageId}::${String(instance.source.rollIndex)}::${multiplierPart}::${actorId}`,
+      );
+    }
+  }
+  return keys;
 }
 
 // ---------------------------------------------------------------------------
@@ -490,9 +579,10 @@ export function createActorMechanicsService(
   deps: ActorMechanicsServiceDeps,
 ): ActorMechanicsService {
   const tokenSource: TokenLookupSource = tokenLookupSourceFromStore(deps.store);
+  const appliedKeys = new Set<string>();
   const service: ActorMechanicsService = {
     applyDamage: (rawPayload, caller) =>
-      applyDamage(deps, service, tokenSource, rawPayload, caller),
+      applyDamage(deps, service, tokenSource, appliedKeys, rawPayload, caller),
   };
   return service;
 }
@@ -524,6 +614,7 @@ async function applyDamage(
   deps: ActorMechanicsServiceDeps,
   service: ActorMechanicsService,
   tokenSource: TokenLookupSource,
+  appliedKeys: Set<string>,
   rawPayload: unknown,
   caller: ActorMechanicsCaller,
 ): Promise<ApplyDamageAck> {
@@ -579,6 +670,19 @@ async function applyDamage(
   if (!targetResolution.ok) return targetResolution.ack;
   const { targets, primaryMessage } = targetResolution;
 
+  // B2 fix (idempotency emenda): a non-privileged caller may never reapply
+  // the same (messageId, rollIndex, multiplier) to the same target twice.
+  // Checked BEFORE calling the mechanic; privileged/system callers are exempt
+  // (a GM correction, or onDamageApplied's own recursive "system" call, must
+  // still be able to reapply the same key).
+  const candidateIdempotencyKeys = idempotencyKeysFor(
+    payload,
+    targets.map((t) => t.actorId),
+  );
+  if (!privileged && candidateIdempotencyKeys.some((k) => appliedKeys.has(k))) {
+    return forbidden("this (messageId, rollIndex, multiplier) was already applied to this target");
+  }
+
   // basicSave.degree, from a non-privileged caller, MUST match the recorded
   // degree of its roll (REQ-SYS-142 step 2c) — no game-specific mapping
   // needed for a direct string compare.
@@ -592,6 +696,23 @@ async function applyDamage(
     }
   }
 
+  // B3 fix (multiplier vs. degreeOfSuccess, REQ-SYS-142 step 2c): a
+  // non-privileged ×2 claim (mutually exclusive with basicSave, which is
+  // validated above) is only legal when the recorded roll was itself a
+  // critical success — the same core-level d20 vocabulary the `critical`
+  // reread below uses, not a PF2e-specific rule (DEC-SYS-12). 0/0.5/1 are
+  // left unvalidated: they can only ever REDUCE what the mechanic sees,
+  // never inflate it, so they are not an anti-cheat concern the way ×2 is.
+  if (!privileged && payload.multiplier === 2 && primaryMessage && primaryMessageId) {
+    const recordedDegree = readRollDegree(
+      primaryMessage,
+      rollIndexForMessage(payload, primaryMessageId),
+    );
+    if (recordedDegree !== "criticalSuccess") {
+      return forbidden("multiplier 2 requires the recorded roll to be a critical success");
+    }
+  }
+
   // Resolve each instance's amount — reread from its own source message when
   // present (ALWAYS wins, even for a privileged caller — DF-03/step 2),
   // otherwise the privileged/system-only client-sent amount.
@@ -601,6 +722,7 @@ async function applyDamage(
   const resolvedInstances: ResolvedDamageInstance[] = [];
   for (const instance of payload.instances) {
     let amount: number;
+    let recordedDegree: string | undefined;
     if (instance.source !== undefined) {
       let msg = messageCache.get(instance.source.messageId);
       if (msg === undefined) {
@@ -621,6 +743,7 @@ async function applyDamage(
           : forbidden("source roll not found");
       }
       amount = total;
+      recordedDegree = msg ? readRollDegree(msg, instance.source.rollIndex) : undefined;
     } else {
       // DamageInstanceInputSchema's refine guarantees `amount` when `source`
       // is absent (zod refinements are runtime-only — they cannot narrow the
@@ -630,14 +753,30 @@ async function applyDamage(
       }
       amount = instance.amount;
     }
+
+    // B3 fix (REQ-SYS-142 step 2b): a non-privileged caller's `critical` is
+    // REREAD from the recorded roll, never trusted from the payload —
+    // `criticalSuccess` is the same generic d20 vocabulary `basicSave.degree`
+    // already grades against, so this needs no game-specific mapping
+    // (DEC-SYS-12). `nonlethal` has no persisted carrier on a roll at all
+    // (see the module doc comment's KNOWN GAP), so the safe "reread" of "no
+    // data" is `false` — a non-privileged caller can never make a hit look
+    // nonlethal by simply claiming it. Privileged/system callers keep the
+    // payload's own value, unchanged.
+    const critical =
+      !privileged && instance.source !== undefined
+        ? recordedDegree === "criticalSuccess"
+        : instance.critical;
+    const nonlethal = !privileged && instance.source !== undefined ? false : instance.nonlethal;
+
     resolvedInstances.push({
       type: instance.type,
       amount,
       ...(instance.category !== undefined ? { category: instance.category } : {}),
       ...(instance.traits !== undefined ? { traits: instance.traits } : {}),
       ...(instance.materials !== undefined ? { materials: instance.materials } : {}),
-      ...(instance.critical !== undefined ? { critical: instance.critical } : {}),
-      ...(instance.nonlethal !== undefined ? { nonlethal: instance.nonlethal } : {}),
+      ...(critical !== undefined ? { critical } : {}),
+      ...(nonlethal !== undefined ? { nonlethal } : {}),
     });
   }
 
@@ -672,6 +811,13 @@ async function applyDamage(
     const patch = mechanics.applyDamage(actorBefore, resolvedInstances, opts);
     const actorAfter = applyMechanicsPatch(deps.store, target.actorId, actorBefore, patch);
 
+    // I4 fix (REQ-CBT-059): flags.dead marks the actor's combatant defeated
+    // in the scene's active encounter, if any — same effect/broadcast as
+    // combat:setDefeated, in this same op.
+    if (patch.flags.dead) {
+      markCombatantDefeatedForActor(deps, target.actorId, target.sceneId);
+    }
+
     const byType = computeByType(resolvedInstances, patch.breakdown);
     const total = byType.reduce((sum, b) => sum + b.amount, 0);
     const tempHpAfter = readTempHp(actorAfter);
@@ -695,6 +841,19 @@ async function applyDamage(
     return { ok: false, code: "NOT_FOUND", message: "no target actor could be resolved" };
   }
 
+  // B2 fix: mark every key ACTUALLY applied (only the targets that resolved
+  // to a real actor, never the full candidate list computed before the
+  // per-target loop — a target that turned out not to exist consumed no
+  // key). Marked unconditionally (not just for non-privileged callers) so a
+  // privileged application still blocks a LATER non-privileged replay of the
+  // same key.
+  for (const key of idempotencyKeysFor(
+    payload,
+    targetResults.map((t) => t.actorId),
+  )) {
+    appliedKeys.add(key);
+  }
+
   const speaker: ChatSpeaker = {
     userId: userCtx?.userId ?? "system",
     ...(primaryMessage && readSpeakerActorId(primaryMessage) !== undefined
@@ -707,7 +866,7 @@ async function applyDamage(
     sourceMessageId: primaryMessage ? (primaryMessage["_id"] as string) : summaryMessage._id,
     targets: targetResults,
   };
-  summaryMessage.content = formatSummaryContent(fullPayload);
+  summaryMessage.content = formatDamageAppliedContent(fullPayload);
   summaryMessage.flags = { fusion: { damageApplied: fullPayload } };
 
   persistChatMessage(deps.db, summaryMessage);

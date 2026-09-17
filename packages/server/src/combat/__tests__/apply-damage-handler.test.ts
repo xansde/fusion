@@ -37,7 +37,12 @@ import { SocketManager } from "../../net/socket-manager.js";
 import { reserveFreePort, listeningPort } from "../../__tests__/helpers/ports.js";
 import { PROTOCOL_VERSION, OwnershipLevel, defaultStats } from "@fusion/shared";
 import { defineSystem } from "@fusion/system-api";
-import type { SystemModule, ActorMechanics, ActorMechanicsPatch } from "@fusion/system-api";
+import type {
+  SystemModule,
+  ActorMechanics,
+  ActorMechanicsPatch,
+  ResolvedDamageInstance,
+} from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
 // Fixture ids
@@ -47,9 +52,12 @@ const CASTER_ACTOR_ID = "casterActor00001";
 const T1_ACTOR_ID = "target1Actor0001";
 const T2_ACTOR_ID = "target2Actor0001";
 const T3_ACTOR_ID = "target3Actor0001"; // an actor the caster never targeted
+const T4_ACTOR_ID = "target4Actor0001"; // hidden token — I1 (onda-4 review)
 const T1_TOKEN_ID = "target1Token0001";
 const T2_TOKEN_ID = "target2Token0001";
 const T3_TOKEN_ID = "target3Token0001";
+const T4_TOKEN_ID = "target4Token0001";
+const T4_NAME = "Assassino Sombrio";
 const SCENE_ID = "applyDmgScene001";
 const STARTING_HP = 30;
 
@@ -70,9 +78,20 @@ const VALID_MANIFEST = {
 // circular against a pack (the r22 "#48" lesson).
 // ---------------------------------------------------------------------------
 
-function makeFakeActorMechanics(): ActorMechanics {
+/**
+ * `instancesLog` captures the RAW `ResolvedDamageInstance[]` this mechanic
+ * received on every call — used by the B3 tests (critical/nonlethal reread)
+ * to assert what the core actually handed the mechanic, since this fake
+ * mechanic's own hp math never looks at `critical`/`nonlethal` (it is a pure
+ * "subtract the summed amount" rule, deliberately game-rule-free — see the
+ * suite header). `flags.dead` is `true` exactly when this hit drops the
+ * target to 0 — a generic, non-pf2e-specific test double just detailed
+ * enough to exercise the CORE's own I4 (REQ-CBT-059) defeated-marking.
+ */
+function makeFakeActorMechanics(instancesLog: ResolvedDamageInstance[][]): ActorMechanics {
   return {
     applyDamage(actor, instances, _opts): ActorMechanicsPatch {
+      instancesLog.push([...instances]);
       const system = actor["system"] as { attributes?: { hp?: { value?: number } } } | undefined;
       const currentHp = system?.attributes?.hp?.value ?? 0;
       const totalDamage = instances.reduce((sum, i) => sum + i.amount, 0);
@@ -82,7 +101,7 @@ function makeFakeActorMechanics(): ActorMechanics {
         embeddedCreate: [],
         embeddedDelete: [],
         breakdown: instances.map((i) => ({ step: i.type, label: i.type, amount: i.amount })),
-        flags: { droppedToZero: newHp === 0, dead: false, dyingChanged: false },
+        flags: { droppedToZero: newHp === 0, dead: newHp === 0, dyingChanged: false },
       };
     },
     applyCondition() {
@@ -91,9 +110,12 @@ function makeFakeActorMechanics(): ActorMechanics {
   };
 }
 
-function makeSystemModule(hookLog: string[]): SystemModule {
+function makeSystemModule(
+  hookLog: string[],
+  instancesLog: ResolvedDamageInstance[][],
+): SystemModule {
   return defineSystem({ ...VALID_MANIFEST }, (r) => {
-    r.registerActorMechanics(makeFakeActorMechanics());
+    r.registerActorMechanics(makeFakeActorMechanics(instancesLog));
     r.onDamageApplied("test-log", (e) => {
       hookLog.push(e.target.actorId);
     });
@@ -129,6 +151,7 @@ interface TestContext {
   playerToken: string;
   player2Token: string;
   hookLog: string[];
+  instancesLog: ResolvedDamageInstance[][];
 }
 
 function seedActorsAndScene(db: FusionDatabase, casterOwnerId: string): void {
@@ -152,8 +175,9 @@ function seedActorsAndScene(db: FusionDatabase, casterOwnerId: string): void {
   const t1 = makeActor(T1_ACTOR_ID, "Goblin 1", { default: OwnershipLevel.NONE });
   const t2 = makeActor(T2_ACTOR_ID, "Goblin 2", { default: OwnershipLevel.NONE });
   const t3 = makeActor(T3_ACTOR_ID, "Goblin 3 (nao alvo)", { default: OwnershipLevel.NONE });
+  const t4 = makeActor(T4_ACTOR_ID, T4_NAME, { default: OwnershipLevel.NONE });
 
-  for (const actor of [caster, t1, t2, t3]) {
+  for (const actor of [caster, t1, t2, t3, t4]) {
     db.raw
       .prepare(
         `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at)
@@ -170,6 +194,8 @@ function seedActorsAndScene(db: FusionDatabase, casterOwnerId: string): void {
       { _id: T1_TOKEN_ID, name: "Goblin 1", actorId: T1_ACTOR_ID, hidden: false },
       { _id: T2_TOKEN_ID, name: "Goblin 2", actorId: T2_ACTOR_ID, hidden: false },
       { _id: T3_TOKEN_ID, name: "Goblin 3 (nao alvo)", actorId: T3_ACTOR_ID, hidden: false },
+      // I1 (onda-4 review): hidden from every non-GM socket, no seenBy exception.
+      { _id: T4_TOKEN_ID, name: T4_NAME, actorId: T4_ACTOR_ID, hidden: true },
     ],
   };
   db.raw
@@ -233,13 +259,14 @@ async function buildTestContext(): Promise<TestContext> {
   });
 
   const hookLog: string[] = [];
+  const instancesLog: ResolvedDamageInstance[][] = [];
   socketManager.registerWorldNamespace({
     worldId,
     db: fusionDb.raw,
     secret,
     authService,
     systemId: "test-system",
-    systemModule: makeSystemModule(hookLog),
+    systemModule: makeSystemModule(hookLog, instancesLog),
   });
 
   const port = await reserveFreePort();
@@ -260,6 +287,7 @@ async function buildTestContext(): Promise<TestContext> {
     playerToken: playerLogin.accessToken,
     player2Token: player2Login.accessToken,
     hookLog,
+    instancesLog,
   };
 }
 
@@ -561,6 +589,273 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       expect(ctx.hookLog.filter((id) => id === T2_ACTOR_ID)).toHaveLength(1);
       expect(ctx.hookLog).toHaveLength(2);
     } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Onda-4 adversarial review fixes — B1, B2, B3, I1, I4
+  // (.fusion-build/alquimista/onda-4/REVISAO.md)
+  // -------------------------------------------------------------------------
+
+  it("B1: selfActorId ignora a checagem de dono da mensagem de origem — curar/aplicar a partir da rolagem de um ator que o jogador não possui é FORBIDDEN", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      // The GM rolls "damage" whose speaker is T1 — an NPC the player does
+      // NOT own. Before the fix, selfActorId's branch never checked this.
+      const gmRollAck = await sendOp(gmSocket, "chat:send", {
+        content: "/roll 3d6+10",
+        worldId: ctx.worldId,
+        speakerActorId: T1_ACTOR_ID,
+      });
+      expect(gmRollAck["ok"], JSON.stringify(gmRollAck)).toBe(true);
+      const gmRollMsg = (gmRollAck["result"] as { message: ChatMessageLike }).message;
+
+      const beforeHp = readActorHp(ctx.fusionDb, CASTER_ACTOR_ID);
+      const damageAck = await sendOp(playerSocket, "actor:applyDamage", {
+        selfActorId: CASTER_ACTOR_ID,
+        instances: [{ type: "healing", source: { messageId: gmRollMsg._id, rollIndex: 0 } }],
+      });
+      expect(damageAck["ok"]).toBe(false);
+      expect(damageAck["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, CASTER_ACTOR_ID)).toBe(beforeHp);
+    } finally {
+      playerSocket.disconnect();
+      gmSocket.disconnect();
+    }
+  });
+
+  it("B2: reaplicar a mesma (messageId, rollIndex, multiplier) por um jogador é FORBIDDEN e não reaplica o dano", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const first = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(first["ok"], JSON.stringify(first)).toBe(true);
+      const hpAfterFirst = readActorHp(ctx.fusionDb, T1_ACTOR_ID);
+      expect(hpAfterFirst).toBeLessThan(STARTING_HP);
+
+      const second = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(second["ok"]).toBe(false);
+      expect(second["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(hpAfterFirst);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("B2: GM continua podendo reaplicar a mesma chave (correção de mesa)", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const rollAck = await sendOp(gmSocket, "chat:send", {
+        content: "/roll 1d6+1",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const first = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+        targetTokenIds: [T1_TOKEN_ID],
+      });
+      expect(first["ok"], JSON.stringify(first)).toBe(true);
+      const second = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+        targetTokenIds: [T1_TOKEN_ID],
+      });
+      expect(second["ok"], JSON.stringify(second)).toBe(true);
+    } finally {
+      gmSocket.disconnect();
+    }
+  });
+
+  it("B3: critical/nonlethal forjados por um jogador são ignorados — servidor relê/deriva da rolagem gravada", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      // No target/AC and no save checkContext → this roll never gets a
+      // degreeOfSuccess recorded, so it is definitely not a critical success.
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const damageAck = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "fire",
+            source: { messageId: rollMsg._id, rollIndex: 0 },
+            critical: true,
+            nonlethal: true,
+          },
+        ],
+      });
+      expect(damageAck["ok"], JSON.stringify(damageAck)).toBe(true);
+
+      const received = ctx.instancesLog.at(-1)?.[0];
+      expect(received?.critical).toBe(false);
+      expect(received?.nonlethal).toBe(false);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("B3: multiplier 2 de um jogador sem crítico registrado na rolagem é FORBIDDEN", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const damageAck = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+        multiplier: 2,
+      });
+      expect(damageAck["ok"]).toBe(false);
+      expect(damageAck["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("B3: GM continua podendo enviar critical/multiplier livremente (privilegiado não é afetado)", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const gmAck = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", amount: 5, critical: true, nonlethal: true }],
+        targetTokenIds: [T2_TOKEN_ID],
+        multiplier: 2,
+      });
+      expect(gmAck["ok"], JSON.stringify(gmAck)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({ critical: true, nonlethal: true });
+    } finally {
+      gmSocket.disconnect();
+    }
+  });
+
+  it("I1: nome/tokenId/actorId de token oculto não vazam no card actor:damageApplied para socket não-GM", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    const observerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.player2Token);
+    try {
+      const observerSeen = nextDamageAppliedMessage(observerSocket);
+
+      const damageAck = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", amount: 12 }],
+        // T1 visible, T4 hidden — both real placed tokens.
+        targetTokenIds: [T1_TOKEN_ID, T4_TOKEN_ID],
+      });
+      expect(damageAck["ok"], JSON.stringify(damageAck)).toBe(true);
+
+      // GM's own ack still names the hidden target fully (privileged).
+      const ackTargets = (damageAck["result"] as { targets: Array<Record<string, unknown>> })
+        .targets;
+      expect(ackTargets).toHaveLength(2);
+      expect(ackTargets.some((t) => t["actorId"] === T4_ACTOR_ID && t["name"] === T4_NAME)).toBe(
+        true,
+      );
+
+      const observerMsg = await observerSeen;
+      const observerTargets = (
+        observerMsg.flags?.fusion?.damageApplied as { targets: Array<Record<string, unknown>> }
+      ).targets;
+      expect(observerTargets).toHaveLength(1);
+      expect(observerTargets[0]?.["actorId"]).toBe(T1_ACTOR_ID);
+      expect(observerTargets.some((t) => t["actorId"] === T4_ACTOR_ID)).toBe(false);
+      expect(observerMsg.content ?? "").toContain("Goblin 1");
+      expect(observerMsg.content ?? "").not.toContain(T4_NAME);
+    } finally {
+      gmSocket.disconnect();
+      observerSocket.disconnect();
+    }
+  });
+
+  it("I1: selfActorId sem token no cenário não é derrubado do card (ausência de token != token oculto)", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    const observerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.player2Token);
+    try {
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const observerSeen = nextDamageAppliedMessage(observerSocket);
+      // CASTER_ACTOR_ID has no placed token anywhere in SCENE_ID's fixture.
+      const damageAck = await sendOp(playerSocket, "actor:applyDamage", {
+        selfActorId: CASTER_ACTOR_ID,
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(damageAck["ok"], JSON.stringify(damageAck)).toBe(true);
+
+      const observerMsg = await observerSeen;
+      const observerTargets = (
+        observerMsg.flags?.fusion?.damageApplied as { targets: Array<Record<string, unknown>> }
+      ).targets;
+      expect(observerTargets.some((t) => t["actorId"] === CASTER_ACTOR_ID)).toBe(true);
+    } finally {
+      playerSocket.disconnect();
+      observerSocket.disconnect();
+    }
+  });
+
+  it("I4: flags.dead marca o combatente como defeated no encontro ativo da cena (REQ-CBT-059)", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const createAck = await sendOp(gmSocket, "combat:create", { sceneId: SCENE_ID });
+      expect(createAck["ok"], JSON.stringify(createAck)).toBe(true);
+      const combatId = (createAck["result"] as { combat: { _id: string } }).combat._id;
+
+      const addAck = await sendOp(gmSocket, "combat:addCombatant", {
+        combatId,
+        tokenId: T1_TOKEN_ID,
+      });
+      expect(addAck["ok"], JSON.stringify(addAck)).toBe(true);
+
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      // 30d6 is guaranteed >= 30 (STARTING_HP) — deterministically drops T1 to 0.
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 30d6",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const damageAck = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(damageAck["ok"], JSON.stringify(damageAck)).toBe(true);
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(0);
+
+      const combatRow = ctx.fusionDb.raw
+        .prepare(`SELECT data FROM combats WHERE id = ?`)
+        .get(combatId) as { data: string };
+      const combat = JSON.parse(combatRow.data) as {
+        combatants: Array<{ actorId: string; defeated: boolean }>;
+      };
+      const t1Combatant = combat.combatants.find((c) => c.actorId === T1_ACTOR_ID);
+      expect(t1Combatant?.defeated).toBe(true);
+    } finally {
+      gmSocket.disconnect();
       playerSocket.disconnect();
     }
   });

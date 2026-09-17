@@ -281,6 +281,8 @@ function buildPayloadForSocket(
           socketUserId,
           tokenSource,
         ),
+        socketUserId,
+        tokenSource,
       );
 
   const whisper = msg.whisper;
@@ -1336,6 +1338,8 @@ function redactForViewer(
           viewerId,
           tokenSource,
         ),
+        viewerId,
+        tokenSource,
       );
 
   const whisper = msg.whisper;
@@ -1405,6 +1409,8 @@ function redactForAuthor(
       authorId,
       tokenSource,
     ),
+    authorId,
+    tokenSource,
   );
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
     return redactBlindRollForNonPrivileged(withoutAc);

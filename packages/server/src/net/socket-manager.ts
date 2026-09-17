@@ -73,6 +73,7 @@ import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
+  createDocumentWriteTurnHookContextServices,
 } from "../combat/turn-hook-runner.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
@@ -453,19 +454,30 @@ export class SocketManager {
       db,
       ns,
       seqStore,
+      opBuffer,
       worldId,
       systemModule,
       logger: this.logger,
     });
     // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
     // alongside (not instead of) the fire-and-forget CombatEventBus above.
-    // `applyDamage` is the REAL service (ALQ-F1-08); the rest stay stubs
-    // until ALQ-F1-09 (applyCondition) and later tasks land roll/chat/
-    // document-write plumbing — see combat/turn-hook-runner.ts's header.
+    // `applyDamage` is the REAL service (ALQ-F1-08); `deleteEmbedded`/`chat`
+    // are the REAL document-write services (B4 fix, onda-4 adversarial
+    // review — see combat/turn-hook-runner.ts's header); `roll`/
+    // `updateActor`/`createEmbedded` stay stubs until ALQ-F1-09
+    // (applyCondition) and a later task actually needs them.
     const turnHookRunner = createTurnHookRunner({
       systemModule,
       services: {
         ...createStubTurnHookContextServices(),
+        ...createDocumentWriteTurnHookContextServices({
+          store,
+          db,
+          ns,
+          seqStore,
+          opBuffer,
+          worldId,
+        }),
         applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
       },
       logger: this.logger,
