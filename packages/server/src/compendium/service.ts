@@ -593,6 +593,50 @@ export class CompendiumService {
   }
 
   /**
+   * Get the full document for a `(packName, sourceId)` origin reference —
+   * the SAME reverse index {@link getI18nBySourceRef} uses, but returning the
+   * raw pack document instead of only its pt-BR overlay.
+   *
+   * ALQ-F2-11 (plan §2.6, REQ-PF2-225): an item's `system.fusion.effectRefs`
+   * names Effect documents by `flags.fusion.sourceId` — the vendor-origin id
+   * (DF-06 identity discipline: "identidade de documento = sourceId, nunca o
+   * nome"), which is NOT the pack-local `_id` `getDocument`'s UUID resolves.
+   * This is the lookup that closes that gap: `item:consume`'s core service
+   * uses it to copy the Effect's `system` onto the actor with origin/start
+   * (never a live reference).
+   *
+   * Same audience gate as `getDocument`/`getI18nBySourceRef`: a ref resolving
+   * into a pack hidden from `viewerRole` answers `null`, identical to an
+   * unresolvable ref — knowing a sourceId teaches nothing about a hidden
+   * pack's contents (REQ-CPD-071, REQ-SEC-020).
+   */
+  getDocumentBySourceRef(
+    viewerRole: number,
+    ref: { packName: string; sourceId: string },
+  ): Record<string, unknown> | null {
+    const index = this._getSourceRefIndex();
+    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+
+    const loaded = this._packFor(hit.packId, viewerRole);
+    if (!loaded) return null;
+
+    try {
+      const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      const doc = docs.find(
+        (d) =>
+          typeof d === "object" &&
+          d !== null &&
+          (d as Record<string, unknown>)["_id"] === hit.docId,
+      );
+      return doc === undefined ? null : (doc as Record<string, unknown>);
+    } catch (err) {
+      this.logger?.warn({ err, ref }, "Failed to read document from pack by source ref");
+      return null;
+    }
+  }
+
+  /**
    * Import one or more pack documents into the world (actors or items table).
    * REQ-CMP-021..024, REQ-CMP-055.
    *

@@ -70,6 +70,7 @@ import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
 import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
 import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
+import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
@@ -566,6 +567,27 @@ export class SocketManager {
     // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
     // by OWNER of the destination actor, inside the service.
     registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
+
+    // ALQ-F2-11 / REQ-SYS-143/144: `item:consume` — permission, atomicity
+    // (expectedVersion) and the post-consume hook run all live in
+    // item-handlers.ts; the game-specific plan is whatever the active system
+    // registered via `registrar.registerConsumeItem`.
+    registry.register(
+      "item:consume",
+      buildItemConsumeHandler({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+        systemModule,
+        targetingStore,
+        compendium: compSvc,
+        actorMechanicsService,
+        logger: this.logger,
+      }),
+    );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

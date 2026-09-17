@@ -91,6 +91,13 @@ export const EnvelopeTypeSchema = z.union([
   // trigger is a damage-roll card's buttons (REQ-CHT-052).
   z.literal("actor:applyDamage"),
   z.literal("actor:applyCondition"),
+  // Spec 15 REQ-SYS-143/144 / spec 17 REQ-PF2-224..228 (plan do Alquimista,
+  // ALQ-F2-11, DEC-SYS-12's emenda de consumo — ALQ-F2-01): consuming an item
+  // (charge/quantity, resource, or the strike a consumable derives) is a CORE
+  // op with the SAME split as actor:applyDamage — permission, atomicity and
+  // expectedVersion live here; the game-specific plan (what to spend, what
+  // effect to copy, what to roll) is `registrar.registerConsumeItem`.
+  z.literal("item:consume"),
   // Spec 39 — contact knowledge (general rule + per-character exceptions).
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
@@ -208,6 +215,17 @@ export const ErrorCodeSchema = z.union([
    * `registerActorMechanics` — the op is a no-op, nothing is written.
    */
   z.literal("NOT_SUPPORTED"),
+  /**
+   * Spec 15 REQ-SYS-143 step 3 (plan do Alquimista, ALQ-F2-11): `item:consume`
+   * refuses, writing nothing, when `expectedVersion` does not match the
+   * actor's current `_stats.version` — two clients racing to spend the same
+   * last charge/quantity. Deliberately a DIFFERENT literal from the generic
+   * doc:update path's `STALE_WRITE` (same underlying version-mismatch idea,
+   * different op family, per REQ-SYS-143's own wording): `item:consume`
+   * calls `store.transaction()` around the read-check-write so this code is
+   * a genuine "someone else won the race" answer, not a stale client cache.
+   */
+  z.literal("CONFLICT"),
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -774,6 +792,58 @@ export const ActorConditionAppliedResultSchema = z
 export type ActorConditionAppliedResult = z.infer<typeof ActorConditionAppliedResultSchema>;
 
 export type ApplyConditionAck = Ack<{ targets: ActorConditionAppliedResult[] }>;
+
+// ---------------------------------------------------------------------------
+// item:consume — client → server. Spec 15 REQ-SYS-143/144, spec 17
+// REQ-PF2-224..228, plan §2.6, task ALQ-F2-11.
+//
+// Shapes fixed verbatim from spec 15's own `ItemConsumePayload`/
+// `ItemConsumeResult` code block (not "illustrative" like ApplyDamage's own
+// disclaimer elsewhere in this file — ALQ-F2-01 pinned this one exactly,
+// this task only adds the Zod validation).
+// ---------------------------------------------------------------------------
+
+export const ItemConsumeModeSchema = z.enum(["use", "strike", "resource"]);
+export type ItemConsumeMode = z.infer<typeof ItemConsumeModeSchema>;
+
+export const ItemConsumePayloadSchema = z
+  .object({
+    actorId: z.string().min(1),
+    /** Required in "use" and "strike"; absent in "resource". */
+    itemId: z.string().min(1).optional(),
+    /** Required in "resource"; absent in "use"/"strike". */
+    resourceSlug: z.string().min(1).optional(),
+    mode: ItemConsumeModeSchema,
+    /** Only meaningful in "strike" — which attack of a multi-attack action. */
+    mapIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+    /** Checked against the actor's `_stats.version` — REQ-SYS-143 step 3. */
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .strict()
+  .refine((p) => p.mode === "resource" || p.itemId !== undefined, {
+    message: 'itemId is required when mode is "use" or "strike"',
+  })
+  .refine((p) => p.mode !== "resource" || p.resourceSlug !== undefined, {
+    message: 'resourceSlug is required when mode is "resource"',
+  });
+
+export type ItemConsumePayload = z.infer<typeof ItemConsumePayloadSchema>;
+
+/**
+ * `item:consume`'s result — REQ-SYS-143 step 5. Plain type (not a wire
+ * envelope schema of its own): unlike `ActorDamageAppliedPayload`, this shape
+ * never rides a second channel (no chat-message flags need to parse it back)
+ * — it only ever travels once, as the socket Ack's `result`.
+ */
+export interface ItemConsumeResult {
+  readonly consumed:
+    | { readonly itemId?: string; readonly quantityLeft: number; readonly destroyed: boolean }
+    | { readonly resourceSlug: string; readonly valueLeft: number };
+  readonly appliedEffectIds: string[];
+  readonly chatMessageIds: string[];
+}
+
+export type ItemConsumeAck = Ack<ItemConsumeResult>;
 
 // ---------------------------------------------------------------------------
 // Target-selection assertion — REQ-CBT-056, plan §2.3. TYPE ONLY: the plan

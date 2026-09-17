@@ -19,6 +19,14 @@
 import type { z, ZodType } from "zod";
 import type { EffectRule, StackingTable } from "./effects.js";
 import type { DocumentType } from "./manifest.js";
+import type { ActorSnapshot } from "./actor-mechanics.js";
+import type { TurnHookContext } from "./combat.js";
+import type {
+  ActorApplyDamagePayload,
+  FusionExpiry,
+  ItemConsumePayload,
+  ItemConsumeResult,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Sheets (REQ-SYS-040 / REQ-SYS-041)
@@ -557,3 +565,189 @@ export interface ExtendedSystemRegistries {
   /** Effects materializers, one per registered (documentType, subtypes) pair. M5-A E4. */
   readonly effectsMaterializers: ReadonlyArray<RegisteredEffectsMaterializer>;
 }
+
+// ---------------------------------------------------------------------------
+// ConsumeItem — spec 15 REQ-SYS-143/144, spec 17 REQ-PF2-224..228, plan §2.6.
+// Task ALQ-F2-11 (this contract's owner — "F2-11" in the plan's §2 table).
+//
+// Same split as ActorMechanics (DEC-SYS-12): `item:consume` is a CORE op
+// (permission, atomicity, expectedVersion — packages/server); the RULE (what
+// to spend, what effect to copy, what to roll, what card to post) is a pure
+// function a system registers once via `registrar.registerConsumeItem`. The
+// core applies the returned `ConsumePlan` — it never invents writes itself.
+//
+// Field-level shapes below are copied verbatim from spec 15's own fenced
+// code block (§"Consumo de item e hooks de consumo") EXCEPT
+// `ConsumePlanContext.roll`, which that block does not declare — spec 15
+// carries the SAME "interfaces são ilustrativas, não-normativas em detalhes
+// de campo" disclaimer `actor-mechanics.ts` already leans on for
+// `ApplyConditionOptions.now`, and `roll` is this task's own necessary
+// addition for the same reason: REQ-PF2-225 requires healing/damage
+// "declarado pelo item" to be ROLLED server-side (CSPRNG, REQ-ROL-025), but
+// `plan()` is synchronous and must not depend on `@dice-roller/rpg-dice-roller`
+// directly (that library is server-only — `packages/server/src/chat/
+// roll-service.ts` — and system-api/systems packages must never depend on
+// `packages/server`, REQ-ARQ-005). The core injects a synchronous callback
+// backed by the SAME audited RollService every other Fusion roll uses;
+// `plan()` calls it and bakes the resolved total into `ConsumePlan.damage`
+// BEFORE returning, so the returned plan is still a complete, self-contained
+// description the core only has to APPLY (REQ-SYS-143 step 4: "aplica
+// writes, effects, damage e cards atomicamente").
+// ---------------------------------------------------------------------------
+
+/**
+ * Read-only Item document handed to `ConsumeItemDefinition`. Untyped beyond
+ * `Record<string, unknown>` for the same reason `ActorSnapshot` is
+ * (DEC-SYS-12: the engine does not know a system's `system` field shape) —
+ * `null` in `mode: "resource"`, where no item is involved at all.
+ */
+export type ItemSnapshot = Record<string, unknown>;
+
+/**
+ * One write the core applies on behalf of a plan — REQ-SYS-143 step 4. The
+ * SAME shape spec 15 reuses for daily preparation and crafting (§"Preparação
+ * diária e fabricação"), so this type is intentionally generic rather than
+ * consume-specific. `updateItem`/`deleteItem` address an EMBEDDED item on the
+ * actor being consumed from (by its own `_id`); `createItem` adds a new
+ * embedded item (e.g. a temporary/derived item — not used by this task's own
+ * `plan()`, but part of the shared contract future tasks rely on).
+ */
+export type DocOp =
+  | { readonly kind: "updateActor"; readonly diff: Record<string, unknown> }
+  | { readonly kind: "createItem"; readonly data: Record<string, unknown> }
+  | { readonly kind: "updateItem"; readonly itemId: string; readonly diff: Record<string, unknown> }
+  | { readonly kind: "deleteItem"; readonly itemId: string };
+
+/**
+ * One effect to copy from a compendium pack onto an actor (DF-06: always a
+ * COPY with origin/start, never a live reference — plan §2.5). `packId` is
+ * typed optional (spec 15's own field), but the core does not guess a
+ * default — DEC-SYS-12 (the engine does not hardcode game-pack knowledge
+ * like "effectRefs live in equipment-effects"): a `plan()` that omits it has
+ * that one effect skipped (logged, never a thrown/fatal error) rather than
+ * silently resolved against a pack the core invented. The pf2e `plan()`
+ * (ALQ-F2-11) always sets it.
+ */
+export interface PlannedEffect {
+  readonly targetActorId: string;
+  /** `flags.fusion.sourceId` of the Effect document in the pack — never the pack-local `_id` (DF-06 identity discipline). */
+  readonly sourceId: string;
+  readonly packId?: string;
+  readonly origin: {
+    readonly actorId: string;
+    readonly itemSourceId?: string;
+    readonly itemLevel?: number;
+    readonly infused?: boolean;
+  };
+  /** Shape fixed by plan §2.5 (`FusionExpiry`, `@fusion/shared`). */
+  readonly expiry: FusionExpiry;
+}
+
+/** Only present in `mode: "strike"` — out of this task's tested scope (ALQ-F2-13 owns strike derivation); carried here so the contract is complete for whichever task wires it. */
+export interface PlannedStrike {
+  readonly strikeId: string;
+  readonly mapIndex: 0 | 1 | 2;
+  readonly formula: string;
+  readonly flavor: string;
+  readonly rollContext: Record<string, unknown>;
+}
+
+/**
+ * Context handed to `plan()` — REQ-SYS-143. `targets` mirrors the caster's
+ * CURRENT live target selection (same shape `TargetSelection`/plan §2.3
+ * resolves), independent of `mode: "use"`'s own default-to-self target.
+ */
+export interface ConsumePlanContext {
+  readonly inCombat: boolean;
+  readonly combatId: string | null;
+  readonly round: number | null;
+  readonly targets: ReadonlyArray<{ readonly tokenId: string; readonly actorId: string | null }>;
+  /**
+   * Server-authoritative dice roll (REQ-ROL-024/025) — this task's own
+   * necessary addition; see this section's header comment. Returns only the
+   * roll's total (no chat message is posted for it on its own — REQ-PF2-225
+   * only requires the ONE combined consume card `plan()` already builds via
+   * `ConsumePlan.cards`, not a second, separate roll card).
+   */
+  roll(formula: string): number;
+}
+
+/**
+ * What `plan()` returns — REQ-SYS-143 step 4: pure, never writes. The core
+ * applies `writes`/`effects`/`damage`/`cards` after a successful ownership +
+ * `expectedVersion` check, inside the SAME operation.
+ */
+export interface ConsumePlan {
+  /** Charge/quantity/resource bookkeeping — REQ-PF2-224. */
+  readonly writes: readonly DocOp[];
+  readonly consumed: ItemConsumeResult["consumed"];
+  /** Effect copies to create — REQ-PF2-225, plan §2.5 (`EffectItem`). */
+  readonly effects: readonly PlannedEffect[];
+  /** Healing/damage the item declares, already rolled — REQ-PF2-225, passed to `ActorMechanicsService.applyDamage` with `actingAs: "system"` (REQ-SYS-142), never a direct actor write. */
+  readonly damage: readonly ActorApplyDamagePayload[];
+  /** Only meaningful in `mode: "strike"`. */
+  readonly strike?: PlannedStrike;
+  /** One or more chat cards describing what was consumed/applied — REQ-PF2-225. `flags` is opaque to the core, same discipline as `TurnHookContext.chat`'s own `flags?: Record<string, unknown>` (turn-hook-runner.ts). */
+  readonly cards: ReadonlyArray<{
+    readonly content: string;
+    readonly flags?: Record<string, unknown>;
+  }>;
+  /** What the item does that the system does NOT automate — REQ-PF2-225 ("nota" for `automation !== "full"`). */
+  readonly notes: readonly string[];
+}
+
+/**
+ * The pure rule a system registers via `registrar.registerConsumeItem(def)`,
+ * at most once per system (REQ-SYS-143). `appliesTo` decides whether this
+ * definition has anything to say about a given (item, payload) pair — a
+ * false answer (or no definition registered at all) resolves the whole op to
+ * `NOT_SUPPORTED` without writing anything (REQ-SYS-143 step 6, same posture
+ * as `ActorMechanics` having no registration for `actor:applyDamage`).
+ */
+export interface ConsumeItemDefinition {
+  appliesTo(item: ItemSnapshot | null, payload: ItemConsumePayload): boolean;
+  plan(
+    actor: ActorSnapshot,
+    item: ItemSnapshot | null,
+    payload: ItemConsumePayload,
+    ctx: ConsumePlanContext,
+  ): ConsumePlan;
+}
+
+/**
+ * Thrown by `plan()` to signal that THIS specific attempt is invalid — e.g.
+ * an item already at zero charges with `autoDestroy: false` (REQ-PF2-224:
+ * "recusa o próximo uso"). Distinct from `appliesTo` returning `false`
+ * (which means "no rule at all applies here", answered `NOT_SUPPORTED`):
+ * this is "the rule applies, but this call violates it", answered
+ * `VALIDATION_FAILED` (REQ-SYS-143 step 1's own error code, extended to this
+ * game-rule-level case since `plan()`'s return type has no room for an
+ * error union — it must stay a plain, unconditional `ConsumePlan` so a
+ * SUCCESSFUL plan is always a complete, self-contained description
+ * (REQ-SYS-143 step 4) with nothing to branch on).
+ */
+export class ConsumePlanValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConsumePlanValidationError";
+  }
+}
+
+/**
+ * `registerConsumeHook`'s callback — REQ-SYS-144, the SINGLE post-consume
+ * extension point (no parallel `onConsume`/`onConsumed`, and consume must
+ * NOT be observed via `hooks.on`, which is post-broadcast notification —
+ * REQ-SYS-144's own wording). Runs after persisting the consume and before
+ * the broadcast, same ordering/serialization/error-isolation as REQ-SYS-139,
+ * same `TurnHookContext` as REQ-SYS-140.
+ */
+export type ConsumeHookFn = (
+  e: {
+    readonly actorId: string;
+    /** `null` in `mode: "resource"` — no item is involved. */
+    readonly item: ItemSnapshot | null;
+    readonly payload: ItemConsumePayload;
+    readonly result: ItemConsumeResult;
+  },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
