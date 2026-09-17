@@ -70,6 +70,7 @@ import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
 import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
 import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
+import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
@@ -455,17 +456,20 @@ export class SocketManager {
       ns,
       seqStore,
       opBuffer,
+      // ALQ-F1-09 / REQ-CBT-056: applyCondition's own live-TargetSelection
+      // gate for a non-privileged caller.
+      targetingStore,
       worldId,
       systemModule,
       logger: this.logger,
     });
     // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
     // alongside (not instead of) the fire-and-forget CombatEventBus above.
-    // `applyDamage` is the REAL service (ALQ-F1-08); `deleteEmbedded`/`chat`
-    // are the REAL document-write services (B4 fix, onda-4 adversarial
-    // review — see combat/turn-hook-runner.ts's header); `roll`/
-    // `updateActor`/`createEmbedded` stay stubs until ALQ-F1-09
-    // (applyCondition) and a later task actually needs them.
+    // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
+    // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
+    // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
+    // `roll`/`updateActor`/`createEmbedded` stay stubs until a later task
+    // actually needs them.
     const turnHookRunner = createTurnHookRunner({
       systemModule,
       services: {
@@ -479,6 +483,7 @@ export class SocketManager {
           worldId,
         }),
         applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+        applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
       },
       logger: this.logger,
     });
@@ -522,6 +527,15 @@ export class SocketManager {
     registry.register(
       "actor:applyDamage",
       buildApplyDamageHandler({ service: actorMechanicsService }),
+    );
+
+    // ALQ-F1-09 / REQ-SYS-142, REQ-PF2-215, REQ-CBT-056: `actor:applyCondition`
+    // — same permission/target-resolution discipline as `actor:applyDamage`
+    // above (GM: any actor; player: own actor or live TargetSelection), via
+    // the same `actorMechanicsService`.
+    registry.register(
+      "actor:applyCondition",
+      buildApplyConditionHandler({ service: actorMechanicsService }),
     );
 
     // Register M3-D compendium handlers (REQ-CMP-010..024)
