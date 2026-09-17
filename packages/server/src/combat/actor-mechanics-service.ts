@@ -77,10 +77,20 @@
  * service treats a `breakdown` entry as one FINAL per-type damage line when
  * `step` equals a resolved instance's `type` (e.g. `"fire"`), summing
  * `amount` per type. A mechanic that emits no such entries falls back to the
- * PRE-mechanic resolved-instance totals (grouped by type). `resistanceApplied`
- * is left unset either way — no structured carrier for it exists yet. Flagged
- * in the task report for the parallel ALQ-F1-06 lane (the real pf2e
- * mechanic) to confirm or supersede.
+ * PRE-mechanic resolved-instance totals (grouped by type), with no
+ * `resistanceApplied`.
+ *
+ * ALQ-F1-10 fix (2026-09-17): this WAS a dead branch — pf2e's `damage.ts`
+ * (ALQ-F1-06) never emitted a `step === type` entry (only pipeline-stage
+ * names like `"input"`/`"iwr"`), so every summary silently used the
+ * fallback, and `resistanceApplied` was "left unset either way — no
+ * structured carrier for it exists yet" (this comment's own prior text,
+ * which flagged the gap for ALQ-F1-06 "to confirm or supersede" — it never
+ * did, until this task closed it on both ends: `damage.ts` now emits the
+ * `step === type` final-amount line, and `computeByType` below derives
+ * `resistanceApplied` from it — no new carrier needed, just the difference
+ * between the RAW per-type total (`resolvedInstances`, already in scope
+ * here) and the FINAL one once a mechanic supplies it).
  *
  * Spec: 15-api-de-sistemas.md REQ-SYS-142. Spec: 09-chat-e-mensagens.md
  * REQ-CHT-052/053. Plan: docs/design/alquimista/tasks.md §2.1, task
@@ -612,7 +622,28 @@ function computeByType(
   for (const entry of source) {
     totals.set(entry.type, (totals.get(entry.type) ?? 0) + entry.amount);
   }
-  return [...totals.entries()].map(([type, amount]) => ({ type, amount }));
+
+  // ALQ-F1-10 fix (2026-09-17): `resistanceApplied` used to be "left unset
+  // either way — no structured carrier for it exists yet" (this function's
+  // own module doc comment). It doesn't need a new carrier: when a mechanic
+  // DOES emit the final per-type line (`byTypeStep` non-empty — ALQ-F1-06's
+  // `damage.ts` now does), the RAW pre-IWR total per type is already sitting
+  // right here in `resolvedInstances`. A resistance/weakness note only ever
+  // reduces damage (a weakness increases it — REQ-CHT-053 only documents the
+  // reduced case, "resistência aplicada", so only that direction is surfaced
+  // here); the difference between raw and final IS that reduction.
+  const rawTotals = new Map<string, number>();
+  for (const instance of resolvedInstances) {
+    rawTotals.set(instance.type, (rawTotals.get(instance.type) ?? 0) + instance.amount);
+  }
+  const resistanceCarrierAvailable = byTypeStep.length > 0;
+
+  return [...totals.entries()].map(([type, amount]) => {
+    if (!resistanceCarrierAvailable) return { type, amount };
+    const raw = rawTotals.get(type);
+    const resistanceApplied = raw !== undefined && raw > amount ? raw - amount : undefined;
+    return resistanceApplied !== undefined ? { type, amount, resistanceApplied } : { type, amount };
+  });
 }
 
 function deriveDeathCondition(
