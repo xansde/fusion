@@ -6,9 +6,9 @@
 - **Baseada em:**
   - `15-api-de-sistemas.md` — a superfície pela qual o sistema declara o que sabe fazer: hooks de turno aguardados e mecânica de ator (REQ-SYS-138..142), plano de consumo de item e hook pós-consumo (REQ-SYS-143, REQ-SYS-144), e os pontos novos que esta spec obriga (REQ-SYS-145..148).
   - `17-sistema-pf2e.md` — a regra do PF2e remaster: derivação sem persistir (DEC-PF2-03), efeito como cópia embutida com expiração ancorada (DEC-PF2-11, REQ-PF2-217..223), plano de consumo e strike de item alquímico (DEC-PF2-12, REQ-PF2-224..228), DCs por nível e raridade (REQ-PF2-042), proficiência de categoria de ataque (REQ-PF2-207).
-  - `10-combate-e-iniciativa.md` — os eventos de turno e de fim de combate que ancoram a expiração do que é fabricado (REQ-CBT-056).
-  - `09-chat-e-mensagens.md` — o card que relata o que foi preparado, fabricado ou gasto (REQ-CHT-053).
-  - `11-ui-framework-e-fichas.md` — a ficha por abas e o binding que a aba de Fabricação usa (REQ-UIF-020).
+  - `10-combate-e-iniciativa.md` — os eventos de turno e de fim de combate que ancoram a expiração do que é fabricado (REQ-CBT-027, REQ-CBT-006).
+  - `09-chat-e-mensagens.md` — o card declarativo que relata o que foi preparado, fabricado ou gasto, e a visibilidade dele (REQ-CHT-024, REQ-CHT-004).
+  - `11-ui-framework-e-fichas.md` — o registro e a abertura das sheets onde vivem o contador, o livro e o diálogo de Craft (REQ-UIF-018, REQ-UIF-019).
   - `16-compendiums-e-importacao.md` — o pack de onde a fórmula copia o documento (REQ-CMP-010a).
   - `05-usuarios-e-permissoes.md` e `21-seguranca.md` — posse do ator, papel privilegiado e redação por plateia (REQ-USR-013, REQ-SEC-020).
 
@@ -229,7 +229,7 @@ de um kit que ninguém marcou. A mesma postura já vale para munição na `17` (
 - **REQ-FAB-005** [MVP] A ficha DEVE mostrar **todo** recurso derivado como um contador com
   rótulo em pt-BR, `valor/máximo` e incremento/decremento, sem conhecer classe nenhuma; recurso
   sem descritor NÃO DEVE aparecer. O dono do ator DEVE poder ajustar o valor pela ficha
-  (`ver 02-modelo-de-dados.md`, REQ-DOC-023), e o Mestre DEVE ver o mesmo número.
+  (`ver 05-usuarios-e-permissoes.md`, REQ-USR-013), e o Mestre DEVE ver o mesmo número.
   **Critério verificável:** ficha de Alquimista nível 1 com Int +4 mostra "Frascos versáteis
   6/6"; clicar em − mostra 5/6 na tela do jogador e na do Mestre; a ficha de um Guerreiro não
   mostra contador nenhum.
@@ -296,7 +296,7 @@ de um kit que ninguém marcou. A mesma postura já vale para munição na `17` (
 - **REQ-FAB-014** [MVP] A preparação DEVE publicar **um** card de resumo, montado a partir do
   `summary` que cada etapa devolve, dizendo o que mudou (PV recuperados, recursos repostos, o que
   expirou, o que foi fabricado). Etapa que não se aplicou NÃO DEVE gerar linha. O card DEVE
-  seguir a plateia de `09-chat-e-mensagens.md` (REQ-CHT-053): o dono do ator e o Mestre.
+  seguir a visibilidade de `09-chat-e-mensagens.md` (REQ-CHT-004): o dono do ator e o Mestre.
   **Critério verificável:** um Descansar que recupera PV, repõe frascos e apaga uma bomba
   temporária produz um card com três linhas, e não três cards.
 - **REQ-FAB-015** [MVP] Etapa que precise de decisão do jogador DEVE declará-la por
@@ -354,7 +354,7 @@ de um kit que ninguém marcou. A mesma postura já vale para munição na `17` (
   **Critério verificável:** personagem de nível 3 com 3 fórmulas mostra "3/8", e nenhuma fórmula
   aparece no livro sem ter sido escolhida.
 - **REQ-FAB-024** [MVP] A ficha DEVE ter uma aba de Fabricação (`ver 11-ui-framework-e-fichas.md`,
-  REQ-UIF-020) com o livro, o picker filtrado pelo pack de itens alquímicos e pelo nível do
+  REQ-UIF-018; a ficha por abas do PF2e é REQ-PF2-110) com o livro, o picker filtrado pelo pack de itens alquímicos e pelo nível do
   personagem, e o lote do dia (REQ-FAB-033). O picker DEVE respeitar a plateia do pack
   (REQ-CMP-010a).
   **Critério verificável:** o jogador abre a aba, filtra por traço, adiciona um item de nível ≤ 3
@@ -576,14 +576,14 @@ cita e não as redefine.
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `15` | Os pontos de registro (REQ-SYS-145..148), o op de consumo (REQ-SYS-143) e o motor de effects por onde o descritor entra (REQ-SYS-082).                |
 | `17` | A regra do PF2e: derivação sem persistir (DEC-PF2-03), efeito e expiração (REQ-PF2-217..223), consumo e strike (REQ-PF2-224..228), DCs (REQ-PF2-042). |
-| `10` | Os eventos de turno e de fim de combate que ancoram os prazos do que é fabricado (REQ-CBT-056).                                                       |
-| `09` | O card de preparação, de fabricação e de Craft, e a plateia dele (REQ-CHT-053).                                                                       |
-| `11` | A ficha por abas onde vivem o contador, o livro e o diálogo de Craft (REQ-UIF-020).                                                                   |
+| `10` | Os eventos de turno e de fim de combate que ancoram os prazos do que é fabricado (REQ-CBT-027, REQ-CBT-006).                                          |
+| `09` | O card declarativo de preparação, de fabricação e de Craft, e a visibilidade dele (REQ-CHT-024, REQ-CHT-004).                                         |
+| `11` | O registro e a abertura das sheets onde vivem o contador, o livro e o diálogo de Craft (REQ-UIF-018, REQ-UIF-019).                                    |
 | `16` | Os packs de onde a fórmula copia o documento e a plateia deles (REQ-CMP-010a).                                                                        |
 | `05` | Posse do ator e papel privilegiado nas três ops (REQ-USR-013).                                                                                        |
 | `21` | Redação por plateia da origem da DC e do resumo (REQ-SEC-020).                                                                                        |
-| `02` | A escrita de ficha pelo dono do ator (REQ-DOC-023).                                                                                                   |
-| `08` | A rolagem de Crafting no servidor (REQ-ROL-012).                                                                                                      |
+| `02` | A forma do ator e dos itens embutidos que esta spec escreve (REQ-DOC-025, REQ-DOC-027).                                                               |
+| `08` | A rolagem de Crafting executada no servidor (REQ-ROL-024, DEC-ROL-01).                                                                                |
 
 ## 9. Critérios de aceitação
 
