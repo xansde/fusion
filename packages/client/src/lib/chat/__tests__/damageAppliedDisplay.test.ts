@@ -12,13 +12,22 @@
  * whatever fields are present; it never re-derives who may see what.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import type { ChatMessage, ActorDamageAppliedPayload, DamageAppliedTarget } from "@fusion/shared";
 import {
   recognizeDamageApplied,
   formatDamageAppliedPlayerLine,
   formatDamageAppliedGmSummary,
 } from "../damageAppliedDisplay.js";
+// Side effect: registers the real pt-BR/en bundles into the shared `i18n`
+// singleton `t()` resolves against — without this, `t()` returns raw keys
+// ("FUSION.Chat.DamageApplied.Suffered") instead of translated text (the
+// exact class of bug `packages/client/src/main.ts`'s own i18n bootstrap
+// comment documents). I3 fix (onda-5 adversarial review): these formatters
+// now go through `t()`, so this suite needs the bundles loaded — same
+// convention `ChatMessage.test.ts`/`RollBuilderWindow.test.ts` already use.
+import "../../i18n/index.js";
+import { i18n } from "../../i18n/i18n.js";
 
 function baseMessage(flags: Record<string, Record<string, unknown>>): ChatMessage {
   return {
@@ -74,6 +83,22 @@ const TEMP_HP_TARGET: DamageAppliedTarget = {
   tempHpAfter: 5,
 };
 
+// I2 fix fixture (onda-5 adversarial review): a flaming weapon hit — two
+// damage types in one target, one of them (fire) resisted. No pre-existing
+// fixture had more than one `byType` entry.
+const MULTI_TYPE_TARGET: DamageAppliedTarget = {
+  tokenId: "tok-ogre",
+  actorId: "actor-ogre",
+  name: "Ogre",
+  byType: [
+    { type: "slashing", amount: 5 },
+    { type: "fire", amount: 7, resistanceApplied: 3 },
+  ],
+  total: 12,
+  hpBefore: 40,
+  hpAfter: 28,
+};
+
 describe("recognizeDamageApplied", () => {
   const payload: ActorDamageAppliedPayload = {
     sourceMessageId: "msg0000000000000",
@@ -102,13 +127,17 @@ describe("recognizeDamageApplied", () => {
 });
 
 describe("formatDamageAppliedPlayerLine (D-04: damage caused, never PV)", () => {
-  it("damage with a resistance applied", () => {
+  afterEach(() => {
+    i18n.setLocale("pt-BR");
+  });
+
+  it("damage with a resistance applied (I3: damage type goes through FUSION.Damage.*, 'fire' -> 'fogo')", () => {
     expect(formatDamageAppliedPlayerLine(FIRE_TARGET)).toBe(
-      "Goblin sofreu 7 de fire (resistência 5)",
+      "Goblin sofreu 7 de fogo (resistência 5)",
     );
   });
 
-  it("damage with no resistance/weakness", () => {
+  it("damage with no resistance/weakness (I3: 'acid' has no curated FUSION.Damage.* entry -> falls back to the raw slug, not a raw i18n key)", () => {
     expect(formatDamageAppliedPlayerLine(ACID_TARGET_NO_RESISTANCE)).toBe("Orc sofreu 16 de acid");
   });
 
@@ -119,13 +148,35 @@ describe("formatDamageAppliedPlayerLine (D-04: damage caused, never PV)", () => 
   it("temp-hp reads as a gain", () => {
     expect(formatDamageAppliedPlayerLine(TEMP_HP_TARGET)).toBe("Finn ganhou 5 de PV temporário");
   });
+
+  // I2 fix: a multi-type hit used to print `target.total` next to only
+  // `byType[0]`'s type -- "Ogre sofreu 12 de slashing", discarding the
+  // second type and its own resistance. Every entry now keeps its own
+  // amount and resistance note.
+  it("multi-type damage keeps EACH type's own amount and resistance, never collapses into byType[0]'s type with the grand total", () => {
+    expect(formatDamageAppliedPlayerLine(MULTI_TYPE_TARGET)).toBe(
+      "Ogre sofreu 5 de cortante e 7 de fogo (resistência 3)",
+    );
+  });
+
+  // I3 fix: the card used to be hardcoded pt-BR regardless of locale --
+  // an English client read pt-BR. Every piece of text (verb, "and",
+  // resistance note, damage type) now goes through t().
+  it("switches to English when the locale is 'en' (I3: nothing left hardcoded pt-BR)", () => {
+    i18n.setLocale("en");
+    expect(formatDamageAppliedPlayerLine(MULTI_TYPE_TARGET)).toBe(
+      "Ogre suffered 5 slashing and 7 fire (resistance 3)",
+    );
+    expect(formatDamageAppliedPlayerLine(HEAL_TARGET)).toBe("Finn recovered 12 HP");
+    expect(formatDamageAppliedPlayerLine(TEMP_HP_TARGET)).toBe("Finn gained 5 temp HP");
+  });
 });
 
 describe("formatDamageAppliedGmSummary (privileged: hp + resistance)", () => {
   it("full hp transition + resistance breakdown when hpBefore/hpAfter are present", () => {
     expect(formatDamageAppliedGmSummary(FIRE_TARGET)).toEqual({
       hpLine: "PV 18 → 11",
-      amountLine: "sofreu 7 de fire (resistência 5)",
+      amountLine: "sofreu 7 de fogo (resistência 5)",
       tempHpNote: null,
       deathNote: null,
     });
