@@ -1,13 +1,23 @@
 /**
- * TokenInteractionManager.scaffoldTargeting.test.ts — ALQ-F1-10 SCAFFOLDING.
+ * TokenInteractionManager.scaffoldTargeting.test.ts — ALQ-F1-10 SCAFFOLDING,
+ * I5 fix (onda-5 adversarial review).
  *
  * F1-05 built `combat:target` and `combatStore`'s live-target state
  * ("exposto às fichas"), but no production UI ever called it — there was no
  * real click gatilho to set a combat target anywhere in the client. This
  * covers the minimal scaffolding TokenInteractionManager.ts added: a single
- * click on a token the clicker does NOT own (and is not privileged to move)
- * sets it as their live target (REQ-CBT-056), just enough for AbilityCard's
- * "Alvos: …" line to have a real `targetSnapshot` to read at roll time.
+ * click on a token the clicker does NOT own toggles it in/out of their live
+ * target selection (REQ-CBT-056), just enough for AbilityCard's "Alvos: …"
+ * line to have a real `targetSnapshot` to read at roll time.
+ *
+ * I5 (onda-5): the click used to always send `targeted: true` and never
+ * clear it (every inspection click on a different NPC ADDED a target,
+ * never removed one — D-02 then applies damage to all of them), and it
+ * excluded any privileged role, leaving the GM with no gatilho at all.
+ * `getMyTargets` (from `combatStore.svelte.js`) is partially mocked here —
+ * `combatActions.target` stays REAL (so the existing ops-capture assertions
+ * below keep working unchanged) — to control what the click handler sees as
+ * "already targeted" without needing a full server round-trip.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -15,6 +25,14 @@ import type { TokenDocument } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import type { TokenInteractionOptions } from "../TokenInteractionManager.js";
 import { resetFootprintRegistry, seedFootprintRegistry } from "../footprintRegistry.svelte.js";
+
+const mockGetMyTargets =
+  vi.fn<() => ReadonlyArray<{ tokenId: string; actorId: string | null; name: string }>>();
+
+vi.mock("../../../combat/combatStore.svelte.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../../combat/combatStore.svelte.js")>();
+  return { ...actual, getMyTargets: () => mockGetMyTargets() };
+});
 
 // ---------------------------------------------------------------------------
 // Minimal fakes — mirrors TokenInteractionManager.openSheet.test.ts's harness
@@ -177,10 +195,13 @@ function makeManagerOpts(
   } as unknown as TokenInteractionOptions;
 }
 
-describe("TokenInteractionManager — scaffolding target-on-click (ALQ-F1-10, REQ-CBT-056)", () => {
+describe("TokenInteractionManager — scaffolding target-on-click (ALQ-F1-10, REQ-CBT-056, I5)", () => {
   beforeEach(() => {
     resetFootprintRegistry();
     seedFootprintRegistry({ med: { width: 1, height: 1 } });
+    // Default: nothing currently targeted (a fresh scene) -- every test below
+    // that DOES want "already targeted" overrides this explicitly.
+    mockGetMyTargets.mockReset().mockReturnValue([]);
   });
 
   it("a player clicking a token they do NOT own sets it as their target", async () => {
@@ -220,7 +241,7 @@ describe("TokenInteractionManager — scaffolding target-on-click (ALQ-F1-10, RE
     mgr.destroy();
   });
 
-  it("a GM clicking any token does not target it (targeting is a player convenience, not a GM action)", async () => {
+  it("I5: a GM clicking a token now ALSO targets it (no role gate — the GM had no targeting gatilho at all before this fix)", async () => {
     const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
     const container = makeFakeContainer();
     const mirror = makeFakeMirror(SCENE_ID, [makeToken()]);
@@ -232,7 +253,53 @@ describe("TokenInteractionManager — scaffolding target-on-click (ALQ-F1-10, RE
     click(container, makeFakeTarget(TOKEN_ID));
     await Promise.resolve();
 
-    expect(ops.filter((op) => op.type === "combat:target")).toHaveLength(0);
+    expect(ops.filter((op) => op.type === "combat:target")).toEqual([
+      { type: "combat:target", payload: { tokenId: TOKEN_ID, targeted: true } },
+    ]);
+
+    mgr.destroy();
+  });
+
+  it("I5: clicking an ALREADY-targeted token toggles it OFF (used to only ever send targeted:true, arming every inspected NPC as an extra target)", async () => {
+    mockGetMyTargets.mockReturnValue([{ tokenId: TOKEN_ID, actorId: ACTOR_ID, name: "Eagle" }]);
+    const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+    const container = makeFakeContainer();
+    const mirror = makeFakeMirror(SCENE_ID, [makeToken()]);
+    const { socket, ops } = makeSpySocket();
+    const mgr = new TokenInteractionManager(
+      makeManagerOpts(container, mirror, socket, ROLE_PLAYER, () => new Set()),
+    );
+
+    click(container, makeFakeTarget(TOKEN_ID));
+    await Promise.resolve();
+
+    expect(ops.filter((op) => op.type === "combat:target")).toEqual([
+      { type: "combat:target", payload: { tokenId: TOKEN_ID, targeted: false } },
+    ]);
+
+    mgr.destroy();
+  });
+
+  it("I5: clicking a DIFFERENT token while one is already targeted only toggles the CLICKED one -- inspecting several NPCs no longer accumulates targets", async () => {
+    const OTHER_TOKEN_ID = "tok002";
+    mockGetMyTargets.mockReturnValue([{ tokenId: TOKEN_ID, actorId: ACTOR_ID, name: "Eagle" }]);
+    const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+    const container = makeFakeContainer();
+    const mirror = makeFakeMirror(SCENE_ID, [
+      makeToken(),
+      makeToken({ _id: OTHER_TOKEN_ID, actorId: "actor002" }),
+    ]);
+    const { socket, ops } = makeSpySocket();
+    const mgr = new TokenInteractionManager(
+      makeManagerOpts(container, mirror, socket, ROLE_PLAYER, () => new Set()),
+    );
+
+    click(container, makeFakeTarget(OTHER_TOKEN_ID));
+    await Promise.resolve();
+
+    expect(ops.filter((op) => op.type === "combat:target")).toEqual([
+      { type: "combat:target", payload: { tokenId: OTHER_TOKEN_ID, targeted: true } },
+    ]);
 
     mgr.destroy();
   });

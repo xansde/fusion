@@ -45,7 +45,7 @@ import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
-import { combatActions } from "../../combat/combatStore.svelte.js";
+import { combatActions, getMyTargets } from "../../combat/combatStore.svelte.js";
 import type { TokenLayer } from "./TokenLayer.js";
 import { footprintOf, type FootprintActorInput } from "./footprint.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
@@ -65,7 +65,6 @@ import {
   isEditableTarget,
   canOpenTokenSheet,
   registerTokenClick,
-  ROLE_ASSISTANT,
   type TokenClickTracker,
   type GridSnapConfig,
   type ArrowDirection,
@@ -591,13 +590,30 @@ export class TokenInteractionManager {
       // gatilho to set a combat target anywhere in the client. Until a
       // proper targeting UX lands (canvas overlay, roster button, whatever
       // that task decides), a single click on a token this user does NOT
-      // own and is not privileged to move sets it as THEIR live target
-      // (REQ-CBT-056) — just enough for `AbilityCard`'s "Alvos: …" line
-      // (ALQ-F1-10) to have a real `targetSnapshot` to read at roll time.
+      // own toggles it in/out of THEIR live target selection (REQ-CBT-056)
+      // — just enough for `AbilityCard`'s "Alvos: …" line (ALQ-F1-10) to
+      // have a real `targetSnapshot` to read at roll time.
+      //
+      // I5 fix (onda-5 adversarial review, `.fusion-build/alquimista/
+      // onda-5/REVISAO.md`): this USED TO always send `targeted: true` and
+      // never clear it, so every inspection click on a non-owned token
+      // ADDED it to the live selection without ever removing one — three
+      // clicks to inspect three NPCs armed all three as targets, and by
+      // D-02 a damage-apply button then hits every one of them. It also
+      // excluded any privileged role (`userRole < ROLE_ASSISTANT`), leaving
+      // the GM with no targeting gatilho at all. Both fixed the same way:
+      // toggle off `getMyTargets()`'s CURRENT state (arma/desarma) instead
+      // of a one-way `true`, and no role gate — a GM inspecting/targeting a
+      // token is exactly as legitimate as a player doing it (this scaffold
+      // is a convenience click, not a permission decision; the server's own
+      // `combat:target` handler is the actual authority). Still marked
+      // SCAFFOLDING: the aditive-only behavior was the finding, not the
+      // scaffold's existence (`feedback_gatilho_ui_testavel`).
       // Fire-and-forget: a rejected op leaves the selection unchanged, same
       // failure mode as every other click here.
-      if (userRole < ROLE_ASSISTANT && !owned.has(token.actorId)) {
-        void combatActions.target(this._opts.socket, tokenId, true);
+      if (!owned.has(token.actorId)) {
+        const alreadyTargeted = getMyTargets().some((t) => t.tokenId === tokenId);
+        void combatActions.target(this._opts.socket, tokenId, !alreadyTargeted);
       }
 
       if (!canMove) return;
