@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 734 | 36% |
+| Citados por algum teste | 742 | 36% |
 | Citados só por código de produção | 320 | 16% |
-| Sem nenhuma citação | 999 | 49% |
+| Sem nenhuma citação | 991 | 48% |
 | **Total [MVP]** | **2053** | |
 
 ## Por spec
@@ -33,15 +33,15 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 86 | 14 | 28 | 44 | 16% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
-| [09](09-chat-e-mensagens.md) | 51 | 13 | 12 | 26 | 25% |
+| [09](09-chat-e-mensagens.md) | 51 | 15 | 10 | 26 | 29% |
 | [10](10-combate-e-iniciativa.md) | 50 | 21 | 28 | 1 | 42% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 75 | 25 | 30 | 20 | 33% |
+| [15](15-api-de-sistemas.md) | 75 | 26 | 31 | 18 | 35% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
-| [17](17-sistema-pf2e.md) | 96 | 54 | 14 | 28 | 56% |
+| [17](17-sistema-pf2e.md) | 96 | 59 | 15 | 22 | 61% |
 | [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
