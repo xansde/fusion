@@ -70,6 +70,7 @@ import {
 import type { Ownership } from "../documents/ownership.js";
 import {
   redactBlindRollForNonPrivileged,
+  redactChatDamageAppliedForNonPrivileged,
   redactChatTargetsForNonPrivileged,
   redactChatTargetSnapshotForNonPrivileged,
   redactSceneDocsForNonPrivileged,
@@ -237,7 +238,7 @@ function sanitizeContent(content: string): string {
  * Persist a ChatMessage to the chat_messages table.
  * Stores the full document as JSON in the `data` column.
  */
-function persistChatMessage(db: Db, msg: ChatMessage): void {
+export function persistChatMessage(db: Db, msg: ChatMessage): void {
   const now = Date.now();
   const data = JSON.stringify(msg);
   db.prepare(
@@ -274,10 +275,12 @@ function buildPayloadForSocket(
   // every `return` below hands out the already-redacted body.
   const msg = socketIsPrivileged
     ? fullMessage
-    : redactChatTargetSnapshotForNonPrivileged(
-        redactChatTargetsForNonPrivileged(fullMessage),
-        socketUserId,
-        tokenSource,
+    : redactChatDamageAppliedForNonPrivileged(
+        redactChatTargetSnapshotForNonPrivileged(
+          redactChatTargetsForNonPrivileged(fullMessage),
+          socketUserId,
+          tokenSource,
+        ),
       );
 
   const whisper = msg.whisper;
@@ -340,7 +343,7 @@ function buildPayloadForSocket(
  * THE SAME for both: whoever could not see the message never learns that it was
  * voided either.
  */
-function broadcastChatMessage(
+export function broadcastChatMessage(
   ns: Namespace,
   seqStore: SeqStore,
   msg: ChatMessage,
@@ -1327,10 +1330,12 @@ function redactForViewer(
   // already-redacted body.
   const msg = privileged
     ? fullMessage
-    : redactChatTargetSnapshotForNonPrivileged(
-        redactChatTargetsForNonPrivileged(fullMessage),
-        viewerId,
-        tokenSource,
+    : redactChatDamageAppliedForNonPrivileged(
+        redactChatTargetSnapshotForNonPrivileged(
+          redactChatTargetsForNonPrivileged(fullMessage),
+          viewerId,
+          tokenSource,
+        ),
       );
 
   const whisper = msg.whisper;
@@ -1394,10 +1399,12 @@ function redactForAuthor(
   tokenSource?: TokenLookupSource,
 ): ChatMessage {
   if (privileged) return msg;
-  const withoutAc = redactChatTargetSnapshotForNonPrivileged(
-    redactChatTargetsForNonPrivileged(msg),
-    authorId,
-    tokenSource,
+  const withoutAc = redactChatDamageAppliedForNonPrivileged(
+    redactChatTargetSnapshotForNonPrivileged(
+      redactChatTargetsForNonPrivileged(msg),
+      authorId,
+      tokenSource,
+    ),
   );
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
     return redactBlindRollForNonPrivileged(withoutAc);
@@ -1409,7 +1416,7 @@ function redactForAuthor(
 // Message builders
 // ---------------------------------------------------------------------------
 
-function buildBaseMessage(
+export function buildBaseMessage(
   worldId: string,
   speaker: ChatSpeaker,
   type: ChatMessage["type"],

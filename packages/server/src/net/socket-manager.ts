@@ -68,6 +68,8 @@ import {
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
+import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
+import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
@@ -441,14 +443,31 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    // ALQ-F1-08: the real `actor:applyDamage` service — validates, rereads
+    // amount/targets from the persisted roll, calls the active system's
+    // ActorMechanics and publishes the redacted `actor:damageApplied`
+    // summary. Constructed before the turn-hook runner below so its
+    // `applyDamage` can replace that one stub service (`actingAs: "system"`).
+    const actorMechanicsService = createActorMechanicsService({
+      store,
+      db,
+      ns,
+      seqStore,
+      worldId,
+      systemModule,
+      logger: this.logger,
+    });
     // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
     // alongside (not instead of) the fire-and-forget CombatEventBus above.
-    // `services` are stubs until ALQ-F1-08 (applyDamage/ActorMechanicsService)
-    // and ALQ-F1-09 (applyCondition) land the real implementations — see
-    // combat/turn-hook-runner.ts's header comment.
+    // `applyDamage` is the REAL service (ALQ-F1-08); the rest stay stubs
+    // until ALQ-F1-09 (applyCondition) and later tasks land roll/chat/
+    // document-write plumbing — see combat/turn-hook-runner.ts's header.
     const turnHookRunner = createTurnHookRunner({
       systemModule,
-      services: createStubTurnHookContextServices(),
+      services: {
+        ...createStubTurnHookContextServices(),
+        applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+      },
       logger: this.logger,
     });
     const combatDeps = {
@@ -484,6 +503,14 @@ export class SocketManager {
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
+
+    // ALQ-F1-08 / REQ-SYS-142: `actor:applyDamage` — permission, anti-cheat
+    // (montante/alvos relidos da rolagem gravada) and D-04 redaction all live
+    // in `actorMechanicsService`, constructed above.
+    registry.register(
+      "actor:applyDamage",
+      buildApplyDamageHandler({ service: actorMechanicsService }),
+    );
 
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();

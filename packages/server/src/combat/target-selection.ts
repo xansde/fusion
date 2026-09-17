@@ -63,8 +63,12 @@ export type AssertTargetsResult = AssertTargetsOk | AssertTargetsForbidden;
 /**
  * Locate a tokenId across every Scene's embedded `tokens[]`.
  * Returns null when no scene has a token with that id (dangling/foreign id).
+ *
+ * Exported (ALQ-F1-08) so `ActorMechanicsService`'s GM `targetTokenIds`
+ * override (plan §2.1) resolves tokenId → actorId/sceneId through the SAME
+ * scan `resolveTargetSelection` already uses, instead of a second copy.
  */
-function locateToken(
+export function locateToken(
   store: DocumentStore,
   tokenId: string,
 ): { actorId: string | null; sceneId: string } | null {

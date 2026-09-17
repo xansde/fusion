@@ -102,7 +102,13 @@ import {
   ATTITUDE_FLAG_NAMESPACE,
   ATTITUDE_FLAG_KEY,
 } from "@fusion/shared";
-import type { ChatMessage, Ownership, RollTarget } from "@fusion/shared";
+import type {
+  ActorDamageAppliedPayload,
+  ChatMessage,
+  DamageAppliedTarget,
+  Ownership,
+  RollTarget,
+} from "@fusion/shared";
 import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
 import {
   PLAYER_CHARACTER_SUBTYPES,
@@ -484,6 +490,100 @@ export function redactChatTargetSnapshotForNonPrivileged(
     flags: {
       ...flags,
       [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, [CHAT_TARGET_SNAPSHOT_FLAG_KEY]: redacted },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// actor:damageApplied redaction (ALQ-F1-08 — REQ-CHT-053, D-04)
+//
+// `flags.fusion.damageApplied` (ActorDamageAppliedPayload, @fusion/shared)
+// carries the `actor:applyDamage` summary card. REQ-CHT-053: a non-privileged
+// viewer's line MUST contain only the damage caused (`byType`/`total`) —
+// NEVER `hpBefore`/`hpAfter`/`tempHpAfter`/`deathCondition`, "nem no payload,
+// nem no histórico, nem no snapshot de entrada" (not in the ack, not in
+// history/search/context, not in the live broadcast). The owner of the
+// affected actor is NOT an exception (REQ-CHT-053's own text: "o resumo não é
+// o lugar dela" — they see their hp on the SHEET, never in this card) — the
+// cut is by ROLE ALONE, unlike {@link stripActorHp} (OWNER-or-privileged).
+// ---------------------------------------------------------------------------
+
+/**
+ * The `DamageAppliedTarget` line a NON-PRIVILEGED viewer may receive: the
+ * four privileged-only fields removed, `byType`/`total` untouched.
+ *
+ * Returns the SAME reference when there is nothing to strip, matching every
+ * other cut in this module.
+ */
+export function redactDamageAppliedTargetForNonPrivileged(
+  target: DamageAppliedTarget,
+): DamageAppliedTarget {
+  if (
+    target.hpBefore === undefined &&
+    target.hpAfter === undefined &&
+    target.tempHpAfter === undefined &&
+    target.deathCondition === undefined
+  ) {
+    return target;
+  }
+  const {
+    hpBefore: _hpBefore,
+    hpAfter: _hpAfter,
+    tempHpAfter: _tempHpAfter,
+    deathCondition: _deathCondition,
+    ...rest
+  } = target;
+  return rest;
+}
+
+/**
+ * The `ActorDamageAppliedPayload` a NON-PRIVILEGED viewer may receive —
+ * {@link redactDamageAppliedTargetForNonPrivileged} applied to every target
+ * line. Used both for the `actor:applyDamage` ack (REQ-SYS-142: "o ack
+ * devolvido a usuário sem papel privilegiado DEVE seguir a mesma redação do
+ * resumo") and for the broadcast/history copy of the summary ChatMessage.
+ *
+ * Returns the SAME reference when nothing needed stripping.
+ */
+export function redactDamageAppliedPayloadForNonPrivileged(
+  payload: ActorDamageAppliedPayload,
+): ActorDamageAppliedPayload {
+  const targets = payload.targets.map(redactDamageAppliedTargetForNonPrivileged);
+  const changed = targets.some((t, i) => t !== payload.targets[i]);
+  return changed ? { ...payload, targets } : payload;
+}
+
+/** Namespace/key `flags.fusion.damageApplied` is stored under (actor-mechanics-service.ts). */
+const CHAT_DAMAGE_APPLIED_FLAG_KEY = "damageApplied";
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with
+ * `flags.fusion.damageApplied` redacted (REQ-CHT-053) — the
+ * `actor:damageApplied` counterpart of
+ * {@link redactChatTargetSnapshotForNonPrivileged}, sharing the same
+ * `flags.fusion` namespace and the same "every emission path funnels through
+ * here" discipline (chat-handler.ts wires this into the live broadcast, the
+ * chat:send ack, and history/search/context/join-snapshot's single shared
+ * `redactForViewer`).
+ *
+ * Returns the SAME message reference when there is nothing to strip.
+ */
+export function redactChatDamageAppliedForNonPrivileged(msg: ChatMessage): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const damageApplied = fusionFlags?.[CHAT_DAMAGE_APPLIED_FLAG_KEY];
+  if (!damageApplied || typeof damageApplied !== "object") return msg;
+
+  const redacted = redactDamageAppliedPayloadForNonPrivileged(
+    damageApplied as ActorDamageAppliedPayload,
+  );
+  if (redacted === damageApplied) return msg;
+
+  return {
+    ...msg,
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, [CHAT_DAMAGE_APPLIED_FLAG_KEY]: redacted },
     },
   };
 }
