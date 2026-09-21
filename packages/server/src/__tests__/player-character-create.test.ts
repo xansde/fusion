@@ -668,8 +668,14 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   // double-click has something to open — see components/contacts/
   // ContactsPanel.svelte and lib/contacts/contactsVM.ts on the client). An
   // outsider's own snapshot must NOT carry it (ownership.default = NONE,
-  // REQ-USR-025a) — the redaction boundary that makes "na mesa" safe to be
-  // unconditional per-card (no per-card gate, unlike Conhecidos/NPCs).
+  // REQ-USR-025a) — proven ONLY for the join snapshot below. C1 (o6b fixer
+  // r1, revisão adversarial, xansde/fusion#240): the same cut does NOT hold
+  // for the other three REQ-NET-096 paths (live broadcast, resync delta
+  // replay, ack echo) — redaction.ts's actorEscapingKnowledgeIsVisible
+  // treats any `type: "character"` doc as visible regardless of ownership,
+  // so "na mesa" is safe unconditional per-card only at join, not after any
+  // doc:update. Issue #240 tracks the spec conflict (05×39) this needs
+  // resolved before the predicate can be aligned across all four paths.
   //
   // No new UI trigger was built for this fatia: REQ-CFG-051a forbids the
   // Usuários section from offering create/edit/delete personagem as its own
@@ -701,6 +707,17 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
       }
     });
 
+    // C1 (o6b fixer r1, revisão adversarial, xansde/fusion#240): this proves
+    // the redaction boundary ONLY for the join snapshot — sync-handlers.ts's
+    // resync:full applies its own resolveOwnership>=LIMITED filter here.
+    // redaction.ts's actorEscapingKnowledgeIsVisible (used by the live
+    // broadcast, the resync delta replay, and the ack echo — the other
+    // three of REQ-NET-096's four paths) returns `true` for ANY viewer of a
+    // `type: "character"` doc regardless of ownership, so this same
+    // "outsider can't see it" guarantee does NOT hold for those three paths
+    // today. Do not read this test as proof of REQ-NET-096 end to end —
+    // issue #240 tracks the spec conflict (05×39) a decision here would
+    // have to resolve first.
     it("an outsider's own join snapshot does NOT carry someone else's character (ownership.default = NONE)", async () => {
       const fresh = connectClient(ctx.port, ctx.worldId, ctx.outsiderToken);
       const traffic = recordEnvelopes(fresh);
