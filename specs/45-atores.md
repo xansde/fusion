@@ -431,9 +431,13 @@ continua sendo criatura.
 
 ### DEC-ATR-19 — Sub-personagem nasce com o ownership do alvo do vínculo
 
-_(2026-09-21, ficha-nivel3 T3.1. Emenda a DEC-ATR-12.)_ Um ator criado com `masterActorId`
+_(2026-09-21, ficha-nivel3 T3.1. Emenda a DEC-ATR-12. Redação estreitada na revisão da
+Onda 3/T3.2, mesma data — ver REQ-ATR-064.)_ Um **sub-personagem** (o ator vinculado do
+glossário §3: subtype `familiar`, `companionKind` + `masterActorId` preenchidos) criado
 apontando para um ator existente nasce com uma **cópia** do mapa de `ownership` desse alvo,
-qualquer que seja o criador:
+qualquer que seja o criador. Um ator de outro subtype que também usa `masterActorId` (o vínculo
+livre de DEC-ATR-16, ex. um NPC "pendurado" num recipiente) não é alcançado por esta decisão —
+nasce pela regra geral (DEC-ATR-12), sem cópia forçada.
 
 - **Criador sem papel privilegiado** (o jogador que cria o próprio familiar ou eidolon): a
   cópia é **forçada**; o `ownership` do payload é descartado, para que o pedido não alargue o
@@ -579,10 +583,15 @@ qualquer que seja o criador:
   exibição de criatura (DEC-CBA-03).
 - **REQ-ATR-063** [MVP] Um ator PODE existir sem nenhum usuário como owner, inclusive um ator com
   a faceta `player` cujo usuário foi removido, e isso NÃO DEVE ser tratado como erro.
-- **REQ-ATR-064** [MVP] Um ator criado com `masterActorId` apontando para um ator existente DEVE
+- **REQ-ATR-064** [MVP] Um **sub-personagem** (subtype `familiar` com `companionKind` e
+  `masterActorId` preenchidos — REQ-PET-001/002) criado apontando para um ator existente DEVE
   nascer com uma cópia do `ownership` do alvo; o servidor DEVE forçar essa cópia quando o criador
   não tem papel privilegiado, e DEVE respeitar um `ownership` explícito enviado por Mestre ou
-  Assistente (DEC-ATR-19).
+  Assistente (DEC-ATR-19). _(Redação estreitada em 2026-09-21, revisão da Onda 3/T3.2: a v0.1
+  falava de "um ator" genérico, mas o `masterActorId` de DEC-ATR-16 é livre para QUALQUER
+  subtype — o código (`inheritMasterOwnershipOnCreate`, gated por `isCompanionDoc`) só copia
+  ownership para o sub-personagem. Um NPC que aponta `masterActorId` para outro ator (o exemplo
+  do "perigo com dono" de DEC-ATR-16) não herda ownership por este requisito.)_
 
 ### Ator e presença
 

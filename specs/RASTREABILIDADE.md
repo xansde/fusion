@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1975 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **1978 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 716 | 36% |
+| Citados por algum teste | 719 | 36% |
 | Citados só por código de produção | 316 | 16% |
 | Sem nenhuma citação | 943 | 48% |
-| **Total [MVP]** | **1975** | |
+| **Total [MVP]** | **1978** | |
 
 ## Por spec
 
@@ -53,7 +53,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [26](26-licencas-e-legal.md) | 23 | 2 | 0 | 21 | 9% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
-| [29](29-pets-companions-familiars.md) | 20 | 7 | 6 | 7 | 35% |
+| [29](29-pets-companions-familiars.md) | 23 | 10 | 6 | 7 | 43% |
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |

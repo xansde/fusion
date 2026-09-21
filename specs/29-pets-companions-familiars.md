@@ -169,6 +169,54 @@ o documento vivo do dono:
 - **Racional:** a porta do jogador é a exceção à regra de que só o Mestre cria ator (anti-trapaça);
   ela tem de ser exatamente tão larga quanto a regra do jogo, nem mais.
 
+### DEC-PET-04 — Eidolon (Summoner) e familiar (Witch) nascem sozinhos, na aplicação da classe
+
+_(2026-09-21, ficha-nivel3 T3.2/T3.3.)_ Diferente de todo outro familiar/pet — que fica atrás
+do CTA manual da aba Pets, porque é a **escolha** de um talento —, o eidolon do Summoner e o
+familiar da Witch são regra de classe: o remaster diz "you begin play with..." no nível 1, sem
+opção de recusar. A aplicação da classe (`applyClass`, `PlanColumn.svelte`) por isso **também**
+emite a criação do companheiro, sem esperar o jogador abrir a aba Pets.
+
+- **Detector:** `autoCompanionKindForClass` (`systems/pf2e/src/companion-grant.ts`), por
+  `flags.fusion.sourceId` do item de classe — Summoner (`SUMMONER_CLASS_SOURCE_ID`) →
+  `"eidolon"`; Witch (`WITCH_CLASS_SOURCE_ID`) → `"familiar"`; qualquer outra classe → nenhum
+  auto-create (o familiar de um Wizard continua manual, via o feat "Familiar").
+- **Onde vive o TIPO do eidolon (resposta à revisão da decisão original):** no **ChoiceSet do
+  Summoner** (T1.4, `CLASS_CHOICE_SLOT_OPTIONS.eidolon`, mecanismo já existente desde a Onda 1)
+  — o item concreto escolhido ("Dragon Eidolon", "Angel Eidolon", ...) embute no ATOR DO
+  SUMMONER, exatamente como Bloodline/Order/Mystery/etc. O documento do eidolon (o ator
+  vinculado) **não** duplica esse dado: não carrega tipo, tradição nem trait próprios. Por isso
+  a criação do ator-eidolon **não depende** da escolha de tipo ter sido feita — ela dispara
+  junto com a classe (a feature wrapper "Eidolon", `featuresByLevel[1]` do Summoner, existe e é
+  materializada de qualquer forma). Um leitor que precisar saber "eidolon de que tipo" lê o item
+  embutido no Summoner, nunca o ator do eidolon.
+- **Ordem obrigatória — classe antes do companheiro:** a autorização do `doc:create` do
+  companheiro (`companionGrantAllows`/`detectEidolonGrant`/`detectFamiliarGrant`,
+  DEC-PET-03) lê o item de classe **persistido no servidor**, não o payload em trânsito. O
+  `doc:create` do item de classe (`applyClass`) e o `doc:create` do ator-companheiro são DOIS
+  requests HTTP/socket separados, fire-and-forget (nenhum op do Plano espera ack hoje — mesmo
+  padrão de `materializeClassGrants`); em lote síncrono, o companheiro pode chegar ao servidor
+  antes do item de classe estar gravado e a autorização recusa (mensagem "Master has no grant
+  for a companion of kind..."). **Não** é um lote atômico dos dois documentos (nunca existiu um
+  payload que envie os dois juntos) — é uma corrida de DOIS requests independentes na mesma
+  janela. A implementação (`sendAutoCompanionOp`, `petsVM.ts`) fecha a corrida com repetição
+  limitada (até 5 tentativas, buscando a MESMA autorização a cada uma) em vez de um atraso fixo:
+  cada tentativa É a checagem, então a espera real é exatamente o round-trip do item de classe,
+  nunca mais que isso por design. Uma falha "companheiro já existe" (corrida com outra aba/o
+  heal abaixo) conta como sucesso, não erro.
+- **Auto-cura no reabrir:** `runHeal` (mesmo mecanismo do B2 r14, gaps #11/#12) também confere,
+  ao abrir a ficha, se o dono já tem a classe mas ainda não tem o companheiro do grupo
+  correspondente — cobre a ficha criada ANTES desta task e a rara corrida que esgotou as 5
+  tentativas. Idempotente: já ter o companheiro é um no-op.
+- **Nome padrão:** "Eidolon" / "Familiar" (mesmo fallback hardcoded do CTA manual,
+  `buildCreateFamiliarOp`), renomeável depois pela aba Pets — sem pedir nome na hora, porque
+  não há diálogo nenhum neste caminho (é automático).
+- **Campos que o eidolon NÃO recebe do familiar:** `abilitiesBudget`/`selectedAbilities`
+  (mecanismo de familiar, sem equivalente para eidolon) e o HP `5 × nível do mestre` (fórmula do
+  familiar; o eidolon usa PV compartilhado com o Summoner — REGISTRADO PENDENTE, não modelado
+  nesta fatia, mesma dívida do relatório da T3.1). O ator-eidolon nasce com HP `{value:0,max:0}`
+  em vez de um número plausível-mas-errado (lição #48: não fabricar dado).
+
 ---
 
 ## 1. Regras remaster (resumo funcional)
@@ -507,9 +555,12 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
 ### Modelo de dados e derivação
 
 - **REQ-PET-001** [MVP] O Fusion DEVE modelar companions (familiar, pet
-  genérico, animal companion) como **Actors próprios** (subtype `familiar`,
-  campo `companionKind` discriminando `familiar`/`pet`/`animalCompanion`),
-  nunca como item embutido no Actor do mestre.
+  genérico, animal companion, eidolon) como **Actors próprios** (subtype
+  `familiar`, campo `companionKind` discriminando
+  `familiar`/`pet`/`animalCompanion`/`eidolon`/`mount`[V2]), nunca como item
+  embutido no Actor do mestre. _(Enumeração corrigida em 2026-09-21, revisão da
+  Onda 3/T3.2: `eidolon` (DEC-PET-02) e `mount` [V2] (REQ-PET-090) já estavam
+  no `COMPANION_KINDS` do código desde a T3.1, mas não citados aqui.)_
 - **REQ-PET-002** [MVP] Todo companion DEVE ter um campo `masterActorId`
   apontando para o Actor que o possui — **qualquer** ator, sem restrição de
   subtype ou faceta (`ver 45-atores.md`, DEC-ATR-16); um companion sem mestre
@@ -635,6 +686,19 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
 - **REQ-PET-094** [MVP] A concessão de eidolon DEVE ser reconhecida pelo
   `flags.fusion.sourceId` do item de classe Summoner embutido no dono, nunca pelo
   nome do item.
+- **REQ-PET-095** [MVP] A aplicação da classe Summoner ou Witch no Plano DEVE
+  disparar a criação automática do companheiro correspondente (eidolon/familiar,
+  DEC-PET-04), sem exigir uma ação manual adicional do jogador na aba Pets;
+  toda outra classe/talento que concede familiar continua manual.
+- **REQ-PET-096** [MVP] A criação automática do companheiro (REQ-PET-095) NÃO
+  DEVE depender de o item de classe já estar refletido no documento local do
+  cliente — DEVE repetir a tentativa de criação, respeitando a MESMA
+  autorização do servidor (DEC-PET-03), até o item de classe estar persistido
+  ou um teto de tentativas ser atingido (DEC-PET-04).
+- **REQ-PET-097** [MVP] A criação automática do companheiro (REQ-PET-095) NÃO
+  DEVE criar um segundo companheiro do mesmo grupo (REQ-PET-093) quando
+  repetida — em uma nova tentativa, num reabrir da ficha (heal) ou numa
+  corrida com outra sessão do mesmo dono.
 
 ---
 
