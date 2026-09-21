@@ -1,13 +1,15 @@
 # Evidência — Onda 0 (Dado das 29 classes)
 
-Worktree `scratchpad/wt-o0`. Core `ficha3/onda0` @ `b2bf41a1`; satélite (submodule pinado em
-`external/fusion-systems-2e`) `ficha3/onda0` @ `4a41939`. Fecho rodado em 2026-09-21.
+Worktree `scratchpad/wt-o0`. Core `ficha3/onda0` @ `ac8caf99`; satélite (submodule pinado em
+`external/fusion-systems-2e`) `ficha3/onda0` @ `f7bc97e`. Fecho rodado em 2026-09-21.
+Estado final: rodada 4 da revisão adversarial FECHOU o último achado importante (N1); **PODE
+MERGEAR: SIM** (zero bloqueante/importante aberto ao final).
 
 ## 1. Linha da tabela da seção 3 do `execucao.md`
 
 | Onda | Mecânico | Vivo | Olhado |
 |---|---|---|---|
-| **0** | **Verde, com dívida rastreada.** `pnpm build` exit 0 (`T0.5-build.log`), `pnpm typecheck` exit 0 (`T0.5-typecheck.log`), `pnpm lint` exit 0 (`T0.5-lint.log`), `pnpm lint:boundaries` exit 0, 0 violações/5023 módulos (`T0.5-lint-boundaries.log`), `pnpm format:check` exit 0 (`T0.5-format.log`), `pnpm spec:report` exit 0, "cobertura [MVP] com teste: 710 (piso 710)" sem drift (`T0.5-spec-report.log`). `pnpm test` (suíte completa, vitest --workspace): **441 arquivos (437 passaram, 4 falharam) / 8014 testes (7986 passaram, 26 falharam, 1 skip, 1 todo)** — delta exato vs. baseline pré-integração (438 arquivos/8003 testes, 3 arquivos/25 testes falhando): +3 arquivos novos, +11 testes novos, +1 arquivo falho e +1 teste falho, ambos o vermelho ESPERADO do `grant-resolution-validator.test.ts` (8 grants bloqueados por issue #88/#89, não regressão). Script de contagem de `GrantItem` não resolvível fora da allowlist (T0.4, `grant-resolution-validator.test.ts` rodado isolado): **0** não-alowlisted (`expect(notAllowlisted).toEqual([])` verde) — critério do gate bate exato. (`T0.5-test.log`, `T0.5.md`) | **Monk (Tobias) criado e subido 1→2→3** no mundo real `teste_xande` (cópia isolada, servidor local porta 33005): nível 1→2 concede `classFeature:Flurry of Blows` + `classFeature:Powerful Fist` como item real do ator (confirmado por leitura direta do `world.db`, não só UI); nível 2→3 concede `classFeature:Mystic Strikes` + `classFeature:Incredible Movement` (deslocamento 40 pés = 30 base + 10, batendo com `derivations-speed.test.ts`). **Ranger (Novo Ator)** 1→2→3: Hunt Prey + ação embutida + Hunter's Edge "Precisão" escolhido, Will Expertise no nível 3. **Guardian (GateO0-Guardian)** 1→2→3: as 5 features de nível 1 (Taunt, Guardian's Techniques, Shield Block, Guardian's Armor, Tough To Kill) todas presentes como item, cada uma com ação/feat concedida onde aplicável. (`evidencia-viva-final.md`) | 4 prints em `prints/`, cada um OLHADO (Read na imagem) antes de listar: `monk-tobias-nivel1e2-plano.png` (Nível 2, chips Flurry of Blows + Powerful Fist), `monk-tobias-nivel3-plano.png` (Nível 3, PV 33/33, Deslocamento 40 pés), `ranger-novoator-nivel3-plano.png` (Nível 3, Hunter's Edge "Precisão", chip Hunt Prey), `guardian-gateo0-nivel3-plano.png` (Nível 3, PV 39/39, 5 features de nível 1 visíveis). |
+| **0** | **Verde, com dívida rastreada.** Gate LOCAL final (fecho, pós fix-r4, worktree `wt-o0` @ core `ac8caf99`/satélite `f7bc97e`, rodado por mim nesta sessão de fecho, SEM a suíte completa): `pnpm build` exit 0 (client compila, bundle final `App-*.js` 1.19 MB/353 KB gzip); `pnpm typecheck` exit 0, `COMPLETED 1610 FILES 0 ERRORS 24 WARNINGS 6 FILES_WITH_PROBLEMS` (mesma contagem do baseline T0.5); `pnpm lint` exit 0, `✖ 1 problem (0 errors, 1 warning)` (warning pré-existente em `pregen-parity.test.ts`, não tocado); `pnpm lint:boundaries` exit 0, `no dependency violations found (5025 modules, 12105 dependencies cruised)`; `pnpm format:check` exit 0, `All matched files use Prettier code style!`; `pnpm spec:report` exit 0, `cobertura [MVP] com teste: 710 (piso 710)`, sem drift. Testes das tarefas da onda (afetados pelo fix-r4, rodados isolados: `updateScheduler.test.ts`, `characterSheetVM.test.ts`, `grant-resolution-validator.test.ts`, `grantMaterializer-realPacks.test.ts`): **4 arquivos, 234 testes, 234 passaram, 0 falharam** (`Test Files 4 passed (4)`, `Tests 234 passed (234)`, 3.15s). A suíte completa (`vitest --workspace`) do ESTADO anterior (T0.5, antes do fix-r4) mediu **441 arquivos (437 passaram, 4 falharam) / 8014 testes (7986 passaram, 26 falharam, 1 skip, 1 todo)** vs. baseline pré-integração (438 arquivos/8003 testes, 3 arquivos/25 testes falhando) — delta exato esperado (+3 arquivos/+11 testes novos, +1 arquivo/+1 teste falho = o vermelho ESPERADO do `grant-resolution-validator.test.ts`, 8 grants bloqueados por #88/#89, não regressão); a suíte completa PÓS fix-r4 roda no CI do PR (seção 2). Contagem de `GrantItem` não resolvível fora da allowlist (T0.4): **0** não-alowlisted (`expect(notAllowlisted).toEqual([])` verde). (`T0.5-test.log`, `T0.5.md`, `fix-r4.md`) | **Monk (Tobias) criado e subido 1→2→3** no mundo real `teste_xande` (cópia isolada, servidor local porta 33005): nível 1→2 concede `classFeature:Flurry of Blows` + `classFeature:Powerful Fist` como item real do ator (confirmado por leitura direta do `world.db`, não só UI); nível 2→3 concede `classFeature:Mystic Strikes` + `classFeature:Incredible Movement` (deslocamento 40 pés = 30 base + 10, batendo com `derivations-speed.test.ts`). **Ranger (Novo Ator)** 1→2→3: Hunt Prey + ação embutida + Hunter's Edge "Precisão" escolhido, Will Expertise no nível 3. **Guardian (GateO0-Guardian)** 1→2→3: as 5 features de nível 1 (Taunt, Guardian's Techniques, Shield Block, Guardian's Armor, Tough To Kill) todas presentes como item, cada uma com ação/feat concedida onde aplicável. (`evidencia-viva-final.md`) | 4 prints em `prints/`, cada um OLHADO (Read na imagem) antes de listar: `monk-tobias-nivel1e2-plano.png` (Nível 2, chips Flurry of Blows + Powerful Fist), `monk-tobias-nivel3-plano.png` (Nível 3, PV 33/33, Deslocamento 40 pés), `ranger-novoator-nivel3-plano.png` (Nível 3, Hunter's Edge "Precisão", chip Hunt Prey), `guardian-gateo0-nivel3-plano.png` (Nível 3, PV 39/39, 5 features de nível 1 visíveis). |
 
 ## 2. CI dos PRs
 
@@ -30,14 +32,16 @@ Worktree `scratchpad/wt-o0`. Core `ficha3/onda0` @ `b2bf41a1`; satélite (submod
 |---|---|---|---|
 | r1 (`revisao-adversarial-r1.md`) | APROVADA COM CONSERTOS | C1–C5, C7, DOC | C6 (parcial), N1 (importante), N2 (menor) |
 | r2 (`revisao-adversarial-r2.md`) | (fixes de N1/C6 verificados; achados novos) | N1 (predicate), C6 (retração; subida registrada em #93) | R1 (importante, regressão do debounce), R2 (menor, self:armored/unarmored) |
-| r3 (`revisao-adversarial-r3.md`) | **APROVADA COM RESSALVA — PODE MERGEAR: NÃO** | R1 (no seu escopo literal — `updateLevelDraft` sem op destrutiva) | **N1 novo (importante) — commit de nível pode ser cancelado pelo debounce compartilhado de outro campo, regressão do C6** (issue [#94](https://github.com/xansde/fusion-systems-2e/issues/94)) |
+| r3 (`revisao-adversarial-r3.md`) | APROVADA COM RESSALVA — PODE MERGEAR: NÃO | R1 (no seu escopo literal — `updateLevelDraft` sem op destrutiva) | N1 novo (importante) — commit de nível pode ser cancelado pelo debounce compartilhado de outro campo, regressão do C6 (issue [#94](https://github.com/xansde/fusion-systems-2e/issues/94), fechada nesta rodada — ver r4) |
+| r4 (`revisao-adversarial-r4.md`) | **FECHADA — PODE MERGEAR: SIM** | N1 (extraído `updateScheduler.commitNow()`, satélite `f7bc97e`, core `ac8caf99`; envio síncrono fora do timer compartilhado, `updateScheduler.test.ts` 6/6 verde) | Zero bloqueante/importante. Menores: M1 (processo — issue #94 sem `Closes` no commit, corrigido no fecho por fechamento manual com referência ao commit) e M2 (pré-existente, fora do escopo da O0 — debounce único também descarta draft de OUTRO campo, não só o de nível; registrado em issue nova [#100](https://github.com/xansde/fusion-systems-2e/issues/100)) |
 
 **Veredito final consolidado: gate mecânico/vivo/olhado da Onda 0 PASSA** (critério da
-tabela da seção 3 do `execucao.md` cumprido pelos 3 chassis testados), **mas a integração
-NÃO pode ser mergeada como está** — o achado N1 da r3 é uma regressão funcional real
-(commit de nível descartado por edição concorrente de outro campo), documentado e com
-issue aberta, mas sem fix aplicado nesta rodada (orçamento de re-verificação já em 3
-rodadas). PR aberto para review; merge fica para depois do fix de N1.
+tabela da seção 3 do `execucao.md` cumprido pelos 3 chassis testados) **e a integração PODE
+SER MERGEADA** — a rodada 4 da revisão adversarial fechou o último achado importante (N1,
+commit de nível descartado por edição concorrente de outro campo) com TDD (vermelho pelo
+motivo certo, depois verde) e sem regressão no diff. Zero bloqueante ou importante aberto ao
+final da Onda 0; restam só achados menores, todos com issue própria (#97, #98, #100) ou já
+rastreados por lanes anteriores (#88–#93).
 
 Revisões adicionais rodadas nesta onda (fora do ciclo fix↔revisão principal), todas sem
 achado bloqueante remanescente: `revisao-teste-contratos.md`, `revisao-costura-ci-higiene.md`,
@@ -49,7 +53,8 @@ achados menores de uma rodada anterior às r1–r3, não reabertos nesta consoli
 
 | # | Título | Severidade | Repo | Issue |
 |---|---|---|---|---|
-| N1 | Commit de nível cancelado pelo debounce compartilhado (regressão do C6) | importante | fusion-systems-2e | [#94](https://github.com/xansde/fusion-systems-2e/issues/94) |
+| N1 | Commit de nível cancelado pelo debounce compartilhado (regressão do C6) | importante → **FECHADA** (fix N1 rodada 4) | fusion-systems-2e | [#94](https://github.com/xansde/fusion-systems-2e/issues/94) (closed) |
+| M2 | Debounce único compartilhado também descarta draft de OUTRO campo (não só nível) | menor | fusion-systems-2e | [#100](https://github.com/xansde/fusion-systems-2e/issues/100) |
 | A1 | Dois campos de nível divergentes (`system.level` vs `system.details.level`) | importante | fusion-systems-2e | [#95](https://github.com/xansde/fusion-systems-2e/issues/95) |
 | A2 | Class-pick isolado não materializa `featuresByLevel` de nível 1 sem level-up | importante | fusion-systems-2e | [#96](https://github.com/xansde/fusion-systems-2e/issues/96) |
 | N2 | 11 traits novos sincronizados sem acentuação (`ACCENT_FIXES` desatualizado) | menor | fusion-systems-2e | [#97](https://github.com/xansde/fusion-systems-2e/issues/97) |
@@ -62,9 +67,11 @@ achados menores de uma rodada anterior às r1–r3, não reabertos nesta consoli
 | — | Campo de nível do modo edição não materializa grants ao SUBIR | importante | fusion-systems-2e | [#93](https://github.com/xansde/fusion-systems-2e/issues/93) |
 
 Todas as issues #88–#93 já existiam antes deste fecho (abertas pelas lanes T0.3/T0.4/fix-r1/
-fix-r2); #94–#98 foram abertas por este fecho, cobrindo os achados desta onda que ainda não
-tinham issue (N1 do gate do prompt, A1/A2 de `evidencia-viva-final.md`, N2 de
-`revisao-adversarial-r1.md`/`fix-r1.md`, R2 de `revisao-adversarial-r2.md`/`fix-r3.md`).
+fix-r2); #94–#98 foram abertas pelas rodadas de revisão desta onda, cobrindo os achados que
+ainda não tinham issue (N1 do gate do prompt, A1/A2 de `evidencia-viva-final.md`, N2 de
+`revisao-adversarial-r1.md`/`fix-r1.md`, R2 de `revisao-adversarial-r2.md`/`fix-r3.md`); #94
+foi FECHADA por este fecho (fix N1 da rodada 4, satélite `f7bc97e`); #100 foi ABERTA por este
+fecho, cobrindo o achado menor M2 da rodada 4 (`revisao-adversarial-r4.md`/`fix-r4.md`).
 
 ## 6. Observação de rota (não é issue)
 
