@@ -71,7 +71,16 @@ commit T1.8). O CI do PR (rodado no passo 5 do fecho) é a segunda confirmação
 independente; números e link ficam registrados abaixo assim que os PRs estiverem
 abertos e o CI tiver rodado.
 
-<!-- CI-PLACEHOLDER: preenchido após a etapa 5 (gh pr checks --watch) -->
+**CI dos PRs** (etapa 5 do fecho, `gh pr checks --watch`):
+
+- Satélite (xansde/fusion-systems-2e#108, "Build, Typecheck & Test (against mounted
+  core)"): **pass**, 2m4s —
+  https://github.com/xansde/fusion-systems-2e/actions/runs/35582006791/job/106276793738
+- Core (xansde/fusion#232, "Build, Lint & Test"): **pass**, 6m31s —
+  https://github.com/xansde/fusion/actions/runs/35581978546/job/106276702740
+
+Duas confirmações independentes verdes (gate local deste fecho + CI dos dois PRs), sem
+nenhuma tentativa de re-run necessária.
 
 ### Vivo — resumo (detalhe completo em `evidencia-viva-final.md`)
 
