@@ -704,14 +704,78 @@ export interface DocHandlerDeps {
  * servidor" — CLAUDE.md). A no-op for any non-character Actor or one with
  * no `system.build` (see the module's own docstring for exactly what is,
  * and is not, covered).
+ *
+ * O6 fixer C3 (importante): pass `existingDoc` (the document BEFORE this
+ * write, when there is one — never on doc:create, which has no prior state)
+ * to reject only the issues the write ITSELF introduces, not ones the
+ * document already carried. Without this, validating the whole merged
+ * document on EVERY doc:update — touching `system.build` or not, GM or not
+ * — meant a single pre-existing illegal state (a legacy import, a level
+ * that was never pruned on a past descend, a GM hand-edit) froze EVERY
+ * future write to that actor, including HP, notes, and the very
+ * `doc:update` that would have fixed the build: `removeChoice` clears one
+ * slot at a time, and the merge still carries every other pre-existing
+ * issue, so even the repair op was refused.
  */
-function rejectIllegalCharacterBuild(mergedDoc: Record<string, unknown>): Ack<never> | null {
+function rejectIllegalCharacterBuild(
+  mergedDoc: Record<string, unknown>,
+  existingDoc?: Record<string, unknown>,
+): Ack<never> | null {
   const result = validateCharacterBuild(mergedDoc);
   if (result.ok) return null;
-  const summary = result.issues
+
+  let newIssues = result.issues;
+  if (existingDoc) {
+    const before = validateCharacterBuild(existingDoc);
+    const beforeKeys = new Set(before.issues.map((issue) => `${issue.code}|${issue.path}`));
+    newIssues = result.issues.filter((issue) => !beforeKeys.has(`${issue.code}|${issue.path}`));
+  }
+  if (newIssues.length === 0) return null;
+
+  const summary = newIssues
     .map((issue) => `${issue.code} (${issue.path}): ${issue.message}`)
     .join("; ");
   return ackError("VALIDATION_FAILED", `Illegal character build — ${summary}`);
+}
+
+/**
+ * O6 fixer C4/A6 (importante): `{"system.build": null}` inside a diff
+ * DELETES the whole build ledger (documents/merge.ts's DELETE_KEY_NAMESPACES
+ * treats null under `system` as key-deletion) — and a document with no
+ * `system.build` is `validateCharacterBuild`'s own "r9 manual mode" no-op.
+ * Left unchecked, that is a two-write bypass of every invariant this module
+ * enforces: null the build, then freely re-add an illegal one (or leave the
+ * now-orphaned embedded feats/choices with nothing validating them again).
+ * Refused ONLY when the EXISTING document already has a non-null build (a
+ * genuinely never-built r9 character keeps the right to stay that way) AND
+ * the diff is the one explicitly nulling it — a diff that merely omits
+ * `system.build` (deepMerge never removes a key the patch omits) is
+ * unaffected, and so is a diff that REPLACES it with a new, still-validated
+ * build object (caught by `rejectIllegalCharacterBuild` instead, same as
+ * any other build write).
+ */
+function rejectCharacterBuildDeletion(
+  existingDoc: Record<string, unknown>,
+  expandedDiff: Record<string, unknown>,
+): Ack<never> | null {
+  if (existingDoc["type"] !== "character") return null;
+
+  const existingSystem = existingDoc["system"];
+  const existingBuild =
+    existingSystem && typeof existingSystem === "object" && !Array.isArray(existingSystem)
+      ? (existingSystem as Record<string, unknown>)["build"]
+      : undefined;
+  if (existingBuild === undefined || existingBuild === null) return null;
+
+  const diffSystem = expandedDiff["system"];
+  if (!diffSystem || typeof diffSystem !== "object" || Array.isArray(diffSystem)) return null;
+  const diffSystemRec = diffSystem as Record<string, unknown>;
+  if (!("build" in diffSystemRec) || diffSystemRec["build"] !== null) return null;
+
+  return ackError(
+    "VALIDATION_FAILED",
+    "Illegal character build — cannot delete system.build once the character has one",
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1128,9 +1192,21 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // applies, documents/merge.ts) so a diff that only touches
       // `system.build.choices` is checked together with whatever level the
       // document already has — never against the bare diff alone.
+      //
+      // O6 fixer C3/C4: `existing` is passed to `rejectIllegalCharacterBuild`
+      // so a pre-existing illegal state doesn't freeze every future write
+      // (only NEW issues the diff introduces are refused), and
+      // `rejectCharacterBuildDeletion` (C4/A6) runs first to close the
+      // `{"system.build": null}` bypass that would otherwise make the
+      // merged-doc check above a no-op.
       if (documentType === "Actor") {
+        const rejectionBuildDeletion = rejectCharacterBuildDeletion(
+          existing,
+          expandedDiffForChecks,
+        );
+        if (rejectionBuildDeletion) return rejectionBuildDeletion;
         const merged = deepMerge(existing, expandedDiffForChecks);
-        const rejectionBuild = rejectIllegalCharacterBuild(merged);
+        const rejectionBuild = rejectIllegalCharacterBuild(merged, existing);
         if (rejectionBuild) return rejectionBuild;
       }
     }
@@ -1666,6 +1742,21 @@ function handleEmbeddedCreate(
 
   // Update parent with new embedded collection
   const updatedCollection = [...existing, ...created];
+
+  // O6 fixer C4 (importante): this is the ONE door that actually authors an
+  // item embedded straight into a character Actor in production (the other,
+  // compendium:importToActor, is out of this fixer round's scope) — the
+  // feat/dedication FEAT_SLOT_MISMATCH check in @fusion/system-pf2e reads
+  // `flags.fusion.build.slot` off the item itself, so it can only ever fire
+  // for real if it also runs HERE, not just on the Actor's own doc:update.
+  // `existingDoc` passed so a pre-existing issue elsewhere in the sheet
+  // doesn't block an unrelated embedded create (C3's same reasoning).
+  if (parent.type === "Actor" && parentDoc["type"] === "character") {
+    const mergedForValidation = { ...parentDoc, [collectionKey]: updatedCollection };
+    const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+    if (rejectionBuild) return rejectionBuild;
+  }
+
   const patch: Record<string, unknown> = { [collectionKey]: updatedCollection };
 
   let updatedParent = deps.store.update(parentTable as never, parent.id, patch, {
@@ -1900,6 +1991,16 @@ function handleEmbeddedUpdate(
       }
 
       collection[idx] = patchedToken;
+    }
+
+    // O6 fixer C4 (importante): an embedded update (e.g. a GM correcting a
+    // feat's own `system.level`, or `flags.fusion.build` itself) can make a
+    // build FEAT_SLOT_MISMATCH true just as much as filing the choice can —
+    // same reasoning as handleEmbeddedCreate above.
+    if (resolvedParentType === "Actor" && parentDoc["type"] === "character") {
+      const mergedForValidation = { ...parentDoc, [collectionKey]: collection };
+      const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+      if (rejectionBuild) return rejectionBuild;
     }
 
     // Persist parent with updated embedded collection
