@@ -377,30 +377,70 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   // own flags.fusion.build.slot, the real link chooseFeat writes)
   // -------------------------------------------------------------------------
 
-  it("DENIES a skill-category feat filed into the ancestryFeat slot (FEAT_SLOT_MISMATCH)", async () => {
-    const embedAck = await sendOp(ownerSocket, "doc:create", {
-      documentType: "Item",
-      parent: { type: "Actor", id: characterId },
-      data: [featItemPayload("ancestryFeat-2", "skill")],
-    });
-    expect(embedAck["ok"]).toBe(true);
-    const embedResult = embedAck["result"] as { parent: Record<string, unknown> };
-    version = statsVersion(embedResult.parent);
-
+  it("initializes system.build via the ancestry ability-boost pick (mirrors real play order: build exists long before the FIRST feat is ever chosen)", async () => {
+    // `validateCharacterBuild` is a no-op (r9 manual-entry mode) for a
+    // character with NO `system.build` at all — and this suite's auto-
+    // created character has none yet at this point. In REAL play that
+    // window is theoretical: `chooseAncestryBoosts`/`chooseBackgroundBoosts`
+    // (planVM.ts) write `system.build.abilities.*` during ancestry/
+    // background selection, long before level 2's first feat pick — so by
+    // the time `chooseFeat` ever runs, `system.build` always already
+    // exists. This step reproduces that same real ordering before the C4/N1
+    // repro tests below, instead of asserting against the untested (and
+    // out-of-scope, per the module's own docstring) r9 no-build state.
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
         {
           _id: characterId,
-          diff: choiceDiff("ancestryFeat-2", "ancestryFeat"),
+          diff: { "system.build.abilities": { classBoost: ["str"] } },
           expectedVersion: version,
         },
       ],
     });
-    expect(ack["ok"]).toBe(false);
-    expect(ack["code"]).toBe("VALIDATION_FAILED");
-    expect(String(ack["message"])).toContain("FEAT_SLOT_MISMATCH");
-    // Rejected — version must not have moved (nothing was persisted).
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    version = statsVersion(doc);
+  });
+
+  it("DENIES the embedded doc:create itself of a skill-category feat filed into the ancestryFeat slot, with NO choice sent at all (O6 fixer r2, C4 bypass)", async () => {
+    // O6 fixer r1 shipped this check gated on a MATCHING system.build.choices
+    // entry — so the embed alone used to succeed (ok:true) and only the
+    // FOLLOW-UP choices doc:update was refused, leaving the illegal item on
+    // the sheet with nothing pointing at it. The real chooseFeat client op
+    // (planVM.ts) sends this exact embedded create FIRST — no choice in the
+    // same batch — so that gap was reachable from the shipped client, not
+    // just a hand-built payload. r2 makes handleEmbeddedCreate itself refuse
+    // this create (see rejectIllegalCharacterBuild's call site) — nothing
+    // more to send afterwards, nothing persists.
+    const embedAck = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [featItemPayload("ancestryFeat-2", "skill")],
+    });
+    expect(embedAck["ok"]).toBe(false);
+    expect(embedAck["code"]).toBe("VALIDATION_FAILED");
+    expect(String(embedAck["message"])).toContain("FEAT_SLOT_MISMATCH");
+    // Nothing persisted — the actor's version must not have moved, and a
+    // plain doc:update with the current (unchanged) version must still see
+    // the same expectedVersion accepted below.
+  });
+
+  it("DENIES the embedded doc:create of a level-4 class feat filed into a level-2 classFeat slot (O6 fixer r2, N1: FEAT_LEVEL_EXCEEDS_SLOT_LEVEL)", async () => {
+    const overLeveledFeat = {
+      name: "Test Feat (over-leveled)",
+      type: "feat",
+      system: { category: "class", level: 4, traits: { value: ["fighter"] } },
+      flags: { fusion: { build: { level: 2, slot: "classFeat-2" } } },
+    };
+    const embedAck = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [overLeveledFeat],
+    });
+    expect(embedAck["ok"]).toBe(false);
+    expect(embedAck["code"]).toBe("VALIDATION_FAILED");
+    expect(String(embedAck["message"])).toContain("FEAT_LEVEL_EXCEEDS_SLOT_LEVEL");
   });
 
   it("ALLOWS a skill-category feat filed into a skillFeat slot", async () => {
