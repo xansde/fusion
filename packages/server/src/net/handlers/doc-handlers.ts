@@ -70,6 +70,7 @@ import {
   isRolePrivileged,
   isGamemasterStrict,
   testOwnership,
+  ownershipForCreator,
 } from "../../documents/ownership.js";
 import {
   resolvePermissionMinRole,
@@ -77,7 +78,8 @@ import {
   PERMISSIONS_SETTING_KEY,
   type PermissionKey,
 } from "../../documents/world-permissions.js";
-import { detectFamiliarGrant } from "@fusion/system-pf2e";
+import { detectFamiliarGrant, validateCharacterBuild } from "@fusion/system-pf2e";
+import { deepMerge } from "../../documents/merge.js";
 import {
   DocCreatePayloadSchema,
   DocUpdatePayloadSchema,
@@ -610,6 +612,57 @@ function authorizePlayerCompanionDelete(
   return { ok: true };
 }
 
+// ---------------------------------------------------------------------------
+// Player-created OWN character (O6/T6.1, spec 28 / emenda 37/05 — "o
+// personagem nasce com o player")
+// ---------------------------------------------------------------------------
+//
+// Decision (plano.md, "Decisões do Alexandre" #2): "Quem cria — O JOGADOR. O
+// Mestre pode criar se quiser, mas o jogador tem autonomia sobre o próprio
+// ator." Actor stays in GM_ONLY_CREATE_DELETE for every OTHER subtype (NPCs,
+// loot, hazards remain GM-authored per spec 42) — this is a second, narrow
+// exception alongside r17-P1's companion one, not a widening of ACTOR_CREATE
+// itself (which would also open NPC/hazard/loot authoring to any PLAYER).
+//
+//   create — ALL must hold:
+//     (a) the payload's type is "character";
+//     (b) the requester has an authenticated userId (always true for a
+//         connected socket past auth, but checked defensively rather than
+//         assumed).
+//   On success the created character's ownership is FORCED to
+//   {default: NONE, [userId]: OWNER} — ownershipForCreator, REQ-DOC-029 —
+//   NEVER the client-supplied ownership: a forged `{default: OWNER}` on the
+//   create payload would otherwise hand every player OWNER on it.
+//
+// Editing an already-created character needs no new gate: the generic
+// doc:update path already requires OWNER-or-privileged (line ~1000 below),
+// and the ownership forced here is exactly what makes the creator that
+// OWNER. Deleting one's own character is intentionally NOT covered — Actor
+// delete stays GM/ASSISTANT-only, matching the companion exception's own
+// scope (a player deletes a companion, never a primary Actor) until a
+// decision says otherwise.
+
+/** True when a raw create-payload item is a player's own character (not a companion). */
+function isOwnCharacterDoc(doc: Record<string, unknown>): boolean {
+  return doc["type"] === "character";
+}
+
+/** Outcome of the player-own-character create authorization. */
+type OwnCharacterCreateAuth =
+  | { ok: true; ownership: Ownership }
+  | { ok: false; code: ErrorCode; message: string };
+
+function authorizePlayerCharacterCreate(ctx: HandlerContext): OwnCharacterCreateAuth {
+  if (!ctx.userId) {
+    return {
+      ok: false,
+      code: "PERMISSION_DENIED",
+      message: "No authenticated user to own the character",
+    };
+  }
+  return { ok: true, ownership: ownershipForCreator(ctx.userId, ctx.role) };
+}
+
 /**
  * Build a broadcast envelope for an op and push it to the buffer.
  */
@@ -658,6 +711,30 @@ export interface DocHandlerDeps {
    * being silently swallowed — see recomputeDerivedIfNeeded.
    */
   logger?: Logger;
+}
+
+// ---------------------------------------------------------------------------
+// Character build legality (O6/T6.2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Refuse a write whose FULLY MERGED Actor document fails
+ * `validateCharacterBuild` (`@fusion/system-pf2e`) — the same rules
+ * `isFeatEligible` (planVM.ts) and the ability-boost math (derivations/
+ * build.ts) already decided, checked again here so the client's picker
+ * offering only legal choices is never the ONLY thing standing between a
+ * player and an illegal build ("toda validação de permissão é no
+ * servidor" — CLAUDE.md). A no-op for any non-character Actor or one with
+ * no `system.build` (see the module's own docstring for exactly what is,
+ * and is not, covered).
+ */
+function rejectIllegalCharacterBuild(mergedDoc: Record<string, unknown>): Ack<never> | null {
+  const result = validateCharacterBuild(mergedDoc);
+  if (result.ok) return null;
+  const summary = result.issues
+    .map((issue) => `${issue.code} (${issue.path}): ${issue.message}`)
+    .join("; ");
+  return ackError("VALIDATION_FAILED", `Illegal character build — ${summary}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -761,19 +838,24 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // REQ-USR-008 defines no key for (Scene, Macro, Combat) — those have no
     // configured floor to raise, so their gate stays exactly what it was.
     //
-    // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
-    // companions (familiars) linked to a master they own. Each item in the
-    // batch must individually pass authorizePlayerCompanionCreate; the master's
-    // ownership map is captured so we can force it onto the created familiar
-    // (never trusting a client-supplied ownership). Any non-companion Actor in
-    // the batch, or a companion that fails a condition, falls back to the
-    // GM-only denial. Not reached at all when the configured floor already
-    // authorized the batch.
+    // EXCEPTION (r17-P1 + O6/T6.1): a non-privileged PLAYER may create
+    // Actor(s) that are EITHER (a) companions (familiars) linked to a master
+    // they own, OR (b) their OWN character (spec 28 / emenda 37/05 — "o
+    // personagem nasce com o player", plano.md "Decisões do Alexandre" #2).
+    // Each item in the batch must individually pass one of the two
+    // authorizers; the resulting ownership (the master's, or
+    // {creator: OWNER}) is captured so we can force it onto the created
+    // document (never trusting a client-supplied ownership). Any item that
+    // is neither, or that fails its condition, falls back to the GM-only
+    // denial for the WHOLE batch. Not reached at all when the configured
+    // floor already authorized the batch.
     const forcedOwnership = new Map<number, Ownership>();
-    // True once the batch is fully authorized as a player companion create —
-    // it then bypasses the generic TRUSTED role floor below (the companion gate
-    // is a strictly stronger check: OWNER of a granting master, no duplicate).
-    let authorizedCompanionBatch = false;
+    // True once the batch is fully authorized as a player companion/own-
+    // character create — it then bypasses the generic TRUSTED role floor
+    // below (both gates are strictly stronger checks than TRUSTED: OWNER of
+    // a granting master with no duplicate, or "this IS the requester's own
+    // new character").
+    let authorizedNonPrivilegedActorBatch = false;
     // True once a configured Permissões override (or its matching default,
     // REQ-CFG-041) has already authorized this create — also bypasses the
     // generic TRUSTED role floor below, so a floor configured under TRUSTED
@@ -792,20 +874,28 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else if (documentType !== "Actor") {
           return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
         } else {
-          // Every item must be an authorized companion, else deny the whole batch.
+          // Every item must be an authorized companion or own-character,
+          // else deny the whole batch.
           for (let i = 0; i < data.length; i++) {
             const item = data[i] as Record<string, unknown>;
-            if (!isCompanionDoc(item)) {
+            if (isCompanionDoc(item)) {
+              const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+              if (!auth.ok) {
+                return ackError(auth.code, auth.message);
+              }
+              // Force the familiar's ownership to mirror the master's owners.
+              forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
+            } else if (isOwnCharacterDoc(item)) {
+              const auth = authorizePlayerCharacterCreate(ctx);
+              if (!auth.ok) {
+                return ackError(auth.code, auth.message);
+              }
+              forcedOwnership.set(i, auth.ownership);
+            } else {
               return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
             }
-            const auth = authorizePlayerCompanionCreate(deps, ctx, item);
-            if (!auth.ok) {
-              return ackError(auth.code, auth.message);
-            }
-            // Force the familiar's ownership to mirror the master's owners.
-            forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
           }
-          authorizedCompanionBatch = data.length > 0;
+          authorizedNonPrivilegedActorBatch = data.length > 0;
         }
       } else if (!isPrivileged(ctx.role)) {
         // Scene / Macro / Combat: REQ-USR-008 defines no configurable key for
@@ -818,10 +908,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // (REQ-USR-008; JournalEntry's key is JOURNAL_CREATE, configurable via
     // world-permissions.ts — everything else reaching this point, e.g.
     // Folder, keeps the historical TRUSTED+ floor since REQ-USR-008 defines no
-    // key for them). Skipped for an already-authorized player companion batch
-    // (r17-P1) or an already-authorized configured-permission batch: a plain
-    // PLAYER owning a granting master, or a role meeting a lowered configured
-    // floor, is authorized above.
+    // key for them). Skipped for an already-authorized player companion/own-
+    // character batch (r17-P1 / O6-T6.1) or an already-authorized
+    // configured-permission batch: a plain PLAYER owning a granting master
+    // (or creating their own character), or a role meeting a lowered
+    // configured floor, is authorized above.
     //
     // Runs for EVERY role, including GM/ASSISTANT — not just non-privileged —
     // for the same REQ-USR-010 reason as the block above: JournalEntry's floor
@@ -831,7 +922,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // else, privileged or not, is measured against the resolved floor — which
     // for every type but JournalEntry is the fixed TRUSTED(2), so this changes
     // nothing for ASSISTANT(3)/GAMEMASTER(4) on those types.
-    if (!authorizedCompanionBatch && !authorizedByPermissionTable) {
+    if (!authorizedNonPrivilegedActorBatch && !authorizedByPermissionTable) {
       const minRole =
         documentType === "JournalEntry"
           ? resolvePermissionMinRole(deps.store, "JOURNAL_CREATE")
@@ -872,6 +963,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // (a hazard, CA-NPC-010) — otherwise the create path would author a
           // field `doc:update` refuses.
           item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
+          // O6/T6.2: a create payload IS the full document (no `existing` to
+          // merge onto), so it can be validated as-is — same gate the update
+          // path applies to the merged document.
+          const rejectionBuild = rejectIllegalCharacterBuild(item);
+          if (rejectionBuild) return rejectionBuild;
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1052,6 +1148,21 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
             );
           }
         }
+      }
+
+      // O6/T6.2: the client's builder (planVM.ts) already refuses to OFFER
+      // an illegal choice, but nothing re-checks the payload once it is
+      // already an arbitrary `doc:update` diff — a hand-built op, or a
+      // client bug, could otherwise persist a dedication into a `classFeat`
+      // slot or an ability boost at a level PF2e never grants one. Judged
+      // against the FULLY MERGED document (same deepMerge the store itself
+      // applies, documents/merge.ts) so a diff that only touches
+      // `system.build.choices` is checked together with whatever level the
+      // document already has — never against the bare diff alone.
+      if (documentType === "Actor") {
+        const merged = deepMerge(existing, expandedDiffForChecks);
+        const rejectionBuild = rejectIllegalCharacterBuild(merged);
+        if (rejectionBuild) return rejectionBuild;
       }
     }
 
