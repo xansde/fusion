@@ -61,6 +61,7 @@
   "FUSION.Contacts.CompanionKind.familiar": "Familiar",
   "FUSION.Contacts.CompanionKind.animalCompanion": "Companheiro animal",
   "FUSION.Contacts.CompanionKind.mount": "Montaria",
+  "FUSION.Contacts.CompanionKind.eidolon": "Eidolon",
   "FUSION.Contacts.Empty.Player": "Você ainda não tem personagem nesta mesa.",
   "FUSION.Contacts.Empty.Gm": "Nenhum personagem de jogador ainda.",
   "FUSION.Contacts.Empty.Known": "Os nomes aparecem conforme a história os apresenta.",
