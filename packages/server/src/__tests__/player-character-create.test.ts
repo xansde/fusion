@@ -413,4 +413,60 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
     expect(ack["code"]).toBe("VALIDATION_FAILED");
     expect(String(ack["message"])).toContain("BOOST_LEVEL_NOT_MILESTONE");
   });
+
+  // -------------------------------------------------------------------------
+  // T6.4 — concurrent Mestre x jogador edit on the SAME player-owned
+  // character, over the existing optimistic-version infra (expected-
+  // version.test.ts / documents-concurrency.test.ts cover the generic
+  // mechanism; this is the scenario itself, per the O6 lane brief).
+  // -------------------------------------------------------------------------
+
+  it("a GM edit lands, and the player's now-stale write is rejected (not silently lost)", async () => {
+    // The GM can edit ANY Actor, including a player's own character
+    // (privileged writers keep expectedVersion optional — "legacy opt-in",
+    // expected-version.test.ts). The player read the document at `version`
+    // and has NOT reloaded yet — a routine race once the Mestre can also
+    // touch a character the jogador owns (plano.md decision #2).
+    const gmAck = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [{ _id: characterId, diff: { "system.details": { gmNote: "aprovado" } } }],
+    });
+    expect(gmAck["ok"]).toBe(true);
+    const gmDoc = (gmAck["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    const versionAfterGm = statsVersion(gmDoc);
+    expect(versionAfterGm).toBeGreaterThan(version);
+
+    // The player, still holding the OLD version, tries to write — refused as
+    // STALE_WRITE rather than silently overwriting the GM's edit (no lost
+    // update) or silently discarding the player's own change.
+    const staleAck = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        { _id: characterId, diff: { "system.details": { xp: 10 } }, expectedVersion: version },
+      ],
+    });
+    expect(staleAck["ok"]).toBe(false);
+    expect(staleAck["code"]).toBe("STALE_WRITE");
+
+    // The player reloads (picks up the GM's version) and retries — accepted.
+    const retryAck = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.details": { xp: 10 } },
+          expectedVersion: versionAfterGm,
+        },
+      ],
+    });
+    expect(retryAck["ok"]).toBe(true);
+    const retryDoc = (retryAck["result"] as { documents: Array<Record<string, unknown>> })
+      .documents[0]!;
+    // Both edits survived — the GM's note was not clobbered by the retry
+    // (deepMerge onto the current document, not onto the player's stale read).
+    const details = retryDoc["system"] as { details?: Record<string, unknown> };
+    expect(details.details?.["gmNote"]).toBe("aprovado");
+    expect(details.details?.["xp"]).toBe(10);
+    version = statsVersion(retryDoc);
+  });
 });
