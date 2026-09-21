@@ -137,7 +137,8 @@ describe("CLI — user add (C2, REQ-USR-025 via CLI)", () => {
       const documents = new DocumentStore({ db: fusionDb.raw });
       const actors = documents.getAll("actors", { type: "character" });
       const anaActor = actors.find(
-        (a) => (a as { flags?: { fusion?: { playerId?: string } } }).flags?.fusion?.playerId === ana!.id,
+        (a) =>
+          (a as { flags?: { fusion?: { playerId?: string } } }).flags?.fusion?.playerId === ana!.id,
       ) as
         | {
             name: string;
