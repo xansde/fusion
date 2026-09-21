@@ -116,10 +116,21 @@ Três níveis, e **os três são obrigatórios**:
 | **1** | teste que percorre as **27** entradas de `CLASS_CHOICE_SLOT_OPTIONS` e afirma, para cada uma: lista > 0 opções **e** grava no ator           | **Exemplar** (ikon + epíteto) e **Gunslinger** (way) criados; a escolha persiste após recarregar     | print de 3 pickers, um por família        |
 | **2** | teste de slots/conhecidas por círculo nos níveis 1-3 para as 10 classes conjuradoras; `proficiencyUpgrades` com consumidor coberto por teste | **Bard** nv3 (espontâneo, repertório escolhido, foco = 1) e **Wizard** nv3 (preparado, lista do dia) | print da aba de magias dos dois           |
 | **3** | teste de criação que gera **dois** documentos com ownership correto                                                                          | **Summoner** nv1 + eidolon existindo como documento próprio                                          | print do eidolon na gaveta                |
-| **4** | Animist: **23/23** features de nv 1-3 com `rules` (hoje 6/23); pack de divindades importado e referenciável                                  | **Cleric** e **Champion** criados com divindade escolhida                                            | print da escolha de divindade             |
+| **4** | Animist: **23/23** features de nv 1-3 com `rules`[^1] (hoje 6/23); pack de divindades importado e referenciável                              | **Cleric** e **Champion** criados com divindade escolhida                                            | print da escolha de divindade             |
 | **5** | teste: com a variante ligada, o slot de nv2 lista **129** dedicações padrão e **0** de multiclasse                                           | personagem nv2 com dedicação padrão escolhida                                                        | print do slot de arquétipo                |
 | **6** | teste de servidor: jogador editando ator alheio é **recusado pelo servidor** (não só escondido no client)                                    | smoke **como GM e como player**                                                                      | prints dos dois papéis                    |
 | **7** | molde preenchido × ficha gerada: **divergência zero**                                                                                        | —                                                                                                    | roteiro `tutorial-e2e` com prints olhados |
+
+[^1]:
+    **Critério trocado (T4.2, registrado na correção do achado C4 — revisão adversarial da Onda
+    4, fixer rodada 1, 2026-09-21):** o gate real aceitou `rules` **OU** justificativa explícita
+    (`ruleJustifications`, verificado por `animist-rule-coverage.test.mjs`, 23/23) em vez de exigir
+    `rules` real em todas as 23 — as 17 features sem `rules` também têm `rules: []` no vendor
+    oficial (Apache-2.0), então fabricar uma regra sem fonte verificada violaria a disciplina de
+    não inventar dado (lição #48). A troca não tinha sido anotada aqui até esta correção. Duas
+    lacunas de engine descobertas nessa investigação (grant dinâmico de Lore skill por apparition,
+    repertório de apparition com 16 magias faltando) não tinham buraco registrado neste plano nem
+    issue aberta — ver `tasks.md` T4.2 para os números das issues abertas.
 
 ### Artefato de fecho de onda
 
