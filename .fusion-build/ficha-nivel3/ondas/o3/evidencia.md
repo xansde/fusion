@@ -32,8 +32,20 @@ o fixer e este fecho.
 
 **Suíte completa**: NÃO rodada neste fecho (por instrução explícita — suíte completa é
 `gate.md`, já rodada em SHA anterior `d6bc3ec4`/`2f1d895` com 6 arquivos/26 testes falhando de
-8253, nenhuma regressão da onda, mais o CI do PR nesta rodada — ver seção CI abaixo, preenchida
-após a abertura do PR).
+8253, nenhuma regressão da onda), confirmada pelo CI dos dois PRs abaixo (que roda a suíte
+completa de cada repo).
+
+## PRs e CI
+
+- Satélite: https://github.com/xansde/fusion-systems-2e/pull/133 (`ficha3/o3` → `main`) — CI
+  "Build, Typecheck & Test (against mounted core)" **pass**, runs
+  https://github.com/xansde/fusion-systems-2e/actions/runs/35657828471/job/106525716322 e
+  https://github.com/xansde/fusion-systems-2e/actions/runs/35659675015/job/106531680144 (rodou
+  duas vezes por dois pushes na branch — commit do evidencia.md ficou só no core, então o segundo
+  run reflete o mesmo SHA `e3bff2f`).
+- Core: https://github.com/xansde/fusion/pull/245 (`ficha3/o3` → `alfa/app`) — CI "Build, Lint &
+  Test" **pass** em 6m29s, run
+  https://github.com/xansde/fusion/actions/runs/35659636718/job/106531552721 (SHA `65c42c8a`).
 
 ## Prints
 
