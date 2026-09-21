@@ -336,3 +336,67 @@ describe("dragging a card to the map (REQ-CTT-028)", () => {
     expect(code()).toContain('setData("application/fusion-actor"');
   });
 });
+
+// ---------------------------------------------------------------------------
+// The gatilho for creating a character (T6.5, ficha-nivel3 Onda 6b) — the
+// card of a brand-new, still-UNBUILT character (the shape REQ-USR-025
+// creates: no `img`, no `system` at ALL — auth/service.ts's UserService.
+// createUser writes only name/type/ownership/flags). No new "criar
+// personagem" control exists anywhere in the client (REQ-CFG-051a forbids
+// one even in the Usuários section that births the character; DEC-NPC-01/02
+// keep the NPCs tab and this one from offering it too) — the only gatilho a
+// player has is THIS card, born already on their own table the moment the
+// GM creates their account, opened the same way as any other (REQ-CTT-027).
+// ---------------------------------------------------------------------------
+
+const BLANK_NEW_PLAYER = {
+  _id: "act-blank-usr025",
+  name: "NovoJogador",
+  type: "character",
+  // REQ-USR-025b/REQ-USR-025a: no `img`, no `system` — nothing but the
+  // account-creation gesture wrote yet.
+  ownership: { default: 0, [ALEX]: 3 },
+  flags: { fusion: { playerId: ALEX } },
+};
+
+describe("the still-unbuilt REQ-USR-025 card (T6.5)", () => {
+  it("renders without a system at all, and is still marked as the viewer's own", () => {
+    worldMirror.applySnapshot({
+      seq: 2,
+      activeSceneId: null,
+      documents: { Actor: [BLANK_NEW_PLAYER, TOBIAS_PC] },
+    });
+
+    const body = renderPanel();
+    const mine = cardOf(body, "act-blank-usr025");
+
+    expect(mine).toContain('data-mine="true"');
+    expect(mine).toContain(">você<");
+    expect(mine).toContain("NovoJogador");
+  });
+
+  it("REQ-CTT-023: with no title and no class/level yet, the fallback is empty, not a crash or a leaked placeholder", () => {
+    worldMirror.applySnapshot({
+      seq: 2,
+      activeSceneId: null,
+      documents: { Actor: [BLANK_NEW_PLAYER, TOBIAS_PC] },
+    });
+
+    const mine = cardOf(renderPanel(), "act-blank-usr025");
+
+    expect(mine).toContain('data-title-kind="fallback"');
+    expect(mine).toMatch(/data-title-kind="fallback">\s*<\/span>/);
+  });
+
+  it("REQ-CTT-027: still has a real, keyboard-reachable button to open the sheet", () => {
+    worldMirror.applySnapshot({
+      seq: 2,
+      activeSceneId: null,
+      documents: { Actor: [BLANK_NEW_PLAYER, TOBIAS_PC] },
+    });
+
+    const mine = cardOf(renderPanel(), "act-blank-usr025");
+
+    expect(mine).toMatch(/<button[^>]*aria-label="Abrir a ficha de NovoJogador"/);
+  });
+});

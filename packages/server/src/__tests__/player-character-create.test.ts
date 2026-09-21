@@ -61,7 +61,7 @@ import { DocumentStore } from "../documents/store.js";
 import { AuthService } from "../auth/service.js";
 import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
-import { PROTOCOL_VERSION } from "@fusion/shared";
+import { PROTOCOL_VERSION, OwnershipLevel } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
 
 // ---------------------------------------------------------------------------
@@ -224,6 +224,61 @@ function sendOp(
     );
     setTimeout(() => reject(new Error(`Timeout for op: ${type}`)), 8000);
   });
+}
+
+// ---------------------------------------------------------------------------
+// T6.5 (ficha-nivel3, Onda 6b) — join-snapshot helpers.
+//
+// "Quem cria — O JOGADOR" only means something if the character REQ-USR-025
+// auto-created is actually delivered to the OWNER's own socket on connect —
+// that delivery is the precondition for the client's Contatos "Na mesa" card
+// (REQ-CTT-014/020/022) to have a document to draw and for REQ-CTT-027's
+// double-click to have something to open. These helpers mirror
+// contacts-redaction.test.ts's join-snapshot pattern (same funnel,
+// net/redaction.ts, REQ-CTT-083) rather than duplicating a second one.
+// ---------------------------------------------------------------------------
+
+function recordEnvelopes(socket: ClientSocket): Record<string, unknown>[] {
+  const received: Record<string, unknown>[] = [];
+  socket.on("op", (env: Record<string, unknown>) => {
+    received.push(env);
+  });
+  return received;
+}
+
+const POLL_INTERVAL_MS = 25;
+const WAIT_TIMEOUT_MS = 8000;
+
+async function waitFor(check: () => boolean, what: string): Promise<void> {
+  const deadline = Date.now() + WAIT_TIMEOUT_MS;
+  for (;;) {
+    if (check()) return;
+    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+}
+
+/** The join batch a freshly connected socket receives — `resync:full` here (fresh
+ * connection, nothing to replay from a `lastSeq`). */
+function waitForJoinBatch(traffic: Record<string, unknown>[]): Promise<void> {
+  return waitFor(
+    () => traffic.some((e) => e["type"] === "resync:full" || e["type"] === "resync:delta"),
+    "the join batch (resync:full/resync:delta)",
+  );
+}
+
+/** Every Actor document carried by the join snapshot in the recorded traffic. */
+function actorDocsIn(envelopes: Record<string, unknown>[]): Record<string, unknown>[] {
+  const docs: Record<string, unknown>[] = [];
+  for (const env of envelopes) {
+    const payload = env["payload"] as Record<string, unknown> | undefined;
+    const snapshot = payload?.["snapshot"] as Record<string, unknown> | undefined;
+    if (!snapshot) continue;
+    const byType = snapshot["documents"] as Record<string, unknown[]> | undefined;
+    const actors = byType?.["Actor"];
+    if (Array.isArray(actors)) docs.push(...(actors as Record<string, unknown>[]));
+  }
+  return docs;
 }
 
 // ---------------------------------------------------------------------------
@@ -604,5 +659,74 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
     expect(details.details?.["gmNote"]).toBe("aprovado");
     expect(details.details?.["xp"]).toBe(10);
     version = statsVersion(retryDoc);
+  });
+
+  // -------------------------------------------------------------------------
+  // T6.5 (ficha-nivel3, Onda 6b) — the gatilho itself: the player's OWN
+  // REQ-USR-025 character reaches THEIR OWN join snapshot on connect (so the
+  // client's Contatos "Na mesa" card has a document to draw, and REQ-CTT-027's
+  // double-click has something to open — see components/contacts/
+  // ContactsPanel.svelte and lib/contacts/contactsVM.ts on the client). An
+  // outsider's own snapshot must NOT carry it (ownership.default = NONE,
+  // REQ-USR-025a) — the redaction boundary that makes "na mesa" safe to be
+  // unconditional per-card (no per-card gate, unlike Conhecidos/NPCs).
+  //
+  // No new UI trigger was built for this fatia: REQ-CFG-051a forbids the
+  // Usuários section from offering create/edit/delete personagem as its own
+  // action (even for someone who already has one), REQ-NPC-055a defers a
+  // SECOND character's creation gesture to [V2], and DEC-NPC-02 names
+  // REQ-USR-025 as the sole address. This suite is the missing proof that the
+  // existing chain (REQ-USR-025 → join snapshot → Contatos → double-click →
+  // CharacterSheet with the Plan column visible by default, DEC-R10-05) is
+  // actually wired end to end over a real socket, not just at each layer in
+  // isolation.
+  // -------------------------------------------------------------------------
+
+  describe("the auto-created character reaches the owner's own join snapshot (T6.5)", () => {
+    it("the owner's resync:full snapshot carries their own REQ-USR-025 character, OWNER ownership included", async () => {
+      const fresh = connectClient(ctx.port, ctx.worldId, ctx.ownerToken);
+      const traffic = recordEnvelopes(fresh);
+      fresh.connect();
+      try {
+        await waitForConnect(fresh);
+        await waitForJoinBatch(traffic);
+
+        const own = actorDocsIn(traffic).find((doc) => doc["_id"] === ctx.ownerCharacterId);
+        expect(own).toBeDefined();
+        expect(own?.["type"]).toBe("character");
+        const ownership = own?.["ownership"] as Record<string, number> | undefined;
+        expect(ownership?.[ctx.ownerUserId]).toBe(OwnershipLevel.OWNER);
+      } finally {
+        fresh.disconnect();
+      }
+    });
+
+    it("an outsider's own join snapshot does NOT carry someone else's character (ownership.default = NONE)", async () => {
+      const fresh = connectClient(ctx.port, ctx.worldId, ctx.outsiderToken);
+      const traffic = recordEnvelopes(fresh);
+      fresh.connect();
+      try {
+        await waitForConnect(fresh);
+        await waitForJoinBatch(traffic);
+
+        expect(actorDocsIn(traffic).some((doc) => doc["_id"] === ctx.ownerCharacterId)).toBe(false);
+      } finally {
+        fresh.disconnect();
+      }
+    });
+
+    it("the GM's own join snapshot DOES carry it (privileged role, spec 42)", async () => {
+      const fresh = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+      const traffic = recordEnvelopes(fresh);
+      fresh.connect();
+      try {
+        await waitForConnect(fresh);
+        await waitForJoinBatch(traffic);
+
+        expect(actorDocsIn(traffic).some((doc) => doc["_id"] === ctx.ownerCharacterId)).toBe(true);
+      } finally {
+        fresh.disconnect();
+      }
+    });
   });
 });
