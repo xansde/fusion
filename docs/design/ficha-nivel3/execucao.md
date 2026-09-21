@@ -117,6 +117,7 @@ Três níveis, e **os três são obrigatórios**:
 | **2** | teste de slots/conhecidas por círculo nos níveis 1-3 para as 10 classes conjuradoras; `proficiencyUpgrades` com consumidor coberto por teste | **Bard** nv3 (espontâneo, repertório escolhido, foco = 1) e **Wizard** nv3 (preparado, lista do dia) | print da aba de magias dos dois           |
 | **3** | teste de criação que gera **dois** documentos com ownership correto                                                                          | **Summoner** nv1 + eidolon existindo como documento próprio                                          | print do eidolon na gaveta                |
 | **4** | Animist: **23/23** features de nv 1-3 com `rules`[^1] (hoje 6/23); pack de divindades importado e referenciável                              | **Cleric** e **Champion** criados com divindade escolhida                                            | print da escolha de divindade             |
+| **4b**[^2] | 13 testes (`apparitionSpellcasting.test.ts`) contra o vendor real: entrada "Apparition Spells" criada, repertório+Lore+vessel corretos, swap/remove retraem | **NÃO FEITO nesta lane** — precisa de um Animist real subindo o servidor e escolhendo aparições (a lane não subiu servidor/browser) | **NÃO FEITO nesta lane** — sem print; pendência registrada abaixo |
 | **5** | teste: com a variante ligada, o slot de nv2 lista **129** dedicações padrão e **0** de multiclasse                                           | personagem nv2 com dedicação padrão escolhida                                                        | print do slot de arquétipo                |
 | **6** | teste de servidor: jogador editando ator alheio é **recusado pelo servidor** (não só escondido no client)                                    | smoke **como GM e como player**                                                                      | prints dos dois papéis                    |
 | **7** | molde preenchido × ficha gerada: **divergência zero**                                                                                        | —                                                                                                    | roteiro `tutorial-e2e` com prints olhados |
@@ -131,6 +132,16 @@ Três níveis, e **os três são obrigatórios**:
     lacunas de engine descobertas nessa investigação (grant dinâmico de Lore skill por apparition,
     repertório de apparition com 16 magias faltando) não tinham buraco registrado neste plano nem
     issue aberta — ver `tasks.md` T4.2 para os números das issues abertas.
+
+[^2]:
+    **Onda 4b (T4.4, feedback do Alexandre testando a vitrine, 2026-09-21):** fecha a parte de
+    dado real das issues #124/#114 no recorte 1-3 — ver `tasks.md`, seção "Onda 4b", para o
+    detalhe completo do que fechou e do que ficou registrado como pendência (16 magias faltando
+    em spells-core, reseleção de aparição primária, reescolha diária, #101/#110/#119). O nível
+    "Vivo"/"Olhado" desta onda não foi produzido: a lane implementou e verificou por teste
+    (`apparitionSpellcasting.test.ts`, 13 casos contra o vendor real), mas não subiu servidor nem
+    browser para criar um Animist de verdade e fotografar a aba de magias — **fica pendente para
+    quem validar esta onda**, seguindo `docs/design/PROCESSO-UI.md`.
 
 ### Artefato de fecho de onda
 
