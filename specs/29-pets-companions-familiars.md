@@ -51,8 +51,9 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
   variante do mesmo mecanismo subjacente.
 - **Mounts** citados em nível de requisito [V2], sem detalhamento mecânico
   completo (fora do foco desta rodada).
-- **Eidolon** (classe Summoner) citado como **fora de escopo** — é um Actor
-  fundido ao PC com regras próprias muito mais complexas; não é "um pet".
+- **Eidolon** (classe Summoner) **como modelo**: ator companheiro vinculado,
+  `companionKind: "eidolon"` (DEC-PET-02, emenda de 2026-09-21). As regras
+  próprias dele (PV compartilhado, Agir Junto, manifestar) seguem fora.
 - Como o `foundryvtt/pf2e` modela isso (Actor type `familiar`, ausência de
   Actor type dedicado para animal companion, rule elements `GrantItem`/
   `ActiveEffectLike`/`Sense`/`BaseSpeed`), citado como referência.
@@ -68,8 +69,9 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
 
 - Implementação de código (nenhum arquivo `.ts`/`.svelte` é criado ou
   alterado nesta rodada).
-- Regras completas de **Eidolon** (Summoner) — citado apenas como referência
-  de fora-de-escopo; mereceria spec própria se algum dia entrar em roadmap.
+- Regras completas de **Eidolon** (Summoner) — PV compartilhado com o
+  Summoner, Agir Junto, manifestar/dispensar, derivação dos atributos. O
+  **modelo** (ator vinculado) entrou pela DEC-PET-02; a regra não.
 - Regras completas de **mounts em combate** (Mounted Combat, cavalgar em
   batalha naval, etc.) — apenas o suficiente para posicionar como [V2].
 - Kingdom-building / army companions (`army` actor type já citado em
@@ -98,8 +100,74 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
 | **Familiar/Pet ability**  | Habilidade escolhida de uma lista compartilhada (voar, ver no escuro, falar, etc.); número de escolhas controlado por um contador (`familiarAbilities.value` no vendor).                                                    |
 | **Companion progression** | Feats de nível fixo (Druid: 1/4/8; Ranger: 1(dedication)/6/10) que aumentam a independência e o poder do animal companion, sem trocar de Actor.                                                                             |
 | **Mount**                 | Criatura montada para fins de deslocamento/combate montado; pode ser um animal companion "cavalgável" ou uma criatura separada; regras próprias de Mounted Combat.                                                          |
-| **Eidolon**               | Actor fundido ao Summoner (compartilha turno, HP e ações com o PC); mecanicamente muito diferente de um pet — **fora de escopo** desta spec.                                                                                |
+| **Eidolon**               | Companheiro do Summoner (compartilha turno, HP e ações com o PC). Modelado como ator vinculado, `companionKind: "eidolon"` (DEC-PET-02); as regras próprias dele seguem fora desta spec.                                    |
 | **`engine-2e`**           | Núcleo de regras 2e compartilhado PF2e/SF2e (`ver 17-sistema-pf2e.md` DEC-PF2-01); os derivados de companion (saves/mods "iguais ao mestre") são um caso de uso natural desse núcleo.                                       |
+
+---
+
+## Decisões
+
+> Seção acrescentada em 2026-09-21 (ficha-nivel3, T3.1). A v0.1 tinha a decisão de modelo
+> só como título de seção (§3.1); ela passa a ter id, e as duas decisões novas nascem aqui.
+
+### DEC-PET-01 — Companheiro é ator próprio vinculado ao dono, não faceta nem item
+
+Um companheiro (familiar, pet, companheiro animal, montaria, eidolon) é um **Document
+`Actor` próprio**, com `system.masterActorId` apontando para o dono — o sub-personagem da
+`45` (DEC-ATR-16). Formaliza o §3.1 e fecha a pergunta que a `45` v0.2 reabriu ("o ator
+acumula facetas: o companheiro não seria uma faceta do dono?").
+
+- **Rejeitado: faceta do ator do dono.** Faceta é papel na mesa, enum fechado de quatro
+  valores fixado pela engine, e nunca carrega mecânica (DEC-ATR-03, DEC-ATR-13, RNF-ATR-02).
+  O companheiro tem vida, CA, salvamentos, turno e presença **próprios**: como faceta, dois
+  conjuntos de estatística disputariam o mesmo `system` do dono. E ele já é, ele próprio,
+  uma criatura (DEC-ATR-18) — é outro ator, não outro papel do mesmo ator.
+- **Rejeitado: item embutido no dono** — pelos motivos do §3.1 (sem token, sem barra de
+  vida, sem turno, sem ownership próprios).
+- **Consequência para posse:** o companheiro nasce com o ownership do dono (DEC-ATR-19). É
+  isso — e não uma faceta — que o torna controlável pelo jogador (DEC-ATR-18).
+- **Consequência para redação:** nenhum predicado novo. O companheiro é um ator e passa pelo
+  funil único de redação de ator (`packages/server/src/net/redaction.ts`), com corte por
+  ownership; quem não é dono não o recebe.
+
+### DEC-PET-02 — O eidolon entra como `companionKind: "eidolon"`
+
+Decisão do Alexandre (plano `docs/design/ficha-nivel3/plano.md`, 2026-09-20, item 1): o
+Summoner entra na fatia, e o eidolon com ele. A v0.1 desta spec o deixava de fora e pedia spec
+própria (REQ-PET-091 na redação antiga). Esta decisão substitui aquela posição.
+
+- **Por que o mesmo mecanismo:** tudo o que o eidolon tem de diferente de um familiar é
+  **regra** — PV compartilhado com o Summoner, Agir Junto, manifestar e dispensar, atributos
+  próprios por tipo de eidolon. Regra é derivação e ação do sistema, que a `45` já deixa ao
+  sistema (REQ-ATR-082). Nenhuma delas pede outro tipo de vínculo, outra posse ou outra
+  redação: pede o mesmo ator vinculado da DEC-PET-01.
+- **Rejeitado: subtype `eidolon` próprio.** REQ-PET-001 fixa **um** subtype para todo
+  companheiro, com discriminador; e a engine reconhece companheiro pelo subtype (contatos,
+  NPCs, conhecimento, a porta de criação por jogador). Um segundo subtype abriria cada um
+  desses pontos. A ficha (DEC-ATR-07) é do subtype e pode bifurcar por `companionKind`, como
+  já precisa bifurcar para o companheiro animal.
+- **O que fica fora:** PV compartilhado, derivação dos atributos do eidolon, manifestar,
+  token e combate. No MVP o eidolon toma o ramo "não espelha o mestre" da derivação do
+  companheiro (valores autorados), o mesmo do companheiro animal.
+
+### DEC-PET-03 — Quem pode ter o companheiro é o servidor que diz, pelo que o dono carrega
+
+O jogador cria o próprio companheiro sem o Mestre (plano ficha-nivel3, item 2 — "quem cria é
+o jogador"), mas **só** o companheiro que o dono dele de fato concede. O servidor decide, lendo
+o documento vivo do dono:
+
+| `companionKind`                             | Concessão exigida no dono                                               |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `familiar`, `pet`                           | talento ou regra que concede familiar (r17-P1)                          |
+| `eidolon`                                   | o item de **classe** Summoner, identificado por `flags.fusion.sourceId` |
+| `animalCompanion`, `mount` e qualquer outro | nenhum detector ainda: só Mestre/Assistente cria                        |
+
+- **Um por grupo, não um por dono:** familiar e pet são a mesma máquina (§1.3) e ocupam uma
+  vaga só; o eidolon é outra vaga. Um Summoner que tomou o talento Familiar tem os dois.
+- **Identidade, nunca nome** (DEC-ATR-11): um item chamado "Summoner" com outra identidade
+  não concede eidolon.
+- **Racional:** a porta do jogador é a exceção à regra de que só o Mestre cria ator (anti-trapaça);
+  ela tem de ser exatamente tão larga quanto a regra do jogo, nem mais.
 
 ---
 
@@ -185,15 +253,15 @@ modificadores específicos de combate montado (ex. flanqueamento, alcance
 elevado). Fora do foco desta rodada — apenas registrado como extensão natural
 do animal companion (REQ-PET-090+, V2).
 
-### 1.5 Eidolon (fora de escopo)
+### 1.5 Eidolon (modelo dentro, regras fora)
 
 O Eidolon (classe Summoner) é um Actor que **substitui** o turno do PC
 quando manifestado, compartilhando iniciativa e narrativamente "fundindo-se"
-ao Summoner. Não usa o mecanismo de familiar/pet/companion acima — tem
-progressão própria, HP próprio somado a uma mecânica de "Summoner health
-pool" distinta. Mencionado aqui apenas para deixar explícito que esta spec
-**não** cobre eidolons; se o Summoner entrar no roadmap do Fusion, merece
-spec própria.
+ao Summoner. Tem progressão própria e um conjunto de PV compartilhado com o
+Summoner. _(Emenda de 2026-09-21.)_ O **modelo** entra: é um ator vinculado,
+`companionKind: "eidolon"` (DEC-PET-02), criado pelo jogador quando o dono
+tem a classe Summoner (DEC-PET-03). As **regras** acima continuam fora desta
+spec.
 
 ---
 
@@ -552,9 +620,21 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   adicional (`"mount"`) reaproveitando a mesma infraestrutura de Actor
   vinculado + tabela de tipo, sem subsistema paralelo. Regras detalhadas de
   Mounted Combat ficam fora desta rodada de pesquisa.
-- **REQ-PET-091** [V2] O Eidolon (classe Summoner) **NÃO** DEVE ser
-  modelado com o mecanismo `companionKind`; se entrar em roadmap, requer
-  spec própria (fora desta spec).
+- **REQ-PET-091** [MVP] O Eidolon (classe Summoner) DEVE ser modelado como
+  companheiro: Actor próprio do subtype de companheiro, `companionKind:
+"eidolon"`, vinculado ao Summoner por `masterActorId` (DEC-PET-02).
+  _(Reescrito em 2026-09-21; a redação v0.1 proibia o mecanismo `companionKind`
+  para o eidolon e o adiava para uma spec própria.)_
+- **REQ-PET-092** [MVP] O servidor DEVE autorizar um jogador a criar um
+  companheiro só quando ele é owner do dono **e** o dono carrega a concessão
+  daquele `companionKind` (DEC-PET-03); um `companionKind` sem detector de
+  concessão DEVE ser recusado ao jogador.
+- **REQ-PET-093** [MVP] O servidor DEVE recusar a criação de um segundo
+  companheiro do mesmo grupo para o mesmo dono (familiar e pet são um grupo; o
+  eidolon é outro) e NÃO DEVE recusar companheiros de grupos diferentes.
+- **REQ-PET-094** [MVP] A concessão de eidolon DEVE ser reconhecida pelo
+  `flags.fusion.sourceId` do item de classe Summoner embutido no dono, nunca pelo
+  nome do item.
 
 ---
 
@@ -562,7 +642,8 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
 
 - **CA-PET-01** As regras remaster de familiar, animal companion e pet
   genérico estão resumidas de forma funcional (não copiada literalmente),
-  com eidolon e mounts corretamente marcados fora-de-escopo/[V2].
+  com mounts marcados [V2] e as regras do eidolon fora de escopo (o modelo
+  do eidolon entra pela DEC-PET-02).
 - **CA-PET-02** A modelagem observada no `foundryvtt/pf2e` (Actor type
   `familiar`, ausência de type dedicado para animal companion, rule elements
   `GrantItem`/`Sense`/`BaseSpeed`, pack `familiar-abilities`) está registrada
@@ -579,8 +660,8 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   mecanismo novo.
 - **CA-PET-06** Todos os requisitos estão numerados `REQ-PET-NNN` com tag
   `[MVP]`/`[V2]`, e o MVP proposto é enxuto (familiar do Wizard/Witch +
-  animal companion de Druid/Ranger), com mounts/pet-archetype-avançado/
-  eidolon corretamente adiados.
+  animal companion de Druid/Ranger + modelo do eidolon, DEC-PET-02), com
+  mounts/pet-archetype-avançado/regras do eidolon corretamente adiados.
 - **CA-PET-07** `specs/README.md` lista esta spec no índice, no mesmo
   padrão das demais linhas da tabela.
 
