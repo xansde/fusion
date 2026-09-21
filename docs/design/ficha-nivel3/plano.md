@@ -45,24 +45,33 @@ As 12 escolhas já cabeadas: `hybridStudy`, `instinct`, `racket`, `huntersEdge`,
 
 ### Os buracos reais
 
-1. **Namespace dos grants não convertido.** Em `class-features-core` + `feats-core` (3.445
-   documentos na branch das 29 classes) existem **471 regras `GrantItem`**, das quais **350 (74%)**
-   apontam para UUIDs `Compendium.pf2e.*` do Foundry, nunca remapeados para o `_id` local. A
-   concessão automática de feature está morta **mesmo quando o item existe localmente**
-   (ex.: Hunt Prey). Quebra até classe sem escolha nenhuma (Guardian).
+1. ~~**Namespace dos grants não convertido.**~~ **FECHADO em 2026-09-20/21 (T0.3), sem conversão de
+   namespace.** Em `class-features-core` + `feats-core` (3.445 documentos na branch das 29 classes)
+   existem **471 regras `GrantItem`**, das quais **350 (74%)** apontam para UUIDs `Compendium.pf2e.*`
+   do Foundry, nunca remapeados para o `_id` local. A hipótese original era que isso deixava a
+   concessão automática de feature morta **mesmo quando o item existe localmente** — **errada**:
+   `materializeGrants` já resolvia esses 350 pelo NOME (`mapVendorToFusionPack` + match por nome no
+   pack local), nunca precisando da identidade do uuid. A T0.3 mediu 314/349 já resolvendo sem
+   nenhuma mudança no importer; a conversão de namespace **não foi feita, por desnecessária**. Os 35
+   que não resolvem são gap real, coberto pelo allowlist (`equipment-out-of-scope`,
+   `archetype-not-imported`, `class-archetype-gap` — issue #92, `blocked-by-issue` — issues #88/#89).
+   O bug real do Hunt Prey/Guardian sem escolha nenhuma **não era este** — era o buraco 13 abaixo
+   (a feature em si nunca era embutida no ator), fechado na mesma rodada (T0.6).
 
    > **Correção de 2026-09-20 (auditoria):** a primeira versão deste plano dizia "2.541 ocorrências
    > de `GrantItem`". Era contagem de **substring** `Compendium.pf2e.` no JSON bruto, não de regras
    > `GrantItem`. O número real de regras quebradas é **350**. A substring aparece 5.805 vezes
    > porque a maioria está em **links `@UUID` na prosa das descrições** — que é um defeito separado
-   > e bem menos grave (link quebrado no texto, não concessão morta). Ver a issue da nota 13.
+   > e bem menos grave (link quebrado no texto, não concessão morta). Ver a issue da nota 13 (T0.3b,
+   > issue #90).
 
 2. **17 das 29 classes não estão integradas.** O pin (`v0.1.1`) e o `main` do satélite têm 12. As 29
    vivem em `origin/feat/classes-necromancer-runesmith`, não mergeada.
-3. **Guard de traits de classe não está na ref das 29.** O commit que adiciona as classes novas a
-   `KNOWN_CLASS_TRAITS` **não é ancestral** dessa branch (verificado com `merge-base --is-ancestor`):
-   trazer as 17 classes reintroduz o vazamento de talentos de Psychic e Animist para o picker de
-   toda classe.
+3. ~~**Guard de traits de classe não está na ref das 29.**~~ **FECHADO (T0.2, 2026-09-21).** O commit
+   que adiciona as classes novas a `KNOWN_CLASS_TRAITS` **não é ancestral** dessa branch (verificado
+   com `merge-base --is-ancestor`): trazer as 17 classes reintroduzia o vazamento de talentos de
+   Psychic e Animist para o picker de toda classe. T0.2 provou o guard completo para as 29 (teste
+   dedicado, ver `.fusion-build/ficha-nivel3/ondas/onda-0/T0.2.md`).
 4. **15 escolhas de classe não cabeadas** em `CLASS_CHOICE_SLOT_OPTIONS`: Estilo (Swashbuckler),
    Way (Gunslinger), Metodologia (Investigator), Implemento (Thaumaturge), Ikon e Epíteto
    (Exemplar), Patrono (Witch), Ordem (Druid), Research Field (Alchemist), Innovation (Inventor),
@@ -86,6 +95,21 @@ As 12 escolhas já cabeadas: `hybridStudy`, `instinct`, `racket`, `huntersEdge`,
     `"class-features-core/Deity (Champion)/deity": "pendente"`.
 11. **Eidolon é um segundo ator** e não há modelo de ator companheiro no repo.
 12. **Animist tem a pior cobertura:** 17 das 23 features de nível 1-3 sem `rules`.
+13. ~~**`featuresByLevel` nunca era embutida como item no ator.**~~ **FECHADO (T0.6, 2026-09-21) —
+    achado na revisão adversarial da Onda 0, não listado nesta versão original do plano.**
+    `applyClass` só criava o item de classe; as features não-escolha (Powerful Fist, Incredible
+    Movement, Mystic Strikes, Flurry of Blows, Guardian's Armor, Sneak Attack — ~40 nas 29 classes,
+    níveis 1-3) nunca eram embutidas — só os itens que ELAS concediam via `GrantItem` (ações,
+    sub-features) materializavam. Toda derivação que lê `feat`/`heritage`/`classFeature`/`ancestry`
+    embutidos (`speed.ts`, `itemAlterations.ts`, `embeddedModifiers.ts`, `actionsVM.ts`) nunca via
+    essas features — a regra delas (upgrade de dado de dano, bônus de velocidade, ação concedida)
+    ficava morta mesmo com o grant "resolvendo" (buraco 1). Era a causa real do Monk sem
+    Flurry/Powerful Fist, não a hipótese do buraco 1. Consertado embutindo a própria feature (tag
+    `grantedBy=<classSourceId>`, `grantedSlot=classFeature:<nível>:<nome>` — mesma identidade que já
+    marcava as ações concedidas) em `applyClass` (fresh) e no subir/descer de nível
+    (`materializeClassGrantsAtLevel`/`levelSet`), com teste nominal contra os packs reais (Monk
+    nível 1 e 3 — Powerful Fist, Incredible Movement, velocidade derivada 25+10=35 — e Guardian
+    nível 1-3).
 
 ### O que NÃO é problema (verificado, contrariando suposições anteriores)
 
@@ -123,13 +147,15 @@ Cada onda tem um gate: só passa com verificação executada e vista.
 ### Onda 0 — Dado das 29 classes
 
 1. Mergear `feat/classes-necromancer-runesmith` no satélite e **re-aplicar o guard de
-   `KNOWN_CLASS_TRAITS`** (senão Psychic e Animist voltam a vazar).
-2. Novo pin do submodule no core.
-3. **Converter o namespace dos 2.541 `GrantItem`** para os `_id` locais, no importer.
+   `KNOWN_CLASS_TRAITS`** (senão Psychic e Animist voltam a vazar). ✅ T0.2.
+2. Novo pin do submodule no core. ✅ T0.5, re-pinado após a rodada de fix.
+3. ~~Converter o namespace dos 2.541 `GrantItem` para os `_id` locais, no importer.~~ **Não foi
+   necessário** — `materializeGrants` já resolve por nome (buraco 1, acima). O que realmente
+   bloqueava a concessão de fato foi o buraco 13 (features não embutidas no ator), fechado na T0.6.
 
 **Gate:** importar um mundo e verificar que as features de nível 1-3 são concedidas de fato.
 **Destrava:** Monk, Fighter, Barbarian, Rogue, Magus, Runesmith, Kineticist — as classes cuja
-escolha já tem picker e cujo único defeito era o grant morto.
+escolha já tem picker e cujo único defeito era o grant morto (o buraco 13, não o buraco 1).
 
 ### Onda 1 — Cabear as 15 escolhas restantes
 
