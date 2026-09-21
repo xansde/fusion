@@ -287,6 +287,7 @@
   "FUSION.Sheet.Labels.PerceptionAbbrev": "Perc.",
   "FUSION.Sheet.Labels.Senses": "Sentidos",
   "FUSION.Sheet.Labels.Languages": "Idiomas",
+  "FUSION.Sheet.Labels.LanguagesPending": "{{count}} idioma(s) a escolher",
   "FUSION.Sheet.Mode.Edit": "Editar",
   "FUSION.Sheet.Mode.Play": "Jogar",
   "FUSION.Sheet.Autosave.Saving": "Salvando…",
