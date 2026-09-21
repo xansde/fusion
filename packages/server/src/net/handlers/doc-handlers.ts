@@ -77,7 +77,8 @@ import {
   PERMISSIONS_SETTING_KEY,
   type PermissionKey,
 } from "../../documents/world-permissions.js";
-import { detectFamiliarGrant } from "@fusion/system-pf2e";
+import { detectFamiliarGrant, validateCharacterBuild } from "@fusion/system-pf2e";
+import { deepMerge } from "../../documents/merge.js";
 import {
   DocCreatePayloadSchema,
   DocUpdatePayloadSchema,
@@ -610,6 +611,35 @@ function authorizePlayerCompanionDelete(
   return { ok: true };
 }
 
+// ---------------------------------------------------------------------------
+// Player-created OWN character — REMOVED (O6 fixer C6, ficha-nivel3)
+// ---------------------------------------------------------------------------
+//
+// O6/T6.1 briefly added a second doc:create exception (alongside r17-P1's
+// companion one) letting a non-privileged PLAYER create their OWN character
+// Actor. Reverted by the O6 fixer round: REQ-USR-025 (specs/05-usuarios-e-
+// permissoes.md, "Emenda de 2026-08-16") already creates a blank character
+// for every new PLAYER/TRUSTED user IN THE SAME TRANSACTION as the account
+// (auth/service.ts's UserService.createUser), owned by that user from birth
+// — and that spec amendment says in so many words this is "o único endereço
+// da criação de personagem". A second create path was:
+//   - REDUNDANT with REQ-USR-025 (decision #2, "Quem cria — O JOGADOR", is
+//     already satisfied by the character being born WITH the user);
+//   - UNREACHABLE from the shipped client: no screen ever emits a
+//     doc:create of an Actor `type: "character"` (createNpc.ts's
+//     NPC_CREATABLE_SUBTYPES is only `["npc", "hazard"]` — T6.1's own "pelo
+//     Hub" trigger was never built);
+//   - and, precisely because nothing exercised it, a live authority gap: the
+//     exception let a PLAYER's `items[]` on the create payload straight
+//     onto an Actor with NONE of the checks doc:update's embedded-item path
+//     applies (validateEmbeddedItemForSystem, the non-empty-name guard,
+//     augmentationSlotLimitViolation) — a hand-built op could seed a
+//     brand-new character with a forged item of any shape.
+// Editing one's own character needs no exception at all: the generic
+// doc:update OWNER check (below) already passes for it, because
+// REQ-USR-025a forces that character's ownership to {default: NONE,
+// [userId]: OWNER} at birth.
+
 /**
  * Build a broadcast envelope for an op and push it to the buffer.
  */
@@ -658,6 +688,94 @@ export interface DocHandlerDeps {
    * being silently swallowed — see recomputeDerivedIfNeeded.
    */
   logger?: Logger;
+}
+
+// ---------------------------------------------------------------------------
+// Character build legality (O6/T6.2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Refuse a write whose FULLY MERGED Actor document fails
+ * `validateCharacterBuild` (`@fusion/system-pf2e`) — the same rules
+ * `isFeatEligible` (planVM.ts) and the ability-boost math (derivations/
+ * build.ts) already decided, checked again here so the client's picker
+ * offering only legal choices is never the ONLY thing standing between a
+ * player and an illegal build ("toda validação de permissão é no
+ * servidor" — CLAUDE.md). A no-op for any non-character Actor or one with
+ * no `system.build` (see the module's own docstring for exactly what is,
+ * and is not, covered).
+ *
+ * O6 fixer C3 (importante): pass `existingDoc` (the document BEFORE this
+ * write, when there is one — never on doc:create, which has no prior state)
+ * to reject only the issues the write ITSELF introduces, not ones the
+ * document already carried. Without this, validating the whole merged
+ * document on EVERY doc:update — touching `system.build` or not, GM or not
+ * — meant a single pre-existing illegal state (a legacy import, a level
+ * that was never pruned on a past descend, a GM hand-edit) froze EVERY
+ * future write to that actor, including HP, notes, and the very
+ * `doc:update` that would have fixed the build: `removeChoice` clears one
+ * slot at a time, and the merge still carries every other pre-existing
+ * issue, so even the repair op was refused.
+ */
+function rejectIllegalCharacterBuild(
+  mergedDoc: Record<string, unknown>,
+  existingDoc?: Record<string, unknown>,
+): Ack<never> | null {
+  const result = validateCharacterBuild(mergedDoc);
+  if (result.ok) return null;
+
+  let newIssues = result.issues;
+  if (existingDoc) {
+    const before = validateCharacterBuild(existingDoc);
+    const beforeKeys = new Set(before.issues.map((issue) => `${issue.code}|${issue.path}`));
+    newIssues = result.issues.filter((issue) => !beforeKeys.has(`${issue.code}|${issue.path}`));
+  }
+  if (newIssues.length === 0) return null;
+
+  const summary = newIssues
+    .map((issue) => `${issue.code} (${issue.path}): ${issue.message}`)
+    .join("; ");
+  return ackError("VALIDATION_FAILED", `Illegal character build — ${summary}`);
+}
+
+/**
+ * O6 fixer C4/A6 (importante): `{"system.build": null}` inside a diff
+ * DELETES the whole build ledger (documents/merge.ts's DELETE_KEY_NAMESPACES
+ * treats null under `system` as key-deletion) — and a document with no
+ * `system.build` is `validateCharacterBuild`'s own "r9 manual mode" no-op.
+ * Left unchecked, that is a two-write bypass of every invariant this module
+ * enforces: null the build, then freely re-add an illegal one (or leave the
+ * now-orphaned embedded feats/choices with nothing validating them again).
+ * Refused ONLY when the EXISTING document already has a non-null build (a
+ * genuinely never-built r9 character keeps the right to stay that way) AND
+ * the diff is the one explicitly nulling it — a diff that merely omits
+ * `system.build` (deepMerge never removes a key the patch omits) is
+ * unaffected, and so is a diff that REPLACES it with a new, still-validated
+ * build object (caught by `rejectIllegalCharacterBuild` instead, same as
+ * any other build write).
+ */
+function rejectCharacterBuildDeletion(
+  existingDoc: Record<string, unknown>,
+  expandedDiff: Record<string, unknown>,
+): Ack<never> | null {
+  if (existingDoc["type"] !== "character") return null;
+
+  const existingSystem = existingDoc["system"];
+  const existingBuild =
+    existingSystem && typeof existingSystem === "object" && !Array.isArray(existingSystem)
+      ? (existingSystem as Record<string, unknown>)["build"]
+      : undefined;
+  if (existingBuild === undefined || existingBuild === null) return null;
+
+  const diffSystem = expandedDiff["system"];
+  if (!diffSystem || typeof diffSystem !== "object" || Array.isArray(diffSystem)) return null;
+  const diffSystemRec = diffSystem as Record<string, unknown>;
+  if (!("build" in diffSystemRec) || diffSystemRec["build"] !== null) return null;
+
+  return ackError(
+    "VALIDATION_FAILED",
+    "Illegal character build — cannot delete system.build once the character has one",
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -761,19 +879,22 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // REQ-USR-008 defines no key for (Scene, Macro, Combat) — those have no
     // configured floor to raise, so their gate stays exactly what it was.
     //
-    // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
-    // companions (familiars) linked to a master they own. Each item in the
-    // batch must individually pass authorizePlayerCompanionCreate; the master's
-    // ownership map is captured so we can force it onto the created familiar
-    // (never trusting a client-supplied ownership). Any non-companion Actor in
-    // the batch, or a companion that fails a condition, falls back to the
-    // GM-only denial. Not reached at all when the configured floor already
+    // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that
+    // are companions (familiars) linked to a master they own (O6 fixer C6
+    // removed the second, "own character" exception this comment used to
+    // also describe — see the block above `isCompanionDoc`). Each item in
+    // the batch must pass the companion authorizer; the resulting ownership
+    // (the master's) is captured so we can force it onto the created
+    // document (never trusting a client-supplied ownership). Any item that
+    // is not an authorized companion falls back to the GM-only denial for
+    // the WHOLE batch. Not reached at all when the configured floor already
     // authorized the batch.
     const forcedOwnership = new Map<number, Ownership>();
-    // True once the batch is fully authorized as a player companion create —
-    // it then bypasses the generic TRUSTED role floor below (the companion gate
-    // is a strictly stronger check: OWNER of a granting master, no duplicate).
-    let authorizedCompanionBatch = false;
+    // True once the batch is fully authorized as a player companion create
+    // — it then bypasses the generic TRUSTED role floor below (a strictly
+    // stronger check than TRUSTED: OWNER of a granting master with no
+    // duplicate familiar).
+    let authorizedNonPrivilegedActorBatch = false;
     // True once a configured Permissões override (or its matching default,
     // REQ-CFG-041) has already authorized this create — also bypasses the
     // generic TRUSTED role floor below, so a floor configured under TRUSTED
@@ -792,20 +913,22 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else if (documentType !== "Actor") {
           return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
         } else {
-          // Every item must be an authorized companion, else deny the whole batch.
+          // Every item must be an authorized companion, else deny the whole
+          // batch (O6 fixer C6: the own-character branch was removed here).
           for (let i = 0; i < data.length; i++) {
             const item = data[i] as Record<string, unknown>;
-            if (!isCompanionDoc(item)) {
+            if (isCompanionDoc(item)) {
+              const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+              if (!auth.ok) {
+                return ackError(auth.code, auth.message);
+              }
+              // Force the familiar's ownership to mirror the master's owners.
+              forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
+            } else {
               return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
             }
-            const auth = authorizePlayerCompanionCreate(deps, ctx, item);
-            if (!auth.ok) {
-              return ackError(auth.code, auth.message);
-            }
-            // Force the familiar's ownership to mirror the master's owners.
-            forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
           }
-          authorizedCompanionBatch = data.length > 0;
+          authorizedNonPrivilegedActorBatch = data.length > 0;
         }
       } else if (!isPrivileged(ctx.role)) {
         // Scene / Macro / Combat: REQ-USR-008 defines no configurable key for
@@ -818,10 +941,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // (REQ-USR-008; JournalEntry's key is JOURNAL_CREATE, configurable via
     // world-permissions.ts — everything else reaching this point, e.g.
     // Folder, keeps the historical TRUSTED+ floor since REQ-USR-008 defines no
-    // key for them). Skipped for an already-authorized player companion batch
-    // (r17-P1) or an already-authorized configured-permission batch: a plain
-    // PLAYER owning a granting master, or a role meeting a lowered configured
-    // floor, is authorized above.
+    // key for them). Skipped for an already-authorized player companion/own-
+    // character batch (r17-P1 / O6-T6.1) or an already-authorized
+    // configured-permission batch: a plain PLAYER owning a granting master
+    // (or creating their own character), or a role meeting a lowered
+    // configured floor, is authorized above.
     //
     // Runs for EVERY role, including GM/ASSISTANT — not just non-privileged —
     // for the same REQ-USR-010 reason as the block above: JournalEntry's floor
@@ -831,7 +955,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // else, privileged or not, is measured against the resolved floor — which
     // for every type but JournalEntry is the fixed TRUSTED(2), so this changes
     // nothing for ASSISTANT(3)/GAMEMASTER(4) on those types.
-    if (!authorizedCompanionBatch && !authorizedByPermissionTable) {
+    if (!authorizedNonPrivilegedActorBatch && !authorizedByPermissionTable) {
       const minRole =
         documentType === "JournalEntry"
           ? resolvePermissionMinRole(deps.store, "JOURNAL_CREATE")
@@ -872,6 +996,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // (a hazard, CA-NPC-010) — otherwise the create path would author a
           // field `doc:update` refuses.
           item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
+          // O6/T6.2: a create payload IS the full document (no `existing` to
+          // merge onto), so it can be validated as-is — same gate the update
+          // path applies to the merged document.
+          const rejectionBuild = rejectIllegalCharacterBuild(item);
+          if (rejectionBuild) return rejectionBuild;
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1052,6 +1181,33 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
             );
           }
         }
+      }
+
+      // O6/T6.2: the client's builder (planVM.ts) already refuses to OFFER
+      // an illegal choice, but nothing re-checks the payload once it is
+      // already an arbitrary `doc:update` diff — a hand-built op, or a
+      // client bug, could otherwise persist a dedication into a `classFeat`
+      // slot or an ability boost at a level PF2e never grants one. Judged
+      // against the FULLY MERGED document (same deepMerge the store itself
+      // applies, documents/merge.ts) so a diff that only touches
+      // `system.build.choices` is checked together with whatever level the
+      // document already has — never against the bare diff alone.
+      //
+      // O6 fixer C3/C4: `existing` is passed to `rejectIllegalCharacterBuild`
+      // so a pre-existing illegal state doesn't freeze every future write
+      // (only NEW issues the diff introduces are refused), and
+      // `rejectCharacterBuildDeletion` (C4/A6) runs first to close the
+      // `{"system.build": null}` bypass that would otherwise make the
+      // merged-doc check above a no-op.
+      if (documentType === "Actor") {
+        const rejectionBuildDeletion = rejectCharacterBuildDeletion(
+          existing,
+          expandedDiffForChecks,
+        );
+        if (rejectionBuildDeletion) return rejectionBuildDeletion;
+        const merged = deepMerge(existing, expandedDiffForChecks);
+        const rejectionBuild = rejectIllegalCharacterBuild(merged, existing);
+        if (rejectionBuild) return rejectionBuild;
       }
     }
 
@@ -1586,6 +1742,21 @@ function handleEmbeddedCreate(
 
   // Update parent with new embedded collection
   const updatedCollection = [...existing, ...created];
+
+  // O6 fixer C4 (importante): this is the ONE door that actually authors an
+  // item embedded straight into a character Actor in production (the other,
+  // compendium:importToActor, is out of this fixer round's scope) — the
+  // feat/dedication FEAT_SLOT_MISMATCH check in @fusion/system-pf2e reads
+  // `flags.fusion.build.slot` off the item itself, so it can only ever fire
+  // for real if it also runs HERE, not just on the Actor's own doc:update.
+  // `existingDoc` passed so a pre-existing issue elsewhere in the sheet
+  // doesn't block an unrelated embedded create (C3's same reasoning).
+  if (parent.type === "Actor" && parentDoc["type"] === "character") {
+    const mergedForValidation = { ...parentDoc, [collectionKey]: updatedCollection };
+    const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+    if (rejectionBuild) return rejectionBuild;
+  }
+
   const patch: Record<string, unknown> = { [collectionKey]: updatedCollection };
 
   let updatedParent = deps.store.update(parentTable as never, parent.id, patch, {
@@ -1820,6 +1991,16 @@ function handleEmbeddedUpdate(
       }
 
       collection[idx] = patchedToken;
+    }
+
+    // O6 fixer C4 (importante): an embedded update (e.g. a GM correcting a
+    // feat's own `system.level`, or `flags.fusion.build` itself) can make a
+    // build FEAT_SLOT_MISMATCH true just as much as filing the choice can —
+    // same reasoning as handleEmbeddedCreate above.
+    if (resolvedParentType === "Actor" && parentDoc["type"] === "character") {
+      const mergedForValidation = { ...parentDoc, [collectionKey]: collection };
+      const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+      if (rejectionBuild) return rejectionBuild;
     }
 
     // Persist parent with updated embedded collection
