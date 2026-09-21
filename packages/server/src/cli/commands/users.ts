@@ -8,8 +8,9 @@
 import { join } from "node:path";
 import type { UserAddArgs } from "../args.js";
 import { openDatabase, applyMigrations } from "../../db/index.js";
-import { UserStore, Role } from "../../auth/user-store.js";
-import { hashPassword, generateRandomPassword } from "../../auth/crypto.js";
+import { Role } from "../../auth/user-store.js";
+import { AuthService, AuthError, loadOrCreateSecret } from "../../auth/index.js";
+import { generateRandomPassword } from "../../auth/crypto.js";
 import { resolveDataDirForLoad } from "../../config.js";
 import { ensureDataDirLayout } from "../../data-dir.js";
 import { createLogger } from "../../logger.js";
@@ -87,37 +88,31 @@ export async function runUserAdd(args: UserAddArgs): Promise<void> {
   }
 
   try {
-    const userStore = new UserStore(fusionDb.raw);
+    // C2 (o6b fixer, revisão adversarial): route through AuthService.createUser
+    // instead of UserStore.create directly, so a PLAYER/TRUSTED user created
+    // via this CLI command gets the same blank `character` Actor
+    // (REQ-USR-025/025a/025b/025c) that the HTTP admin route creates — in the
+    // same atomic transaction — for the same roles. Without it, a PLAYER
+    // created via `fusion user add` had no way to reach the builder
+    // (REQ-CFG-051a forbids a "create character" button in Settings → Users,
+    // NPCs never creates a `character` type per DEC-NPC-02, and the player's
+    // own `doc:create` was removed in C5/C6).
+    const secret = loadOrCreateSecret(dataDir);
+    const authService = new AuthService(fusionDb.raw, secret, args.world);
 
-    // Check for duplicate
-    const existing = userStore.findByName(args.name);
-    if (existing) {
-      process.stderr.write(
-        `fusion user add: user "${args.name}" already exists in world "${args.world}"\n`,
-      );
-      fusionDb.close();
-      process.exit(1);
-      return;
-    }
+    // AuthService.createUser always hashes whatever password it is given and
+    // never generates one itself — the CLI keeps generating and printing it
+    // once, same as before this fix, just via the shared service now.
+    const printedPassword = args.password === undefined ? generateRandomPassword() : null;
+    const resolvedPassword = args.password ?? printedPassword ?? undefined;
 
-    // Resolve password
-    let passwordHash: string | null = null;
-    let printedPassword: string | null = null;
-
-    if (args.password !== undefined) {
-      passwordHash = await hashPassword(args.password);
-    } else {
-      // Generate a random password and print it once
-      const generated = generateRandomPassword();
-      passwordHash = await hashPassword(generated);
-      printedPassword = generated;
-    }
-
-    const user = userStore.create({
+    const createParams: { name: string; role: Role; password?: string } = {
       name: args.name,
       role,
-      passwordHash,
-    });
+    };
+    if (resolvedPassword !== undefined) createParams.password = resolvedPassword;
+
+    const { user } = await authService.createUser(createParams);
 
     process.stdout.write(
       `User created successfully.\n` +
@@ -134,6 +129,14 @@ export async function runUserAdd(args: UserAddArgs): Promise<void> {
       );
     }
   } catch (err) {
+    if (err instanceof AuthError && err.code === "NAME_TAKEN") {
+      process.stderr.write(
+        `fusion user add: user "${args.name}" already exists in world "${args.world}"\n`,
+      );
+      fusionDb.close();
+      process.exit(1);
+      return;
+    }
     const msg = err instanceof Error ? err.message : String(err);
     process.stderr.write(`fusion user add: ${msg}\n`);
     fusionDb.close();
