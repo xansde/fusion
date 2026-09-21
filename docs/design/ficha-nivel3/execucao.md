@@ -143,6 +143,14 @@ Três níveis, e **os três são obrigatórios**:
     browser para criar um Animist de verdade e fotografar a aba de magias — **fica pendente para
     quem validar esta onda**, seguindo `docs/design/PROCESSO-UI.md`.
 
+    **Fixer rodada 1 (2026-09-21):** a revisão adversarial reprovou o merge com 3 bloqueantes e 4
+    importantes (`ficha3-reports/o4b/revisao-adversarial.md`) — a própria queixa do Alexandre
+    ("não adicionou nada na minha lista de magia") tinha causa raiz não fechada: o círculo 1 do
+    repertório ficava vazio no PRIMEIRO pick (C2), e a escolha da aparição podia sumir de
+    `system.build.choices` no mesmo lote (C1). Os 7 achados confirmados foram consertados
+    (`tasks.md` T4.4 tem o detalhe por achado); a prova "Vivo"/"Olhado" **continua pendente** —
+    nenhum servidor/browser foi levantado nesta rodada também, só TDD no nível do op-builder.
+
 ### Artefato de fecho de onda
 
 Cada onda fecha com um **PR contra `alfa/app`** contendo:
