@@ -1,31 +1,43 @@
 /**
- * Player-owned CHARACTER create + build-legality gate (O6/T6.1, T6.2, T6.3).
+ * Player-owned CHARACTER edit + build-legality gate (O6/T6.2, T6.3;
+ * O6 fixer r1 C6 — the T6.1 "player creates their own character via
+ * doc:create" exception was REMOVED).
  *
- * "Quem cria — O JOGADOR" (plano.md, ficha-nivel3, "Decisões do Alexandre" #2;
- * spec 28 / emenda 37/05 — "o personagem nasce com o player"). A PLAYER may
- * create their OWN character Actor WITHOUT a GM (Actor is otherwise strictly
- * GM_ONLY_CREATE_DELETE, ACTOR_CREATE defaults to ASSISTANT) — a second,
- * narrow exception alongside r17-P1's companion one.
+ * "Quem cria — O JOGADOR" (plano.md, ficha-nivel3, "Decisões do Alexandre"
+ * #2) is satisfied WITHOUT a doc:create exception: REQ-USR-025 (specs/05-
+ * usuarios-e-permissoes.md, "Emenda de 2026-08-16") already creates a blank
+ * character for every new PLAYER/TRUSTED user in the SAME transaction as
+ * the account (auth/service.ts's UserService.createUser), owned by that
+ * user from birth, and that amendment says this is "o único endereço da
+ * criação de personagem". The O6/T6.1 doc:create exception was a second,
+ * REDUNDANT address — unreachable from the shipped client (no screen emits
+ * a doc:create of Actor `type: "character"`) and a live authority gap (a
+ * PLAYER's `items[]` on the create payload skipped every embedded-item
+ * check doc:update applies) — see doc-handlers.ts's "Player-created OWN
+ * character — REMOVED" comment for the full reasoning.
  *
  * This suite proves, on the REAL doc:create/doc:update handler path
  * (packages/server/src/net/handlers/doc-handlers.ts):
  *
- *   T6.1/T6.3 — creation + ownership
- *     - a plain PLAYER creates their own character → allowed; ownership is
- *       FORCED to {creator: OWNER}, never a client-forged ownership map.
- *     - the creator can then doc:update their own character (generic OWNER
- *       check, unlocked by the ownership just forced) → allowed.
- *     - a DIFFERENT player cannot update someone else's character → denied.
- *     - the own-character exception does NOT widen Actor creation to other
- *       subtypes (npc/hazard/loot stay GM/ASSISTANT-only — spec 42).
+ *   C6 — the removed exception
+ *     - a plain PLAYER's doc:create of Actor `type: "character"` is DENIED
+ *       (same GM-only floor as npc/hazard/loot — spec 42), proving the
+ *       surface is gone, not just unreachable from the client.
+ *     - REQ-USR-025's auto-created character IS usable: the owner already
+ *       has real OWNER ownership on it from account creation.
  *
- *   T6.2 — server-side build legality (the client's builder already refuses
- *   to OFFER an illegal choice; this proves the server refuses to PERSIST
- *   one too)
- *     - an archetype-trait feat filed into a "classFeat" slot is refused.
- *     - the same feat filed into "archetypeFeat" is accepted.
- *     - an ability-boost milestone at a level that is not a PF2e boost level
- *       (multiple of 5) is refused.
+ *   T6.2/T6.3 — ownership + server-side build legality (the client's
+ *   builder already refuses to OFFER an illegal choice; this proves the
+ *   server refuses to PERSIST one too, resolving the feat by the item's own
+ *   `flags.fusion.build.slot` — O6 fixer C4 — not a `choice.itemId` the real
+ *   client never writes)
+ *     - the owner can doc:update their auto-created character (generic
+ *       OWNER check) → allowed; a DIFFERENT player cannot → denied.
+ *     - a skill-category feat filed into an "ancestryFeat" slot is refused
+ *       (FEAT_SLOT_MISMATCH).
+ *     - the same feat filed into "skillFeat" is accepted.
+ *     - an ability-boost milestone at a level that is neither 1 nor a
+ *       multiple of 5 is refused.
  *
  * Boots through the real boot() sequence (mirrors player-familiar-create.test.ts).
  *
@@ -45,6 +57,7 @@ import { loadConfig } from "../config.js";
 import { createLogger } from "../logger.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
+import { DocumentStore } from "../documents/store.js";
 import { AuthService } from "../auth/service.js";
 import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
@@ -73,6 +86,9 @@ interface Ctx {
   gmToken: string;
   ownerToken: string;
   ownerUserId: string;
+  /** REQ-USR-025's auto-created character for `ownerUserId` (found via the store, not a socket op — see the module docstring). */
+  ownerCharacterId: string;
+  ownerCharacterVersion: number;
   outsiderToken: string;
   outsiderUserId: string;
 }
@@ -143,6 +159,22 @@ async function buildCtx(): Promise<Ctx> {
   if (!address || typeof address === "string") throw new Error("Bad server address");
   const port = address.port;
 
+  // REQ-USR-025: `authService.createUser` above already created a blank
+  // character owned by `owner.id`, in the same transaction as the account
+  // (O6 fixer C6 removed the doc:create exception this suite used to use
+  // instead) — found here directly through the store, the same way
+  // production code resolves "whose character is this" (flags.fusion.
+  // playerId, auth/service.ts).
+  const documents = new DocumentStore({ db: fusionDb.raw });
+  const ownerCharacter = documents.getAll("actors", { type: "character" }).find((actor) => {
+    const flags = actor["flags"] as Record<string, unknown> | undefined;
+    const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
+    return fusion?.["playerId"] === owner.id;
+  });
+  if (!ownerCharacter) throw new Error("REQ-USR-025 did not auto-create OwnerPlayer's character");
+  const ownerCharacterStats = ownerCharacter["_stats"] as Record<string, unknown> | undefined;
+  const rawVersion = ownerCharacterStats?.["version"];
+
   return {
     dataDir,
     fusionDb,
@@ -152,6 +184,8 @@ async function buildCtx(): Promise<Ctx> {
     gmToken: gmLogin.accessToken,
     ownerToken: ownerLogin.accessToken,
     ownerUserId: owner.id,
+    ownerCharacterId: ownerCharacter["_id"] as string,
+    ownerCharacterVersion: typeof rawVersion === "number" ? rawVersion : 1,
     outsiderToken: outsiderLogin.accessToken,
     outsiderUserId: outsider.id,
   };
@@ -196,34 +230,37 @@ function sendOp(
 // Fixtures
 // ---------------------------------------------------------------------------
 
-/** A minimal own-character create payload, forging an ownership map that
- * would (if trusted) hand every player OWNER on it. */
-function ownCharacterPayload(name = "Aria"): Record<string, unknown> {
+/** A create payload a plain PLAYER might hand-build for the exception O6
+ * fixer C6 removed — forging an ownership map too, to prove BOTH the
+ * creation itself and the ownership-forcing it used to rely on are gone. */
+function forgedOwnCharacterPayload(name = "Forged Aria"): Record<string, unknown> {
   return {
     name,
     type: "character",
     system: { level: { value: 1 } },
-    // Forged: a create payload's ownership must never be trusted verbatim
-    // for this exception (see doc-handlers.ts authorizePlayerCharacterCreate).
     ownership: { default: 3 },
   };
 }
 
-/** An embedded dedication feat (category "class" + trait "archetype"). */
-const DEDICATION_FEAT_PAYLOAD = {
-  name: "Test Dedication",
-  type: "feat",
-  system: { category: "class", level: 2, traits: { value: ["archetype"] } },
-};
-
-/** Files the (already-embedded) dedication `itemId` into `slot` at level 2. */
-function buildChoiceDiff(
-  slot: "classFeat" | "archetypeFeat",
-  itemId: string,
-): Record<string, unknown> {
+/**
+ * An embedded feat carrying the REAL `flags.fusion.build` link (O6 fixer
+ * C4: `findItemByBuildSlot` resolves the choice↔item link by THIS field —
+ * what `planVM.embeddedItemPayload`/`chooseFeat` actually write — never by
+ * a `choice.itemId`, which the real client never persists).
+ */
+function featItemPayload(slot: string, category: string): Record<string, unknown> {
   return {
-    "system.level.value": 2,
-    "system.build.choices": [{ level: 2, slot: `${slot}-2`, type: slot, itemId }],
+    name: `Test Feat (${category} → ${slot})`,
+    type: "feat",
+    system: { category, level: 2, traits: { value: [] } },
+    flags: { fusion: { build: { level: 2, slot } } },
+  };
+}
+
+/** Files a choice at `slot` — the REAL persisted shape (`{level, slot, type}`, no itemId). */
+function choiceDiff(slot: string, type: string): Record<string, unknown> {
+  return {
+    "system.build.choices": [{ level: 2, slot, type }],
   };
 }
 
@@ -231,7 +268,7 @@ function buildChoiceDiff(
 // Suite
 // ---------------------------------------------------------------------------
 
-describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", () => {
+describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 fixer C6)", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
   let ownerSocket: ClientSocket;
@@ -260,10 +297,19 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
   });
 
   // -------------------------------------------------------------------------
-  // T6.1/T6.3 — creation + ownership
+  // O6 fixer C6 — the doc:create exception is GONE
   // -------------------------------------------------------------------------
 
-  it("DENIES a plain player creating an NPC Actor (own-character exception does not widen NPC authoring)", async () => {
+  it("DENIES a plain player creating their OWN character via doc:create (T6.1's exception was removed)", async () => {
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Actor",
+      data: [forgedOwnCharacterPayload("Forged Aria")],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+  });
+
+  it("DENIES a plain player creating an NPC Actor (same GM-only floor, unrelated to the removed exception)", async () => {
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Actor",
       data: [{ name: "Forged NPC", type: "npc", system: {}, ownership: { default: 0 } }],
@@ -271,6 +317,10 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
     expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("PERMISSION_DENIED");
   });
+
+  // -------------------------------------------------------------------------
+  // T6.3 — the REQ-USR-025 auto-created character has real ownership
+  // -------------------------------------------------------------------------
 
   let characterId: string;
   // Tracked from each successful ack's `_stats.version` rather than hardcoded:
@@ -286,30 +336,16 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
     return typeof v === "number" ? v : 0;
   }
 
-  it("ALLOWS a plain player to create their OWN character", async () => {
-    const ack = await sendOp(ownerSocket, "doc:create", {
-      documentType: "Actor",
-      data: [ownCharacterPayload("Aria")],
-    });
-    expect(ack["ok"]).toBe(true);
-    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
-    characterId = doc["_id"] as string;
-    version = statsVersion(doc);
-    expect(doc["type"]).toBe("character");
-    expect(doc["name"]).toBe("Aria");
-
-    // Ownership is FORCED to {creator: OWNER}, never the forged {default: 3}
-    // the payload asked for.
-    const ownership = doc["ownership"] as Record<string, number>;
-    expect(ownership[ctx.ownerUserId]).toBe(3); // OwnershipLevel.OWNER
-    expect(ownership["default"]).toBe(0); // OwnershipLevel.NONE — forged default ignored
-  });
-
-  it("ALLOWS the creator to edit their own character (generic OWNER check)", async () => {
+  it("ALLOWS the owner to edit their REQ-USR-025 auto-created character (generic OWNER check)", async () => {
+    characterId = ctx.ownerCharacterId;
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
-        { _id: characterId, diff: { "system.details": { xp: 5 } }, expectedVersion: version },
+        {
+          _id: characterId,
+          diff: { "system.details": { xp: 5 } },
+          expectedVersion: ctx.ownerCharacterVersion,
+        },
       ],
     });
     expect(ack["ok"]).toBe(true);
@@ -337,39 +373,26 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
   });
 
   // -------------------------------------------------------------------------
-  // T6.2 — server-side build legality
+  // T6.2 — server-side build legality (O6 fixer C4: resolved by the item's
+  // own flags.fusion.build.slot, the real link chooseFeat writes)
   // -------------------------------------------------------------------------
 
-  let dedicationItemId: string;
-
-  it("(setup) embeds a dedication feat on the owner's own character", async () => {
-    // Embedded Item create on an Actor parent is OWNER-gated (r10-C) — this
-    // is exactly the path the client's builder uses, and only works because
-    // T6.1 gave the creator real OWNER ownership on their own character.
-    const ack = await sendOp(ownerSocket, "doc:create", {
+  it("DENIES a skill-category feat filed into the ancestryFeat slot (FEAT_SLOT_MISMATCH)", async () => {
+    const embedAck = await sendOp(ownerSocket, "doc:create", {
       documentType: "Item",
       parent: { type: "Actor", id: characterId },
-      data: [DEDICATION_FEAT_PAYLOAD],
+      data: [featItemPayload("ancestryFeat-2", "skill")],
     });
-    expect(ack["ok"]).toBe(true);
-    const result = ack["result"] as {
-      documents: Array<Record<string, unknown>>;
-      parent: Record<string, unknown>;
-    };
-    dedicationItemId = result.documents[0]!["_id"] as string;
-    expect(dedicationItemId).toBeTruthy();
-    // The embedded create updates the PARENT (the character) too — track its
-    // new version for the next doc:update.
-    version = statsVersion(result.parent);
-  });
+    expect(embedAck["ok"]).toBe(true);
+    const embedResult = embedAck["result"] as { parent: Record<string, unknown> };
+    version = statsVersion(embedResult.parent);
 
-  it("DENIES an update that files an archetype-trait feat into a classFeat slot", async () => {
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
         {
           _id: characterId,
-          diff: buildChoiceDiff("classFeat", dedicationItemId),
+          diff: choiceDiff("ancestryFeat-2", "ancestryFeat"),
           expectedVersion: version,
         },
       ],
@@ -380,13 +403,22 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
     // Rejected — version must not have moved (nothing was persisted).
   });
 
-  it("ALLOWS the same dedication filed into archetypeFeat", async () => {
+  it("ALLOWS a skill-category feat filed into a skillFeat slot", async () => {
+    const embedAck = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [featItemPayload("skillFeat-2", "skill")],
+    });
+    expect(embedAck["ok"]).toBe(true);
+    const embedResult = embedAck["result"] as { parent: Record<string, unknown> };
+    version = statsVersion(embedResult.parent);
+
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
         {
           _id: characterId,
-          diff: buildChoiceDiff("archetypeFeat", dedicationItemId),
+          diff: choiceDiff("skillFeat-2", "skillFeat"),
           expectedVersion: version,
         },
       ],
@@ -396,7 +428,7 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
     version = statsVersion(doc);
   });
 
-  it("DENIES an ability-boost milestone at a level that is not a multiple of 5", async () => {
+  it("DENIES an ability-boost milestone at a level that is neither 1 nor a multiple of 5", async () => {
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -412,6 +444,70 @@ describe("Player-owned character create + build legality (pf2e, O6/T6.1-T6.3)", 
     expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("VALIDATION_FAILED");
     expect(String(ack["message"])).toContain("BOOST_LEVEL_NOT_MILESTONE");
+  });
+
+  it('ALLOWS levelledBoosts["1"] — the level-1 free ability boosts (O6 fixer C1)', async () => {
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: {
+            "system.build.abilities": {
+              levelledBoosts: { "1": ["str", "dex", "con", "wis"] },
+            },
+          },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    version = statsVersion(doc);
+  });
+
+  // -------------------------------------------------------------------------
+  // O6 fixer C2 — leveling DOWN does not corrupt/freeze the sheet
+  // -------------------------------------------------------------------------
+
+  it("ALLOWS leveling down past a recorded choice/boost — the write no longer freezes on the old regression", async () => {
+    // The character already carries (from the tests above) a skillFeat-2
+    // choice and a levelledBoosts["1"] entry. Setting the level field DOWN
+    // to 1 used to be rejected by CHOICE_LEVEL/BOOST_LEVEL_EXCEEDS_
+    // CHARACTER_LEVEL even though nothing else in the diff touches build —
+    // this is the exact `levelSet` reproduction (planVM.ts) C2 fixes.
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.level.value": 1, "system.details.level": 1 },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    version = statsVersion(doc);
+  });
+
+  // -------------------------------------------------------------------------
+  // O6 fixer C4/A6 — cannot bypass build validation by deleting system.build
+  // -------------------------------------------------------------------------
+
+  it("DENIES nulling out system.build once the character has one", async () => {
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.build": null },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
   });
 
   // -------------------------------------------------------------------------
