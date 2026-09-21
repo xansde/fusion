@@ -70,7 +70,6 @@ import {
   isRolePrivileged,
   isGamemasterStrict,
   testOwnership,
-  ownershipForCreator,
 } from "../../documents/ownership.js";
 import {
   resolvePermissionMinRole,
@@ -613,55 +612,33 @@ function authorizePlayerCompanionDelete(
 }
 
 // ---------------------------------------------------------------------------
-// Player-created OWN character (O6/T6.1, spec 28 / emenda 37/05 — "o
-// personagem nasce com o player")
+// Player-created OWN character — REMOVED (O6 fixer C6, ficha-nivel3)
 // ---------------------------------------------------------------------------
 //
-// Decision (plano.md, "Decisões do Alexandre" #2): "Quem cria — O JOGADOR. O
-// Mestre pode criar se quiser, mas o jogador tem autonomia sobre o próprio
-// ator." Actor stays in GM_ONLY_CREATE_DELETE for every OTHER subtype (NPCs,
-// loot, hazards remain GM-authored per spec 42) — this is a second, narrow
-// exception alongside r17-P1's companion one, not a widening of ACTOR_CREATE
-// itself (which would also open NPC/hazard/loot authoring to any PLAYER).
-//
-//   create — ALL must hold:
-//     (a) the payload's type is "character";
-//     (b) the requester has an authenticated userId (always true for a
-//         connected socket past auth, but checked defensively rather than
-//         assumed).
-//   On success the created character's ownership is FORCED to
-//   {default: NONE, [userId]: OWNER} — ownershipForCreator, REQ-DOC-029 —
-//   NEVER the client-supplied ownership: a forged `{default: OWNER}` on the
-//   create payload would otherwise hand every player OWNER on it.
-//
-// Editing an already-created character needs no new gate: the generic
-// doc:update path already requires OWNER-or-privileged (line ~1000 below),
-// and the ownership forced here is exactly what makes the creator that
-// OWNER. Deleting one's own character is intentionally NOT covered — Actor
-// delete stays GM/ASSISTANT-only, matching the companion exception's own
-// scope (a player deletes a companion, never a primary Actor) until a
-// decision says otherwise.
-
-/** True when a raw create-payload item is a player's own character (not a companion). */
-function isOwnCharacterDoc(doc: Record<string, unknown>): boolean {
-  return doc["type"] === "character";
-}
-
-/** Outcome of the player-own-character create authorization. */
-type OwnCharacterCreateAuth =
-  | { ok: true; ownership: Ownership }
-  | { ok: false; code: ErrorCode; message: string };
-
-function authorizePlayerCharacterCreate(ctx: HandlerContext): OwnCharacterCreateAuth {
-  if (!ctx.userId) {
-    return {
-      ok: false,
-      code: "PERMISSION_DENIED",
-      message: "No authenticated user to own the character",
-    };
-  }
-  return { ok: true, ownership: ownershipForCreator(ctx.userId, ctx.role) };
-}
+// O6/T6.1 briefly added a second doc:create exception (alongside r17-P1's
+// companion one) letting a non-privileged PLAYER create their OWN character
+// Actor. Reverted by the O6 fixer round: REQ-USR-025 (specs/05-usuarios-e-
+// permissoes.md, "Emenda de 2026-08-16") already creates a blank character
+// for every new PLAYER/TRUSTED user IN THE SAME TRANSACTION as the account
+// (auth/service.ts's UserService.createUser), owned by that user from birth
+// — and that spec amendment says in so many words this is "o único endereço
+// da criação de personagem". A second create path was:
+//   - REDUNDANT with REQ-USR-025 (decision #2, "Quem cria — O JOGADOR", is
+//     already satisfied by the character being born WITH the user);
+//   - UNREACHABLE from the shipped client: no screen ever emits a
+//     doc:create of an Actor `type: "character"` (createNpc.ts's
+//     NPC_CREATABLE_SUBTYPES is only `["npc", "hazard"]` — T6.1's own "pelo
+//     Hub" trigger was never built);
+//   - and, precisely because nothing exercised it, a live authority gap: the
+//     exception let a PLAYER's `items[]` on the create payload straight
+//     onto an Actor with NONE of the checks doc:update's embedded-item path
+//     applies (validateEmbeddedItemForSystem, the non-empty-name guard,
+//     augmentationSlotLimitViolation) — a hand-built op could seed a
+//     brand-new character with a forged item of any shape.
+// Editing one's own character needs no exception at all: the generic
+// doc:update OWNER check (below) already passes for it, because
+// REQ-USR-025a forces that character's ownership to {default: NONE,
+// [userId]: OWNER} at birth.
 
 /**
  * Build a broadcast envelope for an op and push it to the buffer.
@@ -838,23 +815,21 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // REQ-USR-008 defines no key for (Scene, Macro, Combat) — those have no
     // configured floor to raise, so their gate stays exactly what it was.
     //
-    // EXCEPTION (r17-P1 + O6/T6.1): a non-privileged PLAYER may create
-    // Actor(s) that are EITHER (a) companions (familiars) linked to a master
-    // they own, OR (b) their OWN character (spec 28 / emenda 37/05 — "o
-    // personagem nasce com o player", plano.md "Decisões do Alexandre" #2).
-    // Each item in the batch must individually pass one of the two
-    // authorizers; the resulting ownership (the master's, or
-    // {creator: OWNER}) is captured so we can force it onto the created
+    // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that
+    // are companions (familiars) linked to a master they own (O6 fixer C6
+    // removed the second, "own character" exception this comment used to
+    // also describe — see the block above `isCompanionDoc`). Each item in
+    // the batch must pass the companion authorizer; the resulting ownership
+    // (the master's) is captured so we can force it onto the created
     // document (never trusting a client-supplied ownership). Any item that
-    // is neither, or that fails its condition, falls back to the GM-only
-    // denial for the WHOLE batch. Not reached at all when the configured
-    // floor already authorized the batch.
+    // is not an authorized companion falls back to the GM-only denial for
+    // the WHOLE batch. Not reached at all when the configured floor already
+    // authorized the batch.
     const forcedOwnership = new Map<number, Ownership>();
-    // True once the batch is fully authorized as a player companion/own-
-    // character create — it then bypasses the generic TRUSTED role floor
-    // below (both gates are strictly stronger checks than TRUSTED: OWNER of
-    // a granting master with no duplicate, or "this IS the requester's own
-    // new character").
+    // True once the batch is fully authorized as a player companion create
+    // — it then bypasses the generic TRUSTED role floor below (a strictly
+    // stronger check than TRUSTED: OWNER of a granting master with no
+    // duplicate familiar).
     let authorizedNonPrivilegedActorBatch = false;
     // True once a configured Permissões override (or its matching default,
     // REQ-CFG-041) has already authorized this create — also bypasses the
@@ -874,8 +849,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else if (documentType !== "Actor") {
           return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
         } else {
-          // Every item must be an authorized companion or own-character,
-          // else deny the whole batch.
+          // Every item must be an authorized companion, else deny the whole
+          // batch (O6 fixer C6: the own-character branch was removed here).
           for (let i = 0; i < data.length; i++) {
             const item = data[i] as Record<string, unknown>;
             if (isCompanionDoc(item)) {
@@ -885,12 +860,6 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
               }
               // Force the familiar's ownership to mirror the master's owners.
               forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
-            } else if (isOwnCharacterDoc(item)) {
-              const auth = authorizePlayerCharacterCreate(ctx);
-              if (!auth.ok) {
-                return ackError(auth.code, auth.message);
-              }
-              forcedOwnership.set(i, auth.ownership);
             } else {
               return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
             }
