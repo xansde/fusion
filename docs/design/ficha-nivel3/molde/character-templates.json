@@ -1,0 +1,634 @@
+{
+  "metadata": {
+    "description": "Molde de ficha de referência para as 29 classes PF2e, níveis 1–3",
+    "source_of_truth": "Preenchido manualmente contra o Player Core Remaster, não gerado automaticamente",
+    "chassis_common": {
+      "ancestry": "proposta — Human (Humano) — editar",
+      "background": "proposta — Scholar (Erudito) — editar",
+      "ability_scores_at_level_1": {
+        "note": "Distribuição proposta; editar conforme Alexandre preferir",
+        "strength": "proposta — 10 — editar",
+        "dexterity": "proposta — 12 — editar",
+        "constitution": "proposta — 14 — editar",
+        "intelligence": "proposta — 13 — editar",
+        "wisdom": "proposta — 12 — editar",
+        "charisma": "proposta — 11 — editar"
+      }
+    },
+    "note_on_blanks": "TODOS os campos numéricos derivados (HP, CA, salvaguardas, proficiências, perícias, talentos, slots, magias, foco, idiomas) DEVEM ficar em branco. Preencher apenas campos de escolha explícita (classe, ancestry, background, arquetipo se aplicável)."
+  },
+  "batch_1": {
+    "description": "Lote 1 — Um representante de cada família de mecanismo",
+    "note": "Defeitos de mecanismo aparecem cedo e são consertados antes de contaminar o lote 2",
+    "classes": [
+      {
+        "name": "Fighter",
+        "batch": 1,
+        "reason": "Marcial puro; baseline para ataques e defesa",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "note": "Listar por categoria: simples, marcial, avançada; defesa",
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": {
+              "note": "Listar por nome; skill do Fighter?",
+              "list": null
+            },
+            "granted_feats": {
+              "note": "Talentos concedidos pelo nível",
+              "list": null
+            },
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "archetype_note": "Nenhum slot de arquétipo no nível 1"
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null
+          }
+        }
+      },
+      {
+        "name": "Ranger",
+        "batch": 1,
+        "reason": "Marcial com animal companion; testa mecanismo de companheiro",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "animal_companion": "preencher dados do companheiro escolhido"
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null
+          }
+        }
+      },
+      {
+        "name": "Cleric",
+        "batch": 1,
+        "reason": "Divino; testa escolha obrigatória de divindade e magia preparada",
+        "choice_required": "deity",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "note": "Slots por círculo + lista preparada do dia",
+              "circle_0_cantrips": null,
+              "circle_1_prepared": null
+            },
+            "languages": null
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips": null,
+              "circle_1_prepared": null
+            },
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips": null,
+              "circle_1_prepared": null,
+              "circle_2_prepared": null
+            },
+            "languages": null
+          }
+        }
+      },
+      {
+        "name": "Bard",
+        "batch": 1,
+        "reason": "Espontâneo com repertório; testa mecanismo de magias conhecidas",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "note": "Repertório espontâneo: magias conhecidas + slots",
+              "circle_0_cantrips_known": null,
+              "circle_1_slots": null,
+              "circle_1_spells_known": null
+            },
+            "languages": null
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips_known": null,
+              "circle_1_slots": null,
+              "circle_1_spells_known": null
+            },
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips_known": null,
+              "circle_1_slots": null,
+              "circle_1_spells_known": null,
+              "circle_2_slots": null,
+              "circle_2_spells_known": null
+            },
+            "languages": null
+          }
+        }
+      },
+      {
+        "name": "Magus",
+        "batch": 1,
+        "reason": "Híbrido marcial + magia; testa integração de ataques e magia",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips_known": null,
+              "circle_1_slots": null,
+              "circle_1_spells_known": null
+            },
+            "languages": null
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips_known": null,
+              "circle_1_slots": null,
+              "circle_1_spells_known": null
+            },
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": {
+              "circle_0_cantrips_known": null,
+              "circle_1_slots": null,
+              "circle_1_spells_known": null,
+              "circle_2_slots": null,
+              "circle_2_spells_known": null
+            },
+            "languages": null
+          }
+        }
+      },
+      {
+        "name": "Alchemist",
+        "batch": 1,
+        "reason": "Pesquisa + fórmulas; testa mecanismo de research field",
+        "choice_required": "research_field",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "research_field": "escolhido pelo jogador"
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null
+          }
+        }
+      },
+      {
+        "name": "Summoner",
+        "batch": 1,
+        "reason": "Companheiro; testa criação de dois atores com ownership",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "eidolon": {
+              "note": "Criado junto; preencher dados do eidolon escolhido",
+              "type": null,
+              "hp": null,
+              "ac": null,
+              "saves": {
+                "fortitude": null,
+                "reflex": null,
+                "will": null
+              }
+            }
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "eidolon": {
+              "hp": null,
+              "ac": null,
+              "saves": {
+                "fortitude": null,
+                "reflex": null,
+                "will": null
+              }
+            },
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "eidolon": {
+              "hp": null,
+              "ac": null,
+              "saves": {
+                "fortitude": null,
+                "reflex": null,
+                "will": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Kineticist",
+        "batch": 1,
+        "reason": "Talento de elemento; testa mecanismo de impulso cinético",
+        "levels": {
+          "1": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies": {
+              "attacks": null,
+              "defense": null
+            },
+            "trained_skills": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null
+          },
+          "2": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null,
+            "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+          },
+          "3": {
+            "hp": null,
+            "ac": null,
+            "saves": {
+              "fortitude": null,
+              "reflex": null,
+              "will": null
+            },
+            "proficiencies_progression": null,
+            "trained_skills_new": null,
+            "granted_feats": null,
+            "focus_pool": null,
+            "spells": null,
+            "languages": null
+          }
+        }
+      }
+    ]
+  },
+  "batch_2": {
+    "description": "Lote 2 — Cobertura de dado por classe; mecanismos já testados no lote 1",
+    "note": "Foco em divergências de dado e completude de cada classe",
+    "classes": [
+      "Commander",
+      "Barbarian",
+      "Rogue",
+      "Monk",
+      "Gunslinger",
+      "Swashbuckler",
+      "Investigator",
+      "Guardian",
+      "Wizard",
+      "Sorcerer",
+      "Witch",
+      "Druid",
+      "Oracle",
+      "Psychic",
+      "Animist",
+      "Thaumaturge",
+      "Inventor",
+      "Champion",
+      "Exemplar",
+      "Necromancer",
+      "Runesmith"
+    ],
+    "template_for_each_class": {
+      "note": "Preencher usando a mesma estrutura do lote 1; chassis comum idêntico",
+      "level_1": {
+        "hp": null,
+        "ac": null,
+        "saves": {
+          "fortitude": null,
+          "reflex": null,
+          "will": null
+        },
+        "proficiencies": {
+          "attacks": null,
+          "defense": null
+        },
+        "trained_skills": null,
+        "granted_feats": null,
+        "focus_pool": null,
+        "spells": null,
+        "languages": null
+      },
+      "level_2": {
+        "hp": null,
+        "ac": null,
+        "saves": {
+          "fortitude": null,
+          "reflex": null,
+          "will": null
+        },
+        "proficiencies_progression": null,
+        "trained_skills_new": null,
+        "granted_feats": null,
+        "focus_pool": null,
+        "spells": null,
+        "languages": null,
+        "archetype_feat_slot": "Pode pegar dedicação padrão com variante Arquétipo Livre"
+      },
+      "level_3": {
+        "hp": null,
+        "ac": null,
+        "saves": {
+          "fortitude": null,
+          "reflex": null,
+          "will": null
+        },
+        "proficiencies_progression": null,
+        "trained_skills_new": null,
+        "granted_feats": null,
+        "focus_pool": null,
+        "spells": null,
+        "languages": null
+      }
+    }
+  }
+}
