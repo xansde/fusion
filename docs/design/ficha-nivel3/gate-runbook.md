@@ -122,3 +122,27 @@ taskkill //PID <pid> //F           # Git Bash no Windows
 ```
 
 Confirmar depois com `netstat -ano | grep ":<porta>"` (saída vazia ou só `TIME_WAIT`).
+
+## 8. Companion nasce ao reabrir a ficha; trocar classe num ator reusado duplica item
+
+Verificado ao vivo em 2026-09-21 (evidência viva da Onda 3, ator companheiro):
+
+- **A criação do ator companheiro (eidolon do Summoner, familiar da Witch) é um "heal on-open"
+  (`runHealAutoCompanion`), não um efeito imediato do clique em "Confirmar" no diálogo de
+  classe/eidolon.** Depois de aplicar a classe (e, no caso do Summoner, escolher o tipo de
+  Eidolon no slot do Plano), **feche a janela da ficha e abra de novo** — só nesse reabrir o
+  servidor cria o ator `type: "familiar"` com `system.companionKind` (`"eidolon"`/`"familiar"`)
+  e `system.masterActorId` apontando para o dono, com `ownership` copiado do master. Ele
+  aparece aninhado sob o personagem na gaveta Contatos e como card na aba "Pets" da própria
+  ficha.
+- **Cuidado ao reusar um ator de rodadas anteriores do gate para trocar de classe**: se ele já
+  tiver um item `type: "class"` (de uma rodada anterior), trocar a classe pelo diálogo do Plano
+  **não substitui** esse item — ele fica um segundo `class` no array `items`, e o card do Plano
+  passa a mostrar a classe ERRADA (a primeira do array), enquanto a classe nova só aparece nos
+  `choices`/`classFeature`s (ver issue #246, `xansde/fusion`). Isso também impede a heal de
+  encontrar a classe certa (ela lê `items.find(i => i.type === 'class')`). **Workaround**: para
+  testar uma classe nova num ator de teste já contaminado, resetar o ator a nível 1 sem classe
+  antes (via escrita direta no `world.db` de teste — nunca no ator real de produção): mantenha
+  só os itens `ancestry`/`heritage`/`background`, zere `system.level.value` para `1` e filtre
+  `system.build.choices` para as entradas `backgroundSkill-*`/`backgroundLore-*`. Depois reabra
+  o servidor e reaplique a classe do zero pela UI.

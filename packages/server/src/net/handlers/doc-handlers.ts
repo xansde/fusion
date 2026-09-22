@@ -77,7 +77,11 @@ import {
   PERMISSIONS_SETTING_KEY,
   type PermissionKey,
 } from "../../documents/world-permissions.js";
-import { detectFamiliarGrant, validateCharacterBuild } from "@fusion/system-pf2e";
+import {
+  companionGrantAllows,
+  companionGroupOf,
+  validateCharacterBuild,
+} from "@fusion/system-pf2e";
 import { deepMerge } from "../../documents/merge.js";
 import {
   DocCreatePayloadSchema,
@@ -456,12 +460,16 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
 //     (b) the master Actor exists AND the requester owns it at OWNER level
 //         (testOwnership from documents/ownership.ts — never a duplicated
 //         predicate);
-//     (c) the world runs pf2e AND the master actually has a feat/rule that
-//         grants a familiar (detectFamiliarGrant, read live from the master's
-//         embedded items on the SERVER — the client CTA is advisory, this is
-//         authoritative);
-//     (d) the master has no familiar linked yet (1 familiar per master; a
-//         second is rejected as a duplicate).
+//     (c) the world runs pf2e AND the master actually carries the grant for
+//         THAT companionKind (companionGrantAllows, read live from the
+//         master's embedded items on the SERVER — the client CTA is advisory,
+//         this is authoritative): a familiar-granting feat for familiar/pet,
+//         the Summoner class (by sourceId) for eidolon; a kind with no
+//         detector (animalCompanion, mount) is never granted to a player
+//         (spec 29 DEC-PET-03, REQ-PET-092);
+//     (d) the master has no companion of the same GROUP linked yet
+//         (familiar+pet share one slot, eidolon is its own; a second is
+//         rejected as a duplicate — REQ-PET-093).
 //     On success the created familiar's ownership is FORCED to the master's
 //     ownership map (the master's owners become the familiar's owners), never
 //     trusting a client-supplied ownership.
@@ -501,12 +509,18 @@ function isCompanionDoc(doc: Record<string, unknown>): boolean {
 }
 
 /**
- * Whether the master already has a familiar linked (1 per master, condition d).
- * Scans the actors table filtered to companions and matches masterActorId.
+ * Whether the master already has a companion of `kind`'s group linked
+ * (condition d, REQ-PET-093). Scans the actors table filtered to companions
+ * and matches masterActorId + group.
  */
-function masterHasFamiliar(store: DocumentStore, masterId: string): boolean {
-  const familiars = store.getAll("actors", { type: COMPANION_ACTOR_TYPE });
-  return familiars.some((f) => readMasterActorId(f) === masterId);
+function masterHasCompanionOfGroup(store: DocumentStore, masterId: string, kind: string): boolean {
+  const group = companionGroupOf(kind);
+  const companions = store.getAll("actors", { type: COMPANION_ACTOR_TYPE });
+  return companions.some(
+    (c) =>
+      readMasterActorId(c) === masterId &&
+      companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
+  );
 }
 
 /** Outcome of the player-companion create authorization. */
@@ -553,21 +567,22 @@ function authorizePlayerCompanionCreate(
     };
   }
 
-  // (c) Master must actually have a familiar-granting feat/rule.
-  if (!detectFamiliarGrant(master).canHaveFamiliar) {
+  // (c) Master must actually carry the grant for this kind (REQ-PET-092).
+  const kind = readCompanionKind(companion) ?? "";
+  if (!companionGrantAllows(kind, master)) {
     return {
       ok: false,
       code: "PERMISSION_DENIED",
-      message: "Master has no feat that grants a familiar",
+      message: `Master has no grant for a companion of kind "${kind}"`,
     };
   }
 
-  // (d) One familiar per master.
-  if (masterHasFamiliar(deps.store, masterId)) {
+  // (d) One companion per group per master (REQ-PET-093).
+  if (masterHasCompanionOfGroup(deps.store, masterId, kind)) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      message: "Master already has a familiar",
+      message: `Master already has a companion of kind "${kind}"`,
     };
   }
 
@@ -609,6 +624,31 @@ function authorizePlayerCompanionDelete(
     return { ok: false, code: "PERMISSION_DENIED", message: "You do not own the master actor" };
   }
   return { ok: true };
+}
+
+/**
+ * A companion created WITHOUT an explicit ownership map is born with a copy of
+ * its master's (spec 45 DEC-ATR-19, REQ-ATR-064) — so the GM who creates a
+ * player's eidolon does not create one the player cannot see. An explicit map
+ * is the GM's override and is kept (REQ-DOC-029 "salvo override"). The
+ * non-privileged path never reaches here: it FORCES the master's map above.
+ * A copy at birth, not live inheritance: ownership stays a plain field that
+ * every redaction predicate reads off the document itself (redaction.ts).
+ * A dangling master falls back to the general rule (the store default).
+ */
+function inheritMasterOwnershipOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!isCompanionDoc(item) || item["ownership"] !== undefined) return item;
+  const masterId = readMasterActorId(item);
+  if (!masterId) return item;
+  try {
+    return { ...item, ownership: { ...getOwnershipFromDoc(store.get("actors", masterId)) } };
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) return item;
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1008,6 +1048,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         const forced = forcedOwnership.get(i);
         if (forced) {
           item = { ...item, ownership: forced };
+        } else if (documentType === "Actor") {
+          item = inheritMasterOwnershipOnCreate(deps.store, item);
         }
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
