@@ -110,16 +110,17 @@ Três níveis, e **os três são obrigatórios**:
 > pronta que não existia.
 > E: **quem testa no servidor é o Alexandre.** Subiu o build, avisa e devolve o controle.
 
-| Onda  | Mecânico                                                                                                                                     | Vivo                                                                                                 | Olhado                                    |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| **0** | `pnpm build && pnpm test` verde + script que conta `GrantItem` não resolvível: **tem que dar 0** (T0.4 falha o build se não der)             | **Monk** criado num mundo e subido a 3: as features de nv 1, 2 e 3 **concedidas**, não só listadas   | print da aba Plano nos três níveis        |
-| **1** | teste que percorre as **27** entradas de `CLASS_CHOICE_SLOT_OPTIONS` e afirma, para cada uma: lista > 0 opções **e** grava no ator           | **Exemplar** (ikon + epíteto) e **Gunslinger** (way) criados; a escolha persiste após recarregar     | print de 3 pickers, um por família        |
-| **2** | teste de slots/conhecidas por círculo nos níveis 1-3 para as 10 classes conjuradoras; `proficiencyUpgrades` com consumidor coberto por teste | **Bard** nv3 (espontâneo, repertório escolhido, foco = 1) e **Wizard** nv3 (preparado, lista do dia) | print da aba de magias dos dois           |
-| **3** | teste de criação que gera **dois** documentos com ownership correto                                                                          | **Summoner** nv1 + eidolon existindo como documento próprio                                          | print do eidolon na gaveta                |
-| **4** | Animist: **23/23** features de nv 1-3 com `rules`[^1] (hoje 6/23); pack de divindades importado e referenciável                              | **Cleric** e **Champion** criados com divindade escolhida                                            | print da escolha de divindade             |
-| **5** | teste: com a variante ligada, o slot de nv2 lista **129** dedicações padrão e **0** de multiclasse                                           | personagem nv2 com dedicação padrão escolhida                                                        | print do slot de arquétipo                |
-| **6** | teste de servidor: jogador editando ator alheio é **recusado pelo servidor** (não só escondido no client)                                    | smoke **como GM e como player**                                                                      | prints dos dois papéis                    |
-| **7** | molde preenchido × ficha gerada: **divergência zero**                                                                                        | —                                                                                                    | roteiro `tutorial-e2e` com prints olhados |
+| Onda       | Mecânico                                                                                                                                                                                                                                          | Vivo                                                                                                                                                                                                             | Olhado                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **0**      | `pnpm build && pnpm test` verde + script que conta `GrantItem` não resolvível: **tem que dar 0** (T0.4 falha o build se não der)                                                                                                                  | **Monk** criado num mundo e subido a 3: as features de nv 1, 2 e 3 **concedidas**, não só listadas                                                                                                               | print da aba Plano nos três níveis                                                                     |
+| **1**      | teste que percorre as **27** entradas de `CLASS_CHOICE_SLOT_OPTIONS` e afirma, para cada uma: lista > 0 opções **e** grava no ator                                                                                                                | **Exemplar** (ikon + epíteto) e **Gunslinger** (way) criados; a escolha persiste após recarregar                                                                                                                 | print de 3 pickers, um por família                                                                     |
+| **2**      | teste de slots/conhecidas por círculo nos níveis 1-3 para as 10 classes conjuradoras; `proficiencyUpgrades` com consumidor coberto por teste                                                                                                      | **Bard** nv3 (espontâneo, repertório escolhido, foco = 1) e **Wizard** nv3 (preparado, lista do dia)                                                                                                             | print da aba de magias dos dois                                                                        |
+| **3**      | teste de criação que gera **dois** documentos com ownership correto                                                                                                                                                                               | **Summoner** nv1 + eidolon existindo como documento próprio                                                                                                                                                      | print do eidolon na gaveta                                                                             |
+| **4**      | Animist: **23/23** features de nv 1-3 com `rules`[^1] (hoje 6/23); pack de divindades importado e referenciável                                                                                                                                   | **Cleric** e **Champion** criados com divindade escolhida                                                                                                                                                        | print da escolha de divindade                                                                          |
+| **4b**[^2] | 13+9 testes (`apparitionSpellcasting.test.ts` + `planColumn-levelup-apparition.test.ts`) contra o vendor real: entrada "Apparition Spells" criada, repertório+Lore+vessel corretos, swap/remove retraem, level-up materializa rank 2+ sem reabrir | Ator `Fixer_o4b_r2` (mundo `teste_xande`, servidor+browser reais): 1ª aparição escolhida → Patamar 1 na aba Magias sem reabrir; nível 1→2→3 pelo botão → Patamar 2 (Knock) sem reabrir; `world.db` bate com a UI | prints `r2-03`..`r2-10` (`evidencia-viva-r2.md`) — ficha limpa, escolha, magias antes/depois, level-up |
+| **5**      | teste: com a variante ligada, o slot de nv2 lista **129** dedicações padrão e **0** de multiclasse                                                                                                                                                | personagem nv2 com dedicação padrão escolhida                                                                                                                                                                    | print do slot de arquétipo                                                                             |
+| **6**      | teste de servidor: jogador editando ator alheio é **recusado pelo servidor** (não só escondido no client)                                                                                                                                         | smoke **como GM e como player**                                                                                                                                                                                  | prints dos dois papéis                                                                                 |
+| **7**      | molde preenchido × ficha gerada: **divergência zero**                                                                                                                                                                                             | —                                                                                                                                                                                                                | roteiro `tutorial-e2e` com prints olhados                                                              |
 
 [^1]:
     **Critério trocado (T4.2, registrado na correção do achado C4 — revisão adversarial da Onda
@@ -131,6 +132,36 @@ Três níveis, e **os três são obrigatórios**:
     lacunas de engine descobertas nessa investigação (grant dinâmico de Lore skill por apparition,
     repertório de apparition com 16 magias faltando) não tinham buraco registrado neste plano nem
     issue aberta — ver `tasks.md` T4.2 para os números das issues abertas.
+
+[^2]:
+    **Onda 4b (T4.4, feedback do Alexandre testando a vitrine, 2026-09-21):** fecha a parte de
+    dado real das issues #124/#114 no recorte 1-3 — ver `tasks.md`, seção "Onda 4b", para o
+    detalhe completo do que fechou e do que ficou registrado como pendência (16 magias faltando
+    em spells-core, reseleção de aparição primária, reescolha diária, #101/#110/#119). O nível
+    "Vivo"/"Olhado" desta onda não foi produzido: a lane implementou e verificou por teste
+    (`apparitionSpellcasting.test.ts`, 13 casos contra o vendor real), mas não subiu servidor nem
+    browser para criar um Animist de verdade e fotografar a aba de magias — **fica pendente para
+    quem validar esta onda**, seguindo `docs/design/PROCESSO-UI.md`.
+
+    **Fixer rodada 1 (2026-09-21):** a revisão adversarial reprovou o merge com 3 bloqueantes e 4
+    importantes (`ficha3-reports/o4b/revisao-adversarial.md`) — a própria queixa do Alexandre
+    ("não adicionou nada na minha lista de magia") tinha causa raiz não fechada: o círculo 1 do
+    repertório ficava vazio no PRIMEIRO pick (C2), e a escolha da aparição podia sumir de
+    `system.build.choices` no mesmo lote (C1). Os 7 achados confirmados foram consertados
+    (`tasks.md` T4.4 tem o detalhe por achado); a prova "Vivo"/"Olhado" **continua pendente** —
+    nenhum servidor/browser foi levantado nesta rodada também, só TDD no nível do op-builder.
+
+    **Fixer rodada 2 + fecho (2026-09-21):** a revisão adversarial r1 confirmou 2 achados
+    importantes — N2 (level-up não materializa o repertório de rank 2+ da Apparition atunada até
+    reabrir a ficha) e C7 (evidência viva ainda não refeita no pin pós-fixer). O fixer r2 corrigiu
+    N2 (`handleLevelUp` passa a chamar `materializeApparitionSpells(targetLevel)`, satélite
+    `8203bae`) e refez a evidência viva do zero com ator limpo `Fixer_o4b_r2`
+    (`evidencia-viva-r2.md`) — **"Vivo"/"Olhado" FEITO nesta rodada**: C2 (1ª aparição sem
+    reabrir) e N2 (level-up sem reabrir) provados com servidor+browser reais. A revisão
+    adversarial r2 aprovou sem achado bloqueante/importante novo (`revisao-adversarial-r2.md`;
+    achado menor N3 — campo de edição direta de nível não materializa o repertório — virou issue
+    fusion-systems-2e#140, não bloqueia). Evidência de fecho consolidada em
+    `.fusion-build/ficha-nivel3/ondas/o4b/evidencia.md`.
 
 ### Artefato de fecho de onda
 
