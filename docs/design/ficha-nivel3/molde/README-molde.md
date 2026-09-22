@@ -12,14 +12,18 @@
 
 As 29 fichas usam **exatamente a mesma** ancestralidade, antecedente e distribuição de atributos. Isso torna as divergências atribuíveis à classe, não à combinação.
 
-**Atualmente proposto:**
+**Fixado (2026-09-22, Onda 7 fixer — achado C4, Alexandre indisponível, decidido pela regra do PF2e e registrado em `ficha3-reports/o7/fix-r1.md`):**
 
-- **Ancestralidade:** Human (Humano) — ✏️ editar se o Alexandre preferir
-- **Antecedente:** Scholar (Erudito) — ✏️ editar se o Alexandre preferir
-- **Atributos no nível 1** (exemplo proposto; editar):
-  - STR: 10, DEX: 12, CON: 14, INT: 13, WIS: 12, CHA: 11
+- **Ancestralidade:** Human (Humano)
+- **Herança:** Skilled Human (Humano Habilidoso) — treinado em Diplomacia + talento de perícia geral no nível 1
+- **Talento de ancestralidade (nível 1):** Cooperative Nature
+- **Antecedente:** Scholar (Erudito) — treina Sociedade + Erudição Acadêmica (Lore)
+- **Idiomas:** Comum + Élfico (1 idioma extra por INT +1)
+- **Atributos no nível 1** (antes do boost de habilidade-chave de cada classe, que soma +2 por cima e varia por classe):
+  - STR: 14, DEX: 12, CON: 14, INT: 12, WIS: 14, CHA: 10
+  - Boosts: ancestralidade em FOR/CON, antecedente em INT (obrigatório)/SAB (livre), 4 boosts livres em FOR/DES/CON/SAB. Todos os valores são pares e alcançáveis (nenhum atinge 18, então nenhum boost cai para +1) — os valores anteriores (INT 13, CAR 11) eram ilegais: a partir de 10, só boosts de +2 (ou +1 acima de 18) são possíveis.
 
-Aplicar o chassi a **todas as 29 classes** sem variação.
+Aplicar o chassi a **todas as 29 classes** sem variação. O boost de habilidade-chave de cada classe (+2, específico por classe) soma-se a estes valores e fica para T7.4 (preenchimento por classe).
 
 ### 2. O Que Preencher
 
@@ -71,9 +75,8 @@ Barbarian, Rogue, Monk, Gunslinger, Swashbuckler, Investigator, Guardian, Wizard
 
 ## Ordem de Execução do Preenchimento
 
-1. Decidir o **chassis comum** (ancestralidade, antecedente, atributos)
-   - Ou aceitar a proposta: Human, Scholar, STR/DEX/CON/INT/WIS/CHA = 10/12/14/13/12/11
-   - Ou editar no arquivo `metadata.chassis_common`
+1. O **chassis comum** já está fixado (ver seção 1 acima): Human/Skilled Human/Cooperative Nature, Scholar, STR/DEX/CON/INT/WIS/CHA = 14/12/14/12/14/10 (antes do boost de habilidade-chave da classe)
+   - Só reabrir (`metadata.chassis_common`) com instrução literal do Alexandre
 
 2. **Lote 1 (8 classes):** preencher manualmente, um por um, lendo o Player Core Remaster
    - Cada entrada pode levar 10–15 min

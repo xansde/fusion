@@ -3,16 +3,34 @@
     "description": "Molde de ficha de referência para as 29 classes PF2e, níveis 1–3",
     "source_of_truth": "Preenchido manualmente contra o Player Core Remaster, não gerado automaticamente",
     "chassis_common": {
-      "ancestry": "proposta — Human (Humano) — editar",
-      "background": "proposta — Scholar (Erudito) — editar",
+      "status": "fixado — ficha3-reports/o7/fix-r1.md C4 (2026-09-22); Alexandre indisponível, decidido pela regra do PF2e Player Core Remaster e registrado aqui",
+      "ancestry": "Human (Humano)",
+      "heritage": "Skilled Human (Humano Habilidoso) — treinado numa perícia à escolha (Diplomacia) + 1 talento de perícia geral no nível 1 (Player Core Remaster p. 58)",
+      "ancestry_feat_level_1": "Cooperative Nature (Player Core Remaster p. 60) — +2 de circunstância em Auxiliar quando ajuda com uma perícia treinada; escolhido por não alterar nenhum campo numérico já derivado (HP/CA/perícias), ao contrário de Natural Ambition (concede talento de classe extra)",
+      "background": "Scholar (Erudito)",
+      "background_skills": [
+        "Society (Sociedade) — treinada pelo antecedente",
+        "Academia Lore (Erudição Acadêmica) — treinada pelo antecedente"
+      ],
+      "languages": {
+        "note": "Human fala Common; ganha +1 idioma adicional por ponto de modificador de INT positivo (aqui INT 12 → mod +1 → 1 idioma extra). Escolha arbitrária, ajustável por campanha — nunca deixar em aberto.",
+        "list": ["Common (Comum)", "Elvish (Élfico)"]
+      },
       "ability_scores_at_level_1": {
-        "note": "Distribuição proposta; editar conforme Alexandre preferir",
-        "strength": "proposta — 10 — editar",
-        "dexterity": "proposta — 12 — editar",
-        "constitution": "proposta — 14 — editar",
-        "intelligence": "proposta — 13 — editar",
-        "wisdom": "proposta — 12 — editar",
-        "charisma": "proposta — 11 — editar"
+        "note": "8 boosts de habilidade aplicados ANTES do boost de habilidade-chave da classe (que soma +2 por ser específico de cada uma das 29 classes e não cabe num chassi comum — ver 'class_key_ability_boost_note'). Toda habilidade parte de 10; cada boost aqui soma +2 (nenhuma passa de 18, então nenhum boost cai para +1). Valores pares e alcançáveis pela regra de geração de atributos do Player Core Remaster (cap. 1) — substitui os valores ilegais anteriores (INT 13 / CAR 11, inatingíveis a partir de 10 com boosts de +2/+1).",
+        "ancestry_boosts": ["strength", "constitution"],
+        "background_boosts": [
+          "intelligence (obrigatório Int ou Sab pelo Scholar)",
+          "wisdom (livre)"
+        ],
+        "free_boosts_4": ["strength", "dexterity", "constitution", "wisdom"],
+        "class_key_ability_boost_note": "Cada uma das 29 classes soma +2 (ou +1 se já em 18) à sua própria habilidade-chave por cima destes valores — não fixado aqui por variar por classe; ficará com a classe quando os campos numéricos por-classe forem preenchidos (T7.4).",
+        "strength": 14,
+        "dexterity": 12,
+        "constitution": 14,
+        "intelligence": 12,
+        "wisdom": 14,
+        "charisma": 10
       }
     },
     "note_on_blanks": "TODOS os campos numéricos derivados (HP, CA, salvaguardas, proficiências, perícias, talentos, slots, magias, foco, idiomas) DEVEM ficar em branco. Preencher apenas campos de escolha explícita (classe, ancestry, background, arquetipo se aplicável)."
