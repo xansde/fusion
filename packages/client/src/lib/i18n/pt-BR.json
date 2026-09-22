@@ -957,6 +957,8 @@
   "FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice": "Ancestralidade Adotada",
   "FUSION.Sheet.Plan.SlotLabel.language": "Idioma Bônus",
   "FUSION.Sheet.Plan.SlotLabel.skillChoice": "Escolha de Perícia",
+  "FUSION.Sheet.Plan.SlotLabel.freeSkillChoice": "Escolha Livre de Perícia (já treinada)",
+  "FUSION.Sheet.Plan.SlotLabel.itemChoice": "Escolha de Item",
   "FUSION.Sheet.Plan.SlotLabel.impulseGate.air": "Impulso de Ar",
   "FUSION.Sheet.Plan.SlotLabel.impulseGate.earth": "Impulso de Terra",
   "FUSION.Sheet.Plan.SlotLabel.impulseGate.fire": "Impulso de Fogo",
