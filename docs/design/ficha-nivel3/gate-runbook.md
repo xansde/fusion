@@ -1,4 +1,4 @@
-# Gate da Onda 0 — runbook operacional (verificado ao vivo em 2026-09-21)
+# Gate da Onda 0 — runbook operacional (verificado ao vivo em 2026-09-21; seção 5 corrigida na Onda 6b)
 
 Este documento existia como lacuna (tasks.md, nota da Onda 0: "o caminho operacional do gate
 não está documentado"). O passo a passo abaixo foi executado de ponta a ponta nesta sessão —
@@ -74,23 +74,33 @@ clicar "Entrar no World". Basta repetir em outra aba/sessão de browser para log
 segundo papel (o cookie de sessão é por contexto de browser — usar `-s=<nome>` diferente no
 `playwright-cli`, ou uma aba nova dentro do MESMO contexto reusa a sessão já autenticada).
 
-## 5. Onde fica o personagem — lacuna de produto encontrada
+## 5. Onde fica o personagem — gatilho real é criar o usuário (correção de 2026-09-21, T6.5)
 
-**Não existe, hoje, um botão "criar personagem novo" na UI do Mestre.** A aba "Contatos"
-lista os atores tipo `character` já existentes no mundo (com botão "Abrir a ficha"); a aba
-"NPCs" só cria atores tipo `npc`/`hazard` ("Novo não-jogável"). O código documenta isso
-explicitamente: `packages/client/src/lib/npcs/createNpc.ts`, cabeçalho — _"`character` é
-nascido com o jogador (DEC-NPC-02)"_ — ou seja, o fluxo de nascimento de personagem-jogador
-é uma decisão de produto **ainda não implementada** como entry point de UI. Isso bate com a
-memória do projeto (`project_gaveta_lateral_specs.md`: "personagem nasce com o player, emenda
-37/05, não aplicada ainda").
+**Superado pela investigação da T6.5 (Onda 6b).** A seção original desta nota (Onda 0) dizia
+"não existe botão criar personagem novo" e descrevia um workaround de reaproveitar atores já
+existentes. Isso não é mais o caminho a seguir: a T6.5 (`ficha3-reports/o6b/T6.5-criar-personagem.md`)
+cruzou três specs e confirmou que **um botão "Criar personagem" violaria decisão de produto
+fechada** (REQ-CFG-051a, REQ-NPC-055a). O gatilho real, já implementado e provado ao vivo
+nesta mesma onda, é:
 
-**Consequência para o gate:** não dá para simplesmente "criar um Monk" do zero pela UI. O
-caminho usado nesta sessão foi reaproveitar atores `character` já existentes no mundo copiado
-(`Tobias`, `Novo Ator`) e um terceiro clonado por escrita direta no `world.db` (ver
-`evidencia-viva.md`), todos resetados para nível 1 sem classe antes do teste. **Isso é um
-workaround de teste, não o fluxo real do produto** — o buraco em si (falta de "criar
-personagem") deveria virar issue própria (ver `evidencia-viva.md`, seção Pendências).
+1. Mestre logado → **Configurações → Usuários → "Criar usuário"** → nome, papel
+   `Jogador`/`Confiável`, senha.
+2. Ao confirmar, `AuthService.createUser` (REQ-USR-025) cria, na mesma transação, um Actor
+   `character` **em branco** do qual o novo usuário é `OWNER` (`ownership[userId] = 3`).
+   (Antes do fix `20edd60d`/C2 desta onda, o comando de CLI `fusion user add` não passava por
+   esse serviço e não criava o Actor — a rota de UI/API sempre criou corretamente.)
+3. Esse Actor aparece imediatamente na aba **Contatos → "Na mesa"** de todo mundo, marcado
+   "você" para o próprio dono; duplo-clique (ou "Abrir a ficha") abre a `CharacterSheet` com a
+   coluna **Plano visível por padrão** (`planVisible = $state(true)`), pronta para escolher
+   ancestralidade/antecedente/classe e subir de nível — qualquer uma das 29 classes.
+4. **"O Mestre também cria e escolhe o dono"**: como REQ-USR-025 não separa "criar usuário" de
+   "escolher dono", o Mestre criando o usuário **é** o Mestre escolhendo o dono do personagem
+   que nasce junto.
+
+**Para o gate:** não é preciso mais reaproveitar atores existentes nem escrever direto no
+`world.db` para simular um personagem novo — basta criar um usuário PLAYER pela UI de
+Configurações. Evidência completa (prints + verificação em `world.db`) em
+`ficha3-reports/o6b/evidencia-viva.md` / `evidencia-viva-final.md`.
 
 ## 6. Fluxo de build de personagem (uma vez logado como Mestre, ator aberto)
 
