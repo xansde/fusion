@@ -107,7 +107,7 @@ nível 1 tem Fortitude expert"), nunca da tabela do próprio pack.
 - **T5.2** Roteiro `tutorial-e2e` com prints (criação e subida de nível) e o smoke como GM e como
   player, segundo `docs/design/PROCESSO-UI.md`.
 
-## Decisões abertas (para o Alexandre)
+## Decisões (fechadas pelo Alexandre em 24/09: as três recomendações)
 
 - **D1: onde vive a progressão.** A recomendação é **subir a derivação de progressão do
   `systems/pf2e` para o `engine-2e`** e fazer o PF2e e o SF2e consumirem a mesma. Assim cumpre a
