@@ -169,8 +169,9 @@ describe("sf2e-only world: classFeature concession via the real server path (B3)
     await waitForConnect(gm);
 
     const classIndex = await send(gm, "query", "compendium:index", { packId: CLASS_PACK_ID });
-    const classEntries = (classIndex["result"] as { entries: Array<{ uuid: string; name: string }> })
-      .entries;
+    const classEntries = (
+      classIndex["result"] as { entries: Array<{ uuid: string; name: string }> }
+    ).entries;
     const soldier = classEntries.find((e) => e.name === "Soldier");
     expect(soldier, "Soldier not found in sf2e.classes-core").toBeDefined();
     soldierUuid = soldier!.uuid;
@@ -178,9 +179,8 @@ describe("sf2e-only world: classFeature concession via the real server path (B3)
     const featuresIndex = await send(gm, "query", "compendium:index", {
       packId: CLASS_FEATURES_PACK_ID,
     });
-    const featureEntries = (
-      featuresIndex["result"] as { entries: Array<{ uuid: string }> }
-    ).entries;
+    const featureEntries = (featuresIndex["result"] as { entries: Array<{ uuid: string }> })
+      .entries;
     expect(featureEntries.length).toBeGreaterThan(0);
     classFeatureUuids = featureEntries.map((e) => e.uuid);
 
