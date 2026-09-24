@@ -223,7 +223,7 @@ minimiza esforço e mantém consistência no pipeline.
 
 ---
 
-### DEC-SF2-07-bis — Mundo misto: packs sf2e/pf2e continuam separados NOS ARQUIVOS; um sistema composto pode servi-los lado a lado
+### DEC-SF2-07a — Mundo misto: packs sf2e/pf2e continuam separados NOS ARQUIVOS; um sistema composto pode servi-los lado a lado
 
 **Data:** 2026-09-24. Reverte a leitura restritiva de DEC-SF2-07 ("nunca
 misturados") por decisão do Alexandre — desenho do mundo misto PF2e +
@@ -233,7 +233,7 @@ Starfinder 2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`).
 packs sf2e nunca são gravados dentro de um pack pf2e, nem o inverso — a
 separação por diretório (`systems/pf2e/packs/**` × `systems/sf2e/packs/**`)
 é permanente. O que muda é que um **sistema composto** (`pf2e-sf2e`,
-DEC-SYS-06-bis) pode **descobrir e servir** os dois lado a lado num mesmo
+DEC-SYS-06a) pode **descobrir e servir** os dois lado a lado num mesmo
 `CompendiumService`, para um mesmo mundo — sem misturar os ARQUIVOS, sem
 copiar, sem reescrever nenhum dos dois. "Nunca misturados" descrevia uma
 restrição de armazenamento (a que continua valendo), não uma proibição de um
@@ -300,7 +300,7 @@ bard/cleric/druid/oracle/sorcerer/witch/wizard, sf2e a mystic/witchwarper),
 pura `buildDedupIndex`, aplicada por `CompendiumService._ensureDedupIndex`
 (lazy, só quando o serviço carrega ≥2 `systemId`s distintos — um mundo pf2e
 ou sf2e puro nunca paga o custo nem muda de comportamento). O documento
-perdedor (sf2e, por convenção — DEC-SYS-06-bis reusa o shape pf2e) some do
+perdedor (sf2e, por convenção — DEC-SYS-06a reusa o shape pf2e) some do
 índice/busca (`compendium:index`/`compendium:searchAll`); o documento vencedor
 ganha `index.mergedFromSystems: ["sf2e"]` para a origem ficar visível; e
 `CompendiumService.getDocument` (usado por `compendium:get`, importação para

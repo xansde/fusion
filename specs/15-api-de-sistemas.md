@@ -231,7 +231,7 @@ Svelte; não há `render()` manual.
   uma única arquitetura de UI. O sistema registra `{ component, types,
 makeDefault, label }` (forma de research 07 §4.1, modernizada).
 
-### DEC-SYS-06-bis — Sistema composto: um `SystemModule` que une packs de outros sistemas, sem copiar dado
+### DEC-SYS-06a — Sistema composto: um `SystemModule` que une packs de outros sistemas, sem copiar dado
 
 **Data:** 2026-09-24. Decisão do Alexandre para o mundo misto PF2e + Starfinder
 2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`, Opção B).
@@ -406,7 +406,7 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
 
 - **REQ-SYS-016** [MVP] O manifest PODE declarar `sourceSystemIds: string[]` (≥ 1
   id de sistema já registrado) para marcar o sistema como **composto**
-  (DEC-SYS-06-bis): a engine resolve o diretório de packs de cada id listado (a
+  (DEC-SYS-06a): a engine resolve o diretório de packs de cada id listado (a
   mesma `resolveSystemPacksDir` de sempre, uma vez por id) em vez do diretório do
   próprio `manifest.id`, e agrega o resultado no mesmo `CompendiumService` — sem
   copiar, gerar ou reescrever nada. Um manifest composto fica dispensado de

@@ -7,7 +7,7 @@
  * Both fixed gates go through `systemIncludes` (packages/system-api/src/
  * manifest.ts) instead of a raw string comparison:
  *   - familiar creation (doc-handlers.ts `authorizePlayerCompanionCreate`,
- *     REQ-PET-09x) — was gated on `systemId !== "pf2e"`.
+ *     REQ-PET-092) — was gated on `systemId !== "pf2e"`.
  *   - the SF2e augmentation slot limit (documents/embedded-item.ts
  *     `augmentationSlotLimitViolation`, REQ-SF2-024) — was gated on
  *     `systemId !== "sf2e"`.
@@ -197,7 +197,7 @@ describe("I4 — systemIncludes gates hold under the pf2e+sf2e composite system"
     await teardown(ctx);
   });
 
-  it("a PLAYER may create their own familiar under the composite system (pf2e escape hatch, REQ-PET-09x)", async () => {
+  it("a PLAYER may create their own familiar under the composite system (pf2e escape hatch, REQ-PET-092)", async () => {
     const masterAck = await sendOp(gm, "doc:create", {
       documentType: "Actor",
       data: [
