@@ -175,6 +175,24 @@ describe("boot() discovers BOTH source systems' packs for the pf2e-sf2e composit
     expect(ids).toContain(SF2E_ONLY_PACK_ID);
   });
 
+  it("B4 (revisão adversarial 3): compendium:list FILTERED by the composite's OWN systemId still returns both source systems' packs", async () => {
+    // This is the exact call the ficha's pickers make (CompendiumPickerDialog,
+    // PlanColumn, SpellPickerDialog): listPacks(sock, { systemId:
+    // session.worldInfo.systemId, documentType: "Item" }). Before the fix,
+    // filter.systemId="pf2e-sf2e" matched NO pack (every pack is loaded
+    // under its own systemId, "pf2e"/"sf2e", never "pf2e-sf2e") — every
+    // seletor in the mundo misto ficha was empty.
+    const ack = await sendQuery(gm, "compendium:list", {
+      systemId: "pf2e-sf2e",
+      documentType: "Item",
+    });
+    expect(ack["ok"]).toBe(true);
+    const packs = (ack["result"] as { packs: Array<{ id: string }> }).packs;
+    const ids = packs.map((p) => p.id);
+    expect(ids).toContain(PF2E_ONLY_PACK_ID);
+    expect(ids).toContain(SF2E_ONLY_PACK_ID);
+  });
+
   it("compendium:index works against a pack from EACH source system", async () => {
     const pf2eAck = await sendQuery(gm, "compendium:index", { packId: PF2E_ONLY_PACK_ID });
     expect(pf2eAck["ok"]).toBe(true);

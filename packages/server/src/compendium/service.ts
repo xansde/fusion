@@ -320,16 +320,32 @@ export class CompendiumService {
    * REQ-CMP-012: filter by systemId and/or documentType.
    * REQ-CMP-010a / REQ-CPD-071: a `gm` pack is not listed to a non-privileged
    * viewer — it is simply absent, as if it did not exist.
+   *
+   * `filter.systemId` accepts an ARRAY too (B4, revisão adversarial 3): a
+   * composite world's caller (`buildCompendiumListHandler`) resolves the
+   * active composite's `sourceSystemIds` and passes the whole list here, so
+   * a mundo misto `pf2e-sf2e` world lists BOTH the pf2e and the sf2e packs
+   * — every pack in this service is still loaded under its OWN systemId
+   * ("pf2e"/"sf2e"), never "pf2e-sf2e" (no pack is ever re-tagged), so a
+   * bare single-string filter for the composite id would always return
+   * zero packs (this was B4's actual bug: the ficha's `listPacks({systemId:
+   * "pf2e-sf2e"})` silently returned nothing).
    */
   listPacks(
     viewerRole: number,
-    filter?: { systemId?: string; documentType?: string },
+    filter?: { systemId?: string | string[]; documentType?: string },
   ): PackManifest[] {
+    const systemIds =
+      filter?.systemId === undefined
+        ? undefined
+        : Array.isArray(filter.systemId)
+          ? filter.systemId
+          : [filter.systemId];
     const packs: PackManifest[] = [];
     for (const loaded of this.packs.values()) {
       if (!this._isPackVisible(loaded, viewerRole)) continue;
       const { manifest } = loaded;
-      if (filter?.systemId !== undefined && manifest.systemId !== filter.systemId) continue;
+      if (systemIds !== undefined && !systemIds.includes(manifest.systemId)) continue;
       if (filter?.documentType !== undefined && manifest.documentType !== filter.documentType)
         continue;
       packs.push(manifest);
