@@ -381,7 +381,14 @@ com `id: "sf2e"`, `name: "Starfinder Second Edition"`, `version: semver` e
 declarar dependência de engine 2e versão mínima especificada.
 
 **REQ-SF2-002** [MVP] O sistema deve declarar os seguintes `documentTypes`
-adicionais ao conjunto base herdado do engine 2e: `augmentation` (item).
+adicionais ao conjunto base herdado do engine 2e: `augmentation` (item) e
+`classFeature` (item — características de classe concedidas automaticamente
+por nível, conteúdo do pack `class-features-core`; distinto de `feat`, que
+cobre os talentos escolhidos pelo jogador, REQ-SF2-010). O `classFeature`
+não estava registrado em `documentTypes.Item` até 2026-09-24 (B3 da revisão
+3 da Fatia 2): o schema já existia desde antes, mas nunca foi declarado, e o
+servidor rejeitava as 58 características do compendium com "Unknown Item
+type" — corrigido junto com este registro de requisito.
 Os actor subtypes `character`, `npc`, `hazard` e `loot` são herdados sem
 modificação (mesmo conjunto MVP do PF2e). Os subtypes `vehicle` e `starship`
 (actor [V2]) serão adicionados em [V2] quando os subsistemas correspondentes
