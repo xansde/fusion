@@ -4,9 +4,13 @@
  * This is the PROOF that a real live SF2e session is playable: it boots the
  * server through the actual boot() sequence (NOT manual SocketManager wiring)
  * with only `netContext.systemId = "sf2e"`, and asserts that compendium:list
- * returns exactly the committed packs under systems/sf2e/packs/ (18 since the
- * SF2e Player Core curation — PR #179/#169/#171 — landed the classes/feats/
- * ancestries/backgrounds subset; was 6 before that merge).
+ * returns exactly the committed packs under systems/sf2e/packs/.
+ *
+ * The expected pack id set is DERIVED from the real directory
+ * (`resolveSystemPacksDir("sf2e")` + `readdirSync`), never a hardcoded
+ * literal list — a submodule re-pin that adds/removes a pack (e.g. the SF2e
+ * Player Core curation, PR #179/#169/#171, which grew the set from 6 to 18)
+ * must never break this test by itself (I3, revisão adversarial 3).
  *
  * Mirrors packages/server/src/__tests__/boot-compendium.test.ts's pf2e
  * coverage and regression rationale: boot()/serve.ts previously never
@@ -20,7 +24,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { io as ioClient } from "socket.io-client";
@@ -35,31 +39,27 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
+import { resolveSystemPacksDir } from "../compendium/service.js";
 
 // ---------------------------------------------------------------------------
-// Expected committed packs (systems/sf2e/packs/) — exactly these.
+// Expected committed packs (systems/sf2e/packs/) — derived from the real
+// directory, never a hardcoded literal list (I3, revisão adversarial 3): a
+// submodule re-pin that adds/removes a pack must not break this test by
+// itself. Each subdirectory of the resolved packs dir is one pack, id'd
+// "sf2e.<dirname>" (same convention CompendiumService uses to discover them).
 // ---------------------------------------------------------------------------
 
-const EXPECTED_PACK_IDS = [
-  "sf2e.actions-core",
-  "sf2e.ancestries-core",
-  "sf2e.ancestry-feats-core",
-  "sf2e.ancestry-features-core",
-  "sf2e.armor-core",
-  "sf2e.augmentations-core",
-  "sf2e.backgrounds-core",
-  "sf2e.bestiary-core",
-  "sf2e.class-features-core",
-  "sf2e.classes-core",
-  "sf2e.conditions",
-  "sf2e.feats-core",
-  "sf2e.general-feats-core",
-  "sf2e.heritages-core",
-  "sf2e.skill-feats-core",
-  "sf2e.spells-core",
-  "sf2e.spells-nivel3-core",
-  "sf2e.weapons-core",
-];
+function discoverExpectedSf2ePackIds(): string[] {
+  const packsDir = resolveSystemPacksDir("sf2e");
+  if (packsDir === null) {
+    throw new Error("resolveSystemPacksDir(\"sf2e\") returned null — packs dir not found");
+  }
+  return readdirSync(packsDir)
+    .filter((entry) => statSync(join(packsDir, entry)).isDirectory())
+    .map((dir) => `sf2e.${dir}`);
+}
+
+const EXPECTED_PACK_IDS = discoverExpectedSf2ePackIds();
 
 // ---------------------------------------------------------------------------
 // Test infrastructure (mirrors boot-compendium.test.ts)
