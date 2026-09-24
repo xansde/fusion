@@ -240,15 +240,22 @@ restrição de armazenamento (a que continua valendo), não uma proibição de u
 mundo enxergar os dois catálogos ao mesmo tempo.
 
 **Verificação de colisão de pack id (Risco R2 do desenho):** medido nos dados
-reais dos packs commitados (2026-09-24) — `systems/pf2e/packs/*/pack.json` (14
-packs, todos com `id` prefixado `pf2e.<slug>`) × `systems/sf2e/packs/*/pack.json`
-(6 packs, todos `sf2e.<slug>`) — **zero colisões**. O prefixo por sistema já em
-uso (`pf2e.`/`sf2e.`) evita namespacing adicional no composto.
+reais dos packs commitados — na primeira medição (2026-09-24, pré-curadoria)
+`systems/pf2e/packs/*/pack.json` (14 packs, todos com `id` prefixado
+`pf2e.<slug>`) × `systems/sf2e/packs/*/pack.json` (6 packs, todos
+`sf2e.<slug>`) deu **zero colisões**. Depois da curadoria do Player Core SF2e
+(mesma leva descrita abaixo), a contagem real é **15 packs pf2e × 18 packs
+sf2e = 33 packs** (bate com o `compendium:list` ao vivo do mundo misto, ataque
+3 da revisão adversarial 4) — **zero colisões continua valendo**, porque o
+prefixo por sistema é dado pelo `id` do pack, não pela quantidade. O prefixo
+por sistema já em uso (`pf2e.`/`sf2e.`) evita namespacing adicional no
+composto.
 
 **Deduplicação de homônimos (documentos com o mesmo `name` nos dois
 sistemas) — IMPLEMENTADA (2026-09-24, lane de conserto pós-#261/#181):** a
 medição inicial (zero homônimos) foi feita só contra os 6 packs sf2e
-pré-curadoria. Depois que a curadoria do Player Core SF2e (PR #169 dados +
+pré-curadoria (snapshot do parágrafo anterior). Depois que a curadoria do
+Player Core SF2e (PR #169 dados +
 #171, integrados nesta lane via `feat/misto-dedup`) trouxe 97 talentos de
 perícia, 18 gerais, ações e classes, a medição real (mesma normalização —
 tipo + slug + nível/rank + traits + actionType/actions/category +

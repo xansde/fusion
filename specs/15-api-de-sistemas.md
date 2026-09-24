@@ -240,14 +240,29 @@ makeDefault, label }` (forma de research 07 §4.1, modernizada).
 (REQ-SYS-006 permanece intacto na letra) — mas esse sistema ativo pode ser um
 **sistema composto**: um `SystemModule` normal, registrado via
 `SystemRegistry.register()` como qualquer outro, cujo manifest declara
-`sourceSystemIds: string[]` (≥ 2 ids de sistemas JÁ registrados) em vez de
-`packs[]` próprio. Na descoberta de compêndios (`ver 16-`), a engine resolve o
-diretório de packs de CADA id em `sourceSystemIds` (mesma
+`sourceSystemIds: string[]` (REQ-SYS-016; o schema Zod hoje exige `.min(1)`,
+não `.min(2)` — um composto de um id só é aceito, ainda que sem sentido
+prático) em vez de `packs[]` próprio. Na descoberta de compêndios (`ver 16-`),
+a engine resolve o diretório de packs de CADA id em `sourceSystemIds` (mesma
 `resolveSystemPacksDir` de sempre, uma vez por id) e os agrega no mesmo
 `CompendiumService` — os arquivos permanecem exatamente onde estavam, nos
 sistemas de origem; nada é copiado, gerado ou reescrito. Um pack novo
 adicionado a qualquer sistema de origem aparece no composto automaticamente,
 sem nenhuma ação adicional.
+
+**Modelos (`system`) e passos de derivação compartilhados:** para cada
+`(documentType, subtype)` que dois sistemas de origem registram, o composto usa
+`z.union([schemaA, schemaB])` — o documento valida contra o schema de QUALQUER
+origem que aceitar, na ordem em que os sistemas de origem foram declarados
+(revisão adversarial 4, B-1: união "primeiro que passa" pode podar campos
+exclusivos da origem que perde a corrida — não é regra final, é o estado
+observado). Para `documentType:subtype === "Actor:character"`, o composto usa
+um schema dedicado (`CompositeCharacterSystemSchema`), não a união. Para os
+passos de derivação (`DeriveStep`) que dois sistemas registram sob o mesmo
+sufixo (`abilityMods`, `hp`, `ac`, `skills`, `strikes`…), o composto hoje
+mantém **só a cópia de uma origem** por sufixo — não as combina nem escolhe a
+mais completa (revisão adversarial 4, B-1: essa regra já se mostrou incorreta
+quando a origem mantida escreve menos campos que a outra).
 
 - **Rejeitado: terceiro sistema estático com packs próprios (cópia/geração).**
   Viola o requisito de "sem copiar dado" — uma classe nova no sistema de
@@ -258,12 +273,22 @@ sem nenhuma ação adicional.
   "mais de um sistema" — a spec inteira foi escrita assumindo um
   `SystemModule` só. Um sistema composto de verdade mantém a invariante
   "um mundo, um sistema" literal, e o composto declara seu **próprio**
-  `engineCompat` (calculado como a interseção dos sistemas de origem).
-- **Racional:** o schema de um sistema composto tipicamente reaproveita quase
-  100% o schema de um dos sistemas de origem (quando um já é um superset
-  estrutural do outro, como `ActorSystemSF2e extends ActorSystemPF2e`) — o
-  trabalho do composto se resume a resolver as diferenças reais (ex.: um
-  campo de moeda com shape diferente) e a União de `documentTypes`.
+  `engineCompat` (interseção dos sistemas de origem — no `pf2e-sf2e` de hoje
+  isso é um `">=0.1.0"` escrito à mão porque as duas origens ainda declaram o
+  mesmo range; nenhum código calcula a interseção de fato, então um sistema de
+  origem que estreitar seu `engineCompat` exige o mesmo ajuste manual no
+  composto até essa lacuna ser fechada).
+- **Racional:** o objetivo é que o composto reúna os schemas dos sistemas de
+  origem sem reescrevê-los — o trabalho fica limitado a resolver as diferenças
+  reais (ex.: um campo de moeda com shape diferente) e a União de
+  `documentTypes`. **Não é verdade**, porém, que o schema de um sistema
+  composto "reaproveite quase 100%" o de um único sistema de origem tratado
+  como superset: `ActorSystemSF2e` não é superset estrutural de
+  `ActorSystemPF2e` (`SF2e` escreve menos campos em vários passos
+  compartilhados — ver acima), e a união de `Item` schemas poda campos
+  exclusivos da origem que perde a corrida do `z.union` (B-1, revisão
+  adversarial 4). A premissa "já correto, superset" está desatualizada; o
+  composto de hoje é o estado descrito acima, não este racional original.
 
 > **Emenda ao REQ-SYS-005:** o manifest de um sistema composto (que declara
 > `sourceSystemIds`) NÃO precisa declarar `packs[]` — seus packs são os dos
@@ -378,6 +403,27 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
   > o sistema declara (PF2e: Médio 1×1, Grande 2×2). A engine não arbitra a regra: só encaminha o
   > mapeamento para quem desenha o token. `sizeToFootprint` é o que sustenta REQ-TOK-012 e
   > REQ-TOK-017 (footprint muda sozinho quando a criatura muda de tamanho, sem escrita na peça).
+
+- **REQ-SYS-016** [MVP] O manifest PODE declarar `sourceSystemIds: string[]` (≥ 1
+  id de sistema já registrado) para marcar o sistema como **composto**
+  (DEC-SYS-06-bis): a engine resolve o diretório de packs de cada id listado (a
+  mesma `resolveSystemPacksDir` de sempre, uma vez por id) em vez do diretório do
+  próprio `manifest.id`, e agrega o resultado no mesmo `CompendiumService` — sem
+  copiar, gerar ou reescrever nada. Um manifest composto fica dispensado de
+  declarar `packs[]` próprio (emenda ao REQ-SYS-005). Campo opcional; ausência =
+  sistema não-composto, comportamento de sempre. (`ver 16-`.)
+- **REQ-SYS-017** [MVP] O manifest PODE declarar `vocabulary` — `{ skills:
+{ slug, ability }[], currency: string[], spellTraditions: string[] }` — a
+  vocabulária do sistema (perícias com a habilidade que as rege, moedas e
+  tradições de magia) como fonte única para o pacote de ficha ler pela rede
+  (`system:vocabulary`, mesmo molde de `system:conditions`/`system:footprint`,
+  REQ-ARQ-005: a ficha não importa `systems/*`). Um sistema **composto**
+  (REQ-SYS-016) DEVE calcular sua própria `vocabulary` como a UNIÃO das
+  vocabulárias dos `sourceSystemIds` (perícias por slug, tradições por valor),
+  com `currency` da sua própria declaração — nunca uma cópia literal de uma
+  única origem. Campo opcional; sistema sem declaração não expõe vocabulária, e
+  a ficha cai no fallback PF2e-only embutido (`systemSheetConfig.ts`), a mesma
+  postura "degrade aberto" de `sizeToFootprint` (REQ-SYS-009).
 
 ### Registro de document subtypes e schemas `system`
 
