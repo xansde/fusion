@@ -4,7 +4,9 @@
  * This is the PROOF that a real live SF2e session is playable: it boots the
  * server through the actual boot() sequence (NOT manual SocketManager wiring)
  * with only `netContext.systemId = "sf2e"`, and asserts that compendium:list
- * returns exactly the 6 committed packs under systems/sf2e/packs/.
+ * returns exactly the committed packs under systems/sf2e/packs/ (18 since the
+ * SF2e Player Core curation — PR #179/#169/#171 — landed the classes/feats/
+ * ancestries/backgrounds subset; was 6 before that merge).
  *
  * Mirrors packages/server/src/__tests__/boot-compendium.test.ts's pf2e
  * coverage and regression rationale: boot()/serve.ts previously never
@@ -35,16 +37,28 @@ import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
-// Expected committed packs (systems/sf2e/packs/) — exactly these 6.
+// Expected committed packs (systems/sf2e/packs/) — exactly these.
 // ---------------------------------------------------------------------------
 
 const EXPECTED_PACK_IDS = [
-  "sf2e.bestiary-core",
-  "sf2e.weapons-core",
+  "sf2e.actions-core",
+  "sf2e.ancestries-core",
+  "sf2e.ancestry-feats-core",
+  "sf2e.ancestry-features-core",
   "sf2e.armor-core",
-  "sf2e.conditions",
-  "sf2e.spells-core",
   "sf2e.augmentations-core",
+  "sf2e.backgrounds-core",
+  "sf2e.bestiary-core",
+  "sf2e.class-features-core",
+  "sf2e.classes-core",
+  "sf2e.conditions",
+  "sf2e.feats-core",
+  "sf2e.general-feats-core",
+  "sf2e.heritages-core",
+  "sf2e.skill-feats-core",
+  "sf2e.spells-core",
+  "sf2e.spells-nivel3-core",
+  "sf2e.weapons-core",
 ];
 
 // ---------------------------------------------------------------------------
@@ -187,7 +201,7 @@ describe("boot() wires CompendiumService and discovers committed sf2e packs", ()
     await teardown(ctx);
   });
 
-  it("compendium:list returns exactly the 6 committed sf2e packs (no manual wiring)", async () => {
+  it("compendium:list returns exactly the committed sf2e packs (no manual wiring)", async () => {
     const ack = await sendQuery(gm, "compendium:list", { systemId: "sf2e" });
     expect(ack["ok"]).toBe(true);
     const packs = (ack["result"] as { packs: Array<{ id: string }> }).packs;

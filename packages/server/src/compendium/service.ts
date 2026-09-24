@@ -73,6 +73,13 @@ import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../net/derive-runner.js";
+import {
+  buildDedupIndex,
+  parseDocKey,
+  buildDocKey,
+  type DedupResult,
+  type DedupPackInput,
+} from "./dedup.js";
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -159,6 +166,16 @@ export class CompendiumService {
    * for the service's lifetime — same shape as `_sourceRefIndex`).
    */
   private _searchAllRows: SearchAllRow[] | null = null;
+
+  /**
+   * Cross-system dedup index (mundo misto, DEC-SF2-07-bis) — `null` = not yet
+   * built. Built lazily on first access (`_ensureDedupIndex`), from every
+   * pack loaded so far, and cached for the service's lifetime (same
+   * lazy-build-and-cache shape as `_sourceRefIndex`/`_searchAllRows`). A
+   * single-systemId service (any world that is not `pf2e-sf2e`) always
+   * resolves to an empty result — see `buildDedupIndex`.
+   */
+  private _dedupIndex: DedupResult | null = null;
 
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
@@ -348,9 +365,46 @@ export class CompendiumService {
     if (!loaded._index) {
       const base = this._buildIndex(loaded);
       const withCost = this._applyActionCostToIndex(loaded, base);
-      loaded._index = this._applyI18nToIndex(loaded, withCost);
+      const withI18n = this._applyI18nToIndex(loaded, withCost);
+      loaded._index = this._applyDedupToIndex(loaded, withI18n);
     }
     return loaded._index;
+  }
+
+  /**
+   * Cross-system dedup pass over an already-built index (mundo misto,
+   * DEC-SF2-07-bis): drops entries that are the LOSING duplicate of a fused
+   * pair (they never appear in `compendium:index`/`compendium:search`/
+   * `compendium:searchAll` — REQ from the task: "o mesmo item não pode
+   * aparecer duplicado no mundo misto"), and stamps the WINNING entry of a
+   * fused pair with `index.mergedFromSystems` so the origin stays visible
+   * ("itens diferentes com o mesmo nome aparecem os dois, com a origem
+   * visível" — already true for non-fused homonyms via each entry's own
+   * `packId`, carried by `CompendiumSearchAllEntry`/pack-scoped reads).
+   * A no-op for a single-systemId service (`_ensureDedupIndex` returns an
+   * empty result), so `base` is returned unchanged — same array reference,
+   * no behavior change for a pure pf2e/sf2e world.
+   */
+  private _applyDedupToIndex(loaded: LoadedPack, base: PackIndexEntry[]): PackIndexEntry[] {
+    const dedup = this._ensureDedupIndex();
+    if (dedup.hidden.size === 0) return base;
+
+    const packId = loaded.manifest.id;
+    const out: PackIndexEntry[] = [];
+    for (const entry of base) {
+      const key = buildDocKey(packId, entry._id);
+      if (dedup.hidden.has(key)) continue;
+      const merged = dedup.mergedFromSystems.get(key);
+      if (!merged) {
+        out.push(entry);
+        continue;
+      }
+      out.push({
+        ...entry,
+        index: { ...entry.index, mergedFromSystems: merged },
+      });
+    }
+    return out;
   }
 
   /**
@@ -489,8 +543,16 @@ export class CompendiumService {
    * nothing about whether the document exists (REQ-CPD-071, REQ-SEC-020).
    */
   getDocument(viewerRole: number, uuid: string): Record<string, unknown> | null {
-    const parsed = parsePackDocUuid(uuid);
-    if (!parsed) return null;
+    const parsedUuid = parsePackDocUuid(uuid);
+    if (!parsedUuid) return null;
+
+    // Mundo misto dedup (DEC-SF2-07-bis): a uuid naming the LOSING duplicate
+    // of a fused pair (e.g. a grant-item reference baked into an sf2e class
+    // that points at the sf2e copy of a reprinted feat) transparently
+    // resolves to the surviving canonical document — every reader of this
+    // method (grantMaterializer via compendium:get, importToWorld,
+    // importToActor) gets the same one document, never the hidden one.
+    const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
     const loaded = this._packFor(parsed.packId, viewerRole);
     if (!loaded) return null;
@@ -670,11 +732,16 @@ export class CompendiumService {
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Resolve through the dedup alias (mundo misto) — getDocument()
+        // above already served the CANONICAL document; the manifest/table
+        // lookup below must agree with it, not with the hidden pack the
+        // caller's uuid literally named.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         // Determine target table by documentType
         const manifest = this.packs.get(parsed.packId)?.manifest;
@@ -877,11 +944,13 @@ export class CompendiumService {
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Same dedup-alias resolution as importToWorld above.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         const manifest = this.packs.get(parsed.packId)?.manifest;
         if (!manifest) {
@@ -1238,6 +1307,69 @@ export class CompendiumService {
 
     this._sourceRefIndex = index;
     return index;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers — cross-system dedup (mundo misto, DEC-SF2-07-bis)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the cross-system dedup index over every pack
+   * currently loaded. `buildDedupIndex` itself no-ops (returns an empty
+   * result) unless at least 2 distinct `manifest.systemId`s are present —
+   * so a pure pf2e or pure sf2e world pays only the systemId-set check, never
+   * the full documents.json scan. A composite world (pf2e-sf2e) pays one
+   * JSON.parse per pack, same cost class as `_getSourceRefIndex`.
+   */
+  private _ensureDedupIndex(): DedupResult {
+    if (this._dedupIndex) return this._dedupIndex;
+
+    const inputs: DedupPackInput[] = [];
+    for (const [packId, loaded] of this.packs) {
+      let docs: unknown[];
+      try {
+        docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      } catch (err) {
+        this.logger?.warn(
+          { err, packId },
+          "Failed to read documents.json while building dedup index",
+        );
+        continue;
+      }
+      inputs.push({
+        packId,
+        systemId: loaded.manifest.systemId,
+        docs: docs.filter(
+          (d): d is Record<string, unknown> => typeof d === "object" && d !== null,
+        ) as unknown as DedupPackInput["docs"],
+      });
+    }
+
+    const result = buildDedupIndex(inputs);
+    this._dedupIndex = result;
+    if (result.hidden.size > 0) {
+      this.logger?.info(
+        { hidden: result.hidden.size, fused: result.mergedFromSystems.size },
+        "Cross-system compendium dedup index built (mundo misto)",
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Resolves a `(packId, docId)` pair through the dedup alias, if any. A
+   * document hidden as the losing duplicate of a cross-system fuse (see
+   * `buildDedupIndex`) always resolves to its canonical winner — used by
+   * `getDocument` so every path that reaches a compendium uuid (grant items,
+   * `compendium:get`, imports) transparently lands on the surviving copy,
+   * never on a hidden one.
+   */
+  private _resolveDedupAlias(packId: string, docId: string): { packId: string; docId: string } {
+    const key = buildDocKey(packId, docId);
+    const dedup = this._ensureDedupIndex();
+    const canonicalKey = dedup.aliasTo.get(key);
+    if (!canonicalKey) return { packId, docId };
+    return parseDocKey(canonicalKey);
   }
 
   // ---------------------------------------------------------------------------

@@ -246,19 +246,62 @@ packs, todos com `id` prefixado `pf2e.<slug>`) × `systems/sf2e/packs/*/pack.jso
 uso (`pf2e.`/`sf2e.`) evita namespacing adicional no composto.
 
 **Deduplicação de homônimos (documentos com o mesmo `name` nos dois
-sistemas):** medição por normalização de mecânica (tipo + traits + nível/rank
-+ actionType/actions + `rules` e `prerequisites` com toda referência
+sistemas) — IMPLEMENTADA (2026-09-24, lane de conserto pós-#261/#181):** a
+medição inicial (zero homônimos) foi feita só contra os 6 packs sf2e
+pré-curadoria. Depois que a curadoria do Player Core SF2e (PR #169 dados +
+#171, integrados nesta lane via `feat/misto-dedup`) trouxe 97 talentos de
+perícia, 18 gerais, ações e classes, a medição real (mesma normalização —
+tipo + slug + nível/rank + traits + actionType/actions/category +
+`prerequisites` + `rules` com toda referência
 `@UUID[Compendium.<sistema>...]` neutralizada; descrição/publicação/img/_id/
-folder/_stats ignorados) rodada sobre os packs REAIS já importados neste repo
-(2026-09-24): **zero homônimos entre pf2e e sf2e** nos dados hoje commitados
-(condições, armas e feitiços comparados por nome exato — nenhuma
-correspondência). Consistente com a medição do desenho sobre o vendor
-completo `foundryvtt/pf2e` (170 pares nome-igual em 9 categorias, 0 idênticos
-após normalização de mecânica) — a regra de identidade funde zero hoje, o que
-é o resultado correto: nenhum item precisa de desambiguação na UI ainda. A
-regra de identidade em si (fundir quando a mecânica normalizada é igual,
-preferindo a versão pf2e e mantendo o `sourceId` sf2e como alias) fica
-registrada para quando um reprint literal aparecer.
+folder/_stats/sort/ownership ignorados) deu:
+
+| `type` | pares homônimos | fundem (mesma mecânica) | ficam (mecânica diferente) |
+|---|---|---|---|
+| action | 1 | 1 | 0 |
+| ancestry | 1 | 1 | 0 |
+| background | 6 | 6 | 0 |
+| classFeature | 3 | 0 | 3 |
+| feat | 98 | 87 | 11 |
+| heritage | 2 | 2 | 0 |
+| spell | 5 | 5 | 0 |
+| **total** | **116** | **102** | **14** |
+
+75 desses 102 fusões já vinham marcadas pelo importador
+(`flags.fusion.reprintOf`, curadoria N1 do PR #169 —
+`tools/importer-pf2e/src/curation/sf2e-nivel3-pf2e-reprints.mjs`) e as 75
+fundem pela regra sem exceção (100% de consistência entre a curadoria manual
+e a normalização automática). As outras 27 fusões (ações, ancestralidade
+Human, backgrounds compartilhados, feitiços e heranças) não tinham a flag mas
+são texto de regra idêntico nos dois sistemas — o vendor comum não as marcou
+como reprint mas a normalização as reconhece corretamente.
+
+Conferido à mão: as 75 flags `reprintOf` (Assurance, Shield Block, Toughness,
+Diehard, Adopted Ancestry, etc.) fundem corretamente; amostra dos 14 que
+ficam confirma decisões corretas — `Reach Spell`/`Cantrip Expansion`/`Widen
+Spell` (traits de classe diferentes: pf2e restringe a
+bard/cleric/druid/oracle/sorcerer/witch/wizard, sf2e a mystic/witchwarper),
+`Seasoned` (rules referenciam feats de crafting diferentes: `magical-crafting`
++ `alchemical-crafting` no pf2e vs `serum-crafting` no sf2e — adaptação real
+de mecânica, não só de nome), `Cheek Pouches` (trait de ancestralidade extra
+no sf2e), e as 3 `classFeature` (Signature Spells/Spell Repertoire/Reflex
+Expertise — texto de classe específico, `Spell Repertoire` tem `rules`
+totalmente diferentes entre os dois).
+
+**Implementação:** `packages/server/src/compendium/dedup.ts` (core) — função
+pura `buildDedupIndex`, aplicada por `CompendiumService._ensureDedupIndex`
+(lazy, só quando o serviço carrega ≥2 `systemId`s distintos — um mundo pf2e
+ou sf2e puro nunca paga o custo nem muda de comportamento). O documento
+perdedor (sf2e, por convenção — DEC-SYS-06-bis reusa o shape pf2e) some do
+índice/busca (`compendium:index`/`compendium:searchAll`); o documento vencedor
+ganha `index.mergedFromSystems: ["sf2e"]` para a origem ficar visível; e
+`CompendiumService.getDocument` (usado por `compendium:get`, importação para
+mundo/ficha, e portanto por qualquer grant-item de uma classe sf2e que
+referencie o item fundido) resolve o alias transparentemente para o
+documento pf2e. Testes não-circulares em
+`packages/server/src/compendium/__tests__/dedup-real-packs.test.ts` e
+`packages/server/src/__tests__/boot-compendium-composite-dedup.test.ts`
+(via `compendium:*` real sobre o `boot()`).
 
 ### DEC-SF2-08 — Species = Ancestry com displayName sobrescrito
 
