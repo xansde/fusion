@@ -227,17 +227,11 @@ function entry(uuid: string, name: string): PackIndexEntry {
 describe("findPacksBySlug / searchPacksBySlug (B4 — mundo misto pickers)", () => {
   it("a pure single-system pack list still resolves to exactly one pack per slug", () => {
     const packs = [pack("pf2e.classes-core"), pack("pf2e.feats-core")];
-    expect(findPacksBySlug(packs, "classes-core").map((p) => p.id)).toEqual([
-      "pf2e.classes-core",
-    ]);
+    expect(findPacksBySlug(packs, "classes-core").map((p) => p.id)).toEqual(["pf2e.classes-core"]);
   });
 
   it("a composite world's pack list resolves BOTH systems' packs for the same slug", () => {
-    const packs = [
-      pack("pf2e.classes-core"),
-      pack("sf2e.classes-core"),
-      pack("pf2e.feats-core"),
-    ];
+    const packs = [pack("pf2e.classes-core"), pack("sf2e.classes-core"), pack("pf2e.feats-core")];
     const matches = findPacksBySlug(packs, "classes-core").map((p) => p.id);
     expect(matches).toEqual(["pf2e.classes-core", "sf2e.classes-core"]);
   });

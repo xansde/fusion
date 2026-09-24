@@ -1021,7 +1021,10 @@ export class CompendiumService {
         // batch), then the per-item shape. A uuid failing either is a `failed`
         // entry, not an exception — one bad entry never sinks the batch.
         const augViolation = augmentationSlotLimitViolation(
-          { systemId: options.systemId, sourceSystemIds: options.systemModule?.manifest.sourceSystemIds },
+          {
+            systemId: options.systemId,
+            sourceSystemIds: options.systemModule?.manifest.sourceSystemIds,
+          },
           [...existing, ...addition] as AugmentationLikeItem[],
           embedded,
         );
@@ -1348,7 +1351,8 @@ export class CompendiumService {
         if (typeof packName !== "string" || typeof sourceId !== "string") continue;
 
         const key = buildSourceRefKey(packName, sourceId);
-        if (index.has(key)) {
+        const existing = index.get(key);
+        if (existing) {
           // A same-system duplicate (never expected, REQ-CMP-041) OR a
           // genuine cross-system sourceId collision that dedup did NOT fuse
           // (different mechanics — the Ratfolk/Ysoki shape, see docstring
@@ -1357,9 +1361,12 @@ export class CompendiumService {
           // so "keep first" is now a rule, not an accident. Logged so a
           // same-system duplicate (the actually-unexpected case) stays
           // visible.
-          if (loaded.manifest.systemId === (this.packs.get(index.get(key)!.packId)?.manifest.systemId ?? null)) {
+          if (
+            loaded.manifest.systemId ===
+            (this.packs.get(existing.packId)?.manifest.systemId ?? null)
+          ) {
             this.logger?.warn(
-              { packName, sourceId, existing: index.get(key), duplicate: { packId, docId } },
+              { packName, sourceId, existing, duplicate: { packId, docId } },
               "Duplicate origin reference within the same system while building source-ref index — keeping first match",
             );
           }

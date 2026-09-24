@@ -253,19 +253,19 @@ pré-curadoria. Depois que a curadoria do Player Core SF2e (PR #169 dados +
 perícia, 18 gerais, ações e classes, a medição real (mesma normalização —
 tipo + slug + nível/rank + traits + actionType/actions/category +
 `prerequisites` + `rules` com toda referência
-`@UUID[Compendium.<sistema>...]` neutralizada; descrição/publicação/img/_id/
-folder/_stats/sort/ownership ignorados) deu:
+`@UUID[Compendium.<sistema>...]` neutralizada; descrição/publicação/img/\_id/
+folder/\_stats/sort/ownership ignorados) deu:
 
-| `type` | pares homônimos | fundem (mesma mecânica) | ficam (mecânica diferente) |
-|---|---|---|---|
-| action | 1 | 1 | 0 |
-| ancestry | 1 | 1 | 0 |
-| background | 6 | 6 | 0 |
-| classFeature | 3 | 0 | 3 |
-| feat | 98 | 87 | 11 |
-| heritage | 2 | 2 | 0 |
-| spell | 5 | 5 | 0 |
-| **total** | **116** | **102** | **14** |
+| `type`       | pares homônimos | fundem (mesma mecânica) | ficam (mecânica diferente) |
+| ------------ | --------------- | ----------------------- | -------------------------- |
+| action       | 1               | 1                       | 0                          |
+| ancestry     | 1               | 1                       | 0                          |
+| background   | 6               | 6                       | 0                          |
+| classFeature | 3               | 0                       | 3                          |
+| feat         | 98              | 87                      | 11                         |
+| heritage     | 2               | 2                       | 0                          |
+| spell        | 5               | 5                       | 0                          |
+| **total**    | **116**         | **102**                 | **14**                     |
 
 75 desses 102 fusões já vinham marcadas pelo importador
 (`flags.fusion.reprintOf`, curadoria N1 do PR #169 —
@@ -282,11 +282,12 @@ ficam confirma decisões corretas — `Reach Spell`/`Cantrip Expansion`/`Widen
 Spell` (traits de classe diferentes: pf2e restringe a
 bard/cleric/druid/oracle/sorcerer/witch/wizard, sf2e a mystic/witchwarper),
 `Seasoned` (rules referenciam feats de crafting diferentes: `magical-crafting`
-+ `alchemical-crafting` no pf2e vs `serum-crafting` no sf2e — adaptação real
-de mecânica, não só de nome), `Cheek Pouches` (trait de ancestralidade extra
-no sf2e), e as 3 `classFeature` (Signature Spells/Spell Repertoire/Reflex
-Expertise — texto de classe específico, `Spell Repertoire` tem `rules`
-totalmente diferentes entre os dois).
+
+- `alchemical-crafting` no pf2e vs `serum-crafting` no sf2e — adaptação real
+  de mecânica, não só de nome), `Cheek Pouches` (trait de ancestralidade extra
+  no sf2e), e as 3 `classFeature` (Signature Spells/Spell Repertoire/Reflex
+  Expertise — texto de classe específico, `Spell Repertoire` tem `rules`
+  totalmente diferentes entre os dois).
 
 **Implementação:** `packages/server/src/compendium/dedup.ts` (core) — função
 pura `buildDedupIndex`, aplicada por `CompendiumService._ensureDedupIndex`

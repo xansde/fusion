@@ -253,8 +253,7 @@ describe("I4 — systemIncludes gates hold under the pf2e+sf2e composite system"
       ],
     });
     expect(actorAck["ok"]).toBe(true);
-    const actorId = (actorAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!
-      ._id;
+    const actorId = (actorAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
 
     for (let i = 1; i <= 4; i++) {
       const ack = await sendOp(gm, "doc:create", {

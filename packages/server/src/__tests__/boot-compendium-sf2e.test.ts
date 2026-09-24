@@ -52,7 +52,7 @@ import { resolveSystemPacksDir } from "../compendium/service.js";
 function discoverExpectedSf2ePackIds(): string[] {
   const packsDir = resolveSystemPacksDir("sf2e");
   if (packsDir === null) {
-    throw new Error("resolveSystemPacksDir(\"sf2e\") returned null — packs dir not found");
+    throw new Error('resolveSystemPacksDir("sf2e") returned null — packs dir not found');
   }
   return readdirSync(packsDir)
     .filter((entry) => statSync(join(packsDir, entry)).isDirectory())
