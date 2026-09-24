@@ -165,6 +165,38 @@ export const SystemManifestSchema = z.object({
    * (see boot.ts / compendium/service.ts).
    */
   sourceSystemIds: z.array(z.string().min(1)).min(1).optional(),
+
+  /**
+   * I1 (spec 15, revisão adversarial 3, mundo misto pf2e+sf2e): the system's
+   * VOCABULARY — skills (with governing ability), currency denominations and
+   * spell traditions — as a single source a ficha package can read over the
+   * wire (`system:vocabulary`, mirrors `system:footprint`/`system:conditions`
+   * — REQ-ARQ-005: the client cannot import `systems/*`). Replaces the
+   * hand-copied tables `sheets/pf2e/src/lib/sheets/pf2e/systemSheetConfig.ts`
+   * used to keep (`SKILL_SLUGS`/`SKILL_ABILITY`/currency literals duplicated
+   * per system, by hand, at the ficha layer — a skill added to a system
+   * needed a ficha edit to ever appear there). A COMPOSITE system computes
+   * its own vocabulary as the UNION of its `sourceSystemIds`' vocabularies
+   * (skills by slug, spell traditions by value) with `currency` from its own
+   * declaration (e.g. pf2e-sf2e keeps the PF2e coin shape, DEC-SYS-06-bis) —
+   * never a copy of either source's literal list.
+   *
+   * Optional: a system that declares nothing here has no vocabulary door
+   * (the ficha falls back to its own PF2e-shaped default, same "degrade
+   * open" posture as `sizeToFootprint`).
+   */
+  vocabulary: z
+    .object({
+      skills: z.array(
+        z.object({
+          slug: z.string().min(1),
+          ability: z.string().min(1),
+        }),
+      ),
+      currency: z.array(z.string().min(1)),
+      spellTraditions: z.array(z.string().min(1)),
+    })
+    .optional(),
 });
 
 export type SystemManifest = z.infer<typeof SystemManifestSchema>;
