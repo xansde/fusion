@@ -77,4 +77,47 @@ describe("CompendiumService cross-system dedup — real pf2e + sf2e packs", () =
     const assurance = index!.entries.find((e) => e.name === "Assurance");
     expect(assurance!.index["mergedFromSystems"]).toBeUndefined();
   });
+
+  // I5 (revisão adversarial 3): 36 documents share the exact same
+  // `flags.fusion.sourceId` across pf2e and sf2e with DIFFERENT content —
+  // pf2e's "Ratfolk" ancestry and sf2e's "Ysoki" ancestry both carry vendor
+  // sourceId `P6PcVnCkh4XMdefw` under the generic `packName: "ancestries"`.
+  // Dedup identity is `type + slug(name) + normalized mechanics`
+  // (mechanicsFingerprint), never the bare sourceId — so this pair must
+  // NEVER fuse (different name → different slug → different fingerprint),
+  // unlike Assurance above. Proves the dedup/alias mechanism resolves each
+  // to its own distinct document, not to the other's.
+  it("Ratfolk (pf2e) and Ysoki (sf2e) share a sourceId but are NOT fused — both appear and resolve to their own document", () => {
+    const pf2eIndex = composite.getPackIndex(UserRole.GAMEMASTER, "pf2e.ancestries-core");
+    const sf2eIndex = composite.getPackIndex(UserRole.GAMEMASTER, "sf2e.ancestries-core");
+    expect(pf2eIndex).not.toBeNull();
+    expect(sf2eIndex).not.toBeNull();
+
+    const ratfolkEntry = pf2eIndex!.entries.find((e) => e.name === "Ratfolk");
+    const ysokiEntry = sf2eIndex!.entries.find((e) => e.name === "Ysoki");
+    expect(ratfolkEntry).toBeDefined();
+    expect(ysokiEntry).toBeDefined();
+    // Neither is stamped as a fused/merged entry.
+    expect(ratfolkEntry!.index["mergedFromSystems"]).toBeUndefined();
+    expect(ysokiEntry!.index["mergedFromSystems"]).toBeUndefined();
+
+    const ratfolkDoc = composite.getDocument(UserRole.GAMEMASTER, ratfolkEntry!.uuid);
+    const ysokiDoc = composite.getDocument(UserRole.GAMEMASTER, ysokiEntry!.uuid);
+    expect(ratfolkDoc).not.toBeNull();
+    expect(ysokiDoc).not.toBeNull();
+    expect(ratfolkDoc!["name"]).toBe("Ratfolk");
+    expect(ysokiDoc!["name"]).toBe("Ysoki");
+    // The shared sourceId, confirmed on both raw docs (sanity: this really
+    // is the collision case, not two coincidentally-unrelated ancestries).
+    const ratfolkFlags = (ratfolkDoc!["flags"] as Record<string, unknown>)["fusion"] as Record<
+      string,
+      unknown
+    >;
+    const ysokiFlags = (ysokiDoc!["flags"] as Record<string, unknown>)["fusion"] as Record<
+      string,
+      unknown
+    >;
+    expect(ratfolkFlags["sourceId"]).toBe(ysokiFlags["sourceId"]);
+    expect(ratfolkFlags["packName"]).toBe(ysokiFlags["packName"]);
+  });
 });

@@ -1255,13 +1255,56 @@ export class CompendiumService {
    * packs (14 packs, 4236 docs total): ~176ms cold. Tolerant of a missing/
    * corrupt documents.json for any one pack — that pack is just skipped
    * (matches the discovery philosophy, REQ-CMP-006).
+   *
+   * I5 (revisão adversarial 3) — `(packName, sourceId)` is NOT a
+   * cross-system-safe identity: `flags.fusion.packName` is the unprefixed
+   * VENDOR pack key ("ancestries", "equipment", ...), reused verbatim by
+   * both the pf2e and the sf2e importer, and 36 documents across the two
+   * systems share the SAME `sourceId` while being genuinely different
+   * content (e.g. pf2e's Ratfolk ancestry and sf2e's Ysoki ancestry both
+   * carry vendor sourceId `P6PcVnCkh4XMdefw` under `packName: "ancestries"`
+   * — see `.fusion-build/sf2e-nivel3/mundo-misto/dedup.md`). In a
+   * single-system service this never collides (only one systemId is ever
+   * loaded); in the pf2e+sf2e composite it would, and the OLD code picked
+   * whichever pack happened to load first — an accident of `this.packs`
+   * Map insertion order, not a rule. Two changes close that:
+   *   1. Packs are walked in a DETERMINISTIC order (pf2e before any other
+   *      systemId, then packId) so a collision always resolves the same
+   *      way, run to run — never insertion-order roulette.
+   *   2. A doc the DEDUP index (`_ensureDedupIndex`) already marked
+   *      `hidden` (the LOSING duplicate of a cross-system mechanics fuse,
+   *      `buildDedupIndex`) is skipped here too — indexing it would let a
+   *      stale/superseded overlay entry win a collision it has no business
+   *      winning.
+   * KNOWN REMAINING GAP: for the Ratfolk/Ysoki shape — same `sourceId`,
+   * same generic `packName`, but DIFFERENT content that dedup correctly
+   * keeps as two separate, unfused documents (not a losing/winning pair) —
+   * `getI18nBySourceRef`'s caller only ever has `{packName, sourceId}` (no
+   * systemId), so on a genuine collision like this it deterministically
+   * resolves to the pf2e side. The sf2e side (Ysoki) still resolves
+   * correctly through every GAMEPLAY path that carries a real uuid/docId
+   * (`compendium:get`, imports, grants — proven by
+   * `dedup-real-packs.test.ts`'s Ratfolk/Ysoki case); only the i18n OVERLAY
+   * lookup by bare origin ref is affected, and only for a world document
+   * whose flags.fusion strips systemId. Fixing that fully needs the world
+   * document (or the protocol payload) to carry its origin systemId, which
+   * is a client-facing protocol change — tracked as a follow-up, not done
+   * here (see conserto-core.md).
    */
   private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
     if (this._sourceRefIndex) return this._sourceRefIndex;
 
+    const dedup = this._ensureDedupIndex();
     const index = new Map<string, { packId: string; docId: string }>();
 
-    for (const [packId, loaded] of this.packs) {
+    const sortedPacks = [...this.packs.entries()].sort(([packIdA, a], [packIdB, b]) => {
+      const pa = a.manifest.systemId === "pf2e" ? 0 : 1;
+      const pb = b.manifest.systemId === "pf2e" ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return packIdA < packIdB ? -1 : packIdA > packIdB ? 1 : 0;
+    });
+
+    for (const [packId, loaded] of sortedPacks) {
       let docs: unknown[];
       try {
         docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
@@ -1278,6 +1321,7 @@ export class CompendiumService {
         const doc = raw as Record<string, unknown>;
         const docId = doc["_id"];
         if (typeof docId !== "string") continue;
+        if (dedup.hidden.has(buildDocKey(packId, docId))) continue;
 
         const flags = doc["flags"];
         if (typeof flags !== "object" || flags === null) continue;
@@ -1288,17 +1332,21 @@ export class CompendiumService {
         if (typeof packName !== "string" || typeof sourceId !== "string") continue;
 
         const key = buildSourceRefKey(packName, sourceId);
-        const existing = index.get(key);
-        if (existing !== undefined) {
-          // Should never happen — REQ-CMP-041 states fusionId derivation is
-          // collision-free cross-pack, and (packName, sourceId) is exactly
-          // its input. Keep the FIRST match and log loudly so a real
-          // regression is visible instead of silently picking a doc at
-          // random.
-          this.logger?.warn(
-            { packName, sourceId, existing, duplicate: { packId, docId } },
-            "Duplicate origin reference across packs while building source-ref index — keeping first match",
-          );
+        if (index.has(key)) {
+          // A same-system duplicate (never expected, REQ-CMP-041) OR a
+          // genuine cross-system sourceId collision that dedup did NOT fuse
+          // (different mechanics — the Ratfolk/Ysoki shape, see docstring
+          // above). Either way: deterministic pf2e-first order (sortedPacks)
+          // means the FIRST writer here is always the same one across runs,
+          // so "keep first" is now a rule, not an accident. Logged so a
+          // same-system duplicate (the actually-unexpected case) stays
+          // visible.
+          if (loaded.manifest.systemId === (this.packs.get(index.get(key)!.packId)?.manifest.systemId ?? null)) {
+            this.logger?.warn(
+              { packName, sourceId, existing: index.get(key), duplicate: { packId, docId } },
+              "Duplicate origin reference within the same system while building source-ref index — keeping first match",
+            );
+          }
           continue;
         }
         index.set(key, { packId, docId });
