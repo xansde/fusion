@@ -32,7 +32,10 @@ import {
   importToWorld,
   requireConnectedSocket,
   SocketUnavailableError,
+  findPacksBySlug,
+  searchPacksBySlug,
 } from "../compendiumApi.js";
+import type { PackManifest, PackIndexEntry } from "@fusion/shared";
 
 function fakeSocket(connected: boolean): Socket {
   return { connected, emit: () => undefined } as unknown as Socket;
@@ -206,5 +209,60 @@ describe("the sheet door on the wire (REQ-CPD-061, REQ-CPD-073)", () => {
     // The world call names a folder, never an actor (`folderId` is absent here).
     expect(sent[0]?.payload).toEqual({ uuids: ["Compendium.pf2e.spells-core.Item.s1"] });
     expect(JSON.stringify(sent[0]?.payload)).not.toContain("actorId");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findPacksBySlug / searchPacksBySlug — B4 (revisão adversarial 3)
+// ---------------------------------------------------------------------------
+
+function pack(id: string): PackManifest {
+  return { id, label: id, documentType: "Item" } as PackManifest;
+}
+
+function entry(uuid: string, name: string): PackIndexEntry {
+  return { _id: uuid, uuid, name, img: null, type: null, index: {} } as PackIndexEntry;
+}
+
+describe("findPacksBySlug / searchPacksBySlug (B4 — mundo misto pickers)", () => {
+  it("a pure single-system pack list still resolves to exactly one pack per slug", () => {
+    const packs = [pack("pf2e.classes-core"), pack("pf2e.feats-core")];
+    expect(findPacksBySlug(packs, "classes-core").map((p) => p.id)).toEqual(["pf2e.classes-core"]);
+  });
+
+  it("a composite world's pack list resolves BOTH systems' packs for the same slug", () => {
+    const packs = [pack("pf2e.classes-core"), pack("sf2e.classes-core"), pack("pf2e.feats-core")];
+    const matches = findPacksBySlug(packs, "classes-core").map((p) => p.id);
+    expect(matches).toEqual(["pf2e.classes-core", "sf2e.classes-core"]);
+  });
+
+  it("searchPacksBySlug merges entries from every matching pack, not just the first", async () => {
+    const packs = [pack("pf2e.classes-core"), pack("sf2e.classes-core")];
+    const socket = {
+      connected: true,
+      emit: (
+        _event: string,
+        envelope: { type: string; payload: { packId: string } },
+        ack: (a: { ok: boolean; result?: unknown }) => void,
+      ) => {
+        const byPack: Record<string, PackIndexEntry[]> = {
+          "pf2e.classes-core": [entry("u-fighter", "Fighter")],
+          "sf2e.classes-core": [entry("u-soldier", "Soldier")],
+        };
+        ack({
+          ok: true,
+          result: { packId: envelope.payload.packId, entries: byPack[envelope.payload.packId] },
+        });
+      },
+    } as unknown as Socket;
+
+    const merged = await searchPacksBySlug(socket, packs, "classes-core");
+    expect(merged.map((e) => e.name).sort()).toEqual(["Fighter", "Soldier"]);
+  });
+
+  it("searchPacksBySlug returns nothing (not an error) when no pack matches the slug", async () => {
+    const socket = { connected: true, emit: () => undefined } as unknown as Socket;
+    const merged = await searchPacksBySlug(socket, [pack("pf2e.feats-core")], "classes-core");
+    expect(merged).toEqual([]);
   });
 });

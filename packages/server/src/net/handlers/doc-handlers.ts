@@ -60,6 +60,7 @@ import {
 } from "../../documents/store.js";
 import {
   validateEmbeddedItemForSystem,
+  validateActorCurrencyForSystem,
   augmentationSlotLimitViolation,
 } from "../../documents/embedded-item.js";
 import { recomputeDerivedIfNeeded } from "../../documents/derive.js";
@@ -127,6 +128,7 @@ import {
 // runs — only the payload type is still read here.
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
+import { systemIncludes } from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -533,13 +535,19 @@ type CompanionCreateAuth =
  * (a)–(d). Only ever called for a doc that already passed isCompanionDoc.
  */
 function authorizePlayerCompanionCreate(
-  deps: Pick<DocHandlerDeps, "store" | "systemId">,
+  deps: Pick<DocHandlerDeps, "store" | "systemId" | "systemModule">,
   ctx: HandlerContext,
   companion: Record<string, unknown>,
 ): CompanionCreateAuth {
-  // (c-guard) Only pf2e worlds grant familiars; other systems keep Actor
-  // strictly GM-only.
-  if (deps.systemId !== "pf2e") {
+  // (c-guard) Only worlds whose system includes pf2e grant familiars — the
+  // literal pf2e system, or the pf2e+sf2e composite (DEC-SYS-06-bis, I4);
+  // other systems keep Actor strictly GM-only.
+  if (
+    !systemIncludes(
+      { systemId: deps.systemId, sourceSystemIds: deps.systemModule?.manifest.sourceSystemIds },
+      "pf2e",
+    )
+  ) {
     return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can create Actor" };
   }
 
@@ -1041,6 +1049,14 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // path applies to the merged document.
           const rejectionBuild = rejectIllegalCharacterBuild(item);
           if (rejectionBuild) return rejectionBuild;
+          // I2 (revisão adversarial 3): system.currency was accepted
+          // unchecked (any shape, any keys) — validate it against the
+          // active system's registered Actor model before it is persisted.
+          const currencyValidation = validateActorCurrencyForSystem(deps.systemModule, item);
+          if (!currencyValidation.ok) {
+            return ackError("VALIDATION_FAILED", currencyValidation.message);
+          }
+          item = currencyValidation.doc;
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1250,6 +1266,15 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         const merged = deepMerge(existing, expandedDiffForChecks);
         const rejectionBuild = rejectIllegalCharacterBuild(merged, existing);
         if (rejectionBuild) return rejectionBuild;
+
+        // I2 (revisão adversarial 3): same currency check as doc:create,
+        // applied to the FULLY MERGED document — a diff that only touches
+        // `system.currency` still gets validated together with the type it
+        // is merging onto.
+        const currencyValidation = validateActorCurrencyForSystem(deps.systemModule, merged);
+        if (!currencyValidation.ok) {
+          return ackError("VALIDATION_FAILED", currencyValidation.message);
+        }
       }
     }
 
@@ -1752,7 +1777,7 @@ function handleEmbeddedCreate(
       // a single doc:create call with several augmentations is capped too.
       if (embeddedType === "Item" && parent.type === "Actor") {
         const augViolation = augmentationSlotLimitViolation(
-          deps.systemId,
+          { systemId: deps.systemId, sourceSystemIds: deps.systemModule?.manifest.sourceSystemIds },
           [...existing, ...created] as AugmentationLikeItem[],
           raw,
         );

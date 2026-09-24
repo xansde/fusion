@@ -73,6 +73,13 @@ import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../net/derive-runner.js";
+import {
+  buildDedupIndex,
+  parseDocKey,
+  buildDocKey,
+  type DedupResult,
+  type DedupPackInput,
+} from "./dedup.js";
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -159,6 +166,16 @@ export class CompendiumService {
    * for the service's lifetime — same shape as `_sourceRefIndex`).
    */
   private _searchAllRows: SearchAllRow[] | null = null;
+
+  /**
+   * Cross-system dedup index (mundo misto, DEC-SF2-07-bis) — `null` = not yet
+   * built. Built lazily on first access (`_ensureDedupIndex`), from every
+   * pack loaded so far, and cached for the service's lifetime (same
+   * lazy-build-and-cache shape as `_sourceRefIndex`/`_searchAllRows`). A
+   * single-systemId service (any world that is not `pf2e-sf2e`) always
+   * resolves to an empty result — see `buildDedupIndex`.
+   */
+  private _dedupIndex: DedupResult | null = null;
 
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
@@ -303,16 +320,32 @@ export class CompendiumService {
    * REQ-CMP-012: filter by systemId and/or documentType.
    * REQ-CMP-010a / REQ-CPD-071: a `gm` pack is not listed to a non-privileged
    * viewer — it is simply absent, as if it did not exist.
+   *
+   * `filter.systemId` accepts an ARRAY too (B4, revisão adversarial 3): a
+   * composite world's caller (`buildCompendiumListHandler`) resolves the
+   * active composite's `sourceSystemIds` and passes the whole list here, so
+   * a mundo misto `pf2e-sf2e` world lists BOTH the pf2e and the sf2e packs
+   * — every pack in this service is still loaded under its OWN systemId
+   * ("pf2e"/"sf2e"), never "pf2e-sf2e" (no pack is ever re-tagged), so a
+   * bare single-string filter for the composite id would always return
+   * zero packs (this was B4's actual bug: the ficha's `listPacks({systemId:
+   * "pf2e-sf2e"})` silently returned nothing).
    */
   listPacks(
     viewerRole: number,
-    filter?: { systemId?: string; documentType?: string },
+    filter?: { systemId?: string | string[]; documentType?: string },
   ): PackManifest[] {
+    const systemIds =
+      filter?.systemId === undefined
+        ? undefined
+        : Array.isArray(filter.systemId)
+          ? filter.systemId
+          : [filter.systemId];
     const packs: PackManifest[] = [];
     for (const loaded of this.packs.values()) {
       if (!this._isPackVisible(loaded, viewerRole)) continue;
       const { manifest } = loaded;
-      if (filter?.systemId !== undefined && manifest.systemId !== filter.systemId) continue;
+      if (systemIds !== undefined && !systemIds.includes(manifest.systemId)) continue;
       if (filter?.documentType !== undefined && manifest.documentType !== filter.documentType)
         continue;
       packs.push(manifest);
@@ -348,9 +381,46 @@ export class CompendiumService {
     if (!loaded._index) {
       const base = this._buildIndex(loaded);
       const withCost = this._applyActionCostToIndex(loaded, base);
-      loaded._index = this._applyI18nToIndex(loaded, withCost);
+      const withI18n = this._applyI18nToIndex(loaded, withCost);
+      loaded._index = this._applyDedupToIndex(loaded, withI18n);
     }
     return loaded._index;
+  }
+
+  /**
+   * Cross-system dedup pass over an already-built index (mundo misto,
+   * DEC-SF2-07-bis): drops entries that are the LOSING duplicate of a fused
+   * pair (they never appear in `compendium:index`/`compendium:search`/
+   * `compendium:searchAll` — REQ from the task: "o mesmo item não pode
+   * aparecer duplicado no mundo misto"), and stamps the WINNING entry of a
+   * fused pair with `index.mergedFromSystems` so the origin stays visible
+   * ("itens diferentes com o mesmo nome aparecem os dois, com a origem
+   * visível" — already true for non-fused homonyms via each entry's own
+   * `packId`, carried by `CompendiumSearchAllEntry`/pack-scoped reads).
+   * A no-op for a single-systemId service (`_ensureDedupIndex` returns an
+   * empty result), so `base` is returned unchanged — same array reference,
+   * no behavior change for a pure pf2e/sf2e world.
+   */
+  private _applyDedupToIndex(loaded: LoadedPack, base: PackIndexEntry[]): PackIndexEntry[] {
+    const dedup = this._ensureDedupIndex();
+    if (dedup.hidden.size === 0) return base;
+
+    const packId = loaded.manifest.id;
+    const out: PackIndexEntry[] = [];
+    for (const entry of base) {
+      const key = buildDocKey(packId, entry._id);
+      if (dedup.hidden.has(key)) continue;
+      const merged = dedup.mergedFromSystems.get(key);
+      if (!merged) {
+        out.push(entry);
+        continue;
+      }
+      out.push({
+        ...entry,
+        index: { ...entry.index, mergedFromSystems: merged },
+      });
+    }
+    return out;
   }
 
   /**
@@ -489,8 +559,16 @@ export class CompendiumService {
    * nothing about whether the document exists (REQ-CPD-071, REQ-SEC-020).
    */
   getDocument(viewerRole: number, uuid: string): Record<string, unknown> | null {
-    const parsed = parsePackDocUuid(uuid);
-    if (!parsed) return null;
+    const parsedUuid = parsePackDocUuid(uuid);
+    if (!parsedUuid) return null;
+
+    // Mundo misto dedup (DEC-SF2-07-bis): a uuid naming the LOSING duplicate
+    // of a fused pair (e.g. a grant-item reference baked into an sf2e class
+    // that points at the sf2e copy of a reprinted feat) transparently
+    // resolves to the surviving canonical document — every reader of this
+    // method (grantMaterializer via compendium:get, importToWorld,
+    // importToActor) gets the same one document, never the hidden one.
+    const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
     const loaded = this._packFor(parsed.packId, viewerRole);
     if (!loaded) return null;
@@ -670,11 +748,16 @@ export class CompendiumService {
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Resolve through the dedup alias (mundo misto) — getDocument()
+        // above already served the CANONICAL document; the manifest/table
+        // lookup below must agree with it, not with the hidden pack the
+        // caller's uuid literally named.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         // Determine target table by documentType
         const manifest = this.packs.get(parsed.packId)?.manifest;
@@ -877,11 +960,13 @@ export class CompendiumService {
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Same dedup-alias resolution as importToWorld above.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         const manifest = this.packs.get(parsed.packId)?.manifest;
         if (!manifest) {
@@ -936,7 +1021,10 @@ export class CompendiumService {
         // batch), then the per-item shape. A uuid failing either is a `failed`
         // entry, not an exception — one bad entry never sinks the batch.
         const augViolation = augmentationSlotLimitViolation(
-          options.systemId,
+          {
+            systemId: options.systemId,
+            sourceSystemIds: options.systemModule?.manifest.sourceSystemIds,
+          },
           [...existing, ...addition] as AugmentationLikeItem[],
           embedded,
         );
@@ -1186,13 +1274,56 @@ export class CompendiumService {
    * packs (14 packs, 4236 docs total): ~176ms cold. Tolerant of a missing/
    * corrupt documents.json for any one pack — that pack is just skipped
    * (matches the discovery philosophy, REQ-CMP-006).
+   *
+   * I5 (revisão adversarial 3) — `(packName, sourceId)` is NOT a
+   * cross-system-safe identity: `flags.fusion.packName` is the unprefixed
+   * VENDOR pack key ("ancestries", "equipment", ...), reused verbatim by
+   * both the pf2e and the sf2e importer, and 36 documents across the two
+   * systems share the SAME `sourceId` while being genuinely different
+   * content (e.g. pf2e's Ratfolk ancestry and sf2e's Ysoki ancestry both
+   * carry vendor sourceId `P6PcVnCkh4XMdefw` under `packName: "ancestries"`
+   * — see `.fusion-build/sf2e-nivel3/mundo-misto/dedup.md`). In a
+   * single-system service this never collides (only one systemId is ever
+   * loaded); in the pf2e+sf2e composite it would, and the OLD code picked
+   * whichever pack happened to load first — an accident of `this.packs`
+   * Map insertion order, not a rule. Two changes close that:
+   *   1. Packs are walked in a DETERMINISTIC order (pf2e before any other
+   *      systemId, then packId) so a collision always resolves the same
+   *      way, run to run — never insertion-order roulette.
+   *   2. A doc the DEDUP index (`_ensureDedupIndex`) already marked
+   *      `hidden` (the LOSING duplicate of a cross-system mechanics fuse,
+   *      `buildDedupIndex`) is skipped here too — indexing it would let a
+   *      stale/superseded overlay entry win a collision it has no business
+   *      winning.
+   * KNOWN REMAINING GAP: for the Ratfolk/Ysoki shape — same `sourceId`,
+   * same generic `packName`, but DIFFERENT content that dedup correctly
+   * keeps as two separate, unfused documents (not a losing/winning pair) —
+   * `getI18nBySourceRef`'s caller only ever has `{packName, sourceId}` (no
+   * systemId), so on a genuine collision like this it deterministically
+   * resolves to the pf2e side. The sf2e side (Ysoki) still resolves
+   * correctly through every GAMEPLAY path that carries a real uuid/docId
+   * (`compendium:get`, imports, grants — proven by
+   * `dedup-real-packs.test.ts`'s Ratfolk/Ysoki case); only the i18n OVERLAY
+   * lookup by bare origin ref is affected, and only for a world document
+   * whose flags.fusion strips systemId. Fixing that fully needs the world
+   * document (or the protocol payload) to carry its origin systemId, which
+   * is a client-facing protocol change — tracked as a follow-up, not done
+   * here (see conserto-core.md).
    */
   private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
     if (this._sourceRefIndex) return this._sourceRefIndex;
 
+    const dedup = this._ensureDedupIndex();
     const index = new Map<string, { packId: string; docId: string }>();
 
-    for (const [packId, loaded] of this.packs) {
+    const sortedPacks = [...this.packs.entries()].sort(([packIdA, a], [packIdB, b]) => {
+      const pa = a.manifest.systemId === "pf2e" ? 0 : 1;
+      const pb = b.manifest.systemId === "pf2e" ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return packIdA < packIdB ? -1 : packIdA > packIdB ? 1 : 0;
+    });
+
+    for (const [packId, loaded] of sortedPacks) {
       let docs: unknown[];
       try {
         docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
@@ -1209,6 +1340,7 @@ export class CompendiumService {
         const doc = raw as Record<string, unknown>;
         const docId = doc["_id"];
         if (typeof docId !== "string") continue;
+        if (dedup.hidden.has(buildDocKey(packId, docId))) continue;
 
         const flags = doc["flags"];
         if (typeof flags !== "object" || flags === null) continue;
@@ -1220,16 +1352,24 @@ export class CompendiumService {
 
         const key = buildSourceRefKey(packName, sourceId);
         const existing = index.get(key);
-        if (existing !== undefined) {
-          // Should never happen — REQ-CMP-041 states fusionId derivation is
-          // collision-free cross-pack, and (packName, sourceId) is exactly
-          // its input. Keep the FIRST match and log loudly so a real
-          // regression is visible instead of silently picking a doc at
-          // random.
-          this.logger?.warn(
-            { packName, sourceId, existing, duplicate: { packId, docId } },
-            "Duplicate origin reference across packs while building source-ref index — keeping first match",
-          );
+        if (existing) {
+          // A same-system duplicate (never expected, REQ-CMP-041) OR a
+          // genuine cross-system sourceId collision that dedup did NOT fuse
+          // (different mechanics — the Ratfolk/Ysoki shape, see docstring
+          // above). Either way: deterministic pf2e-first order (sortedPacks)
+          // means the FIRST writer here is always the same one across runs,
+          // so "keep first" is now a rule, not an accident. Logged so a
+          // same-system duplicate (the actually-unexpected case) stays
+          // visible.
+          if (
+            loaded.manifest.systemId ===
+            (this.packs.get(existing.packId)?.manifest.systemId ?? null)
+          ) {
+            this.logger?.warn(
+              { packName, sourceId, existing, duplicate: { packId, docId } },
+              "Duplicate origin reference within the same system while building source-ref index — keeping first match",
+            );
+          }
           continue;
         }
         index.set(key, { packId, docId });
@@ -1238,6 +1378,69 @@ export class CompendiumService {
 
     this._sourceRefIndex = index;
     return index;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers — cross-system dedup (mundo misto, DEC-SF2-07-bis)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the cross-system dedup index over every pack
+   * currently loaded. `buildDedupIndex` itself no-ops (returns an empty
+   * result) unless at least 2 distinct `manifest.systemId`s are present —
+   * so a pure pf2e or pure sf2e world pays only the systemId-set check, never
+   * the full documents.json scan. A composite world (pf2e-sf2e) pays one
+   * JSON.parse per pack, same cost class as `_getSourceRefIndex`.
+   */
+  private _ensureDedupIndex(): DedupResult {
+    if (this._dedupIndex) return this._dedupIndex;
+
+    const inputs: DedupPackInput[] = [];
+    for (const [packId, loaded] of this.packs) {
+      let docs: unknown[];
+      try {
+        docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      } catch (err) {
+        this.logger?.warn(
+          { err, packId },
+          "Failed to read documents.json while building dedup index",
+        );
+        continue;
+      }
+      inputs.push({
+        packId,
+        systemId: loaded.manifest.systemId,
+        docs: docs.filter(
+          (d): d is Record<string, unknown> => typeof d === "object" && d !== null,
+        ) as unknown as DedupPackInput["docs"],
+      });
+    }
+
+    const result = buildDedupIndex(inputs);
+    this._dedupIndex = result;
+    if (result.hidden.size > 0) {
+      this.logger?.info(
+        { hidden: result.hidden.size, fused: result.mergedFromSystems.size },
+        "Cross-system compendium dedup index built (mundo misto)",
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Resolves a `(packId, docId)` pair through the dedup alias, if any. A
+   * document hidden as the losing duplicate of a cross-system fuse (see
+   * `buildDedupIndex`) always resolves to its canonical winner — used by
+   * `getDocument` so every path that reaches a compendium uuid (grant items,
+   * `compendium:get`, imports) transparently lands on the surviving copy,
+   * never on a hidden one.
+   */
+  private _resolveDedupAlias(packId: string, docId: string): { packId: string; docId: string } {
+    const key = buildDocKey(packId, docId);
+    const dedup = this._ensureDedupIndex();
+    const canonicalKey = dedup.aliasTo.get(key);
+    if (!canonicalKey) return { packId, docId };
+    return parseDocKey(canonicalKey);
   }
 
   // ---------------------------------------------------------------------------

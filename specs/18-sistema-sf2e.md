@@ -226,6 +226,94 @@ minimiza esforço e mantém consistência no pipeline.
 
 ---
 
+### DEC-SF2-07a — Mundo misto: packs sf2e/pf2e continuam separados NOS ARQUIVOS; um sistema composto pode servi-los lado a lado
+
+**Data:** 2026-09-24. Reverte a leitura restritiva de DEC-SF2-07 ("nunca
+misturados") por decisão do Alexandre — desenho do mundo misto PF2e +
+Starfinder 2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`).
+
+**Decisão:** DEC-SF2-07 continua valendo **ao nível do arquivo/pack**: os
+packs sf2e nunca são gravados dentro de um pack pf2e, nem o inverso — a
+separação por diretório (`systems/pf2e/packs/**` × `systems/sf2e/packs/**`)
+é permanente. O que muda é que um **sistema composto** (`pf2e-sf2e`,
+DEC-SYS-06a) pode **descobrir e servir** os dois lado a lado num mesmo
+`CompendiumService`, para um mesmo mundo — sem misturar os ARQUIVOS, sem
+copiar, sem reescrever nenhum dos dois. "Nunca misturados" descrevia uma
+restrição de armazenamento (a que continua valendo), não uma proibição de um
+mundo enxergar os dois catálogos ao mesmo tempo.
+
+**Verificação de colisão de pack id (Risco R2 do desenho):** medido nos dados
+reais dos packs commitados — na primeira medição (2026-09-24, pré-curadoria)
+`systems/pf2e/packs/*/pack.json` (14 packs, todos com `id` prefixado
+`pf2e.<slug>`) × `systems/sf2e/packs/*/pack.json` (6 packs, todos
+`sf2e.<slug>`) deu **zero colisões**. Depois da curadoria do Player Core SF2e
+(mesma leva descrita abaixo), a contagem real é **15 packs pf2e × 18 packs
+sf2e = 33 packs** (bate com o `compendium:list` ao vivo do mundo misto, ataque
+3 da revisão adversarial 4) — **zero colisões continua valendo**, porque o
+prefixo por sistema é dado pelo `id` do pack, não pela quantidade. O prefixo
+por sistema já em uso (`pf2e.`/`sf2e.`) evita namespacing adicional no
+composto.
+
+**Deduplicação de homônimos (documentos com o mesmo `name` nos dois
+sistemas) — IMPLEMENTADA (2026-09-24, lane de conserto pós-#261/#181):** a
+medição inicial (zero homônimos) foi feita só contra os 6 packs sf2e
+pré-curadoria (snapshot do parágrafo anterior). Depois que a curadoria do
+Player Core SF2e (PR #169 dados +
+#171, integrados nesta lane via `feat/misto-dedup`) trouxe 97 talentos de
+perícia, 18 gerais, ações e classes, a medição real (mesma normalização —
+tipo + slug + nível/rank + traits + actionType/actions/category +
+`prerequisites` + `rules` com toda referência
+`@UUID[Compendium.<sistema>...]` neutralizada; descrição/publicação/img/\_id/
+folder/\_stats/sort/ownership ignorados) deu:
+
+| `type`       | pares homônimos | fundem (mesma mecânica) | ficam (mecânica diferente) |
+| ------------ | --------------- | ----------------------- | -------------------------- |
+| action       | 1               | 1                       | 0                          |
+| ancestry     | 1               | 1                       | 0                          |
+| background   | 6               | 6                       | 0                          |
+| classFeature | 3               | 0                       | 3                          |
+| feat         | 98              | 87                      | 11                         |
+| heritage     | 2               | 2                       | 0                          |
+| spell        | 5               | 5                       | 0                          |
+| **total**    | **116**         | **102**                 | **14**                     |
+
+75 desses 102 fusões já vinham marcadas pelo importador
+(`flags.fusion.reprintOf`, curadoria N1 do PR #169 —
+`tools/importer-pf2e/src/curation/sf2e-nivel3-pf2e-reprints.mjs`) e as 75
+fundem pela regra sem exceção (100% de consistência entre a curadoria manual
+e a normalização automática). As outras 27 fusões (ações, ancestralidade
+Human, backgrounds compartilhados, feitiços e heranças) não tinham a flag mas
+são texto de regra idêntico nos dois sistemas — o vendor comum não as marcou
+como reprint mas a normalização as reconhece corretamente.
+
+Conferido à mão: as 75 flags `reprintOf` (Assurance, Shield Block, Toughness,
+Diehard, Adopted Ancestry, etc.) fundem corretamente; amostra dos 14 que
+ficam confirma decisões corretas — `Reach Spell`/`Cantrip Expansion`/`Widen
+Spell` (traits de classe diferentes: pf2e restringe a
+bard/cleric/druid/oracle/sorcerer/witch/wizard, sf2e a mystic/witchwarper),
+`Seasoned` (rules referenciam feats de crafting diferentes: `magical-crafting`
+
+- `alchemical-crafting` no pf2e vs `serum-crafting` no sf2e — adaptação real
+  de mecânica, não só de nome), `Cheek Pouches` (trait de ancestralidade extra
+  no sf2e), e as 3 `classFeature` (Signature Spells/Spell Repertoire/Reflex
+  Expertise — texto de classe específico, `Spell Repertoire` tem `rules`
+  totalmente diferentes entre os dois).
+
+**Implementação:** `packages/server/src/compendium/dedup.ts` (core) — função
+pura `buildDedupIndex`, aplicada por `CompendiumService._ensureDedupIndex`
+(lazy, só quando o serviço carrega ≥2 `systemId`s distintos — um mundo pf2e
+ou sf2e puro nunca paga o custo nem muda de comportamento). O documento
+perdedor (sf2e, por convenção — DEC-SYS-06a reusa o shape pf2e) some do
+índice/busca (`compendium:index`/`compendium:searchAll`); o documento vencedor
+ganha `index.mergedFromSystems: ["sf2e"]` para a origem ficar visível; e
+`CompendiumService.getDocument` (usado por `compendium:get`, importação para
+mundo/ficha, e portanto por qualquer grant-item de uma classe sf2e que
+referencie o item fundido) resolve o alias transparentemente para o
+documento pf2e. Testes não-circulares em
+`packages/server/src/compendium/__tests__/dedup-real-packs.test.ts` e
+`packages/server/src/__tests__/boot-compendium-composite-dedup.test.ts`
+(via `compendium:*` real sobre o `boot()`).
+
 ### DEC-SF2-08 — Species = Ancestry com displayName sobrescrito
 
 **Decisão:** A entidade "species" do SF2e é mapeada para o tipo de documento
