@@ -70,8 +70,11 @@ o **Starfinder Second Edition (SF2e)** construído sobre o mesmo motor 2e do PF2
   o SF2e _adiciona_.
 - Starship Combat **tático** com grid (Tech Core, outubro 2026) — [V2] fora do
   escopo da spec atual; mapeado apenas conceitualmente.
-- Classes Mechanic e Technomancer (Tech Core) — dados chegam com o livro; o
-  modelo de dados é o mesmo das outras classes, sem extensão especial de engine.
+- ~~Classes Mechanic e Technomancer (Tech Core) — dados chegam com o livro~~:
+  **superado por DEC-SF2-10** (2026-09-24) — essas duas classes, mais o
+  Luminary, entram já pelo PDF de playtest de cada uma (REQ-SF2-014/014a),
+  sem esperar o livro. O modelo de dados continua o mesmo das outras
+  classes, sem extensão especial de engine.
 - Drift travel e viagem interestelar em escala galáctica — sistema macro fora
   do canvas tático, sem especificação neste ciclo.
 - Hacking como hazard — subsistema de hazard do GM Core; implementado como
@@ -240,6 +243,56 @@ O `systems/sf2e` não precisa sobrescrever nenhuma lógica de cobertura do engin
 
 ---
 
+### DEC-SF2-10 — Ficha SF2e até o nível 3 sai de [V2]; classes de playtest entram por PDF; inglês primeiro
+
+**Decisão (24/09/2026, decidido pelo Alexandre — Fatia 2):** O recorte "criar
+personagem de qualquer classe SF2e, do nível 1 ao 3, com ancestralidade,
+antecedente, talentos, características de classe e magias/magias de foco até o
+rank/nível 3" deixa de ser **[V2]** e passa a ser trabalho ativo, no mesmo
+espírito da Fatia 1 do PF2e (ficha até o nível 3, spec `17-sistema-pf2e.md`).
+Isto reclassifica REQ-SF2-013/015/016 (já [MVP]) e as demais REQ-SF2 que
+descrevem esse recorte — não é uma reclassificação [V2]→[MVP] em bloco de toda
+a spec, que continua [V2] no escopo global do Fusion (REQ-ESC-010).
+
+Três decisões associadas:
+
+1. **Classes de playtest entram já, pela fonte disponível hoje — o PDF, não o
+   livro.** Diferente de REQ-SF2-014 (que previa esperar o Tech Core), o
+   Mechanic e o Technomancer entram a partir do PDF de playtest
+   (`PZO22006`, 2025, licença ORC) — o Alexandre quer testar essas classes
+   antes do livro sair. O Luminary entra do mesmo modo, a partir do seu PDF de
+   playtest (`PZO22010`, 2026, licença ORC) — não há livro anunciado para o
+   Luminary, então não há data de atualização prevista para ele.
+2. **Regra de atualização:** todo dado de classe marcado como playtest carrega
+   `system.publication` identificando a fonte como PDF de playtest (não
+   "Starfinder Player Core" nem o nome do livro final) e uma flag/version de
+   playtest. Quando o livro final sair — Tech Core em 2026-10-07 para Mechanic
+   e Technomancer — os dados dessa(s) classe(s) são reimportados a partir do
+   livro e a marca de playtest é removida; até lá, `publication` continua
+   apontando para o PDF. O Luminary permanece marcado como playtest até que a
+   Paizo anuncie e publique um livro para ele.
+3. **Inglês primeiro.** O recorte de nível 3 (Player Core: 10 ancestralidades,
+   34 antecedentes, as 6 classes do Player Core + as 3 de playtest, talentos
+   ≤3, magias até rank 2/foco até nível 3) é importado só em inglês. A
+   tradução pt-BR completa do SF2e é trabalho separado, rastreado no satélite
+   como issue #168 — o Alexandre não está satisfeito com a tradução SF2e
+   atual e prefere revisá-la de uma vez depois, não traduzir incrementalmente
+   junto com cada pack novo.
+
+**Racional:** o Alexandre quer testar o SF2e de ponta a ponta — inclusive as
+classes de playtest, que são a parte que mais lhe interessa — sem esperar
+datas de publicação que ele não controla. Marcar a origem (`publication`)
+explicitamente em vez de tratar o dado de playtest como definitivo evita que
+a reimportação do livro final vire uma migração silenciosa.
+
+**Consequência para REQ-SF2-014/017:** REQ-SF2-014 (Mechanic/Technomancer
+adiados para o Tech Core) e REQ-SF2-017 (Galactic Ancestries) continuam
+descrevendo o que HOJE não está neste recorte — REQ-SF2-017 (as 21
+ancestralidades adicionais) permanece [V2] sem mudança; REQ-SF2-014 é
+reescrito abaixo para refletir a entrada por PDF de playtest.
+
+---
+
 ## Escopo de MVP do SF2e
 
 O **MVP global** do Fusion é "o grupo consegue jogar uma sessão de PF2e com mapa,
@@ -345,9 +398,18 @@ A UI da ficha deve exibir o rastreador de atunement com botões +/−
 importadas do compendium, ativadas via chat com resultado de rolagem de perícia
 social quando aplicável.
 
-**REQ-SF2-014** [V2] As classes Mechanic e Technomancer (Tech Core, outubro 2026)
-serão adicionadas como packs de compendium adicionais após o lançamento do livro,
-sem alteração estrutural do engine.
+**REQ-SF2-014** [MVP] As classes de playtest **Mechanic** e **Technomancer**
+(fonte: PDF de playtest `PZO22006`, 2025, licença ORC) devem ser importadas
+como pack de compendium próprio (`sf2e:playtest-classes`), com
+`system.publication` identificando a origem como playtest e não como o Tech
+Core. Quando o Tech Core sair (previsto 2026-10-07), os dados dessas duas
+classes devem ser reimportados a partir do livro final e a marca de playtest
+removida (DEC-SF2-10).
+
+**REQ-SF2-014a** [MVP] A classe de playtest **Luminary** (fonte: PDF de
+playtest `PZO22010`, 2026, licença ORC) deve ser importada do mesmo modo que
+REQ-SF2-014, no mesmo pack `sf2e:playtest-classes`. Não há livro anunciado
+para o Luminary — a marca de playtest permanece até que a Paizo publique um.
 
 ---
 
