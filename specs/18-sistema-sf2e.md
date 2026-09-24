@@ -223,6 +223,43 @@ minimiza esforço e mantém consistência no pipeline.
 
 ---
 
+### DEC-SF2-07-bis — Mundo misto: packs sf2e/pf2e continuam separados NOS ARQUIVOS; um sistema composto pode servi-los lado a lado
+
+**Data:** 2026-09-24. Reverte a leitura restritiva de DEC-SF2-07 ("nunca
+misturados") por decisão do Alexandre — desenho do mundo misto PF2e +
+Starfinder 2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`).
+
+**Decisão:** DEC-SF2-07 continua valendo **ao nível do arquivo/pack**: os
+packs sf2e nunca são gravados dentro de um pack pf2e, nem o inverso — a
+separação por diretório (`systems/pf2e/packs/**` × `systems/sf2e/packs/**`)
+é permanente. O que muda é que um **sistema composto** (`pf2e-sf2e`,
+DEC-SYS-06-bis) pode **descobrir e servir** os dois lado a lado num mesmo
+`CompendiumService`, para um mesmo mundo — sem misturar os ARQUIVOS, sem
+copiar, sem reescrever nenhum dos dois. "Nunca misturados" descrevia uma
+restrição de armazenamento (a que continua valendo), não uma proibição de um
+mundo enxergar os dois catálogos ao mesmo tempo.
+
+**Verificação de colisão de pack id (Risco R2 do desenho):** medido nos dados
+reais dos packs commitados (2026-09-24) — `systems/pf2e/packs/*/pack.json` (14
+packs, todos com `id` prefixado `pf2e.<slug>`) × `systems/sf2e/packs/*/pack.json`
+(6 packs, todos `sf2e.<slug>`) — **zero colisões**. O prefixo por sistema já em
+uso (`pf2e.`/`sf2e.`) evita namespacing adicional no composto.
+
+**Deduplicação de homônimos (documentos com o mesmo `name` nos dois
+sistemas):** medição por normalização de mecânica (tipo + traits + nível/rank
++ actionType/actions + `rules` e `prerequisites` com toda referência
+`@UUID[Compendium.<sistema>...]` neutralizada; descrição/publicação/img/_id/
+folder/_stats ignorados) rodada sobre os packs REAIS já importados neste repo
+(2026-09-24): **zero homônimos entre pf2e e sf2e** nos dados hoje commitados
+(condições, armas e feitiços comparados por nome exato — nenhuma
+correspondência). Consistente com a medição do desenho sobre o vendor
+completo `foundryvtt/pf2e` (170 pares nome-igual em 9 categorias, 0 idênticos
+após normalização de mecânica) — a regra de identidade funde zero hoje, o que
+é o resultado correto: nenhum item precisa de desambiguação na UI ainda. A
+regra de identidade em si (fundir quando a mecânica normalizada é igual,
+preferindo a versão pf2e e mantendo o `sourceId` sf2e como alias) fica
+registrada para quando um reprint literal aparecer.
+
 ### DEC-SF2-08 — Species = Ancestry com displayName sobrescrito
 
 **Decisão:** A entidade "species" do SF2e é mapeada para o tipo de documento

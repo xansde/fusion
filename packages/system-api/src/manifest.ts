@@ -149,6 +149,22 @@ export const SystemManifestSchema = z.object({
       }),
     )
     .optional(),
+
+  /**
+   * DEC-SYS-06-bis (spec 15, emenda 2026-09-24, mundo misto PF2e+SF2e): IDs
+   * of the systems whose compendium packs this system *composes* — i.e. a
+   * *composite* `SystemModule` that does not ship its own `packs/` directory,
+   * but discovers and serves the real, already-registered packs of N other
+   * systems side by side (no copy — REQ-SYS-006 stays intact in the letter:
+   * "exactly one system active per world" remains true, the active system is
+   * the composite itself).
+   *
+   * Absent/undefined = a normal, non-composite system (resolves its own
+   * `systems/<id>/packs` as before). When present, `resolveSystemPacksDir`
+   * is called once per id in this list instead of once for `manifest.id`
+   * (see boot.ts / compendium/service.ts).
+   */
+  sourceSystemIds: z.array(z.string().min(1)).min(1).optional(),
 });
 
 export type SystemManifest = z.infer<typeof SystemManifestSchema>;

@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 719 | 36% |
-| Citados só por código de produção | 316 | 16% |
-| Sem nenhuma citação | 943 | 48% |
+| Citados por algum teste | 723 | 37% |
+| Citados só por código de produção | 313 | 16% |
+| Sem nenhuma citação | 942 | 48% |
 | **Total [MVP]** | **1978** | |
 
 ## Por spec
@@ -39,10 +39,10 @@ porque ainda não foram prometidos para nenhum marco.
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 63 | 18 | 29 | 16 | 29% |
+| [15](15-api-de-sistemas.md) | 63 | 19 | 29 | 15 | 30% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
 | [17](17-sistema-pf2e.md) | 72 | 42 | 14 | 16 | 58% |
-| [18](18-sistema-sf2e.md) | 39 | 16 | 11 | 12 | 41% |
+| [18](18-sistema-sf2e.md) | 39 | 19 | 8 | 12 | 49% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |

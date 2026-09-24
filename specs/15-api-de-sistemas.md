@@ -231,6 +231,45 @@ Svelte; não há `render()` manual.
   uma única arquitetura de UI. O sistema registra `{ component, types,
 makeDefault, label }` (forma de research 07 §4.1, modernizada).
 
+### DEC-SYS-06-bis — Sistema composto: um `SystemModule` que une packs de outros sistemas, sem copiar dado
+
+**Data:** 2026-09-24. Decisão do Alexandre para o mundo misto PF2e + Starfinder
+2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`, Opção B).
+
+**Decisão:** Um mundo continua tendo **exatamente um** sistema ativo
+(REQ-SYS-006 permanece intacto na letra) — mas esse sistema ativo pode ser um
+**sistema composto**: um `SystemModule` normal, registrado via
+`SystemRegistry.register()` como qualquer outro, cujo manifest declara
+`sourceSystemIds: string[]` (≥ 2 ids de sistemas JÁ registrados) em vez de
+`packs[]` próprio. Na descoberta de compêndios (`ver 16-`), a engine resolve o
+diretório de packs de CADA id em `sourceSystemIds` (mesma
+`resolveSystemPacksDir` de sempre, uma vez por id) e os agrega no mesmo
+`CompendiumService` — os arquivos permanecem exatamente onde estavam, nos
+sistemas de origem; nada é copiado, gerado ou reescrito. Um pack novo
+adicionado a qualquer sistema de origem aparece no composto automaticamente,
+sem nenhuma ação adicional.
+
+- **Rejeitado: terceiro sistema estático com packs próprios (cópia/geração).**
+  Viola o requisito de "sem copiar dado" — uma classe nova no sistema de
+  origem não apareceria no composto até alguém rodar um gerador de novo.
+- **Rejeitado: flag `world.combinedSystems: string[]` sem `SystemModule`
+  dedicado.** Force todo consumidor de `game.system` (contract tests
+  REQ-SYS-110/111, `prepareData`, validação server-side) a saber lidar com
+  "mais de um sistema" — a spec inteira foi escrita assumindo um
+  `SystemModule` só. Um sistema composto de verdade mantém a invariante
+  "um mundo, um sistema" literal, e o composto declara seu **próprio**
+  `engineCompat` (calculado como a interseção dos sistemas de origem).
+- **Racional:** o schema de um sistema composto tipicamente reaproveita quase
+  100% o schema de um dos sistemas de origem (quando um já é um superset
+  estrutural do outro, como `ActorSystemSF2e extends ActorSystemPF2e`) — o
+  trabalho do composto se resume a resolver as diferenças reais (ex.: um
+  campo de moeda com shape diferente) e a União de `documentTypes`.
+
+> **Emenda ao REQ-SYS-005:** o manifest de um sistema composto (que declara
+> `sourceSystemIds`) NÃO precisa declarar `packs[]` — seus packs são os dos
+> sistemas de origem, descobertos em tempo de boot, não anunciados
+> estaticamente no próprio manifest.
+
 ### DEC-SYS-07 — Hooks tipados, síncronos para cancelar, com payload nomeado
 
 A engine expõe um **barramento de hooks tipado**: cada hook tem um nome e um tipo

@@ -678,24 +678,54 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     const { CompendiumService, resolveSystemPacksDir } = await import("./compendium/index.js");
     const compendiumService = new CompendiumService(logger);
     if (netContext.systemId !== undefined) {
-      const packsDir = resolveSystemPacksDir(netContext.systemId, netContext.packsDir);
-      if (packsDir !== null) {
-        compendiumService.discoverPacks(packsDir, netContext.systemId);
+      // DEC-SYS-06-bis (spec 15, mundo misto): a composite system (e.g.
+      // "pf2e-sf2e") declares `sourceSystemIds` in its manifest instead of
+      // shipping its own packs/ — discover EACH source system's real packs
+      // dir and accumulate them into the same CompendiumService (packs are
+      // keyed by `manifest.id`, already namespaced per system — e.g.
+      // "pf2e.feats-core" / "sf2e.weapons-core" — so no collision). A
+      // non-composite system just falls back to its own single id, same as
+      // before this change.
+      const sourceSystemIds = netContext.systemModule?.manifest.sourceSystemIds ?? [
+        netContext.systemId,
+      ];
+      let anyDiscovered = false;
+      for (const sourceSystemId of sourceSystemIds) {
+        // packsDirOverride only makes sense for a single-source system; a
+        // composite system always resolves each source from the monorepo
+        // layout.
+        const packsDirOverride = sourceSystemIds.length === 1 ? netContext.packsDir : undefined;
+        const packsDir = resolveSystemPacksDir(sourceSystemId, packsDirOverride);
+        if (packsDir !== null) {
+          compendiumService.discoverPacks(packsDir, sourceSystemId);
+          anyDiscovered = true;
+          logger.info(
+            { systemId: netContext.systemId, sourceSystemId, packsDir },
+            "Compendium packs discovered",
+          );
+        } else {
+          logger.warn(
+            { systemId: netContext.systemId, sourceSystemId, packsDirOverride },
+            "Compendium packs directory not found for source system — skipping",
+          );
+        }
+      }
+      if (anyDiscovered) {
         logger.info(
           {
             systemId: netContext.systemId,
-            packsDir,
+            sourceSystemIds,
             // Server-side startup log: count the whole shelf, GM audience —
             // this never reaches a client (REQ-CMP-010a is enforced per-request
             // in the handlers, from the socket's own role).
             packs: compendiumService.listPacks(UserRole.GAMEMASTER).length,
           },
-          "Compendium packs discovered",
+          "Compendium packs discovery complete",
         );
       } else {
         logger.warn(
-          { systemId: netContext.systemId, packsDirOverride: netContext.packsDir },
-          "Compendium packs directory not found — compendium:list will be empty",
+          { systemId: netContext.systemId, sourceSystemIds },
+          "No compendium packs directory found for any source system — compendium:list will be empty",
         );
       }
     } else {
