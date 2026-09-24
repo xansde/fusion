@@ -75,6 +75,9 @@ importers:
       '@fusion/system-api':
         specifier: workspace:*
         version: link:../../../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
     devDependencies:
       vitest:
         specifier: ^3.2.2
