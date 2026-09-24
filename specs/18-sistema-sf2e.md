@@ -315,11 +315,13 @@ DEC-SF2-01 (SF2e é extensão do engine 2e, não fork). Esta decisão amarra
 DEC-SF2-01: nenhuma lógica de progressão pode nascer duplicada por sistema —
 se um step ainda não subiu, é dívida registrada, não um segundo dono.
 
-**Consequência de implementação:** `computeAbilityScores`, `effectiveRank` e
-`spellSlotsForLevel` (matemática pura) e os schemas de progressão já vivem em
-`systems/engine-2e/src/progression/`. Os 4 `DeriveStep` (skills, HP, apply
-class, abilities) ainda não subiram — REQ-SF2-057 rastreia isso como MVP
-aberto, não como [V2].
+**Consequência de implementação:** `computeAbilityScores`, `effectiveRank`,
+`spellSlotsForLevel` (matemática pura), os schemas de progressão e os 4
+`DeriveStep` (skills, HP, apply class, abilities) já vivem em
+`systems/engine-2e/src/progression/{levels,build-steps,math,schema}.ts` — o
+PF2e e o SF2e consomem os mesmos steps. O que segue aberto não é mais o
+código, é a curadoria dos dados que esses steps leem: REQ-SF2-057 rastreia
+isso como MVP aberto, não como [V2].
 
 ### DEC-SF2-12 — Uma ficha 2e parametrizada por sistema, não duas (D2)
 
@@ -505,11 +507,13 @@ que Mystic e Witchwarper (conjuradores) precisam até o nível 3.
 **REQ-SF2-057** [MVP] A subida de nível de 1 a 3 deve consumir
 `featuresByLevel` (características de classe por nível, resolvidas para o
 documento real do `class-features-core` — não um placeholder de nome) e
-`proficiencyUpgrades`/`spellcasting` derivados da progressão (DEC-SF2-11).
-Enquanto os 4 `DeriveStep` de progressão não subirem ao `engine-2e`
-(DEC-SF2-11), este requisito é considerado ABERTO — Mystic e Witchwarper sem
-`spellcasting` derivado, ou uma classe sem upgrade de proficiência no nível
-3, são falha desta REQ, não um gap [V2].
+`proficiencyUpgrades`/`spellcasting` derivados da progressão (DEC-SF2-11). Os
+4 `DeriveStep` de progressão já subiram ao `engine-2e` (DEC-SF2-11); o que
+mantém este requisito ABERTO agora é a curadoria dos dados das 6 classes do
+Player Core (`proficiencyUpgrades` vazio, `spellcasting` ausente no Mystic e
+no Witchwarper) — Mystic e Witchwarper sem `spellcasting` derivado, ou uma
+classe sem upgrade de proficiência no nível 3, são falha desta REQ, não um
+gap [V2].
 
 ---
 
