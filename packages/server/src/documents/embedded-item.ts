@@ -114,6 +114,82 @@ export function validateEmbeddedItemForSystem(
 }
 
 /**
+ * Validate an Actor document's `system.currency` subtree against the active
+ * system's registered `Actor:<subtype>` data model (I2, revisão adversarial
+ * 3 — "a moeda do composto não tem efeito em runtime").
+ *
+ * SCOPE, deliberately narrow: this does NOT run the full Actor `system`
+ * schema (unlike {@link validateEmbeddedItemForSystem} for Item) — the full
+ * Actor schema has several fields with no `.default()` (abilities,
+ * attributes, saves, perception in `CharacterSystemSchema`), so a full
+ * `schema.safeParse` would reject the partial payloads most Actor
+ * create/update call sites already send today, which is a much larger
+ * change than this fix. Currency is the one field the revision flagged as
+ * observably broken at runtime (`{credits:5}`, `{gp:5,...}` and the literal
+ * string `"lixo"` were all accepted on a pf2e-sf2e Actor), and the one
+ * safest to check in isolation — it has no cross-field dependency on the
+ * rest of `system`. The rest of Actor `system` validation is tracked as a
+ * follow-up (see `.fusion-build/sf2e-nivel3/mundo-misto/conserto-core.md`).
+ *
+ * No systemModule / no registered model / no `currency` field on the
+ * model's schema / payload doesn't touch `currency` at all → skipped
+ * (ok:true, unchanged) — same "degrade open, never invent a rule" posture
+ * as the rest of this module.
+ */
+export function validateActorCurrencyForSystem(
+  systemModule: SystemModule | undefined,
+  raw: Record<string, unknown>,
+): ItemSystemValidation | ItemSystemValidationError {
+  if (!systemModule) return { ok: true, doc: raw };
+
+  const system = raw["system"];
+  if (!system || typeof system !== "object" || !("currency" in system)) {
+    return { ok: true, doc: raw };
+  }
+
+  const subtype = typeof raw["type"] === "string" ? raw["type"] : undefined;
+  if (!subtype) return { ok: true, doc: raw };
+
+  const model = systemModule.models.get(`Actor:${subtype}`);
+  type StrictableZodObject = {
+    safeParse: (v: unknown) => { success: boolean; data?: unknown; error?: { message: string } };
+    strict?: () => StrictableZodObject;
+    removeDefault?: () => StrictableZodObject;
+  };
+  const shape = model?.schema as { shape?: Record<string, StrictableZodObject> } | undefined;
+  const currencySchema = shape?.shape?.["currency"];
+  if (!currencySchema) return { ok: true, doc: raw };
+
+  // The registered field is `Pf2eCurrencySchema.default({})` /
+  // `CreditsSchema.default(...)` — a `ZodDefault` wrapper, not a bare
+  // `ZodObject`, so `.strict()` doesn't exist on it directly.
+  // `.removeDefault()` unwraps to the underlying ZodObject first (the
+  // currency VALUE we are validating is present here, by the `"currency"
+  // in system` guard above, so no default needs to apply).
+  const innerSchema = currencySchema.removeDefault?.() ?? currencySchema;
+  // `.strict()` when available (the currency schemas are plain ZodObjects,
+  // never `.passthrough()`): an unknown key (e.g. `credits` sent to the
+  // pf2e-shaped pp/gp/sp/cp schema) must be REJECTED, not silently dropped —
+  // a lenient `.safeParse` would strip it and "pass" with an all-zero
+  // wallet, hiding exactly the bug I2 reported (SF2e-shaped currency
+  // accepted on a pf2e/pf2e-sf2e Actor).
+  const strictSchema = innerSchema.strict?.() ?? innerSchema;
+  const currencyValue = (system as Record<string, unknown>)["currency"];
+  const result = strictSchema.safeParse(currencyValue);
+  if (!result.success) {
+    return {
+      ok: false,
+      message: `Invalid system.currency for Actor type "${subtype}" on system "${systemModule.manifest.id}": ${result.error?.message ?? "validation failed"}`,
+    };
+  }
+
+  return {
+    ok: true,
+    doc: { ...raw, system: { ...(system as Record<string, unknown>), currency: result.data } },
+  };
+}
+
+/**
  * SF2e augmentation slot-limit gate (REQ-SF2-024, CA-SF2-05) for one Item
  * about to join `existingItems`.
  *
