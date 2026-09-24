@@ -127,6 +127,7 @@ import {
 // runs — only the payload type is still read here.
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
+import { systemIncludes } from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -533,13 +534,19 @@ type CompanionCreateAuth =
  * (a)–(d). Only ever called for a doc that already passed isCompanionDoc.
  */
 function authorizePlayerCompanionCreate(
-  deps: Pick<DocHandlerDeps, "store" | "systemId">,
+  deps: Pick<DocHandlerDeps, "store" | "systemId" | "systemModule">,
   ctx: HandlerContext,
   companion: Record<string, unknown>,
 ): CompanionCreateAuth {
-  // (c-guard) Only pf2e worlds grant familiars; other systems keep Actor
-  // strictly GM-only.
-  if (deps.systemId !== "pf2e") {
+  // (c-guard) Only worlds whose system includes pf2e grant familiars — the
+  // literal pf2e system, or the pf2e+sf2e composite (DEC-SYS-06-bis, I4);
+  // other systems keep Actor strictly GM-only.
+  if (
+    !systemIncludes(
+      { systemId: deps.systemId, sourceSystemIds: deps.systemModule?.manifest.sourceSystemIds },
+      "pf2e",
+    )
+  ) {
     return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can create Actor" };
   }
 
@@ -1752,7 +1759,7 @@ function handleEmbeddedCreate(
       // a single doc:create call with several augmentations is capped too.
       if (embeddedType === "Item" && parent.type === "Actor") {
         const augViolation = augmentationSlotLimitViolation(
-          deps.systemId,
+          { systemId: deps.systemId, sourceSystemIds: deps.systemModule?.manifest.sourceSystemIds },
           [...existing, ...created] as AugmentationLikeItem[],
           raw,
         );

@@ -28,6 +28,7 @@ import {
   type AugmentationLikeItem,
 } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
+import { systemIncludes } from "@fusion/system-api";
 
 /**
  * Successful validation of an embedded Item's `type` + `system` subtree
@@ -116,21 +117,22 @@ export function validateEmbeddedItemForSystem(
  * SF2e augmentation slot-limit gate (REQ-SF2-024, CA-SF2-05) for one Item
  * about to join `existingItems`.
  *
- * Gated on the WORLD's systemId being "sf2e" (a world runs a single system
- * for all its actors — there is no per-Actor systemId field), so pf2e/other
- * worlds are entirely unaffected. `existingItems` must already include any
- * item accepted earlier in the SAME batch, so a single call that brings
- * several augmentations at once is capped too.
+ * Gated on the world's system INCLUDING sf2e (`systemIncludes`, I4) — the
+ * literal sf2e system, or the pf2e+sf2e composite (DEC-SYS-06-bis), so
+ * pf2e-only worlds are entirely unaffected while the composite keeps the
+ * limit. `existingItems` must already include any item accepted earlier in
+ * the SAME batch, so a single call that brings several augmentations at once
+ * is capped too.
  *
  * @returns the message to report (ack message on the doc:create path, per-uuid
  *   `failed` reason on the compendium path), or `null` when the item passes.
  */
 export function augmentationSlotLimitViolation(
-  systemId: string | undefined,
+  system: { systemId?: string | undefined; sourceSystemIds?: readonly string[] | undefined },
   existingItems: readonly AugmentationLikeItem[],
   incoming: Record<string, unknown>,
 ): string | null {
-  if (systemId !== "sf2e") return null;
+  if (!systemIncludes(system, "sf2e")) return null;
 
   const check = validateAugmentationSlotLimit(existingItems, incoming);
   if (check.ok) return null;

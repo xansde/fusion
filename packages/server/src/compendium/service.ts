@@ -1005,7 +1005,7 @@ export class CompendiumService {
         // batch), then the per-item shape. A uuid failing either is a `failed`
         // entry, not an exception — one bad entry never sinks the batch.
         const augViolation = augmentationSlotLimitViolation(
-          options.systemId,
+          { systemId: options.systemId, sourceSystemIds: options.systemModule?.manifest.sourceSystemIds },
           [...existing, ...addition] as AugmentationLikeItem[],
           embedded,
         );

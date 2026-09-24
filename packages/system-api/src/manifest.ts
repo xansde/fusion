@@ -168,3 +168,29 @@ export const SystemManifestSchema = z.object({
 });
 
 export type SystemManifest = z.infer<typeof SystemManifestSchema>;
+
+/**
+ * Whether a world's active system "includes" `targetSystemId`'s behavior —
+ * true when the active system IS `targetSystemId`, or (DEC-SYS-06-bis) it is
+ * a *composite* system whose `sourceSystemIds` list it (spec 15, mundo misto
+ * pf2e+sf2e).
+ *
+ * WHY THIS EXISTS: several server-side gates were written comparing a raw
+ * `systemId` string against a single literal (`"pf2e"`, `"sf2e"`) — familiar
+ * creation, the SF2e augmentation slot limit, etc. Under the composite
+ * system those gates silently turned OFF, because the world's `systemId` is
+ * `"pf2e-sf2e"`, never `"pf2e"` or `"sf2e"` themselves (I4, revisão
+ * adversarial 3). Any gate that should apply transparently inside a
+ * composite must go through this helper instead of `systemId === "..."`.
+ *
+ * Accepts either the systemId string, the sourceSystemIds list, or both
+ * (whatever the caller already has on hand) so it works from both a bare
+ * `systemId` and a resolved `SystemModule.manifest`.
+ */
+export function systemIncludes(
+  info: { systemId?: string | undefined; sourceSystemIds?: readonly string[] | undefined },
+  targetSystemId: string,
+): boolean {
+  if (info.systemId === targetSystemId) return true;
+  return info.sourceSystemIds?.includes(targetSystemId) ?? false;
+}
