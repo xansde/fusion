@@ -25,11 +25,10 @@
         ]
       },
       "ability_scores_at_level_1": {
-        "note": "9 boosts de habilidade aplicados ANTES do boost de habilidade-chave da classe (que soma +2 por ser específico de cada uma das 29 classes e não cabe num chassi comum — ver 'class_key_ability_boost_note'). Toda habilidade parte de 10; cada boost aqui soma +2 (nenhuma passa de 18, então nenhum boost cai para +1). Valores pares e alcançáveis pela regra de geração de atributos do Player Core Remaster (cap. 1) — substitui os valores ilegais anteriores (INT 13 / CAR 11, inatingíveis a partir de 10 com boosts de +2/+1). CORRIGIDO NA RODADA 2: são 9 boosts, não 8 — ancestry_boosts ganhou um terceiro item (DES). PENDÊNCIA DE PACK (não é regra do livro): ancestries-core \"Human\" tem `boosts: [\"free\",\"free\",\"free\"]` (3 boosts livres) em vez dos 2 que o Player Core Remaster manda (p. 55) — e uma `flaws: [\"free\"]` inerte (o motor descarta um slug de falha que não é uma habilidade real, sem efeito numérico). Enquanto esse defeito do pack não for corrigido (registrado como pendência de issue em fusion-systems-2e), o chassi absorve o 3º boost livre da ancestralidade explicitamente em Destreza — ver `ancestry_boosts` — em vez de deixá-lo cair por acidente no fallback do harness.",
+        "note": "8 boosts de habilidade aplicados ANTES do boost de habilidade-chave da classe (que soma +2 por ser específico de cada uma das 29 classes e não cabe num chassi comum — ver 'class_key_ability_boost_note'). Toda habilidade parte de 10; cada boost aqui soma +2 (nenhuma passa de 18, então nenhum boost cai para +1). Valores pares e alcançáveis pela regra de geração de atributos do Player Core Remaster (cap. 1) — substitui os valores ilegais anteriores (INT 13 / CAR 11, inatingíveis a partir de 10 com boosts de +2/+1). CORRIGIDO NA ONDA 0 (T0.2, fusion-systems-2e#151): a rodada 2 do fixer da Onda 7 tinha absorvido um 3º boost de ancestralidade em Destreza (DES 14) para contornar um defeito do pack `ancestries-core` \"Human\" (`boosts: [\"free\",\"free\",\"free\"]`, 3 boosts livres, e `flaws: [\"free\"]` inerte). Esse defeito foi corrigido NA FONTE (fusion-systems-2e#152, `tools/importer-pf2e/src/transform.mjs`: `flattenAncestryBoostGroups` descarta grupos vazios do vendor em vez de tratá-los como escolha livre) — o pack regenerado agora tem `boosts: [\"free\",\"free\"]` e `flaws: []`, batendo com o Player Core Remaster p. 55 (2 boosts livres, nenhuma falha). O chassi comum volta a refletir exatamente o RAW: 2 boosts de ancestralidade (FOR/CON), DES 12. Absorver a divergência do app no molde tornava o aceite circular (a #151) — agora, se o app produzir DES 14, o comparador ACUSA a divergência em vez de escondê-la.",
         "ancestry_boosts": [
           "strength",
-          "constitution",
-          "dexterity (3º boost — pendência de pack, ver note acima)"
+          "constitution"
         ],
         "background_boosts": [
           "intelligence (obrigatório Int ou Sab pelo Scholar)",
@@ -38,7 +37,7 @@
         "free_boosts_4": ["strength", "dexterity", "constitution", "wisdom"],
         "class_key_ability_boost_note": "Cada uma das 29 classes soma +2 (ou +1 se já em 18) à sua própria habilidade-chave por cima destes valores — não fixado aqui por variar por classe; ficará com a classe quando os campos numéricos por-classe forem preenchidos (T7.4).",
         "strength": 14,
-        "dexterity": 14,
+        "dexterity": 12,
         "constitution": 14,
         "intelligence": 12,
         "wisdom": 14,

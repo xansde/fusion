@@ -20,9 +20,9 @@ As 29 fichas usam **exatamente a mesma** ancestralidade, antecedente e distribui
 - **Antecedente:** Scholar (Erudito) — treina Erudição Acadêmica (Lore, sempre) + uma perícia à escolha entre Arcana/Natureza/Ocultismo/Religião (Arcana escolhida arbitrariamente). **Correção da rodada 2:** o antecedente NUNCA treina Sociedade — a rodada 1 afirmava isso, errado (conferido no pack: a lista de escolha do Scholar é Arcana/Nature/Occultism/Religion). Scholar também concede o talento Assurance na perícia escolhida, mas essa escolha é um `ChoiceSet` ainda não implementado no motor (mesma limitação da perícia da Skilled Human) — pendência registrada, não bloqueia o resto do chassi.
 - **Idiomas:** Comum + 2 extras (Élfico + Anão) — **correção da rodada 2:** Human ganha `additionalLanguages.count: 1` da própria ancestralidade SOMADO ao modificador de INT (aqui +1) = 2 extras, não 1 como a rodada 1 registrava. Para as 4 classes de habilidade-chave Inteligência (Wizard, Investigator, Inventor, Witch), o total sobe para 3 extras (INT do chassi vira 14, mod +2, +1 da ancestralidade). "Elvish" também foi corrigido para "Elven" — é o slug real do pack.
 - **Atributos no nível 1** (antes do boost de habilidade-chave de cada classe, que soma +2 por cima e varia por classe):
-  - STR: 14, DEX: 14, CON: 14, INT: 12, WIS: 14, CHA: 10
-  - Boosts: ancestralidade em FOR/CON/DES (3 — ver pendência de pack abaixo), antecedente em INT (obrigatório)/SAB (livre), 4 boosts livres em FOR/DES/CON/SAB. Todos os valores são pares e alcançáveis (nenhum atinge 18, então nenhum boost cai para +1) — os valores anteriores (INT 13, CAR 11) eram ilegais: a partir de 10, só boosts de +2 (ou +1 acima de 18) são possíveis.
-  - **Pendência de pack (rodada 2, não é regra do livro):** `ancestries-core` "Human" tem `boosts: ["free","free","free"]` (3, o Player Core Remaster manda 2) e uma `flaws: ["free"]` inerte (o motor a descarta, sem efeito numérico — não é uma habilidade real). O chassi absorve o 3º boost em Destreza explicitamente, em vez de deixá-lo cair por acidente no primeiro candidato do harness — DEX subiu de 12 para 14 por causa disso. Corrigir o pack é uma issue separada (ver seção Pendências do `fix-r2.md`).
+  - STR: 14, DEX: 12, CON: 14, INT: 12, WIS: 14, CHA: 10
+  - Boosts: ancestralidade em FOR/CON (2 — RAW, Player Core Remaster p. 55), antecedente em INT (obrigatório)/SAB (livre), 4 boosts livres em FOR/DES/CON/SAB. Todos os valores são pares e alcançáveis (nenhum atinge 18, então nenhum boost cai para +1) — os valores anteriores (INT 13, CAR 11) eram ilegais: a partir de 10, só boosts de +2 (ou +1 acima de 18) são possíveis.
+  - **Corrigido na Onda 0 (T0.2, fusion-systems-2e#151):** a rodada 2 do fixer da Onda 7 tinha absorvido um 3º boost de ancestralidade em Destreza (DEX 14) para contornar um defeito do pack `ancestries-core` "Human" (`boosts: ["free","free","free"]`, 3 boosts livres, e uma `flaws: ["free"]` inerte). Isso tornava o aceite circular — o comparador escondia a divergência em vez de acusá-la. O defeito foi corrigido NA FONTE (fusion-systems-2e#152, `tools/importer-pf2e/src/transform.mjs`), o pack regenerado agora bate com o RAW (`boosts: ["free","free"]`, `flaws: []`), e o chassi comum voltou a refletir exatamente isso: 2 boosts de ancestralidade, DEX 12. Se o app produzir DEX 14, o comparador acusa a divergência.
 
 Aplicar o chassi a **todas as 29 classes** sem variação. O boost de habilidade-chave de cada classe (+2, específico por classe) soma-se a estes valores e fica para T7.4 (preenchimento por classe).
 
@@ -76,7 +76,7 @@ Barbarian, Rogue, Monk, Gunslinger, Swashbuckler, Investigator, Guardian, Wizard
 
 ## Ordem de Execução do Preenchimento
 
-1. O **chassis comum** já está fixado (ver seção 1 acima): Human/Skilled Human/Cooperative Nature, Scholar, STR/DEX/CON/INT/WIS/CHA = 14/14/14/12/14/10 (antes do boost de habilidade-chave da classe)
+1. O **chassis comum** já está fixado (ver seção 1 acima): Human/Skilled Human/Cooperative Nature, Scholar, STR/DEX/CON/INT/WIS/CHA = 14/12/14/12/14/10 (antes do boost de habilidade-chave da classe)
    - Só reabrir (`metadata.chassis_common`) com instrução literal do Alexandre
 
 2. **Lote 1 (8 classes):** preencher manualmente, um por um, lendo o Player Core Remaster
