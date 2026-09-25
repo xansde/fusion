@@ -31,11 +31,15 @@ satélite é livre depois de CI verde + revisão.
 - **T0.2** Devolver o molde ao RAW (DES 12 no chassi comum) e fazer o comparador **acusar** a
   divergência em vez de absorver (core #256 / satélite #160, fecha #151). Depois disso, mergear a
   Onda 7.
-- **T0.3** Rebase e merge do carregador de packs privados (core #215).
-- **T0.4** Estender o carregador para o sistema composto: um mundo `pf2e-sf2e` enxerga
-  `private-packs/pf2e/` **e** `private-packs/sf2e/`, passando pela mesma dedup de homônimos do
-  misto (#183). Hoje o #215 só procura `private-packs/<systemId>/`, então no misto procuraria
-  `private-packs/pf2e-sf2e/`, que não existe.
+- **T0.3** Levar as 5 classes de playtest de `~/.fusion/private-packs/` para os packs do satélite,
+  junto com o resto (decisão P1): Daredevil e Slayer em `systems/pf2e/packs/`, Luminary, Mechanic
+  e Technomancer em `systems/sf2e/packs/`. Cada documento marca em `publication` que é playtest,
+  com o código e a versão do PDF. Antes do commit, conferir o aviso de licença ORC em cada PDF
+  (regra clean-room: só entra o que a licença permite). Com isso o misto já enxerga as 5 pela
+  união de packs que existe; o carregador privado (#215) sai do caminho crítico e segue como PR
+  independente.
+- **T0.4** Criar `PATCH-NOTES.md` no satélite: uma entrada por tag, com o que mudou por classe e o
+  que acontece com personagem que já existe. É onde entra a troca de playtest por conteúdo oficial.
 
 Prova: as 5 classes de playtest aparecem no picker do mundo `misto`; comparador vermelho no
 Humano com o pack antigo e verde com o corrigido.
@@ -47,8 +51,9 @@ Humano com o pack antigo e verde com o corrigido.
 - **T1.2** Armadura na CA e golpes derivados no SF2e puro (#188).
 - **T1.3** Golpe de arma do misto por fábrica compartilhada, e não pela cópia do SF2e; armas no
   fixture do harness 174; `ammoOk` das 11 armas tech de volta; bônus de grade no golpe (#189).
-- **T1.4** Teste permanente de paridade SF2e puro × misto nas 6 classes, níveis 1–3 (#187),
-  com a régua da decisão P2.
+- **T1.4** Teste permanente das 6 classes, níveis 1–3 (#187), com três comparações (decisão P2):
+  SF2e puro × livro, misto × livro **e** puro × misto. As duas primeiras provam que está certo; a
+  terceira pega divergência que as duas deixariam passar por arredondamento de régua.
 
 Prova: Soldier nv3 com armadura e golpe no SF2e puro e no misto, mesmos números.
 
@@ -76,7 +81,10 @@ Lanes por classe, porque os arquivos são disjuntos:
 
 Prova: cada lane com o personagem vivo da classe no nv3 mostrando o efeito.
 
-### Onda 4 — as 5 classes de playtest (depende da 0 e da 2)
+### Onda 4 — as 5 classes de playtest até o nível 3 (depende da 0 e da 2)
+
+Daredevil e Slayer entram até o nível 3 como as outras (decisão P4). Subir além disso depende de
+haver jogador querendo usar.
 
 - **T4.1** Limpar o dado do Mechanic e do Technomancer: tirar as linhas da tabela que viraram
   feature.
@@ -87,17 +95,20 @@ Prova: cada lane com o personagem vivo da classe no nv3 mostrando o efeito.
   Luminary; equipamento customizado e exocórtex do Mechanic; banco de magias e magic hacks do
   Technomancer.
 - **T4.4** Issue para trocar Mechanic e Technomancer pela versão do Tech Core depois de 07/10/2026
-  (já decidido no #259: entram pelo playtest agora).
+  (já decidido no #259: entram pelo playtest agora). A troca sai com entrada no `PATCH-NOTES.md`
+  (T0.4). Vale o mesmo para o Daredevil, o Slayer e o Luminary quando saírem em livro.
 
 Prova: as 5 criadas no misto até o nv3.
 
 ### Onda 5 — aceite das 40
 
-- **T5.1** Molde externo com estrutura por nível para as 21 PF2e que faltam (#149), para as 6 SF2e
-  (reaproveitar os `expected.json` do `.fusion-build/sf2e-nivel3/t13/`) e para as 5 de playtest
-  (PDF). Preenchimento conforme a decisão P3.
-- **T5.2** Comparador molde × ficha gerada com divergência zero nas 40 (ou divergência registrada
-  como issue).
+- **T5.1** O Alexandre faz a ficha de cada uma das 32 classes sem molde (21 PF2e, 6 SF2e e 5 de
+  playtest) e traz um JSON por classe (decisão P3). Formato: o `template_for_each_class` de
+  `docs/design/ficha-nivel3/molde/character-templates.json` (níveis 1, 2 e 3 com PV, CA,
+  salvamentos, proficiências, perícias, talentos, foco, magias e idiomas), mais o chassi usado
+  (ancestralidade, antecedente e atributos), para o comparador reproduzir a mesma ficha.
+- **T5.2** Cada JSON entra no molde assim que chega, e o comparador molde × ficha gerada roda
+  **classe a classe**, sem esperar as 32. Meta: divergência zero; o que divergir vira issue.
 - **T5.3** Roteiro `tutorial-e2e` com prints olhados e smoke como GM e como player
   (`PROCESSO-UI.md`).
 
@@ -109,24 +120,20 @@ Onda 0 ──┬──> Onda 3 ───────────────┐
 Onda 1 ──┴──> Onda 2 ──> Onda 4 ────┘
 ```
 
-No máximo 2–3 worktrees ao mesmo tempo (o PC ficou lento com mais na Fatia 1).
+No máximo 2–3 worktrees ao mesmo tempo (o PC ficou lento com mais na Fatia 1). A Onda 5 anda no
+ritmo dos JSONs do Alexandre: cada classe fecha quando o molde dela chega.
 
-## Decisões pendentes
+## Decisões (fechadas pelo Alexandre em 25/09)
 
-- **P1. Onde ficam os dados de playtest.** Em 15/09 ficou decidido "pack privado fora do git"; o
-  plano SF2e de 24/09 fala em pack `sf2e:playtest-classes`. Os PDFs são ORC.
-  _Recomendação:_ manter privado (o dado já está lá e a decisão de 15/09 é explícita), e o T0.4
-  resolve o misto.
-- **P2. Régua do teste de paridade SF2e (#187):** "igual ao SF2e puro" ou "igual ao livro".
-  _Recomendação:_ igual ao livro. Depois da Onda 1 o puro e o misto têm que bater com o livro e,
-  por consequência, entre si.
-- **P3. Quem preenche o molde das 32 classes restantes.** O molde da Onda 7 era para ser
-  preenchido à mão pelo Alexandre.
-  _Recomendação:_ um agente preenche a partir do AoN/PDF com o link de cada célula, e o Alexandre
-  confere por amostragem (uma classe por família). A fonte continua externa, então o aceite não fica
-  circular.
-- **P4. Profundidade de Daredevil e Slayer.** _Recomendação:_ a mesma régua D3 do SF2e (visível e
-  escolhível na ficha, sem automação de combate).
+- **P1. Playtest fica junto com o resto.** As 5 classes vão para os packs do satélite, como
+  qualquer outro conteúdo, e não para um pack privado. Isso substitui a decisão de 15/09. Quando um
+  playtest virar conteúdo oficial, a troca sai com nota de patch.
+- **P2. O teste de paridade do SF2e (#187) compara as três coisas:** puro com o livro, misto com o
+  livro e puro com o misto. Só assim dá certeza absoluta.
+- **P3. O Alexandre preenche os moldes das 32 classes.** Ele monta a ficha de cada uma e traz um
+  JSON por classe.
+- **P4. Daredevil e Slayer entram até o nível 3.** Subir além disso depende de haver jogador que
+  queira usar.
 
 ## Fora do escopo
 
