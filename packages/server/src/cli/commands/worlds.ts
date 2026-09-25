@@ -132,6 +132,14 @@ export async function runWorldCreate(args: WorldCreateArgs): Promise<void> {
   } catch {
     // sf2e not available
   }
+  try {
+    // Mundo misto (DEC-SYS-06-bis) — composite system, thin, no packs of
+    // its own; `--system pf2e-sf2e` at create time.
+    const { pf2eSf2eSystem } = await import("@fusion/system-pf2e-sf2e");
+    registry.register(pf2eSf2eSystem);
+  } catch {
+    // pf2e-sf2e not available
+  }
 
   const manager = new WorldManager({ dataDir, validSystemIds: registry });
 

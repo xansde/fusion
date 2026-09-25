@@ -26,6 +26,7 @@ import {
   buildWhoAmIHandler,
   buildSystemConditionsHandler,
   buildSystemFootprintHandler,
+  buildSystemVocabularyHandler,
 } from "./handlers/system.js";
 import {
   buildSettingsDeclarationsHandler,
@@ -343,6 +344,11 @@ export class SocketManager {
     // (REQ-TOK-012/017), and the client cannot import a game system — same
     // door shape as `system:conditions` above.
     registry.register("system:footprint", buildSystemFootprintHandler(systemModule));
+    // I1 (revisão adversarial 3): the active system's skill/currency/
+    // spell-tradition vocabulary — same door shape as `system:footprint`
+    // above, for the ficha's per-system config instead of a hand-copied
+    // table (systemSheetConfig.ts).
+    registry.register("system:vocabulary", buildSystemVocabularyHandler(systemModule));
     // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's
     // Mundo section renders purely from what the active system declared —
     // this is the door that declaration crosses (settings ENGINE already
