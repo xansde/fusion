@@ -67,6 +67,36 @@ Prova: Soldier nv3 com armadura e golpe no SF2e puro e no misto, mesmos números
 
 Prova: as 6 classes criadas no misto até o nv3, print da aba de cada mecânica.
 
+### Onda 3P — os dois personagens da mesa (prioridade; antes do resto da Onda 3)
+
+Dois jogadores vão usar a multiclasse por níveis de classe (spec 30, setting
+`pf2e.variantRules.classLevels`). Levantamento em `.fusion-build/classes-pendentes/personagens-equipe.md`
+(core, local).
+
+| Personagem                                                  | Estado no nível 3                                                                          | Bloqueios                                                                                                                                                                                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clérigo + Kineticista do portão da Água                     | monta a ficha (divisão de níveis, PV, proficiência, conjuração divina, foco), mas não joga | Elemental Blast vazio porque a escolha do portão não chega ao ator (#199); Divine Font não é escolhível (#12); proficiência de doutrina não aplicada (#18)                                                           |
+| Invocador (eidolon Dragão) + Feiticeiro (linhagem Draconic) | monta; as duas conjurações espontâneas convivem, cada uma com seu rank                     | eidolon é um ator vazio, sem PV compartilhado, atributos de Dragão nem Agir Junto (#131); linhagem não propaga dano/tradição às magias de sangue (#21); eidolon na variante de multiclasse depende dos PRs #257/#161 |
+
+Ordem:
+
+1. PRs core #257 e satélite #161 (abertos desde 22/09; esperam a confirmação dos itens 1 e 2 da
+   fila de feedback de 22/09 no servidor).
+2. #199: escolha do portão grava onde a derivação lê; o bônus de ataque do impulso, que ficou 0,
+   entra junto.
+3. #12 (Divine Font) e #18 (doutrina).
+4. #21 (linhagem Draconic com a escolha do dragão).
+5. #131 (eidolon Dragão com PV compartilhado, atributos pelo tipo e Agir Junto).
+
+Antes de consertar, conferir no código o que o levantamento afirmou só por busca de texto: que o
+repertório de magias conhecidas não existe para nenhum espontâneo (a Onda 2 da ficha-nivel3, PR
+#128, entregou repertório espontâneo) e que #8 e #21 continuam abertos mesmo com os PRs #53 e #55
+mergeados. #8 e #125 só pesam acima do nível 3.
+
+Prova: os dois personagens criados no mundo da mesa até o nível 3, com Elemental Blast de água,
+Heal/Harm por dia, magias de sangue com o tipo de dano do dragão e o eidolon com os números do
+livro; roteiro com prints como jogador.
+
 ### Onda 3 — pendências das 29 PF2e (depende da 0; corre junto das Ondas 1 e 2)
 
 Lanes por classe, porque os arquivos são disjuntos:
