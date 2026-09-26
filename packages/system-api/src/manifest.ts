@@ -149,6 +149,80 @@ export const SystemManifestSchema = z.object({
       }),
     )
     .optional(),
+
+  /**
+   * DEC-SYS-06-bis (spec 15, emenda 2026-09-24, mundo misto PF2e+SF2e): IDs
+   * of the systems whose compendium packs this system *composes* — i.e. a
+   * *composite* `SystemModule` that does not ship its own `packs/` directory,
+   * but discovers and serves the real, already-registered packs of N other
+   * systems side by side (no copy — REQ-SYS-006 stays intact in the letter:
+   * "exactly one system active per world" remains true, the active system is
+   * the composite itself).
+   *
+   * Absent/undefined = a normal, non-composite system (resolves its own
+   * `systems/<id>/packs` as before). When present, `resolveSystemPacksDir`
+   * is called once per id in this list instead of once for `manifest.id`
+   * (see boot.ts / compendium/service.ts).
+   */
+  sourceSystemIds: z.array(z.string().min(1)).min(1).optional(),
+
+  /**
+   * I1 (spec 15, revisão adversarial 3, mundo misto pf2e+sf2e): the system's
+   * VOCABULARY — skills (with governing ability), currency denominations and
+   * spell traditions — as a single source a ficha package can read over the
+   * wire (`system:vocabulary`, mirrors `system:footprint`/`system:conditions`
+   * — REQ-ARQ-005: the client cannot import `systems/*`). Replaces the
+   * hand-copied tables `sheets/pf2e/src/lib/sheets/pf2e/systemSheetConfig.ts`
+   * used to keep (`SKILL_SLUGS`/`SKILL_ABILITY`/currency literals duplicated
+   * per system, by hand, at the ficha layer — a skill added to a system
+   * needed a ficha edit to ever appear there). A COMPOSITE system computes
+   * its own vocabulary as the UNION of its `sourceSystemIds`' vocabularies
+   * (skills by slug, spell traditions by value) with `currency` from its own
+   * declaration (e.g. pf2e-sf2e keeps the PF2e coin shape, DEC-SYS-06-bis) —
+   * never a copy of either source's literal list.
+   *
+   * Optional: a system that declares nothing here has no vocabulary door
+   * (the ficha falls back to its own PF2e-shaped default, same "degrade
+   * open" posture as `sizeToFootprint`).
+   */
+  vocabulary: z
+    .object({
+      skills: z.array(
+        z.object({
+          slug: z.string().min(1),
+          ability: z.string().min(1),
+        }),
+      ),
+      currency: z.array(z.string().min(1)),
+      spellTraditions: z.array(z.string().min(1)),
+    })
+    .optional(),
 });
 
 export type SystemManifest = z.infer<typeof SystemManifestSchema>;
+
+/**
+ * Whether a world's active system "includes" `targetSystemId`'s behavior —
+ * true when the active system IS `targetSystemId`, or (DEC-SYS-06-bis) it is
+ * a *composite* system whose `sourceSystemIds` list it (spec 15, mundo misto
+ * pf2e+sf2e).
+ *
+ * WHY THIS EXISTS: several server-side gates were written comparing a raw
+ * `systemId` string against a single literal (`"pf2e"`, `"sf2e"`) — familiar
+ * creation, the SF2e augmentation slot limit, etc. Under the composite
+ * system those gates silently turned OFF, because the world's `systemId` is
+ * `"pf2e-sf2e"`, never `"pf2e"` or `"sf2e"` themselves (I4, revisão
+ * adversarial 3). Any gate that should apply transparently inside a
+ * composite must go through this helper instead of `systemId === "..."`.
+ *
+ * Accepts either the systemId string, the sourceSystemIds list, or both
+ * (whatever the caller already has on hand) so it works from both a bare
+ * `systemId` and a resolved `SystemModule.manifest`.
+ */
+export function systemIncludes(
+  info: { systemId?: string | undefined; sourceSystemIds?: readonly string[] | undefined },
+  targetSystemId: string,
+): boolean {
+  if (info.systemId === targetSystemId) return true;
+  return info.sourceSystemIds?.includes(targetSystemId) ?? false;
+}

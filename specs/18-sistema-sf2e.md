@@ -70,8 +70,11 @@ o **Starfinder Second Edition (SF2e)** construído sobre o mesmo motor 2e do PF2
   o SF2e _adiciona_.
 - Starship Combat **tático** com grid (Tech Core, outubro 2026) — [V2] fora do
   escopo da spec atual; mapeado apenas conceitualmente.
-- Classes Mechanic e Technomancer (Tech Core) — dados chegam com o livro; o
-  modelo de dados é o mesmo das outras classes, sem extensão especial de engine.
+- ~~Classes Mechanic e Technomancer (Tech Core) — dados chegam com o livro~~:
+  **superado por DEC-SF2-10** (2026-09-24) — essas duas classes, mais o
+  Luminary, entram já pelo PDF de playtest de cada uma (REQ-SF2-014/014a),
+  sem esperar o livro. O modelo de dados continua o mesmo das outras
+  classes, sem extensão especial de engine.
 - Drift travel e viagem interestelar em escala galáctica — sistema macro fora
   do canvas tático, sem especificação neste ciclo.
 - Hacking como hazard — subsistema de hazard do GM Core; implementado como
@@ -223,6 +226,94 @@ minimiza esforço e mantém consistência no pipeline.
 
 ---
 
+### DEC-SF2-07a — Mundo misto: packs sf2e/pf2e continuam separados NOS ARQUIVOS; um sistema composto pode servi-los lado a lado
+
+**Data:** 2026-09-24. Reverte a leitura restritiva de DEC-SF2-07 ("nunca
+misturados") por decisão do Alexandre — desenho do mundo misto PF2e +
+Starfinder 2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`).
+
+**Decisão:** DEC-SF2-07 continua valendo **ao nível do arquivo/pack**: os
+packs sf2e nunca são gravados dentro de um pack pf2e, nem o inverso — a
+separação por diretório (`systems/pf2e/packs/**` × `systems/sf2e/packs/**`)
+é permanente. O que muda é que um **sistema composto** (`pf2e-sf2e`,
+DEC-SYS-06a) pode **descobrir e servir** os dois lado a lado num mesmo
+`CompendiumService`, para um mesmo mundo — sem misturar os ARQUIVOS, sem
+copiar, sem reescrever nenhum dos dois. "Nunca misturados" descrevia uma
+restrição de armazenamento (a que continua valendo), não uma proibição de um
+mundo enxergar os dois catálogos ao mesmo tempo.
+
+**Verificação de colisão de pack id (Risco R2 do desenho):** medido nos dados
+reais dos packs commitados — na primeira medição (2026-09-24, pré-curadoria)
+`systems/pf2e/packs/*/pack.json` (14 packs, todos com `id` prefixado
+`pf2e.<slug>`) × `systems/sf2e/packs/*/pack.json` (6 packs, todos
+`sf2e.<slug>`) deu **zero colisões**. Depois da curadoria do Player Core SF2e
+(mesma leva descrita abaixo), a contagem real é **15 packs pf2e × 18 packs
+sf2e = 33 packs** (bate com o `compendium:list` ao vivo do mundo misto, ataque
+3 da revisão adversarial 4) — **zero colisões continua valendo**, porque o
+prefixo por sistema é dado pelo `id` do pack, não pela quantidade. O prefixo
+por sistema já em uso (`pf2e.`/`sf2e.`) evita namespacing adicional no
+composto.
+
+**Deduplicação de homônimos (documentos com o mesmo `name` nos dois
+sistemas) — IMPLEMENTADA (2026-09-24, lane de conserto pós-#261/#181):** a
+medição inicial (zero homônimos) foi feita só contra os 6 packs sf2e
+pré-curadoria (snapshot do parágrafo anterior). Depois que a curadoria do
+Player Core SF2e (PR #169 dados +
+#171, integrados nesta lane via `feat/misto-dedup`) trouxe 97 talentos de
+perícia, 18 gerais, ações e classes, a medição real (mesma normalização —
+tipo + slug + nível/rank + traits + actionType/actions/category +
+`prerequisites` + `rules` com toda referência
+`@UUID[Compendium.<sistema>...]` neutralizada; descrição/publicação/img/\_id/
+folder/\_stats/sort/ownership ignorados) deu:
+
+| `type`       | pares homônimos | fundem (mesma mecânica) | ficam (mecânica diferente) |
+| ------------ | --------------- | ----------------------- | -------------------------- |
+| action       | 1               | 1                       | 0                          |
+| ancestry     | 1               | 1                       | 0                          |
+| background   | 6               | 6                       | 0                          |
+| classFeature | 3               | 0                       | 3                          |
+| feat         | 98              | 87                      | 11                         |
+| heritage     | 2               | 2                       | 0                          |
+| spell        | 5               | 5                       | 0                          |
+| **total**    | **116**         | **102**                 | **14**                     |
+
+75 desses 102 fusões já vinham marcadas pelo importador
+(`flags.fusion.reprintOf`, curadoria N1 do PR #169 —
+`tools/importer-pf2e/src/curation/sf2e-nivel3-pf2e-reprints.mjs`) e as 75
+fundem pela regra sem exceção (100% de consistência entre a curadoria manual
+e a normalização automática). As outras 27 fusões (ações, ancestralidade
+Human, backgrounds compartilhados, feitiços e heranças) não tinham a flag mas
+são texto de regra idêntico nos dois sistemas — o vendor comum não as marcou
+como reprint mas a normalização as reconhece corretamente.
+
+Conferido à mão: as 75 flags `reprintOf` (Assurance, Shield Block, Toughness,
+Diehard, Adopted Ancestry, etc.) fundem corretamente; amostra dos 14 que
+ficam confirma decisões corretas — `Reach Spell`/`Cantrip Expansion`/`Widen
+Spell` (traits de classe diferentes: pf2e restringe a
+bard/cleric/druid/oracle/sorcerer/witch/wizard, sf2e a mystic/witchwarper),
+`Seasoned` (rules referenciam feats de crafting diferentes: `magical-crafting`
+
+- `alchemical-crafting` no pf2e vs `serum-crafting` no sf2e — adaptação real
+  de mecânica, não só de nome), `Cheek Pouches` (trait de ancestralidade extra
+  no sf2e), e as 3 `classFeature` (Signature Spells/Spell Repertoire/Reflex
+  Expertise — texto de classe específico, `Spell Repertoire` tem `rules`
+  totalmente diferentes entre os dois).
+
+**Implementação:** `packages/server/src/compendium/dedup.ts` (core) — função
+pura `buildDedupIndex`, aplicada por `CompendiumService._ensureDedupIndex`
+(lazy, só quando o serviço carrega ≥2 `systemId`s distintos — um mundo pf2e
+ou sf2e puro nunca paga o custo nem muda de comportamento). O documento
+perdedor (sf2e, por convenção — DEC-SYS-06a reusa o shape pf2e) some do
+índice/busca (`compendium:index`/`compendium:searchAll`); o documento vencedor
+ganha `index.mergedFromSystems: ["sf2e"]` para a origem ficar visível; e
+`CompendiumService.getDocument` (usado por `compendium:get`, importação para
+mundo/ficha, e portanto por qualquer grant-item de uma classe sf2e que
+referencie o item fundido) resolve o alias transparentemente para o
+documento pf2e. Testes não-circulares em
+`packages/server/src/compendium/__tests__/dedup-real-packs.test.ts` e
+`packages/server/src/__tests__/boot-compendium-composite-dedup.test.ts`
+(via `compendium:*` real sobre o `boot()`).
+
 ### DEC-SF2-08 — Species = Ancestry com displayName sobrescrito
 
 **Decisão:** A entidade "species" do SF2e é mapeada para o tipo de documento
@@ -237,6 +328,112 @@ muda — a mecânica de ancestry (heritage, ancestry feats, stats) é idêntica.
 **Decisão:** As regras de cobertura do SF2e (Lesser +1, Standard +2/+2/+2,
 Greater +4/+4/+4) são confirmadas pela pesquisa como idênticas ao PF2e remaster.
 O `systems/sf2e` não precisa sobrescrever nenhuma lógica de cobertura do engine.
+
+---
+
+### DEC-SF2-10 — Ficha SF2e até o nível 3 sai de [V2]; classes de playtest entram por PDF; inglês primeiro
+
+**Decisão (24/09/2026, decidido pelo Alexandre — Fatia 2):** O recorte "criar
+personagem de qualquer classe SF2e, do nível 1 ao 3, com ancestralidade,
+antecedente, talentos, características de classe e magias/magias de foco até o
+rank/nível 3" deixa de ser **[V2]** e passa a ser trabalho ativo, no mesmo
+espírito da Fatia 1 do PF2e (ficha até o nível 3, spec `17-sistema-pf2e.md`).
+REQ-SF2-013/015/016 já estavam marcadas [MVP] individualmente, mas eram letra
+morta: o trabalho ao redor delas (a ficha até o nível 3 inteira) estava
+[V2], então nada as acionava. **Esta decisão é o que muda** — ativa esse
+trabalho — não uma reclassificação de tag nessas três REQs. REQ-SF2-014 É
+reescrita abaixo (a única mudança de conteúdo de REQ, não de tag) porque a
+fonte deixa de ser "esperar o Tech Core" e passa a ser o PDF de playtest;
+REQ-SF2-054/055/056/057 (novas, ver "Antecedentes, Talentos ≤3 e
+Progressão" abaixo) preenchem o que REQ-SF2-013/015/016 não cobriam
+(antecedentes, talentos ≤3, magias e a progressão de nível). Isto não é uma
+reclassificação [V2]→[MVP] em bloco de toda a spec, que continua [V2] no
+escopo global do Fusion (REQ-ESC-010).
+
+Três decisões associadas:
+
+1. **Classes de playtest entram já, pela fonte disponível hoje — o PDF, não o
+   livro.** Diferente de REQ-SF2-014 (que previa esperar o Tech Core), o
+   Mechanic e o Technomancer entram a partir do PDF de playtest
+   (`PZO22006`, 2025, licença ORC) — o Alexandre quer testar essas classes
+   antes do livro sair. O Luminary entra do mesmo modo, a partir do seu PDF de
+   playtest (`PZO22010`, 2026, licença ORC) — não há livro anunciado para o
+   Luminary, então não há data de atualização prevista para ele.
+2. **Regra de atualização:** todo dado de classe marcado como playtest carrega
+   `system.publication` identificando a fonte como PDF de playtest (não
+   "Starfinder Player Core" nem o nome do livro final) e uma flag/version de
+   playtest. Quando o livro final sair — Tech Core em 2026-10-07 para Mechanic
+   e Technomancer — os dados dessa(s) classe(s) são reimportados a partir do
+   livro e a marca de playtest é removida; até lá, `publication` continua
+   apontando para o PDF. O Luminary permanece marcado como playtest até que a
+   Paizo anuncie e publique um livro para ele.
+3. **Inglês primeiro.** O recorte de nível 3 (Player Core: 10 ancestralidades,
+   34 antecedentes, as 6 classes do Player Core + as 3 de playtest, talentos
+   ≤3, magias até rank 2/foco até nível 3) é importado só em inglês. A
+   tradução pt-BR completa do SF2e é trabalho separado, rastreado no satélite
+   como issue #168 — o Alexandre não está satisfeito com a tradução SF2e
+   atual e prefere revisá-la de uma vez depois, não traduzir incrementalmente
+   junto com cada pack novo.
+
+**Racional:** o Alexandre quer testar o SF2e de ponta a ponta — inclusive as
+classes de playtest, que são a parte que mais lhe interessa — sem esperar
+datas de publicação que ele não controla. Marcar a origem (`publication`)
+explicitamente em vez de tratar o dado de playtest como definitivo evita que
+a reimportação do livro final vire uma migração silenciosa.
+
+**Consequência para REQ-SF2-014/017:** REQ-SF2-014 (Mechanic/Technomancer
+adiados para o Tech Core) e REQ-SF2-017 (Galactic Ancestries) continuam
+descrevendo o que HOJE não está neste recorte — REQ-SF2-017 (as 21
+ancestralidades adicionais) permanece [V2] sem mudança; REQ-SF2-014 é
+reescrito abaixo para refletir a entrada por PDF de playtest.
+
+### DEC-SF2-11 — Progressão de classe sobe para o engine-2e (D1)
+
+**Decisão (24/09/2026, decidido pelo Alexandre — Fatia 2, plano.md D1):** os
+`DeriveStep` de progressão de personagem (habilidades, perícias, HP, aplicação
+de classe) **sobem de `systems/pf2e/src/derivations/build.ts` para
+`systems/engine-2e`**, parametrizados por um resolver de níveis de classe — o
+SF2e (uma classe só) é o caso degenerado do resolver de multiclasse do PF2e
+(REQ-MCL-002: "a soma colapsa exatamente para o produto antigo" quando há uma
+classe só). PF2e e SF2e **consomem os mesmos steps** do engine.
+
+A alternativa rejeitada é copiar `build.ts` inteiro para `systems/sf2e`: sai
+mais rápido na primeira rodada, mas duplica manutenção permanente e viola a
+DEC-SF2-01 (SF2e é extensão do engine 2e, não fork). Esta decisão amarra
+DEC-SF2-01: nenhuma lógica de progressão pode nascer duplicada por sistema —
+se um step ainda não subiu, é dívida registrada, não um segundo dono.
+
+**Consequência de implementação:** `computeAbilityScores`, `effectiveRank`,
+`spellSlotsForLevel` (matemática pura), os schemas de progressão e os 4
+`DeriveStep` (skills, HP, apply class, abilities) já vivem em
+`systems/engine-2e/src/progression/{levels,build-steps,math,schema}.ts` — o
+PF2e e o SF2e consomem os mesmos steps. O que segue aberto não é mais o
+código, é a curadoria dos dados que esses steps leem: REQ-SF2-057 rastreia
+isso como MVP aberto, não como [V2].
+
+### DEC-SF2-12 — Uma ficha 2e parametrizada por sistema, não duas (D2)
+
+**Decisão (24/09/2026, plano.md D2):** o SF2e usa a **mesma ficha 2e** do
+PF2e (`sheets/pf2e`), parametrizada nas 3 superfícies que divergem entre os
+dois sistemas: perícias (18 do SF2e vs. as do PF2e), tradições de magia, e
+moeda (créditos como campo numérico único, DEC-SF2-05). A alternativa
+rejeitada é uma `sheets/sf2e` separada: menos risco para a ficha PF2e em
+troca de duplicar ~17 mil linhas de UI — rejeitada pelo mesmo racional
+anti-fork da DEC-SF2-01/DEC-SF2-11.
+
+### DEC-SF2-13 — Profundidade das mecânicas de classe: visível, não automatizada (D3)
+
+**Decisão (24/09/2026, plano.md D3):** as mecânicas próprias de cada classe
+SF2e (conexão do Mystic, sintonia e arma solar do Solarian, mira do
+Operative, escudo vivo do Soldier, talentos de expertise do Envoy,
+probabilidade do Witchwarper) entram **o suficiente para aparecer e ser
+escolhível na ficha** até o nível 3 — escolhas, ações e recursos listados —
+**sem automatizar o efeito em combate**. Mesmo corte que a Fatia 1 do PF2e
+(spec `17-sistema-pf2e.md`) já aplicou: REQ-SF2-011 (Aim) e REQ-SF2-012
+(sintonia do Solarian) permanecem [V2] especificamente quanto à
+**automação** desses efeitos — a T3.4 do plano.md os expõe na ficha como
+ação/recurso escolhível, o que é compatível com os dois ficarem [V2] na
+automação de combate.
 
 ---
 
@@ -272,7 +469,14 @@ com `id: "sf2e"`, `name: "Starfinder Second Edition"`, `version: semver` e
 declarar dependência de engine 2e versão mínima especificada.
 
 **REQ-SF2-002** [MVP] O sistema deve declarar os seguintes `documentTypes`
-adicionais ao conjunto base herdado do engine 2e: `augmentation` (item).
+adicionais ao conjunto base herdado do engine 2e: `augmentation` (item) e
+`classFeature` (item — características de classe concedidas automaticamente
+por nível, conteúdo do pack `class-features-core`; distinto de `feat`, que
+cobre os talentos escolhidos pelo jogador, REQ-SF2-010). O `classFeature`
+não estava registrado em `documentTypes.Item` até 2026-09-24 (B3 da revisão
+3 da Fatia 2): o schema já existia desde antes, mas nunca foi declarado, e o
+servidor rejeitava as 58 características do compendium com "Unknown Item
+type" — corrigido junto com este registro de requisito.
 Os actor subtypes `character`, `npc`, `hazard` e `loot` são herdados sem
 modificação (mesmo conjunto MVP do PF2e). Os subtypes `vehicle` e `starship`
 (actor [V2]) serão adicionados em [V2] quando os subsistemas correspondentes
@@ -345,9 +549,18 @@ A UI da ficha deve exibir o rastreador de atunement com botões +/−
 importadas do compendium, ativadas via chat com resultado de rolagem de perícia
 social quando aplicável.
 
-**REQ-SF2-014** [V2] As classes Mechanic e Technomancer (Tech Core, outubro 2026)
-serão adicionadas como packs de compendium adicionais após o lançamento do livro,
-sem alteração estrutural do engine.
+**REQ-SF2-014** [MVP] As classes de playtest **Mechanic** e **Technomancer**
+(fonte: PDF de playtest `PZO22006`, 2025, licença ORC) devem ser importadas
+como pack de compendium próprio (`sf2e.playtest-classes`), com
+`system.publication` identificando a origem como playtest e não como o Tech
+Core. Quando o Tech Core sair (previsto 2026-10-07), os dados dessas duas
+classes devem ser reimportados a partir do livro final e a marca de playtest
+removida (DEC-SF2-10).
+
+**REQ-SF2-014a** [MVP] A classe de playtest **Luminary** (fonte: PDF de
+playtest `PZO22010`, 2026, licença ORC) deve ser importada do mesmo modo que
+REQ-SF2-014, no mesmo pack `sf2e.playtest-classes`. Não há livro anunciado
+para o Luminary — a marca de playtest permanece até que a Paizo publique um.
 
 ---
 
@@ -364,6 +577,38 @@ existente de ancestry feats, sem extensão especial de engine.
 
 **REQ-SF2-017** [V2] As 21 species adicionais do suplemento _Galactic Ancestries_
 (2026) serão adicionadas como pack de compendium suplementar.
+
+---
+
+### Antecedentes, Talentos ≤3 e Progressão (Fatia 2 — ficha nível 3, DEC-SF2-10)
+
+**REQ-SF2-054** [MVP] O compendium SF2e deve conter os **34 antecedentes do
+Player Core** como itens de tipo `background`, com o mesmo mecanismo de
+concessão de perícia treinada e talento (`items{}`/`grant-item`) que o PF2e já
+usa para antecedentes. Isto substitui, para os 34 antecedentes do Player Core
+especificamente, o adiamento geral de "backgrounds" da REQ-SF2-046 [V2] — os
+demais antecedentes (Starfinder Society, suplementos futuros) continuam [V2].
+
+**REQ-SF2-055** [MVP] Os talentos de perícia e gerais do Player Core com
+nível ≤3 devem ser importados (`skill-feats-core`, `general-feats-core`),
+usando o mesmo modelo de `feat` que o PF2e já tem. Talentos de classe
+(nível ≤3, sem dedicação de arquétipo/multiclasse — o SF2e ainda não tem esse
+conceito) seguem a mesma regra.
+
+**REQ-SF2-056** [MVP] As magias do Player Core de rank ≤2, mais as magias de
+foco de rank ≤3, devem ser importadas para o recorte de nível 3 — cobre o
+que Mystic e Witchwarper (conjuradores) precisam até o nível 3.
+
+**REQ-SF2-057** [MVP] A subida de nível de 1 a 3 deve consumir
+`featuresByLevel` (características de classe por nível, resolvidas para o
+documento real do `class-features-core` — não um placeholder de nome) e
+`proficiencyUpgrades`/`spellcasting` derivados da progressão (DEC-SF2-11). Os
+4 `DeriveStep` de progressão já subiram ao `engine-2e` (DEC-SF2-11); o que
+mantém este requisito ABERTO agora é a curadoria dos dados das 6 classes do
+Player Core (`proficiencyUpgrades` vazio, `spellcasting` ausente no Mystic e
+no Witchwarper) — Mystic e Witchwarper sem `spellcasting` derivado, ou uma
+classe sem upgrade de proficiência no nível 3, são falha desta REQ, não um
+gap [V2].
 
 ---
 
@@ -652,9 +897,11 @@ gerando compendiums com prefixo `sf2e-`.
 | `sf2e-conditions`           | Condições (incluindo Untethered)          |
 | `sf2e-actions`              | Ações básicas e de classe                 |
 
-**REQ-SF2-046** [V2] Os 18 packs restantes (Starfinder Society, backgrounds,
-hazards, NPCs do GM Core, starship threats, etc.) serão importados em releases
-subsequentes à medida que o sistema Foundry SF2e amadurece.
+**REQ-SF2-046** [V2] Os packs restantes (Starfinder Society, hazards, NPCs do
+GM Core, starship threats, etc.) serão importados em releases subsequentes à
+medida que o sistema Foundry SF2e amadurece. **Backgrounds do Player Core
+saíram desta lista** (DEC-SF2-10, REQ-SF2-054) — só os antecedentes de outras
+fontes (Starfinder Society etc.) continuam aqui.
 
 **REQ-SF2-047** [MVP] O importer deve mapear o campo `system.tier` dos JSONs
 fonte para o campo `WeaponTier` do Fusion, e `system.charges` para

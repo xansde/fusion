@@ -142,6 +142,57 @@ export function searchPack(
 }
 
 /**
+ * All packs, across EVERY source system, whose id ends with `.<packSlug>`
+ * (e.g. "pf2e.classes-core" AND "sf2e.classes-core" both match slug
+ * "classes-core").
+ *
+ * B4 (revisão adversarial 3): a mundo misto (composite `pf2e-sf2e`) world
+ * has TWO packs of the same slug — one discovered from each source system
+ * (DEC-SYS-06-bis) — so `packs.find((p) => p.id.endsWith(...))` (the
+ * pattern every ficha picker used to hand-roll) silently picked only the
+ * FIRST one and left the other system's classes/ancestries/feats/spells
+ * entirely absent from the picker. A pure pf2e or pure sf2e world still
+ * has exactly one matching pack per slug, so this returns a single-element
+ * array there — same result as `.find` used to, no behavior change outside
+ * the composite.
+ */
+export function findPacksBySlug(packs: PackManifest[], packSlug: string): PackManifest[] {
+  return packs.filter((p) => p.id.endsWith(`.${packSlug}`));
+}
+
+/**
+ * Search every pack matching `packSlug` (see {@link findPacksBySlug}) and
+ * merge their entries into one list, deduped by `uuid` (defensive — no two
+ * real packs are expected to share a uuid, but a caller merging results
+ * should never have to worry about it).
+ *
+ * This is the composite-aware replacement for the
+ * `packs.find(...) → searchPack(one pack)` pattern (B4): callers that used
+ * to query exactly one pack now transparently query every source system's
+ * pack of that slug and see the union, with no per-caller branching on
+ * whether the active system is a composite.
+ */
+export async function searchPacksBySlug(
+  socket: Socket,
+  packs: PackManifest[],
+  packSlug: string,
+  filter?: Omit<CompendiumSearchPayload, "packId">,
+): Promise<PackIndexEntry[]> {
+  const matches = findPacksBySlug(packs, packSlug);
+  const merged: PackIndexEntry[] = [];
+  const seenUuids = new Set<string>();
+  for (const pack of matches) {
+    const { entries } = await searchPack(socket, { packId: pack.id, ...(filter ?? {}) });
+    for (const entry of entries) {
+      if (seenUuids.has(entry.uuid)) continue;
+      seenUuids.add(entry.uuid);
+      merged.push(entry);
+    }
+  }
+  return merged;
+}
+
+/**
  * Name of the aggregated-search query (spec 43, DEC-CPD-02 / REQ-CPD-030).
  * The server owns the index of every pack visible to the caller and answers
  * already limited — this is NOT N `compendium:search` calls stitched together

@@ -110,9 +110,24 @@ export function buildCompendiumListHandler(deps: CompendiumHandlerDeps): Handler
     const parsed = CompendiumListPayloadSchema.safeParse(payload);
     const rawFilter = parsed.success ? parsed.data : {};
     // Strip undefined values to satisfy exactOptionalPropertyTypes
-    const filter: { systemId?: string; documentType?: string } = {};
+    const filter: { systemId?: string | string[]; documentType?: string } = {};
     if (rawFilter.systemId !== undefined) filter.systemId = rawFilter.systemId;
     if (rawFilter.documentType !== undefined) filter.documentType = rawFilter.documentType;
+
+    // B4 (revisão adversarial 3): a composite world's packs are each still
+    // loaded under their OWN source systemId ("pf2e"/"sf2e"), never under
+    // the composite's own id ("pf2e-sf2e") — no pack is ever re-tagged
+    // (DEC-SYS-06-bis). So a caller filtering by the composite's systemId
+    // (the only value the ficha ever has, `session.worldInfo.systemId`)
+    // expands here to every id in `sourceSystemIds`, or the list is empty
+    // by construction and the picker/seletor sees nothing.
+    if (
+      filter.systemId !== undefined &&
+      deps.systemModule?.manifest.id === filter.systemId &&
+      deps.systemModule.manifest.sourceSystemIds !== undefined
+    ) {
+      filter.systemId = deps.systemModule.manifest.sourceSystemIds;
+    }
 
     // Audience gate: role from the authenticated socket context (REQ-CPD-071).
     const packs = deps.compendium.listPacks(
