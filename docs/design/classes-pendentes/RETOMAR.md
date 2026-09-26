@@ -3,11 +3,10 @@
 ## Onde está
 
 - Satélite `xansde/fusion-systems-2e` `main`: tudo das Ondas 0–4 e da Onda 3P mergeado até o #268.
-- Core `xansde/fusion` `alfa/app`: pina o satélite na **v0.3.6** (#271). O bump para a **v0.3.7**
-  (Daredevil #273, Slayer #274/#275, eidolon #271/#272, magias fixas #268) estava em andamento
-  na pausa. Relatório em `.fusion-build/classes-pendentes/bump-v0.3.7.md` (local, não versionado).
-  Primeiro passo ao voltar: conferir se o PR `chore/satelite-v0.3.7` no core e o PR de
-  PATCH-NOTES v0.3.7 no satélite existem e estão verdes, e mergear.
+- Core `xansde/fusion` `alfa/app`: pina o satélite na **v0.3.6** (#271). O bump para a **v0.3.8**
+  (a v0.3.7 quebrava o typecheck estrito; o satélite #277 corrigiu) está no **PR #272 do core**,
+  com o CI rodando na pausa. Primeiro passo ao voltar: se o CI do #272 estiver verde, mergear.
+  Falta também abrir o PR de PATCH-NOTES v0.3.7/v0.3.8 no satélite.
 - Relatórios de cada lane e revisão: `.fusion-build/classes-pendentes/` (local).
 
 ## Estado por classe (nível 1–3)
