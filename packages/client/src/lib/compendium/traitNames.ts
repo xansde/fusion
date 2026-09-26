@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (228 traits).
+ * Trait slug → pt-BR chip label (237 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -23,6 +23,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   additive2: "aditivo2",
   agile: "ágil",
   air: "ar",
+  alchemical: "alquimico",
   alchemist: "alquimista",
   amp: "amplificado",
   anadi: "anadi",
@@ -61,6 +62,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   contingency: "contingência",
   curse: "maldição",
   cursebound: "atado-à-maldição",
+  daredevil: "destemido",
   darkness: "escuridão",
   "deadly-d10": "letal-d10",
   "deadly-d8": "letal-d8",
@@ -115,6 +117,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   humanoid: "humanoide",
   ikon: "icone",
   illusion: "ilusão",
+  impossible: "impossivel",
   impulse: "impulso",
   incapacitation: "incapacitação",
   incarnate: "encarnado",
@@ -122,6 +125,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   inventor: "inventor",
   invested: "investido",
   investigator: "investigador",
+  invocation: "invocacao",
   jotunborn: "jotunborn",
   kholo: "kholo",
   kineticist: "cineticista",
@@ -163,6 +167,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   poison: "veneno",
   polymorph: "transmutação",
   poppet: "marionete",
+  possession: "possessao",
   potion: "poção",
   prediction: "previsão",
   press: "pressão",
@@ -176,9 +181,11 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   reach: "alcance",
   "reach-10": "alcance-10",
   reckless: "imprudente",
+  relentless: "implacavel",
   "reload-0": "recarga-0",
   "reload-1": "recarga-1",
   revelation: "revelação",
+  risky: "arriscado",
   rogue: "ladino",
   runesmith: "ferreiro-runico",
   samsaran: "samsaran",
@@ -192,6 +199,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   shove: "empurrar",
   skeleton: "esqueleto",
   skill: "perícia",
+  slayer: "cacador",
   sleep: "sono",
   social: "social",
   sonic: "sônico",
@@ -218,6 +226,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   teleportation: "teleporte",
   tengu: "tengu",
   thaumaturge: "taumaturgo",
+  thrall: "servo",
   thrown: "arremesso",
   "thrown-10": "arremesso-10",
   "thrown-20": "arremesso-20",
