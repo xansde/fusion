@@ -15,9 +15,7 @@ describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
   });
 
   it("reads classLevels=true from a pf2e-namespaced Setting document", () => {
-    const store = storeWith([
-      { _id: "s1", key: "pf2e:variantRules.classLevels", value: true },
-    ]);
+    const store = storeWith([{ _id: "s1", key: "pf2e:variantRules.classLevels", value: true }]);
     const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
     expect(resolved).toEqual({ classLevels: true, freeArchetype: false });
   });
