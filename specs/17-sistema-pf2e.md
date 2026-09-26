@@ -333,6 +333,68 @@ desempate usa o `tiebreaker` numérico (modificador de Perception) do contrato d
 exploração permitem outra skill. O modelo de fórmula delegada da spec 10 acomoda
 isso sem alterar o núcleo de combate.
 
+### DEC-PF2-11 — Escolha de Sintonia de Aparição (Animista) vive na aba Magias, não no Plano
+
+**Decisão:** A coluna Plano não mostra NENHUM traço da Sintonia de Aparição do
+Animista (nem slot, nem resumo, nem atalho) — a escolha de quais aparições ficam
+sintonizadas, e qual delas é a primária, é feita de dentro do bloco "Magias de
+Aparição" da própria aba Magias (a entry espontânea que a classe cria). O modelo de
+dados continua o mesmo (`system.build.choices`, slot `apparition-1-<i>`); só o local
+de escolha na UI muda. A perícia (receptáculo/foco) da aparição PRIMÁRIA passa a
+seguir a escolha explícita do jogador — não mais sempre a do 1º slot — e o modelo
+suporta MAIS DE UMA primária de uma vez (`apparitionPrimary-<i>`, um choice por
+índice), ainda que a UI hoje só permita marcar uma: a prática Medium ganha uma
+segunda primária via Dual Invocation no nível 9 (fora do recorte 1-3 atual, mas o
+dado não pode assumir "exatamente uma"). Um ator já construído antes desta decisão,
+sem marcação explícita, usa a primeira aparição sintonizada como padrão — nada muda
+sozinho no personagem dele.
+
+**Racional:** Decisão do Alexandre (22/09/2026), ao ver a Sintonia de Aparição
+ocupando um slot no Plano sem nenhuma ligação visual com a lista de magias que ela
+alimenta — o jogador escolhe a aparição num lugar e só vê o efeito (repertório,
+Sabers, magia de foco) em outro. Colocar a escolha dentro do próprio bloco de magias
+que ela preenche torna a relação causa-efeito direta.
+
+**Alternativas rejeitadas:**
+
+- _Manter o slot no Plano e só espelhar um resumo na aba Magias_: duplica a UI de
+  escolha em dois lugares: o Plano continuaria "contando" a Sintonia de Aparição como
+  pendência, contrariando a decisão de que o Plano não mostra nada da aparição.
+- _Guardar só uma primária (sem lista ordenada)_: fecha a porta para a Dual Invocation
+  (nível 9, prática Medium) sem uma migração de dado futura — mais barato modelar como
+  lista desde já.
+
+### DEC-PF2-12 — Escolha livre de perícia (duplicata) some no picker de "Treinamento de Perícias", nunca vira slot próprio
+
+**Decisão:** Uma escolha livre de perícia (substituição de perícia duplicada entre
+antecedente/classe/talento, issue #164) NUNCA renderiza como slot/diálogo próprio no
+Plano. Ela é um MEMBRO a mais dentro do mesmo grupo "Treinamento de Perícias (x/N)"
+(mass picker Pathbuilder-style, R11 item 1) do mesmo nível: se já existe um grupo de
+treinamento de perícia naquele nível, N só aumenta; se não existe nenhum, nasce um
+grupo (no MESMO formato) só com os membros livres. A identidade persistida de cada
+membro nunca se mistura: um membro de classe grava um único choice
+`{type:"skillTraining", slot:"skillTraining-<nivel>-<i>"}`; um membro livre grava o
+par `{type:"freeSkillChoice", slot:"freeSkillChoice-<origem>-<i>"}` (marcador) +
+`{type:"skillTraining", slot:"freeSkillChoice-<origem>-<i>:skill:0"}` (efeito real de
+treino) — nunca um choice plano sob o id do membro de classe.
+
+**Racional:** Decisão do Alexandre (22/09/2026): o formato anterior (um
+`SkillChoiceDialog` de lista plana, um por colisão) multiplicava linhas no Plano para
+o mesmo nível — nas palavras dele, "em vez de aparecer mais vezes, poderia apenas
+aumentar o número de seleções restantes naquele nível; isso torna o layout muito mais
+prático, bonito e usável".
+
+**Alternativas rejeitadas:**
+
+- _Um novo tipo de slot/diálogo "grupo misto"_: duplicaria `SkillTrainingDialog.svelte`
+  para uma diferença puramente de PERSISTÊNCIA (marcador vs. choice plano) — o
+  componente já é 100% genérico sobre `groupSlotIds`, sem precisar saber a origem de
+  cada membro.
+- _Guardar o pick livre com o MESMO formato de choice de um membro de classe_: perderia
+  a distinção "esta perícia veio de uma colisão, não de um treino comum" que outras
+  partes do pipeline (cascata de remoção, contagem de perícias treinadas) já dependem
+  do tipo `freeSkillChoice`.
+
 ---
 
 ## Requisitos funcionais

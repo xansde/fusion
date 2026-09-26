@@ -237,6 +237,38 @@ arquétipo livre, aberta num mundo sem a regra, tem talentos que aquele mundo n�
 concederia. O aviso disso é trabalho de quem implementar importação de ator
 (`ver 16-compendiums-e-importacao.md`), não desta variante.
 
+### DEC-MCL-10 — Talento de classe de nível par é do dono do nível, não de "qualquer classe que o personagem tenha" (decisão do Alexandre, 26/09/2026)
+
+> **Emenda REQ-MCL-040**: a cláusula original "gastável em qualquer classe que ele
+> tenha" é removida. O resto do requisito (cadência em todo nível par de personagem,
+> requisito de nível do feat conferido contra o nível daquela classe) continua valendo.
+
+**Decisão:** o class feat de um nível de personagem — inclusive nível **par** —
+pertence exclusivamente à classe escolhida **naquele nível** (`classOwnerAt`, a mesma
+classe que o slot `classLevel-<nível>` registra), e não a qualquer classe que o
+personagem tenha acumulado em níveis anteriores. Um talento de uma classe que o
+personagem tem, mas que não é a dona daquele nível específico, é `WrongClass` — não
+existe "banco de talentos" compartilhado entre as classes de uma multiclasse.
+
+**Exemplo (o mesmo da revisão que levantou a divergência):** Invocador nos níveis 1–2,
+Feiticeiro no nível 3. O slot de talento de classe do nível 2 pertence ao Invocador; um
+talento do Feiticeiro não cabe nele, mesmo o personagem já tendo (ou vindo a ter) as
+duas classes na ficha.
+
+**Racional:** picker (`pickerConfigFor`, via `classOwnerAt`) e ficha já implementavam
+esse comportamento antes de qualquer conserto — a divergência era só textual, entre o
+que a spec dizia e o que picker/validador faziam desde antes desta rodada. Formalizar o
+comportamento existente evita reabrir a mesma pergunta a cada nova revisão.
+
+**O que esta decisão aceita perder:** a leitura original de REQ-MCL-040 permitia gastar
+o talento de nível par de QUALQUER classe do personagem — uma flexibilidade que nunca
+chegou a ser implementada e que ninguém pediu de volta nesta revisão.
+
+**Contexto:** achado I3 da revisão adversarial do PR `fix/ficha-feedback-22-09`
+(satélite #161 / core #257, 25–26/09/2026) — `.fusion-build/classes-pendentes/
+revisao-257-161.md`. Levada ao Alexandre como decisão pendente; confirmada em
+26/09/2026.
+
 ---
 
 ## 5. Modelo de dados
@@ -372,8 +404,11 @@ interface DerivedClassLevels {
 ### 6.5 Feats e cadência
 
 - **REQ-MCL-040** [MC] O personagem DEVE receber um class feat a cada nível
-  **par de personagem**, gastável em qualquer classe que ele tenha; o requisito de
-  nível do feat DEVE ser conferido contra o nível **daquela classe**.
+  **par de personagem**; o talento DEVE pertencer à classe que **é a dona daquele
+  nível** (`classOwnerAt` — a mesma classe do slot `classLevel-<nível>`), nunca a
+  qualquer outra classe que o personagem também tenha; o requisito de nível do feat
+  DEVE ser conferido contra o nível **daquela classe** (DEC-MCL-10, 2026-09-26 —
+  substitui a leitura anterior "gastável em qualquer classe que ele tenha").
 - **REQ-MCL-041** [MC] Feat de arquétipo (trait `archetype`) DEVE ser conferido
   contra o nível de **personagem**, mesmo quando pago com um slot de class feat.
 - **REQ-MCL-042** [MC] A cadência básica do personagem (ancestry feat, general
