@@ -56,6 +56,7 @@ import type { InitiativeFormulaRegistry } from "./initiative-registry.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
 import { buildInitiativeRollBroadcaster, type InitiativeRollChatEntry } from "./combat-chat.js";
 import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
 import {
   CombatCreatePayloadSchema,
   CombatBeginPayloadSchema,
@@ -966,7 +967,8 @@ export function buildCombatRollInitiativeHandler(deps: CombatHandlerDeps): Handl
             sys && typeof sys === "object" && !Array.isArray(sys)
               ? structuredClone(sys as Record<string, unknown>)
               : {};
-          runActorDerivation(clone, deps.systemModule);
+          const worldVariantRules = resolveWorldVariantRules(deps.store, deps.systemModule);
+          runActorDerivation(clone, deps.systemModule, worldVariantRules);
           actor = clone;
         } catch (err) {
           deps.logger?.warn(
