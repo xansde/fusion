@@ -321,6 +321,57 @@ describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)"
     expect(derived["freeArchetypeSeen"]).toBe(false);
   });
 
+  it("undefined (no Setting doc yet) falls back to the actor's own legacy field, does NOT force false (achado 5)", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc: Record<string, unknown> = {
+      type: "hero",
+      system: {
+        derived: {},
+        build: { variantRules: { classLevels: true }, freeArchetype: true },
+      },
+    };
+    runActorDerivation(doc, system, { classLevels: undefined, freeArchetype: undefined });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    // The world has no opinion yet — the actor's own legacy `true` must win,
+    // exactly like the client's `worldVariants?.classLevels ??
+    // getClassLevelsVariant(sys)` precedence, NOT get overridden to false.
+    expect(derived["classLevelsSeen"]).toBe(true);
+    expect(derived["freeArchetypeSeen"]).toBe(true);
+  });
+
+  it("an EXPLICIT world value always overrides the actor's legacy field, off included", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc: Record<string, unknown> = {
+      type: "hero",
+      system: {
+        derived: {},
+        build: { variantRules: { classLevels: true }, freeArchetype: true },
+      },
+    };
+    runActorDerivation(doc, system, { classLevels: false, freeArchetype: false });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBe(false);
+    expect(derived["freeArchetypeSeen"]).toBe(false);
+  });
+
+  it("undefined with no legacy field either falls back to false (both absent)", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc = makeDoc();
+    runActorDerivation(doc, system, { classLevels: undefined, freeArchetype: undefined });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBe(false);
+    expect(derived["freeArchetypeSeen"]).toBe(false);
+  });
+
   it("preserves other keys already on system.build (e.g. keyAbility)", () => {
     const system = buildFakeSystemReadingBuild();
     const doc: Record<string, unknown> = {

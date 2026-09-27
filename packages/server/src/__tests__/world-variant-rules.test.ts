@@ -9,15 +9,21 @@ function storeWith(settings: Record<string, unknown>[]): WorldVariantRulesStoreS
 }
 
 describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
-  it("defaults both variants to false when no Setting document exists", () => {
+  it("resolves both variants to undefined (unknown, not off) when no Setting document exists (achado 5)", () => {
     const resolved = resolveWorldVariantRules(storeWith([]), { manifest: { id: "pf2e" } });
-    expect(resolved).toEqual({ classLevels: false, freeArchetype: false });
+    expect(resolved).toEqual({ classLevels: undefined, freeArchetype: undefined });
   });
 
-  it("reads classLevels=true from a pf2e-namespaced Setting document", () => {
+  it("resolves an EXPLICIT false the same as an explicit true — a GM who turns it off always wins", () => {
+    const store = storeWith([{ _id: "s1", key: "pf2e:variantRules.classLevels", value: false }]);
+    const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
+    expect(resolved.classLevels).toBe(false);
+  });
+
+  it("reads classLevels=true from a pf2e-namespaced Setting document; freeArchetype stays undefined (unset)", () => {
     const store = storeWith([{ _id: "s1", key: "pf2e:variantRules.classLevels", value: true }]);
     const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
-    expect(resolved).toEqual({ classLevels: true, freeArchetype: false });
+    expect(resolved).toEqual({ classLevels: true, freeArchetype: undefined });
   });
 
   it("reads both variants independently (Q-MCL-01)", () => {
@@ -36,7 +42,7 @@ describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
       { _id: "s2", key: "pf2e-sf2e:variantRules.classLevels", value: true },
     ]);
     const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e-sf2e" } });
-    expect(resolved).toEqual({ classLevels: true, freeArchetype: false });
+    expect(resolved).toEqual({ classLevels: true, freeArchetype: undefined });
   });
 
   it("ignores a stored value that isn't literally true", () => {
@@ -45,14 +51,14 @@ describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
     expect(resolved.classLevels).toBe(false);
   });
 
-  it("degrades to both-false when store or systemModule is missing", () => {
+  it("degrades to both-undefined (not false) when store or systemModule is missing", () => {
     expect(resolveWorldVariantRules(undefined, { manifest: { id: "pf2e" } })).toEqual({
-      classLevels: false,
-      freeArchetype: false,
+      classLevels: undefined,
+      freeArchetype: undefined,
     });
     expect(resolveWorldVariantRules(storeWith([]), undefined)).toEqual({
-      classLevels: false,
-      freeArchetype: false,
+      classLevels: undefined,
+      freeArchetype: undefined,
     });
   });
 });

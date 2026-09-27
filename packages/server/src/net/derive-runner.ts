@@ -299,11 +299,29 @@ export function runActorDerivation(
     const build: Record<string, unknown> =
       existingBuild && typeof existingBuild === "object" ? { ...existingBuild } : {};
     const existingVariantRules = build["variantRules"];
+
+    // `classLevels`/`freeArchetype` are `undefined` when the world has no
+    // stored Setting for the key yet (REQ-CFG-034 migration not run, or a
+    // world nobody ever opened Configurações → Mundo on) — fall back to
+    // the actor's own legacy field in that case, mirroring the client's
+    // `worldVariants?.classLevels ?? getClassLevelsVariant(sys)` precedence
+    // (achado 5, revisão core#273/satélite#278, 26/09/2026). Only an
+    // EXPLICIT world value (true or false) ever overrides the actor's own
+    // field.
+    const existingClassLevels =
+      existingVariantRules && typeof existingVariantRules === "object"
+        ? (existingVariantRules as Record<string, unknown>)["classLevels"] === true
+        : false;
+    const resolvedClassLevels = worldVariantRules.classLevels ?? existingClassLevels;
+
     build["variantRules"] =
       existingVariantRules && typeof existingVariantRules === "object"
-        ? { ...existingVariantRules, classLevels: worldVariantRules.classLevels }
-        : { classLevels: worldVariantRules.classLevels };
-    build["freeArchetype"] = worldVariantRules.freeArchetype;
+        ? { ...existingVariantRules, classLevels: resolvedClassLevels }
+        : { classLevels: resolvedClassLevels };
+
+    const existingFreeArchetype = build["freeArchetype"] === true;
+    build["freeArchetype"] = worldVariantRules.freeArchetype ?? existingFreeArchetype;
+
     system["build"] = build;
   }
 
