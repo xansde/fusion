@@ -504,17 +504,23 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
   // over the real "query" channel these three handlers register on
   // (`net/socket-manager.ts`), not a direct unit call, so the ASSERTION is
   // about the wire payload a player's socket actually gets back.
+  //
+  // Issue #266 narrows `settings:declarations` ONLY: a non-GAMEMASTER role no
+  // longer gets refused outright — it gets `ok: true` filtered down to
+  // `PLAYER_READABLE_SETTING_KEYS` (settings-handlers.ts). `settings:impact`
+  // and `settings:permissions` are untouched by that issue and stay fully
+  // GAMEMASTER-strict, refusal included.
   // -------------------------------------------------------------------------
 
   describe("settings:declarations / settings:impact / settings:permissions are GAMEMASTER-strict (REQ-GAV-034, DEC-CFG-05)", () => {
-    it("settings:declarations refuses PLAYER and ASSISTANT, admits GAMEMASTER", async () => {
+    it("settings:declarations admits PLAYER and ASSISTANT too (issue #266) — narrowed to the player-readable allowlist, never PERMISSION_DENIED; this world's `stub` system declares nothing on that allowlist, so both get an empty list, same as GAMEMASTER would for a system with no matching key", async () => {
       const playerAck = await sendQuery(player, "settings:declarations", {});
-      expect(playerAck["ok"]).toBe(false);
-      expect(playerAck["code"]).toBe("PERMISSION_DENIED");
+      expect(playerAck["ok"]).toBe(true);
+      expect((playerAck["result"] as { settings: unknown[] }).settings).toEqual([]);
 
       const assistantAck = await sendQuery(assistant, "settings:declarations", {});
-      expect(assistantAck["ok"]).toBe(false);
-      expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+      expect(assistantAck["ok"]).toBe(true);
+      expect((assistantAck["result"] as { settings: unknown[] }).settings).toEqual([]);
 
       const gmAck = await sendQuery(gm, "settings:declarations", {});
       expect(gmAck["ok"]).toBe(true);

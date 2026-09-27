@@ -59,6 +59,28 @@ function requireGamemasterStrict(ctx: HandlerContext): Ack<never> | null {
   return ackError("PERMISSION_DENIED", "Only the Gamemaster can read this configuration data");
 }
 
+/**
+ * Issue #266: a subset of world-scope settings drives derivations the
+ * character sheet itself needs to explain to the PLAYER who owns it — e.g.
+ * "multiclasse por nível" (spec 30, REQ-MCL-001/004) and "Arquétipo livre" —
+ * so a non-GAMEMASTER role must be able to read exactly these keys, and
+ * nothing else `settings:declarations` would otherwise hand out.
+ *
+ * This is a narrow READ exception, not a reopening of the Mundo section:
+ * write access to any Setting document remains GAMEMASTER-strict
+ * (`doc-handlers.ts`'s guard, REQ-CFG-070/071), and every OTHER
+ * `settings:declarations` row — plus `settings:impact` and
+ * `settings:permissions` in full — stay behind `requireGamemasterStrict`
+ * above, unchanged (REQ-GAV-034, DEC-CFG-05).
+ *
+ * Keys are the fully-namespaced wire key (`<systemId>:<def.key>`), exactly as
+ * `settings:declarations` already keys every row it returns.
+ */
+const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
+  "pf2e:variantRules.classLevels",
+  "pf2e:variantRules.freeArchetype",
+]);
+
 // ---------------------------------------------------------------------------
 // Schema → render-kind classification
 // ---------------------------------------------------------------------------
@@ -204,17 +226,24 @@ function indexStoredSettings(
  * tab hiding the Mundo section from non-privileged seats at the index
  * (REQ-CFG-005) is ergonomics on top of this, never a substitute for it.
  *
+ * Issue #266 narrows that gate, not removes it: a non-GAMEMASTER role never
+ * gets refused outright anymore — instead every row is filtered down to
+ * `PLAYER_READABLE_SETTING_KEYS` before it reaches the response. A GM still
+ * sees every declared row; anyone else sees only the handful the ficha needs
+ * to explain a world-level variant rule, and an empty list when none of the
+ * declared settings are on that allowlist (e.g. the `stub` system, or any
+ * world setting outside the allowlist) — same shape as "no system resolved".
+ *
  * A world whose system registered nothing (or that has no system at all)
  * answers with an empty list, never an error — same degrade-open shape as
- * `system:conditions` — but only once the requester has cleared the gate.
+ * `system:conditions`.
  */
 export function buildSettingsDeclarationsHandler(
   systemModule?: SettingsRegistrySource,
   store?: SettingsStoreSource,
 ): HandlerFn<SettingsDeclarationsPayload, SettingsDeclarationsResult> {
   return (_payload, ctx) => {
-    const denied = requireGamemasterStrict(ctx);
-    if (denied) return denied;
+    const privileged = isGamemasterStrict(ctx.role);
     if (!systemModule) {
       return { ok: true, result: { systemId: null, settings: [] } };
     }
@@ -229,6 +258,7 @@ export function buildSettingsDeclarationsHandler(
       if (classification.kind === "unsupported") continue;
 
       const key = `${systemModule.manifest.id}:${def.key}`;
+      if (!privileged && !PLAYER_READABLE_SETTING_KEYS.has(key)) continue;
       const stored = storedByKey.get(key);
       const entry: WorldSettingDeclaration = {
         id: stored?.id ?? null,
