@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 237 glossary traits with a non-empty accented value", () => {
+  it("covers all 246 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1084,12 +1084,15 @@ describe("trait/rarity display names (r15-A1)", () => {
     // ver o próprio script) + 9 sincronizados no bump para o satélite
     // v0.3.1 (alchemical, daredevil, impossible, invocation, possession,
     // relentless, risky, slayer, thrall — traits das 5 classes de playtest
-    // publicadas no PR #190 do satélite). Ver traitNames.sync.test.ts para
+    // publicadas no PR #190 do satélite) + 9 no bump para v0.3.13 (aeon,
+    // aiuvarin, changeling, dhampir, dragonblood, dromaar, duskwalker,
+    // hobgoblin, yaoguai — Conrasu/Yaoguai/PC2/versáteis, satélite #285).
+    // Ver traitNames.sync.test.ts para
     // o gate vivo que evita essa deriva daqui em diante. Count exato de
     // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(237);
+    expect(keys.length).toBe(246);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
