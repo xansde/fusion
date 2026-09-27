@@ -85,6 +85,28 @@ const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
   "variantRules.freeArchetype",
 ]);
 
+/**
+ * Achado 1 (revisão adversarial 26/09 do #277): `broadcastToWorld`'s
+ * `Setting` branch (doc-handlers.ts) needs the SAME allowlist this handler
+ * reads through, so a GM flipping a variant rule mid-session reaches an
+ * already-connected player's socket instead of leaving it frozen on the
+ * value from page load. Exported here — the single source of truth for
+ * "which Setting keys a non-GAMEMASTER role may see" — so the two doors
+ * (read query, live broadcast) can never drift on the set of keys, same
+ * discipline as `isGamemasterStrict`/`redaction.ts` elsewhere in this repo.
+ *
+ * `wireKey` is the full `${systemId}:${localKey}` form stored on a Setting
+ * document's `key` field (see `indexStoredSettings` above) — only the part
+ * after the FIRST `:` is checked against the allowlist, matching this
+ * file's own `PLAYER_READABLE_SETTING_KEYS.has(def.key)` check (system-local
+ * key, never the namespaced wire key).
+ */
+export function isPlayerReadableSettingKey(wireKey: string): boolean {
+  const colonIndex = wireKey.indexOf(":");
+  const localKey = colonIndex === -1 ? wireKey : wireKey.slice(colonIndex + 1);
+  return PLAYER_READABLE_SETTING_KEYS.has(localKey);
+}
+
 // ---------------------------------------------------------------------------
 // Schema → render-kind classification
 // ---------------------------------------------------------------------------

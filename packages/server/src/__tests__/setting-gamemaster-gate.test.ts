@@ -607,5 +607,52 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
       const assistantPayload = assistantEnvelope["payload"] as { documents: unknown[] };
       expect(assistantPayload.documents).toEqual([]);
     });
+
+    // Achado 1 (revisão adversarial 26/09 do #277): a key ON
+    // PLAYER_READABLE_SETTING_KEYS (issue #266's read-side allowlist) must
+    // now reach the player's own socket at broadcast time too — before this
+    // fix, the player's ficha kept the STALE variant-rule value until a
+    // manual reload, even though a fresh `settings:declarations` read
+    // already returned the new one.
+    it("a key on PLAYER_READABLE_SETTING_KEYS reaches the player's socket filtered-in, while an off-allowlist key in the same batch stays filtered-out", async () => {
+      // Matches on THIS test's own batch (by its distinctive allowlisted key,
+      // never seen in any other test in this file) — a bare
+      // type/documentType predicate would also match a PRECEDING test's
+      // player-envelope, whose delivery to `player` nobody there awaited
+      // (those tests only await `gm`/`assistant`) and which can still be
+      // in flight when this test's listener attaches, racing this test's
+      // own envelope.
+      const isThisBatch = (env: Record<string, unknown>): boolean => {
+        if (env["type"] !== "doc:create") return false;
+        const payload = env["payload"] as
+          | { documentType?: string; documents?: Array<{ key?: string }> }
+          | undefined;
+        if (payload?.documentType !== "Setting") return false;
+        return (payload.documents ?? []).some((d) => d.key === "pf2e:variantRules.classLevels");
+      };
+
+      const playerOpP = waitForOp(player, isThisBatch);
+      const gmOpP = waitForOp(gm, isThisBatch);
+
+      const createAck = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [
+          { key: "pf2e:variantRules.classLevels", value: true },
+          { key: "world:test:broadcastLeakAllowlisted", value: 1 },
+        ],
+      });
+      expect(createAck["ok"]).toBe(true);
+
+      const [playerEnvelope, gmEnvelope] = await Promise.all([playerOpP, gmOpP]);
+
+      const playerPayload = playerEnvelope["payload"] as { documents: Array<{ key: string }> };
+      expect(playerPayload.documents.map((d) => d.key)).toEqual(["pf2e:variantRules.classLevels"]);
+
+      const gmPayload = gmEnvelope["payload"] as { documents: Array<{ key: string }> };
+      expect(gmPayload.documents.map((d) => d.key)).toEqual([
+        "pf2e:variantRules.classLevels",
+        "world:test:broadcastLeakAllowlisted",
+      ]);
+    });
   });
 });
