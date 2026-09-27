@@ -1,0 +1,104 @@
+/**
+ * Resolves the two PF2e/SF2e-composite world-scope variant-rule settings
+ * (multiclasse por níveis de classe / arquétipo livre — DEC-MCL-09) at the
+ * one place every `runActorDerivation` call site needs the CURRENT value.
+ *
+ * Bug this fixes: DEC-MCL-09 (2026-08-15) moved both toggles from a
+ * per-actor field (`system.build.variantRules.classLevels`,
+ * `system.build.freeArchetype`) to a world-scope `Setting` document, and
+ * REQ-CFG-033 stopped the ficha from ever writing that legacy actor field
+ * again. But `resolveClassLevels` (`@fusion/engine-2e`,
+ * `progression/levels.ts`) and the pf2e `freeArchetype` getter
+ * (`systems/pf2e/src/index.ts`) still only ever read the ACTOR's own
+ * `system.build.*` — never the world Setting — so a character built through
+ * the UI after DEC-MCL-09 always derives as if BOTH variants were off, no
+ * matter what the GM configured in Configurações → Mundo.
+ *
+ * The fix is not "make the derivation steps read the world setting" (they
+ * are pure, doc-only functions by contract — REQ-SYS-024) but "overlay the
+ * world's resolved value onto the doc's `system.build` before deriving",
+ * which is exactly what `runActorDerivation`'s new `worldVariantRules`
+ * parameter does. This module only resolves that value; it never mutates
+ * anything.
+ *
+ * Storage format mirrors `settings-handlers.ts`'s `indexStoredSettings`: a
+ * `Setting` document `{ _id, key, value }` in the `"settings"` table, keyed
+ * `${systemModule.manifest.id}:variantRules.<name>` (REQ-CFG-071) — e.g.
+ * `"pf2e:variantRules.classLevels"` on a pure PF2e world, or
+ * `"pf2e-sf2e:variantRules.classLevels"` on a misto world (the composite
+ * system unions pf2e's settings registry verbatim, so the key keeps pf2e's
+ * local name but the composite's own manifest id as prefix).
+ *
+ * A key with no stored `Setting` document resolves to `undefined`, NOT
+ * `false` — this is the achado 5/REQ-CFG-034 fix from the adversarial
+ * review of core#273/satélite#278 (26/09/2026). Before that fix this
+ * resolved straight to `false`, which meant "the GM never opened
+ * Configurações → Mundo" and "the GM explicitly turned it off" were
+ * indistinguishable — and the world setting ALWAYS won, even over an actor
+ * whose legacy `system.build.variantRules.classLevels`/`freeArchetype`
+ * field was already `true` (pre-DEC-MCL-09 sheets, or any world a GM never
+ * touched Configurações on). That silently de-multiclassed every such
+ * actor's HP/proficiencies on the very next `doc:update` after this
+ * overlay shipped. `undefined` lets the caller (`runActorDerivation`)
+ * fall back to the actor's own legacy field when the world has no opinion
+ * yet — the SAME `world ?? legado` precedence the client sheet already
+ * uses (`planVM.ts`'s `worldVariants?.classLevels ?? getClassLevelsVariant(sys)`)
+ * — without needing the REQ-CFG-034 world-migration-on-first-open to exist
+ * first. A GM who explicitly sets the setting (`true` or `false`) always
+ * wins from then on, migration or not.
+ */
+
+/** Just enough of `DocumentStore` to read persisted `Setting` documents. */
+export interface WorldVariantRulesStoreSource {
+  getAll(table: "settings"): Record<string, unknown>[];
+}
+
+/** Just enough of a `SystemModule` to namespace the setting keys. */
+export interface WorldVariantRulesSystemSource {
+  manifest: { id: string };
+}
+
+/**
+ * The overlay `runActorDerivation` merges onto `doc.system.build`.
+ *
+ * `undefined` means "no Setting document stored for this key" — the GM
+ * never opened Configurações → Mundo (or a fresh/imported world with no
+ * settings table yet). It is NOT the same as `false` (GM explicitly turned
+ * it off): the caller must fall back to the actor's own legacy field in
+ * that case, never treat `undefined` as "off" (achado 5, revisão
+ * core#273/satélite#278, 26/09/2026).
+ */
+export interface ResolvedWorldVariantRules {
+  readonly classLevels: boolean | undefined;
+  readonly freeArchetype: boolean | undefined;
+}
+
+/**
+ * Resolve both variant-rule settings for the world's active system.
+ *
+ * Returns `{ classLevels: undefined, freeArchetype: undefined }` when
+ * `store` or `systemModule` is missing (no system resolved for this world)
+ * — the caller's fallback-to-legacy-field path applies here too, same as
+ * for an unset key on a resolved system.
+ */
+export function resolveWorldVariantRules(
+  store: WorldVariantRulesStoreSource | undefined,
+  systemModule: WorldVariantRulesSystemSource | undefined,
+): ResolvedWorldVariantRules {
+  if (!store || !systemModule) return { classLevels: undefined, freeArchetype: undefined };
+
+  const systemId = systemModule.manifest.id;
+  const classLevelsKey = `${systemId}:variantRules.classLevels`;
+  const freeArchetypeKey = `${systemId}:variantRules.freeArchetype`;
+
+  let classLevels: boolean | undefined;
+  let freeArchetype: boolean | undefined;
+
+  for (const doc of store.getAll("settings")) {
+    const key = doc["key"];
+    if (key === classLevelsKey) classLevels = doc["value"] === true;
+    else if (key === freeArchetypeKey) freeArchetype = doc["value"] === true;
+  }
+
+  return { classLevels, freeArchetype };
+}

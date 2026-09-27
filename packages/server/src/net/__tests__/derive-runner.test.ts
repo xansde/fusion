@@ -235,3 +235,156 @@ describe("runActorDerivation — pf2e retrocompat (no materializer registered, M
     expect(ac.total).toBe(18);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 3. `worldVariantRules` overlay (DEC-MCL-09 bug fix)
+// ---------------------------------------------------------------------------
+
+describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)", () => {
+  function buildFakeSystemReadingBuild(): SystemModule {
+    return defineSystem(
+      {
+        id: "fake-build-reader-system",
+        title: "Fake Build Reader System",
+        version: "0.1.0",
+        engineCompat: ">=0.1.0 <2.0.0",
+        authors: [{ name: "Test" }],
+        documentTypes: { Actor: ["hero"] },
+        languages: [{ lang: "en", name: "English", path: "lang/en.json" }],
+      },
+      (r) => {
+        r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
+
+        // Mirrors exactly what `resolveClassLevels`/pf2e's `freeArchetype`
+        // getter read: `doc.system.build.variantRules.classLevels` and
+        // `doc.system.build.freeArchetype`. If the overlay never reaches the
+        // doc before this step runs, both come out `undefined`.
+        r.derive({
+          id: "fake.echo-build-variant-flags",
+          documentType: "Actor",
+          subtypes: ["hero"],
+          phase: "derived",
+          reads: [],
+          writes: ["system.derived.classLevelsSeen", "system.derived.freeArchetypeSeen"],
+          run: (doc) => {
+            const d = doc as {
+              system: {
+                build?: { variantRules?: { classLevels?: boolean }; freeArchetype?: boolean };
+                derived: Record<string, unknown>;
+              };
+            };
+            d.system.derived["classLevelsSeen"] = d.system.build?.variantRules?.classLevels;
+            d.system.derived["freeArchetypeSeen"] = d.system.build?.freeArchetype;
+          },
+        });
+      },
+    );
+  }
+
+  function makeDoc(): Record<string, unknown> {
+    return { type: "hero", system: { derived: {} } };
+  }
+
+  it("without the overlay, the doc's own (absent) build field decides — both undefined", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc = makeDoc();
+    runActorDerivation(doc, system);
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBeUndefined();
+    expect(derived["freeArchetypeSeen"]).toBeUndefined();
+  });
+
+  it("with the overlay, the world's resolved variant values reach the doc before any step runs", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc = makeDoc();
+    runActorDerivation(doc, system, { classLevels: true, freeArchetype: true });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBe(true);
+    expect(derived["freeArchetypeSeen"]).toBe(true);
+  });
+
+  it("a world with both variants off overlays explicit `false` (not just absence)", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc = makeDoc();
+    runActorDerivation(doc, system, { classLevels: false, freeArchetype: false });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBe(false);
+    expect(derived["freeArchetypeSeen"]).toBe(false);
+  });
+
+  it("undefined (no Setting doc yet) falls back to the actor's own legacy field, does NOT force false (achado 5)", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc: Record<string, unknown> = {
+      type: "hero",
+      system: {
+        derived: {},
+        build: { variantRules: { classLevels: true }, freeArchetype: true },
+      },
+    };
+    runActorDerivation(doc, system, { classLevels: undefined, freeArchetype: undefined });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    // The world has no opinion yet — the actor's own legacy `true` must win,
+    // exactly like the client's `worldVariants?.classLevels ??
+    // getClassLevelsVariant(sys)` precedence, NOT get overridden to false.
+    expect(derived["classLevelsSeen"]).toBe(true);
+    expect(derived["freeArchetypeSeen"]).toBe(true);
+  });
+
+  it("an EXPLICIT world value always overrides the actor's legacy field, off included", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc: Record<string, unknown> = {
+      type: "hero",
+      system: {
+        derived: {},
+        build: { variantRules: { classLevels: true }, freeArchetype: true },
+      },
+    };
+    runActorDerivation(doc, system, { classLevels: false, freeArchetype: false });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBe(false);
+    expect(derived["freeArchetypeSeen"]).toBe(false);
+  });
+
+  it("undefined with no legacy field either falls back to false (both absent)", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc = makeDoc();
+    runActorDerivation(doc, system, { classLevels: undefined, freeArchetype: undefined });
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    expect(derived["classLevelsSeen"]).toBe(false);
+    expect(derived["freeArchetypeSeen"]).toBe(false);
+  });
+
+  it("preserves other keys already on system.build (e.g. keyAbility)", () => {
+    const system = buildFakeSystemReadingBuild();
+    const doc: Record<string, unknown> = {
+      type: "hero",
+      system: { derived: {}, build: { keyAbility: "str" } },
+    };
+    runActorDerivation(doc, system, { classLevels: true, freeArchetype: false });
+    const build = ((doc["system"] as Record<string, unknown>)["build"] ?? {}) as Record<
+      string,
+      unknown
+    >;
+    expect(build["keyAbility"]).toBe("str");
+    expect((build["variantRules"] as { classLevels: boolean }).classLevels).toBe(true);
+    expect(build["freeArchetype"]).toBe(false);
+  });
+});

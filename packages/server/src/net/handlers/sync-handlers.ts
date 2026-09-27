@@ -31,6 +31,7 @@ import type { ContactViewer } from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
+import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
@@ -423,6 +424,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       // (or whatever it already had), while every other actor is unaffected.
       if (docType === "Actor" && deps.systemModule) {
         const systemModule = deps.systemModule;
+        const worldVariantRules = resolveWorldVariantRules(deps.store, systemModule);
         visible = visible.map((actor) => {
           try {
             const clone: Record<string, unknown> = { ...actor };
@@ -436,7 +438,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
               sys && typeof sys === "object" && !Array.isArray(sys)
                 ? structuredClone(sys as Record<string, unknown>)
                 : {};
-            runActorDerivation(clone, systemModule);
+            runActorDerivation(clone, systemModule, worldVariantRules);
             return clone;
           } catch (err) {
             deps.logger?.warn(

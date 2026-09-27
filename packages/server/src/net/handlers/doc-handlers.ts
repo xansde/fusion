@@ -1082,6 +1082,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       throw err;
     }
 
+    // REQ-CFG-035: a world's FIRST `variantRules.classLevels`/`freeArchetype`
+    // Setting is a doc:create (no Setting document existed yet), not a
+    // doc:update — needs the same re-derivation as the update path below.
+    rederiveActorsForChangedVariantRules(deps, documentType, created, authorCtx);
+
     const seq = deps.seqStore.next();
     const broadcastPayload = { documentType, documents: created };
     const envelope = buildBroadcastEnvelope("doc:create", broadcastPayload, seq);
@@ -1092,6 +1097,62 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
 
     return ackOk({ documentType, documents: created }, seq);
   };
+}
+
+/**
+ * Key suffixes `resolveWorldVariantRules` reads (`documents/
+ * world-variant-rules.ts`) — any system id can prefix them (`pf2e:...`,
+ * `pf2e-sf2e:...`), so this matches by suffix, never a hardcoded full key.
+ */
+const VARIANT_RULES_KEY_SUFFIXES = [":variantRules.classLevels", ":variantRules.freeArchetype"];
+
+function isVariantRulesSettingKey(key: unknown): boolean {
+  return typeof key === "string" && VARIANT_RULES_KEY_SUFFIXES.some((s) => key.endsWith(s));
+}
+
+/**
+ * REQ-CFG-035: when a just-persisted `doc:update` batch touched a
+ * `variantRules.classLevels`/`variantRules.freeArchetype` Setting, re-derive
+ * every Actor in the world and broadcast the ones that actually changed as
+ * a second `doc:update("Actor", ...)` envelope.
+ *
+ * No-op for anything else (documentType !== "Setting", or a Setting update
+ * that didn't touch either key) — this never fires on the far more common
+ * path of an ordinary Actor/Item/Scene write.
+ *
+ * `recomputeDerivedIfNeeded` is the single existing entry point for "derive
+ * this Actor and persist `system.derived` if it changed" (documents/
+ * derive.ts) — reused here rather than re-implemented, so this gets its
+ * clone/prune/version-bump correctness for free. It returns the exact same
+ * object reference it was given when nothing changed, which is what tells
+ * this loop whether to include a given actor in the broadcast.
+ */
+function rederiveActorsForChangedVariantRules(
+  deps: DocHandlerDeps,
+  documentType: string,
+  updatedSettings: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  if (documentType !== "Setting" || !deps.systemModule) return;
+  if (!updatedSettings.some((doc) => isVariantRulesSettingKey(doc["key"]))) return;
+
+  const actors = deps.store.getAll("actors");
+  const rederived: Record<string, unknown>[] = [];
+  for (const actor of actors) {
+    const recomputed = recomputeDerivedIfNeeded(deps, "Actor", actor, authorCtx);
+    if (recomputed !== actor) rederived.push(recomputed);
+  }
+
+  if (rederived.length === 0) return;
+
+  const seq = deps.seqStore.next();
+  const envelope = buildBroadcastEnvelope(
+    "doc:update",
+    { documentType: "Actor", documents: rederived },
+    seq,
+  );
+  deps.opBuffer.push(envelope);
+  broadcastToWorld(deps.ns, envelope, "Actor");
 }
 
 // ---------------------------------------------------------------------------
@@ -1348,6 +1409,19 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         updated.push(result);
       }
     }
+
+    // REQ-CFG-035: a `variantRules.classLevels`/`variantRules.freeArchetype`
+    // Setting is read by EVERY Actor's derivation (world-variant-rules.ts),
+    // not just the Setting document itself — before this, flipping the
+    // toggle in Configurações → Mundo changed nothing until each actor's
+    // NEXT unrelated write (achado 6, revisão core#273/satélite#278,
+    // 26/09/2026): `system.derived` stayed stale (wrong HP/proficiencies)
+    // for everyone until then, silently. Re-derive every character Actor
+    // right here, in the same handler call that persisted the setting, and
+    // broadcast the results as a second `doc:update` envelope so every
+    // connected client (not just whoever reloads) sees the corrected
+    // numbers immediately.
+    rederiveActorsForChangedVariantRules(deps, documentType, updated, authorCtx);
 
     if (updated.length === 0) {
       // All no-ops — return current seq without incrementing

@@ -14,6 +14,7 @@ import type { SystemModule } from "@fusion/system-api";
 import type { DocumentStore } from "./store.js";
 import { prunedPatch } from "./merge.js";
 import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "./world-variant-rules.js";
 
 export interface DeriveRecomputeDeps {
   store: DocumentStore;
@@ -88,7 +89,8 @@ export function recomputeDerivedIfNeeded(
         ? structuredClone(sys as Record<string, unknown>)
         : {};
 
-    const derived = runActorDerivation(workingDoc, deps.systemModule);
+    const worldVariantRules = resolveWorldVariantRules(deps.store, deps.systemModule);
+    const derived = runActorDerivation(workingDoc, deps.systemModule, worldVariantRules);
     if (!derived) return doc;
 
     const id = doc["_id"] as string | undefined;

@@ -81,6 +81,7 @@ import type {
   RegisteredEffectsMaterializer,
   SystemModule,
 } from "@fusion/system-api";
+import type { ResolvedWorldVariantRules } from "../documents/world-variant-rules.js";
 
 // ---------------------------------------------------------------------------
 // Generic condition → EffectSource materialization
@@ -255,10 +256,27 @@ function actorSubtype(doc: Record<string, unknown>): string {
  *
  * Safe to call unconditionally on every Actor create/update: the no-op path
  * is a single Map lookup plus an empty-array topoSort (cheap).
+ *
+ * `worldVariantRules` (DEC-MCL-09 bug fix): overlays the world's CURRENT
+ * `variantRules.classLevels`/`variantRules.freeArchetype` settings onto
+ * `doc.system.build` before any step runs. Both variants moved from a
+ * per-actor field to a world-scope `Setting` in DEC-MCL-09 (2026-08-15), but
+ * `resolveClassLevels` (`@fusion/engine-2e`) and pf2e's `freeArchetype`
+ * getter still only ever read the actor's own `system.build.*` — never the
+ * world Setting — by design (DeriveStep.run() is doc-only and pure per
+ * REQ-SYS-024, so the world value has to reach them as part of the doc, not
+ * as a second argument threaded through every step). Every caller resolves
+ * the current value once (`resolveWorldVariantRules`, `documents/
+ * world-variant-rules.ts`) and passes it here; omitting the parameter keeps
+ * the doc's own (legacy, usually absent) field as the only source, which is
+ * only correct for a caller that has no store/systemModule to resolve from
+ * (none of the production call sites are in that position — see that
+ * module's callers).
  */
 export function runActorDerivation(
   doc: Record<string, unknown>,
   systemModule: SystemModule,
+  worldVariantRules?: ResolvedWorldVariantRules,
 ): boolean {
   const subtype = actorSubtype(doc);
   if (subtype.length === 0) return false;
@@ -273,6 +291,38 @@ export function runActorDerivation(
   const sys = doc["system"];
   if (!sys || typeof sys !== "object") {
     doc["system"] = {};
+  }
+
+  if (worldVariantRules) {
+    const system = doc["system"] as Record<string, unknown>;
+    const existingBuild = system["build"];
+    const build: Record<string, unknown> =
+      existingBuild && typeof existingBuild === "object" ? { ...existingBuild } : {};
+    const existingVariantRules = build["variantRules"];
+
+    // `classLevels`/`freeArchetype` are `undefined` when the world has no
+    // stored Setting for the key yet (REQ-CFG-034 migration not run, or a
+    // world nobody ever opened Configurações → Mundo on) — fall back to
+    // the actor's own legacy field in that case, mirroring the client's
+    // `worldVariants?.classLevels ?? getClassLevelsVariant(sys)` precedence
+    // (achado 5, revisão core#273/satélite#278, 26/09/2026). Only an
+    // EXPLICIT world value (true or false) ever overrides the actor's own
+    // field.
+    const existingClassLevels =
+      existingVariantRules && typeof existingVariantRules === "object"
+        ? (existingVariantRules as Record<string, unknown>)["classLevels"] === true
+        : false;
+    const resolvedClassLevels = worldVariantRules.classLevels ?? existingClassLevels;
+
+    build["variantRules"] =
+      existingVariantRules && typeof existingVariantRules === "object"
+        ? { ...existingVariantRules, classLevels: resolvedClassLevels }
+        : { classLevels: resolvedClassLevels };
+
+    const existingFreeArchetype = build["freeArchetype"] === true;
+    build["freeArchetype"] = worldVariantRules.freeArchetype ?? existingFreeArchetype;
+
+    system["build"] = build;
   }
 
   const baseCtx: DeriveContext = {
