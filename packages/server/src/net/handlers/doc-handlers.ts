@@ -126,6 +126,7 @@ import {
 // The augmentation-slot rule itself moved to `documents/embedded-item.ts` (spec 43
 // §5.7, DEC-CPD-05) so `compendium:importToActor` runs the SAME predicate this file
 // runs — only the payload type is still read here.
+import { isPlayerReadableSettingKey } from "./settings-handlers.js";
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
 import { systemIncludes } from "@fusion/system-api";
@@ -2560,15 +2561,33 @@ function broadcastToWorld(
   // GAMEMASTER" for these sections — ASSISTANT does not qualify either.
   // Non-eligible sockets get an empty-body envelope (never swallowed) for the
   // same reason Scene's does: the client mirror needs a contiguous seq.
+  //
+  // Achado 1 (revisão adversarial 26/09 do #277): create/update do NOT
+  // blanket-empty the player envelope anymore — issue #266 already lets a
+  // non-GAMEMASTER role READ the handful of settings on
+  // `PLAYER_READABLE_SETTING_KEYS` (variant-rule flags the ficha itself
+  // derives from), but this broadcast still zeroed them out, so a player
+  // already on the sheet kept the STALE value until a manual reload. Filter
+  // to that same allowlist (`isPlayerReadableSettingKey`, the one exported
+  // predicate settings-handlers.ts also reads through — never a duplicated
+  // key list) instead of dropping every document. `doc:delete` keeps the
+  // blanket empty-ids envelope below: deleting a Setting document is not a
+  // path any UI exposes today, and reconstructing "was this deleted key
+  // player-readable" would need the pre-delete document, which the delete
+  // handler does not thread through here.
   if (documentType === "Setting") {
     if (envelope.type === "doc:create" || envelope.type === "doc:update") {
       const payload = envelope.payload as {
         documentType: string;
         documents: Record<string, unknown>[];
       };
+      const readableDocuments = payload.documents.filter((doc) => {
+        const key = doc["key"];
+        return typeof key === "string" && isPlayerReadableSettingKey(key);
+      });
       const playerEnvelope: Envelope = {
         ...envelope,
-        payload: { ...payload, documents: [] },
+        payload: { ...payload, documents: readableDocuments },
       };
       emitByRole(ns, envelope, playerEnvelope, socketIsGamemasterStrict);
       return;

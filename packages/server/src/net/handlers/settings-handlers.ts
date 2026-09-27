@@ -59,6 +59,54 @@ function requireGamemasterStrict(ctx: HandlerContext): Ack<never> | null {
   return ackError("PERMISSION_DENIED", "Only the Gamemaster can read this configuration data");
 }
 
+/**
+ * Issue #266: a subset of world-scope settings drives derivations the
+ * character sheet itself needs to explain to the PLAYER who owns it — e.g.
+ * "multiclasse por nível" (spec 30, REQ-MCL-001/004) and "Arquétipo livre" —
+ * so a non-GAMEMASTER role must be able to read exactly these keys, and
+ * nothing else `settings:declarations` would otherwise hand out.
+ *
+ * This is a narrow READ exception, not a reopening of the Mundo section:
+ * write access to any Setting document remains GAMEMASTER-strict
+ * (`doc-handlers.ts`'s guard, REQ-CFG-070/071), and every OTHER
+ * `settings:declarations` row — plus `settings:impact` and
+ * `settings:permissions` in full — stay behind `requireGamemasterStrict`
+ * above, unchanged (REQ-GAV-034, DEC-CFG-05).
+ *
+ * Keys are the SYSTEM-LOCAL key (`def.key`, without the `<systemId>:`
+ * namespace): the same declaration reaches the wire as
+ * `pf2e:variantRules.classLevels` in a pure pf2e world and as
+ * `pf2e-sf2e:variantRules.classLevels` in the combined system (which
+ * re-registers pf2e's settings under its own id) — the world the issue was
+ * reproduced in. Matching the full wire key would silently miss the latter.
+ */
+const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
+  "variantRules.classLevels",
+  "variantRules.freeArchetype",
+]);
+
+/**
+ * Achado 1 (revisão adversarial 26/09 do #277): `broadcastToWorld`'s
+ * `Setting` branch (doc-handlers.ts) needs the SAME allowlist this handler
+ * reads through, so a GM flipping a variant rule mid-session reaches an
+ * already-connected player's socket instead of leaving it frozen on the
+ * value from page load. Exported here — the single source of truth for
+ * "which Setting keys a non-GAMEMASTER role may see" — so the two doors
+ * (read query, live broadcast) can never drift on the set of keys, same
+ * discipline as `isGamemasterStrict`/`redaction.ts` elsewhere in this repo.
+ *
+ * `wireKey` is the full `${systemId}:${localKey}` form stored on a Setting
+ * document's `key` field (see `indexStoredSettings` above) — only the part
+ * after the FIRST `:` is checked against the allowlist, matching this
+ * file's own `PLAYER_READABLE_SETTING_KEYS.has(def.key)` check (system-local
+ * key, never the namespaced wire key).
+ */
+export function isPlayerReadableSettingKey(wireKey: string): boolean {
+  const colonIndex = wireKey.indexOf(":");
+  const localKey = colonIndex === -1 ? wireKey : wireKey.slice(colonIndex + 1);
+  return PLAYER_READABLE_SETTING_KEYS.has(localKey);
+}
+
 // ---------------------------------------------------------------------------
 // Schema → render-kind classification
 // ---------------------------------------------------------------------------
@@ -204,17 +252,24 @@ function indexStoredSettings(
  * tab hiding the Mundo section from non-privileged seats at the index
  * (REQ-CFG-005) is ergonomics on top of this, never a substitute for it.
  *
+ * Issue #266 narrows that gate, not removes it: a non-GAMEMASTER role never
+ * gets refused outright anymore — instead every row is filtered down to
+ * `PLAYER_READABLE_SETTING_KEYS` before it reaches the response. A GM still
+ * sees every declared row; anyone else sees only the handful the ficha needs
+ * to explain a world-level variant rule, and an empty list when none of the
+ * declared settings are on that allowlist (e.g. the `stub` system, or any
+ * world setting outside the allowlist) — same shape as "no system resolved".
+ *
  * A world whose system registered nothing (or that has no system at all)
  * answers with an empty list, never an error — same degrade-open shape as
- * `system:conditions` — but only once the requester has cleared the gate.
+ * `system:conditions`.
  */
 export function buildSettingsDeclarationsHandler(
   systemModule?: SettingsRegistrySource,
   store?: SettingsStoreSource,
 ): HandlerFn<SettingsDeclarationsPayload, SettingsDeclarationsResult> {
   return (_payload, ctx) => {
-    const denied = requireGamemasterStrict(ctx);
-    if (denied) return denied;
+    const privileged = isGamemasterStrict(ctx.role);
     if (!systemModule) {
       return { ok: true, result: { systemId: null, settings: [] } };
     }
@@ -229,6 +284,7 @@ export function buildSettingsDeclarationsHandler(
       if (classification.kind === "unsupported") continue;
 
       const key = `${systemModule.manifest.id}:${def.key}`;
+      if (!privileged && !PLAYER_READABLE_SETTING_KEYS.has(def.key)) continue;
       const stored = storedByKey.get(key);
       const entry: WorldSettingDeclaration = {
         id: stored?.id ?? null,
