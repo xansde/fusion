@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { pf2eSystem } from "@fusion/system-pf2e";
+import { pf2eSf2eSystem } from "@fusion/system-pf2e-sf2e";
 
 import {
   buildSettingsDeclarationsHandler,
@@ -391,6 +392,21 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
       "pf2e:variantRules.classLevels",
       "pf2e:variantRules.freeArchetype",
     ]);
+  });
+
+  it("issue #266: in the combined pf2e-sf2e system (the world the issue reproduced in), a PLAYER reads the same two keys under that system's namespace", () => {
+    const store = fakeStore([
+      { _id: "setting-cl2", key: "pf2e-sf2e:variantRules.classLevels", value: true },
+    ]);
+    const settings = ask(pf2eSf2eSystem, store, UserRole.PLAYER).settings;
+    expect(settings.map((s) => s.key).sort()).toEqual([
+      "pf2e-sf2e:variantRules.classLevels",
+      "pf2e-sf2e:variantRules.freeArchetype",
+    ]);
+    expect(settings.find((s) => s.key === "pf2e-sf2e:variantRules.classLevels")).toMatchObject({
+      id: "setting-cl2",
+      value: true,
+    });
   });
 
   it("issue #266: a PLAYER sees the world's real classLevels value, not just the default", () => {

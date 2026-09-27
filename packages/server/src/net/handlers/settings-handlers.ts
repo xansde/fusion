@@ -73,12 +73,16 @@ function requireGamemasterStrict(ctx: HandlerContext): Ack<never> | null {
  * `settings:permissions` in full — stay behind `requireGamemasterStrict`
  * above, unchanged (REQ-GAV-034, DEC-CFG-05).
  *
- * Keys are the fully-namespaced wire key (`<systemId>:<def.key>`), exactly as
- * `settings:declarations` already keys every row it returns.
+ * Keys are the SYSTEM-LOCAL key (`def.key`, without the `<systemId>:`
+ * namespace): the same declaration reaches the wire as
+ * `pf2e:variantRules.classLevels` in a pure pf2e world and as
+ * `pf2e-sf2e:variantRules.classLevels` in the combined system (which
+ * re-registers pf2e's settings under its own id) — the world the issue was
+ * reproduced in. Matching the full wire key would silently miss the latter.
  */
 const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
-  "pf2e:variantRules.classLevels",
-  "pf2e:variantRules.freeArchetype",
+  "variantRules.classLevels",
+  "variantRules.freeArchetype",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -258,7 +262,7 @@ export function buildSettingsDeclarationsHandler(
       if (classification.kind === "unsupported") continue;
 
       const key = `${systemModule.manifest.id}:${def.key}`;
-      if (!privileged && !PLAYER_READABLE_SETTING_KEYS.has(key)) continue;
+      if (!privileged && !PLAYER_READABLE_SETTING_KEYS.has(def.key)) continue;
       const stored = storedByKey.get(key);
       const entry: WorldSettingDeclaration = {
         id: stored?.id ?? null,
