@@ -269,6 +269,38 @@ chegou a ser implementada e que ninguém pediu de volta nesta revisão.
 revisao-257-161.md`. Levada ao Alexandre como decisão pendente; confirmada em
 26/09/2026.
 
+### DEC-MCL-11 — PV usa a maior classe entre as TOMADAS, retroativo, sem soma por nível (decisão do Alexandre, 26/09/2026)
+
+> **Emenda REQ-MCL-033**: a fórmula original — cada nível paga o PV da classe que o
+> recebeu (`Σ hpDaClasseQueRecebeuOnível_n`) — é substituída por uma casa: todo nível
+> paga o **maior** PV de classe entre as classes que o personagem TOMOU até o nível
+> atual, e isso é **retroativo**.
+
+**Decisão:** `hpMax = hpAncestralidade + nível × (max_{c ∈ classesTomadas} hpDaClasse_c +
+conMod) + bônus`. "Classes tomadas" são as que receberam ao menos um nível de
+personagem já alcançado (`levels.assignments`, REQ-MCL-033 original) — não qualquer
+item `type:'class'` embutido na ficha (uma classe planejada para um nível futuro, ou a
+classe secundária de um ator com a variante desligada, não conta ainda). Um Mago
+nível 1 (PV 8) que depois assume Barbaro nos níveis 2–3 (PV 12) passa a pagar 12+conMod
+nos **três** níveis, inclusive o Mago já lançado — é o ponto da casa, não uma
+regressão. Uma classe tomada depois com PV **menor** que a já presente não abaixa o
+máximo (é um `max`, não a última escrita).
+
+**Racional:** casa de mesa do Alexandre — simplifica a conta na hora de jogar (um
+único valor de "PV por nível" em vez de rastrear qual nível veio de qual classe) e
+evita que uma dip tardia numa classe frágil "congele" o PV dos níveis anteriores.
+
+**O que esta decisão aceita perder:** a leitura por nível de REQ-MCL-033 original
+(cada nível carrega o PV da sua própria classe) deixa de valer; `hpByLevel`
+(REQ-MCL-082) reporta o PV efetivo aplicado a cada nível, não o dado da classe que o
+recebeu — a UI que viesse a consumir esse campo precisa ler `hp`, não inferir a classe
+pelo `hp`.
+
+**Contexto:** achado da revisão adversarial de `fix/classlevels-world-variant2` (core
+#273) / `fix/hp-max-class-retroactive-dec-mcl-11` (satélite #278), 26/09/2026 —
+`.fusion-build/classes-pendentes/revisao-273-278.md`. Decidida com o Alexandre no
+mesmo dia.
+
 ---
 
 ## 5. Modelo de dados
@@ -390,9 +422,12 @@ interface DerivedClassLevels {
   ser **derivada da progressão da classe**, nunca de lista escrita à mão. Feat
   concedido por dentro de uma feature de identidade acompanha a feature e não é
   afetado pelo REQ-MCL-031.
-- **REQ-MCL-033** [MC] O HP máximo DEVE ser
-  `hpAncestralidade + Σ_{n=1..nível} (hpDaClasseQueRecebeuOnível_n + conMod) + bônus`.
-  O HP de ancestralidade entra uma vez, no nível 1.
+- **REQ-MCL-033** [MC] (reescrito por DEC-MCL-11, 26/09/2026) O HP máximo DEVE ser
+  `hpAncestralidade + nível × (max_{c ∈ classesTomadas} hpDaClasse_c + conMod) + bônus`,
+  onde "classes tomadas" são as que receberam ao menos um nível de personagem já
+  alcançado — **retroativo**: subir de PV máximo entre as classes tomadas eleva o
+  custo de TODOS os níveis já na ficha, não só os daqui pra frente. O HP de
+  ancestralidade entra uma vez, no nível 1.
 - **REQ-MCL-034** [MC] As perícias **automáticas** de uma classe nova DEVEM ser
   sempre concedidas (são identidade).
 - **REQ-MCL-035** [MC] O orçamento de perícias **livres** DEVE seguir
@@ -539,7 +574,7 @@ reescrita; são quatro trocas de conceito propagadas.
 | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------- |
 | `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                               |
 | `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto               |
-| `stepCharBuildHp`                               | `build.ts`                                      | soma por nível (REQ-MCL-033) em vez de multiplicar                      |
+| `stepCharBuildHp`                               | `build.ts`                                      | multiplica pelo max(PV) das classes tomadas (REQ-MCL-033/DEC-MCL-11), retroativo |
 | `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                     |
 | `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                             |
 | `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                          |
