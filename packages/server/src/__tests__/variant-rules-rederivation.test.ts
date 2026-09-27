@@ -183,9 +183,15 @@ function waitForConnect(socket: ClientSocket): Promise<void> {
   });
 }
 
-function sendOp(socket: ClientSocket, type: string, payload: unknown): Promise<Record<string, unknown>> {
+function sendOp(
+  socket: ClientSocket,
+  type: string,
+  payload: unknown,
+): Promise<Record<string, unknown>> {
   return new Promise<Record<string, unknown>>((resolve, reject) => {
-    socket.emit("op", { type, ts: Date.now(), payload }, (r: Record<string, unknown>) => resolve(r));
+    socket.emit("op", { type, ts: Date.now(), payload }, (r: Record<string, unknown>) =>
+      resolve(r),
+    );
     setTimeout(() => reject(new Error(`Timeout for op: ${type}`)), 8000);
   });
 }
@@ -240,9 +246,8 @@ describe("REQ-CFG-035 — Setting write re-derives Actors immediately", () => {
       data: [{ name: "Hero", type: "hero", ownership: { default: 0 }, system: {} }],
     });
     expect(createActorAck["ok"]).toBe(true);
-    const actorDoc = (
-      createActorAck["result"] as { documents: Record<string, unknown>[] }
-    ).documents[0]!;
+    const actorDoc = (createActorAck["result"] as { documents: Record<string, unknown>[] })
+      .documents[0]!;
     expect((actorDoc["system"] as Record<string, unknown>)["derived"]).toMatchObject({
       classLevelsSeen: false,
     });
