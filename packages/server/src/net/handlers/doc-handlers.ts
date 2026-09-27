@@ -1136,7 +1136,7 @@ function rederiveActorsForChangedVariantRules(
   if (documentType !== "Setting" || !deps.systemModule) return;
   if (!updatedSettings.some((doc) => isVariantRulesSettingKey(doc["key"]))) return;
 
-  const actors = deps.store.getAll("actors" as never) as Record<string, unknown>[];
+  const actors = deps.store.getAll("actors");
   const rederived: Record<string, unknown>[] = [];
   for (const actor of actors) {
     const recomputed = recomputeDerivedIfNeeded(deps, "Actor", actor, authorCtx);
