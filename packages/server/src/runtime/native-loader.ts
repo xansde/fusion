@@ -60,6 +60,7 @@ import {
 } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { createRequire } from "node:module";
+import { brotliCompressSync, brotliDecompressSync, constants as zlibConstants } from "node:zlib";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,10 +103,38 @@ export class NativeAddonExtractionError extends Error {
 // Archive format — a minimal, dependency-free "packed directory" format.
 //
 // Not a real tar: just a JSON index (relative path -> byte range) followed
-// by the concatenated raw file bytes. This keeps the packer/unpacker free of
-// any new runtime dependency (no `tar` package) — appropriate for a format
-// this module fully owns on both ends (packed once at build time by
-// tools/release/pack-native.mjs, unpacked here).
+// by the concatenated raw file bytes ("the classic layout"). This keeps the
+// packer/unpacker free of any new runtime dependency for the layout itself
+// (no `tar` package) — appropriate for a format this module fully owns on
+// both ends (packed once at build time by tools/release/pack-native.mjs,
+// unpacked here).
+//
+// COMPRESSION ENVELOPE (catálogo 0.9, REQ-DST-046 headroom). As of this
+// batch, `packDirectory` wraps the classic layout in a small envelope and
+// brotli-compresses it — the 0.4 measurement showed the projected import of
+// blocks A–D would leave only 3.2–5.5 MB of headroom under the 150 MB
+// artifact budget, and pack JSON (talent/heritage/class-feature text) is
+// exactly the kind of payload brotli shrinks hardest. The envelope is:
+//
+//   [4 bytes magic "FPK1"] [1 byte codec] [8 bytes LE compressedLen]
+//   [8 bytes LE originalLen] [compressedLen bytes of payload]
+//
+// where decompressing `payload` with `codec` yields the classic layout
+// (8-byte index length + index JSON + concatenated file bytes) unchanged.
+// `codec 0` (NONE) stores the classic layout verbatim after the header, for
+// tests and for archives where compression would not help.
+//
+// BACKWARD COMPATIBILITY: an archive with NO envelope at all — i.e. one
+// produced by the pre-0.9 code, which is just the classic layout with no
+// magic prefix — is still readable. `decodeArchive` checks for the magic
+// bytes first; if they are absent, the whole buffer is treated as a classic
+// (uncompressed, unversioned) archive exactly as before. A real collision
+// (a classic archive's first 4 bytes coincidentally spelling "FPK1") is
+// possible only if a classic index happens to be exactly 0x314b5046 bytes —
+// realistically unreachable for pack sizes measured in KB/MB, not GB.
+// An archive that DOES carry the envelope but names a codec this build does
+// not know throws a clear, actionable error instead of silently
+// misinterpreting bytes (see `decodeArchive`'s `UnknownArchiveCodecError`).
 // ---------------------------------------------------------------------------
 
 interface PackedEntry {
@@ -122,13 +151,27 @@ interface PackedIndex {
 
 const INDEX_HEADER_BYTES = 8; // uint32 index length, then index length is used
 
-/**
- * Pack a directory (recursively) into the archive format this module reads.
- * Used only by the build-time packer script (tools/release/pack-native.mjs),
- * exported here so the format is defined in exactly one place and the
- * pack/unpack code paths cannot silently drift apart.
- */
-export function packDirectory(rootDir: string): Buffer {
+const ARCHIVE_MAGIC = Buffer.from("FPK1", "ascii");
+const ENVELOPE_HEADER_BYTES =
+  4 /* magic */ + 1 /* codec */ + 8 /* compressedLen */ + 8; /* originalLen */
+
+export const ARCHIVE_CODEC_NONE = 0;
+export const ARCHIVE_CODEC_BROTLI = 1;
+
+export class UnknownArchiveCodecError extends Error {
+  constructor(codec: number) {
+    super(
+      `Pack archive uses codec ${String(codec)}, which this build does not understand. ` +
+        `This usually means the archive was produced by a NEWER version of ` +
+        `tools/release/pack-native.mjs than the server code reading it — rebuild the ` +
+        `server (or downgrade the archive's producer) so both sides agree on the format.`,
+    );
+    this.name = "UnknownArchiveCodecError";
+  }
+}
+
+/** Build the classic (uncompressed) layout: 8-byte index length + index JSON + file bytes. */
+function buildClassicArchive(rootDir: string): Buffer {
   const entries: PackedEntry[] = [];
   const chunks: Buffer[] = [];
 
@@ -157,20 +200,86 @@ export function packDirectory(rootDir: string): Buffer {
   return Buffer.concat([lenBuf, indexJson, ...chunks]);
 }
 
+/** Wrap a classic-layout buffer in the brotli-compressed envelope described above. */
+export function compressArchive(classic: Buffer): Buffer {
+  const compressed = brotliCompressSync(classic, {
+    params: {
+      [zlibConstants.BROTLI_PARAM_QUALITY]: zlibConstants.BROTLI_MAX_QUALITY,
+      [zlibConstants.BROTLI_PARAM_SIZE_HINT]: classic.length,
+    },
+  });
+  const header = Buffer.alloc(ENVELOPE_HEADER_BYTES);
+  ARCHIVE_MAGIC.copy(header, 0);
+  header.writeUInt8(ARCHIVE_CODEC_BROTLI, 4);
+  header.writeBigUInt64LE(BigInt(compressed.length), 5);
+  header.writeBigUInt64LE(BigInt(classic.length), 13);
+  return Buffer.concat([header, compressed]);
+}
+
 /**
- * Unpack an archive produced by {@link packDirectory} into `destDir`.
- * Returns the SHA-256 of the raw archive (used as the extraction's cache key).
+ * Pack a directory (recursively) into the archive format this module reads —
+ * classic layout, then compressed with {@link compressArchive}. Used only by
+ * the build-time packer script (tools/release/pack-native.mjs), exported
+ * here so the format is defined in exactly one place and the pack/unpack
+ * code paths cannot silently drift apart.
  */
-function unpackDirectory(archive: Buffer, destDir: string): void {
-  const indexLen = Number(archive.readBigUInt64LE(0));
-  const indexJson = archive
+export function packDirectory(rootDir: string): Buffer {
+  return compressArchive(buildClassicArchive(rootDir));
+}
+
+/**
+ * Decode any archive this module or {@link compressArchive}'s pre-0.9
+ * ancestor could have produced back into the classic (uncompressed) layout.
+ * Exported so sea-assets.ts's extraction routines share this exact decoding
+ * logic instead of maintaining their own copy (the failure mode of two
+ * copies drifting is exactly what the catálogo 0.9 format-versioning
+ * requirement guards against).
+ */
+export function decodeArchive(archive: Buffer): Buffer {
+  const hasEnvelope =
+    archive.length >= ENVELOPE_HEADER_BYTES && archive.subarray(0, 4).equals(ARCHIVE_MAGIC);
+
+  if (!hasEnvelope) {
+    // Pre-0.9 archive: no envelope, the whole buffer IS the classic layout.
+    return archive;
+  }
+
+  const codec = archive.readUInt8(4);
+  const compressedLen = Number(archive.readBigUInt64LE(5));
+  const originalLen = Number(archive.readBigUInt64LE(13));
+  const payload = archive.subarray(ENVELOPE_HEADER_BYTES, ENVELOPE_HEADER_BYTES + compressedLen);
+
+  if (codec === ARCHIVE_CODEC_NONE) {
+    return Buffer.from(payload);
+  }
+  if (codec === ARCHIVE_CODEC_BROTLI) {
+    const decompressed = brotliDecompressSync(payload);
+    if (decompressed.length !== originalLen) {
+      throw new Error(
+        `Corrupted pack archive: decompressed to ${String(decompressed.length)} bytes, ` +
+          `expected ${String(originalLen)} per the envelope header.`,
+      );
+    }
+    return decompressed;
+  }
+  throw new UnknownArchiveCodecError(codec);
+}
+
+/**
+ * Unpack an archive produced by {@link packDirectory} (or its pre-0.9,
+ * envelope-less ancestor) into `destDir`.
+ */
+export function unpackArchive(archive: Buffer, destDir: string): void {
+  const classic = decodeArchive(archive);
+  const indexLen = Number(classic.readBigUInt64LE(0));
+  const indexJson = classic
     .subarray(INDEX_HEADER_BYTES, INDEX_HEADER_BYTES + indexLen)
     .toString("utf8");
   const index = JSON.parse(indexJson) as PackedIndex;
 
   let offset = INDEX_HEADER_BYTES + indexLen;
   for (const entry of index.entries) {
-    const bytes = archive.subarray(offset, offset + entry.size);
+    const bytes = classic.subarray(offset, offset + entry.size);
     offset += entry.size;
 
     const destPath = join(destDir, ...entry.path.split("/"));
@@ -281,7 +390,7 @@ export async function ensureNativeAddonsExtracted(
       // that a later boot would treat as a valid cache hit.
       const tmpDir = `${destDir}.tmp-${String(process.pid)}`;
       mkdirSync(dirname(tmpDir), { recursive: true });
-      unpackDirectory(archiveBuf, tmpDir);
+      unpackArchive(archiveBuf, tmpDir);
 
       if (existsSync(destDir)) {
         // Best-effort cleanup of the stale directory before the rename.

@@ -3,7 +3,11 @@
  * Pack a native addon package's real on-disk directory (as installed by
  * `pnpm rebuild`, so the `.node` file's ABI matches the pinned Node version —
  * DA-07) into the archive format `packages/server/src/runtime/native-loader.ts`
- * (`packDirectory`/unpack) and `sea-assets.ts` read.
+ * (`packDirectory`/`unpackArchive`) and `sea-assets.ts` read. Since catálogo
+ * 0.9 (REQ-DST-046 headroom), every archive this script writes is wrapped in
+ * native-loader.ts's brotli compression envelope (`compressArchive`) — see
+ * that module's "Archive format" doc comment for the byte layout and the
+ * backward-compatibility guarantee for archives built before 0.9.
  *
  * This is a standalone .mjs (not TypeScript) deliberately: it runs BEFORE
  * `pnpm -r build` has necessarily produced `packages/server/dist/`, and it
@@ -85,6 +89,33 @@ import {
 } from "node:fs";
 import { join, dirname, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { brotliCompressSync, constants as zlibConstants } from "node:zlib";
+
+// Compression envelope — MUST match packages/server/src/runtime/native-loader.ts's
+// `compressArchive`/`decodeArchive` byte-for-byte (catálogo 0.9). Duplicated
+// here (not imported) for the same reason the rest of this file's archive
+// logic is duplicated rather than imported from the TS source: this script
+// must run standalone with a bare `node pack-native.mjs`, before
+// `packages/server/dist/` necessarily exists. native-loader.test.ts's
+// pack/unpack round-trip test is the guard against the two copies drifting.
+const ARCHIVE_MAGIC = Buffer.from("FPK1", "ascii");
+const ARCHIVE_CODEC_BROTLI = 1;
+const ENVELOPE_HEADER_BYTES = 4 + 1 + 8 + 8;
+
+function compressArchive(classic) {
+  const compressed = brotliCompressSync(classic, {
+    params: {
+      [zlibConstants.BROTLI_PARAM_QUALITY]: zlibConstants.BROTLI_MAX_QUALITY,
+      [zlibConstants.BROTLI_PARAM_SIZE_HINT]: classic.length,
+    },
+  });
+  const header = Buffer.alloc(ENVELOPE_HEADER_BYTES);
+  ARCHIVE_MAGIC.copy(header, 0);
+  header.writeUInt8(ARCHIVE_CODEC_BROTLI, 4);
+  header.writeBigUInt64LE(BigInt(compressed.length), 5);
+  header.writeBigUInt64LE(BigInt(classic.length), 13);
+  return Buffer.concat([header, compressed]);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const serverDir = join(__dirname, "..", "..", "packages", "server");
@@ -154,6 +185,16 @@ function collectEntries(sourceDir, archiveRootDir, entries, chunks, excludeGlobs
   }
 }
 
+function buildClassicArchive(entries, chunks) {
+  const index = { entries };
+  const indexJson = Buffer.from(JSON.stringify(index), "utf8");
+  const lenBuf = Buffer.alloc(8);
+  lenBuf.writeBigUInt64LE(BigInt(indexJson.length), 0);
+
+  return Buffer.concat([lenBuf, indexJson, ...chunks]);
+}
+
+/** Returns `{ archive, classicLength }` so callers can log the compression ratio. */
 function packToArchive(rootDirLabel, sourceDir, extraDirs, excludeGlobs = []) {
   const entries = [];
   const chunks = [];
@@ -163,12 +204,13 @@ function packToArchive(rootDirLabel, sourceDir, extraDirs, excludeGlobs = []) {
     collectEntries(dir, archiveSubdir, entries, chunks, excludeGlobs);
   }
 
-  const index = { entries };
-  const indexJson = Buffer.from(JSON.stringify(index), "utf8");
-  const lenBuf = Buffer.alloc(8);
-  lenBuf.writeBigUInt64LE(BigInt(indexJson.length), 0);
+  const classic = buildClassicArchive(entries, chunks);
+  return { archive: compressArchive(classic), classicLength: classic.length };
+}
 
-  return Buffer.concat([lenBuf, indexJson, ...chunks]);
+function formatCompressionLog(classicLength, archiveLength) {
+  const pct = classicLength > 0 ? (100 - (archiveLength / classicLength) * 100).toFixed(1) : "0.0";
+  return `${String(classicLength)} -> ${String(archiveLength)} bytes, ${pct}% smaller`;
 }
 
 function main() {
@@ -209,16 +251,14 @@ function main() {
     for (const { archiveSubdir, dir } of entries) {
       collectEntries(dir, archiveSubdir, allEntries, allChunks);
     }
-    const index = { entries: allEntries };
-    const indexJson = Buffer.from(JSON.stringify(index), "utf8");
-    const lenBuf = Buffer.alloc(8);
-    lenBuf.writeBigUInt64LE(BigInt(indexJson.length), 0);
-    const archive = Buffer.concat([lenBuf, indexJson, ...allChunks]);
+    const classic = buildClassicArchive(allEntries, allChunks);
+    const archive = compressArchive(classic);
 
     mkdirSync(dirname(outFile), { recursive: true });
     writeFileSync(outFile, archive);
     process.stdout.write(
-      `[pack-native] packed ${String(entries.length)} dir(s) -> ${outFile} (${String(archive.length)} bytes)\n`,
+      `[pack-native] packed ${String(entries.length)} dir(s) -> ${outFile} ` +
+        `(${formatCompressionLog(classic.length, archive.length)})\n`,
     );
     return;
   }
@@ -246,11 +286,11 @@ function main() {
         i++;
       }
     }
-    const archive = packToArchive("", dirPath, [], excludeGlobs);
+    const { archive, classicLength } = packToArchive("", dirPath, [], excludeGlobs);
     mkdirSync(dirname(outFile), { recursive: true });
     writeFileSync(outFile, archive);
     process.stdout.write(
-      `[pack-native] packed dir ${dirPath} -> ${outFile} (${String(archive.length)} bytes)\n`,
+      `[pack-native] packed dir ${dirPath} -> ${outFile} (${formatCompressionLog(classicLength, archive.length)})\n`,
     );
     return;
   }
@@ -316,12 +356,12 @@ function main() {
     });
   }
 
-  const archive = packToArchive(rootLabel, packageDir, extraDirs);
+  const { archive, classicLength } = packToArchive(rootLabel, packageDir, extraDirs);
   mkdirSync(dirname(outFile), { recursive: true });
   writeFileSync(outFile, archive);
 
   process.stdout.write(
-    `[pack-native] packed ${specifier}${nestSpecifiers.length > 0 ? ` (+ ${nestSpecifiers.join(", ")})` : ""} -> ${outFile} (${String(archive.length)} bytes)\n`,
+    `[pack-native] packed ${specifier}${nestSpecifiers.length > 0 ? ` (+ ${nestSpecifiers.join(", ")})` : ""} -> ${outFile} (${formatCompressionLog(classicLength, archive.length)})\n`,
   );
 }
 
