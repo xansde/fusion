@@ -123,7 +123,7 @@ export async function ensureClientDistExtracted(options: EnsureClientDistOptions
  * machine there is no monorepo checkout next to the exe — that walk always
  * returns null, so `compendium:list` silently returns `[]` even though the
  * committed pf2e/sf2e packs exist and are small (well under the
- * REQ-DST-046 150 MB budget; the whole systems tree of packs directories is
+ * REQ-DST-046 180 MB budget; the whole systems tree of packs directories is
  * ~850 KB as of this batch).
  *
  * FIX shape: identical pattern to {@link CLIENT_DIST_ASSET_KEY} — pack all
