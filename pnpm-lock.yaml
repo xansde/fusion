@@ -157,7 +157,13 @@ importers:
 
   external/fusion-systems-2e/tools/importer-pf2e: {}
 
-  external/fusion-systems-2e/tools/translate-packs: {}
+  external/fusion-systems-2e/tools/translate-packs:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+
+  external/fusion-systems-2e/tools/vault-catalog: {}
 
   packages/client:
     dependencies:
