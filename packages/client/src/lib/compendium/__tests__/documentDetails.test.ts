@@ -1071,7 +1071,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 246 glossary traits with a non-empty accented value", () => {
+  it("covers all 254 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1086,13 +1086,16 @@ describe("trait/rarity display names (r15-A1)", () => {
     // relentless, risky, slayer, thrall — traits das 5 classes de playtest
     // publicadas no PR #190 do satélite) + 9 no bump para v0.3.13 (aeon,
     // aiuvarin, changeling, dhampir, dragonblood, dromaar, duskwalker,
-    // hobgoblin, yaoguai — Conrasu/Yaoguai/PC2/versáteis, satélite #285).
+    // hobgoblin, yaoguai — Conrasu/Yaoguai/PC2/versáteis, satélite #285) +
+    // 8 no bump para v0.3.15 (amphibious, athamaru, awakened-animal, beast,
+    // construct, inhaled, merfolk, yaksha — ancestrias Automaton, Athamaru,
+    // Awakened Animal, Merfolk, Minotaur e Yaksha, Bloco A, satélite #290).
     // Ver traitNames.sync.test.ts para
     // o gate vivo que evita essa deriva daqui em diante. Count exato de
     // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(246);
+    expect(keys.length).toBe(254);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
