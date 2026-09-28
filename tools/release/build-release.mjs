@@ -39,7 +39,8 @@
  *      run `node --experimental-sea-config`, copy the CURRENT node.exe,
  *      inject the blob via postject, name the result
  *      `fusion-server-<version>-<platform>-<arch>[.exe]` (REQ-DST-004).
- *   7. Compute SHA-256 + size; fail if size > 150 MB (REQ-DST-046, DA-04).
+ *   7. Compute SHA-256 + size; fail if size > 180 MB (REQ-DST-046, DA-04;
+ *      teto elevado de 150 para 180 MB em DEC-DST-08, 2026-09-28).
  *   8. Write `latest-<channel>.json` (UpdateManifest shape, spec 22) into
  *      dist-release/ alongside the artefact.
  *
@@ -69,7 +70,7 @@ const repoRoot = join(__dirname, "..", "..");
 const distReleaseDir = join(repoRoot, "dist-release");
 const workDir = join(distReleaseDir, ".work");
 
-const MAX_ARTIFACT_BYTES = 150 * 1024 * 1024; // REQ-DST-046
+const MAX_ARTIFACT_BYTES = 180 * 1024 * 1024; // REQ-DST-046 (DEC-DST-08, 2026-09-28)
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -342,7 +343,7 @@ async function phasePackAssets(assetKeys) {
   // sourcemap: true (kept for browser devtools debugging of a served dist),
   // but the release .exe never needs those .map files at runtime — packing
   // them was the single biggest contributor pushing the artifact over the
-  // REQ-DST-046 150 MB budget. Filtering here, not in vite.config.ts, keeps
+  // REQ-DST-046 180 MB budget. Filtering here, not in vite.config.ts, keeps
   // sourcemaps available for the normal (non-SEA) served build.
   run(process.execPath, [
     join(__dirname, "pack-native.mjs"),
@@ -515,7 +516,7 @@ function phaseSizeAndHash(artifactPath) {
 
   if (size > MAX_ARTIFACT_BYTES) {
     throw new Error(
-      `Artifact ${artifactPath} is ${sizeMb} MB, exceeding the REQ-DST-046 150 MB budget. ` +
+      `Artifact ${artifactPath} is ${sizeMb} MB, exceeding the REQ-DST-046 180 MB budget. ` +
         `See design doc DA-04 — consider compressing client assets or the 1b zip-portable fallback.`,
     );
   }

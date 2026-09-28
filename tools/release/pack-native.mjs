@@ -140,7 +140,7 @@ function resolvePackageDir(specifier, fromDir) {
  * file/directory NAME — no path separators involved) into an anchored
  * RegExp. Good enough for the one real use case (issue #128 — excluding
  * `*.map` sourcemaps from the packed client-dist archive so the release
- * .exe stays under the REQ-DST-046 150 MB budget); not a full minimatch.
+ * .exe stays under the REQ-DST-046 180 MB budget); not a full minimatch.
  */
 function globToRegExp(pattern) {
   const escaped = pattern
@@ -268,7 +268,7 @@ function main() {
   // `--exclude` (repeatable, issue #128) drops files whose bare name matches
   // a glob — used by build-release.mjs to strip `*.map` sourcemaps from the
   // packed packages/client/dist archive so the release .exe stays under the
-  // REQ-DST-046 150 MB budget (see globToRegExp's doc comment for the glob's
+  // REQ-DST-046 180 MB budget (see globToRegExp's doc comment for the glob's
   // limited "*"-only syntax).
   if (args[0] === "--dir") {
     const dirPath = args[1];
