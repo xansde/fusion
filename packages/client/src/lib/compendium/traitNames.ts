@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (246 traits).
+ * Trait slug → pt-BR chip label (254 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -28,6 +28,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   alchemical: "alquimico",
   alchemist: "alquimista",
   amp: "amplificado",
+  amphibious: "anfibio",
   anadi: "anadi",
   android: "androide",
   animal: "animal",
@@ -36,14 +37,17 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   arcane: "arcano",
   archetype: "arquétipo",
   ardande: "ardande",
+  athamaru: "athamaru",
   attack: "ataque",
   auditory: "auditivo",
   aura: "aura",
   automaton: "autômato",
+  "awakened-animal": "animal-desperto",
   azarketi: "azarketi",
   backstabber: "traiçoeiro",
   barbarian: "bárbaro",
   bard: "bardo",
+  beast: "besta",
   brandish: "brandir",
   bravado: "bravata",
   cantrip: "truque",
@@ -61,6 +65,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   concentrate: "concentração",
   conrasu: "conrasu",
   consecration: "consagração",
+  construct: "construto",
   consumable: "consumível",
   contingency: "contingência",
   curse: "maldição",
@@ -130,6 +135,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   incapacitation: "incapacitação",
   incarnate: "encarnado",
   infusion: "infusão",
+  inhaled: "inalado",
   inventor: "inventor",
   invested: "investido",
   investigator: "investigador",
@@ -147,6 +153,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   magus: "magus",
   manipulate: "manipulação",
   mental: "mental",
+  merfolk: "merfolk",
   metal: "metal",
   mindless: "sem-mente",
   mindshift: "mudanca-de-mente",
@@ -261,6 +268,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   witch: "bruxo",
   wizard: "mago",
   wood: "madeira",
+  yaksha: "yaksha",
   yaoguai: "yaoguai",
   zombie: "zumbi",
 });
