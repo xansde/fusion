@@ -363,7 +363,10 @@ async function phasePackAssets(assetKeys) {
   // F4 (DEC-SEP-09): pf2e/sf2e moved to the fusion-systems-2e submodule —
   // scan BOTH systems/ (stub, still in the core) and
   // external/fusion-systems-2e/systems/ (pf2e, sf2e) for packs/.
-  const systemsRoots = [join(repoRoot, "systems"), join(repoRoot, "external", "fusion-systems-2e", "systems")];
+  const systemsRoots = [
+    join(repoRoot, "systems"),
+    join(repoRoot, "external", "fusion-systems-2e", "systems"),
+  ];
   const systemPackEntries = systemsRoots.flatMap((systemsRootDir) =>
     existsSync(systemsRootDir)
       ? readdirSync(systemsRootDir, { withFileTypes: true })
@@ -389,7 +392,11 @@ async function phasePackAssets(assetKeys) {
     // --multi-dir requires at least one --entry; write an empty archive
     // directly rather than special-casing the packer script for a scenario
     // that should never happen in this repo (pf2e/sf2e always ship packs)
-    // but must not crash the whole pipeline if it ever did.
+    // but must not crash the whole pipeline if it ever did. Written in the
+    // pre-0.9 CLASSIC (uncompressed, no envelope) layout deliberately —
+    // native-loader.ts's `decodeArchive` reads that layout unconditionally
+    // as a fallback, so this trivial empty case doesn't need to duplicate
+    // the compression envelope too.
     mkdirSync(dirname(systemPacksArchive), { recursive: true });
     const emptyIndex = Buffer.from(JSON.stringify({ entries: [] }), "utf8");
     const lenBuf = Buffer.alloc(8);

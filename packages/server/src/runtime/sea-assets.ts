@@ -23,41 +23,23 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { packDirectory, type NativePackageSpec } from "./native-loader.js";
+import { packDirectory, unpackArchive, type NativePackageSpec } from "./native-loader.js";
 
 export const CLIENT_DIST_ASSET_KEY = "client-dist";
 
-/** Re-export for the packer script — keeps the archive format defined once. */
+/**
+ * Re-export for the packer script and for the extraction routines below —
+ * keeps the archive format (classic layout + catálogo 0.9's compression
+ * envelope, see native-loader.ts's "Archive format" doc comment) defined
+ * and decoded in exactly ONE place. This module used to keep its own copy
+ * of the unpack loop; that duplication is exactly the kind of drift the 0.9
+ * format-versioning requirement exists to prevent, so both native addons
+ * AND client-dist/system-packs now go through native-loader.ts's
+ * `unpackArchive`. The import is one-directional (native-loader.ts never
+ * imports from here), so there is no circular-import risk.
+ */
 export { packDirectory };
 export type { NativePackageSpec };
-
-/**
- * Unpack an archive produced by {@link packDirectory} into `destDir`. Split
- * out from native-loader.ts's private `unpackDirectory` so both native
- * addons AND the client dist can share one extraction routine without a
- * circular import (native-loader.ts is imported BY this module, not the
- * other way around, to keep the SEA entry point's very-first-line import
- * graph — see sea-entry.ts — as small as possible).
- */
-function unpackArchive(archive: Buffer, destDir: string): void {
-  const INDEX_HEADER_BYTES = 8;
-  const indexLen = Number(archive.readBigUInt64LE(0));
-  const indexJson = archive
-    .subarray(INDEX_HEADER_BYTES, INDEX_HEADER_BYTES + indexLen)
-    .toString("utf8");
-  const index = JSON.parse(indexJson) as {
-    entries: { path: string; size: number; mode: number }[];
-  };
-
-  let offset = INDEX_HEADER_BYTES + indexLen;
-  for (const entry of index.entries) {
-    const bytes = archive.subarray(offset, offset + entry.size);
-    offset += entry.size;
-    const destPath = join(destDir, ...entry.path.split("/"));
-    mkdirSync(dirname(destPath), { recursive: true });
-    writeFileSync(destPath, bytes, { mode: entry.mode || 0o644 });
-  }
-}
 
 export interface EnsureClientDistOptions {
   dataDir: string;
