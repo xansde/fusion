@@ -108,11 +108,13 @@ describe("footprintOf — the derived size (REQ-PF2-154, REQ-TOK-012)", () => {
     expect(footprintOf(undefined, ogre)).toEqual({ width: 2, height: 2 });
   });
 
-  it("a glimpsed contact carries only `derived.size` in its payload (REQ-CTT-081) and still occupies its squares", () => {
+  it("a glimpsed contact carries only its size in its payload (REQ-CTT-081) — in the slot the actor keeps it in — and still occupies its squares", () => {
     seedFootprintRegistry(PF2E_TABLE);
-    const glimpsed = { system: { derived: { size: "lg" } } };
+    const glimpsedNpc = { system: { traits: { size: "lg" } } };
+    const glimpsedCharacter = { system: { derived: { size: "lg" } } };
 
-    expect(footprintOf(undefined, glimpsed)).toEqual({ width: 2, height: 2 });
+    expect(footprintOf(undefined, glimpsedNpc)).toEqual({ width: 2, height: 2 });
+    expect(footprintOf(undefined, glimpsedCharacter)).toEqual({ width: 2, height: 2 });
   });
 
   it("a derived size the system's table does not declare falls back to 1x1 — it does not fall through to `traits.size`", () => {

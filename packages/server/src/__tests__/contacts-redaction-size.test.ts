@@ -17,7 +17,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { KnowledgeState } from "@fusion/shared";
+import { KnowledgeState, readActorSizeCategory, resolveEffectiveActor } from "@fusion/shared";
 import { Role } from "../auth/user-store.js";
 import {
   buildContactViewer,
@@ -54,24 +54,38 @@ function ogre(system: Record<string, unknown>): Record<string, unknown> {
 }
 
 describe("glimpsedContactView — the size is the one piece of `system` that travels (REQ-CTT-081)", () => {
-  it("a Large NPC: `system` is exactly `{ derived: { size } }` — nothing else of the ficha", () => {
+  it("a Large NPC: `system` is exactly `{ traits: { size } }` — the slot the NPC keeps it in, nothing else of the ficha", () => {
     const view = glimpsedContactView(ogre({ traits: { size: "lg", value: ["giant"] } }));
 
-    expect(view["system"]).toEqual({ derived: { size: "lg" } });
+    expect(view["system"]).toEqual({ traits: { size: "lg" } });
   });
 
   it("the raw `{ value }` shape of `traits.size` is read too — an imported NPC", () => {
     const view = glimpsedContactView(ogre({ traits: { size: { value: "huge" } } }));
 
-    expect(view["system"]).toEqual({ derived: { size: "huge" } });
+    expect(view["system"]).toEqual({ traits: { size: "huge" } });
   });
 
-  it("a character's DERIVED size wins over its stored `traits.size` (which sits at the schema default)", () => {
+  it("a character's DERIVED size wins over its stored `traits.size` (which sits at the schema default) and keeps ITS slot", () => {
     const view = glimpsedContactView(
       ogre({ derived: { size: "lg", hp: { max: 59 } }, traits: { size: "med" } }),
     );
 
     expect(view["system"]).toEqual({ derived: { size: "lg" } });
+  });
+
+  it("the size keeps the slot it was in, so an unlinked token's size override still merges over it (REQ-DOC-034)", () => {
+    // An NPC base seen by a player who only glimpsed it, and the GM's per-token override on `traits.size`.
+    const base = {
+      name: "",
+      system: glimpsedContactView(ogre({ traits: { size: "lg" } }))["system"] as Record<
+        string,
+        unknown
+      >,
+    };
+    const token = { actorLink: false, actorDelta: { system: { traits: { size: "sm" } } } };
+
+    expect(readActorSizeCategory(resolveEffectiveActor(token, base).system)).toBe("sm");
   });
 
   it("a contact with no size says no `system` at all — as before", () => {
@@ -118,7 +132,7 @@ describe("redactActorDocsForViewer — the size rides the glimpsed degree only",
     const { documents } = redactActorDocsForViewer([ogre({ traits: { size: "lg" } })], viewer);
 
     expect(documents).toHaveLength(1);
-    expect(documents[0]?.["system"]).toEqual({ derived: { size: "lg" } });
+    expect(documents[0]?.["system"]).toEqual({ traits: { size: "lg" } });
     expect(documents[0]).not.toHaveProperty("name");
   });
 

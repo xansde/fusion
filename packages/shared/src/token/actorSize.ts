@@ -16,10 +16,12 @@
  *     `system` data that travels (spec 39 REQ-CTT-081, amended by spec 17 DEC-PF2-13), because a
  *     token that shows on the map must occupy the same squares for everybody.
  *
- * The shape check is what lets the server forward the value blindly: a category is a short token
- * (letters, digits, `_`, `-`), never free text — so what a player receives from a redacted payload
- * can never be a name, whatever a document holds in that field. The game system, not this module,
- * decides which categories exist; an unknown one simply finds no footprint.
+ * The shape check is a BOUND, not a name filter: a category is a short token (letters, digits, `_`,
+ * `-`, up to 24 characters), so a sentence, a value with spaces or a long string is never forwarded
+ * as a size. A single word IS the shape of a category, though — what a document holds in that field is
+ * the GM's statblock or the pack (a client cannot write `system.derived`, and does not write an NPC's),
+ * and that is where the exposure is bounded, not in this regex. The game system, not this module,
+ * decides which categories exist; an unknown one simply finds no footprint (spec 15, REQ-SYS-009).
  *
  * Pure: no I/O, no dependency on any system (REQ-ARQ-002, REQ-ARQ-005).
  */
@@ -35,18 +37,33 @@ function category(value: unknown): string | undefined {
   return typeof value === "string" && SIZE_CATEGORY.test(value) ? value : undefined;
 }
 
+/** A size category and the slot of `system` it was found in. */
+export interface ActorSize {
+  readonly category: string;
+  /** `derived` — `system.derived.size`; `traits` — `system.traits.size`. */
+  readonly source: "derived" | "traits";
+}
+
 /**
- * The actor's size category — `system.derived.size`, else `system.traits.size` (a string, or
- * `{ value }`) — or `undefined` when the actor names none. `system` is the actor's `system` blob.
+ * The actor's size — `system.derived.size`, else `system.traits.size` (a string, or `{ value }`) —
+ * with the slot it was found in, or `undefined` when the actor names none. `system` is the actor's
+ * `system` blob. The slot matters to the server: a glimpsed contact keeps the size in the slot it lives
+ * in, so an unlinked token override of `traits.size` still merges over it (REQ-DOC-034).
  */
-export function readActorSizeCategory(system: unknown): string | undefined {
+export function readActorSize(system: unknown): ActorSize | undefined {
   if (!isRecord(system)) return undefined;
 
   const derived = isRecord(system["derived"]) ? category(system["derived"]["size"]) : undefined;
-  if (derived !== undefined) return derived;
+  if (derived !== undefined) return { category: derived, source: "derived" };
 
   const traits = system["traits"];
   if (!isRecord(traits)) return undefined;
   const size = traits["size"];
-  return isRecord(size) ? category(size["value"]) : category(size);
+  const fromTraits = isRecord(size) ? category(size["value"]) : category(size);
+  return fromTraits === undefined ? undefined : { category: fromTraits, source: "traits" };
+}
+
+/** The actor's size category alone — see {@link readActorSize}. */
+export function readActorSizeCategory(system: unknown): string | undefined {
+  return readActorSize(system)?.category;
 }

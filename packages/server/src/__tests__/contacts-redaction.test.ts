@@ -651,7 +651,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       // The size, alone in `system`, where the token reads it first (REQ-PF2-154).
       expect({ path, system: doc?.["system"] }).toEqual({
         path,
-        system: { derived: { size: "lg" } },
+        system: { traits: { size: "lg" } },
       });
       expect(doc).not.toHaveProperty("name");
       expect(doc?.["img"]).toBe(OGRE_PORTRAIT);
@@ -692,7 +692,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       aPayloadAtSeq(liveTraffic, seqOf(ack))["documents"] as Record<string, unknown>[]
     )[0];
     expect(doc?.["_id"]).toBe(ogreId);
-    expect(doc?.["system"]).toEqual({ derived: { size: "huge" } });
+    expect(doc?.["system"]).toEqual({ traits: { size: "huge" } });
     expect(doc).not.toHaveProperty("name");
   });
 

@@ -92,7 +92,7 @@
 
 import {
   KnowledgeState,
-  readActorSizeCategory,
+  readActorSize,
   resolveUserKnowledge,
   KNOWLEDGE_FLAG_NAMESPACE,
   KNOWLEDGE_FLAG_KEY,
@@ -939,17 +939,18 @@ export function stripPrivilegedActorFields(
  *                redacted, appearance not. The silhouette a contact CARD
  *                shows instead of the portrait is that screen's own
  *                presentation choice, never a second server-side redaction.
- *   - `system.derived.size` — spec 39 REQ-CTT-081 as amended by spec 17 DEC-PF2-13
- *                (decision of the Alexandre, 29/09/2026): the size CATEGORY of the
- *                creature, and nothing else of `system`. It is the same argument as
- *                the portrait: what the table sees on the map is not a secret — the
- *                secret is WHO the creature is, not the space it takes — and a token
- *                that occupies 1×1 on the players' screens and 2×2 on the GM's, with
- *                two Large tokens overlapping for the players, is a defect. It travels
- *                where the token reads it first (`derived.size`, REQ-PF2-154), whatever
- *                the source — an NPC's `traits.size` (a string, or `{ value }`) or a
- *                character's derived size — through the ONE shared reader, whose shape
- *                check keeps free text from riding along.
+ *   - `system.derived.size` / `system.traits.size` — spec 39 REQ-CTT-081 as amended by
+ *                spec 17 DEC-PF2-13 (decision of the Alexandre, 29/09/2026): the size
+ *                CATEGORY of the creature, and nothing else of `system`. It is the same
+ *                argument as the portrait: what the table sees on the map is not a
+ *                secret — the secret is WHO the creature is, not the space it takes — and
+ *                a token that occupies 1×1 on the players screens and 2×2 on the GM, with
+ *                two Large tokens overlapping for the players, is a defect. It travels in
+ *                the slot the actor keeps it in — a character derived size, an NPC
+ *                `traits.size` — read by the ONE shared reader, so an unlinked token own
+ *                override of `traits.size` still merges over it (REQ-DOC-034). The
+ *                reader shape check bounds the value (a short token, never a sentence);
+ *                it is not a name filter — see `readActorSize`.
  * `ownership` is dropped on purpose: a glimpsed contact offers no sheet
  * (REQ-CTT-042), and an absent map resolves to NONE on the client too.
  *
@@ -965,9 +966,15 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
   // travels as `null` rather than being dropped, so the client cannot
   // mistake "the field was never sent" for "this actor has no art".
   if ("img" in doc) view["img"] = doc["img"];
-  // REQ-CTT-081 (amended by spec 17): the size category, alone in `system` — nothing else of the ficha.
-  const size = readActorSizeCategory(doc["system"]);
-  if (size !== undefined) view["system"] = { derived: { size } };
+  // REQ-CTT-081 (amended by spec 17): the size category, alone in `system` — nothing else of the ficha —
+  // in the slot the actor keeps it in, so a token own override of `traits.size` still merges over it.
+  const size = readActorSize(doc["system"]);
+  if (size !== undefined) {
+    view["system"] =
+      size.source === "derived"
+        ? { derived: { size: size.category } }
+        : { traits: { size: size.category } };
+  }
   // An explicit marker so the panel can draw "não identificado" without having
   // to infer it from an absence (REQ-CTT-041).
   view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { glimpsed: true } };

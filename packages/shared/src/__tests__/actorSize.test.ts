@@ -9,7 +9,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { readActorSizeCategory } from "../token/actorSize.js";
+import { readActorSize, readActorSizeCategory } from "../token/actorSize.js";
+import { resolveEffectiveActor } from "../token/effectiveActor.js";
 
 describe("readActorSizeCategory — REQ-PF2-154", () => {
   it("reads the derived size of a character", () => {
@@ -58,5 +59,45 @@ describe("readActorSizeCategory — REQ-PF2-154", () => {
     expect(readActorSizeCategory({ traits: { size: "x".repeat(24) } })).toBe("x".repeat(24));
     expect(readActorSizeCategory({ traits: { size: "sm" } })).toBe("sm");
     expect(readActorSizeCategory({ traits: { size: "extra-large" } })).toBe("extra-large");
+  });
+});
+
+describe("readActorSize — where the size was found (spec 39 REQ-CTT-081, the slot a glimpsed contact keeps)", () => {
+  it("names the slot the category came from: derived for a character, traits for an NPC", () => {
+    expect(readActorSize({ derived: { size: "lg" }, traits: { size: "med" } })).toEqual({
+      category: "lg",
+      source: "derived",
+    });
+    expect(readActorSize({ traits: { size: "huge" } })).toEqual({
+      category: "huge",
+      source: "traits",
+    });
+    expect(readActorSize({ traits: { size: { value: "sm" } } })).toEqual({
+      category: "sm",
+      source: "traits",
+    });
+  });
+
+  it("names nothing when there is no usable size", () => {
+    expect(readActorSize({})).toBeUndefined();
+    expect(readActorSize({ traits: { size: "Grande demais" } })).toBeUndefined();
+    expect(readActorSize(undefined)).toBeUndefined();
+  });
+
+  it("the shape check is a BOUND, not a name filter: a one-word value has the shape of a category (who may write the field is the GM's statblock, and a client cannot write `derived`)", () => {
+    expect(readActorSize({ traits: { size: "Grimtooth" } })).toEqual({
+      category: "Grimtooth",
+      source: "traits",
+    });
+  });
+
+  it("an unlinked token's size override still wins over a glimpsed NPC's base size: the slot is preserved, so the delta merges over it (REQ-DOC-034)", () => {
+    // What a player who only glimpsed the NPC holds as its base actor: the size, in the slot it lives in.
+    const glimpsedBase = { name: "", system: { traits: { size: "lg" } } };
+    const token = { actorLink: false, actorDelta: { system: { traits: { size: "sm" } } } };
+
+    const effective = resolveEffectiveActor(token, glimpsedBase);
+
+    expect(readActorSizeCategory(effective.system)).toBe("sm");
   });
 });
