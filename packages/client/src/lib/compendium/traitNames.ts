@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (254 traits).
+ * Trait slug → pt-BR chip label (255 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -28,7 +28,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   alchemical: "alquimico",
   alchemist: "alquimista",
   amp: "amplificado",
-  amphibious: "anfibio",
+  amphibious: "anfíbio",
   anadi: "anadi",
   android: "androide",
   animal: "animal",
@@ -42,7 +42,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   auditory: "auditivo",
   aura: "aura",
   automaton: "autômato",
-  "awakened-animal": "animal-desperto",
+  "awakened-animal": "animal despertado",
   azarketi: "azarketi",
   backstabber: "traiçoeiro",
   barbarian: "bárbaro",
@@ -119,6 +119,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   goblin: "goblin",
   goloma: "goloma",
   good: "benigno",
+  grapple: "agarrar",
   guardian: "guardião",
   gunslinger: "pistoleiro",
   halfling: "halfling",
