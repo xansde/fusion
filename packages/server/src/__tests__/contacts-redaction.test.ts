@@ -648,7 +648,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       const doc = actorDocsIn(traffic).find((d) => d["_id"] === ogreId);
       // Anchor: the glimpsed ogre DID reach this path — an absence below means nothing without it.
       expect({ path, arrived: doc !== undefined }).toEqual({ path, arrived: true });
-      // The size, alone in `system`, where the token reads it first (REQ-PF2-154).
+      // The size, alone in `system`, in the slot the NPC keeps it in (REQ-CTT-081, REQ-PF2-154).
       expect({ path, system: doc?.["system"] }).toEqual({
         path,
         system: { traits: { size: "lg" } },

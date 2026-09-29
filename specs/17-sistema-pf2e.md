@@ -405,7 +405,7 @@ a partir dos itens embedded do personagem, em camadas, **nesta ordem**:
 1. **Ancestralidade** — o `system.size` do item de ancestralidade (o Minotauro é Grande; a
    maioria é Média; Gnomo, Goblin, Halfling e outras são Pequenas).
 2. **Herança que troca o tamanho** — SUBSTITUI o da ancestralidade, para cima ou para baixo
-   (Minotauro Chifre-Pequeno: "no lugar de Grande, seu tamanho é Médio"; Athamaru Esperançoso:
+   (Minotauro Chifre-Pequeno: "em vez de Grande, seu tamanho é Médio"; Athamaru Esperançoso:
    "em vez de Médio, seu tamanho é Grande"; Kholo Formiga: Pequeno; no SF2e, Barathu Estágio
    Inicial, Barathu Fundido e Sand Roamer).
 3. **Escolha de criação** — o tamanho que o jogador escolhe ao criar o personagem (Autômato:
@@ -467,6 +467,11 @@ que ela não tem.
 - _Ligar por padrão os efeitos que dependem de interruptor_: ver "Interruptor não se aplica".
 - _Aplicar a escolha de criação por um default (Médio)_: esconderia a pendência; o requisito de
   talento marcaria em falso um jogador que ainda vai escolher (DEC-BC-05).
+
+**Limite conhecido:** um requisito que só o **efeito** satisfaz (um talento que pedisse "Grande" a um
+Yaksha Médio que ficou Grande pela Força de Oito Legiões) seria marcado, porque o requisito é julgado
+contra o tamanho antes dos efeitos. Nenhum talento dos packs pede Grande ou maior; a saída, se um
+aparecer, é dar por atendido o requisito que qualquer dos dois tamanhos satisfaz (DEC-BC-05).
 
 **Fora desta decisão:** mudar o tamanho durante o jogo (REQ-PF2-157, decisão do Alexandre em
 29/09/2026: por ora o Mestre resolve na narração; core #291); alcance, espaço, manobra por

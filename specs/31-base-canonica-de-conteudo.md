@@ -281,7 +281,7 @@ export type Predicate =
   | { spellcasting_tradition: string }
   | { subclass: Record<string, string> } // { cleric: "warpriest" }
   | { sense: string }
-  | { size: Comparison } // categoria de tamanho efetivo, na ordem tiny < sm < med < lg < huge < grg
+  | { size: Comparison } // tamanho da criatura ANTES dos efeitos de tamanho (sizeBeforeEffects, senão size), na ordem tiny < sm < med < lg < huge < grg
   | { focus_pool: Comparison }
   | { has_actor: string };
 

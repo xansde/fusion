@@ -7,10 +7,12 @@
  * player. Before this the view carried NO `system` at all: the token was 1×1 on the player's
  * screen and 2×2 on the GM's, and the two Large tokens of a scene overlapped for the players.
  *
- * The size is the ONE piece of `system` data the view carries, and it is an ALLOW-list of one key:
- * `system.derived.size` — the place the token reads first (REQ-PF2-154) — whatever the source
- * (an NPC's `traits.size`, in either shape, or a character's derived size). Nothing else of the
- * ficha leaks: not the attributes, the hit points, the items, nor free text put where a size goes.
+ * The size is the ONE piece of `system` data the view carries: an ALLOW-list of one key, in the slot
+ * the actor keeps it in — `system.derived.size` for a character's derived size, `system.traits.size`
+ * for an NPC's (a string, or `{ value }`) — so a token's own override of `traits.size` still merges over
+ * it (REQ-DOC-034). Nothing else of the ficha leaks: not the attributes, the hit points, the items, nor a
+ * sentence put where a size goes (a single word has the shape of a category: the shape check is a bound,
+ * not a name filter — see `actorSize.test.ts`).
  *
  * This file pins the redaction module's own contract; `contacts-redaction.test.ts` pins that the
  * three emission paths (join snapshot, live broadcast, delta replay) all go through it.
@@ -94,7 +96,7 @@ describe("glimpsedContactView — the size is the one piece of `system` that tra
     expect(view).not.toHaveProperty("system");
   });
 
-  it("free text where a size goes is not forwarded: the value reaches a player who must not read a name", () => {
+  it("a sentence where a size goes is not forwarded: the shape check bounds the value that reaches a player who must not read a name", () => {
     expect(glimpsedContactView(ogre({ traits: { size: OGRE_NAME } }))).not.toHaveProperty("system");
     expect(glimpsedContactView(ogre({ derived: { size: OGRE_TITLE } }))).not.toHaveProperty(
       "system",
