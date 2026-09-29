@@ -404,9 +404,10 @@ a partir dos itens embedded do personagem, em camadas, **nesta ordem**:
 
 1. **Ancestralidade** — o `system.size` do item de ancestralidade (o Minotauro é Grande; a
    maioria é Média; Gnomo, Goblin, Halfling e outras são Pequenas).
-2. **Herança que troca o tamanho** — SUBSTITUI o da ancestralidade ("no lugar de Grande, seu
-   tamanho é Médio": Minotauro Chifre-Pequeno, Athamaru Esperançoso, Kholo Formiga; no SF2e,
-   Barathu Estágio Inicial, Barathu Fundido e Sand Roamer).
+2. **Herança que troca o tamanho** — SUBSTITUI o da ancestralidade, para cima ou para baixo
+   (Minotauro Chifre-Pequeno: "no lugar de Grande, seu tamanho é Médio"; Athamaru Esperançoso:
+   "em vez de Médio, seu tamanho é Grande"; Kholo Formiga: Pequeno; no SF2e, Barathu Estágio
+   Inicial, Barathu Fundido e Sand Roamer).
 3. **Escolha de criação** — o tamanho que o jogador escolhe ao criar o personagem (Autômato:
    Médio ou Pequeno; Animal Despertado: Minúsculo, Pequeno, Médio ou Grande; Fleshwarp: Pequeno
    ou Médio). SUBSTITUI o da ancestralidade e da herança.
@@ -416,6 +417,12 @@ a partir dos itens embedded do personagem, em camadas, **nesta ordem**:
 
 Uma camada futura — o efeito com duração de Ampliar, Encolher ou de uma forma — entra **depois**
 da quarta, sem refazer as anteriores (core #291).
+
+As camadas 1 a 3 são a **criatura**; a 4ª (e a futura) são **efeitos** sobre ela. Um pré-requisito
+fala da criatura, não do efeito que um talento dela dá: o Chassi Ampliado exige "Médio ou
+Pequeno", e o Autômato que o tem é Grande. Por isso o passo publica também o tamanho **antes dos
+efeitos** (`system.derived.sizeBeforeEffects`, REQ-PF2-153a), e é contra ele que um requisito de
+talento é julgado (REQ-BC-036). Julgado contra o tamanho efetivo, o talento se marcaria sozinho.
 
 - **Interruptor não se aplica.** Efeito de tamanho que depende de liga/desliga, de ação ou de
   forma que a ficha não tem NÃO é aplicado: Cerimônia do Crescimento (o próprio texto permite
@@ -428,11 +435,12 @@ da quarta, sem refazer as anteriores (core #291).
   Quem precisa de certeza — a marca de requisito de talento (REQ-BC-036) — não confia no tamanho
   enquanto a marca existir. A pendência aparece para o jogador no construtor de escolhas, não
   neste passo.
-- **Onde vive.** Em `system.derived`, o único subtree que o servidor persiste e transmite ao vivo
-  (DEC-PF2-03); o join deriva de novo na leitura, então nenhum personagem existente precisa de
-  migração — o tamanho aparece assim que ele é aberto. O token lê `derived.size` primeiro e
-  `system.traits.size` depois (REQ-TOK-012); `traits.size` segue sendo a fonte do NPC e do
-  personagem sem ancestralidade (entrada manual).
+- **Onde vive.** Em `system.derived`, o único subtree que o servidor recomputa a cada escrita
+  (REQ-DOC-034) e que o Actor carrega ao vivo (REQ-NET-096), sem nunca tocar o que o jogador
+  escreveu (DEC-PF2-03); o join deriva de novo na leitura, então nenhum personagem existente
+  precisa de migração — o tamanho aparece assim que ele é aberto. O token lê `derived.size`
+  primeiro e `system.traits.size` depois (REQ-TOK-012); `traits.size` segue sendo a fonte do NPC e
+  do personagem sem ancestralidade (entrada manual).
 - **Pacote de "Ampliar constante".** Decisão do Alexandre (29/09/2026): os efeitos de Ampliar
   incluem Desajeitado 1, e por isso a Força de Oito Legiões o aplica igual ao Chassi Ampliado e à
   Transformação da Estirpe — REQ-PF2-156. O tamanho desta decisão não depende disso.
@@ -450,9 +458,9 @@ que ela não tem.
 **Alternativas rejeitadas:**
 
 - _Espelhar o tamanho em `system.traits.size`_: `traits.size` é campo autoral (DEC-PF2-03: o
-  `_source` nunca é mutado por derivado), e o servidor só persiste e transmite ao vivo o
-  `derived`. O espelho apareceria no join — que serve o clone derivado inteiro — e sumiria nas
-  atualizações ao vivo.
+  `_source` nunca é mutado por derivado), e o servidor só recomputa e transmite ao vivo o
+  `derived` (REQ-DOC-034, REQ-NET-096). O espelho apareceria no join — que serve o clone derivado
+  inteiro — e sumiria nas atualizações ao vivo.
 - _Um campo de tamanho que o dono edita_: duas fontes de verdade que divergem no primeiro
   personagem cuja herança muda, e o jogador teria de lembrar o que o livro já diz.
 - _Tamanho no token_: contraria DEC-TOK-03 — o tamanho é do ator, a peça só o consulta.
@@ -790,10 +798,18 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   `system.derived.size` DEVE ser o tamanho da própria ancestralidade e `system.derived.sizePending`
   DEVE valer `true`; feita a escolha, a chave DEVE sumir. Um consumidor que precisa de certeza
   (REQ-BC-036) NÃO DEVE confiar no tamanho enquanto `sizePending` existir.
+- **REQ-PF2-153a** [MVP] Quando um efeito de tamanho (a 4ª camada de DEC-PF2-13) muda o tamanho, o
+  passo DEVE publicar também `system.derived.sizeBeforeEffects`: o tamanho depois das camadas 1 a 3.
+  A chave NÃO DEVE existir quando nenhum efeito mudou o tamanho, e DEVE sumir junto com `size`. Um
+  requisito de tamanho de talento (REQ-BC-036) DEVE ser julgado contra `sizeBeforeEffects` — e, sem
+  ela, contra `size` —, nunca contra o tamanho que o próprio talento dá. A etiqueta do card de
+  Ancestralidade (REQ-PF2-155) segue mostrando o tamanho efetivo.
 - **REQ-PF2-154** [MVP] O tamanho derivado NÃO DEVE ser gravado no `_source` nem espelhado em
   `system.traits.size`. Quem desenha o token DEVE ler `system.derived.size` primeiro e
   `system.traits.size` depois, e um personagem existente DEVE aparecer com o tamanho certo ao ser
-  aberto, sem migração (DEC-PF2-03).
+  aberto, sem migração (REQ-DOC-034, DEC-PF2-03). A categoria de tamanho é um token curto — letras,
+  dígitos, `_` e `-`, até 24 caracteres (REQ-SYS-009) —, e o leitor de `system` é um só, do
+  servidor e do cliente.
 - **REQ-PF2-155** [MVP] A etiqueta de tamanho do card de Ancestralidade do Plano DEVE mostrar o
   tamanho efetivo (com herança, escolha e talento), e não o da ancestralidade. Nenhum campo novo
   entra na ficha.
@@ -1141,8 +1157,9 @@ interface EffectSystem {
     Chifre-Pequeno, 1×1. Um Autômato que escolheu Pequeno e chegou ao Chassi Ampliado passa a
     Grande, e um Yaksha com a Força de Oito Legiões também. Trocar a herança muda a peça na
     hora, sem nenhuma escrita no token e sem migração do personagem. Um personagem Grande que
-    pega um talento de "Ampliar constante" continua Grande (REQ-PF2-150..154, REQ-TOK-012,
-    CA-TOK-002).
+    pega um talento de "Ampliar constante" continua Grande, e o Chassi Ampliado não é marcado por
+    um requisito de tamanho ("Médio ou Pequeno") que o próprio efeito desfaz (REQ-PF2-150..154,
+    REQ-PF2-153a, REQ-TOK-012, CA-TOK-002).
 
 ---
 

@@ -202,7 +202,7 @@ describe("translatePrerequisite — curated prose vocabulary", () => {
     expect(translatePrerequisite("unholy", FIXTURE_NAMES)).toBe("profano");
   });
 
-  // Core #288 / spec 31 REQ-BC-036: the three requirements the packs write that are ONLY a size — Eerie
+  // Core #288 / spec 31 (DEC-BC-05): the three requirements the packs write that are ONLY a size — Eerie
   // Compression, Scurry!, Enlarged Chassis. The sheet marks them now, and the mark reads in pt-BR.
   it("translates the size requirements the packs write (Medium Size, Tiny size, Medium or Small size)", () => {
     expect(translatePrerequisite("Medium Size", FIXTURE_NAMES)).toBe("tamanho Médio");

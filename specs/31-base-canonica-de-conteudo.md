@@ -187,11 +187,12 @@ slot** (um feat sem trait `archetype` não é candidato ao slot de arquétipo) �
 conceito distinto, e o único com poder de filtrar.
 
 > **Emenda obrigada pela spec 17** (`17-sistema-pf2e.md`, DEC-PF2-13, 2026-09-29): o termo
-> `size` entra no vocabulário. Três talentos (Fuga Rápida!, Compressão Sinistra, Chassi Ampliado)
-> exigem um tamanho — "Minúsculo", "Médio", "Médio ou Pequeno" — e o avaliador só os tratava
-> como "não resolvido", porque nada dizia o tamanho do personagem. Com o tamanho efetivo
-> derivado (REQ-PF2-150) o requisito passa a ser decidível, e a marca segue a regra desta
-> decisão: só quando há certeza (REQ-BC-036).
+> `size` entra no vocabulário — **desenho**: o DSL `system.requires` ainda não existe em código, e o
+> que marca hoje é a gramática textual do Plano (REQ-BC-036). Três talentos (Fuga Rápida!,
+> Compressão Sinistra, Chassi Ampliado) exigem um tamanho — "Minúsculo", "Médio", "Médio ou
+> Pequeno" — e o avaliador só os tratava como "não resolvido", porque nada dizia o tamanho do
+> personagem. Com o tamanho derivado (REQ-PF2-150) o requisito passa a ser decidível, e a marca
+> segue a regra desta decisão: só quando há certeza.
 
 **Racional:** é o contrato que o builder do Fusion já pratica (`isFeatEligible`
 marca, não some) e o que a spec 30 (DEC-MCL-06) exige. Ter o predicado
@@ -388,13 +389,14 @@ e todo o pipeline de tradução. Um documento não enriquecido continua válido.
   requisito** exibido ao jogador, nunca convertida em predicado inventado.
 - **REQ-BC-035** [BC] `class_level` e `character_level` DEVEM existir como termos
   distintos mesmo com a variante da spec 30 desligada.
-- **REQ-BC-036** [MVP] [BC] O predicado DEVE aceitar o termo `size`, comparando a categoria de
-  tamanho efetivo do personagem (`system.derived.size`, `17-sistema-pf2e.md`, REQ-PF2-150) na
-  ordem `tiny < sm < med < lg < huge < grg` — "Médio ou Pequeno" é um `any` de dois `==`. Um
-  requisito de talento escrito só em texto de tamanho ("Tiny size", "Medium size", "Medium or
-  Small size") DEVE ser **marcado** — nunca removido (REQ-BC-032) — quando, e só quando, o
-  tamanho efetivo é conhecido e não está pendente (REQ-PF2-153). Com o tamanho desconhecido ou
-  pendente NÃO DEVE haver marca: um falso "não atendido" é pior que a ausência de marca.
+- **REQ-BC-036** [MVP] [BC] Um requisito de talento escrito só em texto de tamanho ("Tiny size",
+  "Medium size", "Medium or Small size") DEVE ser **marcado** — nunca removido (REQ-BC-032) —
+  quando, e só quando, o tamanho da criatura é conhecido e não está pendente (REQ-PF2-153). O
+  tamanho contra o qual ele é julgado é o **anterior aos efeitos de tamanho**
+  (`system.derived.sizeBeforeEffects`, senão `system.derived.size`, REQ-PF2-153a): o requisito fala
+  da criatura, não do efeito que o próprio talento dá. Com o tamanho desconhecido ou pendente NÃO
+  DEVE haver marca: um falso "não atendido" é pior que a ausência de marca. O termo `size` do
+  predicado estruturado (§5.2) é desenho, sem código até o DSL `system.requires` existir.
 
 ### 6.5 Proveniência, licença e conflito
 
