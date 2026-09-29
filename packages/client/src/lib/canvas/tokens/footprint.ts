@@ -23,9 +23,15 @@
  * Kept as its own module (rather than inlined at each caller) so there is
  * exactly one place a consumer (TokenSprite, TokenInteractionManager's
  * drag/add snapping) calls through to get a footprint.
+ *
+ * Spec: 17-sistema-pf2e.md DEC-PF2-13 / REQ-PF2-154 — the size the SHEET derived
+ * (`system.derived.size`: a character's ancestry, heritage, size chosen at creation
+ * and feats that enlarge it) is read FIRST, and `system.traits.size` after it. Until
+ * then nothing wrote a character's `traits.size` (it sat at the schema default
+ * `med`), so a Minotaur took one square although this module was ready to draw two.
  */
 
-import type { TokenDocument } from "@fusion/shared";
+import { readActorSizeCategory, type TokenDocument } from "@fusion/shared";
 import { footprintRegistry } from "./footprintRegistry.svelte.js";
 
 /** A token's footprint on the grid, in cells. */
@@ -42,28 +48,6 @@ export interface FootprintActorInput {
 const DEFAULT_FOOTPRINT: TokenFootprint = { width: 1, height: 1 };
 
 /**
- * Read the actor's size category off `system.traits.size`.
- *
- * Every engine-2e-based system (pf2e, sf2e) stores it at this path as either
- * a bare string ("lg") or, on some raw/imported rows, `{ value: "lg" }` — the
- * same `NpcSizeSchema`/`traits.size` shape `systems/pf2e/src/schemas/actor-npc.ts`
- * documents and normalizes server-side. The client cannot import that schema
- * (REQ-ARQ-005), so this reads the same two shapes defensively instead of
- * assuming the server-side transform already ran.
- */
-function readSizeCategory(system: Record<string, unknown> | undefined): string | undefined {
-  const traits = system?.["traits"];
-  if (typeof traits !== "object" || traits === null) return undefined;
-  const size = (traits as Record<string, unknown>)["size"];
-  if (typeof size === "string") return size;
-  if (typeof size === "object" && size !== null) {
-    const value = (size as Record<string, unknown>)["value"];
-    if (typeof value === "string") return value;
-  }
-  return undefined;
-}
-
-/**
  * Derive a token's footprint (in grid cells) from its effective actor.
  *
  * `token` is accepted (and typed) for a possible future token-level size
@@ -75,7 +59,10 @@ export function footprintOf(
   _token: TokenDocument | undefined,
   actor: FootprintActorInput | undefined,
 ): TokenFootprint {
-  const size = readSizeCategory(actor?.system);
+  // `readActorSizeCategory` (shared with the server): `system.derived.size`, else `system.traits.size`
+  // — a bare string, or `{ value }` on some raw/imported rows (the `NpcSizeSchema` shape). The client
+  // cannot import a system's schema (REQ-ARQ-005), so the shared reader accepts both shapes defensively.
+  const size = readActorSizeCategory(actor?.system);
   if (size === undefined) return DEFAULT_FOOTPRINT;
   return footprintRegistry.sizeToFootprint.get(size) ?? DEFAULT_FOOTPRINT;
 }
