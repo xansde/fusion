@@ -8,10 +8,12 @@
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
  *   - The scene LIST itself is privileged: only the scene on air may reach a
  *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
- *   - A contact the viewer only GLIMPSED carries no name, title, portrait or
- *     system data, a contact that is HIDDEN is not delivered at all, and the
- *     knowledge map itself never reaches a non-privileged socket
- *     (REQ-CTT-081..084). A token inherits this for free (REQ-TOK-060/061/063,
+ *   - A contact the viewer only GLIMPSED carries no name, title or system data —
+ *     except the one thing the map has to draw the token with: the portrait
+ *     (spec 41 DEC-TOK-09) and the size category (spec 17 DEC-PF2-13, REQ-CTT-081
+ *     as amended), which is all of `system` that travels. A contact that is HIDDEN
+ *     is not delivered at all, and the knowledge map itself never reaches a
+ *     non-privileged socket (REQ-CTT-081..084). A token inherits this for free (REQ-TOK-060/061/063,
  *     TK073): it carries no name field of its own, only the effective actor's
  *     `name` — which is simply absent from a GLIMPSED actor's payload — so
  *     "the token shows no name" is a consequence of the Actor redaction
@@ -90,6 +92,7 @@
 
 import {
   KnowledgeState,
+  readActorSizeCategory,
   resolveUserKnowledge,
   KNOWLEDGE_FLAG_NAMESPACE,
   KNOWLEDGE_FLAG_KEY,
@@ -918,8 +921,8 @@ export function stripPrivilegedActorFields(
  *
  * An ALLOW-list, deliberately: a deny-list would leak every field a future
  * milestone adds to Actor, and "no name, no title, no system data — but the
- * PORTRAIT does travel" is a promise about the whole document, not about four
- * keys. What survives:
+ * PORTRAIT and the SIZE do travel" is a promise about the whole document, not
+ * about a handful of keys. What survives:
  *   - `_id`    — the client mirror is keyed by it, and it is already the key
  *                the GM's ops travel under;
  *   - `type`   — "an unidentified someone", not who;
@@ -936,6 +939,17 @@ export function stripPrivilegedActorFields(
  *                redacted, appearance not. The silhouette a contact CARD
  *                shows instead of the portrait is that screen's own
  *                presentation choice, never a second server-side redaction.
+ *   - `system.derived.size` — spec 39 REQ-CTT-081 as amended by spec 17 DEC-PF2-13
+ *                (decision of the Alexandre, 29/09/2026): the size CATEGORY of the
+ *                creature, and nothing else of `system`. It is the same argument as
+ *                the portrait: what the table sees on the map is not a secret — the
+ *                secret is WHO the creature is, not the space it takes — and a token
+ *                that occupies 1×1 on the players' screens and 2×2 on the GM's, with
+ *                two Large tokens overlapping for the players, is a defect. It travels
+ *                where the token reads it first (`derived.size`, REQ-PF2-154), whatever
+ *                the source — an NPC's `traits.size` (a string, or `{ value }`) or a
+ *                character's derived size — through the ONE shared reader, whose shape
+ *                check keeps free text from riding along.
  * `ownership` is dropped on purpose: a glimpsed contact offers no sheet
  * (REQ-CTT-042), and an absent map resolves to NONE on the client too.
  *
@@ -951,6 +965,9 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
   // travels as `null` rather than being dropped, so the client cannot
   // mistake "the field was never sent" for "this actor has no art".
   if ("img" in doc) view["img"] = doc["img"];
+  // REQ-CTT-081 (amended by spec 17): the size category, alone in `system` — nothing else of the ficha.
+  const size = readActorSizeCategory(doc["system"]);
+  if (size !== undefined) view["system"] = { derived: { size } };
   // An explicit marker so the panel can draw "não identificado" without having
   // to infer it from an absence (REQ-CTT-041).
   view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { glimpsed: true } };

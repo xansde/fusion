@@ -5,7 +5,9 @@
  *              is the server's, and a request that asks for a hidden contact
  *              gets nothing back.
  * REQ-CTT-081: the payload of a contact the viewer only GLIMPSED carries no
- *              name, no title, no portrait and no system data.
+ *              name, no title and no system data — except the portrait (spec 41
+ *              DEC-TOK-09) and the size category (spec 17 DEC-PF2-13, the
+ *              amendment of 29/09/2026), which the token needs to be drawn.
  * REQ-CTT-082: the payload of a HIDDEN contact is not delivered at all — not in
  *              the snapshot, not in the broadcast, not in the replay.
  * REQ-CTT-075: changing knowledge propagates the DELTA to each affected user —
@@ -61,6 +63,9 @@ const KNOWN_NAME = "Taverneiro Bartolomeu";
 const DENIED_NAME = "Segredo Fechado a Sete Chaves";
 const GLIMPSED_TITLE = "Mestre da Forja";
 const GLIMPSED_PORTRAIT = "assets/retratos/ferreiro.webp";
+const OGRE_NAME = "Ogro do Desfiladeiro";
+const OGRE_TITLE = "Terror da Estrada";
+const OGRE_PORTRAIT = "assets/retratos/ogro.webp";
 const KNOWN_TITLE = "Anfitrião do Javali";
 
 interface TestContext {
@@ -585,6 +590,110 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_NAME);
     expect(JSON.stringify(traffic)).not.toContain(GLIMPSED_TITLE);
     joiner.disconnect();
+  });
+
+  it("REQ-CTT-081 (amended by spec 17): the SIZE of a glimpsed Large contact travels on every path — join snapshot, live broadcast, delta replay — and nothing else of `system` does", async () => {
+    // Where the player stands before the ogre exists, so the replay has a start.
+    const probe = connectClient(ctx, ctx.playerAToken);
+    const probeTraffic = recordEnvelopes(probe);
+    probe.connect();
+    await waitForConnect(probe);
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
+    probe.disconnect();
+
+    // LIVE BROADCAST — the GM puts a glimpsed ogre in the world while player A is connected.
+    const liveTraffic = recordEnvelopes(playerASocket);
+    const ogreId = await createActor({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 2 },
+      system: {
+        traits: { size: "lg", value: ["giant"] },
+        attributes: { hp: { value: 59, max: 59 }, ac: { value: 22 } },
+        details: { level: { value: 3 } },
+      },
+      flags: {
+        fusion: {
+          title: OGRE_TITLE,
+          knowledge: { general: KnowledgeState.Glimpsed, exceptions: {} },
+        },
+      },
+    });
+    await waitForSeq(liveTraffic, seqOfCreate(ogreId), "player A's copy of the ogre's create");
+
+    // JOIN SNAPSHOT — a fresh socket for the same user.
+    const joiner = connectClient(ctx, ctx.playerAToken);
+    const snapshotTraffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await waitForJoinBatch(snapshotTraffic);
+
+    // DELTA REPLAY — the same user reconnecting inside the buffer window.
+    const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
+    const replayTraffic = recordEnvelopes(replayer);
+    replayer.connect();
+    await waitForConnect(replayer);
+    await waitFor(
+      () => replayedOps(replayTraffic).some((op) => op["seq"] === seqOfCreate(ogreId)),
+      "the replayed create of the ogre in the delta",
+    );
+
+    for (const [path, traffic] of [
+      ["live broadcast", liveTraffic],
+      ["join snapshot", snapshotTraffic],
+      ["delta replay", replayTraffic],
+    ] as const) {
+      const doc = actorDocsIn(traffic).find((d) => d["_id"] === ogreId);
+      // Anchor: the glimpsed ogre DID reach this path — an absence below means nothing without it.
+      expect({ path, arrived: doc !== undefined }).toEqual({ path, arrived: true });
+      // The size, alone in `system`, where the token reads it first (REQ-PF2-154).
+      expect({ path, system: doc?.["system"] }).toEqual({
+        path,
+        system: { derived: { size: "lg" } },
+      });
+      expect(doc).not.toHaveProperty("name");
+      expect(doc?.["img"]).toBe(OGRE_PORTRAIT);
+      // Every path yields exactly what the redaction module yields (REQ-CTT-083).
+      expect({ path, doc }).toEqual({ path, doc: expectedFor(ogreId, ctx.playerAId) });
+      // Nothing else of the ficha, nor the identity, in ANY byte of the traffic.
+      const wire = JSON.stringify(traffic);
+      expect(wire).not.toContain(OGRE_NAME);
+      expect(wire).not.toContain(OGRE_TITLE);
+      expect(wire).not.toContain('"hp"');
+      expect(wire).not.toContain('"giant"');
+    }
+
+    joiner.disconnect();
+    replayer.disconnect();
+  });
+
+  it("REQ-TOK-017 through REQ-CTT-081: a glimpsed contact that GROWS reaches the player with the new size on the very same op", async () => {
+    const ogreId = await createActor({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 2 },
+      system: { traits: { size: "med" } },
+      flags: { fusion: { knowledge: { general: KnowledgeState.Glimpsed, exceptions: {} } } },
+    });
+    const liveTraffic = recordEnvelopes(playerASocket);
+
+    const ack = await sendOp(gmSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [{ _id: ogreId, diff: { system: { traits: { size: "huge" } } } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await waitForSeq(liveTraffic, seqOf(ack), "player A's copy of the growth");
+
+    // The payload OF THE UPDATE (its own seq): the create's copy may still be arriving on the same socket.
+    const doc = (
+      aPayloadAtSeq(liveTraffic, seqOf(ack))["documents"] as Record<string, unknown>[]
+    )[0];
+    expect(doc?.["_id"]).toBe(ogreId);
+    expect(doc?.["system"]).toEqual({ derived: { size: "huge" } });
+    expect(doc).not.toHaveProperty("name");
   });
 
   it("REQ-CTT-081: a known contact arrives whole — the filter restricts, it does not blank everything", async () => {
