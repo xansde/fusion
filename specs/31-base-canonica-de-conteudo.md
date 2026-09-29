@@ -179,12 +179,19 @@ classes sem 28 famílias de hardcode.
 **Decisão:** os documentos ganham `system.requires`: predicado estruturado com
 operadores `all`/`any`/`not`/`>=`/`<=`/`==` e termos `class_level`,
 `character_level`, `ability`, `proficiency`, `has`, `trait`,
-`spellcasting_tradition`, `subclass`, `sense`, `focus_pool`, `has_actor`.
+`spellcasting_tradition`, `subclass`, `sense`, `size`, `focus_pool`, `has_actor`.
 
 Semântica **obrigatória**: o predicado **ordena a lista e marca o que não
 atende**; ele **nunca remove** uma opção. O que filtra é a **elegibilidade de
 slot** (um feat sem trait `archetype` não é candidato ao slot de arquétipo) —
 conceito distinto, e o único com poder de filtrar.
+
+> **Emenda obrigada pela spec 17** (`17-sistema-pf2e.md`, DEC-PF2-13, 2026-09-29): o termo
+> `size` entra no vocabulário. Três talentos (Fuga Rápida!, Compressão Sinistra, Chassi Ampliado)
+> exigem um tamanho — "Minúsculo", "Médio", "Médio ou Pequeno" — e o avaliador só os tratava
+> como "não resolvido", porque nada dizia o tamanho do personagem. Com o tamanho efetivo
+> derivado (REQ-PF2-150) o requisito passa a ser decidível, e a marca segue a regra desta
+> decisão: só quando há certeza (REQ-BC-036).
 
 **Racional:** é o contrato que o builder do Fusion já pratica (`isFeatEligible`
 marca, não some) e o que a spec 30 (DEC-MCL-06) exige. Ter o predicado
@@ -273,6 +280,7 @@ export type Predicate =
   | { spellcasting_tradition: string }
   | { subclass: Record<string, string> } // { cleric: "warpriest" }
   | { sense: string }
+  | { size: Comparison } // categoria de tamanho efetivo, na ordem tiny < sm < med < lg < huge < grg
   | { focus_pool: Comparison }
   | { has_actor: string };
 
@@ -380,6 +388,13 @@ e todo o pipeline de tradução. Um documento não enriquecido continua válido.
   requisito** exibido ao jogador, nunca convertida em predicado inventado.
 - **REQ-BC-035** [BC] `class_level` e `character_level` DEVEM existir como termos
   distintos mesmo com a variante da spec 30 desligada.
+- **REQ-BC-036** [MVP] [BC] O predicado DEVE aceitar o termo `size`, comparando a categoria de
+  tamanho efetivo do personagem (`system.derived.size`, `17-sistema-pf2e.md`, REQ-PF2-150) na
+  ordem `tiny < sm < med < lg < huge < grg` — "Médio ou Pequeno" é um `any` de dois `==`. Um
+  requisito de talento escrito só em texto de tamanho ("Tiny size", "Medium size", "Medium or
+  Small size") DEVE ser **marcado** — nunca removido (REQ-BC-032) — quando, e só quando, o
+  tamanho efetivo é conhecido e não está pendente (REQ-PF2-153). Com o tamanho desconhecido ou
+  pendente NÃO DEVE haver marca: um falso "não atendido" é pior que a ausência de marca.
 
 ### 6.5 Proveniência, licença e conflito
 
