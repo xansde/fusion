@@ -240,7 +240,7 @@ export class TokenSprite {
     this._applyRotation(doc);
 
     // Load art (async, non-blocking)
-    void this._loadArt(doc, pixelW, pixelH);
+    void this._loadArt(doc);
   }
 
   // ---------------------------------------------------------------------------
@@ -402,7 +402,17 @@ export class TokenSprite {
       this._applyRotation(newDoc);
 
       if (artChanged) {
-        void this._loadArt(newDoc, pixelW, pixelH);
+        void this._loadArt(newDoc);
+      } else if (
+        oldGridSize !== gridSize ||
+        this._footprint.width !== oldFootprint.width ||
+        this._footprint.height !== oldFootprint.height
+      ) {
+        // REQ-TOK-017: the ring, the hit rectangle, the bars and the nameplate follow the new footprint
+        // above; the ART is measured in pixels too, and is only reloaded when the portrait changes.
+        // Without this a creature that grows or shrinks (a heritage swap, a feat that enlarges) kept
+        // drawing its old size on the table while everything around it moved (core #288).
+        this._refitArt(newDoc, pixelW, pixelH);
       }
     } else if (barsChanged) {
       // Bar-only change: repaint just the bars (REQ-CNV-092), not the whole sprite.
@@ -587,7 +597,7 @@ export class TokenSprite {
   // Private — art loading (REQ-CNV-025, D7, RNF-TOK-01)
   // ---------------------------------------------------------------------------
 
-  private async _loadArt(doc: TokenDocument, pixelW: number, pixelH: number): Promise<void> {
+  private async _loadArt(doc: TokenDocument): Promise<void> {
     // Remove existing art
     this._sprite?.destroy({ texture: false });
     this._sprite = null;
@@ -618,15 +628,18 @@ export class TokenSprite {
             : rawImg;
         const texture = await Assets.load<Texture>(loadUrl);
         const sprite = new Sprite(texture);
+        // The size NOW, not the one the load started with: the creature may have grown or shrunk
+        // while the texture was on its way (REQ-TOK-017).
+        const fit = this._currentPixelSize();
         // Position sprite centered within the footprint bounding box
         sprite.anchor.set(0.5, 0.5);
-        sprite.x = pixelW / 2;
-        sprite.y = pixelH / 2;
+        sprite.x = fit.pixelW / 2;
+        sprite.y = fit.pixelH / 2;
         // Art scale is independent of footprint (D7 / REQ-CNV-025)
         // The sprite fills the footprint by default (scale=1).
         // Additional art scale from future token.scale field would be applied here.
-        sprite.width = pixelW;
-        sprite.height = pixelH;
+        sprite.width = fit.pixelW;
+        sprite.height = fit.pixelH;
         sprite.eventMode = "none";
 
         // Apply tint if set (spec REQ-CNV-026)
@@ -641,7 +654,37 @@ export class TokenSprite {
 
     // Placeholder: colored rectangle with initials (REQ-CNV-025 fallback —
     // also the "actor not in the mirror yet" and "actor has no img" cases).
-    this._drawPlaceholder(doc, pixelW, pixelH);
+    const fit = this._currentPixelSize();
+    this._drawPlaceholder(doc, fit.pixelW, fit.pixelH);
+  }
+
+  /** This token's pixel size right now: footprint (cells) × grid cell size. */
+  private _currentPixelSize(): { pixelW: number; pixelH: number } {
+    return tokenPixelSize(this._footprint.width, this._footprint.height, this._gridSize);
+  }
+
+  /**
+   * Fit the art that is ALREADY on the sprite to a new pixel size — the footprint changed (a creature
+   * that grew or shrank, REQ-TOK-017) or the grid's cell size did (R4). A portrait is re-measured in
+   * place: the texture is never reloaded, so nothing flickers and no request goes out. The placeholder
+   * — a drawn rectangle plus its initials, both sized in pixels — is drawn again. Art still loading
+   * has nothing to refit: `_loadArt` reads the size when the texture lands.
+   */
+  private _refitArt(doc: TokenDocument, pixelW: number, pixelH: number): void {
+    if (this._sprite) {
+      this._sprite.x = pixelW / 2;
+      this._sprite.y = pixelH / 2;
+      this._sprite.width = pixelW;
+      this._sprite.height = pixelH;
+      return;
+    }
+    if (this._placeholder) {
+      const stale = [...this._artContainer.children];
+      this._artContainer.removeChildren();
+      for (const child of stale) child.destroy();
+      this._placeholder = null;
+      this._drawPlaceholder(doc, pixelW, pixelH);
+    }
   }
 
   private _drawPlaceholder(doc: TokenDocument, pixelW: number, pixelH: number): void {
