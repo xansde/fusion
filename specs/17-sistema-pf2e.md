@@ -395,6 +395,88 @@ prático, bonito e usável".
   partes do pipeline (cascata de remoção, contagem de perícias treinadas) já dependem
   do tipo `freeSkillChoice`.
 
+### DEC-PF2-13 — O tamanho efetivo do personagem é derivado, em camadas, e vive em `system.derived.size`
+
+**Decisão:** O tamanho da criatura de um `character` é **derivado**, nunca digitado. O passo
+`<sistema>.character.derived.size` — uma só implementação em `systems/engine-2e`, registrada por
+PF2e e por SF2e — publica `system.derived.size`, uma categoria `tiny | sm | med | lg | huge | grg`,
+a partir dos itens embedded do personagem, em camadas, **nesta ordem**:
+
+1. **Ancestralidade** — o `system.size` do item de ancestralidade (o Minotauro é Grande; a
+   maioria é Média; Gnomo, Goblin, Halfling e outras são Pequenas).
+2. **Herança que troca o tamanho** — SUBSTITUI o da ancestralidade, para cima ou para baixo
+   (Minotauro Chifre-Pequeno: "em vez de Grande, seu tamanho é Médio"; Athamaru Esperançoso:
+   "em vez de Médio, seu tamanho é Grande"; Kholo Formiga: Pequeno; no SF2e, Barathu Estágio
+   Inicial, Barathu Fundido e Sand Roamer).
+3. **Escolha de criação** — o tamanho que o jogador escolhe ao criar o personagem (Autômato:
+   Médio ou Pequeno; Animal Despertado: Minúsculo, Pequeno, Médio ou Grande; Fleshwarp: Pequeno
+   ou Médio). SUBSTITUI o da ancestralidade e da herança.
+4. **Talento de "Ampliar constante"** — leva a Grande e **não faz nada** em criatura Grande ou
+   maior (Chassi Ampliado, Transformação da Estirpe, Força de Oito Legiões). É o efeito de
+   tamanho da magia Ampliar, tornado permanente pelo livro.
+
+Uma camada futura — o efeito com duração de Ampliar, Encolher ou de uma forma — entra **depois**
+da quarta, sem refazer as anteriores (core #291).
+
+As camadas 1 a 3 são a **criatura**; a 4ª (e a futura) são **efeitos** sobre ela. Um pré-requisito
+fala da criatura, não do efeito que um talento dela dá: o Chassi Ampliado exige "Médio ou
+Pequeno", e o Autômato que o tem é Grande. Por isso o passo publica também o tamanho **antes dos
+efeitos** (`system.derived.sizeBeforeEffects`, REQ-PF2-153a), e é contra ele que um requisito de
+talento é julgado (REQ-BC-036). Julgado contra o tamanho efetivo, o talento se marcaria sozinho.
+
+- **Interruptor não se aplica.** Efeito de tamanho que depende de liga/desliga, de ação ou de
+  forma que a ficha não tem NÃO é aplicado: Cerimônia do Crescimento (o próprio texto permite
+  dispensar e retomar o efeito por uma ação), Dedicação Werecreature (só na forma de homem-rato)
+  e Reorganizar Ossos (ação com tamanho escolhido). Ligar por padrão faria o personagem nascer
+  Grande sem o jogador ter pedido, e a ficha não tem o interruptor para desligar. Os três
+  permanentes do livro (Chassi Ampliado, Transformação da Estirpe, Força de Oito Legiões) SÃO
+  aplicados — o dado do vendor os traz atrás de um interruptor só por conveniência do Foundry.
+- **Escolha ainda não feita** vale o tamanho da ancestralidade e marca `system.derived.sizePending`.
+  Quem precisa de certeza — a marca de requisito de talento (REQ-BC-036) — não confia no tamanho
+  enquanto a marca existir. A pendência aparece para o jogador no construtor de escolhas, não
+  neste passo.
+- **Onde vive.** Em `system.derived`, o único subtree que o servidor recomputa a cada escrita
+  (REQ-DOC-034) e que o Actor carrega ao vivo (REQ-NET-096), sem nunca tocar o que o jogador
+  escreveu (DEC-PF2-03); o join deriva de novo na leitura, então nenhum personagem existente
+  precisa de migração — o tamanho aparece assim que ele é aberto. O token lê `derived.size`
+  primeiro e `system.traits.size` depois (REQ-TOK-012); `traits.size` segue sendo a fonte do NPC e
+  do personagem sem ancestralidade (entrada manual).
+- **Pacote de "Ampliar constante".** Decisão do Alexandre (29/09/2026): os efeitos de Ampliar
+  incluem Desajeitado 1, e por isso a Força de Oito Legiões o aplica igual ao Chassi Ampliado e à
+  Transformação da Estirpe — REQ-PF2-156. O tamanho desta decisão não depende disso.
+
+**Racional:** É a mesma disciplina de DEC-PF2-03 aplicada ao tamanho: o que a ficha monta é
+derivado da montagem, e o jogador não digita o que já está escrito no livro. Foi o que faltava
+para o token multi-célula (REQ-TOK-012, REQ-TOK-017, CA-TOK-002), pronto e testado, ter o que
+ler: nada escrevia o tamanho do ator, que ficava no padrão `med` para sempre, e um Minotauro
+ocupava uma casa só. Em camadas porque o livro escreve assim — a herança "no lugar de" e o
+Ampliar "leva a Grande, sem efeito em Grande ou maior" não são a mesma operação — e porque o
+efeito com duração de Ampliar (a camada futura, core #291) entra por cima sem refazer nada. Só
+os permanentes se aplicam porque a ficha só tem certeza do que não depende de um interruptor
+que ela não tem.
+
+**Alternativas rejeitadas:**
+
+- _Espelhar o tamanho em `system.traits.size`_: `traits.size` é campo autoral (DEC-PF2-03: o
+  `_source` nunca é mutado por derivado), e o servidor só recomputa e transmite ao vivo o
+  `derived` (REQ-DOC-034, REQ-NET-096). O espelho apareceria no join — que serve o clone derivado
+  inteiro — e sumiria nas atualizações ao vivo.
+- _Um campo de tamanho que o dono edita_: duas fontes de verdade que divergem no primeiro
+  personagem cuja herança muda, e o jogador teria de lembrar o que o livro já diz.
+- _Tamanho no token_: contraria DEC-TOK-03 — o tamanho é do ator, a peça só o consulta.
+- _Ligar por padrão os efeitos que dependem de interruptor_: ver "Interruptor não se aplica".
+- _Aplicar a escolha de criação por um default (Médio)_: esconderia a pendência; o requisito de
+  talento marcaria em falso um jogador que ainda vai escolher (DEC-BC-05).
+
+**Limite conhecido:** um requisito que só o **efeito** satisfaz (um talento que pedisse "Grande" a um
+Yaksha Médio que ficou Grande pela Força de Oito Legiões) seria marcado, porque o requisito é julgado
+contra o tamanho antes dos efeitos. Nenhum talento dos packs pede Grande ou maior; a saída, se um
+aparecer, é dar por atendido o requisito que qualquer dos dois tamanhos satisfaz (DEC-BC-05).
+
+**Fora desta decisão:** mudar o tamanho durante o jogo (REQ-PF2-157, decisão do Alexandre em
+29/09/2026: por ora o Mestre resolve na narração; core #291); alcance, espaço, manobra por
+tamanho, carga e o corredor de 5 pés (REQ-PF2-122 [V2], satélite #323).
+
 ---
 
 ## Requisitos funcionais
@@ -696,6 +778,54 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   documentos: é edição de manifesto. A reabertura de um pack `gm` para os jogadores
   por configuração de mundo (REQ-CPD-075 [V2], `ver 37-configuracoes.md`) NÃO DEVE
   alterar o manifesto publicado.
+
+### Tamanho da criatura
+
+> Fundamentada em DEC-PF2-13. O token só **lê** o resultado — a conversão em casas é do
+> sistema (REQ-SYS-009) e o footprint muda sozinho quando o tamanho muda (REQ-TOK-012,
+> REQ-TOK-017). O SF2e usa o mesmo passo (REQ-SF2-017a).
+
+- **REQ-PF2-150** [MVP] O sistema DEVE derivar o tamanho efetivo de todo `character` que tem um
+  item de ancestralidade e publicá-lo em `system.derived.size`, como uma categoria (`tiny`,
+  `sm`, `med`, `lg`, `huge` ou `grg`). Sem item de ancestralidade a chave NÃO DEVE existir, e o
+  tamanho segue sendo o `system.traits.size` de entrada manual. A chave DEVE sumir do
+  `derived` persistido quando o item que a originou é removido.
+- **REQ-PF2-151** [MVP] As camadas DEVEM compor na ordem de DEC-PF2-13 — ancestralidade,
+  herança, escolha de criação, talento de "Ampliar constante". A herança e a escolha
+  SUBSTITUEM; o talento leva a Grande e NÃO DEVE ter efeito em criatura Grande ou maior. Trocar
+  a herança ou remover o talento DEVE mudar o tamanho na derivação seguinte, sem migração de
+  dado e sem ação do jogador.
+- **REQ-PF2-152** [MVP] Efeito de tamanho que depende de interruptor, de ação ou de forma que a
+  ficha não oferece NÃO DEVE ser aplicado. Todo documento dos packs que traga uma regra de
+  tamanho DEVE estar classificado num inventário — aplicado, escolha de criação ou pendente,
+  este com o motivo — e um documento novo sem classificação DEVE reprovar o teste.
+- **REQ-PF2-153** [MVP] Enquanto o jogador não fez a escolha de tamanho da ancestralidade,
+  `system.derived.size` DEVE ser o tamanho da própria ancestralidade e `system.derived.sizePending`
+  DEVE valer `true`; feita a escolha, a chave DEVE sumir. Um consumidor que precisa de certeza
+  (REQ-BC-036) NÃO DEVE confiar no tamanho enquanto `sizePending` existir.
+- **REQ-PF2-153a** [MVP] Quando um efeito de tamanho (a 4ª camada de DEC-PF2-13) muda o tamanho, o
+  passo DEVE publicar também `system.derived.sizeBeforeEffects`: o tamanho depois das camadas 1 a 3.
+  A chave NÃO DEVE existir quando nenhum efeito mudou o tamanho, e DEVE sumir junto com `size`. Um
+  requisito de tamanho de talento (REQ-BC-036) DEVE ser julgado contra `sizeBeforeEffects` — e, sem
+  ela, contra `size` —, nunca contra o tamanho que o próprio talento dá. A etiqueta do card de
+  Ancestralidade (REQ-PF2-155) segue mostrando o tamanho efetivo.
+- **REQ-PF2-154** [MVP] O tamanho derivado NÃO DEVE ser gravado no `_source` nem espelhado em
+  `system.traits.size`. Quem desenha o token DEVE ler `system.derived.size` primeiro e
+  `system.traits.size` depois, e um personagem existente DEVE aparecer com o tamanho certo ao ser
+  aberto, sem migração (REQ-DOC-034, DEC-PF2-03). A categoria de tamanho é um token curto — letras,
+  dígitos, `_` e `-`, até 24 caracteres (REQ-SYS-009) —, e o leitor de `system` é um só, do
+  servidor e do cliente.
+- **REQ-PF2-155** [MVP] A etiqueta de tamanho do card de Ancestralidade do Plano DEVE mostrar o
+  tamanho efetivo (com herança, escolha e talento), e não o da ancestralidade. Nenhum campo novo
+  entra na ficha.
+- **REQ-PF2-156** [MVP] O talento que dá "os efeitos de Ampliar" de forma permanente DEVE aplicar
+  também Desajeitado 1, e isso vale para a Força de Oito Legiões (decisão do Alexandre em
+  29/09/2026: "a parte negativa as pessoas nunca lembram", por isso é automático). O tamanho de
+  REQ-PF2-151 NÃO depende deste requisito. Implementação: satélite #337.
+- **REQ-PF2-157** [V2] Ampliar, Encolher e uma forma DEVEM poder mudar o tamanho efetivo por um
+  efeito com duração, como camada depois do talento de "Ampliar constante" (DEC-PF2-13), visível
+  ao Mestre e ao afetado como anotação no canto — o padrão de estado temporizado. Por ora o
+  Mestre resolve na narração (decisão do Alexandre em 29/09/2026; core #291).
 
 ---
 
@@ -1028,6 +1158,13 @@ interface EffectSystem {
     pack de bestiário declara `"gm"` e os packs de regras jogáveis declaram `"all"`,
     sem que nenhum documento tenha sido alterado para isso (REQ-PF2-140..145,
     REQ-CPD-072).
+13. **Tamanho da criatura** — Um personagem Minotauro ocupa 2×2 casas no mapa; com a herança
+    Chifre-Pequeno, 1×1. Um Autômato que escolheu Pequeno e chegou ao Chassi Ampliado passa a
+    Grande, e um Yaksha com a Força de Oito Legiões também. Trocar a herança muda a peça na
+    hora, sem nenhuma escrita no token e sem migração do personagem. Um personagem Grande que
+    pega um talento de "Ampliar constante" continua Grande, e o Chassi Ampliado não é marcado por
+    um requisito de tamanho ("Médio ou Pequeno") que o próprio efeito desfaz (REQ-PF2-150..154,
+    REQ-PF2-153a, REQ-TOK-012, CA-TOK-002).
 
 ---
 
@@ -1071,6 +1208,9 @@ interface EffectSystem {
 | Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04  |
 | Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                 |
 | Exploration/Downtime/Crafting                   | M / A(V2) | REQ-PF2-103                                      |
+| Tamanho efetivo do personagem (ABC + talento)   | A         | REQ-PF2-150..155, DEC-PF2-13                     |
+| Tamanho que muda em jogo (Ampliar/Encolher)     | A(V2)     | REQ-PF2-157; hoje o Mestre narra                 |
+| Efeito do tamanho (alcance, manobra, carga)     | M         | fora do "montar a ficha"; REQ-PF2-122            |
 | Range increments / cover                        | M         | A(V2); cobertura depende do mapa                 |
 | Flanking (posição exata)                        | M         | requer grid/julgamento do GM                     |
 | Party/Kingmaker                                 | A(V2)     | fora do MVP                                      |

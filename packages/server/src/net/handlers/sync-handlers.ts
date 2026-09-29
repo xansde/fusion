@@ -451,9 +451,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       }
 
       // Spec 39 §5.9, AFTER derivation on purpose: a glimpsed contact must
-      // carry no system data at all (REQ-CTT-081), and deriving first then
-      // stripping is the only order that guarantees `system.derived` never
-      // slips back in behind the redaction. Ownership above is still the gate
+      // carry no system data (REQ-CTT-081) but its size category, and deriving
+      // first then stripping is the only order that guarantees `system.derived`
+      // never slips back in behind the redaction. Ownership above is still the gate
       // — this only ever removes more (REQ-CTT-074).
       // A snapshot REPLACES the mirror wholesale, so an absent contact is
       // already forgotten — `removedIds` is a delta concept and has no meaning

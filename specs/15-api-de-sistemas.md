@@ -404,6 +404,12 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
   > mapeamento para quem desenha o token. `sizeToFootprint` é o que sustenta REQ-TOK-012 e
   > REQ-TOK-017 (footprint muda sozinho quando a criatura muda de tamanho, sem escrita na peça).
 
+  > **Emenda obrigada pela spec 17** (`17-sistema-pf2e.md`, DEC-PF2-13 e REQ-PF2-154,
+  > 2026-09-29): a **categoria** de tamanho é um token curto — letras, dígitos, `_` e `-`, até 24
+  > caracteres. É a chave do mapa e também o que o servidor repassa, dentro do payload de um contato
+  > `entrevisto`, a quem não pode ler o nome (spec 39, REQ-CTT-081); uma categoria fora dessa forma
+  > não chega ao cliente e a peça cai em 1×1.
+
 - **REQ-SYS-016** [MVP] O manifest PODE declarar `sourceSystemIds: string[]` (≥ 1
   id de sistema já registrado) para marcar o sistema como **composto**
   (DEC-SYS-06a): a engine resolve o diretório de packs de cada id listado (a
