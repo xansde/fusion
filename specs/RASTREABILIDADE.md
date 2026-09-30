@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 727 | 36% |
-| Citados só por código de produção | 313 | 16% |
-| Sem nenhuma citação | 956 | 48% |
+| Citados por algum teste | 735 | 37% |
+| Citados só por código de produção | 314 | 16% |
+| Sem nenhuma citação | 947 | 47% |
 | **Total [MVP]** | **1996** | |
 
 ## Por spec
@@ -41,8 +41,8 @@ porque ainda não foram prometidos para nenhum marco.
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 65 | 19 | 29 | 17 | 29% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
-| [17](17-sistema-pf2e.md) | 80 | 43 | 14 | 23 | 54% |
-| [18](18-sistema-sf2e.md) | 46 | 21 | 8 | 17 | 46% |
+| [17](17-sistema-pf2e.md) | 80 | 49 | 15 | 16 | 61% |
+| [18](18-sistema-sf2e.md) | 46 | 22 | 8 | 16 | 48% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |
@@ -54,7 +54,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
 | [29](29-pets-companions-familiars.md) | 23 | 10 | 6 | 7 | 43% |
-| [31](31-base-canonica-de-conteudo.md) | 1 | 0 | 0 | 1 | 0% |
+| [31](31-base-canonica-de-conteudo.md) | 1 | 1 | 0 | 0 | 100% |
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
 | [35](35-avatar-do-personagem.md) | 33 | 0 | 0 | 33 | 0% |
