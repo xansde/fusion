@@ -970,6 +970,7 @@
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat": "Granted Feat",
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction": "Alchemist Feat (1st-2nd Level)",
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat.daredevilRiskyStunt": "Daredevil Feat (Risky, 1st Level)",
+  "FUSION.Sheet.Plan.SlotLabel.grantedFeat.evolutionFeat": "Evolution Feat",
   "FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice": "Adopted Ancestry",
   "FUSION.Sheet.Plan.SlotLabel.linkedAncestryChoice": "Linked Ancestry",
   "FUSION.Sheet.Plan.SlotLabel.language": "Bonus Language",
