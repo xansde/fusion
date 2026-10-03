@@ -13,7 +13,8 @@
    * (RNF-CFG-02).
    *
    * Writes go through the generic `doc:create`/`doc:update` of `Setting`
-   * (`buildSettingWriteOp`, REQ-CFG-071) — never a bespoke setting-write op.
+   * (`buildSettingWriteOp`, REQ-CFG-071) — never a bespoke setting-write op —
+   * and are serialized per key by `createSettingWriter` (HJ-RH, M2).
    * No optimistic update: the control only reflects a NEW value once the ack
    * confirms it (`applyWorldSettingWrite`), never before. On a refusal
    * (REQ-CFG-073/042) `commit` does two things `worldSettingsRegistry` alone
@@ -52,8 +53,8 @@
     worldSettingsRegistry,
   } from "../../lib/settings/worldSettingsRegistry.svelte.js";
   import {
-    buildSettingWriteOp,
     controlForRow,
+    createSettingWriter,
     resolveBooleanWrite,
     toggleListOption,
     type WorldSettingRow,
@@ -96,23 +97,29 @@
     }
   }
 
+  // HJ-RH (M2): every write to a key goes through one queue, so a second tick
+  // before the first ack builds on the first's accepted value, and the first
+  // write of a key is the only `doc:create`.
+  const writer = createSettingWriter({
+    send: (op) => sendOp<{ documents?: Array<{ _id: string }> }>(socket, op),
+    getRow: (key) => worldSettingsRegistry.rows.find((r) => r.key === key),
+    apply: applyWorldSettingWrite,
+  });
+
   async function commit(
     row: WorldSettingRow,
-    nextValue: unknown,
+    nextFor: (current: WorldSettingRow) => unknown,
     target: HTMLInputElement | HTMLSelectElement,
   ): Promise<void> {
-    const op = buildSettingWriteOp(row, nextValue);
-    try {
-      const result = await sendOp<{ documents?: Array<{ _id: string }> }>(socket, op);
-      const id = row.id ?? result.documents?.[0]?._id;
-      if (id !== undefined) applyWorldSettingWrite(row.key, id, nextValue);
+    const outcome = await writer.write(row.key, nextFor);
+    if (outcome.ok) {
       state.clearError(row.key);
-    } catch (err) {
-      // REQ-CFG-073: a refusal reverts the control to the value the server
-      // last actually accepted, and shows why.
-      state.setError(row.key, errorMessage(err));
-      revertControl(row, target);
+      return;
     }
+    // REQ-CFG-073: a refusal reverts the control to the value the server
+    // last actually accepted, and shows why.
+    state.setError(row.key, errorMessage(outcome.error));
+    revertControl(worldSettingsRegistry.rows.find((r) => r.key === row.key) ?? row, target);
   }
 
   /**
@@ -130,7 +137,7 @@
       formatConfirmMessage: (count) => t("FUSION.Settings.World.ConfirmDisable", { count }),
     });
     if (shouldCommit) {
-      await commit(row, nextValue, target);
+      await commit(row, () => nextValue, target);
     } else {
       // Cancelled: nothing was ever applied, but the browser already
       // flipped the checkbox natively before this handler ran.
@@ -177,7 +184,8 @@
               value={control.value}
               onchange={(event) => {
                 const target = event.currentTarget as HTMLSelectElement;
-                void commit(row, target.value, target);
+                const value = target.value;
+                void commit(row, () => value, target);
               }}
             >
               {#each control.options as option (option)}
@@ -197,9 +205,20 @@
                     checked={control.selected.includes(option.value)}
                     onchange={(event) => {
                       const target = event.currentTarget as HTMLInputElement;
+                      // Computed when this write's turn comes (HJ-RH, M2), from the
+                      // list the previous write left — not from this render's.
+                      const on = target.checked;
                       void commit(
                         row,
-                        toggleListOption(row, control.selected, option.value, target.checked),
+                        (current: WorldSettingRow) => {
+                          const now = controlForRow(current);
+                          return toggleListOption(
+                            current,
+                            now.kind === "enumList" ? now.selected : [],
+                            option.value,
+                            on,
+                          );
+                        },
                         target,
                       );
                     }}
@@ -215,7 +234,8 @@
               value={control.value}
               onchange={(event) => {
                 const target = event.currentTarget as HTMLInputElement;
-                void commit(row, Number(target.value), target);
+                const value = Number(target.value);
+                void commit(row, () => value, target);
               }}
             />
           {/if}
