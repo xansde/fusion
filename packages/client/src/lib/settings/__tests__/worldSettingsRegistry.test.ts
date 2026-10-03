@@ -157,8 +157,12 @@ describe("applyWorldSettingDocs: a live Setting envelope updates the declared ro
   });
 
   it("sets the id and the new value of the row the document names (a GM's first write creates the document)", () => {
-    applyWorldSettingDocs([{ _id: "s-9", key: "fake-system:campaign.trainedSkills", value: ["b"] }]);
-    const row = worldSettingsRegistry.rows.find((r) => r.key === "fake-system:campaign.trainedSkills");
+    applyWorldSettingDocs([
+      { _id: "s-9", key: "fake-system:campaign.trainedSkills", value: ["b"] },
+    ]);
+    const row = worldSettingsRegistry.rows.find(
+      (r) => r.key === "fake-system:campaign.trainedSkills",
+    );
     expect(row).toMatchObject({ id: "s-9", value: ["b"] });
     // the sibling row is untouched
     expect(worldSettingsRegistry.rows.find((r) => r.key === "fake-system:other")).toMatchObject({

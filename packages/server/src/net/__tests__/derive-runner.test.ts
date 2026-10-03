@@ -430,14 +430,20 @@ describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)"
     it("the world's list reaches system.build.campaignSkills before any step runs", () => {
       const doc: Record<string, unknown> = { type: "hero", system: { derived: {} } };
       runActorDerivation(doc, buildFakeCampaignReader(), world(["occultism"]));
-      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+        string,
+        unknown
+      >;
       expect(derived["campaignSkillsSeen"]).toEqual(["occultism"]);
     });
 
     it("no stored Setting (undefined) leaves the doc untouched — the key is absent, not []", () => {
       const doc: Record<string, unknown> = { type: "hero", system: { derived: {} } };
       runActorDerivation(doc, buildFakeCampaignReader(), world(undefined));
-      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+        string,
+        unknown
+      >;
       expect(derived["campaignSkillsSeen"]).toBeUndefined();
     });
 
@@ -447,7 +453,10 @@ describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)"
         system: { derived: {}, build: { campaignSkills: ["stealth"] } },
       };
       runActorDerivation(doc, buildFakeCampaignReader(), world([]));
-      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+        string,
+        unknown
+      >;
       expect(derived["campaignSkillsSeen"]).toEqual([]);
     });
 
@@ -457,7 +466,10 @@ describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)"
         system: { derived: {}, build: { campaignSkills: ["stealth"] } },
       };
       runActorDerivation(doc, buildFakeCampaignReader(), world(undefined));
-      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+        string,
+        unknown
+      >;
       expect(derived["campaignSkillsSeen"]).toBeUndefined();
     });
   });

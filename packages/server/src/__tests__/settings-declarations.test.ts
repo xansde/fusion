@@ -470,7 +470,9 @@ describe("settings:declarations — campaign.trainedSkills (HJ-09)", () => {
   ]);
 
   it("the GM gets an enum-list row carrying the options and the declared default", () => {
-    const entry = ask(CAMPAIGN).settings.find((s) => s.key === "fake-system:campaign.trainedSkills");
+    const entry = ask(CAMPAIGN).settings.find(
+      (s) => s.key === "fake-system:campaign.trainedSkills",
+    );
     expect(entry).toEqual({
       id: null,
       key: "fake-system:campaign.trainedSkills",

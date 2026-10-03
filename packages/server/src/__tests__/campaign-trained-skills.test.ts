@@ -209,8 +209,7 @@ function emitAck(
   });
 }
 
-const sendOp = (s: ClientSocket, type: string, payload: unknown) =>
-  emitAck(s, "op", type, payload);
+const sendOp = (s: ClientSocket, type: string, payload: unknown) => emitAck(s, "op", type, payload);
 const sendQuery = (s: ClientSocket, type: string, payload: unknown) =>
   emitAck(s, "query", type, payload);
 
@@ -320,13 +319,16 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
   it("the PLAYER reads the list through settings:declarations — and only it, not the sibling setting", async () => {
     const ack = await sendQuery(player, "settings:declarations", {});
     expect(ack["ok"]).toBe(true);
-    const settings = (ack["result"] as { settings: Array<{ key: string; kind: string; value: unknown }> })
-      .settings;
+    const settings = (
+      ack["result"] as { settings: Array<{ key: string; kind: string; value: unknown }> }
+    ).settings;
     expect(settings.map((s) => s.key)).toEqual([CAMPAIGN_KEY]);
     expect(settings[0]).toMatchObject({ kind: "enumList", value: ["occultism"] });
 
     const gmAck = await sendQuery(gm, "settings:declarations", {});
-    const gmKeys = (gmAck["result"] as { settings: Array<{ key: string }> }).settings.map((s) => s.key);
+    const gmKeys = (gmAck["result"] as { settings: Array<{ key: string }> }).settings.map(
+      (s) => s.key,
+    );
     expect(gmKeys.sort()).toEqual([CAMPAIGN_KEY, `${SYSTEM_ID}:someOtherWorldSetting`].sort());
   });
 

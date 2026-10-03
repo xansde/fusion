@@ -106,7 +106,9 @@ describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
     });
 
     it("a non-array stored value resolves to an empty list, never throws", () => {
-      const store = storeWith([{ _id: "s1", key: "pf2e:campaign.trainedSkills", value: "occultism" }]);
+      const store = storeWith([
+        { _id: "s1", key: "pf2e:campaign.trainedSkills", value: "occultism" },
+      ]);
       const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
       expect(resolved.campaignSkills).toEqual([]);
     });
