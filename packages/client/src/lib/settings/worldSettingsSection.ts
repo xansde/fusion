@@ -154,6 +154,70 @@ export function buildSettingWriteOp(row: WorldSettingRow, nextValue: unknown): S
 }
 
 // ---------------------------------------------------------------------------
+// Serialized writes per key (HJ-RH, review finding M2)
+// ---------------------------------------------------------------------------
+
+export interface SettingWriterDeps {
+  /** Sends the generic Setting op and resolves with the ack's `result`. */
+  readonly send: (op: SettingWriteOp) => Promise<{ documents?: Array<{ _id: string }> }>;
+  /** The row as it is NOW (after every earlier write's ack was folded in). */
+  readonly getRow: (key: string) => WorldSettingRow | undefined;
+  /** Folds an accepted write (id + value) back into the row. */
+  readonly apply: (key: string, id: string, value: unknown) => void;
+}
+
+export type SettingWriteOutcome =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly error: unknown };
+
+export interface SettingWriter {
+  /**
+   * Queue a write to `key`. `nextFor` runs only when it is this write's turn,
+   * against the row as the previous write left it, so a second quick tick of an
+   * enum-list builds on the first one's accepted list instead of on the stale
+   * row both clicks saw (which made the second overwrite the first), and a
+   * first write to a key that has no `Setting` document yet is the only one
+   * that sends `doc:create` (the later ones see the new id and `doc:update`).
+   * Never rejects: a refusal comes back as `{ ok: false }` and does not stop
+   * the writes queued behind it.
+   */
+  write(key: string, nextFor: (row: WorldSettingRow) => unknown): Promise<SettingWriteOutcome>;
+}
+
+export function createSettingWriter(deps: SettingWriterDeps): SettingWriter {
+  const tails = new Map<string, Promise<unknown>>();
+
+  async function run(
+    key: string,
+    nextFor: (row: WorldSettingRow) => unknown,
+  ): Promise<SettingWriteOutcome> {
+    const row = deps.getRow(key);
+    if (row === undefined) return { ok: false, error: new Error(`unknown setting ${key}`) };
+    try {
+      const nextValue = nextFor(row);
+      const result = await deps.send(buildSettingWriteOp(row, nextValue));
+      const id = row.id ?? result.documents?.[0]?._id;
+      if (id !== undefined) deps.apply(key, id, nextValue);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error };
+    }
+  }
+
+  return {
+    write(key, nextFor) {
+      const previous = tails.get(key) ?? Promise.resolve();
+      const outcome = previous.then(() => run(key, nextFor));
+      tails.set(
+        key,
+        outcome.then(() => undefined),
+      );
+      return outcome;
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Disable confirmation (REQ-CFG-082, DEC-CFG-09) — generic, no system knowledge
 // ---------------------------------------------------------------------------
 

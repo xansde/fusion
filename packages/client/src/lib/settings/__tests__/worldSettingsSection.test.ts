@@ -16,6 +16,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildSettingWriteOp,
   controlForRow,
+  createSettingWriter,
+  type SettingWriteOp,
   toggleListOption,
   needsDisableConfirm,
   resolveBooleanWrite,
@@ -347,5 +349,140 @@ describe("toggleListOption — enumList writes keep the declared order", () => {
         updates: [{ _id: "setting-list-1", diff: { value: ["green"] } }],
       },
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-RH (revisão adversarial, achado M2): writes to one key are serialized.
+//
+// Source of the scenario: plano "Huo Jinwu jogável" HJ-09 / D4 — the GM ticks
+// two skills of `pf2e:campaign.trainedSkills` (an enumList) in quick
+// succession, before the first ack. Expected stored value is the declared-order
+// list with BOTH skills, written through a single `doc:create`.
+// ---------------------------------------------------------------------------
+
+interface Deferred {
+  readonly op: SettingWriteOp;
+  resolve: (result: { documents?: Array<{ _id: string }> }) => void;
+  reject: (err: unknown) => void;
+}
+
+function harness(initial: WorldSettingRow) {
+  const rows = new Map<string, WorldSettingRow>([[initial.key, initial]]);
+  const sent: Deferred[] = [];
+  const writer = createSettingWriter({
+    getRow: (key) => rows.get(key),
+    send: (op) =>
+      new Promise((resolve, reject) => {
+        sent.push({ op, resolve, reject });
+      }),
+    apply: (key, id, value) => {
+      const row = rows.get(key);
+      if (row) rows.set(key, { ...row, id, value });
+    },
+  });
+  return { rows, sent, writer };
+}
+
+/** Let queued microtasks (the writer's await chain) run. */
+const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+const SKILLS: WorldSettingRow = {
+  id: null,
+  key: "fake-system:campaign.trainedSkills",
+  kind: "enumList",
+  options: ["arcana", "nature", "occultism"],
+  label: "Perícias da campanha",
+  value: [],
+};
+
+describe("createSettingWriter — HJ-RH M2: dois cliques antes do ack não se perdem", () => {
+  it("occultism then arcana before the first ack writes both, through ONE doc:create", async () => {
+    const { rows, sent, writer } = harness(SKILLS);
+    const toggle = (option: string) =>
+      writer.write(SKILLS.key, (row) => {
+        const current = controlForRow(row);
+        return toggleListOption(
+          row,
+          current.kind === "enumList" ? current.selected : [],
+          option,
+          true,
+        );
+      });
+
+    const first = toggle("occultism");
+    const second = toggle("arcana"); // clicked before the first ack
+    await flush();
+
+    // Only the first op is on the wire; the second waits for its ack.
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.op).toEqual({
+      type: "doc:create",
+      payload: { documentType: "Setting", data: [{ key: SKILLS.key, value: ["occultism"] }] },
+    });
+
+    sent[0]?.resolve({ documents: [{ _id: "setting-new-1" }] });
+    await flush();
+
+    // The second write now sees the accepted id and value: update, whole list.
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.op).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-new-1", diff: { value: ["arcana", "occultism"] } }],
+      },
+    });
+    sent[1]?.resolve({});
+    await expect(first).resolves.toEqual({ ok: true });
+    await expect(second).resolves.toEqual({ ok: true });
+
+    expect(rows.get(SKILLS.key)).toMatchObject({
+      id: "setting-new-1",
+      value: ["arcana", "occultism"],
+    });
+    expect(sent.filter((d) => d.op.type === "doc:create")).toHaveLength(1);
+  });
+
+  it("a refused first write does not block the second, which builds on the accepted value", async () => {
+    const { rows, sent, writer } = harness({ ...SKILLS, id: "s1", value: ["nature"] });
+    const add = (option: string) =>
+      writer.write(SKILLS.key, (row) => toggleListOption(row, row.value as string[], option, true));
+
+    const first = add("occultism");
+    const second = add("arcana");
+    await flush();
+    sent[0]?.reject(new Error("forbidden"));
+    await flush();
+
+    await expect(first).resolves.toMatchObject({ ok: false });
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.op.payload).toMatchObject({
+      updates: [{ _id: "s1", diff: { value: ["arcana", "nature"] } }],
+    });
+    sent[1]?.resolve({});
+    await expect(second).resolves.toEqual({ ok: true });
+    expect(rows.get(SKILLS.key)?.value).toEqual(["arcana", "nature"]);
+  });
+
+  it("writes to different keys are not serialized against each other", async () => {
+    const sent: Deferred[] = [];
+    const other: WorldSettingRow = { ...NEW_NUMBER, key: "fake-system:other" };
+    const rows = new Map<string, WorldSettingRow>([
+      [SKILLS.key, SKILLS],
+      [other.key, other],
+    ]);
+    const writer = createSettingWriter({
+      getRow: (key) => rows.get(key),
+      send: (op) =>
+        new Promise((resolve, reject) => {
+          sent.push({ op, resolve, reject });
+        }),
+      apply: () => undefined,
+    });
+    void writer.write(SKILLS.key, () => ["arcana"]);
+    void writer.write(other.key, () => 7);
+    await flush();
+    expect(sent).toHaveLength(2);
   });
 });
