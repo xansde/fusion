@@ -389,3 +389,76 @@ describe("FIX-3 — world:activeScene inside resync:delta updates activeSceneId 
     expect(mockSetActiveSceneId).toHaveBeenCalledWith(sceneId, worldMirror);
   });
 });
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434): a live `Setting` envelope reaches the Mundo registry
+// ---------------------------------------------------------------------------
+
+describe("worldSync: Setting envelopes update the world-settings registry (HJ-09)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("a doc:create then a doc:update of a declared Setting on 'op' fold the id and value into the registry", async () => {
+    const reg = await import("../../settings/worldSettingsRegistry.svelte.js");
+    reg.resetWorldSettingsRegistry();
+    reg.seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [
+        {
+          id: null,
+          key: "fake-system:campaign.trainedSkills",
+          kind: "enumList",
+          options: ["a", "b"],
+          label: "L",
+          value: [],
+        },
+      ],
+    });
+    const { attachWorldSync, worldMirror } = await importWorldSync();
+    const socket = makeMockSocket(false);
+    worldMirror.applySnapshot(makeSnapshot(0));
+    attachWorldSync(socket as unknown as Socket);
+
+    socket.receive(
+      "op",
+      makeEnvelope(
+        "doc:create",
+        {
+          documentType: "Setting",
+          documents: [{ _id: "s-1", key: "fake-system:campaign.trainedSkills", value: ["a"] }],
+        },
+        1,
+      ),
+    );
+    expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: ["a"] });
+
+    socket.receive(
+      "op",
+      makeEnvelope(
+        "doc:update",
+        {
+          documentType: "Setting",
+          documents: [{ _id: "s-1", key: "fake-system:campaign.trainedSkills", value: ["a", "b"] }],
+        },
+        2,
+      ),
+    );
+    expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: ["a", "b"] });
+  });
+
+  it("an empty-body Setting envelope (what a player gets for a key off the allowlist) changes nothing", async () => {
+    const reg = await import("../../settings/worldSettingsRegistry.svelte.js");
+    reg.resetWorldSettingsRegistry();
+    reg.seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [{ id: "s-1", key: "fake-system:k", kind: "boolean", label: "L", value: true }],
+    });
+    const { attachWorldSync, worldMirror } = await importWorldSync();
+    const socket = makeMockSocket(false);
+    worldMirror.applySnapshot(makeSnapshot(0));
+    attachWorldSync(socket as unknown as Socket);
+    socket.receive("op", makeEnvelope("doc:update", { documentType: "Setting", documents: [] }, 1));
+    expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: true });
+  });
+});

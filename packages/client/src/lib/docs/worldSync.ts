@@ -31,6 +31,7 @@ import type {
 import { createDocumentId } from "@fusion/shared";
 import { DocumentMirror } from "./DocumentMirror.js";
 import { setActiveSceneId, syncActiveSceneFromMirror } from "./activeScene.svelte.js";
+import { applyWorldSettingDocs } from "../settings/worldSettingsRegistry.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Singleton mirror (one per app session)
@@ -68,9 +69,18 @@ function _applyIncomingOp(op: Envelope): void {
 
   // If a Scene doc changed, re-derive the active scene from the mirror.
   if (op.type === "doc:create" || op.type === "doc:update" || op.type === "doc:delete") {
-    const payload = op.payload as { documentType?: string };
+    const payload = op.payload as { documentType?: string; documents?: unknown };
     if (payload.documentType === "Scene") {
       syncActiveSceneFromMirror(worldMirror);
+    }
+    // HJ-09 (#434): a world setting changed. The Mundo registry (the GM's section, a player's Plano reading
+    // `campaign.trainedSkills`) must not stay on the value fetched at mount; `Setting` is not mirrored.
+    if (
+      payload.documentType === "Setting" &&
+      op.type !== "doc:delete" &&
+      Array.isArray(payload.documents)
+    ) {
+      applyWorldSettingDocs(payload.documents as unknown[]);
     }
   }
 }

@@ -12,6 +12,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import type { Socket } from "socket.io-client";
 
 import {
+  applyWorldSettingDocs,
   applyWorldSettingWrite,
   ensureWorldSettingsRegistry,
   resetWorldSettingsRegistry,
@@ -130,5 +131,53 @@ describe("applyWorldSettingWrite — REQ-CFG-071: a confirmed write folds id + v
     applyWorldSettingWrite("some-other-system:unrelated", "id-1", 42);
 
     expect(worldSettingsRegistry.rows).toEqual(before);
+  });
+});
+
+// HJ-09 (#434): the Plano of a PLAYER reads the campaign's trained skills from this registry, and a GM's change
+// reaches the player's socket as a live `Setting` envelope (the server filters it through the player-readable
+// allowlist). Without folding it in, the player's Plano stayed on the value fetched at mount until a reload.
+describe("applyWorldSettingDocs: a live Setting envelope updates the declared rows", () => {
+  beforeEach(() => {
+    resetWorldSettingsRegistry();
+    seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [
+        {
+          id: null,
+          key: "fake-system:campaign.trainedSkills",
+          kind: "enumList",
+          options: ["a", "b"],
+          label: "L",
+          value: [],
+        },
+        { id: "s-2", key: "fake-system:other", kind: "boolean", label: "O", value: false },
+      ],
+    });
+  });
+
+  it("sets the id and the new value of the row the document names (a GM's first write creates the document)", () => {
+    applyWorldSettingDocs([{ _id: "s-9", key: "fake-system:campaign.trainedSkills", value: ["b"] }]);
+    const row = worldSettingsRegistry.rows.find((r) => r.key === "fake-system:campaign.trainedSkills");
+    expect(row).toMatchObject({ id: "s-9", value: ["b"] });
+    // the sibling row is untouched
+    expect(worldSettingsRegistry.rows.find((r) => r.key === "fake-system:other")).toMatchObject({
+      id: "s-2",
+      value: false,
+    });
+  });
+
+  it("ignores a Setting no declared row names, and malformed documents: it never invents a row", () => {
+    applyWorldSettingDocs([
+      { _id: "x", key: "fake-system:undeclared", value: 1 },
+      { key: "fake-system:other" },
+      { _id: 5, key: "fake-system:other", value: true },
+      null as unknown as Record<string, unknown>,
+    ]);
+    expect(worldSettingsRegistry.rows).toHaveLength(2);
+    expect(worldSettingsRegistry.rows.find((r) => r.key === "fake-system:other")).toMatchObject({
+      id: "s-2",
+      value: false,
+    });
   });
 });
