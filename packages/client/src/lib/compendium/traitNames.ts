@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (255 traits).
+ * Trait slug → pt-BR chip label (259 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -73,6 +73,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   daredevil: "destemido",
   darkness: "escuridão",
   "deadly-d10": "letal-d10",
+  "deadly-d6": "letal-d6",
   "deadly-d8": "letal-d8",
   death: "morte",
   dedication: "dedicação",
@@ -82,6 +83,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   disease: "doença",
   divine: "divino",
   downtime: "tempo-livre",
+  dragon: "dragão",
   dragonblood: "sangue-de-dragão",
   dragonet: "dragonete",
   dromaar: "dromaar",
@@ -101,6 +103,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   exploration: "exploração",
   extradimensional: "extradimensional",
   fear: "medo",
+  fey: "feérico",
   fighter: "guerreiro",
   finesse: "precisão",
   finisher: "finalização",
@@ -251,6 +254,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   trip: "derrubar",
   tripkee: "tripkee",
   "true-name": "nome-verdadeiro",
+  "two-hand-d10": "duas-mãos-d10",
   "two-hand-d12": "duas-mãos-d12",
   "two-hand-d8": "duas-mãos-d8",
   unarmed: "desarmado",
