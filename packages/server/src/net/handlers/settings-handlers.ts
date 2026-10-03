@@ -83,6 +83,11 @@ function requireGamemasterStrict(ctx: HandlerContext): Ack<never> | null {
 const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
   "variantRules.classLevels",
   "variantRules.freeArchetype",
+  // HJ-09 (#434, D4): the skills every character of the campaign receives
+  // trained. The player's Plano shows the origin "Campanha" and the skill
+  // picker marks them as already trained, so the player's client must read it
+  // (write stays GAMEMASTER-strict, like every Setting).
+  "campaign.trainedSkills",
 ]);
 
 /**
@@ -111,8 +116,12 @@ export function isPlayerReadableSettingKey(wireKey: string): boolean {
 // Schema → render-kind classification
 // ---------------------------------------------------------------------------
 
-/** The three shapes REQ-CFG-030 names. Anything else does not render (yet). */
-export type SettingRenderKind = "boolean" | "enum" | "number" | "unsupported";
+/**
+ * The shapes REQ-CFG-030 names (plus `enumList`, HJ-09: a list drawn from a
+ * closed set — rendered as a multiple selection). Anything else does not
+ * render (yet).
+ */
+export type SettingRenderKind = "boolean" | "enum" | "enumList" | "number" | "unsupported";
 
 /** Unwrap the optional/default/nullable wrappers a declaration may carry. */
 function unwrapSchema(schema: ZodTypeAny): ZodTypeAny {
@@ -147,6 +156,14 @@ export function classifySettingSchema(schema: ZodTypeAny): {
     const options: string[] = [...(inner.options as string[])];
     return { kind: "enum", options };
   }
+  // HJ-09 (#434): `z.array(z.enum([...]))` — a list picked from a closed set.
+  // A list of free strings has no option set to draw, so it stays unsupported.
+  if (inner instanceof z.ZodArray) {
+    const element = unwrapSchema(inner.element as ZodTypeAny);
+    if (element instanceof z.ZodEnum) {
+      return { kind: "enumList", options: [...(element.options as string[])] };
+    }
+  }
   return { kind: "unsupported" };
 }
 
@@ -160,10 +177,12 @@ export interface WorldSettingDeclaration {
   /** Namespaced by the declaring system (REQ-CFG-071), e.g. `"pf2e:freeArchetype"`. */
   key: string;
   kind: Exclude<SettingRenderKind, "unsupported">;
-  /** Present only when `kind === "enum"`. */
+  /** Present only when `kind === "enum"` or `"enumList"`. */
   options?: string[];
   label: string;
   hint?: string;
+  /** Display text per option (`kind` `enum`/`enumList`), keyed by the option value (HJ-09). */
+  optionLabels?: Record<string, string>;
   requiresReload?: boolean;
   /**
    * REQ-CFG-082: when true, the tab must ask "how many actors are affected"
@@ -198,6 +217,7 @@ export interface ErasedSettingDefinitionLike {
   // `exactOptionalPropertyTypes: true`: matches `ErasedSettingDefinition`'s own
   // shape (registries.ts) so the real SystemModule assigns here structurally.
   hint?: string | undefined;
+  optionLabels?: Readonly<Record<string, string>> | undefined;
   requiresReload?: boolean | undefined;
   requiresConfirmOnDisable?: boolean | undefined;
   /** REQ-CFG-082: server-only, never serialized — see `buildSettingsImpactHandler`. */
@@ -295,6 +315,9 @@ export function buildSettingsDeclarationsHandler(
       };
       if (classification.options !== undefined) entry.options = classification.options;
       if (def.hint !== undefined) entry.hint = def.hint;
+      if (def.optionLabels !== undefined && classification.options !== undefined) {
+        entry.optionLabels = { ...def.optionLabels };
+      }
       if (def.requiresReload !== undefined) entry.requiresReload = def.requiresReload;
       if (def.requiresConfirmOnDisable !== undefined) {
         entry.requiresConfirmOnDisable = def.requiresConfirmOnDisable;

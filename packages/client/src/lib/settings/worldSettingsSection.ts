@@ -22,7 +22,7 @@
 // Wire shape (client's own copy — see module docstring)
 // ---------------------------------------------------------------------------
 
-export type WorldSettingKind = "boolean" | "enum" | "number";
+export type WorldSettingKind = "boolean" | "enum" | "enumList" | "number";
 
 export interface WorldSettingRow {
   /** `Setting` document `_id`, or `null` when nothing has been written yet. */
@@ -30,8 +30,10 @@ export interface WorldSettingRow {
   /** Namespaced by the declaring system (REQ-CFG-071), e.g. `"pf2e:freeArchetype"`. */
   readonly key: string;
   readonly kind: WorldSettingKind;
-  /** Present only when `kind === "enum"`. */
+  /** Present only when `kind === "enum"` or `"enumList"`. */
   readonly options?: readonly string[];
+  /** Display text per option of an `enumList` row, keyed by the option value; an option without one shows as itself (HJ-09). */
+  readonly optionLabels?: Readonly<Record<string, string>>;
   readonly label: string;
   readonly hint?: string;
   readonly requiresReload?: boolean;
@@ -57,7 +59,40 @@ export interface WorldSettingsDeclarationsResult {
 export type WorldSettingControl =
   | { readonly kind: "boolean"; readonly checked: boolean }
   | { readonly kind: "enum"; readonly value: string; readonly options: readonly string[] }
+  | {
+      readonly kind: "enumList";
+      /** The chosen option values, in the declared option order, unknown values dropped. */
+      readonly selected: readonly string[];
+      readonly options: readonly SettingOptionView[];
+    }
   | { readonly kind: "number"; readonly value: number };
+
+/** One option of an enum / enum-list row: the stored `value` and the text drawn for it. */
+export interface SettingOptionView {
+  readonly value: string;
+  readonly label: string;
+}
+
+function optionViews(row: WorldSettingRow): SettingOptionView[] {
+  return (row.options ?? []).map((value) => ({ value, label: row.optionLabels?.[value] ?? value }));
+}
+
+/**
+ * The list a toggle of `option` produces: the declared option order is kept
+ * (not click order), so the stored value is stable and two GMs ticking the same
+ * boxes write the same list.
+ */
+export function toggleListOption(
+  row: WorldSettingRow,
+  current: readonly string[],
+  option: string,
+  on: boolean,
+): string[] {
+  const next = new Set(current);
+  if (on) next.add(option);
+  else next.delete(option);
+  return (row.options ?? []).filter((o) => next.has(o));
+}
 
 /**
  * Turn a declared row into what the tab draws. The ONLY thing read is
@@ -74,6 +109,14 @@ export function controlForRow(row: WorldSettingRow): WorldSettingControl {
         value: typeof row.value === "string" ? row.value : "",
         options: row.options ?? [],
       };
+    case "enumList": {
+      const chosen = new Set(Array.isArray(row.value) ? (row.value as unknown[]) : []);
+      return {
+        kind: "enumList",
+        selected: (row.options ?? []).filter((option) => chosen.has(option)),
+        options: optionViews(row),
+      };
+    }
     case "number":
       return { kind: "number", value: typeof row.value === "number" ? row.value : 0 };
   }

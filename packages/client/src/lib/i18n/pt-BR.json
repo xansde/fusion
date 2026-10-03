@@ -859,6 +859,8 @@
   "FUSION.Sheet.Plan.Abc.Heritage": "Linhagem",
   "FUSION.Sheet.Plan.Abc.Background": "Antecedente",
   "FUSION.Sheet.Plan.Abc.Class": "Classe",
+  "FUSION.Sheet.Plan.Campaign.Title": "Campanha",
+  "FUSION.Sheet.Plan.Campaign.Hint": "Treinadas pela configuração do mundo, fora das perícias da classe.",
   "FUSION.Sheet.Plan.NeedsClassHint": "Escolha uma classe para começar a montar a ficha nível a nível.",
   "FUSION.Sheet.Plan.ChooseClass": "Escolher classe",
   "FUSION.Sheet.Plan.Requirement.LevelTooHigh": "Exige nível de personagem {{required}}; você tem {{current}}.",

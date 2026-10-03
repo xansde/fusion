@@ -401,6 +401,7 @@ export function defineSystem(
         default: def.default,
         label: def.label,
         hint: def.hint,
+        optionLabels: def.optionLabels,
         requiresReload: def.requiresReload,
         requiresConfirmOnDisable: def.requiresConfirmOnDisable,
         countAffectedActors: def.countAffectedActors?.bind(def),

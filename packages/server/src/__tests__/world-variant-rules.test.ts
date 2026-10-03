@@ -61,4 +61,56 @@ describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
       freeArchetype: undefined,
     });
   });
+
+  // HJ-09 (#434, D4): "perícias treinadas pela campanha" é setting de mundo; o
+  // mesmo overlay que leva classLevels/freeArchetype ao doc leva a lista.
+  describe("campaignSkills (HJ-09, setting `campaign.trainedSkills`)", () => {
+    it("resolves to undefined (unknown, not empty) when no Setting document exists", () => {
+      const resolved = resolveWorldVariantRules(storeWith([]), { manifest: { id: "pf2e" } });
+      expect(resolved.campaignSkills).toBeUndefined();
+    });
+
+    it("reads the slug list from the system-namespaced Setting", () => {
+      const store = storeWith([
+        { _id: "s1", key: "pf2e:campaign.trainedSkills", value: ["occultism", "stealth"] },
+      ]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
+      expect(resolved.campaignSkills).toEqual(["occultism", "stealth"]);
+    });
+
+    it("an EXPLICIT empty list is a value (the GM cleared it), not 'unknown'", () => {
+      const store = storeWith([{ _id: "s1", key: "pf2e:campaign.trainedSkills", value: [] }]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
+      expect(resolved.campaignSkills).toEqual([]);
+    });
+
+    it("namespaces by the ACTIVE system id: a pf2e row never leaks into a misto world", () => {
+      const store = storeWith([
+        { _id: "s1", key: "pf2e:campaign.trainedSkills", value: ["occultism"] },
+        { _id: "s2", key: "pf2e-sf2e:campaign.trainedSkills", value: ["piloting"] },
+      ]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e-sf2e" } });
+      expect(resolved.campaignSkills).toEqual(["piloting"]);
+    });
+
+    it("drops anything that is not a slug string and de-duplicates (a forged value cannot reach the derivation)", () => {
+      const store = storeWith([
+        {
+          _id: "s1",
+          key: "pf2e:campaign.trainedSkills",
+          value: ["occultism", "occultism", 7, null, "Not A Slug", "../x", "lore-x"],
+        },
+      ]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
+      expect(resolved.campaignSkills).toEqual(["occultism", "lore-x"]);
+    });
+
+    it("a non-array stored value resolves to an empty list, never throws", () => {
+      const store = storeWith([
+        { _id: "s1", key: "pf2e:campaign.trainedSkills", value: "occultism" },
+      ]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
+      expect(resolved.campaignSkills).toEqual([]);
+    });
+  });
 });

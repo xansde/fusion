@@ -1105,7 +1105,12 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
  * world-variant-rules.ts`) — any system id can prefix them (`pf2e:...`,
  * `pf2e-sf2e:...`), so this matches by suffix, never a hardcoded full key.
  */
-const VARIANT_RULES_KEY_SUFFIXES = [":variantRules.classLevels", ":variantRules.freeArchetype"];
+const VARIANT_RULES_KEY_SUFFIXES = [
+  ":variantRules.classLevels",
+  ":variantRules.freeArchetype",
+  // HJ-09 (#434): same overlay, same re-derivation on change.
+  ":campaign.trainedSkills",
+];
 
 function isVariantRulesSettingKey(key: unknown): boolean {
   return typeof key === "string" && VARIANT_RULES_KEY_SUFFIXES.some((s) => key.endsWith(s));
