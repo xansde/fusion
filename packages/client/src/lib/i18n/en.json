@@ -859,6 +859,8 @@
   "FUSION.Sheet.Plan.Abc.Heritage": "Heritage",
   "FUSION.Sheet.Plan.Abc.Background": "Background",
   "FUSION.Sheet.Plan.Abc.Class": "Class",
+  "FUSION.Sheet.Plan.Campaign.Title": "Campaign",
+  "FUSION.Sheet.Plan.Campaign.Hint": "Trained by this world's settings, outside your class skills.",
   "FUSION.Sheet.Plan.NeedsClassHint": "Choose a class to start building the sheet level by level.",
   "FUSION.Sheet.Plan.ChooseClass": "Choose class",
   "FUSION.Sheet.Plan.Requirement.LevelTooHigh": "Requires character level {{required}}; you have {{current}}.",
