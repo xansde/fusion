@@ -387,4 +387,78 @@ describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)"
     expect((build["variantRules"] as { classLevels: boolean }).classLevels).toBe(true);
     expect(build["freeArchetype"]).toBe(false);
   });
+
+  // HJ-09 (#434, D4): the campaign's trained skills ride the same overlay.
+  describe("campaignSkills overlay (HJ-09)", () => {
+    function buildFakeCampaignReader(): SystemModule {
+      return defineSystem(
+        {
+          id: "fake-campaign-reader-system",
+          title: "Fake Campaign Reader System",
+          version: "0.1.0",
+          engineCompat: ">=0.1.0 <2.0.0",
+          authors: [{ name: "Test" }],
+          documentTypes: { Actor: ["hero"] },
+          languages: [{ lang: "en", name: "English", path: "lang/en.json" }],
+        },
+        (r) => {
+          r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
+          r.derive({
+            id: "fake.echo-campaign-skills",
+            documentType: "Actor",
+            subtypes: ["hero"],
+            phase: "derived",
+            reads: [],
+            writes: ["system.derived.campaignSkillsSeen"],
+            run: (doc) => {
+              const d = doc as {
+                system: { build?: { campaignSkills?: string[] }; derived: Record<string, unknown> };
+              };
+              d.system.derived["campaignSkillsSeen"] = d.system.build?.campaignSkills;
+            },
+          });
+        },
+      );
+    }
+
+    const world = (campaignSkills: readonly string[] | undefined) => ({
+      classLevels: undefined,
+      freeArchetype: undefined,
+      campaignSkills,
+    });
+
+    it("the world's list reaches system.build.campaignSkills before any step runs", () => {
+      const doc: Record<string, unknown> = { type: "hero", system: { derived: {} } };
+      runActorDerivation(doc, buildFakeCampaignReader(), world(["occultism"]));
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      expect(derived["campaignSkillsSeen"]).toEqual(["occultism"]);
+    });
+
+    it("no stored Setting (undefined) leaves the doc untouched — the key is absent, not []", () => {
+      const doc: Record<string, unknown> = { type: "hero", system: { derived: {} } };
+      runActorDerivation(doc, buildFakeCampaignReader(), world(undefined));
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      expect(derived["campaignSkillsSeen"]).toBeUndefined();
+    });
+
+    it("an explicit empty list overrides whatever the doc carried (a stale value cannot survive the GM clearing it)", () => {
+      const doc: Record<string, unknown> = {
+        type: "hero",
+        system: { derived: {}, build: { campaignSkills: ["stealth"] } },
+      };
+      runActorDerivation(doc, buildFakeCampaignReader(), world([]));
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      expect(derived["campaignSkillsSeen"]).toEqual([]);
+    });
+
+    it("the campaign list is world-only: a doc-carried list is dropped when the world has no Setting", () => {
+      const doc: Record<string, unknown> = {
+        type: "hero",
+        system: { derived: {}, build: { campaignSkills: ["stealth"] } },
+      };
+      runActorDerivation(doc, buildFakeCampaignReader(), world(undefined));
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>;
+      expect(derived["campaignSkillsSeen"]).toBeUndefined();
+    });
+  });
 });

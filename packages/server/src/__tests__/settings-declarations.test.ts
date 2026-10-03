@@ -91,8 +91,19 @@ describe("classifySettingSchema — REQ-CFG-030's three shapes", () => {
     expect(classifySettingSchema(z.number().optional())).toEqual({ kind: "number" });
   });
 
-  it("a schema outside the three declared shapes is unsupported, not a crash", () => {
+  it("a schema outside the declared shapes is unsupported, not a crash", () => {
     expect(classifySettingSchema(z.string()).kind).toBe("unsupported");
+    // A list of free strings has no option set to draw — still unsupported.
+    expect(classifySettingSchema(z.array(z.string())).kind).toBe("unsupported");
+  });
+
+  // HJ-09 (#434): a list drawn from a closed set (the campaign's trained
+  // skills) classifies as an enum list, carrying the same options an enum does.
+  it("an array of enum values classifies as an enum list, carrying its options", () => {
+    expect(classifySettingSchema(z.array(z.enum(["arcana", "occultism"])).default([]))).toEqual({
+      kind: "enumList",
+      options: ["arcana", "occultism"],
+    });
   });
 });
 
@@ -399,10 +410,20 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
       { _id: "setting-cl2", key: "pf2e-sf2e:variantRules.classLevels", value: true },
     ]);
     const settings = ask(pf2eSf2eSystem, store, UserRole.PLAYER).settings;
-    expect(settings.map((s) => s.key).sort()).toEqual([
-      "pf2e-sf2e:variantRules.classLevels",
-      "pf2e-sf2e:variantRules.freeArchetype",
-    ]);
+    const keys = settings.map((s) => s.key);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        "pf2e-sf2e:variantRules.classLevels",
+        "pf2e-sf2e:variantRules.freeArchetype",
+      ]),
+    );
+    // Nothing off the allowlist leaks: the variant rules plus (from the pin
+    // that carries HJ-09) the campaign's trained skills, and only those.
+    expect(
+      keys.every((k) =>
+        /^pf2e-sf2e:(variantRules\.(classLevels|freeArchetype)|campaign\.trainedSkills)$/.test(k),
+      ),
+    ).toBe(true);
     expect(settings.find((s) => s.key === "pf2e-sf2e:variantRules.classLevels")).toMatchObject({
       id: "setting-cl2",
       value: true,
@@ -417,5 +438,63 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
       (s) => s.key === "pf2e:variantRules.classLevels",
     );
     expect(entry).toMatchObject({ id: "setting-cl", value: true });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434, D4) — "perícias treinadas pela campanha": a world setting that
+// is a LIST drawn from a closed set. The Mundo section must draw it, a PLAYER
+// must read it (the Plano shows the origin "Campanha" and the sheet marks the
+// skill as already trained), and nobody but the GM writes it (that part is
+// proven over the wire in campaign-trained-skills.test.ts).
+// ---------------------------------------------------------------------------
+
+describe("settings:declarations — campaign.trainedSkills (HJ-09)", () => {
+  const CAMPAIGN = fakeSystemWith("fake-system", [
+    {
+      key: "campaign.trainedSkills",
+      scope: "world",
+      schema: z.array(z.enum(["arcana", "occultism", "stealth"])),
+      default: [],
+      label: "Perícias treinadas pela campanha",
+      hint: "Todo personagem recebe estas perícias treinadas.",
+      optionLabels: { arcana: "Arcanismo", occultism: "Ocultismo", stealth: "Furtividade" },
+    },
+    {
+      key: "someOtherSensitiveWorldSetting",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Outra configuração sensível",
+    },
+  ]);
+
+  it("the GM gets an enum-list row carrying the options and the declared default", () => {
+    const entry = ask(CAMPAIGN).settings.find((s) => s.key === "fake-system:campaign.trainedSkills");
+    expect(entry).toEqual({
+      id: null,
+      key: "fake-system:campaign.trainedSkills",
+      kind: "enumList",
+      options: ["arcana", "occultism", "stealth"],
+      optionLabels: { arcana: "Arcanismo", occultism: "Ocultismo", stealth: "Furtividade" },
+      label: "Perícias treinadas pela campanha",
+      hint: "Todo personagem recebe estas perícias treinadas.",
+      value: [],
+    });
+  });
+
+  it("the stored list wins over the default", () => {
+    const store = fakeStore([
+      { _id: "s1", key: "fake-system:campaign.trainedSkills", value: ["occultism"] },
+    ]);
+    const entry = ask(CAMPAIGN, store).settings.find(
+      (s) => s.key === "fake-system:campaign.trainedSkills",
+    );
+    expect(entry).toMatchObject({ id: "s1", value: ["occultism"] });
+  });
+
+  it("a PLAYER reads the campaign skills and nothing else beside them", () => {
+    const settings = ask(CAMPAIGN, undefined, UserRole.PLAYER).settings;
+    expect(settings.map((s) => s.key)).toEqual(["fake-system:campaign.trainedSkills"]);
   });
 });

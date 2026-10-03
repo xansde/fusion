@@ -71,12 +71,48 @@ export interface WorldVariantRulesSystemSource {
 export interface ResolvedWorldVariantRules {
   readonly classLevels: boolean | undefined;
   readonly freeArchetype: boolean | undefined;
+  /**
+   * HJ-09 (#434, decisão D4): the skill slugs EVERY character of this world
+   * receives trained, from the `campaign.trainedSkills` setting. Not a
+   * "variant rule", but it rides the same overlay for the same reason: the
+   * derivation steps are doc-only (REQ-SYS-024), so the world value has to
+   * reach them as `system.build.campaignSkills`.
+   *
+   * `undefined` = no Setting stored (the GM never configured it); `[]` = the GM
+   * explicitly cleared it. Unlike the two booleans there is NO per-actor
+   * legacy field to fall back to, and there must never be one: if the actor's
+   * own document could carry the list, its owner could grant themselves any
+   * skill. The overlay therefore always REPLACES whatever the doc held.
+   */
+  readonly campaignSkills?: readonly string[] | undefined;
+}
+
+/** A skill slug as the systems spell them (`occultism`, `lore-scribing`). */
+const CAMPAIGN_SKILL_SLUG = /^[a-z][a-z0-9-]*$/;
+
+/**
+ * Normalise a stored `campaign.trainedSkills` value: only strings that look
+ * like a skill slug survive, de-duplicated, in the stored order. The server
+ * does not validate a Setting's `value` against the declared schema on write,
+ * so this is the door that keeps a malformed or forged value out of the
+ * derivation. A non-array resolves to `[]` (the GM wrote something unusable:
+ * "no skills", never a throw).
+ */
+function normalizeCampaignSkills(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const entry of value) {
+    if (typeof entry === "string" && CAMPAIGN_SKILL_SLUG.test(entry) && !out.includes(entry)) {
+      out.push(entry);
+    }
+  }
+  return out;
 }
 
 /**
  * Resolve both variant-rule settings for the world's active system.
  *
- * Returns `{ classLevels: undefined, freeArchetype: undefined }` when
+ * Returns every field `undefined` when
  * `store` or `systemModule` is missing (no system resolved for this world)
  * — the caller's fallback-to-legacy-field path applies here too, same as
  * for an unset key on a resolved system.
@@ -85,20 +121,25 @@ export function resolveWorldVariantRules(
   store: WorldVariantRulesStoreSource | undefined,
   systemModule: WorldVariantRulesSystemSource | undefined,
 ): ResolvedWorldVariantRules {
-  if (!store || !systemModule) return { classLevels: undefined, freeArchetype: undefined };
+  if (!store || !systemModule) {
+    return { classLevels: undefined, freeArchetype: undefined, campaignSkills: undefined };
+  }
 
   const systemId = systemModule.manifest.id;
   const classLevelsKey = `${systemId}:variantRules.classLevels`;
   const freeArchetypeKey = `${systemId}:variantRules.freeArchetype`;
+  const campaignSkillsKey = `${systemId}:campaign.trainedSkills`;
 
   let classLevels: boolean | undefined;
   let freeArchetype: boolean | undefined;
+  let campaignSkills: string[] | undefined;
 
   for (const doc of store.getAll("settings")) {
     const key = doc["key"];
     if (key === classLevelsKey) classLevels = doc["value"] === true;
     else if (key === freeArchetypeKey) freeArchetype = doc["value"] === true;
+    else if (key === campaignSkillsKey) campaignSkills = normalizeCampaignSkills(doc["value"]);
   }
 
-  return { classLevels, freeArchetype };
+  return { classLevels, freeArchetype, campaignSkills };
 }

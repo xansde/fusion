@@ -55,6 +55,7 @@
     buildSettingWriteOp,
     controlForRow,
     resolveBooleanWrite,
+    toggleListOption,
     type WorldSettingRow,
   } from "../../lib/settings/worldSettingsSection.js";
   import { querySettingDisableImpact } from "../../lib/settings/worldSettingsImpact.js";
@@ -83,6 +84,11 @@
     const control = controlForRow(row);
     if (control.kind === "boolean") {
       (target as HTMLInputElement).checked = control.checked;
+    } else if (control.kind === "enumList") {
+      // `target` is the one checkbox the user flipped: put it back to whether
+      // the row still lists its option.
+      const input = target as HTMLInputElement;
+      input.checked = control.selected.includes(input.value);
     } else if (control.kind === "number") {
       (target as HTMLInputElement).value = String(control.value);
     } else {
@@ -178,6 +184,30 @@
                 <option value={option}>{option}</option>
               {/each}
             </select>
+          {:else if control.kind === "enumList"}
+            <!-- HJ-09: a list drawn from a closed set, one checkbox per option.
+                 Every tick writes the WHOLE list (declared order) — see
+                 `toggleListOption`. -->
+            <div class="world-section__checklist" role="group" aria-label={row.label}>
+              {#each control.options as option (option.value)}
+                <label class="world-section__check">
+                  <input
+                    type="checkbox"
+                    value={option.value}
+                    checked={control.selected.includes(option.value)}
+                    onchange={(event) => {
+                      const target = event.currentTarget as HTMLInputElement;
+                      void commit(
+                        row,
+                        toggleListOption(row, control.selected, option.value, target.checked),
+                        target,
+                      );
+                    }}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              {/each}
+            </div>
           {:else if control.kind === "number"}
             <input
               class="world-section__number"
@@ -258,5 +288,26 @@
 
   .world-section__number {
     width: 5rem;
+  }
+
+  .world-section__checklist {
+    display: grid;
+    flex-shrink: 0;
+    gap: 0.15rem 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 22rem;
+  }
+
+  .world-section__check {
+    align-items: center;
+    color: var(--fusion-text);
+    display: flex;
+    font-size: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .world-section__row:has(.world-section__checklist) {
+    align-items: flex-start;
+    flex-direction: column;
   }
 </style>

@@ -322,6 +322,17 @@ export function runActorDerivation(
     const existingFreeArchetype = build["freeArchetype"] === true;
     build["freeArchetype"] = worldVariantRules.freeArchetype ?? existingFreeArchetype;
 
+    // HJ-09 (#434, D4): the campaign's trained skills are WORLD-only. Whatever
+    // the actor's own document carries under this key is discarded before any
+    // step runs — otherwise an owner could write the list into their own
+    // `system.build` and grant themselves any skill. No Setting stored = the
+    // key is absent (the steps read "no campaign skills").
+    if (worldVariantRules.campaignSkills !== undefined) {
+      build["campaignSkills"] = [...worldVariantRules.campaignSkills];
+    } else {
+      delete build["campaignSkills"];
+    }
+
     system["build"] = build;
   }
 

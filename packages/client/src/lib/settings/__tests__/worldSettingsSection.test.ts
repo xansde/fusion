@@ -16,6 +16,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildSettingWriteOp,
   controlForRow,
+  toggleListOption,
   needsDisableConfirm,
   resolveBooleanWrite,
   type WorldSettingRow,
@@ -292,5 +293,59 @@ describe("resolveBooleanWrite — REQ-CFG-082: gate a boolean row's write on con
     expect(formatConfirmMessage).toHaveBeenCalledWith(0);
     expect(confirmDisable).toHaveBeenCalledWith("count=0");
     expect(shouldCommit).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434): a list drawn from a closed set — "perícias treinadas pela
+// campanha". Same genericity bar: the tab knows nothing about skills.
+// ---------------------------------------------------------------------------
+
+const NEW_LIST: WorldSettingRow = {
+  id: "setting-list-1",
+  key: "fake-system:favouriteColours",
+  kind: "enumList",
+  options: ["red", "green", "blue"],
+  optionLabels: { red: "Vermelho", blue: "Azul" },
+  label: "Cores",
+  value: ["blue", "red", "not-an-option"],
+};
+
+describe("controlForRow — REQ-CFG-037: enumList row (HJ-09)", () => {
+  it("draws every declared option, labelled by optionLabels (falling back to the value), in declared order", () => {
+    expect(controlForRow(NEW_LIST)).toEqual({
+      kind: "enumList",
+      selected: ["red", "blue"],
+      options: [
+        { value: "red", label: "Vermelho" },
+        { value: "green", label: "green" },
+        { value: "blue", label: "Azul" },
+      ],
+    });
+  });
+
+  it("a non-array value draws nothing selected, never throws", () => {
+    expect(controlForRow({ ...NEW_LIST, value: "red" })).toMatchObject({ selected: [] });
+    expect(controlForRow({ ...NEW_LIST, value: undefined })).toMatchObject({ selected: [] });
+  });
+});
+
+describe("toggleListOption — enumList writes keep the declared order", () => {
+  it("ticking adds the option at its declared position, not at the end", () => {
+    expect(toggleListOption(NEW_LIST, ["blue"], "red", true)).toEqual(["red", "blue"]);
+  });
+
+  it("unticking removes only that option", () => {
+    expect(toggleListOption(NEW_LIST, ["red", "blue"], "red", false)).toEqual(["blue"]);
+  });
+
+  it("the write is the generic Setting op carrying the whole list", () => {
+    expect(buildSettingWriteOp(NEW_LIST, ["green"])).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-list-1", diff: { value: ["green"] } }],
+      },
+    });
   });
 });

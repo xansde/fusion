@@ -260,6 +260,14 @@ export interface SettingDefinition<S extends ZodType = ZodType> {
   /** Optional longer description hint. */
   readonly hint?: string;
   /**
+   * Display text per option of an enum / enum-list schema, keyed by the option
+   * value (HJ-09, #434). The settings UI draws `optionLabels[option] ?? option`:
+   * a list of skill slugs reads "Ocultismo", not `occultism`. Like `label`, the
+   * system supplies the text — the tab knows no game system (REQ-CFG-031).
+   * Meaningless outside an enum / enum-list setting.
+   */
+  readonly optionLabels?: Readonly<Record<string, string>>;
+  /**
    * When true, the engine shows a "Reload Required" notice after changing
    * this setting.
    */
@@ -296,6 +304,7 @@ export interface ErasedSettingDefinition {
   // Note: optional properties without exactOptionalPropertyTypes issue — we use
   // `string | undefined` here so callers can set these from optional source fields.
   readonly hint: string | undefined;
+  readonly optionLabels: Readonly<Record<string, string>> | undefined;
   readonly requiresReload: boolean | undefined;
   readonly requiresConfirmOnDisable: boolean | undefined;
   readonly countAffectedActors:
