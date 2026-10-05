@@ -874,6 +874,7 @@
   "FUSION.Sheet.Plan.SlotLabel.classLevel": "Class Level",
   "FUSION.Sheet.Plan.SlotLabel.abilityBoosts": "Ability Boosts",
   "FUSION.Sheet.Plan.SlotLabel.ancestryFeat": "Ancestry Feat",
+  "FUSION.Sheet.Plan.SlotLabel.houseSkill": "Campaign Skill (Occultism or Religion)",
   "FUSION.Sheet.Plan.SlotLabel.classFeat": "Class Feat",
   "FUSION.Sheet.Plan.SlotLabel.generalFeat": "General Feat",
   "FUSION.Sheet.Plan.SlotLabel.skillFeat": "Skill Feat",
