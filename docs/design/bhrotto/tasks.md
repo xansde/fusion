@@ -439,7 +439,7 @@ interface ExecutableActionRow {
 - **Tamanho**: M
 - **Onda**: 1 · **Lote**: L1
 
-### BHR-F1-07 — Antecedente Wildborne homebrew (B2, D-B07, DC-12) — BLOQUEADA
+### BHR-F1-07 — Antecedente Wildborne (B2, D-B07, DC-12) — desbloqueada: Lost Omens World Guide (OGL), ver dados/wildborne.md
 
 - **Repo**: satélite
 - **Onde**: novo `systems/pf2e/packs/backgrounds-homebrew/` (`documents.json`, `i18n.pt-BR.json`); registro em `systems/pf2e/src/index.ts`

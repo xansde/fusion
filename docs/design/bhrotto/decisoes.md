@@ -48,3 +48,9 @@ qual companheiro vem de cada talento.
 DC-01 antecipar o merge da `feat/alquimista` (ondas 1–5) em `alfa/app` · DC-08 o companheiro **ativo** herda
 Caçar Presa e Astúcia · **DC-10: o jogador continua editando a própria carteira** (o Mestre só ganha "Ajustar
 carteira"; refina a D-B13) · DC-02..07, DC-09, DC-11, DC-12 como recomendado em `tasks.md` §1.
+
+## Escolhas do jogador (Alexandre, 2026-10-05)
+
+General feat extra do nível 1: **Toughness** · regra da casa: **Ocultismo** · **urso** vem do Animal Companion
+(classe), **antílope** da Beastmaster Dedication (arquétipo) · Wildborne é de um livro **Lost Omens** (DC-12
+desbloqueada: curar da fonte). Pendente: idiomas.
