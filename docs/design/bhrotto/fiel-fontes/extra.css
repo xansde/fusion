@@ -1,0 +1,82 @@
+/* extra.css — only what the NEW elements need on top of the real app CSS (injected into every frame).
+   Tokens are the app's own (--fusion-*). Everything new carries class "nw" so the dashed outline toggle finds it. */
+html, body { margin: 0; height: 100%; background: var(--fusion-bg, #0e0e12); }
+[hidden] { display: none !important; }
+html.show-new .nw { outline: 1.5px dashed rgba(255, 200, 87, .95); outline-offset: 2px; }
+html.show-notes .nw[data-note] { position: relative; }
+html.show-notes .nw[data-note]::after { content: attr(data-note); position: absolute; top: -9px; right: 8px; z-index: 80; pointer-events: none; font: 700 9px/1 var(--fusion-font, system-ui); letter-spacing: .04em; background: #ffc857; color: #2a1c00; padding: 2px 6px; border-radius: 999px; }
+
+/* tiny helpers used by the new fragments */
+.pn-hint { font-size: 11px; color: var(--fusion-text-muted, #8888a0); }
+.pn-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pn-sp { flex: 1; }
+.pn-mono { font-family: var(--fusion-font-mono, ui-monospace, monospace); }
+.pn-badge { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--fusion-border); color: var(--fusion-text-muted); white-space: nowrap; vertical-align: middle; }
+.pn-badge--ok { color: var(--fusion-success); border-color: var(--fusion-success); background: var(--fusion-success-dim); }
+.pn-badge--warn { color: var(--fusion-warning); border-color: var(--fusion-warning); background: var(--fusion-warning-dim); }
+.pn-badge--bad { color: var(--fusion-danger); border-color: var(--fusion-danger); background: var(--fusion-danger-dim); }
+.pn-badge--comp { color: #6fcf97; border-color: #6fcf97; background: rgba(111, 207, 151, .14); }
+.pn-badge--prey { color: #ff8a4c; border-color: #ff8a4c; background: rgba(255, 138, 76, .16); }
+.pn-badge--gm { color: #5fb3d9; border-color: #5fb3d9; background: rgba(95, 179, 217, .14); }
+.pn-card { border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-sm, 4px); background: var(--fusion-surface-alt); padding: 8px 10px; font-size: 12px; }
+.pn-card--ok { border-color: var(--fusion-success); background: var(--fusion-success-dim); }
+.pn-card--bad { border-color: var(--fusion-danger); background: var(--fusion-danger-dim); }
+.pn-card--warn { border-color: var(--fusion-warning); background: var(--fusion-warning-dim); }
+.pn-card--comp { border-color: #6fcf97; background: rgba(111, 207, 151, .12); }
+.pn-card--gm { border-color: #5fb3d9; }
+.pn-card--prey { border-color: #ff8a4c; background: rgba(255, 138, 76, .12); }
+.pn-card h4 { margin: 0 0 4px; font-size: 12px; }
+.pn-off { opacity: .55; }
+.pn-link { color: var(--fusion-accent-hover, #9b7ffe); text-decoration: underline; cursor: pointer; font-size: 11px; background: none; border: 0; padding: 0; font-family: inherit; }
+.pn-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border: 1px solid var(--fusion-border); border-radius: 999px; background: var(--fusion-surface-alt); font-size: 11.5px; cursor: pointer; color: var(--fusion-text); font-family: inherit; }
+.pn-chip--comp { border-color: #6fcf97; background: rgba(111, 207, 151, .12); }
+.pn-mods { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; }
+.pn-mods li { display: flex; justify-content: space-between; gap: 8px; color: var(--fusion-text-muted); }
+.pn-mods li b { font-family: var(--fusion-font-mono, monospace); color: var(--fusion-text); }
+.pn-src { font-size: 10px; color: var(--fusion-text-subtle, #55556a); font-family: var(--fusion-font-mono, monospace); white-space: nowrap; }
+.defense-block, .save-block { position: relative; }
+.pn-defvs { position: absolute; left: 0; right: 0; bottom: -12px; text-align: center; display: block; font-size: 9px; font-weight: 700; color: #ff8a4c; line-height: 1.1; margin-top: 1px; white-space: nowrap; }
+.pn-defvs--pen { color: var(--fusion-danger); }
+.pn-seg { display: inline-flex; border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-sm, 4px); overflow: hidden; }
+.pn-seg button { font: inherit; font-size: 11.5px; padding: 3px 11px; border: 0; border-right: 1px solid var(--fusion-border); background: transparent; color: var(--fusion-text-muted); cursor: pointer; }
+.pn-seg button:last-child { border-right: 0; }
+.pn-seg button.on { background: var(--fusion-accent-dim); color: var(--fusion-accent-hover); }
+.pn-input { font: inherit; font-size: 12px; background: var(--fusion-surface, #18181f); color: var(--fusion-text); border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-sm, 4px); padding: 3px 6px; }
+.pn-chip-m { display: inline-flex; margin-left: 8px; align-items: center; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid #6fcf97; color: #6fcf97; background: rgba(111, 207, 151, .14); cursor: pointer; }
+.pn-chip-m--off { border-color: var(--fusion-border); color: var(--fusion-text-muted); background: transparent; }
+.ability-card__btn--ok { border-color: var(--fusion-accent) !important; color: var(--fusion-accent-hover) !important; }
+
+/* map overlays: tokens drawn like the real PIXI tokens (54 px rounded square, 2 px border, label under) */
+.tk { position: absolute; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 8px; box-sizing: border-box; border: 2px solid; display: flex; align-items: center; justify-content: center; font: 700 20px/1 var(--fusion-font, system-ui); color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .75); }
+.tk--self { background: #9b59b6; border-color: #ecee64; }
+.tk--sm { width: 30px; height: 30px; margin: -15px 0 0 -15px; font-size: 13px; border-radius: 6px; z-index: 5; }
+.tk__l { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 3px; font: 8px/1.1 var(--fusion-font, system-ui); text-shadow: 0 0 3px #000, 0 0 3px #000; white-space: nowrap; font-weight: 400; }
+.tk--gm { background: rgba(95, 179, 217, .2); border: 2px dashed #5fb3d9; color: #cfeaff; }
+.ptag { position: absolute; top: -10px; right: -12px; font: 800 9px/1 var(--fusion-font, system-ui); letter-spacing: .05em; padding: 2px 6px; border-radius: 999px; background: #ff8a4c; color: #2a1004; text-shadow: none; white-space: nowrap; z-index: 6; }
+.ret { position: absolute; width: 66px; height: 66px; margin: -33px 0 0 -33px; pointer-events: none; z-index: 7; }
+.ret i { position: absolute; width: 16px; height: 16px; border: 3px solid #ff4d4d; }
+.ret i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+.ret i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+.ret i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; }
+.ret i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+.ghost { position: absolute; width: 54px; height: 54px; margin: -27px 0 0 -27px; border: 2px dashed rgba(255, 255, 255, .35); border-radius: 8px; box-sizing: border-box; }
+.ov-chip { position: absolute; display: flex; flex-direction: column; gap: 3px; z-index: 8; }
+.ov-note { position: absolute; font: 10px/1.2 var(--fusion-font, system-ui); color: #c9c9dc; background: rgba(14, 14, 18, .8); padding: 2px 8px; border-radius: 999px; }
+.ov-badge { font: 700 9.5px/1 var(--fusion-font, system-ui); padding: 3px 8px; border-radius: 999px; border: 1px solid; background: rgba(14, 14, 18, .88); white-space: nowrap; letter-spacing: .03em; }
+
+.pn-btn { font: inherit; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: var(--fusion-radius-sm, 4px); border: 1px solid var(--fusion-border); background: transparent; color: var(--fusion-text); cursor: pointer; white-space: nowrap; }
+.pn-btn:hover { border-color: var(--fusion-accent); }
+.pn-btn--primary { background: var(--fusion-accent); border-color: var(--fusion-accent); color: var(--fusion-on-accent, #fff); }
+.pn-btn[disabled] { opacity: .4; cursor: not-allowed; }
+
+.pf2e-sheet-shell { position: relative; }
+
+/* D-B23 compact combat states */
+.cs-list { display: flex !important; flex-wrap: wrap; gap: 6px !important; }
+.cs-chip { position: relative; padding: 3px 8px !important; border-radius: 999px !important; }
+.cs-chip .cs-card__head { gap: 6px; }
+.cs-chip__name { background: none; border: 0; padding: 2px 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--fusion-text); }
+.cs-chip__name:hover { text-decoration: underline dotted; }
+.cs-chip .cs-card__state { margin-left: 4px; }
+.cs-pop { position: absolute; z-index: 60; top: calc(100% + 6px); left: 0; width: 280px; margin: 0 !important; padding: 8px 10px; border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius-sm); background: var(--fusion-surface); box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+.cs-chip--open { border-color: var(--fusion-accent, var(--fusion-border)) !important; }
