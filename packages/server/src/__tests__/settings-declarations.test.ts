@@ -399,9 +399,16 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
 
   it("issue #266: a PLAYER (not just the GAMEMASTER) reads both real pf2e variant-rule settings", () => {
     const settings = ask(pf2eSystem, undefined, UserRole.PLAYER).settings;
+    // This pin also carries HJ-09's campaign.trainedSkills and the four
+    // house-rule variants of A Queda (2026-10-05) — all player-readable.
     expect(settings.map((s) => s.key).sort()).toEqual([
+      "pf2e:campaign.trainedSkills",
+      "pf2e:variantRules.ancestryFeatLevelMinus2",
+      "pf2e:variantRules.ancestryFeatsInGeneralSlots",
+      "pf2e:variantRules.bonusGeneralFeatLevel1",
       "pf2e:variantRules.classLevels",
       "pf2e:variantRules.freeArchetype",
+      "pf2e:variantRules.freeOccultismOrReligion",
     ]);
   });
 
@@ -421,7 +428,7 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
     // that carries HJ-09) the campaign's trained skills, and only those.
     expect(
       keys.every((k) =>
-        /^pf2e-sf2e:(variantRules\.(classLevels|freeArchetype)|campaign\.trainedSkills)$/.test(k),
+        /^pf2e-sf2e:(variantRules\.(classLevels|freeArchetype|bonusGeneralFeatLevel1|freeOccultismOrReligion|ancestryFeatsInGeneralSlots|ancestryFeatLevelMinus2)|campaign\.trainedSkills)$/.test(k),
       ),
     ).toBe(true);
     expect(settings.find((s) => s.key === "pf2e-sf2e:variantRules.classLevels")).toMatchObject({

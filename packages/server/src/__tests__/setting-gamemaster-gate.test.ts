@@ -654,5 +654,35 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
         "world:test:broadcastLeakAllowlisted",
       ]);
     });
+
+    // House rules of A Queda (2026-10-05): the four variant keys are
+    // player-readable too (the ficha applies them), live-broadcast included.
+    it.each([
+      "bonusGeneralFeatLevel1",
+      "freeOccultismOrReligion",
+      "ancestryFeatsInGeneralSlots",
+      "ancestryFeatLevelMinus2",
+    ])("house-rule key variantRules.%s reaches the player's socket filtered-in", async (name) => {
+      const wireKey = `pf2e:variantRules.${name}`;
+      const isThisBatch = (env: Record<string, unknown>): boolean => {
+        if (env["type"] !== "doc:create") return false;
+        const payload = env["payload"] as
+          | { documentType?: string; documents?: Array<{ key?: string }> }
+          | undefined;
+        if (payload?.documentType !== "Setting") return false;
+        return (payload.documents ?? []).some((d) => d.key === wireKey);
+      };
+      const playerOpP = waitForOp(player, isThisBatch);
+      const createAck = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [
+          { key: wireKey, value: true },
+          { key: "world:test:houseRuleLeak", value: 1 },
+        ],
+      });
+      expect(createAck["ok"]).toBe(true);
+      const playerPayload = (await playerOpP)["payload"] as { documents: Array<{ key: string }> };
+      expect(playerPayload.documents.map((d) => d.key)).toEqual([wireKey]);
+    });
   });
 });

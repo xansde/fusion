@@ -81,7 +81,10 @@ import type {
   RegisteredEffectsMaterializer,
   SystemModule,
 } from "@fusion/system-api";
-import type { ResolvedWorldVariantRules } from "../documents/world-variant-rules.js";
+import {
+  HOUSE_RULE_VARIANT_KEYS,
+  type ResolvedWorldVariantRules,
+} from "../documents/world-variant-rules.js";
 
 // ---------------------------------------------------------------------------
 // Generic condition → EffectSource materialization
@@ -314,10 +317,20 @@ export function runActorDerivation(
         : false;
     const resolvedClassLevels = worldVariantRules.classLevels ?? existingClassLevels;
 
-    build["variantRules"] =
+    const variantRulesOut: Record<string, unknown> =
       existingVariantRules && typeof existingVariantRules === "object"
         ? { ...existingVariantRules, classLevels: resolvedClassLevels }
         : { classLevels: resolvedClassLevels };
+
+    // House rules (A Queda, 2026-10-05): WORLD-authoritative. There is no
+    // per-actor legacy field — a value the actor's own document brings in
+    // would let its owner forge the rule, so an unset world value DELETES it.
+    for (const key of HOUSE_RULE_VARIANT_KEYS) {
+      const worldValue = worldVariantRules[key];
+      if (worldValue === undefined) Reflect.deleteProperty(variantRulesOut, key);
+      else variantRulesOut[key] = worldValue;
+    }
+    build["variantRules"] = variantRulesOut;
 
     const existingFreeArchetype = build["freeArchetype"] === true;
     build["freeArchetype"] = worldVariantRules.freeArchetype ?? existingFreeArchetype;

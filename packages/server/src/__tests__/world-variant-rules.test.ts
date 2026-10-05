@@ -113,4 +113,43 @@ describe("resolveWorldVariantRules (DEC-MCL-09 world-setting overlay)", () => {
       expect(resolved.campaignSkills).toEqual([]);
     });
   });
+
+  // House rules of A Queda (2026-10-05): four world-authoritative booleans.
+  describe("REQ-CFG-039 house-rule variants (A Queda)", () => {
+    const KEYS = [
+      "bonusGeneralFeatLevel1",
+      "freeOccultismOrReligion",
+      "ancestryFeatsInGeneralSlots",
+      "ancestryFeatLevelMinus2",
+    ] as const;
+
+    it("resolves all four to undefined when nothing is stored, incl. the missing store/system early return", () => {
+      const resolved = resolveWorldVariantRules(storeWith([]), { manifest: { id: "pf2e" } });
+      for (const k of KEYS) expect(resolved[k]).toBeUndefined();
+      const early = resolveWorldVariantRules(undefined, undefined);
+      for (const k of KEYS) expect(early[k]).toBeUndefined();
+    });
+
+    it("reads each key independently, true and an explicit false", () => {
+      const store = storeWith([
+        { _id: "1", key: "pf2e:variantRules.bonusGeneralFeatLevel1", value: true },
+        { _id: "2", key: "pf2e:variantRules.freeOccultismOrReligion", value: false },
+        { _id: "3", key: "pf2e:variantRules.ancestryFeatsInGeneralSlots", value: true },
+      ]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e" } });
+      expect(resolved.bonusGeneralFeatLevel1).toBe(true);
+      expect(resolved.freeOccultismOrReligion).toBe(false);
+      expect(resolved.ancestryFeatsInGeneralSlots).toBe(true);
+      expect(resolved.ancestryFeatLevelMinus2).toBeUndefined();
+    });
+
+    it("namespaces by the ACTIVE system id and treats a non-true value as false", () => {
+      const store = storeWith([
+        { _id: "1", key: "pf2e:variantRules.ancestryFeatLevelMinus2", value: true },
+        { _id: "2", key: "pf2e-sf2e:variantRules.ancestryFeatLevelMinus2", value: "yes" },
+      ]);
+      const resolved = resolveWorldVariantRules(store, { manifest: { id: "pf2e-sf2e" } });
+      expect(resolved.ancestryFeatLevelMinus2).toBe(false);
+    });
+  });
 });
