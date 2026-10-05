@@ -473,4 +473,99 @@ describe("runActorDerivation — worldVariantRules overlay (DEC-MCL-09 bug fix)"
       expect(derived["campaignSkillsSeen"]).toBeUndefined();
     });
   });
+
+  // House rules of A Queda (2026-10-05): world-authoritative, no per-actor legacy.
+  describe("REQ-CFG-039 house-rule variants overlay", () => {
+    const KEYS = [
+      "bonusGeneralFeatLevel1",
+      "freeOccultismOrReligion",
+      "ancestryFeatsInGeneralSlots",
+      "ancestryFeatLevelMinus2",
+    ] as const;
+
+    function buildFakeHouseRuleReader(): SystemModule {
+      return defineSystem(
+        {
+          id: "fake-house-rule-reader-system",
+          title: "Fake House Rule Reader System",
+          version: "0.1.0",
+          engineCompat: ">=0.1.0 <2.0.0",
+          authors: [{ name: "Test" }],
+          documentTypes: { Actor: ["hero"] },
+          languages: [{ lang: "en", name: "English", path: "lang/en.json" }],
+        },
+        (r) => {
+          r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
+          r.derive({
+            id: "fake.echo-house-rules",
+            documentType: "Actor",
+            subtypes: ["hero"],
+            phase: "derived",
+            reads: [],
+            writes: ["system.derived.houseRulesSeen"],
+            run: (doc) => {
+              const d = doc as {
+                system: {
+                  build?: { variantRules?: Record<string, unknown> };
+                  derived: Record<string, unknown>;
+                };
+              };
+              d.system.derived["houseRulesSeen"] = { ...d.system.build?.variantRules };
+            },
+          });
+        },
+      );
+    }
+
+    function run(
+      build: Record<string, unknown> | undefined,
+      world: Record<string, boolean | undefined>,
+    ): Record<string, unknown> {
+      const doc: Record<string, unknown> = {
+        type: "hero",
+        system: { derived: {}, ...(build ? { build } : {}) },
+      };
+      runActorDerivation(doc, buildFakeHouseRuleReader(), {
+        classLevels: undefined,
+        freeArchetype: undefined,
+        ...world,
+      });
+      const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+        string,
+        unknown
+      >;
+      return derived["houseRulesSeen"] as Record<string, unknown>;
+    }
+
+    it("world true/false reach system.build.variantRules as-is", () => {
+      const seen = run(undefined, {
+        bonusGeneralFeatLevel1: true,
+        freeOccultismOrReligion: false,
+        ancestryFeatsInGeneralSlots: true,
+        ancestryFeatLevelMinus2: false,
+      });
+      expect(seen).toMatchObject({
+        bonusGeneralFeatLevel1: true,
+        freeOccultismOrReligion: false,
+        ancestryFeatsInGeneralSlots: true,
+        ancestryFeatLevelMinus2: false,
+      });
+    });
+
+    it("an unset world value DROPS whatever the actor doc forged, never a legacy fallback", () => {
+      const forged = Object.fromEntries(KEYS.map((k) => [k, true]));
+      const seen = run({ variantRules: { ...forged, classLevels: true } }, {});
+      for (const k of KEYS) expect(seen).not.toHaveProperty(k);
+      // classLevels keeps its legacy fallback, unchanged
+      expect(seen["classLevels"]).toBe(true);
+    });
+
+    it("an explicit world false overrides a forged true", () => {
+      const seen = run(
+        { variantRules: { ancestryFeatsInGeneralSlots: true } },
+        { ancestryFeatsInGeneralSlots: false },
+      );
+      expect(seen["ancestryFeatsInGeneralSlots"]).toBe(false);
+    });
+  });
 });

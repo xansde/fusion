@@ -82,8 +82,10 @@ import {
   companionGrantAllows,
   companionGroupOf,
   validateCharacterBuild,
+  type BuildValidationVariants,
 } from "@fusion/system-pf2e";
 import { deepMerge } from "../../documents/merge.js";
+import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 import {
   DocCreatePayloadSchema,
   DocUpdatePayloadSchema,
@@ -767,15 +769,27 @@ export interface DocHandlerDeps {
  * issue, so even the repair op was refused.
  */
 function rejectIllegalCharacterBuild(
+  deps: Pick<DocHandlerDeps, "store" | "systemModule">,
   mergedDoc: Record<string, unknown>,
   existingDoc?: Record<string, unknown>,
 ): Ack<never> | null {
-  const result = validateCharacterBuild(mergedDoc);
+  // House rules (A Queda, 2026-10-05): the world's variants relax slot/level
+  // checks, so the server validates with the SAME flags the client's picker
+  // and the derivation use (resolved from the world's Settings, absent = RAW).
+  const world = resolveWorldVariantRules(deps.store, deps.systemModule);
+  const variants: BuildValidationVariants = {};
+  if (world.bonusGeneralFeatLevel1 !== undefined)
+    variants.bonusGeneralFeatLevel1 = world.bonusGeneralFeatLevel1;
+  if (world.ancestryFeatsInGeneralSlots !== undefined)
+    variants.ancestryFeatsInGeneralSlots = world.ancestryFeatsInGeneralSlots;
+  if (world.ancestryFeatLevelMinus2 !== undefined)
+    variants.ancestryFeatLevelMinus2 = world.ancestryFeatLevelMinus2;
+  const result = validateCharacterBuild(mergedDoc, variants);
   if (result.ok) return null;
 
   let newIssues = result.issues;
   if (existingDoc) {
-    const before = validateCharacterBuild(existingDoc);
+    const before = validateCharacterBuild(existingDoc, variants);
     const beforeKeys = new Set(before.issues.map((issue) => `${issue.code}|${issue.path}`));
     newIssues = result.issues.filter((issue) => !beforeKeys.has(`${issue.code}|${issue.path}`));
   }
@@ -1048,7 +1062,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // O6/T6.2: a create payload IS the full document (no `existing` to
           // merge onto), so it can be validated as-is — same gate the update
           // path applies to the merged document.
-          const rejectionBuild = rejectIllegalCharacterBuild(item);
+          const rejectionBuild = rejectIllegalCharacterBuild(deps, item);
           if (rejectionBuild) return rejectionBuild;
           // I2 (revisão adversarial 3): system.currency was accepted
           // unchecked (any shape, any keys) — validate it against the
@@ -1110,6 +1124,11 @@ const VARIANT_RULES_KEY_SUFFIXES = [
   ":variantRules.freeArchetype",
   // HJ-09 (#434): same overlay, same re-derivation on change.
   ":campaign.trainedSkills",
+  // House rules of A Queda (2026-10-05): same overlay, same re-derivation.
+  ":variantRules.bonusGeneralFeatLevel1",
+  ":variantRules.freeOccultismOrReligion",
+  ":variantRules.ancestryFeatsInGeneralSlots",
+  ":variantRules.ancestryFeatLevelMinus2",
 ];
 
 function isVariantRulesSettingKey(key: unknown): boolean {
@@ -1331,7 +1350,7 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         );
         if (rejectionBuildDeletion) return rejectionBuildDeletion;
         const merged = deepMerge(existing, expandedDiffForChecks);
-        const rejectionBuild = rejectIllegalCharacterBuild(merged, existing);
+        const rejectionBuild = rejectIllegalCharacterBuild(deps, merged, existing);
         if (rejectionBuild) return rejectionBuild;
 
         // I2 (revisão adversarial 3): same currency check as doc:create,
@@ -1900,7 +1919,7 @@ function handleEmbeddedCreate(
   // doesn't block an unrelated embedded create (C3's same reasoning).
   if (parent.type === "Actor" && parentDoc["type"] === "character") {
     const mergedForValidation = { ...parentDoc, [collectionKey]: updatedCollection };
-    const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+    const rejectionBuild = rejectIllegalCharacterBuild(deps, mergedForValidation, parentDoc);
     if (rejectionBuild) return rejectionBuild;
   }
 
@@ -2146,7 +2165,7 @@ function handleEmbeddedUpdate(
     // same reasoning as handleEmbeddedCreate above.
     if (resolvedParentType === "Actor" && parentDoc["type"] === "character") {
       const mergedForValidation = { ...parentDoc, [collectionKey]: collection };
-      const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+      const rejectionBuild = rejectIllegalCharacterBuild(deps, mergedForValidation, parentDoc);
       if (rejectionBuild) return rejectionBuild;
     }
 

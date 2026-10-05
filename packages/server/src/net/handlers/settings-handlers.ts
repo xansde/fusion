@@ -88,6 +88,12 @@ const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
   // picker marks them as already trained, so the player's client must read it
   // (write stays GAMEMASTER-strict, like every Setting).
   "campaign.trainedSkills",
+  // House rules of A Queda (2026-10-05): the player's ficha (feat pickers,
+  // Plano) applies them too, so the client must read them.
+  "variantRules.bonusGeneralFeatLevel1",
+  "variantRules.freeOccultismOrReligion",
+  "variantRules.ancestryFeatsInGeneralSlots",
+  "variantRules.ancestryFeatLevelMinus2",
 ]);
 
 /**

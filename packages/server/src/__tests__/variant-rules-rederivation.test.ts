@@ -66,11 +66,13 @@ function buildFakeVariantSystem(): SystemModule {
         subtypes: ["hero"],
         phase: "derived",
         reads: [],
-        writes: ["system.derived.classLevelsSeen"],
+        writes: ["system.derived.classLevelsSeen", "system.derived.houseRuleSeen"],
         run: (doc) => {
           const d = doc as {
             system: {
-              build?: { variantRules?: { classLevels?: boolean } };
+              build?: {
+                variantRules?: { classLevels?: boolean; ancestryFeatLevelMinus2?: boolean };
+              };
               derived?: Record<string, unknown>;
             };
           };
@@ -78,6 +80,8 @@ function buildFakeVariantSystem(): SystemModule {
             d.system.derived = {};
           }
           d.system.derived["classLevelsSeen"] = d.system.build?.variantRules?.classLevels ?? false;
+          d.system.derived["houseRuleSeen"] =
+            d.system.build?.variantRules?.ancestryFeatLevelMinus2 ?? false;
         },
       });
     },
@@ -275,6 +279,25 @@ describe("REQ-CFG-035 — Setting write re-derives Actors immediately", () => {
     expect(
       (rederived.documents[0]?.["system"] as Record<string, unknown>)["derived"],
     ).toMatchObject({ classLevelsSeen: true });
+  });
+
+  it("flipping a house-rule variant Setting (A Queda) re-derives every actor and broadcasts it", async () => {
+    const broadcastPromise = waitForBroadcast(gm, "doc:update", "Actor");
+    const settingAck = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [
+        {
+          key: "fake-variant-system:variantRules.ancestryFeatLevelMinus2",
+          value: true,
+          ownership: { default: 0 },
+        },
+      ],
+    });
+    expect(settingAck["ok"]).toBe(true);
+    const rederived = await broadcastPromise;
+    expect(
+      (rederived.documents[0]?.["system"] as Record<string, unknown>)["derived"],
+    ).toMatchObject({ houseRuleSeen: true });
   });
 
   it("a Setting write on an UNRELATED key never triggers a rederivation broadcast", async () => {

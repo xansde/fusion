@@ -85,7 +85,27 @@ export interface ResolvedWorldVariantRules {
    * skill. The overlay therefore always REPLACES whatever the doc held.
    */
   readonly campaignSkills?: readonly string[] | undefined;
+  /**
+   * House rules of the campaign A Queda (decision 2026-10-05): four boolean
+   * world settings that relax the PF2e feat-slot rules. World-authoritative
+   * like `campaignSkills` — no per-actor legacy field exists, so `undefined`
+   * (never stored) is NOT a fallback to the actor's own value: the overlay
+   * drops whatever the doc carries. `true`/`false` are written as-is.
+   */
+  readonly bonusGeneralFeatLevel1?: boolean | undefined;
+  readonly freeOccultismOrReligion?: boolean | undefined;
+  readonly ancestryFeatsInGeneralSlots?: boolean | undefined;
+  readonly ancestryFeatLevelMinus2?: boolean | undefined;
 }
+
+/** The four house-rule keys (local names, `variantRules.<key>`). */
+export const HOUSE_RULE_VARIANT_KEYS = [
+  "bonusGeneralFeatLevel1",
+  "freeOccultismOrReligion",
+  "ancestryFeatsInGeneralSlots",
+  "ancestryFeatLevelMinus2",
+] as const;
+export type HouseRuleVariantKey = (typeof HOUSE_RULE_VARIANT_KEYS)[number];
 
 /** A skill slug as the systems spell them (`occultism`, `lore-scribing`). */
 const CAMPAIGN_SKILL_SLUG = /^[a-z][a-z0-9-]*$/;
@@ -122,7 +142,15 @@ export function resolveWorldVariantRules(
   systemModule: WorldVariantRulesSystemSource | undefined,
 ): ResolvedWorldVariantRules {
   if (!store || !systemModule) {
-    return { classLevels: undefined, freeArchetype: undefined, campaignSkills: undefined };
+    return {
+      classLevels: undefined,
+      freeArchetype: undefined,
+      campaignSkills: undefined,
+      bonusGeneralFeatLevel1: undefined,
+      freeOccultismOrReligion: undefined,
+      ancestryFeatsInGeneralSlots: undefined,
+      ancestryFeatLevelMinus2: undefined,
+    };
   }
 
   const systemId = systemModule.manifest.id;
@@ -133,13 +161,29 @@ export function resolveWorldVariantRules(
   let classLevels: boolean | undefined;
   let freeArchetype: boolean | undefined;
   let campaignSkills: string[] | undefined;
+  const houseRules: Partial<Record<HouseRuleVariantKey, boolean>> = {};
+  const houseRuleKeys = new Map<string, HouseRuleVariantKey>(
+    HOUSE_RULE_VARIANT_KEYS.map((k) => [`${systemId}:variantRules.${k}`, k]),
+  );
 
   for (const doc of store.getAll("settings")) {
     const key = doc["key"];
     if (key === classLevelsKey) classLevels = doc["value"] === true;
     else if (key === freeArchetypeKey) freeArchetype = doc["value"] === true;
     else if (key === campaignSkillsKey) campaignSkills = normalizeCampaignSkills(doc["value"]);
+    else if (typeof key === "string") {
+      const houseRule = houseRuleKeys.get(key);
+      if (houseRule) houseRules[houseRule] = doc["value"] === true;
+    }
   }
 
-  return { classLevels, freeArchetype, campaignSkills };
+  return {
+    classLevels,
+    freeArchetype,
+    campaignSkills,
+    bonusGeneralFeatLevel1: houseRules.bonusGeneralFeatLevel1,
+    freeOccultismOrReligion: houseRules.freeOccultismOrReligion,
+    ancestryFeatsInGeneralSlots: houseRules.ancestryFeatsInGeneralSlots,
+    ancestryFeatLevelMinus2: houseRules.ancestryFeatLevelMinus2,
+  };
 }
