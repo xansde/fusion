@@ -23,9 +23,7 @@
     "lote": "L1",
     "depende": [],
     "dependeExterno": [],
-    "decisoes": [
-      "DC-01"
-    ]
+    "decisoes": ["DC-01"]
   },
   {
     "id": "BHR-F0-03",
@@ -36,13 +34,8 @@
     "esforco": "high",
     "onda": 2,
     "lote": "L1",
-    "depende": [
-      "BHR-F0-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F2-09",
-      "ALQ-F1-04"
-    ],
+    "depende": ["BHR-F0-02"],
+    "dependeExterno": ["ALQ-F2-09", "ALQ-F1-04"],
     "decisoes": []
   },
   {
@@ -69,9 +62,7 @@
     "lote": "L1",
     "depende": [],
     "dependeExterno": [],
-    "decisoes": [
-      "DC-09"
-    ]
+    "decisoes": ["DC-09"]
   },
   {
     "id": "BHR-F1-03",
@@ -95,15 +86,9 @@
     "esforco": "medium",
     "onda": 2,
     "lote": "L1",
-    "depende": [
-      "BHR-F0-01"
-    ],
+    "depende": ["BHR-F0-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B01",
-      "D-B14",
-      "D-B22"
-    ]
+    "decisoes": ["D-B01", "D-B14", "D-B22"]
   },
   {
     "id": "BHR-F1-05",
@@ -114,13 +99,8 @@
     "esforco": "medium",
     "onda": 2,
     "lote": "L1",
-    "depende": [
-      "BHR-F0-01",
-      "BHR-F0-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F2-02"
-    ],
+    "depende": ["BHR-F0-01", "BHR-F0-02"],
+    "dependeExterno": ["ALQ-F2-02"],
     "decisoes": []
   },
   {
@@ -147,10 +127,7 @@
     "lote": "L1",
     "depende": [],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B07",
-      "DC-12"
-    ]
+    "decisoes": ["D-B07", "DC-12"]
   },
   {
     "id": "BHR-F1-08",
@@ -161,10 +138,7 @@
     "esforco": "medium",
     "onda": 4,
     "lote": "L1",
-    "depende": [
-      "BHR-F2-08",
-      "BHR-F2-01"
-    ],
+    "depende": ["BHR-F2-08", "BHR-F2-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -177,13 +151,7 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L1",
-    "depende": [
-      "BHR-F1-01",
-      "BHR-F1-02",
-      "BHR-F1-03",
-      "BHR-F1-06",
-      "BHR-F1-08"
-    ],
+    "depende": ["BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06", "BHR-F1-08"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -196,14 +164,8 @@
     "esforco": "high",
     "onda": 2,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-01",
-      "BHR-F0-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F2-08",
-      "ALQ-F4-19"
-    ],
+    "depende": ["BHR-F0-01", "BHR-F0-02"],
+    "dependeExterno": ["ALQ-F2-08", "ALQ-F4-19"],
     "decisoes": []
   },
   {
@@ -215,9 +177,7 @@
     "esforco": "high",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-01"
-    ],
+    "depende": ["BHR-F2-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -230,9 +190,7 @@
     "esforco": "medium",
     "onda": 2,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-02"
-    ],
+    "depende": ["BHR-F0-02"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -245,16 +203,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-03",
-      "BHR-F2-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F0-07"
-    ],
-    "decisoes": [
-      "D-B16"
-    ]
+    "depende": ["BHR-F2-03", "BHR-F2-02"],
+    "dependeExterno": ["ALQ-F0-07"],
+    "decisoes": ["D-B16"]
   },
   {
     "id": "BHR-F2-05",
@@ -265,13 +216,8 @@
     "esforco": "high",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-01",
-      "BHR-F0-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F4-02"
-    ],
+    "depende": ["BHR-F2-01", "BHR-F0-01"],
+    "dependeExterno": ["ALQ-F4-02"],
     "decisoes": []
   },
   {
@@ -283,14 +229,9 @@
     "esforco": "medium",
     "onda": 4,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-05",
-      "BHR-F0-03"
-    ],
+    "depende": ["BHR-F2-05", "BHR-F0-03"],
     "dependeExterno": [],
-    "decisoes": [
-      "DC-05"
-    ]
+    "decisoes": ["DC-05"]
   },
   {
     "id": "BHR-F2-07",
@@ -301,12 +242,8 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-03"
-    ],
-    "dependeExterno": [
-      "ALQ-F2-11"
-    ],
+    "depende": ["BHR-F0-03"],
+    "dependeExterno": ["ALQ-F2-11"],
     "decisoes": []
   },
   {
@@ -318,10 +255,7 @@
     "esforco": "high",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-03",
-      "BHR-F0-01"
-    ],
+    "depende": ["BHR-F0-03", "BHR-F0-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -334,12 +268,7 @@
     "esforco": "medium",
     "onda": 11,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-04",
-      "BHR-F3-10",
-      "BHR-F1-08",
-      "BHR-F6-04"
-    ],
+    "depende": ["BHR-F2-04", "BHR-F3-10", "BHR-F1-08", "BHR-F6-04"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -352,14 +281,9 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-07",
-      "BHR-F2-04"
-    ],
+    "depende": ["BHR-F2-07", "BHR-F2-04"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B23"
-    ]
+    "decisoes": ["D-B23"]
   },
   {
     "id": "BHR-F3-01",
@@ -370,16 +294,9 @@
     "esforco": "high",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-01",
-      "BHR-F0-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-05"
-    ],
-    "decisoes": [
-      "D-G01"
-    ]
+    "depende": ["BHR-F0-01", "BHR-F0-02"],
+    "dependeExterno": ["ALQ-F1-05"],
+    "decisoes": ["D-G01"]
   },
   {
     "id": "BHR-F3-02",
@@ -390,9 +307,7 @@
     "esforco": "medium",
     "onda": 4,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-01"
-    ],
+    "depende": ["BHR-F3-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -405,13 +320,9 @@
     "esforco": "high",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-02"
-    ],
+    "depende": ["BHR-F3-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-G02"
-    ]
+    "decisoes": ["D-G02"]
   },
   {
     "id": "BHR-F3-04",
@@ -422,16 +333,9 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-01",
-      "BHR-F0-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-04"
-    ],
-    "decisoes": [
-      "D-G03"
-    ]
+    "depende": ["BHR-F0-01", "BHR-F0-02"],
+    "dependeExterno": ["ALQ-F1-04"],
+    "decisoes": ["D-G03"]
   },
   {
     "id": "BHR-F3-05",
@@ -442,10 +346,7 @@
     "esforco": "medium",
     "onda": 6,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-04",
-      "BHR-F3-03"
-    ],
+    "depende": ["BHR-F3-04", "BHR-F3-03"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -458,15 +359,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L2",
-    "depende": [
-      "BHR-F0-01",
-      "BHR-F0-02"
-    ],
+    "depende": ["BHR-F0-01", "BHR-F0-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B05",
-      "DC-03"
-    ]
+    "decisoes": ["D-B05", "DC-03"]
   },
   {
     "id": "BHR-F3-07",
@@ -477,9 +372,7 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-06"
-    ],
+    "depende": ["BHR-F3-06"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -492,16 +385,9 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-06",
-      "BHR-F3-01",
-      "BHR-F2-08",
-      "BHR-F1-05"
-    ],
+    "depende": ["BHR-F3-06", "BHR-F3-01", "BHR-F2-08", "BHR-F1-05"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B05"
-    ]
+    "decisoes": ["D-B05"]
   },
   {
     "id": "BHR-F3-09",
@@ -512,12 +398,7 @@
     "esforco": "medium",
     "onda": 7,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-08",
-      "BHR-F2-06",
-      "BHR-F2-05",
-      "BHR-F6-01"
-    ],
+    "depende": ["BHR-F3-08", "BHR-F2-06", "BHR-F2-05", "BHR-F6-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -530,17 +411,9 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L2",
-    "depende": [
-      "BHR-F2-02",
-      "BHR-F3-03",
-      "BHR-F3-06",
-      "BHR-F2-05"
-    ],
+    "depende": ["BHR-F2-02", "BHR-F3-03", "BHR-F3-06", "BHR-F2-05"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B05",
-      "D-B18"
-    ]
+    "decisoes": ["D-B05", "D-B18"]
   },
   {
     "id": "BHR-F3-11",
@@ -551,14 +424,7 @@
     "esforco": "medium",
     "onda": 8,
     "lote": "L2",
-    "depende": [
-      "BHR-F3-05",
-      "BHR-F3-07",
-      "BHR-F3-09",
-      "BHR-F3-10",
-      "BHR-F2-04",
-      "BHR-F2-10"
-    ],
+    "depende": ["BHR-F3-05", "BHR-F3-07", "BHR-F3-09", "BHR-F3-10", "BHR-F2-04", "BHR-F2-10"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -571,13 +437,9 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L3",
-    "depende": [
-      "BHR-F1-04"
-    ],
+    "depende": ["BHR-F1-04"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B01"
-    ]
+    "decisoes": ["D-B01"]
   },
   {
     "id": "BHR-F4-02",
@@ -588,9 +450,7 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-01"
-    ],
+    "depende": ["BHR-F4-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -603,13 +463,9 @@
     "esforco": "medium",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-02"
-    ],
+    "depende": ["BHR-F4-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B02"
-    ]
+    "decisoes": ["D-B02"]
   },
   {
     "id": "BHR-F4-04",
@@ -620,14 +476,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L3",
-    "depende": [
-      "BHR-F0-01"
-    ],
+    "depende": ["BHR-F0-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B09",
-      "DC-07"
-    ]
+    "decisoes": ["D-B09", "DC-07"]
   },
   {
     "id": "BHR-F4-05",
@@ -638,18 +489,9 @@
     "esforco": "high",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-04",
-      "BHR-F1-04",
-      "BHR-F4-02"
-    ],
+    "depende": ["BHR-F4-04", "BHR-F1-04", "BHR-F4-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B09",
-      "D-B14",
-      "D-B15",
-      "D-B22"
-    ]
+    "decisoes": ["D-B09", "D-B14", "D-B15", "D-B22"]
   },
   {
     "id": "BHR-F4-06",
@@ -660,15 +502,9 @@
     "esforco": "high",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-02",
-      "BHR-F3-03",
-      "BHR-F2-10"
-    ],
+    "depende": ["BHR-F4-02", "BHR-F3-03", "BHR-F2-10"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B04"
-    ]
+    "decisoes": ["D-B04"]
   },
   {
     "id": "BHR-F4-07",
@@ -679,14 +515,9 @@
     "esforco": "low",
     "onda": 8,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-06",
-      "BHR-F2-08"
-    ],
+    "depende": ["BHR-F4-06", "BHR-F2-08"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B10"
-    ]
+    "decisoes": ["D-B10"]
   },
   {
     "id": "BHR-F4-08",
@@ -697,13 +528,9 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L3",
-    "depende": [
-      "BHR-F0-03"
-    ],
+    "depende": ["BHR-F0-03"],
     "dependeExterno": [],
-    "decisoes": [
-      "DC-06"
-    ]
+    "decisoes": ["DC-06"]
   },
   {
     "id": "BHR-F4-09",
@@ -714,16 +541,9 @@
     "esforco": "high",
     "onda": 9,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-07",
-      "BHR-F4-08",
-      "BHR-F5-01",
-      "BHR-F2-05"
-    ],
+    "depende": ["BHR-F4-07", "BHR-F4-08", "BHR-F5-01", "BHR-F2-05"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B10"
-    ]
+    "decisoes": ["D-B10"]
   },
   {
     "id": "BHR-F4-10",
@@ -734,15 +554,9 @@
     "esforco": "medium",
     "onda": 8,
     "lote": "L3",
-    "depende": [
-      "BHR-F4-05",
-      "BHR-F4-06"
-    ],
+    "depende": ["BHR-F4-05", "BHR-F4-06"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B09",
-      "DC-07"
-    ]
+    "decisoes": ["D-B09", "DC-07"]
   },
   {
     "id": "BHR-F4-11",
@@ -753,16 +567,9 @@
     "esforco": "medium",
     "onda": 9,
     "lote": "L3",
-    "depende": [
-      "BHR-F3-06",
-      "BHR-F4-02",
-      "BHR-F2-02",
-      "BHR-F4-10"
-    ],
+    "depende": ["BHR-F3-06", "BHR-F4-02", "BHR-F2-02", "BHR-F4-10"],
     "dependeExterno": [],
-    "decisoes": [
-      "DC-08"
-    ]
+    "decisoes": ["DC-08"]
   },
   {
     "id": "BHR-F5-01",
@@ -773,9 +580,7 @@
     "esforco": "medium",
     "onda": 6,
     "lote": "L3",
-    "depende": [
-      "BHR-F0-01"
-    ],
+    "depende": ["BHR-F0-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -788,15 +593,9 @@
     "esforco": "high",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "BHR-F5-01",
-      "BHR-F4-02",
-      "BHR-F2-08"
-    ],
+    "depende": ["BHR-F5-01", "BHR-F4-02", "BHR-F2-08"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B03"
-    ]
+    "decisoes": ["D-B03"]
   },
   {
     "id": "BHR-F5-03",
@@ -807,13 +606,9 @@
     "esforco": "high",
     "onda": 8,
     "lote": "L3",
-    "depende": [
-      "BHR-F5-02"
-    ],
+    "depende": ["BHR-F5-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B03"
-    ]
+    "decisoes": ["D-B03"]
   },
   {
     "id": "BHR-F5-04",
@@ -824,16 +619,9 @@
     "esforco": "medium",
     "onda": 8,
     "lote": "L3",
-    "depende": [
-      "BHR-F5-02",
-      "BHR-F2-01",
-      "BHR-F1-05",
-      "BHR-F2-10"
-    ],
+    "depende": ["BHR-F5-02", "BHR-F2-01", "BHR-F1-05", "BHR-F2-10"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B03"
-    ]
+    "decisoes": ["D-B03"]
   },
   {
     "id": "BHR-F5-05",
@@ -844,14 +632,9 @@
     "esforco": "medium",
     "onda": 8,
     "lote": "L3",
-    "depende": [
-      "BHR-F5-02",
-      "BHR-F3-04"
-    ],
+    "depende": ["BHR-F5-02", "BHR-F3-04"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B03"
-    ]
+    "decisoes": ["D-B03"]
   },
   {
     "id": "BHR-F5-06",
@@ -862,15 +645,9 @@
     "esforco": "medium",
     "onda": 10,
     "lote": "L3",
-    "depende": [
-      "BHR-F5-03",
-      "BHR-F4-09"
-    ],
+    "depende": ["BHR-F5-03", "BHR-F4-09"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B03",
-      "D-B10"
-    ]
+    "decisoes": ["D-B03", "D-B10"]
   },
   {
     "id": "BHR-F5-07",
@@ -902,9 +679,7 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L4",
-    "depende": [
-      "BHR-F3-03"
-    ],
+    "depende": ["BHR-F3-03"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -917,12 +692,8 @@
     "esforco": "medium",
     "onda": 7,
     "lote": "L4",
-    "depende": [
-      "BHR-F0-03"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-09"
-    ],
+    "depende": ["BHR-F0-03"],
+    "dependeExterno": ["ALQ-F1-09"],
     "decisoes": []
   },
   {
@@ -934,15 +705,9 @@
     "esforco": "medium",
     "onda": 9,
     "lote": "L4",
-    "depende": [
-      "BHR-F6-01",
-      "BHR-F6-02",
-      "BHR-F2-08"
-    ],
+    "depende": ["BHR-F6-01", "BHR-F6-02", "BHR-F2-08"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B17"
-    ]
+    "decisoes": ["D-B17"]
   },
   {
     "id": "BHR-F6-04",
@@ -953,14 +718,9 @@
     "esforco": "medium",
     "onda": 10,
     "lote": "L4",
-    "depende": [
-      "BHR-F6-03",
-      "BHR-F5-01"
-    ],
+    "depende": ["BHR-F6-03", "BHR-F5-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B11"
-    ]
+    "decisoes": ["D-B11"]
   },
   {
     "id": "BHR-F7-01",
@@ -971,17 +731,9 @@
     "esforco": "medium",
     "onda": 9,
     "lote": "L4",
-    "depende": [
-      "BHR-F0-01"
-    ],
+    "depende": ["BHR-F0-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B06",
-      "D-B19",
-      "D-B20",
-      "D-B21",
-      "DC-11"
-    ]
+    "decisoes": ["D-B06", "D-B19", "D-B20", "D-B21", "DC-11"]
   },
   {
     "id": "BHR-F7-02",
@@ -992,15 +744,9 @@
     "esforco": "medium",
     "onda": 9,
     "lote": "L4",
-    "depende": [
-      "BHR-F0-01"
-    ],
+    "depende": ["BHR-F0-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B12",
-      "D-B13",
-      "DC-10"
-    ]
+    "decisoes": ["D-B12", "D-B13", "DC-10"]
   },
   {
     "id": "BHR-F7-03",
@@ -1011,13 +757,9 @@
     "esforco": "low",
     "onda": 10,
     "lote": "L4",
-    "depende": [
-      "BHR-F7-02"
-    ],
+    "depende": ["BHR-F7-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B13"
-    ]
+    "decisoes": ["D-B13"]
   },
   {
     "id": "BHR-F7-04",
@@ -1028,13 +770,9 @@
     "esforco": "medium",
     "onda": 10,
     "lote": "L4",
-    "depende": [
-      "BHR-F7-02"
-    ],
+    "depende": ["BHR-F7-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-B12"
-    ]
+    "decisoes": ["D-B12"]
   },
   {
     "id": "BHR-F7-05",
@@ -1045,13 +783,7 @@
     "esforco": "medium",
     "onda": 12,
     "lote": "L4",
-    "depende": [
-      "BHR-F6-04",
-      "BHR-F7-01",
-      "BHR-F7-03",
-      "BHR-F7-04",
-      "BHR-F2-09"
-    ],
+    "depende": ["BHR-F6-04", "BHR-F7-01", "BHR-F7-03", "BHR-F7-04", "BHR-F2-09"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -1064,12 +796,7 @@
     "esforco": "high",
     "onda": 13,
     "lote": "L4",
-    "depende": [
-      "BHR-F1-09",
-      "BHR-F3-11",
-      "BHR-F5-07",
-      "BHR-F7-05"
-    ],
+    "depende": ["BHR-F1-09", "BHR-F3-11", "BHR-F5-07", "BHR-F7-05"],
     "dependeExterno": [],
     "decisoes": []
   }
