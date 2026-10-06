@@ -7,8 +7,9 @@
  *     nearest square of the mount or of the rider, whichever is closer;
  *   - Grasping Reach gives a two-handed weapon 10 feet of reach; a rider on a Large antelope, with the target 10
  *     feet from the mount and 15 feet from his own token, reaches it;
- *   - persistent damage is dealt once the creature is hit and is not doubled by a critical hit (it is its own
- *     damage, not dice of the Strike);
+ *   - persistent damage that is part of the Strike's own damage is doubled by a critical hit like the rest of
+ *     it; the antelope's Support is the exception only because it is its OWN damage ("the creature takes..."),
+ *     not dice of the Strike, which the effect says with `doubleOnCrit: false`;
  *   - the antelope's Support counts only while the owner is mounted on THAT antelope (REQ-PET-125).
  */
 
@@ -192,11 +193,15 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
     expect(settle("yes", null).applied).toEqual([]);
   });
 
-  it("a critical hit does not double the persistent bleed, even if the part says it would double", () => {
+  it("a critical hit does not double the Support bleed because the effect says doubleOnCrit: false", () => {
     expect(settle("yes", "criticalSuccess").applied[0]?.dice).toBe("1d6");
+  });
+
+  it("a persistent part that IS dice of the Strike (doubleOnCrit: true) doubles on a critical hit, and not on a plain hit", () => {
     expect(settle("yes", "criticalSuccess", [bleed({ doubleOnCrit: true })]).applied[0]?.dice).toBe(
-      "1d6",
+      "2d6",
     );
+    expect(settle("yes", "success", [bleed({ doubleOnCrit: true })]).applied[0]?.dice).toBe("1d6");
   });
 
   it("2d6 for a Nimble or Savage antelope", () => {
