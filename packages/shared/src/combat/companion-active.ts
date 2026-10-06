@@ -10,3 +10,17 @@ export const CompanionSetActivePayloadSchema = z.object({
   companionActorId: z.string().min(1),
 });
 export type CompanionSetActivePayload = z.infer<typeof CompanionSetActivePayloadSchema>;
+
+/**
+ * `companion:command` — the owner commands an animal companion (Command an Animal, L3 I4, BHR-F5-07, D-B10). In a
+ * combat the SERVER records it on the combat (`commandMark`), valid for the owner's combatant in that round: the
+ * companion acts that turn, and the Support is one of its actions. Outside a combat nothing is recorded.
+ */
+export const CompanionCommandPayloadSchema = z
+  .object({ companionActorId: z.string().min(1) })
+  .strict();
+export type CompanionCommandPayload = z.infer<typeof CompanionCommandPayloadSchema>;
+/** The ack result: whether a mark was stamped on a combat (false outside combat). */
+export interface CompanionCommandResult {
+  readonly marked: boolean;
+}

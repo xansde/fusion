@@ -212,8 +212,15 @@ export type {
 // Active animal companion (BHR-F4-10) — the swap is decided on the server
 // ---------------------------------------------------------------------------
 
-export { CompanionSetActivePayloadSchema } from "./companion-active.js";
-export type { CompanionSetActivePayload } from "./companion-active.js";
+export {
+  CompanionSetActivePayloadSchema,
+  CompanionCommandPayloadSchema,
+} from "./companion-active.js";
+export type {
+  CompanionSetActivePayload,
+  CompanionCommandPayload,
+  CompanionCommandResult,
+} from "./companion-active.js";
 
 // ---------------------------------------------------------------------------
 // Support gate — one predicate for the server and the sheets (BHR-F4-10, BHR-F5-04)

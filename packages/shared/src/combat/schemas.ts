@@ -169,6 +169,20 @@ export const CombatDocumentSchema = z.object({
     .default(null),
 
   /**
+   * Animal companions the owner commanded this turn (`companion:command`, L3 I4): the SERVER stamps it. Valid only
+   * while `combatantId` is the active combatant and `round` the current round, like `attackCount`, so a new turn is
+   * stale with no reset write. Masked for players when the active combatant is hidden.
+   */
+  commandMark: z
+    .object({
+      combatantId: z.string(),
+      round: z.number().int().min(0),
+      actorIds: z.array(z.string()),
+    })
+    .nullable()
+    .default(null),
+
+  /**
    * Whether beginCombat has been called.
    * REQ-CBT-020.
    */

@@ -236,10 +236,12 @@ export function broadcastCombatUpdate(
     const needsActiveMask = activeIsHidden && typeof diff["activeCombatantId"] !== "undefined";
     // The attack count names the active combatant: a hidden one stays hidden.
     const needsCountMask = activeIsHidden && typeof diff["attackCount"] !== "undefined";
+    const needsCommandMask = activeIsHidden && typeof diff["commandMark"] !== "undefined";
 
-    if (needsCombatantStrip || needsActiveMask || needsCountMask) {
+    if (needsCombatantStrip || needsActiveMask || needsCountMask || needsCommandMask) {
       const newDiff: Record<string, unknown> = { ...diff };
       if (needsCountMask) delete newDiff["attackCount"];
+      if (needsCommandMask) delete newDiff["commandMark"];
       if (needsCombatantStrip) {
         newDiff["combatants"] = (diff["combatants"] as Record<string, unknown>[]).filter(
           (c) => c["hidden"] !== true,
@@ -388,7 +390,7 @@ function buildEnvelope(type: string, payload: unknown, seq: number): Envelope {
  * Persist the Combat document update to the store.
  * Applies the diff on top of the existing document, validates it, and saves.
  */
-function persistCombat(
+export function persistCombat(
   deps: CombatHandlerDeps,
   combatId: string,
   diff: Partial<CombatDocument>,
@@ -547,7 +549,7 @@ function buildSnapshot(combat: CombatDocument): CombatTurnSnapshot {
 // Broadcast + buffer a combat update with optional turnChange
 // ---------------------------------------------------------------------------
 
-function broadcastUpdate(
+export function broadcastUpdate(
   deps: CombatHandlerDeps,
   updatedCombat: CombatDocument,
   diff: Partial<CombatDocument>,

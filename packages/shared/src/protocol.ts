@@ -118,6 +118,8 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("mount:dismount"),
   // Spec 52 REQ-PET-120..121 (BHR-F4-10, DC-07): swap the ACTIVE animal companion of a master.
   z.literal("companion:setActive"),
+  // L3 I4 (BHR-F5-07): the owner commands an animal companion; the server records it on the combat.
+  z.literal("companion:command"),
   // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
   // other actors, with the permission-by-link rule decided on the server.
   z.literal("effect:apply"),

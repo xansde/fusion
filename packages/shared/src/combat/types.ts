@@ -188,6 +188,12 @@ export interface CombatDocument {
   } | null;
 
   /**
+   * Animal companions the owner commanded this turn, stamped by the server (`companion:command`, L3 I4). Valid only
+   * when `combatantId` is the active combatant and `round` the current round; null/absent otherwise.
+   */
+  commandMark?: { combatantId: string; round: number; actorIds: string[] } | null;
+
+  /**
    * Whether the encounter has been started (beginCombat was called).
    * REQ-CBT-020: false until beginCombat.
    */

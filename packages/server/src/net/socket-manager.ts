@@ -99,6 +99,7 @@ import {
   releaseDismountedRider,
 } from "../combat/mount-handler.js";
 
+import { buildCompanionCommandHandler } from "../combat/companion-command-handler.js";
 import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
@@ -587,6 +588,8 @@ export class SocketManager {
     mapCounter.setPublisher(buildAttackCountPublisher(combatDeps));
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
+    // L3 I4: Command an Animal is recorded on the combat by the server (valid for the owner's turn).
+    registry.register("companion:command", buildCompanionCommandHandler(combatDeps));
     registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));
     registry.register("combat:addCombatant", buildCombatAddCombatantHandler(combatDeps));
     registry.register("combat:removeCombatant", buildCombatRemoveCombatantHandler(combatDeps));

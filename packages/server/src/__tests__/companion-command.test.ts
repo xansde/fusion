@@ -247,6 +247,24 @@ describe("companion:command (L3 I4)", () => {
     });
   });
 
+  it("a hidden owner combatant is not named to players by the mark; the GM still hears it", async () => {
+    startCombat(MASTER_CMBT);
+    const combatants = ctx.store.get("combats", combatId)["combatants"] as Rec[];
+    ctx.store.update(
+      "combats",
+      combatId,
+      {
+        combatants: combatants.map((c) => (c["_id"] === MASTER_CMBT ? { ...c, hidden: true } : c)),
+      },
+      { userId: "gm" },
+    );
+    const player = nextCombatDiff(p2);
+    const master = nextCombatDiff(gm);
+    await sendOp(gm, "companion:command", { companionActorId: BEAR });
+    expect((await master)["commandMark"]).toBeDefined();
+    expect(JSON.stringify(await player)).not.toContain(MASTER_CMBT);
+  });
+
   it("commanding twice in the same turn does not duplicate the companion", async () => {
     startCombat(MASTER_CMBT);
     await sendOp(p1, "companion:command", { companionActorId: BEAR });

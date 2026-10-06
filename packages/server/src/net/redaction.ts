@@ -1014,6 +1014,8 @@ export function stripHiddenCombatantsFromCombat(
     result["activeCombatantId"] = null;
     // The attack count names the active combatant (onda-6 review I-7).
     result["attackCount"] = null;
+    // Same for the commanded-companion mark of that turn (L3 I4).
+    result["commandMark"] = null;
   }
   return result;
 }
