@@ -588,6 +588,7 @@ export class SocketManager {
       onMountChanged: (sceneId: string) => {
         mapCounter.republishScene(sceneId);
       },
+      ...(compendiumService ? { compendium: compendiumService } : {}),
     };
     registry.register("mount:mount", buildMountHandler(mountDeps));
     registry.register("mount:dismount", buildDismountHandler(mountDeps));
