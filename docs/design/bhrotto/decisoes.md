@@ -76,6 +76,10 @@ construído dependendo da resposta.
 
 - **Q (dono × penalidade)**: o dono pode remover qualquer efeito do próprio ator, inclusive uma penalidade aplicada
   pelo Mestre ou por um inimigo? **Hoje pode.** Nada foi construído dependendo da resposta.
+- **Forçar MAP (BHR-F3-05; decisão provisória do orquestrador, a confirmar, 2026-10-06)**: o seletor recolhido
+  "Forçar MAP" deve tirar o ataque da contagem do MAP (`countsForMap: false`, como pede a GUE-F1-05)? **Provisório:
+  não tira.** Pela regra do PF2e todo ataque conta para o MAP, então o ataque forçado continua contando; o seletor só
+  escolhe qual penalidade aplicar àquele golpe.
 - **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador? **Aberta; decisão
   provisória mantida: conta** (se o Mestre criar o urso, o Bhrotto só cria mais um).
 - ~~**P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**?~~ **Resolvida**: um só companheiro
