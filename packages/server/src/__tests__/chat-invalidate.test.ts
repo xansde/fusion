@@ -269,13 +269,16 @@ function nextChatUpdate(socket: ClientSocket, timeoutMs = 3000): Promise<Record<
   });
 }
 
-/** Resolves to `true` if NO chat doc:update reached this socket within the window. */
+/**
+ * Resolves to `true` if NO chat doc:update carrying a message reached this socket within the window. The envelope may
+ * still arrive EMPTY (no `documents`): it keeps the seq contiguous and says nothing about the message.
+ */
 async function noChatUpdate(socket: ClientSocket, windowMs = 400): Promise<boolean> {
   let seen = false;
   const handler = (envelope: Record<string, unknown>): void => {
     if (envelope["type"] !== "doc:update") return;
-    const payload = envelope["payload"] as { documentType?: string };
-    if (payload.documentType === "ChatMessage") seen = true;
+    const payload = envelope["payload"] as { documentType?: string; documents?: unknown[] };
+    if (payload.documentType === "ChatMessage" && (payload.documents?.length ?? 0) > 0) seen = true;
   };
   socket.on("op", handler);
   await sleep(windowMs);

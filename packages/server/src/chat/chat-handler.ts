@@ -401,15 +401,16 @@ export function broadcastChatMessage(
     // read paths (history/search/context/ack) ended up shipping the total.
     const payload = buildPayloadForSocket(socket, msg, authorId, tokenSource);
 
-    if (payload === null) continue;
-
+    // A socket that may not see the message still gets the envelope, EMPTY: the seq was
+    // burned for everyone, and the client mirror treats a jump as a gap and resyncs
+    // (redaction.ts documents the rule: never swallow an envelope).
     const envelope: Envelope = {
       type: event,
       seq,
       ts: Date.now(),
       payload: {
         documentType: CHAT_DOCUMENT_TYPE,
-        documents: [payload],
+        documents: payload === null ? [] : [payload],
       },
     };
 

@@ -392,8 +392,11 @@ describe("chat:send + roll visibility", () => {
     // Player author gets full result (gmroll — whisper includes gmIds but author also gets it)
     expect(p1Doc).toBeDefined();
 
-    // Player2 must NOT receive any chat message about this roll
-    expect(p2ChatOp).toBeUndefined();
+    // Player2 must NOT receive any chat content about this roll. The envelope itself still
+    // arrives, empty, so the seq the server burned leaves no hole in the player's mirror.
+    expect((p2ChatOp?.payload as { documents?: unknown[] } | undefined)?.documents ?? []).toEqual(
+      [],
+    );
   }, 10_000);
 
   // -------------------------------------------------------------------------
