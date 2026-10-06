@@ -420,6 +420,79 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
       expect(hasCondition(h, goblin, "prone")).toBe(false);
     });
 
+    // BHR-F7-05 D1: a maneuver card (Derrubar) is an announcement with NO
+    // snapshot; the graded skill check nests under it (flags.fusion.parentMessageId)
+    // and carries the frozen snapshot. The card's button names the card.
+    describe("card de manobra: a foto está na rolagem aninhada", () => {
+      function setupCard(
+        childAuthor: string,
+        childSpeakerActor?: string,
+      ): {
+        ogre: string;
+        cardId: string;
+      } {
+        const pc = createActor(h, "PC do jogador", "player-p");
+        const ogre = createActor(h, "Ogro");
+        const sceneId = createSceneWithTokens(h, [
+          { _id: "tok-ogre", name: "Ogro", actorId: ogre },
+        ]);
+        const card = h.store.create(
+          "chat_messages",
+          { author: "player-p", timestamp: Date.now(), speaker: { actorId: pc } },
+          { userId: "player-p" },
+        );
+        const cardId = card["_id"] as string;
+        h.store.create(
+          "chat_messages",
+          {
+            author: childAuthor,
+            timestamp: Date.now(),
+            speaker: { actorId: childSpeakerActor ?? pc },
+            flags: {
+              fusion: {
+                parentMessageId: cardId,
+                targetSnapshot: [{ tokenId: "tok-ogre", actorId: ogre, sceneId }],
+              },
+            },
+          },
+          { userId: childAuthor },
+        );
+        return { ogre, cardId };
+      }
+
+      it("dono aplica no alvo da foto da rolagem aninhada -> ok", async () => {
+        const { ogre, cardId } = setupCard("player-p");
+        const ack = await h.handler(
+          {
+            targetTokenIds: ["tok-ogre"],
+            slug: "prone",
+            mode: "add",
+            source: { messageId: cardId },
+          },
+          playerCtx("player-p"),
+        );
+        expect(ack.ok, JSON.stringify(ack)).toBe(true);
+        expect(hasCondition(h, ogre, "prone")).toBe(true);
+      });
+
+      it("rolagem aninhada de OUTRO falante não vale como foto -> FORBIDDEN", async () => {
+        const other = createActor(h, "Outro PC", "player-q");
+        const { ogre, cardId } = setupCard("player-q", other);
+        const ack = await h.handler(
+          {
+            targetTokenIds: ["tok-ogre"],
+            slug: "prone",
+            mode: "add",
+            source: { messageId: cardId },
+          },
+          playerCtx("player-p"),
+        );
+        expect(ack.ok).toBe(false);
+        if (!ack.ok) expect(ack.code).toBe("FORBIDDEN");
+        expect(hasCondition(h, ogre, "prone")).toBe(false);
+      });
+    });
+
     it("GM aplica em qualquer ator mesmo fora da foto", async () => {
       const { orc, messageId } = setup();
       const ack = await h.handler(
