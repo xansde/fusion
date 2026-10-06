@@ -137,6 +137,9 @@ export function createStubTurnHookContextServices(): TurnHookContextServices {
     deleteEmbedded(): Promise<void> {
       return Promise.reject(new TurnHookContextStubError("deleteEmbedded"));
     },
+    listActors(): Record<string, unknown>[] {
+      throw new TurnHookContextStubError("listActors");
+    },
   };
 }
 
@@ -183,11 +186,17 @@ export interface DocumentWriteTurnHookContextDeps {
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
-): Pick<TurnHookContextServices, "deleteEmbedded" | "chat"> {
+): Pick<TurnHookContextServices, "deleteEmbedded" | "chat" | "listActors"> {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
 
   return {
-    // Neither method below has anything to `await` — every write it makes
+    // BHR-F0-03: read-only world snapshot, so a hook can sweep effects that
+    // live on actors other than the one whose turn is transitioning.
+    listActors() {
+      return deps.store.getAll("actors");
+    },
+
+    // Neither write method below has anything to `await` — every write it makes
     // (`store.update`, `persistChatMessage`, `broadcastToWorld`/
     // `broadcastChatMessage`) is synchronous — but `TurnHookContext.
     // deleteEmbedded`/`chat` are typed `Promise<void>` (the async
