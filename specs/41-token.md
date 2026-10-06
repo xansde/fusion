@@ -498,7 +498,8 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
   movimento por teclado.
 - **REQ-TOK-042** [MVP] O movimento DEVE validar **apenas** a permissão de REQ-TOK-032 e a
   permanência dentro dos limites da cena; NÃO DEVE validar colisão, elevação nem distância
-  percorrida (DEC-TOK-07, DEC-TOK-18).
+  percorrida (DEC-TOK-07, DEC-TOK-18). _(Emenda da spec 52, 2026-10-05: a única exceção é o
+  cavaleiro montado, REQ-TOK-117.)_
 - **REQ-TOK-043** [MVP] O token com footprint maior que uma célula DEVE encaixar no conjunto de
   células ocupadas (REQ-CNV-023), inclusive ao ser movido pelo teclado.
 - **REQ-TOK-044** [MVP] Esta spec NÃO DEVE definir limite de deslocamento por regra de jogo.
@@ -607,6 +608,20 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 - **REQ-TOK-114** [MVP] O gesto DEVE estar ligado à cena que está no ar — não basta existir como
   função: a peça na tela DEVE ser o gatilho (REQ-UIF-046 e a lição do #194, em que a interação com
   peças existia em código e não estava instanciada em tela alguma).
+
+### 5.13 Marca e montaria _(emenda da spec 52, 2026-10-05)_
+
+- **REQ-TOK-115** [MVP] A marca de Presa NÃO DEVE ser gravada na peça: vive no ator que marcou
+  (`Actor.flags.fusion.tokenMarks`, `52-cacador-companheiro-e-montaria.md` §7.1) e só aponta para o
+  token; o selo dela é camada de combate do canvas (REQ-CNV-105), como a retícula de alvo, e não
+  ícone de status da peça (DEC-TOK-19, DEC-TOK-22).
+- **REQ-TOK-116** [MVP] O estado montado DEVE ser gravado nas duas peças em `flags.fusion.mount`
+  (`MountState`, spec 52 §7.6) — namespace do próprio núcleo, não o de um sistema —, escrito só pelas
+  ops `mount:mount` e `mount:dismount`.
+- **REQ-TOK-117** [MVP] Mover a montaria DEVE mover o cavaleiro montado no **mesmo write**; o servidor
+  DEVE recusar a usuário não privilegiado o movimento do cavaleiro montado.
+- **REQ-TOK-118** [MVP] Papel privilegiado PODE mover o cavaleiro montado, e esse movimento DEVE
+  desmontá-lo, limpando `flags.fusion.mount` das duas peças no mesmo write.
 
 ## 6. Requisitos não-funcionais
 

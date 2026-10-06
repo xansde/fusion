@@ -307,6 +307,21 @@ Quando nenhum desempate é fornecido, o núcleo ordena apenas por `initiative` d
 > fixa é o **lugar** do gesto: marcar e limpar alvo é operação do canvas, onde os alvos
 > estão, e o painel de Combate da gaveta NÃO DEVE oferecer esses controles (REQ-CBA-076).
 
+> **Registro da emenda da spec 52** (`52-cacador-companheiro-e-montaria.md`, DEC-BHR-05,
+> 2026-10-05): REQ-CBT-055 continua inalterada. A Presa do Patrulheiro **não** é targeting: é
+> uma marca persistida no ator que caçou (`TokenMark`), que sobrevive ao fim do turno enquanto a
+> mira continua efêmera.
+
+### Expiração ancorada no dono e MAP no servidor _(emenda da spec 52, 2026-10-05)_
+
+**REQ-CBT-068** [MVP] Um efeito com duração contada por turno DEVE vencer no evento de turno do ator indicado em `expiry.ownerActorId`, que PODE ser diferente do ator que aplicou o efeito e do ator que o carrega (ex.: o Apoio aplicado pelo companheiro no dono vence no `turnStart` do dono, não no do companheiro — spec 52, REQ-BHR-005..006).
+
+**REQ-CBT-069** [MVP] O servidor DEVE contar os ataques de cada Combatant no turno (contrato `MapCounter`), zerar a contagem no `turnStart` dele e usá-la como índice de MAP do golpe; o cliente NÃO DEVE decidir o índice, salvo pelo "forçar MAP", que fica registrado no card.
+
+**REQ-CBT-070** [MVP] Enquanto cavaleiro e montaria estiverem montados (`MountState`, spec 52), os dois DEVEM compartilhar a mesma contagem de MAP (`mapGroupOf`): golpe do cavaleiro seguido de golpe da montaria DEVE dar índice 1 ao da montaria, e o `turnStart` DEVE zerar o grupo.
+
+**REQ-CBT-071** [MVP] Desmontar DEVE separar as contagens: o que já foi contado no turno fica com cada um, e os ataques seguintes contam em separado.
+
 ---
 
 ## Requisitos Não-Funcionais

@@ -695,6 +695,23 @@ source }`, aplicadas em cadeia da versão de origem dos dados até a `version`
   no harness como gate de build; falha de contrato DEVE quebrar o CI
   (`ver 25-testes-e-qualidade.md`).
 
+### Handlers e ops da frente do caçador _(emenda da spec 52, 2026-10-05)_
+
+Requisitos obrigados por `52-cacador-companheiro-e-montaria.md`. Os handlers novos registram em
+kebab-case no registro de rule elements trazido pela base do Alquimista (DEC-BHR-23).
+
+- **REQ-SYS-161** [MVP] O motor DEVE ter o handler `item-alteration` na fase `item`, aplicando
+  `traits` e `damage-dice-faces` ao item-alvo quando o predicado casa com as opções do item e do ator
+  (spec 52, REQ-BHR-048); interruptor sustentado por alteração de item deixa de ser "só texto".
+- **REQ-SYS-162** [MVP] O resolvedor único de expiração DEVE ser chamado também por um ouvinte de
+  `onRollResolved`, removendo depois da rolagem o efeito com `expiry.on = "after-roll"` cujo
+  `rollPredicate` casa com ela (spec 52, DEC-BHR-08); NÃO DEVE existir segundo resolvedor.
+- **REQ-SYS-163** [MVP] O núcleo DEVE expor a op `effect:apply` (spec 52 §7.3), com a permissão de
+  DEC-BHR-09 checada no servidor.
+- **REQ-SYS-164** [MVP] O motor DEVE ter o handler `fusion-maneuver-size-limit { maneuvers,
+maxSizeDelta }`, com teste de escopo; sem a regra, o limite das manobras é 1 tamanho acima do
+  executante (spec 52, REQ-BHR-206..207).
+
 ## Requisitos não-funcionais
 
 - **REQ-SYS-130** [MVP] **Tipagem forte ponta a ponta:** nenhum ponto da API
